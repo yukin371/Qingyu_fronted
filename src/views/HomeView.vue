@@ -8,6 +8,19 @@
           青羽书城
         </h1>
         <p class="page-subtitle">发现优质内容，享受阅读乐趣</p>
+        
+        <!-- 用户认证按钮 -->
+        <div class="auth-actions">
+          <el-button 
+            type="primary" 
+            size="large" 
+            @click="goToAuth"
+            class="auth-button"
+          >
+            <el-icon><User /></el-icon>
+            登录 / 注册
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -122,28 +135,32 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useBookstoreStore } from '@/stores/bookstore'
 import BannerCarousel from '@/components/BannerCarousel.vue'
 import RankingList from '@/components/RankingList.vue'
 import BookGrid from '@/components/BookGrid.vue'
+import { User } from '@element-plus/icons-vue'
 
 export default {
   name: 'HomeView',
   components: {
     BannerCarousel,
     RankingList,
-    BookGrid
+    BookGrid,
+    User
   },
   setup() {
+    const router = useRouter()
     const bookstoreStore = useBookstoreStore()
     const loading = ref(false)
 
     // 计算属性
-    const banners = computed(() => bookstoreStore.getHomepageBanners)
-    const recommendedBooks = computed(() => bookstoreStore.getHomepageRecommended)
-    const featuredBooks = computed(() => bookstoreStore.getHomepageFeatured)
-    const rankings = computed(() => bookstoreStore.getHomepageRankings)
+    const banners = computed(() => bookstoreStore.banners)
+    const recommendedBooks = computed(() => bookstoreStore.books.recommended)
+    const featuredBooks = computed(() => bookstoreStore.books.featured)
+    const rankings = computed(() => bookstoreStore.rankings)
     const stats = computed(() => bookstoreStore.homepageData?.stats)
 
     // 格式化数字
@@ -187,6 +204,11 @@ export default {
       ElMessage.info(`书籍详情功能开发中...`)
     }
 
+    // 跳转到认证页面
+    const goToAuth = () => {
+      router.push('/auth')
+    }
+
     // 组件挂载时加载数据
     onMounted(() => {
       loadHomepageData()
@@ -202,7 +224,8 @@ export default {
       formatNumber,
       handleViewRanking,
       handleViewBooks,
-      handleBookClick
+      handleBookClick,
+      goToAuth
     }
   }
 }
@@ -242,9 +265,26 @@ export default {
 }
 
 .page-subtitle {
-  margin: 0;
+  margin: 0 0 20px 0;
   font-size: 18px;
   opacity: 0.9;
+}
+
+.auth-actions {
+  margin-top: 20px;
+}
+
+.auth-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.4);
 }
 
 .main-content {

@@ -5,6 +5,7 @@
       :height="height"
       indicator-position="outside"
       arrow="hover"
+      @change="handleCarouselChange"
     >
       <el-carousel-item 
         v-for="banner in banners" 
@@ -17,6 +18,7 @@
             :alt="banner.title"
             class="banner-image"
             @error="handleImageError"
+            loading="lazy"
           />
           <div class="banner-overlay">
             <div class="banner-content">
@@ -24,16 +26,41 @@
               <p class="banner-description" v-if="banner.description">
                 {{ banner.description }}
               </p>
+              <el-button 
+                v-if="banner.buttonText"
+                type="primary" 
+                size="large"
+                class="banner-button"
+                @click.stop="handleButtonClick(banner)"
+              >
+                {{ banner.buttonText }}
+              </el-button>
             </div>
           </div>
         </div>
       </el-carousel-item>
     </el-carousel>
+
+    <!-- 空状态 -->
+    <div v-if="!banners.length && !loading" class="empty-state">
+      <el-empty description="暂无轮播内容" />
+    </div>
+
+    <!-- 加载状态 -->
+    <div v-if="loading" class="loading-state" :style="{ height }">
+      <el-skeleton animated>
+        <template #template>
+          <el-skeleton-item variant="image" :style="{ height: '100%' }" />
+        </template>
+      </el-skeleton>
+    </div>
   </div>
 </template>
 
 <script>
+import { bookstoreAPI } from '@/api/bookstore'
 import { useBookstoreStore } from '@/stores/bookstore'
+import { ElMessage } from 'element-plus'
 
 export default {
   name: 'BannerCarousel',
@@ -45,41 +72,50 @@ export default {
     height: {
       type: String,
       default: '300px'
+    },
+    loading: {
+      type: Boolean,
+      default: false
     }
   },
-  setup() {
+  emits: ['banner-click', 'button-click', 'carousel-change'],
+  setup(props, { emit }) {
     const bookstoreStore = useBookstoreStore()
 
+    // 处理轮播图点击
     const handleBannerClick = async (banner) => {
-      // 增加点击次数
-      await bookstoreStore.incrementBannerClick(banner.id)
-      
-      // 根据目标类型进行跳转
-      switch (banner.targetType) {
-        case 'book':
-          // 跳转到书籍详情页
-          console.log('跳转到书籍:', banner.target)
-          break
-        case 'category':
-          // 跳转到分类页
-          console.log('跳转到分类:', banner.target)
-          break
-        case 'url':
-          // 跳转到外部链接
-          window.open(banner.target, '_blank')
-          break
-        default:
-          console.log('未知的跳转类型')
+      try {
+        // 增加点击次数
+        await bookstoreAPI.incrementBannerClick(banner.id)
+        
+        // 触发点击事件
+        emit('banner-click', banner)
+      } catch (error) {
+        console.error('记录Banner点击失败:', error)
+        // 即使记录失败也要触发点击事件
+        emit('banner-click', banner)
       }
     }
 
+    // 处理按钮点击
+    const handleButtonClick = (banner) => {
+      emit('button-click', banner)
+    }
+
+    // 处理轮播变化
+    const handleCarouselChange = (index) => {
+      emit('carousel-change', index)
+    }
+
+    // 处理图片加载错误
     const handleImageError = (event) => {
-      // 图片加载失败时使用默认图片
       event.target.src = '/default-book-cover.svg'
     }
 
     return {
       handleBannerClick,
+      handleButtonClick,
+      handleCarouselChange,
       handleImageError
     }
   }
@@ -136,10 +172,50 @@ export default {
 
 .banner-description {
   font-size: 14px;
-  margin: 0;
+  margin: 0 0 16px 0;
   opacity: 0.9;
   line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.banner-button {
+  margin-top: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.loading-state {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .banner-overlay {
+    padding: 20px 15px 15px;
+  }
+
+  .banner-title {
+    font-size: 18px;
+  }
+
+  .banner-description {
+    font-size: 12px;
+  }
+
+  .banner-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
 }
 
 /* 深色模式适配 */

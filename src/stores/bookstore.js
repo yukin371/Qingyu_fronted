@@ -5,50 +5,62 @@ export const useBookstoreStore = defineStore('bookstore', {
   state: () => ({
     // 首页数据
     homepageData: null,
+    
+    // 加载状态
     loading: false,
     error: null,
-
-    // 榜单数据
+    
+    // 排行榜数据
     rankings: {
       realtime: [],
       weekly: [],
       monthly: [],
       newbie: []
     },
-
-    // Banner数据
+    
+    // 轮播图数据
     banners: [],
-
+    
     // 书籍数据
     books: {
       recommended: [],
       featured: [],
-      searchResults: []
+      searchResults: [],
+      categoryBooks: {}
     },
-
+    
     // 分类数据
-    categories: []
+    categories: [],
+    
+    // 搜索相关
+    searchKeyword: '',
+    searchFilters: {},
+    searchLoading: false,
+    
+    // 当前书籍详情
+    currentBook: null,
+    bookLoading: false
   }),
 
   getters: {
-    // 获取首页Banner
-    getHomepageBanners: (state) => {
-      return state.homepageData?.banners || state.banners
-    },
-
-    // 获取首页推荐书籍
-    getHomepageRecommended: (state) => {
-      return state.homepageData?.recommendedBooks || []
-    },
-
-    // 获取首页精选书籍
-    getHomepageFeatured: (state) => {
-      return state.homepageData?.featuredBooks || []
-    },
-
-    // 获取首页榜单数据
-    getHomepageRankings: (state) => {
+    // 获取排行榜数据
+    getRankings: (state) => {
       return state.homepageData?.rankings || {}
+    },
+
+    // 获取分类书籍
+    getCategoryBooks: (state) => (categoryId) => {
+      return state.books.categoryBooks[categoryId] || []
+    },
+
+    // 是否有搜索结果
+    hasSearchResults: (state) => {
+      return state.books.searchResults.length > 0
+    },
+
+    // 搜索结果数量
+    searchResultsCount: (state) => {
+      return state.books.searchResults.length
     }
   },
 
@@ -62,106 +74,128 @@ export const useBookstoreStore = defineStore('bookstore', {
         const response = await bookstoreAPI.getHomepage()
         if (response.code === 200) {
           this.homepageData = response.data
+          
+          // 更新各个数据
+          if (response.data.rankings) {
+            this.rankings = response.data.rankings
+          }
+          if (response.data.banners) {
+            this.banners = response.data.banners
+          }
+          if (response.data.books) {
+            this.books.recommended = response.data.books.recommended || []
+            this.books.featured = response.data.books.featured || []
+          }
+          if (response.data.categories) {
+            this.categories = response.data.categories
+          }
         } else {
-          throw new Error(response.message || '获取首页数据失败')
+          this.error = response.message || '获取首页数据失败'
         }
       } catch (error) {
-        this.error = error.message
         console.error('获取首页数据失败:', error)
+        this.error = '网络错误，请稍后重试'
       } finally {
         this.loading = false
       }
     },
 
-    // 获取榜单数据
-    async fetchRanking(type, period = '', limit = 20) {
+    // 获取排行榜数据
+    async fetchRankings(type = 'realtime') {
+      this.loading = true
+      this.error = null
+      
       try {
-        let response
-        switch (type) {
-          case 'realtime':
-            response = await bookstoreAPI.getRealtimeRanking(limit)
-            break
-          case 'weekly':
-            response = await bookstoreAPI.getWeeklyRanking(period, limit)
-            break
-          case 'monthly':
-            response = await bookstoreAPI.getMonthlyRanking(period, limit)
-            break
-          case 'newbie':
-            response = await bookstoreAPI.getNewbieRanking(period, limit)
-            break
-          default:
-            throw new Error('无效的榜单类型')
-        }
-
+        const response = await bookstoreAPI.getRankings(type)
         if (response.code === 200) {
           this.rankings[type] = response.data
         } else {
-          throw new Error(response.message || `获取${type}榜单失败`)
+          this.error = response.message || '获取排行榜失败'
         }
       } catch (error) {
-        console.error(`获取${type}榜单失败:`, error)
-        throw error
+        console.error('获取排行榜失败:', error)
+        this.error = '网络错误，请稍后重试'
+      } finally {
+        this.loading = false
       }
     },
 
-    // 获取Banner列表
-    async fetchBanners(limit = 5) {
+    // 获取轮播图数据
+    async fetchBanners() {
       try {
-        const response = await bookstoreAPI.getBanners(limit)
+        const response = await bookstoreAPI.getBanners()
         if (response.code === 200) {
           this.banners = response.data
-        } else {
-          throw new Error(response.message || '获取Banner失败')
         }
       } catch (error) {
-        console.error('获取Banner失败:', error)
-        throw error
+        console.error('获取轮播图失败:', error)
       }
     },
 
     // 获取推荐书籍
-    async fetchRecommendedBooks(page = 1, size = 20) {
+    async fetchRecommendedBooks() {
       try {
-        const response = await bookstoreAPI.getRecommendedBooks(page, size)
+        const response = await bookstoreAPI.getRecommendedBooks()
         if (response.code === 200) {
           this.books.recommended = response.data
-        } else {
-          throw new Error(response.message || '获取推荐书籍失败')
         }
       } catch (error) {
         console.error('获取推荐书籍失败:', error)
-        throw error
       }
     },
 
     // 获取精选书籍
-    async fetchFeaturedBooks(page = 1, size = 20) {
+    async fetchFeaturedBooks() {
       try {
-        const response = await bookstoreAPI.getFeaturedBooks(page, size)
+        const response = await bookstoreAPI.getFeaturedBooks()
         if (response.code === 200) {
           this.books.featured = response.data
-        } else {
-          throw new Error(response.message || '获取精选书籍失败')
         }
       } catch (error) {
         console.error('获取精选书籍失败:', error)
-        throw error
       }
     },
 
     // 搜索书籍
     async searchBooks(keyword, filters = {}) {
+      this.searchLoading = true
+      this.searchKeyword = keyword
+      this.searchFilters = filters
+      
       try {
         const response = await bookstoreAPI.searchBooks(keyword, filters)
         if (response.code === 200) {
           this.books.searchResults = response.data
         } else {
-          throw new Error(response.message || '搜索书籍失败')
+          this.books.searchResults = []
+          this.error = response.message || '搜索失败'
         }
       } catch (error) {
         console.error('搜索书籍失败:', error)
-        throw error
+        this.books.searchResults = []
+        this.error = '网络错误，请稍后重试'
+      } finally {
+        this.searchLoading = false
+      }
+    },
+
+    // 获取书籍详情
+    async fetchBookDetail(bookId) {
+      this.bookLoading = true
+      this.error = null
+      
+      try {
+        const response = await bookstoreAPI.getBookDetail(bookId)
+        if (response.code === 200) {
+          this.currentBook = response.data
+        } else {
+          this.error = response.message || '获取书籍详情失败'
+        }
+      } catch (error) {
+        console.error('获取书籍详情失败:', error)
+        this.error = '网络错误，请稍后重试'
+      } finally {
+        this.bookLoading = false
       }
     },
 
@@ -169,18 +203,85 @@ export const useBookstoreStore = defineStore('bookstore', {
     async incrementBookView(bookId) {
       try {
         await bookstoreAPI.incrementBookView(bookId)
+        
+        // 更新本地数据
+        if (this.currentBook && this.currentBook.id === bookId) {
+          this.currentBook.viewCount = (this.currentBook.viewCount || 0) + 1
+        }
+        
+        // 更新书籍列表中的浏览量
+        this.updateBookViewCount(bookId)
       } catch (error) {
-        console.error('增加浏览量失败:', error)
+        console.error('增加书籍浏览量失败:', error)
       }
     },
 
-    // 增加Banner点击次数
+    // 增加轮播图点击量
     async incrementBannerClick(bannerId) {
       try {
         await bookstoreAPI.incrementBannerClick(bannerId)
       } catch (error) {
-        console.error('增加Banner点击次数失败:', error)
+        console.error('增加轮播图点击量失败:', error)
       }
+    },
+
+    // 更新书籍浏览量（本地更新）
+    updateBookViewCount(bookId) {
+      // 更新推荐书籍
+      const recommendedIndex = this.books.recommended.findIndex(book => book.id === bookId)
+      if (recommendedIndex !== -1) {
+        this.books.recommended[recommendedIndex].viewCount = (this.books.recommended[recommendedIndex].viewCount || 0) + 1
+      }
+      
+      // 更新精选书籍
+      const featuredIndex = this.books.featured.findIndex(book => book.id === bookId)
+      if (featuredIndex !== -1) {
+        this.books.featured[featuredIndex].viewCount = (this.books.featured[featuredIndex].viewCount || 0) + 1
+      }
+      
+      // 更新搜索结果
+      const searchIndex = this.books.searchResults.findIndex(book => book.id === bookId)
+      if (searchIndex !== -1) {
+        this.books.searchResults[searchIndex].viewCount = (this.books.searchResults[searchIndex].viewCount || 0) + 1
+      }
+    },
+
+    // 清除搜索结果
+    clearSearchResults() {
+      this.books.searchResults = []
+      this.searchKeyword = ''
+      this.searchFilters = {}
+    },
+
+    // 清除错误
+    clearError() {
+      this.error = null
+    },
+
+    // 重置状态
+    resetState() {
+      this.homepageData = null
+      this.loading = false
+      this.error = null
+      this.rankings = {
+        realtime: [],
+        weekly: [],
+        monthly: [],
+        newbie: []
+      }
+      this.banners = []
+      this.books = {
+        recommended: [],
+        featured: [],
+        searchResults: [],
+        categoryBooks: {}
+      }
+      this.categories = []
+      this.searchKeyword = ''
+      this.searchFilters = {}
+      this.searchLoading = false
+      this.currentBook = null
+      this.bookLoading = false
     }
   }
 })

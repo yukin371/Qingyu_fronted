@@ -27,6 +27,7 @@
             :alt="book.title"
             class="book-cover"
             @error="handleImageError"
+            loading="lazy"
           />
           <div class="book-overlay">
             <el-button type="primary" size="small" circle>
@@ -45,24 +46,22 @@
                 <el-icon><View /></el-icon>
                 {{ formatNumber(book.viewCount) }}
               </span>
-              <span class="stat-item">
+              <span class="stat-item" v-if="book.likeCount">
                 <el-icon><Star /></el-icon>
                 {{ formatNumber(book.likeCount) }}
               </span>
             </div>
             
-            <div class="book-rating" v-if="book.rating">
-              <el-rate 
-                :model-value="book.rating" 
-                disabled 
-                size="small"
-                :max="5"
-                show-score
-                text-color="#ff9900"
-              />
+            <div class="book-price" v-if="book.price !== undefined">
+              <span class="price-current">
+                {{ book.price === 0 ? '免费' : `¥${book.price}` }}
+              </span>
+              <span class="price-original" v-if="book.originalPrice && book.originalPrice > book.price">
+                ¥{{ book.originalPrice }}
+              </span>
             </div>
           </div>
-          
+
           <div class="book-tags" v-if="book.tags && book.tags.length">
             <el-tag 
               v-for="tag in book.tags.slice(0, 2)" 
@@ -76,29 +75,40 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 空状态 -->
-      <div v-if="!loading && displayBooks.length === 0" class="empty-state">
-        <el-empty description="暂无书籍数据" />
-      </div>
+    <!-- 空状态 -->
+    <div v-if="!displayBooks.length && !loading" class="empty-state">
+      <el-empty :description="emptyText" />
     </div>
   </div>
 </template>
 
 <script>
 import { computed } from 'vue'
-import { useBookstoreStore } from '@/stores/bookstore'
+import { useRouter } from 'vue-router'
+import { bookstoreAPI } from '@/api/bookstore'
+import { ArrowRight, View, Star } from '@element-plus/icons-vue'
 
 export default {
   name: 'BookGrid',
+  components: {
+    ArrowRight,
+    View,
+    Star
+  },
   props: {
+    books: {
+      type: Array,
+      default: () => []
+    },
     title: {
       type: String,
       default: ''
     },
-    books: {
-      type: Array,
-      default: () => []
+    showMore: {
+      type: Boolean,
+      default: false
     },
     loading: {
       type: Boolean,
@@ -106,52 +116,68 @@ export default {
     },
     maxItems: {
       type: Number,
-      default: 8
+      default: 0
     },
-    showMore: {
-      type: Boolean,
-      default: true
+    emptyText: {
+      type: String,
+      default: '暂无书籍'
     },
-    columns: {
+    gridCols: {
       type: Number,
-      default: 4
+      default: 5,
+      validator: (value) => [3, 4, 5, 6].includes(value)
     }
   },
-  emits: ['view-more', 'book-click'],
+  emits: ['book-click', 'view-more'],
   setup(props, { emit }) {
-    const bookstoreStore = useBookstoreStore()
+    const router = useRouter()
 
+    // 计算显示的书籍列表
     const displayBooks = computed(() => {
-      return props.books.slice(0, props.maxItems)
+      if (props.maxItems > 0) {
+        return props.books.slice(0, props.maxItems)
+      }
+      return props.books
     })
 
-    const formatNumber = (num) => {
-      if (num >= 10000) {
-        return (num / 10000).toFixed(1) + 'w'
-      }
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'k'
-      }
-      return num?.toString() || '0'
-    }
-
+    // 处理书籍点击
     const handleBookClick = async (book) => {
-      // 增加书籍浏览量
-      await bookstoreStore.incrementBookView(book.id)
-      
-      emit('book-click', book)
+      try {
+        // 增加浏览量
+        await bookstoreAPI.incrementBookView(book.id)
+        
+        // 触发点击事件
+        emit('book-click', book)
+        
+        // 跳转到书籍详情页
+        router.push(`/books/${book.id}`)
+      } catch (error) {
+        console.error('记录书籍浏览失败:', error)
+        // 即使记录失败也要跳转
+        emit('book-click', book)
+        router.push(`/books/${book.id}`)
+      }
     }
 
+    // 处理图片加载错误
     const handleImageError = (event) => {
-      // 图片加载失败时使用默认图片
       event.target.src = '/default-book-cover.svg'
+    }
+
+    // 格式化数字
+    const formatNumber = (num) => {
+      if (!num) return '0'
+      if (num < 1000) return num.toString()
+      if (num < 10000) return (num / 1000).toFixed(1) + 'k'
+      if (num < 100000) return (num / 10000).toFixed(1) + 'w'
+      return (num / 10000).toFixed(0) + 'w'
     }
 
     return {
       displayBooks,
-      formatNumber,
       handleBookClick,
-      handleImageError
+      handleImageError,
+      formatNumber
     }
   }
 }
@@ -184,6 +210,11 @@ export default {
 .view-more-btn {
   color: #409eff;
   padding: 0;
+  font-weight: 500;
+}
+
+.view-more-btn:hover {
+  color: #66b1ff;
 }
 
 .book-list {
@@ -198,6 +229,7 @@ export default {
   transition: transform 0.2s, box-shadow 0.2s;
   border-radius: 8px;
   overflow: hidden;
+  background: #fff;
 }
 
 .book-card:hover {
@@ -231,7 +263,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -248,46 +280,65 @@ export default {
 }
 
 .book-title {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: #333;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
 }
 
 .book-author {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
+  margin: 0 0 8px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .book-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
 }
 
 .book-stats {
   display: flex;
-  align-items: center;
   gap: 12px;
-  font-size: 12px;
-  margin-bottom: 8px;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 2px;
+  font-size: 11px;
   color: #999;
 }
 
-.book-rating {
-  margin-bottom: 8px;
+.stat-item .el-icon {
+  font-size: 12px;
+}
+
+.book-price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.price-current {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+.price-original {
+  font-size: 12px;
+  color: #999;
+  text-decoration: line-through;
 }
 
 .book-tags {
@@ -296,37 +347,55 @@ export default {
   flex-wrap: wrap;
 }
 
+.book-tags .el-tag {
+  font-size: 10px;
+  height: 18px;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
 .empty-state {
   grid-column: 1 / -1;
-  padding: 40px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #f5f7fa;
+  border-radius: 8px;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .book-list {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .book-grid {
+    padding: 16px;
+  }
+
+  .book-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
   .book-cover-container {
     height: 200px;
   }
-  
-  .book-title {
-    font-size: 14px;
-  }
-  
-  .book-author {
-    font-size: 12px;
+
+  .grid-title {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .book-list {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
   }
-  
+
   .book-cover-container {
     height: 180px;
   }
@@ -335,20 +404,32 @@ export default {
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
   .book-grid {
-    background: #1a1a1a;
-    color: #e0e0e0;
+    background: #1d1e1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
-  
+
+  .book-card {
+    background: #1d1e1f;
+  }
+
   .grid-title {
-    color: #e0e0e0;
+    color: #e5eaf3;
   }
-  
+
   .book-title {
-    color: #e0e0e0;
+    color: #e5eaf3;
   }
-  
+
   .book-author {
-    color: #b0b0b0;
+    color: #a3a6ad;
+  }
+
+  .stat-item {
+    color: #a3a6ad;
+  }
+
+  .empty-state {
+    background: #2d2e2f;
   }
 }
 </style>
