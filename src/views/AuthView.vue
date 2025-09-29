@@ -14,15 +14,21 @@
           </p>
           <div class="brand-features">
             <div class="feature-item">
-              <el-icon><Reading /></el-icon>
+              <el-icon>
+                <Reading />
+              </el-icon>
               <span>海量图书资源</span>
             </div>
             <div class="feature-item">
-              <el-icon><Star /></el-icon>
+              <el-icon>
+                <Star />
+              </el-icon>
               <span>个性化推荐</span>
             </div>
             <div class="feature-item">
-              <el-icon><ChatDotRound /></el-icon>
+              <el-icon>
+                <ChatDotRound />
+              </el-icon>
               <span>社区互动交流</span>
             </div>
           </div>
@@ -34,16 +40,10 @@
         <div class="form-container">
           <!-- 切换标签 -->
           <div class="form-tabs">
-            <button
-              :class="['tab-button', { active: currentTab === 'login' }]"
-              @click="switchTab('login')"
-            >
+            <button :class="['tab-button', { active: currentTab === 'login' }]" @click="switchTab('login')">
               登录
             </button>
-            <button
-              :class="['tab-button', { active: currentTab === 'register' }]"
-              @click="switchTab('register')"
-            >
+            <button :class="['tab-button', { active: currentTab === 'register' }]" @click="switchTab('register')">
               注册
             </button>
           </div>
@@ -51,19 +51,10 @@
           <!-- 表单内容 -->
           <div class="form-content">
             <transition name="slide-fade" mode="out-in">
-              <LoginForm
-                v-if="currentTab === 'login'"
-                key="login"
-                @login-success="handleLoginSuccess"
-                @switch-to-register="switchTab('register')"
-                @forgot-password="handleForgotPassword"
-              />
-              <RegisterForm
-                v-else
-                key="register"
-                @register-success="handleRegisterSuccess"
-                @switch-to-login="switchTab('login')"
-              />
+              <LoginForm v-if="currentTab === 'login'" key="login" @login-success="handleLoginSuccess"
+                @switch-to-register="switchTab('register')" @forgot-password="handleForgotPassword" />
+              <RegisterForm v-else key="register" @register-success="handleRegisterSuccess"
+                @switch-to-login="switchTab('login')" />
             </transition>
           </div>
         </div>
@@ -71,16 +62,8 @@
     </div>
 
     <!-- 忘记密码对话框 -->
-    <el-dialog
-      v-model="forgotPasswordVisible"
-      title="重置密码"
-      width="400px"
-      :close-on-click-modal="false"
-    >
-      <ForgotPasswordForm
-        @reset-success="handleResetSuccess"
-        @cancel="forgotPasswordVisible = false"
-      />
+    <el-dialog v-model="forgotPasswordVisible" title="重置密码" width="400px" :close-on-click-modal="false">
+      <ForgotPasswordForm @reset-success="handleResetSuccess" @cancel="forgotPasswordVisible = false" />
     </el-dialog>
   </div>
 </template>
@@ -170,8 +153,7 @@ export default {
 
 <style scoped>
 .auth-view {
-  min-height: 100vh;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +174,7 @@ export default {
 /* 品牌展示区域 */
 .brand-section {
   flex: 1;
-  background: #4a5568;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -222,7 +204,10 @@ export default {
   font-size: 32px;
   font-weight: 700;
   margin: 0;
-  color: white;
+  background: linear-gradient(45deg, #fff, #f0f8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .brand-description {
