@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/auth',
       name: 'auth',
       component: () => import('@/views/AuthView.vue')
+    },
+    {
+      path: '/shared-api-test',
+      name: 'shared-api-test',
+      component: () => import('@/views/SharedAPITestView.vue')
     }
   ]
 })
