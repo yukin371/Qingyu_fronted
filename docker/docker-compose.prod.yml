@@ -1,0 +1,22 @@
+# 前端生产环境 Docker Compose 配置
+services:
+  # 前端生产服务（Nginx）
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.prod
+    container_name: qingyu-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - qingyu-network
+
+networks:
+  qingyu-network:
+    name: qingyu-network
+    external: true
+

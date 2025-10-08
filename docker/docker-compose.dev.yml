@@ -1,0 +1,29 @@
+# 前端开发环境 Docker Compose 配置
+services:
+  # 前端开发服务
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    container_name: qingyu-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    # volumes:
+      # 注意：由于Windows中文路径问题，暂时禁用卷挂载
+      # 如需热重载，请使用WSL2并将项目放在WSL文件系统中
+      # - E:/Github/青羽/Qingyu:/app
+      # - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:8080
+    networks:
+      - qingyu-network
+    stdin_open: true
+    tty: true
+
+networks:
+  qingyu-network:
+    name: qingyu-network
+    external: true
+

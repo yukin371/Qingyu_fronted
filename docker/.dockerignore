@@ -1,0 +1,38 @@
+# Node模块和构建输出
+node_modules
+dist
+.vite
+.cache
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 编辑器和IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 测试覆盖率
+coverage
+*.lcov
+
+# 临时文件
+tmp
+temp
+.tmp
+
+# Docker相关
+# docker/ - 注释掉以允许复制nginx.conf等配置
+Dockerfile*

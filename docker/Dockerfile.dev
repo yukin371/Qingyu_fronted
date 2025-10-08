@@ -1,0 +1,26 @@
+# 前端开发环境 Dockerfile
+FROM node:22-alpine
+
+# 设置工作目录
+WORKDIR /app
+
+# 设置npm镜像（加速依赖安装）
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制package.json和package-lock.json
+COPY package*.json ./
+
+# 安装依赖
+RUN npm ci
+
+# 复制项目文件（解决中文路径挂载问题）
+COPY . .
+
+# 暴露Vite开发服务器端口
+EXPOSE 5173
+
+# 启动开发服务器
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+
+
