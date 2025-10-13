@@ -7,10 +7,10 @@
           <el-icon class="logo-icon"><Reading /></el-icon>
           <span class="logo-text">青羽书城</span>
         </div>
-        
+
         <div class="nav-menu">
-          <el-menu 
-            mode="horizontal" 
+          <el-menu
+            mode="horizontal"
             :default-active="$route.path"
             router
             class="nav-menu-items"
@@ -19,9 +19,10 @@
             <el-menu-item index="/rankings">榜单</el-menu-item>
             <el-menu-item index="/books">书籍</el-menu-item>
             <el-menu-item index="/categories">分类</el-menu-item>
+            <el-menu-item index="/writer">创作</el-menu-item>
           </el-menu>
         </div>
-        
+
         <div class="header-actions">
           <el-input
             v-model="searchKeyword"
@@ -188,15 +189,15 @@ body {
   .header-content {
     padding: 0 16px;
   }
-  
+
   .nav-menu {
     display: none;
   }
-  
+
   .search-input {
     width: 180px;
   }
-  
+
   .logo-text {
     display: none;
   }
@@ -218,12 +219,12 @@ body {
     background-color: #121212;
     color: #e0e0e0;
   }
-  
+
   .app-header {
     background: #1a1a1a;
     border-bottom: 1px solid #333;
   }
-  
+
   .app-main {
     background: #121212;
   }

@@ -7,6 +7,7 @@
 前端API集成旨在建立一套标准化、可维护、高性能的接口调用体系，确保前后端数据交互的稳定性和一致性。
 
 **核心目标**：
+
 - **统一性**：标准化的接口调用方式和数据格式
 - **可靠性**：完善的错误处理和重试机制
 - **性能**：优化的缓存策略和请求合并
@@ -48,10 +49,10 @@ client.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
+  
     // 添加请求ID用于追踪
     config.headers['X-Request-ID'] = generateRequestId()
-    
+  
     // 添加时间戳防止缓存
     if (config.method === 'get') {
       config.params = {
@@ -59,10 +60,10 @@ client.interceptors.request.use(
         _t: Date.now()
       }
     }
-    
+  
     // 请求日志
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || config.data)
-    
+  
     return config
   },
   (error) => {
@@ -76,10 +77,10 @@ client.interceptors.response.use(
   (response) => {
     // 响应日志
     console.log(`[API Response] ${response.config.url}`, response.data)
-    
+  
     // 统一响应格式处理
     const { code, data, message } = response.data
-    
+  
     if (code === 200) {
       return { ...response.data, success: true }
     } else {
@@ -93,12 +94,12 @@ client.interceptors.response.use(
   (error) => {
     // HTTP错误处理
     const { response, request, message } = error
-    
+  
     if (response) {
       // 服务器响应错误
       const { status, data } = response
       const errorMessage = data?.message || getStatusMessage(status)
-      
+    
       // 特殊状态码处理
       switch (status) {
         case 401:
@@ -120,7 +121,7 @@ client.interceptors.response.use(
         default:
           ElMessage.error(errorMessage)
       }
-      
+    
       error.message = errorMessage
     } else if (request) {
       // 网络错误
@@ -130,7 +131,7 @@ client.interceptors.response.use(
       // 其他错误
       ElMessage.error(message || '请求失败')
     }
-    
+  
     console.error('[API Response Error]', error)
     return Promise.reject(error)
   }
@@ -479,7 +480,7 @@ class APICache {
       data,
       timestamp: Date.now()
     })
-    
+  
     this.ttl.set(key, ttl)
   }
 
@@ -525,7 +526,7 @@ class APICache {
    */
   cleanup() {
     const now = Date.now()
-    
+  
     for (const [key, item] of this.cache.entries()) {
       const ttl = this.ttl.get(key)
       if (now - item.timestamp > ttl) {
@@ -562,7 +563,7 @@ export function withCache(ttl = 5 * 60 * 1000) {
     descriptor.value = async function(...args) {
       // 生成缓存键
       const cacheKey = `${target.constructor.name}_${propertyKey}_${JSON.stringify(args)}`
-      
+    
       // 尝试从缓存获取
       const cached = apiCache.get(cacheKey)
       if (cached) {
@@ -708,7 +709,7 @@ export const useBookstoreStore = defineStore('bookstore', {
   state: () => ({
     // 首页数据
     homepageData: null,
-    
+  
     // 榜单数据
     rankings: {
       realtime: [],
@@ -716,21 +717,21 @@ export const useBookstoreStore = defineStore('bookstore', {
       monthly: [],
       newbie: []
     },
-    
+  
     // 书籍数据
     books: {
       recommended: [],
       featured: [],
       searchResults: []
     },
-    
+  
     // 加载状态
     loading: {
       homepage: false,
       rankings: false,
       books: false
     },
-    
+  
     // 错误状态
     errors: {}
   }),
@@ -790,7 +791,7 @@ export const useBookstoreStore = defineStore('bookstore', {
      */
     async fetchHomepageData() {
       const loadingKey = 'homepage'
-      
+    
       this.setLoading(loadingKey, true)
       this.setError(loadingKey, null)
 
@@ -813,7 +814,7 @@ export const useBookstoreStore = defineStore('bookstore', {
      */
     async fetchRanking(type, period = '', limit = 20) {
       const loadingKey = `ranking_${type}`
-      
+    
       this.setLoading(loadingKey, true)
       this.setError(loadingKey, null)
 
@@ -852,7 +853,7 @@ export const useBookstoreStore = defineStore('bookstore', {
      */
     async searchBooks(keyword, filters = {}) {
       const loadingKey = 'search'
-      
+    
       this.setLoading(loadingKey, true)
       this.setError(loadingKey, null)
 
@@ -939,13 +940,13 @@ export function useBookstore() {
     books,
     loading,
     errors,
-    
+  
     // 计算属性
     banners,
     recommendedBooks,
     isHomepageLoading,
     homepageError,
-    
+  
     // 方法
     fetchHomepageData,
     fetchRanking,
@@ -1049,7 +1050,7 @@ export class ErrorHandler {
 
   static handleAPIError(error) {
     console.error('[API Error]', error)
-    
+  
     // 根据错误码进行不同处理
     switch (error.code) {
       case 401:
@@ -1092,7 +1093,7 @@ export class ErrorHandler {
     // 清除认证信息
     localStorage.removeItem('auth_token')
     sessionStorage.removeItem('auth_token')
-    
+  
     // 跳转登录页
     window.location.href = '/login'
   }
@@ -1127,25 +1128,25 @@ export function withRetry(config = RETRY_CONFIG) {
 
     descriptor.value = async function(...args) {
       let lastError
-      
+    
       for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
         try {
           return await originalMethod.apply(this, args)
         } catch (error) {
           lastError = error
-          
+        
           // 检查是否应该重试
           if (attempt === config.maxRetries || !config.retryCondition(error)) {
             throw error
           }
-          
+        
           // 等待后重试
           const delay = config.retryDelay * Math.pow(2, attempt) // 指数退避
           console.log(`[Retry] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`)
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
-      
+    
       throw lastError
     }
 
@@ -1167,11 +1168,11 @@ export async function retry(fn, config = RETRY_CONFIG) {
       return await fn()
     } catch (error) {
       lastError = error
-      
+    
       if (attempt === config.maxRetries || !config.retryCondition(error)) {
         throw error
       }
-      
+    
       const delay = config.retryDelay * Math.pow(2, attempt)
       await new Promise(resolve => setTimeout(resolve, delay))
     }
@@ -1230,7 +1231,7 @@ class RequestBatcher {
 
         try {
           const results = await batchFn(items)
-          
+        
           // 分发结果
           promises.forEach((promise, index) => {
             promise.resolve(results[index])
@@ -1470,23 +1471,23 @@ export class PerformanceAnalyzer {
    */
   static async measure(name, fn) {
     const startTime = performance.now()
-    
+  
     try {
       const result = await fn()
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+    
       // 记录性能指标
       this.recordMetric(name, duration, true)
-      
+    
       return result
     } catch (error) {
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+    
       // 记录错误指标
       this.recordMetric(name, duration, false)
-      
+    
       throw error
     }
   }
@@ -1549,6 +1550,5 @@ export class PerformanceAnalyzer {
 
 ---
 
-**文档版本**：v1.0.0  
-**最后更新**：2024年1月  
-**维护者**：前端API团队
+**文档版本**：v1.0
+**最后更新**：2025年9月
