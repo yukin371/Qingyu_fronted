@@ -4,21 +4,21 @@
     <div class="editor-header" v-show="!isFocusMode">
       <div class="header-left">
         <el-button @click="goBack" link class="back-btn">
-          <el-icon><ArrowLeft /></el-icon>
+          <el-icon>
+            <ArrowLeft />
+          </el-icon>
           返回
         </el-button>
         <div class="document-title-container">
-          <el-input
-            v-model="documentTitle"
-            class="document-title-input"
-            placeholder="文档标题"
-          />
+          <el-input v-model="documentTitle" class="document-title-input" placeholder="文档标题" />
         </div>
         <el-button @click="toggleFocusMode" link>
           {{ isFocusMode ? '退出专注' : '专注模式' }}
         </el-button>
         <el-button @click="exportDocument" link>
-          <el-icon><Download /></el-icon>
+          <el-icon>
+            <Download />
+          </el-icon>
           导出
         </el-button>
       </div>
@@ -26,14 +26,8 @@
 
     <!-- 主编辑区域 -->
     <div class="main-content">
-      <textarea
-        ref="editorTextarea"
-        v-model="fileContent"
-        class="editor-textarea"
-        placeholder="开始写作..."
-        @keydown.tab.prevent="handleTab"
-        @input="handleContentChange"
-      ></textarea>
+      <textarea ref="editorTextarea" v-model="fileContent" class="editor-textarea" placeholder="开始写作..."
+        @keydown.tab.prevent="handleTab" @input="handleContentChange"></textarea>
     </div>
 
     <!-- 底部状态栏 -->
@@ -51,15 +45,21 @@
     <el-dialog v-model="showExportDialog" title="导出文档" width="400px">
       <div class="export-options">
         <el-button @click="exportAsText" class="export-option">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
           纯文本 (.txt)
         </el-button>
         <el-button @click="exportAsMarkdown" class="export-option">
-          <el-icon><EditPen /></el-icon>
+          <el-icon>
+            <EditPen />
+          </el-icon>
           Markdown (.md)
         </el-button>
         <el-button @click="exportAsHTML" class="export-option">
-          <el-icon><View /></el-icon>
+          <el-icon>
+            <View />
+          </el-icon>
           HTML (.html)
         </el-button>
       </div>
@@ -69,11 +69,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ArrowLeft, Download, Document, EditPen, View } from '@element-plus/icons-vue'
 import { renderMarkdown } from '../utils/markdown'
 
-const route = useRoute()
 const router = useRouter()
 
 // --- State ---
@@ -410,4 +409,3 @@ onBeforeUnmount(() => {
   padding: 12px;
 }
 </style>
-

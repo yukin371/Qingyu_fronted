@@ -20,6 +20,10 @@
             <el-menu-item index="/books">书籍</el-menu-item>
             <el-menu-item index="/categories">分类</el-menu-item>
             <el-menu-item index="/writer">创作</el-menu-item>
+            <el-menu-item index="/api-test">
+              <el-icon><Setting /></el-icon>
+              API测试
+            </el-menu-item>
           </el-menu>
         </div>
 
@@ -58,6 +62,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Setting } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const searchKeyword = ref('')

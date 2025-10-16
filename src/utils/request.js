@@ -19,7 +19,7 @@ request.interceptors.request.use(
     if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`
     }
-    
+
     // 添加请求时间戳，防止缓存
     if (config.method === 'get') {
       config.params = {
@@ -27,7 +27,7 @@ request.interceptors.request.use(
         _t: Date.now()
       }
     }
-    
+
     return config
   },
   error => {
@@ -40,10 +40,11 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   response => {
     const { data } = response
-    
+
     // 统一处理响应格式
     if (data.code !== undefined) {
-      if (data.code === 200) {
+      // 2xx状态码都视为成功
+      if (data.code >= 200 && data.code < 300) {
         return data.data || data
       } else {
         // 业务错误
@@ -52,18 +53,18 @@ request.interceptors.response.use(
         return Promise.reject(new Error(errorMessage))
       }
     }
-    
+
     // 直接返回数据
     return data
   },
   error => {
     console.error('API请求错误:', error)
-    
+
     // 处理HTTP状态码错误
     if (error.response) {
       const { status, data } = error.response
       let errorMessage = '请求失败'
-      
+
       switch (status) {
         case 400:
           errorMessage = data?.message || '请求参数错误'
@@ -92,7 +93,7 @@ request.interceptors.response.use(
         default:
           errorMessage = data?.message || `请求失败 (${status})`
       }
-      
+
       ElMessage.error(errorMessage)
       return Promise.reject(new Error(errorMessage))
     } else if (error.request) {

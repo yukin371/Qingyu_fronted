@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,10 +35,43 @@ const router = createRouter({
       name: 'auth',
       component: () => import('@/views/AuthView.vue')
     },
+    // 用户认证路由
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue'),
+      meta: { title: '登录/注册', guest: true }
+    },
+    // 用户中心路由（需要认证）
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/views/ProfileView.vue'),
+      meta: { title: '个人中心', requiresAuth: true }
+    },
+    // 管理员路由（需要管理员权限）
+    {
+      path: '/admin',
+      name: 'admin',
+      redirect: '/admin/users',
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('@/views/admin/UserManagement.vue'),
+      meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
+    },
     {
       path: '/shared-api-test',
       name: 'shared-api-test',
       component: () => import('@/views/SharedAPITestView.vue')
+    },
+    {
+      path: '/api-test',
+      name: 'api-test',
+      component: () => import('@/views/APITestView.vue'),
+      meta: { title: 'API测试工具' }
     },
     // Writer 模块路由
     {
@@ -85,6 +119,45 @@ const router = createRouter({
       meta: { title: '404 - 页面未找到' }
     }
   ]
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  // 设置页面标题
+  if (to.meta.title) {
+    document.title = `${to.meta.title} - 青羽`
+  } else {
+    document.title = '青羽 - 在线阅读平台'
+  }
+
+  // 检查是否需要认证
+  if (to.meta.requiresAuth) {
+    if (!authStore.isLoggedIn) {
+      // 未登录，跳转到登录页
+      next({
+        name: 'login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    // 检查是否需要管理员权限
+    if (to.meta.requiresAdmin && !authStore.isAdmin) {
+      // 非管理员，跳转到403页面
+      next({ name: 'forbidden' })
+      return
+    }
+  }
+
+  // 已登录用户访问登录页，跳转到首页
+  if (to.meta.guest && authStore.isLoggedIn) {
+    next({ name: 'home' })
+    return
+  }
+
+  next()
 })
 
 export default router
