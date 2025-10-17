@@ -1,232 +1,276 @@
 # 青羽书城前端文档
 
-## 📚 文档导航
+欢迎来到青羽书城前端项目文档中心！
 
-欢迎来到青羽书城前端文档中心！本文档库包含了项目的完整技术文档，按照功能模块和文档类型进行了系统化组织。
+## 📖 项目简介
 
-## 项目介绍
+青羽书城前端是基于 **Vue 3 + Element Plus** 构建的现代化书城展示系统，为用户提供优雅的书籍浏览和阅读体验。
 
-**青羽书城前端** 是基于 Vue 3 + Element Plus 构建的现代化书城展示系统，为用户提供优雅的书籍浏览、榜单查看和阅读体验。
-
-**技术栈**：Vue 3 + Composition API、Element Plus、Pinia、Vue Router 4、Axios、Vite
-
-## 🗂️ 文档结构
-
-### 📋 项目概览
-
-- [项目开发规范](./项目开发规范.md) - 前端开发规范和最佳实践
-- [文档架构管理规范](./文档架构管理规范.md) - 文档组织和维护规范
-- [前端文档整理方案](./前端文档整理方案.md) - 文档整理完善方案
-
-### 🏗️ 架构设计
-
-**[架构文档导航](./architecture/README.md)**
-
-- [前端架构设计](./architecture/前端架构设计.md) - 整体架构设计和技术选型
-- [技术选型](./architecture/技术选型.md) - 技术栈选择和决策依据
-- [组件架构设计](./architecture/组件架构设计.md) - 组件设计原则和规范
-- [状态管理架构](./architecture/状态管理架构.md) - Pinia状态管理架构
-- [路由架构设计](./architecture/路由架构设计.md) - Vue Router路由架构
-- [性能优化架构](./architecture/性能优化架构.md) - 性能优化策略
-
-### 🎨 功能设计
-
-**[设计文档导航](./design/README.md)**
-
-#### 组件设计
-- [组件设计总览](./design/components/README.md) - 组件设计体系概述
-  - [通用组件](./design/components/common/) - 基础通用组件
-  - [业务组件](./design/components/business/) - 业务相关组件
-  - [布局组件](./design/components/layout/) - 布局相关组件
-
-#### 页面设计
-- [页面设计总览](./design/pages/README.md)
-  - [首页设计](./design/pages/HomePage设计.md)
-  - [榜单页设计](./design/pages/RankingsPage设计.md)
-
-#### 功能模块设计
-- [功能模块总览](./design/features/README.md)
-  - [用户认证设计](./design/features/用户认证设计.md)
-  - [书籍搜索设计](./design/features/书籍搜索设计.md)
-  - [书架管理设计](./design/features/书架管理设计.md)
-
-#### UI/UX设计
-- [UI/UX设计总览](./design/ui-ux/README.md)
-  - [设计系统](./design/ui-ux/设计系统.md)
-  - [主题定制](./design/ui-ux/主题定制.md)
-  - [响应式设计](./design/ui-ux/响应式设计.md)
-  - [无障碍设计](./design/ui-ux/无障碍设计.md)
-
-#### API集成设计
-- [API集成规范](./design/api/API集成规范.md)
-- [状态管理设计](./design/api/状态管理设计.md)
-
-### 🔌 API文档
-
-**[API文档导航](./api/README.md)**
-
-- [接口集成规范](./api/API集成规范.md) - API集成标准规范
-- [接口调用指南](./api/接口调用指南.md) - 如何正确调用接口
-- [错误处理指南](./api/错误处理指南.md) - 统一错误处理机制
-
-#### 模块API
-- [书城模块API](./api/bookstore/) - 首页、榜单、书籍列表等接口
-- [用户模块API](./api/user/) - 认证、个人信息等接口
-- [阅读器模块API](./api/reader/) - 章节、书签、阅读进度等接口
-- [共享服务API](./api/shared/) - 文件上传、搜索等接口
-
-### 🛠️ 实施指南
-
-**[实施文档导航](./implementation/README.md)**
-
-#### 快速开始
-- [环境搭建](./implementation/quick-start/环境搭建.md)
-- [项目启动](./implementation/quick-start/项目启动.md)
-- [开发工作流](./implementation/quick-start/开发工作流.md)
-
-#### 开发指南 ⭐
-- [组件开发指南](./implementation/development/组件开发指南.md) - 组件开发完整教程
-- [页面开发指南](./implementation/development/页面开发指南.md) - 页面开发实战指南
-- [API集成指南](./implementation/development/API集成指南.md) - API调用与集成
-- [状态管理指南](./implementation/development/状态管理指南.md) - Pinia状态管理
-
-#### 最佳实践
-- [性能优化实践](./implementation/best-practices/性能优化实践.md)
-- [代码复用实践](./implementation/best-practices/代码复用实践.md)
-- [错误处理实践](./implementation/best-practices/错误处理实践.md)
-- [安全实践](./implementation/best-practices/安全实践.md)
-
-#### 故障排除
-- [常见问题](./implementation/troubleshooting/常见问题.md)
-- [调试技巧](./implementation/troubleshooting/调试技巧.md)
-- [问题案例库](./implementation/troubleshooting/问题案例库.md)
-
-### 📊 软件工程
-
-**[工程文档导航](./engineering/README.md)**
-
-- [前端需求分析](./engineering/前端需求分析.md) - 前端功能需求分析
-- [代码规范](./engineering/代码规范.md) - JavaScript/Vue代码规范
-- [Git工作流规范](./engineering/Git工作流规范.md) - Git分支和提交规范
-- [代码审查规范](./engineering/代码审查规范.md) - Code Review流程
-- [构建配置](./engineering/构建配置.md) - Vite构建配置
-- [环境配置](./engineering/环境配置.md) - 环境变量配置
-- [依赖管理](./engineering/依赖管理.md) - npm包管理
-- [CI-CD配置](./engineering/CI-CD配置.md) - 持续集成和部署
-
-### 🧪 测试文档
-
-**[测试文档导航](./testing/README.md)**
-
-- [测试策略](./testing/测试策略.md) - 整体测试策略和方法
-- [单元测试指南](./testing/单元测试指南.md) - Vitest单元测试
-- [组件测试指南](./testing/组件测试指南.md) - Vue组件测试
-- [集成测试指南](./testing/集成测试指南.md) - 集成测试方法
-- [E2E测试指南](./testing/E2E测试指南.md) - 端到端测试
-- [性能测试指南](./testing/性能测试指南.md) - 前端性能测试
-- [可访问性测试](./testing/可访问性测试.md) - 无障碍测试
-
-### 📖 使用指南
-
-**[使用文档导航](./usage/README.md)**
-
-- [快速开始](./usage/快速开始.md) - 项目快速启动
-- [组件使用指南](./usage/组件使用指南.md) - 组件使用方法
-- [API使用指南](./usage/API使用指南.md) - API调用示例
-- [主题定制指南](./usage/主题定制指南.md) - 主题定制方法
-- [插件使用指南](./usage/插件使用指南.md) - 插件使用说明
-- [常见问题FAQ](./usage/常见问题FAQ.md) - 常见问题解答
-- [示例代码](./usage/examples/) - 各种使用示例
-
-### 🚀 运维文档
-
-**[运维文档导航](./ops/README.md)**
-
-- [部署指南](./ops/部署指南.md) - 应用部署流程
-- [Docker部署](./ops/Docker部署.md) - Docker容器化部署
-- [Nginx配置](./ops/Nginx配置.md) - Nginx服务器配置
-- [性能监控](./ops/性能监控.md) - 性能监控方案
-- [错误日志](./ops/错误日志.md) - 日志管理
-- [维护手册](./ops/维护手册.md) - 日常维护操作
-
-### 📝 文档模板
-
-**[模板导航](./templates/README.md)**
-
-- [组件设计模板](./templates/组件设计模板.md)
-- [页面设计模板](./templates/页面设计模板.md)
-- [API文档模板](./templates/API文档模板.md)
-- [测试文档模板](./templates/测试文档模板.md)
-- [实施文档模板](./templates/实施文档模板.md)
+**技术栈**：Vue 3 + Composition API、Element Plus、Pinia、Vue Router、Axios、Vite
 
 ## 🚀 快速开始
 
-### 新手入门
+### 新手上手（10分钟）
 
-1. **环境准备** - 阅读 [环境搭建](./implementation/quick-start/环境搭建.md)
-2. **启动项目** - 参考 [项目启动](./implementation/quick-start/项目启动.md)
-3. **了解规范** - 学习 [项目开发规范](./项目开发规范.md)
-4. **理解架构** - 查看 [前端架构设计](./architecture/前端架构设计.md)
+```bash
+# 1. 克隆项目
+git clone https://github.com/yukin371/Qingyu_fronted.git
+cd qingyu-frontend
 
-### 开发者指南
+# 2. 安装依赖
+npm install
 
-1. **组件开发** - 参考 [组件开发指南](./implementation/development/组件开发指南.md)
-2. **页面开发** - 参考 [页面开发指南](./implementation/development/页面开发指南.md)
-3. **API集成** - 参考 [API集成指南](./implementation/development/API集成指南.md)
-4. **状态管理** - 参考 [状态管理指南](./implementation/development/状态管理指南.md)
+# 3. 启动开发服务器
+npm dev
 
-### API使用
+# 4. 浏览器访问
+http://localhost:5173
+```
 
-1. **接口规范** - 查看 [接口集成规范](./api/API集成规范.md)
-2. **接口文档** - 参考各模块API文档
-3. **使用示例** - 查看 [API使用指南](./usage/API使用指南.md)
+👉 详细步骤请查看 **[快速开始指南](./guide/quick-start.md)**
+
+## 📚 文档导航
+
+### 🎯 [开发指南](./guide/README.md) ⭐ 推荐新手
+
+日常开发必读，包含从入门到精通的完整指南：
+
+- **[快速开始](./guide/quick-start.md)** - 环境搭建和项目启动
+- **[项目结构](./guide/project-structure.md)** - 目录组织和文件说明
+- **[组件开发](./guide/component-guide.md)** - 组件开发完整教程
+- **[页面开发](./guide/page-guide.md)** - 页面开发实战指南
+- **[状态管理](./guide/state-management.md)** - Pinia状态管理
+- **[API集成](./guide/api-integration.md)** - 后端接口集成
+- **[样式开发](./guide/styling.md)** - CSS/样式规范
+- **[路由配置](./guide/routing.md)** - Vue Router使用
+- **[调试排查](./guide/debugging.md)** - 调试技巧和问题排查
+
+### 🏗️ [架构设计](./architecture/README.md)
+
+项目整体架构和技术决策：
+
+- **[架构总览](./architecture/overview.md)** - 整体架构和技术选型
+- **[组件架构](./architecture/component-design.md)** - 组件设计原则
+- **[状态管理架构](./architecture/state-management.md)** - Pinia架构设计
+- **[性能优化](./architecture/performance.md)** - 性能优化策略
+
+### 🔌 [API文档](./api/README.md)
+
+后端接口文档和集成说明：
+
+- **[书城API](./api/bookstore.md)** - 首页、榜单、书籍接口
+- **[用户API](./api/user.md)** - 认证、个人信息接口
+- **[阅读器API](./api/reader.md)** - 章节、书签接口
+- **[共享API](./api/shared.md)** - 文件上传、搜索接口
+- **[集成说明](./api/integration.md)** - 认证和错误处理
+
+### 🧩 [组件文档](./components/README.md)
+
+组件库使用说明：
+
+- **通用组件** - Loading、Empty等
+- **业务组件** - BannerCarousel、BookGrid、RankingList等
+- 组件API和使用示例
+
+### 📋 [开发规范](./standards/README.md)
+
+代码规范和最佳实践：
+
+- **[代码规范](./standards/code-style.md)** - Vue/JS/CSS代码风格
+- **[命名规范](./standards/naming.md)** - 文件和变量命名
+- **[Git工作流](./standards/git-workflow.md)** - 分支管理和提交规范
+- **[最佳实践](./standards/best-practices.md)** - 开发最佳实践
+
+### 🧪 [测试文档](./testing/README.md)
+
+测试策略和方法：
+
+- **[测试总览](./testing/README.md)** - 测试策略
+- **[单元测试](./testing/unit-test.md)** - Vitest单元测试
+- **[组件测试](./testing/component-test.md)** - Vue组件测试
+
+### 🚀 [部署运维](./deployment/README.md)
+
+构建、部署和运维：
+
+- **[构建配置](./deployment/build.md)** - Vite构建配置
+- **[部署指南](./deployment/deploy.md)** - 部署流程
+- **[环境配置](./deployment/env-config.md)** - 环境变量配置
+
+### 📚 [参考资料](./reference/)
+
+- **[常见问题FAQ](./reference/faq.md)** - 常见问题解答
+- **[学习资源](./reference/resources.md)** - 推荐学习资料
+
+## 🎓 学习路径
+
+### 路径 1：新手入门（1-2周）
+
+```
+Day 1-2:  快速开始 → 项目结构
+Day 3-5:  组件开发
+Day 6-8:  页面开发
+Day 9-10: 状态管理 + API集成
+Day 11-14: 实践项目
+```
+
+**阅读顺序**：
+
+1. [快速开始](./guide/quick-start.md)
+2. [项目结构](./guide/project-structure.md)
+3. [组件开发](./guide/component-guide.md)
+4. [页面开发](./guide/page-guide.md)
+5. [状态管理](./guide/state-management.md)
+6. [API集成](./guide/api-integration.md)
+
+### 路径 2：前端开发（2-4周）
+
+在新手基础上深入学习：
+
+- 架构设计文档
+- 开发规范和最佳实践
+- 性能优化
+- 测试策略
+
+### 路径 3：全栈开发（4周+）
+
+- 前端开发（本文档）
+- 后端API对接
+- 数据库设计
+- 部署运维
+
+## 🛠️ 常见任务
+
+### 开发新功能
+
+```
+1. 创建功能分支
+2. 开发组件/页面
+3. 集成API
+4. 编写测试
+5. 提交代码
+6. Code Review
+7. 合并主分支
+```
+
+👉 参考 **[Git工作流](./standards/git-workflow.md)**
+
+### 修复Bug
+
+```
+1. 复现问题
+2. 定位原因
+3. 修复代码
+4. 测试验证
+5. 提交修复
+```
+
+👉 参考 **[调试指南](./guide/debugging.md)**
+
+### 性能优化
+
+```
+1. 性能分析
+2. 定位瓶颈
+3. 优化方案
+4. 测试对比
+5. 上线监控
+```
+
+👉 参考 **[性能优化](./architecture/performance.md)**
 
 ## 📊 项目状态
 
-- ✅ **基础架构** - Vue 3 + Element Plus 项目搭建完成
-- ✅ **核心组件** - Banner、榜单、书籍展示组件完成
-- ✅ **状态管理** - Pinia状态管理集成完成
-- ✅ **API集成** - 后端接口集成完成
-- ✅ **路由配置** - 基础路由配置完成
-- 🚧 **功能扩展** - 更多页面和功能开发中
-- 📋 **测试覆盖** - 测试用例编写中
-- 📋 **性能优化** - 性能优化待完善
-
-## 📝 文档贡献
-
-在创建或修改文档时，请遵循以下原则：
-
-1. 遵循 [文档架构管理规范](./文档架构管理规范.md)
-2. 使用统一的Markdown格式
-3. 参考对应的 [文档模板](./templates/)
-4. 保持文档内容的准确性和时效性
-5. 及时更新相关链接和引用
+- ✅ **基础架构** - Vue 3 + Element Plus 搭建完成
+- ✅ **核心功能** - 首页、榜单、书籍展示完成
+- ✅ **状态管理** - Pinia集成完成
+- ✅ **API集成** - 后端接口对接完成
+- ✅ **路由系统** - Vue Router配置完成
+- 🚧 **功能扩展** - 持续开发中
+- 📋 **测试覆盖** - 逐步完善中
 
 ## 🔗 相关链接
 
-- [后端项目文档](../../Qingyu_backend/doc/) - Go语言后端服务文档
-- [Light Feather Studio](../../Light-Feather-Studio/) - 写作端项目
-- [项目根目录](../../) - 项目根目录
+- **后端项目**：[Qingyu Backend](../../Qingyu_backend/)
+- **写作端**：[Light Feather Studio](../../Light-Feather-Studio/)
+- **在线演示**：[Demo Site](https://demo.qingyu.com)（待上线）
 
-## 📅 文档历史
+## 💡 开发建议
 
-### v2.1.0 (2025-10-13)
-- ✅ 完成开发指南文档（组件、页面、API、状态管理）
-- ✅ 完成快速开始文档（环境搭建、项目启动、开发工作流）
-- ✅ 完成架构设计文档（技术选型、组件架构、状态管理、路由、性能优化）
+### 新手建议
 
-### v2.0.0 (2025-10-13)
-- 📁 重构文档目录结构
-- ✨ 新增API、运维、模板等文档目录
-- 📝 完善各目录README导航文档
-- 🎨 优化文档组织方式，对标后端文档
+1. **从小做起**：从简单组件开始
+2. **多看代码**：参考现有组件实现
+3. **勤于调试**：使用Vue DevTools
+4. **问题记录**：遇到问题记录下来
+5. **团队协作**：多与团队沟通
+
+### 进阶建议
+
+1. **深入源码**：理解Vue 3原理
+2. **性能优化**：关注性能指标
+3. **架构思考**：思考更好的设计
+4. **分享知识**：写技术文档
+5. **持续学习**：关注前沿技术
+
+## 📝 文档贡献
+
+### 如何贡献
+
+1. 发现文档问题或需要补充
+2. 创建文档分支
+3. 编写或修改文档
+4. 提交Pull Request
+5. Code Review
+6. 合并文档
+
+### 文档规范
+
+- 使用Markdown格式
+- 代码示例完整可运行
+- 保持简洁清晰
+- 及时更新
+
+## ❓ 获取帮助
+
+### 文档内查找
+
+1. 使用浏览器搜索（Ctrl+F）
+2. 查看对应章节目录
+3. 阅读相关参考资料
+
+### 团队协作
+
+- **提问**：在团队群组提问
+- **讨论**：参加技术讨论会
+- **求助**：向有经验的同事请教
+
+### 在线资源
+
+- [Vue 3 官方文档](https://vuejs.org/)
+- [Element Plus 文档](https://element-plus.org/)
+- [Pinia 文档](https://pinia.vuejs.org/)
+- [MDN Web Docs](https://developer.mozilla.org/)
+
+## 📅 版本历史
+
+### v2.0.0 (2025-10-17)
+
+- 🎉 重组文档结构
+- ✨ 新增开发指南系列
+- 📝 完善API文档
+- 🏗️ 优化架构文档
+- 🔧 添加调试指南
 
 ### v1.0.0 (2025-09)
+
 - 🎉 初始版本发布
-- 📝 创建基础文档结构
+- 📝 基础文档搭建
 
 ---
 
 **文档版本**：v2.0.0  
-**最后更新**：2025年10月13日  
+**最后更新**：2025年10月17日  
 **维护团队**：前端开发团队
+
+**开始你的开发之旅** 👉 [快速开始](./guide/quick-start.md)
