@@ -73,6 +73,12 @@ const router = createRouter({
       component: () => import('@/views/APITestView.vue'),
       meta: { title: 'API测试工具' }
     },
+    {
+      path: '/api-test-comprehensive',
+      name: 'api-test-comprehensive',
+      component: () => import('@/views/ComprehensiveAPITestView.vue'),
+      meta: { title: '完整API测试工具' }
+    },
     // Writer 模块路由
     {
       path: '/writer',

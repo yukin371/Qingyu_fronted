@@ -4,11 +4,12 @@
 
 ## 📁 目录结构
 
-```
+```text
 api/
 ├── auth.js                 # 认证相关API（已弃用，使用user.js）
 ├── user.js                 # 用户管理API
 ├── bookstore.js           # 书城系统API
+├── recommendation.js      # 推荐系统API
 ├── reading/               # 阅读端API模块
 │   ├── reader.js          # 阅读器API（章节、进度、设置）
 │   ├── rating.js          # 评分系统API
@@ -38,6 +39,9 @@ import { bookstoreAPI } from '@/api/bookstore'
 import { readerAPI } from '@/api/reading/reader'
 import { ratingAPI } from '@/api/reading/rating'
 import { booksAPI } from '@/api/reading/books'
+
+// 导入推荐系统API
+import { recommendationAPI } from '@/api/recommendation'
 ```
 
 ### 2. 调用API方法
@@ -92,26 +96,39 @@ try {
 - 推荐书籍、精选书籍
 - 书籍搜索
 
+### 推荐系统 API (`recommendation.js`)
+
+- **个性化推荐**：基于用户历史行为的个性化书籍推荐
+- **相似推荐**：基于书籍内容的相似物品推荐
+- **用户行为追踪**：记录用户浏览、点击、收藏等行为
+- **首页推荐**：首页混合推荐算法
+- **热门推荐**：基于统计的热门书籍推荐
+- **分类推荐**：特定分类的推荐内容
+
 ### 阅读端 API (`reading/`)
 
 #### 阅读器 API (`reader.js`)
+
 - **章节阅读**：获取章节信息/内容、章节列表、章节导航
 - **阅读进度**：保存/获取进度、阅读历史、阅读时长
 - **注记功能**：创建/更新/删除注记、书签、高亮、笔记
 - **阅读设置**：获取/保存/更新个性化设置
 
 #### 评分系统 API (`rating.js`)
+
 - 获取书籍评分列表
 - 创建/更新/删除评分
 - 获取评分统计
 
 #### 书籍和章节 API (`books.js`)
+
 - 书籍详情、书籍列表、分类筛选
 - 搜索书籍（按标题、作者、标签）
 - 章节详情、章节列表
 - 分类管理
 
 参考文档：
+
 - [阅读端API使用文档](../../Qingyu_backend/doc/api/阅读端API使用文档.md)
 - [阅读端API快速开始指南](../../Qingyu_backend/doc/api/阅读端API快速开始指南.md)
 
@@ -119,18 +136,32 @@ try {
 
 项目提供了可视化API测试工具，方便开发和调试：
 
-```
-访问路径：/api-test
-或点击顶部导航栏的 "API测试" 菜单
+### 完整API测试工具（推荐）
+
+```text
+访问路径：/api-test-comprehensive
 ```
 
-测试工具支持：
-- ✅ 所有API接口的可视化测试
-- ✅ 自动Token管理
-- ✅ 实时响应预览
-- ✅ 请求参数填写
+**新功能特性：**
 
-详细使用说明：[API测试工具使用指南](../../API测试工具使用指南.md)
+- ✅ 覆盖所有API接口的可视化测试
+- ✅ 按模块组织：认证与用户、书城系统、阅读器、推荐系统、评分系统、共享服务
+- ✅ 自动Token管理，显示Token状态
+- ✅ 实时响应预览，格式化JSON显示
+- ✅ 请求历史记录，最近10次API调用
+- ✅ 快速填充测试数据
+- ✅ 错误提示和故障排除
+- ✅ HTTP方法可视化标识（GET/POST/PUT/DELETE）
+- ✅ 认证需求指示器
+
+### 传统API测试工具
+
+```text
+访问路径：/api-test（传统版本）
+访问路径：/shared-api-test（共享服务）
+```
+
+详细使用说明：参考 [前端API参考文档](../../doc/api/frontend/)
 
 ## 💡 开发规范
 
@@ -188,6 +219,7 @@ getBookList({
 ### 4. 错误处理
 
 统一在`utils/request.js`中处理常见错误：
+
 - 401：未认证，跳转登录
 - 403：权限不足
 - 404：资源不存在
@@ -207,7 +239,21 @@ getBookList({
 - [ ] 社交功能API（关注、私信）
 - [ ] 活动系统API
 
+## ✅ 最近更新
+
+### 2025-10-18
+
+- ✅ 新增推荐系统API (`recommendation.js`)
+  - 个性化推荐
+  - 相似物品推荐
+  - 用户行为追踪
+  - 首页/热门/分类推荐
+- ✅ 新增完整API测试工具 (`/api-test-comprehensive`)
+  - 覆盖所有文档化的API接口
+  - 增强的UI和用户体验
+  - 请求历史和快速填充功能
+
 ---
 
 **维护者**: 青羽前端团队  
-**最后更新**: 2025-10-16
+**最后更新**: 2025-10-18
