@@ -1,3 +1,4 @@
+// 临时JS入口：重导出TS模块，保持渐进兼容
 import request from '@/utils/request'
 
 /**
