@@ -1,19 +1,200 @@
 # 通用组件使用文档
 
-> **创建日期**: 2025-10-12  
-> **组件版本**: v1.0  
+> **更新日期**: 2025-10-20  
+> **组件版本**: v2.0  
 > **状态**: ✅ 已完成
 
 ---
 
 ## 📋 组件概览
 
-本目录包含项目的通用组件，这些组件可以在整个应用中复用，提供一致的用户体验。
+本目录包含项目的通用组件，这些组件可以在整个应用中复用，提供一致的用户体验。所有组件均使用 TypeScript 开发。
 
-| 组件名 | 描述 | 文件 | 状态 |
-|--------|------|------|------|
-| **Loading** | 加载状态组件 | `Loading.vue` | ✅ 已完成 |
-| **Empty** | 空状态组件 | `Empty.vue` | ✅ 已完成 |
+| 组件名              | 描述         | 文件                  | 状态     |
+| ------------------- | ------------ | --------------------- | -------- |
+| **BookCard**        | 书籍卡片组件 | `BookCard.vue`        | ✅ 已完成 |
+| **ChapterList**     | 章节列表组件 | `ChapterList.vue`     | ✅ 已完成 |
+| **ReadingSettings** | 阅读设置组件 | `ReadingSettings.vue` | ✅ 已完成 |
+| **Loading**         | 加载状态组件 | `Loading.vue`         | ✅ 已完成 |
+| **Empty**           | 空状态组件   | `Empty.vue`           | ✅ 已完成 |
+
+---
+
+## 📖 BookCard 组件
+
+### 功能说明
+
+BookCard 组件用于展示书籍信息，支持垂直和水平两种布局，可用于书籍列表、推荐等场景。
+
+### Props
+
+| 参数           | 类型                         | 默认值       | 说明             |
+| -------------- | ---------------------------- | ------------ | ---------------- |
+| `book`         | `BookBrief`                  | 必需         | 书籍数据对象     |
+| `layout`       | `'vertical' \| 'horizontal'` | `'vertical'` | 布局方式         |
+| `showStatus`   | `Boolean`                    | `true`       | 是否显示状态标签 |
+| `showMeta`     | `Boolean`                    | `true`       | 是否显示元数据   |
+| `showLatest`   | `Boolean`                    | `false`      | 是否显示最新章节 |
+| `showActions`  | `Boolean`                    | `false`      | 是否显示操作按钮 |
+| `showProgress` | `Boolean`                    | `false`      | 是否显示阅读进度 |
+| `progress`     | `Number`                     | -            | 阅读进度(0-100)  |
+
+### Events
+
+| 事件名     | 参数              | 说明               |
+| ---------- | ----------------- | ------------------ |
+| `click`    | `book: BookBrief` | 点击卡片时触发     |
+| `read`     | `book: BookBrief` | 点击阅读按钮时触发 |
+| `favorite` | `book: BookBrief` | 点击收藏按钮时触发 |
+
+### Slots
+
+| 插槽名    | 说明               |
+| --------- | ------------------ |
+| `actions` | 自定义操作按钮区域 |
+
+### 使用示例
+
+```vue
+<template>
+  <BookCard
+    :book="bookData"
+    layout="horizontal"
+    show-actions
+    @click="goToDetail"
+    @read="startReading"
+  />
+</template>
+
+<script setup lang="ts">
+import BookCard from '@/components/common/BookCard.vue'
+import type { BookBrief } from '@/types/models'
+
+const bookData: BookBrief = {
+  id: '1',
+  title: '示例书籍',
+  author: '作者名',
+  cover: '/cover.jpg',
+  // ...
+}
+
+const goToDetail = (book: BookBrief) => {
+  router.push(`/books/${book.id}`)
+}
+</script>
+```
+
+---
+
+## 📚 ChapterList 组件
+
+### 功能说明
+
+ChapterList 组件用于展示书籍章节列表，支持正序/倒序排列、显示阅读状态等功能。
+
+### Props
+
+| 参数              | 类型                | 默认值    | 说明             |
+| ----------------- | ------------------- | --------- | ---------------- |
+| `chapters`        | `ChapterListItem[]` | 必需      | 章节列表         |
+| `activeChapterId` | `String`            | -         | 当前激活的章节ID |
+| `maxHeight`       | `String \| Number`  | `'600px'` | 最大高度         |
+| `showNumber`      | `Boolean`           | `true`    | 是否显示章节序号 |
+| `showWordCount`   | `Boolean`           | `true`    | 是否显示字数     |
+| `showTime`        | `Boolean`           | `false`   | 是否显示发布时间 |
+| `showSort`        | `Boolean`           | `true`    | 是否显示排序按钮 |
+| `defaultReversed` | `Boolean`           | `false`   | 默认是否倒序     |
+
+### Events
+
+| 事件名       | 参数                       | 说明           |
+| ------------ | -------------------------- | -------------- |
+| `select`     | `chapter: ChapterListItem` | 选择章节时触发 |
+| `sortChange` | `isReversed: boolean`      | 排序变化时触发 |
+
+### Slots
+
+| 插槽名           | 说明         |
+| ---------------- | ------------ |
+| `header-actions` | 头部操作区域 |
+
+### 使用示例
+
+```vue
+<template>
+  <ChapterList
+    :chapters="chapterList"
+    :active-chapter-id="currentChapterId"
+    @select="handleChapterSelect"
+  />
+</template>
+
+<script setup lang="ts">
+import ChapterList from '@/components/common/ChapterList.vue'
+import type { ChapterListItem } from '@/types/models'
+
+const chapterList = ref<ChapterListItem[]>([])
+const currentChapterId = ref('chapter-1')
+
+const handleChapterSelect = (chapter: ChapterListItem) => {
+  router.push(`/reader/${chapter.id}`)
+}
+</script>
+```
+
+---
+
+## ⚙️ ReadingSettings 组件
+
+### 功能说明
+
+ReadingSettings 组件用于调整阅读器设置，包括字体、主题、行距等。
+
+### Props
+
+| 参数           | 类型              | 默认值 | 说明                    |
+| -------------- | ----------------- | ------ | ----------------------- |
+| `modelValue`   | `ReadingSettings` | 必需   | 设置数据（支持v-model） |
+| `showPageMode` | `Boolean`         | `true` | 是否显示翻页模式        |
+| `showAutoSave` | `Boolean`         | `true` | 是否显示自动保存        |
+| `showActions`  | `Boolean`         | `true` | 是否显示操作按钮        |
+
+### Events
+
+| 事件名              | 参数                     | 说明               |
+| ------------------- | ------------------------ | ------------------ |
+| `update:modelValue` | `value: ReadingSettings` | 设置更新时触发     |
+| `reset`             | -                        | 点击重置按钮时触发 |
+
+### 使用示例
+
+```vue
+<template>
+  <ReadingSettings
+    v-model="settings"
+    @reset="resetToDefault"
+  />
+</template>
+
+<script setup lang="ts">
+import ReadingSettings from '@/components/common/ReadingSettings.vue'
+import type { ReadingSettings as Settings } from '@/types/models'
+
+const settings = ref<Settings>({
+  fontSize: 16,
+  lineHeight: 1.8,
+  pageWidth: 800,
+  theme: 'light',
+  fontFamily: 'system-ui, -apple-system, sans-serif',
+  pageMode: 'scroll',
+  autoSave: true
+})
+
+const resetToDefault = () => {
+  settings.value = { /* 默认设置 */ }
+}
+</script>
+```
 
 ---
 
@@ -23,87 +204,16 @@
 
 Loading组件用于显示加载状态，支持全屏加载、局部加载和骨架屏三种模式。
 
-### 使用示例
-
-#### 1. 基础用法（局部加载）
-
-```vue
-<template>
-  <div>
-    <Loading :visible="loading" text="正在加载..." />
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import Loading from '@/components/common/Loading.vue'
-
-const loading = ref(true)
-
-// 模拟加载完成
-setTimeout(() => {
-  loading.value = false
-}, 2000)
-</script>
-```
-
-#### 2. 全屏加载
-
-```vue
-<template>
-  <Loading 
-    :visible="loading" 
-    fullscreen 
-    text="加载中，请稍候..." 
-    :size="50"
-  />
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import Loading from '@/components/common/Loading.vue'
-
-const loading = ref(true)
-</script>
-```
-
-#### 3. 骨架屏模式
-
-```vue
-<template>
-  <Loading 
-    :visible="loading" 
-    skeleton 
-    :skeleton-rows="5"
-  />
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import Loading from '@/components/common/Loading.vue'
-
-const loading = ref(true)
-</script>
-```
-
 ### Props
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `visible` | Boolean | `true` | 是否显示加载状态 |
-| `fullscreen` | Boolean | `false` | 是否全屏显示 |
-| `text` | String | `'加载中...'` | 加载提示文本 |
-| `size` | Number | `40` | 图标大小（px） |
-| `skeleton` | Boolean | `false` | 是否使用骨架屏模式 |
-| `skeletonRows` | Number | `5` | 骨架屏行数 |
-
-### 特性
-
-- ✨ 支持全屏和局部两种模式
-- ✨ 支持骨架屏加载效果
-- ✨ 可自定义加载文本和图标大小
-- ✨ 响应式设计，适配移动端
-- ✨ 支持深色模式
+| 参数           | 类型      | 默认值        | 说明               |
+| -------------- | --------- | ------------- | ------------------ |
+| `visible`      | `Boolean` | `true`        | 是否显示加载状态   |
+| `fullscreen`   | `Boolean` | `false`       | 是否全屏显示       |
+| `text`         | `String`  | `'加载中...'` | 加载提示文本       |
+| `size`         | `Number`  | `40`          | 图标大小（px）     |
+| `skeleton`     | `Boolean` | `false`       | 是否使用骨架屏模式 |
+| `skeletonRows` | `Number`  | `5`           | 骨架屏行数         |
 
 ---
 
@@ -113,348 +223,92 @@ const loading = ref(true)
 
 Empty组件用于显示空状态，提供多种预设类型和自定义选项。
 
-### 使用示例
-
-#### 1. 基础用法
-
-```vue
-<template>
-  <Empty 
-    type="default" 
-    title="暂无内容" 
-    description="还没有任何内容哦"
-  />
-</template>
-
-<script setup>
-import Empty from '@/components/common/Empty.vue'
-</script>
-```
-
-#### 2. 搜索无结果
-
-```vue
-<template>
-  <Empty 
-    type="search" 
-    :show-action="true"
-    action-text="清除搜索"
-    @action="handleClearSearch"
-  />
-</template>
-
-<script setup>
-import Empty from '@/components/common/Empty.vue'
-
-const handleClearSearch = () => {
-  console.log('清除搜索')
-}
-</script>
-```
-
-#### 3. 无数据状态
-
-```vue
-<template>
-  <Empty 
-    type="data" 
-    title="暂无数据"
-    description="目前还没有任何数据"
-    :show-action="true"
-    action-text="刷新数据"
-    @action="refreshData"
-  />
-</template>
-
-<script setup>
-import Empty from '@/components/common/Empty.vue'
-
-const refreshData = () => {
-  console.log('刷新数据')
-}
-</script>
-```
-
-#### 4. 错误状态
-
-```vue
-<template>
-  <Empty 
-    type="error" 
-    title="加载失败"
-    description="数据加载出错，请稍后重试"
-    :show-action="true"
-    action-text="重新加载"
-    @action="reload"
-  />
-</template>
-
-<script setup>
-import Empty from '@/components/common/Empty.vue'
-
-const reload = () => {
-  window.location.reload()
-}
-</script>
-```
-
-#### 5. 自定义插槽
-
-```vue
-<template>
-  <Empty type="folder">
-    <template #default>
-      <el-button type="primary">上传文件</el-button>
-    </template>
-  </Empty>
-</template>
-
-<script setup>
-import Empty from '@/components/common/Empty.vue'
-</script>
-```
-
 ### Props
 
-| 参数 | 类型 | 默认值 | 可选值 | 说明 |
-|------|------|--------|--------|------|
-| `type` | String | `'default'` | `default`, `search`, `data`, `folder`, `error` | 空状态类型 |
-| `title` | String | 根据type自动生成 | - | 标题文本 |
-| `description` | String | 根据type自动生成 | - | 描述文本 |
-| `iconSize` | Number | `80` | - | 图标大小（px） |
-| `showAction` | Boolean | `false` | - | 是否显示操作按钮 |
-| `actionText` | String | `'返回首页'` | - | 操作按钮文本 |
-
-### Events
-
-| 事件名 | 参数 | 说明 |
-|--------|------|------|
-| `action` | - | 点击操作按钮时触发 |
-
-### Slots
-
-| 插槽名 | 说明 |
-|--------|------|
-| `default` | 自定义内容区域 |
-
-### 类型说明
-
-| 类型 | 图标 | 默认标题 | 默认描述 | 适用场景 |
-|------|------|----------|----------|----------|
-| `default` | Box | 暂无内容 | - | 通用空状态 |
-| `search` | Search | 没有找到相关内容 | 换个关键词试试吧 | 搜索无结果 |
-| `data` | Document | 暂无数据 | 暂时还没有数据哦 | 数据为空 |
-| `folder` | FolderOpened | 文件夹为空 | 还没有上传任何文件 | 文件夹空 |
-| `error` | WarnTriangleFilled | 出错了 | 请稍后再试 | 错误状态 |
-
-### 特性
-
-- ✨ 5种预设类型，覆盖常见场景
-- ✨ 支持自定义标题、描述和图标大小
-- ✨ 可选的操作按钮
-- ✨ 支持自定义插槽
-- ✨ 响应式设计，适配移动端
-- ✨ 支持深色模式
+| 参数          | 类型      | 默认值           | 可选值                                         | 说明             |
+| ------------- | --------- | ---------------- | ---------------------------------------------- | ---------------- |
+| `type`        | `String`  | `'default'`      | `default`, `search`, `data`, `folder`, `error` | 空状态类型       |
+| `title`       | `String`  | 根据type自动生成 | -                                              | 标题文本         |
+| `description` | `String`  | 根据type自动生成 | -                                              | 描述文本         |
+| `iconSize`    | `Number`  | `80`             | -                                              | 图标大小（px）   |
+| `showAction`  | `Boolean` | `false`          | -                                              | 是否显示操作按钮 |
+| `actionText`  | `String`  | `'返回首页'`     | -                                              | 操作按钮文本     |
 
 ---
 
-## 🎨 样式定制
+## 🛠️ 工具函数
 
-### 全局样式变量
+### format.ts
 
-可以在项目的全局样式文件中覆盖组件的默认样式：
+格式化工具函数集合，位于 `src/utils/format.ts`
 
-```css
-/* 自定义Loading颜色 */
-.loading-icon {
-  color: #your-color !important;
-}
+#### 函数列表
 
-/* 自定义Empty图标颜色 */
-.empty-icon {
-  color: #your-color !important;
-}
-```
+| 函数名               | 参数                                                 | 返回值   | 说明                   |
+| -------------------- | ---------------------------------------------------- | -------- | ---------------------- |
+| `formatNumber`       | `num: number`                                        | `string` | 格式化数字（万为单位） |
+| `formatRelativeTime` | `time: string \| Date`                               | `string` | 格式化相对时间         |
+| `formatDate`         | `date: string \| Date, format?: string`              | `string` | 格式化日期             |
+| `formatFileSize`     | `bytes: number`                                      | `string` | 格式化文件大小         |
+| `formatReadingTime`  | `minutes: number`                                    | `string` | 格式化阅读时长         |
+| `formatPrice`        | `price: number, currency?: string`                   | `string` | 格式化价格             |
+| `truncateText`       | `text: string, maxLength: number, ellipsis?: string` | `string` | 截断文本               |
+| `formatPercentage`   | `value: number, decimals?: number`                   | `string` | 格式化百分比           |
 
-### 深色模式
+#### 使用示例
 
-组件自动适配深色模式，会根据系统设置自动切换样式。
+```typescript
+import { formatNumber, formatRelativeTime, formatDate } from '@/utils/format'
 
----
+// 格式化数字
+const readCount = formatNumber(125000) // "12.5万"
 
-## 📝 实践建议
+// 格式化相对时间
+const timeAgo = formatRelativeTime('2024-01-01') // "3个月前"
 
-### Loading组件
+// 格式化日期
+const dateStr = formatDate(new Date(), 'YYYY-MM-DD') // "2025-10-20"
 
-1. **API请求**: 在发起请求时显示，请求完成后隐藏
-2. **页面加载**: 使用全屏模式显示整页加载
-3. **数据加载**: 使用骨架屏提升用户体验
-4. **按钮操作**: 在按钮内显示小型加载动画
-
-### Empty组件
-
-1. **列表为空**: 使用`data`类型显示无数据状态
-2. **搜索无结果**: 使用`search`类型，提供清除操作
-3. **错误处理**: 使用`error`类型，提供重试操作
-4. **文件管理**: 使用`folder`类型，提供上传操作
-
----
-
-## 🔧 完整示例
-
-### 数据列表页面
-
-```vue
-<template>
-  <div class="list-page">
-    <!-- 加载中 -->
-    <Loading v-if="loading" skeleton :skeleton-rows="6" />
-    
-    <!-- 数据列表 -->
-    <div v-else-if="list.length > 0" class="list-container">
-      <div v-for="item in list" :key="item.id" class="list-item">
-        {{ item.name }}
-      </div>
-    </div>
-    
-    <!-- 空状态 -->
-    <Empty 
-      v-else 
-      type="data"
-      :show-action="true"
-      action-text="刷新数据"
-      @action="fetchData"
-    />
-  </div>
-</template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import Loading from '@/components/common/Loading.vue'
-import Empty from '@/components/common/Empty.vue'
-
-const loading = ref(true)
-const list = ref([])
-
-const fetchData = async () => {
-  loading.value = true
-  try {
-    // 模拟API请求
-    const response = await fetch('/api/data')
-    list.value = await response.json()
-  } catch (error) {
-    console.error('获取数据失败', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchData()
-})
-</script>
-```
-
-### 搜索页面
-
-```vue
-<template>
-  <div class="search-page">
-    <el-input 
-      v-model="keyword" 
-      placeholder="请输入搜索关键词"
-      @keyup.enter="handleSearch"
-    />
-    
-    <Loading v-if="searching" text="搜索中..." />
-    
-    <div v-else-if="results.length > 0" class="search-results">
-      <div v-for="item in results" :key="item.id">
-        {{ item.title }}
-      </div>
-    </div>
-    
-    <Empty 
-      v-else-if="keyword"
-      type="search"
-      :show-action="true"
-      action-text="清除搜索"
-      @action="clearSearch"
-    />
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import Loading from '@/components/common/Loading.vue'
-import Empty from '@/components/common/Empty.vue'
-
-const keyword = ref('')
-const searching = ref(false)
-const results = ref([])
-
-const handleSearch = async () => {
-  if (!keyword.value) return
-  
-  searching.value = true
-  try {
-    // 搜索逻辑
-    const response = await fetch(`/api/search?q=${keyword.value}`)
-    results.value = await response.json()
-  } finally {
-    searching.value = false
-  }
-}
-
-const clearSearch = () => {
-  keyword.value = ''
-  results.value = []
-}
-</script>
+// 格式化阅读时长
+const readingTime = formatReadingTime(125) // "2小时5分钟"
 ```
 
 ---
 
-## 🐛 常见问题
+## 🎯 开发指南
 
-### Q: Loading组件全屏模式不工作？
+### 创建新组件
 
-A: 确保没有其他元素的z-index高于9999，或者检查父元素是否设置了`overflow: hidden`。
+1. 在 `src/components/common/` 目录下创建新组件文件
+2. 组件名使用 PascalCase 命名
+3. 使用 `<script setup lang="ts">` 编写TypeScript代码
+4. 定义清晰的 Props 和 Events 接口
+5. 提供完整的类型定义
+6. 编写响应式样式（SCSS）
+7. 更新本 README 文件
 
-### Q: Empty组件图标不显示？
+### 组件规范
 
-A: 确认已经正确引入Element Plus Icons，并在main.js中注册。
+- ✅ 所有组件必须使用 TypeScript
+- ✅ 使用 Composition API（`<script setup>`）
+- ✅ 提供完整的类型定义
+- ✅ 支持响应式设计（移动端/桌面端）
+- ✅ 遵循无障碍访问标准
+- ✅ 提供合理的默认值
+- ✅ 使用 Element Plus 组件库
+- ✅ 使用 SCSS 编写样式
+- ✅ 组件应该可复用且易于维护
 
-### Q: 如何自定义Empty组件的图标？
+### 最佳实践
 
-A: 目前支持5种预设类型。如需完全自定义，可以使用插槽：
-
-```vue
-<Empty>
-  <template #default>
-    <el-icon :size="80"><YourIcon /></el-icon>
-    <p>自定义内容</p>
-  </template>
-</Empty>
-```
+1. **Props 设计**：提供合理的默认值，使用 `withDefaults` 定义
+2. **Events 命名**：使用动词形式，如 `click`、`select`、`change`
+3. **类型定义**：充分利用 TypeScript，避免使用 `any`
+4. **样式隔离**：使用 `scoped` 样式，避免全局污染
+5. **响应式**：使用媒体查询适配不同屏幕尺寸
 
 ---
 
-## 📚 相关资源
-
-- [Element Plus 文档](https://element-plus.org/)
-- [Vue 3 文档](https://cn.vuejs.org/)
-- [Element Plus Icons](https://element-plus.org/zh-CN/component/icon.html)
-
----
-
-**文档版本**: v1.0  
-**最后更新**: 2025年10月12日  
+**文档版本**: v2.0  
+**最后更新**: 2025年10月20日  
 **维护者**: 青羽开发团队
-
-
-
-
-
-
-

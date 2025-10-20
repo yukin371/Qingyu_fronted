@@ -366,7 +366,7 @@ const loadProfile = async () => {
   try {
     await userStore.fetchProfile()
     initProfileForm()
-  } catch (error) {
+  } catch {
     ElMessage.error('加载用户信息失败')
   }
 }
@@ -553,28 +553,6 @@ const getRoleText = (role) => {
     user: '普通用户'
   }
   return texts[role] || role
-}
-
-// 获取状态类型
-const getStatusType = (status) => {
-  const types = {
-    active: 'success',
-    inactive: 'info',
-    banned: 'danger',
-    deleted: 'danger'
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status) => {
-  const texts = {
-    active: '正常',
-    inactive: '未激活',
-    banned: '已封禁',
-    deleted: '已删除'
-  }
-  return texts[status] || status
 }
 </script>
 
