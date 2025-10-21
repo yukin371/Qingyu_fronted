@@ -14,7 +14,7 @@
       </el-header>
 
       <!-- 阅读内容区 -->
-      <el-main class="reader-main" @click="toggleHeaderFooter">
+      <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter">
         <div class="reader-container" :style="containerStyle">
           <!-- 章节标题 -->
           <h1 v-if="currentChapter" class="chapter-title">
@@ -139,6 +139,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
+import { useTouch } from '@/composables/useTouch'
+import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage } from 'element-plus'
 import {
   ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,
@@ -148,6 +150,7 @@ import {
 const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
+const { isMobile } = useResponsive()
 
 const chapterId = ref(route.params.chapterId as string)
 const loading = ref(false)
@@ -157,6 +160,7 @@ const isFullscreen = ref(false)
 const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
 const startTime = ref(Date.now())
+const readerContainerRef = ref()
 
 // 主题配置
 const themes = [
@@ -377,6 +381,27 @@ onMounted(async () => {
   // 定时保存进度（每30秒）
   if (settings.value.autoSave) {
     readingTimer.value = setInterval(saveCurrentProgress, 30000)
+  }
+
+  // 集成触摸手势
+  if (isMobile.value && readerContainerRef.value) {
+    useTouch(readerContainerRef, {
+      onSwipeLeft: () => {
+        if (hasNextChapter.value) {
+          nextChapter()
+        }
+      },
+      onSwipeRight: () => {
+        if (hasPreviousChapter.value) {
+          previousChapter()
+        }
+      },
+      onTap: () => {
+        // 点击屏幕中间切换全屏
+        toggleHeaderFooter()
+      },
+      threshold: 100
+    })
   }
 })
 

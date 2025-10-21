@@ -7,6 +7,10 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 
+// 全局样式
+import '@/styles/variables.scss'
+import '@/styles/common.scss'
+
 // 全局错误处理
 import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/errorHandler'
 

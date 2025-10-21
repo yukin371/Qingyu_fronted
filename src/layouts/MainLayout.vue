@@ -73,8 +73,8 @@
                         </el-dropdown>
                     </template>
                     <template v-else>
-                        <el-button @click="goToLogin">登录</el-button>
-                        <el-button type="primary" @click="goToRegister">注册</el-button>
+                        <el-button @click="goToAuth('login')">登录</el-button>
+                        <el-button type="primary" @click="goToAuth('register')">注册</el-button>
                     </template>
                 </div>
 
@@ -219,14 +219,9 @@ const goHome = () => {
     router.push('/home')
 }
 
-// 跳转登录
-const goToLogin = () => {
-    router.push('/login')
-}
-
-// 跳转注册
-const goToRegister = () => {
-    router.push('/register')
+// 跳转认证页面
+const goToAuth = (mode: 'login' | 'register' = 'login') => {
+    router.push({ path: '/auth', query: { mode } })
 }
 
 // 用户菜单命令处理

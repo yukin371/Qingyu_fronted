@@ -1,0 +1,160 @@
+/**
+ * 设计系统 - 样式变量
+ * 基于 Element Plus 和项目设计规范
+ */
+
+// ==================== 色彩系统 ====================
+
+// 主色
+$primary-color: #409eff;
+$primary-light: #66b1ff;
+$primary-lighter: #a0cfff;
+$primary-dark: #337ecc;
+
+// 辅助色
+$success-color: #67c23a;
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$info-color: #909399;
+
+// 文本色
+$text-primary: #303133;
+$text-regular: #606266;
+$text-secondary: #909399;
+$text-placeholder: #c0c4cc;
+
+// 边框色
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+$border-extra-light: #f2f6fc;
+
+// 背景色
+$bg-color: #ffffff;
+$bg-page: #f5f7fa;
+$bg-overlay: rgba(0, 0, 0, 0.5);
+
+// ==================== 间距系统 ====================
+
+// 基准间距（8px）
+$spacing-base: 8px;
+
+// 间距倍数
+$spacing-xs: $spacing-base * 0.5;   // 4px
+$spacing-sm: $spacing-base;          // 8px
+$spacing-md: $spacing-base * 2;      // 16px
+$spacing-lg: $spacing-base * 3;      // 24px
+$spacing-xl: $spacing-base * 4;      // 32px
+$spacing-xxl: $spacing-base * 6;     // 48px
+
+// 组件间距
+$gutter: 20px;
+$gutter-sm: 12px;
+$gutter-lg: 28px;
+
+// ==================== 字体系统 ====================
+
+// 字体大小
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+
+// 标题大小
+$h1-size: 32px;
+$h2-size: 28px;
+$h3-size: 24px;
+$h4-size: 20px;
+$h5-size: 18px;
+$h6-size: 16px;
+
+// 字体粗细
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+$font-weight-bolder: 700;
+
+// 行高
+$line-height-base: 1.6;
+$line-height-tight: 1.4;
+$line-height-loose: 1.8;
+
+// ==================== 圆角系统 ====================
+
+$border-radius-base: 4px;
+$border-radius-sm: 2px;
+$border-radius-lg: 8px;
+$border-radius-xl: 12px;
+$border-radius-circle: 50%;
+
+// ==================== 阴影系统 ====================
+
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+$box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$box-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+$box-shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+// ==================== 布局系统 ====================
+
+// 容器宽度
+$container-width: 1200px;
+$container-width-sm: 960px;
+$container-width-lg: 1400px;
+
+// 页面内边距
+$page-padding: $spacing-md;
+$page-padding-mobile: $spacing-sm;
+
+// 头部高度
+$header-height: 64px;
+$header-height-mobile: 56px;
+
+// 页脚高度
+$footer-height: auto;
+
+// ==================== 响应式断点 ====================
+
+$breakpoint-xs: 0;
+$breakpoint-sm: 768px;
+$breakpoint-md: 992px;
+$breakpoint-lg: 1200px;
+$breakpoint-xl: 1920px;
+$breakpoint-xxl: 2560px;
+
+// ==================== 过渡动画 ====================
+
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+$transition-slow: all 0.5s ease;
+
+// 动画时长
+$duration-fast: 0.2s;
+$duration-base: 0.3s;
+$duration-slow: 0.5s;
+
+// ==================== Z-Index 层级 ====================
+
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// ==================== 其他 ====================
+
+// 禁用状态透明度
+$disabled-opacity: 0.5;
+
+// 鼠标悬停透明度
+$hover-opacity: 0.8;
+
+// 遮罩层透明度
+$overlay-opacity: 0.5;
+
+

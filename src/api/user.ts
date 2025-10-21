@@ -10,6 +10,8 @@ export interface RegisterData {
   email: string
   password: string
   nickname?: string
+  phone?: string
+  emailCode?: string
 }
 
 /**

@@ -1,8 +1,8 @@
-# 青语 MVP 开发完成报告
+# 青羽 MVP 开发完成报告
 
 ## 项目概览
 
-**项目名称**: 青语 (Qingyu) - 在线阅读平台前端  
+**项目名称**: 青羽 (Qingyu) - 在线阅读平台前端  
 **开发阶段**: MVP (最小可行产品)  
 **技术栈**: Vue 3 + TypeScript + Vite + Pinia + Element Plus  
 **完成日期**: 2025-10-20
@@ -288,7 +288,7 @@ npm run build      # ✅ 通过
 ```env
 # .env.production
 VITE_API_BASE_URL=https://api.qingyu.com/api/v1
-VITE_APP_TITLE=青语 - 在线阅读平台
+VITE_APP_TITLE=青羽 - 在线阅读平台
 ```
 
 ### 构建命令

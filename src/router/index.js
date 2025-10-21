@@ -1,122 +1,150 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 import { useAuthStore } from '@/stores/auth'
+import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 使用 MainLayout 的主要页面
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      component: MainLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('@/views/HomeView.vue'),
+          meta: { title: '首页' }
+        },
+        {
+          path: 'books',
+          name: 'books',
+          component: () => import('@/views/BooksView.vue'),
+          meta: { title: '书库' }
+        },
+        {
+          path: 'books/:id',
+          name: 'book-detail',
+          component: () => import('@/views/BookDetailView.vue'),
+          meta: { title: '书籍详情' }
+        },
+        {
+          path: 'categories',
+          name: 'categories',
+          component: () => import('@/views/CategoriesView.vue'),
+          meta: { title: '分类' }
+        },
+        {
+          path: 'rankings',
+          name: 'rankings',
+          component: () => import('@/views/RankingsView.vue'),
+          meta: { title: '排行榜' }
+        },
+        {
+          path: 'search',
+          name: 'search',
+          component: () => import('@/views/SearchView.vue'),
+          meta: { title: '搜索' }
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('@/views/ProfileView.vue'),
+          meta: { title: '个人中心', requiresAuth: true }
+        }
+      ]
     },
+
+    // 管理员后台 - 使用 AdminLayout
     {
-      path: '/rankings',
-      name: 'rankings',
-      component: () => import('@/views/RankingsView.vue')
+      path: '/admin',
+      component: () => import('@/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          redirect: '/admin/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'admin-dashboard',
+          component: () => import('@/views/admin/DashboardView.vue'),
+          meta: { title: '仪表板', requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'reviews',
+          name: 'admin-reviews',
+          component: () => import('@/views/admin/ReviewManagement.vue'),
+          meta: { title: '内容审核', requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'withdrawals',
+          name: 'admin-withdrawals',
+          component: () => import('@/views/admin/WithdrawalManagement.vue'),
+          meta: { title: '提现审核', requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/views/admin/UserManagement.vue'),
+          meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'logs',
+          name: 'admin-logs',
+          component: () => import('@/views/admin/OperationLogs.vue'),
+          meta: { title: '操作日志', requiresAuth: true, requiresAdmin: true }
+        }
+      ]
     },
-    {
-      path: '/books',
-      name: 'books',
-      component: () => import('@/views/BooksView.vue')
-    },
-    {
-      path: '/books/:id',
-      name: 'book-detail',
-      component: () => import('@/views/BookDetailView.vue'),
-      meta: { title: '书籍详情' }
-    },
+
+    // 阅读器 - 使用独立布局（全屏）
     {
       path: '/reader/:chapterId',
       name: 'reader',
       component: () => import('@/views/ReaderView.vue'),
       meta: { title: '阅读器' }
     },
-    {
-      path: '/categories',
-      name: 'categories',
-      component: () => import('@/views/CategoriesView.vue')
-    },
-    {
-      path: '/search',
-      name: 'search',
-      component: () => import('@/views/SearchView.vue')
-    },
+
+    // 认证页面 - 使用独立布局
     {
       path: '/auth',
       name: 'auth',
-      component: () => import('@/views/AuthView.vue')
+      component: () => import('@/views/AuthenticationView.vue'),
+      meta: { title: '登录 / 注册', guest: true }
     },
-    // 用户认证路由
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { title: '登录/注册', guest: true }
-    },
-    // 用户中心路由（需要认证）
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
-      meta: { title: '个人中心', requiresAuth: true }
-    },
-    // 管理员路由（需要管理员权限）
-    {
-      path: '/admin',
-      name: 'admin',
-      redirect: '/admin/users',
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: () => import('@/views/admin/UserManagement.vue'),
-      meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/shared-api-test',
-      name: 'shared-api-test',
-      component: () => import('@/views/SharedAPITestView.vue')
-    },
-    {
-      path: '/api-test',
-      name: 'api-test',
-      component: () => import('@/views/APITestView.vue'),
-      meta: { title: 'API测试工具' }
-    },
-    {
-      path: '/api-test-comprehensive',
-      name: 'api-test-comprehensive',
-      component: () => import('@/views/ComprehensiveAPITestView.vue'),
-      meta: { title: '完整API测试工具' }
-    },
-    // Writer 模块路由
+
+    // Writer 模块路由 - 使用 MainLayout
     {
       path: '/writer',
-      name: 'writer',
-      redirect: '/writer/projects',
-      meta: { title: '青羽创作' }
+      component: MainLayout,
+      children: [
+        {
+          path: '',
+          redirect: '/writer/projects'
+        },
+        {
+          path: 'projects',
+          name: 'writer-projects',
+          component: () => import('@/modules/writer/views/ProjectListView.vue'),
+          meta: { title: '我的项目' }
+        },
+        {
+          path: 'project/:projectId',
+          name: 'writer-project',
+          component: () => import('@/modules/writer/views/ProjectWorkspace.vue'),
+          meta: { title: '项目工作区' }
+        },
+        {
+          path: 'editor',
+          name: 'writer-editor',
+          component: () => import('@/modules/writer/views/EditorView.vue'),
+          meta: { title: '编辑器' }
+        }
+      ]
     },
-    {
-      path: '/writer/projects',
-      name: 'writer-projects',
-      component: () => import('@/modules/writer/views/ProjectListView.vue'),
-      meta: { title: '我的项目' }
-    },
-    {
-      path: '/writer/project/:projectId',
-      name: 'writer-project',
-      component: () => import('@/modules/writer/views/ProjectWorkspace.vue'),
-      meta: { title: '项目工作区' }
-    },
-    {
-      path: '/writer/editor',
-      name: 'writer-editor',
-      component: () => import('@/modules/writer/views/EditorView.vue'),
-      meta: { title: '编辑器' }
-    },
-    // 错误页面路由
+
+    // 错误页面 - 使用独立布局
     {
       path: '/403',
       name: 'forbidden',
@@ -153,10 +181,10 @@ router.beforeEach((to, from, next) => {
   // 检查是否需要认证
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
-      // 未登录，跳转到登录页
+      // 未登录，跳转到认证页
       next({
-        name: 'login',
-        query: { redirect: to.fullPath }
+        name: 'auth',
+        query: { redirect: to.fullPath, mode: 'login' }
       })
       return
     }
@@ -169,7 +197,7 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  // 已登录用户访问登录页，跳转到首页
+  // 已登录用户访问认证页，跳转到首页
   if (to.meta.guest && authStore.isLoggedIn) {
     next({ name: 'home' })
     return

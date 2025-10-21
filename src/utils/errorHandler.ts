@@ -10,7 +10,7 @@ export interface ErrorOptions {
   messageType?: 'message' | 'notification' // 消息显示类型
   silent?: boolean // 静默模式（不显示任何提示）
   logToConsole?: boolean // 是否打印到控制台
-  onError?: () => void // 自定义错误处理
+  onError?: (error: AppError) => void // 自定义错误处理
 }
 
 export enum ErrorCode {
