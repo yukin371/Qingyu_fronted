@@ -143,9 +143,15 @@
 
             <!-- 评论 -->
             <el-tab-pane label="评论" name="comments">
-              <div class="comments-section">
-                <p class="empty-hint">评论功能开发中...</p>
-              </div>
+              <CommentSection :comments="comments" :total="commentTotal" :loading="commentLoading"
+                @loadMore="handleLoadComments" @submit="handleSubmitComment" @like="handleLikeComment" />
+            </el-tab-pane>
+
+            <!-- 评分 -->
+            <el-tab-pane label="评分" name="rating">
+              <RatingPanel :average-rating="book.rating" :total-ratings="book.ratingCount"
+                :rating-distribution="book.ratingDistribution || {}" :user-rating="userRating"
+                @submit="handleSubmitRating" />
             </el-tab-pane>
           </el-tabs>
         </div>

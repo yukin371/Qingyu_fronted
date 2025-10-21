@@ -12,9 +12,9 @@ qingyu-frontend/
 │
 ├── src/                      # 源代码
 │   ├── api/                  # API接口层
-│   │   ├── auth.js          # 认证接口
-│   │   ├── bookstore.js     # 书城接口
-│   │   ├── user.js          # 用户接口
+│   │   ├── auth.ts          # 认证接口
+│   │   ├── bookstore.ts     # 书城接口
+│   │   ├── user.ts          # 用户接口
 │   │   └── reading/         # 阅读相关接口
 │   │
 │   ├── assets/              # 资源文件
@@ -32,24 +32,24 @@ qingyu-frontend/
 │   │   └── RankingList.vue
 │   │
 │   ├── composables/         # 组合式函数
-│   │   ├── useAuth.js
-│   │   ├── useApi.js
-│   │   └── useUtils.js
+│   │   ├── useAuth.ts
+│   │   ├── useApi.ts
+│   │   └── useUtils.ts
 │   │
 │   ├── modules/             # 功能模块
 │   │   └── writer/          # 写作端模块
 │   │
 │   ├── router/              # 路由配置
-│   │   └── index.js         # 路由定义
+│   │   └── index.ts         # 路由定义
 │   │
 │   ├── stores/              # 状态管理
-│   │   ├── auth.js          # 认证状态
-│   │   ├── bookstore.js     # 书城状态
-│   │   └── user.js          # 用户状态
+│   │   ├── auth.ts          # 认证状态
+│   │   ├── bookstore.ts     # 书城状态
+│   │   └── user.ts          # 用户状态
 │   │
 │   ├── utils/               # 工具函数
-│   │   ├── request.js       # HTTP请求工具
-│   │   └── storage.js       # 存储工具
+│   │   ├── request.ts       # HTTP请求工具
+│   │   └── storage.ts       # 存储工具
 │   │
 │   ├── views/               # 页面组件
 │   │   ├── HomeView.vue     # 首页
@@ -59,7 +59,7 @@ qingyu-frontend/
 │   │   └── admin/           # 管理后台
 │   │
 │   ├── App.vue              # 根组件
-│   └── main.js              # 应用入口
+│   └── main.ts              # 应用入口
 │
 ├── tests/                   # 测试文件
 │   ├── unit/               # 单元测试
@@ -69,12 +69,12 @@ qingyu-frontend/
 │
 ├── .env.development        # 开发环境变量
 ├── .env.production         # 生产环境变量
-├── .eslintrc.js           # ESLint配置
+├── .eslintrc.ts           # ESLint配置
 ├── .prettierrc            # Prettier配置
 ├── .gitignore             # Git忽略文件
 ├── index.html             # HTML模板
-├── package.json           # 项目配置
-├── vite.config.js         # Vite配置
+├── package.tson           # 项目配置
+├── vite.config.ts         # Vite配置
 └── README.md              # 项目说明
 ```
 
@@ -93,7 +93,7 @@ qingyu-frontend/
 **职责**：封装后端API调用
 
 ```javascript
-// api/bookstore.js
+// api/bookstore.ts
 import axios from 'axios'
 
 export const bookstoreAPI = {
@@ -130,7 +130,7 @@ export const bookstoreAPI = {
 可复用的逻辑封装：
 
 ```javascript
-// composables/useAuth.js
+// composables/useAuth.ts
 export function useAuth() {
   const isLoggedIn = ref(false)
   const user = ref(null)
@@ -146,7 +146,7 @@ export function useAuth() {
 ### `src/router/` - 路由配置
 
 ```javascript
-// router/index.js
+// router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
@@ -169,7 +169,7 @@ export default createRouter({
 使用 Pinia 管理全局状态：
 
 ```javascript
-// stores/bookstore.js
+// stores/bookstore.ts
 import { defineStore } from 'pinia'
 
 export const useBookstoreStore = defineStore('bookstore', {
@@ -191,10 +191,10 @@ export const useBookstoreStore = defineStore('bookstore', {
 
 通用工具和辅助函数：
 
-- `request.js` - HTTP请求封装
-- `storage.js` - 本地存储封装
-- `format.js` - 格式化工具
-- `validate.js` - 验证工具
+- `request.ts` - HTTP请求封装
+- `storage.ts` - 本地存储封装
+- `format.ts` - 格式化工具
+- `validate.ts` - 验证工具
 
 ### `src/views/` - 页面组件
 
@@ -224,16 +224,16 @@ export const useBookstoreStore = defineStore('bookstore', {
 - **工具函数**：camelCase
 
   ```
-  ✅ formatDate.js
-  ✅ apiRequest.js
-  ❌ FormatDate.js
+  ✅ formatDate.ts
+  ✅ apiRequest.ts
+  ❌ FormatDate.ts
   ```
 
 - **API文件**：camelCase
 
   ```
-  ✅ bookstore.js
-  ✅ userAuth.js
+  ✅ bookstore.ts
+  ✅ userAuth.ts
   ```
 
 ### 样式文件
@@ -249,7 +249,7 @@ export const useBookstoreStore = defineStore('bookstore', {
 项目配置了路径别名，方便导入：
 
 ```javascript
-// vite.config.js
+// vite.config.ts
 export default {
   resolve: {
     alias: {
@@ -304,7 +304,7 @@ src/modules/writer/
 ├── components/          # 模块专用组件
 │   └── editor/
 ├── stores/             # 模块状态
-│   └── writerStore.js
+│   └── writerStore.ts
 ├── utils/              # 模块工具
 └── views/              # 模块页面
     ├── EditorView.vue
@@ -346,10 +346,10 @@ stores/writer/
 api/writer/
 ```
 
-### 3. 使用 index.js
+### 3. 使用 index.ts
 
 ```javascript
-// components/common/index.js
+// components/common/index.ts
 export { default as Loading } from './Loading.vue'
 export { default as Empty } from './Empty.vue'
 

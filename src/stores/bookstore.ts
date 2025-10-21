@@ -34,6 +34,7 @@ export interface BookstoreState {
   searchKeyword: string
   searchFilters: Partial<SearchFilter>
   searchLoading: boolean
+  searchHistory: string[]
   currentBook: Book | null
   bookLoading: boolean
 }
@@ -73,6 +74,7 @@ export const useBookstoreStore = defineStore('bookstore', {
     searchKeyword: '',
     searchFilters: {},
     searchLoading: false,
+    searchHistory: [],
 
     // 当前书籍详情
     currentBook: null,
@@ -215,6 +217,17 @@ export const useBookstoreStore = defineStore('bookstore', {
         const response = await bookstoreAPI.searchBooks(keyword, filters)
         if (response.code === 200) {
           this.books.searchResults = response.data.books
+
+          // 添加到搜索历史
+          if (keyword && !this.searchHistory.includes(keyword)) {
+            this.searchHistory.unshift(keyword)
+            // 最多保存10条历史记录
+            if (this.searchHistory.length > 10) {
+              this.searchHistory.pop()
+            }
+            // 保存到本地存储
+            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory))
+          }
         } else {
           this.books.searchResults = []
           this.error = response.message || '搜索失败'
@@ -226,6 +239,24 @@ export const useBookstoreStore = defineStore('bookstore', {
       } finally {
         this.searchLoading = false
       }
+    },
+
+    // 加载搜索历史
+    loadSearchHistory(): void {
+      try {
+        const history = localStorage.getItem('searchHistory')
+        if (history) {
+          this.searchHistory = JSON.parse(history)
+        }
+      } catch (error) {
+        console.error('加载搜索历史失败:', error)
+      }
+    },
+
+    // 清除搜索历史
+    clearSearchHistory(): void {
+      this.searchHistory = []
+      localStorage.removeItem('searchHistory')
     },
 
     // 获取书籍详情
@@ -329,6 +360,7 @@ export const useBookstoreStore = defineStore('bookstore', {
       this.searchKeyword = ''
       this.searchFilters = {}
       this.searchLoading = false
+      this.searchHistory = []
       this.currentBook = null
       this.bookLoading = false
     }
