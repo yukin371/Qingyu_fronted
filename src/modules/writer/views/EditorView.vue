@@ -1,43 +1,70 @@
 <template>
   <div class="editor-view" :class="{ 'focus-mode': isFocusMode }">
-    <!-- 顶部工具栏 -->
-    <div class="editor-header" v-show="!isFocusMode">
-      <div class="header-left">
-        <el-button @click="goBack" link class="back-btn">
-          <el-icon>
-            <ArrowLeft />
-          </el-icon>
-          返回
-        </el-button>
-        <div class="document-title-container">
-          <el-input v-model="documentTitle" class="document-title-input" placeholder="文档标题" />
-        </div>
-        <el-button @click="toggleFocusMode" link>
-          {{ isFocusMode ? '退出专注' : '专注模式' }}
-        </el-button>
-        <el-button @click="exportDocument" link>
-          <el-icon>
-            <Download />
-          </el-icon>
-          导出
-        </el-button>
-      </div>
-    </div>
+    <!-- 项目侧边栏 -->
+    <ProjectSidebar v-show="!isFocusMode" :current-chapter-id="currentChapterId" :projects="projects"
+      :chapters="chapters" @chapter-change="handleChapterChange" @project-change="handleProjectChange"
+      @add-chapter="handleAddChapter" @edit-chapter="handleEditChapter" @delete-chapter="handleDeleteChapter" />
 
     <!-- 主编辑区域 -->
-    <div class="main-content">
-      <textarea ref="editorTextarea" v-model="fileContent" class="editor-textarea" placeholder="开始写作..."
-        @keydown.tab.prevent="handleTab" @input="handleContentChange"></textarea>
-    </div>
-
-    <!-- 底部状态栏 -->
-    <div class="editor-footer" v-show="!isFocusMode">
-      <div class="status-left">
-        <span class="status-item">字数: {{ wordCount }}</span>
-        <span class="status-item save-status">{{ saveStatus }}</span>
+    <div class="editor-container">
+      <!-- 顶部工具栏 -->
+      <div class="editor-header" v-show="!isFocusMode">
+        <div class="header-left">
+          <el-button @click="goBack" link class="back-btn">
+            <el-icon>
+              <ArrowLeft />
+            </el-icon>
+            返回
+          </el-button>
+          <div class="document-title-container">
+            <el-input v-model="documentTitle" class="document-title-input" placeholder="章节标题"
+              @change="handleTitleChange" />
+          </div>
+        </div>
+        <div class="header-right">
+          <el-button @click="toggleFocusMode" link>
+            {{ isFocusMode ? '退出专注' : '专注模式' }}
+          </el-button>
+          <el-button @click="handleSaveManually" :loading="isSaving" type="primary" link>
+            <el-icon><Select /></el-icon>
+            保存
+          </el-button>
+          <el-button @click="exportDocument" link>
+            <el-icon>
+              <Download />
+            </el-icon>
+            导出
+          </el-button>
+        </div>
       </div>
-      <div class="status-right">
-        <span class="status-item">{{ lastSavedTime }}</span>
+
+      <!-- 编辑器主体 -->
+      <div class="main-content">
+        <textarea ref="editorTextarea" v-model="fileContent" class="editor-textarea" placeholder="开始写作..."
+          @keydown.tab.prevent="handleTab" @input="handleContentChange"></textarea>
+      </div>
+
+      <!-- 底部状态栏 -->
+      <div class="editor-footer" v-show="!isFocusMode">
+        <div class="status-left">
+          <span class="status-item">
+            字数: <strong>{{ wordCount }}</strong>
+          </span>
+          <span class="status-item save-status" :class="saveStatusClass">
+            <el-icon>
+              <component :is="saveStatusIcon" />
+            </el-icon>
+            {{ saveStatus }}
+          </span>
+        </div>
+        <div class="status-right">
+          <span v-if="lastSavedTime" class="status-item">
+            最后保存: {{ lastSavedTime }}
+          </span>
+          <span class="status-item">
+            {{ currentTime }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -64,126 +91,293 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <!-- 新建章节对话框 -->
+    <el-dialog v-model="showNewChapterDialog" title="新建章节" width="500px">
+      <el-form :model="newChapterForm" label-width="80px">
+        <el-form-item label="章节序号">
+          <el-input-number v-model="newChapterForm.chapterNum" :min="1" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="章节标题">
+          <el-input v-model="newChapterForm.title" placeholder="请输入章节标题" maxlength="100" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showNewChapterDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmAddChapter">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { ArrowLeft, Download, Document, EditPen, View } from '@element-plus/icons-vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import {
+  ArrowLeft,
+  Download,
+  Document,
+  EditPen,
+  View,
+  Select,
+  Loading,
+  CircleCheck,
+  Warning
+} from '@element-plus/icons-vue'
+import ProjectSidebar from '../components/ProjectSidebar.vue'
+import { AutoSaveManager } from '../utils/autosave'
 import { renderMarkdown } from '../utils/markdown'
 
 const router = useRouter()
+const route = useRoute()
 
-// --- State ---
+// --- 项目和章节数据 (模拟数据，实际应从API获取) ---
+const projects = ref([
+  {
+    id: '1',
+    title: '我的第一本小说',
+    status: 'published' as const,
+    wordCount: 125000,
+    chapterCount: 15
+  },
+  {
+    id: '2',
+    title: '科幻短篇集',
+    status: 'draft' as const,
+    wordCount: 35000,
+    chapterCount: 5
+  }
+])
+
+const chapters = ref([
+  { id: '1-1', projectId: '1', chapterNum: 1, title: '第一章：开始', wordCount: 3500, updateTime: new Date().toISOString(), isDraft: false },
+  { id: '1-2', projectId: '1', chapterNum: 2, title: '第二章：冒险', wordCount: 4200, updateTime: new Date(Date.now() - 86400000).toISOString(), isDraft: false },
+  { id: '1-3', projectId: '1', chapterNum: 3, title: '第三章：挑战', wordCount: 0, updateTime: new Date().toISOString(), isDraft: true },
+  { id: '2-1', projectId: '2', chapterNum: 1, title: '流浪地球', wordCount: 8000, updateTime: new Date().toISOString(), isDraft: false },
+  { id: '2-2', projectId: '2', chapterNum: 2, title: '三体', wordCount: 12000, updateTime: new Date(Date.now() - 172800000).toISOString(), isDraft: false }
+])
+
+// --- 状态 ---
 const fileContent = ref('')
-const documentTitle = ref('未命名文档')
+const documentTitle = ref('未命名章节')
+const currentChapterId = ref('')
 const isFocusMode = ref(false)
-const saveStatus = ref('已保存')
+const saveStatus = ref('未保存')
+const isSaving = ref(false)
 const showExportDialog = ref(false)
-const editorTextarea = ref(null)
-let autoSaveTimer = null
+const showNewChapterDialog = ref(false)
+const editorTextarea = ref<HTMLTextAreaElement | null>(null)
+const lastSavedTime = ref('')
+const currentTime = ref(new Date().toLocaleTimeString())
 
-// --- Computed ---
+// 新建章节表单
+const newChapterForm = ref({
+  chapterNum: 1,
+  title: ''
+})
+
+// 自动保存管理器
+let autoSaveManager: AutoSaveManager | null = null
+
+// --- 计算属性 ---
 const wordCount = computed(() => {
   if (!fileContent.value) return 0
   const text = fileContent.value.replace(/[\s\n\r]/g, '')
   return text.length
 })
 
-const lastSavedTime = computed(() => {
-  return `最后保存: ${new Date().toLocaleTimeString()}`
+const saveStatusClass = computed(() => {
+  return {
+    'status-saving': saveStatus.value === '保存中...',
+    'status-saved': saveStatus.value === '已保存',
+    'status-error': saveStatus.value === '保存失败'
+  }
 })
 
-// --- Methods ---
-const loadDocument = () => {
-  // POC: 使用假数据
-  const mockContent = `# 欢迎使用青羽写作编辑器
+const saveStatusIcon = computed(() => {
+  switch (saveStatus.value) {
+    case '保存中...':
+      return Loading
+    case '已保存':
+      return CircleCheck
+    case '保存失败':
+      return Warning
+    default:
+      return Document
+  }
+})
 
-这是一个基于 Markdown 的写作编辑器，支持以下功能：
+// --- 方法 ---
 
-## 功能特点
+// 章节切换
+const handleChapterChange = (chapter: any) => {
+  // 如果有未保存的内容，提示用户
+  if (saveStatus.value === '未保存' && fileContent.value) {
+    ElMessage.warning('当前章节有未保存的内容')
+    return
+  }
 
-- **实时字数统计**：底部状态栏显示当前字数
-- **自动保存**：编辑内容会自动保存
-- **专注模式**：隐藏工具栏，专注写作
-- **导出功能**：支持导出为 TXT、Markdown、HTML 格式
+  currentChapterId.value = chapter.id
+  documentTitle.value = chapter.title
 
-## Markdown 语法支持
-
-### 标题
-
-使用 # 号可表示 1-6 级标题
-
-### 列表
-
-- 无序列表项 1
-- 无序列表项 2
-- 无序列表项 3
-
-1. 有序列表项 1
-2. 有序列表项 2
-3. 有序列表项 3
-
-### 代码
-
-行内代码: \`const x = 1\`
-
-代码块:
-\`\`\`javascript
-function hello() {
-  console.log('Hello, World!')
+  // 加载章节内容 (模拟)
+  loadChapterContent(chapter.id)
 }
-\`\`\`
 
-### 引用
+// 项目切换
+const handleProjectChange = (projectId: string) => {
+  // 切换到该项目的第一个章节
+  const firstChapter = chapters.value.find(c => c.projectId === projectId)
+  if (firstChapter) {
+    currentChapterId.value = firstChapter.id
+    documentTitle.value = firstChapter.title
+    loadChapterContent(firstChapter.id)
+  }
+}
 
-> 这是一段引用文本
+// 加载章节内容
+const loadChapterContent = (chapterId: string) => {
+  // TODO: 从API加载实际内容
+  // 模拟加载
+  const mockContent = `# ${documentTitle.value}
 
-### 链接和图片
+这是章节内容的占位符。在实际应用中，这里会从服务器加载真实的章节内容。
 
-[青羽平台](https://qingyu.com)
+## 示例内容
 
----
-
-开始你的创作之旅吧！
+你可以在这里开始创作你的故事...
 `
   fileContent.value = mockContent
-  documentTitle.value = '示例文档'
   saveStatus.value = '已加载'
-}
 
-const saveDocument = () => {
-  saveStatus.value = '保存中...'
-  // POC: 模拟保存到 localStorage
-  try {
-    localStorage.setItem('writer_draft', fileContent.value)
-    localStorage.setItem('writer_title', documentTitle.value)
-    setTimeout(() => {
-      saveStatus.value = '已保存'
-    }, 500)
-  } catch (error) {
-    saveStatus.value = '保存失败'
-    console.error('Save failed:', error)
+  // 启动自动保存
+  if (autoSaveManager) {
+    autoSaveManager.start(chapterId, fileContent.value, 0)
   }
 }
 
+// 标题变化
+const handleTitleChange = () => {
+  saveStatus.value = '未保存'
+}
+
+// 内容变化
 const handleContentChange = () => {
   saveStatus.value = '未保存'
-  // 防抖保存
-  if (autoSaveTimer) {
-    clearTimeout(autoSaveTimer)
+
+  if (autoSaveManager && currentChapterId.value) {
+    autoSaveManager.onContentChange(
+      currentChapterId.value,
+      fileContent.value,
+      documentTitle.value
+    )
   }
-  autoSaveTimer = setTimeout(saveDocument, 1500)
 }
 
+// 手动保存
+const handleSaveManually = async () => {
+  if (!currentChapterId.value) {
+    ElMessage.warning('请先选择章节')
+    return
+  }
+
+  if (autoSaveManager) {
+    isSaving.value = true
+    const success = await autoSaveManager.saveNow(
+      currentChapterId.value,
+      fileContent.value,
+      documentTitle.value
+    )
+    isSaving.value = false
+
+    if (success) {
+      ElMessage.success('保存成功')
+    } else {
+      ElMessage.error('保存失败')
+    }
+  }
+}
+
+// 新建章节
+const handleAddChapter = () => {
+  // 找到当前项目的最大章节号
+  const currentProjectChapters = chapters.value.filter(
+    c => c.projectId === projects.value[0].id
+  )
+  const maxChapterNum = Math.max(...currentProjectChapters.map(c => c.chapterNum), 0)
+
+  newChapterForm.value = {
+    chapterNum: maxChapterNum + 1,
+    title: ''
+  }
+
+  showNewChapterDialog.value = true
+}
+
+// 确认添加章节
+const confirmAddChapter = () => {
+  if (!newChapterForm.value.title) {
+    ElMessage.warning('请输入章节标题')
+    return
+  }
+
+  // TODO: 调用API创建章节
+  const newChapter = {
+    id: `${projects.value[0].id}-${Date.now()}`,
+    projectId: projects.value[0].id,
+    chapterNum: newChapterForm.value.chapterNum,
+    title: newChapterForm.value.title,
+    wordCount: 0,
+    updateTime: new Date().toISOString(),
+    isDraft: true
+  }
+
+  chapters.value.push(newChapter)
+  showNewChapterDialog.value = false
+
+  ElMessage.success('章节创建成功')
+
+  // 切换到新章节
+  handleChapterChange(newChapter)
+}
+
+// 编辑章节
+const handleEditChapter = () => {
+  // TODO: 实现章节编辑功能
+  ElMessage.info('章节编辑功能开发中')
+}
+
+// 删除章节
+const handleDeleteChapter = async (chapterId: string) => {
+  // TODO: 调用API删除章节
+  const index = chapters.value.findIndex(c => c.id === chapterId)
+  if (index > -1) {
+    chapters.value.splice(index, 1)
+    ElMessage.success('删除成功')
+
+    // 如果删除的是当前章节，切换到第一个章节
+    if (chapterId === currentChapterId.value) {
+      if (chapters.value.length > 0) {
+        handleChapterChange(chapters.value[0])
+      } else {
+        currentChapterId.value = ''
+        fileContent.value = ''
+        documentTitle.value = '未命名章节'
+      }
+    }
+  }
+}
+
+// 切换专注模式
 const toggleFocusMode = () => {
   isFocusMode.value = !isFocusMode.value
 }
 
-const handleTab = (event) => {
+// Tab键处理
+const handleTab = (event: KeyboardEvent) => {
   event.preventDefault()
-  const textarea = event.target
+  const textarea = event.target as HTMLTextAreaElement
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
   const tabCharacter = '  ' // 两个空格
@@ -196,11 +390,12 @@ const handleTab = (event) => {
   })
 }
 
+// 导出文档
 const exportDocument = () => {
   showExportDialog.value = true
 }
 
-const downloadFile = (filename, content, mimeType) => {
+const downloadFile = (filename: string, content: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -281,77 +476,122 @@ const exportAsHTML = () => {
   downloadFile(filename, html, 'text/html;charset=utf-8')
 }
 
+// 返回
 const goBack = () => {
-  router.push({ name: 'home' })
+  router.push({ name: 'writer-projects' })
 }
 
-// --- Lifecycle Hooks ---
-onMounted(() => {
-  // 尝试从 localStorage 恢复草稿
-  const savedDraft = localStorage.getItem('writer_draft')
-  const savedTitle = localStorage.getItem('writer_title')
+// 更新当前时间
+const updateCurrentTime = () => {
+  currentTime.value = new Date().toLocaleTimeString('zh-CN')
+}
 
-  if (savedDraft) {
-    fileContent.value = savedDraft
-    documentTitle.value = savedTitle || '未命名文档'
-    saveStatus.value = '已恢复'
-  } else {
-    loadDocument()
+// --- 生命周期 ---
+onMounted(() => {
+  // 初始化自动保存管理器
+  autoSaveManager = new AutoSaveManager({
+    interval: 30000, // 30秒自动保存
+    debounceDelay: 1500, // 1.5秒防抖
+    onSave: async () => {
+      saveStatus.value = '保存中...'
+      // TODO: 调用API保存到服务器
+      await new Promise(resolve => setTimeout(resolve, 500))
+      saveStatus.value = '已保存'
+      lastSavedTime.value = new Date().toLocaleTimeString('zh-CN')
+      return Promise.resolve()
+    },
+    onConflict: () => {
+      ElMessage.warning('检测到版本冲突，请刷新页面')
+    }
+  })
+
+  // 如果有路由参数中的章节ID，加载对应章节
+  const chapterId = route.query.chapterId as string
+  if (chapterId) {
+    const chapter = chapters.value.find(c => c.id === chapterId)
+    if (chapter) {
+      handleChapterChange(chapter)
+    }
+  } else if (chapters.value.length > 0) {
+    // 默认加载第一个章节
+    handleChapterChange(chapters.value[0])
   }
+
+  // 启动时间更新定时器
+  const timeInterval = setInterval(updateCurrentTime, 1000)
+
+  onBeforeUnmount(() => {
+    clearInterval(timeInterval)
+  })
 })
 
 onBeforeUnmount(() => {
-  if (autoSaveTimer) {
-    clearTimeout(autoSaveTimer)
+  if (autoSaveManager) {
+    autoSaveManager.stop()
   }
 })
 </script>
 
-<style scoped>
-/* 基本样式 */
+<style scoped lang="scss">
 .editor-view {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   background-color: #fff;
+
+  &.focus-mode {
+    .editor-container {
+      padding: 5% 15%;
+    }
+  }
 }
 
-.editor-view.focus-mode {
-  padding: 5% 15%;
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* 头部 */
+// 头部
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px 20px;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
+
+  .header-left,
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .back-btn {
+    margin-right: 8px;
+  }
+
+  .document-title-container {
+    flex: 1;
+    max-width: 400px;
+  }
+
+  .document-title-input {
+    font-size: 16px;
+    font-weight: 500;
+
+    :deep(.el-input__wrapper) {
+      background-color: transparent;
+    }
+  }
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.back-btn {
-  margin-right: 8px;
-}
-
-.document-title-container {
-  flex: 1;
-  max-width: 400px;
-}
-
-.document-title-input {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* 主内容区 */
+// 主内容区
 .main-content {
   flex: 1;
   display: flex;
@@ -367,7 +607,7 @@ onBeforeUnmount(() => {
   padding: 2rem;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.8;
   border: none;
   background-color: transparent;
   color: #1f2937;
@@ -375,37 +615,63 @@ onBeforeUnmount(() => {
   outline: none;
 }
 
-/* 底部状态栏 */
+// 底部状态栏
 .editor-footer {
   display: flex;
   justify-content: space-between;
-  padding: 8px 16px;
+  align-items: center;
+  padding: 8px 20px;
   border-top: 1px solid #e5e7eb;
   background-color: #f9fafb;
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
+
+  .status-left,
+  .status-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    strong {
+      color: #409eff;
+      font-weight: 600;
+    }
+  }
+
+  .save-status {
+    transition: color 0.2s;
+
+    &.status-saving {
+      color: #e6a23c;
+    }
+
+    &.status-saved {
+      color: #67c23a;
+    }
+
+    &.status-error {
+      color: #f56c6c;
+    }
+  }
 }
 
-.status-left,
-.status-right {
-  display: flex;
-  gap: 16px;
-}
-
-.save-status {
-  font-style: italic;
-}
-
-/* 导出选项 */
+// 导出选项
 .export-options {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
 
-.export-option {
-  width: 100%;
-  justify-content: flex-start;
-  padding: 12px;
+  .export-option {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 16px;
+    height: auto;
+  }
 }
 </style>
