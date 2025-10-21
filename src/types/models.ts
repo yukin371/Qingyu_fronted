@@ -63,6 +63,8 @@ export interface Chapter {
   isFree: boolean
   price: number
   publishTime: string
+  updateTime?: string
+  locked?: boolean
   prevChapterId: string | null
   nextChapterId: string | null
 }
@@ -101,9 +103,18 @@ export interface Category {
   description?: string
   icon?: string
   bookCount: number
+  count?: number // 用于筛选面板的书籍数量显示
   parentId?: string
   children?: Category[]
   sort?: number
+}
+
+/** 标签信息 */
+export interface Tag {
+  id: string
+  name: string
+  count?: number // 使用该标签的书籍数量
+  description?: string
 }
 
 // ==================== 用户相关 ====================
@@ -173,17 +184,21 @@ export interface ReadingHistory {
 // ==================== 阅读设置相关 ====================
 
 /** 阅读主题 */
-export type ReadingTheme = 'light' | 'dark' | 'sepia' | 'night'
+export type ReadingTheme = 'light' | 'dark' | 'sepia' | 'night' | 'eye-care' | 'parchment'
 
 /** 阅读设置 */
 export interface ReadingSettings {
-  fontSize: number // 14-24
-  lineHeight: number // 1.5-2.5
   theme: ReadingTheme
   fontFamily: string
-  pageWidth: number // 600-1000
-  autoSave: boolean
-  pageMode: 'scroll' | 'page'
+  fontSize: number // 12-32
+  lineHeight: number // 1.2-2.5
+  pageWidth: number // 60-100 (percent)
+  pageMode: 'scroll' | 'click' | 'slide'
+  autoRead: boolean
+  autoReadSpeed: number // 1-10
+  enableConvert: boolean
+  eyeCare: boolean
+  keepScreenOn: boolean
 }
 
 // ==================== 书架相关 ====================

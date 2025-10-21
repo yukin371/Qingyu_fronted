@@ -1,238 +1,225 @@
 /**
- * 自动保存工具
+ * 编辑器自动保存工具
+ * 支持版本冲突检测、自动保存、草稿恢复
  */
 
-/**
- * 自动保存管理器
- */
-export class AutosaveManager {
-  private timer: NodeJS.Timeout | null = null
-  private saveCallback: () => Promise<void>
-  private interval: number
-  private enabled: boolean = true
-  private lastSaveTime: number = 0
-  private minSaveInterval: number = 5000 // 最小保存间隔5秒
+export interface SavedDraft {
+  documentId: string
+  title: string
+  content: string
+  timestamp: number
+  version: number
+  wordCount: number
+}
 
-  constructor(saveCallback: () => Promise<void>, interval: number = 30000) {
-    this.saveCallback = saveCallback
-    this.interval = interval
+export interface AutoSaveOptions {
+  interval?: number // 自动保存间隔(毫秒)
+  debounceDelay?: number // 防抖延迟(毫秒)
+  onSave?: (draft: SavedDraft) => Promise<void> // 保存回调
+  onConflict?: (localVersion: number, serverVersion: number) => void // 冲突回调
+}
+
+export class AutoSaveManager {
+  private saveTimer: number | null = null
+  private debounceTimer: number | null = null
+  private currentVersion: number = 0
+  private lastSavedContent: string = ''
+  private options: Required<AutoSaveOptions>
+
+  constructor(options: AutoSaveOptions = {}) {
+    this.options = {
+      interval: options.interval || 30000, // 默认30秒
+      debounceDelay: options.debounceDelay || 1500, // 默认1.5秒
+      onSave: options.onSave || this.defaultSaveHandler,
+      onConflict: options.onConflict || this.defaultConflictHandler
+    }
   }
 
   /**
-   * 启动自动保存
+   * 开始自动保存
    */
-  start(): void {
-    if (this.timer) {
-      this.stop()
-    }
+  start(documentId: string, initialContent: string = '', initialVersion: number = 0) {
+    this.stop()
+    this.lastSavedContent = initialContent
+    this.currentVersion = initialVersion
 
-    this.enabled = true
-    this.timer = setInterval(() => {
-      this.triggerSave()
-    }, this.interval)
+    // 启动定时保存
+    this.saveTimer = window.setInterval(() => {
+      this.triggerSave(documentId)
+    }, this.options.interval)
   }
 
   /**
    * 停止自动保存
    */
-  stop(): void {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
+  stop() {
+    if (this.saveTimer) {
+      clearInterval(this.saveTimer)
+      this.saveTimer = null
     }
-    this.enabled = false
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = null
+    }
   }
 
   /**
-   * 触发保存
+   * 内容变化时调用(防抖保存)
    */
-  async triggerSave(): Promise<void> {
-    if (!this.enabled) return
-
-    const now = Date.now()
-    if (now - this.lastSaveTime < this.minSaveInterval) {
-      return
+  onContentChange(documentId: string, content: string, title: string = '未命名文档') {
+    // 清除之前的防抖定时器
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
     }
 
-    try {
-      await this.saveCallback()
-      this.lastSaveTime = now
-    } catch (error) {
-      console.error('自动保存失败:', error)
-    }
+    // 设置新的防抖定时器
+    this.debounceTimer = window.setTimeout(() => {
+      this.saveNow(documentId, content, title)
+    }, this.options.debounceDelay)
   }
 
   /**
    * 立即保存
    */
-  async saveNow(): Promise<void> {
-    await this.triggerSave()
-  }
+  async saveNow(documentId: string, content: string, title: string = '未命名文档'): Promise<boolean> {
+    // 内容没有变化,不需要保存
+    if (content === this.lastSavedContent) {
+      return true
+    }
 
-  /**
-   * 设置保存间隔
-   */
-  setInterval(interval: number): void {
-    this.interval = interval
-    if (this.timer) {
-      this.stop()
-      this.start()
+    const draft: SavedDraft = {
+      documentId,
+      title,
+      content,
+      timestamp: Date.now(),
+      version: this.currentVersion + 1,
+      wordCount: this.countWords(content)
+    }
+
+    try {
+      await this.options.onSave(draft)
+      this.lastSavedContent = content
+      this.currentVersion = draft.version
+      return true
+    } catch (error) {
+      console.error('自动保存失败:', error)
+      return false
     }
   }
 
   /**
-   * 设置最小保存间隔
+   * 触发保存(由定时器调用)
    */
-  setMinSaveInterval(interval: number): void {
-    this.minSaveInterval = interval
+  private async triggerSave(documentId: string) {
+    // 这里需要从外部获取当前编辑内容,所以实际使用时需要配合状态管理
+    console.log('Auto-save triggered for document:', documentId)
   }
 
   /**
-   * 启用/禁用自动保存
+   * 检查版本冲突
    */
-  setEnabled(enabled: boolean): void {
-    this.enabled = enabled
-    if (enabled && !this.timer) {
-      this.start()
-    } else if (!enabled && this.timer) {
-      this.stop()
+  checkVersionConflict(serverVersion: number): boolean {
+    if (serverVersion > this.currentVersion) {
+      this.options.onConflict(this.currentVersion, serverVersion)
+      return true
     }
+    return false
   }
 
   /**
-   * 获取上次保存时间
+   * 获取当前版本号
    */
-  getLastSaveTime(): number {
-    return this.lastSaveTime
+  getCurrentVersion(): number {
+    return this.currentVersion
   }
 
   /**
-   * 检查是否启用
+   * 设置版本号
    */
-  isEnabled(): boolean {
-    return this.enabled
+  setVersion(version: number) {
+    this.currentVersion = version
+  }
+
+  /**
+   * 字数统计
+   */
+  private countWords(text: string): number {
+    if (!text) return 0
+    return text.replace(/[\s\n\r]/g, '').length
+  }
+
+  /**
+   * 默认保存处理器(保存到localStorage)
+   */
+  private async defaultSaveHandler(draft: SavedDraft): Promise<void> {
+    const key = `draft_${draft.documentId}`
+    localStorage.setItem(key, JSON.stringify(draft))
+    localStorage.setItem('draft_latest', draft.documentId)
+  }
+
+  /**
+   * 默认冲突处理器
+   */
+  private defaultConflictHandler(localVersion: number, serverVersion: number) {
+    console.warn('版本冲突:', {
+      local: localVersion,
+      server: serverVersion
+    })
   }
 }
 
 /**
- * 创建自动保存管理器
+ * 从localStorage恢复草稿
  */
-export function createAutosaveManager(
-  saveCallback: () => Promise<void>,
-  interval: number = 30000
-): AutosaveManager {
-  return new AutosaveManager(saveCallback, interval)
-}
+export function restoreDraft(documentId: string): SavedDraft | null {
+  const key = `draft_${documentId}`
+  const stored = localStorage.getItem(key)
+  if (!stored) return null
 
-/**
- * 保存状态
- */
-export enum SaveStatus {
-  Idle = 'idle',
-  Saving = 'saving',
-  Saved = 'saved',
-  Error = 'error',
-  Conflict = 'conflict'
-}
-
-/**
- * 保存状态管理器
- */
-export class SaveStatusManager {
-  private status: SaveStatus = SaveStatus.Idle
-  private errorMessage: string = ''
-  private lastSaveTime: Date | null = null
-  private statusChangeCallback?: (status: SaveStatus) => void
-
-  constructor(statusChangeCallback?: (status: SaveStatus) => void) {
-    this.statusChangeCallback = statusChangeCallback
-  }
-
-  /**
-   * 设置状态
-   */
-  setStatus(status: SaveStatus, errorMessage: string = ''): void {
-    this.status = status
-    this.errorMessage = errorMessage
-
-    if (status === SaveStatus.Saved) {
-      this.lastSaveTime = new Date()
-    }
-
-    if (this.statusChangeCallback) {
-      this.statusChangeCallback(status)
-    }
-  }
-
-  /**
-   * 获取状态
-   */
-  getStatus(): SaveStatus {
-    return this.status
-  }
-
-  /**
-   * 获取错误信息
-   */
-  getErrorMessage(): string {
-    return this.errorMessage
-  }
-
-  /**
-   * 获取上次保存时间
-   */
-  getLastSaveTime(): Date | null {
-    return this.lastSaveTime
-  }
-
-  /**
-   * 获取状态文本
-   */
-  getStatusText(): string {
-    switch (this.status) {
-      case SaveStatus.Idle:
-        return '未保存'
-      case SaveStatus.Saving:
-        return '保存中...'
-      case SaveStatus.Saved:
-        return this.lastSaveTime
-          ? `已保存于 ${this.formatTime(this.lastSaveTime)}`
-          : '已保存'
-      case SaveStatus.Error:
-        return `保存失败: ${this.errorMessage}`
-      case SaveStatus.Conflict:
-        return '版本冲突'
-      default:
-        return ''
-    }
-  }
-
-  /**
-   * 格式化时间
-   */
-  private formatTime(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, '0')
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    const seconds = date.getSeconds().toString().padStart(2, '0')
-    return `${hours}:${minutes}:${seconds}`
-  }
-
-  /**
-   * 重置状态
-   */
-  reset(): void {
-    this.status = SaveStatus.Idle
-    this.errorMessage = ''
-    this.lastSaveTime = null
+  try {
+    return JSON.parse(stored) as SavedDraft
+  } catch {
+    return null
   }
 }
 
 /**
- * 创建保存状态管理器
+ * 获取最近编辑的草稿
  */
-export function createSaveStatusManager(
-  statusChangeCallback?: (status: SaveStatus) => void
-): SaveStatusManager {
-  return new SaveStatusManager(statusChangeCallback)
+export function getLatestDraft(): SavedDraft | null {
+  const latestId = localStorage.getItem('draft_latest')
+  if (!latestId) return null
+  return restoreDraft(latestId)
 }
 
+/**
+ * 清除草稿
+ */
+export function clearDraft(documentId: string) {
+  const key = `draft_${documentId}`
+  localStorage.removeItem(key)
+}
+
+/**
+ * 获取所有草稿列表
+ */
+export function getAllDrafts(): SavedDraft[] {
+  const drafts: SavedDraft[] = []
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith('draft_') && key !== 'draft_latest') {
+      try {
+        const stored = localStorage.getItem(key)
+        if (stored) {
+          drafts.push(JSON.parse(stored))
+        }
+      } catch {
+        // 忽略解析错误
+      }
+    }
+  }
+
+  // 按时间戳排序
+  return drafts.sort((a, b) => b.timestamp - a.timestamp)
+}

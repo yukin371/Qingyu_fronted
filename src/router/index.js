@@ -51,6 +51,31 @@ const router = createRouter({
           name: 'profile',
           component: () => import('@/views/ProfileView.vue'),
           meta: { title: '个人中心', requiresAuth: true }
+        },
+        {
+          path: 'bookshelf',
+          name: 'bookshelf',
+          component: () => import('@/views/BookshelfView.vue'),
+          meta: { title: '我的书架', requiresAuth: true }
+        },
+        // 用户设置路由组
+        {
+          path: 'settings',
+          name: 'settings',
+          redirect: '/settings/account',
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'settings/account',
+          name: 'settings-account',
+          component: () => import('@/views/user/AccountSettings.vue'),
+          meta: { title: '账户设置', requiresAuth: true }
+        },
+        {
+          path: 'settings/security',
+          name: 'settings-security',
+          component: () => import('@/views/user/SecuritySettings.vue'),
+          meta: { title: '安全设置', requiresAuth: true }
         }
       ]
     },
