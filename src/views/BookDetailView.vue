@@ -141,17 +141,50 @@
               </div>
             </el-tab-pane>
 
-            <!-- 评论 -->
-            <el-tab-pane label="评论" name="comments">
-              <CommentSection :comments="comments" :total="commentTotal" :loading="commentLoading"
-                @loadMore="handleLoadComments" @submit="handleSubmitComment" @like="handleLikeComment" />
+            <!-- 评分 -->
+            <el-tab-pane label="评分与评价" name="rating">
+              <RatingSection :book-id="bookId" />
             </el-tab-pane>
 
-            <!-- 评分 -->
-            <el-tab-pane label="评分" name="rating">
-              <RatingPanel :average-rating="book.rating" :total-ratings="book.ratingCount"
-                :rating-distribution="book.ratingDistribution || {}" :user-rating="userRating"
-                @submit="handleSubmitRating" />
+            <!-- 评论 -->
+            <el-tab-pane label="书评" name="comments">
+              <div class="comments-container">
+                <!-- 发表评论 -->
+                <div class="comment-post">
+                  <el-input
+                    v-model="newComment"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="写下你的看法..."
+                    maxlength="1000"
+                    show-word-limit
+                  />
+                  <div class="comment-actions">
+                    <el-button type="primary" @click="submitComment" :loading="submittingComment">
+                      发表
+                    </el-button>
+                  </div>
+                </div>
+
+                <!-- 评论列表 -->
+                <div v-loading="commentsLoading" class="comments-list">
+                  <div v-if="comments.length === 0 && !commentsLoading" class="empty-comments">
+                    <el-empty description="暂无评论，来发表第一条评论吧" />
+                  </div>
+                  <CommentItem
+                    v-for="comment in comments"
+                    :key="comment.id"
+                    :comment="comment"
+                    @delete="handleDeleteComment"
+                    @update="loadComments"
+                  />
+                  <div v-if="hasMoreComments" class="load-more">
+                    <el-button @click="loadMoreComments" :loading="loadingMore">
+                      加载更多
+                    </el-button>
+                  </div>
+                </div>
+              </div>
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -189,18 +222,24 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
+import { useAuthStore } from '@/stores/auth'
 import { recommendationAPI } from '@/api/recommendation'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeft, User, Collection, View, Star, Document,
   Reading, FolderAdd, Picture, Lock
 } from '@element-plus/icons-vue'
+import RatingSection from '@/components/reading/RatingSection.vue'
+import CommentItem from '@/components/reading/CommentItem.vue'
+import { getBookComments, createComment, deleteComment } from '@/api/reading/comments'
+import { addToBookshelf, checkBookInShelf } from '@/api/reading/bookshelf'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
 const route = useRoute()
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
 const readerStore = useReaderStore()
+const authStore = useAuthStore()
 
 const bookId = route.params.id as string
 const loading = ref(false)
@@ -209,6 +248,20 @@ const isReversed = ref(false)
 const isFavorited = ref(false)
 const chapters = ref<ChapterListItem[]>([])
 const recommendedBooks = ref<BookBrief[]>([])
+
+// 评论相关
+const comments = ref<any[]>([])
+const commentsLoading = ref(false)
+const newComment = ref('')
+const submittingComment = ref(false)
+const commentPage = ref(1)
+const commentPageSize = ref(20)
+const commentTotal = ref(0)
+const loadingMore = ref(false)
+
+const hasMoreComments = computed(() => {
+  return comments.value.length < commentTotal.value
+})
 
 const book = computed(() => bookstoreStore.currentBook)
 
@@ -269,14 +322,116 @@ const readChapter = (chapterId: string) => {
 }
 
 // 加入书架
-const addToShelf = () => {
-  ElMessage.success('已加入书架')
+const addToShelf = async () => {
+  if (!authStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    return
+  }
+
+  try {
+    await addToBookshelf(bookId)
+    ElMessage.success('已加入书架')
+  } catch (error: any) {
+    ElMessage.error(error.message || '添加失败')
+  }
 }
 
 // 切换收藏
 const toggleFavorite = () => {
+  if (!authStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    return
+  }
+
   isFavorited.value = !isFavorited.value
   ElMessage.success(isFavorited.value ? '收藏成功' : '取消收藏')
+}
+
+// 加载评论
+const loadComments = async (reset = false) => {
+  if (reset) {
+    commentPage.value = 1
+    comments.value = []
+  }
+
+  commentsLoading.value = true
+  try {
+    const response = await getBookComments(bookId, {
+      page: commentPage.value,
+      size: commentPageSize.value
+    })
+
+    const data = response.data || response
+    if (data) {
+      const commentList = Array.isArray(data) ? data : (data.data || [])
+      if (reset) {
+        comments.value = commentList
+      } else {
+        comments.value.push(...commentList)
+      }
+      commentTotal.value = data.total || (response as any).total || 0
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载评论失败')
+  } finally {
+    commentsLoading.value = false
+  }
+}
+
+// 加载更多评论
+const loadMoreComments = async () => {
+  loadingMore.value = true
+  commentPage.value++
+  await loadComments()
+  loadingMore.value = false
+}
+
+// 提交评论
+const submitComment = async () => {
+  if (!authStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    return
+  }
+
+  if (!newComment.value.trim()) {
+    ElMessage.warning('请输入评论内容')
+    return
+  }
+
+  submittingComment.value = true
+  try {
+    await createComment(bookId, newComment.value)
+    ElMessage.success('发表成功')
+    newComment.value = ''
+    // 重新加载评论列表
+    await loadComments(true)
+  } catch (error: any) {
+    ElMessage.error(error.message || '发表失败')
+  } finally {
+    submittingComment.value = false
+  }
+}
+
+// 删除评论
+const handleDeleteComment = async (commentId: string) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    await deleteComment(commentId)
+    ElMessage.success('删除成功')
+    await loadComments(true)
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
+  }
 }
 
 // 反转章节顺序
@@ -336,6 +491,7 @@ const loadRecommendations = async () => {
 
 onMounted(() => {
   loadBookDetail()
+  loadComments(true)
 })
 </script>
 
@@ -483,13 +639,34 @@ onMounted(() => {
   }
 }
 
-.comments-section {
-  padding: 40px 20px;
-  text-align: center;
+.comments-container {
+  padding: 20px;
+}
 
-  .empty-hint {
-    color: #909399;
+.comment-post {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f5f7fa;
+  border-radius: 8px;
+
+  .comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
   }
+}
+
+.comments-list {
+  min-height: 200px;
+}
+
+.empty-comments {
+  padding: 40px 0;
+}
+
+.load-more {
+  text-align: center;
+  padding: 20px 0;
 }
 
 .recommended-section {

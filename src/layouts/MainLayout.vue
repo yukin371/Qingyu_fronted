@@ -12,7 +12,7 @@
                 <!-- 导航菜单 -->
                 <el-menu :default-active="activeMenu" class="header-menu" mode="horizontal" :ellipsis="false"
                     @select="handleMenuSelect">
-                    <el-menu-item index="/home">首页</el-menu-item>
+                    <el-menu-item index="/">首页</el-menu-item>
                     <el-menu-item index="/books">书库</el-menu-item>
                     <el-menu-item index="/categories">分类</el-menu-item>
                     <el-menu-item index="/rankings">榜单</el-menu-item>
@@ -73,8 +73,11 @@
                         </el-dropdown>
                     </template>
                     <template v-else>
-                        <el-button @click="goToAuth('login')">登录</el-button>
-                        <el-button type="primary" @click="goToAuth('register')">注册</el-button>
+                        <el-button @click="showQuickLogin = true" type="primary">
+                            <el-icon><User /></el-icon>
+                            登录
+                        </el-button>
+                        <el-button @click="goToAuth('register')" link>注册</el-button>
                     </template>
                 </div>
 
@@ -126,7 +129,7 @@
         <!-- 移动端抽屉菜单 -->
         <el-drawer v-model="drawerVisible" title="菜单" direction="rtl" size="280px">
             <el-menu :default-active="activeMenu" @select="handleMenuSelect">
-                <el-menu-item index="/home">
+                <el-menu-item index="/">
                     <el-icon>
                         <HomeFilled />
                     </el-icon>
@@ -161,6 +164,65 @@
 
         <!-- 回到顶部 -->
         <el-backtop :right="40" :bottom="40" />
+
+        <!-- 快捷登录对话框 -->
+        <el-dialog
+            v-model="showQuickLogin"
+            title="登录"
+            width="400px"
+            :close-on-click-modal="false"
+        >
+            <el-form :model="quickLoginForm" :rules="quickLoginRules" ref="quickLoginFormRef">
+                <el-form-item prop="username">
+                    <el-input
+                        v-model="quickLoginForm.username"
+                        placeholder="用户名或邮箱"
+                        size="large"
+                        clearable
+                        @keyup.enter="handleQuickLogin"
+                    >
+                        <template #prefix>
+                            <el-icon><User /></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+
+                <el-form-item prop="password">
+                    <el-input
+                        v-model="quickLoginForm.password"
+                        type="password"
+                        placeholder="密码"
+                        size="large"
+                        show-password
+                        @keyup.enter="handleQuickLogin"
+                    >
+                        <template #prefix>
+                            <el-icon><Lock /></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+
+                <el-form-item>
+                    <div class="quick-login-footer">
+                        <el-checkbox v-model="quickLoginForm.rememberMe">记住我</el-checkbox>
+                        <el-link type="primary" @click="goToAuth('reset')">忘记密码？</el-link>
+                    </div>
+                </el-form-item>
+            </el-form>
+
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="showQuickLogin = false">取消</el-button>
+                    <el-button type="primary" @click="handleQuickLogin" :loading="quickLoginLoading">
+                        登录
+                    </el-button>
+                </div>
+                <div class="register-hint">
+                    还没有账号？
+                    <el-link type="primary" @click="goToAuth('register')">立即注册</el-link>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -169,9 +231,10 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import {
     Search, ArrowDown, User, Collection, Clock, SwitchButton, Menu,
-    HomeFilled, Reading, Grid, TrendCharts
+    HomeFilled, Reading, Grid, TrendCharts, Lock
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -182,6 +245,26 @@ const searchKeyword = ref('')
 const drawerVisible = ref(false)
 const showFooter = computed(() => !route.meta.hideFooter)
 
+// 快捷登录相关
+const showQuickLogin = ref(false)
+const quickLoginLoading = ref(false)
+const quickLoginFormRef = ref<FormInstance>()
+const quickLoginForm = ref({
+    username: '',
+    password: '',
+    rememberMe: false
+})
+
+const quickLoginRules: FormRules = {
+    username: [
+        { required: true, message: '请输入用户名或邮箱', trigger: 'blur' }
+    ],
+    password: [
+        { required: true, message: '请输入密码', trigger: 'blur' },
+        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+    ]
+}
+
 // 用户信息
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const userAvatar = computed(() => authStore.user?.avatar || '')
@@ -190,10 +273,11 @@ const userDisplayName = computed(() => authStore.user?.nickname || authStore.use
 // 当前激活的菜单
 const activeMenu = computed(() => {
     const path = route.path
+    if (path === '/') return '/'
     if (path.startsWith('/books')) return '/books'
     if (path.startsWith('/categories')) return '/categories'
     if (path.startsWith('/rankings')) return '/rankings'
-    return '/home'
+    return '/'
 })
 
 // 菜单选择处理
@@ -216,12 +300,44 @@ const handleSearch = () => {
 
 // 回到首页
 const goHome = () => {
-    router.push('/home')
+    router.push('/')
 }
 
 // 跳转认证页面
-const goToAuth = (mode: 'login' | 'register' = 'login') => {
+const goToAuth = (mode: 'login' | 'register' | 'reset' = 'login') => {
+    showQuickLogin.value = false
     router.push({ path: '/auth', query: { mode } })
+}
+
+// 快捷登录处理
+const handleQuickLogin = async () => {
+    if (!quickLoginFormRef.value) return
+
+    await quickLoginFormRef.value.validate(async (valid) => {
+        if (valid) {
+            quickLoginLoading.value = true
+            try {
+                await authStore.login({
+                    username: quickLoginForm.value.username,
+                    password: quickLoginForm.value.password
+                })
+
+                ElMessage.success('登录成功')
+                showQuickLogin.value = false
+
+                // 重置表单
+                quickLoginForm.value = {
+                    username: '',
+                    password: '',
+                    rememberMe: false
+                }
+            } catch (error: any) {
+                ElMessage.error(error.message || '登录失败')
+            } finally {
+                quickLoginLoading.value = false
+            }
+        }
+    })
 }
 
 // 用户菜单命令处理
@@ -470,5 +586,28 @@ const handleUserCommand = async (command: string) => {
             gap: 24px;
         }
     }
+}
+
+// 快捷登录样式
+.quick-login-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.register-hint {
+    text-align: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #ebeef5;
+    font-size: 14px;
+    color: #606266;
 }
 </style>

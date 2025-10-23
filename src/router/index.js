@@ -58,6 +58,26 @@ const router = createRouter({
           component: () => import('@/views/BookshelfView.vue'),
           meta: { title: '我的书架', requiresAuth: true }
         },
+        // 读者功能路由
+        {
+          path: 'reader/history',
+          name: 'reading-history',
+          component: () => import('@/views/reader/ReadingHistoryView.vue'),
+          meta: { title: '阅读历史', requiresAuth: true }
+        },
+        {
+          path: 'reader/bookmarks',
+          name: 'bookmarks',
+          component: () => import('@/views/reader/BookmarkManagementView.vue'),
+          meta: { title: '我的书签', requiresAuth: true }
+        },
+        // 钱包路由
+        {
+          path: 'wallet',
+          name: 'wallet',
+          component: () => import('@/views/wallet/WalletView.vue'),
+          meta: { title: '我的钱包', requiresAuth: true }
+        },
         // 用户设置路由组
         {
           path: 'settings',
@@ -165,6 +185,18 @@ const router = createRouter({
           name: 'writer-editor',
           component: () => import('@/modules/writer/views/EditorView.vue'),
           meta: { title: '编辑器' }
+        },
+        {
+          path: 'statistics/:bookId?',
+          name: 'writer-statistics',
+          component: () => import('@/modules/writer/views/StatisticsView.vue'),
+          meta: { title: '作品统计', requiresAuth: true }
+        },
+        {
+          path: 'revenue/:bookId?',
+          name: 'writer-revenue',
+          component: () => import('@/modules/writer/views/RevenueView.vue'),
+          meta: { title: '收入统计', requiresAuth: true }
         }
       ]
     },

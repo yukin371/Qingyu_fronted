@@ -22,6 +22,13 @@
           </div>
         </div>
         <div class="header-right">
+          <el-switch
+            v-model="isSimpleMode"
+            inactive-text="Markdown"
+            active-text="简洁模式"
+            @change="handleModeChange"
+            style="margin-right: 12px;"
+          />
           <el-button @click="toggleFocusMode" link>
             {{ isFocusMode ? '退出专注' : '专注模式' }}
           </el-button>
@@ -38,10 +45,39 @@
         </div>
       </div>
 
-      <!-- 编辑器主体 -->
-      <div class="main-content">
-        <textarea ref="editorTextarea" v-model="fileContent" class="editor-textarea" placeholder="开始写作..."
-          @keydown.tab.prevent="handleTab" @input="handleContentChange"></textarea>
+      <!-- Markdown工具栏 -->
+      <EditorToolbar
+        v-show="!isFocusMode"
+        :is-simple-mode="isSimpleMode"
+        :show-preview="showPreview"
+        @insert="insertText"
+        @toggle-preview="togglePreview"
+      />
+
+      <!-- 编辑器主体 - 双栏布局 -->
+      <div class="main-content" :class="{ 'dual-pane': showPreview && !isSimpleMode && isLargeScreen }">
+        <div class="editor-pane" ref="editorPane">
+          <textarea
+            ref="editorTextarea"
+            v-model="fileContent"
+            class="editor-textarea"
+            placeholder="开始写作..."
+            @keydown.tab.prevent="handleTab"
+            @keydown="handleKeydown"
+            @input="handleContentChange"
+            @scroll="handleEditorScroll"
+          ></textarea>
+        </div>
+
+        <!-- Markdown预览区 -->
+        <div
+          v-if="showPreview && !isSimpleMode && isLargeScreen"
+          class="preview-pane"
+          ref="previewPane"
+          @scroll="handlePreviewScroll"
+        >
+          <div class="preview-content markdown-body" v-html="renderedContent"></div>
+        </div>
       </div>
 
       <!-- 底部状态栏 -->
@@ -55,6 +91,12 @@
               <component :is="saveStatusIcon" />
             </el-icon>
             {{ saveStatus }}
+          </span>
+          <span v-if="!isSimpleMode" class="status-item">
+            模式: Markdown
+          </span>
+          <span v-else class="status-item">
+            模式: 简洁
           </span>
         </div>
         <div class="status-right">
@@ -111,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -126,11 +168,20 @@ import {
   Warning
 } from '@element-plus/icons-vue'
 import ProjectSidebar from '../components/ProjectSidebar.vue'
+import EditorToolbar from '../components/EditorToolbar.vue'
 import { AutoSaveManager } from '../utils/autosave'
 import { renderMarkdown } from '../utils/markdown'
 
 const router = useRouter()
 const route = useRoute()
+
+// 编辑器模式和显示状态
+const isSimpleMode = ref(false)
+const showPreview = ref(true)
+const isLargeScreen = ref(window.innerWidth >= 1200)
+const editorPane = ref<HTMLDivElement | null>(null)
+const previewPane = ref<HTMLDivElement | null>(null)
+const isScrollingSyncEnabled = ref(true)
 
 // --- 项目和章节数据 (模拟数据，实际应从API获取) ---
 const projects = ref([
@@ -208,7 +259,129 @@ const saveStatusIcon = computed(() => {
   }
 })
 
+// Markdown渲染预览
+const renderedContent = computed(() => {
+  if (isSimpleMode.value || !fileContent.value) return ''
+  return renderMarkdown(fileContent.value)
+})
+
 // --- 方法 ---
+
+// 插入文本
+const insertText = (text: string) => {
+  const textarea = editorTextarea.value
+  if (!textarea) return
+
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const before = fileContent.value.substring(0, start)
+  const after = fileContent.value.substring(end)
+
+  fileContent.value = before + text + after
+
+  nextTick(() => {
+    textarea.focus()
+    const newPosition = start + text.length
+    textarea.setSelectionRange(newPosition, newPosition)
+  })
+}
+
+// 切换预览
+const togglePreview = () => {
+  showPreview.value = !showPreview.value
+  localStorage.setItem('editor-show-preview', String(showPreview.value))
+}
+
+// 切换模式
+const handleModeChange = () => {
+  localStorage.setItem('editor-simple-mode', String(isSimpleMode.value))
+  if (isSimpleMode.value) {
+    showPreview.value = false
+  } else {
+    showPreview.value = true
+  }
+}
+
+// 处理快捷键
+const handleKeydown = (event: KeyboardEvent) => {
+  // Ctrl/Cmd + S: 保存
+  if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+    event.preventDefault()
+    handleSaveManually()
+    return
+  }
+
+  // Ctrl/Cmd + B: 粗体
+  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
+    event.preventDefault()
+    insertText('**粗体文本**')
+    return
+  }
+
+  // Ctrl/Cmd + I: 斜体
+  if ((event.ctrlKey || event.metaKey) && event.key === 'i') {
+    event.preventDefault()
+    insertText('*斜体文本*')
+    return
+  }
+
+  // Ctrl/Cmd + K: 链接
+  if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+    event.preventDefault()
+    insertText('[链接文本](https://example.com)')
+    return
+  }
+
+  // Ctrl/Cmd + H: 标题
+  if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+    event.preventDefault()
+    insertText('## ')
+    return
+  }
+}
+
+// 编辑区滚动同步
+const handleEditorScroll = () => {
+  if (!isScrollingSyncEnabled.value || !editorPane.value || !previewPane.value) return
+
+  const editor = editorTextarea.value
+  const preview = previewPane.value
+  if (!editor) return
+
+  const scrollPercentage = editor.scrollTop / (editor.scrollHeight - editor.clientHeight)
+  preview.scrollTop = scrollPercentage * (preview.scrollHeight - preview.clientHeight)
+}
+
+// 预览区滚动同步
+const handlePreviewScroll = () => {
+  if (!isScrollingSyncEnabled.value || !editorPane.value || !previewPane.value) return
+
+  const editor = editorTextarea.value
+  const preview = previewPane.value
+  if (!editor) return
+
+  const scrollPercentage = preview.scrollTop / (preview.scrollHeight - preview.clientHeight)
+  editor.scrollTop = scrollPercentage * (editor.scrollHeight - editor.clientHeight)
+}
+
+// 监听窗口大小变化
+const handleResize = () => {
+  isLargeScreen.value = window.innerWidth >= 1200
+}
+
+// 加载用户偏好设置
+const loadPreferences = () => {
+  const savedMode = localStorage.getItem('editor-simple-mode')
+  const savedPreview = localStorage.getItem('editor-show-preview')
+
+  if (savedMode !== null) {
+    isSimpleMode.value = savedMode === 'true'
+  }
+
+  if (savedPreview !== null) {
+    showPreview.value = savedPreview === 'true'
+  }
+}
 
 // 章节切换
 const handleChapterChange = (chapter: any) => {
@@ -488,6 +661,12 @@ const updateCurrentTime = () => {
 
 // --- 生命周期 ---
 onMounted(() => {
+  // 加载用户偏好
+  loadPreferences()
+
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
+
   // 初始化自动保存管理器
   autoSaveManager = new AutoSaveManager({
     interval: 30000, // 30秒自动保存
@@ -522,6 +701,7 @@ onMounted(() => {
 
   onBeforeUnmount(() => {
     clearInterval(timeInterval)
+    window.removeEventListener('resize', handleResize)
   })
 })
 
@@ -595,8 +775,25 @@ onBeforeUnmount(() => {
 .main-content {
   flex: 1;
   display: flex;
-  flex-direction: column;
   position: relative;
+  overflow: hidden;
+
+  &.dual-pane {
+    .editor-pane {
+      width: 50%;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .preview-pane {
+      width: 50%;
+    }
+  }
+}
+
+.editor-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -605,14 +802,183 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   padding: 2rem;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
   font-size: 16px;
   line-height: 1.8;
   border: none;
-  background-color: transparent;
+  background-color: #ffffff;
   color: #1f2937;
   resize: none;
   outline: none;
+  overflow-y: auto;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+// 预览区
+.preview-pane {
+  flex: 1;
+  background-color: #f9fafb;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.preview-content {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// Markdown样式
+.markdown-body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #24292e;
+  word-wrap: break-word;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  h1 {
+    font-size: 2em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+  }
+
+  h3 {
+    font-size: 1.25em;
+  }
+
+  h4 {
+    font-size: 1em;
+  }
+
+  h5 {
+    font-size: 0.875em;
+  }
+
+  h6 {
+    font-size: 0.85em;
+    color: #6a737d;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+  }
+
+  ul, ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  li + li {
+    margin-top: 0.25em;
+  }
+
+  code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27, 31, 35, 0.05);
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+  }
+
+  pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    margin-bottom: 16px;
+
+    code {
+      display: inline;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
+      line-height: inherit;
+      background-color: transparent;
+      border: 0;
+    }
+  }
+
+  a {
+    color: #0366d6;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    display: block;
+    width: 100%;
+    overflow: auto;
+    margin-bottom: 16px;
+
+    th, td {
+      padding: 6px 13px;
+      border: 1px solid #dfe2e5;
+    }
+
+    th {
+      font-weight: 600;
+      background-color: #f6f8fa;
+    }
+
+    tr {
+      background-color: #fff;
+      border-top: 1px solid #c6cbd1;
+
+      &:nth-child(2n) {
+        background-color: #f6f8fa;
+      }
+    }
+  }
+
+  hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+  }
 }
 
 // 底部状态栏

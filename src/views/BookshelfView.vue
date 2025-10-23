@@ -2,20 +2,104 @@
     <div class="bookshelf-view">
         <div class="bookshelf-header">
             <h2>我的书架</h2>
-            <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-                <el-tab-pane label="收藏" name="favorites" />
-                <el-tab-pane label="最近阅读" name="recent" />
-                <el-tab-pane label="阅读历史" name="history" />
-            </el-tabs>
+
+            <!-- 工具栏 -->
+            <div class="bookshelf-toolbar">
+                <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+                    <el-tab-pane label="在读" name="reading">
+                        <template #label>
+                            <span>在读 <el-badge :value="statusCounts.reading" :hidden="!statusCounts.reading" /></span>
+                        </template>
+                    </el-tab-pane>
+                    <el-tab-pane label="想读" name="want_to_read">
+                        <template #label>
+                            <span>想读 <el-badge :value="statusCounts.want_to_read" :hidden="!statusCounts.want_to_read" /></span>
+                        </template>
+                    </el-tab-pane>
+                    <el-tab-pane label="读完" name="completed">
+                        <template #label>
+                            <span>读完 <el-badge :value="statusCounts.completed" :hidden="!statusCounts.completed" /></span>
+                        </template>
+                    </el-tab-pane>
+                </el-tabs>
+
+                <!-- 批量操作按钮 -->
+                <div class="toolbar-actions">
+                    <el-button
+                        v-if="!batchMode"
+                        @click="toggleBatchMode"
+                    >
+                        批量管理
+                    </el-button>
+                    <template v-else>
+                        <el-button type="primary" @click="handleBatchMove">移动到</el-button>
+                        <el-button type="danger" @click="handleBatchDelete">删除</el-button>
+                        <el-button @click="toggleBatchMode">取消</el-button>
+                    </template>
+                </div>
+            </div>
         </div>
 
         <el-skeleton :loading="loading" :rows="5" animated>
             <div class="bookshelf-content">
-                <!-- 收藏书籍 -->
-                <div v-if="activeTab === 'favorites'" class="book-grid">
-                    <el-empty v-if="favorites.length === 0" description="暂无收藏的书籍" />
-                    <BookCard v-for="book in favorites" :key="book.id" :book="book" show-progress
-                        @click="goToReader(book.id)" @remove="handleRemoveFavorite(book.id)" />
+                <!-- 书架列表 -->
+                <div class="bookshelf-list">
+                    <el-empty v-if="books.length === 0 && !loading" description="书架空空如也，去书城逛逛吧" />
+
+                    <div v-for="book in books" :key="book.id" class="book-item" :class="{ 'selected': selectedBooks.includes(book.id) }">
+                        <el-checkbox
+                            v-if="batchMode"
+                            v-model="selectedBooks"
+                            :label="book.id"
+                            class="book-checkbox"
+                        />
+
+                        <el-image
+                            :src="book.cover"
+                            fit="cover"
+                            class="book-cover"
+                            @click="!batchMode && goToBook(book.id)"
+                        >
+                            <template #error>
+                                <div class="image-slot">
+                                    <el-icon><Picture /></el-icon>
+                                </div>
+                            </template>
+                        </el-image>
+
+                        <div class="book-info" @click="!batchMode && goToBook(book.id)">
+                            <h3 class="book-title">{{ book.title }}</h3>
+                            <p class="book-author">{{ book.author }}</p>
+                            <div class="book-progress">
+                                <el-progress
+                                    :percentage="book.progress || 0"
+                                    :stroke-width="6"
+                                    :show-text="false"
+                                />
+                                <span class="progress-text">{{ book.progress || 0 }}%</span>
+                            </div>
+                            <p class="book-update">{{ book.lastChapterTitle || '暂无更新' }}</p>
+                        </div>
+
+                        <div v-if="!batchMode" class="book-actions">
+                            <el-button type="primary" size="small" @click.stop="continueReading(book)">
+                                继续阅读
+                            </el-button>
+                            <el-dropdown @command="(cmd) => handleAction(cmd, book)">
+                                <el-button size="small" text>
+                                    <el-icon><MoreFilled /></el-icon>
+                                </el-button>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item command="reading">移至在读</el-dropdown-item>
+                                        <el-dropdown-item command="want_to_read">移至想读</el-dropdown-item>
+                                        <el-dropdown-item command="completed">移至读完</el-dropdown-item>
+                                        <el-dropdown-item divided command="remove">移出书架</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 最近阅读 -->
@@ -102,22 +186,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Picture } from '@element-plus/icons-vue'
-import BookCard from '@/components/common/BookCard.vue'
+import { Picture, MoreFilled } from '@element-plus/icons-vue'
 import { formatDate, formatReadingTime } from '@/utils/format'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+    getBookshelf,
+    updateBookshelfStatus,
+    removeFromBookshelf,
+    batchBookshelfOperation
+} from '@/api/reading/bookshelf'
+import { getReadingHistory } from '@/api/reading/history'
 
 const router = useRouter()
 
-const activeTab = ref('favorites')
+const activeTab = ref<'reading' | 'want_to_read' | 'completed'>('reading')
 const loading = ref(false)
 
-// 收藏书籍
-const favorites = ref<any[]>([])
+// 书架书籍
+const books = ref<any[]>([])
 
-// 最近阅读
+// 批量操作
+const batchMode = ref(false)
+const selectedBooks = ref<string[]>([])
+
+// 状态计数
+const statusCounts = ref({
+    reading: 0,
+    want_to_read: 0,
+    completed: 0
+})
+
+// 最近阅读（保留旧代码兼容性）
 const recentBooks = ref<any[]>([])
 
 // 阅读历史
@@ -136,17 +237,7 @@ onMounted(() => {
 async function loadData(): Promise<void> {
     loading.value = true
     try {
-        switch (activeTab.value) {
-            case 'favorites':
-                await loadFavorites()
-                break
-            case 'recent':
-                await loadRecentBooks()
-                break
-            case 'history':
-                await loadHistory()
-                break
-        }
+        await loadBooks()
         await loadStats()
     } catch (error) {
         console.error('加载数据失败:', error)
@@ -156,54 +247,189 @@ async function loadData(): Promise<void> {
     }
 }
 
-async function loadFavorites(): Promise<void> {
-    // TODO: 调用API加载收藏书籍
-    favorites.value = []
-}
+// 加载书架数据
+async function loadBooks(): Promise<void> {
+    try {
+        const response = await getBookshelf({
+            status: activeTab.value,
+            page: 1,
+            size: 100,
+            sortBy: 'updated_at',
+            sortOrder: 'desc'
+        })
 
-async function loadRecentBooks(): Promise<void> {
-    // TODO: 调用API加载最近阅读
-    recentBooks.value = []
+        const data = response.data || response
+        books.value = Array.isArray(data) ? data : (data.data || [])
+
+        // 更新状态计数
+        const statusCountsData = data.statusCounts || (response as any).statusCounts
+        if (statusCountsData) {
+            statusCounts.value = statusCountsData
+        }
+    } catch (error: any) {
+        console.error('加载书架失败:', error)
+        ElMessage.error(error.message || '加载书架失败')
+    }
 }
 
 async function loadHistory(): Promise<void> {
-    // TODO: 调用API加载阅读历史
-    histories.value = []
+    try {
+        const response = await getReadingHistory({
+            page: historyPage.value,
+            size: historyPageSize.value
+        })
+
+        const data = response.data || response
+        histories.value = Array.isArray(data) ? data : (data.data || [])
+        historyTotal.value = data.total || (response as any).total || 0
+    } catch (error: any) {
+        console.error('加载历史记录失败:', error)
+    }
 }
 
 async function loadStats(): Promise<void> {
     // TODO: 调用API加载统计数据
     stats.value = {
-        totalBooks: 0,
+        totalBooks: books.value.length,
         totalTime: 0,
         finishedBooks: 0,
         todayTime: 0
     }
 }
 
+// 切换批量模式
+function toggleBatchMode(): void {
+    batchMode.value = !batchMode.value
+    if (!batchMode.value) {
+        selectedBooks.value = []
+    }
+}
+
+// 处理标签页切换
 function handleTabChange(): void {
+    batchMode.value = false
+    selectedBooks.value = []
     loadData()
 }
 
+// 跳转到书籍详情
+function goToBook(bookId: string): void {
+    router.push(`/books/${bookId}`)
+}
+
+// 跳转到阅读器
 function goToReader(bookId: string, chapterId?: string): void {
-    router.push({
-        name: 'reader',
-        params: { bookId },
-        query: chapterId ? { chapterId } : undefined
-    })
+    if (chapterId) {
+        router.push(`/reader/${chapterId}`)
+    } else {
+        // 从第一章开始
+        router.push(`/books/${bookId}`)
+    }
 }
 
+// 继续阅读
 function continueReading(book: any): void {
-    goToReader(book.id, book.lastChapterId)
+    if (book.lastChapterId) {
+        router.push(`/reader/${book.lastChapterId}`)
+    } else {
+        goToBook(book.id)
+    }
 }
 
-async function handleRemoveFavorite(bookId: string): Promise<void> {
+// 处理单个书籍操作
+async function handleAction(command: string, book: any): Promise<void> {
+    if (command === 'remove') {
+        await handleRemove(book.id)
+    } else {
+        await handleMove(book.id, command)
+    }
+}
+
+// 移动书籍到不同状态
+async function handleMove(bookId: string, status: string): Promise<void> {
     try {
-        // TODO: 调用API移除收藏
-        favorites.value = favorites.value.filter(book => book.id !== bookId)
-        ElMessage.success('已移除收藏')
-    } catch (error) {
-        ElMessage.error('移除失败')
+        await updateBookshelfStatus(bookId, status)
+        ElMessage.success('已移动')
+        loadBooks()
+    } catch (error: any) {
+        ElMessage.error(error.message || '操作失败')
+    }
+}
+
+// 移除书籍
+async function handleRemove(bookId: string): Promise<void> {
+    try {
+        await ElMessageBox.confirm('确定要移出书架吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        })
+
+        await removeFromBookshelf(bookId)
+        ElMessage.success('已移出书架')
+        loadBooks()
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            ElMessage.error(error.message || '移除失败')
+        }
+    }
+}
+
+// 批量移动
+async function handleBatchMove(): Promise<void> {
+    if (selectedBooks.value.length === 0) {
+        ElMessage.warning('请选择要移动的书籍')
+        return
+    }
+
+    try {
+        // 使用ElMessageBox.confirm替代prompt来选择目标状态
+        const { value } = await ElMessageBox.confirm(
+            '请选择要移动到的分类',
+            '批量移动',
+            {
+                confirmButtonText: '在读',
+                cancelButtonText: '取消',
+                distinguishCancelAndClose: true,
+                type: 'info'
+            }
+        )
+
+        // 简化版：默认移动到"在读"
+        // 如果需要更复杂的选择，建议创建一个独立的Dialog组件
+        await batchBookshelfOperation('move', selectedBooks.value, 'reading')
+        ElMessage.success('已移动到"在读"')
+        toggleBatchMode()
+        loadBooks()
+    } catch (error: any) {
+        if (error !== 'cancel' && error !== 'close') {
+            ElMessage.error(error.message || '操作失败')
+        }
+    }
+}
+
+// 批量删除
+async function handleBatchDelete(): Promise<void> {
+    if (selectedBooks.value.length === 0) {
+        ElMessage.warning('请选择要删除的书籍')
+        return
+    }
+
+    try {
+        await ElMessageBox.confirm(`确定要移出所选的 ${selectedBooks.value.length} 本书吗？`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        })
+
+        await batchBookshelfOperation('delete', selectedBooks.value)
+        ElMessage.success('已移出书架')
+        toggleBatchMode()
+        loadBooks()
+    } catch (error: any) {
+        if (error !== 'cancel') {
+            ElMessage.error(error.message || '操作失败')
+        }
     }
 }
 
@@ -238,105 +464,217 @@ function formatDuration(minutes: number): string {
         }
     }
 
-    .bookshelf-content {
-        min-height: 400px;
+    .bookshelf-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
 
-        .book-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
+        .el-tabs {
+            flex: 1;
         }
 
-        .recent-list {
+        .toolbar-actions {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            gap: 8px;
+        }
+    }
 
-            .recent-item {
+    .bookshelf-content {
+        min-height: 400px;
+    }
+
+    .bookshelf-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .book-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #fff;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+
+            &:hover {
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            &.selected {
+                border-color: #409eff;
+                background: #ecf5ff;
+            }
+
+            .book-checkbox {
+                margin-right: 8px;
+            }
+
+            .book-cover {
+                width: 80px;
+                height: 106px;
+                border-radius: 4px;
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+
+            .book-info {
+                flex: 1;
+                min-width: 0;
+
+                .book-title {
+                    margin: 0 0 8px;
+                    font-size: 16px;
+                    font-weight: 500;
+                    color: #303133;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .book-author {
+                    margin: 0 0 8px;
+                    font-size: 14px;
+                    color: #606266;
+                }
+
+                .book-progress {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 8px;
+
+                    .el-progress {
+                        flex: 1;
+                        max-width: 200px;
+                    }
+
+                    .progress-text {
+                        font-size: 12px;
+                        color: #909399;
+                    }
+                }
+
+                .book-update {
+                    margin: 0;
+                    font-size: 12px;
+                    color: #909399;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+            }
+
+            .book-actions {
                 display: flex;
                 align-items: center;
-                gap: 16px;
-                padding: 16px;
-                background: #fff;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.3s;
+                gap: 8px;
+            }
+        }
+    }
 
-                &:hover {
-                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    .image-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background-color: #f5f7fa;
+        color: #909399;
+        font-size: 24px;
+    }
+
+    .recent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+
+            &:hover {
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .recent-cover {
+                width: 80px;
+                height: 106px;
+                border-radius: 4px;
+                flex-shrink: 0;
+            }
+
+            .recent-info {
+                flex: 1;
+
+                .recent-title {
+                    margin: 0 0 8px;
+                    font-size: 16px;
+                    font-weight: 500;
+                    color: #303133;
                 }
 
-                .recent-cover {
-                    width: 80px;
-                    height: 106px;
-                    border-radius: 4px;
-                    flex-shrink: 0;
+                .recent-chapter {
+                    margin: 0 0 12px;
+                    font-size: 14px;
+                    color: #606266;
                 }
 
-                .recent-info {
-                    flex: 1;
+                .recent-meta {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
 
-                    .recent-title {
-                        margin: 0 0 8px;
-                        font-size: 16px;
-                        font-weight: 500;
-                        color: #303133;
+                    .el-progress {
+                        flex: 1;
                     }
 
-                    .recent-chapter {
-                        margin: 0 0 12px;
-                        font-size: 14px;
-                        color: #606266;
-                    }
-
-                    .recent-meta {
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-
-                        .el-progress {
-                            flex: 1;
-                        }
-
-                        .recent-time {
-                            font-size: 12px;
-                            color: #909399;
-                        }
+                    .recent-time {
+                        font-size: 12px;
+                        color: #909399;
                     }
                 }
             }
         }
+    }
 
-        .history-list {
-            .history-item {
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 4px;
-                transition: background 0.3s;
+    .history-list {
+        .history-item {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.3s;
 
-                &:hover {
-                    background: #f5f7fa;
+            &:hover {
+                background: #f5f7fa;
+            }
+
+            .history-book {
+                margin-bottom: 4px;
+
+                .history-title {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #303133;
                 }
 
-                .history-book {
-                    margin-bottom: 4px;
-
-                    .history-title {
-                        font-size: 14px;
-                        font-weight: 500;
-                        color: #303133;
-                    }
-
-                    .history-chapter {
-                        font-size: 14px;
-                        color: #606266;
-                    }
+                .history-chapter {
+                    font-size: 14px;
+                    color: #606266;
                 }
+            }
 
-                .history-duration {
-                    font-size: 12px;
-                    color: #909399;
-                }
+            .history-duration {
+                font-size: 12px;
+                color: #909399;
             }
         }
     }

@@ -8,19 +8,6 @@
           青羽书城
         </h1>
         <p class="page-subtitle">发现优质内容，享受阅读乐趣</p>
-        
-        <!-- 用户认证按钮 -->
-        <div class="auth-actions">
-          <el-button 
-            type="primary" 
-            size="large" 
-            @click="goToAuth"
-            class="auth-button"
-          >
-            <el-icon><User /></el-icon>
-            登录 / 注册
-          </el-button>
-        </div>
       </div>
     </div>
 
@@ -29,7 +16,7 @@
       <div class="container">
         <!-- Banner轮播 -->
         <section class="banner-section" v-loading="loading">
-          <BannerCarousel 
+          <BannerCarousel
             :banners="banners"
             height="400px"
           />
@@ -43,7 +30,7 @@
               热门榜单
             </h2>
           </div>
-          
+
           <div class="rankings-grid">
             <RankingList
               type="realtime"
@@ -53,7 +40,7 @@
               @view-more="handleViewRanking('realtime')"
               @item-click="handleBookClick"
             />
-            
+
             <RankingList
               type="weekly"
               :items="rankings.weekly || []"
@@ -62,7 +49,7 @@
               @view-more="handleViewRanking('weekly')"
               @item-click="handleBookClick"
             />
-            
+
             <RankingList
               type="monthly"
               :items="rankings.monthly || []"
@@ -71,7 +58,7 @@
               @view-more="handleViewRanking('monthly')"
               @item-click="handleBookClick"
             />
-            
+
             <RankingList
               type="newbie"
               :items="rankings.newbie || []"
@@ -265,26 +252,9 @@ export default {
 }
 
 .page-subtitle {
-  margin: 0 0 20px 0;
+  margin: 0;
   font-size: 18px;
   opacity: 0.9;
-}
-
-.auth-actions {
-  margin-top: 20px;
-}
-
-.auth-button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.auth-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.4);
 }
 
 .main-content {
@@ -361,24 +331,24 @@ export default {
   .container {
     padding: 0 16px;
   }
-  
+
   .page-title {
     font-size: 28px;
   }
-  
+
   .page-subtitle {
     font-size: 16px;
   }
-  
+
   .rankings-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .main-content {
     padding: 20px 0;
   }
-  
+
   .banner-section,
   .rankings-section,
   .recommended-section,
@@ -392,15 +362,15 @@ export default {
   .home-view {
     background: #121212;
   }
-  
+
   .section-title {
     color: #e0e0e0;
   }
-  
+
   .stats-section {
     background: #1a1a1a;
   }
-  
+
   .stat-label {
     color: #b0b0b0;
   }
