@@ -16,7 +16,14 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/core/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@bookstore/*": ["./src/modules/bookstore/*"],
+      "@reader/*": ["./src/modules/reader/*"],
+      "@writer/*": ["./src/modules/writer/*"],
+      "@user/*": ["./src/modules/user/*"],
+      "@admin/*": ["./src/modules/admin/*"]
     },
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "types": ["vite/client"]

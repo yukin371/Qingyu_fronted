@@ -1,0 +1,54 @@
+/**
+ * User Module Routes
+ */
+
+import type { RouteRecordRaw } from 'vue-router'
+import MainLayout from '@shared/components/layout/MainLayout.vue'
+
+const userRoutes: RouteRecordRaw[] = [
+  {
+    path: '/auth',
+    name: 'auth',
+    component: () => import('./views/AuthenticationView.vue'),
+    meta: { title: '登录 / 注册', guest: true }
+  },
+  {
+    path: '/',
+    component: MainLayout,
+    children: [
+      {
+        path: 'profile',
+        name: 'profile',
+        component: () => import('./views/ProfileView.vue'),
+        meta: { title: '个人中心', requiresAuth: true }
+      },
+      {
+        path: 'settings',
+        name: 'settings',
+        redirect: '/settings/account',
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'settings/account',
+        name: 'settings-account',
+        component: () => import('./views/AccountSettings.vue'),
+        meta: { title: '账户设置', requiresAuth: true }
+      },
+      {
+        path: 'settings/security',
+        name: 'settings-security',
+        component: () => import('./views/SecuritySettings.vue'),
+        meta: { title: '安全设置', requiresAuth: true }
+      },
+      {
+        path: 'wallet',
+        name: 'wallet',
+        component: () => import('./views/WalletView.vue'),
+        meta: { title: '我的钱包', requiresAuth: true }
+      }
+    ]
+  }
+]
+
+export default userRoutes
+

@@ -1,75 +1,27 @@
+/**
+ * 阅读器API模块 (v1.3)
+ * 基于 doc/api/frontend/阅读器API参考.md
+ */
+
 import request from '@/utils/request'
-import type { ApiResponse, PaginationParams } from '@/types/api'
+import type { APIResponse, PaginationParams } from '@/types/api'
 import type {
   Chapter,
   ChapterContent,
   ChapterListItem,
+  ChapterNavigation,
   ReadingProgress,
   ReadingHistory,
-  ReadingSettings
-} from '@/types/models'
+  ReadingSettings,
+  Annotation,
+  AnnotationStats,
+  AnnotationType,
+  ReadingTimeData,
+  ProgressSaveData
+} from '@/types/reader'
 
 /**
- * 进度保存数据
- */
-export interface ProgressSaveData {
-  bookId: string
-  chapterId: string
-  progress: number // 0-100
-  scrollPosition?: number
-}
-
-/**
- * 阅读时长数据
- */
-export interface ReadingTimeData {
-  bookId: string
-  duration: number // 秒
-}
-
-/**
- * 注记类型
- */
-export type AnnotationType = 'bookmark' | 'highlight' | 'note'
-
-/**
- * 注记数据
- */
-export interface Annotation {
-  id?: string
-  bookId: string
-  chapterId: string
-  type: AnnotationType
-  text: string
-  note?: string
-  range?: string
-  color?: string
-  createTime?: string
-  updateTime?: string
-}
-
-/**
- * 注记统计
- */
-export interface AnnotationStats {
-  totalCount: number
-  bookmarkCount: number
-  highlightCount: number
-  noteCount: number
-}
-
-/**
- * 章节导航
- */
-export interface ChapterNavigation {
-  current: Chapter
-  prev: Chapter | null
-  next: Chapter | null
-}
-
-/**
- * 阅读器API接口
- * 基于后端阅读端API文档 v1.0
+ * 阅读器API接口 (v1.3)
  */
 export const readerAPI = {
   // ==================== 章节阅读 ====================
@@ -77,15 +29,15 @@ export const readerAPI = {
   /**
    * 获取章节信息
    */
-  async getChapterInfo(chapterId: string): Promise<ApiResponse<Chapter>> {
-    return request.get(`/reader/chapters/${chapterId}`)
+  async getChapterInfo(chapterId: string): Promise<APIResponse<Chapter>> {
+    return request.get<APIResponse<Chapter>>(`/reader/chapters/${chapterId}`)
   },
 
   /**
    * 获取章节内容（需要登录）
    */
-  async getChapterContent(chapterId: string): Promise<ApiResponse<ChapterContent>> {
-    return request.get(`/reader/chapters/${chapterId}/content`)
+  async getChapterContent(chapterId: string): Promise<APIResponse<ChapterContent>> {
+    return request.get<APIResponse<ChapterContent>>(`/reader/chapters/${chapterId}/content`)
   },
 
   /**
@@ -95,13 +47,18 @@ export const readerAPI = {
     bookId: string,
     page: number = 1,
     size: number = 20
-  ): Promise<ApiResponse<{
+  ): Promise<APIResponse<{
     chapters: ChapterListItem[]
     total: number
     page: number
     size: number
   }>> {
-    return request.get('/reader/chapters', {
+    return request.get<APIResponse<{
+      chapters: ChapterListItem[]
+      total: number
+      page: number
+      size: number
+    }>>('/reader/chapters', {
       params: { bookId, page, size }
     })
   },
@@ -112,8 +69,8 @@ export const readerAPI = {
   async getChapterNavigation(
     bookId: string,
     chapterNum: number
-  ): Promise<ApiResponse<ChapterNavigation>> {
-    return request.get('/reader/chapters/navigation', {
+  ): Promise<APIResponse<ChapterNavigation>> {
+    return request.get<APIResponse<ChapterNavigation>>('/reader/chapters/navigation', {
       params: { bookId, chapterNum }
     })
   },
@@ -121,8 +78,8 @@ export const readerAPI = {
   /**
    * 获取第一章
    */
-  async getFirstChapter(bookId: string): Promise<ApiResponse<Chapter>> {
-    return request.get('/reader/chapters/first', {
+  async getFirstChapter(bookId: string): Promise<APIResponse<Chapter>> {
+    return request.get<APIResponse<Chapter>>('/reader/chapters/first', {
       params: { bookId }
     })
   },
@@ -130,8 +87,8 @@ export const readerAPI = {
   /**
    * 获取最后一章
    */
-  async getLastChapter(bookId: string): Promise<ApiResponse<Chapter>> {
-    return request.get('/reader/chapters/last', {
+  async getLastChapter(bookId: string): Promise<APIResponse<Chapter>> {
+    return request.get<APIResponse<Chapter>>('/reader/chapters/last', {
       params: { bookId }
     })
   },
@@ -141,22 +98,22 @@ export const readerAPI = {
   /**
    * 获取阅读进度
    */
-  async getProgress(bookId: string): Promise<ApiResponse<ReadingProgress>> {
-    return request.get(`/reader/progress/${bookId}`)
+  async getProgress(bookId: string): Promise<APIResponse<ReadingProgress>> {
+    return request.get<APIResponse<ReadingProgress>>(`/reader/progress/${bookId}`)
   },
 
   /**
    * 保存阅读进度
    */
-  async saveProgress(progressData: ProgressSaveData): Promise<ApiResponse<ReadingProgress>> {
-    return request.post('/reader/progress', progressData)
+  async saveProgress(progressData: ProgressSaveData): Promise<APIResponse<ReadingProgress>> {
+    return request.post<APIResponse<ReadingProgress>>('/reader/progress', progressData)
   },
 
   /**
    * 更新阅读时长
    */
-  async updateReadingTime(timeData: ReadingTimeData): Promise<ApiResponse<any>> {
-    return request.put('/reader/progress/time', timeData)
+  async updateReadingTime(timeData: ReadingTimeData): Promise<APIResponse<null>> {
+    return request.put<APIResponse<null>>('/reader/progress/time', timeData)
   },
 
   /**
@@ -165,13 +122,18 @@ export const readerAPI = {
   async getReadingHistory(
     page: number = 1,
     size: number = 20
-  ): Promise<ApiResponse<{
+  ): Promise<APIResponse<{
     histories: ReadingHistory[]
     total: number
     page: number
     size: number
   }>> {
-    return request.get('/reader/progress/history', {
+    return request.get<APIResponse<{
+      histories: ReadingHistory[]
+      total: number
+      page: number
+      size: number
+    }>>('/reader/progress/history', {
       params: { page, size }
     })
   },
@@ -179,12 +141,16 @@ export const readerAPI = {
   /**
    * 获取总阅读时长
    */
-  async getTotalReadingTime(): Promise<ApiResponse<{
+  async getTotalReadingTime(): Promise<APIResponse<{
     totalTime: number
     todayTime: number
     weekTime: number
   }>> {
-    return request.get('/reader/progress/total-time')
+    return request.get<APIResponse<{
+      totalTime: number
+      todayTime: number
+      weekTime: number
+    }>>('/reader/progress/total-time')
   },
 
   // ==================== 注记功能 ====================
@@ -192,22 +158,22 @@ export const readerAPI = {
   /**
    * 创建注记
    */
-  async createAnnotation(annotation: Omit<Annotation, 'id' | 'createTime' | 'updateTime'>): Promise<ApiResponse<Annotation>> {
-    return request.post('/reader/annotations', annotation)
+  async createAnnotation(annotation: Omit<Annotation, 'id' | 'createTime' | 'updateTime'>): Promise<APIResponse<Annotation>> {
+    return request.post<APIResponse<Annotation>>('/reader/annotations', annotation)
   },
 
   /**
    * 更新注记
    */
-  async updateAnnotation(id: string, annotation: Partial<Annotation>): Promise<ApiResponse<Annotation>> {
-    return request.put(`/reader/annotations/${id}`, annotation)
+  async updateAnnotation(id: string, annotation: Partial<Annotation>): Promise<APIResponse<Annotation>> {
+    return request.put<APIResponse<Annotation>>(`/reader/annotations/${id}`, annotation)
   },
 
   /**
    * 删除注记
    */
-  async deleteAnnotation(id: string): Promise<ApiResponse<any>> {
-    return request.delete(`/reader/annotations/${id}`)
+  async deleteAnnotation(id: string): Promise<APIResponse<null>> {
+    return request.delete<APIResponse<null>>(`/reader/annotations/${id}`)
   },
 
   /**
@@ -218,13 +184,18 @@ export const readerAPI = {
     type: AnnotationType | '' = '',
     page: number = 1,
     size: number = 20
-  ): Promise<ApiResponse<{
+  ): Promise<APIResponse<{
     annotations: Annotation[]
     total: number
     page: number
     size: number
   }>> {
-    return request.get(`/reader/annotations/book/${bookId}`, {
+    return request.get<APIResponse<{
+      annotations: Annotation[]
+      total: number
+      page: number
+      size: number
+    }>>(`/reader/annotations/book/${bookId}`, {
       params: { type, page, size }
     })
   },
@@ -232,25 +203,28 @@ export const readerAPI = {
   /**
    * 获取章节注记列表
    */
-  async getChapterAnnotations(chapterId: string): Promise<ApiResponse<Annotation[]>> {
-    return request.get(`/reader/annotations/chapter/${chapterId}`)
+  async getChapterAnnotations(chapterId: string): Promise<APIResponse<Annotation[]>> {
+    return request.get<APIResponse<Annotation[]>>(`/reader/annotations/chapter/${chapterId}`)
   },
 
   /**
    * 获取注记统计
    */
-  async getAnnotationStats(): Promise<ApiResponse<AnnotationStats>> {
-    return request.get('/reader/annotations/stats')
+  async getAnnotationStats(): Promise<APIResponse<AnnotationStats>> {
+    return request.get<APIResponse<AnnotationStats>>('/reader/annotations/stats')
   },
 
   /**
    * 批量创建注记
    */
-  async batchCreateAnnotations(annotations: Omit<Annotation, 'id' | 'createTime' | 'updateTime'>[]): Promise<ApiResponse<{
+  async batchCreateAnnotations(annotations: Omit<Annotation, 'id' | 'createTime' | 'updateTime'>[]): Promise<APIResponse<{
     successCount: number
     failedCount: number
   }>> {
-    return request.post('/reader/annotations/batch', { annotations })
+    return request.post<APIResponse<{
+      successCount: number
+      failedCount: number
+    }>>('/reader/annotations/batch', { annotations })
   },
 
   // ==================== 阅读设置 ====================
@@ -258,22 +232,22 @@ export const readerAPI = {
   /**
    * 获取阅读设置
    */
-  async getSettings(): Promise<ApiResponse<ReadingSettings>> {
-    return request.get('/reader/settings')
+  async getSettings(): Promise<APIResponse<ReadingSettings>> {
+    return request.get<APIResponse<ReadingSettings>>('/reader/settings')
   },
 
   /**
    * 保存阅读设置
    */
-  async saveSettings(settings: ReadingSettings): Promise<ApiResponse<ReadingSettings>> {
-    return request.post('/reader/settings', settings)
+  async saveSettings(settings: ReadingSettings): Promise<APIResponse<ReadingSettings>> {
+    return request.post<APIResponse<ReadingSettings>>('/reader/settings', settings)
   },
 
   /**
    * 更新阅读设置
    */
-  async updateSettings(settings: Partial<ReadingSettings>): Promise<ApiResponse<ReadingSettings>> {
-    return request.put('/reader/settings', settings)
+  async updateSettings(settings: Partial<ReadingSettings>): Promise<APIResponse<ReadingSettings>> {
+    return request.put<APIResponse<ReadingSettings>>('/reader/settings', settings)
   }
 }
 

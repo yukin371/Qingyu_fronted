@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { authAPI } from '@/api/auth'
-import storage from '@/utils/storage'
+import { storageService } from '@core/services/storage.service'
+import { STORAGE_KEYS } from '@core/config/constants'
 import router from '@/router'
 import type { User } from '@/types/models'
 import type { LoginCredentials, RegisterData } from '@/api/user'
@@ -50,8 +51,8 @@ export const useAuthStore = defineStore('auth', {
     user: null,
 
     // 认证状态
-    token: storage.getToken(),
-    refreshToken: storage.getRefreshToken(),
+    token: storageService.get(STORAGE_KEYS.AUTH_TOKEN),
+    refreshToken: storageService.get(STORAGE_KEYS.AUTH_TOKEN + '_refresh'),
     isLoggedIn: false,
 
     // 加载状态
@@ -136,9 +137,9 @@ export const useAuthStore = defineStore('auth', {
         this.isLoggedIn = true
 
         // 存储到本地
-        storage.setToken(this.token)
-        storage.setRefreshToken(this.refreshToken)
-        storage.setUserInfo(this.user)
+        storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
+        storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
+        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
 
         return response
       } catch (error: any) {
@@ -168,9 +169,9 @@ export const useAuthStore = defineStore('auth', {
           this.isLoggedIn = true
 
           // 存储到本地
-          storage.setToken(this.token)
-          storage.setRefreshToken(this.refreshToken)
-          storage.setUserInfo(this.user)
+          storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
+          storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
+          storageService.set(STORAGE_KEYS.USER_INFO, this.user)
         }
 
         return response
@@ -210,7 +211,7 @@ export const useAuthStore = defineStore('auth', {
         this.roles = data.roles || []
 
         // 更新本地存储
-        storage.setUserInfo(this.user)
+        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
 
         return response
       } catch (error) {
@@ -230,7 +231,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = { ...this.user!, ...data.user }
 
         // 更新本地存储
-        storage.setUserInfo(this.user)
+        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
 
         return response
       } catch (error: any) {
@@ -271,9 +272,9 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = data.refreshToken || this.refreshToken
 
         // 更新本地存储
-        storage.setToken(this.token)
+        storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
         if (data.refreshToken) {
-          storage.setRefreshToken(this.refreshToken)
+          storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
         }
 
         return response
@@ -333,7 +334,7 @@ export const useAuthStore = defineStore('auth', {
         // 更新用户信息
         if (this.user) {
           this.user = { ...this.user, isVip: true }
-          storage.setUserInfo(this.user)
+          storageService.set(STORAGE_KEYS.USER_INFO, this.user)
         }
 
         return response
@@ -372,9 +373,9 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       // 清除本地存储
-      storage.removeToken()
-      storage.removeRefreshToken()
-      storage.removeUserInfo()
+      storageService.remove(STORAGE_KEYS.AUTH_TOKEN)
+      storageService.remove(STORAGE_KEYS.AUTH_TOKEN + '_refresh')
+      storageService.remove(STORAGE_KEYS.USER_INFO)
     },
 
     // 清除错误信息

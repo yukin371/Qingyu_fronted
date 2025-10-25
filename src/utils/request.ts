@@ -44,31 +44,53 @@ request.interceptors.request.use(
   }
 )
 
-// 响应拦截器
+// 响应拦截器 (v1.3)
 request.interceptors.response.use(
   (response: AxiosResponse<any>) => {
     const { data } = response
 
     // 统一处理响应格式
     if (data && typeof data === 'object' && 'code' in data) {
-      // 2xx状态码都视为成功
-      if (data.code >= 200 && data.code < 300) {
-        return data.data ?? data
+      // v1.3: 提取 timestamp 和 request_id
+      const { code, message, data: responseData, timestamp, request_id } = data
+
+      // 开发环境：记录 request_id 和时间戳
+      if (request_id && import.meta.env.DEV) {
+        const time = timestamp ? new Date(timestamp * 1000).toLocaleString() : 'N/A'
+        console.debug(`[API] ${request_id} - ${time}`)
+      }
+
+      // 2xx状态码都视为成功 (v1.3: 支持 200 和 201)
+      if (code === 200 || code === 201 || (code >= 200 && code < 300)) {
+        // 返回 data 字段，如果没有则返回整个响应
+        return responseData !== undefined ? responseData : data
       } else {
         // 业务错误
         const config = response.config as RequestConfig
         if (!config.skipErrorHandler && !config.silent) {
-          ElMessage.error(data.message || '请求失败')
+          ElMessage.error(message || '请求失败')
         }
-        return Promise.reject(data)
+
+        // v1.3: 错误中包含 request_id 便于追踪
+        const error = new Error(message || '请求失败') as any
+        error.code = code
+        error.request_id = request_id
+        error.timestamp = timestamp
+        return Promise.reject(error)
       }
     }
 
-    // 直接返回数据
+    // 直接返回数据（向后兼容）
     return data
   },
   (error: AxiosError<any>) => {
     const config = error.config as RequestConfig
+
+    // v1.3: 记录错误中的 request_id
+    const { request_id } = error.response?.data || {}
+    if (request_id && import.meta.env.DEV) {
+      console.error(`[API Error] ${request_id}`, error.response?.data)
+    }
 
     // 跳过错误处理
     if (config?.skipErrorHandler) {
