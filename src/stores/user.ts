@@ -112,13 +112,13 @@ export const useUserStore = defineStore('user', {
       this.error = null
 
       try {
-        const response = await userAPI.getProfile()
-        this.profile = response.data
+        const profile = await userAPI.getProfile()
+        this.profile = profile
 
         // 更新本地存储
-        storage.setUserInfo(response.data)
+        storage.set('userProfile', profile)
 
-        return response
+        return profile
       } catch (error: any) {
         this.error = error.message
         console.error('获取用户信息失败:', error)
@@ -174,7 +174,7 @@ export const useUserStore = defineStore('user', {
      * 初始化用户信息（从本地存储）
      */
     initProfile(): void {
-      const userInfo = storage.getUserInfo()
+      const userInfo = storage.get('userProfile')
       if (userInfo) {
         this.profile = userInfo
       }
@@ -186,7 +186,7 @@ export const useUserStore = defineStore('user', {
     clearProfile(): void {
       this.profile = null
       this.error = null
-      storage.removeUserInfo()
+      storage.remove('userProfile')
     },
 
     // ==================== 管理员功能 ====================

@@ -40,15 +40,15 @@ export function detailedWordCount(text: string, filterMarkdown: boolean = false)
   // 统计各类字符
   const chineseChars = content.match(/[\u4e00-\u9fa5]/g) || []
   const englishWords = content.match(/[a-zA-Z]+/g) || []
-  const numbers = content.match(/\d+/g) || []
+  const numbers: string[] = content.match(/\d+/g) || []
   const punctuation = content.match(/[，。！？；：""''（）、《》【】]/g) || []
-  const whitespace = content.match(/\s+/g) || []
+  const whitespace: string[] = content.match(/\s+/g) || []
 
   const chinese = chineseChars.length
   const english = englishWords.length
-  const numberCount = numbers.reduce((sum, num) => sum + num.length, 0)
+  const numberCount = numbers.reduce((sum: number, num: string) => sum + num.length, 0)
   const punctuationCount = punctuation.length
-  const whitespaceCount = whitespace.reduce((sum, ws) => sum + ws.length, 0)
+  const whitespaceCount = whitespace.reduce((sum: number, ws: string) => sum + ws.length, 0)
 
   return {
     total: chinese + english,

@@ -49,11 +49,13 @@
     <!-- 分页 -->
     <div v-if="total > 0" class="pagination">
       <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
         :total="total"
         :page-sizes="[10, 20, 50]"
         layout="total, sizes, prev, pager, next, jumper"
+        @update:current-page="pagination.page = $event"
+        @update:page-size="pagination.pageSize = $event"
         @current-change="loadReviews"
         @size-change="loadReviews"
       />
@@ -135,7 +137,7 @@ const pagination = reactive({
 
 // 数据
 const loading = ref(false)
-const reviews = ref<PendingReview[]>([])
+const reviews = ref<any[]>([])
 const total = ref(0)
 
 // 对话框
@@ -175,12 +177,14 @@ const loadReviews = async () => {
 
     const response = await adminAPI.getPendingReviews(params)
 
-    if (Array.isArray(response)) {
-      reviews.value = response
-      total.value = response.length
-    } else if (response.data) {
-      reviews.value = response.data
-      total.value = response.total || 0
+    if (response.data) {
+      if (Array.isArray(response.data)) {
+        reviews.value = response.data
+        total.value = response.data.length
+      } else if (response.data.items) {
+        reviews.value = response.data.items
+        total.value = response.data.total || 0
+      }
     }
   } catch (error) {
     console.error('加载审核列表失败:', error)
@@ -211,10 +215,8 @@ const handleApprove = async (item: PendingReview) => {
       type: 'success'
     })
 
-    await adminAPI.reviewContent({
-      content_id: item.contentId,
-      content_type: item.contentType,
-      action: 'approve'
+    await adminAPI.reviewContent(item.contentId, {
+      status: 'approved'
     })
 
     ElMessage.success('批准成功')
@@ -246,10 +248,8 @@ const confirmReject = async () => {
 
   submitting.value = true
   try {
-    await adminAPI.reviewContent({
-      content_id: currentItem.value.contentId,
-      content_type: currentItem.value.contentType,
-      action: 'reject',
+    await adminAPI.reviewContent(currentItem.value.contentId, {
+      status: 'rejected',
       reason: rejectForm.reason
     })
 

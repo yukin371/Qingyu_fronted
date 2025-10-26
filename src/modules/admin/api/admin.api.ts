@@ -16,7 +16,7 @@ export const adminAPI = {
   /**
    * Get dashboard stats
    */
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(): Promise<APIResponse<DashboardStats>> {
     return httpService.get<APIResponse<DashboardStats>>('/admin/dashboard/stats')
   },
 
@@ -27,7 +27,7 @@ export const adminAPI = {
     status?: string,
     page: number = 1,
     size: number = 20
-  ): Promise<ReviewItem[]> {
+  ): Promise<APIResponse<ReviewItem[]>> {
     return httpService.get<APIResponse<ReviewItem[]>>('/admin/reviews', {
       params: { status, page, size }
     } as any)
@@ -51,7 +51,7 @@ export const adminAPI = {
     status?: string,
     page: number = 1,
     size: number = 20
-  ): Promise<WithdrawalRequest[]> {
+  ): Promise<APIResponse<WithdrawalRequest[]>> {
     return httpService.get<APIResponse<WithdrawalRequest[]>>('/admin/withdrawals', {
       params: { status, page, size }
     } as any)
@@ -71,7 +71,7 @@ export const adminAPI = {
   /**
    * Get users
    */
-  async getUsers(page: number = 1, size: number = 20): Promise<UserManagementItem[]> {
+  async getUsers(page: number = 1, size: number = 20): Promise<APIResponse<UserManagementItem[]>> {
     return httpService.get<APIResponse<UserManagementItem[]>>('/admin/users', {
       params: { page, size }
     } as any)
@@ -94,7 +94,7 @@ export const adminAPI = {
   /**
    * Get operation logs
    */
-  async getOperationLogs(page: number = 1, size: number = 20): Promise<OperationLog[]> {
+  async getOperationLogs(page: number = 1, size: number = 20): Promise<APIResponse<OperationLog[]>> {
     return httpService.get<APIResponse<OperationLog[]>>('/admin/logs', {
       params: { page, size }
     } as any)

@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { APIResponse } from '@/types/api'
 
 /**
  * 项目管理API
@@ -49,36 +50,36 @@ export interface Project {
 /**
  * 创建项目
  */
-export async function createProject(data: ProjectCreateData) {
-  return request.post('/projects', data)
+export async function createProject(data: ProjectCreateData): Promise<APIResponse<Project>> {
+  return request.post<APIResponse<Project>>('/projects', data)
 }
 
 /**
  * 获取项目列表
  */
-export async function getProjects(params?: ProjectQueryParams) {
-  return request.get('/projects', { params })
+export async function getProjects(params?: ProjectQueryParams): Promise<APIResponse<Project[]>> {
+  return request.get<APIResponse<Project[]>>('/projects', { params })
 }
 
 /**
  * 获取项目详情
  */
-export async function getProjectById(id: string) {
-  return request.get(`/projects/${id}`)
+export async function getProjectById(id: string): Promise<APIResponse<Project>> {
+  return request.get<APIResponse<Project>>(`/projects/${id}`)
 }
 
 /**
  * 更新项目
  */
-export async function updateProject(id: string, data: ProjectUpdateData) {
-  return request.put(`/projects/${id}`, data)
+export async function updateProject(id: string, data: ProjectUpdateData): Promise<APIResponse<Project>> {
+  return request.put<APIResponse<Project>>(`/projects/${id}`, data)
 }
 
 /**
  * 删除项目
  */
-export async function deleteProject(id: string) {
-  return request.delete(`/projects/${id}`)
+export async function deleteProject(id: string): Promise<APIResponse<null>> {
+  return request.delete<APIResponse<null>>(`/projects/${id}`)
 }
 
 /**

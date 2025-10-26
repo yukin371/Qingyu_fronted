@@ -26,6 +26,19 @@ import {
   type DocumentCreateData,
   type DocumentUpdateData
 } from '../api'
+import type {
+  ChatMessage,
+  AIToolType,
+  AIConfig,
+  AIHistory
+} from '@/types/ai'
+import {
+  chatWithAI,
+  continueWriting,
+  polishText,
+  expandText,
+  rewriteText
+} from '@/api/writing/ai'
 
 /**
  * 自动保存任务
@@ -65,6 +78,19 @@ export interface WriterState {
   autosaveQueue: AutosaveTask[]
   isSaving: boolean
 
+  // AI助手状态
+  ai: {
+    chatHistory: ChatMessage[]
+    isProcessing: boolean
+    lastResult: string
+    sidebarVisible: boolean
+    currentTool: AIToolType
+    config: AIConfig
+    history: AIHistory[]
+    error: string | null
+    selectedText: string
+  }
+
   // 统计缓存
   statisticsCache: Record<string, any>
 
@@ -97,6 +123,24 @@ export const useWriterStore = defineStore('writer', {
     autosaveInterval: 30000, // 30秒
     autosaveQueue: [],
     isSaving: false,
+
+    // AI助手状态
+    ai: {
+      chatHistory: [],
+      isProcessing: false,
+      lastResult: '',
+      sidebarVisible: false,
+      currentTool: 'chat',
+      config: {
+        continueLength: 200,
+        polishStyle: 'literary',
+        expandLevel: 'moderate',
+        rewriteMode: 'meaning'
+      },
+      history: [],
+      error: null,
+      selectedText: ''
+    },
 
     // 统计缓存
     statisticsCache: {},
@@ -154,8 +198,8 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getProjects(params)
-        if (response.code === 200) {
-          this.projects = response.data.projects || response.data
+        if (response.code === 200 && response.data) {
+          this.projects = Array.isArray(response.data) ? response.data : []
         } else {
           this.error = response.message || '加载项目列表失败'
         }
@@ -275,8 +319,8 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getDocuments(projectId, params)
-        if (response.code === 200) {
-          this.documents = response.data.documents || response.data
+        if (response.code === 200 && response.data) {
+          this.documents = Array.isArray(response.data) ? response.data : []
         } else {
           this.error = response.message || '加载文档列表失败'
         }
@@ -424,7 +468,7 @@ export const useWriterStore = defineStore('writer', {
           this.editorContent = content
           this.isDirty = false
           this.lastSaved = new Date()
-          this.editorVersion = response.data.version || this.editorVersion + 1
+          this.editorVersion = (response.data as any)?.version || this.editorVersion + 1
         } else {
           this.error = response.message || '保存文档失败'
           throw new Error(this.error)
@@ -453,7 +497,8 @@ export const useWriterStore = defineStore('writer', {
           this.isDirty = false
 
           // 检查版本冲突
-          if (response.data.version && response.data.version !== this.editorVersion) {
+          const newVersion = (response.data as any)?.version
+          if (newVersion && newVersion !== this.editorVersion) {
             console.warn('检测到版本冲突')
             // 可以触发版本冲突处理逻辑
           }
@@ -565,6 +610,254 @@ export const useWriterStore = defineStore('writer', {
       return null
     },
 
+    // ==================== AI助手功能 ====================
+
+    /**
+     * 切换AI侧边栏显示/隐藏
+     */
+    toggleAISidebar(visible?: boolean): void {
+      if (visible !== undefined) {
+        this.ai.sidebarVisible = visible
+      } else {
+        this.ai.sidebarVisible = !this.ai.sidebarVisible
+      }
+    },
+
+    /**
+     * 切换AI工具
+     */
+    setAITool(tool: AIToolType): void {
+      this.ai.currentTool = tool
+    },
+
+    /**
+     * 设置选中的文本
+     */
+    setSelectedText(text: string): void {
+      this.ai.selectedText = text
+    },
+
+    /**
+     * 发送聊天消息
+     */
+    async sendChatMessage(message: string): Promise<void> {
+      if (!message.trim()) return
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      // 添加用户消息到历史
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+        timestamp: Date.now()
+      }
+      this.ai.chatHistory.push(userMessage)
+
+      try {
+        const response = await chatWithAI(message, this.ai.chatHistory.slice(0, -1))
+
+        // 添加AI回复到历史
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.reply,
+          timestamp: Date.now()
+        }
+        this.ai.chatHistory.push(aiMessage)
+        this.ai.lastResult = response.reply
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'chat',
+          input: message,
+          output: response.reply,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId || undefined,
+          usage: response.usage
+        })
+      } catch (error: any) {
+        console.error('AI对话失败:', error)
+        this.ai.error = error.message || '对话失败，请重试'
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * 清空聊天历史
+     */
+    clearChatHistory(): void {
+      this.ai.chatHistory = []
+      this.ai.lastResult = ''
+    },
+
+    /**
+     * AI续写
+     */
+    async aiContinueWriting(text: string, length: number = 200): Promise<string> {
+      if (!this.currentProjectId) {
+        throw new Error('请先选择一个项目')
+      }
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      try {
+        const response = await continueWriting(this.currentProjectId, text, length)
+        const result = response.generated_text || ''
+        this.ai.lastResult = result
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'continue',
+          input: text,
+          output: result,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId,
+          usage: response.usage
+        })
+
+        return result
+      } catch (error: any) {
+        console.error('AI续写失败:', error)
+        this.ai.error = error.message || '续写失败，请重试'
+        throw error
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * AI润色
+     */
+    async aiPolishText(text: string, instructions?: string): Promise<string> {
+      if (!this.currentProjectId) {
+        throw new Error('请先选择一个项目')
+      }
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      try {
+        const response = await polishText(this.currentProjectId, text, instructions)
+        const result = response.polished_text || response.rewritten_text || ''
+        this.ai.lastResult = result
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'polish',
+          input: text,
+          output: result,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId,
+          usage: response.usage
+        })
+
+        return result
+      } catch (error: any) {
+        console.error('AI润色失败:', error)
+        this.ai.error = error.message || '润色失败，请重试'
+        throw error
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * AI扩写
+     */
+    async aiExpandText(text: string, instructions?: string, targetLength?: number): Promise<string> {
+      if (!this.currentProjectId) {
+        throw new Error('请先选择一个项目')
+      }
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      try {
+        const response = await expandText(this.currentProjectId, text, instructions, targetLength)
+        const result = response.expanded_text || response.rewritten_text || ''
+        this.ai.lastResult = result
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'expand',
+          input: text,
+          output: result,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId,
+          usage: response.usage
+        })
+
+        return result
+      } catch (error: any) {
+        console.error('AI扩写失败:', error)
+        this.ai.error = error.message || '扩写失败，请重试'
+        throw error
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * AI改写
+     */
+    async aiRewriteText(text: string, mode: 'polish' | 'simplify' | 'formal' | 'casual', instructions?: string): Promise<string> {
+      if (!this.currentProjectId) {
+        throw new Error('请先选择一个项目')
+      }
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      try {
+        const response = await rewriteText(this.currentProjectId, text, mode, instructions)
+        const result = response.rewritten_text || response.polished_text || ''
+        this.ai.lastResult = result
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'rewrite',
+          input: text,
+          output: result,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId,
+          usage: response.usage
+        })
+
+        return result
+      } catch (error: any) {
+        console.error('AI改写失败:', error)
+        this.ai.error = error.message || '改写失败，请重试'
+        throw error
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * 插入生成的内容到编辑器
+     */
+    insertGeneratedText(text: string): void {
+      // 这个方法将由编辑器组件调用来插入文本
+      // 实际插入逻辑在编辑器组件中实现
+      this.ai.lastResult = text
+    },
+
+    /**
+     * 清除AI错误
+     */
+    clearAIError(): void {
+      this.ai.error = null
+    },
+
     // ==================== 辅助方法 ====================
 
     /**
@@ -594,6 +887,22 @@ export const useWriterStore = defineStore('writer', {
       this.autosaveInterval = 30000
       this.autosaveQueue = []
       this.isSaving = false
+      this.ai = {
+        chatHistory: [],
+        isProcessing: false,
+        lastResult: '',
+        sidebarVisible: false,
+        currentTool: 'chat',
+        config: {
+          continueLength: 200,
+          polishStyle: 'literary',
+          expandLevel: 'moderate',
+          rewriteMode: 'meaning'
+        },
+        history: [],
+        error: null,
+        selectedText: ''
+      }
       this.statisticsCache = {}
       this.error = null
     }

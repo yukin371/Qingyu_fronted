@@ -1,17 +1,13 @@
 import { defineStore } from 'pinia'
-import * as walletAPI from '@/api/shared/wallet'
+import { walletAPI } from '@/api/shared/wallet'
 import type {
-  WalletBalance,
   WalletInfo,
   Transaction,
-  WithdrawRecord,
-  RechargeRequest,
-  ConsumeRequest,
-  TransferRequest,
   WithdrawRequest,
-  TransactionQueryParams,
-  WithdrawQueryParams
-} from '@/api/shared/types'
+  RechargeParams,
+  ConsumeParams,
+  TransferRequest
+} from '@/types/shared'
 
 /**
  * 钱包状态接口
@@ -30,7 +26,7 @@ export interface WalletState {
   transactionsPageSize: number
 
   // 提现记录
-  withdrawals: WithdrawRecord[]
+  withdrawals: WithdrawRequest[]
   withdrawalsTotal: number
   withdrawalsPage: number
   withdrawalsPageSize: number
@@ -111,10 +107,13 @@ export const useWalletStore = defineStore('wallet', {
       this.error = null
 
       try {
-        const data = await walletAPI.getBalance()
-        this.balance = data.balance
-        this.frozenAmount = data.frozenAmount
-        this.availableAmount = data.availableAmount
+        const response = await walletAPI.getBalance()
+        if (response.data) {
+          this.balance = response.data.balance || 0
+          // 如果API没有返回冻结金额，默认为0
+          this.frozenAmount = (response.data as any).frozenAmount || (response.data as any).frozenBalance || 0
+          this.availableAmount = (response.data as any).availableAmount || (this.balance - this.frozenAmount)
+        }
       } catch (error: any) {
         this.error = error.message || '获取余额失败'
         throw error
@@ -131,11 +130,13 @@ export const useWalletStore = defineStore('wallet', {
       this.error = null
 
       try {
-        const data = await walletAPI.getWallet()
-        this.walletInfo = data
-        this.balance = data.balance
-        this.frozenAmount = data.frozenAmount
-        this.availableAmount = data.availableAmount
+        const response = await walletAPI.getWallet()
+        if (response.data) {
+          this.walletInfo = response.data
+          this.balance = response.data.balance || 0
+          this.frozenAmount = response.data.frozenAmount || response.data.frozenBalance || 0
+          this.availableAmount = response.data.availableAmount || 0
+        }
       } catch (error: any) {
         this.error = error.message || '获取钱包信息失败'
         throw error
@@ -147,7 +148,7 @@ export const useWalletStore = defineStore('wallet', {
     /**
      * 充值
      */
-    async recharge(request: RechargeRequest): Promise<any> {
+    async recharge(request: RechargeParams): Promise<any> {
       this.loading = true
       this.error = null
 
@@ -167,7 +168,7 @@ export const useWalletStore = defineStore('wallet', {
     /**
      * 消费
      */
-    async consume(request: ConsumeRequest): Promise<any> {
+    async consume(request: ConsumeParams): Promise<any> {
       this.loading = true
       this.error = null
 
@@ -192,7 +193,13 @@ export const useWalletStore = defineStore('wallet', {
       this.error = null
 
       try {
-        const result = await walletAPI.transfer(request)
+        // 转换参数格式
+        const params = {
+          toUserId: request.targetUserId,
+          amount: request.amount,
+          reason: request.reason
+        }
+        const result = await walletAPI.transfer(params)
         // 刷新余额
         await this.fetchBalance()
         return result
@@ -207,7 +214,7 @@ export const useWalletStore = defineStore('wallet', {
     /**
      * 获取交易记录
      */
-    async fetchTransactions(params?: TransactionQueryParams): Promise<void> {
+    async fetchTransactions(params?: {page?: number; page_size?: number; type?: string}): Promise<void> {
       this.loading = true
       this.error = null
 
@@ -220,14 +227,14 @@ export const useWalletStore = defineStore('wallet', {
 
         const response = await walletAPI.getTransactions(queryParams)
 
-        // 处理响应数据
-        if (Array.isArray(response)) {
-          this.transactions = response
-        } else if (response.data) {
+        // 处理分页响应数据
+        if (response.data) {
           this.transactions = response.data
-          this.transactionsTotal = response.total || 0
-          this.transactionsPage = response.page || queryParams.page
-          this.transactionsPageSize = response.page_size || queryParams.page_size
+        }
+        if (response.pagination) {
+          this.transactionsTotal = response.pagination.total || 0
+          this.transactionsPage = response.pagination.page || queryParams.page
+          this.transactionsPageSize = response.pagination.page_size || queryParams.page_size
         }
       } catch (error: any) {
         this.error = error.message || '获取交易记录失败'
@@ -240,7 +247,7 @@ export const useWalletStore = defineStore('wallet', {
     /**
      * 申请提现
      */
-    async requestWithdraw(request: WithdrawRequest): Promise<any> {
+    async requestWithdraw(request: {amount: number; account: string; accountType: string; verifyCode?: string}): Promise<any> {
       this.loading = true
       this.error = null
 
@@ -261,7 +268,7 @@ export const useWalletStore = defineStore('wallet', {
     /**
      * 获取提现记录
      */
-    async fetchWithdrawals(params?: WithdrawQueryParams): Promise<void> {
+    async fetchWithdrawals(params?: {page?: number; page_size?: number; status?: string}): Promise<void> {
       this.loading = true
       this.error = null
 
@@ -274,14 +281,14 @@ export const useWalletStore = defineStore('wallet', {
 
         const response = await walletAPI.getWithdrawRequests(queryParams)
 
-        // 处理响应数据
-        if (Array.isArray(response)) {
-          this.withdrawals = response
-        } else if (response.data) {
+        // 处理分页响应数据
+        if (response.data) {
           this.withdrawals = response.data
-          this.withdrawalsTotal = response.total || 0
-          this.withdrawalsPage = response.page || queryParams.page
-          this.withdrawalsPageSize = response.page_size || queryParams.page_size
+        }
+        if (response.pagination) {
+          this.withdrawalsTotal = response.pagination.total || 0
+          this.withdrawalsPage = response.pagination.page || queryParams.page
+          this.withdrawalsPageSize = response.pagination.page_size || queryParams.page_size
         }
       } catch (error: any) {
         this.error = error.message || '获取提现记录失败'

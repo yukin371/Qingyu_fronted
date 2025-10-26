@@ -11,7 +11,8 @@ export const bookshelfAPI = {
    * Get bookshelf
    */
   async getBookshelf(): Promise<BookshelfItem[]> {
-    return httpService.get<APIResponse<BookshelfItem[]>>('/reader/bookshelf')
+    const response = await httpService.get<APIResponse<BookshelfItem[]>>('/reader/bookshelf')
+    return response.data
   },
 
   /**

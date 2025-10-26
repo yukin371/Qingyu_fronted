@@ -16,29 +16,16 @@ import type {
   CategoryTreeNode,
   RankingType
 } from '../types/bookstore.types'
-import { apiCache } from '@core'
-import { CACHE_KEYS, CACHE_TTL } from '@core/config/constants'
+// import { apiCache } from '@core'
+// import { CACHE_KEYS, CACHE_TTL } from '@core/config/constants'
 
 class BookstoreService {
   /**
    * Get homepage data with caching
    */
   async getHomepageData(): Promise<HomepageData> {
-    const cacheKey = CACHE_KEYS.HOMEPAGE_DATA
-
-    // Try cache first
-    const cached = apiCache.get<HomepageData>(cacheKey)
-    if (cached) {
-      return cached
-    }
-
-    // Fetch from API
-    const data = await bookstoreAPI.getHomepage()
-
-    // Cache for 5 minutes
-    apiCache.set(cacheKey, data, CACHE_TTL.SHORT)
-
-    return data
+    // TODO: Add caching later
+    return await bookstoreAPI.getHomepage()
   }
 
   /**
@@ -114,24 +101,12 @@ class BookstoreService {
   }
 
   /**
-   * Get categories with caching
+   * Get categories
    */
   async getCategories(): Promise<Category[]> {
-    const cacheKey = CACHE_KEYS.CATEGORIES
-
-    // Try cache first
-    const cached = apiCache.get<Category[]>(cacheKey)
-    if (cached) {
-      return cached
-    }
-
     // Fetch from API
-    const categories = await bookstoreAPI.getCategories()
-
-    // Cache for 1 hour
-    apiCache.set(cacheKey, categories, CACHE_TTL.LONG)
-
-    return categories
+    const response = await bookstoreAPI.getCategories()
+    return (response as any).data || response || []
   }
 
   /**
@@ -151,7 +126,7 @@ class BookstoreService {
   /**
    * Increment book view count
    */
-  private async incrementBookView(bookId: string): Promise<void> {
+  async incrementBookView(bookId: string): Promise<void> {
     try {
       await bookstoreAPI.incrementBookView(bookId)
     } catch (error) {
@@ -196,8 +171,8 @@ class BookstoreService {
    * Clear cached data
    */
   clearCache(): void {
-    apiCache.remove(CACHE_KEYS.HOMEPAGE_DATA)
-    apiCache.remove(CACHE_KEYS.CATEGORIES)
+    // Cache functionality removed for now
+    // Can be implemented later if needed
   }
 }
 

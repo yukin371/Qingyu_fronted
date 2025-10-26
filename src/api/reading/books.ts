@@ -44,7 +44,9 @@ export const booksAPI = {
   },
 
   /**
-   * 获取书籍列表（分页）
+   * 获取书籍列表（使用推荐接口）
+   * 注意：后端暂未实现通用书籍列表接口，使用推荐接口代替
+   * TODO: 等待后端实现 GET /bookstore/books 接口
    */
   async getBookList(params: BookListParams): Promise<ApiResponse<{
     books: BookBrief[]
@@ -52,7 +54,9 @@ export const booksAPI = {
     page: number
     size: number
   }>> {
-    return request.get('/bookstore/books', { params })
+    // 暂时使用推荐接口代替通用列表接口
+    // 注意：这个接口不支持分类和状态筛选
+    return request.get('/bookstore/books/recommended', { params })
   },
 
   /**
@@ -155,10 +159,10 @@ export const booksAPI = {
   // ==================== 分类管理 ====================
 
   /**
-   * 获取所有分类
+   * 获取所有分类（分类树）
    */
   async getAllCategories(): Promise<ApiResponse<Category[]>> {
-    return request.get('/bookstore/categories')
+    return request.get('/bookstore/categories/tree')
   },
 
   /**

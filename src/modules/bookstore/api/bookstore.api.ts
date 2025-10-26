@@ -23,7 +23,8 @@ export const bookstoreAPI = {
    * Get homepage data
    */
   async getHomepage(): Promise<HomepageData> {
-    return httpService.get<APIResponse<HomepageData>>('/bookstore/homepage')
+    const response = await httpService.get<APIResponse<HomepageData>>('/bookstore/homepage')
+    return response.data
   },
 
   /**
@@ -34,52 +35,58 @@ export const bookstoreAPI = {
     period: string = '',
     limit: number = 20
   ): Promise<RankingItem[]> {
-    return httpService.get<APIResponse<RankingItem[]>>(`/bookstore/rankings/${type}`, {
+    const response = await httpService.get<APIResponse<RankingItem[]>>(`/bookstore/rankings/${type}`, {
       params: { period, limit }
     } as any)
+    return response.data
   },
 
   /**
    * Get banners
    */
   async getBanners(limit: number = 5): Promise<Banner[]> {
-    return httpService.get<APIResponse<Banner[]>>('/bookstore/banners', {
+    const response = await httpService.get<APIResponse<Banner[]>>('/bookstore/banners', {
       params: { limit }
     } as any)
+    return response.data
   },
 
   /**
    * Get book by ID
    */
   async getBookById(id: string): Promise<Book> {
-    return httpService.get<APIResponse<Book>>(`/bookstore/books/${id}`)
+    const response = await httpService.get<APIResponse<Book>>(`/bookstore/books/${id}`)
+    return response.data
   },
 
   /**
    * Get recommended books
    */
   async getRecommendedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return httpService.get<APIResponse<BookBrief[]>>('/bookstore/books/recommended', {
+    const response = await httpService.get<APIResponse<BookBrief[]>>('/bookstore/books/recommended', {
       params: { page, size }
     } as any)
+    return response.data
   },
 
   /**
    * Get featured books
    */
   async getFeaturedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return httpService.get<APIResponse<BookBrief[]>>('/bookstore/books/featured', {
+    const response = await httpService.get<APIResponse<BookBrief[]>>('/bookstore/books/featured', {
       params: { page, size }
     } as any)
+    return response.data
   },
 
   /**
    * Search books
    */
   async searchBooks(params: SearchParams): Promise<SearchResult> {
-    return httpService.get<APIResponse<SearchResult>>('/bookstore/books/search', {
+    const response = await httpService.get<APIResponse<SearchResult>>('/bookstore/books/search', {
       params
     } as any)
+    return response.data
   },
 
   /**
@@ -89,31 +96,35 @@ export const bookstoreAPI = {
     categoryId: string,
     params: PaginationParams & Partial<SearchFilter> = {}
   ): Promise<SearchResult> {
-    return httpService.get<APIResponse<SearchResult>>(
+    const response = await httpService.get<APIResponse<SearchResult>>(
       `/bookstore/categories/${categoryId}/books`,
       { params } as any
     )
+    return response.data
   },
 
   /**
    * Get categories
    */
   async getCategories(): Promise<Category[]> {
-    return httpService.get<APIResponse<Category[]>>('/bookstore/categories')
+    const response = await httpService.get<APIResponse<Category[]>>('/bookstore/categories')
+    return response.data
   },
 
   /**
    * Get category tree
    */
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    return httpService.get<APIResponse<CategoryTreeNode[]>>('/bookstore/categories/tree')
+    const response = await httpService.get<APIResponse<CategoryTreeNode[]>>('/bookstore/categories/tree')
+    return response.data
   },
 
   /**
    * Get category by ID
    */
   async getCategoryById(id: string): Promise<Category> {
-    return httpService.get<APIResponse<Category>>(`/bookstore/categories/${id}`)
+    const response = await httpService.get<APIResponse<Category>>(`/bookstore/categories/${id}`)
+    return response.data
   },
 
   /**

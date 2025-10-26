@@ -30,10 +30,22 @@ export interface RegisterData {
  */
 export interface LoginResponse {
   token: string
-  userID: string
-  username: string
-  role: string
-  expiresAt: string
+  refreshToken?: string
+  user: {
+    id: string
+    username: string
+    email: string
+    nickname?: string
+    avatar?: string
+    role?: string
+  }
+  permissions?: string[]
+  roles?: string[]
+  expiresAt?: string
+  // Legacy fields for backward compatibility
+  userID?: string
+  username?: string
+  role?: string
 }
 
 /**

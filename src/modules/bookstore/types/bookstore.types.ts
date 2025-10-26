@@ -156,19 +156,3 @@ export interface HomepageData {
   popularTags?: string[]
 }
 
-export default {
-  RankingType,
-  BookStatus,
-  BookBrief,
-  Book,
-  Chapter,
-  Banner,
-  RankingItem,
-  Category,
-  CategoryTreeNode,
-  SearchFilter,
-  SearchParams,
-  SearchResult,
-  HomepageData
-}
-

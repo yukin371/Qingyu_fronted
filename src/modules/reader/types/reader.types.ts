@@ -131,16 +131,3 @@ export interface Rating {
   createTime: number
 }
 
-export default {
-  Chapter,
-  ChapterContent,
-  ReadingProgress,
-  SaveProgressParams,
-  ReadingSettings,
-  BookshelfItem,
-  ReadingHistoryItem,
-  Bookmark,
-  Comment,
-  Rating
-}
-

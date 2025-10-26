@@ -119,9 +119,9 @@ export const useStorageStore = defineStore('storage', {
           this.files = response
         } else if (response.data) {
           this.files = response.data
-          this.filesTotal = response.total || 0
-          this.filesPage = response.page || queryParams.page
-          this.filesPageSize = response.page_size || queryParams.page_size
+          this.filesTotal = response.pagination?.total || 0
+          this.filesPage = response.pagination?.page || queryParams.page
+          this.filesPageSize = response.pagination?.page_size || queryParams.page_size
         }
       } catch (error: any) {
         this.error = error.message || '获取文件列表失败'
@@ -163,7 +163,7 @@ export const useStorageStore = defineStore('storage', {
         // 刷新文件列表
         await this.fetchFiles()
 
-        return result
+        return result.data?.file || result.data as any || result as any
       } catch (error: any) {
         // 更新上传队列状态
         const index = this.uploadQueue.findIndex((item) => item.fileId === fileId)
@@ -230,7 +230,7 @@ export const useStorageStore = defineStore('storage', {
 
       try {
         const fileInfo = await storageAPI.getFileInfo(fileId)
-        return fileInfo
+        return fileInfo.data as any || fileInfo as any
       } catch (error: any) {
         this.error = error.message || '获取文件信息失败'
         throw error
@@ -245,7 +245,7 @@ export const useStorageStore = defineStore('storage', {
     async getFileURL(fileId: string, expire = 3600): Promise<string> {
       try {
         const result = await storageAPI.getFileURL(fileId, expire)
-        return result.url
+        return result.data?.url || ''
       } catch (error: any) {
         this.error = error.message || '获取文件URL失败'
         throw error

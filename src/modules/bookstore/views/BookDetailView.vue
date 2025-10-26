@@ -41,7 +41,7 @@
                     <el-icon>
                       <Collection />
                     </el-icon>
-                    {{ book.categoryName }}
+                    {{ book.categoryName || book.category || '未分类' }}
                   </span>
                   <el-tag :type="statusType">{{ statusText }}</el-tag>
                 </div>
@@ -49,7 +49,7 @@
                 <div class="book-stats">
                   <div class="stat-item">
                     <el-rate v-model="book.rating" disabled show-score text-color="#ff9900" />
-                    <span class="rating-count">({{ book.ratingCount }}人评分)</span>
+                    <span class="rating-count">({{ book.ratingCount || 0 }}人评分)</span>
                   </div>
                   <div class="stat-item">
                     <el-icon>
@@ -263,7 +263,7 @@ const hasMoreComments = computed(() => {
   return comments.value.length < commentTotal.value
 })
 
-const book = computed(() => bookstoreStore.currentBook)
+const book = computed(() => bookstoreStore.currentBook as any)
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -363,15 +363,15 @@ const loadComments = async (reset = false) => {
       size: commentPageSize.value
     })
 
-    const data = response.data || response
+    const data = (response as any).data || response
     if (data) {
-      const commentList = Array.isArray(data) ? data : (data.data || [])
+      const commentList = Array.isArray(data) ? data : (data.data || data.comments || [])
       if (reset) {
         comments.value = commentList
       } else {
         comments.value.push(...commentList)
       }
-      commentTotal.value = data.total || (response as any).total || 0
+      commentTotal.value = data.total || 0
     }
   } catch (error: any) {
     ElMessage.error(error.message || '加载评论失败')
@@ -480,7 +480,11 @@ const loadChapters = async () => {
 // 加载推荐书籍
 const loadRecommendations = async () => {
   try {
-    const response = await recommendationAPI.getSimilarItems(bookId, 6)
+    const response = await recommendationAPI.getSimilarItems({
+      itemId: bookId,
+      itemType: 'book',
+      limit: 6
+    })
     if (response.code === 200 && response.data) {
       recommendedBooks.value = response.data as unknown as BookBrief[]
     }

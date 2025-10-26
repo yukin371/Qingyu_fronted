@@ -31,7 +31,8 @@ export function hasPermission(permission: string): boolean {
  */
 export function hasRole(role: string): boolean {
   const authStore = useAuthStore()
-  return authStore.user?.roles?.includes(role) || false
+  // Check both user.role (single) and user.roles (array) for compatibility
+  return authStore.user?.role === role || authStore.user?.roles?.includes(role) || false
 }
 
 export default {

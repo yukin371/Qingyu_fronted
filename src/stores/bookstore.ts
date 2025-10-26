@@ -214,7 +214,7 @@ export const useBookstoreStore = defineStore('bookstore', {
       this.searchFilters = filters
 
       try {
-        const response = await bookstoreAPI.searchBooks(keyword, filters)
+        const response = await bookstoreAPI.searchBooks({ keyword, ...filters })
         if (response.code === 200) {
           this.books.searchResults = response.data.books
 

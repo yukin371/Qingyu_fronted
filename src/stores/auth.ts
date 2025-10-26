@@ -1,10 +1,16 @@
 import { defineStore } from 'pinia'
 import { authAPI } from '@/api/auth'
-import { storageService } from '@core/services/storage.service'
-import { STORAGE_KEYS } from '@core/config/constants'
+import storage from '@/utils/storage'
 import router from '@/router'
 import type { User } from '@/types/models'
 import type { LoginCredentials, RegisterData } from '@/api/user'
+
+// Storage keys
+const STORAGE_KEYS = {
+  TOKEN: 'token',
+  REFRESH_TOKEN: 'refreshToken',
+  USER: 'user'
+}
 
 /**
  * 认证状态接口
@@ -51,8 +57,8 @@ export const useAuthStore = defineStore('auth', {
     user: null,
 
     // 认证状态
-    token: storageService.get(STORAGE_KEYS.AUTH_TOKEN),
-    refreshToken: storageService.get(STORAGE_KEYS.AUTH_TOKEN + '_refresh'),
+    token: storage.get<string>(STORAGE_KEYS.TOKEN),
+    refreshToken: storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN),
     isLoggedIn: false,
 
     // 加载状态
@@ -133,13 +139,14 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = data.refreshToken
         this.user = data.user
         this.permissions = data.permissions || []
-        this.roles = data.roles || []
+        // 后端返回role（单数），转换为roles数组
+        this.roles = data.roles || (data.user?.role ? [data.user.role] : [])
         this.isLoggedIn = true
 
         // 存储到本地
-        storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
-        storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
-        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
+        storage.set(STORAGE_KEYS.TOKEN, this.token)
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
+        storage.set(STORAGE_KEYS.USER, this.user)
 
         return response
       } catch (error: any) {
@@ -165,13 +172,14 @@ export const useAuthStore = defineStore('auth', {
           this.refreshToken = data.refreshToken
           this.user = data.user
           this.permissions = data.permissions || []
-          this.roles = data.roles || []
+          // 后端返回role（单数），转换为roles数组
+          this.roles = data.roles || (data.user?.role ? [data.user.role] : [])
           this.isLoggedIn = true
 
           // 存储到本地
-          storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
-          storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
-          storageService.set(STORAGE_KEYS.USER_INFO, this.user)
+          storage.set(STORAGE_KEYS.TOKEN, this.token)
+          storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
+          storage.set(STORAGE_KEYS.USER, this.user)
         }
 
         return response
@@ -206,12 +214,14 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.getUserInfo()
         const data = response.data
-        this.user = data.user || data
-        this.permissions = data.permissions || []
-        this.roles = data.roles || []
+        this.user = (data as any).user || data
+        this.permissions = (data as any).permissions || []
+        // 后端返回role（单数），转换为roles数组
+        const userData = (data as any).user || data
+        this.roles = (data as any).roles || ((userData as any)?.role ? [(userData as any).role] : [])
 
         // 更新本地存储
-        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
+        storage.set(STORAGE_KEYS.USER, this.user)
 
         return response
       } catch (error) {
@@ -231,7 +241,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = { ...this.user!, ...data.user }
 
         // 更新本地存储
-        storageService.set(STORAGE_KEYS.USER_INFO, this.user)
+        storage.set(STORAGE_KEYS.USER, this.user)
 
         return response
       } catch (error: any) {
@@ -265,16 +275,21 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await authAPI.refreshToken(this.refreshToken)
+        const response = await authAPI.refreshToken()
         const data = response.data
 
-        this.token = data.token
-        this.refreshToken = data.refreshToken || this.refreshToken
+        if (data) {
+          this.token = data.token
+          // refreshToken 可能在响应中，否则保持原值
+          if ('refreshToken' in data && data.refreshToken) {
+            this.refreshToken = data.refreshToken
+          }
 
-        // 更新本地存储
-        storageService.set(STORAGE_KEYS.AUTH_TOKEN, this.token)
-        if (data.refreshToken) {
-          storageService.set(STORAGE_KEYS.AUTH_TOKEN + '_refresh', this.refreshToken)
+          // 更新本地存储
+          storage.set(STORAGE_KEYS.TOKEN, this.token)
+          if ('refreshToken' in data && data.refreshToken) {
+            storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
+          }
         }
 
         return response
@@ -289,7 +304,7 @@ export const useAuthStore = defineStore('auth', {
     async checkUsername(username: string): Promise<boolean> {
       try {
         const response = await authAPI.checkUsername(username)
-        return response.data.available
+        return response.data?.available || false
       } catch (error) {
         console.error('检查用户名失败:', error)
         return false
@@ -300,7 +315,7 @@ export const useAuthStore = defineStore('auth', {
     async checkEmail(email: string): Promise<boolean> {
       try {
         const response = await authAPI.checkEmail(email)
-        return response.data.available
+        return response.data?.available || false
       } catch (error) {
         console.error('检查邮箱失败:', error)
         return false
@@ -334,7 +349,7 @@ export const useAuthStore = defineStore('auth', {
         // 更新用户信息
         if (this.user) {
           this.user = { ...this.user, isVip: true }
-          storageService.set(STORAGE_KEYS.USER_INFO, this.user)
+          storage.set(STORAGE_KEYS.USER, this.user)
         }
 
         return response
@@ -373,9 +388,9 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       // 清除本地存储
-      storageService.remove(STORAGE_KEYS.AUTH_TOKEN)
-      storageService.remove(STORAGE_KEYS.AUTH_TOKEN + '_refresh')
-      storageService.remove(STORAGE_KEYS.USER_INFO)
+      storage.remove(STORAGE_KEYS.TOKEN)
+      storage.remove(STORAGE_KEYS.REFRESH_TOKEN)
+      storage.remove(STORAGE_KEYS.USER)
     },
 
     // 清除错误信息

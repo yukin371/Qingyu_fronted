@@ -255,6 +255,17 @@ export const useBookstoreStore = defineStore('bookstore', {
     },
 
     /**
+     * Increment book view count
+     */
+    async incrementBookView(bookId: string): Promise<void> {
+      try {
+        await bookstoreService.incrementBookView(bookId)
+      } catch (error) {
+        console.error('更新浏览量失败:', error)
+      }
+    },
+
+    /**
      * Clear error
      */
     clearError(): void {

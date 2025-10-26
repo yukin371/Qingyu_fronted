@@ -15,7 +15,8 @@ export const userAPI = {
    * Get user profile
    */
   async getUserProfile(): Promise<UserProfile> {
-    return httpService.get<APIResponse<UserProfile>>('/user/profile')
+    const response = await httpService.get<APIResponse<UserProfile>>('/user/profile')
+    return response.data
   },
 
   /**
@@ -39,11 +40,12 @@ export const userAPI = {
     const formData = new FormData()
     formData.append('file', file)
 
-    return httpService.post<APIResponse<UploadResponse>>('/user/avatar', formData, {
+    const response = await httpService.post<APIResponse<UploadResponse>>('/user/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     } as any)
+    return response.data
   },
 
   /**

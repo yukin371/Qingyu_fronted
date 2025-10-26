@@ -104,9 +104,6 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Refresh, DocumentChecked, Wallet, User, Document } from '@element-plus/icons-vue'
-import StatCard from '@admin/components/StatCard.vue'
-import ChartCard from '@admin/components/ChartCard.vue'
-import type { EChartsOption } from 'echarts'
 
 const router = useRouter()
 
@@ -126,7 +123,7 @@ const userGrowthPeriod = ref('month')
 const transactionPeriod = ref('week')
 
 // 用户增长趋势图表配置
-const userGrowthOption = ref<EChartsOption>({
+const userGrowthOption = ref({
   tooltip: {
     trigger: 'axis'
   },
@@ -163,7 +160,7 @@ const userGrowthOption = ref<EChartsOption>({
 })
 
 // 交易金额趋势图表配置
-const transactionOption = ref<EChartsOption>({
+const transactionOption = ref({
   tooltip: {
     trigger: 'axis'
   },
@@ -197,7 +194,7 @@ const transactionOption = ref<EChartsOption>({
 })
 
 // 内容发布统计图表配置
-const contentOption = ref<EChartsOption>({
+const contentOption = ref({
   tooltip: {
     trigger: 'item'
   },

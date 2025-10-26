@@ -380,7 +380,7 @@ onMounted(async () => {
 
   // 定时保存进度（每30秒）
   if (settings.value.autoSave) {
-    readingTimer.value = setInterval(saveCurrentProgress, 30000)
+    readingTimer.value = setInterval(saveCurrentProgress, 30000) as any
   }
 
   // 集成触摸手势

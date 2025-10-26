@@ -10,19 +10,20 @@ import type {
   WithdrawalRequest,
   UserManagementItem
 } from '../types/admin.types'
+import type { APIResponse } from '@/core/types/api.types'
 
 class AdminService {
   /**
    * Get dashboard statistics
    */
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(): Promise<APIResponse<DashboardStats>> {
     return await adminAPI.getDashboardStats()
   }
 
   /**
    * Get pending reviews
    */
-  async getPendingReviews(page: number = 1, size: number = 20): Promise<ReviewItem[]> {
+  async getPendingReviews(page: number = 1, size: number = 20): Promise<APIResponse<ReviewItem[]>> {
     return await adminAPI.getReviews('pending', page, size)
   }
 
@@ -46,7 +47,7 @@ class AdminService {
   /**
    * Get pending withdrawals
    */
-  async getPendingWithdrawals(): Promise<WithdrawalRequest[]> {
+  async getPendingWithdrawals(): Promise<APIResponse<WithdrawalRequest[]>> {
     return await adminAPI.getWithdrawals('pending')
   }
 

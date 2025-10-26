@@ -196,8 +196,18 @@ const loadBooks = async () => {
     const response = await booksAPI.getBookList(params)
 
     if (response.code === 200) {
-      books.value = response.data.books
-      total.value = response.data.total
+      // 兼容后端返回格式：data可能是数组或包含books的对象
+      if (Array.isArray(response.data)) {
+        books.value = response.data
+        total.value = (response as any).total || response.data.length
+      } else if (response.data && response.data.books) {
+        books.value = response.data.books
+        total.value = response.data.total || 0
+      } else {
+        // data为null时，显示空列表
+        books.value = []
+        total.value = 0
+      }
     } else {
       ElMessage.error(response.message || '加载失败')
     }
@@ -214,7 +224,23 @@ const loadCategories = async () => {
   try {
     const response = await booksAPI.getAllCategories()
     if (response.code === 200) {
-      categories.value = response.data
+      // 处理分类树数据，展平为一维数组供选择器使用
+      if (Array.isArray(response.data)) {
+        // 递归提取所有分类（包括子分类）
+        const flattenCategories = (cats: Category[]): Category[] => {
+          const result: Category[] = []
+          for (const cat of cats) {
+            result.push(cat)
+            if (cat.children && cat.children.length > 0) {
+              result.push(...flattenCategories(cat.children))
+            }
+          }
+          return result
+        }
+        categories.value = flattenCategories(response.data)
+      } else {
+        categories.value = []
+      }
     }
   } catch (error) {
     console.error('加载分类失败:', error)

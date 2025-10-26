@@ -57,25 +57,6 @@
         />
       </el-form-item>
 
-      <el-form-item prop="verificationCode" v-if="showVerificationCode">
-        <div class="verification-input">
-          <el-input
-            v-model="registerForm.verificationCode"
-            placeholder="请输入验证码"
-            prefix-icon="Key"
-            clearable
-          />
-          <el-button
-            type="primary"
-            :disabled="!canSendCode || codeSending"
-            :loading="codeSending"
-            @click="sendVerificationCode"
-          >
-            {{ codeButtonText }}
-          </el-button>
-        </div>
-      </el-form-item>
-
       <el-form-item prop="agreement">
         <el-checkbox v-model="registerForm.agreement">
           我已阅读并同意
@@ -128,15 +109,8 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      verificationCode: '',
       agreement: false
     })
-
-    // 验证码相关状态
-    const showVerificationCode = ref(false)
-    const codeSending = ref(false)
-    const codeCountdown = ref(0)
-    const codeTimer = ref(null)
 
     // 用户名和邮箱可用性检查
     const usernameChecking = ref(false)
@@ -214,10 +188,6 @@ export default {
       email: [{ validator: validateEmail, trigger: 'blur' }],
       password: [{ validator: validatePassword, trigger: 'blur' }],
       confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
-      verificationCode: [
-        { required: true, message: '请输入验证码', trigger: 'blur' },
-        { len: 6, message: '验证码为6位数字', trigger: 'blur' }
-      ],
       agreement: [{ validator: validateAgreement, trigger: 'change' }]
     }
 
@@ -229,36 +199,9 @@ export default {
         registerForm.email.trim() &&
         registerForm.password.trim() &&
         registerForm.confirmPassword.trim() &&
-        registerForm.agreement &&
-        (!showVerificationCode.value || registerForm.verificationCode.trim())
+        registerForm.agreement
       )
     })
-
-    const canSendCode = computed(() => {
-      return (
-        registerForm.email.trim() &&
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.email) &&
-        codeCountdown.value === 0
-      )
-    })
-
-    const codeButtonText = computed(() => {
-      if (codeSending.value) return '发送中...'
-      if (codeCountdown.value > 0) return `${codeCountdown.value}s后重发`
-      return '发送验证码'
-    })
-
-    // 监听邮箱变化，决定是否显示验证码输入框
-    watch(
-      () => registerForm.email,
-      (newEmail) => {
-        if (newEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-          showVerificationCode.value = true
-        } else {
-          showVerificationCode.value = false
-        }
-      }
-    )
 
     // 检查用户名是否可用
     const checkUsernameAvailable = async () => {
@@ -294,31 +237,6 @@ export default {
       }
     }
 
-    // 发送验证码
-    const sendVerificationCode = async () => {
-      if (!canSendCode.value) return
-
-      codeSending.value = true
-      try {
-        await authStore.sendVerificationCode(registerForm.email)
-        ElMessage.success('验证码已发送到您的邮箱')
-        
-        // 开始倒计时
-        codeCountdown.value = 60
-        codeTimer.value = setInterval(() => {
-          codeCountdown.value--
-          if (codeCountdown.value <= 0) {
-            clearInterval(codeTimer.value)
-            codeTimer.value = null
-          }
-        }, 1000)
-      } catch (error) {
-        ElMessage.error(error.message || '发送验证码失败')
-      } finally {
-        codeSending.value = false
-      }
-    }
-
     // 处理注册
     const handleRegister = async () => {
       if (!registerFormRef.value) return
@@ -331,8 +249,7 @@ export default {
         await authStore.register({
           username: registerForm.username.trim(),
           email: registerForm.email.trim(),
-          password: registerForm.password,
-          verificationCode: registerForm.verificationCode
+          password: registerForm.password
         })
 
         ElMessage.success('注册成功')
@@ -366,33 +283,19 @@ export default {
         email: '',
         password: '',
         confirmPassword: '',
-        verificationCode: '',
         agreement: false
       })
-      
-      // 清除倒计时
-      if (codeTimer.value) {
-        clearInterval(codeTimer.value)
-        codeTimer.value = null
-      }
-      codeCountdown.value = 0
-      showVerificationCode.value = false
     }
 
     return {
       registerFormRef,
       registerForm,
       registerRules,
-      showVerificationCode,
-      codeSending,
-      canSendCode,
-      codeButtonText,
       loading,
       isFormValid,
       handleRegister,
       checkUsernameAvailable,
       checkEmailAvailable,
-      sendVerificationCode,
       showTerms,
       showPrivacy,
       resetForm
@@ -430,20 +333,6 @@ export default {
   margin: 0;
 }
 
-.verification-input {
-  display: flex;
-  gap: 10px;
-}
-
-.verification-input .el-input {
-  flex: 1;
-}
-
-.verification-input .el-button {
-  flex-shrink: 0;
-  width: 120px;
-}
-
 .register-button {
   width: 100%;
   height: 44px;
@@ -472,14 +361,6 @@ export default {
 
   .form-title {
     font-size: 20px;
-  }
-
-  .verification-input {
-    flex-direction: column;
-  }
-
-  .verification-input .el-button {
-    width: 100%;
   }
 }
 

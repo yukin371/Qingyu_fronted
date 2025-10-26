@@ -2,6 +2,7 @@ import axios, { type AxiosError, type AxiosInstance, type AxiosResponse, type In
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { ErrorHandler } from './errorHandler'
+import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 // 请求配置接口
 export interface RequestConfig extends InternalAxiosRequestConfig {
@@ -10,14 +11,23 @@ export interface RequestConfig extends InternalAxiosRequestConfig {
   deduplicate?: boolean // 去重
 }
 
+// 自定义请求实例类型，响应拦截器返回的是提取后的数据，不是 AxiosResponse
+export interface CustomAxiosInstance extends Omit<AxiosInstance, 'get' | 'post' | 'put' | 'delete' | 'patch'> {
+  get<T = any>(url: string, config?: any): Promise<T>
+  post<T = any>(url: string, data?: any, config?: any): Promise<T>
+  put<T = any>(url: string, data?: any, config?: any): Promise<T>
+  delete<T = any>(url: string, config?: any): Promise<T>
+  patch<T = any>(url: string, data?: any, config?: any): Promise<T>
+}
+
 // 创建axios实例
-const request: AxiosInstance = axios.create({
+const request = axios.create({
   baseURL: (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
   }
-})
+}) as CustomAxiosInstance
 
 // 请求拦截器
 request.interceptors.request.use(
@@ -62,8 +72,9 @@ request.interceptors.response.use(
 
       // 2xx状态码都视为成功 (v1.3: 支持 200 和 201)
       if (code === 200 || code === 201 || (code >= 200 && code < 300)) {
-        // 返回 data 字段，如果没有则返回整个响应
-        return responseData !== undefined ? responseData : data
+        // 返回完整响应对象（包含code, message, data等）
+        // 这样前端可以统一处理响应
+        return data
       } else {
         // 业务错误
         const config = response.config as RequestConfig

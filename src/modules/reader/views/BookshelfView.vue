@@ -149,9 +149,14 @@
                     </el-timeline>
 
                     <!-- 分页 -->
-                    <el-pagination v-if="historyTotal > historyPageSize" v-model:current-page="historyPage"
-                        :page-size="historyPageSize" :total="historyTotal" layout="prev, pager, next"
-                        @current-change="loadHistory" style="margin-top: 20px; justify-content: center" />
+                    <el-pagination v-if="historyTotal > historyPageSize"
+                        :current-page="historyPage"
+                        :page-size="historyPageSize"
+                        :total="historyTotal"
+                        layout="prev, pager, next"
+                        @update:current-page="historyPage = $event"
+                        @current-change="loadHistory"
+                        style="margin-top: 20px; justify-content: center" />
                 </div>
             </div>
         </el-skeleton>
@@ -186,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Picture, MoreFilled } from '@element-plus/icons-vue'
 import { formatDate, formatReadingTime } from '@/utils/format'
@@ -201,7 +206,7 @@ import { getReadingHistory } from '@/api/reading/history'
 
 const router = useRouter()
 
-const activeTab = ref<'reading' | 'want_to_read' | 'completed'>('reading')
+const activeTab = ref<'reading' | 'want_to_read' | 'completed' | 'recent' | 'history'>('reading')
 const loading = ref(false)
 
 // 书架书籍
@@ -250,8 +255,12 @@ async function loadData(): Promise<void> {
 // 加载书架数据
 async function loadBooks(): Promise<void> {
     try {
+        const validStatus = ['reading', 'want_to_read', 'completed'].includes(activeTab.value)
+            ? activeTab.value as 'reading' | 'want_to_read' | 'completed'
+            : 'reading'
+
         const response = await getBookshelf({
-            status: activeTab.value,
+            status: validStatus,
             page: 1,
             size: 100,
             sortBy: 'updated_at',
@@ -384,7 +393,7 @@ async function handleBatchMove(): Promise<void> {
 
     try {
         // 使用ElMessageBox.confirm替代prompt来选择目标状态
-        const { value } = await ElMessageBox.confirm(
+        await ElMessageBox.confirm(
             '请选择要移动到的分类',
             '批量移动',
             {

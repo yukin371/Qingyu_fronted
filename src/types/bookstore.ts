@@ -24,12 +24,13 @@ export interface Book {
   description: string
   categoryId: string
   categoryName?: string
+  category?: string
   tags?: string[]
   status: BookStatus
   wordCount: number
   chapterCount: number
   rating: number
-  ratingCount: number
+  ratingCount?: number
   viewCount: number
   favoriteCount: number
   isVip?: boolean
@@ -153,6 +154,7 @@ export interface SearchParams {
   sortOrder?: 'asc' | 'desc'
   page?: number
   page_size?: number
+  size?: number // 页面大小别名
 }
 
 /**

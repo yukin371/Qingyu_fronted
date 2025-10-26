@@ -22,6 +22,10 @@
           </div>
         </div>
         <div class="header-right">
+          <el-button @click="toggleAISidebar" link class="ai-button" title="AI写作助手 (Ctrl+Shift+A)">
+            <el-icon><MagicStick /></el-icon>
+            AI助手
+          </el-button>
           <el-switch
             v-model="isSimpleMode"
             inactive-text="Markdown"
@@ -66,6 +70,7 @@
             @keydown="handleKeydown"
             @input="handleContentChange"
             @scroll="handleEditorScroll"
+            @contextmenu="handleContextMenu"
           ></textarea>
         </div>
 
@@ -108,7 +113,26 @@
           </span>
         </div>
       </div>
+
+      <!-- AI助手侧边栏 -->
+      <AIAssistantSidebar
+        v-if="showAISidebar"
+        :project-id="currentProjectId"
+        :editor="editorTextarea"
+        @close="writerStore.toggleAISidebar(false)"
+        @insert="handleInsertAIText"
+      />
     </div>
+
+    <!-- AI右键菜单 -->
+    <AIContextMenu
+      :visible="contextMenu.visible"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      :selected-text="contextMenu.selectedText"
+      @action="handleContextMenuAction"
+      @update:visible="contextMenu.visible = $event"
+    />
 
     <!-- 导出对话框 -->
     <el-dialog v-model="showExportDialog" title="导出文档" width="400px">
@@ -153,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -165,15 +189,31 @@ import {
   Select,
   Loading,
   CircleCheck,
-  Warning
+  Warning,
+  MagicStick
 } from '@element-plus/icons-vue'
-import ProjectSidebar from '../components/ProjectSidebar.vue'
-import EditorToolbar from '../components/EditorToolbar.vue'
+import * as ProjectSidebar from '../components/ProjectSidebar.vue'
+import * as EditorToolbar from '../components/EditorToolbar.vue'
 import { AutoSaveManager } from '../utils/autosave'
 import { renderMarkdown } from '../utils/markdown'
+import { useWriterStore } from '../stores/writerStore'
+import * as AIAssistantSidebar from '../components/ai/AIAssistantSidebar.vue'
+import * as AIContextMenu from '../components/ai/AIContextMenu.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+// Writer Store (AI功能)
+const writerStore = useWriterStore()
+
+// AI相关状态
+const showAISidebar = computed(() => writerStore.ai.sidebarVisible)
+const contextMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  selectedText: ''
+})
 
 // 编辑器模式和显示状态
 const isSimpleMode = ref(false)
@@ -213,6 +253,7 @@ const chapters = ref([
 const fileContent = ref('')
 const documentTitle = ref('未命名章节')
 const currentChapterId = ref('')
+const currentProjectId = ref('1') // 当前项目ID，应从路由或API获取
 const isFocusMode = ref(false)
 const saveStatus = ref('未保存')
 const isSaving = ref(false)
@@ -304,6 +345,52 @@ const handleModeChange = () => {
 
 // 处理快捷键
 const handleKeydown = (event: KeyboardEvent) => {
+  // === AI快捷键（优先处理） ===
+
+  // Ctrl/Cmd + Shift + A: 打开AI对话
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'A') {
+    event.preventDefault()
+    writerStore.toggleAISidebar(true)
+    writerStore.setAITool('chat')
+    return
+  }
+
+  // Ctrl/Cmd + Shift + K: 快速续写
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'K') {
+    event.preventDefault()
+    const textarea = editorTextarea.value
+    if (textarea) {
+      const cursor = textarea.selectionStart || 0
+      // 获取光标前500字作为上下文
+      const text = fileContent.value.substring(Math.max(0, cursor - 500), cursor)
+      writerStore.setSelectedText(text)
+      writerStore.toggleAISidebar(true)
+      writerStore.setAITool('continue')
+    }
+    return
+  }
+
+  // Ctrl/Cmd + Shift + P: 润色选中文本
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
+    event.preventDefault()
+    const textarea = editorTextarea.value
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      if (start !== end) {
+        const selected = fileContent.value.substring(start, end)
+        writerStore.setSelectedText(selected)
+        writerStore.toggleAISidebar(true)
+        writerStore.setAITool('polish')
+      } else {
+        ElMessage.warning('请先选中要润色的文本')
+      }
+    }
+    return
+  }
+
+  // === 原有快捷键 ===
+
   // Ctrl/Cmd + S: 保存
   if ((event.ctrlKey || event.metaKey) && event.key === 's') {
     event.preventDefault()
@@ -446,6 +533,76 @@ const handleContentChange = () => {
       documentTitle.value
     )
   }
+}
+
+// === AI功能相关 ===
+
+// 显示右键菜单
+const handleContextMenu = (e: MouseEvent) => {
+  const textarea = editorTextarea.value
+  if (!textarea) return
+
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+
+  if (start !== end) {
+    e.preventDefault()
+    const selected = fileContent.value.substring(start, end)
+
+    contextMenu.visible = true
+    contextMenu.x = e.clientX
+    contextMenu.y = e.clientY
+    contextMenu.selectedText = selected
+
+    writerStore.setSelectedText(selected)
+  }
+}
+
+// 处理右键菜单操作
+const handleContextMenuAction = (action: string, text?: string) => {
+  writerStore.toggleAISidebar(true)
+
+  // 转换action为AIToolType
+  const toolType = action === 'chat' ? 'chat' :
+                   action === 'continue' ? 'continue' :
+                   action === 'polish' ? 'polish' :
+                   action === 'expand' ? 'expand' :
+                   action === 'rewrite' ? 'rewrite' : 'chat'
+  writerStore.setAITool(toolType as any)
+
+  if (text) {
+    writerStore.setSelectedText(text)
+  }
+}
+
+// 切换AI侧边栏
+const toggleAISidebar = () => {
+  writerStore.toggleAISidebar()
+}
+
+// 插入AI生成的文本
+const handleInsertAIText = (text: string) => {
+  const textarea = editorTextarea.value
+  if (!textarea) return
+
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+
+  // 如果有选中文本，替换它；否则插入到光标位置
+  const before = fileContent.value.substring(0, start)
+  const after = fileContent.value.substring(end)
+
+  fileContent.value = before + text + after
+
+  // 移动光标到插入文本的末尾
+  nextTick(() => {
+    const newPos = start + text.length
+    textarea.selectionStart = newPos
+    textarea.selectionEnd = newPos
+    textarea.focus()
+  })
+
+  handleContentChange()
 }
 
 // 手动保存
@@ -1038,6 +1195,49 @@ onBeforeUnmount(() => {
     justify-content: flex-start;
     padding: 16px;
     height: auto;
+  }
+}
+
+// === AI功能样式 ===
+
+// AI按钮
+.ai-button {
+  color: #667eea;
+  margin-right: 8px;
+
+  &:hover {
+    color: #764ba2;
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  .el-icon {
+    font-size: 18px;
+  }
+}
+
+// 编辑器容器调整（为AI侧边栏留出空间）
+.editor-container {
+  position: relative;
+  transition: margin-right 0.3s ease;
+}
+
+// 当AI侧边栏显示时调整布局
+.editor-view:has(.ai-assistant-sidebar) .editor-container {
+  margin-right: 400px;
+
+  @media (max-width: 1200px) {
+    margin-right: 350px;
+  }
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+  }
+}
+
+// 响应式优化
+@media (max-width: 768px) {
+  .ai-button span {
+    display: none;
   }
 }
 </style>

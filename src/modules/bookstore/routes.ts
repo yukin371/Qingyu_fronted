@@ -3,7 +3,7 @@
  */
 
 import type { RouteRecordRaw } from 'vue-router'
-import MainLayout from '@shared/components/layout/MainLayout.vue'
+import MainLayout from '@/shared/components/layout/MainLayout.vue'
 
 const bookstoreRoutes: RouteRecordRaw[] = [
   {

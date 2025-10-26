@@ -93,11 +93,13 @@
       <!-- 分页 -->
       <div v-if="total > 0" class="pagination">
         <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
+          :current-page="pagination.page"
+          :page-size="pagination.pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next, jumper"
+          @update:current-page="pagination.page = $event"
+          @update:page-size="pagination.pageSize = $event"
           @current-change="loadWithdrawals"
           @size-change="loadWithdrawals"
         />
@@ -302,9 +304,8 @@ const handleApprove = async (item: WithdrawRecord) => {
       type: 'success'
     })
 
-    await adminAPI.reviewWithdraw({
-      withdraw_id: item.withdrawId,
-      approved: true
+    await adminAPI.reviewWithdraw(item.withdrawId, {
+      status: 'approved'
     })
 
     ElMessage.success('批准成功')
@@ -336,9 +337,8 @@ const confirmReject = async () => {
 
   submitting.value = true
   try {
-    await adminAPI.reviewWithdraw({
-      withdraw_id: currentItem.value.withdrawId,
-      approved: false,
+    await adminAPI.reviewWithdraw(currentItem.value.withdrawId, {
+      status: 'rejected',
       reason: rejectForm.reason
     })
 

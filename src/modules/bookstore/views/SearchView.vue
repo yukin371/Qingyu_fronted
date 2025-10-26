@@ -47,7 +47,7 @@
                 <h3>热门搜索</h3>
               </div>
               <div class="tags-list">
-                <el-tag v-for="(item, index) in hotSearches" :key="index" :type="index < 3 ? 'danger' : ''"
+                <el-tag v-for="(item, index) in hotSearches" :key="index" :type="index < 3 ? 'danger' : 'info'"
                   @click="searchKeyword = item; handleSearch()" style="cursor: pointer; margin: 4px;">
                   {{ index + 1 }}. {{ item }}
                 </el-tag>
@@ -277,15 +277,22 @@ const handleSearch = async () => {
     // 保存搜索历史
     saveSearchHistory(keyword)
 
-    const response = await bookstoreAPI.searchBooks(keyword, {
+    const response = await bookstoreAPI.searchBooks({
+      keyword,
       ...filters,
       page: currentPage.value,
       size: pageSize.value
     })
 
     if (response.code === 200) {
-      searchResults.value = response.data.books || []
-      totalResults.value = response.data.total || 0
+      // 检查data是否存在
+      if (response.data) {
+        searchResults.value = response.data.books || []
+        totalResults.value = response.data.total || 0
+      } else {
+        searchResults.value = []
+        totalResults.value = 0
+      }
     } else {
       ElMessage.error(response.message || '搜索失败')
     }

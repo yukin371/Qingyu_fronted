@@ -17,12 +17,13 @@ export interface Book {
   description: string
   categoryId: string
   categoryName?: string
+  category?: string
   tags?: string[]
   status: BookStatus
   wordCount: number
   chapterCount: number
   rating: number
-  ratingCount: number
+  ratingCount?: number
   viewCount: number
   favoriteCount: number
   isVip?: boolean
@@ -34,7 +35,7 @@ export interface Book {
     id: string
     title: string
     updateTime: string
-  }
+  } | string
 }
 
 /** 书籍简要信息（列表用） */
@@ -43,8 +44,10 @@ export interface BookBrief {
   title: string
   author: string
   cover: string
-  categoryName: string
+  categoryName?: string
+  category?: string
   rating: number
+  ratingCount?: number
   wordCount: number
   viewCount: number
   status: BookStatus
@@ -145,6 +148,9 @@ export interface User {
   lastLoginTime: string
   isVip: boolean
   vipExpireTime?: string
+  emailVerified?: boolean
+  roles?: string[]
+  permissions?: string[]
 }
 
 /** 用户简要信息 */
@@ -179,6 +185,10 @@ export interface ReadingHistory {
   chapterTitle: string
   readTime: string
   duration: number
+  bookCover?: string
+  bookTitle?: string
+  progress?: number
+  readAt?: string
 }
 
 // ==================== 阅读设置相关 ====================
@@ -199,6 +209,7 @@ export interface ReadingSettings {
   enableConvert: boolean
   eyeCare: boolean
   keepScreenOn: boolean
+  autoSave?: boolean
 }
 
 // ==================== 书架相关 ====================
@@ -214,6 +225,23 @@ export interface ShelfBook {
   progress: number
   addTime: string
   updateTime: string
+}
+
+/** 书签 */
+export interface Bookmark {
+  id: string
+  userId: string
+  bookId: string
+  chapterId: string
+  chapterTitle: string
+  content: string
+  note?: string
+  position: number
+  createdAt: string
+  updatedAt?: string
+  bookTitle?: string
+  bookCover?: string
+  progress?: number
 }
 
 // ==================== 榜单相关 ====================

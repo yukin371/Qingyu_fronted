@@ -188,7 +188,12 @@ export default {
     // 处理书籍点击
     const handleBookClick = (book) => {
       console.log('点击书籍:', book)
-      ElMessage.info(`书籍详情功能开发中...`)
+      const bookId = book.id || book._id
+      if (bookId) {
+        router.push(`/books/${bookId}`)
+      } else {
+        ElMessage.warning('书籍ID缺失')
+      }
     }
 
     // 跳转到认证页面

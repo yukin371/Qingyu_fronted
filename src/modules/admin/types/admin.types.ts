@@ -88,11 +88,3 @@ export interface OperationLog {
   ip?: string
 }
 
-export default {
-  DashboardStats,
-  ReviewItem,
-  WithdrawalRequest,
-  UserManagementItem,
-  OperationLog
-}
-

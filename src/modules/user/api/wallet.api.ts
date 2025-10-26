@@ -16,16 +16,18 @@ export const walletAPI = {
    * Get wallet balance
    */
   async getWalletBalance(): Promise<WalletBalance> {
-    return httpService.get<APIResponse<WalletBalance>>('/user/wallet/balance')
+    const response = await httpService.get<APIResponse<WalletBalance>>('/user/wallet/balance')
+    return response.data
   },
 
   /**
    * Get transactions
    */
   async getTransactions(page: number = 1, size: number = 20): Promise<Transaction[]> {
-    return httpService.get<APIResponse<Transaction[]>>('/user/wallet/transactions', {
+    const response = await httpService.get<APIResponse<Transaction[]>>('/user/wallet/transactions', {
       params: { page, size }
     } as any)
+    return response.data
   },
 
   /**

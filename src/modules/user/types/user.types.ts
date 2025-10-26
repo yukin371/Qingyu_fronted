@@ -107,16 +107,3 @@ export interface AuthResponse {
   expiresIn?: number
 }
 
-export default {
-  UserProfile,
-  UpdateProfileParams,
-  ChangePasswordParams,
-  WalletBalance,
-  Transaction,
-  RechargeParams,
-  WithdrawParams,
-  LoginParams,
-  RegisterParams,
-  AuthResponse
-}
-

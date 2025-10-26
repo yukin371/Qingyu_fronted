@@ -14,7 +14,7 @@
                 <el-icon>
                     <Document />
                 </el-icon>
-                <span>{{ project.wordCount || 0 | formatNumber }} 字</span>
+                <span>{{ formatNumber(project.wordCount || 0) }} 字</span>
             </div>
             <div class="stat-item">
                 <el-icon>

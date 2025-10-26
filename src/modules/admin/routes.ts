@@ -3,7 +3,7 @@
  */
 
 import type { RouteRecordRaw } from 'vue-router'
-import AdminLayout from '@shared/components/layout/AdminLayout.vue'
+import AdminLayout from '@/shared/components/layout/AdminLayout.vue'
 
 const adminRoutes: RouteRecordRaw[] = [
   {
@@ -44,6 +44,24 @@ const adminRoutes: RouteRecordRaw[] = [
         name: 'admin-logs',
         component: () => import('./views/OperationLogs.vue'),
         meta: { title: '操作日志', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'system-config',
+        name: 'admin-system-config',
+        component: () => import('./views/SystemConfig.vue'),
+        meta: { title: '系统配置', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'banners',
+        name: 'admin-banners',
+        component: () => import('./views/BannerManagement.vue'),
+        meta: { title: 'Banner管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'announcements',
+        name: 'admin-announcements',
+        component: () => import('./views/AnnouncementManagement.vue'),
+        meta: { title: '公告管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   }

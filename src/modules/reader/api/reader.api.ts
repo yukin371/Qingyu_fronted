@@ -16,21 +16,24 @@ export const readerAPI = {
    * Get chapter content
    */
   async getChapterContent(chapterId: string): Promise<ChapterContent> {
-    return httpService.get<APIResponse<ChapterContent>>(`/reader/chapters/${chapterId}/content`)
+    const response = await httpService.get<APIResponse<ChapterContent>>(`/reader/chapters/${chapterId}/content`)
+    return response.data
   },
 
   /**
    * Get book chapters
    */
   async getBookChapters(bookId: string): Promise<Chapter[]> {
-    return httpService.get<APIResponse<Chapter[]>>(`/reader/books/${bookId}/chapters`)
+    const response = await httpService.get<APIResponse<Chapter[]>>(`/reader/books/${bookId}/chapters`)
+    return response.data
   },
 
   /**
    * Get reading progress
    */
   async getReadingProgress(bookId: string): Promise<ReadingProgress> {
-    return httpService.get<APIResponse<ReadingProgress>>(`/reader/progress/${bookId}`)
+    const response = await httpService.get<APIResponse<ReadingProgress>>(`/reader/progress/${bookId}`)
+    return response.data
   },
 
   /**

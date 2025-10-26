@@ -13,10 +13,12 @@ import type { APIResponse, PaginatedResponse } from './api'
 export interface WalletInfo {
   userId: string
   balance: number
-  frozenBalance: number
-  totalIncome: number
-  totalExpense: number
-  currency: string
+  frozenBalance?: number
+  frozenAmount?: number
+  availableAmount?: number
+  totalIncome?: number
+  totalExpense?: number
+  currency?: string
   updatedAt?: string
 }
 
@@ -70,6 +72,16 @@ export interface ConsumeParams {
  */
 export interface TransferParams {
   toUserId: string
+  targetUserId?: string
+  amount: number
+  reason?: string
+}
+
+/**
+ * 转账请求（兼容）
+ */
+export interface TransferRequest {
+  targetUserId: string
   amount: number
   reason?: string
 }
@@ -111,16 +123,19 @@ export type FileCategory = 'avatar' | 'cover' | 'document' | 'image' | 'other'
  * 文件信息
  */
 export interface FileInfo {
-  id: string
+  id?: string
+  fileId: string
   filename: string
-  originalName: string
+  originalName?: string
   size: number
-  mimeType: string
+  mimeType?: string
+  contentType: string
   url: string
   path?: string
   category: FileCategory
   userId?: string
   uploadedAt: string
+  uploadTime?: string
 }
 
 /**

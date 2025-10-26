@@ -117,6 +117,21 @@ const menuItems = ref([
     icon: 'el-icon-user'
   },
   {
+    path: '/admin/banners',
+    label: 'Banner管理',
+    icon: 'el-icon-picture'
+  },
+  {
+    path: '/admin/announcements',
+    label: '公告管理',
+    icon: 'el-icon-bell'
+  },
+  {
+    path: '/admin/system-config',
+    label: '系统配置',
+    icon: 'el-icon-setting'
+  },
+  {
     path: '/admin/logs',
     label: '操作日志',
     icon: 'el-icon-document'

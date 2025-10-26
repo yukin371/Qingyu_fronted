@@ -9,7 +9,7 @@ import type {
   ReadingSettings,
   ShelfBook
 } from '@/types/models'
-import type { Annotation, ChapterNavigation } from '@/api/reading/reader'
+import type { Annotation, ChapterNavigation } from '@/types/reader'
 
 /**
  * 阅读器状态接口
@@ -61,7 +61,12 @@ const DEFAULT_SETTINGS: ReadingSettings = {
   fontFamily: 'system-ui, -apple-system, sans-serif',
   pageWidth: 800,
   autoSave: true,
-  pageMode: 'scroll'
+  pageMode: 'scroll',
+  autoRead: false,
+  autoReadSpeed: 500,
+  enableConvert: false,
+  eyeCare: false,
+  keepScreenOn: false
 }
 
 export const useReaderStore = defineStore('reader', {
