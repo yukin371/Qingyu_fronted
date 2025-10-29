@@ -17,7 +17,21 @@ export const useReaderStore = defineStore('reader', () => {
   // 状态
   const currentChapter = ref<Chapter | null>(null)
   const chapterContent = ref<ChapterContent | null>(null)
-  const settings = ref<ReaderSettings | null>(null)
+  const chapterList = ref<Chapter[]>([])
+  const settings = ref<ReaderSettings>({
+    userId: '',
+    fontSize: 16,
+    fontFamily: 'system-ui',
+    lineHeight: 1.8,
+    letterSpacing: 0,
+    theme: 'light',
+    pageMode: 'scroll',
+    autoSave: true,
+    enableAnimation: true,
+    showProgress: true,
+    pageWidth: 800,
+    updatedAt: new Date().toISOString(),
+  })
   const isLoading = ref(false)
   const readingProgress = ref(0) // 当前章节阅读进度 0-100
 
@@ -80,18 +94,33 @@ export const useReaderStore = defineStore('reader', () => {
   }
 
   /**
+   * 加载章节列表
+   */
+  async function loadChapterList(bookId: string) {
+    try {
+      const { getChapterList } = await import('@/api/reader')
+      const response = await getChapterList({ bookId, pageSize: 1000 })
+      chapterList.value = response.list || []
+      return response.list || []
+    } catch (error) {
+      console.error('加载章节列表失败:', error)
+      chapterList.value = []
+      return []
+    }
+  }
+
+  /**
    * 获取阅读设置
    */
   async function loadSettings() {
     try {
       const data = await getReaderSettings()
-      settings.value = data
+      settings.value = { ...settings.value, ...data }
       return data
     } catch (error) {
       console.error('获取阅读设置失败:', error)
-      // 使用默认设置
-      settings.value = getDefaultSettings()
-      throw error
+      // 继续使用默认设置
+      return settings.value
     }
   }
 
@@ -100,13 +129,21 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function updateSettings(newSettings: Partial<ReaderSettings>) {
     try {
+      settings.value = { ...settings.value, ...newSettings }
       const data = await updateReaderSettings(newSettings)
-      settings.value = data
       return data
     } catch (error) {
       console.error('更新阅读设置失败:', error)
-      throw error
+      // 仍然保持本地更新
+      return settings.value
     }
+  }
+
+  /**
+   * 重置阅读设置
+   */
+  function resetSettings() {
+    settings.value = getDefaultSettings()
   }
 
   /**
@@ -130,10 +167,51 @@ export const useReaderStore = defineStore('reader', () => {
   }
 
   /**
+   * 保存进度（带位置信息）
+   */
+  async function saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number) {
+    try {
+      await recordReadingHistory({
+        bookId,
+        chapterId,
+        progress,
+      })
+    } catch (error) {
+      console.error('保存进度失败:', error)
+    }
+  }
+
+  /**
+   * 更新阅读时长
+   */
+  async function updateReadingTime(bookId: string, duration: number) {
+    try {
+      // 这里可以调用相应的API更新阅读时长
+      console.log('更新阅读时长:', bookId, duration)
+    } catch (error) {
+      console.error('更新阅读时长失败:', error)
+    }
+  }
+
+  /**
    * 更新阅读进度
    */
   function updateProgress(progress: number) {
     readingProgress.value = Math.max(0, Math.min(100, progress))
+  }
+
+  /**
+   * 跳转到上一章（别名）
+   */
+  async function loadPreviousChapter() {
+    return prevChapter()
+  }
+
+  /**
+   * 跳转到下一章（别名）
+   */
+  async function loadNextChapter() {
+    return nextChapter()
   }
 
   /**
@@ -151,6 +229,7 @@ export const useReaderStore = defineStore('reader', () => {
       autoSave: true,
       enableAnimation: true,
       showProgress: true,
+      pageWidth: 800,
       updatedAt: new Date().toISOString(),
     }
   }
@@ -164,10 +243,18 @@ export const useReaderStore = defineStore('reader', () => {
     readingProgress.value = 0
   }
 
+  /**
+   * 清除当前章节（别名）
+   */
+  function clearCurrentChapter() {
+    clearChapter()
+  }
+
   return {
     // 状态
     currentChapter,
     chapterContent,
+    chapterList,
     settings,
     isLoading,
     readingProgress,
@@ -180,10 +267,17 @@ export const useReaderStore = defineStore('reader', () => {
     loadChapter,
     nextChapter,
     prevChapter,
+    loadPreviousChapter,
+    loadNextChapter,
+    loadChapterList,
     loadSettings,
     updateSettings,
+    resetSettings,
     saveReadingProgress,
+    saveProgress,
+    updateReadingTime,
     updateProgress,
     clearChapter,
+    clearCurrentChapter,
   }
 })

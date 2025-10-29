@@ -94,7 +94,7 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium">
-              第{{ chapter.chapterNumber }}章 {{ chapter.title }}
+              第{{ chapter.chapterNum }}章 {{ chapter.title }}
             </span>
             <el-icon v-if="chapter.id === currentChapter?.id" class="text-blue-600">
               <Select />
@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -202,7 +202,7 @@ const isLoading = computed(() => readerStore.isLoading)
 const hasNextChapter = computed(() => readerStore.hasNextChapter)
 const hasPrevChapter = computed(() => readerStore.hasPrevChapter)
 const readingProgress = computed(() => readerStore.readingProgress)
-const settings = computed(() => readerStore.settings || getDefaultSettings())
+const settings = computed(() => readerStore.settings)
 
 // 主题配置
 const themes = [
@@ -226,8 +226,8 @@ const formattedContent = computed(() => {
   if (!chapterContent.value?.content) return ''
   return chapterContent.value.content
     .split('\n')
-    .filter((p) => p.trim())
-    .map((p) => `<p>${p}</p>`)
+    .filter((p: string) => p.trim())
+    .map((p: string) => `<p>${p}</p>`)
     .join('')
 })
 
@@ -333,23 +333,6 @@ async function handleSettingsChange() {
 function getThemeColor() {
   const theme = themes.find((t) => t.value === settings.value.theme)
   return theme || themes[0]
-}
-
-// 获取默认设置
-function getDefaultSettings() {
-  return {
-    userId: '',
-    fontSize: 16,
-    fontFamily: 'system-ui',
-    lineHeight: 1.8,
-    letterSpacing: 0,
-    theme: 'light',
-    pageMode: 'scroll',
-    autoSave: true,
-    enableAnimation: true,
-    showProgress: true,
-    updatedAt: new Date().toISOString(),
-  }
 }
 
 // 进度跟踪

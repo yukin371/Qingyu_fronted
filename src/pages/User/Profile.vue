@@ -36,25 +36,25 @@
         <div v-if="userStore.userInfo?.stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
           <div class="text-center">
             <div class="text-2xl font-bold text-blue-600">
-              {{ userStore.userInfo.stats.booksCount || 0 }}
+              {{ userStore.userInfo?.stats?.booksCount || 0 }}
             </div>
             <div class="text-sm text-gray-600 mt-1">作品数</div>
           </div>
           <div class="text-center">
             <div class="text-2xl font-bold text-green-600">
-              {{ formatCount(userStore.userInfo.stats.wordsCount || 0) }}
+              {{ formatCount(userStore.userInfo?.stats?.wordsCount || 0) }}
             </div>
             <div class="text-sm text-gray-600 mt-1">总字数</div>
           </div>
           <div class="text-center">
             <div class="text-2xl font-bold text-purple-600">
-              {{ userStore.userInfo.stats.followersCount || 0 }}
+              {{ userStore.userInfo?.stats?.followersCount || 0 }}
             </div>
             <div class="text-sm text-gray-600 mt-1">粉丝</div>
           </div>
           <div class="text-center">
             <div class="text-2xl font-bold text-orange-600">
-              {{ userStore.userInfo.stats.collectCount || 0 }}
+              {{ userStore.userInfo?.stats?.collectCount || 0 }}
             </div>
             <div class="text-sm text-gray-600 mt-1">收藏</div>
           </div>

@@ -206,7 +206,7 @@ const containerStyle = computed(() => {
 })
 
 const formattedContent = computed(() => {
-  if (!currentChapter.value) return ''
+  if (!currentChapter.value?.content) return ''
   // 将内容按段落分割并格式化
   return currentChapter.value.content
     .split('\n')

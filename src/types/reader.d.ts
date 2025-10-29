@@ -57,6 +57,7 @@ export interface ReaderSettings {
 
   // 阅读设置
   pageMode: 'scroll' | 'page' // 翻页模式
+  pageWidth?: number // 页面宽度 (px)
   autoSave: boolean // 自动保存进度
 
   // 其他设置

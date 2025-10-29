@@ -19,6 +19,13 @@ export const useUserStore = defineStore('user', () => {
   const isWriter = computed(() => userInfo.value?.role === 'writer' || userInfo.value?.role === 'admin')
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
+  // 用户资料相关计算属性
+  const profile = computed(() => userInfo.value)
+  const username = computed(() => userInfo.value?.username || '')
+  const email = computed(() => userInfo.value?.email || '')
+  const displayName = computed(() => userInfo.value?.nickname || userInfo.value?.username || '用户')
+  const avatar = computed(() => userInfo.value?.avatar || '')
+
   /**
    * 用户登录
    */
@@ -113,6 +120,31 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 获取用户详细资料
+   */
+  async function fetchProfile() {
+    return fetchUserInfo()
+  }
+
+  /**
+   * 更新用户资料
+   */
+  async function updateProfile(data: any) {
+    try {
+      isLoading.value = true
+      const { updateUserProfile } = await import('@/api/user')
+      const response = await updateUserProfile(data)
+      updateUserInfo(response)
+      return response
+    } catch (error) {
+      console.error('更新资料失败:', error)
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     // 状态
     token,
@@ -123,6 +155,11 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isWriter,
     isAdmin,
+    profile,
+    username,
+    email,
+    displayName,
+    avatar,
 
     // 方法
     handleLogin,
@@ -130,5 +167,7 @@ export const useUserStore = defineStore('user', () => {
     handleLogout,
     fetchUserInfo,
     updateUserInfo,
+    fetchProfile,
+    updateProfile,
   }
 })

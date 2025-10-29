@@ -88,6 +88,12 @@
         </span>
       </div>
     </el-form>
+
+    <!-- 用户协议对话框 -->
+    <UserAgreementDialog v-model:visible="showAgreementDialog" />
+
+    <!-- 隐私政策对话框 -->
+    <PrivacyPolicyDialog v-model:visible="showPrivacyDialog" />
   </div>
 </template>
 
@@ -95,13 +101,23 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
+import UserAgreementDialog from '@/shared/components/common/UserAgreementDialog.vue'
+import PrivacyPolicyDialog from '@/shared/components/common/PrivacyPolicyDialog.vue'
 
 export default {
   name: 'RegisterForm',
+  components: {
+    UserAgreementDialog,
+    PrivacyPolicyDialog
+  },
   emits: ['register-success', 'switch-to-login'],
   setup(props, { emit }) {
     const authStore = useAuthStore()
     const registerFormRef = ref()
+
+    // 对话框显示状态
+    const showAgreementDialog = ref(false)
+    const showPrivacyDialog = ref(false)
 
     // 表单数据
     const registerForm = reactive({
@@ -263,14 +279,12 @@ export default {
 
     // 显示用户协议
     const showTerms = () => {
-      // TODO: 实现用户协议弹窗
-      ElMessage.info('用户协议功能待实现')
+      showAgreementDialog.value = true
     }
 
     // 显示隐私政策
     const showPrivacy = () => {
-      // TODO: 实现隐私政策弹窗
-      ElMessage.info('隐私政策功能待实现')
+      showPrivacyDialog.value = true
     }
 
     // 重置表单
@@ -293,6 +307,8 @@ export default {
       registerRules,
       loading,
       isFormValid,
+      showAgreementDialog,
+      showPrivacyDialog,
       handleRegister,
       checkUsernameAvailable,
       checkEmailAvailable,
