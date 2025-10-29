@@ -238,7 +238,7 @@ async function saveNote(): Promise<void> {
     await updateBookmark(editingBookmark.value.id, {
       note: noteContent.value
     })
-    
+
     const index = bookmarks.value.findIndex(b => b.id === editingBookmark.value!.id)
     if (index !== -1) {
       bookmarks.value[index].content = noteContent.value

@@ -17,9 +17,24 @@
             <template v-if="!loading && userStore.profile">
               <!-- 头像区域 -->
               <div class="avatar-section">
-                <el-avatar :size="120" :src="userStore.avatar">
-                  {{ userStore.displayName.charAt(0) }}
-                </el-avatar>
+                <div class="avatar-wrapper">
+                  <el-avatar :size="120" :src="userStore.avatar">
+                    {{ userStore.displayName.charAt(0) }}
+                  </el-avatar>
+                  <el-upload
+                    class="avatar-uploader"
+                    :action="uploadAction"
+                    :show-file-list="false"
+                    :before-upload="beforeAvatarUpload"
+                    :on-success="handleAvatarSuccess"
+                    :on-error="handleAvatarError"
+                    accept="image/*"
+                  >
+                    <el-button type="primary" size="small" :icon="Upload" circle class="upload-btn">
+                    </el-button>
+                  </el-upload>
+                </div>
+                <div class="avatar-hint">点击上传头像（支持JPG、PNG，不超过2MB）</div>
               </div>
 
               <!-- 信息表单 -->
@@ -111,8 +126,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Edit, Picture } from '@element-plus/icons-vue'
+import { Edit, Picture, Upload } from '@element-plus/icons-vue'
+import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { userAPI } from '@/modules/user/api/user.api'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -150,6 +167,56 @@ interface HistoryItem {
   progress: number
 }
 const readingHistory = ref<HistoryItem[]>([])
+
+// 头像上传相关
+const uploadAction = '' // 使用自定义上传逻辑
+
+// 上传前校验
+const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
+  const isImage = rawFile.type.startsWith('image/')
+  const isLt2M = rawFile.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB!')
+    return false
+  }
+
+  // 使用自定义上传
+  handleAvatarUpload(rawFile)
+  return false // 阻止默认上传
+}
+
+// 自定义上传处理
+const handleAvatarUpload = async (file: File) => {
+  loading.value = true
+  try {
+    const response = await userAPI.uploadAvatar(file)
+    if (response && response.url) {
+      // 更新store中的头像
+      await userStore.fetchProfile()
+      ElMessage.success('头像上传成功')
+    }
+  } catch (error: any) {
+    console.error('上传头像失败:', error)
+    ElMessage.error(error.message || '上传头像失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 上传成功回调（备用）
+const handleAvatarSuccess: UploadProps['onSuccess'] = () => {
+  ElMessage.success('头像上传成功')
+}
+
+// 上传失败回调
+const handleAvatarError: UploadProps['onError'] = () => {
+  ElMessage.error('头像上传失败')
+}
 
 // 初始化
 onMounted(async () => {
@@ -257,8 +324,30 @@ const goToBook = (bookId: string) => {
 
 .avatar-section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 30px;
+
+  .avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 12px;
+
+    .avatar-uploader {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+
+      .upload-btn {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+
+  .avatar-hint {
+    font-size: 12px;
+    color: #909399;
+  }
 }
 
 .profile-form {

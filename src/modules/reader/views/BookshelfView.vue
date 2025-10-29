@@ -303,10 +303,10 @@ async function loadStats(): Promise<void> {
             page: 1,
             size: 1
         })
-        
+
         // 计算统计信息
         const finishedCount = books.value.filter(b => b.status === 'completed').length
-        
+
         stats.value = {
             totalBooks: books.value.length,
             totalTime: 0, // 需要从progress API获取
