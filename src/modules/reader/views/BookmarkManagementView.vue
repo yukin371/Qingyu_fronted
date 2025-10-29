@@ -128,7 +128,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Picture, Edit, Delete, Memo } from '@element-plus/icons-vue'
-import { getUserBookmarks, deleteBookmark } from '@/api/reading/bookmarks'
+import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/api/reading/bookmarks'
 import type { Bookmark } from '@/types/models'
 
 const router = useRouter()
@@ -235,7 +235,10 @@ async function saveNote(): Promise<void> {
 
   saving.value = true
   try {
-    // TODO: 调用更新书签API
+    await updateBookmark(editingBookmark.value.id, {
+      note: noteContent.value
+    })
+    
     const index = bookmarks.value.findIndex(b => b.id === editingBookmark.value!.id)
     if (index !== -1) {
       bookmarks.value[index].content = noteContent.value
@@ -244,6 +247,7 @@ async function saveNote(): Promise<void> {
     ElMessage.success('保存成功')
     showNoteDialog.value = false
   } catch (error: any) {
+    console.error('保存笔记失败:', error)
     ElMessage.error(error.message || '保存失败')
   } finally {
     saving.value = false

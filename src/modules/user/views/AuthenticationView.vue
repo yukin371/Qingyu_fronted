@@ -287,6 +287,12 @@ import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import { User, Lock, Message, Key, Phone } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import {
+  sendEmailVerifyCode,
+  sendPasswordResetCode,
+  verifyResetCode as verifyResetCodeAPI,
+  resetPassword as resetPasswordAPI
+} from '@/api/user/security'
 
 const router = useRouter()
 const route = useRoute()
@@ -527,9 +533,7 @@ const sendEmailCode = async () => {
 
     sendingEmail.value = true
     try {
-        // TODO: 调用发送验证码API
-        // await authAPI.sendVerificationCode(registerForm.value.email)
-
+        await sendEmailVerifyCode(registerForm.value.email, 'bind')
         ElMessage.success('验证码已发送，请查收邮箱')
         emailCountdown.value = 60
 
@@ -593,9 +597,7 @@ const sendResetCode = async () => {
 
     sendingReset.value = true
     try {
-        // TODO: 调用发送验证码API
-        // await authAPI.sendVerificationCode(resetForm.value.email)
-
+        await sendPasswordResetCode(resetForm.value.email)
         ElMessage.success('验证码已发送，请查收邮箱')
         resetCountdown.value = 60
 
@@ -621,9 +623,7 @@ const verifyResetCode = async () => {
         if (valid) {
             loading.value = true
             try {
-                // TODO: 调用验证API
-                // await authAPI.verifyEmail(resetForm.value.email, resetForm.value.code)
-
+                await verifyResetCodeAPI(resetForm.value.email, resetForm.value.code)
                 ElMessage.success('验证成功')
                 resetStep.value = 1
             } catch (error: any) {
@@ -643,12 +643,11 @@ const handleReset = async () => {
         if (valid) {
             loading.value = true
             try {
-                // TODO: 调用重置密码API
-                // await authAPI.resetPassword({
-                //   email: resetForm.value.email,
-                //   code: resetForm.value.code,
-                //   newPassword: resetForm.value.newPassword
-                // })
+                await resetPasswordAPI({
+                  account: resetForm.value.email,
+                  code: resetForm.value.code,
+                  newPassword: resetForm.value.newPassword
+                })
 
                 ElMessage.success('密码重置成功')
                 resetStep.value = 2

@@ -100,7 +100,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Picture, Close } from '@element-plus/icons-vue'
-import { getReadingHistory } from '@/api/reading/history'
+import { getReadingHistory, deleteHistory, clearHistory } from '@/api/reading/history'
 import type { ReadingHistory } from '@/types/models'
 
 const router = useRouter()
@@ -204,11 +204,15 @@ async function removeHistory(id: string): Promise<void> {
       type: 'warning'
     })
 
-    // TODO: 调用删除API
+    await deleteHistory(id)
     histories.value = histories.value.filter(h => h.id !== id)
+    total.value = Math.max(0, total.value - 1)
     ElMessage.success('删除成功')
-  } catch (error) {
-    // 用户取消
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error(error.message || '删除失败')
+    }
   }
 }
 
@@ -225,12 +229,15 @@ async function clearAll(): Promise<void> {
       }
     )
 
-    // TODO: 调用清空API
+    await clearHistory()
     histories.value = []
     total.value = 0
     ElMessage.success('已清空阅读历史')
-  } catch (error) {
-    // 用户取消
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('清空失败:', error)
+      ElMessage.error(error.message || '清空失败')
+    }
   }
 }
 

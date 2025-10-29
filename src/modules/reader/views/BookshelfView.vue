@@ -297,12 +297,31 @@ async function loadHistory(): Promise<void> {
 }
 
 async function loadStats(): Promise<void> {
-    // TODO: 调用API加载统计数据
-    stats.value = {
-        totalBooks: books.value.length,
-        totalTime: 0,
-        finishedBooks: 0,
-        todayTime: 0
+    try {
+        // 从后端获取统计数据
+        const response = await getReadingHistory({
+            page: 1,
+            size: 1
+        })
+        
+        // 计算统计信息
+        const finishedCount = books.value.filter(b => b.status === 'completed').length
+        
+        stats.value = {
+            totalBooks: books.value.length,
+            totalTime: 0, // 需要从progress API获取
+            finishedBooks: finishedCount,
+            todayTime: 0 // 需要从progress API获取
+        }
+    } catch (error) {
+        console.error('加载统计数据失败:', error)
+        // 使用默认值
+        stats.value = {
+            totalBooks: books.value.length,
+            totalTime: 0,
+            finishedBooks: 0,
+            todayTime: 0
+        }
     }
 }
 

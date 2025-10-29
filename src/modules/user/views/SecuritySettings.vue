@@ -145,23 +145,25 @@
                 </div>
             </template>
             <div class="devices-list">
-                <div v-for="device in loginDevices" :key="device.id" class="device-item">
+                <el-empty v-if="loginDevices.length === 0" description="暂无登录设备" />
+                <div v-else v-for="device in loginDevices" :key="device.id" class="device-item">
                     <div class="device-icon">
                         <el-icon :size="32">
-                            <Monitor v-if="device.type === 'desktop'" />
-                            <Iphone v-else-if="device.type === 'mobile'" />
+                            <Monitor v-if="device.deviceType === 'desktop'" />
+                            <Iphone v-else-if="device.deviceType === 'mobile'" />
                             <Van v-else />
                         </el-icon>
                     </div>
                     <div class="device-info">
-                        <div class="device-name">{{ device.name }}</div>
+                        <div class="device-name">{{ device.deviceName || device.browser }}</div>
                         <div class="device-meta">
-                            <span>{{ device.location }}</span>
-                            <span>{{ formatDate(device.lastActive) }}</span>
+                            <span v-if="device.location">{{ device.location }}</span>
+                            <span v-if="device.ip">{{ device.ip }}</span>
+                            <span>{{ formatDate(device.lastActiveTime) }}</span>
                         </div>
                     </div>
                     <div class="device-action">
-                        <el-tag v-if="device.current" type="success">当前设备</el-tag>
+                        <el-tag v-if="device.isCurrent" type="success">当前设备</el-tag>
                         <el-button v-else type="danger" text @click="removeDevice(device.id)">
                             移除
                         </el-button>
@@ -194,6 +196,20 @@ import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { Monitor, Iphone, Van } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
+import {
+  sendPhoneVerifyCode,
+  bindPhone,
+  changePhone,
+  sendEmailVerifyCode,
+  bindEmail,
+  changeEmail,
+  verifyEmail,
+  changePassword as changePasswordAPI,
+  getLoginDevices,
+  removeDevice as removeDeviceAPI,
+  cancelAccount,
+  type LoginDevice
+} from '@/api/user/security'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -232,16 +248,6 @@ const emailForm = reactive({
     email: '',
     code: ''
 })
-
-// 登录设备
-interface LoginDevice {
-    id: string
-    name: string
-    type: 'desktop' | 'mobile' | 'other'
-    location: string
-    lastActive: string
-    current: boolean
-}
 
 const loginDevices = ref<LoginDevice[]>([])
 
@@ -306,9 +312,9 @@ const handleChangePassword = async () => {
         })
 
         passwordSaving.value = true
-        await userStore.changePassword({
-            old_password: passwordForm.old_password,
-            new_password: passwordForm.new_password
+        await changePasswordAPI({
+            oldPassword: passwordForm.old_password,
+            newPassword: passwordForm.new_password
         })
 
         ElMessage.success('密码修改成功，请重新登录')
@@ -348,8 +354,7 @@ const sendPhoneCode = async () => {
     }
 
     try {
-        // TODO: 调用发送验证码API
-        await Promise.resolve()
+        await sendPhoneVerifyCode(phoneForm.phone, userStore.profile?.phone ? 'change' : 'bind')
         ElMessage.success('验证码已发送')
 
         // 开始倒计时
@@ -360,8 +365,9 @@ const sendPhoneCode = async () => {
                 clearInterval(timer)
             }
         }, 1000)
-    } catch (error) {
-        ElMessage.error('发送验证码失败')
+    } catch (error: any) {
+        console.error('发送验证码失败:', error)
+        ElMessage.error(error.message || '发送验证码失败')
     }
 }
 
@@ -374,8 +380,18 @@ const handleBindPhone = async () => {
         if (!valid) return
 
         phoneSaving.value = true
-        // TODO: 调用绑定手机API
-        await Promise.resolve()
+        // 根据是否已绑定手机号，调用不同的API
+        if (userStore.profile?.phone) {
+            await changePhone({
+                newPhone: phoneForm.phone,
+                code: phoneForm.code
+            })
+        } else {
+            await bindPhone({
+                phone: phoneForm.phone,
+                code: phoneForm.code
+            })
+        }
 
         ElMessage.success('绑定成功')
         phoneEditMode.value = false
@@ -401,8 +417,7 @@ const cancelPhoneEdit = () => {
 const sendEmailVerification = async () => {
     emailSending.value = true
     try {
-        // TODO: 调用发送验证邮件API
-        await Promise.resolve()
+        await verifyEmail()
         ElMessage.success('验证邮件已发送，请查收')
     } catch (error) {
         ElMessage.error('发送失败')
@@ -419,8 +434,7 @@ const sendEmailCode = async () => {
     }
 
     try {
-        // TODO: 调用发送验证码API
-        await Promise.resolve()
+        await sendEmailVerifyCode(emailForm.email, userStore.profile?.emailVerified ? 'change' : 'bind')
         ElMessage.success('验证码已发送')
 
         // 开始倒计时
@@ -445,8 +459,18 @@ const handleBindEmail = async () => {
         if (!valid) return
 
         emailSaving.value = true
-        // TODO: 调用绑定邮箱API
-        await Promise.resolve()
+        // 根据邮箱验证状态，调用不同的API
+        if (userStore.profile?.emailVerified) {
+            await changeEmail({
+                newEmail: emailForm.email,
+                code: emailForm.code
+            })
+        } else {
+            await bindEmail({
+                email: emailForm.email,
+                code: emailForm.code
+            })
+        }
 
         ElMessage.success('绑定成功')
         emailEditMode.value = false
@@ -477,9 +501,7 @@ const removeDevice = async (deviceId: string) => {
             type: 'warning'
         })
 
-        // TODO: 调用移除设备API
-        await Promise.resolve()
-
+        await removeDeviceAPI(deviceId)
         loginDevices.value = loginDevices.value.filter(d => d.id !== deviceId)
         ElMessage.success('已移除')
     } catch (error: any) {
@@ -502,7 +524,23 @@ const handleDeleteAccount = async () => {
             }
         )
 
-        // TODO: 调用注销账号API
+        // 需要输入密码确认
+        const { value: password } = await ElMessageBox.prompt(
+            '请输入您的账号密码以确认注销',
+            '确认密码',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputType: 'password',
+                inputPattern: /.{6,}/,
+                inputErrorMessage: '密码长度至少6位'
+            }
+        )
+
+        await cancelAccount({
+            password: password as string
+        })
+
         ElMessage.success('账号已注销')
         authStore.logout()
     } catch (error: any) {
@@ -530,17 +568,16 @@ const goBack = () => {
 
 // 加载登录设备
 const loadLoginDevices = async () => {
-    // TODO: 从API加载
-    loginDevices.value = [
-        {
-            id: '1',
-            name: 'Chrome on Windows',
-            type: 'desktop',
-            location: '北京市',
-            lastActive: new Date().toISOString(),
-            current: true
+    try {
+        const response: any = await getLoginDevices({ page: 1, size: 50 })
+        if (response.data && Array.isArray(response.data)) {
+            loginDevices.value = response.data
         }
-    ]
+    } catch (error: any) {
+        console.error('加载登录设备失败:', error)
+        // 如果API未实现，使用默认数据
+        loginDevices.value = []
+    }
 }
 
 // 初始化
