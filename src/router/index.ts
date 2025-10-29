@@ -1,51 +1,135 @@
 /**
- * Vue Router Configuration
- * Module-based routing with centralized configuration
+ * Vue Router 配置
  */
 
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
-// Import module routes
-import bookstoreRoutes from '@/modules/bookstore/routes'
-import readerRoutes from '@/modules/reader/routes'
-import userRoutes from '@/modules/user/routes'
-import writerRoutes from '@/modules/writer/routes'
-import adminRoutes from '@/modules/admin/routes'
-
-// Error page routes
-const errorRoutes: RouteRecordRaw[] = [
+// 路由配置
+const routes: RouteRecordRaw[] = [
+  // ============ 公开路由 ============
   {
-    path: '/403',
-    name: 'forbidden',
-    component: () => import('@/views/error/Forbidden.vue'),
-    meta: { title: '403 - 访问被拒绝' }
+    path: '/',
+    redirect: '/bookstore',
   },
   {
-    path: '/500',
-    name: 'server-error',
-    component: () => import('@/views/error/ServerError.vue'),
-    meta: { title: '500 - 服务器错误' }
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/pages/Auth/Login.vue'),
+    meta: { requiresAuth: false, title: '登录' },
   },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/pages/Auth/Register.vue'),
+    meta: { requiresAuth: false, title: '注册' },
+  },
+
+  // ============ 书城（读者端）============
+  {
+    path: '/bookstore',
+    name: 'Bookstore',
+    component: () => import('@/pages/Bookstore/Home.vue'),
+    meta: { requiresAuth: false, title: '书城' },
+  },
+  {
+    path: '/bookstore/category/:id',
+    name: 'Category',
+    component: () => import('@/pages/Bookstore/Category.vue'),
+    meta: { requiresAuth: false, title: '分类' },
+  },
+  {
+    path: '/bookstore/search',
+    name: 'Search',
+    component: () => import('@/pages/Bookstore/Search.vue'),
+    meta: { requiresAuth: false, title: '搜索' },
+  },
+  {
+    path: '/book/:id',
+    name: 'BookDetail',
+    component: () => import('@/pages/Book/Detail.vue'),
+    meta: { requiresAuth: false, title: '书籍详情' },
+  },
+
+  // ============ 阅读器 ============
+  {
+    path: '/reader/:chapterId',
+    name: 'Reader',
+    component: () => import('@/pages/Reader/Index.vue'),
+    meta: { requiresAuth: false, title: '阅读' },
+  },
+
+  // ============ 用户中心 ============
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/pages/User/Profile.vue'),
+    meta: { requiresAuth: true, title: '个人中心' },
+  },
+  {
+    path: '/reading-history',
+    name: 'ReadingHistory',
+    component: () => import('@/pages/User/ReadingHistory.vue'),
+    meta: { requiresAuth: true, title: '阅读历史' },
+  },
+
+  // ============ 写作端 ============
+  {
+    path: '/writer',
+    name: 'WriterLayout',
+    component: () => import('@/layouts/WriterLayout.vue'),
+    meta: { requiresAuth: true, requiresWriter: true },
+    children: [
+      {
+        path: '',
+        redirect: '/writer/projects',
+      },
+      {
+        path: 'projects',
+        name: 'ProjectList',
+        component: () => import('@/pages/Writer/ProjectList.vue'),
+        meta: { title: '我的项目' },
+      },
+      {
+        path: 'projects/:id',
+        name: 'ProjectDetail',
+        component: () => import('@/pages/Writer/ProjectDetail.vue'),
+        meta: { title: '项目详情' },
+      },
+      {
+        path: 'editor/:documentId',
+        name: 'Editor',
+        component: () => import('@/pages/Writer/Editor.vue'),
+        meta: { title: '编辑器' },
+      },
+      {
+        path: 'statistics',
+        name: 'Statistics',
+        component: () => import('@/pages/Writer/Statistics.vue'),
+        meta: { title: '数据统计' },
+      },
+    ],
+  },
+
+  // ============ 钱包 ============
+  {
+    path: '/wallet',
+    name: 'Wallet',
+    component: () => import('@/pages/Wallet/Index.vue'),
+    meta: { requiresAuth: true, title: '我的钱包' },
+  },
+
+  // ============ 404 ============
   {
     path: '/:pathMatch(.*)*',
-    name: 'not-found',
-    component: () => import('@/views/error/NotFound.vue'),
-    meta: { title: '404 - 页面未找到' }
-  }
+    name: 'NotFound',
+    component: () => import('@/pages/Error/NotFound.vue'),
+    meta: { title: '页面不存在' },
+  },
 ]
 
-// Combine all routes
-const routes: RouteRecordRaw[] = [
-  ...bookstoreRoutes,
-  ...readerRoutes,
-  ...userRoutes,
-  ...writerRoutes,
-  ...adminRoutes,
-  ...errorRoutes
-]
-
-// Create router instance
+// 创建路由实例
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
@@ -55,56 +139,43 @@ const router = createRouter({
     } else {
       return { top: 0 }
     }
-  }
+  },
 })
 
-// Global navigation guards
+// 全局前置守卫
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const userStore = useUserStore()
 
-  // Set page title
+  // 设置页面标题
   if (to.meta.title) {
-    document.title = `${to.meta.title} - 青羽`
-  } else {
-    document.title = '青羽 - 在线阅读平台'
+    document.title = `${to.meta.title} - 青羽写作平台`
   }
 
-  // Check authentication
-  if (to.meta.requiresAuth) {
-    if (!authStore.isLoggedIn) {
-      // Not logged in, redirect to auth page
-      next({
-        name: 'auth',
-        query: { redirect: to.fullPath, mode: 'login' }
-      })
-      return
-    }
-
-    // Check admin permission
-    if (to.meta.requiresAdmin && !authStore.isAdmin) {
-      // Not admin, redirect to 403
-      next({ name: 'forbidden' })
-      return
-    }
+  // 检查是否需要登录
+  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath },
+    })
+    return
   }
 
-  // Logged in user trying to access guest-only pages
-  if (to.meta.guest && authStore.isLoggedIn) {
-    next({ name: 'home' })
+  // 检查是否需要写作权限
+  if (to.meta.requiresWriter && !userStore.isWriter) {
+    next({
+      path: '/bookstore',
+      query: { message: '需要写作权限' },
+    })
+    return
+  }
+
+  // 已登录用户访问登录/注册页，重定向到首页
+  if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
+    next({ path: '/bookstore' })
     return
   }
 
   next()
 })
 
-// Global after hooks
-router.afterEach((to, from) => {
-  // Track page views (if analytics is enabled)
-  if (import.meta.env.PROD) {
-    // TODO: Implement analytics tracking
-    console.debug(`[Router] Navigated to ${to.path}`)
-  }
-})
-
 export default router
-

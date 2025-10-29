@@ -45,6 +45,20 @@ const userRoutes: RouteRecordRaw[] = [
         name: 'wallet',
         component: () => import('./views/WalletView.vue'),
         meta: { title: '我的钱包', requiresAuth: true }
+      },
+      {
+        path: 'user/:userId',
+        name: 'user-profile',
+        component: () => import('./views/AuthorProfile.vue'),
+        meta: { title: '用户主页' },
+        props: true
+      },
+      {
+        path: 'reader/:userId',
+        name: 'reader-profile',
+        component: () => import('./views/ReaderProfile.vue'),
+        meta: { title: '读者主页' },
+        props: true
       }
     ]
   }

@@ -1,171 +1,168 @@
 /**
- * 书城API模块 (v1.3)
- * 基于 doc/api/frontend/书城API参考.md
+ * 书城系统API
+ * 首页、书籍、分类、Banner、排行榜
  */
 
 import request from '@/utils/request'
-import type { APIResponse, PaginationParams } from '@/types/api'
 import type {
   Book,
-  BookBrief,
+  BookDetail,
+  HomepageData,
+  Category,
   Banner,
   RankingItem,
-  HomepageData,
-  SearchFilter,
-  SearchResult,
   SearchParams,
-  Category,
-  CategoryTreeNode,
-  RankingType
+  PaginationResponse,
 } from '@/types/bookstore'
 
+// ============ 首页和书籍 ============
+
 /**
- * 书城API接口 (v1.3)
+ * 获取书城首页数据
+ * GET /api/v1/bookstore/homepage
  */
-export const bookstoreAPI = {
-  /**
-   * 获取首页数据
-   */
-  async getHomepage(): Promise<APIResponse<HomepageData>> {
-    return request.get<APIResponse<HomepageData>>('/bookstore/homepage')
-  },
-
-  /**
-   * 获取实时榜
-   */
-  async getRealtimeRanking(limit: number = 20): Promise<APIResponse<RankingItem[]>> {
-    return request.get<APIResponse<RankingItem[]>>('/bookstore/rankings/realtime', {
-      params: { limit }
-    })
-  },
-
-  /**
-   * 获取周榜
-   */
-  async getWeeklyRanking(period: string = '', limit: number = 20): Promise<APIResponse<RankingItem[]>> {
-    return request.get<APIResponse<RankingItem[]>>('/bookstore/rankings/weekly', {
-      params: { period, limit }
-    })
-  },
-
-  /**
-   * 获取月榜
-   */
-  async getMonthlyRanking(period: string = '', limit: number = 20): Promise<APIResponse<RankingItem[]>> {
-    return request.get<APIResponse<RankingItem[]>>('/bookstore/rankings/monthly', {
-      params: { period, limit }
-    })
-  },
-
-  /**
-   * 获取新人榜
-   */
-  async getNewbieRanking(period: string = '', limit: number = 20): Promise<APIResponse<RankingItem[]>> {
-    return request.get<APIResponse<RankingItem[]>>('/bookstore/rankings/newbie', {
-      params: { period, limit }
-    })
-  },
-
-  /**
-   * 按类型获取榜单 (v1.3)
-   */
-  async getRankingByType(type: RankingType, period: string = '', limit: number = 20): Promise<APIResponse<RankingItem[]>> {
-    return request.get<APIResponse<RankingItem[]>>(`/bookstore/rankings/${type}`, {
-      params: { period, limit }
-    })
-  },
-
-  /**
-   * 获取Banner列表
-   */
-  async getBanners(limit: number = 5): Promise<APIResponse<Banner[]>> {
-    return request.get<APIResponse<Banner[]>>('/bookstore/banners', {
-      params: { limit }
-    })
-  },
-
-  /**
-   * 获取书籍详情
-   */
-  async getBookById(id: string): Promise<APIResponse<Book>> {
-    return request.get<APIResponse<Book>>(`/bookstore/books/${id}`)
-  },
-
-  /**
-   * 获取推荐书籍
-   */
-  async getRecommendedBooks(page: number = 1, size: number = 20): Promise<APIResponse<BookBrief[]>> {
-    return request.get<APIResponse<BookBrief[]>>('/bookstore/books/recommended', {
-      params: { page, size }
-    })
-  },
-
-  /**
-   * 获取精选书籍
-   */
-  async getFeaturedBooks(page: number = 1, size: number = 20): Promise<APIResponse<BookBrief[]>> {
-    return request.get<APIResponse<BookBrief[]>>('/bookstore/books/featured', {
-      params: { page, size }
-    })
-  },
-
-  /**
-   * 搜索书籍
-   */
-  async searchBooks(params: SearchParams): Promise<APIResponse<SearchResult>> {
-    return request.get<APIResponse<SearchResult>>('/bookstore/books/search', {
-      params
-    })
-  },
-
-  /**
-   * 根据分类获取书籍 (v1.3)
-   */
-  async getBooksByCategory(
-    categoryId: string,
-    params: PaginationParams & Partial<SearchFilter> = {}
-  ): Promise<APIResponse<SearchResult>> {
-    return request.get<APIResponse<SearchResult>>(`/bookstore/categories/${categoryId}/books`, {
-      params
-    })
-  },
-
-  /**
-   * 获取分类列表
-   */
-  async getCategories(): Promise<APIResponse<Category[]>> {
-    return request.get<APIResponse<Category[]>>('/bookstore/categories')
-  },
-
-  /**
-   * 获取分类树 (v1.3新增)
-   */
-  async getCategoryTree(): Promise<APIResponse<CategoryTreeNode[]>> {
-    return request.get<APIResponse<CategoryTreeNode[]>>('/bookstore/categories/tree')
-  },
-
-  /**
-   * 获取分类详情 (v1.3新增)
-   */
-  async getCategoryById(id: string): Promise<APIResponse<Category>> {
-    return request.get<APIResponse<Category>>(`/bookstore/categories/${id}`)
-  },
-
-  /**
-   * 增加书籍浏览量
-   */
-  async incrementBookView(id: string): Promise<APIResponse<null>> {
-    return request.post<APIResponse<null>>(`/bookstore/books/${id}/view`)
-  },
-
-  /**
-   * 增加Banner点击次数
-   */
-  async incrementBannerClick(id: string): Promise<APIResponse<null>> {
-    return request.post<APIResponse<null>>(`/bookstore/banners/${id}/click`)
-  }
+export function getHomepage() {
+  return request.get<HomepageData>('/bookstore/homepage')
 }
 
-export default bookstoreAPI
+/**
+ * 获取书籍详情
+ * GET /api/v1/bookstore/books/:id
+ */
+export function getBookDetail(bookId: string) {
+  return request.get<BookDetail>(`/bookstore/books/${bookId}`)
+}
 
+/**
+ * 搜索书籍
+ * GET /api/v1/bookstore/books/search
+ */
+export function searchBooks(params: SearchParams) {
+  return request.get<PaginationResponse<Book>>('/bookstore/books/search', { params })
+}
 
+/**
+ * 获取推荐书籍
+ * GET /api/v1/bookstore/books/recommended
+ */
+export function getRecommendedBooks(limit = 10) {
+  return request.get<Book[]>('/bookstore/books/recommended', {
+    params: { limit },
+  })
+}
+
+/**
+ * 获取精选书籍
+ * GET /api/v1/bookstore/books/featured
+ */
+export function getFeaturedBooks(limit = 10) {
+  return request.get<Book[]>('/bookstore/books/featured', {
+    params: { limit },
+  })
+}
+
+/**
+ * 增加书籍浏览量
+ * POST /api/v1/bookstore/books/:id/view
+ */
+export function incrementBookView(bookId: string) {
+  return request.post<void>(`/bookstore/books/${bookId}/view`)
+}
+
+// ============ 分类 ============
+
+/**
+ * 获取分类树
+ * GET /api/v1/bookstore/categories/tree
+ */
+export function getCategoryTree() {
+  return request.get<Category[]>('/bookstore/categories/tree')
+}
+
+/**
+ * 获取分类详情
+ * GET /api/v1/bookstore/categories/:id
+ */
+export function getCategoryDetail(categoryId: string) {
+  return request.get<Category>(`/bookstore/categories/${categoryId}`)
+}
+
+/**
+ * 根据分类获取书籍
+ * GET /api/v1/bookstore/categories/:id/books
+ */
+export function getBooksByCategory(categoryId: string, params?: any) {
+  return request.get<PaginationResponse<Book>>(`/bookstore/categories/${categoryId}/books`, {
+    params,
+  })
+}
+
+// ============ Banner ============
+
+/**
+ * 获取Banner列表
+ * GET /api/v1/bookstore/banners
+ */
+export function getBanners() {
+  return request.get<Banner[]>('/bookstore/banners')
+}
+
+/**
+ * 增加Banner点击量
+ * POST /api/v1/bookstore/banners/:id/click
+ */
+export function incrementBannerClick(bannerId: string) {
+  return request.post<void>(`/bookstore/banners/${bannerId}/click`)
+}
+
+// ============ 排行榜 ============
+
+/**
+ * 获取实时榜
+ * GET /api/v1/bookstore/rankings/realtime
+ */
+export function getRealtimeRanking(limit = 20) {
+  return request.get<RankingItem[]>('/bookstore/rankings/realtime', {
+    params: { limit },
+  })
+}
+
+/**
+ * 获取周榜
+ * GET /api/v1/bookstore/rankings/weekly
+ */
+export function getWeeklyRanking(limit = 20) {
+  return request.get<RankingItem[]>('/bookstore/rankings/weekly', {
+    params: { limit },
+  })
+}
+
+/**
+ * 获取月榜
+ * GET /api/v1/bookstore/rankings/monthly
+ */
+export function getMonthlyRanking(limit = 20) {
+  return request.get<RankingItem[]>('/bookstore/rankings/monthly', {
+    params: { limit },
+  })
+}
+
+/**
+ * 获取新人榜
+ * GET /api/v1/bookstore/rankings/newbie
+ */
+export function getNewbieRanking(limit = 20) {
+  return request.get<RankingItem[]>('/bookstore/rankings/newbie', {
+    params: { limit },
+  })
+}
+
+/**
+ * 按类型获取榜单
+ * GET /api/v1/bookstore/rankings/:type
+ */
+export function getRankingByType(type: string, limit = 20) {
+  return request.get<RankingItem[]>(`/bookstore/rankings/${type}`, {
+    params: { limit },
+  })
+}

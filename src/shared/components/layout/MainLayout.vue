@@ -16,6 +16,10 @@
                     <el-menu-item index="/books">书库</el-menu-item>
                     <el-menu-item index="/categories">分类</el-menu-item>
                     <el-menu-item index="/rankings">榜单</el-menu-item>
+                    <el-menu-item v-if="isLoggedIn" index="/writer">
+                        <el-icon><EditPen /></el-icon>
+                        创作中心
+                    </el-menu-item>
                 </el-menu>
 
                 <!-- 搜索框 -->
@@ -49,6 +53,12 @@
                                             <User />
                                         </el-icon>
                                         个人中心
+                                    </el-dropdown-item>
+                                    <el-dropdown-item command="writer-dashboard">
+                                        <el-icon>
+                                            <EditPen />
+                                        </el-icon>
+                                        创作工作台
                                     </el-dropdown-item>
                                     <el-dropdown-item command="shelf">
                                         <el-icon>
@@ -224,7 +234,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
     Search, ArrowDown, User, Collection, Clock, SwitchButton, Menu,
-    HomeFilled, Reading, Grid, TrendCharts, Lock
+    HomeFilled, Reading, Grid, TrendCharts, Lock, EditPen
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -335,6 +345,9 @@ const handleUserCommand = async (command: string) => {
     switch (command) {
         case 'profile':
             router.push('/profile')
+            break
+        case 'writer-dashboard':
+            router.push('/writer/dashboard')
             break
         case 'shelf':
             router.push('/profile?tab=shelf')

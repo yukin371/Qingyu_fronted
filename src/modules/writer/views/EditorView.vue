@@ -49,9 +49,45 @@
         </div>
       </div>
 
-      <!-- Markdown工具栏 -->
+      <!-- 标签页导航 -->
+      <el-tabs v-show="!isFocusMode" v-model="activeTab" class="editor-tabs" @tab-change="handleTabChange">
+        <el-tab-pane label="编辑器" name="editor">
+          <template #label>
+            <span class="tab-label">
+              <el-icon><Edit /></el-icon>
+              编辑器
+            </span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane label="大纲" name="outline">
+          <template #label>
+            <span class="tab-label">
+              <el-icon><List /></el-icon>
+              大纲
+            </span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane label="角色图谱" name="characters">
+          <template #label>
+            <span class="tab-label">
+              <el-icon><User /></el-icon>
+              角色图谱
+            </span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane label="设定百科" name="encyclopedia">
+          <template #label>
+            <span class="tab-label">
+              <el-icon><Collection /></el-icon>
+              设定百科
+            </span>
+          </template>
+        </el-tab-pane>
+      </el-tabs>
+
+      <!-- Markdown工具栏（仅编辑器模式显示） -->
       <EditorToolbar
-        v-show="!isFocusMode"
+        v-show="!isFocusMode && activeTab === 'editor'"
         :is-simple-mode="isSimpleMode"
         :show-preview="showPreview"
         @insert="insertText"
@@ -59,7 +95,7 @@
       />
 
       <!-- 编辑器主体 - 双栏布局 -->
-      <div class="main-content" :class="{ 'dual-pane': showPreview && !isSimpleMode && isLargeScreen }">
+      <div v-show="activeTab === 'editor'" class="main-content" :class="{ 'dual-pane': showPreview && !isSimpleMode && isLargeScreen }">
         <div class="editor-pane" ref="editorPane">
           <textarea
             ref="editorTextarea"
@@ -85,8 +121,20 @@
         </div>
       </div>
 
+      <!-- 大纲视图 -->
+      <OutlineView v-show="activeTab === 'outline'" />
+
+      <!-- 角色图谱视图 -->
+      <CharacterGraphView v-show="activeTab === 'characters'" />
+
+      <!-- 设定百科视图 -->
+      <EncyclopediaView v-show="activeTab === 'encyclopedia'" />
+
+      <!-- 时间线工具栏（仅编辑器模式显示） -->
+      <TimelineBar v-show="activeTab === 'editor' && !isFocusMode && writerStore.timeline.showBar" />
+
       <!-- 底部状态栏 -->
-      <div class="editor-footer" v-show="!isFocusMode">
+      <div class="editor-footer" v-show="!isFocusMode && activeTab === 'editor'">
         <div class="status-left">
           <span class="status-item">
             字数: <strong>{{ wordCount }}</strong>
@@ -103,6 +151,15 @@
           <span v-else class="status-item">
             模式: 简洁
           </span>
+          <el-button
+            text
+            size="small"
+            @click="writerStore.toggleTimelineBar()"
+            style="margin-left: 12px;"
+          >
+            <el-icon><Clock /></el-icon>
+            {{ writerStore.timeline.showBar ? '隐藏时间线' : '显示时间线' }}
+          </el-button>
         </div>
         <div class="status-right">
           <span v-if="lastSavedTime" class="status-item">
@@ -190,7 +247,12 @@ import {
   Loading,
   CircleCheck,
   Warning,
-  MagicStick
+  MagicStick,
+  Edit,
+  List,
+  User,
+  Collection,
+  Clock
 } from '@element-plus/icons-vue'
 import * as ProjectSidebar from '../components/ProjectSidebar.vue'
 import * as EditorToolbar from '../components/EditorToolbar.vue'
@@ -199,6 +261,10 @@ import { renderMarkdown } from '../utils/markdown'
 import { useWriterStore } from '../stores/writerStore'
 import * as AIAssistantSidebar from '../components/ai/AIAssistantSidebar.vue'
 import * as AIContextMenu from '../components/ai/AIContextMenu.vue'
+import * as TimelineBar from '../components/TimelineBar.vue'
+import * as OutlineView from './OutlineView.vue'
+import * as CharacterGraphView from './CharacterGraphView.vue'
+import * as EncyclopediaView from './EncyclopediaView.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -216,6 +282,7 @@ const contextMenu = reactive({
 })
 
 // 编辑器模式和显示状态
+const activeTab = ref('editor')
 const isSimpleMode = ref(false)
 const showPreview = ref(true)
 const isLargeScreen = ref(window.innerWidth >= 1200)
@@ -331,6 +398,25 @@ const insertText = (text: string) => {
 const togglePreview = () => {
   showPreview.value = !showPreview.value
   localStorage.setItem('editor-show-preview', String(showPreview.value))
+}
+
+// 标签页切换处理
+const handleTabChange = (tabName: string) => {
+  // 标签页切换时的逻辑
+  if (tabName === 'editor') {
+    // 切换到编辑器时，刷新编辑器内容
+  } else if (tabName === 'outline') {
+    // 切换到大纲时，加载大纲数据
+    writerStore.loadOutlineTree()
+  } else if (tabName === 'characters') {
+    // 切换到角色图谱时，加载角色数据
+    writerStore.loadCharacters()
+    writerStore.loadCharacterRelations()
+  } else if (tabName === 'encyclopedia') {
+    // 切换到设定百科时，加载设定数据
+    writerStore.loadCharacters()
+    writerStore.loadLocations()
+  }
 }
 
 // 切换模式

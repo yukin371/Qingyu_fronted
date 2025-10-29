@@ -27,7 +27,7 @@
       <el-segmented
         v-model="currentMode"
         :options="modeOptions"
-        size="default"
+        size="small"
         @change="handleModeChange"
       />
     </div>
@@ -52,6 +52,12 @@
         :is-processing="writerStore.ai.isProcessing"
         :error="writerStore.ai.error"
         @generate="handleGenerate"
+        @insert="handleInsert"
+      />
+
+      <!-- Agent 模式 -->
+      <AIAgentPanel
+        v-show="currentMode === 'agent'"
         @insert="handleInsert"
       />
     </div>
@@ -91,6 +97,7 @@ import {
 } from '@element-plus/icons-vue'
 import * as AIChatPanel from './AIChatPanel.vue'
 import * as AIToolsPanel from './AIToolsPanel.vue'
+import * as AIAgentPanel from './AIAgentPanel.vue'
 
 interface Props {
   projectId?: string
@@ -108,11 +115,12 @@ const emit = defineEmits<Emits>()
 const writerStore = useWriterStore()
 
 const isCollapsed = ref(false)
-const currentMode = ref<'chat' | 'tools'>('chat')
+const currentMode = ref<'chat' | 'tools' | 'agent'>('chat')
 
 const modeOptions = [
   { label: '对话', value: 'chat' },
-  { label: '工具', value: 'tools' }
+  { label: '工具', value: 'tools' },
+  { label: 'Agent', value: 'agent' }
 ]
 
 // 切换折叠状态
@@ -127,8 +135,16 @@ const handleClose = () => {
 }
 
 // 切换模式
-const handleModeChange = (mode: 'chat' | 'tools') => {
-  writerStore.setAITool(mode === 'chat' ? 'chat' : 'continue')
+const handleModeChange = (mode: 'chat' | 'tools' | 'agent') => {
+  if (mode === 'chat') {
+    writerStore.setAITool('chat')
+  } else if (mode === 'agent') {
+    writerStore.setAITool('agent')
+    // 加载 Agent 上下文
+    writerStore.updateAgentContext()
+  } else {
+    writerStore.setAITool('continue')
+  }
 }
 
 // 发送聊天消息
@@ -204,6 +220,8 @@ const handleCopy = async () => {
 watch(() => writerStore.ai.currentTool, (newTool) => {
   if (newTool === 'chat') {
     currentMode.value = 'chat'
+  } else if (newTool === 'agent') {
+    currentMode.value = 'agent'
   } else {
     currentMode.value = 'tools'
   }

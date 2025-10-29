@@ -12,7 +12,13 @@ const writerRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        redirect: '/writer/projects'
+        redirect: '/writer/dashboard'
+      },
+      {
+        path: 'dashboard',
+        name: 'writer-dashboard',
+        component: () => import('./views/WriterDashboard.vue'),
+        meta: { title: '创作工作台', requiresAuth: true }
       },
       {
         path: 'projects',
@@ -46,6 +52,12 @@ const writerRoutes: RouteRecordRaw[] = [
         component: () => import('./views/RevenueView.vue'),
         meta: { title: '收入统计', requiresAuth: true },
         props: true
+      },
+      {
+        path: 'publish',
+        name: 'writer-publish',
+        component: () => import('./views/PublishManagement.vue'),
+        meta: { title: '发布管理', requiresAuth: true }
       }
     ]
   }

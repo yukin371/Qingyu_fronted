@@ -220,7 +220,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
+import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
 import { recommendationAPI } from '@/api/recommendation'
@@ -229,8 +229,8 @@ import {
   ArrowLeft, User, Collection, View, Star, Document,
   Reading, FolderAdd, Picture, Lock
 } from '@element-plus/icons-vue'
-import RatingSection from '@reader/components/RatingSection.vue'
-import CommentItem from '@reader/components/CommentItem.vue'
+import RatingSection from '@/components/RatingSection.vue'
+import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/api/reading/comments'
 import { addToBookshelf, checkBookInShelf } from '@/api/reading/bookshelf'
 import type { ChapterListItem, BookBrief } from '@/types/models'

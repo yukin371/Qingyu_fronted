@@ -25,6 +25,12 @@ export default defineConfig([
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
+  {
+    name: 'vue/rules',
+    rules: {
+      'vue/no-v-model-argument': 'off',
+    },
+  },
 
   // TypeScript配置
   {

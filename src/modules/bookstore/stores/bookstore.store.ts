@@ -93,22 +93,29 @@ export const useBookstoreStore = defineStore('bookstore', {
 
       try {
         const data = await bookstoreService.getHomepageData()
+
+        // 数据安全性检查
+        if (!data || typeof data !== 'object') {
+          console.warn('首页数据为空或格式不正确')
+          return
+        }
+
         this.homepageData = data
 
-        // Update state
-        if (data.rankings) {
+        // Update state with safe access
+        if (data.rankings && Array.isArray(data.rankings)) {
           this.rankings = data.rankings
         }
-        if (data.banners) {
+        if (data.banners && Array.isArray(data.banners)) {
           this.banners = data.banners
         }
-        if (data.recommendedBooks) {
+        if (data.recommendedBooks && Array.isArray(data.recommendedBooks)) {
           this.books.recommended = data.recommendedBooks
         }
-        if (data.featuredBooks) {
+        if (data.featuredBooks && Array.isArray(data.featuredBooks)) {
           this.books.featured = data.featuredBooks
         }
-        if (data.categories) {
+        if (data.categories && Array.isArray(data.categories)) {
           this.categories = data.categories
         }
       } catch (error: any) {

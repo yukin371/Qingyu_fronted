@@ -27,6 +27,15 @@ import {
   type DocumentUpdateData
 } from '../api'
 import type {
+  Character,
+  CharacterRelation,
+  Location,
+  LocationRelation,
+  Timeline,
+  TimelineEvent,
+  OutlineNode
+} from '@/types/writer'
+import type {
   ChatMessage,
   AIToolType,
   AIConfig,
@@ -89,6 +98,45 @@ export interface WriterState {
     history: AIHistory[]
     error: string | null
     selectedText: string
+    agentContext: {
+      characters: Character[]
+      locations: Location[]
+      events: TimelineEvent[]
+    }
+  }
+
+  // 角色管理
+  characters: {
+    list: Character[]
+    relations: CharacterRelation[]
+    currentCharacter: Character | null
+    loading: boolean
+  }
+
+  // 地点管理
+  locations: {
+    list: Location[]
+    relations: LocationRelation[]
+    tree: any[]
+    currentLocation: Location | null
+    loading: boolean
+  }
+
+  // 时间线管理
+  timeline: {
+    list: Timeline[]
+    currentTimeline: Timeline | null
+    events: TimelineEvent[]
+    loading: boolean
+    showBar: boolean
+  }
+
+  // 大纲管理
+  outline: {
+    nodes: OutlineNode[]
+    tree: OutlineNode[]
+    currentNode: OutlineNode | null
+    loading: boolean
   }
 
   // 统计缓存
@@ -139,7 +187,46 @@ export const useWriterStore = defineStore('writer', {
       },
       history: [],
       error: null,
-      selectedText: ''
+      selectedText: '',
+      agentContext: {
+        characters: [],
+        locations: [],
+        events: []
+      }
+    },
+
+    // 角色管理
+    characters: {
+      list: [],
+      relations: [],
+      currentCharacter: null,
+      loading: false
+    },
+
+    // 地点管理
+    locations: {
+      list: [],
+      relations: [],
+      tree: [],
+      currentLocation: null,
+      loading: false
+    },
+
+    // 时间线管理
+    timeline: {
+      list: [],
+      currentTimeline: null,
+      events: [],
+      loading: false,
+      showBar: false
+    },
+
+    // 大纲管理
+    outline: {
+      nodes: [],
+      tree: [],
+      currentNode: null,
+      loading: false
     },
 
     // 统计缓存
@@ -867,6 +954,204 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
     },
 
+    // ==================== 角色管理 ====================
+
+    /**
+     * 加载角色列表
+     */
+    async loadCharacters(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      this.characters.loading = true
+      try {
+        const { listCharacters } = await import('../api')
+        this.characters.list = await listCharacters(pid)
+      } catch (error: any) {
+        console.error('加载角色列表失败:', error)
+        this.error = error.message
+      } finally {
+        this.characters.loading = false
+      }
+    },
+
+    /**
+     * 加载角色关系
+     */
+    async loadCharacterRelations(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      try {
+        const { listCharacterRelations } = await import('../api')
+        this.characters.relations = await listCharacterRelations(pid)
+      } catch (error: any) {
+        console.error('加载角色关系失败:', error)
+      }
+    },
+
+    /**
+     * 设置当前角色
+     */
+    setCurrentCharacter(character: Character | null): void {
+      this.characters.currentCharacter = character
+    },
+
+    // ==================== 地点管理 ====================
+
+    /**
+     * 加载地点列表
+     */
+    async loadLocations(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      this.locations.loading = true
+      try {
+        const { listLocations } = await import('../api')
+        this.locations.list = await listLocations(pid)
+      } catch (error: any) {
+        console.error('加载地点列表失败:', error)
+        this.error = error.message
+      } finally {
+        this.locations.loading = false
+      }
+    },
+
+    /**
+     * 加载地点树
+     */
+    async loadLocationTree(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      try {
+        const { getLocationTree } = await import('../api')
+        this.locations.tree = await getLocationTree(pid)
+      } catch (error: any) {
+        console.error('加载地点树失败:', error)
+      }
+    },
+
+    /**
+     * 设置当前地点
+     */
+    setCurrentLocation(location: Location | null): void {
+      this.locations.currentLocation = location
+    },
+
+    // ==================== 时间线管理 ====================
+
+    /**
+     * 加载时间线列表
+     */
+    async loadTimelines(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      this.timeline.loading = true
+      try {
+        const { listTimelines } = await import('../api')
+        this.timeline.list = await listTimelines(pid)
+        // 默认选择第一个时间线
+        if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
+          this.timeline.currentTimeline = this.timeline.list[0]
+        }
+      } catch (error: any) {
+        console.error('加载时间线列表失败:', error)
+        this.error = error.message
+      } finally {
+        this.timeline.loading = false
+      }
+    },
+
+    /**
+     * 加载时间线事件
+     */
+    async loadTimelineEvents(timelineId?: string): Promise<void> {
+      const tid = timelineId || this.timeline.currentTimeline?.id
+      if (!tid) return
+
+      try {
+        const { listTimelineEvents } = await import('../api')
+        this.timeline.events = await listTimelineEvents(tid)
+      } catch (error: any) {
+        console.error('加载时间线事件失败:', error)
+      }
+    },
+
+    /**
+     * 切换时间线显示
+     */
+    toggleTimelineBar(show?: boolean): void {
+      this.timeline.showBar = show !== undefined ? show : !this.timeline.showBar
+    },
+
+    /**
+     * 设置当前时间线
+     */
+    setCurrentTimeline(timeline: Timeline | null): void {
+      this.timeline.currentTimeline = timeline
+      if (timeline) {
+        this.loadTimelineEvents(timeline.id)
+      }
+    },
+
+    // ==================== 大纲管理 ====================
+
+    /**
+     * 加载大纲树
+     */
+    async loadOutlineTree(projectId?: string): Promise<void> {
+      const pid = projectId || this.currentProjectId
+      if (!pid) return
+
+      this.outline.loading = true
+      try {
+        const { getOutlineTree } = await import('../api')
+        this.outline.tree = await getOutlineTree(pid)
+      } catch (error: any) {
+        console.error('加载大纲树失败:', error)
+        this.error = error.message
+      } finally {
+        this.outline.loading = false
+      }
+    },
+
+    /**
+     * 设置当前大纲节点
+     */
+    setCurrentOutlineNode(node: OutlineNode | null): void {
+      this.outline.currentNode = node
+    },
+
+    // ==================== AI Agent 上下文 ====================
+
+    /**
+     * 更新 AI Agent 上下文
+     */
+    async updateAgentContext(): Promise<void> {
+      if (!this.currentProjectId) return
+
+      try {
+        // 加载相关角色
+        await this.loadCharacters()
+        this.ai.agentContext.characters = this.characters.list.slice(0, 10) // 限制数量
+
+        // 加载相关地点
+        await this.loadLocations()
+        this.ai.agentContext.locations = this.locations.list.slice(0, 10)
+
+        // 加载时间线事件
+        if (this.timeline.currentTimeline) {
+          await this.loadTimelineEvents()
+          this.ai.agentContext.events = this.timeline.events.slice(0, 20)
+        }
+      } catch (error: any) {
+        console.error('更新AI上下文失败:', error)
+      }
+    },
+
     /**
      * 重置状态
      */
@@ -901,7 +1186,38 @@ export const useWriterStore = defineStore('writer', {
         },
         history: [],
         error: null,
-        selectedText: ''
+        selectedText: '',
+        agentContext: {
+          characters: [],
+          locations: [],
+          events: []
+        }
+      }
+      this.characters = {
+        list: [],
+        relations: [],
+        currentCharacter: null,
+        loading: false
+      }
+      this.locations = {
+        list: [],
+        relations: [],
+        tree: [],
+        currentLocation: null,
+        loading: false
+      }
+      this.timeline = {
+        list: [],
+        currentTimeline: null,
+        events: [],
+        loading: false,
+        showBar: false
+      }
+      this.outline = {
+        nodes: [],
+        tree: [],
+        currentNode: null,
+        loading: false
       }
       this.statisticsCache = {}
       this.error = null

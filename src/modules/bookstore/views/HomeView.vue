@@ -14,6 +14,21 @@
     <!-- 主要内容区域 -->
     <div class="main-content">
       <div class="container">
+        <!-- 公告横幅 -->
+        <section v-if="announcements.length > 0" class="announcement-section">
+          <el-alert
+            v-for="announcement in announcements"
+            :key="announcement.id"
+            :type="getAnnouncementType(announcement.type)"
+            :title="announcement.title"
+            :description="announcement.content"
+            :closable="true"
+            show-icon
+            @close="handleCloseAnnouncement(announcement.id)"
+            class="announcement-item"
+          />
+        </section>
+
         <!-- Banner轮播 -->
         <section class="banner-section" v-loading="loading">
           <BannerCarousel
@@ -143,6 +158,9 @@ export default {
     const bookstoreStore = useBookstoreStore()
     const loading = ref(false)
 
+    // 公告列表
+    const announcements = ref([])
+
     // 计算属性
     const banners = computed(() => bookstoreStore.banners)
     const recommendedBooks = computed(() => bookstoreStore.books.recommended)
@@ -161,13 +179,51 @@ export default {
       return num?.toString() || '0'
     }
 
+    // 加载公告
+    const loadAnnouncements = async () => {
+      try {
+        // TODO: 调用公告API
+        // const response = await request.get('/announcements/effective', {
+        //   params: { targetUser: 'reader', limit: 3 }
+        // })
+        // announcements.value = response.data || []
+
+        // 模拟公告数据
+        announcements.value = []
+      } catch (error) {
+        console.error('加载公告失败:', error)
+      }
+    }
+
+    // 获取公告类型
+    const getAnnouncementType = (type) => {
+      const typeMap = {
+        info: 'info',
+        warning: 'warning',
+        notice: 'success'
+      }
+      return typeMap[type] || 'info'
+    }
+
+    // 关闭公告
+    const handleCloseAnnouncement = (id) => {
+      announcements.value = announcements.value.filter(a => a.id !== id)
+      // 可以将关闭的公告ID存储到localStorage，避免重复显示
+      const closedAnnouncements = JSON.parse(localStorage.getItem('closedAnnouncements') || '[]')
+      closedAnnouncements.push(id)
+      localStorage.setItem('closedAnnouncements', JSON.stringify(closedAnnouncements))
+    }
+
     // 加载首页数据
     const loadHomepageData = async () => {
       loading.value = true
       try {
         await bookstoreStore.fetchHomepageData()
+        await loadAnnouncements()
       } catch (error) {
-        ElMessage.error('加载首页数据失败: ' + error.message)
+        console.error('加载首页数据失败:', error)
+        const errorMsg = error?.message || '未知错误'
+        ElMessage.error('加载首页数据失败: ' + errorMsg)
       } finally {
         loading.value = false
       }
@@ -208,12 +264,15 @@ export default {
 
     return {
       loading,
+      announcements,
       banners,
       recommendedBooks,
       featuredBooks,
       rankings,
       stats,
       formatNumber,
+      getAnnouncementType,
+      handleCloseAnnouncement,
       handleViewRanking,
       handleViewBooks,
       handleBookClick,
@@ -264,6 +323,18 @@ export default {
 
 .main-content {
   padding: 40px 0;
+}
+
+.announcement-section {
+  margin-bottom: 24px;
+}
+
+.announcement-item {
+  margin-bottom: 12px;
+}
+
+.announcement-item:last-child {
+  margin-bottom: 0;
 }
 
 .banner-section {

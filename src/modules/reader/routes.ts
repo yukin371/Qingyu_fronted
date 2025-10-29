@@ -34,6 +34,13 @@ const readerRoutes: RouteRecordRaw[] = [
         name: 'bookmarks',
         component: () => import('./views/BookmarkManagementView.vue'),
         meta: { title: '我的书签', requiresAuth: true }
+      },
+      {
+        path: 'comment/:commentId',
+        name: 'comment-detail',
+        component: () => import('./views/CommentDetailView.vue'),
+        meta: { title: '评论详情' },
+        props: true
       }
     ]
   }
