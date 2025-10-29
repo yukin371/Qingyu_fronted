@@ -258,7 +258,8 @@ import * as ProjectSidebar from '../components/ProjectSidebar.vue'
 import * as EditorToolbar from '../components/EditorToolbar.vue'
 import { AutoSaveManager } from '../utils/autosave'
 import { renderMarkdown } from '../utils/markdown'
-import { useWriterStore } from '../stores/writerStore'
+import { useWriterStore } from '@/stores/writer'
+import { useProjectStore } from '@/stores/project'
 import * as AIAssistantSidebar from '../components/ai/AIAssistantSidebar.vue'
 import * as AIContextMenu from '../components/ai/AIContextMenu.vue'
 import * as TimelineBar from '../components/TimelineBar.vue'
@@ -269,8 +270,9 @@ import * as EncyclopediaView from './EncyclopediaView.vue'
 const router = useRouter()
 const route = useRoute()
 
-// Writer Store (AI功能)
-const writerStore = useWriterStore()
+// Stores
+const writerStore = useWriterStore() // 作者相关（AI功能等）
+const projectStore = useProjectStore() // 项目和文档管理
 
 // AI相关状态
 const showAISidebar = computed(() => writerStore.ai.sidebarVisible)
@@ -290,44 +292,50 @@ const editorPane = ref<HTMLDivElement | null>(null)
 const previewPane = ref<HTMLDivElement | null>(null)
 const isScrollingSyncEnabled = ref(true)
 
-// --- 项目和章节数据 (模拟数据，实际应从API获取) ---
-const projects = ref([
-  {
-    id: '1',
-    title: '我的第一本小说',
-    status: 'published' as const,
-    wordCount: 125000,
-    chapterCount: 15
-  },
-  {
-    id: '2',
-    title: '科幻短篇集',
-    status: 'draft' as const,
-    wordCount: 35000,
-    chapterCount: 5
-  }
-])
+// --- 从路由获取参数 ---
+const documentId = computed(() => route.params.documentId as string)
+const projectId = computed(() => route.params.projectId as string || route.query.projectId as string)
 
-const chapters = ref([
-  { id: '1-1', projectId: '1', chapterNum: 1, title: '第一章：开始', wordCount: 3500, updateTime: new Date().toISOString(), isDraft: false },
-  { id: '1-2', projectId: '1', chapterNum: 2, title: '第二章：冒险', wordCount: 4200, updateTime: new Date(Date.now() - 86400000).toISOString(), isDraft: false },
-  { id: '1-3', projectId: '1', chapterNum: 3, title: '第三章：挑战', wordCount: 0, updateTime: new Date().toISOString(), isDraft: true },
-  { id: '2-1', projectId: '2', chapterNum: 1, title: '流浪地球', wordCount: 8000, updateTime: new Date().toISOString(), isDraft: false },
-  { id: '2-2', projectId: '2', chapterNum: 2, title: '三体', wordCount: 12000, updateTime: new Date(Date.now() - 172800000).toISOString(), isDraft: false }
-])
+// --- 从 stores 获取数据 ---
+const currentProject = computed(() => writerStore.currentProject)
+const currentDocument = computed(() => projectStore.currentDocument)
+const chapters = computed(() => projectStore.documentList)
+
+// --- 文档内容（双向绑定到 store） ---
+const fileContent = computed({
+  get: () => projectStore.editorContent,
+  set: (value: string) => {
+    projectStore.updateEditorContent(value)
+    // 触发内容变更（用于自动保存）
+    handleContentInput()
+  }
+})
+
+const documentTitle = computed({
+  get: () => currentDocument.value?.title || '未命名文档',
+  set: (value: string) => {
+    if (currentDocument.value) {
+      currentDocument.value.title = value
+    }
+  }
+})
 
 // --- 状态 ---
-const fileContent = ref('')
-const documentTitle = ref('未命名章节')
-const currentChapterId = ref('')
-const currentProjectId = ref('1') // 当前项目ID，应从路由或API获取
+const currentChapterId = computed(() => projectStore.currentDocumentId)
 const isFocusMode = ref(false)
-const saveStatus = ref('未保存')
-const isSaving = ref(false)
+const isSaving = computed(() => projectStore.isSaving)
+const saveStatus = computed(() => {
+  if (projectStore.isSaving) return '保存中...'
+  if (projectStore.hasUnsavedChanges) return '未保存'
+  return '已保存'
+})
 const showExportDialog = ref(false)
 const showNewChapterDialog = ref(false)
 const editorTextarea = ref<HTMLTextAreaElement | null>(null)
-const lastSavedTime = ref('')
+const lastSavedTime = computed(() => {
+  if (!projectStore.lastSaved) return '从未保存'
+  return new Date(projectStore.lastSaved).toLocaleTimeString('zh-CN')
+})
 const currentTime = ref(new Date().toLocaleTimeString())
 
 // 新建章节表单
@@ -336,8 +344,8 @@ const newChapterForm = ref({
   title: ''
 })
 
-// 自动保存管理器
-let autoSaveManager: AutoSaveManager | null = null
+// 自动保存定时器
+let autoSaveTimer: NodeJS.Timeout | null = null
 
 // --- 计算属性 ---
 const wordCount = computed(() => {
@@ -557,68 +565,90 @@ const loadPreferences = () => {
 }
 
 // 章节切换
-const handleChapterChange = (chapter: any) => {
-  // 如果有未保存的内容，提示用户
-  if (saveStatus.value === '未保存' && fileContent.value) {
-    ElMessage.warning('当前章节有未保存的内容')
-    return
+const handleChapterChange = async (chapter: any) => {
+  const docId = chapter.documentId || chapter.id
+
+  // 如果有未保存的内容，先保存
+  if (projectStore.hasUnsavedChanges && currentDocument.value) {
+    try {
+      await projectStore.saveDocumentContent(
+        currentDocument.value.documentId,
+        fileContent.value
+      )
+    } catch (error: any) {
+      ElMessage.error('保存当前文档失败：' + (error.message || '未知错误'))
+      return
+    }
   }
 
-  currentChapterId.value = chapter.id
-  documentTitle.value = chapter.title
-
-  // 加载章节内容 (模拟)
-  loadChapterContent(chapter.id)
+  // 加载新文档
+  try {
+    await projectStore.loadDocument(docId)
+  } catch (error: any) {
+    ElMessage.error('加载文档失败：' + (error.message || '未知错误'))
+  }
 }
 
 // 项目切换
-const handleProjectChange = (projectId: string) => {
-  // 切换到该项目的第一个章节
-  const firstChapter = chapters.value.find(c => c.projectId === projectId)
-  if (firstChapter) {
-    currentChapterId.value = firstChapter.id
-    documentTitle.value = firstChapter.title
-    loadChapterContent(firstChapter.id)
-  }
-}
+const handleProjectChange = async (projectId: string) => {
+  try {
+    // 设置当前项目
+    projectStore.setCurrentProject(projectId)
+    await writerStore.fetchProjectById(projectId)
 
-// 加载章节内容
-const loadChapterContent = (chapterId: string) => {
-  // TODO: 从API加载实际内容
-  // 模拟加载
-  const mockContent = `# ${documentTitle.value}
+    // 加载项目的文档列表
+    await projectStore.fetchDocuments(projectId)
+    await projectStore.fetchDocumentTree(projectId)
 
-这是章节内容的占位符。在实际应用中，这里会从服务器加载真实的章节内容。
-
-## 示例内容
-
-你可以在这里开始创作你的故事...
-`
-  fileContent.value = mockContent
-  saveStatus.value = '已加载'
-
-  // 启动自动保存
-  if (autoSaveManager) {
-    autoSaveManager.start(chapterId, fileContent.value, 0)
+    // 切换到第一个文档
+    if (chapters.value.length > 0) {
+      await handleChapterChange(chapters.value[0])
+    }
+  } catch (error: any) {
+    ElMessage.error('切换项目失败：' + (error.message || '未知错误'))
   }
 }
 
 // 标题变化
-const handleTitleChange = () => {
-  saveStatus.value = '未保存'
+const handleTitleChange = async () => {
+  if (!currentDocument.value) return
+
+  try {
+    await projectStore.updateDocumentData(
+      currentDocument.value.documentId,
+      { title: documentTitle.value }
+    )
+  } catch (error: any) {
+    ElMessage.error('保存标题失败：' + (error.message || '未知错误'))
+  }
 }
 
-// 内容变化
-const handleContentChange = () => {
-  saveStatus.value = '未保存'
-
-  if (autoSaveManager && currentChapterId.value) {
-    autoSaveManager.onContentChange(
-      currentChapterId.value,
-      fileContent.value,
-      documentTitle.value
-    )
+// 内容输入处理（用于自动保存）
+const handleContentInput = () => {
+  // 清除旧的自动保存定时器
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer)
   }
+
+  // 30秒后自动保存
+  autoSaveTimer = setTimeout(async () => {
+    if (currentDocument.value && projectStore.hasUnsavedChanges) {
+      try {
+        await projectStore.autoSave(
+          currentDocument.value.documentId,
+          fileContent.value,
+          currentDocument.value.version || 0
+        )
+      } catch (error: any) {
+        console.error('自动保存失败:', error)
+      }
+    }
+  }, 30000) // 30秒
+}
+
+// 内容变化处理（兼容性）
+const handleContentChange = () => {
+  handleContentInput()
 }
 
 // === AI功能相关 ===
@@ -693,35 +723,26 @@ const handleInsertAIText = (text: string) => {
 
 // 手动保存
 const handleSaveManually = async () => {
-  if (!currentChapterId.value) {
-    ElMessage.warning('请先选择章节')
+  if (!currentDocument.value) {
+    ElMessage.warning('请先打开文档')
     return
   }
 
-  if (autoSaveManager) {
-    isSaving.value = true
-    const success = await autoSaveManager.saveNow(
-      currentChapterId.value,
-      fileContent.value,
-      documentTitle.value
+  try {
+    await projectStore.saveDocumentContent(
+      currentDocument.value.documentId,
+      fileContent.value
     )
-    isSaving.value = false
-
-    if (success) {
-      ElMessage.success('保存成功')
-    } else {
-      ElMessage.error('保存失败')
-    }
+    // 成功提示已在 store 中处理
+  } catch (error: any) {
+    ElMessage.error('保存失败：' + (error.message || '未知错误'))
   }
 }
 
 // 新建章节
 const handleAddChapter = () => {
   // 找到当前项目的最大章节号
-  const currentProjectChapters = chapters.value.filter(
-    c => c.projectId === projects.value[0].id
-  )
-  const maxChapterNum = Math.max(...currentProjectChapters.map(c => c.chapterNum), 0)
+  const maxChapterNum = Math.max(...chapters.value.map(c => c.chapterNum || 0), 0)
 
   newChapterForm.value = {
     chapterNum: maxChapterNum + 1,
@@ -732,30 +753,31 @@ const handleAddChapter = () => {
 }
 
 // 确认添加章节
-const confirmAddChapter = () => {
+const confirmAddChapter = async () => {
   if (!newChapterForm.value.title) {
     ElMessage.warning('请输入章节标题')
     return
   }
 
-  // TODO: 调用API创建章节
-  const newChapter = {
-    id: `${projects.value[0].id}-${Date.now()}`,
-    projectId: projects.value[0].id,
-    chapterNum: newChapterForm.value.chapterNum,
-    title: newChapterForm.value.title,
-    wordCount: 0,
-    updateTime: new Date().toISOString(),
-    isDraft: true
+  if (!projectId.value) {
+    ElMessage.error('请先选择项目')
+    return
   }
 
-  chapters.value.push(newChapter)
-  showNewChapterDialog.value = false
+  try {
+    const newDoc = await projectStore.createNewDocument(projectId.value, {
+      title: newChapterForm.value.title,
+      chapterNum: newChapterForm.value.chapterNum
+    })
 
-  ElMessage.success('章节创建成功')
-
-  // 切换到新章节
-  handleChapterChange(newChapter)
+    if (newDoc) {
+      showNewChapterDialog.value = false
+      // 切换到新章节
+      await handleChapterChange(newDoc)
+    }
+  } catch (error: any) {
+    ElMessage.error('创建章节失败：' + (error.message || '未知错误'))
+  }
 }
 
 // 编辑章节
@@ -766,22 +788,19 @@ const handleEditChapter = () => {
 
 // 删除章节
 const handleDeleteChapter = async (chapterId: string) => {
-  // TODO: 调用API删除章节
-  const index = chapters.value.findIndex(c => c.id === chapterId)
-  if (index > -1) {
-    chapters.value.splice(index, 1)
-    ElMessage.success('删除成功')
+  try {
+    await projectStore.deleteDocumentById(chapterId)
 
     // 如果删除的是当前章节，切换到第一个章节
     if (chapterId === currentChapterId.value) {
       if (chapters.value.length > 0) {
-        handleChapterChange(chapters.value[0])
+        await handleChapterChange(chapters.value[0])
       } else {
-        currentChapterId.value = ''
-        fileContent.value = ''
-        documentTitle.value = '未命名章节'
+        projectStore.clearEditor()
       }
     }
+  } catch (error: any) {
+    ElMessage.error('删除章节失败：' + (error.message || '未知错误'))
   }
 }
 
@@ -903,45 +922,45 @@ const updateCurrentTime = () => {
 }
 
 // --- 生命周期 ---
-onMounted(() => {
+onMounted(async () => {
   // 加载用户偏好
   loadPreferences()
 
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize)
 
-  // 初始化自动保存管理器
-  autoSaveManager = new AutoSaveManager({
-    interval: 30000, // 30秒自动保存
-    debounceDelay: 1500, // 1.5秒防抖
-    onSave: async () => {
-      saveStatus.value = '保存中...'
-      // TODO: 调用API保存到服务器
-      await new Promise(resolve => setTimeout(resolve, 500))
-      saveStatus.value = '已保存'
-      lastSavedTime.value = new Date().toLocaleTimeString('zh-CN')
-      return Promise.resolve()
-    },
-    onConflict: () => {
-      ElMessage.warning('检测到版本冲突，请刷新页面')
-    }
-  })
-
-  // 如果有路由参数中的章节ID，加载对应章节
-  const chapterId = route.query.chapterId as string
-  if (chapterId) {
-    const chapter = chapters.value.find(c => c.id === chapterId)
-    if (chapter) {
-      handleChapterChange(chapter)
-    }
-  } else if (chapters.value.length > 0) {
-    // 默认加载第一个章节
-    handleChapterChange(chapters.value[0])
-  }
-
   // 启动时间更新定时器
   const timeInterval = setInterval(updateCurrentTime, 1000)
 
+  // 从路由参数加载项目和文档
+  const docId = documentId.value
+  const projId = projectId.value
+
+  try {
+    if (projId) {
+      // 设置当前项目
+      projectStore.setCurrentProject(projId)
+
+      // 加载项目详情和文档列表
+      await Promise.all([
+        writerStore.fetchProjectById(projId),
+        projectStore.fetchDocuments(projId),
+        projectStore.fetchDocumentTree(projId)
+      ])
+    }
+
+    // 如果有文档ID，加载该文档
+    if (docId) {
+      await projectStore.loadDocument(docId)
+    } else if (chapters.value.length > 0) {
+      // 否则加载第一个文档
+      await projectStore.loadDocument(chapters.value[0].documentId)
+    }
+  } catch (error: any) {
+    ElMessage.error('加载失败：' + (error.message || '未知错误'))
+  }
+
+  // 清理函数
   onBeforeUnmount(() => {
     clearInterval(timeInterval)
     window.removeEventListener('resize', handleResize)
@@ -949,8 +968,17 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (autoSaveManager) {
-    autoSaveManager.stop()
+  // 清除自动保存定时器
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer)
+  }
+
+  // 保存当前文档
+  if (projectStore.hasUnsavedChanges && currentDocument.value) {
+    projectStore.saveDocumentContent(
+      currentDocument.value.documentId,
+      fileContent.value
+    )
   }
 })
 </script>
