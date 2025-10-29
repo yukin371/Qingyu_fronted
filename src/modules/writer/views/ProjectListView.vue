@@ -8,61 +8,87 @@
       </el-button>
     </div>
 
-    <div v-if="loading" class="loading-container">
-      <Loading />
-    </div>
+    <div v-loading="loading" class="projects-container">
+      <div v-if="!loading && projectList.length === 0" class="empty-container">
+        <el-empty description="还没有项目，创建一个开始吧！">
+          <el-button type="primary" @click="showCreateDialog = true">
+            <el-icon><Plus /></el-icon>
+            创建第一个项目
+          </el-button>
+        </el-empty>
+      </div>
 
-    <div v-else-if="projectList.length === 0" class="empty-container">
-      <Empty description="还没有项目，创建一个开始吧！" />
-    </div>
+      <div v-else class="project-grid">
+        <el-card
+          v-for="project in projectList"
+          :key="project.projectId"
+          class="project-card"
+          shadow="hover"
+          @click="openProject(project.projectId)"
+        >
+          <template #header>
+            <div class="card-header">
+              <span class="project-name">{{ project.title }}</span>
+              <el-dropdown @command="handleCommand($event, project)" @click.stop>
+                <el-icon class="more-icon"><MoreFilled /></el-icon>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
 
-    <div v-else class="project-grid">
-      <el-card
-        v-for="project in projectList"
-        :key="project.id"
-        class="project-card"
-        shadow="hover"
-        @click="openProject(project.id)"
-      >
-        <template #header>
-          <div class="card-header">
-            <span class="project-name">{{ project.name }}</span>
-            <el-dropdown @command="handleCommand($event, project)">
-              <el-icon class="more-icon"><MoreFilled /></el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+          <div class="project-description">
+            {{ project.description || '暂无描述' }}
           </div>
-        </template>
 
-        <div class="project-description">
-          {{ project.description || '暂无描述' }}
-        </div>
+          <div class="project-stats">
+            <div class="stat-item">
+              <span class="stat-label">字数</span>
+              <span class="stat-value">{{ project.wordCount || 0 }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">章节</span>
+              <span class="stat-value">{{ project.chapterCount || 0 }}</span>
+            </div>
+          </div>
 
-        <div class="project-meta">
-          <el-tag size="small" type="info">
-            {{ formatDate(project.createdAt) }}
-          </el-tag>
-        </div>
-      </el-card>
+          <div class="project-meta">
+            <el-tag size="small" :type="getStatusType(project.status)">
+              {{ getStatusText(project.status) }}
+            </el-tag>
+            <span class="meta-date">{{ formatDate(project.updatedAt) }}</span>
+          </div>
+        </el-card>
+      </div>
     </div>
 
     <!-- 创建项目对话框 -->
-    <el-dialog v-model="showCreateDialog" title="创建新项目" width="500px">
-      <el-form :model="newProject" label-width="80px">
-        <el-form-item label="项目名称">
-          <el-input v-model="newProject.name" placeholder="请输入项目名称" />
+    <el-dialog v-model="showCreateDialog" title="创建新项目" width="520px">
+      <el-form :model="newProject" label-width="90px">
+        <el-form-item label="项目名称" required>
+          <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
         </el-form-item>
+
+        <el-form-item label="项目类型">
+          <el-select v-model="newProject.type" placeholder="选择项目类型">
+            <el-option label="小说" value="novel" />
+            <el-option label="散文随笔" value="essay" />
+            <el-option label="其他" value="others" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="项目描述">
           <el-input
             v-model="newProject.description"
             type="textarea"
-            :rows="3"
+            :rows="4"
             placeholder="请输入项目描述（可选）"
+            maxlength="200"
+            show-word-limit
           />
         </el-form-item>
       </el-form>
@@ -74,67 +100,76 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, MoreFilled } from '@element-plus/icons-vue'
-import { useWriterStore } from '../stores/writerStore'
-import Loading from '@/components/common/Loading.vue'
-import Empty from '@/components/common/Empty.vue'
+import { useWriterStore } from '@/stores/writer'
 
 const router = useRouter()
 const writerStore = useWriterStore()
 
 // State
-const loading = ref(true)
 const showCreateDialog = ref(false)
 const newProject = ref({
-  name: '',
-  description: ''
+  title: '',
+  description: '',
+  type: 'novel' as 'novel' | 'essay' | 'others'
 })
 
 // Computed
 const projectList = computed(() => writerStore.projectList)
+const loading = computed(() => writerStore.loading)
 
 // Methods
-const formatDate = (dateStr) => {
+const formatDate = (dateStr: string) => {
   if (!dateStr) return '未知'
   const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN')
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
 }
 
-const openProject = (projectId) => {
+const openProject = (projectId: string) => {
   router.push({ name: 'writer-project', params: { projectId } })
 }
 
 const handleCreate = async () => {
-  if (!newProject.value.name.trim()) {
+  if (!newProject.value.title.trim()) {
     ElMessage.warning('请输入项目名称')
     return
   }
 
   try {
-    const project = await writerStore.createProject(newProject.value)
-    ElMessage.success('项目创建成功')
-    showCreateDialog.value = false
-    newProject.value = { name: '', description: '' }
+    const project = await writerStore.createNewProject({
+      title: newProject.value.title,
+      description: newProject.value.description,
+      type: newProject.value.type
+    })
 
-    // 打开新创建的项目
-    openProject(project.id)
-  } catch (error) {
-    ElMessage.error('创建项目失败：' + error.message)
+    if (project) {
+      showCreateDialog.value = false
+      newProject.value = { title: '', description: '', type: 'novel' }
+
+      // 打开新创建的项目
+      openProject(project.projectId)
+    }
+  } catch (error: any) {
+    ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
   }
 }
 
-const handleCommand = async (command, project) => {
+const handleCommand = async (command: string, project: any) => {
   if (command === 'edit') {
     // TODO: 实现编辑功能
     ElMessage.info('编辑功能开发中')
   } else if (command === 'delete') {
     try {
       await ElMessageBox.confirm(
-        `确定要删除项目"${project.name}"吗？此操作不可恢复。`,
+        `确定要删除项目"${project.title}"吗？此操作不可恢复。`,
         '确认删除',
         {
           confirmButtonText: '删除',
@@ -143,24 +178,43 @@ const handleCommand = async (command, project) => {
         }
       )
 
-      await writerStore.deleteProject(project.id)
-      ElMessage.success('项目已删除')
-    } catch (error) {
+      await writerStore.deleteProjectById(project.projectId)
+    } catch (error: any) {
       if (error !== 'cancel') {
-        ElMessage.error('删除失败：' + error.message)
+        ElMessage.error('删除失败：' + (error.message || '未知错误'))
       }
     }
   }
 }
 
+// 获取状态类型
+const getStatusType = (status: string) => {
+  const typeMap: Record<string, any> = {
+    draft: 'info',
+    writing: 'warning',
+    completed: 'success',
+    published: 'success'
+  }
+  return typeMap[status] || 'info'
+}
+
+// 获取状态文本
+const getStatusText = (status: string) => {
+  const textMap: Record<string, string> = {
+    draft: '草稿',
+    writing: '写作中',
+    completed: '已完成',
+    published: '已发布'
+  }
+  return textMap[status] || status
+}
+
 // Lifecycle
 onMounted(async () => {
   try {
-    await writerStore.loadProjects()
-  } catch (error) {
-    ElMessage.error('加载项目列表失败')
-  } finally {
-    loading.value = false
+    await writerStore.fetchProjects()
+  } catch (error: any) {
+    ElMessage.error('加载项目列表失败：' + (error.message || '未知错误'))
   }
 })
 </script>

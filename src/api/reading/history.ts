@@ -8,6 +8,9 @@ import request from '@/utils/request'
 export function getReadingHistory(params?: {
   page?: number
   size?: number
+  sortBy?: string
+  period?: string
+  keyword?: string
   startDate?: string
   endDate?: string
 }) {
@@ -36,9 +39,14 @@ export function batchDeleteHistory(historyIds: string[]) {
   })
 }
 
-// 清空阅读历史
+// 清空所有阅读历史
+export function clearAllHistory() {
+  return request.delete('/api/v1/reader/history/all')
+}
+
+// 清空阅读历史（别名）
 export function clearHistory() {
-  return request.delete('/api/v1/reader/history/clear')
+  return clearAllHistory()
 }
 
 // 获取书籍阅读进度
@@ -54,5 +62,17 @@ export function updateReadingProgress(data: {
   percentage?: number
 }) {
   return request.put('/api/v1/reader/progress', data)
+}
+
+// 导出为对象方便统一调用
+export const historyAPI = {
+  getReadingHistory,
+  recordReadingHistory,
+  deleteHistory,
+  batchDeleteHistory,
+  clearAllHistory,
+  clearHistory,
+  getBookProgress,
+  updateReadingProgress
 }
 
