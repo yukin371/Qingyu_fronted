@@ -87,32 +87,45 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Document, MoreFilled, Back } from '@element-plus/icons-vue'
-import { useWriterStore } from '../stores/writerStore'
-import Empty from '@/components/common/Empty.vue'
+import { useWriterStore } from '@/stores/writer'
+import { useProjectStore } from '@/stores/project'
 
 const route = useRoute()
 const router = useRouter()
 const writerStore = useWriterStore()
+const projectStore = useProjectStore()
+
+const projectId = route.params.projectId as string
 
 // State
 const showCreateDocDialog = ref(false)
 const newDocTitle = ref('')
-const documentContent = ref('')
-const saveStatus = ref('已保存')
-const lastSaveTime = ref('')
-const editorTextarea = ref(null)
-let autoSaveTimer = null
+const editorTextarea = ref<HTMLTextAreaElement | null>(null)
+let autoSaveTimer: NodeJS.Timeout | null = null
 
 // Computed
 const currentProject = computed(() => writerStore.currentProject)
-const currentDocument = computed(() => writerStore.currentDocument)
-const currentDocumentId = computed(() => writerStore.currentDocumentId)
-const documentList = computed(() => writerStore.documentList)
+const currentDocument = computed(() => projectStore.currentDocument)
+const currentDocumentId = computed(() => projectStore.currentDocumentId)
+const documentList = computed(() => projectStore.documentList)
+const documentContent = computed({
+  get: () => projectStore.editorContent,
+  set: (value: string) => projectStore.updateEditorContent(value)
+})
+const saveStatus = computed(() => {
+  if (projectStore.isSaving) return '保存中...'
+  if (projectStore.hasUnsavedChanges) return '未保存'
+  return '已保存'
+})
+const lastSaveTime = computed(() => {
+  if (!projectStore.lastSaved) return '-'
+  return new Date(projectStore.lastSaved).toLocaleTimeString('zh-CN')
+})
 
 const wordCount = computed(() => {
   if (!documentContent.value) return 0
@@ -120,34 +133,34 @@ const wordCount = computed(() => {
 })
 
 // Methods
-const selectDocument = async (docId) => {
-  await writerStore.setCurrentDocument(docId)
-  documentContent.value = currentDocument.value?.content || ''
-  saveStatus.value = '已加载'
+const selectDocument = async (docId: string) => {
+  try {
+    await projectStore.loadDocument(docId)
+  } catch (error: any) {
+    ElMessage.error('加载文档失败：' + (error.message || '未知错误'))
+  }
 }
 
 const handleContentChange = () => {
-  saveStatus.value = '未保存'
+  // 文档内容已通过computed自动更新到store
 
+  // 清除旧的自动保存定时器
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer)
   }
 
-  autoSaveTimer = setTimeout(saveDocument, writerStore.editorSettings.autoSaveInterval)
+  // 设置新的自动保存定时器（30秒后保存）
+  autoSaveTimer = setTimeout(saveDocument, 30000)
 }
 
 const saveDocument = async () => {
-  if (!currentDocument.value) return
-
-  saveStatus.value = '保存中...'
+  if (!currentDocument.value || !projectStore.hasUnsavedChanges) return
 
   try {
-    await writerStore.updateDocument(currentDocument.value.id, {
-      content: documentContent.value
-    })
-
-    saveStatus.value = '已保存'
-    lastSaveTime.value = new Date().toLocaleTimeString()
+    await projectStore.saveDocumentContent(
+      currentDocument.value.documentId,
+      documentContent.value
+    )
   } catch (error) {
     saveStatus.value = '保存失败'
     ElMessage.error('保存失败：' + error.message)
@@ -158,12 +171,12 @@ const saveDocumentTitle = async () => {
   if (!currentDocument.value) return
 
   try {
-    await writerStore.updateDocument(currentDocument.value.id, {
-      title: currentDocument.value.title
-    })
-    ElMessage.success('标题已更新')
-  } catch (error) {
-    ElMessage.error('更新标题失败')
+    await projectStore.updateDocumentData(
+      currentDocument.value.documentId,
+      { title: currentDocument.value.title }
+    )
+  } catch (error: any) {
+    ElMessage.error('保存标题失败：' + (error.message || '未知错误'))
   }
 }
 
@@ -174,23 +187,22 @@ const handleCreateDoc = async () => {
   }
 
   try {
-    const doc = await writerStore.createDocument({
-      title: newDocTitle.value,
-      content: ''
+    const doc = await projectStore.createNewDocument(projectId, {
+      title: newDocTitle.value
     })
 
-    ElMessage.success('文档创建成功')
-    showCreateDocDialog.value = false
-    newDocTitle.value = ''
-
-    // 选中新文档
-    await selectDocument(doc.id)
-  } catch (error) {
-    ElMessage.error('创建文档失败：' + error.message)
+    if (doc) {
+      showCreateDocDialog.value = false
+      newDocTitle.value = ''
+      // 自动选择新创建的文档
+      await selectDocument(doc.documentId)
+    }
+  } catch (error: any) {
+    ElMessage.error('创建文档失败：' + (error.message || '未知错误'))
   }
 }
 
-const handleDocCommand = async (command, doc) => {
+const handleDocCommand = async (command: string, doc: any) => {
   if (command === 'rename') {
     try {
       const { value } = await ElMessageBox.prompt('请输入新标题', '重命名文档', {
@@ -200,12 +212,11 @@ const handleDocCommand = async (command, doc) => {
       })
 
       if (value && value.trim()) {
-        await writerStore.updateDocument(doc.id, { title: value.trim() })
-        ElMessage.success('重命名成功')
+        await projectStore.updateDocumentData(doc.documentId, { title: value.trim() })
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error !== 'cancel') {
-        ElMessage.error('重命名失败')
+        ElMessage.error('重命名失败：' + (error.message || '未知错误'))
       }
     }
   } else if (command === 'delete') {
@@ -220,11 +231,10 @@ const handleDocCommand = async (command, doc) => {
         }
       )
 
-      await writerStore.deleteDocument(doc.id)
-      ElMessage.success('文档已删除')
-    } catch (error) {
+      await projectStore.deleteDocumentById(doc.documentId)
+    } catch (error: any) {
       if (error !== 'cancel') {
-        ElMessage.error('删除失败')
+        ElMessage.error('删除失败：' + (error.message || '未知错误'))
       }
     }
   }
@@ -236,26 +246,30 @@ const goBack = () => {
 
 // Lifecycle
 onMounted(async () => {
-  const projectId = route.params.projectId
+  try {
+    // 设置当前项目ID
+    projectStore.setCurrentProject(projectId)
 
-  if (projectId) {
-    try {
-      await writerStore.setCurrentProject(projectId)
-
-      // 如果有文档，选中第一个
-      if (documentList.value.length > 0) {
-        await selectDocument(documentList.value[0].id)
-      }
-    } catch (error) {
-      ElMessage.error('加载项目失败')
-    }
+    // 加载项目详情和文档列表
+    await Promise.all([
+      writerStore.fetchProjectById(projectId),
+      projectStore.fetchDocuments(projectId),
+      projectStore.fetchDocumentTree(projectId)
+    ])
+  } catch (error: any) {
+    ElMessage.error('加载项目失败：' + (error.message || '未知错误'))
   }
 })
 
 onBeforeUnmount(() => {
+  // 清除自动保存定时器
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer)
-    saveDocument() // 离开前保存
+  }
+
+  // 保存当前文档
+  if (projectStore.hasUnsavedChanges) {
+    saveDocument()
   }
 })
 </script>
