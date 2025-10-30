@@ -4,9 +4,10 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
-import { login, logout, register } from '@/api/auth'
-import { getUserProfile } from '@/api/user'
+import { login, logout, register } from '@/api/shared/auth'
+import { getUserProfile } from '@/api/user/profile'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -78,11 +79,13 @@ export const useUserStore = defineStore('user', () => {
       await logout()
     } catch (error) {
       console.error('登出失败:', error)
+      // 404错误说明后端没有这个API，忽略即可
     } finally {
       // 无论API调用是否成功，都清除本地状态
       token.value = ''
       userInfo.value = null
       localStorage.removeItem('token')
+      ElMessage.success('已退出登录')
     }
   }
 

@@ -223,7 +223,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
-import { recommendationAPI } from '@/api/recommendation'
+import * as recommendationAPI from '@/api/recommendation'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeft, User, Collection, View, Star, Document,

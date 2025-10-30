@@ -1,142 +1,120 @@
-/**
- * Axios 请求封装
- */
-
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import axios, { type AxiosError, type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
+import { ErrorHandler } from './errorHandler'
+
+// 请求配置接口
+export interface RequestConfig extends InternalAxiosRequestConfig {
+  skipErrorHandler?: boolean // 跳过错误处理
+  silent?: boolean // 静默模式
+  deduplicate?: boolean // 去重
+}
 
 // 创建axios实例
-const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-  timeout: 15000,
+const request: AxiosInstance = axios.create({
+  baseURL: (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+  timeout: 10000,
   headers: {
-    'Content-Type': 'application/json;charset=utf-8',
-  },
+    'Content-Type': 'application/json'
+  }
 })
 
 // 请求拦截器
-service.interceptors.request.use(
-  (config) => {
-    // 从localStorage获取token
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+request.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    // 添加认证token
+    const authStore = useAuthStore()
+    if (authStore.token && config.headers) {
+      config.headers.set('Authorization', `Bearer ${authStore.token}`)
     }
+
+    // 添加请求时间戳，防止缓存
+    if ((config.method || 'get').toLowerCase() === 'get') {
+      config.params = {
+        ...(config.params as Record<string, unknown>),
+        _t: Date.now()
+      }
+    }
+
     return config
   },
-  (error) => {
-    console.error('请求错误:', error)
+  (error: unknown) => {
+    console.error('请求配置错误:', error)
     return Promise.reject(error)
   }
 )
 
-// 响应拦截器
-service.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const { data, config } = response
+// 响应拦截器 (v1.3)
+request.interceptors.response.use(
+  (response: AxiosResponse<any>) => {
+    const { data } = response
 
-    // 如果是下载文件，直接返回
-    if (config.responseType === 'blob') {
-      return response
-    }
+    // 统一处理响应格式
+    if (data && typeof data === 'object' && 'code' in data) {
+      // v1.3: 提取 timestamp 和 request_id
+      const { code, message, data: responseData, timestamp, request_id } = data
 
-    // 统一响应格式：{ code, message, data }
-    if (data.code !== undefined) {
-      // 成功
-      if (data.code === 0 || data.code === 200) {
-        return data.data
+      // 开发环境：记录 request_id 和时间戳
+      if (request_id && import.meta.env.DEV) {
+        const time = timestamp ? new Date(timestamp * 1000).toLocaleString() : 'N/A'
+        console.debug(`[API] ${request_id} - ${time}`)
       }
 
-      // 业务错误
-      ElMessage.error(data.message || '请求失败')
-      return Promise.reject(new Error(data.message || '请求失败'))
+      // 2xx状态码都视为成功 (v1.3: 支持 200 和 201)
+      if (code === 200 || code === 201 || (code >= 200 && code < 300)) {
+        // 返回完整响应对象（包含code, message, data等）
+        // 这样前端可以统一处理响应
+        return data
+      } else {
+        // 业务错误
+        const config = response.config as RequestConfig
+        if (!config.skipErrorHandler && !config.silent) {
+          ElMessage.error(message || '请求失败')
+        }
+
+        // v1.3: 错误中包含 request_id 便于追踪
+        const error = new Error(message || '请求失败') as any
+        error.code = code
+        error.request_id = request_id
+        error.timestamp = timestamp
+        return Promise.reject(error)
+      }
     }
 
-    // 如果没有code字段，直接返回data
+    // 直接返回数据（向后兼容）
     return data
   },
-  (error) => {
-    console.error('响应错误:', error)
+  (error: AxiosError<any>) => {
+    const config = error.config as RequestConfig
 
-    // 处理HTTP错误
-    if (error.response) {
-      const { status, data } = error.response
-
-      switch (status) {
-        case 401:
-          // 未授权，清除token并跳转登录
-          localStorage.removeItem('token')
-          ElMessage.error('登录已过期，请重新登录')
-
-          // 跳转到登录页
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login'
-          }
-          break
-
-        case 403:
-          ElMessage.error('没有权限访问')
-          break
-
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-
-        case 500:
-          ElMessage.error(data?.message || '服务器错误')
-          break
-
-        default:
-          ElMessage.error(data?.message || '请求失败')
-      }
-    } else if (error.request) {
-      // 请求已发出但没有收到响应
-      ElMessage.error('网络错误，请检查您的网络连接')
-    } else {
-      // 其他错误
-      ElMessage.error(error.message || '请求失败')
+    // v1.3: 记录错误中的 request_id
+    const { request_id } = error.response?.data || {}
+    if (request_id && import.meta.env.DEV) {
+      console.error(`[API Error] ${request_id}`, error.response?.data)
     }
 
-    return Promise.reject(error)
+    // 跳过错误处理
+    if (config?.skipErrorHandler) {
+      return Promise.reject(error)
+    }
+
+    // 使用统一错误处理器
+    const appError = ErrorHandler.handle(error, {
+      silent: config?.silent,
+      showMessage: !config?.silent,
+      onError: () => {
+        // 401错误特殊处理：清除token并跳转登录
+        if (error.response?.status === 401) {
+          const authStore = useAuthStore()
+          authStore.logout()
+        }
+      }
+    })
+
+    return Promise.reject(appError)
   }
 )
 
-// 封装请求方法
-class Request {
-  /**
-   * GET请求
-   */
-  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return service.get(url, config)
-  }
+export default request
 
-  /**
-   * POST请求
-   */
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return service.post(url, data, config)
-  }
 
-  /**
-   * PUT请求
-   */
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return service.put(url, data, config)
-  }
-
-  /**
-   * DELETE请求
-   */
-  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return service.delete(url, config)
-  }
-
-  /**
-   * PATCH请求
-   */
-  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return service.patch(url, data, config)
-  }
-}
-
-export default new Request()

@@ -1,6 +1,5 @@
 /**
- * 用户信息相关API
- * 获取个人信息、更新个人信息、修改密码
+ * 用户 - 个人资料相关API
  */
 
 import request from '@/utils/request'
@@ -32,3 +31,18 @@ export function changePassword(oldPassword: string, newPassword: string) {
     newPassword,
   })
 }
+
+/**
+ * 上传头像
+ * POST /api/v1/users/avatar
+ */
+export function uploadAvatar(file: File) {
+  const formData = new FormData()
+  formData.append('avatar', file)
+  return request.post<{ url: string }>('/users/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+}
+

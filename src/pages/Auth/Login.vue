@@ -102,12 +102,27 @@ async function handleSubmit() {
     await formRef.value.validate()
     isLoading.value = true
 
+    // 执行登录
     await userStore.handleLogin(formData)
+
+    console.log('登录成功，token:', userStore.token)
+
+    // 登录成功后获取用户信息
+    try {
+      await userStore.fetchUserInfo()
+      console.log('用户信息获取成功:', userStore.userInfo)
+    } catch (e) {
+      console.warn('获取用户信息失败，但继续登录流程:', e)
+      // 继续跳转，不阻断登录流程
+    }
 
     ElMessage.success('登录成功')
 
     // 获取重定向路径
     const redirect = (route.query.redirect as string) || '/bookstore'
+
+    // 使用 nextTick 确保状态更新后再跳转
+    await new Promise(resolve => setTimeout(resolve, 100))
     router.push(redirect)
   } catch (error: any) {
     console.error('登录失败:', error)

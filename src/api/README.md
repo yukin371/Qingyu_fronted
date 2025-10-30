@@ -2,166 +2,206 @@
 
 本目录包含青羽平台所有前端API接口封装。
 
-## 📁 目录结构
+## 📁 目录结构（重构后）
 
 ```text
 api/
-├── auth.js                 # 认证相关API（已弃用，使用user.js）
-├── user.js                 # 用户管理API
-├── bookstore.js           # 书城系统API
-├── recommendation.js      # 推荐系统API
-├── reading/               # 阅读端API模块
-│   ├── reader.js          # 阅读器API（章节、进度、设置）
-│   ├── rating.js          # 评分系统API
-│   ├── books.js           # 书籍和章节API
-│   └── index.js           # 统一导出
-├── writing/               # 写作端API模块（待完善）
-└── shared/                # 共享API模块
-    ├── auth.js            # 统一认证API
-    ├── admin.js           # 管理员API
-    ├── wallet.js          # 钱包系统API
-    ├── storage.js         # 存储工具
-    └── index.js           # 统一导出
+├── index.ts                    # 统一导出入口
+├── README.md                   # 本文档
+│
+├── shared/                     # 共享服务模块
+│   ├── index.ts               # 模块统一导出
+│   ├── auth.ts                # 认证API（登录、注册、登出）
+│   ├── wallet.ts              # 钱包系统API
+│   ├── admin.ts               # 管理员API
+│   ├── storage.ts             # 存储工具
+│   └── types.ts               # 类型定义
+│
+├── bookstore/                  # 书城系统模块
+│   ├── index.ts               # 模块统一导出
+│   ├── homepage.ts            # 首页数据API
+│   ├── books.ts               # 书籍相关API
+│   ├── categories.ts          # 分类API
+│   ├── banners.ts             # Banner API
+│   └── rankings.ts            # 排行榜API
+│
+├── reading/                    # 阅读端模块
+│   ├── index.ts               # 模块统一导出
+│   ├── reader.ts              # 阅读器API（章节、进度、设置）
+│   ├── books.ts               # 书籍详情API
+│   ├── bookshelf.ts           # 书架API
+│   ├── comments.ts            # 评论API
+│   ├── rating.ts              # 评分系统API
+│   ├── history.ts             # 阅读历史API
+│   └── bookmarks.ts           # 书签API
+│
+├── writing/                    # 写作端模块
+│   ├── index.ts               # 模块统一导出
+│   ├── ai.ts                  # AI写作助手API
+│   ├── statistics.ts          # 作品统计API
+│   └── revenue.ts             # 收入统计API
+│
+├── user/                       # 用户中心模块
+│   ├── index.ts               # 模块统一导出
+│   ├── profile.ts             # 个人资料API
+│   └── security.ts            # 安全设置API
+│
+└── recommendation/             # 推荐系统模块
+    ├── index.ts               # 模块统一导出
+    └── recommendation.ts      # 推荐API
 ```
 
 ## 🚀 使用方式
 
-### 1. 导入API模块
+### 方式1：命名空间导入（推荐）
 
-```javascript
-// 导入用户API
-import { userAPI } from '@/api/user'
+```typescript
+import { bookstore, reading, user, shared } from '@/api'
 
-// 导入书城API
-import { bookstoreAPI } from '@/api/bookstore'
-
-// 导入阅读器API
-import { readerAPI } from '@/api/reading/reader'
-import { ratingAPI } from '@/api/reading/rating'
-import { booksAPI } from '@/api/reading/books'
-
-// 导入推荐系统API
-import { recommendationAPI } from '@/api/recommendation'
+// 使用
+await bookstore.getHomepage()
+await reading.getChapterContent(chapterId)
+await user.getUserProfile()
+await shared.login(loginData)
 ```
 
-### 2. 调用API方法
+### 方式2：直接导入函数
 
-```javascript
-// 用户登录
-const loginData = {
-  username: 'testuser',
-  password: 'password123'
-}
-const response = await userAPI.login(loginData)
+```typescript
+import { getHomepage } from '@/api/bookstore'
+import { getUserProfile } from '@/api/user'
 
-// 获取书籍列表
-const books = await booksAPI.getBookList({
-  page: 1,
-  size: 20,
-  category: '玄幻'
-})
-
-// 获取章节内容
-const content = await readerAPI.getChapterContent('chapter123')
+// 使用
+await getHomepage()
+await getUserProfile()
 ```
 
-### 3. 错误处理
+### 方式3：从子模块导入
 
-所有API方法都返回Promise，建议使用try-catch处理错误：
+```typescript
+import { getHomepage } from '@/api/bookstore/homepage'
+import { getBookDetail } from '@/api/bookstore/books'
+import { getUserProfile } from '@/api/user/profile'
 
-```javascript
-try {
-  const response = await userAPI.getProfile()
-  console.log('用户信息:', response.data)
-} catch (error) {
-  console.error('请求失败:', error.message)
-  // 处理错误（显示提示、跳转登录等）
-}
+// 使用
+await getHomepage()
+await getBookDetail(bookId)
+await getUserProfile()
 ```
 
 ## 📖 API模块说明
 
-### 用户管理 API (`user.js`)
+### 1. 共享服务 (shared/)
 
-- **公开接口**：注册、登录
-- **用户接口**：获取/更新个人信息、修改密码
-- **管理员接口**：用户列表、用户管理、批量操作
+**认证相关** (`auth.ts`)
+- `register()` - 用户注册
+- `login()` - 用户登录
+- `logout()` - 用户登出
+- `refreshToken()` - 刷新Token
 
-参考文档：[用户管理API使用指南](../../Qingyu_backend/doc/api/用户管理API使用指南.md)
+**钱包系统** (`wallet.ts`)
+- 余额查询、充值、提现
+- 交易记录查询
 
-### 书城系统 API (`bookstore.js`)
+**管理员** (`admin.ts`)
+- 用户管理、内容审核
+- 系统配置
 
-- 首页数据、Banner管理
-- 榜单系统（实时榜、周榜、月榜、新人榜）
-- 推荐书籍、精选书籍
-- 书籍搜索
+### 2. 书城系统 (bookstore/)
 
-### 推荐系统 API (`recommendation.js`)
+**首页** (`homepage.ts`)
+- `getHomepage()` - 获取首页数据（Banner、榜单、推荐）
 
-- **个性化推荐**：基于用户历史行为的个性化书籍推荐
-- **相似推荐**：基于书籍内容的相似物品推荐
-- **用户行为追踪**：记录用户浏览、点击、收藏等行为
-- **首页推荐**：首页混合推荐算法
-- **热门推荐**：基于统计的热门书籍推荐
-- **分类推荐**：特定分类的推荐内容
+**书籍** (`books.ts`)
+- `getBookDetail(bookId)` - 获取书籍详情
+- `searchBooks(params)` - 搜索书籍
+- `getRecommendedBooks()` - 获取推荐书籍
+- `getFeaturedBooks()` - 获取精选书籍
+- `incrementBookView(bookId)` - 增加浏览量
 
-### 阅读端 API (`reading/`)
+**分类** (`categories.ts`)
+- `getCategoryTree()` - 获取分类树
+- `getCategoryDetail(categoryId)` - 获取分类详情
+- `getBooksByCategory(categoryId)` - 根据分类获取书籍
 
-#### 阅读器 API (`reader.js`)
+**Banner** (`banners.ts`)
+- `getBanners()` - 获取Banner列表
+- `incrementBannerClick(bannerId)` - 增加点击量
 
-- **章节阅读**：获取章节信息/内容、章节列表、章节导航
-- **阅读进度**：保存/获取进度、阅读历史、阅读时长
-- **注记功能**：创建/更新/删除注记、书签、高亮、笔记
-- **阅读设置**：获取/保存/更新个性化设置
+**排行榜** (`rankings.ts`)
+- `getRealtimeRanking()` - 实时榜
+- `getWeeklyRanking()` - 周榜
+- `getMonthlyRanking()` - 月榜
+- `getNewbieRanking()` - 新人榜
+- `getRankingByType(type)` - 按类型获取榜单
 
-#### 评分系统 API (`rating.js`)
+### 3. 阅读端 (reading/)
 
-- 获取书籍评分列表
-- 创建/更新/删除评分
-- 获取评分统计
+**阅读器** (`reader.ts`)
+- 章节内容、进度管理
+- 阅读设置、注记功能
 
-#### 书籍和章节 API (`books.js`)
+**书籍** (`books.ts`)
+- 书籍列表、详情、搜索
 
-- 书籍详情、书籍列表、分类筛选
-- 搜索书籍（按标题、作者、标签）
-- 章节详情、章节列表
-- 分类管理
+**书架** (`bookshelf.ts`)
+- 添加/删除书籍、书架管理
 
-参考文档：
+**评论** (`comments.ts`)
+- 创建、更新、删除评论
+- 点赞、回复
 
-- [阅读端API使用文档](../../Qingyu_backend/doc/api/阅读端API使用文档.md)
-- [阅读端API快速开始指南](../../Qingyu_backend/doc/api/阅读端API快速开始指南.md)
+**评分** (`rating.ts`)
+- 评分管理、统计
 
-## 🔧 API测试工具
+**历史** (`history.ts`)
+- 阅读历史记录
 
-项目提供了可视化API测试工具，方便开发和调试：
+**书签** (`bookmarks.ts`)
+- 书签管理
 
-### 完整API测试工具（推荐）
+### 4. 写作端 (writing/)
 
-```text
-访问路径：/api-test-comprehensive
-```
+**AI助手** (`ai.ts`)
+- `chatWithAI()` - AI对话
+- `continueWriting()` - 续写
+- `polishText()` - 润色
+- `expandText()` - 扩写
+- `rewriteText()` - 改写
 
-**新功能特性：**
+**统计** (`statistics.ts`)
+- `getBookStats(bookId)` - 作品统计概览
+- `getDailyStats(bookId)` - 每日数据
+- `getChapterStats(bookId)` - 章节统计
+- `getReaderActivity(bookId)` - 读者活跃度
+- `getReadingHeatmap(bookId)` - 阅读时段热力图
 
-- ✅ 覆盖所有API接口的可视化测试
-- ✅ 按模块组织：认证与用户、书城系统、阅读器、推荐系统、评分系统、共享服务
-- ✅ 自动Token管理，显示Token状态
-- ✅ 实时响应预览，格式化JSON显示
-- ✅ 请求历史记录，最近10次API调用
-- ✅ 快速填充测试数据
-- ✅ 错误提示和故障排除
-- ✅ HTTP方法可视化标识（GET/POST/PUT/DELETE）
-- ✅ 认证需求指示器
+**收入** (`revenue.ts`)
+- `getRevenueStats()` - 收入统计
+- `getRevenueTrend()` - 收入趋势
+- `getRevenueSources()` - 收入来源分布
+- `getChapterRevenueRanking()` - 章节收入排行
 
-### 传统API测试工具
+### 5. 用户中心 (user/)
 
-```text
-访问路径：/api-test（传统版本）
-访问路径：/shared-api-test（共享服务）
-```
+**个人资料** (`profile.ts`)
+- `getUserProfile()` - 获取个人信息
+- `updateUserProfile(data)` - 更新个人信息
+- `changePassword()` - 修改密码
+- `uploadAvatar(file)` - 上传头像
 
-详细使用说明：参考 [前端API参考文档](../../doc/api/frontend/)
+**安全设置** (`security.ts`)
+- 安全相关设置
+
+### 6. 推荐系统 (recommendation/)
+
+**推荐** (`recommendation.ts`)
+- `getPersonalizedRecommendations()` - 个性化推荐
+- `getSimilarRecommendations()` - 相似推荐
+- `recordBehavior()` - 记录用户行为
+- `getHomepageRecommendations()` - 首页推荐
+- `getTrendingRecommendations()` - 热门推荐
+- `getCategoryRecommendations()` - 分类推荐
 
 ## 💡 开发规范
 
@@ -171,7 +211,7 @@ try {
 - 动词在前，名词在后
 - 明确表达接口功能
 
-```javascript
+```typescript
 // 推荐
 getBookList()
 createAnnotation()
@@ -185,14 +225,11 @@ profile()
 
 ### 2. 参数传递
 
-- 简单参数直接传递
-- 复杂参数使用对象
-
-```javascript
-// 简单参数
+```typescript
+// 简单参数直接传递
 getBookDetail(bookId)
 
-// 复杂参数
+// 复杂参数使用对象
 getBookList({
   page: 1,
   size: 20,
@@ -205,7 +242,7 @@ getBookList({
 
 所有API接口返回的数据结构：
 
-```javascript
+```typescript
 {
   code: 200,           // 状态码
   message: "成功",     // 消息
@@ -218,42 +255,71 @@ getBookList({
 
 ### 4. 错误处理
 
-统一在`utils/request.js`中处理常见错误：
+统一在 `utils/request.ts` 中处理常见错误：
 
 - 401：未认证，跳转登录
 - 403：权限不足
 - 404：资源不存在
 - 500：服务器错误
 
-## 🔗 相关文档
+## 🔗 与后端对应关系
 
-- [请求封装说明](../utils/request.js)
-- [后端API文档](../../Qingyu_backend/doc/api/)
-- [项目开发规范](../../Qingyu/doc/项目开发规范.md)
+| 前端模块 | 后端模块 | 说明 |
+|---------|---------|------|
+| `shared/` | `shared/` | 共享服务（认证、钱包、管理员） |
+| `bookstore/` | `bookstore/` | 书城系统 |
+| `reading/` | `reading/`, `reader/` | 阅读端（合并reader模块） |
+| `writing/` | `writer/`, `ai/` | 写作端（包含AI服务） |
+| `user/` | `user/` | 用户中心 |
+| `recommendation/` | `recommendation/` | 推荐系统 |
 
-## 📝 待完善模块
+## 📝 迁移指南
 
-- [ ] 写作端API完善
-- [ ] WebSocket实时通知API
-- [ ] 支付系统API
-- [ ] 社交功能API（关注、私信）
-- [ ] 活动系统API
+### 旧版本 → 新版本
+
+```typescript
+// ❌ 旧版本（已废弃）
+import { login } from '@/api/auth'
+import { getUserProfile } from '@/api/user'
+import { getBookDetail } from '@/api/bookstore'
+
+// ✅ 新版本（推荐）
+import { shared, user, bookstore } from '@/api'
+shared.login()
+user.getUserProfile()
+bookstore.getBookDetail()
+
+// ✅ 或者直接导入
+import { login } from '@/api/shared/auth'
+import { getUserProfile } from '@/api/user/profile'
+import { getBookDetail } from '@/api/bookstore/books'
+```
+
+## 🔧 相关文档
+
+- [请求封装说明](../utils/request.ts)
+- [后端API文档](../../../Qingyu_backend/doc/api/)
+- [项目开发规范](../../../doc/项目开发规范.md)
 
 ## ✅ 最近更新
 
+### 2025-10-30
+
+- ✅ **重构API层结构**，按业务模块化组织
+  - 拆分 `bookstore.ts` 为 5 个子模块
+  - 完善 `user/` 模块
+  - 合并 `writing/` 和 `writer/` 模块
+  - 为每个模块添加统一导出
+- ✅ **与后端对应**，前后端结构一致
+- ✅ **清理重复文件**，避免冲突
+- ✅ **统一导出方式**，支持多种导入方式
+
 ### 2025-10-18
 
-- ✅ 新增推荐系统API (`recommendation.js`)
-  - 个性化推荐
-  - 相似物品推荐
-  - 用户行为追踪
-  - 首页/热门/分类推荐
+- ✅ 新增推荐系统API (`recommendation.ts`)
 - ✅ 新增完整API测试工具 (`/api-test-comprehensive`)
-  - 覆盖所有文档化的API接口
-  - 增强的UI和用户体验
-  - 请求历史和快速填充功能
 
 ---
 
 **维护者**: 青羽前端团队  
-**最后更新**: 2025-10-18
+**最后更新**: 2025-10-30

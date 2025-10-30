@@ -1,3 +1,8 @@
+/**
+ * Writer Store - 作者状态管理
+ * 支持在线模式（API）和离线模式（IndexedDB）
+ */
+
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
@@ -11,7 +16,20 @@ import {
   type ProjectUpdateData,
   type ProjectQueryParams
 } from '@/modules/writer/api/projects'
+import {
+  getLocalProjects,
+  createLocalProject,
+  getLocalProject,
+  updateLocalProject,
+  deleteLocalProject,
+  getLocalStats,
+  initLocalStorage,
+  type LocalProject
+} from '@/utils/localStorageAPI'
 import { ElMessage } from 'element-plus'
+
+// 运行模式
+type StorageMode = 'online' | 'offline'
 
 /**
  * 写作端状态管理
@@ -22,6 +40,14 @@ export const useWriterStore = defineStore('writer', () => {
   const currentProject = ref<Project | null>(null)
   const loading = ref(false)
   const total = ref(0)
+
+  // 存储模式（默认离线模式，可测试前端功能）
+  const storageMode = ref<StorageMode>('offline')
+
+  // 初始化本地存储
+  initLocalStorage().catch(err => {
+    console.error('初始化本地存储失败:', err)
+  })
 
   // 统计数据
   const stats = ref({
@@ -34,17 +60,36 @@ export const useWriterStore = defineStore('writer', () => {
   // 计算属性
   const projectList = computed(() => projects.value)
   const hasProjects = computed(() => projects.value.length > 0)
+  const isOnlineMode = computed(() => storageMode.value === 'online')
+  const isOfflineMode = computed(() => storageMode.value === 'offline')
 
   // 获取项目列表
   const fetchProjects = async (params?: ProjectQueryParams) => {
     loading.value = true
     try {
-      const response = await getProjects(params)
-      if (response.code === 200) {
-        projects.value = response.data || []
-        total.value = response.total || 0
+      if (storageMode.value === 'offline') {
+        // 离线模式：使用 IndexedDB
+        const localProjects = await getLocalProjects()
+        projects.value = localProjects as any[]
+        total.value = localProjects.length
+        console.log('📦 从本地存储加载项目:', localProjects.length, '个')
+        return { code: 200, data: localProjects, total: localProjects.length }
+      } else {
+        // 在线模式：使用 API
+        try {
+          const response = await getProjects(params)
+          if (response.code === 200) {
+            projects.value = response.data || []
+            total.value = response.total || 0
+          }
+          return response
+        } catch (apiError: any) {
+          console.error('在线模式API调用失败:', apiError)
+          ElMessage.warning('网络错误，已切换到离线模式')
+          storageMode.value = 'offline'
+          return fetchProjects(params)
+        }
       }
-      return response
     } catch (error: any) {
       console.error('获取项目列表失败:', error)
       throw error
@@ -56,13 +101,36 @@ export const useWriterStore = defineStore('writer', () => {
   // 创建项目
   const createNewProject = async (data: ProjectCreateData) => {
     try {
-      const response = await createProject(data)
-      if (response.code === 200 && response.data) {
-        projects.value.unshift(response.data)
-        ElMessage.success('项目创建成功')
-        return response.data
+      if (storageMode.value === 'offline') {
+        // 离线模式：使用 IndexedDB
+        const project = await createLocalProject(data)
+        // 确保 projects.value 是数组
+        if (!Array.isArray(projects.value)) {
+          projects.value = []
+        }
+        projects.value.unshift(project as any)
+        ElMessage.success('项目创建成功（本地存储）')
+        return project as any
+      } else {
+        // 在线模式：使用 API
+        try {
+          const response = await createProject(data)
+          if (response.code === 200 && response.data) {
+            if (!Array.isArray(projects.value)) {
+              projects.value = []
+            }
+            projects.value.unshift(response.data)
+            ElMessage.success('项目创建成功')
+            return response.data
+          }
+          return null
+        } catch (apiError: any) {
+          console.error('在线模式API调用失败:', apiError)
+          ElMessage.warning('网络错误，已切换到离线模式')
+          storageMode.value = 'offline'
+          return createNewProject(data)
+        }
       }
-      return null
     } catch (error: any) {
       console.error('创建项目失败:', error)
       throw error
@@ -72,12 +140,20 @@ export const useWriterStore = defineStore('writer', () => {
   // 获取项目详情
   const fetchProjectById = async (projectId: string) => {
     try {
-      const response = await getProjectById(projectId)
-      if (response.code === 200 && response.data) {
-        currentProject.value = response.data
-        return response.data
+      if (storageMode.value === 'offline') {
+        // 离线模式：使用 IndexedDB
+        const project = await getLocalProject(projectId)
+        currentProject.value = project as any
+        return project as any
+      } else {
+        // 在线模式：使用 API
+        const response = await getProjectById(projectId)
+        if (response.code === 200 && response.data) {
+          currentProject.value = response.data
+          return response.data
+        }
+        return null
       }
-      return null
     } catch (error: any) {
       console.error('获取项目详情失败:', error)
       throw error
@@ -87,23 +163,43 @@ export const useWriterStore = defineStore('writer', () => {
   // 更新项目
   const updateProjectData = async (projectId: string, data: ProjectUpdateData) => {
     try {
-      const response = await updateProject(projectId, data)
-      if (response.code === 200 && response.data) {
+      if (storageMode.value === 'offline') {
+        // 离线模式：使用 IndexedDB
+        const updatedProject = await updateLocalProject(projectId, data)
+
         // 更新列表中的项目
         const index = projects.value.findIndex(p => p.projectId === projectId)
         if (index !== -1) {
-          projects.value[index] = response.data
+          projects.value[index] = updatedProject as any
         }
 
         // 更新当前项目
         if (currentProject.value?.projectId === projectId) {
-          currentProject.value = response.data
+          currentProject.value = updatedProject as any
         }
 
-        ElMessage.success('项目更新成功')
-        return response.data
+        ElMessage.success('项目更新成功（本地存储）')
+        return updatedProject as any
+      } else {
+        // 在线模式：使用 API
+        const response = await updateProject(projectId, data)
+        if (response.code === 200 && response.data) {
+          // 更新列表中的项目
+          const index = projects.value.findIndex(p => p.projectId === projectId)
+          if (index !== -1) {
+            projects.value[index] = response.data
+          }
+
+          // 更新当前项目
+          if (currentProject.value?.projectId === projectId) {
+            currentProject.value = response.data
+          }
+
+          ElMessage.success('项目更新成功')
+          return response.data
+        }
+        return null
       }
-      return null
     } catch (error: any) {
       console.error('更新项目失败:', error)
       throw error
@@ -113,8 +209,10 @@ export const useWriterStore = defineStore('writer', () => {
   // 删除项目
   const deleteProjectById = async (projectId: string) => {
     try {
-      const response = await deleteProject(projectId)
-      if (response.code === 200) {
+      if (storageMode.value === 'offline') {
+        // 离线模式：使用 IndexedDB
+        await deleteLocalProject(projectId)
+
         // 从列表中移除
         projects.value = projects.value.filter(p => p.projectId !== projectId)
 
@@ -123,10 +221,25 @@ export const useWriterStore = defineStore('writer', () => {
           currentProject.value = null
         }
 
-        ElMessage.success('项目删除成功')
+        ElMessage.success('项目删除成功（本地存储）')
         return true
+      } else {
+        // 在线模式：使用 API
+        const response = await deleteProject(projectId)
+        if (response.code === 200) {
+          // 从列表中移除
+          projects.value = projects.value.filter(p => p.projectId !== projectId)
+
+          // 如果删除的是当前项目，清空当前项目
+          if (currentProject.value?.projectId === projectId) {
+            currentProject.value = null
+          }
+
+          ElMessage.success('项目删除成功')
+          return true
+        }
+        return false
       }
-      return false
     } catch (error: any) {
       console.error('删除项目失败:', error)
       throw error
@@ -136,20 +249,38 @@ export const useWriterStore = defineStore('writer', () => {
   // 加载统计数据
   const loadStats = async () => {
     try {
-      // TODO: 实现统计数据API调用
-      // const response = await writerAPI.getStats()
-      // stats.value = response.data
-
-      // 临时使用mock数据
-      stats.value = {
-        totalWords: 125000,
-        bookCount: projects.value.length,
-        todayWords: 2500,
-        pending: 3
+      if (storageMode.value === 'offline') {
+        const localStats = await getLocalStats()
+        stats.value = localStats
+      } else {
+        // TODO: 实现在线统计数据API调用
+        stats.value = {
+          totalWords: 125000,
+          bookCount: projects.value.length,
+          todayWords: 2500,
+          pending: 3
+        }
       }
     } catch (error: any) {
       console.error('加载统计数据失败:', error)
     }
+  }
+
+  // 切换存储模式
+  const toggleStorageMode = () => {
+    storageMode.value = storageMode.value === 'online' ? 'offline' : 'online'
+    ElMessage.info(`已切换到${storageMode.value === 'online' ? '在线' : '离线'}模式`)
+    // 清空当前数据
+    projects.value = []
+    currentProject.value = null
+    total.value = 0
+    return storageMode.value
+  }
+
+  // 设置存储模式
+  const setStorageMode = (mode: StorageMode) => {
+    storageMode.value = mode
+    console.log(`📦 存储模式: ${mode === 'online' ? '在线' : '离线'}`)
   }
 
   // 清空状态
@@ -166,10 +297,13 @@ export const useWriterStore = defineStore('writer', () => {
     loading,
     total,
     stats,
+    storageMode,
 
     // 计算属性
     projectList,
     hasProjects,
+    isOnlineMode,
+    isOfflineMode,
 
     // 方法
     fetchProjects,
@@ -178,7 +312,8 @@ export const useWriterStore = defineStore('writer', () => {
     updateProjectData,
     deleteProjectById,
     loadStats,
-    clearState
+    clearState,
+    toggleStorageMode,
+    setStorageMode
   }
 })
-

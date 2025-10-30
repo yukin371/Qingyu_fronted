@@ -29,14 +29,14 @@
           </el-dropdown>
         </div>
 
-        <Empty v-if="documentList.length === 0" description="暂无文档" />
+        <el-empty v-if="documentList.length === 0" description="暂无文档" />
       </div>
     </aside>
 
     <!-- 右侧编辑区域 -->
     <main class="editor-main">
       <div v-if="!currentDocument" class="empty-editor">
-        <Empty description="请选择或创建一个文档开始编辑" />
+        <el-empty description="请选择或创建一个文档开始编辑" />
       </div>
 
       <div v-else class="editor-container">
@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
 import { Plus, Document, MoreFilled, Back } from '@element-plus/icons-vue'
 import { useWriterStore } from '@/stores/writer'
 import { useProjectStore } from '@/stores/project'

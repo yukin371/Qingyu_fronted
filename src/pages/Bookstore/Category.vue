@@ -108,7 +108,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import { getCategoryDetail, getBooksByCategory } from '@/api/bookstore'
+import { getCategoryDetail, getBooksByCategory } from '@/api/bookstore/categories'
 import type { Book, Category } from '@/types/bookstore'
 import Header from '@/components/Layout/Header.vue'
 import BookCard from '@/components/Book/BookCard.vue'
@@ -212,6 +212,7 @@ function handleSizeChange() {
   handleSearch()
 }
 </script>
+
 
 
 

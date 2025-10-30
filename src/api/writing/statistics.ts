@@ -1,6 +1,5 @@
 /**
- * 作品数据统计API
- * 注意：这些API后端尚未完全实现，需要后端开发
+ * 写作端 - 作品数据统计API
  */
 
 import request from '@/utils/request'
@@ -74,11 +73,14 @@ export function getBookStats(bookId: string) {
  * 获取每日统计数据
  * GET /api/v1/writer/books/:bookId/stats/daily
  */
-export function getDailyStats(bookId: string, params?: {
-  days?: number // 7, 30, 90
-  startDate?: string
-  endDate?: string
-}) {
+export function getDailyStats(
+  bookId: string,
+  params?: {
+    days?: number // 7, 30, 90
+    startDate?: string
+    endDate?: string
+  }
+) {
   return request.get<DailyStats[]>(`/writer/books/${bookId}/stats/daily`, { params })
 }
 
@@ -86,11 +88,14 @@ export function getDailyStats(bookId: string, params?: {
  * 获取订阅增长数据
  * GET /api/v1/writer/books/:bookId/stats/subscribers
  */
-export function getSubscribersTrend(bookId: string, params?: {
-  days?: number
-  startDate?: string
-  endDate?: string
-}) {
+export function getSubscribersTrend(
+  bookId: string,
+  params?: {
+    days?: number
+    startDate?: string
+    endDate?: string
+  }
+) {
   return request.get(`/writer/books/${bookId}/stats/subscribers`, { params })
 }
 
@@ -98,10 +103,13 @@ export function getSubscribersTrend(bookId: string, params?: {
  * 获取章节统计数据
  * GET /api/v1/writer/books/:bookId/stats/chapters
  */
-export function getChapterStats(bookId: string, params?: {
-  sortBy?: 'views' | 'comments'
-  limit?: number
-}) {
+export function getChapterStats(
+  bookId: string,
+  params?: {
+    sortBy?: 'views' | 'comments'
+    limit?: number
+  }
+) {
   return request.get<ChapterStats[]>(`/writer/books/${bookId}/stats/chapters`, { params })
 }
 
@@ -117,9 +125,12 @@ export function getReaderActivity(bookId: string) {
  * 获取阅读时段热力图数据
  * GET /api/v1/writer/books/:bookId/stats/heatmap
  */
-export function getReadingHeatmap(bookId: string, params?: {
-  days?: number
-}) {
+export function getReadingHeatmap(
+  bookId: string,
+  params?: {
+    days?: number
+  }
+) {
   return request.get<ReadingHeatmap[]>(`/writer/books/${bookId}/stats/heatmap`, { params })
 }
 
@@ -127,14 +138,17 @@ export function getReadingHeatmap(bookId: string, params?: {
  * 获取作品对比数据（多作品对比）
  * GET /api/v1/writer/stats/compare
  */
-export function compareBooks(bookIds: string[], params?: {
-  metrics?: string[] // ['views', 'subscribers', 'favorites']
-  startDate?: string
-  endDate?: string
-}) {
+export function compareBooks(
+  bookIds: string[],
+  params?: {
+    metrics?: string[] // ['views', 'subscribers', 'favorites']
+    startDate?: string
+    endDate?: string
+  }
+) {
   return request.post('/writer/stats/compare', {
     bookIds,
-    ...params
+    ...params,
   })
 }
 

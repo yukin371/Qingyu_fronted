@@ -1,11 +1,37 @@
 <template>
   <div class="project-list-view">
     <div class="page-header">
-      <h1>我的项目</h1>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        新建项目
-      </el-button>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h1>我的项目</h1>
+        <!-- 存储模式指示器 -->
+        <el-tag
+          :type="writerStore.storageMode === 'offline' ? 'warning' : 'success'"
+          size="large"
+          effect="dark"
+        >
+          {{ writerStore.storageMode === 'offline' ? '📦 离线模式' : '🌐 在线模式' }}
+        </el-tag>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <!-- 切换存储模式按钮 -->
+        <el-tooltip
+          :content="writerStore.storageMode === 'offline' ? '切换到在线模式（需要后端支持）' : '切换到离线模式（使用本地存储）'"
+          placement="bottom"
+        >
+          <el-button
+            @click="handleToggleMode"
+          >
+            <el-icon>
+              <component :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'" />
+            </el-icon>
+            {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
+          </el-button>
+        </el-tooltip>
+        <el-button type="primary" @click="showCreateDialog = true">
+          <el-icon><Plus /></el-icon>
+          新建项目
+        </el-button>
+      </div>
     </div>
 
     <div v-loading="loading" class="projects-container">
@@ -104,7 +130,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, MoreFilled } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, Connection, FolderOpened } from '@element-plus/icons-vue'
 import { useWriterStore } from '@/stores/writer'
 
 const router = useRouter()
@@ -134,6 +160,12 @@ const formatDate = (dateStr: string) => {
 }
 
 const openProject = (projectId: string) => {
+  console.log('打开项目, projectId:', projectId)
+  if (!projectId) {
+    ElMessage.error('项目ID无效')
+    console.error('projectId 为空或未定义')
+    return
+  }
   router.push({ name: 'writer-project', params: { projectId } })
 }
 
@@ -150,14 +182,24 @@ const handleCreate = async () => {
       type: newProject.value.type
     })
 
+    console.log('项目创建完成:', project)
+
     if (project) {
       showCreateDialog.value = false
       newProject.value = { title: '', description: '', type: 'novel' }
 
-      // 打开新创建的项目
-      openProject(project.projectId)
+      // 打开新创建的项目 - 兼容不同的字段名
+      const projectId = project.projectId || project.id
+      console.log('准备打开项目, projectId:', projectId)
+      if (projectId) {
+        openProject(projectId)
+      } else {
+        console.error('项目对象缺少 projectId 字段:', project)
+        ElMessage.error('项目创建成功，但缺少项目ID')
+      }
     }
   } catch (error: any) {
+    console.error('创建项目失败:', error)
     ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
   }
 }
@@ -207,6 +249,17 @@ const getStatusText = (status: string) => {
     published: '已发布'
   }
   return textMap[status] || status
+}
+
+// 切换存储模式
+async function handleToggleMode() {
+  writerStore.toggleStorageMode()
+  // 重新加载项目列表
+  try {
+    await writerStore.fetchProjects()
+  } catch (error: any) {
+    ElMessage.error('加载项目列表失败：' + (error.message || '未知错误'))
+  }
 }
 
 // Lifecycle

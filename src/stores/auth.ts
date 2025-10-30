@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
-import { authAPI } from '@/api/auth'
+import { login, logout, register, refreshToken } from '@/api/shared/auth'
 import storage from '@/utils/storage'
 import router from '@/router'
 import type { User } from '@/types/models'
-import type { LoginCredentials, RegisterData } from '@/api/user'
+import type { LoginCredentials, RegisterData } from '@/types/user'
 
 // Storage keys
 const STORAGE_KEYS = {

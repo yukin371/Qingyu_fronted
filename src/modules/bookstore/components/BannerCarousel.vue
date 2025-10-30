@@ -1,20 +1,20 @@
 <template>
   <div class="banner-carousel">
-    <el-carousel 
-      :interval="4000" 
+    <el-carousel
+      :interval="4000"
       :height="height"
       indicator-position="outside"
       arrow="hover"
       @change="handleCarouselChange"
     >
-      <el-carousel-item 
-        v-for="banner in banners" 
+      <el-carousel-item
+        v-for="banner in banners"
         :key="banner.id"
         @click="handleBannerClick(banner)"
       >
         <div class="banner-item">
-          <img 
-            :src="banner.image" 
+          <img
+            :src="banner.image"
             :alt="banner.title"
             class="banner-image"
             @error="handleImageError"
@@ -26,9 +26,9 @@
               <p class="banner-description" v-if="banner.description">
                 {{ banner.description }}
               </p>
-              <el-button 
+              <el-button
                 v-if="banner.buttonText"
-                type="primary" 
+                type="primary"
                 size="large"
                 class="banner-button"
                 @click.stop="handleButtonClick(banner)"
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { bookstoreAPI } from '@/api/bookstore'
+import * as bookstoreAPI from '@/api/bookstore'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { ElMessage } from 'element-plus'
 
@@ -87,7 +87,7 @@ export default {
       try {
         // 增加点击次数
         await bookstoreAPI.incrementBannerClick(banner.id)
-        
+
         // 触发点击事件
         emit('banner-click', banner)
       } catch (error) {

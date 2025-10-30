@@ -184,8 +184,8 @@ import {
   Loading,
 } from '@element-plus/icons-vue'
 import { useBookstoreStore } from '@/stores/bookstore'
-import { getSimilarRecommendations } from '@/api/recommendation'
-import { incrementBookView } from '@/api/bookstore'
+import { getSimilarRecommendations } from '@/api/recommendation/recommendation'
+import { incrementBookView } from '@/api/bookstore/books'
 import type { Book } from '@/types/bookstore'
 import Header from '@/components/Layout/Header.vue'
 import SectionTitle from '@/components/Common/SectionTitle.vue'
@@ -281,6 +281,7 @@ function formatCount(count: number): string {
   return count.toString()
 }
 </script>
+
 
 
 

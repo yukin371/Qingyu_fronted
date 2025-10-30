@@ -192,3 +192,4 @@ npm run type-check
 所有配置都是正确的，只需要重启 IDE 或 TypeScript 服务器，错误就会消失。
 
 
+

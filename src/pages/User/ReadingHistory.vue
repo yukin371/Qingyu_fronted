@@ -156,7 +156,7 @@ import {
   getReadingStats,
   deleteReadingHistory,
   clearReadingHistory,
-} from '@/api/reader'
+} from '@/api/reading/reader'
 import type { ReadingHistory, ReadingStats } from '@/types/reader'
 import Header from '@/components/Layout/Header.vue'
 
@@ -291,6 +291,7 @@ function formatLastRead(dateStr: string): string {
   return date.toLocaleDateString('zh-CN')
 }
 </script>
+
 
 
 

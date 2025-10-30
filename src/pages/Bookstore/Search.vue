@@ -41,7 +41,7 @@
                 class="w-full"
               >
                 <el-option
-                  v-for="category in categories"
+                  v-for="category in categories.filter(c => c && c.id)"
                   :key="category.id"
                   :label="category.name"
                   :value="category.id"
@@ -154,8 +154,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search, Filter, Loading } from '@element-plus/icons-vue'
-import { searchBooks } from '@/api/bookstore'
-import { getCategoryTree } from '@/api/bookstore'
+import { searchBooks } from '@/api/bookstore/books'
+import { getCategoryTree } from '@/api/bookstore/categories'
 import type { Book, Category, SearchParams } from '@/types/bookstore'
 import Header from '@/components/Layout/Header.vue'
 import BookCard from '@/components/Book/BookCard.vue'

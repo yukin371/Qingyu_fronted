@@ -5,12 +5,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Book, BookDetail, Category, Banner, HomepageData } from '@/types/bookstore'
-import {
-  getHomepage,
-  getBookDetail,
-  getCategoryTree,
-  getBanners,
-} from '@/api/bookstore'
+import { getHomepage } from '@/api/bookstore/homepage'
+import { getBookDetail } from '@/api/bookstore/books'
+import { getCategoryTree } from '@/api/bookstore/categories'
+import { getBanners } from '@/api/bookstore/banners'
 
 export const useBookstoreStore = defineStore('bookstore', () => {
   // 状态

@@ -20,7 +20,11 @@ export function getPersonalizedRecommendations(limit = 10) {
  * 获取相似推荐
  * GET /api/v1/recommendation/similar
  */
-export function getSimilarRecommendations(params: { itemId: string; itemType?: string; limit?: number }) {
+export function getSimilarRecommendations(params: {
+  itemId: string
+  itemType?: string
+  limit?: number
+}) {
   return request.get<Book[]>('/recommendation/similar', { params })
 }
 
@@ -51,18 +55,19 @@ export function getHomepageRecommendations(limit = 20) {
 
 /**
  * 获取热门推荐
- * GET /api/v1/recommendation/hot
+ * GET /api/v1/recommendation/trending
  */
-export function getHotRecommendations(params?: { itemType?: string; limit?: number }) {
-  return request.get<Book[]>('/recommendation/hot', { params })
+export function getTrendingRecommendations(limit = 20) {
+  return request.get<Book[]>('/recommendation/trending', {
+    params: { limit },
+  })
 }
 
 /**
  * 获取分类推荐
  * GET /api/v1/recommendation/category
  */
-export function getCategoryRecommendations(categoryId: string, limit = 10) {
-  return request.get<Book[]>('/recommendation/category', {
-    params: { categoryId, limit },
-  })
+export function getCategoryRecommendations(params: { category: string; limit?: number }) {
+  return request.get<Book[]>('/recommendation/category', { params })
 }
+

@@ -166,7 +166,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { bookstoreAPI } from '@/api/bookstore'
+import * as bookstoreAPI from '@/api/bookstore'
 import { booksAPI } from '@/api/reading/books'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'

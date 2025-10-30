@@ -197,7 +197,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { UserFilled, Camera } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { updateUserProfile, changePassword } from '@/api/user'
+import { updateUserProfile, changePassword } from '@/api/user/profile'
 import type { UpdateProfileRequest } from '@/types/user'
 import Header from '@/components/Layout/Header.vue'
 

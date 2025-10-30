@@ -8,6 +8,7 @@
           <span class="book-title">{{ bookTitle }}</span>
         </div>
         <div class="header-right">
+          <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button">AI助手</el-button>
           <el-button text @click="toggleCatalog" :icon="List">目录</el-button>
           <el-button text @click="toggleSettings" :icon="Setting">设置</el-button>
         </div>
@@ -60,6 +61,16 @@
         </div>
       </el-scrollbar>
     </el-drawer>
+
+    <!-- AI助手 -->
+    <AIReadingAssistant
+      :visible="aiAssistantVisible"
+      @update:visible="aiAssistantVisible = $event"
+      :chapter-content="currentChapter?.content"
+      :book-title="bookTitle"
+      :chapter-title="currentChapter?.title"
+      @close="aiAssistantVisible = false"
+    />
 
     <!-- 设置抽屉 -->
     <el-drawer v-model="settingsVisible" title="阅读设置" direction="rtl" size="400px">
@@ -144,8 +155,9 @@ import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage } from 'element-plus'
 import {
   ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,
-  Minus, Plus, Lock
+  Minus, Plus, Lock, MagicStick
 } from '@element-plus/icons-vue'
+import AIReadingAssistant from '../components/AIReadingAssistant.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -156,6 +168,7 @@ const chapterId = ref(route.params.chapterId as string)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
+const aiAssistantVisible = ref(false)
 const isFullscreen = ref(false)
 const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
@@ -227,6 +240,10 @@ const toggleCatalog = () => {
 
 const toggleSettings = () => {
   settingsVisible.value = !settingsVisible.value
+}
+
+const toggleAIAssistant = () => {
+  aiAssistantVisible.value = !aiAssistantVisible.value
 }
 
 const toggleHeaderFooter = () => {
@@ -488,6 +505,16 @@ watch(() => route.params.chapterId, (newId) => {
   .header-right {
     display: flex;
     gap: 8px;
+
+    .ai-button {
+      color: #667eea;
+      font-weight: 500;
+
+      &:hover {
+        color: #764ba2;
+        background: rgba(102, 126, 234, 0.1);
+      }
+    }
   }
 }
 

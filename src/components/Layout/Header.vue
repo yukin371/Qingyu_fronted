@@ -17,7 +17,7 @@
             书城
           </router-link>
           <router-link
-            v-if="userStore.isWriter"
+            v-if="userStore.isLoggedIn"
             to="/writer/projects"
             class="text-gray-700 hover:text-blue-600 transition-colors"
           >
@@ -52,7 +52,7 @@
                   <el-dropdown-item command="profile">个人中心</el-dropdown-item>
                   <el-dropdown-item command="reading-history">阅读历史</el-dropdown-item>
                   <el-dropdown-item command="wallet">我的钱包</el-dropdown-item>
-                  <el-dropdown-item v-if="userStore.isWriter" command="writer" divided>
+                  <el-dropdown-item command="writer" divided>
                     创作中心
                   </el-dropdown-item>
                   <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
@@ -116,7 +116,7 @@ async function handleLogout() {
     })
 
     await userStore.handleLogout()
-    ElMessage.success('已退出登录')
+    // userStore.handleLogout() 中已经有成功提示
     router.push('/bookstore')
   } catch (error) {
     // 用户取消

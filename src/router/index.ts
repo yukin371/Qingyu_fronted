@@ -16,13 +16,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/pages/Auth/Login.vue'),
+    component: () => import(/* webpackChunkName: "auth" */ '@/pages/Auth/Login.vue'),
     meta: { requiresAuth: false, title: '登录' },
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/pages/Auth/Register.vue'),
+    component: () => import(/* webpackChunkName: "auth" */ '@/pages/Auth/Register.vue'),
     meta: { requiresAuth: false, title: '注册' },
   },
 
@@ -30,25 +30,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/bookstore',
     name: 'Bookstore',
-    component: () => import('@/pages/Bookstore/Home.vue'),
+    component: () => import(/* webpackChunkName: "bookstore" */ '@/pages/Bookstore/Home.vue'),
     meta: { requiresAuth: false, title: '书城' },
   },
   {
     path: '/bookstore/category/:id',
     name: 'Category',
-    component: () => import('@/pages/Bookstore/Category.vue'),
+    component: () => import(/* webpackChunkName: "bookstore" */ '@/pages/Bookstore/Category.vue'),
     meta: { requiresAuth: false, title: '分类' },
   },
   {
     path: '/bookstore/search',
     name: 'Search',
-    component: () => import('@/pages/Bookstore/Search.vue'),
+    component: () => import(/* webpackChunkName: "bookstore" */ '@/pages/Bookstore/Search.vue'),
     meta: { requiresAuth: false, title: '搜索' },
   },
   {
     path: '/book/:id',
     name: 'BookDetail',
-    component: () => import('@/pages/Book/Detail.vue'),
+    component: () => import(/* webpackChunkName: "bookstore" */ '@/pages/Book/Detail.vue'),
     meta: { requiresAuth: false, title: '书籍详情' },
   },
 
@@ -56,7 +56,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/reader/:chapterId',
     name: 'Reader',
-    component: () => import('@/pages/Reader/Index.vue'),
+    component: () => import(/* webpackChunkName: "reader" */ '@/pages/Reader/Index.vue'),
     meta: { requiresAuth: false, title: '阅读' },
   },
 
@@ -64,13 +64,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('@/pages/User/Profile.vue'),
+    component: () => import(/* webpackChunkName: "user" */ '@/pages/User/Profile.vue'),
     meta: { requiresAuth: true, title: '个人中心' },
   },
   {
     path: '/reading-history',
     name: 'ReadingHistory',
-    component: () => import('@/pages/User/ReadingHistory.vue'),
+    component: () => import(/* webpackChunkName: "user" */ '@/pages/User/ReadingHistory.vue'),
     meta: { requiresAuth: true, title: '阅读历史' },
   },
 
@@ -78,45 +78,57 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/writer',
     name: 'WriterLayout',
-    component: () => import('@/layouts/WriterLayout.vue'),
-    meta: { requiresAuth: true, requiresWriter: true },
-    children: [
-      {
-        path: '',
-        redirect: '/writer/projects',
-      },
-      {
-        path: 'projects',
-        name: 'ProjectList',
-        component: () => import('@/pages/Writer/ProjectList.vue'),
-        meta: { title: '我的项目' },
-      },
-      {
-        path: 'projects/:id',
-        name: 'ProjectDetail',
-        component: () => import('@/pages/Writer/ProjectDetail.vue'),
-        meta: { title: '项目详情' },
-      },
-      {
-        path: 'editor/:documentId',
-        name: 'Editor',
-        component: () => import('@/pages/Writer/Editor.vue'),
-        meta: { title: '编辑器' },
-      },
-      {
-        path: 'statistics',
-        name: 'Statistics',
-        component: () => import('@/pages/Writer/Statistics.vue'),
-        meta: { title: '数据统计' },
-      },
-    ],
+    redirect: '/writer/projects',
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/writer/projects',
+    name: 'writer-projects',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/ProjectListView.vue'),
+    meta: { requiresAuth: true, title: '我的项目' },
+  },
+  {
+    path: '/writer/project/:projectId',
+    name: 'writer-project',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/ProjectWorkspace.vue'),
+    meta: { requiresAuth: true, title: '项目工作区' },
+  },
+  {
+    path: '/writer/editor/:documentId',
+    name: 'writer-editor',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/EditorView.vue'),
+    meta: { requiresAuth: true, title: '编辑器' },
+  },
+  {
+    path: '/writer/dashboard',
+    name: 'writer-dashboard',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/WriterDashboard.vue'),
+    meta: { requiresAuth: true, title: '创作工作台' },
+  },
+  {
+    path: '/writer/statistics/:bookId?',
+    name: 'writer-statistics',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/StatisticsView.vue'),
+    meta: { requiresAuth: true, title: '作品统计' },
+  },
+  {
+    path: '/writer/revenue/:bookId?',
+    name: 'writer-revenue',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/RevenueView.vue'),
+    meta: { requiresAuth: true, title: '收入统计' },
+  },
+  {
+    path: '/writer/publish',
+    name: 'writer-publish',
+    component: () => import(/* webpackChunkName: "writer" */ '@/modules/writer/views/PublishManagement.vue'),
+    meta: { requiresAuth: true, title: '发布管理' },
   },
 
   // ============ 钱包 ============
   {
     path: '/wallet',
     name: 'Wallet',
-    component: () => import('@/pages/Wallet/Index.vue'),
+    component: () => import(/* webpackChunkName: "user" */ '@/pages/Wallet/Index.vue'),
     meta: { requiresAuth: true, title: '我的钱包' },
   },
 
@@ -124,7 +136,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/pages/Error/NotFound.vue'),
+    component: () => import(/* webpackChunkName: "error" */ '@/pages/Error/NotFound.vue'),
     meta: { title: '页面不存在' },
   },
 ]

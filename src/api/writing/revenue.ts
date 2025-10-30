@@ -1,6 +1,5 @@
 /**
- * 作家收入统计API
- * 注意：这些API后端尚未完全实现，需要后端开发
+ * 写作端 - 作家收入统计API
  */
 
 import request from '@/utils/request'

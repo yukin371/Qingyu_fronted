@@ -184,7 +184,7 @@ import {
   Select,
 } from '@element-plus/icons-vue'
 import { useReaderStore } from '@/stores/reader'
-import { getChapterList } from '@/api/reader'
+import { getChapterList } from '@/api/reading/reader'
 import type { Chapter } from '@/types/reader'
 
 const route = useRoute()

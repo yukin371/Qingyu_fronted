@@ -2,9 +2,9 @@
   <div class="book-grid">
     <div class="grid-header" v-if="title">
       <h3 class="grid-title">{{ title }}</h3>
-      <el-button 
-        type="text" 
-        size="small" 
+      <el-button
+        type="text"
+        size="small"
         @click="$emit('view-more')"
         v-if="showMore"
         class="view-more-btn"
@@ -15,15 +15,15 @@
     </div>
 
     <div class="book-list" v-loading="loading">
-      <div 
-        v-for="book in displayBooks" 
+      <div
+        v-for="book in displayBooks"
         :key="book.id"
         class="book-card"
         @click="handleBookClick(book)"
       >
         <div class="book-cover-container">
-          <img 
-            :src="book.cover || '/default-book-cover.svg'" 
+          <img
+            :src="book.cover || '/default-book-cover.svg'"
             :alt="book.title"
             class="book-cover"
             @error="handleImageError"
@@ -35,11 +35,11 @@
             </el-button>
           </div>
         </div>
-        
+
         <div class="book-info">
           <h4 class="book-title" :title="book.title">{{ book.title }}</h4>
           <p class="book-author" :title="book.author">{{ book.author }}</p>
-          
+
           <div class="book-meta">
             <div class="book-stats">
               <span class="stat-item">
@@ -51,7 +51,7 @@
                 {{ formatNumber(book.likeCount) }}
               </span>
             </div>
-            
+
             <div class="book-price" v-if="book.price !== undefined">
               <span class="price-current">
                 {{ book.price === 0 ? '免费' : `¥${book.price}` }}
@@ -63,8 +63,8 @@
           </div>
 
           <div class="book-tags" v-if="book.tags && book.tags.length">
-            <el-tag 
-              v-for="tag in book.tags.slice(0, 2)" 
+            <el-tag
+              v-for="tag in book.tags.slice(0, 2)"
               :key="tag"
               size="small"
               type="info"
@@ -87,7 +87,7 @@
 <script>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { bookstoreAPI } from '@/api/bookstore'
+import * as bookstoreAPI from '@/api/bookstore'
 import { ArrowRight, View, Star } from '@element-plus/icons-vue'
 
 export default {
@@ -145,10 +145,10 @@ export default {
       try {
         // 增加浏览量
         await bookstoreAPI.incrementBookView(book.id)
-        
+
         // 触发点击事件
         emit('book-click', book)
-        
+
         // 跳转到书籍详情页
         router.push(`/books/${book.id}`)
       } catch (error) {

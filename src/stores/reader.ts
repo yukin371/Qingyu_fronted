@@ -11,7 +11,7 @@ import {
   getReaderSettings,
   updateReaderSettings,
   recordReadingHistory,
-} from '@/api/reader'
+} from '@/api/reading/reader'
 
 export const useReaderStore = defineStore('reader', () => {
   // 状态

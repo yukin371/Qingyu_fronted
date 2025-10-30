@@ -109,6 +109,55 @@
           />
         </section>
 
+        <!-- 推荐给你（无限滚动） -->
+        <section class="infinite-recommendations">
+          <div class="section-header">
+            <h2 class="section-title">
+              <el-icon><Star /></el-icon>
+              推荐给你
+            </h2>
+          </div>
+
+          <div v-if="recommendedItems.length > 0" class="recommendations-grid">
+            <div
+              v-for="book in recommendedItems"
+              :key="book.id || book._id"
+              class="recommendation-card"
+              @click="handleBookClick(book)"
+            >
+              <el-image :src="book.cover" fit="cover" class="book-cover">
+                <template #error>
+                  <div class="image-slot">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+              <div class="book-info">
+                <h4>{{ book.title }}</h4>
+                <p class="author">{{ book.author }}</p>
+                <div class="book-meta">
+                  <span><el-icon><View /></el-icon> {{ formatNumber(book.viewCount) }}</span>
+                  <span><el-icon><Star /></el-icon> {{ book.rating || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 加载状态 -->
+          <div v-if="loadingMore" class="loading-more">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>加载中...</span>
+          </div>
+
+          <!-- 加载触发器 -->
+          <div ref="loadMoreTrigger" class="load-trigger"></div>
+
+          <!-- 没有更多 -->
+          <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more">
+            没有更多推荐了
+          </div>
+        </section>
+
         <!-- 统计信息 -->
         <section class="stats-section" v-if="stats">
           <div class="stats-container">
@@ -136,14 +185,15 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-  import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
-  import BannerCarousel from '@bookstore/components/BannerCarousel.vue'
-  import RankingList from '@bookstore/components/RankingList.vue'
-  import BookGrid from '@bookstore/components/BookGrid.vue'
-import { User } from '@element-plus/icons-vue'
+import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
+import BannerCarousel from '@bookstore/components/BannerCarousel.vue'
+import RankingList from '@bookstore/components/RankingList.vue'
+import BookGrid from '@bookstore/components/BookGrid.vue'
+import { User, Star, Picture, View, Loading } from '@element-plus/icons-vue'
+import { usePagination } from '@/composables/usePagination'
 
 export default {
   name: 'HomeView',
@@ -157,9 +207,40 @@ export default {
     const router = useRouter()
     const bookstoreStore = useBookstoreStore()
     const loading = ref(false)
+    const loadMoreTrigger = ref<HTMLElement | null>(null)
 
     // 公告列表
     const announcements = ref([])
+
+    // 无限滚动推荐
+    const {
+      items: recommendedItems,
+      loading: loadingMore,
+      hasMore: hasMoreRecommendations,
+      setupScrollObserver
+    } = usePagination(
+      async (page, pageSize) => {
+        try {
+          // 调用推荐API
+          const response = await bookstoreStore.fetchRecommendedBooks({
+            page,
+            pageSize
+          })
+          return {
+            items: response.data || [],
+            total: response.total || 0
+          }
+        } catch (error) {
+          console.error('加载推荐失败:', error)
+          return { items: [], total: 0 }
+        }
+      },
+      {
+        pageSize: 12,
+        initialLoad: true,
+        autoLoadOnScroll: false // 手动设置observer
+      }
+    )
 
     // 计算属性
     const banners = computed(() => bookstoreStore.banners)
@@ -260,6 +341,16 @@ export default {
     // 组件挂载时加载数据
     onMounted(() => {
       loadHomepageData()
+
+      // 设置无限滚动观察器
+      if (loadMoreTrigger.value) {
+        setupScrollObserver(loadMoreTrigger.value)
+      }
+    })
+
+    // 清理
+    onUnmounted(() => {
+      // observer会在composable中自动清理
     })
 
     return {
@@ -270,6 +361,10 @@ export default {
       featuredBooks,
       rankings,
       stats,
+      recommendedItems,
+      loadingMore,
+      hasMoreRecommendations,
+      loadMoreTrigger,
       formatNumber,
       getAnnouncementType,
       handleCloseAnnouncement,
@@ -282,7 +377,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .home-view {
   min-height: 100vh;
   background: #f5f7fa;
@@ -366,8 +461,107 @@ export default {
 }
 
 .recommended-section,
-.featured-section {
+.featured-section,
+.infinite-recommendations {
   margin-bottom: 40px;
+}
+
+.infinite-recommendations {
+  .recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .recommendation-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .book-cover {
+      width: 100%;
+      height: 280px;
+    }
+
+    .book-info {
+      padding: 12px;
+
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .author {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        color: #666;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .book-meta {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: #999;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+      }
+    }
+  }
+
+  .loading-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 0;
+    color: #409eff;
+    font-size: 14px;
+
+    .el-icon {
+      font-size: 20px;
+    }
+  }
+
+  .load-trigger {
+    height: 1px;
+  }
+
+  .no-more {
+    text-align: center;
+    padding: 40px 0;
+    color: #999;
+    font-size: 14px;
+  }
+
+  .image-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-color: #f5f7fa;
+    color: #909399;
+    font-size: 40px;
+  }
 }
 
 .stats-section {
