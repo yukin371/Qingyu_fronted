@@ -2,7 +2,7 @@
  * 推荐系统API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { Book } from '@/types/bookstore'
 
 /**
@@ -11,7 +11,7 @@ import type { Book } from '@/types/bookstore'
  * 需要认证
  */
 export function getPersonalizedRecommendations(limit = 10) {
-  return request.get<Book[]>('/recommendation/personalized', {
+  return httpService.get<Book[]>('/recommendation/personalized', {
     params: { limit },
   })
 }
@@ -25,7 +25,7 @@ export function getSimilarRecommendations(params: {
   itemType?: string
   limit?: number
 }) {
-  return request.get<Book[]>('/recommendation/similar', { params })
+  return httpService.get<Book[]>('/recommendation/similar', { params })
 }
 
 /**
@@ -40,7 +40,7 @@ export function recordBehavior(data: {
   duration?: number
   metadata?: Record<string, any>
 }) {
-  return request.post<void>('/recommendation/behavior', data)
+  return httpService.post<void>('/recommendation/behavior', data)
 }
 
 /**
@@ -48,7 +48,7 @@ export function recordBehavior(data: {
  * GET /api/v1/recommendation/homepage
  */
 export function getHomepageRecommendations(limit = 20) {
-  return request.get<Book[]>('/recommendation/homepage', {
+  return httpService.get<Book[]>('/recommendation/homepage', {
     params: { limit },
   })
 }
@@ -58,7 +58,7 @@ export function getHomepageRecommendations(limit = 20) {
  * GET /api/v1/recommendation/trending
  */
 export function getTrendingRecommendations(limit = 20) {
-  return request.get<Book[]>('/recommendation/trending', {
+  return httpService.get<Book[]>('/recommendation/trending', {
     params: { limit },
   })
 }
@@ -67,7 +67,10 @@ export function getTrendingRecommendations(limit = 20) {
  * 获取分类推荐
  * GET /api/v1/recommendation/category
  */
-export function getCategoryRecommendations(params: { category: string; limit?: number }) {
-  return request.get<Book[]>('/recommendation/category', { params })
+export function getCategoryRecommendations(params: {
+  category: string
+  limit?: number
+}) {
+  return httpService.get<Book[]>('/recommendation/category', { params })
 }
 

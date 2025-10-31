@@ -3,7 +3,7 @@
  * Business logic for bookshelf management
  */
 
-import { bookshelfAPI } from '../api/bookshelf.api'
+import * as bookshelfAPI from '@/api/reading'
 import type { BookshelfItem } from '../types/reader.types'
 
 class BookshelfService {

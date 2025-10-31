@@ -241,57 +241,65 @@ const searchKeyword = ref('')
 const selectedItem = ref<Character | Location | null>(null)
 const selectedType = ref<'character' | 'location' | null>(null)
 
-const characters = computed(() => writerStore.characters.list)
-const locations = computed(() => writerStore.locations.list)
+// Mock data for demo purposes
+const characters = ref<Character[]>([])
+const locations = ref<Location[]>([])
 
 const filteredCharacters = computed(() => {
   if (!searchKeyword.value) return characters.value
-  const keyword = searchKeyword.value.toLowerCase()
   return characters.value.filter(c =>
-    c.name.toLowerCase().includes(keyword) ||
-    c.summary?.toLowerCase().includes(keyword) ||
-    c.alias?.some(a => a.toLowerCase().includes(keyword))
+    c.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
 
 const filteredLocations = computed(() => {
   if (!searchKeyword.value) return locations.value
-  const keyword = searchKeyword.value.toLowerCase()
   return locations.value.filter(l =>
-    l.name.toLowerCase().includes(keyword) ||
-    l.description?.toLowerCase().includes(keyword)
+    l.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
-})
-
-onMounted(async () => {
-  if (writerStore.currentProjectId) {
-    await writerStore.loadCharacters()
-    await writerStore.loadLocations()
-  }
 })
 
 const handleCategoryChange = (index: string) => {
   activeCategory.value = index
   selectedItem.value = null
-  selectedType.value = null
 }
 
 const handleSelectItem = (item: Character | Location, type: 'character' | 'location') => {
-  selectedItem.value = item
+  selectedItem.value = item as any
   selectedType.value = type
 }
 
+// Computed properties for type safety
+const selectedCharacter = computed(() => {
+  if (selectedType.value === 'character' && selectedItem.value) {
+    return selectedItem.value as Character
+  }
+  return null
+})
+
+const selectedLocation = computed(() => {
+  if (selectedType.value === 'location' && selectedItem.value) {
+    return selectedItem.value as Location
+  }
+  return null
+})
+
 const handleAddCharacter = () => {
-  ElMessage.info('请使用角色图谱页面添加角色')
+  ElMessage.info('添加角色功能开发中...')
 }
 
 const handleAddLocation = () => {
-  ElMessage.info('地点添加功能开发中...')
+  ElMessage.info('添加地点功能开发中...')
 }
 
 const handleEditItem = () => {
   ElMessage.info('编辑功能开发中...')
 }
+
+onMounted(() => {
+  // Load initial data
+  // TODO: Connect to writer store or API when available
+})
 </script>
 
 <style scoped lang="scss">

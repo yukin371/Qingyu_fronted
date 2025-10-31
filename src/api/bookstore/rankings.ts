@@ -2,7 +2,7 @@
  * 书城 - 排行榜相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { RankingItem } from '@/types/bookstore'
 
 /**
@@ -10,7 +10,7 @@ import type { RankingItem } from '@/types/bookstore'
  * GET /api/v1/bookstore/rankings/realtime
  */
 export function getRealtimeRanking(limit = 20) {
-  return request.get<RankingItem[]>('/bookstore/rankings/realtime', {
+  return httpService.get<RankingItem[]>('/bookstore/rankings/realtime', {
     params: { limit },
   })
 }
@@ -20,7 +20,7 @@ export function getRealtimeRanking(limit = 20) {
  * GET /api/v1/bookstore/rankings/weekly
  */
 export function getWeeklyRanking(limit = 20) {
-  return request.get<RankingItem[]>('/bookstore/rankings/weekly', {
+  return httpService.get<RankingItem[]>('/bookstore/rankings/weekly', {
     params: { limit },
   })
 }
@@ -30,7 +30,7 @@ export function getWeeklyRanking(limit = 20) {
  * GET /api/v1/bookstore/rankings/monthly
  */
 export function getMonthlyRanking(limit = 20) {
-  return request.get<RankingItem[]>('/bookstore/rankings/monthly', {
+  return httpService.get<RankingItem[]>('/bookstore/rankings/monthly', {
     params: { limit },
   })
 }
@@ -40,7 +40,7 @@ export function getMonthlyRanking(limit = 20) {
  * GET /api/v1/bookstore/rankings/newbie
  */
 export function getNewbieRanking(limit = 20) {
-  return request.get<RankingItem[]>('/bookstore/rankings/newbie', {
+  return httpService.get<RankingItem[]>('/bookstore/rankings/newbie', {
     params: { limit },
   })
 }
@@ -50,7 +50,7 @@ export function getNewbieRanking(limit = 20) {
  * GET /api/v1/bookstore/rankings/:type
  */
 export function getRankingByType(type: string, limit = 20) {
-  return request.get<RankingItem[]>(`/bookstore/rankings/${type}`, {
+  return httpService.get<RankingItem[]>(`/bookstore/rankings/${type}`, {
     params: { limit },
   })
 }

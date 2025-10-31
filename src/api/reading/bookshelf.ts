@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 /**
  * 书架相关API
@@ -12,12 +12,12 @@ export function getBookshelf(params?: {
   sortBy?: 'updated_at' | 'created_at' | 'title'
   sortOrder?: 'asc' | 'desc'
 }) {
-  return request.get('/api/v1/reader/bookshelf', { params })
+  return httpService.get('/api/v1/reader/bookshelf', { params })
 }
 
 // 添加到书架
 export function addToBookshelf(bookId: string, status?: string) {
-  return request.post('/api/v1/reader/bookshelf', {
+  return httpService.post('/api/v1/reader/bookshelf', {
     bookId,
     status: status || 'want_to_read'
   })
@@ -25,19 +25,19 @@ export function addToBookshelf(bookId: string, status?: string) {
 
 // 更新书架状态
 export function updateBookshelfStatus(bookId: string, status: string) {
-  return request.put(`/api/v1/reader/bookshelf/${bookId}`, {
+  return httpService.put(`/api/v1/reader/bookshelf/${bookId}`, {
     status
   })
 }
 
 // 从书架移除
 export function removeFromBookshelf(bookId: string) {
-  return request.delete(`/api/v1/reader/bookshelf/${bookId}`)
+  return httpService.delete(`/api/v1/reader/bookshelf/${bookId}`)
 }
 
 // 批量操作
 export function batchBookshelfOperation(operation: 'delete' | 'move', bookIds: string[], status?: string) {
-  return request.post('/api/v1/reader/bookshelf/batch', {
+  return httpService.post('/api/v1/reader/bookshelf/batch', {
     operation,
     bookIds,
     status
@@ -46,6 +46,6 @@ export function batchBookshelfOperation(operation: 'delete' | 'move', bookIds: s
 
 // 检查书籍是否在书架
 export function checkBookInShelf(bookId: string) {
-  return request.get(`/api/v1/reader/bookshelf/${bookId}/status`)
+  return httpService.get(`/api/v1/reader/bookshelf/${bookId}/status`)
 }
 

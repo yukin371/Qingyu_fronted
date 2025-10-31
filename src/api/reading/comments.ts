@@ -3,7 +3,7 @@
  * 基于 doc/api/frontend/阅读器API参考.md
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
 import type {
   Comment,
@@ -22,56 +22,56 @@ export const commentAPI = {
    * 发表评论
    */
   async createComment(params: CreateCommentParams): Promise<APIResponse<Comment>> {
-    return request.post<APIResponse<Comment>>('/reader/comments', params)
+    return httpService.post<APIResponse<Comment>>('/reader/comments', params)
   },
 
   /**
    * 获取评论列表
    */
   async getCommentList(params: GetCommentListParams): Promise<APIResponse<CommentListResponse>> {
-    return request.get<APIResponse<CommentListResponse>>('/reader/comments', { params })
+    return httpService.get<APIResponse<CommentListResponse>>('/reader/comments', { params })
   },
 
   /**
    * 获取评论详情
    */
   async getCommentById(commentId: string): Promise<APIResponse<Comment>> {
-    return request.get<APIResponse<Comment>>(`/reader/comments/${commentId}`)
+    return httpService.get<APIResponse<Comment>>(`/reader/comments/${commentId}`)
   },
 
   /**
    * 更新评论
    */
   async updateComment(commentId: string, params: UpdateCommentParams): Promise<APIResponse<Comment>> {
-    return request.put<APIResponse<Comment>>(`/reader/comments/${commentId}`, params)
+    return httpService.put<APIResponse<Comment>>(`/reader/comments/${commentId}`, params)
   },
 
   /**
    * 删除评论
    */
   async deleteComment(commentId: string): Promise<APIResponse<null>> {
-    return request.delete<APIResponse<null>>(`/reader/comments/${commentId}`)
+    return httpService.delete<APIResponse<null>>(`/reader/comments/${commentId}`)
   },
 
   /**
    * 回复评论
    */
   async replyComment(commentId: string, params: ReplyCommentParams): Promise<APIResponse<Comment>> {
-    return request.post<APIResponse<Comment>>(`/reader/comments/${commentId}/reply`, params)
+    return httpService.post<APIResponse<Comment>>(`/reader/comments/${commentId}/reply`, params)
   },
 
   /**
    * 点赞评论 ⭐️v1.3新增
    */
   async likeComment(commentId: string): Promise<APIResponse<null>> {
-    return request.post<APIResponse<null>>(`/reader/comments/${commentId}/like`)
+    return httpService.post<APIResponse<null>>(`/reader/comments/${commentId}/like`)
   },
 
   /**
    * 取消点赞评论 ⭐️v1.3新增
    */
   async unlikeComment(commentId: string): Promise<APIResponse<null>> {
-    return request.delete<APIResponse<null>>(`/reader/comments/${commentId}/like`)
+    return httpService.delete<APIResponse<null>>(`/reader/comments/${commentId}/like`)
   }
 }
 

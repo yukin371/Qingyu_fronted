@@ -2,7 +2,7 @@
  * 写作端 - 作品数据统计API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 /**
  * 作品统计概览接口
@@ -65,23 +65,18 @@ export interface ReadingHeatmap {
  * 获取作品统计概览
  * GET /api/v1/writer/books/:bookId/stats
  */
-export function getBookStats(bookId: string) {
-  return request.get<BookStats>(`/writer/books/${bookId}/stats`)
+export const getBookStats = (bookId: string) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats`)
 }
 
 /**
  * 获取每日统计数据
  * GET /api/v1/writer/books/:bookId/stats/daily
  */
-export function getDailyStats(
-  bookId: string,
-  params?: {
-    days?: number // 7, 30, 90
-    startDate?: string
-    endDate?: string
-  }
-) {
-  return request.get<DailyStats[]>(`/writer/books/${bookId}/stats/daily`, { params })
+export const getDailyStats = (bookId: string, days: number = 30) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats/daily`, {
+    params: { days }
+  })
 }
 
 /**
@@ -96,42 +91,33 @@ export function getSubscribersTrend(
     endDate?: string
   }
 ) {
-  return request.get(`/writer/books/${bookId}/stats/subscribers`, { params })
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats/subscribers`, { params })
 }
 
 /**
  * 获取章节统计数据
  * GET /api/v1/writer/books/:bookId/stats/chapters
  */
-export function getChapterStats(
-  bookId: string,
-  params?: {
-    sortBy?: 'views' | 'comments'
-    limit?: number
-  }
-) {
-  return request.get<ChapterStats[]>(`/writer/books/${bookId}/stats/chapters`, { params })
+export const getChapterStats = (bookId: string, page: number = 1, size: number = 20) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats/chapters`, {
+    params: { page, size }
+  })
 }
 
 /**
  * 获取读者活跃度分布
  * GET /api/v1/writer/books/:bookId/stats/reader-activity
  */
-export function getReaderActivity(bookId: string) {
-  return request.get<ReaderActivity[]>(`/writer/books/${bookId}/stats/reader-activity`)
+export const getReaderActivity = (bookId: string) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats/reader-activity`)
 }
 
 /**
  * 获取阅读时段热力图数据
  * GET /api/v1/writer/books/:bookId/stats/heatmap
  */
-export function getReadingHeatmap(
-  bookId: string,
-  params?: {
-    days?: number
-  }
-) {
-  return request.get<ReadingHeatmap[]>(`/writer/books/${bookId}/stats/heatmap`, { params })
+export const getReadingHeatmap = (bookId: string) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/stats/reading-heatmap`)
 }
 
 /**
@@ -146,9 +132,17 @@ export function compareBooks(
     endDate?: string
   }
 ) {
-  return request.post('/writer/stats/compare', {
+  return httpService.post('/api/v1/writer/stats/compare', {
     bookIds,
     ...params,
   })
+}
+
+export default {
+  getBookStats,
+  getDailyStats,
+  getChapterStats,
+  getReaderActivity,
+  getReadingHeatmap
 }
 

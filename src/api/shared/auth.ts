@@ -6,7 +6,7 @@
  * 与主认证API (src/api/auth.ts) 不同
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 import type {
   LoginCredentials,
@@ -25,42 +25,42 @@ export const sharedAuthAPI = {
    * 用户注册
    */
   async register(data: RegisterData): Promise<APIResponse<LoginResponse>> {
-    return request.post<APIResponse<LoginResponse>>('/shared/auth/register', data)
+    return httpService.post<APIResponse<LoginResponse>>('/shared/auth/register', data)
   },
 
   /**
    * 用户登录
    */
   async login(data: LoginCredentials): Promise<APIResponse<LoginResponse>> {
-    return request.post<APIResponse<LoginResponse>>('/shared/auth/login', data)
+    return httpService.post<APIResponse<LoginResponse>>('/shared/auth/login', data)
   },
 
   /**
    * 用户登出
    */
   async logout(): Promise<APIResponse<null>> {
-    return request.post<APIResponse<null>>('/shared/auth/logout')
+    return httpService.post<APIResponse<null>>('/shared/auth/logout')
   },
 
   /**
    * 刷新Token
    */
   async refreshToken(): Promise<APIResponse<TokenRefreshResponse>> {
-    return request.post<APIResponse<TokenRefreshResponse>>('/shared/auth/refresh')
+    return httpService.post<APIResponse<TokenRefreshResponse>>('/shared/auth/refresh')
   },
 
   /**
    * 获取用户权限
    */
   async getUserPermissions(): Promise<APIResponse<UserPermission[]>> {
-    return request.get<APIResponse<UserPermission[]>>('/shared/auth/permissions')
+    return httpService.get<APIResponse<UserPermission[]>>('/shared/auth/permissions')
   },
 
   /**
    * 获取用户角色
    */
   async getUserRoles(): Promise<APIResponse<UserRole[]>> {
-    return request.get<APIResponse<UserRole[]>>('/shared/auth/roles')
+    return httpService.get<APIResponse<UserRole[]>>('/shared/auth/roles')
   }
 }
 

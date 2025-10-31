@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { ApiResponse, PaginationParams } from '@/types/api'
 import type {
   Book,
@@ -40,7 +40,7 @@ export const booksAPI = {
    * 获取书籍详情
    */
   async getBookDetail(id: string): Promise<ApiResponse<Book>> {
-    return request.get(`/bookstore/books/${id}`)
+    return httpService.get(`/bookstore/books/${id}`)
   },
 
   /**
@@ -52,7 +52,7 @@ export const booksAPI = {
     page: number
     size: number
   }>> {
-    return request.get('/bookstore/books', { params })
+    return httpService.get('/bookstore/books', { params })
   },
 
   /**
@@ -68,7 +68,7 @@ export const booksAPI = {
     page: number
     size: number
   }>> {
-    return request.get(`/bookstore/books/category/${encodeURIComponent(category)}`, {
+    return httpService.get(`/bookstore/books/category/${encodeURIComponent(category)}`, {
       params: { page, size }
     })
   },
@@ -77,14 +77,14 @@ export const booksAPI = {
    * 根据作者获取书籍
    */
   async getBooksByAuthor(author: string): Promise<ApiResponse<BookBrief[]>> {
-    return request.get(`/bookstore/books/author/${encodeURIComponent(author)}`)
+    return httpService.get(`/bookstore/books/author/${encodeURIComponent(author)}`)
   },
 
   /**
    * 搜索书籍
    */
   async searchBooks(params: BookSearchParams): Promise<ApiResponse<SearchResult>> {
-    return request.get('/books/search', { params })
+    return httpService.get('/books/search', { params })
   },
 
   /**
@@ -95,7 +95,7 @@ export const booksAPI = {
     page: number = 1,
     size: number = 20
   ): Promise<ApiResponse<SearchResult>> {
-    return request.get('/books/search/title', {
+    return httpService.get('/books/search/title', {
       params: { title, page, size }
     })
   },
@@ -108,7 +108,7 @@ export const booksAPI = {
     page: number = 1,
     size: number = 20
   ): Promise<ApiResponse<SearchResult>> {
-    return request.get('/books/search/tags', {
+    return httpService.get('/books/search/tags', {
       params: { tags, page, size }
     })
   },
@@ -119,7 +119,7 @@ export const booksAPI = {
    * 获取章节详情
    */
   async getChapterDetail(id: string): Promise<ApiResponse<Chapter>> {
-    return request.get(`/chapters/${id}`)
+    return httpService.get(`/chapters/${id}`)
   },
 
   /**
@@ -135,7 +135,7 @@ export const booksAPI = {
     page: number
     size: number
   }>> {
-    return request.get(`/books/${bookId}/chapters`, {
+    return httpService.get(`/books/${bookId}/chapters`, {
       params: { page, size }
     })
   },
@@ -147,7 +147,7 @@ export const booksAPI = {
     bookId: string,
     limit: number = 10
   ): Promise<ApiResponse<ChapterListItem[]>> {
-    return request.get(`/books/${bookId}/chapters/latest`, {
+    return httpService.get(`/books/${bookId}/chapters/latest`, {
       params: { limit }
     })
   },
@@ -158,14 +158,14 @@ export const booksAPI = {
    * 获取所有分类
    */
   async getAllCategories(): Promise<ApiResponse<Category[]>> {
-    return request.get('/bookstore/categories')
+    return httpService.get('/bookstore/categories')
   },
 
   /**
    * 获取子分类
    */
   async getChildCategories(id: string): Promise<ApiResponse<Category[]>> {
-    return request.get(`/bookstore/categories/${id}/children`)
+    return httpService.get(`/bookstore/categories/${id}/children`)
   }
 }
 

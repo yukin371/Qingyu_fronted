@@ -3,7 +3,7 @@
  * 提供对话、续写、润色、扩写、改写等AI功能
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
@@ -61,14 +61,14 @@ export const chatWithAI = async (
   message: string,
   history?: ChatMessage[]
 ): Promise<{ reply: string; usage?: any }> => {
-  const response = await request.post('/api/v1/ai/chat', {
+  const response = await httpService.post('/api/v1/ai/chat', {
     message,
     history: history || []
   })
 
   return {
-    reply: response.data?.reply || response.data?.message || '',
-    usage: response.data?.usage
+    reply: response?.reply || response?.message || '',
+    usage: response?.usage
   }
 }
 
@@ -84,7 +84,7 @@ export const continueWriting = async (
   currentText: string,
   length: number = 200
 ): Promise<AIGenerateResponse> => {
-  const response = await request.post('/api/v1/ai/generate', {
+  const response = await httpService.post('/api/v1/ai/generate', {
     projectId,
     currentText,
     prompt: currentText,
@@ -92,7 +92,7 @@ export const continueWriting = async (
     type: 'continue'
   })
 
-  return response.data || {}
+  return response || {}
 }
 
 /**
@@ -107,14 +107,14 @@ export const polishText = async (
   text: string,
   instructions?: string
 ): Promise<AIGenerateResponse> => {
-  const response = await request.post('/api/v1/ai/polish', {
+  const response = await httpService.post('/api/v1/ai/polish', {
     projectId,
     originalText: text,
     rewriteMode: 'polish',
     instructions: instructions || '提升文学性和表达力'
   })
 
-  return response.data || {}
+  return response || {}
 }
 
 /**
@@ -131,7 +131,7 @@ export const expandText = async (
   instructions?: string,
   targetLength?: number
 ): Promise<AIGenerateResponse> => {
-  const response = await request.post('/api/v1/ai/expand', {
+  const response = await httpService.post('/api/v1/ai/expand', {
     projectId,
     originalText: text,
     rewriteMode: 'expand',
@@ -139,7 +139,7 @@ export const expandText = async (
     targetLength
   })
 
-  return response.data || {}
+  return response || {}
 }
 
 /**
@@ -156,14 +156,14 @@ export const rewriteText = async (
   mode: 'polish' | 'simplify' | 'formal' | 'casual',
   instructions?: string
 ): Promise<AIGenerateResponse> => {
-  const response = await request.post('/api/v1/ai/rewrite', {
+  const response = await httpService.post('/api/v1/ai/rewrite', {
     projectId,
     originalText: text,
     rewriteMode: mode,
     instructions
   })
 
-  return response.data || {}
+  return response || {}
 }
 
 /**
@@ -171,8 +171,8 @@ export const rewriteText = async (
  * @returns 健康状态
  */
 export const getAIHealth = async (): Promise<any> => {
-  const response = await request.get('/api/v1/ai/health')
-  return response.data || {}
+  const response = await httpService.get('/api/v1/ai/health')
+  return response || {}
 }
 
 /**
@@ -180,8 +180,8 @@ export const getAIHealth = async (): Promise<any> => {
  * @returns 提供商列表
  */
 export const getAIProviders = async (): Promise<any> => {
-  const response = await request.get('/api/v1/ai/providers')
-  return response.data || {}
+  const response = await httpService.get('/api/v1/ai/providers')
+  return response || {}
 }
 
 /**
@@ -189,8 +189,8 @@ export const getAIProviders = async (): Promise<any> => {
  * @returns 模型列表
  */
 export const getAIModels = async (): Promise<any> => {
-  const response = await request.get('/api/v1/ai/models')
-  return response.data || {}
+  const response = await httpService.get('/api/v1/ai/models')
+  return response || {}
 }
 
 export default {

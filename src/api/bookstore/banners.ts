@@ -2,7 +2,7 @@
  * 书城 - Banner相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { Banner } from '@/types/bookstore'
 
 /**
@@ -10,7 +10,7 @@ import type { Banner } from '@/types/bookstore'
  * GET /api/v1/bookstore/banners
  */
 export function getBanners() {
-  return request.get<Banner[]>('/bookstore/banners')
+  return httpService.get<Banner[]>('/bookstore/banners')
 }
 
 /**
@@ -18,6 +18,6 @@ export function getBanners() {
  * POST /api/v1/bookstore/banners/:id/click
  */
 export function incrementBannerClick(bannerId: string) {
-  return request.post<void>(`/bookstore/banners/${bannerId}/click`)
+  return httpService.post<void>(`/bookstore/banners/${bannerId}/click`)
 }
 

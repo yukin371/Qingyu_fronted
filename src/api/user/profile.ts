@@ -2,7 +2,7 @@
  * 用户 - 个人资料相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { UserInfo, UpdateProfileRequest } from '@/types/user'
 
 /**
@@ -10,7 +10,7 @@ import type { UserInfo, UpdateProfileRequest } from '@/types/user'
  * GET /api/v1/users/profile
  */
 export function getUserProfile() {
-  return request.get<UserInfo>('/users/profile')
+  return httpService.get<UserInfo>('/users/profile')
 }
 
 /**
@@ -18,7 +18,7 @@ export function getUserProfile() {
  * PUT /api/v1/users/profile
  */
 export function updateUserProfile(data: UpdateProfileRequest) {
-  return request.put<UserInfo>('/users/profile', data)
+  return httpService.put<UserInfo>('/users/profile', data)
 }
 
 /**
@@ -26,7 +26,7 @@ export function updateUserProfile(data: UpdateProfileRequest) {
  * PUT /api/v1/users/password
  */
 export function changePassword(oldPassword: string, newPassword: string) {
-  return request.put<void>('/users/password', {
+  return httpService.put<void>('/users/password', {
     oldPassword,
     newPassword,
   })
@@ -39,7 +39,7 @@ export function changePassword(oldPassword: string, newPassword: string) {
 export function uploadAvatar(file: File) {
   const formData = new FormData()
   formData.append('avatar', file)
-  return request.post<{ url: string }>('/users/avatar', formData, {
+  return httpService.post<{ url: string }>('/users/avatar', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

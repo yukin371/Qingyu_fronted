@@ -2,7 +2,7 @@
  * 书城 - 书籍相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type {
   Book,
   BookDetail,
@@ -15,7 +15,7 @@ import type {
  * GET /api/v1/bookstore/books/:id
  */
 export function getBookDetail(bookId: string) {
-  return request.get<BookDetail>(`/bookstore/books/${bookId}`)
+  return httpService.get<BookDetail>(`/bookstore/books/${bookId}`)
 }
 
 /**
@@ -23,7 +23,7 @@ export function getBookDetail(bookId: string) {
  * GET /api/v1/bookstore/books/search
  */
 export function searchBooks(params: SearchParams) {
-  return request.get<PaginationResponse<Book>>('/bookstore/books/search', { params })
+  return httpService.get<PaginationResponse<Book>>('/bookstore/books/search', { params })
 }
 
 /**
@@ -31,7 +31,7 @@ export function searchBooks(params: SearchParams) {
  * GET /api/v1/bookstore/books/recommended
  */
 export function getRecommendedBooks(params?: { page?: number; pageSize?: number; limit?: number }) {
-  return request.get<Book[]>('/bookstore/books/recommended', { params })
+  return httpService.get<Book[]>('/bookstore/books/recommended', { params })
 }
 
 /**
@@ -39,7 +39,7 @@ export function getRecommendedBooks(params?: { page?: number; pageSize?: number;
  * GET /api/v1/bookstore/books/featured
  */
 export function getFeaturedBooks(limit = 10) {
-  return request.get<Book[]>('/bookstore/books/featured', {
+  return httpService.get<Book[]>('/bookstore/books/featured', {
     params: { limit },
   })
 }
@@ -49,6 +49,6 @@ export function getFeaturedBooks(limit = 10) {
  * POST /api/v1/bookstore/books/:id/view
  */
 export function incrementBookView(bookId: string) {
-  return request.post<void>(`/bookstore/books/${bookId}/view`)
+  return httpService.post<void>(`/bookstore/books/${bookId}/view`)
 }
 

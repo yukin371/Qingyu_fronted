@@ -3,7 +3,7 @@
  * Business logic for user management
  */
 
-import { userAPI } from '../api/user.api'
+import * as userAPI from '@/api/user'
 import type { UserProfile, UpdateProfileParams } from '../types/user.types'
 import { validationService } from '@/core/services/validation.service'
 

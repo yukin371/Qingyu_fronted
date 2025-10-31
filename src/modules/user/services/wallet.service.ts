@@ -3,7 +3,7 @@
  * Business logic for wallet management
  */
 
-import { walletAPI } from '../api/wallet.api'
+import * as walletAPI from '@/api/shared'
 import type {
   WalletBalance,
   Transaction,

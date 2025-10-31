@@ -2,7 +2,7 @@
  * 写作端 - 作家收入统计API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 /**
  * 收入统计数据接口
@@ -54,54 +54,36 @@ export interface RevenueSource {
  * 获取作家收入统计
  * GET /api/v1/writer/revenue/stats
  */
-export function getRevenueStats(params?: {
-  bookId?: string
-  startDate?: string
-  endDate?: string
-}) {
-  return request.get<RevenueStats>('/writer/revenue/stats', { params })
+export const getRevenueStats = () => {
+  return httpService.get('/api/v1/writer/revenue/stats')
 }
 
 /**
  * 获取收入趋势
  * GET /api/v1/writer/revenue/trend
  */
-export function getRevenueTrend(params?: {
-  bookId?: string
-  days?: number // 7, 30, 90
-  startDate?: string
-  endDate?: string
-}) {
-  return request.get<RevenueTrend[]>('/writer/revenue/trend', { params })
+export const getRevenueTrend = (days: number = 30) => {
+  return httpService.get('/api/v1/writer/revenue/trend', {
+    params: { days }
+  })
 }
 
 /**
  * 获取收入来源分布
  * GET /api/v1/writer/revenue/sources
  */
-export function getRevenueSources(params?: {
-  bookId?: string
-  startDate?: string
-  endDate?: string
-}) {
-  return request.get<RevenueSource[]>('/writer/revenue/sources', { params })
+export const getRevenueSources = () => {
+  return httpService.get('/api/v1/writer/revenue/sources')
 }
 
 /**
  * 获取章节收入排行
  * GET /api/v1/writer/revenue/chapters/ranking
  */
-export function getChapterRevenueRanking(params?: {
-  bookId?: string
-  page?: number
-  size?: number
-  startDate?: string
-  endDate?: string
-}) {
-  return request.get<{
-    list: ChapterRevenue[]
-    total: number
-  }>('/writer/revenue/chapters/ranking', { params })
+export const getChapterRevenueRanking = (bookId: string, page: number = 1, size: number = 20) => {
+  return httpService.get(`/api/v1/writer/books/${bookId}/revenue/chapters`, {
+    params: { page, size }
+  })
 }
 
 /**
@@ -113,7 +95,7 @@ export function getWriterBooks(params?: {
   size?: number
   status?: string
 }) {
-  return request.get<{
+  return httpService.get<{
     list: Array<{
       id: string
       title: string
@@ -136,6 +118,13 @@ export function getRevenueRecords(params?: {
   startDate?: string
   endDate?: string
 }) {
-  return request.get('/writer/revenue/records', { params })
+  return httpService.get('/writer/revenue/records', { params })
+}
+
+export default {
+  getRevenueStats,
+  getRevenueTrend,
+  getRevenueSources,
+  getChapterRevenueRanking
 }
 

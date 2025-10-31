@@ -2,7 +2,7 @@
  * 书城 - 分类相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { Book, Category, PaginationResponse } from '@/types/bookstore'
 
 /**
@@ -10,7 +10,7 @@ import type { Book, Category, PaginationResponse } from '@/types/bookstore'
  * GET /api/v1/bookstore/categories/tree
  */
 export function getCategoryTree() {
-  return request.get<Category[]>('/bookstore/categories/tree')
+  return httpService.get<Category[]>('/bookstore/categories/tree')
 }
 
 /**
@@ -18,7 +18,7 @@ export function getCategoryTree() {
  * GET /api/v1/bookstore/categories/:id
  */
 export function getCategoryDetail(categoryId: string) {
-  return request.get<Category>(`/bookstore/categories/${categoryId}`)
+  return httpService.get<Category>(`/bookstore/categories/${categoryId}`)
 }
 
 /**
@@ -33,7 +33,7 @@ export function getBooksByCategory(
     sort?: string
   }
 ) {
-  return request.get<PaginationResponse<Book>>(
+  return httpService.get<PaginationResponse<Book>>(
     `/bookstore/categories/${categoryId}/books`,
     { params }
   )

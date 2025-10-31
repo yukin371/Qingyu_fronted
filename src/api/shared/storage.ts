@@ -3,7 +3,7 @@
  * 基于 doc/api/frontend/共享服务API参考.md
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
 import type {
   FileInfo,
@@ -29,7 +29,7 @@ export const storageAPI = {
       formData.append('category', category)
     }
 
-    return request.post<APIResponse<UploadResponse>>('/shared/storage/upload', formData, {
+    return httpService.post<APIResponse<UploadResponse>>('/shared/storage/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -40,7 +40,7 @@ export const storageAPI = {
    * 下载文件
    */
   async downloadFile(fileId: string): Promise<Blob> {
-    return request.get<Blob>(`/shared/storage/download/${fileId}`, {
+    return httpService.get<Blob>(`/shared/storage/download/${fileId}`, {
       responseType: 'blob'
     })
   },
@@ -49,21 +49,21 @@ export const storageAPI = {
    * 删除文件
    */
   async deleteFile(fileId: string): Promise<APIResponse<null>> {
-    return request.delete<APIResponse<null>>(`/shared/storage/files/${fileId}`)
+    return httpService.delete<APIResponse<null>>(`/shared/storage/files/${fileId}`)
   },
 
   /**
    * 获取文件信息
    */
   async getFileInfo(fileId: string): Promise<APIResponse<FileInfo>> {
-    return request.get<APIResponse<FileInfo>>(`/shared/storage/files/${fileId}`)
+    return httpService.get<APIResponse<FileInfo>>(`/shared/storage/files/${fileId}`)
   },
 
   /**
    * 列出文件
    */
   async listFiles(params?: FileListParams): Promise<PaginatedResponse<FileInfo>> {
-    return request.get<PaginatedResponse<FileInfo>>('/shared/storage/files', {
+    return httpService.get<PaginatedResponse<FileInfo>>('/shared/storage/files', {
       params
     })
   },
@@ -72,7 +72,7 @@ export const storageAPI = {
    * 获取文件访问URL
    */
   async getFileURL(fileId: string, expire: number = 3600): Promise<APIResponse<{ url: string; expiresAt: string }>> {
-    return request.get<APIResponse<{ url: string; expiresAt: string }>>(`/shared/storage/files/${fileId}/url`, {
+    return httpService.get<APIResponse<{ url: string; expiresAt: string }>>(`/shared/storage/files/${fileId}/url`, {
       params: { expire }
     })
   }

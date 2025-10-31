@@ -2,7 +2,7 @@
  * 书城 - 首页相关API
  */
 
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { HomepageData } from '@/types/bookstore'
 
 /**
@@ -10,6 +10,6 @@ import type { HomepageData } from '@/types/bookstore'
  * GET /api/v1/bookstore/homepage
  */
 export function getHomepage() {
-  return request.get<HomepageData>('/bookstore/homepage')
+  return httpService.get<HomepageData>('/bookstore/homepage')
 }
 

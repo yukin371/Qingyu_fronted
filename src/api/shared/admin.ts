@@ -1,7 +1,7 @@
 /**
  * 管理员 API
  */
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 import type {
   DashboardStats,
@@ -15,7 +15,7 @@ import type {
  * 获取仪表盘统计数据
  */
 export async function getDashboardStats(): Promise<APIResponse<DashboardStats>> {
-  return request.get<APIResponse<DashboardStats>>('/admin/dashboard/stats')
+  return httpService.get<APIResponse<DashboardStats>>('/admin/dashboard/stats')
 }
 
 /**
@@ -27,7 +27,7 @@ export async function getReviewList(params?: {
   status?: string
   type?: string
 }): Promise<APIResponse<{ items: ReviewItem[]; total: number }>> {
-  return request.get<APIResponse<{ items: ReviewItem[]; total: number }>>('/admin/reviews', { params })
+  return httpService.get<APIResponse<{ items: ReviewItem[]; total: number }>>('/admin/reviews', { params })
 }
 
 /**
@@ -49,7 +49,7 @@ export async function reviewContent(id: string, params: {
   status: 'approved' | 'rejected'
   reason?: string
 }): Promise<APIResponse<void>> {
-  return request.post<APIResponse<void>>(`/admin/reviews/${id}`, params)
+  return httpService.post<APIResponse<void>>(`/admin/reviews/${id}`, params)
 }
 
 /**
@@ -60,7 +60,7 @@ export async function getWithdrawalList(params?: {
   pageSize?: number
   status?: string
 }): Promise<APIResponse<{ items: WithdrawalRequest[]; total: number }>> {
-  return request.get<APIResponse<{ items: WithdrawalRequest[]; total: number }>>('/admin/withdrawals', { params })
+  return httpService.get<APIResponse<{ items: WithdrawalRequest[]; total: number }>>('/admin/withdrawals', { params })
 }
 
 /**
@@ -70,7 +70,7 @@ export async function handleWithdrawal(id: string, params: {
   status: 'approved' | 'rejected'
   reason?: string
 }): Promise<APIResponse<void>> {
-  return request.post<APIResponse<void>>(`/admin/withdrawals/${id}`, params)
+  return httpService.post<APIResponse<void>>(`/admin/withdrawals/${id}`, params)
 }
 
 /**
@@ -93,21 +93,21 @@ export async function getUserList(params?: {
   role?: string
   status?: string
 }): Promise<APIResponse<{ items: UserManagementItem[]; total: number }>> {
-  return request.get<APIResponse<{ items: UserManagementItem[]; total: number }>>('/admin/users', { params })
+  return httpService.get<APIResponse<{ items: UserManagementItem[]; total: number }>>('/admin/users', { params })
 }
 
 /**
  * 更新用户信息
  */
 export async function updateUser(id: string, params: Partial<UserManagementItem>): Promise<APIResponse<void>> {
-  return request.put<APIResponse<void>>(`/admin/users/${id}`, params)
+  return httpService.put<APIResponse<void>>(`/admin/users/${id}`, params)
 }
 
 /**
  * 删除用户
  */
 export async function deleteUser(id: string): Promise<APIResponse<void>> {
-  return request.delete<APIResponse<void>>(`/admin/users/${id}`)
+  return httpService.delete<APIResponse<void>>(`/admin/users/${id}`)
 }
 
 /**
@@ -121,7 +121,7 @@ export async function getOperationLogs(params?: {
   startTime?: number
   endTime?: number
 }): Promise<APIResponse<{ items: OperationLog[]; total: number }>> {
-  return request.get<APIResponse<{ items: OperationLog[]; total: number }>>('/admin/logs', { params })
+  return httpService.get<APIResponse<{ items: OperationLog[]; total: number }>>('/admin/logs', { params })
 }
 
 
