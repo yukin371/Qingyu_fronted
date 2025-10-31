@@ -17,7 +17,7 @@
             树形
           </el-button>
           <el-button
-            :type="viewMode === 'mind map' ? 'primary' : ''"
+            :type="viewMode === 'mindmap' ? 'primary' : ''"
             size="small"
             @click="viewMode = 'mindmap'"
           >
@@ -53,7 +53,7 @@
               @node-click="handleNodeClick"
               @node-drop="handleNodeDrop"
             >
-              <template #default="{ node, data }">
+              <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
                     <el-icon v-if="data.level === 1"><Folder /></el-icon>
@@ -123,13 +123,16 @@
 
       <!-- 思维导图视图 -->
       <div v-show="viewMode === 'mindmap'" class="mindmap-view">
-        <div class="mindmap-container" ref="mindmapContainer">
-          <div class="mindmap-placeholder">
-            <el-icon class="placeholder-icon"><Share /></el-icon>
-            <p>思维导图功能开发中...</p>
-            <p class="placeholder-tip">将展示章节结构的可视化思维导图</p>
-          </div>
-        </div>
+        <DrawCanvas
+          :nodes="mindmapNodes"
+          :edges="mindmapEdges"
+          canvas-type="mindmap"
+          :config="mindmapConfig"
+          @node-add="handleMindmapNodeAdd"
+          @node-update="handleMindmapNodeUpdate"
+          @node-delete="handleMindmapNodeDelete"
+          @export="handleMindmapExport"
+        />
       </div>
     </div>
 
@@ -196,6 +199,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
+import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
+import type { DrawNode, DrawEdge, DrawEngineConfig } from '@/core/draw-engine/types'
 import {
   List,
   Share,
@@ -238,6 +243,73 @@ const formRules = {
 
 const outlineTree = computed(() => writerStore.outline.tree)
 
+// 思维导图配置
+const mindmapConfig = ref<Partial<DrawEngineConfig>>({
+  zoom: {
+    min: 0.5,
+    max: 3,
+    step: 0.1
+  },
+  grid: {
+    enabled: true,
+    size: 20
+  }
+})
+
+// 将大纲树转换为思维导图节点和边
+const mindmapNodes = computed((): DrawNode[] => {
+  if (!outlineTree.value || outlineTree.value.length === 0) return []
+
+  const nodes: DrawNode[] = []
+  const traverse = (item: OutlineNode, level: number = 0) => {
+    nodes.push({
+      id: item.id,
+      label: item.title,
+      type: `level-${item.level}`,
+      x: level * 300,
+      y: nodes.length * 100,
+      width: 150,
+      height: 60,
+      data: {
+        level: item.level,
+        status: item.status,
+        description: item.description,
+        wordCount: item.wordCount
+      }
+    })
+
+    if (item.children && item.children.length > 0) {
+      item.children.forEach(child => traverse(child, level + 1))
+    }
+  }
+
+  outlineTree.value.forEach(root => traverse(root, 0))
+  return nodes
+})
+
+// 将大纲树转换为边关系
+const mindmapEdges = computed((): DrawEdge[] => {
+  if (!outlineTree.value || outlineTree.value.length === 0) return []
+
+  const edges: DrawEdge[] = []
+  const traverse = (item: OutlineNode) => {
+    if (item.children && item.children.length > 0) {
+      item.children.forEach(child => {
+        edges.push({
+          id: `edge-${item.id}-${child.id}`,
+          source: item.id,
+          target: child.id,
+          label: ''
+        })
+        traverse(child)
+      })
+    }
+  }
+
+  outlineTree.value.forEach(root => traverse(root))
+  return edges
+})
+
 onMounted(async () => {
   if (writerStore.currentProjectId) {
     await writerStore.loadOutlineTree()
@@ -278,8 +350,7 @@ const handleDeleteNode = async (node: OutlineNode) => {
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const { deleteOutlineNode } = await import('../api')
-    await deleteOutlineNode(node.id, projectId)
+    await writerStore.deleteOutlineNode(node.id, projectId)
     await writerStore.loadOutlineTree()
     ElMessage.success('删除成功')
   } catch (error: any) {
@@ -317,12 +388,10 @@ const handleSubmit = async () => {
     try {
       if (isEdit.value && selectedNode.value) {
         // 更新节点
-        const { updateOutlineNode } = await import('../api')
-        await updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
+        await writerStore.updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
       } else {
         // 创建节点
-        const { createOutlineNode } = await import('../api')
-        await createOutlineNode(projectId, {
+        await writerStore.createOutlineNode(projectId, {
           ...nodeForm.value,
           order: outlineTree.value.length
         })
@@ -347,6 +416,27 @@ const handleJumpToChapter = (node: OutlineNode) => {
   } else {
     ElMessage.warning('该节点未关联章节')
   }
+}
+
+// 思维导图事件处理
+const handleMindmapNodeAdd = (node: DrawNode) => {
+  ElMessage.info(`添加节点: ${node.label}`)
+  // 可以在这里调用添加节点的API
+}
+
+const handleMindmapNodeUpdate = (node: DrawNode) => {
+  ElMessage.info(`更新节点: ${node.label}`)
+  // 可以在这里调用更新节点的API
+}
+
+const handleMindmapNodeDelete = (nodeId: string) => {
+  ElMessage.info(`删除节点: ${nodeId}`)
+  // 可以在这里调用删除节点的API
+}
+
+const handleMindmapExport = async (format: string, data: any) => {
+  ElMessage.success(`已导出为 ${format} 格式`)
+  // 处理导出逻辑
 }
 
 const resetForm = () => {

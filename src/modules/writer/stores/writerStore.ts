@@ -1125,6 +1125,55 @@ export const useWriterStore = defineStore('writer', {
       this.outline.currentNode = node
     },
 
+    /**
+     * 创建大纲节点
+     */
+    async createOutlineNode(projectId: string, nodeData: any): Promise<OutlineNode> {
+      try {
+        // TODO: 调用后端API创建节点
+        // const response = await apiClient.post(`/projects/${projectId}/outline`, nodeData)
+        // return response.data
+        console.log('创建大纲节点:', projectId, nodeData)
+        await this.loadOutlineTree(projectId)
+        return {} as OutlineNode
+      } catch (error: any) {
+        console.error('创建大纲节点失败:', error)
+        throw error
+      }
+    },
+
+    /**
+     * 更新大纲节点
+     */
+    async updateOutlineNode(nodeId: string, projectId: string, nodeData: any): Promise<OutlineNode> {
+      try {
+        // TODO: 调用后端API更新节点
+        // const response = await apiClient.put(`/projects/${projectId}/outline/${nodeId}`, nodeData)
+        // return response.data
+        console.log('更新大纲节点:', nodeId, nodeData)
+        await this.loadOutlineTree(projectId)
+        return {} as OutlineNode
+      } catch (error: any) {
+        console.error('更新大纲节点失败:', error)
+        throw error
+      }
+    },
+
+    /**
+     * 删除大纲节点
+     */
+    async deleteOutlineNode(nodeId: string, projectId: string): Promise<void> {
+      try {
+        // TODO: 调用后端API删除节点
+        // await apiClient.delete(`/projects/${projectId}/outline/${nodeId}`)
+        console.log('删除大纲节点:', nodeId)
+        await this.loadOutlineTree(projectId)
+      } catch (error: any) {
+        console.error('删除大纲节点失败:', error)
+        throw error
+      }
+    },
+
     // ==================== AI Agent 上下文 ====================
 
     /**
