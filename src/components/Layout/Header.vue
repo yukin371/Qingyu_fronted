@@ -89,10 +89,10 @@ const userStore = useUserStore()
 async function handleCommand(command: string) {
   switch (command) {
     case 'profile':
-      router.push('/profile')
+      router.push('/account/profile')
       break
     case 'reading-history':
-      router.push('/reading-history')
+      router.push('/reading/history')
       break
     case 'wallet':
       router.push('/wallet')

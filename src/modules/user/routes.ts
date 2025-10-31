@@ -13,7 +13,7 @@ const userRoutes: RouteRecordRaw[] = [
     meta: { title: '登录 / 注册', guest: true }
   },
   {
-    path: '/',
+    path: '/account',
     component: MainLayout,
     children: [
       {
@@ -25,7 +25,7 @@ const userRoutes: RouteRecordRaw[] = [
       {
         path: 'settings',
         name: 'settings',
-        redirect: '/settings/account',
+        redirect: '/account/settings/account',
         meta: { requiresAuth: true }
       },
       {

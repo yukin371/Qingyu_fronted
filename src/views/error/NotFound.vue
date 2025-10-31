@@ -35,7 +35,7 @@ import { HomeFilled, Back } from '@element-plus/icons-vue'
 const router = useRouter()
 
 const goHome = () => {
-  router.push('/')
+  router.push('/bookstore')
 }
 
 const goBack = () => {

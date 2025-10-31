@@ -222,13 +222,12 @@ export default {
       async (page, pageSize) => {
         try {
           // 调用推荐API
-          const response = await bookstoreStore.fetchRecommendedBooks({
-            page,
-            pageSize
-          })
+          const data = await bookstoreStore.fetchRecommendedBooks(page, pageSize)
+          // bookstoreStore 中的数据是直接存储在 books.recommended 中
+          const items = bookstoreStore.books.recommended || []
           return {
-            items: response.data || [],
-            total: response.total || 0
+            items: Array.isArray(items) ? items : [],
+            total: items.length
           }
         } catch (error) {
           console.error('加载推荐失败:', error)

@@ -14,7 +14,7 @@ const readerRoutes: RouteRecordRaw[] = [
     props: true
   },
   {
-    path: '/',
+    path: '/reading',
     component: MainLayout,
     children: [
       {
@@ -24,13 +24,13 @@ const readerRoutes: RouteRecordRaw[] = [
         meta: { title: '我的书架', requiresAuth: true }
       },
       {
-        path: 'reader/history',
+        path: 'history',
         name: 'reading-history',
         component: () => import('./views/ReadingHistoryView.vue'),
         meta: { title: '阅读历史', requiresAuth: true }
       },
       {
-        path: 'reader/bookmarks',
+        path: 'bookmarks',
         name: 'bookmarks',
         component: () => import('./views/BookmarkManagementView.vue'),
         meta: { title: '我的书签', requiresAuth: true }

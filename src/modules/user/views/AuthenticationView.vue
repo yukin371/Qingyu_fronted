@@ -507,7 +507,7 @@ const handleLogin = async () => {
 
                 // 跳转到重定向页面或首页
                 const redirect = route.query.redirect as string
-                router.push(redirect || '/')
+                router.push(redirect || '/bookstore')
             } catch (error: any) {
                 ElMessage.error(error.message || '登录失败')
             } finally {
@@ -670,7 +670,7 @@ const handleTabChange = (name: string) => {
 
 // 返回首页
 const goHome = () => {
-    router.push('/')
+    router.push('/bookstore')
 }
 
 // 监听路由查询参数

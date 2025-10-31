@@ -39,27 +39,27 @@ const route = useRoute()
 
 // 路由标题映射
 const routeTitleMap: Record<string, string> = {
-  '/': '首页',
-  '/books': '书库',
-  '/categories': '分类',
-  '/rankings': '榜单',
+  '/bookstore': '首页',
+  '/bookstore/books': '书库',
+  '/bookstore/categories': '分类',
+  '/bookstore/rankings': '榜单',
   '/writer': '创作中心',
   '/writer/dashboard': '工作台',
   '/writer/projects': '我的项目',
   '/writer/publish': '发布管理',
   '/writer/statistics': '数据统计',
-  '/reader/bookshelf': '我的书架',
-  '/reader/history': '阅读历史',
-  '/profile': '个人中心',
+  '/reading/bookshelf': '我的书架',
+  '/reading/history': '阅读历史',
+  '/account/profile': '个人中心',
   '/admin': '管理后台'
 }
 
 // 路由图标映射
 const routeIconMap: Record<string, any> = {
-  '/': HomeFilled,
-  '/books': Reading,
+  '/bookstore': HomeFilled,
+  '/bookstore/books': Reading,
   '/writer': Edit,
-  '/profile': User,
+  '/account/profile': User,
   '/admin': Setting
 }
 
@@ -75,7 +75,7 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
 
   const paths = route.path.split('/').filter(Boolean)
   const result: Breadcrumb[] = [
-    { title: '首页', path: '/', icon: HomeFilled }
+    { title: '首页', path: '/bookstore', icon: HomeFilled }
   ]
 
   let currentPath = ''

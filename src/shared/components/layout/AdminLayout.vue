@@ -164,7 +164,7 @@ const showNotifications = () => {
 const handleUserCommand = (command: string) => {
   switch (command) {
     case 'profile':
-      router.push('/profile')
+      router.push('/account/profile')
       break
     case 'settings':
       ElMessage.info('设置功能开发中')

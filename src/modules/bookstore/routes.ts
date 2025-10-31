@@ -7,7 +7,7 @@ import MainLayout from '@/shared/components/layout/MainLayout.vue'
 
 const bookstoreRoutes: RouteRecordRaw[] = [
   {
-    path: '/',
+    path: '/bookstore',
     component: MainLayout,
     children: [
       {

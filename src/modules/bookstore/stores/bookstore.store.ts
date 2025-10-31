@@ -226,9 +226,18 @@ export const useBookstoreStore = defineStore('bookstore', {
      */
     async fetchRecommendedBooks(page: number = 1, size: number = 20): Promise<void> {
       try {
-        this.books.recommended = await bookstoreService.getRecommendedBooks(page, size)
-      } catch (error) {
+        const result = await bookstoreService.getRecommendedBooks(page, size)
+        // 验证返回数据
+        if (result && Array.isArray(result)) {
+          this.books.recommended = result
+        } else {
+          console.warn('推荐书籍数据格式不正确:', result)
+          this.books.recommended = []
+        }
+      } catch (error: any) {
         console.error('获取推荐书籍失败:', error)
+        this.books.recommended = []
+        this.error = '获取推荐书籍失败'
       }
     },
 
@@ -237,9 +246,18 @@ export const useBookstoreStore = defineStore('bookstore', {
      */
     async fetchFeaturedBooks(page: number = 1, size: number = 20): Promise<void> {
       try {
-        this.books.featured = await bookstoreService.getFeaturedBooks(page, size)
-      } catch (error) {
+        const result = await bookstoreService.getFeaturedBooks(page, size)
+        // 验证返回数据
+        if (result && Array.isArray(result)) {
+          this.books.featured = result
+        } else {
+          console.warn('精选书籍数据格式不正确:', result)
+          this.books.featured = []
+        }
+      } catch (error: any) {
         console.error('获取精选书籍失败:', error)
+        this.books.featured = []
+        this.error = '获取精选书籍失败'
       }
     },
 

@@ -300,7 +300,7 @@ const handleSearch = () => {
 
 // 回到首页
 const goHome = () => {
-    router.push('/')
+    router.push('/bookstore')
 }
 
 // 跳转认证页面
@@ -344,16 +344,16 @@ const handleQuickLogin = async () => {
 const handleUserCommand = async (command: string) => {
     switch (command) {
         case 'profile':
-            router.push('/profile')
+            router.push('/account/profile')
             break
         case 'writer-dashboard':
             router.push('/writer/dashboard')
             break
         case 'shelf':
-            router.push('/profile?tab=shelf')
+            router.push('/reading/bookshelf')
             break
         case 'history':
-            router.push('/profile?tab=history')
+            router.push('/reading/history')
             break
         case 'logout':
             try {
@@ -364,7 +364,7 @@ const handleUserCommand = async (command: string) => {
                 })
                 await authStore.logout()
                 ElMessage.success('已退出登录')
-                router.push('/home')
+                router.push('/bookstore')
             } catch (error) {
                 // 用户取消
             }

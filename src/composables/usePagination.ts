@@ -5,6 +5,7 @@
  */
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import type { Ref } from 'vue'
 
 export interface PaginationOptions {
   pageSize?: number

@@ -35,7 +35,7 @@ import { HomeFilled, Refresh } from '@element-plus/icons-vue'
 const router = useRouter()
 
 const goHome = () => {
-  router.push('/')
+  router.push('/bookstore')
 }
 
 const reload = () => {
