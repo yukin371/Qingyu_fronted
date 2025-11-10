@@ -8,6 +8,9 @@
           青羽书城
         </h1>
         <p class="page-subtitle">发现优质内容，享受阅读乐趣</p>
+        <div class="demo-link" style="margin-top:12px">
+          <el-button type="primary" size="small" @click="goToReaderDemo">打开阅读器演示</el-button>
+        </div>
       </div>
     </div>
 
@@ -34,6 +37,7 @@
           <BannerCarousel
             :banners="banners"
             height="400px"
+            @banner-click="handleBannerClick"
           />
         </section>
 
@@ -150,7 +154,7 @@
           </div>
 
           <!-- 加载触发器 -->
-          <div ref="loadMoreTrigger" class="load-trigger"></div>
+          <div ref="loadMoreElRef" class="load-trigger"></div>
 
           <!-- 没有更多 -->
           <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more">
@@ -207,7 +211,7 @@ export default {
     const router = useRouter()
     const bookstoreStore = useBookstoreStore()
     const loading = ref(false)
-    const loadMoreTrigger = ref<HTMLElement | null>(null)
+    const loadMoreElRef = ref<HTMLElement | null>(null)
 
     // 公告列表
     const announcements = ref([])
@@ -240,6 +244,8 @@ export default {
         autoLoadOnScroll: false // 手动设置observer
       }
     )
+
+    // 模板ref在mounted后可用，初始化观察器
 
     // 计算属性
     const banners = computed(() => bookstoreStore.banners)
@@ -326,9 +332,44 @@ export default {
       console.log('点击书籍:', book)
       const bookId = book.id || book._id
       if (bookId) {
-        router.push(`/books/${bookId}`)
+        router.push({ name: 'book-detail', params: { id: String(bookId) } })
       } else {
         ElMessage.warning('书籍ID缺失')
+      }
+    }
+
+    // 处理Banner点击跳转
+    const handleBannerClick = (banner) => {
+      try {
+        const type = banner.targetType || banner.target_type || banner.type
+        if (type === 'book') {
+          const targetId = banner.targetId || banner.target || banner.bookId || banner.book_id
+          if (targetId) {
+            router.push({ name: 'book-detail', params: { id: String(targetId) } })
+            return
+          }
+        }
+        if (type === 'category') {
+          const categoryId = banner.targetId || banner.target
+          if (categoryId) {
+            router.push(`/categories/${categoryId}`)
+            return
+          }
+        }
+        if (type === 'url' && (banner.targetUrl || banner.target)) {
+          const url = banner.targetUrl || banner.target
+          window.open(url, '_blank')
+          return
+        }
+        // 兜底：尝试按书籍处理
+        const fallbackId = banner.targetId || banner.target
+        if (fallbackId) {
+          router.push({ name: 'book-detail', params: { id: String(fallbackId) } })
+        } else {
+          ElMessage.warning('无效的Banner目标')
+        }
+      } catch (e) {
+        console.error('处理Banner点击失败:', e)
       }
     }
 
@@ -337,13 +378,18 @@ export default {
       router.push('/auth')
     }
 
+    // 打开阅读器演示页面（便于调试）
+    const goToReaderDemo = () => {
+      router.push('/bookstore/reader-demo')
+    }
+
     // 组件挂载时加载数据
     onMounted(() => {
       loadHomepageData()
 
       // 设置无限滚动观察器
-      if (loadMoreTrigger.value) {
-        setupScrollObserver(loadMoreTrigger.value)
+      if (loadMoreElRef.value) {
+        setupScrollObserver(loadMoreElRef.value)
       }
     })
 
@@ -363,14 +409,16 @@ export default {
       recommendedItems,
       loadingMore,
       hasMoreRecommendations,
-      loadMoreTrigger,
+      loadMoreElRef,
       formatNumber,
       getAnnouncementType,
       handleCloseAnnouncement,
       handleViewRanking,
       handleViewBooks,
       handleBookClick,
-      goToAuth
+      handleBannerClick,
+      goToAuth,
+      goToReaderDemo
     }
   }
 }

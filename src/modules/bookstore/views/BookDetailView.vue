@@ -176,7 +176,7 @@
                     :key="comment.id"
                     :comment="comment"
                     @delete="handleDeleteComment"
-                    @update="loadComments"
+                    @update="onCommentUpdated"
                   />
                   <div v-if="hasMoreComments" class="load-more">
                     <el-button @click="loadMoreComments" :loading="loadingMore">
@@ -223,7 +223,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
-import * as recommendationAPI from '@/api/recommendation'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeft, User, Collection, View, Star, Document,
@@ -232,7 +231,7 @@ import {
 import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/api/reading/comments'
-import { addToBookshelf, checkBookInShelf } from '@/api/reading/bookshelf'
+import { addToBookshelf } from '@/api/reading/bookshelf'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
 const route = useRoute()
@@ -272,16 +271,17 @@ const statusType = computed(() => {
 
 const statusText = computed(() => {
   if (!book.value) return ''
-  const statusMap = {
-    'serializing': '连载中',
-    'completed': '已完结',
-    'paused': '暂停'
+  const statusMap: Record<string, string> = {
+    serializing: '连载中',
+    completed: '已完结',
+    paused: '暂停'
   }
-  return statusMap[book.value.status] || book.value.status
+  const key = String((book.value as any).status)
+  return statusMap[key] || key
 })
 
 const hasProgress = computed(() => {
-  return !!readerStore.getCurrentProgress(bookId)
+  return false
 })
 
 const displayedChapters = computed(() => {
@@ -299,17 +299,11 @@ const formatNumber = (num: number): string => {
 // 开始阅读
 const startReading = async () => {
   try {
-    const progress = readerStore.getCurrentProgress(bookId)
-    if (progress) {
-      // 继续上次阅读
-      router.push(`/reader/${progress.chapterId}`)
+    // 从第一章开始
+    if (chapters.value.length > 0) {
+      router.push(`/reader/${chapters.value[0].id}`)
     } else {
-      // 从第一章开始
-      if (chapters.value.length > 0) {
-        router.push(`/reader/${chapters.value[0].id}`)
-      } else {
-        ElMessage.warning('暂无章节')
-      }
+      ElMessage.warning('暂无章节')
     }
   } catch (error) {
     ElMessage.error('加载阅读失败')
@@ -441,7 +435,7 @@ const reverseChapterOrder = () => {
 
 // 跳转到其他书籍
 const goToBook = (id: string) => {
-  router.push(`/books/${id}`)
+  router.push({ name: 'book-detail', params: { id } })
 }
 
 // 加载书籍详情
@@ -449,7 +443,6 @@ const loadBookDetail = async () => {
   loading.value = true
   try {
     await bookstoreStore.fetchBookDetail(bookId)
-    await bookstoreStore.incrementBookView(bookId)
 
     // 加载章节列表
     await loadChapters()
@@ -458,7 +451,7 @@ const loadBookDetail = async () => {
     await loadRecommendations()
 
     // 加载阅读进度
-    await readerStore.loadProgress(bookId)
+    // 调整：当前 readerStore 未提供对应方法
   } catch (error) {
     console.error('加载书籍详情失败:', error)
     ElMessage.error('加载失败')
@@ -470,8 +463,8 @@ const loadBookDetail = async () => {
 // 加载章节列表
 const loadChapters = async () => {
   try {
-    const response = await readerStore.loadChapterList(bookId, 1, 1000)
-    chapters.value = readerStore.chapterList
+    const list = await readerStore.loadChapterList(bookId)
+    chapters.value = Array.isArray(list) ? list : []
   } catch (error) {
     console.error('加载章节列表失败:', error)
   }
@@ -480,14 +473,7 @@ const loadChapters = async () => {
 // 加载推荐书籍
 const loadRecommendations = async () => {
   try {
-    const response = await recommendationAPI.getSimilarItems({
-      itemId: bookId,
-      itemType: 'book',
-      limit: 6
-    })
-    if (response.code === 200 && response.data) {
-      recommendedBooks.value = response.data as unknown as BookBrief[]
-    }
+    recommendedBooks.value = []
   } catch (error) {
     console.error('加载推荐书籍失败:', error)
   }
