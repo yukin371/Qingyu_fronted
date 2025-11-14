@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { login, logout, register, refreshToken } from '@/api/shared/auth'
+import { login, logout, register, refreshToken, sharedAuthAPI as authAPI } from '@/api/shared/auth'
 import storage from '@/utils/storage'
 import router from '@/router'
 import type { User } from '@/types/models'
@@ -132,7 +132,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.login(credentials)
-        const data = response.data
+        // 响应拦截器已经提取了data字段，所以response就是LoginResponse
+        const data = response
 
         // 保存认证信息
         this.token = data.token
@@ -164,7 +165,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.register(userData)
-        const data = response.data
+        // 响应拦截器已经提取了data字段，所以response就是LoginResponse
+        const data = response
 
         // 注册成功后自动登录
         if (data.token) {

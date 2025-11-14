@@ -30,6 +30,12 @@ const bookstoreRoutes: RouteRecordRaw[] = [
         props: true
       },
       {
+        path: 'books-demo',
+        name: 'book-detail-demo',
+        component: () => import('./views/BookDetailDemo.vue'),
+        meta: { title: '书籍详情（演示）' }
+      },
+      {
         path: 'categories',
         name: 'categories',
         component: () => import('./views/CategoriesView.vue'),
@@ -46,6 +52,13 @@ const bookstoreRoutes: RouteRecordRaw[] = [
         name: 'search',
         component: () => import('./views/SearchView.vue'),
         meta: { title: '搜索' }
+      }
+      ,
+      {
+        path: 'reader-demo',
+        name: 'reader-demo',
+        component: () => import('./views/ReaderDemo.vue'),
+        meta: { title: '阅读器演示' }
       }
     ]
   }

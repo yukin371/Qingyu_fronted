@@ -5,13 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Chapter, ChapterContent, ReaderSettings } from '@/types/reader'
-import {
-  getChapterInfo,
-  getChapterContent,
-  getReaderSettings,
-  updateReaderSettings,
-  recordReadingHistory,
-} from '@/api/reading/reader'
+import readerAPI from '@/api/reading/reader'
 
 export const useReaderStore = defineStore('reader', () => {
   // 状态
@@ -47,16 +41,16 @@ export const useReaderStore = defineStore('reader', () => {
       isLoading.value = true
 
       // 并行加载章节信息和内容
-      const [chapter, content] = await Promise.all([
-        getChapterInfo(chapterId),
-        getChapterContent(chapterId),
+      const [chapterRes, contentRes] = await Promise.all([
+        readerAPI.getChapterInfo(chapterId),
+        readerAPI.getChapterContent(chapterId),
       ])
 
-      currentChapter.value = chapter
-      chapterContent.value = content
+      currentChapter.value = chapterRes.data as any
+      chapterContent.value = contentRes.data as any
       readingProgress.value = 0
 
-      return { chapter, content }
+      return { chapter: currentChapter.value, content: chapterContent.value }
     } catch (error) {
       console.error('加载章节失败:', error)
       throw error
@@ -98,10 +92,10 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function loadChapterList(bookId: string) {
     try {
-      const { getChapterList } = await import('@/api/reader')
-      const response = await getChapterList({ bookId, pageSize: 1000 })
-      chapterList.value = response.list || []
-      return response.list || []
+      const response = await readerAPI.getChapterList(bookId, 1, 1000)
+      const list = response.data?.chapters || []
+      chapterList.value = list as any
+      return list
     } catch (error) {
       console.error('加载章节列表失败:', error)
       chapterList.value = []
@@ -114,7 +108,8 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function loadSettings() {
     try {
-      const data = await getReaderSettings()
+      const res = await readerAPI.getSettings()
+      const data = res.data as any
       settings.value = { ...settings.value, ...data }
       return data
     } catch (error) {
@@ -130,8 +125,8 @@ export const useReaderStore = defineStore('reader', () => {
   async function updateSettings(newSettings: Partial<ReaderSettings>) {
     try {
       settings.value = { ...settings.value, ...newSettings }
-      const data = await updateReaderSettings(newSettings)
-      return data
+      const res = await readerAPI.updateSettings(newSettings as any)
+      return res.data as any
     } catch (error) {
       console.error('更新阅读设置失败:', error)
       // 仍然保持本地更新
@@ -155,11 +150,11 @@ export const useReaderStore = defineStore('reader', () => {
     }
 
     try {
-      await recordReadingHistory({
+      await readerAPI.saveProgress({
         bookId: currentChapter.value.bookId,
         chapterId: currentChapter.value.id,
         progress: readingProgress.value,
-      })
+      } as any)
     } catch (error) {
       console.error('保存阅读进度失败:', error)
       // 不抛出错误，避免影响阅读体验
@@ -171,11 +166,11 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number) {
     try {
-      await recordReadingHistory({
+      await readerAPI.saveProgress({
         bookId,
         chapterId,
         progress,
-      })
+      } as any)
     } catch (error) {
       console.error('保存进度失败:', error)
     }

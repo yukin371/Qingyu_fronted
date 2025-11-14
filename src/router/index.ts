@@ -9,7 +9,7 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { useUserStore } from '@/stores/user'
+import { useAuthStore } from '@/stores/auth'
 
 // 导入各部分路由
 import { authRoutes } from './auth-routes'
@@ -54,7 +54,7 @@ const router = createRouter({
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
+  const authStore = useAuthStore()
 
   // 设置页面标题
   if (to.meta.title) {
@@ -62,7 +62,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // 检查是否需要登录
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     next({
       path: '/login',
       query: { redirect: to.fullPath },
@@ -71,7 +71,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // 检查是否需要写作权限
-  if (to.meta.requiresWriter && !userStore.isWriter) {
+  if (to.meta.requiresWriter && !authStore.roles.includes('writer') && !authStore.roles.includes('admin')) {
     next({
       path: '/bookstore',
       query: { message: '需要写作权限' },
@@ -80,7 +80,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // 已登录用户访问登录/注册页，重定向到首页
-  if ((to.path === '/login' || to.path === '/register') && userStore.isLoggedIn) {
+  if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
     next({ path: '/bookstore' })
     return
   }

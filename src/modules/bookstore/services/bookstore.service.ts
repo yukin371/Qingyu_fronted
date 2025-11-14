@@ -58,7 +58,7 @@ class BookstoreService {
    * Get book detail
    */
   async getBookDetail(bookId: string): Promise<Book> {
-    const book = await bookstoreAPI.getBookById(bookId)
+    const book = await bookstoreAPI.getBookDetail(bookId)
 
     // Increment view count in background
     this.incrementBookView(bookId).catch(err =>

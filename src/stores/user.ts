@@ -7,7 +7,6 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
 import { login, logout, register } from '@/api/shared/auth'
-import { getUserProfile } from '@/api/user/profile'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -99,7 +98,8 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       isLoading.value = true
-      const response = await getUserProfile()
+      const { userAPI } = await import('@/modules/user/api/user.api')
+      const response = await userAPI.getProfile()
       userInfo.value = response
       return response
     } catch (error) {
@@ -136,8 +136,8 @@ export const useUserStore = defineStore('user', () => {
   async function updateProfile(data: any) {
     try {
       isLoading.value = true
-      const { updateUserProfile } = await import('@/api/user')
-      const response = await updateUserProfile(data)
+      const { userAPI } = await import('@/modules/user/api/user.api')
+      const response = await userAPI.updateProfile(data)
       updateUserInfo(response)
       return response
     } catch (error) {

@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import * as bookstoreAPI from '@/api/bookstore'
+import { incrementBannerClick } from '@/api/bookstore/banners'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { ElMessage } from 'element-plus'
 
@@ -86,7 +86,7 @@ export default {
     const handleBannerClick = async (banner) => {
       try {
         // 增加点击次数
-        await bookstoreAPI.incrementBannerClick(banner.id)
+        await incrementBannerClick(banner.id)
 
         // 触发点击事件
         emit('banner-click', banner)
@@ -109,7 +109,8 @@ export default {
 
     // 处理图片加载错误
     const handleImageError = (event) => {
-      event.target.src = '/default-book-cover.svg'
+      // 使用本地默认图片
+      event.target.src = new URL('@/assets/default-book-cover.svg', import.meta.url).href
     }
 
     return {

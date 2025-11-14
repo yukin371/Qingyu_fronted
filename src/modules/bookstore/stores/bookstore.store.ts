@@ -227,13 +227,8 @@ export const useBookstoreStore = defineStore('bookstore', {
     async fetchRecommendedBooks(page: number = 1, size: number = 20): Promise<void> {
       try {
         const result = await bookstoreService.getRecommendedBooks(page, size)
-        // 验证返回数据
-        if (result && Array.isArray(result)) {
-          this.books.recommended = result
-        } else {
-          console.warn('推荐书籍数据格式不正确:', result)
-          this.books.recommended = []
-        }
+        // 容错：后端可能返回 null/undefined
+        this.books.recommended = Array.isArray(result) ? result : []
       } catch (error: any) {
         console.error('获取推荐书籍失败:', error)
         this.books.recommended = []

@@ -25,14 +25,14 @@ export const sharedAuthAPI = {
    * 用户注册
    */
   async register(data: RegisterData): Promise<APIResponse<LoginResponse>> {
-    return httpService.post<APIResponse<LoginResponse>>('/shared/auth/register', data)
+    return httpService.post<APIResponse<LoginResponse>>('/register', data)
   },
 
   /**
    * 用户登录
    */
   async login(data: LoginCredentials): Promise<APIResponse<LoginResponse>> {
-    return httpService.post<APIResponse<LoginResponse>>('/shared/auth/login', data)
+    return httpService.post<APIResponse<LoginResponse>>('/login', data)
   },
 
   /**
