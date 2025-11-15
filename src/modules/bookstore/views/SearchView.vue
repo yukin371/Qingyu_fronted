@@ -166,14 +166,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import * as bookstoreAPI from '@/api/bookstore'
 import { booksAPI } from '@/api/reading/books'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
+import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
 
 const router = useRouter()
 const route = useRoute()
+const bookstoreStore = useBookstoreStore()
 
 const searchKeyword = ref('')
 const loading = ref(false)
@@ -277,25 +278,20 @@ const handleSearch = async () => {
     // 保存搜索历史
     saveSearchHistory(keyword)
 
-    const response = await bookstoreAPI.searchBooks({
+    const params: any = {
       keyword,
       ...filters,
       page: currentPage.value,
       size: pageSize.value
-    })
-
-    if (response.code === 200) {
-      // 检查data是否存在
-      if (response.data) {
-        searchResults.value = response.data.books || []
-        totalResults.value = response.data.total || 0
-      } else {
-        searchResults.value = []
-        totalResults.value = 0
-      }
-    } else {
-      ElMessage.error(response.message || '搜索失败')
     }
+
+    // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
+    await bookstoreStore.searchBooks(keyword, filters)
+
+    // 使用 store 中的搜索结果
+    const resultList = bookstoreStore.books.searchResults || []
+    searchResults.value = Array.isArray(resultList) ? resultList : []
+    totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
   } catch (error) {
     console.error('搜索失败:', error)
     ElMessage.error('搜索失败')

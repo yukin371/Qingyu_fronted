@@ -86,8 +86,6 @@
 
 <script>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import * as bookstoreAPI from '@/api/bookstore'
 import { ArrowRight, View, Star } from '@element-plus/icons-vue'
 
 export default {
@@ -130,8 +128,6 @@ export default {
   },
   emits: ['book-click', 'view-more'],
   setup(props, { emit }) {
-    const router = useRouter()
-
     // 计算显示的书籍列表
     const displayBooks = computed(() => {
       if (props.maxItems > 0) {
@@ -140,23 +136,9 @@ export default {
       return props.books
     })
 
-    // 处理书籍点击
-    const handleBookClick = async (book) => {
-      try {
-        // 增加浏览量
-        await bookstoreAPI.incrementBookView(book.id)
-
-        // 触发点击事件
-        emit('book-click', book)
-
-        // 跳转到书籍详情页
-        router.push(`/books/${book.id}`)
-      } catch (error) {
-        console.error('记录书籍浏览失败:', error)
-        // 即使记录失败也要跳转
-        emit('book-click', book)
-        router.push(`/books/${book.id}`)
-      }
+    // 处理书籍点击：仅向外发出事件，由父组件决定后续行为
+    const handleBookClick = (book) => {
+      emit('book-click', book)
     }
 
     // 处理图片加载错误

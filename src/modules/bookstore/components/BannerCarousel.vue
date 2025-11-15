@@ -58,10 +58,6 @@
 </template>
 
 <script>
-import { incrementBannerClick } from '@/api/bookstore/banners'
-import { useBookstoreStore } from '@/stores/bookstore'
-import { ElMessage } from 'element-plus'
-
 export default {
   name: 'BannerCarousel',
   props: {
@@ -80,21 +76,9 @@ export default {
   },
   emits: ['banner-click', 'button-click', 'carousel-change'],
   setup(props, { emit }) {
-    const bookstoreStore = useBookstoreStore()
-
-    // 处理轮播图点击
-    const handleBannerClick = async (banner) => {
-      try {
-        // 增加点击次数
-        await incrementBannerClick(banner.id)
-
-        // 触发点击事件
-        emit('banner-click', banner)
-      } catch (error) {
-        console.error('记录Banner点击失败:', error)
-        // 即使记录失败也要触发点击事件
-        emit('banner-click', banner)
-      }
+    // 处理轮播图点击：仅向外发出事件，由父组件或 store 处理统计等副作用
+    const handleBannerClick = (banner) => {
+      emit('banner-click', banner)
     }
 
     // 处理按钮点击
