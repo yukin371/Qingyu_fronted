@@ -1,57 +1,59 @@
 /**
- * 缓存管理工具
+ * 高级缓存管理工具 v2.0
  */
+
+// --- 类型定义 ---
 
 export interface CacheItem<T> {
   data: T
   timestamp: number
-  expiresIn: number // 过期时间（ms）
+  expiresIn: number
 }
 
 export interface CacheOptions {
-  expiresIn?: number // 默认过期时间（ms）
+  expiresIn?: number
   storage?: 'memory' | 'localStorage' | 'sessionStorage'
-  prefix?: string // 键名前缀
+  prefix?: string
+  maxSize?: number // 新增：内存缓存最大数量限制
 }
 
+// 判断是否为浏览器环境
+const isBrowser = typeof window !== 'undefined'
+
 /**
- * 通用缓存管理器
+ * 统一缓存管理器
  */
 export class CacheManager {
   private memoryCache: Map<string, CacheItem<any>> = new Map()
   private options: Required<CacheOptions>
+  private timer: ReturnType<typeof setInterval> | null = null
 
   constructor(options: CacheOptions = {}) {
     this.options = {
-      expiresIn: options.expiresIn || 5 * 60 * 1000, // 默认5分钟
+      expiresIn: options.expiresIn || 5 * 60 * 1000,
       storage: options.storage || 'memory',
-      prefix: options.prefix || 'cache:'
+      prefix: options.prefix || 'cache:',
+      maxSize: options.maxSize || 1000 // 默认限制 1000 条
     }
+
+    // 自动启动清理任务（如果需要）
+    this.startCleanupTimer()
   }
 
-  /**
-   * 获取完整键名
-   */
   private getKey(key: string): string {
     return `${this.options.prefix}${key}`
   }
 
-  /**
-   * 获取缓存
-   */
+  // --- 核心操作 ---
+
   get<T>(key: string): T | null {
     const fullKey = this.getKey(key)
-
     if (this.options.storage === 'memory') {
       return this.getFromMemory<T>(fullKey)
-    } else {
-      return this.getFromStorage<T>(fullKey, this.options.storage)
     }
+    return this.getFromStorage<T>(fullKey, this.options.storage)
   }
 
-  /**
-   * 设置缓存
-   */
   set<T>(key: string, data: T, expiresIn?: number): void {
     const fullKey = this.getKey(key)
     const item: CacheItem<T> = {
@@ -67,12 +69,8 @@ export class CacheManager {
     }
   }
 
-  /**
-   * 删除缓存
-   */
   delete(key: string): void {
     const fullKey = this.getKey(key)
-
     if (this.options.storage === 'memory') {
       this.memoryCache.delete(fullKey)
     } else {
@@ -80,9 +78,6 @@ export class CacheManager {
     }
   }
 
-  /**
-   * 清空所有缓存
-   */
   clear(): void {
     if (this.options.storage === 'memory') {
       this.memoryCache.clear()
@@ -91,16 +86,8 @@ export class CacheManager {
     }
   }
 
-  /**
-   * 检查缓存是否存在且未过期
-   */
-  has(key: string): boolean {
-    return this.get(key) !== null
-  }
+  // --- 内存操作 (集成 LRU 策略) ---
 
-  /**
-   * 从内存获取
-   */
   private getFromMemory<T>(key: string): T | null {
     const item = this.memoryCache.get(key)
     if (!item) return null
@@ -113,133 +100,163 @@ export class CacheManager {
     return item.data
   }
 
-  /**
-   * 设置到内存
-   */
   private setToMemory<T>(key: string, item: CacheItem<T>): void {
+    // LRU 策略：如果已存在，先删除再添加（更新位置）
+    if (this.memoryCache.has(key)) {
+      this.memoryCache.delete(key)
+    }
+    
+    // 容量检查：如果满了，删除最旧的（Map 的第一个元素）
+    if (this.memoryCache.size >= this.options.maxSize) {
+      const firstKey = this.memoryCache.keys().next().value
+      if (firstKey) this.memoryCache.delete(firstKey)
+    }
+
     this.memoryCache.set(key, item)
   }
 
-  /**
-   * 从 Storage 获取
-   */
-  private getFromStorage<T>(
-    key: string,
-    storage: 'localStorage' | 'sessionStorage'
-  ): T | null {
+  // --- Storage 操作 (SSR 安全) ---
+
+  private getStorage(type: 'localStorage' | 'sessionStorage'): Storage | null {
+    if (!isBrowser) return null
+    return type === 'localStorage' ? localStorage : sessionStorage
+  }
+
+  private getFromStorage<T>(key: string, type: 'localStorage' | 'sessionStorage'): T | null {
+    const storage = this.getStorage(type)
+    if (!storage) return null
+
     try {
-      const storageObj = storage === 'localStorage' ? localStorage : sessionStorage
-      const jsonStr = storageObj.getItem(key)
+      const jsonStr = storage.getItem(key)
       if (!jsonStr) return null
 
       const item = JSON.parse(jsonStr) as CacheItem<T>
+      
+      // 检查过期
       if (this.isExpired(item)) {
-        storageObj.removeItem(key)
+        storage.removeItem(key)
         return null
       }
-
+      
       return item.data
-    } catch (error) {
-      console.error('Failed to get cache from storage:', error)
+    } catch (e) {
       return null
     }
   }
 
-  /**
-   * 设置到 Storage
-   */
-  private setToStorage<T>(
-    key: string,
-    item: CacheItem<T>,
-    storage: 'localStorage' | 'sessionStorage'
-  ): void {
+  private setToStorage<T>(key: string, item: CacheItem<T>, type: 'localStorage' | 'sessionStorage'): void {
+    const storage = this.getStorage(type)
+    if (!storage) return
+
     try {
-      const storageObj = storage === 'localStorage' ? localStorage : sessionStorage
-      storageObj.setItem(key, JSON.stringify(item))
-    } catch (error) {
-      console.error('Failed to set cache to storage:', error)
+      storage.setItem(key, JSON.stringify(item))
+    } catch (e) {
+      // QuotaExceededError 处理：如果存满了，尝试清理过期的再存，或者直接忽略
+      console.warn('Storage full, cleanup triggered')
+      this.cleanup() 
     }
   }
 
-  /**
-   * 从 Storage 删除
-   */
-  private deleteFromStorage(
-    key: string,
-    storage: 'localStorage' | 'sessionStorage'
-  ): void {
-    const storageObj = storage === 'localStorage' ? localStorage : sessionStorage
-    storageObj.removeItem(key)
+  private deleteFromStorage(key: string, type: 'localStorage' | 'sessionStorage'): void {
+    this.getStorage(type)?.removeItem(key)
   }
 
-  /**
-   * 清空 Storage
-   */
-  private clearStorage(storage: 'localStorage' | 'sessionStorage'): void {
-    const storageObj = storage === 'localStorage' ? localStorage : sessionStorage
-    const keys = Object.keys(storageObj)
-    keys.forEach((key) => {
-      if (key.startsWith(this.options.prefix)) {
-        storageObj.removeItem(key)
+  private clearStorage(type: 'localStorage' | 'sessionStorage'): void {
+    const storage = this.getStorage(type)
+    if (!storage) return
+
+    // 仅删除匹配前缀的 key，避免误删其他业务数据
+    const keysToRemove: string[] = []
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i)
+      if (k && k.startsWith(this.options.prefix)) {
+        keysToRemove.push(k)
       }
-    })
+    }
+    keysToRemove.forEach(k => storage.removeItem(k))
   }
 
-  /**
-   * 检查是否过期
-   */
+  // --- 辅助 ---
+
   private isExpired(item: CacheItem<any>): boolean {
     return Date.now() - item.timestamp > item.expiresIn
   }
 
-  /**
-   * 清理过期缓存
-   */
+  // 公开清理方法
   cleanup(): void {
     if (this.options.storage === 'memory') {
-      this.memoryCache.forEach((item, key) => {
-        if (this.isExpired(item)) {
-          this.memoryCache.delete(key)
-        }
-      })
+      for (const [key, item] of this.memoryCache) {
+        if (this.isExpired(item)) this.memoryCache.delete(key)
+      }
     } else {
-      const storageObj =
-        this.options.storage === 'localStorage' ? localStorage : sessionStorage
-      const keys = Object.keys(storageObj)
-      keys.forEach((key) => {
-        if (key.startsWith(this.options.prefix)) {
+      const storage = this.getStorage(this.options.storage)
+      if (!storage) return
+      
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i)
+        if (key && key.startsWith(this.options.prefix)) {
           try {
-            const jsonStr = storageObj.getItem(key)
-          if (jsonStr) {
-            const item = JSON.parse(jsonStr) as CacheItem<any>
-            if (this.isExpired(item)) {
-              storageObj.removeItem(key)
-            }
-          }
-        } catch {
-          // 忽略解析错误
+            const item = JSON.parse(storage.getItem(key) || '') as CacheItem<any>
+            if (this.isExpired(item)) storage.removeItem(key)
+          } catch { /* ignore */ }
         }
-        }
-      })
+      }
     }
+  }
+
+  // 启动自动清理
+  private startCleanupTimer() {
+    // 避免重复启动，且仅在浏览器端运行
+    if (this.timer || !isBrowser) return
+    this.timer = setInterval(() => this.cleanup(), 60 * 1000)
+  }
+  
+  // 销毁实例（停止计时器）
+  dispose() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+    this.memoryCache.clear()
   }
 }
 
-// 创建默认实例
+// --- 单例导出 ---
+
 export const apiCache = new CacheManager({
-  expiresIn: 5 * 60 * 1000, // 5分钟
+  expiresIn: 5 * 60 * 1000,
   storage: 'memory',
-  prefix: 'api:'
+  prefix: 'api:',
+  maxSize: 500 // 限制 API 缓存最多 500 个
 })
 
 export const storageCache = new CacheManager({
-  expiresIn: 24 * 60 * 60 * 1000, // 24小时
+  expiresIn: 24 * 60 * 60 * 1000,
   storage: 'localStorage',
-  prefix: 'data:'
+  prefix: 'app:'
 })
 
+// --- 请求去重 + 缓存 组合工具 ---
+
+class RequestDeduplicator {
+  private pending = new Map<string, Promise<any>>()
+
+  async deduplicate<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    if (this.pending.has(key)) {
+      return this.pending.get(key) as Promise<T>
+    }
+    const promise = fn().finally(() => this.pending.delete(key))
+    this.pending.set(key, promise)
+    return promise
+  }
+}
+const deduplicator = new RequestDeduplicator()
+
 /**
- * 带缓存的请求包装器
+ * 终极请求包装器：缓存 + 防抖
+ * 
+ * 解决了"缓存击穿"问题：当缓存失效时，多个并发请求只会有一个真正发给后端，
+ * 其他请求会等待这第一个请求的结果。
  */
 export async function cacheRequest<T>(
   key: string,
@@ -248,114 +265,34 @@ export async function cacheRequest<T>(
     cache?: CacheManager
     expiresIn?: number
     forceRefresh?: boolean
+    useDeduplication?: boolean // 是否开启去重
   } = {}
 ): Promise<T> {
-  const { cache = apiCache, expiresIn, forceRefresh = false } = options
+  const { 
+    cache = apiCache, 
+    expiresIn, 
+    forceRefresh = false,
+    useDeduplication = true 
+  } = options
 
-  // 如果不强制刷新，先尝试从缓存获取
+  // 1. 查缓存
   if (!forceRefresh) {
     const cached = cache.get<T>(key)
-    if (cached !== null) {
-      return cached
-    }
+    if (cached !== null) return cached
   }
 
-  // 执行请求
-  const data = await requestFn()
-
-  // 缓存结果
-  cache.set(key, data, expiresIn)
-
-  return data
-}
-
-/**
- * 请求去重（防止重复请求）
- */
-class RequestDeduplicator {
-  private pendingRequests: Map<string, Promise<any>> = new Map()
-
-  async deduplicate<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
-    // 如果已有相同的请求在进行中，返回该请求的 Promise
-    if (this.pendingRequests.has(key)) {
-      return this.pendingRequests.get(key) as Promise<T>
-    }
-
-    // 创建新请求
-    const promise = requestFn().finally(() => {
-      // 请求完成后删除
-      this.pendingRequests.delete(key)
-    })
-
-    this.pendingRequests.set(key, promise)
-    return promise
+  // 2. 定义实际请求逻辑（含写入缓存）
+  const executeRequest = async () => {
+    const data = await requestFn()
+    cache.set(key, data, expiresIn)
+    return data
   }
 
-  clear(): void {
-    this.pendingRequests.clear()
+  // 3. 去重执行 或 直接执行
+  if (useDeduplication) {
+    // 使用去重器，key 需要包含特定的前缀以防冲突
+    return deduplicator.deduplicate<T>(`req:${key}`, executeRequest)
+  } else {
+    return executeRequest()
   }
 }
-
-export const requestDeduplicator = new RequestDeduplicator()
-
-/**
- * LRU 缓存（最近最少使用）
- */
-export class LRUCache<T> {
-  private cache: Map<string, { value: T; timestamp: number }>
-  private maxSize: number
-
-  constructor(maxSize: number = 100) {
-    this.cache = new Map()
-    this.maxSize = maxSize
-  }
-
-  get(key: string): T | null {
-    const item = this.cache.get(key)
-    if (!item) return null
-
-    // 更新访问时间（移到最后）
-    this.cache.delete(key)
-    this.cache.set(key, { ...item, timestamp: Date.now() })
-
-    return item.value
-  }
-
-  set(key: string, value: T): void {
-    // 如果已存在，先删除
-    if (this.cache.has(key)) {
-      this.cache.delete(key)
-    }
-
-    // 如果超过最大容量，删除最旧的项
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value
-      this.cache.delete(firstKey)
-    }
-
-    this.cache.set(key, { value, timestamp: Date.now() })
-  }
-
-  delete(key: string): void {
-    this.cache.delete(key)
-  }
-
-  clear(): void {
-    this.cache.clear()
-  }
-
-  has(key: string): boolean {
-    return this.cache.has(key)
-  }
-
-  get size(): number {
-    return this.cache.size
-  }
-}
-
-// 定期清理过期缓存
-setInterval(() => {
-  apiCache.cleanup()
-  storageCache.cleanup()
-}, 60 * 1000) // 每分钟清理一次
-
