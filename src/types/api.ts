@@ -85,6 +85,3 @@ export interface RecommendationBehavior {
   behaviorType: 'view' | 'click' | 'favorite' | 'purchase'
   context?: Record<string, unknown>
 }
-
-
-

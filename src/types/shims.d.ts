@@ -113,7 +113,12 @@ declare module '@/stores/reader' {
     updateSettings(settings: Partial<ReaderSettings>): Promise<any>
     resetSettings(): void
     saveReadingProgress(): Promise<void>
-    saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number): Promise<void>
+    saveProgress(
+      bookId: string,
+      chapterId: string,
+      progress: number,
+      scrollPosition: number
+    ): Promise<void>
     updateReadingTime(bookId: string, duration: number): Promise<void>
     updateProgress(progress: number): void
     clearChapter(): void
@@ -459,4 +464,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
-

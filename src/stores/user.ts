@@ -16,7 +16,9 @@ export const useUserStore = defineStore('user', () => {
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
-  const isWriter = computed(() => userInfo.value?.role === 'writer' || userInfo.value?.role === 'admin')
+  const isWriter = computed(
+    () => userInfo.value?.role === 'writer' || userInfo.value?.role === 'admin'
+  )
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   // 用户资料相关计算属性
@@ -34,11 +36,21 @@ export const useUserStore = defineStore('user', () => {
       isLoading.value = true
       const response = await login(loginData)
 
-      token.value = response.token
-      userInfo.value = response.user
+      if (!response.data) {
+        throw new Error('服务端返回数据异常：缺少 data')
+      }
+
+      const { token: responseToken, user } = response.data
+
+      if (!responseToken) {
+        throw new Error('服务端返回数据异常：缺少 token')
+      }
+
+      token.value = responseToken
+      userInfo.value = user
 
       // 保存token到localStorage
-      localStorage.setItem('token', response.token)
+      localStorage.setItem('token', responseToken)
 
       return response
     } catch (error) {
