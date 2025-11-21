@@ -1,281 +1,469 @@
 <template>
-    <div class="search-bar">
-        <el-autocomplete ref="autocompleteRef" v-model="searchText" :fetch-suggestions="fetchSuggestions"
-            :placeholder="placeholder" :size="size" :clearable="clearable" :prefix-icon="Search" class="search-input"
-            @select="handleSelect" @keyup.enter="handleSearch">
-            <template #default="{ item }">
-                <div class="suggestion-item">
-                    <div class="item-content">
-                        <el-icon class="item-icon">
-                            <component :is="getItemIcon(item.type)" />
-                        </el-icon>
-                        <span class="item-text">{{ item.value }}</span>
-                    </div>
-                    <el-tag v-if="item.type" size="small" class="item-tag">
-                        {{ getTypeLabel(item.type) }}
-                    </el-tag>
-                </div>
-            </template>
-            <template #append>
-                <el-button :icon="Search" @click="handleSearch">搜索</el-button>
-            </template>
-        </el-autocomplete>
+  <div class="search-container" :class="{ 'is-focus': isFocused }">
+    <el-autocomplete ref="autocompleteRef" v-model="searchText" :fetch-suggestions="querySearch"
+      :placeholder="placeholder" :debounce="300" :trigger-on-focus="true" class="custom-search-input"
+      popper-class="search-autocomplete-popper" @select="handleSelect" @focus="isFocused = true"
+      @blur="isFocused = false" @keyup.enter="handleSearch">
+      <!-- 前缀图标 -->
+      <template #prefix>
+        <el-icon class="search-icon">
+          <Search />
+        </el-icon>
+      </template>
 
-        <!-- 热门搜索标签 -->
-        <div v-if="showHotTags && hotTags.length > 0" class="hot-tags">
-            <span class="hot-label">热门:</span>
-            <el-tag v-for="tag in hotTags" :key="tag" class="hot-tag" @click="handleHotTagClick(tag)">
-                {{ tag }}
+      <!-- 自定义下拉项模板 -->
+      <template #default="{ item }">
+        <div class="suggestion-item" :class="{ 'is-history': item.isHistory }">
+          <!-- 左侧内容 -->
+          <div class="item-main">
+            <el-icon class="item-icon">
+              <component :is="item.isHistory ? 'Clock' : getItemIcon(item.type)" />
+            </el-icon>
+
+            <!-- 支持高亮显示 -->
+            <span class="item-text" v-html="highlightText(item.value)"></span>
+          </div>
+
+          <!-- 右侧标签或操作 -->
+          <div class="item-meta">
+            <el-tag v-if="item.type && !item.isHistory" size="small" :type="getTagType(item.type)" effect="plain"
+              class="type-tag">
+              {{ getTypeLabel(item.type) }}
             </el-tag>
+
+            <!-- 删除历史记录按钮 -->
+            <el-icon v-if="item.isHistory" class="delete-icon" @click.stop="removeHistoryItem(item.value)">
+              <Close />
+            </el-icon>
+          </div>
         </div>
+      </template>
+
+      <!-- 下拉列表底部：清空历史 -->
+      <template #append v-if="history.length > 0 && !searchText">
+        <!-- Element Autocomplete append slot is for input, not dropdown footer.
+              For dropdown footer, we usually use a custom implementation or just last item logic.
+              Here we keep the input append button. -->
+      </template>
+    </el-autocomplete>
+
+    <!-- 独立的搜索按钮 (比 append slot 更灵活好看) -->
+    <el-button type="primary" round class="search-btn" @click="handleSearch">
+      搜索
+    </el-button>
+
+    <!-- 热门搜索标签 -->
+    <div v-if="showHotTags && hotTags.length > 0" class="hot-section">
+      <span class="hot-label"><el-icon>
+          <Trophy />
+        </el-icon> 热门搜索</span>
+      <div class="tags-wrapper">
+        <span v-for="(tag, index) in hotTags" :key="tag" class="hot-tag" :class="`rank-${index + 1}`"
+          @click="handleHotTagClick(tag)">
+          {{ tag }}
+        </span>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Document, User, Collection } from '@element-plus/icons-vue'
+import {
+  Search, Document, User, Collection, Clock, Close, Trophy
+} from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
+// --- 类型定义 ---
 interface SearchSuggestion {
-    value: string
-    type?: 'book' | 'author' | 'tag'
-    id?: string
+  value: string
+  type?: 'book' | 'author' | 'tag'
+  id?: string
+  isHistory?: boolean // 标记是否为历史记录
+  [key: string]: any
 }
 
 interface Props {
-    modelValue?: string
-    placeholder?: string
-    size?: 'large' | 'default' | 'small'
-    clearable?: boolean
-    showHotTags?: boolean
-    hotTags?: string[]
-    fetchSuggestions?: (queryString: string, cb: (suggestions: SearchSuggestion[]) => void) => void
+  modelValue?: string
+  placeholder?: string
+  showHotTags?: boolean
+  hotTags?: string[]
+  fetchSuggestions?: (queryString: string) => Promise<SearchSuggestion[]>
 }
 
 interface Emits {
-    (e: 'update:modelValue', value: string): void
-    (e: 'search', keyword: string): void
-    (e: 'select', suggestion: SearchSuggestion): void
+  (e: 'update:modelValue', value: string): void
+  (e: 'search', keyword: string): void
+  (e: 'select', suggestion: SearchSuggestion): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    modelValue: '',
-    placeholder: '搜索书名、作者、标签...',
-    size: 'default',
-    clearable: true,
-    showHotTags: false,
-    hotTags: () => [],
-    fetchSuggestions: undefined
+  modelValue: '',
+  placeholder: '搜索书名、作者、标签...',
+  showHotTags: false,
+  hotTags: () => []
 })
 
 const emit = defineEmits<Emits>()
-
 const router = useRouter()
 const autocompleteRef = ref()
 const searchText = ref(props.modelValue)
+const isFocused = ref(false)
+const history = ref<string[]>([])
 
-// 获取建议列表
-const fetchSuggestions = (queryString: string, cb: (suggestions: SearchSuggestion[]) => void) => {
-    if (props.fetchSuggestions) {
-        props.fetchSuggestions(queryString, cb)
-        return
-    }
+// --- 核心逻辑 ---
 
-    // 如果没有提供fetchSuggestions，使用本地搜索历史
-    const history = getSearchHistory()
-    const suggestions = history
-        .filter(item => item.includes(queryString))
-        .map(value => ({ value, type: undefined as any }))
-    cb(suggestions)
-}
+// 初始化加载历史
+onMounted(() => {
+  history.value = getSearchHistory()
+})
 
-// 获取搜索历史
-const getSearchHistory = (): string[] => {
+// 搜索建议逻辑分流
+const querySearch = async (queryString: string, cb: (results: SearchSuggestion[]) => void) => {
+  const keyword = queryString.trim()
+
+  // 1. 如果输入为空，显示搜索历史
+  if (!keyword) {
+    const historyItems = history.value.map(v => ({
+      value: v,
+      isHistory: true
+    }))
+    // 可以在最后追加一个“清空历史”的特殊选项（视需求而定）
+    cb(historyItems)
+    return
+  }
+
+  // 2. 如果有输入，调用外部 API 或 过滤历史
+  let results: SearchSuggestion[] = []
+
+  if (props.fetchSuggestions) {
     try {
-        const history = localStorage.getItem('search_history')
-        return history ? JSON.parse(history) : []
-    } catch {
-        return []
-    }
-}
-
-// 保存搜索历史
-const saveSearchHistory = (keyword: string) => {
-    if (!keyword.trim()) return
-
-    try {
-        let history = getSearchHistory()
-
-        // 去重并添加到开头
-        history = history.filter(item => item !== keyword)
-        history.unshift(keyword)
-
-        // 只保留最近10条
-        history = history.slice(0, 10)
-
-        localStorage.setItem('search_history', JSON.stringify(history))
+      results = await props.fetchSuggestions(keyword)
     } catch (error) {
-        console.error('保存搜索历史失败:', error)
+      console.error('Fetch suggestions error:', error)
     }
+  } else {
+    // 默认行为：仅过滤历史
+    results = history.value
+      .filter(item => item.toLowerCase().includes(keyword.toLowerCase()))
+      .map(v => ({ value: v, isHistory: true }))
+  }
+
+  cb(results)
 }
 
-// 获取类型图标
-const getItemIcon = (type?: string) => {
-    switch (type) {
-        case 'book':
-            return Document
-        case 'author':
-            return User
-        case 'tag':
-            return Collection
-        default:
-            return Search
-    }
+// 高亮匹配文本
+const highlightText = (text: string) => {
+  if (!searchText.value) return text
+  const reg = new RegExp(`(${searchText.value})`, 'gi')
+  return text.replace(reg, '<span class="highlight">$1</span>')
 }
 
-// 获取类型标签
-const getTypeLabel = (type?: string) => {
-    switch (type) {
-        case 'book':
-            return '书籍'
-        case 'author':
-            return '作者'
-        case 'tag':
-            return '标签'
-        default:
-            return ''
-    }
+// --- 历史记录管理 ---
+
+const getSearchHistory = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem('search_history') || '[]')
+  } catch {
+    return []
+  }
 }
 
-// 处理搜索
+const saveSearchHistory = (keyword: string) => {
+  if (!keyword.trim()) return
+  let list = getSearchHistory()
+  // 移除旧的，插入新的到头部
+  list = list.filter(item => item !== keyword)
+  list.unshift(keyword)
+  // 限制10条
+  list = list.slice(0, 10)
+  localStorage.setItem('search_history', JSON.stringify(list))
+  history.value = list
+}
+
+const removeHistoryItem = (val: string) => {
+  const list = history.value.filter(item => item !== val)
+  localStorage.setItem('search_history', JSON.stringify(list))
+  history.value = list
+  // 强制刷新下拉列表
+  autocompleteRef.value?.focus()
+}
+
+// --- 事件处理 ---
+
 const handleSearch = () => {
-    const keyword = searchText.value.trim()
-    if (!keyword) return
+  const keyword = searchText.value.trim()
+  if (!keyword) return
 
-    saveSearchHistory(keyword)
-    emit('update:modelValue', keyword)
-    emit('search', keyword)
+  saveSearchHistory(keyword)
+  emit('update:modelValue', keyword)
+  emit('search', keyword)
 
-    // 跳转到搜索页
-    router.push({
-        path: '/search',
-        query: { q: keyword }
-    })
+  // 关闭下拉
+  autocompleteRef.value?.blur()
+
+  router.push({ path: '/search', query: { q: keyword } })
 }
 
-// 选择建议
-const handleSelect = (suggestion: SearchSuggestion) => {
-    emit('select', suggestion)
-
-    if (suggestion.type === 'book' && suggestion.id) {
-        // 如果是书籍，直接跳转到详情页
-        router.push(`/books/${suggestion.id}`)
-    } else if (suggestion.type === 'author' && suggestion.id) {
-        // 如果是作者，跳转到作者页
-        router.push(`/author/${suggestion.id}`)
-    } else {
-        // 否则执行搜索
-        handleSearch()
-    }
-}
-
-// 点击热门标签
-const handleHotTagClick = (tag: string) => {
-    searchText.value = tag
+const handleSelect = (item: SearchSuggestion) => {
+  if (item.isHistory) {
+    searchText.value = item.value
     handleSearch()
+    return
+  }
+
+  emit('select', item)
+
+  // 智能跳转
+  if (item.type === 'book' && item.id) {
+    router.push(`/books/${item.id}`)
+  } else if (item.type === 'author' && item.id) {
+    router.push(`/author/${item.id}`)
+  } else {
+    searchText.value = item.value
+    handleSearch()
+  }
 }
 
-// 监听外部值变化
-watch(
-    () => props.modelValue,
-    (newVal) => {
-        searchText.value = newVal
-    }
-)
+const handleHotTagClick = (tag: string) => {
+  searchText.value = tag
+  handleSearch()
+}
 
-// 暴露方法
+// --- 辅助函数 ---
+const getItemIcon = (type?: string) => {
+  const map: Record<string, any> = { book: Document, author: User, tag: Collection }
+  return map[type || ''] || Search
+}
+
+const getTypeLabel = (type?: string) => {
+  const map: Record<string, string> = { book: '书籍', author: '作者', tag: '标签' }
+  return map[type || ''] || ''
+}
+
+const getTagType = (type?: string) => {
+  const map: Record<string, string> = { book: '', author: 'warning', tag: 'info' }
+  return map[type || ''] || ''
+}
+
+watch(() => props.modelValue, (val) => searchText.value = val)
+
 defineExpose({
-    focus: () => {
-        autocompleteRef.value?.focus()
-    },
-    blur: () => {
-        autocompleteRef.value?.blur()
-    }
+  focus: () => autocompleteRef.value?.focus(),
+  blur: () => autocompleteRef.value?.blur()
 })
 </script>
 
 <style scoped lang="scss">
-.search-bar {
-    .search-input {
-        width: 100%;
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  /* 限制最大宽度 */
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
 
-        :deep(.el-input-group__append) {
-            padding: 0;
-
-            .el-button {
-                margin: 0;
-                border-radius: 0 4px 4px 0;
-            }
-        }
+  // 聚焦时的外发光效果
+  &.is-focus {
+    .custom-search-input :deep(.el-input__wrapper) {
+      box-shadow: 0 4px 20px rgba(64, 158, 255, 0.15);
+      border-color: #409eff;
+      background-color: #fff;
     }
-
-    .hot-tags {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-
-        .hot-label {
-            font-size: 14px;
-            color: #909399;
-            margin-right: 4px;
-        }
-
-        .hot-tag {
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-                color: #409eff;
-                border-color: #409eff;
-            }
-        }
-    }
+  }
 }
 
-// 建议项样式
-.suggestion-item {
+.custom-search-input {
+  flex: 1;
+
+  :deep(.el-input__wrapper) {
+    border-radius: 50px;
+    padding: 8px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04); // 默认柔和阴影
+    border: 1px solid transparent; // 预留边框位置
+    background-color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+
+    &.is-focus {
+      box-shadow: none !important; // 移除 element 默认的丑阴影
+    }
+  }
+
+  :deep(.el-input__inner) {
+    height: 32px;
+    font-size: 15px;
+    color: #333;
+  }
+
+  .search-icon {
+    font-size: 18px;
+    color: #a8abb2;
+    margin-right: 8px;
+  }
+}
+
+.search-btn {
+  padding: 12px 28px;
+  font-weight: 600;
+  height: 48px; // 保持与输入框视觉高度一致
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  transition: transform 0.1s;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.hot-section {
+  position: absolute;
+  top: 100%;
+  left: 20px; // 对齐输入框文字
+  right: 0;
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  .hot-label {
+    font-size: 13px;
+    color: #909399;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  .tags-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hot-tag {
+    font-size: 13px;
+    color: #606266;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.03);
+    transition: all 0.2s;
+
+    &:hover {
+      color: #409eff;
+      background: rgba(64, 158, 255, 0.1);
+    }
+
+    // 给前三个热门加一点特殊样式
+    &.rank-1 {
+      color: #f56c6c;
+      background: rgba(245, 108, 108, 0.1);
+    }
+
+    &.rank-2 {
+      color: #e6a23c;
+      background: rgba(230, 162, 60, 0.1);
+    }
+
+    &.rank-3 {
+      color: #409eff;
+      background: rgba(64, 158, 255, 0.1);
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+/* 注意：Popper 是 append 到 body 的，所以这部分样式不能 scoped，或者使用 :global */
+.search-autocomplete-popper {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border: none !important;
+
+  .el-autocomplete-suggestion__wrap {
+    padding: 8px 0;
+    max-height: 320px;
+  }
+
+  li {
+    padding: 0 !important; // 重置默认 padding
+  }
+
+  .suggestion-item {
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
-    padding: 4px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 14px;
 
-    .item-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        min-width: 0;
+    &:hover {
+      background-color: #f5f7fa;
 
-        .item-icon {
-            flex-shrink: 0;
-            font-size: 16px;
-            color: #909399;
-        }
-
-        .item-text {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+      .delete-icon {
+        opacity: 1; // hover 时显示删除按钮
+      }
     }
 
-    .item-tag {
-        flex-shrink: 0;
-        margin-left: 12px;
+    &.is-history {
+      .item-text {
+        color: #606266;
+      }
     }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      overflow: hidden;
+
+      .item-icon {
+        color: #909399;
+        font-size: 16px;
+      }
+
+      .item-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #303133;
+
+        /* 高亮文字样式 */
+        .highlight {
+          color: #409eff;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .item-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 12px;
+
+      .delete-icon {
+        font-size: 14px;
+        color: #c0c4cc;
+        opacity: 0;
+        padding: 4px;
+        border-radius: 50%;
+        transition: all 0.2s;
+
+        &:hover {
+          color: #f56c6c;
+          background-color: rgba(245, 108, 108, 0.1);
+        }
+      }
+    }
+  }
 }
 </style>
