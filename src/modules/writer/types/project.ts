@@ -1,0 +1,93 @@
+import type { BaseEntity, ID, ISODate } from './core'
+
+// =======================
+// Enums
+// =======================
+
+export enum ProjectStatus {
+  DRAFT = 'draft',
+  SERIALIZING = 'serializing',
+  COMPLETED = 'completed',
+  SUSPENDED = 'suspended',
+  ARCHIVED = 'archived',
+}
+
+export enum Visibility {
+  PRIVATE = 'private',
+  PUBLIC = 'public',
+}
+
+export enum CollaboratorRole {
+  OWNER = 'owner',
+  EDITOR = 'editor',
+  VIEWER = 'viewer',
+}
+
+// =======================
+// Sub-types
+// =======================
+
+export interface ProjectStats {
+  totalWords: number
+  chapterCount: number
+  documentCount: number
+  lastUpdateAt: ISODate
+}
+
+export interface ProjectSettings {
+  autoBackup: boolean
+  backupInterval: number
+  wordCountGoal?: number
+}
+
+export interface Collaborator {
+  userId: ID
+  role: CollaboratorRole
+  invitedAt: ISODate
+  acceptedAt?: ISODate
+}
+
+// =======================
+// Main Entity
+// =======================
+
+export interface Project extends BaseEntity {
+  authorId: ID
+  title: string
+  summary?: string
+  coverUrl?: string
+  status: ProjectStatus
+  category?: string
+  tags?: string[]
+  visibility: Visibility
+
+  statistics: ProjectStats
+  settings: ProjectSettings
+  collaborators?: Collaborator[]
+
+  publishedAt?: ISODate
+}
+
+// =======================
+// DTOs (Data Transfer Objects)
+// =======================
+
+export interface CreateProjectRequest {
+  title: string
+  summary?: string
+  coverUrl?: string
+  category?: string
+  tags?: string[]
+  visibility?: Visibility
+}
+
+export interface UpdateProjectRequest {
+  title?: string
+  summary?: string
+  coverUrl?: string
+  status?: ProjectStatus
+  category?: string
+  tags?: string[]
+  visibility?: Visibility
+  settings?: Partial<ProjectSettings>
+}
