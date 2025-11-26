@@ -1,177 +1,333 @@
 <template>
-    <el-card class="project-card" :body-style="{ padding: '20px' }" @click="$emit('click')">
-        <div class="project-header">
-            <h3 class="project-title">{{ project.title }}</h3>
-            <el-tag :type="getStatusType(project.status)">{{ getStatusText(project.status) }}</el-tag>
-        </div>
+  <el-card class="project-card" :body-style="{ padding: '0px' }" shadow="hover" @click="$emit('click')">
+    <!-- 1. 封面区域 -->
+    <div class="card-cover">
+      <el-image v-if="project.coverUrl" :src="project.coverUrl" fit="cover" class="cover-image" loading="lazy">
+        <template #error>
+          <div class="cover-placeholder error">
+            <el-icon>
+              <Picture />
+            </el-icon>
+          </div>
+        </template>
+      </el-image>
+      <!-- 无封面时的默认占位 -->
+      <div v-else class="cover-placeholder" :style="placeholderStyle">
+        <span class="placeholder-text">{{ project.title.charAt(0) }}</span>
+      </div>
 
-        <p class="project-description" v-if="project.description">
-            {{ truncate(project.description, 100) }}
+      <!-- 状态标签 (悬浮在封面左上角) -->
+      <div class="status-badge">
+        <el-tag :type="statusConfig.type" effect="dark" size="small" round>
+          {{ statusConfig.text }}
+        </el-tag>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <!-- 2. 标题与简介 -->
+      <div class="content-main">
+        <h3 class="title" :title="project.title">{{ project.title }}</h3>
+        <p class="desc" :title="project.summary">
+          {{ project.summary || '暂无简介，点击开始创作...' }}
         </p>
+      </div>
 
-        <div class="project-stats">
-            <div class="stat-item">
-                <el-icon>
-                    <Document />
-                </el-icon>
-                <span>{{ formatNumber(project.wordCount || 0) }} 字</span>
+      <!-- 3. 数据统计 -->
+      <div class="content-meta">
+        <div class="meta-row">
+          <el-tooltip content="总字数">
+            <div class="meta-item">
+              <el-icon>
+                <EditPen />
+              </el-icon>
+              <span>{{ formatNumber(project.statistics?.totalWords || 0) }}</span>
             </div>
-            <div class="stat-item">
-                <el-icon>
-                    <Folder />
-                </el-icon>
-                <span>{{ project.chapterCount || 0 }} 章</span>
+          </el-tooltip>
+
+          <el-tooltip content="章节数">
+            <div class="meta-item">
+              <el-icon>
+                <DocumentCopy />
+              </el-icon>
+              <span>{{ project.statistics?.chapterCount || 0 }} 章</span>
             </div>
-            <div class="stat-item">
-                <el-icon>
-                    <Clock />
-                </el-icon>
-                <span>{{ formatDate(project.updatedAt) }}</span>
-            </div>
+          </el-tooltip>
         </div>
 
-        <div class="project-actions">
-            <el-button text @click.stop="$emit('edit', project)">
-                <el-icon>
-                    <Edit />
-                </el-icon>
-                编辑
-            </el-button>
-            <el-button text @click.stop="$emit('statistics', project)">
-                <el-icon>
-                    <DataLine />
-                </el-icon>
-                统计
-            </el-button>
-            <el-button text type="danger" @click.stop="$emit('delete', project.projectId)">
-                <el-icon>
-                    <Delete />
-                </el-icon>
-                删除
-            </el-button>
+        <div class="meta-row time">
+          <el-tooltip :content="`更新于 ${formatDate(project.updatedAt)}`">
+            <span class="time-text">{{ formatRelativeTime(project.updatedAt) }} 更新</span>
+          </el-tooltip>
         </div>
-    </el-card>
+      </div>
+
+      <el-divider class="card-divider" />
+
+      <!-- 4. 底部操作栏 -->
+      <div class="card-actions">
+        <el-tooltip content="编辑书籍">
+          <el-button link class="action-btn primary" @click.stop="$emit('edit', project)">
+            <el-icon>
+              <Edit />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <el-tooltip content="数据统计">
+          <el-button link class="action-btn" @click.stop="$emit('statistics', project)">
+            <el-icon>
+              <DataLine />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <div class="spacer"></div>
+
+        <el-tooltip content="删除项目">
+          <el-button link class="action-btn danger" @click.stop="$emit('delete', project.id)">
+            <el-icon>
+              <Delete />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+      </div>
+    </div>
+  </el-card>
 </template>
 
 <script setup lang="ts">
-import { Document, Folder, Clock, Edit, DataLine, Delete } from '@element-plus/icons-vue'
-import { formatDate } from '@/utils/format'
+import { computed } from 'vue'
+import {
+  Edit, DataLine, Delete, Picture,
+  DocumentCopy, EditPen
+} from '@element-plus/icons-vue'
+import type { Project } from '@/modules/writer/types/project'
+import { ProjectStatus } from '@/modules/writer/types/project'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
 
-interface Project {
-    projectId: string
-    title: string
-    description?: string
-    status: string
-    wordCount?: number
-    chapterCount?: number
-    updatedAt: string
-}
+// 初始化 dayjs
+dayjs.extend(relativeTime)
+dayjs.locale('zh-cn')
 
 interface Props {
-    project: Project
+  project: Project
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-    click: []
-    edit: [project: Project]
-    statistics: [project: Project]
-    delete: [projectId: string]
+  click: []
+  edit: [project: Project]
+  statistics: [project: Project]
+  delete: [projectId: string]
 }>()
 
-function getStatusType(status: string): string {
-    const typeMap: Record<string, string> = {
-        draft: 'info',
-        writing: 'warning',
-        completed: 'success',
-        published: 'success'
-    }
-    return typeMap[status] || 'info'
-}
+// 状态配置映射
+const statusConfig = computed(() => {
+  const map: Record<string, { type: 'success' | 'warning' | 'info' | 'danger', text: string }> = {
+    [ProjectStatus.DRAFT]: { type: 'info', text: '草稿' },
+    [ProjectStatus.SERIALIZING]: { type: 'warning', text: '连载中' },
+    [ProjectStatus.COMPLETED]: { type: 'success', text: '已完结' },
+    [ProjectStatus.SUSPENDED]: { type: 'danger', text: '断更' },
+    [ProjectStatus.ARCHIVED]: { type: 'info', text: '归档' }
+  }
+  return map[props.project.status] || { type: 'info', text: '未知' }
+})
 
-function getStatusText(status: string): string {
-    const textMap: Record<string, string> = {
-        draft: '草稿',
-        writing: '写作中',
-        completed: '已完成',
-        published: '已发布'
-    }
-    return textMap[status] || status
-}
+// 生成随机渐变背景色（基于标题哈希）
+const placeholderStyle = computed(() => {
+  const colors = [
+    'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+  ]
+  const index = props.project.title.length % colors.length
+  return { background: colors[index] }
+})
 
-function truncate(text: string, length: number): string {
-    if (!text) return ''
-    return text.length > length ? text.substring(0, length) + '...' : text
-}
-
+// 工具函数
 function formatNumber(num: number): string {
-    if (num >= 10000) {
-        return (num / 10000).toFixed(1) + '万'
-    }
-    return num.toString()
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '万字'
+  }
+  return num + ' 字'
+}
+
+function formatDate(dateStr: string): string {
+  return dayjs(dateStr).format('YYYY-MM-DD HH:mm')
+}
+
+function formatRelativeTime(dateStr: string): string {
+  return dayjs(dateStr).fromNow()
 }
 </script>
 
 <style scoped lang="scss">
 .project-card {
-    cursor: pointer;
-    transition: all 0.3s;
+  height: 100%;
+  border: 1px solid var(--el-border-color-lighter);
+  background-color: var(--el-bg-color);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
 
-    &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--el-box-shadow);
+
+    .cover-image {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// 1. 封面区域
+.card-cover {
+  height: 140px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--el-fill-color-light);
+
+  .cover-image {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease;
+  }
+
+  .cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+
+    &.error {
+      background-color: var(--el-fill-color);
+      color: var(--el-text-color-secondary);
+      font-size: 24px;
     }
 
-    .project-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
+    .placeholder-text {
+      font-size: 48px;
+      font-weight: bold;
+      opacity: 0.8;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
 
-        .project-title {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 500;
-            color: #303133;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+  .status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+  }
+}
+
+// 2. 内容区域
+.card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+
+  .content-main {
+    margin-bottom: 12px;
+
+    .title {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .project-description {
+    .desc {
+      margin: 0;
+      font-size: 13px;
+      color: var(--el-text-color-secondary);
+      line-height: 1.5;
+      height: 40px; // 限制两行高度
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .content-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--el-text-color-placeholder);
+
+    .meta-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .el-icon {
         font-size: 14px;
-        color: #606266;
-        line-height: 1.6;
-        margin: 0 0 16px;
+      }
     }
 
-    .project-stats {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 16px;
-        padding-top: 12px;
-        border-top: 1px solid #ebeef5;
+    .time-text {
+      font-size: 12px;
+    }
+  }
 
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #909399;
+  .card-divider {
+    margin: 12px 0 8px;
+    border-color: var(--el-border-color-lighter);
+  }
 
-            .el-icon {
-                font-size: 16px;
-            }
-        }
+  // 3. 操作区域
+  .card-actions {
+    display: flex;
+    align-items: center;
+
+    .spacer {
+      flex: 1;
     }
 
-    .project-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
+    .action-btn {
+      padding: 6px;
+      height: 32px;
+      width: 32px;
+      margin-left: 4px;
+      border-radius: 4px;
+      font-size: 16px;
+      color: var(--el-text-color-regular);
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: var(--el-fill-color);
+      }
+
+      &.primary:hover {
+        color: var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+      }
+
+      &.danger:hover {
+        color: var(--el-color-danger);
+        background-color: var(--el-color-danger-light-9);
+      }
     }
+  }
 }
 </style>
