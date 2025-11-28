@@ -14,6 +14,21 @@ export interface APIResponse<T = any> {
   request_id?: string
 }
 
+// ==================== 分页定义 ====================
+
+/**
+ * 前端统一使用的分页对象
+ * (通常由 Service 层根据后端返回的 total/page/size 计算得出)
+ */
+export interface Pagination {
+  total: number // 总条数
+  page: number // 当前页
+  page_size: number // 每页大小
+  total_pages: number // 总页数 (计算得出)
+  has_next: boolean // 是否有下一页 (计算得出)
+  has_previous: boolean // 是否有上一页 (计算得出)
+}
+
 /**
  * Pagination Parameters
  */
@@ -76,4 +91,3 @@ export interface UploadResponse {
   size: number
   mime_type: string
 }
-
