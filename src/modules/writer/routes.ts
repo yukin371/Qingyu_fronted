@@ -1,67 +1,75 @@
-/**
- * Writer Module Routes
- */
-
 import type { RouteRecordRaw } from 'vue-router'
-import MainLayout from '@/shared/components/layout/MainLayout.vue'
+
+// 使用懒加载引入组件
+// 如果有特定的 Layout 给作者后台使用，建议替换 MainLayout
+const WriterLayout = () => import('@/modules/writer/layouts/WriterLayout.vue')
+// 或者暂时复用 MainLayout，但通常编辑器需要独立布局
+const MainLayout = () => import('@/shared/components/layout/MainLayout.vue')
 
 const writerRoutes: RouteRecordRaw[] = [
   {
     path: '/writer',
-    component: MainLayout,
+    component: MainLayout, // 建议改为 WriterLayout 以获得更好的后台体验
+    meta: { requiresAuth: true, roles: ['writer', 'admin'] }, // 在父级统一添加权限控制
     children: [
       {
         path: '',
-        redirect: '/writer/dashboard'
+        redirect: { name: 'writer-dashboard' },
       },
       {
         path: 'dashboard',
         name: 'writer-dashboard',
         component: () => import('./views/WriterDashboard.vue'),
-        meta: { title: '创作工作台', requiresAuth: true }
+        meta: { title: '创作工作台' },
       },
       {
         path: 'projects',
         name: 'writer-projects',
         component: () => import('./views/ProjectListView.vue'),
-        meta: { title: '我的项目', requiresAuth: true }
+        meta: { title: '我的项目' },
       },
       {
+        // 项目概览/工作区 (通常是侧边栏+大纲+设定)
         path: 'project/:projectId',
         name: 'writer-project',
         component: () => import('./views/ProjectWorkspace.vue'),
-        meta: { title: '项目工作区', requiresAuth: true },
-        props: true
-      },
-      {
-        path: 'editor',
-        name: 'writer-editor',
-        component: () => import('./views/EditorView.vue'),
-        meta: { title: '编辑器', requiresAuth: true }
+        meta: { title: '项目管理' },
+        props: true,
       },
       {
         path: 'statistics/:bookId?',
         name: 'writer-statistics',
         component: () => import('./views/StatisticsView.vue'),
-        meta: { title: '作品统计', requiresAuth: true },
-        props: true
+        meta: { title: '数据分析' },
+        props: true,
       },
       {
         path: 'revenue/:bookId?',
         name: 'writer-revenue',
         component: () => import('./views/RevenueView.vue'),
-        meta: { title: '收入统计', requiresAuth: true },
-        props: true
+        meta: { title: '稿费收入' },
+        props: true,
       },
       {
         path: 'publish',
         name: 'writer-publish',
         component: () => import('./views/PublishManagement.vue'),
-        meta: { title: '发布管理', requiresAuth: true }
-      }
-    ]
-  }
+        meta: { title: '发布管理' },
+      },
+    ],
+  },
+  {
+    // 编辑器通常需要全屏，所以把它提取到 Layout 之外，或者使用 BlankLayout
+    path: '/writer/editor/:projectId/:chapterId?',
+    name: 'writer-editor',
+    component: () => import('./views/EditorView.vue'),
+    meta: {
+      title: '编辑器',
+      requiresAuth: true,
+      layout: 'blank', // 标记为无布局
+    },
+    props: true,
+  },
 ]
 
 export default writerRoutes
-
