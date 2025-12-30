@@ -215,12 +215,13 @@ export const useAuthStore = defineStore('auth', {
     async getUserInfo(): Promise<any> {
       try {
         const response = await authAPI.getUserInfo()
-        const data = response.data
-        this.user = (data as any).user || data
-        this.permissions = (data as any).permissions || []
+        // http service 响应拦截器已提取 data 字段，response 直接是 { user, permissions?, roles? }
+        const data = response as { user: any; permissions?: string[]; roles?: string[] }
+        this.user = data.user || data
+        this.permissions = data.permissions || []
         // 后端返回role（单数），转换为roles数组
-        const userData = (data as any).user || data
-        this.roles = (data as any).roles || ((userData as any)?.role ? [(userData as any).role] : [])
+        const userData = data.user || data
+        this.roles = data.roles || ((userData as any)?.role ? [(userData as any).role] : [])
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
@@ -239,7 +240,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.updateUserInfo(userInfo)
-        const data = response.data
+        // http service 响应拦截器已提取 data 字段，response 直接是 { user }
+        const data = response as { user: any }
         this.user = { ...this.user!, ...data.user }
 
         // 更新本地存储
@@ -278,7 +280,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.refreshToken()
-        const data = response.data
+        // http service 响应拦截器已提取 data 字段，response 直接是 { token, expiresAt }
+        const data = response as { token: string; expiresAt?: string; refreshToken?: string }
 
         if (data) {
           this.token = data.token
@@ -306,7 +309,8 @@ export const useAuthStore = defineStore('auth', {
     async checkUsername(username: string): Promise<boolean> {
       try {
         const response = await authAPI.checkUsername(username)
-        return response.data?.available || false
+        // http service 响应拦截器已提取 data 字段，response 直接是 { available, message? }
+        return (response as any)?.available || false
       } catch (error) {
         console.error('检查用户名失败:', error)
         return false
@@ -317,7 +321,8 @@ export const useAuthStore = defineStore('auth', {
     async checkEmail(email: string): Promise<boolean> {
       try {
         const response = await authAPI.checkEmail(email)
-        return response.data?.available || false
+        // http service 响应拦截器已提取 data 字段，response 直接是 { available, message? }
+        return (response as any)?.available || false
       } catch (error) {
         console.error('检查邮箱失败:', error)
         return false

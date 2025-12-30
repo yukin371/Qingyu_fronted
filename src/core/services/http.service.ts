@@ -184,11 +184,14 @@ class HttpService {
     file: File | FormData,
     config?: InternalAxiosRequestConfig
   ): Promise<T> {
+    let formData: FormData
     if (!(file instanceof FormData)) {
-      const formData = file instanceof FormData ? file : new FormData()
+      formData = new FormData()
       formData.append('file', file)
+    } else {
+      formData = file
     }
-    return this.instance.post(url, FormData, {
+    return this.instance.post(url, formData, {
       ...config,
       isUpload: true,
       timeout: config?.timeout || 60000, // 上传通常需要更长时间

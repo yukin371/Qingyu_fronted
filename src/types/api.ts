@@ -54,11 +54,6 @@ export interface PaginatedResponse<T = any> {
 // ==================== 向后兼容类型 ====================
 
 /**
- * @deprecated 使用 APIResponse 代替
- */
-export interface ApiResponse<T = any> extends APIResponse<T> {}
-
-/**
  * 分页参数
  */
 export interface PaginationParams {
