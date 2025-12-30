@@ -1,10 +1,12 @@
 /**
- * 评论API模块 (v1.3) ⭐️包含点赞功能
- * 基于 doc/api/frontend/阅读器API参考.md
+ * 评论API模块
+ *
+ * 对接后端 /api/v1/reader/comments 路由
+ * 后端路由文档: Qingyu_backend/router/reader/reader_router.go
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
+import type { PaginatedResponse } from '@/types/api'
 import type {
   Comment,
   CommentListResponse,
@@ -15,63 +17,71 @@ import type {
 } from '@/types/reader'
 
 /**
- * 评论API接口 (v1.3)
+ * 评论API接口
  */
 export const commentAPI = {
   /**
    * 发表评论
+   * POST /api/v1/reader/comments
    */
-  async createComment(params: CreateCommentParams): Promise<APIResponse<Comment>> {
-    return httpService.post<APIResponse<Comment>>('/reader/comments', params)
+  async createComment(params: CreateCommentParams): Promise<Comment> {
+    return httpService.post<Comment>('/reader/comments', params)
   },
 
   /**
    * 获取评论列表
+   * GET /api/v1/reader/comments
    */
-  async getCommentList(params: GetCommentListParams): Promise<APIResponse<CommentListResponse>> {
-    return httpService.get<APIResponse<CommentListResponse>>('/reader/comments', { params })
+  async getCommentList(params: GetCommentListParams): Promise<CommentListResponse> {
+    return httpService.get<CommentListResponse>('/reader/comments', { params })
   },
 
   /**
    * 获取评论详情
+   * GET /api/v1/reader/comments/:id
    */
-  async getCommentById(commentId: string): Promise<APIResponse<Comment>> {
-    return httpService.get<APIResponse<Comment>>(`/reader/comments/${commentId}`)
+  async getCommentById(commentId: string): Promise<Comment> {
+    return httpService.get<Comment>(`/reader/comments/${commentId}`)
   },
 
   /**
    * 更新评论
+   * PUT /api/v1/reader/comments/:id
    */
-  async updateComment(commentId: string, params: UpdateCommentParams): Promise<APIResponse<Comment>> {
-    return httpService.put<APIResponse<Comment>>(`/reader/comments/${commentId}`, params)
+  async updateComment(commentId: string, params: UpdateCommentParams): Promise<Comment> {
+    return httpService.put<Comment>(`/reader/comments/${commentId}`, params)
   },
 
   /**
    * 删除评论
+   * DELETE /api/v1/reader/comments/:id
    */
-  async deleteComment(commentId: string): Promise<APIResponse<null>> {
-    return httpService.delete<APIResponse<null>>(`/reader/comments/${commentId}`)
+  async deleteComment(commentId: string): Promise<void> {
+    return httpService.delete<void>(`/reader/comments/${commentId}`)
   },
 
   /**
    * 回复评论
+   * POST /api/v1/reader/comments/:id/reply
    */
-  async replyComment(commentId: string, params: ReplyCommentParams): Promise<APIResponse<Comment>> {
-    return httpService.post<APIResponse<Comment>>(`/reader/comments/${commentId}/reply`, params)
+  async replyComment(commentId: string, params: ReplyCommentParams): Promise<Comment> {
+    return httpService.post<Comment>(`/reader/comments/${commentId}/reply`, params)
   },
 
   /**
-   * 点赞评论 ⭐️v1.3新增
+   * 点赞评论
+   * POST /api/v1/reader/comments/:id/like
    */
-  async likeComment(commentId: string): Promise<APIResponse<null>> {
-    return httpService.post<APIResponse<null>>(`/reader/comments/${commentId}/like`)
+  async likeComment(commentId: string): Promise<void> {
+    return httpService.post<void>(`/reader/comments/${commentId}/like`)
   },
 
   /**
-   * 取消点赞评论 ⭐️v1.3新增
+   * 取消点赞评论
+   * DELETE /api/v1/reader/comments/:id/like
    */
-  async unlikeComment(commentId: string): Promise<APIResponse<null>> {
-    return httpService.delete<APIResponse<null>>(`/reader/comments/${commentId}/like`)
+  async unlikeComment(commentId: string): Promise<void> {
+    return httpService.delete<void>(`/reader/comments/${commentId}/like`)
   }
 }
 
@@ -122,4 +132,3 @@ export const getChapterComments = (chapterId: string, params?: {
 }
 
 export default commentAPI
-

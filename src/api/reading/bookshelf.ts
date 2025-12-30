@@ -1,51 +1,75 @@
+/**
+ * 书架相关API
+ *
+ * 对接后端 /api/v1/reader/books 路由
+ * 后端路由文档: Qingyu_backend/router/reader/reader_router.go
+ */
+
 import { httpService } from '@/core/services/http.service'
 
 /**
- * 书架相关API
+ * 书架状态
  */
+export type BookshelfStatus = 'reading' | 'completed' | 'want_to_read'
 
-// 获取书架列表
-export function getBookshelf(params?: {
-  status?: 'reading' | 'completed' | 'want_to_read'
-  page?: number
-  size?: number
-  sortBy?: 'updated_at' | 'created_at' | 'title'
-  sortOrder?: 'asc' | 'desc'
-}) {
-  return httpService.get('/api/v1/reader/bookshelf', { params })
+/**
+ * 书架项
+ */
+export interface BookshelfItem {
+  bookId: string
+  title: string
+  author: string
+  cover?: string
+  status: BookshelfStatus
+  progress?: number
+  addedAt: string
+  updatedAt: string
 }
 
-// 添加到书架
-export function addToBookshelf(bookId: string, status?: string) {
-  return httpService.post('/api/v1/reader/bookshelf', {
-    bookId,
-    status: status || 'want_to_read'
-  })
+/**
+ * 获取书架列表
+ * GET /api/v1/reader/books
+ */
+export function getBookshelf() {
+  return httpService.get<BookshelfItem[]>('/reader/books')
 }
 
-// 更新书架状态
-export function updateBookshelfStatus(bookId: string, status: string) {
-  return httpService.put(`/api/v1/reader/bookshelf/${bookId}`, {
-    status
-  })
+/**
+ * 获取最近阅读
+ * GET /api/v1/reader/books/recent
+ */
+export function getRecentReading() {
+  return httpService.get<BookshelfItem[]>('/reader/books/recent')
 }
 
-// 从书架移除
+/**
+ * 获取未读完的书籍
+ * GET /api/v1/reader/books/unfinished
+ */
+export function getUnfinishedBooks() {
+  return httpService.get<BookshelfItem[]>('/reader/books/unfinished')
+}
+
+/**
+ * 获取已读完的书籍
+ * GET /api/v1/reader/books/finished
+ */
+export function getFinishedBooks() {
+  return httpService.get<BookshelfItem[]>('/reader/books/finished')
+}
+
+/**
+ * 添加到书架
+ * POST /api/v1/reader/books/:bookId
+ */
+export function addToBookshelf(bookId: string) {
+  return httpService.post<void>(`/reader/books/${bookId}`)
+}
+
+/**
+ * 从书架移除
+ * DELETE /api/v1/reader/books/:bookId
+ */
 export function removeFromBookshelf(bookId: string) {
-  return httpService.delete(`/api/v1/reader/bookshelf/${bookId}`)
+  return httpService.delete<void>(`/reader/books/${bookId}`)
 }
-
-// 批量操作
-export function batchBookshelfOperation(operation: 'delete' | 'move', bookIds: string[], status?: string) {
-  return httpService.post('/api/v1/reader/bookshelf/batch', {
-    operation,
-    bookIds,
-    status
-  })
-}
-
-// 检查书籍是否在书架
-export function checkBookInShelf(bookId: string) {
-  return httpService.get(`/api/v1/reader/bookshelf/${bookId}/status`)
-}
-
