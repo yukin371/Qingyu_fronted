@@ -170,7 +170,7 @@ import { booksAPI } from '@/api/reading/books'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
-import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
+import { useBookstoreStore } from '../stores/bookstore.store'
 
 const router = useRouter()
 const route = useRoute()

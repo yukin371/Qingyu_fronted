@@ -73,3 +73,23 @@ export function addToBookshelf(bookId: string) {
 export function removeFromBookshelf(bookId: string) {
   return httpService.delete<void>(`/reader/books/${bookId}`)
 }
+
+/**
+ * 更新书架状态
+ * PATCH /api/v1/reader/books/:bookId/status
+ */
+export function updateBookshelfStatus(bookId: string, status: BookshelfStatus) {
+  return httpService.patch<void>(`/reader/books/${bookId}/status`, { status })
+}
+
+/**
+ * 批量操作书架
+ * POST /api/v1/reader/books/batch
+ */
+export function batchBookshelfOperation(operations: {
+  action: 'add' | 'remove' | 'update'
+  bookIds: string[]
+  status?: BookshelfStatus
+}) {
+  return httpService.post<void>('/reader/books/batch', operations)
+}

@@ -208,10 +208,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useBookstoreStore } from '@bookstore/stores/bookstore.store'
-import BannerCarousel from '@bookstore/components/BannerCarousel.vue'
-import RankingList from '@bookstore/components/RankingList.vue'
-import BookGrid from '@bookstore/components/BookGrid.vue'
+import { useBookstoreStore } from '../stores/bookstore.store'
+import BannerCarousel from '../components/BannerCarousel.vue'
+import RankingList from '../components/RankingList.vue'
+import BookGrid from '../components/BookGrid.vue'
 import {
   Reading, Search, ArrowRight, Bell, Close,
   Star, StarFilled, Picture
