@@ -4,18 +4,20 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useUserStore } from '@/stores/user'
+import { useAuthStore } from '@/stores/auth'
 
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 // 应用初始化
 onMounted(async () => {
-  // 如果有token，尝试获取用户信息
-  if (userStore.token) {
+  // 如果有token，初始化认证状态并获取用户信息
+  if (authStore.token) {
     try {
-      await userStore.fetchUserInfo()
+      await authStore.initAuth()
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      console.error('初始化认证状态失败:', error)
+      // 如果token无效，清除认证状态
+      authStore.clearAuth()
     }
   }
 })

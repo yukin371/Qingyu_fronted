@@ -133,11 +133,18 @@ class HttpService {
         return this.handleBusinessError(apiData, config)
       },
       (error: AxiosError) => {
-        // ... (保持之前的重试逻辑、错误处理逻辑) ...
-        // 在这里加上 401 登出逻辑
+        // 401 认证失败处理
         if (error.response?.status === 401) {
           const authStore = useAuthStore()
-          authStore.logout()
+
+          // 判断是否为登录请求，避免登录失败时触发登出
+          const isLoginRequest = error.config?.url?.includes('/login')
+          const isRegisterRequest = error.config?.url?.includes('/register')
+
+          // 只有在非登录/注册请求的401时才自动登出（表示token过期）
+          if (!isLoginRequest && !isRegisterRequest && authStore.isLoggedIn) {
+            authStore.logout()
+          }
         }
 
         // 统一错误处理

@@ -52,27 +52,34 @@ export interface PasswordResetData {
 }
 
 export const useAuthStore = defineStore('auth', {
-  state: (): AuthState => ({
-    // 用户信息
-    user: null,
+  state: (): AuthState => {
+    // 从storage恢复token
+    const savedToken = storage.get<string>(STORAGE_KEYS.TOKEN)
+    const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
+    const savedUser = storage.get<any>(STORAGE_KEYS.USER)
 
-    // 认证状态
-    token: storage.get<string>(STORAGE_KEYS.TOKEN),
-    refreshToken: storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN),
-    isLoggedIn: false,
+    return {
+      // 用户信息
+      user: savedUser,
 
-    // 加载状态
-    loading: false,
+      // 认证状态
+      token: savedToken,
+      refreshToken: savedRefreshToken,
+      isLoggedIn: !!savedToken,  // 有token就认为是已登录
 
-    // 错误信息
-    error: null,
+      // 加载状态
+      loading: false,
 
-    // 权限列表
-    permissions: [],
+      // 错误信息
+      error: null,
 
-    // 角色列表
-    roles: []
-  }),
+      // 权限列表
+      permissions: [],
+
+      // 角色列表
+      roles: []
+    }
+  },
 
   getters: {
     // 获取用户头像
