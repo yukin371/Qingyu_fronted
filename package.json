@@ -13,13 +13,16 @@
     "axios": "^1.6.2",
     "echarts": "^6.0.0",
     "element-plus": "^2.4.4",
+    "marked": "^17.0.1",
     "nanoid": "^5.1.6",
+    "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.3.4",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
+    "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
