@@ -69,7 +69,7 @@ export interface Project extends BaseEntity {
 }
 
 // =======================
-// DTOs (Data Transfer Objects)
+// DTOs (Data Transfer Objects) - 请求参数
 // =======================
 
 export interface CreateProjectRequest {

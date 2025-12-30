@@ -1,9 +1,5 @@
 import { defineStore } from 'pinia'
-import type {
-  Project,
-  Document,
-  DocumentTreeNode
-} from '../api'
+import type { Project, Document, DocumentTreeNode } from '..'
 import {
   getProjects,
   getProjectById,
@@ -24,8 +20,8 @@ import {
   type ProjectCreateData,
   type ProjectUpdateData,
   type DocumentCreateData,
-  type DocumentUpdateData
-} from '../api'
+  type DocumentUpdateData,
+} from '..'
 import type {
   Character,
   CharacterRelation,
@@ -33,21 +29,10 @@ import type {
   LocationRelation,
   Timeline,
   TimelineEvent,
-  OutlineNode
+  OutlineNode,
 } from '@/types/writer'
-import type {
-  ChatMessage,
-  AIToolType,
-  AIConfig,
-  AIHistory
-} from '@/types/ai'
-import {
-  chatWithAI,
-  continueWriting,
-  polishText,
-  expandText,
-  rewriteText
-} from '@/api/writing/ai'
+import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
+import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/api/writing/ai'
 
 /**
  * 自动保存任务
@@ -183,7 +168,7 @@ export const useWriterStore = defineStore('writer', {
         continueLength: 200,
         polishStyle: 'literary',
         expandLevel: 'moderate',
-        rewriteMode: 'meaning'
+        rewriteMode: 'meaning',
       },
       history: [],
       error: null,
@@ -191,8 +176,8 @@ export const useWriterStore = defineStore('writer', {
       agentContext: {
         characters: [],
         locations: [],
-        events: []
-      }
+        events: [],
+      },
     },
 
     // 角色管理
@@ -200,7 +185,7 @@ export const useWriterStore = defineStore('writer', {
       list: [],
       relations: [],
       currentCharacter: null,
-      loading: false
+      loading: false,
     },
 
     // 地点管理
@@ -209,7 +194,7 @@ export const useWriterStore = defineStore('writer', {
       relations: [],
       tree: [],
       currentLocation: null,
-      loading: false
+      loading: false,
     },
 
     // 时间线管理
@@ -218,7 +203,7 @@ export const useWriterStore = defineStore('writer', {
       currentTimeline: null,
       events: [],
       loading: false,
-      showBar: false
+      showBar: false,
     },
 
     // 大纲管理
@@ -226,14 +211,14 @@ export const useWriterStore = defineStore('writer', {
       nodes: [],
       tree: [],
       currentNode: null,
-      loading: false
+      loading: false,
     },
 
     // 统计缓存
     statisticsCache: {},
 
     // 错误信息
-    error: null
+    error: null,
   }),
 
   getters: {
@@ -270,7 +255,7 @@ export const useWriterStore = defineStore('writer', {
      */
     documentCount: (state): number => {
       return state.documents.length
-    }
+    },
   },
 
   actions: {
@@ -360,7 +345,9 @@ export const useWriterStore = defineStore('writer', {
         if (response.code === 200) {
           this.currentProject = { ...this.currentProject, ...response.data }
           // 更新项目列表中的项目
-          const index = this.projects.findIndex(p => p.projectId === this.currentProject!.projectId)
+          const index = this.projects.findIndex(
+            (p) => p.projectId === this.currentProject!.projectId
+          )
           if (index !== -1) {
             this.projects[index] = this.currentProject
           }
@@ -381,7 +368,7 @@ export const useWriterStore = defineStore('writer', {
       try {
         const response = await deleteProject(projectId)
         if (response.code === 200) {
-          this.projects = this.projects.filter(p => p.projectId !== projectId)
+          this.projects = this.projects.filter((p) => p.projectId !== projectId)
           if (this.currentProject?.projectId === projectId) {
             this.currentProject = null
           }
@@ -529,7 +516,7 @@ export const useWriterStore = defineStore('writer', {
             this.currentDocument = { ...this.currentDocument, ...response.data }
           }
           // 更新文档列表中的文档
-          const index = this.documents.findIndex(d => d.documentId === documentId)
+          const index = this.documents.findIndex((d) => d.documentId === documentId)
           if (index !== -1) {
             this.documents[index] = { ...this.documents[index], ...response.data }
           }
@@ -602,7 +589,7 @@ export const useWriterStore = defineStore('writer', {
       try {
         const response = await deleteDocument(documentId)
         if (response.code === 200) {
-          this.documents = this.documents.filter(d => d.documentId !== documentId)
+          this.documents = this.documents.filter((d) => d.documentId !== documentId)
           if (this.currentDocument?.documentId === documentId) {
             this.currentDocument = null
             this.editorContent = ''
@@ -625,11 +612,15 @@ export const useWriterStore = defineStore('writer', {
     /**
      * 移动文档
      */
-    async moveDocumentTo(documentId: string, newParentId?: string, newOrder?: number): Promise<void> {
+    async moveDocumentTo(
+      documentId: string,
+      newParentId?: string,
+      newOrder?: number
+    ): Promise<void> {
       try {
         const response = await moveDocument(documentId, {
           newParentId,
-          newOrder: newOrder || 0
+          newOrder: newOrder || 0,
         })
         if (response.code === 200) {
           // 重新加载文档树
@@ -682,7 +673,7 @@ export const useWriterStore = defineStore('writer', {
     cacheStatistics(key: string, data: any): void {
       this.statisticsCache[key] = {
         data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     },
 
@@ -738,7 +729,7 @@ export const useWriterStore = defineStore('writer', {
         id: Date.now().toString(),
         role: 'user',
         content: message,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
       this.ai.chatHistory.push(userMessage)
 
@@ -750,7 +741,7 @@ export const useWriterStore = defineStore('writer', {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: response.reply,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }
         this.ai.chatHistory.push(aiMessage)
         this.ai.lastResult = response.reply
@@ -763,7 +754,7 @@ export const useWriterStore = defineStore('writer', {
           output: response.reply,
           timestamp: Date.now(),
           projectId: this.currentProjectId || undefined,
-          usage: response.usage
+          usage: response.usage,
         })
       } catch (error: any) {
         console.error('AI对话失败:', error)
@@ -805,7 +796,7 @@ export const useWriterStore = defineStore('writer', {
           output: result,
           timestamp: Date.now(),
           projectId: this.currentProjectId,
-          usage: response.usage
+          usage: response.usage,
         })
 
         return result
@@ -842,7 +833,7 @@ export const useWriterStore = defineStore('writer', {
           output: result,
           timestamp: Date.now(),
           projectId: this.currentProjectId,
-          usage: response.usage
+          usage: response.usage,
         })
 
         return result
@@ -858,7 +849,11 @@ export const useWriterStore = defineStore('writer', {
     /**
      * AI扩写
      */
-    async aiExpandText(text: string, instructions?: string, targetLength?: number): Promise<string> {
+    async aiExpandText(
+      text: string,
+      instructions?: string,
+      targetLength?: number
+    ): Promise<string> {
       if (!this.currentProjectId) {
         throw new Error('请先选择一个项目')
       }
@@ -879,7 +874,7 @@ export const useWriterStore = defineStore('writer', {
           output: result,
           timestamp: Date.now(),
           projectId: this.currentProjectId,
-          usage: response.usage
+          usage: response.usage,
         })
 
         return result
@@ -895,7 +890,11 @@ export const useWriterStore = defineStore('writer', {
     /**
      * AI改写
      */
-    async aiRewriteText(text: string, mode: 'polish' | 'simplify' | 'formal' | 'casual', instructions?: string): Promise<string> {
+    async aiRewriteText(
+      text: string,
+      mode: 'polish' | 'simplify' | 'formal' | 'casual',
+      instructions?: string
+    ): Promise<string> {
       if (!this.currentProjectId) {
         throw new Error('请先选择一个项目')
       }
@@ -916,7 +915,7 @@ export const useWriterStore = defineStore('writer', {
           output: result,
           timestamp: Date.now(),
           projectId: this.currentProjectId,
-          usage: response.usage
+          usage: response.usage,
         })
 
         return result
@@ -965,7 +964,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.characters.loading = true
       try {
-        const { listCharacters } = await import('../api')
+        const { listCharacters } = await import('..')
         this.characters.list = await listCharacters(pid)
       } catch (error: any) {
         console.error('加载角色列表失败:', error)
@@ -983,7 +982,7 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const { listCharacterRelations } = await import('../api')
+        const { listCharacterRelations } = await import('..')
         this.characters.relations = await listCharacterRelations(pid)
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
@@ -1008,7 +1007,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.locations.loading = true
       try {
-        const { listLocations } = await import('../api')
+        const { listLocations } = await import('..')
         this.locations.list = await listLocations(pid)
       } catch (error: any) {
         console.error('加载地点列表失败:', error)
@@ -1026,7 +1025,7 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const { getLocationTree } = await import('../api')
+        const { getLocationTree } = await import('..')
         this.locations.tree = await getLocationTree(pid)
       } catch (error: any) {
         console.error('加载地点树失败:', error)
@@ -1051,7 +1050,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.timeline.loading = true
       try {
-        const { listTimelines } = await import('../api')
+        const { listTimelines } = await import('..')
         this.timeline.list = await listTimelines(pid)
         // 默认选择第一个时间线
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
@@ -1073,7 +1072,7 @@ export const useWriterStore = defineStore('writer', {
       if (!tid) return
 
       try {
-        const { listTimelineEvents } = await import('../api')
+        const { listTimelineEvents } = await import('..')
         this.timeline.events = await listTimelineEvents(tid)
       } catch (error: any) {
         console.error('加载时间线事件失败:', error)
@@ -1108,7 +1107,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const { getOutlineTree } = await import('../api')
+        const { getOutlineTree } = await import('..')
         this.outline.tree = await getOutlineTree(pid)
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
@@ -1145,7 +1144,11 @@ export const useWriterStore = defineStore('writer', {
     /**
      * 更新大纲节点
      */
-    async updateOutlineNode(nodeId: string, projectId: string, nodeData: any): Promise<OutlineNode> {
+    async updateOutlineNode(
+      nodeId: string,
+      projectId: string,
+      nodeData: any
+    ): Promise<OutlineNode> {
       try {
         // TODO: 调用后端API更新节点
         // const response = await apiClient.put(`/projects/${projectId}/outline/${nodeId}`, nodeData)
@@ -1231,7 +1234,7 @@ export const useWriterStore = defineStore('writer', {
           continueLength: 200,
           polishStyle: 'literary',
           expandLevel: 'moderate',
-          rewriteMode: 'meaning'
+          rewriteMode: 'meaning',
         },
         history: [],
         error: null,
@@ -1239,38 +1242,37 @@ export const useWriterStore = defineStore('writer', {
         agentContext: {
           characters: [],
           locations: [],
-          events: []
-        }
+          events: [],
+        },
       }
       this.characters = {
         list: [],
         relations: [],
         currentCharacter: null,
-        loading: false
+        loading: false,
       }
       this.locations = {
         list: [],
         relations: [],
         tree: [],
         currentLocation: null,
-        loading: false
+        loading: false,
       }
       this.timeline = {
         list: [],
         currentTimeline: null,
         events: [],
         loading: false,
-        showBar: false
+        showBar: false,
       }
       this.outline = {
         nodes: [],
         tree: [],
         currentNode: null,
-        loading: false
+        loading: false,
       }
       this.statisticsCache = {}
       this.error = null
-    }
-  }
+    },
+  },
 })
-

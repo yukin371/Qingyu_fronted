@@ -3,7 +3,9 @@
     <!-- 工具栏 -->
     <div class="graph-header">
       <div class="header-left">
-        <el-icon class="header-icon"><User /></el-icon>
+        <el-icon class="header-icon">
+          <User />
+        </el-icon>
         <span class="header-title">角色图谱</span>
         <el-tag v-if="characters.length > 0" size="small" type="info">
           {{ characters.length }} 个角色
@@ -25,13 +27,9 @@
       <div class="graph-canvas" ref="graphCanvasRef" v-loading="writerStore.characters.loading">
         <!-- 简化版：使用卡片展示角色关系 -->
         <div class="characters-grid">
-          <div
-            v-for="character in characters"
-            :key="character.id"
-            class="character-card"
+          <div v-for="character in characters" :key="character.id" class="character-card"
             :class="{ 'is-selected': selectedCharacter?.id === character.id }"
-            @click="handleSelectCharacter(character)"
-          >
+            @click="handleSelectCharacter(character)">
             <div class="card-avatar">
               <el-avatar :size="64" :src="character.avatarUrl">
                 {{ character.name.charAt(0) }}
@@ -46,12 +44,7 @@
                 {{ character.summary }}
               </div>
               <div v-if="character.traits && character.traits.length > 0" class="character-traits">
-                <el-tag
-                  v-for="trait in character.traits.slice(0, 3)"
-                  :key="trait"
-                  size="small"
-                  effect="plain"
-                >
+                <el-tag v-for="trait in character.traits.slice(0, 3)" :key="trait" size="small" effect="plain">
                   {{ trait }}
                 </el-tag>
               </div>
@@ -94,11 +87,7 @@
             <div v-if="selectedCharacter.traits && selectedCharacter.traits.length > 0" class="info-section">
               <h4>性格特征</h4>
               <div class="traits-list">
-                <el-tag
-                  v-for="trait in selectedCharacter.traits"
-                  :key="trait"
-                  size="small"
-                >
+                <el-tag v-for="trait in selectedCharacter.traits" :key="trait" size="small">
                   {{ trait }}
                 </el-tag>
               </div>
@@ -130,11 +119,8 @@
             <div class="info-section">
               <h4>角色关系</h4>
               <div class="relations-list">
-                <div
-                  v-for="relation in getCharacterRelations(selectedCharacter.id)"
-                  :key="relation.id"
-                  class="relation-item"
-                >
+                <div v-for="relation in getCharacterRelations(selectedCharacter.id)" :key="relation.id"
+                  class="relation-item">
                   <div class="relation-info">
                     <span class="relation-target">
                       {{ getCharacterName(relation.fromId === selectedCharacter.id ? relation.toId : relation.fromId) }}
@@ -143,13 +129,10 @@
                       {{ relation.type }}
                     </el-tag>
                   </div>
-                  <el-progress
-                    :percentage="relation.strength"
-                    :stroke-width="6"
-                    :show-text="false"
-                  />
+                  <el-progress :percentage="relation.strength" :stroke-width="6" :show-text="false" />
                 </div>
-                <el-empty v-if="getCharacterRelations(selectedCharacter.id).length === 0" description="暂无关系" :image-size="60" />
+                <el-empty v-if="getCharacterRelations(selectedCharacter.id).length === 0" description="暂无关系"
+                  :image-size="60" />
               </div>
             </div>
 
@@ -168,96 +151,44 @@
     </div>
 
     <!-- 添加/编辑角色对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑角色' : '添加角色'"
-      width="700px"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="formRef"
-        :model="characterForm"
-        :rules="formRules"
-        label-width="110px"
-      >
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '添加角色'" width="700px" :close-on-click-modal="false">
+      <el-form ref="formRef" :model="characterForm" :rules="formRules" label-width="110px">
         <el-form-item label="角色名称" prop="name">
           <el-input v-model="characterForm.name" placeholder="请输入角色名称" />
         </el-form-item>
         <el-form-item label="别名">
-          <el-tag
-            v-for="(alias, index) in characterForm.alias"
-            :key="index"
-            closable
-            @close="characterForm.alias.splice(index, 1)"
-            style="margin-right: 8px;"
-          >
+          <el-tag v-for="(alias, index) in characterForm.alias" :key="index" closable
+            @close="characterForm.alias.splice(index, 1)" style="margin-right: 8px;">
             {{ alias }}
           </el-tag>
-          <el-input
-            v-if="showAliasInput"
-            ref="aliasInputRef"
-            v-model="newAlias"
-            size="small"
-            style="width: 120px;"
-            @blur="handleAliasInputConfirm"
-            @keyup.enter="handleAliasInputConfirm"
-          />
+          <el-input v-if="showAliasInput" ref="aliasInputRef" v-model="newAlias" size="small" style="width: 120px;"
+            @blur="handleAliasInputConfirm" @keyup.enter="handleAliasInputConfirm" />
           <el-button v-else size="small" @click="showAliasInput = true">
             + 添加别名
           </el-button>
         </el-form-item>
         <el-form-item label="角色简介">
-          <el-input
-            v-model="characterForm.summary"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入角色简介"
-          />
+          <el-input v-model="characterForm.summary" type="textarea" :rows="2" placeholder="请输入角色简介" />
         </el-form-item>
         <el-form-item label="性格特征">
-          <el-tag
-            v-for="(trait, index) in characterForm.traits"
-            :key="index"
-            closable
-            @close="characterForm.traits.splice(index, 1)"
-            style="margin-right: 8px; margin-bottom: 8px;"
-          >
+          <el-tag v-for="(trait, index) in characterForm.traits" :key="index" closable
+            @close="characterForm.traits.splice(index, 1)" style="margin-right: 8px; margin-bottom: 8px;">
             {{ trait }}
           </el-tag>
-          <el-input
-            v-if="showTraitInput"
-            ref="traitInputRef"
-            v-model="newTrait"
-            size="small"
-            style="width: 120px;"
-            @blur="handleTraitInputConfirm"
-            @keyup.enter="handleTraitInputConfirm"
-          />
+          <el-input v-if="showTraitInput" ref="traitInputRef" v-model="newTrait" size="small" style="width: 120px;"
+            @blur="handleTraitInputConfirm" @keyup.enter="handleTraitInputConfirm" />
           <el-button v-else size="small" @click="showTraitInput = true">
             + 添加特征
           </el-button>
         </el-form-item>
         <el-form-item label="背景故事">
-          <el-input
-            v-model="characterForm.background"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入角色背景故事"
-          />
+          <el-input v-model="characterForm.background" type="textarea" :rows="4" placeholder="请输入角色背景故事" />
         </el-form-item>
         <el-form-item label="性格提示">
-          <el-input
-            v-model="characterForm.personalityPrompt"
-            type="textarea"
-            :rows="2"
-            placeholder="为 AI 提供角色性格提示"
-          />
+          <el-input v-model="characterForm.personalityPrompt" type="textarea" :rows="2" placeholder="为 AI 提供角色性格提示" />
         </el-form-item>
         <el-form-item label="语言模式">
-          <el-input
-            v-model="characterForm.speechPattern"
-            placeholder="角色说话方式"
-          />
+          <el-input v-model="characterForm.speechPattern" placeholder="角色说话方式" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -371,7 +302,7 @@ const handleDeleteCharacter = async (character: Character) => {
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const { deleteCharacter } = await import('../api')
+    const { deleteCharacter } = await import('..')
     await deleteCharacter(character.id, projectId)
     await handleRefresh()
     if (selectedCharacter.value?.id === character.id) {
@@ -417,10 +348,10 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedCharacter.value) {
-        const { updateCharacter } = await import('../api')
+        const { updateCharacter } = await import('..')
         await updateCharacter(selectedCharacter.value.id, projectId, characterForm.value)
       } else {
-        const { createCharacter } = await import('../api')
+        const { createCharacter } = await import('..')
         await createCharacter(projectId, characterForm.value)
       }
 
@@ -790,9 +721,3 @@ const resetForm = () => {
   }
 }
 </style>
-
-
-
-
-
-

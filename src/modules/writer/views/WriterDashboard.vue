@@ -1,573 +1,658 @@
 <template>
   <div class="writer-dashboard">
+    <!-- 1. 顶部欢迎区 -->
     <div class="dashboard-header">
-      <h1>创作工作台</h1>
-      <p class="welcome-text">欢迎回来，{{ userName }}！继续你的创作之旅</p>
+      <div class="welcome-section">
+        <h1 class="title">创作工作台</h1>
+        <p class="subtitle">欢迎回来，<span class="username">{{ userName }}</span>！继续你的创作之旅</p>
+      </div>
+      <div class="header-actions">
+        <!-- 可选：放置日期筛选或设置按钮 -->
+      </div>
     </div>
 
-    <!-- 统计卡片 -->
+    <!-- 2. 核心数据概览 (Stats) -->
     <el-row :gutter="20" class="stats-row">
-      <el-col :xs="12" :sm="6" :md="6">
+      <el-col :xs="12" :sm="6" :md="6" v-for="(item, index) in statCards" :key="index">
         <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background-color: #409eff20;">
-            <el-icon :size="32" color="#409eff"><Document /></el-icon>
+          <div class="stat-icon" :style="{ backgroundColor: item.bgColor }">
+            <el-icon :size="24" :color="item.iconColor">
+              <component :is="item.icon" />
+            </el-icon>
           </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ formatNumber(stats.totalWords) }}</div>
-            <div class="stat-label">总字数</div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :xs="12" :sm="6" :md="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background-color: #67c23a20;">
-            <el-icon :size="32" color="#67c23a"><Reading /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.bookCount }}</div>
-            <div class="stat-label">作品数量</div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :xs="12" :sm="6" :md="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background-color: #e6a23c20;">
-            <el-icon :size="32" color="#e6a23c"><EditPen /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ formatNumber(stats.todayWords) }}</div>
-            <div class="stat-label">今日新增</div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :xs="12" :sm="6" :md="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon" style="background-color: #f5622120;">
-            <el-icon :size="32" color="#f56221"><Clock /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ stats.pending }}</div>
-            <div class="stat-label">待处理</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ formatNumber(item.value) }}</div>
+            <div class="stat-label">{{ item.label }}</div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 快捷操作 -->
-    <el-card class="quick-actions-card" shadow="hover">
-      <template #header>
-        <div class="card-header">
-          <el-icon><Star /></el-icon>
-          <span>快捷操作</span>
-        </div>
-      </template>
-      <div class="quick-actions">
-        <el-button type="primary" size="large" @click="createProject">
-          <el-icon><Plus /></el-icon>
-          新建项目
-        </el-button>
-        <el-button type="success" size="large" @click="quickWrite">
-          <el-icon><Edit /></el-icon>
-          快速写作
-        </el-button>
-        <el-button type="warning" size="large" @click="goToPublish">
-          <el-icon><Upload /></el-icon>
-          发布管理
-        </el-button>
-        <el-button size="large" @click="goToStatistics">
-          <el-icon><DataAnalysis /></el-icon>
-          数据统计
-        </el-button>
-      </div>
-    </el-card>
-
-    <!-- 最近项目 -->
-    <el-card class="recent-projects-card" shadow="hover">
-      <template #header>
-        <div class="card-header">
-          <div>
-            <el-icon><Folder /></el-icon>
-            <span>最近项目</span>
-          </div>
-          <el-link type="primary" :underline="false" @click="goToAllProjects">
-            查看全部 <el-icon><ArrowRight /></el-icon>
-          </el-link>
-        </div>
-      </template>
-
-      <div v-if="loadingProjects" class="loading-container">
-        <el-skeleton :rows="3" animated />
-      </div>
-
-      <div v-else-if="recentProjects.length === 0" class="empty-container">
-        <el-empty description="还没有项目，创建一个开始吧！" />
-      </div>
-
-      <div v-else class="project-list">
-        <div
-          v-for="project in recentProjects"
-          :key="project.projectId"
-          class="project-item"
-          @click="openProject(project.projectId)"
-        >
-          <div class="project-info">
-            <div class="project-title">{{ project.title }}</div>
-            <div class="project-meta">
-              <el-tag size="small" :type="getStatusType(project.status)">
-                {{ getStatusText(project.status) }}
-              </el-tag>
-              <span class="word-count">{{ formatNumber(project.wordCount || 0) }} 字</span>
-              <span class="update-time">{{ formatDateTime(project.updatedAt) }}</span>
+    <el-row :gutter="20" class="main-content-row">
+      <!-- 左侧主要区域 -->
+      <el-col :xs="24" :lg="16">
+        <!-- 3. 快捷操作 -->
+        <el-card class="section-card quick-actions" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">
+                <el-icon>
+                  <Lightning />
+                </el-icon> 快捷操作
+              </span>
+            </div>
+          </template>
+          <div class="action-grid">
+            <div class="action-item" @click="createProject">
+              <div class="icon-box primary"><el-icon>
+                  <Plus />
+                </el-icon></div>
+              <span>新建作品</span>
+            </div>
+            <div class="action-item" @click="quickWrite">
+              <div class="icon-box success"><el-icon>
+                  <EditPen />
+                </el-icon></div>
+              <span>快速写作</span>
+            </div>
+            <div class="action-item" @click="goToPublish">
+              <div class="icon-box warning"><el-icon>
+                  <Upload />
+                </el-icon></div>
+              <span>发布管理</span>
+            </div>
+            <div class="action-item" @click="goToStatistics">
+              <div class="icon-box info"><el-icon>
+                  <DataAnalysis />
+                </el-icon></div>
+              <span>数据报表</span>
             </div>
           </div>
-          <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-        </div>
-      </div>
-    </el-card>
+        </el-card>
 
-    <!-- 写作目标 -->
-    <el-card class="writing-goal-card" shadow="hover">
-      <template #header>
-        <div class="card-header">
-          <el-icon><TrendCharts /></el-icon>
-          <span>今日写作目标</span>
-        </div>
-      </template>
-      <div class="goal-progress">
-        <el-progress
-          :percentage="goalPercentage"
-          :color="customColorMethod"
-          :stroke-width="20"
-        >
-          <span class="percentage-label">{{ stats.todayWords }} / {{ writingGoal }} 字</span>
-        </el-progress>
-        <div class="goal-tips">
-          <span v-if="goalPercentage >= 100" class="goal-completed">
-            🎉 恭喜！今日目标已完成
-          </span>
-          <span v-else class="goal-remaining">
-            还需 {{ writingGoal - stats.todayWords }} 字完成目标
-          </span>
-        </div>
-      </div>
-    </el-card>
+        <!-- 4. 最近编辑的项目 -->
+        <el-card class="section-card recent-projects" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">
+                <el-icon>
+                  <Timer />
+                </el-icon> 最近编辑
+              </span>
+              <el-button link type="primary" @click="goToAllProjects">
+                全部项目 <el-icon>
+                  <ArrowRight />
+                </el-icon>
+              </el-button>
+            </div>
+          </template>
+
+          <div v-if="loadingProjects" class="loading-skeleton">
+            <el-skeleton :rows="3" animated />
+          </div>
+
+          <el-empty v-else-if="recentProjects.length === 0" description="暂无最近编辑的项目" />
+
+          <div v-else class="project-list">
+            <div v-for="project in recentProjects" :key="project.id" class="project-list-item"
+              @click="openProject(project.id)">
+              <div class="item-cover" :style="getCoverStyle(project.title)">
+                <el-image v-if="project.coverImage" :src="project.coverImage" fit="cover" class="cover-img" />
+                <span v-else class="cover-text">{{ project.title.charAt(0) }}</span>
+              </div>
+
+              <div class="item-content">
+                <div class="item-header">
+                  <h4 class="item-title">{{ project.title }}</h4>
+                  <el-tag size="small" :type="getStatusType(project.status)" effect="plain" round>
+                    {{ getStatusText(project.status) }}
+                  </el-tag>
+                </div>
+                <div class="item-meta">
+                  <span><el-icon>
+                      <Document />
+                    </el-icon> {{ formatNumber(project.totalWords) }} 字</span>
+                  <el-divider direction="vertical" />
+                  <span><el-icon>
+                      <Clock />
+                    </el-icon> {{ formatTime(project.lastUpdateTime) }}</span>
+                </div>
+              </div>
+
+              <el-button link class="enter-btn" icon="ArrowRight" />
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 右侧辅助区域 -->
+      <el-col :xs="24" :lg="8">
+        <!-- 5. 今日目标 -->
+        <el-card class="section-card writing-goal" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">
+                <el-icon>
+                  <Trophy />
+                </el-icon> 今日目标
+              </span>
+              <el-button link size="small" @click="editGoal">设置</el-button>
+            </div>
+          </template>
+
+          <div class="goal-content">
+            <el-progress type="dashboard" :percentage="goalPercentage" :color="goalColors" :width="140">
+              <template #default="{ percentage }">
+                <span class="progress-value">{{ percentage }}%</span>
+                <span class="progress-label">完成度</span>
+              </template>
+            </el-progress>
+
+            <div class="goal-stats">
+              <div class="stat-row">
+                <span class="label">今日新增</span>
+                <span class="val highlight">{{ stats.todayWords }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="label">目标字数</span>
+                <span class="val">{{ writingGoal }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="goal-message" v-if="goalPercentage >= 100">
+            🎉 太棒了！今日目标已达成！
+          </div>
+        </el-card>
+
+        <!-- 6. 每日灵感 (新增) -->
+        <el-card class="section-card daily-quote" shadow="hover">
+          <div class="quote-content">
+            <el-icon class="quote-icon">
+              <ChatDotRound />
+            </el-icon>
+            <p class="quote-text">“写作就是把原本不存在的事物变成存在。”</p>
+            <p class="quote-author">—— 佚名</p>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import {
-  Document,
-  Reading,
-  EditPen,
-  Clock,
-  Star,
-  Plus,
-  Edit,
-  Upload,
-  DataAnalysis,
-  Folder,
-  ArrowRight,
-  TrendCharts
-} from '@element-plus/icons-vue'
-import { getProjects, type Project } from '../api/projects'
 import { useAuthStore } from '@/stores/auth'
+import type { Project } from '@/modules/writer/types/project'
+import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
+import {
+  Document, Reading, EditPen, Clock, Lightning,
+  Plus, Upload, DataAnalysis, Timer, ArrowRight,
+  Trophy, ChatDotRound
+} from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
+
+dayjs.extend(relativeTime)
+dayjs.locale('zh-cn')
 
 const router = useRouter()
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
 
-// 用户名
-const userName = computed(() => authStore.user?.nickname || '作者')
+// 状态
+const loadingProjects = ref(false)
+const writingGoal = ref(2000)
+const userName = computed(() => authStore.user?.nickname || authStore.user?.username || '作家')
 
-// 统计数据
+// 统计数据 (模拟 + Store)
 const stats = ref({
   totalWords: 0,
   bookCount: 0,
-  todayWords: 0,
+  todayWords: 0, // 需要后端支持今日新增接口
   pending: 0
 })
 
-// 最近项目
-const recentProjects = ref<Project[]>([])
-const loadingProjects = ref(true)
+// 统计卡片配置
+const statCards = computed(() => [
+  {
+    label: '总字数',
+    value: stats.value.totalWords,
+    icon: Document,
+    iconColor: '#409eff',
+    bgColor: 'var(--el-color-primary-light-9)'
+  },
+  {
+    label: '作品数',
+    value: stats.value.bookCount,
+    icon: Reading,
+    iconColor: '#67c23a',
+    bgColor: 'var(--el-color-success-light-9)'
+  },
+  {
+    label: '今日码字',
+    value: stats.value.todayWords,
+    icon: EditPen,
+    iconColor: '#e6a23c',
+    bgColor: 'var(--el-color-warning-light-9)'
+  },
+  {
+    label: '连载中',
+    value: stats.value.pending,
+    icon: Clock,
+    iconColor: '#f56c6c',
+    bgColor: 'var(--el-color-danger-light-9)'
+  }
+])
 
-// 写作目标
-const writingGoal = ref(2000)
-
-// 目标完成百分比
+// 目标进度
 const goalPercentage = computed(() => {
+  if (writingGoal.value === 0) return 100
   return Math.min(Math.round((stats.value.todayWords / writingGoal.value) * 100), 100)
 })
 
-// 进度条颜色
-const customColorMethod = (percentage: number) => {
-  if (percentage < 30) return '#f56c6c'
-  if (percentage < 70) return '#e6a23c'
-  return '#67c23a'
-}
+const goalColors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 60 },
+  { color: '#67c23a', percentage: 100 },
+]
 
-// 加载统计数据
-const loadStats = async () => {
-  try {
-    const response = await getProjects({ page: 1, pageSize: 100 })
-    const projects = response.data || []
+// 获取最近项目
+const recentProjects = computed(() => projectStore.projects.slice(0, 5)) // 假设 Store 已按时间排序
 
-    // 计算统计数据
-    stats.value.bookCount = projects.length
-    stats.value.totalWords = projects.reduce((sum, p) => sum + (p.wordCount || 0), 0)
-
-    // 模拟今日新增（实际应该从后端获取）
-    stats.value.todayWords = 1250
-    stats.value.pending = projects.filter(p => p.status === 'draft').length
-  } catch (error) {
-    console.error('加载统计数据失败:', error)
-  }
-}
-
-// 加载最近项目
-const loadRecentProjects = async () => {
+// 初始化加载
+onMounted(async () => {
   loadingProjects.value = true
   try {
-    const response = await getProjects({
-      page: 1,
-      pageSize: 5,
-      sortBy: 'updatedAt',
-      sortOrder: 'desc'
-    })
-    recentProjects.value = response.data || []
-  } catch (error) {
-    console.error('加载最近项目失败:', error)
-    ElMessage.error('加载项目失败')
+    // 并行加载
+    await projectStore.loadList({ page: 1, pageSize: 5 })
+
+    // 更新统计 (这部分逻辑最好在后端有个专门的 dashboard API)
+    stats.value.bookCount = projectStore.total
+    stats.value.totalWords = projectStore.projects.reduce((acc: number, cur: { totalWords: number }) => acc + cur.totalWords, 0)
+    stats.value.pending = projectStore.projects.filter((p: Project) => p.status === 'serializing').length
+    stats.value.todayWords = 1200 // Mock Data
+
   } finally {
     loadingProjects.value = false
   }
-}
+})
 
-// 格式化数字
-const formatNumber = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  return num.toString()
-}
+// 辅助函数
+const formatNumber = (n: number) => n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n
+const formatTime = (t: string) => dayjs(t).fromNow()
 
-// 格式化日期时间
-const formatDateTime = (dateStr: string): string => {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
-  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
-  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
-
-  return date.toLocaleDateString()
-}
-
-// 获取状态类型
 const getStatusType = (status: string) => {
-  const typeMap: Record<string, any> = {
+  const map: Record<string, string> = {
     draft: 'info',
-    writing: 'warning',
+    serializing: 'primary',
     completed: 'success',
-    published: 'success'
+    suspended: 'danger'
   }
-  return typeMap[status] || 'info'
+  return map[status] || 'info'
 }
 
-// 获取状态文本
 const getStatusText = (status: string) => {
-  const textMap: Record<string, string> = {
+  const map: Record<string, string> = {
     draft: '草稿',
-    writing: '写作中',
-    completed: '已完成',
-    published: '已发布'
+    serializing: '连载',
+    completed: '完结',
+    suspended: '断更'
   }
-  return textMap[status] || status
+  return map[status] || status
 }
 
-// 创建项目
-const createProject = () => {
-  router.push('/writer/projects')
-  // 触发创建对话框（需要通过事件或状态管理）
+const getCoverStyle = (title: string) => {
+  const colors = ['#a0cfff', '#b3e19d', '#f3d19e', '#fab6b6']
+  const idx = title.length % colors.length
+  return { backgroundColor: colors[idx] }
 }
 
-// 快速写作
+// 导航动作
+const createProject = () => router.push({ name: 'writer-projects', query: { action: 'create' } })
 const quickWrite = () => {
   if (recentProjects.value.length > 0) {
-    openProject(recentProjects.value[0].projectId)
+    openProject(recentProjects.value[0].id)
   } else {
-    ElMessage.info('请先创建一个项目')
-    router.push('/writer/projects')
+    createProject()
   }
 }
+const goToPublish = () => { } // TODO
+const goToStatistics = () => { } // TODO
+const goToAllProjects = () => router.push({ name: 'writer-projects' })
+const openProject = (id: string) => router.push({ name: 'writer-editor', params: { projectId: id } })
+const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
-// 前往发布管理
-const goToPublish = () => {
-  router.push('/writer/publish')
-}
-
-// 前往数据统计
-const goToStatistics = () => {
-  router.push('/writer/statistics')
-}
-
-// 查看所有项目
-const goToAllProjects = () => {
-  router.push('/writer/projects')
-}
-
-// 打开项目
-const openProject = (projectId: string) => {
-  router.push(`/writer/project/${projectId}`)
-}
-
-// 初始化
-onMounted(() => {
-  loadStats()
-  loadRecentProjects()
-})
 </script>
 
 <style scoped lang="scss">
 .writer-dashboard {
-  padding: 20px;
-  max-width: 1400px;
+  padding: 24px;
+  max-width: 1600px;
   margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--el-bg-color-page);
 }
 
+// 1. 头部
 .dashboard-header {
   margin-bottom: 24px;
 
-  h1 {
+  .title {
     font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    color: #303133;
+    color: var(--el-text-color-primary);
+    margin-bottom: 8px;
   }
 
-  .welcome-text {
-    font-size: 14px;
-    color: #909399;
-    margin: 0;
-  }
-}
+  .subtitle {
+    color: var(--el-text-color-secondary);
 
-.stats-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  border-radius: 8px;
-  cursor: default;
-
-  :deep(.el-card__body) {
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .stat-content {
-    flex: 1;
-    min-width: 0;
-
-    .stat-value {
-      font-size: 24px;
+    .username {
+      color: var(--el-color-primary);
       font-weight: 600;
-      color: #303133;
-      margin-bottom: 4px;
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: #909399;
     }
   }
 }
 
-.quick-actions-card,
-.recent-projects-card,
-.writing-goal-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 16px;
-    font-weight: 600;
-    color: #303133;
-
-    > div,
-    > span {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .el-icon {
-      font-size: 18px;
-    }
-  }
-}
-
-.quick-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-
-  .el-button {
-    flex: 1;
-    min-width: 140px;
-  }
-}
-
-.loading-container,
-.empty-container {
-  padding: 40px 0;
-  text-align: center;
-}
-
-.project-list {
-  .project-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-
-    &:hover {
-      background-color: #f5f7fa;
-      transform: translateX(4px);
-    }
-
-    &:not(:last-child) {
-      border-bottom: 1px solid #ebeef5;
-    }
-
-    .project-info {
-      flex: 1;
-      min-width: 0;
-
-      .project-title {
-        font-size: 15px;
-        font-weight: 500;
-        color: #303133;
-        margin-bottom: 8px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .project-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 13px;
-        color: #909399;
-
-        .word-count {
-          color: #606266;
-        }
-      }
-    }
-
-    .arrow-icon {
-      color: #c0c4cc;
-      font-size: 16px;
-      transition: transform 0.3s;
-    }
-
-    &:hover .arrow-icon {
-      transform: translateX(4px);
-      color: #409eff;
-    }
-  }
-}
-
-.goal-progress {
-  .el-progress {
-    margin-bottom: 16px;
-  }
-
-  .percentage-label {
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  .goal-tips {
-    text-align: center;
-    font-size: 14px;
-
-    .goal-completed {
-      color: #67c23a;
-      font-weight: 500;
-    }
-
-    .goal-remaining {
-      color: #606266;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .writer-dashboard {
-    padding: 16px;
-  }
-
-  .stats-row {
-    :deep(.el-col) {
-      margin-bottom: 12px;
-    }
-  }
+// 2. 统计卡片
+.stats-row {
+  margin-bottom: 24px;
 
   .stat-card {
+    border: none;
+    // box-shadow: var(--el-box-shadow-light);
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+
     :deep(.el-card__body) {
-      padding: 16px;
+      display: flex;
+      align-items: center;
+      padding: 20px;
     }
 
     .stat-icon {
       width: 48px;
       height: 48px;
-
-      .el-icon {
-        font-size: 24px !important;
-      }
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
     }
 
-    .stat-content {
-      .stat-value {
-        font-size: 20px;
-      }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--el-text-color-primary);
+      line-height: 1.2;
     }
-  }
 
-  .quick-actions {
-    .el-button {
-      flex: 1 1 calc(50% - 6px);
-      min-width: 0;
+    .stat-label {
+      font-size: 13px;
+      color: var(--el-text-color-secondary);
+      margin-top: 4px;
     }
   }
 }
-</style>
 
+// 通用卡片样式
+.section-card {
+  margin-bottom: 24px;
+  border: none;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+// 3. 快捷操作
+.quick-actions {
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 10px 0;
+  }
+
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 16px;
+    border-radius: 8px;
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: var(--el-fill-color-light);
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      font-size: 24px;
+
+      &.primary {
+        background: var(--el-color-primary-light-9);
+        color: var(--el-color-primary);
+      }
+
+      &.success {
+        background: var(--el-color-success-light-9);
+        color: var(--el-color-success);
+      }
+
+      &.warning {
+        background: var(--el-color-warning-light-9);
+        color: var(--el-color-warning);
+      }
+
+      &.info {
+        background: var(--el-color-info-light-9);
+        color: var(--el-color-info);
+      }
+    }
+
+    span {
+      font-size: 14px;
+      color: var(--el-text-color-regular);
+    }
+  }
+}
+
+// 4. 最近项目列表
+.project-list {
+  .project-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: var(--el-fill-color-light);
+    }
+
+    .item-cover {
+      width: 48px;
+      height: 64px;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .item-content {
+      flex: 1;
+      min-width: 0; // 防止溢出
+
+      .item-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+
+        .item-title {
+          margin: 0;
+          font-size: 15px;
+          color: var(--el-text-color-primary);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .item-meta {
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+
+    .enter-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    &:hover .enter-btn {
+      opacity: 1;
+    }
+  }
+}
+
+// 5. 今日目标
+.writing-goal {
+  .goal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+  }
+
+  .progress-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--el-text-color-primary);
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+  }
+
+  .goal-stats {
+    width: 100%;
+    margin-top: 24px;
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+
+      .label {
+        color: var(--el-text-color-regular);
+      }
+
+      .val {
+        font-weight: 500;
+      }
+
+      .highlight {
+        color: var(--el-color-primary);
+        font-weight: bold;
+      }
+    }
+  }
+
+  .goal-message {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--el-color-success);
+    background: var(--el-color-success-light-9);
+    padding: 8px;
+    border-radius: 4px;
+  }
+}
+
+// 6. 每日灵感
+.daily-quote {
+  background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, var(--el-bg-color) 100%);
+
+  .quote-content {
+    position: relative;
+    padding: 10px;
+
+    .quote-icon {
+      font-size: 24px;
+      color: var(--el-color-primary);
+      opacity: 0.3;
+      position: absolute;
+      top: -5px;
+      left: -5px;
+    }
+
+    .quote-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--el-text-color-primary);
+      font-style: italic;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quote-author {
+      text-align: right;
+      font-size: 12px;
+      color: var(--el-text-color-secondary);
+    }
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .stats-row .el-col {
+    margin-bottom: 16px;
+  }
+
+  .quick-actions .action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>

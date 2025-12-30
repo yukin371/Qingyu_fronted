@@ -1,1357 +1,701 @@
 <template>
   <div class="editor-view" :class="{ 'focus-mode': isFocusMode }">
-    <!-- 项目侧边栏 -->
-    <ProjectSidebar v-show="!isFocusMode" :current-chapter-id="currentChapterId" :projects="projects"
-      :chapters="chapters" @chapter-change="handleChapterChange" @project-change="handleProjectChange"
-      @add-chapter="handleAddChapter" @edit-chapter="handleEditChapter" @delete-chapter="handleDeleteChapter" />
 
-    <!-- 主编辑区域 -->
-    <div class="editor-container">
-      <!-- 顶部工具栏 -->
+    <!-- 1. 左侧：项目导航 -->
+    <ProjectSidebar v-show="!isFocusMode" v-model:projectId="currentProjectId" v-model:chapterId="currentChapterId"
+      :projects="projects" :chapters="chapters" @add-chapter="showNewChapterDialog = true"
+      @edit-chapter="handleEditChapter" @delete-chapter="handleDeleteChapter" class="editor-sidebar" />
+
+    <!-- 2. 中间：主编辑区域 -->
+    <div class="editor-main">
+
+      <!-- 2.1 顶部导航栏 -->
       <div class="editor-header" v-show="!isFocusMode">
         <div class="header-left">
-          <el-button @click="goBack" link class="back-btn">
-            <el-icon>
-              <ArrowLeft />
-            </el-icon>
-            返回
-          </el-button>
-          <div class="document-title-container">
-            <el-input v-model="documentTitle" class="document-title-input" placeholder="章节标题"
-              @change="handleTitleChange" />
+          <!-- 面包屑/标题编辑 -->
+          <div class="title-editor">
+            <el-input v-model="documentTitle" placeholder="无标题章节" class="title-input" @change="handleTitleChange" />
           </div>
         </div>
+
+        <div class="header-center">
+          <!-- 功能 Tab 切换 -->
+          <el-radio-group v-model="activeTab" size="small">
+            <el-radio-button label="editor">
+              <el-icon>
+                <Edit />
+              </el-icon> 写作
+            </el-radio-button>
+            <el-radio-button label="outline">
+              <el-icon>
+                <List />
+              </el-icon> 大纲
+            </el-radio-button>
+            <el-radio-button label="characters">
+              <el-icon>
+                <User />
+              </el-icon> 角色
+            </el-radio-button>
+            <el-radio-button label="world">
+              <el-icon>
+                <LocationInformation />
+              </el-icon> 设定
+            </el-radio-button>
+          </el-radio-group>
+        </div>
+
         <div class="header-right">
-          <el-button @click="toggleAISidebar" link class="ai-button" title="AI写作助手 (Ctrl+Shift+A)">
-            <el-icon><MagicStick /></el-icon>
-            AI助手
-          </el-button>
-          <el-switch
-            v-model="isSimpleMode"
-            inactive-text="Markdown"
-            active-text="简洁模式"
-            @change="handleModeChange"
-            style="margin-right: 12px;"
-          />
-          <el-button @click="toggleFocusMode" link>
-            {{ isFocusMode ? '退出专注' : '专注模式' }}
-          </el-button>
-          <el-button @click="handleSaveManually" :loading="isSaving" type="primary" link>
-            <el-icon><Select /></el-icon>
-            保存
-          </el-button>
-          <el-button @click="exportDocument" link>
-            <el-icon>
-              <Download />
-            </el-icon>
-            导出
-          </el-button>
+          <!-- AI 入口 -->
+          <el-tooltip content="AI 助手 (Ctrl+Shift+A)">
+            <el-button text class="ai-trigger-btn" @click="toggleAISidebar">
+              <el-icon>
+                <MagicStick />
+              </el-icon> AI 助手
+            </el-button>
+          </el-tooltip>
+
+          <el-divider direction="vertical" />
+
+          <!-- 工具按钮 -->
+          <el-tooltip content="导出">
+            <el-button text @click="showExportDialog = true">
+              <el-icon>
+                <Download />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+
+          <el-tooltip :content="isFocusMode ? '退出专注' : '专注模式'">
+            <el-button text @click="toggleFocusMode" :type="isFocusMode ? 'primary' : ''">
+              <el-icon>
+                <FullScreen />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
         </div>
       </div>
 
-      <!-- 标签页导航 -->
-      <el-tabs v-show="!isFocusMode" v-model="activeTab" class="editor-tabs" @tab-change="handleTabChange">
-        <el-tab-pane label="编辑器" name="editor">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><Edit /></el-icon>
-              编辑器
-            </span>
-          </template>
-        </el-tab-pane>
-        <el-tab-pane label="大纲" name="outline">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><List /></el-icon>
-              大纲
-            </span>
-          </template>
-        </el-tab-pane>
-        <el-tab-pane label="角色图谱" name="characters">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><User /></el-icon>
-              角色图谱
-            </span>
-          </template>
-        </el-tab-pane>
-        <el-tab-pane label="设定百科" name="encyclopedia">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><Collection /></el-icon>
-              设定百科
-            </span>
-          </template>
-        </el-tab-pane>
-      </el-tabs>
+      <!-- 2.2 工具栏 (仅编辑器模式) -->
+      <EditorToolbar v-show="!isFocusMode && activeTab === 'editor'" :show-preview="showPreview"
+        @command="handleToolbarCommand" @togglePreview="showPreview = !showPreview" />
 
-      <!-- Markdown工具栏（仅编辑器模式显示） -->
-      <EditorToolbar
-        v-show="!isFocusMode && activeTab === 'editor'"
-        :is-simple-mode="isSimpleMode"
-        :show-preview="showPreview"
-        @insert="insertText"
-        @toggle-preview="togglePreview"
-      />
+      <!-- 2.3 内容区域 -->
+      <div class="content-wrapper">
 
-      <!-- 编辑器主体 - 双栏布局 -->
-      <div v-show="activeTab === 'editor'" class="main-content" :class="{ 'dual-pane': showPreview && !isSimpleMode && isLargeScreen }">
-        <div class="editor-pane" ref="editorPane">
-          <textarea
-            ref="editorTextarea"
-            v-model="fileContent"
-            class="editor-textarea"
-            placeholder="开始写作..."
-            @keydown.tab.prevent="handleTab"
-            @keydown="handleKeydown"
-            @input="handleContentChange"
-            @scroll="handleEditorScroll"
-            @contextmenu="handleContextMenu"
-          ></textarea>
+        <!-- Tab: 写作编辑器 -->
+        <div v-show="activeTab === 'editor'" class="editor-workspace" :class="{ 'dual-view': showPreview }">
+
+          <!-- 编辑框 -->
+          <div class="editor-pane">
+            <textarea ref="editorTextarea" v-model="fileContent" class="native-textarea" placeholder="开始你的创作..."
+              @input="handleInput" @keydown="handleKeydown" @contextmenu="handleContextMenu"
+              @scroll="handleScrollSync"></textarea>
+          </div>
+
+          <!-- 预览框 -->
+          <div v-if="showPreview" class="preview-pane markdown-body" ref="previewRef">
+            <div v-html="renderedContent"></div>
+          </div>
         </div>
 
-        <!-- Markdown预览区 -->
-        <div
-          v-if="showPreview && !isSimpleMode && isLargeScreen"
-          class="preview-pane"
-          ref="previewPane"
-          @scroll="handlePreviewScroll"
-        >
-          <div class="preview-content markdown-body" v-html="renderedContent"></div>
+        <!-- Tab: 其他视图 -->
+        <div v-if="activeTab !== 'editor'" class="auxiliary-view">
+          <component :is="currentAuxiliaryComponent" />
+        </div>
+
+        <!-- 底部浮动：时间线 -->
+        <div class="timeline-wrapper" v-show="activeTab === 'editor' && !isFocusMode">
+          <TimelineBar :timeline-id="currentTimelineId" @eventClick="handleTimelineEventClick" />
         </div>
       </div>
 
-      <!-- 大纲视图 -->
-      <OutlineView v-show="activeTab === 'outline'" />
+      <!-- 2.4 底部状态栏 -->
+      <div class="editor-footer" v-show="!isFocusMode">
+        <div class="footer-left">
+          <!-- 字数统计组件 -->
+          <WordCounter :word-count="wordCountStats" :target-word-count="5000" />
+        </div>
 
-      <!-- 角色图谱视图 -->
-      <CharacterGraphView v-show="activeTab === 'characters'" />
-
-      <!-- 设定百科视图 -->
-      <EncyclopediaView v-show="activeTab === 'encyclopedia'" />
-
-      <!-- 时间线工具栏（仅编辑器模式显示） -->
-      <TimelineBar v-show="activeTab === 'editor' && !isFocusMode && writerStore.timeline.showBar" />
-
-      <!-- 底部状态栏 -->
-      <div class="editor-footer" v-show="!isFocusMode && activeTab === 'editor'">
-        <div class="status-left">
-          <span class="status-item">
-            字数: <strong>{{ wordCount }}</strong>
-          </span>
-          <span class="status-item save-status" :class="saveStatusClass">
+        <div class="footer-center">
+          <span class="save-status" :class="saveStatusClass">
             <el-icon>
               <component :is="saveStatusIcon" />
             </el-icon>
-            {{ saveStatus }}
+            {{ saveStatusText }}
           </span>
-          <span v-if="!isSimpleMode" class="status-item">
-            模式: Markdown
-          </span>
-          <span v-else class="status-item">
-            模式: 简洁
-          </span>
-          <el-button
-            text
-            size="small"
-            @click="writerStore.toggleTimelineBar()"
-            style="margin-left: 12px;"
-          >
-            <el-icon><Clock /></el-icon>
-            {{ writerStore.timeline.showBar ? '隐藏时间线' : '显示时间线' }}
-          </el-button>
         </div>
-        <div class="status-right">
-          <span v-if="lastSavedTime" class="status-item">
-            最后保存: {{ lastSavedTime }}
-          </span>
-          <span class="status-item">
-            {{ currentTime }}
-          </span>
+
+        <div class="footer-right">
+          <span class="info-item">Markdown</span>
+          <span class="info-item">{{ currentTime }}</span>
         </div>
       </div>
-
-      <!-- AI助手侧边栏 -->
-      <AIAssistantSidebar
-        v-if="showAISidebar"
-        :project-id="currentProjectId"
-        :editor="editorTextarea"
-        @close="writerStore.toggleAISidebar(false)"
-        @insert="handleInsertAIText"
-      />
     </div>
 
-    <!-- AI右键菜单 -->
-    <AIContextMenu
-      :visible="contextMenu.visible"
-      :x="contextMenu.x"
-      :y="contextMenu.y"
-      :selected-text="contextMenu.selectedText"
-      @action="handleContextMenuAction"
-      @update:visible="contextMenu.visible = $event"
-    />
+    <!-- 3. 右侧：AI 侧边栏 (抽屉式) -->
+    <AIAssistantSidebar v-model:visible="aiSidebarVisible" :project-id="currentProjectId" :context-text="selectedText"
+      @insert="handleInsertText" />
 
-    <!-- 导出对话框 -->
-    <el-dialog v-model="showExportDialog" title="导出文档" width="400px">
-      <div class="export-options">
-        <el-button @click="exportAsText" class="export-option">
-          <el-icon>
-            <Document />
-          </el-icon>
-          纯文本 (.txt)
-        </el-button>
-        <el-button @click="exportAsMarkdown" class="export-option">
-          <el-icon>
-            <EditPen />
-          </el-icon>
-          Markdown (.md)
-        </el-button>
-        <el-button @click="exportAsHTML" class="export-option">
-          <el-icon>
-            <View />
-          </el-icon>
-          HTML (.html)
-        </el-button>
-      </div>
-    </el-dialog>
-
-    <!-- 新建章节对话框 -->
-    <el-dialog v-model="showNewChapterDialog" title="新建章节" width="500px">
+    <!-- 弹窗：新建章节 -->
+    <el-dialog v-model="showNewChapterDialog" title="新建章节" width="400px">
       <el-form :model="newChapterForm" label-width="80px">
-        <el-form-item label="章节序号">
-          <el-input-number v-model="newChapterForm.chapterNum" :min="1" style="width: 100%" />
+        <el-form-item label="标题">
+          <el-input v-model="newChapterForm.title" placeholder="章节名" />
         </el-form-item>
-        <el-form-item label="章节标题">
-          <el-input v-model="newChapterForm.title" placeholder="请输入章节标题" maxlength="100" show-word-limit />
+        <el-form-item label="序号">
+          <el-input-number v-model="newChapterForm.chapterNum" :min="1" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showNewChapterDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmAddChapter">确定</el-button>
+        <el-button type="primary" @click="confirmAddChapter">创建</el-button>
       </template>
     </el-dialog>
+
+    <!-- 右键菜单 -->
+    <AIContextMenu v-if="contextMenu.visible" :visible="contextMenu.visible" :x="contextMenu.x" :y="contextMenu.y"
+      :selectedText="selectedText" @update:visible="contextMenu.visible = $event" @action="handleAICommand" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import {
-  ArrowLeft,
-  Download,
-  Document,
-  EditPen,
-  View,
-  Select,
-  Loading,
-  CircleCheck,
-  Warning,
-  MagicStick,
-  Edit,
-  List,
-  User,
-  Collection,
-  Clock
+  Edit, List, User, LocationInformation, MagicStick,
+  Download, FullScreen, Loading, CircleCheck, Warning
 } from '@element-plus/icons-vue'
-import * as ProjectSidebar from '../components/ProjectSidebar.vue'
-import * as EditorToolbar from '../components/EditorToolbar.vue'
-import { AutoSaveManager } from '../utils/autosave'
-import { renderMarkdown } from '../utils/markdown'
-import { useWriterStore } from '@/stores/writer'
-import { useProjectStore } from '@/stores/project'
-import * as AIAssistantSidebar from '../components/ai/AIAssistantSidebar.vue'
-import * as AIContextMenu from '../components/ai/AIContextMenu.vue'
-import * as TimelineBar from '../components/TimelineBar.vue'
-import * as OutlineView from './OutlineView.vue'
-import * as CharacterGraphView from './CharacterGraphView.vue'
-import * as EncyclopediaView from './EncyclopediaView.vue'
+import { ElMessage } from 'element-plus'
+
+// Stores
+import { useProjectStore } from '@/modules/writer/stores/project'
+import { useDocumentStore } from '@/modules/writer/stores/document'
+import { useEditorStore } from '@/modules/writer/stores/editor'
+import { useWriterStore } from '@/modules/writer/stores/writerStore' // 旧的，建议迁移
+
+// Components
+import ProjectSidebar from '../components/ProjectSidebar.vue'
+import EditorToolbar from '../components/EditorToolbar.vue'
+import TimelineBar from '../components/TimelineBar.vue'
+import WordCounter from '../components/WordCounter.vue'
+import AIAssistantSidebar from '../components/ai/AIAssistantSidebar.vue'
+import AIContextMenu from '../components/ai/AIContextMenu.vue'
+import OutlineView from './OutlineView.vue'
+import CharacterGraphView from './CharacterGraphView.vue'
+import EncyclopediaView from './EncyclopediaView.vue'
+
+// Utils
+import { renderMarkdown } from '@/utils/markdown'
+import { calculateWordCount } from '@/utils/editor'
+import { formatMarkdown } from '@/utils/editor'
+
+// =======================
+// State
+// =======================
 
 const router = useRouter()
 const route = useRoute()
 
-// Stores
-const writerStore = useWriterStore() // 作者相关（AI功能等）
-const projectStore = useProjectStore() // 项目和文档管理
+// Store Instances
+const projectStore = useProjectStore()
+const documentStore = useDocumentStore()
+const editorStore = useEditorStore()
+const writerStore = useWriterStore()
 
-// AI相关状态
-const showAISidebar = computed(() => writerStore.ai.sidebarVisible)
+// UI Flags
+const activeTab = ref('editor')
+const isFocusMode = ref(false)
+const showPreview = ref(false)
+const aiSidebarVisible = ref(false)
+const showNewChapterDialog = ref(false)
+const showExportDialog = ref(false)
+
+// DOM Refs
+const editorTextarea = ref<HTMLTextAreaElement>()
+const previewRef = ref<HTMLDivElement>()
+
+// Data
+const currentTime = ref(new Date().toLocaleTimeString())
+const selectedText = ref('')
+const newChapterForm = ref({ title: '', chapterNum: 1 })
+
+// Context Menu
 const contextMenu = reactive({
   visible: false,
   x: 0,
-  y: 0,
-  selectedText: ''
+  y: 0
 })
 
-// 编辑器模式和显示状态
-const activeTab = ref('editor')
-const isSimpleMode = ref(false)
-const showPreview = ref(true)
-const isLargeScreen = ref(window.innerWidth >= 1200)
-const editorPane = ref<HTMLDivElement | null>(null)
-const previewPane = ref<HTMLDivElement | null>(null)
-const isScrollingSyncEnabled = ref(true)
+// =======================
+// Computed
+// =======================
 
-// --- 从路由获取参数 ---
-const documentId = computed(() => route.params.documentId as string)
-const projectId = computed(() => route.params.projectId as string || route.query.projectId as string)
-
-// --- 从 stores 获取数据 ---
-const currentProject = computed(() => writerStore.currentProject)
-const currentDocument = computed(() => projectStore.currentDocument)
-const chapters = computed(() => projectStore.documentList)
-
-// --- 文档内容（双向绑定到 store） ---
-const fileContent = computed({
-  get: () => projectStore.editorContent,
-  set: (value: string) => {
-    projectStore.updateEditorContent(value)
-    // 触发内容变更（用于自动保存）
-    handleContentInput()
+const currentProjectId = computed({
+  get: () => projectStore.currentProjectId || '',
+  set: (val) => {
+    projectStore.loadDetail(val)
+    documentStore.loadTree(val)
   }
+})
+
+const currentChapterId = computed({
+  get: () => documentStore.currentDocMeta?.id || '',
+  set: (val) => {
+    if (val) loadChapter(val)
+  }
+})
+
+const projects = computed(() => projectStore.projects)
+const chapters = computed(() => documentStore.flatDocs) // 假设 documentStore 有 flatDocs 用于列表展示
+const fileContent = computed({
+  get: () => editorStore.content,
+  set: (val) => editorStore.setContent(val) // Store 内部处理防抖保存
 })
 
 const documentTitle = computed({
-  get: () => currentDocument.value?.title || '未命名文档',
-  set: (value: string) => {
-    if (currentDocument.value) {
-      currentDocument.value.title = value
+  get: () => documentStore.currentDocMeta?.title || '',
+  set: (val) => {
+    // 实时更新 Store 中的 title，防抖提交 API
+    if (documentStore.currentDocMeta) {
+      documentStore.currentDocMeta.title = val
+      // TODO: debounced update title API
     }
   }
 })
 
-// --- 状态 ---
-const currentChapterId = computed(() => projectStore.currentDocumentId)
-const isFocusMode = ref(false)
-const isSaving = computed(() => projectStore.isSaving)
-const saveStatus = computed(() => {
-  if (projectStore.isSaving) return '保存中...'
-  if (projectStore.hasUnsavedChanges) return '未保存'
-  return '已保存'
-})
-const showExportDialog = ref(false)
-const showNewChapterDialog = ref(false)
-const editorTextarea = ref<HTMLTextAreaElement | null>(null)
-const lastSavedTime = computed(() => {
-  if (!projectStore.lastSaved) return '从未保存'
-  return new Date(projectStore.lastSaved).toLocaleTimeString('zh-CN')
-})
-const currentTime = ref(new Date().toLocaleTimeString())
+// Markdown Render
+const renderedContent = computed(() => renderMarkdown(fileContent.value))
 
-// 新建章节表单
-const newChapterForm = ref({
-  chapterNum: 1,
-  title: ''
+// Status
+const saveStatusText = computed(() => {
+  if (editorStore.isSaving) return '保存中...'
+  if (editorStore.isDirty) return '未保存'
+  return '已同步'
 })
 
-// 自动保存定时器
-let autoSaveTimer: NodeJS.Timeout | null = null
-
-// --- 计算属性 ---
-const wordCount = computed(() => {
-  if (!fileContent.value) return 0
-  const text = fileContent.value.replace(/[\s\n\r]/g, '')
-  return text.length
-})
-
-const saveStatusClass = computed(() => {
-  return {
-    'status-saving': saveStatus.value === '保存中...',
-    'status-saved': saveStatus.value === '已保存',
-    'status-error': saveStatus.value === '保存失败'
-  }
-})
+const saveStatusClass = computed(() => ({
+  'saving': editorStore.isSaving,
+  'dirty': editorStore.isDirty,
+  'saved': !editorStore.isDirty && !editorStore.isSaving
+}))
 
 const saveStatusIcon = computed(() => {
-  switch (saveStatus.value) {
-    case '保存中...':
-      return Loading
-    case '已保存':
-      return CircleCheck
-    case '保存失败':
-      return Warning
-    default:
-      return Document
+  if (editorStore.isSaving) return Loading
+  if (editorStore.isDirty) return Warning
+  return CircleCheck
+})
+
+// Word Count (使用优化后的 WordCounter 组件接口)
+const wordCountStats = computed(() => {
+  // 这里做一个简单的统计，真实逻辑在 utils/editor.ts 中
+  const total = calculateWordCount(fileContent.value)
+  return {
+    total,
+    chinese: 0, // 简略
+    english: 0,
+    numbers: 0,
+    punctuation: 0,
+    whitespace: 0
   }
 })
 
-// Markdown渲染预览
-const renderedContent = computed(() => {
-  if (isSimpleMode.value || !fileContent.value) return ''
-  return renderMarkdown(fileContent.value)
+// Auxiliary Views
+const currentAuxiliaryComponent = computed(() => {
+  switch (activeTab.value) {
+    case 'outline': return OutlineView
+    case 'characters': return CharacterGraphView
+    case 'world': return EncyclopediaView
+    default: return null
+  }
 })
 
-// --- 方法 ---
+// Timeline (假设 store 有)
+const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.id)
 
-// 插入文本
-const insertText = (text: string) => {
-  const textarea = editorTextarea.value
-  if (!textarea) return
+// =======================
+// Methods
+// =======================
 
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const before = fileContent.value.substring(0, start)
-  const after = fileContent.value.substring(end)
-
-  fileContent.value = before + text + after
-
-  nextTick(() => {
-    textarea.focus()
-    const newPosition = start + text.length
-    textarea.setSelectionRange(newPosition, newPosition)
-  })
-}
-
-// 切换预览
-const togglePreview = () => {
-  showPreview.value = !showPreview.value
-  localStorage.setItem('editor-show-preview', String(showPreview.value))
-}
-
-// 标签页切换处理
-const handleTabChange = (tabName: string) => {
-  // 标签页切换时的逻辑
-  if (tabName === 'editor') {
-    // 切换到编辑器时，刷新编辑器内容
-  } else if (tabName === 'outline') {
-    // 切换到大纲时，加载大纲数据
-    writerStore.loadOutlineTree()
-  } else if (tabName === 'characters') {
-    // 切换到角色图谱时，加载角色数据
-    writerStore.loadCharacters()
-    writerStore.loadCharacterRelations()
-  } else if (tabName === 'encyclopedia') {
-    // 切换到设定百科时，加载设定数据
-    writerStore.loadCharacters()
-    writerStore.loadLocations()
-  }
-}
-
-// 切换模式
-const handleModeChange = () => {
-  localStorage.setItem('editor-simple-mode', String(isSimpleMode.value))
-  if (isSimpleMode.value) {
-    showPreview.value = false
-  } else {
-    showPreview.value = true
-  }
-}
-
-// 处理快捷键
-const handleKeydown = (event: KeyboardEvent) => {
-  // === AI快捷键（优先处理） ===
-
-  // Ctrl/Cmd + Shift + A: 打开AI对话
-  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'A') {
-    event.preventDefault()
-    writerStore.toggleAISidebar(true)
-    writerStore.setAITool('chat')
-    return
-  }
-
-  // Ctrl/Cmd + Shift + K: 快速续写
-  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'K') {
-    event.preventDefault()
-    const textarea = editorTextarea.value
-    if (textarea) {
-      const cursor = textarea.selectionStart || 0
-      // 获取光标前500字作为上下文
-      const text = fileContent.value.substring(Math.max(0, cursor - 500), cursor)
-      writerStore.setSelectedText(text)
-      writerStore.toggleAISidebar(true)
-      writerStore.setAITool('continue')
-    }
-    return
-  }
-
-  // Ctrl/Cmd + Shift + P: 润色选中文本
-  if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
-    event.preventDefault()
-    const textarea = editorTextarea.value
-    if (textarea) {
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      if (start !== end) {
-        const selected = fileContent.value.substring(start, end)
-        writerStore.setSelectedText(selected)
-        writerStore.toggleAISidebar(true)
-        writerStore.setAITool('polish')
-      } else {
-        ElMessage.warning('请先选中要润色的文本')
-      }
-    }
-    return
-  }
-
-  // === 原有快捷键 ===
-
-  // Ctrl/Cmd + S: 保存
-  if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-    event.preventDefault()
-    handleSaveManually()
-    return
-  }
-
-  // Ctrl/Cmd + B: 粗体
-  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
-    event.preventDefault()
-    insertText('**粗体文本**')
-    return
-  }
-
-  // Ctrl/Cmd + I: 斜体
-  if ((event.ctrlKey || event.metaKey) && event.key === 'i') {
-    event.preventDefault()
-    insertText('*斜体文本*')
-    return
-  }
-
-  // Ctrl/Cmd + K: 链接
-  if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-    event.preventDefault()
-    insertText('[链接文本](https://example.com)')
-    return
-  }
-
-  // Ctrl/Cmd + H: 标题
-  if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
-    event.preventDefault()
-    insertText('## ')
-    return
-  }
-}
-
-// 编辑区滚动同步
-const handleEditorScroll = () => {
-  if (!isScrollingSyncEnabled.value || !editorPane.value || !previewPane.value) return
-
-  const editor = editorTextarea.value
-  const preview = previewPane.value
-  if (!editor) return
-
-  const scrollPercentage = editor.scrollTop / (editor.scrollHeight - editor.clientHeight)
-  preview.scrollTop = scrollPercentage * (preview.scrollHeight - preview.clientHeight)
-}
-
-// 预览区滚动同步
-const handlePreviewScroll = () => {
-  if (!isScrollingSyncEnabled.value || !editorPane.value || !previewPane.value) return
-
-  const editor = editorTextarea.value
-  const preview = previewPane.value
-  if (!editor) return
-
-  const scrollPercentage = preview.scrollTop / (preview.scrollHeight - preview.clientHeight)
-  editor.scrollTop = scrollPercentage * (editor.scrollHeight - editor.clientHeight)
-}
-
-// 监听窗口大小变化
-const handleResize = () => {
-  isLargeScreen.value = window.innerWidth >= 1200
-}
-
-// 加载用户偏好设置
-const loadPreferences = () => {
-  const savedMode = localStorage.getItem('editor-simple-mode')
-  const savedPreview = localStorage.getItem('editor-show-preview')
-
-  if (savedMode !== null) {
-    isSimpleMode.value = savedMode === 'true'
-  }
-
-  if (savedPreview !== null) {
-    showPreview.value = savedPreview === 'true'
-  }
-}
-
-// 章节切换
-const handleChapterChange = async (chapter: any) => {
-  const docId = chapter.documentId || chapter.id
-
-  // 如果有未保存的内容，先保存
-  if (projectStore.hasUnsavedChanges && currentDocument.value) {
-    try {
-      await projectStore.saveDocumentContent(
-        currentDocument.value.documentId,
-        fileContent.value
-      )
-    } catch (error: any) {
-      ElMessage.error('保存当前文档失败：' + (error.message || '未知错误'))
-      return
-    }
-  }
-
-  // 加载新文档
+// 处理标题变更
+const handleTitleChange = async (val: string) => {
+  if (!documentStore.currentDocMeta) return
   try {
-    await projectStore.loadDocument(docId)
-  } catch (error: any) {
-    ElMessage.error('加载文档失败：' + (error.message || '未知错误'))
+    // 调用 store 的 update 方法更新元数据
+    // 注意：documentTitle 的 setter 已经处理了本地状态，这里主要用于触发保存/API
+    await documentStore.update(documentStore.currentDocMeta.id, { title: val })
+    // 更新左侧树
+    await documentStore.loadTree(currentProjectId.value)
+  } catch (error) {
+    ElMessage.error('标题更新失败')
   }
 }
 
-// 项目切换
-const handleProjectChange = async (projectId: string) => {
-  try {
-    // 设置当前项目
-    projectStore.setCurrentProject(projectId)
-    await writerStore.fetchProjectById(projectId)
+// 处理时间线事件点击
+const handleTimelineEventClick = (event: any) => {
+  // 这里可以处理点击事件，例如跳转到对应文本位置，或弹出编辑框
+  console.log('Timeline event clicked:', event)
+  ElMessage.info(`选中事件：${event.title}`)
+  // 如果需要编辑，可以复用 TimelineBar 内部的逻辑，或者在这里弹窗
+}
 
-    // 加载项目的文档列表
-    await projectStore.fetchDocuments(projectId)
-    await projectStore.fetchDocumentTree(projectId)
-
-    // 切换到第一个文档
+// 1. 加载逻辑
+onMounted(async () => {
+  const pId = route.params.projectId as string || route.query.projectId as string
+  if (pId) {
+    await projectStore.loadDetail(pId)
+    await documentStore.loadTree(pId)
+    // 默认选中第一章
     if (chapters.value.length > 0) {
-      await handleChapterChange(chapters.value[0])
+      loadChapter(chapters.value[0].id)
     }
-  } catch (error: any) {
-    ElMessage.error('切换项目失败：' + (error.message || '未知错误'))
-  }
-}
-
-// 标题变化
-const handleTitleChange = async () => {
-  if (!currentDocument.value) return
-
-  try {
-    await projectStore.updateDocumentData(
-      currentDocument.value.documentId,
-      { title: documentTitle.value }
-    )
-  } catch (error: any) {
-    ElMessage.error('保存标题失败：' + (error.message || '未知错误'))
-  }
-}
-
-// 内容输入处理（用于自动保存）
-const handleContentInput = () => {
-  // 清除旧的自动保存定时器
-  if (autoSaveTimer) {
-    clearTimeout(autoSaveTimer)
   }
 
-  // 30秒后自动保存
-  autoSaveTimer = setTimeout(async () => {
-    if (currentDocument.value && projectStore.hasUnsavedChanges) {
-      try {
-        await projectStore.autoSave(
-          currentDocument.value.documentId,
-          fileContent.value,
-          currentDocument.value.version || 0
-        )
-      } catch (error: any) {
-        console.error('自动保存失败:', error)
-      }
-    }
-  }, 30000) // 30秒
+  // Timer
+  setInterval(() => {
+    currentTime.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }, 1000)
+})
+
+async function loadChapter(docId: string) {
+  // 如果有未保存，先强制保存
+  if (editorStore.isDirty) await editorStore.save()
+
+  await documentStore.selectDocument(docId) // 设置 currentMeta
+  await editorStore.loadContent(docId) // 加载 content
 }
 
-// 内容变化处理（兼容性）
-const handleContentChange = () => {
-  handleContentInput()
+// 2. 编辑器交互
+function handleInput() {
+  // Store 内部会自动防抖保存，这里只需要触发 v-model 更新
 }
 
-// === AI功能相关 ===
-
-// 显示右键菜单
-const handleContextMenu = (e: MouseEvent) => {
-  const textarea = editorTextarea.value
-  if (!textarea) return
-
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-
-  if (start !== end) {
+function handleKeydown(e: KeyboardEvent) {
+  // Tab 键处理
+  if (e.key === 'Tab') {
     e.preventDefault()
-    const selected = fileContent.value.substring(start, end)
+    handleInsertText('  ') // 2空格缩进
+  }
 
-    contextMenu.visible = true
+  // 快捷键: AI
+  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+    e.preventDefault()
+    toggleAISidebar()
+  }
+
+  // 快捷键: 保存
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault()
+    editorStore.save()
+  }
+}
+
+function handleToolbarCommand(cmd: string) {
+  if (!editorTextarea.value) return
+  formatMarkdown(cmd, editorTextarea.value)
+  // 手动触发 update，因为 formatMarkdown 修改的是 dom.value
+  editorStore.setContent(editorTextarea.value.value)
+}
+
+function handleScrollSync(e: Event) {
+  if (!showPreview.value || !previewRef.value) return
+  const target = e.target as HTMLTextAreaElement
+  const percentage = target.scrollTop / (target.scrollHeight - target.clientHeight)
+  const preview = previewRef.value
+  preview.scrollTop = percentage * (preview.scrollHeight - preview.clientHeight)
+}
+
+// 3. AI 交互
+function toggleAISidebar() {
+  aiSidebarVisible.value = !aiSidebarVisible.value
+}
+
+function handleContextMenu(e: MouseEvent) {
+  // 获取选中文本
+  const ta = editorTextarea.value
+  if (!ta) return
+
+  const text = ta.value.substring(ta.selectionStart, ta.selectionEnd)
+  if (text) {
+    e.preventDefault()
+    selectedText.value = text
     contextMenu.x = e.clientX
     contextMenu.y = e.clientY
-    contextMenu.selectedText = selected
-
-    writerStore.setSelectedText(selected)
+    contextMenu.visible = true
   }
 }
 
-// 处理右键菜单操作
-const handleContextMenuAction = (action: string, text?: string) => {
-  writerStore.toggleAISidebar(true)
+// AI 命令处理函数
+// TODO 原有的 handleAICommand 可能没有正确定义，确保它存在
+const handleAICommand = (action: string) => {
+  contextMenu.visible = false // 点击后关闭菜单
+  toggleAISidebar() // 打开侧边栏
 
-  // 转换action为AIToolType
-  const toolType = action === 'chat' ? 'chat' :
-                   action === 'continue' ? 'continue' :
-                   action === 'polish' ? 'polish' :
-                   action === 'expand' ? 'expand' :
-                   action === 'rewrite' ? 'rewrite' : 'chat'
-  writerStore.setAITool(toolType as any)
+  // 映射 action 到工具类型
+  const toolMap: Record<string, string> = {
+    'chat': 'chat',
+    'polish': 'polish',
+    'continue': 'continue',
+    'expand': 'expand',
+    'rewrite': 'rewrite'
+  }
 
-  if (text) {
-    writerStore.setSelectedText(text)
+  // 设置 AI Store 状态
+  if (toolMap[action]) {
+    writerStore.setAITool(toolMap[action] as any)
+  }
+
+  // 如果有选中文本，设置进去
+  if (selectedText.value) {
+    writerStore.setSelectedText(selectedText.value)
   }
 }
 
-// 切换AI侧边栏
-const toggleAISidebar = () => {
-  writerStore.toggleAISidebar()
-}
+function handleInsertText(text: string) {
+  if (!editorTextarea.value) return
+  const ta = editorTextarea.value
+  const start = ta.selectionStart
+  const end = ta.selectionEnd
 
-// 插入AI生成的文本
-const handleInsertAIText = (text: string) => {
-  const textarea = editorTextarea.value
-  if (!textarea) return
+  const newVal = ta.value.substring(0, start) + text + ta.value.substring(end)
+  editorStore.setContent(newVal)
 
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-
-  // 如果有选中文本，替换它；否则插入到光标位置
-  const before = fileContent.value.substring(0, start)
-  const after = fileContent.value.substring(end)
-
-  fileContent.value = before + text + after
-
-  // 移动光标到插入文本的末尾
   nextTick(() => {
-    const newPos = start + text.length
-    textarea.selectionStart = newPos
-    textarea.selectionEnd = newPos
-    textarea.focus()
+    ta.focus()
+    ta.selectionStart = ta.selectionEnd = start + text.length
   })
-
-  handleContentChange()
 }
 
-// 手动保存
-const handleSaveManually = async () => {
-  if (!currentDocument.value) {
-    ElMessage.warning('请先打开文档')
-    return
-  }
-
-  try {
-    await projectStore.saveDocumentContent(
-      currentDocument.value.documentId,
-      fileContent.value
-    )
-    // 成功提示已在 store 中处理
-  } catch (error: any) {
-    ElMessage.error('保存失败：' + (error.message || '未知错误'))
-  }
+// 4. 章节管理
+async function confirmAddChapter() {
+  if (!currentProjectId.value) return
+  await documentStore.create(currentProjectId.value, {
+    title: newChapterForm.value.title,
+    // order: newChapterForm.value.chapterNum // 这里的 order 逻辑需要根据后端实现
+    type: 'chapter',
+    projectId: currentProjectId.value
+  })
+  showNewChapterDialog.value = false
 }
 
-// 新建章节
-const handleAddChapter = () => {
-  // 找到当前项目的最大章节号
-  const maxChapterNum = Math.max(...chapters.value.map(c => c.chapterNum || 0), 0)
-
-  newChapterForm.value = {
-    chapterNum: maxChapterNum + 1,
-    title: ''
-  }
-
-  showNewChapterDialog.value = true
+function handleEditChapter(chapter: any) {
+  // 打开重命名弹窗等
 }
 
-// 确认添加章节
-const confirmAddChapter = async () => {
-  if (!newChapterForm.value.title) {
-    ElMessage.warning('请输入章节标题')
-    return
-  }
-
-  if (!projectId.value) {
-    ElMessage.error('请先选择项目')
-    return
-  }
-
-  try {
-    const newDoc = await projectStore.createNewDocument(projectId.value, {
-      title: newChapterForm.value.title,
-      chapterNum: newChapterForm.value.chapterNum
-    })
-
-    if (newDoc) {
-      showNewChapterDialog.value = false
-      // 切换到新章节
-      await handleChapterChange(newDoc)
-    }
-  } catch (error: any) {
-    ElMessage.error('创建章节失败：' + (error.message || '未知错误'))
-  }
+function handleDeleteChapter(id: string) {
+  // 调用 store 删除
 }
 
-// 编辑章节
-const handleEditChapter = () => {
-  // TODO: 实现章节编辑功能
-  ElMessage.info('章节编辑功能开发中')
-}
-
-// 删除章节
-const handleDeleteChapter = async (chapterId: string) => {
-  try {
-    await projectStore.deleteDocumentById(chapterId)
-
-    // 如果删除的是当前章节，切换到第一个章节
-    if (chapterId === currentChapterId.value) {
-      if (chapters.value.length > 0) {
-        await handleChapterChange(chapters.value[0])
-      } else {
-        projectStore.clearEditor()
-      }
-    }
-  } catch (error: any) {
-    ElMessage.error('删除章节失败：' + (error.message || '未知错误'))
-  }
-}
-
-// 切换专注模式
-const toggleFocusMode = () => {
+// 5. 其他
+function toggleFocusMode() {
   isFocusMode.value = !isFocusMode.value
 }
-
-// Tab键处理
-const handleTab = (event: KeyboardEvent) => {
-  event.preventDefault()
-  const textarea = event.target as HTMLTextAreaElement
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const tabCharacter = '  ' // 两个空格
-
-  textarea.value =
-    textarea.value.substring(0, start) + tabCharacter + textarea.value.substring(end)
-
-  nextTick(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + tabCharacter.length
-  })
-}
-
-// 导出文档
-const exportDocument = () => {
-  showExportDialog.value = true
-}
-
-const downloadFile = (filename: string, content: string, mimeType: string) => {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-  showExportDialog.value = false
-}
-
-const exportAsText = () => {
-  const filename = `${documentTitle.value || 'Untitled'}.txt`
-  downloadFile(filename, fileContent.value, 'text/plain;charset=utf-8')
-}
-
-const exportAsMarkdown = () => {
-  const filename = `${documentTitle.value || 'Untitled'}.md`
-  downloadFile(filename, fileContent.value, 'text/markdown;charset=utf-8')
-}
-
-const exportAsHTML = () => {
-  const title = documentTitle.value || 'Untitled'
-  const content = renderMarkdown(fileContent.value)
-
-  const html = `
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background-color: #f8f9fa;
-      margin: 0;
-      padding: 2rem;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.5em;
-      margin-bottom: 0.8em;
-      font-weight: 600;
-    }
-    code {
-      background-color: #e9ecef;
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-    }
-    pre {
-      background-color: #e9ecef;
-      padding: 1em;
-      border-radius: 5px;
-      overflow-x: auto;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    ${content}
-  </div>
-</body>
-</html>
-  `
-
-  const filename = `${title}.html`
-  downloadFile(filename, html, 'text/html;charset=utf-8')
-}
-
-// 返回
-const goBack = () => {
-  router.push({ name: 'writer-projects' })
-}
-
-// 更新当前时间
-const updateCurrentTime = () => {
-  currentTime.value = new Date().toLocaleTimeString('zh-CN')
-}
-
-// --- 生命周期 ---
-onMounted(async () => {
-  // 加载用户偏好
-  loadPreferences()
-
-  // 添加窗口大小变化监听
-  window.addEventListener('resize', handleResize)
-
-  // 启动时间更新定时器
-  const timeInterval = setInterval(updateCurrentTime, 1000)
-
-  // 从路由参数加载项目和文档
-  const docId = documentId.value
-  const projId = projectId.value
-
-  try {
-    if (projId) {
-      // 设置当前项目
-      projectStore.setCurrentProject(projId)
-
-      // 加载项目详情和文档列表
-      await Promise.all([
-        writerStore.fetchProjectById(projId),
-        projectStore.fetchDocuments(projId),
-        projectStore.fetchDocumentTree(projId)
-      ])
-    }
-
-    // 如果有文档ID，加载该文档
-    if (docId) {
-      await projectStore.loadDocument(docId)
-    } else if (chapters.value.length > 0) {
-      // 否则加载第一个文档
-      await projectStore.loadDocument(chapters.value[0].documentId)
-    }
-  } catch (error: any) {
-    ElMessage.error('加载失败：' + (error.message || '未知错误'))
-  }
-
-  // 清理函数
-  onBeforeUnmount(() => {
-    clearInterval(timeInterval)
-    window.removeEventListener('resize', handleResize)
-  })
-})
-
-onBeforeUnmount(() => {
-  // 清除自动保存定时器
-  if (autoSaveTimer) {
-    clearTimeout(autoSaveTimer)
-  }
-
-  // 保存当前文档
-  if (projectStore.hasUnsavedChanges && currentDocument.value) {
-    projectStore.saveDocumentContent(
-      currentDocument.value.documentId,
-      fileContent.value
-    )
-  }
-})
 </script>
 
 <style scoped lang="scss">
 .editor-view {
   display: flex;
   height: 100vh;
-  background-color: #fff;
+  width: 100vw;
+  background-color: var(--el-bg-color);
+  overflow: hidden;
 
+  // 专注模式样式覆盖
   &.focus-mode {
-    .editor-container {
-      padding: 5% 15%;
+    .editor-main {
+      // 移除侧边栏空间
+      width: 100%;
+    }
+
+    .editor-workspace {
+      // 增加阅读边距，更像纸张
+      padding: 0 20%;
+
+      .native-textarea {
+        padding-top: 4rem;
+        font-size: 18px;
+        line-height: 2;
+      }
     }
   }
 }
 
-.editor-container {
+// 2. 主区域
+.editor-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 0; // 防止 flex 子项溢出
+  position: relative;
 }
 
-// 头部
+// 2.1 头部
 .editor-header {
+  height: 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-
-  .header-left,
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  padding: 0 16px;
+  border-bottom: 1px solid var(--el-border-color-light);
+  background-color: var(--el-bg-color-overlay);
 
   .header-left {
     flex: 1;
-  }
 
-  .back-btn {
-    margin-right: 8px;
-  }
+    .title-input {
+      width: 200px;
 
-  .document-title-container {
-    flex: 1;
-    max-width: 400px;
-  }
+      :deep(.el-input__wrapper) {
+        box-shadow: none; // 无边框风格
+        padding-left: 0;
+        font-size: 16px;
+        font-weight: 600;
 
-  .document-title-input {
-    font-size: 16px;
-    font-weight: 500;
-
-    :deep(.el-input__wrapper) {
-      background-color: transparent;
-    }
-  }
-}
-
-// 主内容区
-.main-content {
-  flex: 1;
-  display: flex;
-  position: relative;
-  overflow: hidden;
-
-  &.dual-pane {
-    .editor-pane {
-      width: 50%;
-      border-right: 1px solid #e5e7eb;
-    }
-
-    .preview-pane {
-      width: 50%;
-    }
-  }
-}
-
-.editor-pane {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.editor-textarea {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  padding: 2rem;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
-  font-size: 16px;
-  line-height: 1.8;
-  border: none;
-  background-color: #ffffff;
-  color: #1f2937;
-  resize: none;
-  outline: none;
-  overflow-y: auto;
-
-  &::placeholder {
-    color: #9ca3af;
-  }
-}
-
-// 预览区
-.preview-pane {
-  flex: 1;
-  background-color: #f9fafb;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-.preview-content {
-  max-width: 800px;
-  margin: 0 auto;
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-// Markdown样式
-.markdown-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #24292e;
-  word-wrap: break-word;
-
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 24px;
-    margin-bottom: 16px;
-    font-weight: 600;
-    line-height: 1.25;
-  }
-
-  h1 {
-    font-size: 2em;
-    border-bottom: 1px solid #eaecef;
-    padding-bottom: 0.3em;
-  }
-
-  h2 {
-    font-size: 1.5em;
-    border-bottom: 1px solid #eaecef;
-    padding-bottom: 0.3em;
-  }
-
-  h3 {
-    font-size: 1.25em;
-  }
-
-  h4 {
-    font-size: 1em;
-  }
-
-  h5 {
-    font-size: 0.875em;
-  }
-
-  h6 {
-    font-size: 0.85em;
-    color: #6a737d;
-  }
-
-  p {
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-
-  blockquote {
-    margin: 0;
-    padding: 0 1em;
-    color: #6a737d;
-    border-left: 0.25em solid #dfe2e5;
-  }
-
-  ul, ol {
-    padding-left: 2em;
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-
-  li + li {
-    margin-top: 0.25em;
-  }
-
-  code {
-    padding: 0.2em 0.4em;
-    margin: 0;
-    font-size: 85%;
-    background-color: rgba(27, 31, 35, 0.05);
-    border-radius: 3px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
-  }
-
-  pre {
-    padding: 16px;
-    overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
-    background-color: #f6f8fa;
-    border-radius: 6px;
-    margin-bottom: 16px;
-
-    code {
-      display: inline;
-      padding: 0;
-      margin: 0;
-      overflow: visible;
-      line-height: inherit;
-      background-color: transparent;
-      border: 0;
-    }
-  }
-
-  a {
-    color: #0366d6;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-  }
-
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-    display: block;
-    width: 100%;
-    overflow: auto;
-    margin-bottom: 16px;
-
-    th, td {
-      padding: 6px 13px;
-      border: 1px solid #dfe2e5;
-    }
-
-    th {
-      font-weight: 600;
-      background-color: #f6f8fa;
-    }
-
-    tr {
-      background-color: #fff;
-      border-top: 1px solid #c6cbd1;
-
-      &:nth-child(2n) {
-        background-color: #f6f8fa;
+        &:hover {
+          box-shadow: none; // TODO: hover 显示编辑图标？
+        }
       }
     }
   }
 
-  hr {
-    height: 0.25em;
-    padding: 0;
-    margin: 24px 0;
-    background-color: #e1e4e8;
-    border: 0;
+  .header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .header-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+
+    .ai-trigger-btn {
+      color: #8e44ad;
+
+      &:hover {
+        background-color: #f3e5f5;
+      }
+    }
   }
 }
 
-// 底部状态栏
+// 2.3 内容包裹
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+// 编辑器工作区
+.editor-workspace {
+  flex: 1;
+  display: flex;
+  height: 100%;
+
+  &.dual-view {
+    .editor-pane {
+      width: 50%;
+      border-right: 1px solid var(--el-border-color-light);
+    }
+
+    .preview-pane {
+      width: 50%;
+      display: block;
+    }
+  }
+
+  .editor-pane {
+    flex: 1;
+    height: 100%;
+    background-color: var(--el-bg-color);
+  }
+
+  .native-textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    outline: none;
+    padding: 2rem 3rem;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--el-text-color-primary);
+    background-color: transparent;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+    &::placeholder {
+      color: var(--el-text-color-placeholder);
+    }
+
+    // 自定义滚动条
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--el-border-color-lighter);
+      border-radius: 3px;
+    }
+  }
+
+  .preview-pane {
+    display: none; // 默认隐藏
+    overflow-y: auto;
+    padding: 2rem;
+    background-color: var(--el-fill-color-light);
+  }
+}
+
+// 辅助视图容器
+.auxiliary-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+// 2.4 底部状态栏
 .editor-footer {
+  height: 32px;
+  border-top: 1px solid var(--el-border-color-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
-  border-top: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-  font-size: 13px;
-  color: #6b7280;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  background-color: var(--el-bg-color);
 
-  .status-left,
-  .status-right {
+  .footer-center {
+    .save-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      &.saving {
+        color: var(--el-color-warning);
+      }
+
+      &.dirty {
+        color: var(--el-color-info);
+      }
+
+      &.saved {
+        color: var(--el-color-success);
+      }
+    }
+  }
+
+  .footer-right {
     display: flex;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    strong {
-      color: #409eff;
-      font-weight: 600;
-    }
-  }
-
-  .save-status {
-    transition: color 0.2s;
-
-    &.status-saving {
-      color: #e6a23c;
-    }
-
-    &.status-saved {
-      color: #67c23a;
-    }
-
-    &.status-error {
-      color: #f56c6c;
-    }
+    gap: 16px;
   }
 }
 
-// 导出选项
-.export-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  .export-option {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 16px;
-    height: auto;
-  }
-}
-
-// === AI功能样式 ===
-
-// AI按钮
-.ai-button {
-  color: #667eea;
-  margin-right: 8px;
-
-  &:hover {
-    color: #764ba2;
-    background: rgba(102, 126, 234, 0.1);
-  }
-
-  .el-icon {
-    font-size: 18px;
-  }
-}
-
-// 编辑器容器调整（为AI侧边栏留出空间）
-.editor-container {
-  position: relative;
-  transition: margin-right 0.3s ease;
-}
-
-// 当AI侧边栏显示时调整布局
-.editor-view:has(.ai-assistant-sidebar) .editor-container {
-  margin-right: 400px;
-
-  @media (max-width: 1200px) {
-    margin-right: 350px;
-  }
-
-  @media (max-width: 768px) {
-    margin-right: 0;
-  }
-}
-
-// 响应式优化
-@media (max-width: 768px) {
-  .ai-button span {
-    display: none;
-  }
+// AI 侧边栏过渡
+.ai-sidebar-enter-active,
+.ai-sidebar-leave-active {
+  transition: transform 0.3s ease;
 }
 </style>

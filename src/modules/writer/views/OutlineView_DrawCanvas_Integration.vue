@@ -3,38 +3,31 @@
     <!-- 工具栏 -->
     <div class="outline-header">
       <div class="header-left">
-        <el-icon class="header-icon"><List /></el-icon>
+        <el-icon class="header-icon">
+          <List />
+        </el-icon>
         <span class="header-title">大纲</span>
       </div>
       <div class="header-actions">
         <!-- 视图切换按钮 -->
         <el-button-group>
-          <el-button
-            :type="viewMode === 'tree' ? 'primary' : ''"
-            size="small"
-            @click="viewMode = 'tree'"
-          >
-            <el-icon><List /></el-icon>
+          <el-button :type="viewMode === 'tree' ? 'primary' : ''" size="small" @click="viewMode = 'tree'">
+            <el-icon>
+              <List />
+            </el-icon>
             树形视图
           </el-button>
-          <el-button
-            :type="viewMode === 'mindmap' ? 'primary' : ''"
-            size="small"
-            @click="viewMode = 'mindmap'"
-          >
-            <el-icon><Share /></el-icon>
+          <el-button :type="viewMode === 'mindmap' ? 'primary' : ''" size="small" @click="viewMode = 'mindmap'">
+            <el-icon>
+              <Share />
+            </el-icon>
             思维导图
           </el-button>
         </el-button-group>
 
         <el-divider direction="vertical" />
 
-        <el-button
-          type="primary"
-          size="small"
-          :icon="Plus"
-          @click="handleAddNode"
-        >
+        <el-button type="primary" size="small" :icon="Plus" @click="handleAddNode">
           添加节点
         </el-button>
       </div>
@@ -46,23 +39,22 @@
       <div v-show="viewMode === 'tree'" class="tree-view">
         <div class="tree-container">
           <el-scrollbar>
-            <el-tree
-              v-loading="writerStore.outline.loading"
-              :data="outlineTree"
-              node-key="id"
-              :default-expand-all="false"
-              :expand-on-click-node="false"
-              :props="{ label: 'title', children: 'children' }"
-              draggable
-              @node-click="handleNodeClick"
-              @node-drop="handleNodeDrop"
-            >
+            <el-tree v-loading="writerStore.outline.loading" :data="outlineTree" node-key="id"
+              :default-expand-all="false" :expand-on-click-node="false"
+              :props="{ label: 'title', children: 'children' }" draggable @node-click="handleNodeClick"
+              @node-drop="handleNodeDrop">
               <template #default="{ node, data }">
                 <div class="tree-node">
                   <div class="node-content">
-                    <el-icon v-if="data.level === 1"><Folder /></el-icon>
-                    <el-icon v-else-if="data.level === 2"><Document /></el-icon>
-                    <el-icon v-else><Memo /></el-icon>
+                    <el-icon v-if="data.level === 1">
+                      <Folder />
+                    </el-icon>
+                    <el-icon v-else-if="data.level === 2">
+                      <Document />
+                    </el-icon>
+                    <el-icon v-else>
+                      <Memo />
+                    </el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
                       {{ getStatusText(data.status) }}
@@ -70,18 +62,8 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <el-button
-                      text
-                      size="small"
-                      :icon="Edit"
-                      @click.stop="handleEditNode(data)"
-                    />
-                    <el-button
-                      text
-                      size="small"
-                      :icon="Delete"
-                      @click.stop="handleDeleteNode(data)"
-                    />
+                    <el-button text size="small" :icon="Edit" @click.stop="handleEditNode(data)" />
+                    <el-button text size="small" :icon="Delete" @click.stop="handleDeleteNode(data)" />
                   </div>
                 </div>
               </template>
@@ -127,29 +109,14 @@
 
       <!-- 新增：思维导图视图 -->
       <div v-show="viewMode === 'mindmap'" class="mindmap-view">
-        <DrawCanvas
-          :config="mindmapConfig"
-          :initial-data="outlineData"
-          @node-selected="handleMindmapNodeSelected"
-          @node-changed="handleOutlineNodeChanged"
-          @export="handleExportOutline"
-        />
+        <DrawCanvas :config="mindmapConfig" :initial-data="outlineData" @node-selected="handleMindmapNodeSelected"
+          @node-changed="handleOutlineNodeChanged" @export="handleExportOutline" />
       </div>
     </div>
 
     <!-- 编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑节点' : '添加节点'"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="formRef"
-        :model="nodeForm"
-        :rules="formRules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑节点' : '添加节点'" width="600px" :close-on-click-modal="false">
+      <el-form ref="formRef" :model="nodeForm" :rules="formRules" label-width="100px">
         <el-form-item label="节点标题" prop="title">
           <el-input v-model="nodeForm.title" placeholder="请输入节点标题" />
         </el-form-item>
@@ -161,13 +128,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="父节点">
-          <el-tree-select
-            v-model="nodeForm.parentId"
-            :data="outlineTree"
-            :props="{ label: 'title', value: 'id', children: 'children' }"
-            placeholder="选择父节点（可选）"
-            clearable
-          />
+          <el-tree-select v-model="nodeForm.parentId" :data="outlineTree"
+            :props="{ label: 'title', value: 'id', children: 'children' }" placeholder="选择父节点（可选）" clearable />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="nodeForm.status" placeholder="选择状态">
@@ -178,12 +140,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="描述">
-          <el-input
-            v-model="nodeForm.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入节点描述"
-          />
+          <el-input v-model="nodeForm.description" type="textarea" :rows="4" placeholder="请输入节点描述" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -396,7 +353,7 @@ const handleDeleteNode = async (node: OutlineNode) => {
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const { deleteOutlineNode } = await import('../api')
+    const { deleteOutlineNode } = await import('..')
     await deleteOutlineNode(node.id, projectId)
     await writerStore.loadOutlineTree()
     ElMessage.success('删除成功')
@@ -439,7 +396,7 @@ const handleOutlineNodeChanged = async (node: DrawNode) => {
     if (!originalNode) return
 
     // 更新节点
-    const { updateOutlineNode } = await import('../api')
+    const { updateOutlineNode } = await import('..')
     await updateOutlineNode(node.id, projectId, {
       title: node.label,
       description: node.description
@@ -524,10 +481,10 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedNode.value) {
-        const { updateOutlineNode } = await import('../api')
+        const { updateOutlineNode } = await import('..')
         await updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
       } else {
-        const { createOutlineNode } = await import('../api')
+        const { createOutlineNode } = await import('..')
         await createOutlineNode(projectId, {
           ...nodeForm.value,
           order: outlineTree.value.length

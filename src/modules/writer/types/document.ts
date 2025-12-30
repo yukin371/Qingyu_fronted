@@ -80,7 +80,7 @@ export interface DocumentContent {
 }
 
 // =======================
-// DTOs
+// DTOs (Data Transfer Objects) - 请求参数
 // =======================
 
 export interface CreateDocumentRequest {
@@ -104,6 +104,52 @@ export interface UpdateDocumentMetaRequest {
 
 export interface SaveContentRequest {
   content: string
-  wordCount?: number // 可选，有些后端会自动计算
+  wordCount?: number // 可选
   force?: boolean // 用于解决版本冲突
+}
+
+// 移动文档请求
+export interface MoveDocumentRequest {
+  documentId?: string // 虽然通常在 path 参数中，但有些后端也会要求 body 里传
+  parentId?: string // 移动目标父节点 ID
+  order?: number // 移动后的排序位置
+}
+
+// 重排序请求
+export interface ReorderDocumentsRequest {
+  projectId?: string
+  documentIds: string[] // 排序后的 ID 列表
+  parentId?: string // 这些文档所属的父节点
+}
+
+// =======================
+// Responses - 响应结构
+// =======================
+
+/**
+ * 创建文档响应
+ * 通常后端会返回创建完整的文档对象（包含生成的 ID、创建时间等）
+ */
+export type CreateDocumentResponse = Document
+
+/**
+ * 文档树响应
+ * 如果后端返回的是根节点数组（每个节点包含 children），则类型如下
+ */
+export type DocumentTreeResponse = Document[]
+
+// 如果后端返回的是包裹对象（例如 { tree: [...] }），请使用下方定义：
+// export interface DocumentTreeResponse {
+//   tree: Document[];
+// }
+
+// =======================
+// List Responses
+// =======================
+
+export interface ListDocumentsResponse {
+  documents: Document[]
+  total: number
+  page: number
+  size: number
 }
