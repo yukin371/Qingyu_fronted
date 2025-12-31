@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { WithdrawRequest } from '@/api/shared/types'
+import type { WithdrawRequest } from '@/types/shared'
 
 interface Props {
   modelValue: boolean

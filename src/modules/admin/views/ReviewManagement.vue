@@ -120,8 +120,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Search } from '@element-plus/icons-vue'
 import ReviewCard from '@admin/components/ReviewCard.vue'
-import * as adminAPI from '@/api/shared/admin'
-import type { PendingReview } from '@/api/shared/types'
+import * as adminAPI from '@/modules/admin/api/admin'
+import type { PendingReview } from '@/types/shared'
 
 // 筛选器
 const filters = reactive({

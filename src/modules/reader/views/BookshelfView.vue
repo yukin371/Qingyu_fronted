@@ -201,8 +201,8 @@ import {
     updateBookshelfStatus,
     removeFromBookshelf,
     batchBookshelfOperation
-} from '@/api/reading/bookshelf'
-import { getReadingHistory } from '@/api/reading/history'
+} from '@/modules/reader/api/bookshelf'
+import { getReadingHistory } from '@/modules/reader/api/history'
 
 const router = useRouter()
 

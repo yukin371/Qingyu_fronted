@@ -17,7 +17,7 @@
             书城
           </router-link>
           <router-link
-            v-if="userStore.isLoggedIn"
+            v-if="authStore.isLoggedIn"
             to="/writer/projects"
             class="text-gray-700 hover:text-blue-600 transition-colors"
           >
@@ -33,24 +33,23 @@
 
         <!-- 用户菜单 -->
         <div class="flex items-center space-x-4">
-          <template v-if="userStore.isLoggedIn">
+          <template v-if="authStore.isLoggedIn">
             <!-- 用户下拉菜单 -->
             <el-dropdown @command="handleCommand">
               <div class="flex items-center space-x-2 cursor-pointer">
                 <el-avatar
                   :size="32"
-                  :src="userStore.userInfo?.avatar"
+                  :src="authStore.user?.avatar"
                   :icon="UserFilled"
                 />
                 <span class="text-sm font-medium text-gray-700">
-                  {{ userStore.userInfo?.nickname || userStore.userInfo?.username }}
+                  {{ authStore.user?.nickname || authStore.user?.username }}
                 </span>
                 <el-icon><ArrowDown /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                  <el-dropdown-item command="reading-history">阅读历史</el-dropdown-item>
                   <el-dropdown-item command="wallet">我的钱包</el-dropdown-item>
                   <el-dropdown-item command="writer" divided>
                     创作中心
@@ -80,19 +79,16 @@
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, UserFilled, ArrowDown } from '@element-plus/icons-vue'
-import { useUserStore } from '@/stores/user'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 // 处理下拉菜单命令
 async function handleCommand(command: string) {
   switch (command) {
     case 'profile':
       router.push('/account/profile')
-      break
-    case 'reading-history':
-      router.push('/reading/history')
       break
     case 'wallet':
       router.push('/wallet')
@@ -115,8 +111,7 @@ async function handleLogout() {
       type: 'warning',
     })
 
-    await userStore.handleLogout()
-    // userStore.handleLogout() 中已经有成功提示
+    await authStore.logout()
     router.push('/bookstore')
   } catch (error) {
     // 用户取消

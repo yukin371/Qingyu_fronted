@@ -3,7 +3,7 @@
  * Business logic for reading functionality
  */
 
-import * as readerAPI from '@/api/reading'
+import * as readerAPI from '@/modules/reader/api'
 import type {
   Chapter,
   ChapterContent,

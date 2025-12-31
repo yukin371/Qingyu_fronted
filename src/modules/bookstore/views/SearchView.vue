@@ -166,7 +166,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { booksAPI } from '@/api/reading/books'
+import { booksAPI } from '@/modules/reader/api/books'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'

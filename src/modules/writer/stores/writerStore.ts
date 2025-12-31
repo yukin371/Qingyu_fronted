@@ -32,7 +32,7 @@ import type {
   OutlineNode,
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
-import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/api/writing/ai'
+import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
 
 /**
  * 自动保存任务

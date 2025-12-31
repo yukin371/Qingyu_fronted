@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import * as storageAPI from '@/api/shared/storage'
-import type { FileInfo, FileListParams, UploadProgress } from '@/api/shared/types'
+import * as storageAPI from '@/modules/shared/api/storage'
+import type { FileInfo, FileListParams, UploadProgress } from '@/types/shared'
 
 /**
  * 存储状态接口

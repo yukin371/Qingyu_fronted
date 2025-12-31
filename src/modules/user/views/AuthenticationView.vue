@@ -243,7 +243,7 @@ import {
   sendPasswordResetCode,
   verifyResetCode as verifyResetCodeAPI,
   resetPassword as resetPasswordAPI
-} from '@/api/user/security'
+} from '@/modules/user/api/security'
 
 // ... (脚本逻辑部分不需要大幅修改，保持原有的业务逻辑即可)
 // 为了节省篇幅，这里保留原有的 script 内容

@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Select, CloseBold, View } from '@element-plus/icons-vue'
-import type { PendingReview } from '@/api/shared/types'
+import type { PendingReview } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format'
 
 interface Props {

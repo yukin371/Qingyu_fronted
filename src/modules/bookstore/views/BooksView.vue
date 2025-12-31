@@ -146,7 +146,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { booksAPI } from '@/api/reading/books'
+import { booksAPI } from '@/modules/reader/api/books'
 import { ElMessage } from 'element-plus'
 import { Grid, List, Picture, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category } from '@/types/models'

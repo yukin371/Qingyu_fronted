@@ -81,7 +81,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { RechargeRequest } from '@/api/shared/types'
+import type { RechargeRequest } from '@/types/shared'
 
 interface Props {
   modelValue: boolean

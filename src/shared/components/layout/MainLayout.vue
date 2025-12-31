@@ -143,13 +143,13 @@
           </el-icon>
           <span>书库</span>
         </el-menu-item>
-        <el-menu-item index="/categories">
+        <el-menu-item index="/bookstore/categories">
           <el-icon>
             <Grid />
           </el-icon>
           <span>分类</span>
         </el-menu-item>
-        <el-menu-item index="/rankings">
+        <el-menu-item index="/bookstore/rankings">
           <el-icon>
             <TrendCharts />
           </el-icon>
@@ -240,8 +240,8 @@ const showFooter = computed(() => !route.meta.hideFooter)
 const menuItems = [
   { name: '首页', path: '/' },
   { name: '书库', path: '/books' },
-  { name: '分类', path: '/categories' },
-  { name: '榜单', path: '/rankings' },
+  { name: '分类', path: '/bookstore/categories' },
+  { name: '榜单', path: '/bookstore/rankings' },
 ]
 
 // 快捷登录相关
@@ -272,10 +272,10 @@ const userDisplayName = computed(() => authStore.user?.nickname || authStore.use
 // 当前激活的菜单
 const activeMenu = computed(() => {
   const path = route.path
-  if (path === '/') return '/'
-  if (path.startsWith('/books')) return '/books'
-  if (path.startsWith('/categories')) return '/categories'
-  if (path.startsWith('/rankings')) return '/rankings'
+  if (path === '/' || path === '/bookstore') return '/'
+  if (path.startsWith('/bookstore/books')) return '/books'
+  if (path.startsWith('/bookstore/categories')) return '/bookstore/categories'
+  if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
   return '/'
 })
 

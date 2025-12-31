@@ -209,7 +209,7 @@ import {
   removeDevice as removeDeviceAPI,
   cancelAccount,
   type LoginDevice
-} from '@/api/user/security'
+} from '@/modules/user/api/security'
 
 const router = useRouter()
 const userStore = useUserStore()

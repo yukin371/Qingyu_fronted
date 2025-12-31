@@ -230,8 +230,8 @@ import {
 } from '@element-plus/icons-vue'
 import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
-import { getBookComments, createComment, deleteComment } from '@/api/reading/comments'
-import { addToBookshelf } from '@/api/reading/bookshelf'
+import { getBookComments, createComment, deleteComment } from '@/modules/reader/api/comments'
+import { addToBookshelf } from '@/modules/reader/api/bookshelf'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
 const route = useRoute()

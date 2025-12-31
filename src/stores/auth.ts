@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { login, logout, register, refreshToken, sharedAuthAPI as authAPI } from '@/api/shared/auth'
+import { login, logout, register, refreshToken, sharedAuthAPI as authAPI } from '@/modules/shared/api/auth'
 import storage from '@/utils/storage'
 import router from '@/router'
 import type { User } from '@/types/models'

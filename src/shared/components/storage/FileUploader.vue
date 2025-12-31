@@ -70,7 +70,7 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
 import { UploadFilled, Close } from '@element-plus/icons-vue'
-import type { UploadProgress } from '@/api/shared/types'
+import type { UploadProgress } from '@/types/shared'
 import { useAuthStore } from '@/stores/auth'
 
 interface Props {

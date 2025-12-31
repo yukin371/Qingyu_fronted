@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-// import { getProjects, createProject, updateProject, deleteProject, getProjectById } from '@/api/writing'
+// import { getProjects, createProject, updateProject, deleteProject, getProjectById } from '@/modules/writer/api'
 // Temporarily disable API calls - will be restored when API is fully integrated
 import {
   getLocalProjects,

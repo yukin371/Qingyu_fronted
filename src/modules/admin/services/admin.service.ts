@@ -3,7 +3,7 @@
  * Business logic for admin operations
  */
 
-import * as adminAPI from '@/api/shared'
+import * as adminAPI from '@/modules/admin/api'
 import type {
   DashboardStats,
   ReviewItem,
