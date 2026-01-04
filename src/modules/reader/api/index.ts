@@ -45,3 +45,9 @@ export { ratingAPI, getBookRating, rateBook, getUserBookRating, updateRating, de
 // 阅读器核心
 export * from './reader'
 export { readerAPI } from './reader'
+
+// 主题管理
+export * from './themes'
+
+// 字体管理
+export * from './fonts'

@@ -105,3 +105,35 @@ export const editorApi = {
     return httpService.get<ShortcutCategory[]>(`${BASE_USER_URL}/shortcuts/help`)
   },
 }
+
+// ==========================================
+// 命名导出函数 (为了向后兼容 writerStore)
+// ==========================================
+
+/**
+ * 获取文档内容
+ */
+export const getDocumentContent = (documentId: string) => {
+  return editorApi.getContent(documentId)
+}
+
+/**
+ * 更新文档内容
+ */
+export const updateDocumentContent = (documentId: string, content: string) => {
+  return editorApi.updateContent(documentId, { content })
+}
+
+/**
+ * 自动保存文档
+ */
+export const autosaveDocument = (documentId: string, content: string, version: number) => {
+  return editorApi.autoSave(documentId, { content, version })
+}
+
+/**
+ * 获取保存状态
+ */
+export const getSaveStatus = (documentId: string) => {
+  return editorApi.getSaveStatus(documentId)
+}

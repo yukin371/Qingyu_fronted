@@ -168,9 +168,9 @@ import {
 import { ElMessage } from 'element-plus'
 
 // Stores
-import { useProjectStore } from '@/modules/writer/stores/project'
-import { useDocumentStore } from '@/modules/writer/stores/document'
-import { useEditorStore } from '@/modules/writer/stores/editor'
+import { useProjectStore } from '@/modules/writer/stores/projectStore'
+import { useDocumentStore } from '@/modules/writer/stores/documentStore'
+import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore' // 旧的，建议迁移
 
 // Components

@@ -231,7 +231,7 @@ import {
 import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/modules/reader/api/comments'
-import { addToBookshelf } from '@/modules/reader/api/bookshelf'
+import { addToBookshelf } from '@/modules/reader/api/books'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
 const route = useRoute()

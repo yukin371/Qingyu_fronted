@@ -12,6 +12,8 @@
  * - Admin API: `import { ... } from '@/modules/admin/api'`
  * - AI API: `import { ... } from '@/modules/ai/api'`
  * - Recommendation API: `import { ... } from '@/modules/recommendation/api'`
+ * - Finance API: `import { ... } from '@/api/finance'`
+ * - Notification API: `import { ... } from '@/api/notification'`
  *
  * 此文件仅用于向后兼容，将在未来版本中移除
  */
@@ -41,6 +43,17 @@ export * as ai from '@/modules/ai/api'
 
 // Recommendation API
 export * as recommendation from '@/modules/recommendation/api'
+
+// ========== 新增模块 API ==========
+
+// Finance API
+export * as finance from '@/api/finance'
+
+// Notification API
+export * as notification from '@/api/notification'
+
+// Social API
+export * as social from '@/api/social'
 
 // ========== 向后兼容 ==========
 

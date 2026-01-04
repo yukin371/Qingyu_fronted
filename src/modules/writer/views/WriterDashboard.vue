@@ -260,7 +260,7 @@ const goalColors = [
 ]
 
 // 获取最近项目
-const recentProjects = computed(() => projectStore.projects.slice(0, 5)) // 假设 Store 已按时间排序
+const recentProjects = computed(() => (projectStore.projects || []).slice(0, 5)) // 假设 Store 已按时间排序
 
 // 初始化加载
 onMounted(async () => {
@@ -271,8 +271,9 @@ onMounted(async () => {
 
     // 更新统计 (这部分逻辑最好在后端有个专门的 dashboard API)
     stats.value.bookCount = projectStore.total
-    stats.value.totalWords = projectStore.projects.reduce((acc: number, cur: { totalWords: number }) => acc + cur.totalWords, 0)
-    stats.value.pending = projectStore.projects.filter((p: Project) => p.status === 'serializing').length
+    const projects = projectStore.projects || []
+    stats.value.totalWords = projects.reduce((acc: number, cur: { totalWords: number }) => acc + (cur.totalWords || 0), 0)
+    stats.value.pending = projects.filter((p: Project) => p.status === 'serializing').length
     stats.value.todayWords = 1200 // Mock Data
 
   } finally {

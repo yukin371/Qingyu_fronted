@@ -118,9 +118,9 @@ import {
 } from '@element-plus/icons-vue'
 
 // 引入新的 Store 体系
-import { useProjectStore } from '@/modules/writer/stores/project'
-import { useDocumentStore } from '@/modules/writer/stores/document'
-import { useEditorStore } from '@/modules/writer/stores/editor'
+import { useProjectStore } from '@/modules/writer/stores/projectStore'
+import { useDocumentStore } from '@/modules/writer/stores/documentStore'
+import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore' // 假如还需要读取 timeline 等
 
 // 引入组件

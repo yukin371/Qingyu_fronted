@@ -4,6 +4,15 @@
 
 import { httpService } from '@/core/services/http.service'
 import type { Book, Category, PaginationResponse } from '@/types/bookstore'
+import type { APIResponse } from '@/types/api'
+
+/**
+ * 获取所有分类（展平的树结构）
+ * GET /api/v1/bookstore/categories/tree
+ */
+export function getAllCategories(): Promise<APIResponse<Category[]>> {
+  return httpService.get<APIResponse<Category[]>>('/bookstore/categories/tree')
+}
 
 /**
  * 获取分类树

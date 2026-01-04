@@ -1,7 +1,7 @@
 /**
  * 评论 API 模块
- * 对接后端 /api/v1/reader/comments 路由
- * 后端路由文档: Qingyu_backend/router/reader/reader_router.go
+ * 对接后端 /api/v1/social/comments 路由
+ * 后端路由文档: Qingyu_backend/router/social/social_router.go
  */
 
 import { httpService } from '@/core/services/http.service'
@@ -74,81 +74,81 @@ export interface ReplyCommentParams {
 }
 
 /**
- * 评论 API 接口 (v1.0)
- * 对接后端: /api/v1/reader/comments
+ * 评论 API 接口 (v2.0)
+ * 对接后端: /api/v1/social/comments
  */
 export const commentsAPI = {
   /**
    * 发表评论
-   * POST /api/v1/reader/comments
+   * POST /api/v1/social/comments
    */
   async createComment(params: CreateCommentParams): Promise<APIResponse<Comment>> {
-    return httpService.post<APIResponse<Comment>>('/reader/comments', params)
+    return httpService.post<APIResponse<Comment>>('/social/comments', params)
   },
 
   /**
    * 获取评论列表
-   * GET /api/v1/reader/comments
+   * GET /api/v1/social/comments
    */
   async getCommentList(params: GetCommentListParams): Promise<CommentListResponse> {
-    return httpService.get<CommentListResponse>('/reader/comments', { params })
+    return httpService.get<CommentListResponse>('/social/comments', { params })
   },
 
   /**
    * 获取评论详情
-   * GET /api/v1/reader/comments/:id
+   * GET /api/v1/social/comments/:id
    */
   async getCommentById(commentId: string): Promise<APIResponse<Comment>> {
-    return httpService.get<APIResponse<Comment>>(`/reader/comments/${commentId}`)
+    return httpService.get<APIResponse<Comment>>(`/social/comments/${commentId}`)
   },
 
   /**
    * 更新评论
-   * PUT /api/v1/reader/comments/:id
+   * PUT /api/v1/social/comments/:id
    */
   async updateComment(
     commentId: string,
     params: UpdateCommentParams
   ): Promise<APIResponse<Comment>> {
-    return httpService.put<APIResponse<Comment>>(`/reader/comments/${commentId}`, params)
+    return httpService.put<APIResponse<Comment>>(`/social/comments/${commentId}`, params)
   },
 
   /**
    * 删除评论
-   * DELETE /api/v1/reader/comments/:id
+   * DELETE /api/v1/social/comments/:id
    */
   async deleteComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/reader/comments/${commentId}`)
+    return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}`)
   },
 
   /**
    * 回复评论
-   * POST /api/v1/reader/comments/:id/reply
+   * POST /api/v1/social/comments/:id/reply
    */
   async replyComment(
     commentId: string,
     params: ReplyCommentParams
   ): Promise<APIResponse<Comment>> {
     return httpService.post<APIResponse<Comment>>(
-      `/reader/comments/${commentId}/reply`,
+      `/social/comments/${commentId}/reply`,
       params
     )
   },
 
   /**
    * 点赞评论
-   * POST /api/v1/reader/comments/:id/like
+   * POST /api/v1/social/comments/:id/like
    */
   async likeComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>(`/reader/comments/${commentId}/like`)
+    return httpService.post<APIResponse<void>>(`/social/comments/${commentId}/like`)
   },
 
   /**
    * 取消点赞评论
-   * DELETE /api/v1/reader/comments/:id/like
+   * DELETE /api/v1/social/comments/:id/like
    */
   async unlikeComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/reader/comments/${commentId}/like`)
+    return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}/like`)
   }
 }
 

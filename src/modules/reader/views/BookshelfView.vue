@@ -44,7 +44,17 @@
             <div class="bookshelf-content">
                 <!-- 书架列表 -->
                 <div class="bookshelf-list">
-                    <el-empty v-if="books.length === 0 && !loading" description="书架空空如也，去书城逛逛吧" />
+                    <el-empty v-if="books.length === 0 && !loading" description="书架空空如也">
+                        <template #extra>
+                            <el-button type="primary" @click="goToBookstore">去书城逛逛</el-button>
+                            <el-button @click="goToBookstore">开始阅读</el-button>
+                        </template>
+                        <template #image>
+                            <el-icon :size="100" color="#909399">
+                                <Collection />
+                            </el-icon>
+                        </template>
+                    </el-empty>
 
                     <div v-for="book in books" :key="book.id" class="book-item" :class="{ 'selected': selectedBooks.includes(book.id) }">
                         <el-checkbox
@@ -193,15 +203,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Picture, MoreFilled } from '@element-plus/icons-vue'
+import { Picture, MoreFilled, Collection } from '@element-plus/icons-vue'
 import { formatDate, formatReadingTime } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
     getBookshelf,
-    updateBookshelfStatus,
-    removeFromBookshelf,
-    batchBookshelfOperation
-} from '@/modules/reader/api/bookshelf'
+    addToBookshelf,
+    removeFromBookshelf
+} from '@/modules/reader/api/books'
 import { getReadingHistory } from '@/modules/reader/api/history'
 
 const router = useRouter()
@@ -255,25 +264,30 @@ async function loadData(): Promise<void> {
 // 加载书架数据
 async function loadBooks(): Promise<void> {
     try {
-        const validStatus = ['reading', 'want_to_read', 'completed'].includes(activeTab.value)
-            ? activeTab.value as 'reading' | 'want_to_read' | 'completed'
-            : 'reading'
+        // 将前端的 status 映射到后端 API 期望的值
+        let apiStatus: 'reading' | 'finished' | 'all' = 'all'
+        if (activeTab.value === 'reading') {
+            apiStatus = 'reading'
+        } else if (activeTab.value === 'completed') {
+            apiStatus = 'finished'
+        } else {
+            apiStatus = 'all'
+        }
 
         const response = await getBookshelf({
-            status: validStatus,
+            status: apiStatus,
             page: 1,
-            size: 100,
-            sortBy: 'updated_at',
-            sortOrder: 'desc'
+            pageSize: 100,
+            sortBy: 'updateTime'
         })
 
-        const data = response.data || response
-        books.value = Array.isArray(data) ? data : (data.data || [])
+        // HTTP拦截器已经提取了data字段，所以response就是 {books: [], total: 0, page: 1, size: 100}
+        books.value = Array.isArray(response?.books) ? response.books : []
 
         // 更新状态计数
-        const statusCountsData = data.statusCounts || (response as any).statusCounts
-        if (statusCountsData) {
-            statusCounts.value = statusCountsData
+        if (response?.total !== undefined) {
+            // 如果总数是0，显示提示
+            console.log(`书架书籍总数: ${response.total}`)
         }
     } catch (error: any) {
         console.error('加载书架失败:', error)
@@ -342,7 +356,12 @@ function handleTabChange(): void {
 
 // 跳转到书籍详情
 function goToBook(bookId: string): void {
-    router.push(`/books/${bookId}`)
+    router.push(`/bookstore/books/${bookId}`)
+}
+
+// 跳转到书城首页
+function goToBookstore(): void {
+    router.push('/bookstore')
 }
 
 // 跳转到阅读器
@@ -351,7 +370,7 @@ function goToReader(bookId: string, chapterId?: string): void {
         router.push(`/reader/${chapterId}`)
     } else {
         // 从第一章开始
-        router.push(`/books/${bookId}`)
+        router.push(`/bookstore/books/${bookId}`)
     }
 }
 
@@ -373,12 +392,11 @@ async function handleAction(command: string, book: any): Promise<void> {
     }
 }
 
-// 移动书籍到不同状态
+// 移动书籍到不同状态 (暂时移除该功能，因为后端API不支持)
 async function handleMove(bookId: string, status: string): Promise<void> {
     try {
-        await updateBookshelfStatus(bookId, status)
-        ElMessage.success('已移动')
-        loadBooks()
+        // TODO: 后端API暂不支持更新书架状态，需要后续实现
+        ElMessage.info('该功能暂未实现')
     } catch (error: any) {
         ElMessage.error(error.message || '操作失败')
     }
@@ -403,7 +421,7 @@ async function handleRemove(bookId: string): Promise<void> {
     }
 }
 
-// 批量移动
+// 批量移动 (暂时移除该功能，因为后端API不支持)
 async function handleBatchMove(): Promise<void> {
     if (selectedBooks.value.length === 0) {
         ElMessage.warning('请选择要移动的书籍')
@@ -411,24 +429,8 @@ async function handleBatchMove(): Promise<void> {
     }
 
     try {
-        // 使用ElMessageBox.confirm替代prompt来选择目标状态
-        await ElMessageBox.confirm(
-            '请选择要移动到的分类',
-            '批量移动',
-            {
-                confirmButtonText: '在读',
-                cancelButtonText: '取消',
-                distinguishCancelAndClose: true,
-                type: 'info'
-            }
-        )
-
-        // 简化版：默认移动到"在读"
-        // 如果需要更复杂的选择，建议创建一个独立的Dialog组件
-        await batchBookshelfOperation('move', selectedBooks.value, 'reading')
-        ElMessage.success('已移动到"在读"')
-        toggleBatchMode()
-        loadBooks()
+        // TODO: 后端API暂不支持批量操作，需要后续实现
+        ElMessage.info('批量移动功能暂未实现')
     } catch (error: any) {
         if (error !== 'cancel' && error !== 'close') {
             ElMessage.error(error.message || '操作失败')
@@ -436,7 +438,7 @@ async function handleBatchMove(): Promise<void> {
     }
 }
 
-// 批量删除
+// 批量删除 (循环调用单个删除接口)
 async function handleBatchDelete(): Promise<void> {
     if (selectedBooks.value.length === 0) {
         ElMessage.warning('请选择要删除的书籍')
@@ -450,7 +452,8 @@ async function handleBatchDelete(): Promise<void> {
             type: 'warning'
         })
 
-        await batchBookshelfOperation('delete', selectedBooks.value)
+        // 逐个删除书籍
+        await Promise.all(selectedBooks.value.map(bookId => removeFromBookshelf(bookId)))
         ElMessage.success('已移出书架')
         toggleBatchMode()
         loadBooks()

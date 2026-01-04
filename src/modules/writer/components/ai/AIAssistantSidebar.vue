@@ -37,9 +37,9 @@
       <!-- 对话模式 -->
       <AIChatPanel
         v-show="currentMode === 'chat'"
-        :chat-history="writerStore.ai.chatHistory"
-        :is-processing="writerStore.ai.isProcessing"
-        :error="writerStore.ai.error"
+        :chat-history="writerStore.ai?.chatHistory || []"
+        :is-processing="writerStore.ai?.isProcessing || false"
+        :error="writerStore.ai?.error || null"
         @send-message="handleSendMessage"
         @clear-history="handleClearHistory"
       />
@@ -47,10 +47,10 @@
       <!-- 工具模式 -->
       <AIToolsPanel
         v-show="currentMode === 'tools'"
-        :selected-text="writerStore.ai.selectedText"
-        :last-result="writerStore.ai.lastResult"
-        :is-processing="writerStore.ai.isProcessing"
-        :error="writerStore.ai.error"
+        :selected-text="writerStore.ai?.selectedText || ''"
+        :last-result="writerStore.ai?.lastResult || ''"
+        :is-processing="writerStore.ai?.isProcessing || false"
+        :error="writerStore.ai?.error || null"
         @generate="handleGenerate"
         @insert="handleInsert"
       />
@@ -63,19 +63,19 @@
     </div>
 
     <!-- 底部操作栏 -->
-    <div v-if="!isCollapsed && writerStore.ai.lastResult" class="sidebar-footer">
+    <div v-if="!isCollapsed && writerStore.ai?.lastResult" class="sidebar-footer">
       <el-button
         type="primary"
         :icon="DocumentCopy"
         @click="handleInsert"
-        :disabled="!writerStore.ai.lastResult"
+        :disabled="!writerStore.ai?.lastResult"
       >
         插入到编辑器
       </el-button>
       <el-button
         :icon="CopyDocument"
         @click="handleCopy"
-        :disabled="!writerStore.ai.lastResult"
+        :disabled="!writerStore.ai?.lastResult"
       >
         复制
       </el-button>
@@ -190,7 +190,7 @@ const handleGenerate = async (params: any) => {
 
 // 插入到编辑器
 const handleInsert = () => {
-  const text = writerStore.ai.lastResult
+  const text = writerStore.ai?.lastResult
   if (!text) {
     ElMessage.warning('没有可插入的内容')
     return
@@ -202,7 +202,7 @@ const handleInsert = () => {
 
 // 复制到剪贴板
 const handleCopy = async () => {
-  const text = writerStore.ai.lastResult
+  const text = writerStore.ai?.lastResult
   if (!text) {
     ElMessage.warning('没有可复制的内容')
     return
@@ -216,8 +216,9 @@ const handleCopy = async () => {
   }
 }
 
-// 监听当前工具变化
-watch(() => writerStore.ai.currentTool, (newTool) => {
+// 监听当前工具变化 - 添加防护性检查
+watch(() => writerStore.ai?.currentTool, (newTool) => {
+  if (!newTool) return
   if (newTool === 'chat') {
     currentMode.value = 'chat'
   } else if (newTool === 'agent') {

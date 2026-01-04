@@ -203,7 +203,7 @@ const handleSearch = () => {
   // 关闭下拉
   autocompleteRef.value?.blur()
 
-  router.push({ path: '/search', query: { q: keyword } })
+  router.push({ path: '/bookstore/search', query: { q: keyword } })
 }
 
 const handleSelect = (item: SearchSuggestion) => {
@@ -217,7 +217,7 @@ const handleSelect = (item: SearchSuggestion) => {
 
   // 智能跳转
   if (item.type === 'book' && item.id) {
-    router.push(`/books/${item.id}`)
+    router.push(`/bookstore/books/${item.id}`)
   } else if (item.type === 'author' && item.id) {
     router.push(`/author/${item.id}`)
   } else {

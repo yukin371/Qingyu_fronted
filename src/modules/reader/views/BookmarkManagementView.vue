@@ -26,7 +26,7 @@
       <el-skeleton v-if="loading" :rows="5" animated />
 
       <el-empty v-else-if="filteredBookmarks.length === 0" description="暂无书签">
-        <el-button type="primary" @click="$router.push('/books')">
+        <el-button type="primary" @click="$router.push('/bookstore/books')">
           去书库看看
         </el-button>
       </el-empty>
@@ -211,7 +211,7 @@ function handleSearch(): void {
 
 // 跳转到书籍详情
 function goToBook(bookId: string): void {
-  router.push(`/books/${bookId}`)
+  router.push(`/bookstore/books/${bookId}`)
 }
 
 // 跳转到书签位置

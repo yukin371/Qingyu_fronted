@@ -53,7 +53,7 @@ const writerRoutes: RouteRecordRaw[] = [
       {
         path: 'publish',
         name: 'writer-publish',
-        component: () => import('./views/PublishManagement.vue'),
+        component: () => import('./views/PublishManagementView.vue'),
         meta: { title: '发布管理' },
       },
     ],

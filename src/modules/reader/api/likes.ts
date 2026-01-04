@@ -1,7 +1,7 @@
 /**
  * 点赞相关 API
- * 对接后端 /api/v1/reader/likes 路由
- * 后端路由文档: Qingyu_backend/router/reader/reader_router.go
+ * 对接后端 /api/v1/social/ 路由
+ * 后端路由文档: Qingyu_backend/router/social/social_router.go
  */
 
 import { httpService } from '@/core/services/http.service'
@@ -25,51 +25,51 @@ export interface UserLikeStats {
 }
 
 /**
- * 点赞 API 接口 (v1.0)
- * 对接后端: /api/v1/reader/likes
+ * 点赞 API 接口 (v2.0)
+ * 对接后端: /api/v1/social/
  */
 export const likesAPI = {
   /**
    * 点赞书籍
-   * POST /api/v1/reader/books/:bookId/like
+   * POST /api/v1/social/books/:bookId/like
    */
   async likeBook(bookId: string): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>(`/reader/books/${bookId}/like`)
+    return httpService.post<APIResponse<void>>(`/social/books/${bookId}/like`)
   },
 
   /**
    * 取消点赞书籍
-   * DELETE /api/v1/reader/books/:bookId/like
+   * DELETE /api/v1/social/books/:bookId/like
    */
   async unlikeBook(bookId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/reader/books/${bookId}/like`)
+    return httpService.delete<APIResponse<void>>(`/social/books/${bookId}/like`)
   },
 
   /**
    * 获取书籍点赞信息
-   * GET /api/v1/reader/books/:bookId/like/info
+   * GET /api/v1/social/books/:bookId/like
    */
   async getBookLikeInfo(bookId: string): Promise<APIResponse<LikeInfo>> {
-    return httpService.get<APIResponse<LikeInfo>>(`/reader/books/${bookId}/like/info`)
+    return httpService.get<APIResponse<LikeInfo>>(`/social/books/${bookId}/like`)
   },
 
   /**
    * 获取用户点赞的书籍列表
-   * GET /api/v1/reader/likes/books
+   * GET /api/v1/social/likes/books
    */
   async getUserLikedBooks(params?: {
     page?: number
     pageSize?: number
   }): Promise<PaginatedResponse<any>> {
-    return httpService.get<PaginatedResponse<any>>('/reader/likes/books', { params })
+    return httpService.get<PaginatedResponse<any>>('/social/likes/books', { params })
   },
 
   /**
    * 获取用户点赞统计
-   * GET /api/v1/reader/likes/stats
+   * GET /api/v1/social/likes/stats
    */
   async getUserLikeStats(): Promise<APIResponse<UserLikeStats>> {
-    return httpService.get<APIResponse<UserLikeStats>>('/reader/likes/stats')
+    return httpService.get<APIResponse<UserLikeStats>>('/social/likes/stats')
   }
 }
 

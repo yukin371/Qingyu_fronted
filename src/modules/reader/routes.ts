@@ -36,6 +36,12 @@ const readerRoutes: RouteRecordRaw[] = [
         meta: { title: '我的书签', requiresAuth: true }
       },
       {
+        path: 'theme-settings',
+        name: 'theme-settings',
+        component: () => import('./views/ThemeSettingsView.vue'),
+        meta: { title: '主题设置', requiresAuth: true }
+      },
+      {
         path: 'comment/:commentId',
         name: 'comment-detail',
         component: () => import('./views/CommentDetailView.vue'),

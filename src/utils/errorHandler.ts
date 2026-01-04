@@ -87,6 +87,16 @@ export class ErrorHandler {
   private static parseError(error: any): AppError {
     const timestamp = Date.now()
 
+    // null 或 undefined
+    if (error == null) {
+      return {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: '发生未知错误',
+        details: error,
+        timestamp
+      }
+    }
+
     // Axios 错误
     if (this.isAxiosError(error)) {
       return this.parseAxiosError(error, timestamp)
@@ -282,6 +292,7 @@ export class ErrorHandler {
    */
   private static isApiError(error: any): error is ApiResponse {
     return (
+      error != null &&
       typeof error === 'object' &&
       'code' in error &&
       'message' in error &&
@@ -382,5 +393,96 @@ export function createPromiseRejectionHandler() {
       logToConsole: true
     })
   }
+}
+
+/**
+ * 判断API响应是否为空数据
+ * 用于区分"数据为空"和"加载错误"
+ */
+export function isEmptyData(response: any): boolean {
+  if (!response) return false
+
+  // 检查是否为成功的API响应
+  if (response.code === 200 || response.code === 201) {
+    // data为null或undefined
+    if (response.data === null || response.data === undefined) {
+      return true
+    }
+
+    // data为空数组
+    if (Array.isArray(response.data) && response.data.length === 0) {
+      return true
+    }
+
+    // 包含items字段且为空数组
+    if (response.data?.items?.length === 0) {
+      return true
+    }
+
+    // 包含books字段且为空数组
+    if (response.data?.books?.length === 0) {
+      return true
+    }
+
+    // 包含list字段且为空数组
+    if (response.data?.list?.length === 0) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * 判断是否为网络错误（可重试）
+ */
+export function isNetworkError(error: any): boolean {
+  if (!error || error == null) return false
+
+  // 没有响应（网络断开）
+  if (!error.response) {
+    return true
+  }
+
+  // 超时
+  if (error.code === 'ECONNABORTED') {
+    return true
+  }
+
+  // 网络错误代码
+  if (error.code === 'ERR_NETWORK' ||
+      error.code === 'ERR_INTERNET_DISCONNECTED' ||
+      error.code === 'ECONNRESET') {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * 判断是否为权限错误（不可重试，需要登录）
+ */
+export function isPermissionError(error: any): boolean {
+  if (!error || error == null) return false
+  const status = error.response?.status
+  return status === 401 || status === 403
+}
+
+/**
+ * 判断是否为服务器错误（可重试）
+ */
+export function isServerError(error: any): boolean {
+  if (!error || error == null) return false
+  const status = error.response?.status
+  return status !== undefined && status >= 500
+}
+
+/**
+ * 判断是否为客户端错误（不可重试）
+ */
+export function isClientError(error: any): boolean {
+  if (!error || error == null) return false
+  const status = error.response?.status
+  return status !== undefined && status >= 400 && status < 500
 }
 

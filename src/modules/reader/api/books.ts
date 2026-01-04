@@ -110,4 +110,7 @@ export const getFinishedBooks = (params?: any) => bookshelfAPI.getFinishedBooks(
 export const addToBookshelf = (bookId: string) => bookshelfAPI.addToBookshelf(bookId)
 export const removeFromBookshelf = (bookId: string) => bookshelfAPI.removeFromBookshelf(bookId)
 
+// 别名导出：booksAPI 等同于 bookshelfAPI
+export const booksAPI = bookshelfAPI
+
 export default bookshelfAPI

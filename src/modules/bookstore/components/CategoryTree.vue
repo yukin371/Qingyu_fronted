@@ -134,7 +134,8 @@ function hasChildren(data: Category): boolean {
 
 // 辅助：获取图标
 function getIcon(data: Category) {
-  if (data.icon) return data.icon // 如果数据自带图标
+  // 只返回 Element Plus 图标组件，不处理自定义图片路径
+  // 如果需要自定义图标，应该用 <img> 标签单独渲染
   if (hasChildren(data)) return Folder // 如果是父节点
   return CollectionTag // 默认叶子节点
 }

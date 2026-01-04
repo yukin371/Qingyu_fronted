@@ -129,8 +129,33 @@
           </div>
         </div>
 
-        <!-- 空状态 -->
-        <el-empty v-if="!loading && books.length === 0" description="暂无书籍" />
+        <!-- 空状态 - 数据库为空 -->
+        <el-empty
+          v-if="!loading && !error && books.length === 0"
+          description="暂无书籍数据"
+          :image-size="200"
+        >
+          <template #description>
+            <p class="empty-description">书库中暂无书籍</p>
+            <p class="empty-hint">数据库中还没有添加任何书籍</p>
+          </template>
+          <el-button type="primary" @click="loadBooks">刷新页面</el-button>
+        </el-empty>
+
+        <!-- 错误状态 -->
+        <el-result
+          v-if="!loading && error"
+          icon="error"
+          :title="error.title"
+          :sub-title="error.message"
+        >
+          <template #extra>
+            <el-space>
+              <el-button type="primary" @click="loadBooks">重试</el-button>
+              <el-button @click="handleBackHome">返回首页</el-button>
+            </el-space>
+          </template>
+        </el-result>
       </div>
 
       <!-- 分页 -->
@@ -146,20 +171,29 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { booksAPI } from '@/modules/reader/api/books'
-import { ElMessage } from 'element-plus'
+import { getBookList } from '@/modules/bookstore/api/books'
+import { getAllCategories } from '@/modules/bookstore/api/categories'
 import { Grid, List, Picture, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category } from '@/types/models'
+import type { Book } from '@/types/bookstore'
+import { isEmptyData, handleError as handleApiError, isNetworkError, isPermissionError, isServerError } from '@/utils/errorHandler'
 
 const router = useRouter()
 
 const loading = ref(false)
-const books = ref<BookBrief[]>([])
+const books = ref<Book[]>([])  // 后端返回完整的 Book 对象
 const categories = ref<Category[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const viewMode = ref<'grid' | 'list'>('grid')
+
+// 错误状态
+const error = ref<{
+  title: string
+  message: string
+  type: 'network' | 'server' | 'permission' | 'not_found'
+} | null>(null)
 
 const filters = reactive({
   categoryId: '',
@@ -177,12 +211,14 @@ const formatNumber = (num: number): string => {
 
 // 跳转到详情页
 const goToDetail = (id: string) => {
-  router.push(`/books/${id}`)
+  router.push(`/bookstore/books/${id}`)
 }
 
 // 加载书籍列表
 const loadBooks = async () => {
   loading.value = true
+  error.value = null
+
   try {
     const params = {
       page: currentPage.value,
@@ -193,36 +229,98 @@ const loadBooks = async () => {
       order: 'desc' as 'desc'
     }
 
-    const response = await booksAPI.getBookList(params)
+    const response = await getBookList(params)
+    console.log('[BooksView] API response:', response)
+    console.log('[BooksView] Response type:', typeof response, 'Is array:', Array.isArray(response))
 
-    if (response.code === 200) {
-      // 兼容后端返回格式：data可能是数组或包含books的对象
-      if (Array.isArray(response.data)) {
-        books.value = response.data
-        total.value = (response as any).total || response.data.length
-      } else if (response.data && response.data.books) {
-        books.value = response.data.books
-        total.value = response.data.total || 0
-      } else {
-        // data为null时，显示空列表
+    // 处理多种可能的响应格式
+    // 格式1: response 直接是书籍数组 (httpService 默认行为)
+    if (Array.isArray(response)) {
+      console.log('[BooksView] Response is array, using directly')
+      books.value = response
+      total.value = response.length
+      return
+    }
+
+    // 格式2: 标准 APIResponse { code, message, data, total }
+    if (response && typeof response === 'object') {
+      // 检查是否为空数据（数据库中没有书籍）
+      if (isEmptyData(response)) {
+        console.log('[BooksView] Empty data detected')
         books.value = []
         total.value = 0
+        return
+      }
+
+      // API调用成功且有数据
+      if (response.code === 200) {
+        console.log('[BooksView] Success, processing data...')
+        // 后端返回格式: { code, message, data: [...], total, page, size }
+        // data 直接是书籍数组，total/page/size 在根级别
+        if (Array.isArray(response.data)) {
+          books.value = response.data
+          total.value = (response as any).total || response.data.length
+        } else if (response.data && response.data.items) {
+          // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
+          books.value = response.data.items
+          total.value = response.data.total || 0
+        } else if (response.data && response.data.books) {
+          // 兼容另一种格式 { data: { books: [...], total, ... } }
+          books.value = response.data.books
+          total.value = response.data.total || 0
+        } else {
+          books.value = []
+          total.value = 0
+        }
+        console.log('[BooksView] Books loaded:', books.value.length, 'Total:', total.value)
       }
     } else {
-      ElMessage.error(response.message || '加载失败')
+      // API返回错误状态码 - 静默处理，只显示UI错误状态
+      console.error('[BooksView] API returned non-200 code:', response?.code)
+      const appError = handleApiError(response, { showMessage: false })
+      error.value = {
+        title: appError.message,
+        message: appError.details?.message || appError.message,
+        type: isNetworkError(response) ? 'network' :
+              isPermissionError(response) ? 'permission' :
+              isServerError(response) ? 'server' : 'not_found'
+      }
     }
-  } catch (error) {
-    console.error('加载书籍列表失败:', error)
-    ElMessage.error('加载失败')
+  } catch (err: any) {
+    console.error('[BooksView]加载书籍列表失败:', err)
+
+    // 使用统一的错误处理 - 静默处理，只显示UI错误状态，避免重复提示
+    const appError = handleApiError(err, { showMessage: false })
+
+    // 根据错误类型设置UI状态
+    error.value = {
+      title: appError.message,
+      message: appError.details?.message || appError.message,
+      type: isNetworkError(err) ? 'network' :
+            isPermissionError(err) ? 'permission' :
+            isServerError(err) ? 'server' : 'not_found'
+    }
   } finally {
     loading.value = false
   }
 }
 
+// 返回首页
+const handleBackHome = () => {
+  router.push('/bookstore')
+}
+
 // 加载分类列表
 const loadCategories = async () => {
   try {
-    const response = await booksAPI.getAllCategories()
+    const response = await getAllCategories()
+
+    // 处理 null 响应或空数据
+    if (!response || response == null) {
+      categories.value = []
+      return
+    }
+
     if (response.code === 200) {
       // 处理分类树数据，展平为一维数组供选择器使用
       if (Array.isArray(response.data)) {
@@ -241,9 +339,13 @@ const loadCategories = async () => {
       } else {
         categories.value = []
       }
+    } else {
+      categories.value = []
     }
   } catch (error) {
+    // 静默处理错误，不影响书籍列表的显示
     console.error('加载分类失败:', error)
+    categories.value = []
   }
 }
 
@@ -481,8 +583,49 @@ onMounted(() => {
   height: 100%;
   background-color: #f5f7fa;
   color: #909399;
-  font-size: 30px;
 }
+
+// 空状态和错误状态样式
+.empty-description {
+  font-size: 16px;
+  font-weight: 500;
+  color: #606266;
+  margin: 8px 0 4px 0;
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: #909399;
+  margin: 0;
+}
+
+.el-result {
+  padding: 40px 20px;
+
+  :deep(.el-result__title) {
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  :deep(.el-result__subtitle) {
+    font-size: 14px;
+    color: #909399;
+    margin-top: 8px;
+  }
+}
+
+.el-empty {
+  padding: 60px 20px;
+
+  :deep(.el-empty__description) {
+    font-size: 14px;
+  }
+
+  .el-button {
+    margin-top: 16px;
+  }
+}
+
 
 .pagination {
   display: flex;

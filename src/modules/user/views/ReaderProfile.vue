@@ -381,7 +381,7 @@ const handleMessage = () => {
 
 // 前往书籍详情
 const goToBook = (bookId: string) => {
-  router.push(`/books/${bookId}`)
+  router.push(`/bookstore/books/${bookId}`)
 }
 
 // 前往阅读器

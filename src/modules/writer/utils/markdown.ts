@@ -1,41 +1,42 @@
 /**
- * Markdown 渲染工具
+ * Markdown rendering utilities
  */
 
 /**
- * 简单的Markdown渲染器
- * 支持基础的Markdown语法
+ * Simple markdown to HTML renderer
+ * Note: In production, consider using a library like marked or markdown-it
  */
 export function renderMarkdown(markdown: string): string {
   if (!markdown) return ''
 
+  // Escape HTML
   let html = markdown
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 
-  // 标题
+  // Headers
   html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>')
   html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>')
   html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>')
 
-  // 粗体
-  html = html.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+  html = html.replace(/__(.*?)__/gim, '<strong>$1</strong>')
 
-  // 斜体
-  html = html.replace(/\*(.*)\*/gim, '<em>$1</em>')
+  // Italic
+  html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>')
+  html = html.replace(/_(.*?)_/gim, '<em>$1</em>')
 
-  // 链接
+  // Links
   html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
 
-  // 换行
-  html = html.replace(/\n/gim, '<br>')
+  // Images
+  html = html.replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1" />')
 
-  return html
+  // Line breaks and paragraphs
+  html = html.replace(/\n\n/g, '</p><p>')
+  html = html.replace(/\n/g, '<br />')
+
+  return '<p>' + html + '</p>'
 }
-
-
-
-
-
-
-
-
-

@@ -52,6 +52,63 @@ export interface AIExpandRequest {
 }
 
 /**
+ * AI配额信息
+ */
+export interface QuotaInfo {
+  userId: string
+  quotaId: string
+  quotaType: 'free' | 'paid' | 'trial'
+  totalQuota: number
+  usedQuota: number
+  remainingQuota: number
+  resetDate: string
+  isActive: boolean
+}
+
+/**
+ * 配额统计
+ */
+export interface QuotaStatistics {
+  totalUsers: number
+  activeUsers: number
+  totalQuotaAllocated: number
+  totalQuotaUsed: number
+  averageQuotaPerUser: number
+  topUsers: Array<{
+    userId: string
+    username: string
+    quotaUsed: number
+  }>
+}
+
+/**
+ * 配额交易记录
+ */
+export interface QuotaTransaction {
+  id: string
+  userId: string
+  type: 'allocate' | 'consume' | 'expire'
+  amount: number
+  balanceBefore: number
+  balanceAfter: number
+  reason?: string
+  createdAt: string
+}
+
+/**
+ * AI聊天会话
+ */
+export interface ChatSession {
+  id: string
+  userId: string
+  title?: string
+  messageCount: number
+  createdAt: string
+  updatedAt: string
+  lastMessageAt?: string
+}
+
+/**
  * AI对话接口
  * @param message 用户消息
  * @param history 对话历史（可选）
@@ -193,15 +250,116 @@ export const getAIModels = async (): Promise<any> => {
   return response || {}
 }
 
+/**
+ * ==================== AI配额管理 ====================
+ * 对接后端: /api/v1/ai/quota/*
+ */
+
+/**
+ * 获取配额信息
+ * GET /api/v1/ai/quota
+ */
+export const getQuotaInfo = async (): Promise<APIResponse<QuotaInfo>> => {
+  return httpService.get<APIResponse<QuotaInfo>>('/ai/quota')
+}
+
+/**
+ * 获取所有配额（管理员）
+ * GET /api/v1/ai/quota/all
+ */
+export const getAllQuotas = async (): Promise<APIResponse<QuotaInfo[]>> => {
+  return httpService.get<APIResponse<QuotaInfo[]>>('/ai/quota/all')
+}
+
+/**
+ * 获取配额统计（管理员）
+ * GET /api/v1/ai/quota/statistics
+ */
+export const getQuotaStatistics = async (): Promise<APIResponse<QuotaStatistics>> => {
+  return httpService.get<APIResponse<QuotaStatistics>>('/ai/quota/statistics')
+}
+
+/**
+ * 获取交易历史
+ * GET /api/v1/ai/quota/transactions
+ */
+export const getTransactionHistory = async (params?: {
+  page?: number
+  pageSize?: number
+}): Promise<PaginatedResponse<QuotaTransaction>> => {
+  return httpService.get<PaginatedResponse<QuotaTransaction>>('/ai/quota/transactions', { params })
+}
+
+/**
+ * ==================== AI会话管理 ====================
+ * 对接后端: /api/v1/ai/chat/sessions/*
+ */
+
+/**
+ * 获取会话列表
+ * GET /api/v1/ai/chat/sessions
+ */
+export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => {
+  return httpService.get<APIResponse<ChatSession[]>>('/ai/chat/sessions')
+}
+
+/**
+ * 获取会话历史
+ * GET /api/v1/ai/chat/sessions/:sessionId
+ */
+export const getSessionHistory = async (sessionId: string): Promise<APIResponse<ChatMessage[]>> => {
+  return httpService.get<APIResponse<ChatMessage[]>>(`/ai/chat/sessions/${sessionId}`)
+}
+
+/**
+ * 删除会话
+ * DELETE /api/v1/ai/chat/sessions/:sessionId
+ */
+export const deleteSession = async (sessionId: string): Promise<APIResponse<void>> => {
+  return httpService.delete<APIResponse<void>>(`/ai/chat/sessions/${sessionId}`)
+}
+
+/**
+ * 创建新会话
+ * POST /api/v1/ai/chat/sessions
+ */
+export const createSession = async (title?: string): Promise<APIResponse<ChatSession>> => {
+  return httpService.post<APIResponse<ChatSession>>('/ai/chat/sessions', { title })
+}
+
+/**
+ * 更新会话标题
+ * PUT /api/v1/ai/chat/sessions/:sessionId
+ */
+export const updateSession = async (
+  sessionId: string,
+  title: string
+): Promise<APIResponse<ChatSession>> => {
+  return httpService.put<APIResponse<ChatSession>>(`/ai/chat/sessions/${sessionId}`, { title })
+}
+
 export default {
+  // 写作辅助
   chatWithAI,
   continueWriting,
   polishText,
   expandText,
   rewriteText,
+  // 系统信息
   getAIHealth,
   getAIProviders,
-  getAIModels
+  getAIModels,
+  // 配额管理
+  getQuotaInfo,
+  getAllQuotas,
+  getQuotaStatistics,
+  getTransactionHistory,
+  // 会话管理
+  getChatSessions,
+  getSessionHistory,
+  deleteSession,
+  createSession,
+  updateSession
 }
 
 

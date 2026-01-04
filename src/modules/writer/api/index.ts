@@ -46,3 +46,9 @@ export {
   getWriterBooks,
   getRevenueRecords
 } from './revenue'
+
+// 导出功能 API
+export * from './export'
+
+// 发布管理 API
+export * from './publish'

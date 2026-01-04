@@ -166,7 +166,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { booksAPI } from '@/modules/reader/api/books'
+import { searchBooks } from '@/modules/bookstore/api/books'
+import { getCategoryTree } from '@/modules/bookstore/api/categories'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
@@ -224,12 +225,33 @@ const highlightKeyword = (text: string): string => {
 // 加载分类
 const loadCategories = async () => {
   try {
-    const response = await booksAPI.getAllCategories()
-    if (response.code === 200) {
-      categories.value = response.data
+    const response = await getCategoryTree()
+
+    // 处理 null 响应
+    if (!response || response == null) {
+      categories.value = []
+      return
+    }
+
+    if (Array.isArray(response)) {
+      // 展平分类树
+      const flatten = (cats: Category[]): Category[] => {
+        const result: Category[] = []
+        for (const cat of cats) {
+          result.push(cat)
+          if (cat.children && cat.children.length > 0) {
+            result.push(...flatten(cat.children))
+          }
+        }
+        return result
+      }
+      categories.value = flatten(response)
+    } else {
+      categories.value = []
     }
   } catch (error) {
     console.error('加载分类失败:', error)
+    categories.value = []
   }
 }
 
@@ -314,7 +336,7 @@ const clearSearch = () => {
 
 // 跳转到详情
 const goToDetail = (id: string) => {
-  router.push(`/books/${id}`)
+  router.push(`/bookstore/books/${id}`)
 }
 
 // 分页处理

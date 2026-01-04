@@ -117,3 +117,56 @@ export const documentApi = {
   // GET /api/v1/documents/{id}/content
   // getContent(documentId: string) { ... }
 }
+
+// ==========================================
+// 命名导出函数 (为了向后兼容 writerStore)
+// ==========================================
+
+/**
+ * 获取文档列表
+ */
+export const getDocuments = (projectId: string, params?: { page?: number; pageSize?: number }) => {
+  return documentApi.list(projectId, params)
+}
+
+/**
+ * 获取文档树
+ */
+export const getDocumentTree = (projectId: string) => {
+  return documentApi.getTree(projectId)
+}
+
+/**
+ * 获取文档详情
+ */
+export const getDocumentById = (documentId: string) => {
+  return documentApi.getDetail(documentId)
+}
+
+/**
+ * 创建文档
+ */
+export const createDocument = (projectId: string, data: CreateDocumentRequest) => {
+  return documentApi.create(projectId, data)
+}
+
+/**
+ * 更新文档元数据
+ */
+export const updateDocument = (documentId: string, data: UpdateDocumentMetaRequest) => {
+  return documentApi.update(documentId, data)
+}
+
+/**
+ * 删除文档
+ */
+export const deleteDocument = (documentId: string) => {
+  return documentApi.delete(documentId)
+}
+
+/**
+ * 移动文档
+ */
+export const moveDocument = (documentId: string, data: MoveDocumentRequest) => {
+  return documentApi.move(documentId, data)
+}

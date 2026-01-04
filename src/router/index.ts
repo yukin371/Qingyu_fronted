@@ -10,6 +10,18 @@ import readerRoutes from '@/modules/reader/routes'
 import userRoutes from '@/modules/user/routes'
 import writerRoutes from '@/modules/writer/routes'
 import adminRoutes from '@/modules/admin/routes'
+import financeRoutes from '@/modules/finance/routes'
+import notificationRoutes from '@/modules/notification/routes'
+import socialRoutes from '@/modules/social/routes'
+
+// 新增模块路由 (暂未实现，已注释)
+// import reviewRoutes from '@/modules/review/routes'
+// import discoveryRoutes from '@/modules/discovery/routes'
+// import booklistRoutes from '@/modules/booklist/routes'
+// import vipRoutes from '@/modules/vip/routes'
+// import communityRoutes from '@/modules/community/routes'
+// import achievementRoutes from '@/modules/achievement/routes'
+// import readingStatsRoutes from '@/modules/reading-stats/routes'
 
 // 定义路由元数据类型扩展
 declare module 'vue-router' {
@@ -24,12 +36,27 @@ declare module 'vue-router' {
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/bookstore' },
 
+  // 搜索路由重定向（兼容旧路径）
+  { path: '/search', redirect: to => ({ path: '/bookstore/search', query: to.query }) },
+
   ...authRoutes,
   ...bookstoreRoutes,
   ...readerRoutes,
   ...userRoutes,
   ...writerRoutes,
   ...adminRoutes,
+  ...financeRoutes,
+  ...notificationRoutes,
+  ...socialRoutes,
+
+  // 新增模块路由 (暂未实现，已注释)
+  // ...reviewRoutes,
+  // ...discoveryRoutes,
+  // ...booklistRoutes,
+  // ...vipRoutes,
+  // ...communityRoutes,
+  // ...achievementRoutes,
+  // ...readingStatsRoutes,
 
   // 404 处理 (必须放在最后)
   ...errorRoutes,

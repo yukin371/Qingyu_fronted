@@ -117,7 +117,7 @@
 import { ref, computed, watch } from 'vue'
 import {
   Search, Plus, MoreFilled, Edit, Delete,
-  DocumentCopy, EditPen
+  DocumentCopy, EditPen, Book
 } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'

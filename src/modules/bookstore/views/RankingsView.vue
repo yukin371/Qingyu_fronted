@@ -202,7 +202,7 @@ const loadMore = async (type: string) => {
 const handleItemClick = (item: any) => {
   const bookId = item.book?.id || item.book?._id || item.bookId
   if (bookId) {
-    router.push(`/books/${bookId}`)
+    router.push(`/bookstore/books/${bookId}`)
   } else {
     ElMessage.warning('无法获取书籍信息')
   }

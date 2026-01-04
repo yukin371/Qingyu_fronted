@@ -255,7 +255,7 @@ const continueReading = (item: ReadingHistory) => {
 
 // 跳转到书籍详情
 const goToBookDetail = (bookId: string) => {
-  router.push(`/books/${bookId}`)
+  router.push(`/bookstore/books/${bookId}`)
 }
 
 // 删除单条历史

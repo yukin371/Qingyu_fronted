@@ -223,7 +223,7 @@ import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
-  Search, ArrowDown, User, Collection, Clock, SwitchButton, Menu,
+  Search, User, Collection, Clock, SwitchButton, Menu,
   HomeFilled, Reading, Grid, TrendCharts, Lock, EditPen
 } from '@element-plus/icons-vue'
 
@@ -238,8 +238,8 @@ const showFooter = computed(() => !route.meta.hideFooter)
 
 // 菜单配置
 const menuItems = [
-  { name: '首页', path: '/' },
-  { name: '书库', path: '/books' },
+  { name: '首页', path: '/bookstore' },
+  { name: '书库', path: '/bookstore/books' },
   { name: '分类', path: '/bookstore/categories' },
   { name: '榜单', path: '/bookstore/rankings' },
 ]
@@ -272,11 +272,11 @@ const userDisplayName = computed(() => authStore.user?.nickname || authStore.use
 // 当前激活的菜单
 const activeMenu = computed(() => {
   const path = route.path
-  if (path === '/' || path === '/bookstore') return '/'
-  if (path.startsWith('/bookstore/books')) return '/books'
+  if (path === '/' || path === '/bookstore') return '/bookstore'
+  if (path.startsWith('/bookstore/books')) return '/bookstore/books'
   if (path.startsWith('/bookstore/categories')) return '/bookstore/categories'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
-  return '/'
+  return '/bookstore'
 })
 
 // 菜单选择处理
@@ -292,7 +292,7 @@ const handleSearch = () => {
     return
   }
   router.push({
-    path: '/search',
+    path: '/bookstore/search',
     query: { q: searchKeyword.value }
   })
 }
@@ -442,6 +442,7 @@ const handleUserCommand = async (command: string) => {
       /* 加粗 */
       background: linear-gradient(45deg, #2c3e50, #409eff);
       /* 渐变文字 */
+      background-clip: text;
       -webkit-background-clip: text;
       color: transparent;
       letter-spacing: 1px;

@@ -70,9 +70,42 @@ class BookstoreService {
 
   /**
    * Search books with filters
+   * 后端返回格式: { code, message, data: { books: [...], total: ... }, total, page, size }
    */
   async searchBooks(params: SearchParams): Promise<SearchResult> {
-    return await bookstoreAPI.searchBooks(params)
+    const response = await bookstoreAPI.searchBooks(params) as any
+
+    // 后端数据可能包含 data.books 或直接是 books 数组
+    let books: BookBrief[] = []
+    let total = 0
+    let page = params.page || 1
+    let size = params.size || params.page_size || 20
+
+    if (response) {
+      if (response.data) {
+        // 格式: { data: { books: [...], total: ... }, total, page, size }
+        books = response.data.books || []
+        total = response.data.total !== undefined ? response.data.total : response.total
+        page = response.page || page
+        size = response.size || size
+      } else if (Array.isArray(response)) {
+        // 直接返回数组
+        books = response
+        total = books.length
+      } else if (response.books) {
+        // 格式: { books: [...], total: ... }
+        books = response.books
+        total = response.total !== undefined ? response.total : books.length
+      }
+    }
+
+    return {
+      books,
+      total,
+      page,
+      size,
+      hasMore: page * size < total
+    }
   }
 
   /**

@@ -295,7 +295,7 @@ const saveProfile = async () => {
 
 // 跳转到书籍详情
 const goToBook = (bookId: string) => {
-  router.push(`/books/${bookId}`)
+  router.push(`/bookstore/books/${bookId}`)
 }
 </script>
 

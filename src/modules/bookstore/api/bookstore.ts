@@ -2,8 +2,8 @@
 import http from '@/core/services/http.service'
 import type { Book, BookDetail, BackendPaginatedResponse, BookStatus } from '../types/index'
 import type { PaginatedResponse, APIResponse } from '@/core/types/api.types'
-// 基础路径常量
-const BASE_URL = '/books'
+// 基础路径常量 - 对接后端 /api/v1/bookstore/books
+const BASE_URL = '/bookstore/books'
 
 /**
  * 辅助函数：将后端扁平的分页响应转换为前端统一的 PaginatedResponse 结构

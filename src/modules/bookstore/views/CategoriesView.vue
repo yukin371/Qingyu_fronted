@@ -115,15 +115,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Grid } from '@element-plus/icons-vue'
-import { booksAPI } from '@/modules/reader/api/books'
-import * as bookstoreAPI from '@/api/bookstore'
+import { getCategoryTree } from '@/modules/bookstore/api/categories'
+import { getBooksByCategory } from '@/modules/bookstore/api/categories'
 import BookGrid from '@bookstore/components/BookGrid.vue'
 import CategoryTree from '@bookstore/components/CategoryTree.vue'
-import type { Category, BookBrief, BookFilter } from '@/types/models'
+import type { Category, BookBrief } from '@/types/models'
+
+// 本地筛选条件类型（与页面UI对应）
+interface FilterValues {
+  status?: string
+  sortBy?: string
+  wordCountRange?: string
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -145,23 +152,29 @@ const currentPage = ref(1)
 const pageSize = ref(24)
 
 // 筛选条件
-const filters = reactive<Partial<BookFilter>>({
-  status: '',
+const filters = reactive<FilterValues>({
+  status: undefined,
   sortBy: 'updateTime',
-  wordCountRange: ''
+  wordCountRange: undefined
 })
 
 // 加载分类树
 const loadCategoryTree = async () => {
   treeLoading.value = true
   try {
-    const response = await booksAPI.getCategoryTree()
-    if (response.code === 200) {
-      categoryTree.value = response.data || []
+    const response = await getCategoryTree()
+
+    // 处理 null 响应
+    if (!response || response == null) {
+      categoryTree.value = []
+      return
     }
+
+    categoryTree.value = Array.isArray(response) ? response : []
   } catch (error: any) {
     console.error('加载分类树失败:', error)
     ElMessage.error(error.message || '加载分类失败')
+    categoryTree.value = []
   } finally {
     treeLoading.value = false
   }
@@ -170,7 +183,7 @@ const loadCategoryTree = async () => {
 // 查找分类
 const findCategory = (categories: Category[], id: string): Category | null => {
   for (const cat of categories) {
-    if (cat.id === id || cat._id === id) {
+    if (cat.id === id) {
       return cat
     }
     if (cat.children && cat.children.length > 0) {
@@ -188,17 +201,21 @@ const loadBooks = async () => {
   booksLoading.value = true
   try {
     const params = {
-      categoryId: selectedCategoryId.value,
       page: currentPage.value,
-      size: pageSize.value,
-      ...filters
+      pageSize: pageSize.value,
+      sort: filters.sortBy
     }
 
-    const response = await bookstoreAPI.getBooksByCategory(selectedCategoryId.value, params)
+    const response = await getBooksByCategory(selectedCategoryId.value, params)
 
-    if (response.code === 200) {
-      books.value = response.data?.books || response.data || []
-      bookTotal.value = response.data?.total || 0
+    // 处理响应
+    if (response && (response as any).code === 200) {
+      const data = (response as any).data
+      books.value = data?.books || data || []
+      bookTotal.value = data?.total || 0
+    } else {
+      books.value = Array.isArray(response) ? response : []
+      bookTotal.value = books.value.length
     }
   } catch (error: any) {
     console.error('加载书籍列表失败:', error)
@@ -210,17 +227,15 @@ const loadBooks = async () => {
 
 // 分类选择
 const handleCategorySelect = (category: Category) => {
-  selectedCategoryId.value = category.id || category._id || ''
+  selectedCategoryId.value = category.id || ''
   currentCategory.value = category
   currentPage.value = 1
 
-  // 更新URL
+  // 更新URL (不直接调用loadBooks，让watch来处理)
   router.push({
     path: '/bookstore/categories',
     query: { id: selectedCategoryId.value }
   })
-
-  loadBooks()
 }
 
 // 筛选变化
@@ -231,9 +246,9 @@ const handleFilterChange = () => {
 
 // 重置筛选
 const resetFilters = () => {
-  filters.status = ''
+  filters.status = undefined
   filters.sortBy = 'updateTime'
-  filters.wordCountRange = ''
+  filters.wordCountRange = undefined
   currentPage.value = 1
   loadBooks()
 }
@@ -253,18 +268,19 @@ const handleSizeChange = (size: number) => {
 
 // 书籍点击
 const handleBookClick = (book: BookBrief) => {
-  const bookId = book.id || book._id
-  router.push(`/books/${bookId}`)
+  const bookId = book.id || ''
+  router.push(`/bookstore/books/${bookId}`)
 }
 
 // 监听路由变化
-watch(() => route.query.id, (newId) => {
-  if (newId && typeof newId === 'string') {
+watch(() => route.query.id, (newId, oldId) => {
+  // 只在ID真正改变时才重新加载
+  if (newId && typeof newId === 'string' && newId !== oldId) {
     selectedCategoryId.value = newId
     currentCategory.value = findCategory(categoryTree.value, newId)
     loadBooks()
   }
-})
+}, { immediate: false }) // 不在初始化时立即执行
 
 // 页面初始化
 onMounted(async () => {
@@ -279,7 +295,10 @@ onMounted(async () => {
   } else if (categoryTree.value.length > 0) {
     // 默认选择第一个分类
     const firstCategory = categoryTree.value[0]
-    handleCategorySelect(firstCategory)
+    selectedCategoryId.value = firstCategory.id || ''
+    currentCategory.value = firstCategory
+    // 直接加载书籍，不通过router.push避免触发watch
+    await loadBooks()
   }
 })
 </script>
@@ -287,8 +306,8 @@ onMounted(async () => {
 <style scoped lang="scss">
 .categories-view {
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px 0;
+  background-color: #f8f9fb;
+  padding: 40px 0 60px;
 }
 
 .container {
@@ -299,65 +318,130 @@ onMounted(async () => {
 
 .page-header {
   text-align: center;
-  margin-bottom: 30px;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  color: white;
+  margin-bottom: 40px;
+  padding: 48px 24px;
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.08) 0%, rgba(102, 177, 255, 0.05) 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(64, 158, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
 
   .page-title {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    position: relative;
+    z-index: 1;
+
+    .el-icon {
+      color: #409eff;
+    }
   }
 
   .page-subtitle {
     margin: 0;
     font-size: 16px;
-    opacity: 0.9;
+    color: #666;
+    font-weight: 400;
   }
 }
 
 .category-tree-section {
   margin-bottom: 24px;
 
+  :deep(.el-card) {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 15px 45px -10px rgba(0, 0, 0, 0.08);
+    }
+
+    .el-card__header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .el-card__body {
+      padding: 24px;
+    }
+  }
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
+    font-size: 16px;
+    color: #2c3e50;
   }
 }
 
 .current-category {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 24px;
+  border-radius: 20px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+
+  :deep(.el-breadcrumb) {
+    font-size: 14px;
+    margin-bottom: 16px;
+
+    .el-breadcrumb__inner {
+      color: #666;
+
+      &:hover {
+        color: #409eff;
+      }
+    }
+  }
 
   .category-info {
-    margin-top: 16px;
-
     h2 {
       margin: 0 0 8px 0;
       font-size: 24px;
-      color: #303133;
+      color: #2c3e50;
+      font-weight: 700;
     }
 
     p {
-      margin: 0 0 12px 0;
-      color: #606266;
+      margin: 0 0 16px 0;
+      color: #666;
       line-height: 1.6;
+      font-size: 15px;
     }
 
     .category-stats {
       display: flex;
       gap: 12px;
+
+      :deep(.el-tag) {
+        background: linear-gradient(135deg, rgba(64, 158, 255, 0.1) 0%, rgba(102, 177, 255, 0.1) 100%);
+        border: 1px solid rgba(64, 158, 255, 0.2);
+        color: #409eff;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
     }
   }
 }
@@ -365,8 +449,40 @@ onMounted(async () => {
 .filter-card {
   margin-bottom: 24px;
 
+  :deep(.el-card) {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+
+    .el-card__body {
+      padding: 20px 24px;
+    }
+  }
+
   :deep(.el-select) {
     width: 100%;
+
+    .el-input__wrapper {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+    }
+  }
+
+  :deep(.el-button--primary) {
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.25);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(64, 158, 255, 0.35);
+    }
   }
 }
 
@@ -379,16 +495,37 @@ onMounted(async () => {
   justify-content: center;
   margin-top: 40px;
   padding-top: 24px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid #e8e8e8;
+
+  :deep(.el-pagination) {
+    .el-pager li {
+      border-radius: 8px;
+      font-weight: 600;
+
+      &.is-active {
+        background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+      }
+    }
+
+    button {
+      border-radius: 8px;
+    }
+  }
 }
 
 // 响应式
 @media (max-width: 768px) {
+  .categories-view {
+    padding: 20px 0 40px;
+  }
+
   .page-header {
-    padding: 30px 16px;
+    padding: 32px 20px;
+    margin-bottom: 24px;
 
     .page-title {
-      font-size: 24px;
+      font-size: 28px;
+      gap: 8px;
     }
 
     .page-subtitle {
@@ -396,10 +533,41 @@ onMounted(async () => {
     }
   }
 
+  .category-tree-section,
+  .current-category,
   .filter-card {
+    :deep(.el-card) {
+      border-radius: 16px;
+    }
+  }
+
+  .current-category {
+    padding: 16px;
+
+    .category-info {
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .filter-card {
+    :deep(.el-card__body) {
+      padding: 16px;
+    }
+
     :deep(.el-col) {
       margin-bottom: 12px;
     }
+  }
+
+  .pagination {
+    margin-top: 24px;
+    padding-top: 20px;
   }
 }
 </style>

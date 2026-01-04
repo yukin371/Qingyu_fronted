@@ -174,3 +174,46 @@ export const projectApi = {
     })
   },
 }
+
+// ==========================================
+// 便捷导出函数 (向后兼容 writerStore)
+// ==========================================
+
+/**
+ * 创建项目 - 便捷函数
+ */
+export const createProject = (data: CreateProjectRequest) => projectApi.create(data)
+
+/**
+ * 获取项目列表 - 便捷函数
+ */
+export const getProjects = (params?: ProjectListParams) => projectApi.list(params)
+
+/**
+ * 获取项目详情 - 便捷函数
+ */
+export const getProjectById = (id: string) => projectApi.getDetail(id)
+
+/**
+ * 更新项目 - 便捷函数
+ */
+export const updateProject = (id: string, data: UpdateProjectRequest) => projectApi.update(id, data)
+
+/**
+ * 删除项目 - 便捷函数
+ */
+export const deleteProject = (id: string) => projectApi.delete(id)
+
+// ==========================================
+// 类型别名 (向后兼容)
+// ==========================================
+
+/**
+ * 项目创建数据类型别名
+ */
+export type ProjectCreateData = CreateProjectRequest
+
+/**
+ * 项目更新数据类型别名
+ */
+export type ProjectUpdateData = UpdateProjectRequest

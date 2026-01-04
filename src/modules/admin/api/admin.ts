@@ -124,4 +124,196 @@ export async function getOperationLogs(params?: {
   return httpService.get<APIResponse<{ items: OperationLog[]; total: number }>>('/admin/logs', { params })
 }
 
+/**
+ * ==================== 配额管理 ====================
+ * 对接后端: /api/v1/admin/quota/*
+ */
+
+/**
+ * 获取用户配额详情
+ */
+export async function getUserQuotaDetails(userId: string): Promise<APIResponse<any>> {
+  return httpService.get<APIResponse<any>>(`/admin/quota/${userId}`)
+}
+
+/**
+ * 更新用户配额
+ */
+export async function updateUserQuota(userId: string, params: {
+  quotaType?: 'free' | 'paid' | 'trial'
+  totalQuota?: number
+  resetDate?: string
+}): Promise<APIResponse<void>> {
+  return httpService.put<APIResponse<void>>(`/admin/quota/${userId}`, params)
+}
+
+/**
+ * 暂停用户配额
+ */
+export async function suspendUserQuota(userId: string, reason?: string): Promise<APIResponse<void>> {
+  return httpService.post<APIResponse<void>>(`/admin/quota/${userId}/suspend`, { reason })
+}
+
+/**
+ * 激活用户配额
+ */
+export async function activateUserQuota(userId: string): Promise<APIResponse<void>> {
+  return httpService.post<APIResponse<void>>(`/admin/quota/${userId}/activate`)
+}
+
+/**
+ * 获取配额统计
+ */
+export async function getQuotaStatistics(): Promise<APIResponse<{
+  totalUsers: number
+  activeUsers: number
+  totalQuota: number
+  usedQuota: number
+}>> {
+  return httpService.get<APIResponse<any>>('/admin/quota/statistics')
+}
+
+/**
+ * ==================== 审核管理 ====================
+ * 对接后端: /api/v1/admin/audit/*
+ */
+
+/**
+ * 获取待审核内容
+ */
+export async function getPendingAudits(params?: {
+  page?: number
+  pageSize?: number
+  contentType?: string
+  riskLevel?: string
+}): Promise<APIResponse<{ items: any[]; total: number }>> {
+  return httpService.get<APIResponse<{ items: any[]; total: number }>>('/admin/audit/pending', { params })
+}
+
+/**
+ * 获取高风险审核
+ */
+export async function getHighRiskAudits(params?: {
+  page?: number
+  pageSize?: number
+}): Promise<APIResponse<{ items: any[]; total: number }>> {
+  return httpService.get<APIResponse<{ items: any[]; total: number }>>('/admin/audit/high-risk', { params })
+}
+
+/**
+ * 获取审核统计
+ */
+export async function getAuditStatistics(): Promise<APIResponse<{
+  pending: number
+  approved: number
+  rejected: number
+  highRisk: number
+}>> {
+  return httpService.get<APIResponse<any>>('/admin/audit/statistics')
+}
+
+/**
+ * 审核内容
+ */
+export async function reviewAudit(auditId: string, params: {
+  approved: boolean
+  reason?: string
+}): Promise<APIResponse<void>> {
+  return httpService.post<APIResponse<void>>(`/admin/audit/${auditId}/review`, params)
+}
+
+/**
+ * ==================== 公告管理 ====================
+ * 对接后端: /api/v1/admin/announcements/*
+ */
+
+/**
+ * 获取公告列表
+ */
+export async function getAnnouncements(params?: {
+  page?: number
+  pageSize?: number
+  status?: string
+}): Promise<APIResponse<{ items: any[]; total: number }>> {
+  return httpService.get<APIResponse<{ items: any[]; total: number }>>('/admin/announcements', { params })
+}
+
+/**
+ * 创建公告
+ */
+export async function createAnnouncement(data: {
+  title: string
+  content: string
+  type: 'system' | 'event' | 'maintenance'
+  priority: 'low' | 'medium' | 'high'
+  effectiveStartTime: string
+  effectiveEndTime: string
+}): Promise<APIResponse<any>> {
+  return httpService.post<APIResponse<any>>('/admin/announcements', data)
+}
+
+/**
+ * 更新公告
+ */
+export async function updateAnnouncement(id: string, data: any): Promise<APIResponse<any>> {
+  return httpService.put<APIResponse<any>>(`/admin/announcements/${id}`, data)
+}
+
+/**
+ * 删除公告
+ */
+export async function deleteAnnouncement(id: string): Promise<APIResponse<void>> {
+  return httpService.delete<APIResponse<void>>(`/admin/announcements/${id}`)
+}
+
+/**
+ * 批量更新公告状态
+ */
+export async function batchUpdateAnnouncementStatus(ids: string[], status: 'active' | 'inactive'): Promise<APIResponse<void>> {
+  return httpService.put<APIResponse<void>>('/admin/announcements/batch-status', { ids, status })
+}
+
+/**
+ * ==================== 配置管理 ====================
+ * 对接后端: /api/v1/admin/config/*
+ */
+
+/**
+ * 获取所有配置
+ */
+export async function getAllConfigs(): Promise<APIResponse<Record<string, any>>> {
+  return httpService.get<APIResponse<Record<string, any>>>('/admin/config')
+}
+
+/**
+ * 获取单个配置
+ */
+export async function getConfigByKey(key: string): Promise<APIResponse<any>> {
+  return httpService.get<APIResponse<any>>(`/admin/config/${key}`)
+}
+
+/**
+ * 更新配置
+ */
+export async function updateConfig(key: string, value: any): Promise<APIResponse<void>> {
+  return httpService.put<APIResponse<void>>('/admin/config', { key, value })
+}
+
+/**
+ * 批量更新配置
+ */
+export async function batchUpdateConfig(configs: Record<string, any>): Promise<APIResponse<void>> {
+  return httpService.put<APIResponse<void>>('/admin/config/batch', { configs })
+}
+
+/**
+ * 验证配置
+ */
+export async function validateConfig(configs: Record<string, any>): Promise<APIResponse<{
+  valid: boolean
+  errors?: string[]
+}>> {
+  return httpService.post<APIResponse<{ valid: boolean; errors?: string[] }>>('/admin/config/validate', { configs })
+}
+
 
