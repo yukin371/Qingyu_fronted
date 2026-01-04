@@ -1,7 +1,7 @@
 /**
  * 通知系统 API
  */
-import { http } from '@/core/http'
+import { httpService } from '@/core/services/http.service'
 import type {
   NotificationMessage,
   NotificationQuery,
@@ -13,7 +13,7 @@ import type {
  * 获取通知列表
  */
 export function getNotifications(params?: NotificationQuery) {
-  return http.get<{
+  return httpService.get<{
     code: number
     message: string
     data: {
@@ -29,7 +29,7 @@ export function getNotifications(params?: NotificationQuery) {
  * 获取通知统计
  */
 export function getNotificationStats() {
-  return http.get<{
+  return httpService.get<{
     code: number
     message: string
     data: NotificationStats
@@ -40,7 +40,7 @@ export function getNotificationStats() {
  * 标记单个通知为已读
  */
 export function markAsRead(notificationId: string) {
-  return http.put<{
+  return httpService.put<{
     code: number
     message: string
     data: { success: boolean }
@@ -51,7 +51,7 @@ export function markAsRead(notificationId: string) {
  * 批量标记为已读
  */
 export function markMultipleAsRead(notificationIds: string[]) {
-  return http.put<{
+  return httpService.put<{
     code: number
     message: string
     data: { success: boolean; affected: number }
@@ -64,7 +64,7 @@ export function markMultipleAsRead(notificationIds: string[]) {
  * 全部标记为已读
  */
 export function markAllAsRead(type?: string) {
-  return http.put<{
+  return httpService.put<{
     code: number
     message: string
     data: { success: boolean; affected: number }
@@ -77,7 +77,7 @@ export function markAllAsRead(type?: string) {
  * 删除通知
  */
 export function deleteNotification(notificationId: string) {
-  return http.delete<{
+  return httpService.delete<{
     code: number
     message: string
     data: { success: boolean }
@@ -88,7 +88,7 @@ export function deleteNotification(notificationId: string) {
  * 批量删除通知
  */
 export function deleteMultipleNotifications(notificationIds: string[]) {
-  return http.delete<{
+  return httpService.delete<{
     code: number
     message: string
     data: { success: boolean; affected: number }
@@ -101,7 +101,7 @@ export function deleteMultipleNotifications(notificationIds: string[]) {
  * 清空所有通知
  */
 export function clearAllNotifications(type?: string) {
-  return http.delete<{
+  return httpService.delete<{
     code: number
     message: string
     data: { success: boolean; affected: number }
@@ -114,7 +114,7 @@ export function clearAllNotifications(type?: string) {
  * 获取通知设置
  */
 export function getNotificationSettings() {
-  return http.get<{
+  return httpService.get<{
     code: number
     message: string
     data: NotificationSettings
@@ -125,7 +125,7 @@ export function getNotificationSettings() {
  * 更新通知设置
  */
 export function updateNotificationSettings(settings: Partial<NotificationSettings>) {
-  return http.put<{
+  return httpService.put<{
     code: number
     message: string
     data: NotificationSettings

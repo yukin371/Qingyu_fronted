@@ -185,9 +185,8 @@ import CharacterGraphView from './CharacterGraphView.vue'
 import EncyclopediaView from './EncyclopediaView.vue'
 
 // Utils
-import { renderMarkdown } from '@/utils/markdown'
-import { calculateWordCount } from '@/utils/editor'
-import { formatMarkdown } from '@/utils/editor'
+import { renderMarkdown } from '../utils/markdown'
+import { calculateWordCount, formatMarkdown } from '../utils/editor'
 
 // =======================
 // State

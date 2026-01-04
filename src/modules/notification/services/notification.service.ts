@@ -4,7 +4,7 @@
  */
 import { WebSocketService, createWebSocketService } from '@/core/services/websocket.service'
 import { PollingService, createPollingService } from '@/core/services/polling.service'
-import { http } from '@/core/http'
+import { httpService } from '@/core/services/http.service'
 import { getWebSocketEndpoint } from '../api'
 import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
 
@@ -142,7 +142,7 @@ export class NotificationService {
     page: number
     size: number
   }> {
-    const { data } = await http.get<{
+    const { data } = await httpService.get<{
       code: number
       message: string
       data: {
@@ -160,7 +160,7 @@ export class NotificationService {
    * 获取通知统计
    */
   async getNotificationStats(): Promise<NotificationStats> {
-    const { data } = await http.get<{
+    const { data } = await httpService.get<{
       code: number
       message: string
       data: NotificationStats
@@ -173,7 +173,7 @@ export class NotificationService {
    * 标记已读
    */
   async markAsRead(notificationId: string): Promise<boolean> {
-    const { data } = await http.put<{
+    const { data } = await httpService.put<{
       code: number
       message: string
       data: { success: boolean }
@@ -186,7 +186,7 @@ export class NotificationService {
    * 全部标记为已读
    */
   async markAllAsRead(type?: string): Promise<{ success: boolean; affected: number }> {
-    const { data } = await http.put<{
+    const { data } = await httpService.put<{
       code: number
       message: string
       data: { success: boolean; affected: number }
@@ -199,7 +199,7 @@ export class NotificationService {
    * 删除通知
    */
   async deleteNotification(notificationId: string): Promise<boolean> {
-    const { data } = await http.delete<{
+    const { data } = await httpService.delete<{
       code: number
       message: string
       data: { success: boolean }

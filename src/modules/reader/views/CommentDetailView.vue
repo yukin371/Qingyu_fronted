@@ -182,7 +182,7 @@ import BreadcrumbNav from '@/shared/components/common/BreadcrumbNav.vue'
 import SkeletonLoader from '@/shared/components/common/SkeletonLoader.vue'
 import CommentTree from '@/shared/components/common/CommentTree.vue'
 import { useAuthStore } from '@/stores/auth'
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 const route = useRoute()
 const router = useRouter()
@@ -217,7 +217,7 @@ const replyContent = ref('')
 const loadComment = async () => {
   loading.value = true
   try {
-    const response = await request.get(`/reader/comments/${commentId.value}`)
+    const response = await httpService.get(`/reader/comments/${commentId.value}`)
     comment.value = response.data
   } catch (error: any) {
     console.error('加载评论失败:', error)
@@ -232,7 +232,7 @@ const loadReplies = async () => {
   loadingReplies.value = true
   currentPage.value = 1
   try {
-    const response = await request.get(`/reader/comments/${commentId.value}/replies`, {
+    const response = await httpService.get(`/reader/comments/${commentId.value}/replies`, {
       params: {
         page: currentPage.value,
         size: 20,
@@ -254,7 +254,7 @@ const loadMoreReplies = async () => {
   loadingMore.value = true
   currentPage.value++
   try {
-    const response = await request.get(`/reader/comments/${commentId.value}/replies`, {
+    const response = await httpService.get(`/reader/comments/${commentId.value}/replies`, {
       params: {
         page: currentPage.value,
         size: 20,
@@ -280,12 +280,12 @@ const handleLike = async () => {
 
   try {
     if (comment.value.isLiked) {
-      await request.delete(`/reader/comments/${commentId.value}/like`)
+      await httpService.delete(`/reader/comments/${commentId.value}/like`)
       comment.value.isLiked = false
       comment.value.likeCount = Math.max(0, (comment.value.likeCount || 0) - 1)
       ElMessage.success('已取消点赞')
     } else {
-      await request.post(`/reader/comments/${commentId.value}/like`)
+      await httpService.post(`/reader/comments/${commentId.value}/like`)
       comment.value.isLiked = true
       comment.value.likeCount = (comment.value.likeCount || 0) + 1
       ElMessage.success('点赞成功')
@@ -309,7 +309,7 @@ const handleReply = async () => {
 
   submitting.value = true
   try {
-    await request.post(`/reader/comments/${commentId.value}/reply`, {
+    await httpService.post(`/reader/comments/${commentId.value}/reply`, {
       content: replyContent.value.trim()
     })
     ElMessage.success('回复成功')
@@ -339,7 +339,7 @@ const handleReplySubmit = async (replyCommentId: string, content: string) => {
   }
 
   try {
-    await request.post(`/reader/comments/${replyCommentId}/reply`, {
+    await httpService.post(`/reader/comments/${replyCommentId}/reply`, {
       content
     })
     ElMessage.success('回复成功')
@@ -361,7 +361,7 @@ const handleDeleteComment = async (deleteCommentId: string) => {
       type: 'warning'
     })
 
-    await request.delete(`/reader/comments/${deleteCommentId}`)
+    await httpService.delete(`/reader/comments/${deleteCommentId}`)
     ElMessage.success('删除成功')
 
     // 刷新回复列表
@@ -383,9 +383,9 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
 
   try {
     if (isLike) {
-      await request.post(`/reader/comments/${likeCommentId}/like`)
+      await httpService.post(`/reader/comments/${likeCommentId}/like`)
     } else {
-      await request.delete(`/reader/comments/${likeCommentId}/like`)
+      await httpService.delete(`/reader/comments/${likeCommentId}/like`)
     }
 
     // 更新本地数据

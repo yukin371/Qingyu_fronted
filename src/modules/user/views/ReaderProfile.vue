@@ -208,7 +208,7 @@ import { ElMessage } from 'element-plus'
 import { Picture, Clock, Reading, Document, Star } from '@element-plus/icons-vue'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 const route = useRoute()
 const router = useRouter()
@@ -250,7 +250,7 @@ const recentReadings = ref<any[]>([])
 const loadUserProfile = async () => {
   loading.value = true
   try {
-    const response = await request.get(`/users/${userId.value}/profile`)
+    const response = await httpService.get(`/users/${userId.value}/profile`)
     userProfile.value = response.data
 
     // 模拟统计数据
@@ -279,7 +279,7 @@ const loadBookshelf = async () => {
   loadingBookshelf.value = true
   try {
     // TODO: 调用书架API
-    // const response = await request.get(`/reader/bookshelf/${userId.value}`, {
+    // const response = await httpService.get(`/reader/bookshelf/${userId.value}`, {
     //   params: {
     //     page: bookshelfPagination.value.page,
     //     size: bookshelfPagination.value.size
@@ -303,7 +303,7 @@ const loadBookshelf = async () => {
 const loadRecentReadings = async () => {
   try {
     // TODO: 调用阅读历史API
-    // const response = await request.get(`/reader/history/${userId.value}`, {
+    // const response = await httpService.get(`/reader/history/${userId.value}`, {
     //   params: { limit: 5 }
     // })
     // recentReadings.value = response.data || []
@@ -347,7 +347,7 @@ const handleFollow = async () => {
   }
 
   try {
-    await request.post(`/users/${userId.value}/follow`)
+    await httpService.post(`/users/${userId.value}/follow`)
     isFollowing.value = true
     ElMessage.success('关注成功')
     if (userStats.value) {
@@ -362,7 +362,7 @@ const handleFollow = async () => {
 // 处理取消关注
 const handleUnfollow = async () => {
   try {
-    await request.delete(`/users/${userId.value}/follow`)
+    await httpService.delete(`/users/${userId.value}/follow`)
     isFollowing.value = false
     ElMessage.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {

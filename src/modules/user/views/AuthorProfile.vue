@@ -96,7 +96,7 @@ import { ElMessage } from 'element-plus'
 import { Picture, View, Star } from '@element-plus/icons-vue'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,7 +124,7 @@ const pagination = ref({
 const loadUserProfile = async () => {
   loading.value = true
   try {
-    const response = await request.get(`/users/${userId.value}/profile`)
+    const response = await httpService.get(`/users/${userId.value}/profile`)
     userProfile.value = response.data
 
     // 模拟统计数据（实际应该从API获取）
@@ -145,7 +145,7 @@ const loadUserProfile = async () => {
 const loadBooks = async () => {
   loadingBooks.value = true
   try {
-    const response = await request.get(`/users/${userId.value}/books`, {
+    const response = await httpService.get(`/users/${userId.value}/books`, {
       params: {
         page: pagination.value.page,
         size: pagination.value.size
@@ -171,7 +171,7 @@ const handleFollow = async () => {
 
   try {
     // TODO: 调用关注API
-    await request.post(`/users/${userId.value}/follow`)
+    await httpService.post(`/users/${userId.value}/follow`)
     isFollowing.value = true
     ElMessage.success('关注成功')
     if (userStats.value) {
@@ -187,7 +187,7 @@ const handleFollow = async () => {
 const handleUnfollow = async () => {
   try {
     // TODO: 调用取消关注API
-    await request.delete(`/users/${userId.value}/follow`)
+    await httpService.delete(`/users/${userId.value}/follow`)
     isFollowing.value = false
     ElMessage.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {

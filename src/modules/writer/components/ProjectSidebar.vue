@@ -5,7 +5,7 @@
       <div class="project-selector">
         <el-select v-model="internalProjectId" placeholder="选择书籍" size="default" filterable class="full-width">
           <template #prefix><el-icon>
-              <Book />
+              <Reading />
             </el-icon></template>
           <el-option v-for="p in projects" :key="p.id" :label="p.title" :value="p.id">
             <span class="option-label">{{ p.title }}</span>
@@ -117,7 +117,7 @@
 import { ref, computed, watch } from 'vue'
 import {
   Search, Plus, MoreFilled, Edit, Delete,
-  DocumentCopy, EditPen, Book
+  DocumentCopy, EditPen, Reading
 } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'

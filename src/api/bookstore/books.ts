@@ -9,8 +9,9 @@ import type {
   BookStatus,
   SearchParams,
   PaginationResponse,
+  PaginatedAPIResponse,
 } from '@/types/bookstore'
-import type { BackendPaginatedResponse } from '@/types/bookstore'
+import type { BackendPaginatedResponse, APIResponse } from '@/types/bookstore'
 
 /**
  * 辅助函数：转换分页响应
@@ -31,6 +32,28 @@ function transformPagination<T>(res: any): PaginationResponse<T> {
       has_previous: raw.page > 1,
     },
   }
+}
+
+// ==================== 书籍列表 ====================
+
+/**
+ * 获取书籍列表
+ * GET /api/v1/bookstore/books/recommended
+ */
+export function getBookList(params?: {
+  page?: number
+  size?: number
+  category?: string
+  status?: string
+  sort?: string
+  order?: string
+}): Promise<PaginatedAPIResponse> {
+  // 使用推荐接口作为书籍列表的默认实现
+  // 后端返回: { code, message, data: Book[], total, page, size }
+  return httpService.get<PaginatedAPIResponse>(
+    '/bookstore/books/recommended',
+    { params, returnFullResponse: true }
+  ) as Promise<PaginatedAPIResponse>
 }
 
 // ==================== 书籍详情 ====================
@@ -96,18 +119,6 @@ export async function searchByAuthor(author: string, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
     '/bookstore/books/search/author',
     { author, page, size },
-    { returnFullResponse: true }
-  )
-  return transformPagination<Book>(res)
-}
-
-/**
- * 按分类获取书籍
- */
-export async function getBooksByCategory(category: string, page = 1, size = 20) {
-  const res = await httpService.get<BackendPaginatedResponse<Book>>(
-    '/bookstore/books/category',
-    { category, page, size },
     { returnFullResponse: true }
   )
   return transformPagination<Book>(res)

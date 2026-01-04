@@ -470,7 +470,7 @@ const showExportDialog = ref(false)
 const planForm = reactive({
   name: '',
   type: 'free' as const,
-  platforms: ['all'] as const[],
+  platforms: ['all'],
   scheduleType: 'immediate' as const,
   intervalDays: 1,
   chaptersPerRelease: 1,
