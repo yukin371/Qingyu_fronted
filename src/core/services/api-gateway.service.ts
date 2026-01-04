@@ -12,11 +12,11 @@
 
 // 导入所有业务模块 API
 import * as bookstoreAPI from '@/api/bookstore'
-import * as readingAPI from '@/modules/reader/api'
-import * as userAPI from '@/modules/user/api'
-import * as sharedAPI from '@/modules/shared/api'
-import * as writingAPI from '@/modules/writer/api'
-import * as recommendationAPI from '@/modules/recommendation/api'
+import * as readerAPI from '@/api/reader'
+import * as userAPI from '@/api/user'
+import * as sharedAPI from '@/api/shared'
+import * as writerAPI from '@/api/writer'
+import * as recommendationAPI from '@/api/recommendation'
 import { httpService } from './http.service'
 
 /**
@@ -28,7 +28,7 @@ class APIGateway {
   public bookstore = bookstoreAPI
 
   // 阅读系统 API
-  public reading = readingAPI
+  public reader = readerAPI
 
   // 用户中心 API
   public user = userAPI
@@ -37,7 +37,7 @@ class APIGateway {
   public shared = sharedAPI
 
   // 写作系统 API
-  public writing = writingAPI
+  public writer = writerAPI
 
   // 推荐系统 API
   public recommendation = recommendationAPI
@@ -68,7 +68,7 @@ class APIGateway {
   /**
    * 通用 API 调用方法
    * 用于动态调用 API
-   * @param moduleName API 模块名（bookstore, reading, user, shared, writing, recommendation）
+   * @param moduleName API 模块名（bookstore, reader, user, shared, writer, recommendation）
    * @param methodName 方法名
    * @param args 参数
    */
@@ -79,7 +79,7 @@ class APIGateway {
   ): Promise<T> {
     const module = (this as any)[moduleName]
     if (!module) {
-      throw new Error(`API module "${moduleName}" not found. Available modules: bookstore, reading, user, shared, writing, recommendation`)
+      throw new Error(`API module "${moduleName}" not found. Available modules: bookstore, reader, user, shared, writer, recommendation`)
     }
 
     const method = module[methodName]

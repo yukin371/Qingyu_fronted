@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { walletAPI } from '@/modules/shared/api/wallet'
+import { walletAPI } from '@/api/shared/wallet'
 import type {
   WalletInfo,
   Transaction,

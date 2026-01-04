@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
-import { login, logout, register } from '@/modules/shared/api/auth'
+import { login, logout, register } from '@/api/shared/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -110,7 +110,7 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/modules/user/api/user.api')
+      const { userAPI } = await import('@/api/user')
       const response = await userAPI.getProfile()
       userInfo.value = response
       return response
@@ -148,7 +148,7 @@ export const useUserStore = defineStore('user', () => {
   async function updateProfile(data: any) {
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/modules/user/api/user.api')
+      const { userAPI } = await import('@/api/user')
       const response = await userAPI.updateProfile(data)
       updateUserInfo(response)
       return response
