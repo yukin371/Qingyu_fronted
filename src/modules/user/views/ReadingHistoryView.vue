@@ -162,7 +162,7 @@ import {
   User,
   Timer
 } from '@element-plus/icons-vue'
-import { historyAPI } from '@/modules/reader/api/history'
+import { historyAPI } from '@/api/reader'
 import type { ReadingHistory } from '@/types/reader'
 
 const router = useRouter()

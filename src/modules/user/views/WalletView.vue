@@ -250,7 +250,7 @@ import {
   ChatDotSquare
 } from '@element-plus/icons-vue'
 import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
-import { walletAPI } from '@/modules/shared/api/wallet'
+import { walletAPI } from '@/api/shared'
 import type { WalletInfo, Transaction } from '@/types/shared'
 
 // 加载状态

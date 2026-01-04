@@ -123,7 +123,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh, Download } from '@element-plus/icons-vue'
-import * as adminAPI from '@/modules/admin/api/admin'
+import * as adminAPI from '@/api/admin'
 import type { OperationLog } from '@/types/shared'
 import { formatDate } from '@/utils/format'
 

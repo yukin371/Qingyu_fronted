@@ -100,7 +100,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Picture, Close } from '@element-plus/icons-vue'
-import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api/history'
+import { getReadingHistory, deleteHistory, clearHistory } from '@/api/reader'
 import type { ReadingHistory } from '@/types/models'
 
 const router = useRouter()

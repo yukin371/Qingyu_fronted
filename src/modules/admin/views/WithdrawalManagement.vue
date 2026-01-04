@@ -184,7 +184,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-import * as adminAPI from '@/modules/admin/api/admin'
+import * as adminAPI from '@/api/admin'
 import type { WithdrawRecord } from '@/types/shared'
 import { formatDate } from '@/utils/format'
 

@@ -229,7 +229,7 @@ import {
   type RevenueStats as RevenueStatsType,
   type ChapterRevenue
 } from '@/api/writer/revenue'
-import { walletAPI } from '@/modules/shared/api/wallet'
+import { walletAPI } from '@/api/shared'
 
 const loading = ref(false)
 const withdrawing = ref(false)

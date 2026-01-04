@@ -96,7 +96,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/modules/reader/api/rating'
+import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/api/reader'
 
 interface Props {
   bookId: string

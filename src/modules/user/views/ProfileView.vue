@@ -129,7 +129,7 @@ import { ElMessage } from 'element-plus'
 import { Edit, Picture, Upload } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { userAPI } from '@/modules/user/api/user.api'
+import { userAPI } from '@/api/user'
 
 const router = useRouter()
 const userStore = useUserStore()

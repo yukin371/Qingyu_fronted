@@ -112,7 +112,7 @@ import { Search, User } from '@element-plus/icons-vue'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
 import { ElMessage } from 'element-plus'
-import { followAPI } from '@/modules/social/api/follow'
+import { followAPI } from '@/api/social'
 
 interface UserItem {
   id: string
