@@ -8,7 +8,7 @@ export { walletService } from './services/wallet.service'
 
 // API
 export { userAPI } from './api/user.api'
-export { walletAPI } from './api/wallet.api'
+// walletAPI 已移至 shared 模块，请从 @/modules/shared/api 导入
 
 // Stores
 export { useAuthStore } from '@/stores/auth'
