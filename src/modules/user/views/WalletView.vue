@@ -7,6 +7,10 @@
             <el-icon><Plus /></el-icon>
             充值
           </el-button>
+          <el-button @click="goToTransfer">
+            <el-icon><Sort /></el-icon>
+            转账
+          </el-button>
           <el-button @click="showWithdrawDialog = true">
             <el-icon><Minus /></el-icon>
             提现
@@ -239,6 +243,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import {
   Plus,
@@ -247,11 +252,14 @@ import {
   TrendCharts,
   ShoppingCart,
   CreditCard,
-  ChatDotSquare
+  ChatDotSquare,
+  Sort
 } from '@element-plus/icons-vue'
 import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
+
+const router = useRouter()
 
 // 加载状态
 const loading = ref(false)
@@ -493,6 +501,11 @@ async function submitWithdraw(): Promise<void> {
   } finally {
     withdrawing.value = false
   }
+}
+
+// 跳转到转账页面
+function goToTransfer() {
+  router.push('/user/transfer')
 }
 
 // 页面初始化

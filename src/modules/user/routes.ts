@@ -47,6 +47,12 @@ const userRoutes: RouteRecordRaw[] = [
         meta: { title: '我的钱包', requiresAuth: true }
       },
       {
+        path: 'transfer',
+        name: 'transfer',
+        component: () => import('./views/TransferView.vue'),
+        meta: { title: '转账', requiresAuth: true }
+      },
+      {
         path: 'user/:userId',
         name: 'user-profile',
         component: () => import('./views/AuthorProfile.vue'),
