@@ -551,12 +551,27 @@ const handleFollow = async () => {
     return
   }
 
+  // 测试模式检测
+  const isMockToken = authStore.token?.toString().includes('mock')
+
   try {
-    await httpService.post(`/users/${userId.value}/follow`)
-    isFollowing.value = true
-    ElMessage.success('关注成功')
-    if (userStats.value) {
-      userStats.value.followerCount++
+    if (isMockToken) {
+      // 测试模式：直接更新状态，不调用API
+      console.log('[测试模式] 关注操作')
+      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
+      isFollowing.value = true
+      ElMessage.success('关注成功')
+      if (userStats.value) {
+        userStats.value.followerCount++
+      }
+    } else {
+      // 生产模式：调用真实API
+      await httpService.post(`/users/${userId.value}/follow`)
+      isFollowing.value = true
+      ElMessage.success('关注成功')
+      if (userStats.value) {
+        userStats.value.followerCount++
+      }
     }
   } catch (error: any) {
     console.error('关注失败:', error)
@@ -566,12 +581,27 @@ const handleFollow = async () => {
 
 // 处理取消关注
 const handleUnfollow = async () => {
+  // 测试模式检测
+  const isMockToken = authStore.token?.toString().includes('mock')
+
   try {
-    await httpService.delete(`/users/${userId.value}/follow`)
-    isFollowing.value = false
-    ElMessage.success('已取消关注')
-    if (userStats.value && userStats.value.followerCount > 0) {
-      userStats.value.followerCount--
+    if (isMockToken) {
+      // 测试模式：直接更新状态，不调用API
+      console.log('[测试模式] 取消关注操作')
+      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
+      isFollowing.value = false
+      ElMessage.success('已取消关注')
+      if (userStats.value && userStats.value.followerCount > 0) {
+        userStats.value.followerCount--
+      }
+    } else {
+      // 生产模式：调用真实API
+      await httpService.delete(`/users/${userId.value}/follow`)
+      isFollowing.value = false
+      ElMessage.success('已取消关注')
+      if (userStats.value && userStats.value.followerCount > 0) {
+        userStats.value.followerCount--
+      }
     }
   } catch (error: any) {
     console.error('取消关注失败:', error)
