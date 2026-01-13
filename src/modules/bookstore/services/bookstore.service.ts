@@ -3,7 +3,7 @@
  * Business logic for bookstore operations
  */
 
-import * as bookstoreAPI from '@/api/bookstore'
+import * as bookstoreAPI from '@/modules/bookstore/api'
 import type {
   Book,
   BookBrief,

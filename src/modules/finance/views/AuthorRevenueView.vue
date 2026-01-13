@@ -308,7 +308,7 @@ import {
   getSettlements,
   getRevenueStatistics,
   type WithdrawalRequest
-} from '@/api/finance'
+} from '@/modules/finance/api'
 
 const activeTab = ref('earnings')
 const overview = ref<any>({})

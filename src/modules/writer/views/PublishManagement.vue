@@ -251,7 +251,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import { getProjects, type Project } from '@/api/writer'
+import { getProjects, type Project } from '@/modules/writer/api'
 
 const router = useRouter()
 

@@ -252,7 +252,7 @@ import {
   type Notification,
   type NotificationPreference,
   type NotificationType
-} from '@/api/notification'
+} from '@/modules/notification/api'
 
 const notifications = ref<Notification[]>([])
 const loading = ref(false)

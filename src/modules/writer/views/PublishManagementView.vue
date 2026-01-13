@@ -422,7 +422,7 @@ import {
   type PublishStats,
   publishTypeOptions,
   publishPlatformOptions
-} from '@/api/writer'
+} from '@/modules/writer/api'
 import {
   createExportTask,
   getExportHistory,
@@ -432,7 +432,7 @@ import {
   exportFormatOptions,
   exportScopeOptions,
   type ExportTask
-} from '@/api/writer'
+} from '@/modules/writer/api'
 
 // 假设从路由参数获取书籍ID
 const bookId = ref('')

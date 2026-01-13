@@ -106,7 +106,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Check, Refresh, FolderOpened } from '@element-plus/icons-vue'
-import * as configApi from '@/api/admin'
+import * as configApi from '@/modules/admin/api'
 
 const loading = ref(false)
 const saving = ref(false)

@@ -88,7 +88,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { More, Star, StarFilled, ChatDotRound } from '@element-plus/icons-vue'
-import { replyComment, likeComment, unlikeComment } from '@/api/reader'
+import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api'
 import { useAuthStore } from '@/stores/auth'
 
 interface Comment {

@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
-import { login, logout, register } from '@/api/shared/auth'
+import { login, logout, register } from '@/modules/shared/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 状态

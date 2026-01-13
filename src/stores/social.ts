@@ -4,7 +4,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { FollowStats, UserBrief } from '@/types/social'
-import { followAPI } from '@/api/social/follow'
+import { followAPI } from '@/modules/social/api/follow'
 
 export const useSocialStore = defineStore('social', () => {
   // 状态

@@ -202,7 +202,7 @@ import {
   type MembershipPlan,
   type UserMembership,
   type MembershipUsage
-} from '@/api/finance'
+} from '@/modules/finance/api'
 
 const membershipPlans = ref<MembershipPlan[]>([])
 const userMembership = ref<UserMembership | null>(null)

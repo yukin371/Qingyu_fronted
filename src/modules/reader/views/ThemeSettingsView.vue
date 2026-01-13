@@ -224,7 +224,7 @@ import {
   updateCustomTheme,
   deleteCustomTheme as apiDeleteTheme,
   type Theme
-} from '@/api/reader'
+} from '@/modules/reader/api'
 import {
   builtinFonts,
   fontSizeOptions,
@@ -235,7 +235,7 @@ import {
   updateFontSettings,
   type Font,
   type FontSettings
-} from '@/api/reader'
+} from '@/modules/reader/api'
 
 const activeTab = ref('theme')
 const saving = ref(false)

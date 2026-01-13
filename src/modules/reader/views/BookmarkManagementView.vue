@@ -128,7 +128,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Picture, Edit, Delete, Memo } from '@element-plus/icons-vue'
-import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/api/reader'
+import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/modules/reader/api'
 import type { Bookmark } from '@/types/models'
 
 const router = useRouter()

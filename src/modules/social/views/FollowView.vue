@@ -122,7 +122,7 @@ import {
   getRecommendedFollows,
   type UserFollowInfo,
   type FollowStats
-} from '@/api/social'
+} from '@/modules/social/api'
 
 const loading = ref(false)
 const activeTab = ref<'following' | 'followers' | 'mutual' | 'recommended'>('following')

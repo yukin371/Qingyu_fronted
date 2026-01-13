@@ -171,8 +171,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getBookList } from '@/api/bookstore'
-import { getAllCategories } from '@/api/bookstore'
+import { getBookList } from '@/modules/bookstore/api'
+import { getAllCategories } from '@/modules/bookstore/api'
 import { Grid, List, Picture, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category } from '@/types/models'
 import type { Book } from '@/types/bookstore'

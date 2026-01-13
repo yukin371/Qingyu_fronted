@@ -253,7 +253,7 @@ import {
   getHotBooklists,
   type Booklist,
   type BooklistItem
-} from '@/api/social'
+} from '@/modules/social/api'
 
 const loading = ref(false)
 const booklists = ref<Booklist[]>([])

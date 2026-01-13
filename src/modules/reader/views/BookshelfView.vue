@@ -210,8 +210,8 @@ import {
     getBookshelf,
     addToBookshelf,
     removeFromBookshelf
-} from '@/api/reader'
-import { getReadingHistory } from '@/api/reader'
+} from '@/modules/reader/api'
+import { getReadingHistory } from '@/modules/reader/api'
 
 const router = useRouter()
 

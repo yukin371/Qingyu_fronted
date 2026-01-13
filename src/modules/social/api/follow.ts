@@ -1,101 +1,134 @@
 /**
- * 关注系统 API 模块
- * 对接后端 /api/v1/social/follow/* 路由
- * 后端路由文档: Qingyu_backend/router/social/social_router.go
+ * 关注系统 API
  */
+import request from '../request'
 
-import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
+// 用户关系
+export interface UserRelation {
+  following_id: string
+  follower_id: string
+  created_at: string
+}
 
-/**
- * 用户基本信息（用于关注列表）
- */
-export interface UserInfo {
-  id: string
+// 用户关注信息
+export interface UserFollowInfo {
+  user_id: string
   username: string
-  nickname?: string
-  avatar?: string
+  avatar_url?: string
   bio?: string
-  followerCount: number
-  followingCount: number
-  isFollowing?: boolean
-  createdAt: string
+  follower_count: number
+  following_count: number
+  is_following?: boolean
+  is_followed_by?: boolean
+  created_at?: string
 }
 
-/**
- * 关注统计
- */
+// 关注统计
 export interface FollowStats {
-  followersCount: number
-  followingCount: number
+  follower_count: number
+  following_count: number
+  mutual_count: number
 }
 
 /**
- * 关注 API 接口 (v1.0)
- * 对接后端: /api/v1/social/follow/*
+ * 获取用户关注列表
  */
-export const followAPI = {
-  /**
-   * 关注用户
-   * POST /api/v1/social/follow/:userId
-   */
-  async followUser(userId: string): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>(`/social/follow/${userId}`)
-  },
-
-  /**
-   * 取消关注用户
-   * DELETE /api/v1/social/follow/:userId
-   */
-  async unfollowUser(userId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/follow/${userId}`)
-  },
-
-  /**
-   * 检查关注状态
-   * GET /api/v1/social/follow/:userId/status
-   */
-  async checkFollowStatus(userId: string): Promise<APIResponse<{ isFollowing: boolean }>> {
-    return httpService.get<APIResponse<{ isFollowing: boolean }>>(`/social/follow/${userId}/status`)
-  },
-
-  /**
-   * 获取用户的粉丝列表
-   * GET /api/v1/social/users/:userId/followers
-   */
-  async getFollowers(
-    userId: string,
-    params?: { page?: number; pageSize?: number }
-  ): Promise<PaginatedResponse<UserInfo>> {
-    return httpService.get<PaginatedResponse<UserInfo>>(`/social/users/${userId}/followers`, { params })
-  },
-
-  /**
-   * 获取用户的关注列表
-   * GET /api/v1/social/users/:userId/following
-   */
-  async getFollowing(
-    userId: string,
-    params?: { page?: number; pageSize?: number }
-  ): Promise<PaginatedResponse<UserInfo>> {
-    return httpService.get<PaginatedResponse<UserInfo>>(`/social/users/${userId}/following`, { params })
-  },
-
-  /**
-   * 获取关注统计
-   * GET /api/v1/social/users/:userId/follow-stats
-   */
-  async getFollowStats(userId: string): Promise<APIResponse<FollowStats>> {
-    return httpService.get<APIResponse<FollowStats>>(`/social/users/${userId}/follow-stats`)
-  }
+export function getFollowingList(params: {
+  user_id?: string
+  page?: number
+  page_size?: number
+}) {
+  return request<{
+    items: UserFollowInfo[]
+    total: number
+    page: number
+    page_size: number
+  }>({
+    url: '/api/v1/social/follow/following',
+    method: 'get',
+    params
+  })
 }
 
-// 向后兼容：导出旧的函数名
-export const followUser = (userId: string) => followAPI.followUser(userId)
-export const unfollowUser = (userId: string) => followAPI.unfollowUser(userId)
-export const checkFollowStatus = (userId: string) => followAPI.checkFollowStatus(userId)
-export const getFollowers = (userId: string, params?: any) => followAPI.getFollowers(userId, params)
-export const getFollowing = (userId: string, params?: any) => followAPI.getFollowing(userId, params)
-export const getFollowStats = (userId: string) => followAPI.getFollowStats(userId)
+/**
+ * 获取用户粉丝列表
+ */
+export function getFollowersList(params: {
+  user_id?: string
+  page?: number
+  page_size?: number
+}) {
+  return request<{
+    items: UserFollowInfo[]
+    total: number
+    page: number
+    page_size: number
+  }>({
+    url: '/api/v1/social/follow/followers',
+    method: 'get',
+    params
+  })
+}
 
-export default followAPI
+/**
+ * 关注用户
+ */
+export function followUser(userId: string) {
+  return request<{ success: boolean }>({
+    url: `/api/v1/social/follow/${userId}`,
+    method: 'post'
+  })
+}
+
+/**
+ * 取消关注用户
+ */
+export function unfollowUser(userId: string) {
+  return request<{ success: boolean }>({
+    url: `/api/v1/social/follow/${userId}`,
+    method: 'delete'
+  })
+}
+
+/**
+ * 获取关注统计
+ */
+export function getFollowStats(userId?: string) {
+  return request<FollowStats>({
+    url: '/api/v1/social/follow/stats',
+    method: 'get',
+    params: userId ? { user_id: userId } : undefined
+  })
+}
+
+/**
+ * 检查是否关注用户
+ */
+export function checkFollowStatus(userId: string) {
+  return request<{ is_following: boolean }>({
+    url: `/api/v1/social/follow/${userId}/status`,
+    method: 'get'
+  })
+}
+
+/**
+ * 获取推荐关注
+ */
+export function getRecommendedFollows(limit = 10) {
+  return request<UserFollowInfo[]>({
+    url: '/api/v1/social/follow/recommended',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 获取互关好友
+ */
+export function getMutualFollows(limit = 20) {
+  return request<UserFollowInfo[]>({
+    url: '/api/v1/social/follow/mutual',
+    method: 'get',
+    params: { limit }
+  })
+}

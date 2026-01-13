@@ -119,7 +119,7 @@ import {
   Stamp, User, Location, Document, Trophy
 } from '@element-plus/icons-vue'
 
-import { timelineApi } from '@/api/writer'
+import { timelineApi } from '@/modules/writer/api'
 import {
   type TimelineEvent,
   EventType,

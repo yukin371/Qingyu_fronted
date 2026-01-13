@@ -152,8 +152,8 @@ import {
   type BookStats as BookStatsType,
   type DailyStats as DailyStatsType,
   type ChapterStats as ChapterStatsType
-} from '@/api/writer/statistics'
-import { getWriterBooks } from '@/api/writer/revenue'
+} from '@/modules/writer/api/statistics'
+import { getWriterBooks } from '@/modules/writer/api/revenue'
 
 const loading = ref(false)
 const selectedBookId = ref('')

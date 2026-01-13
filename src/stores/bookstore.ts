@@ -5,10 +5,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Book, BookDetail, Category, Banner, HomepageData } from '@/types/bookstore'
-import { getHomepage } from '@/api/bookstore/homepage'
-import { getBookDetail } from '@/api/bookstore/books'
-import { getCategoryTree } from '@/api/bookstore/categories'
-import { getBanners } from '@/api/bookstore/banners'
+import { getHomepage } from '@/modules/bookstore/api/homepage'
+import { getBookDetail } from '@/modules/bookstore/api/books'
+import { getCategoryTree } from '@/modules/bookstore/api/categories'
+import { getBanners } from '@/modules/bookstore/api/banners'
 
 export const useBookstoreStore = defineStore('bookstore', () => {
   // 状态

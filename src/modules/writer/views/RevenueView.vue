@@ -228,8 +228,8 @@ import {
   getChapterRevenueRanking,
   type RevenueStats as RevenueStatsType,
   type ChapterRevenue
-} from '@/api/writer/revenue'
-import { walletAPI } from '@/api/shared'
+} from '@/modules/writer/api/revenue'
+import { walletAPI } from '@/modules/shared/api'
 
 const loading = ref(false)
 const withdrawing = ref(false)

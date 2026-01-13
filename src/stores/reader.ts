@@ -5,7 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Chapter, ChapterContent, ReaderSettings } from '@/types/reader'
-import readerAPI from '@/api/reader/reader'
+import readerAPI from '@/modules/reader/api/reader'
 
 export const useReaderStore = defineStore('reader', () => {
   // 状态

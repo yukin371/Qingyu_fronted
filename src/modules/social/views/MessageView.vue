@@ -240,7 +240,7 @@ import {
   type Conversation,
   type Message,
   type MessageType
-} from '@/api/social'
+} from '@/modules/social/api'
 
 const currentUserId = ref('') // 从用户状态获取
 const currentUserAvatar = ref('')

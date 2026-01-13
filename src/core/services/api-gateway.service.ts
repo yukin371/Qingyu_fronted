@@ -11,12 +11,12 @@
  */
 
 // 导入所有业务模块 API
-import * as bookstoreAPI from '@/api/bookstore'
-import * as readerAPI from '@/api/reader'
-import * as userAPI from '@/api/user'
-import * as sharedAPI from '@/api/shared'
-import * as writerAPI from '@/api/writer'
-import * as recommendationAPI from '@/api/recommendation'
+import * as bookstoreAPI from '@/modules/bookstore/api'
+import * as readerAPI from '@/modules/reader/api'
+import * as userAPI from '@/modules/user/api'
+import * as sharedAPI from '@/modules/shared/api'
+import * as writerAPI from '@/modules/writer/api'
+import * as recommendationAPI from '@/modules/recommendation/api'
 import { httpService } from './http.service'
 
 /**

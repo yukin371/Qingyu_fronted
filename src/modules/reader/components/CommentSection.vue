@@ -87,7 +87,7 @@ import { ref } from 'vue'
 import { Edit, Star, ChatDotRound } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
 import { ElMessage } from 'element-plus'
-import { commentAPI } from '@/api/reader'
+import { commentAPI } from '@/modules/reader/api'
 import type { Comment } from '@/types/reader'
 
 /**

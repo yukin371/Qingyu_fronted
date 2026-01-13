@@ -144,7 +144,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import * as announcementApi from '@/api/admin'
+import * as announcementApi from '@/modules/admin/api'
 
 const loading = ref(false)
 const announcements = ref<announcementApi.Announcement[]>([])

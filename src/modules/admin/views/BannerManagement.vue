@@ -127,7 +127,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import * as bannerApi from '@/api/admin'
+import * as bannerApi from '@/modules/admin/api'
 
 const loading = ref(false)
 const banners = ref<bannerApi.Banner[]>([])

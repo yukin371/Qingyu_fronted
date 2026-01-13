@@ -193,7 +193,7 @@ import {
   type Review,
   type ReviewComment,
   type ReviewType
-} from '@/api/social'
+} from '@/modules/social/api'
 
 const loading = ref(false)
 const reviews = ref<Review[]>([])
