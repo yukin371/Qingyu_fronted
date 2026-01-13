@@ -159,7 +159,7 @@ const loadStats = async () => {
     const res = await getFollowStats()
     Object.assign(stats, res)
   } catch (error: any) {
-    console.error('加载统计数据失败', error)
+    ElMessage.error(error.message || '加载统计数据失败')
   }
 }
 
@@ -296,9 +296,8 @@ const handleUnfollow = async (userId: string) => {
 
 // 查看用户主页
 const viewUserProfile = (userId: string) => {
-  // 跳转到用户主页
-  console.log('查看用户主页', userId)
-  // TODO: 实现跳转逻辑
+  // TODO: 实现跳转到用户主页逻辑
+  ElMessage.info(`跳转到用户 ${userId} 的主页`)
 }
 
 onMounted(() => {
