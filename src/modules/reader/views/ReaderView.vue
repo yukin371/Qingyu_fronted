@@ -26,7 +26,22 @@
             </h1>
 
             <!-- 章节内容 -->
-            <div v-if="currentChapter" class="chapter-content" v-html="formattedContent"></div>
+            <div v-if="currentChapter" class="chapter-content">
+              <div
+                v-for="(paragraph, index) in parsedParagraphs"
+                :key="index"
+                class="paragraph-wrapper"
+                :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
+                @click="handleParagraphClick(index)"
+              >
+                <p class="paragraph-text">{{ paragraph }}</p>
+                <CommentBadge
+                  v-if="getParagraphCommentCount(index) > 0"
+                  :comment-count="getParagraphCommentCount(index)"
+                  @click.stop="handleParagraphClick(index)"
+                />
+              </div>
+            </div>
 
             <!-- 空状态 -->
             <el-empty v-else description="加载中..." />
@@ -214,6 +229,16 @@
         </div>
       </div>
     </el-drawer>
+
+    <!-- 段落评论抽屉 -->
+    <CommentDrawer
+      v-model="commentDrawerVisible"
+      :paragraph-index="highlightedParagraphIndex ?? 0"
+      :comments="commentStore.currentComments"
+      :loading="commentStore.isLoading"
+      @like="commentStore.toggleLike"
+      @submit="handleCommentSubmit"
+    />
   </div>
 </template>
 
@@ -221,6 +246,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
+import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage } from 'element-plus'
@@ -229,10 +255,13 @@ import {
   Minus, Plus, Lock, MagicStick, FolderOpened
 } from '@element-plus/icons-vue'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
+import CommentBadge from '../components/comments/CommentBadge.vue'
+import CommentDrawer from '../components/comments/CommentDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
+const commentStore = useCommentStore()
 const { isMobile } = useResponsive()
 
 const chapterId = ref(route.params.chapterId as string)
@@ -253,6 +282,17 @@ const readingDuration = ref(0)
 const readingDurationTimer = ref<number | null>(null)
 const hasAddedToBookshelfThisSession = ref(false)
 const recommendedBooks = ref<any[]>([])
+
+// 段落评论相关状态
+const highlightedParagraphIndex = ref<number | null>(null)
+const commentDrawerVisible = ref(false)
+const parsedParagraphs = computed(() => {
+  if (!currentChapter.value?.content) return []
+  return currentChapter.value.content
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+})
 
 // 主题配置
 const themes = [
@@ -486,6 +526,51 @@ const stopReadingTimer = () => {
   }
 }
 
+// ========== 段落评论相关方法 ==========
+
+// 获取段落评论数量
+const getParagraphCommentCount = (paragraphIndex: number): number => {
+  if (!currentChapter.value) return 0
+  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
+  return commentStore.summaries.get(paragraphId)?.commentCount || 0
+}
+
+// 处理段落点击
+const handleParagraphClick = async (index: number) => {
+  highlightedParagraphIndex.value = index
+  await openCommentDrawer(index)
+}
+
+// 打开评论抽屉
+const openCommentDrawer = async (paragraphIndex: number) => {
+  if (!currentChapter.value) return
+
+  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
+  commentStore.selectParagraph(paragraphId)
+  await commentStore.loadParagraphComments(paragraphId)
+  commentDrawerVisible.value = true
+}
+
+// 关闭评论抽屉
+const closeCommentDrawer = () => {
+  commentDrawerVisible.value = false
+  commentStore.clearSelection()
+  highlightedParagraphIndex.value = null
+}
+
+// 处理评论提交
+const handleCommentSubmit = async (data: { content: string; emoji?: string }) => {
+  if (highlightedParagraphIndex.value === null || !currentChapter.value) return
+
+  await commentStore.addComment({
+    paragraphId: `${currentChapter.value.id}-${highlightedParagraphIndex.value}`,
+    chapterId: currentChapter.value.id,
+    paragraphIndex: highlightedParagraphIndex.value,
+    content: data.content,
+    emoji: data.emoji
+  })
+}
+
 const jumpToChapter = async (id: string) => {
   if (id === chapterId.value) return
 
@@ -615,6 +700,11 @@ onMounted(async () => {
 
   // 加载推荐书籍
   await loadRecommendedBooks()
+
+  // 加载段落评论摘要
+  if (currentChapter.value) {
+    await commentStore.loadChapterSummaries(currentChapter.value.id)
+  }
 
   // 启动阅读时长计时器
   startReadingTimer()
@@ -768,10 +858,28 @@ watch(() => route.params.chapterId, (newId) => {
   }
 
   .chapter-content {
-    :deep(p) {
+    .paragraph-wrapper {
+      position: relative;
       margin-bottom: 1em;
-      text-indent: 2em;
-      text-align: justify;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      border-radius: 4px;
+      padding: 4px;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+
+      &.is-highlighted {
+        background-color: rgba(255, 235, 59, 0.3);
+      }
+
+      .paragraph-text {
+        margin: 0;
+        text-indent: 2em;
+        text-align: justify;
+        line-height: inherit;
+      }
     }
   }
 }
