@@ -13,6 +13,7 @@ import adminRoutes from '@/modules/admin/routes'
 import financeRoutes from '@/modules/finance/routes'
 import notificationRoutes from '@/modules/notification/routes'
 import socialRoutes from '@/modules/social/routes'
+import aiRoutes from '@/modules/ai/routes'
 
 // 新增模块路由 (暂未实现，已注释)
 // import reviewRoutes from '@/modules/review/routes'
@@ -48,6 +49,7 @@ const routes: RouteRecordRaw[] = [
   ...financeRoutes,
   ...notificationRoutes,
   ...socialRoutes,
+  ...aiRoutes,
 
   // 新增模块路由 (暂未实现，已注释)
   // ...reviewRoutes,
