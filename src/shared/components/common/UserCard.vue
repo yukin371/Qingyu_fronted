@@ -52,7 +52,9 @@
             size="small"
             @click="handleFollow"
           >
-            <el-icon><{{ isFollowing ? 'Check' : 'Plus' }} /></el-icon>
+            <el-icon>
+              <component :is="isFollowing ? Check : Plus" />
+            </el-icon>
             {{ isFollowing ? '已关注' : '关注' }}
           </el-button>
 
