@@ -1,7 +1,7 @@
 /**
  * 阅读器字体管理 API
  */
-import request from '@/api/request'
+import request from '@/utils/request-adapter'
 
 // 字体类型
 export type FontType = 'serif' | 'sans-serif' | 'monospace' | 'custom'

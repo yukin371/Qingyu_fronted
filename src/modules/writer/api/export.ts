@@ -1,7 +1,7 @@
 /**
  * 写作导出 API
  */
-import request from '@/api/request'
+import request from '@/utils/request-adapter'
 
 // 导出格式
 export type ExportFormat = 'txt' | 'docx' | 'pdf' | 'markdown' | 'epub' | 'html'

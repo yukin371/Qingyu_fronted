@@ -1,7 +1,7 @@
 /**
  * 写作发布 API
  */
-import request from '@/api/request'
+import request from '@/utils/request-adapter'
 
 // 发布状态
 export type PublishStatus = 'draft' | 'pending_review' | 'scheduled' | 'published' | 'rejected' | 'unpublished'
