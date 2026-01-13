@@ -388,8 +388,22 @@ const recentReadings = ref<any[]>([])
 const loadUserProfile = async () => {
   loading.value = true
   try {
-    const response = await httpService.get(`/users/${userId.value}/profile`)
-    userProfile.value = response.data
+    // TODO: 调用用户信息API
+    // const response = await httpService.get(`/users/${userId.value}/profile`)
+    // userProfile.value = response.data
+
+    // 模拟用户信息 - 用于测试书架批量操作功能
+    userProfile.value = {
+      id: userId.value,
+      username: `user_${userId.value}`,
+      nickname: '测试用户',
+      avatar: 'https://picsum.photos/seed/user/200/200',
+      bio: '这是一个测试用户账号，用于演示书架批量操作功能。',
+      level: 5,
+      exp: 2580,
+      follower_count: 128,
+      following_count: 45
+    }
 
     // 模拟统计数据
     userStats.value = {
