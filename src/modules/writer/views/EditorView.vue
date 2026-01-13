@@ -332,7 +332,6 @@ const handleTitleChange = async (val: string) => {
 // 处理时间线事件点击
 const handleTimelineEventClick = (event: any) => {
   // 这里可以处理点击事件，例如跳转到对应文本位置，或弹出编辑框
-  console.log('Timeline event clicked:', event)
   ElMessage.info(`选中事件：${event.title}`)
   // 如果需要编辑，可以复用 TimelineBar 内部的逻辑，或者在这里弹窗
 }
