@@ -1,8 +1,9 @@
 <template>
-  <!-- 页面过渡动画 -->
-  <transition name="reader-fade" mode="out-in">
-    <div class="reader-view" :class="themeClass" key="reader">
-      <el-container v-loading="loading">
+  <div class="reader-page">
+    <!-- 页面过渡动画 -->
+    <transition name="reader-fade" mode="out-in">
+      <div class="reader-view" :class="themeClass" key="reader">
+        <el-container v-loading="loading">
         <!-- 顶部导航栏 -->
         <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }">
           <div class="header-left">
@@ -113,9 +114,9 @@
             </el-button>
           </div>
         </el-footer>
-      </el-container>
-    </div>
-  </transition>
+        </el-container>
+      </div>
+    </transition>
 
     <!-- 目录抽屉 -->
     <el-drawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">

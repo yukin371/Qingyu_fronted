@@ -64,4 +64,45 @@ npm run type-check
 
 - 📖 [API文档](./src/api/README.md)
 - 🏗️ [前端架构](./doc/architecture/)
+- 🚀 [部署指南](./deployment-guide.md)
 - 🧪 [API测试工具](./src/views/ComprehensiveAPITestView.vue) - 访问 `/api-test-comprehensive`
+
+## 快速开始
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
+
+```bash
+npm run dev
+```
+
+### 生产构建
+
+```bash
+npm run build
+```
+
+## 环境变量
+
+复制 `.env.example` 到 `.env.local` 并配置：
+
+```bash
+cp .env.example .env.local
+```
+
+## 性能优化
+
+- ✅ 代码分割和懒加载
+- ✅ 手动 chunk 分包优化
+- ✅ CSS 代码分割
+- ✅ Gzip 压缩
+- ✅ Tree shaking
+
+构建产物：
+- 主 bundle: ~372 KB (gzip)
+- 符合性能要求 (< 500 KB gzip)
