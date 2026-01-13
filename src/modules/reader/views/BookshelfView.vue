@@ -286,11 +286,13 @@ async function loadBooks(): Promise<void> {
 
         // 更新状态计数
         if (response?.total !== undefined) {
-            // 如果总数是0，显示提示
-            console.log(`书架书籍总数: ${response.total}`)
+            statusCounts.value = {
+                reading: books.value.filter(b => b.status === 'reading').length,
+                want_to_read: books.value.filter(b => b.status === 'want_to_read').length,
+                completed: books.value.filter(b => b.status === 'completed').length
+            }
         }
     } catch (error: any) {
-        console.error('加载书架失败:', error)
         ElMessage.error(error.message || '加载书架失败')
     }
 }
@@ -299,36 +301,30 @@ async function loadHistory(): Promise<void> {
     try {
         const response = await getReadingHistory({
             page: historyPage.value,
-            size: historyPageSize.value
+            pageSize: historyPageSize.value
         })
 
         const data = response.data || response
         histories.value = Array.isArray(data) ? data : (data.data || [])
         historyTotal.value = data.total || (response as any).total || 0
     } catch (error: any) {
-        console.error('加载历史记录失败:', error)
+        ElMessage.error(error.message || '加载历史记录失败')
     }
 }
 
 async function loadStats(): Promise<void> {
     try {
-        // 从后端获取统计数据
-        const response = await getReadingHistory({
-            page: 1,
-            size: 1
-        })
-
         // 计算统计信息
         const finishedCount = books.value.filter(b => b.status === 'completed').length
 
         stats.value = {
             totalBooks: books.value.length,
-            totalTime: 0, // 需要从progress API获取
+            totalTime: 0,
             finishedBooks: finishedCount,
-            todayTime: 0 // 需要从progress API获取
+            todayTime: 0
         }
-    } catch (error) {
-        console.error('加载统计数据失败:', error)
+    } catch (error: any) {
+        ElMessage.error(error.message || '加载统计数据失败')
         // 使用默认值
         stats.value = {
             totalBooks: books.value.length,

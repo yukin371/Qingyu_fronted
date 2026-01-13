@@ -178,7 +178,6 @@ async function loadHistory(): Promise<void> {
     histories.value = Array.isArray(data) ? data : (data.data || [])
     total.value = data.total || (response as any).total || 0
   } catch (error: any) {
-    console.error('加载历史记录失败:', error)
     ElMessage.error(error.message || '加载历史记录失败')
   } finally {
     loading.value = false
@@ -210,7 +209,6 @@ async function removeHistory(id: string): Promise<void> {
     ElMessage.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error(error.message || '删除失败')
     }
   }
@@ -235,7 +233,6 @@ async function clearAll(): Promise<void> {
     ElMessage.success('已清空阅读历史')
   } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('清空失败:', error)
       ElMessage.error(error.message || '清空失败')
     }
   }

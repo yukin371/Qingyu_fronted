@@ -319,9 +319,8 @@ const loadChapter = async () => {
     if (chapterList.value.length === 0 && currentChapter.value) {
       await readerStore.loadChapterList(currentChapter.value.bookId)
     }
-  } catch (error) {
-    console.error('加载章节失败:', error)
-    ElMessage.error('加载章节失败')
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载章节失败')
   } finally {
     loading.value = false
   }
@@ -349,7 +348,7 @@ const saveCurrentProgress = async () => {
       await readerStore.updateReadingTime(currentChapter.value.bookId, duration)
     }
   } catch (error) {
-    console.error('保存进度失败:', error)
+    // 静默失败，避免影响阅读体验
   }
 }
 
