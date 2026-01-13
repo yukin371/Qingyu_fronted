@@ -43,7 +43,10 @@ export const useReaderStore = defineStore('reader', () => {
 
       // 检测测试模式
       const authStore = useAuthStore()
-      const isMockToken = authStore.token?.toString().includes('mock')
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      console.log('[DEBUG] token:', token, 'isMockToken:', isMockToken)
 
       if (isMockToken) {
         // 测试模式：使用模拟数据
@@ -153,7 +156,8 @@ export const useReaderStore = defineStore('reader', () => {
     try {
       // 检测测试模式
       const authStore = useAuthStore()
-      const isMockToken = authStore.token?.toString().includes('mock')
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
 
       if (isMockToken) {
         // 测试模式：使用模拟数据
@@ -188,6 +192,18 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function loadSettings() {
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：使用默认设置，不调用API
+        console.log('[测试模式] 使用默认阅读设置')
+        return settings.value
+      }
+
+      // 生产模式：调用真实API
       const res = await readerAPI.getSettings()
       const data = res.data as any
       settings.value = { ...settings.value, ...data }
@@ -205,6 +221,19 @@ export const useReaderStore = defineStore('reader', () => {
   async function updateSettings(newSettings: Partial<ReaderSettings>) {
     try {
       settings.value = { ...settings.value, ...newSettings }
+
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地更新，不调用API
+        console.log('[测试模式] 更新阅读设置（仅本地）')
+        return settings.value
+      }
+
+      // 生产模式：调用真实API
       const res = await readerAPI.updateSettings(newSettings as any)
       return res.data as any
     } catch (error) {
@@ -230,6 +259,18 @@ export const useReaderStore = defineStore('reader', () => {
     }
 
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地保存，不调用API
+        console.log('[测试模式] 保存阅读进度（仅本地）')
+        return
+      }
+
+      // 生产模式：调用真实API
       await readerAPI.saveProgress({
         bookId: currentChapter.value.bookId,
         chapterId: currentChapter.value.id,
@@ -246,6 +287,18 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number) {
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地保存，不调用API
+        console.log('[测试模式] 保存进度（仅本地）')
+        return
+      }
+
+      // 生产模式：调用真实API
       await readerAPI.saveProgress({
         bookId,
         chapterId,
