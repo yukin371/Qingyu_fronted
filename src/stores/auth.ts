@@ -122,6 +122,23 @@ export const useAuthStore = defineStore('auth', {
     // 初始化认证状态
     async initAuth(): Promise<void> {
       if (this.token) {
+        // 检查是否是测试模式的mock token
+        const isMockToken = this.token?.toString().startsWith('mock-') || this.token?.toString().includes('mock')
+
+        if (isMockToken) {
+          // 测试模式：直接使用localStorage中的用户数据，不调用API
+          console.log('[测试模式] 使用模拟登录状态')
+          this.isLoggedIn = true
+          // 从storage恢复user数据（如果还没有的话）
+          if (!this.user) {
+            this.user = storage.get<User>(STORAGE_KEYS.USER)
+            this.roles = this.user?.roles || ['reader']
+            this.permissions = this.user?.permissions || []
+          }
+          return
+        }
+
+        // 生产模式：调用API获取用户信息
         try {
           await this.getUserInfo()
           this.isLoggedIn = true
