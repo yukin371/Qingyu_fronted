@@ -1,51 +1,121 @@
 <template>
-  <div class="reader-view" :class="themeClass">
-    <el-container v-loading="loading">
-      <!-- 顶部导航栏 -->
-      <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }">
-        <div class="header-left">
-          <el-button text @click="goBack" :icon="ArrowLeft">返回</el-button>
-          <span class="book-title">{{ bookTitle }}</span>
-        </div>
-        <div class="header-right">
-          <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button">AI助手</el-button>
-          <el-button text @click="toggleCatalog" :icon="List">目录</el-button>
-          <el-button text @click="toggleSettings" :icon="Setting">设置</el-button>
-        </div>
-      </el-header>
+  <!-- 页面过渡动画 -->
+  <transition name="reader-fade" mode="out-in">
+    <div class="reader-view" :class="themeClass" key="reader">
+      <el-container v-loading="loading">
+        <!-- 顶部导航栏 -->
+        <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }">
+          <div class="header-left">
+            <el-button text @click="goBack" :icon="ArrowLeft">返回</el-button>
+            <span class="book-title">{{ bookTitle }}</span>
+          </div>
+          <div class="header-right">
+            <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button">AI助手</el-button>
+            <el-button text @click="toggleCatalog" :icon="List">目录</el-button>
+            <el-button text @click="toggleSettings" :icon="Setting">设置</el-button>
+          </div>
+        </el-header>
 
-      <!-- 阅读内容区 -->
-      <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter">
-        <div class="reader-container" :style="containerStyle">
-          <!-- 章节标题 -->
-          <h1 v-if="currentChapter" class="chapter-title">
-            {{ currentChapter.title }}
-          </h1>
+        <!-- 阅读内容区 -->
+        <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll">
+          <div class="reader-container" :style="containerStyle">
+            <!-- 章节标题 -->
+            <h1 v-if="currentChapter" class="chapter-title">
+              {{ currentChapter.title }}
+            </h1>
 
-          <!-- 章节内容 -->
-          <div v-if="currentChapter" class="chapter-content" v-html="formattedContent"></div>
+            <!-- 章节内容 -->
+            <div v-if="currentChapter" class="chapter-content" v-html="formattedContent"></div>
 
-          <!-- 空状态 -->
-          <el-empty v-else description="加载中..." />
-        </div>
-      </el-main>
+            <!-- 空状态 -->
+            <el-empty v-else description="加载中..." />
 
-      <!-- 底部导航栏 -->
-      <el-footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }">
-        <div class="footer-progress">
-          <span class="progress-text">{{ progressText }}</span>
-          <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
-        </div>
-        <div class="footer-nav">
-          <el-button @click="previousChapter" :disabled="!hasPreviousChapter" :icon="ArrowLeftBold">
-            上一章
-          </el-button>
-          <el-button @click="nextChapter" :disabled="!hasNextChapter" :icon="ArrowRightBold">
-            下一章
-          </el-button>
-        </div>
-      </el-footer>
-    </el-container>
+            <!-- 章节结束推荐区 -->
+            <div v-if="showChapterEndRecommendation" class="chapter-end-recommendation">
+              <el-divider>本章完</el-divider>
+
+              <div class="recommendation-card">
+                <h3>📚 阅读完成！</h3>
+                <p class="read-time">本次阅读时长: {{ formatReadingTime }}</p>
+
+                <!-- 操作按钮 -->
+                <div class="action-buttons">
+                  <el-button
+                    v-if="hasNextChapter"
+                    type="primary"
+                    size="large"
+                    @click="nextChapterAndAddToBookshelf"
+                  >
+                    <el-icon><ArrowRightBold /></el-icon>
+                    继续阅读下一章
+                  </el-button>
+
+                  <el-button
+                    v-else
+                    type="success"
+                    size="large"
+                    @click="goBackToBookDetail"
+                  >
+                    <el-icon><FolderOpened /></el-icon>
+                    返回作品详情
+                  </el-button>
+                </div>
+
+                <!-- 自动加入书架提示 -->
+                <div v-if="!isInBookshelf" class="add-to-bookshelf-tip">
+                  <el-alert
+                    title="已自动添加到书架"
+                    type="success"
+                    :closable="false"
+                    show-icon
+                  >
+                    <template #default>
+                      <p>本书已添加到您的书架，方便继续阅读</p>
+                    </template>
+                  </el-alert>
+                </div>
+
+                <!-- 相关推荐 -->
+                <div v-if="recommendedBooks.length > 0" class="recommended-books">
+                  <h4>你可能还喜欢</h4>
+                  <div class="book-list">
+                    <div
+                      v-for="book in recommendedBooks"
+                      :key="book.id"
+                      class="book-item"
+                      @click="goToBook(book.id)"
+                    >
+                      <el-image :src="book.cover" fit="cover" class="book-cover" />
+                      <div class="book-info">
+                        <div class="book-title">{{ book.title }}</div>
+                        <div class="book-author">{{ book.author }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-main>
+
+        <!-- 底部导航栏 -->
+        <el-footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }">
+          <div class="footer-progress">
+            <span class="progress-text">{{ progressText }}</span>
+            <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
+          </div>
+          <div class="footer-nav">
+            <el-button @click="previousChapter" :disabled="!hasPreviousChapter" :icon="ArrowLeftBold">
+              上一章
+            </el-button>
+            <el-button @click="nextChapter" :disabled="!hasNextChapter" :icon="ArrowRightBold">
+              下一章
+            </el-button>
+          </div>
+        </el-footer>
+      </el-container>
+    </div>
+  </transition>
 
     <!-- 目录抽屉 -->
     <el-drawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">
@@ -155,7 +225,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { ElMessage } from 'element-plus'
 import {
   ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,
-  Minus, Plus, Lock, MagicStick
+  Minus, Plus, Lock, MagicStick, FolderOpened
 } from '@element-plus/icons-vue'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
 
@@ -174,6 +244,14 @@ const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
 const startTime = ref(Date.now())
 const readerContainerRef = ref()
+
+// 阅读流程优化相关状态
+const showChapterEndRecommendation = ref(false)
+const isInBookshelf = ref(false)
+const readingDuration = ref(0)
+const readingDurationTimer = ref<number | null>(null)
+const hasAddedToBookshelfThisSession = ref(false)
+const recommendedBooks = ref<any[]>([])
 
 // 主题配置
 const themes = [
@@ -229,6 +307,16 @@ const formattedContent = computed(() => {
     .join('')
 })
 
+// 阅读时长格式化
+const formatReadingTime = computed(() => {
+  const minutes = Math.floor(readingDuration.value / 60)
+  const seconds = readingDuration.value % 60
+  if (minutes > 0) {
+    return `${minutes}分${seconds}秒`
+  }
+  return `${seconds}秒`
+})
+
 // 方法
 const goBack = () => {
   router.back()
@@ -262,6 +350,139 @@ const nextChapter = async () => {
   await saveCurrentProgress()
   await readerStore.loadNextChapter()
   scrollToTop()
+}
+
+// ========== 阅读流程优化方法 ==========
+
+// 处理内容滚动，检测章节结束
+const handleContentScroll = () => {
+  const scrollTop = window.scrollY
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+
+  if (scrollHeight > 0) {
+    readProgress.value = Math.round((scrollTop / scrollHeight) * 100)
+
+    // 检测是否滚动到底部（进度>=95%）
+    if (readProgress.value >= 95 && !showChapterEndRecommendation.value) {
+      showChapterEndRecommendation.value = true
+    }
+  }
+}
+
+// 下一章并自动添加到书架
+const nextChapterAndAddToBookshelf = async () => {
+  // 自动添加到书架（如果还没添加）
+  await addToBookshelf()
+
+  // 进入下一章
+  showChapterEndRecommendation.value = false
+  await nextChapter()
+}
+
+// 返回书籍详情
+const goBackToBookDetail = () => {
+  if (currentChapter.value?.bookId) {
+    router.push(`/bookstore/books/${currentChapter.value.bookId}`)
+  } else {
+    router.back()
+  }
+}
+
+// 跳转到推荐书籍
+const goToBook = (bookId: string) => {
+  router.push(`/bookstore/books/${bookId}`)
+}
+
+// 自动添加到书架
+const addToBookshelf = async () => {
+  if (hasAddedToBookshelfThisSession.value || isInBookshelf.value) {
+    return
+  }
+
+  try {
+    // TODO: 调用添加到书架API
+    // await readerStore.addToBookshelf(currentChapter.value.bookId)
+
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    hasAddedToBookshelfThisSession.value = true
+    isInBookshelf.value = true
+
+    // 显示轻提示
+    ElMessage.success({
+      message: '已添加到书架',
+      duration: 2000,
+      showClose: false
+    })
+  } catch (error) {
+    console.error('添加到书架失败:', error)
+  }
+}
+
+// 检查是否在书架中
+const checkBookshelfStatus = async () => {
+  if (!currentChapter.value?.bookId) return
+
+  try {
+    // TODO: 调用检查书架API
+    // const inBookshelf = await readerStore.checkInBookshelf(currentChapter.value.bookId)
+    // isInBookshelf.value = inBookshelf
+
+    // 模拟：不在书架中
+    isInBookshelf.value = false
+  } catch (error) {
+    console.error('检查书架状态失败:', error)
+  }
+}
+
+// 加载推荐书籍
+const loadRecommendedBooks = async () => {
+  try {
+    // TODO: 调用推荐API
+    // const books = await readerStore.getRecommendedBooks(currentChapter.value.bookId)
+    // recommendedBooks.value = books
+
+    // 模拟推荐数据
+    recommendedBooks.value = [
+      {
+        id: 'rec1',
+        title: '玄幻巅峰',
+        author: '天蚕',
+        cover: 'https://picsum.photos/seed/rec1/80/120'
+      },
+      {
+        id: 'rec2',
+        title: '都市修仙',
+        author: '我吃西红柿',
+        cover: 'https://picsum.photos/seed/rec2/80/120'
+      },
+      {
+        id: 'rec3',
+        title: '科幻世界',
+        author: '刘慈欣',
+        cover: 'https://picsum.photos/seed/rec3/80/120'
+      }
+    ]
+  } catch (error) {
+    console.error('加载推荐书籍失败:', error)
+  }
+}
+
+// 启动阅读时长计时器
+const startReadingTimer = () => {
+  readingDuration.value = 0
+  readingDurationTimer.value = setInterval(() => {
+    readingDuration.value++
+  }, 1000) as any
+}
+
+// 停止阅读时长计时器
+const stopReadingTimer = () => {
+  if (readingDurationTimer.value) {
+    clearInterval(readingDurationTimer.value)
+    readingDurationTimer.value = null
+  }
 }
 
 const jumpToChapter = async (id: string) => {
@@ -388,8 +609,17 @@ onMounted(async () => {
   await loadChapter()
   await readerStore.loadSettings()
 
-  // 监听滚动
-  window.addEventListener('scroll', handleScroll)
+  // 检查书架状态
+  await checkBookshelfStatus()
+
+  // 加载推荐书籍
+  await loadRecommendedBooks()
+
+  // 启动阅读时长计时器
+  startReadingTimer()
+
+  // 监听滚动（使用新的处理函数）
+  window.addEventListener('scroll', handleContentScroll)
 
   // 监听键盘
   window.addEventListener('keydown', handleKeyPress)
@@ -425,8 +655,11 @@ onUnmounted(() => {
   // 保存进度
   saveCurrentProgress()
 
+  // 停止阅读时长计时器
+  stopReadingTimer()
+
   // 清理监听器
-  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('scroll', handleContentScroll)
   window.removeEventListener('keydown', handleKeyPress)
 
   // 清理定时器
@@ -684,6 +917,141 @@ watch(() => route.params.chapterId, (newId) => {
 
     .el-button {
       width: 100%;
+    }
+  }
+}
+
+// ========== 阅读流程优化样式 ==========
+
+// 页面过渡动画
+.reader-fade-enter-active,
+.reader-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.reader-fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.reader-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+// 章节结束推荐区
+.chapter-end-recommendation {
+  margin-top: 60px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  color: white;
+
+  .recommendation-card {
+    h3 {
+      font-size: 28px;
+      margin: 0 0 16px 0;
+      text-align: center;
+    }
+
+    .read-time {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 32px;
+      opacity: 0.9;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 32px;
+
+      .el-button {
+        min-width: 200px;
+        height: 50px;
+        font-size: 18px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+      }
+    }
+
+    .add-to-bookshelf-tip {
+      margin-bottom: 32px;
+
+      :deep(.el-alert) {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+
+        .el-alert__title {
+          color: white;
+        }
+
+        .el-alert__description {
+          color: rgba(255, 255, 255, 0.9);
+        }
+      }
+    }
+
+    .recommended-books {
+      h4 {
+        font-size: 18px;
+        margin: 0 0 16px 0;
+        text-align: center;
+      }
+
+      .book-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+
+        .book-item {
+          display: flex;
+          gap: 12px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+          }
+
+          .book-cover {
+            width: 60px;
+            height: 80px;
+            border-radius: 4px;
+            flex-shrink: 0;
+          }
+
+          .book-info {
+            flex: 1;
+            min-width: 0;
+
+            .book-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: white;
+              margin-bottom: 4px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .book-author {
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.7);
+            }
+          }
+        }
+      }
     }
   }
 }
