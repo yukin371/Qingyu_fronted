@@ -24,7 +24,13 @@
     /* Path Alias */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@bookstore/*": ["src/modules/bookstore/*"],
+      "@reader/*": ["src/modules/reader/*"],
+      "@user/*": ["src/modules/user/*"],
+      "@writer/*": ["src/modules/writer/*"],
+      "@admin/*": ["src/modules/admin/*"],
+      "@shared/*": ["src/modules/shared/*"]
     },
 
     /* Types */

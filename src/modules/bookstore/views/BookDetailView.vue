@@ -473,9 +473,12 @@ const loadChapters = async () => {
 // 加载推荐书籍
 const loadRecommendations = async () => {
   try {
-    recommendedBooks.value = []
+    const { getSimilarBooks } = await import('@/modules/bookstore/api')
+    const response = await getSimilarBooks(bookId, 6)
+    recommendedBooks.value = Array.isArray(response) ? response : []
   } catch (error) {
     console.error('加载推荐书籍失败:', error)
+    recommendedBooks.value = []
   }
 }
 
