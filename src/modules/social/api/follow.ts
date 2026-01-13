@@ -132,3 +132,17 @@ export function getMutualFollows(limit = 20) {
     params: { limit }
   })
 }
+
+/**
+ * 关注系统 API 对象
+ */
+export const followAPI = {
+  getFollowingList,
+  getFollowersList,
+  followUser,
+  unfollowUser,
+  getFollowStats,
+  checkFollowStatus,
+  getRecommendedFollows,
+  getMutualFollows
+}

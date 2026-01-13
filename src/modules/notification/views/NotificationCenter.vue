@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
-import { Loading, Success, Warning } from '@element-plus/icons-vue'
+import { Loading, CircleCheck, Warning } from '@element-plus/icons-vue'
 import NotificationList from '../components/NotificationList.vue'
 import { useNotificationStore } from '@/stores/notification'
 
@@ -45,7 +45,7 @@ const connectionStatusIcon = computed(() => {
   if (!connectionStatus.value.connected) {
     return Warning
   }
-  return connectionStatus.value.mode === 'websocket' ? Success : Loading
+  return connectionStatus.value.mode === 'websocket' ? CircleCheck : Loading
 })
 
 const connectionStatusText = computed(() => {

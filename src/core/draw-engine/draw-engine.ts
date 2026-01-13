@@ -2,7 +2,7 @@
  * 青羽通用绘制引擎 - 核心实现
  */
 
-import { v4 as uuidv4 } from 'nanoid'
+import { nanoid } from 'nanoid'
 import type {
   DrawNode,
   DrawEdge,
@@ -39,7 +39,7 @@ export class DrawEngine {
     this.history = { undo: [], redo: [] }
 
     this.canvas = {
-      id: uuidv4(),
+      id: nanoid(),
       type: config.type,
       title: '',
       description: '',
@@ -82,7 +82,7 @@ export class DrawEngine {
    */
   createNode(label: string, x: number, y: number, metadata?: Record<string, any>): DrawNode {
     const node: DrawNode = {
-      id: uuidv4(),
+      id: nanoid(),
       type: 'node',
       label,
       x: this.config.snapToGrid ? Math.round(x / this.config.gridSize!) * this.config.gridSize! : x,
@@ -179,7 +179,7 @@ export class DrawEngine {
    */
   createEdge(fromNodeId: string, toNodeId: string, label?: string): DrawEdge {
     const edge: DrawEdge = {
-      id: uuidv4(),
+      id: nanoid(),
       type: 'curve',
       fromNodeId,
       toNodeId,

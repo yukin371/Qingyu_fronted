@@ -15,6 +15,13 @@ export function getAllCategories(): Promise<APIResponse<Category[]>> {
 }
 
 /**
+ * 别名：获取所有分类
+ */
+export function getCategories(): Promise<APIResponse<Category[]>> {
+  return getAllCategories()
+}
+
+/**
  * 获取分类树
  * GET /api/v1/bookstore/categories/tree
  */

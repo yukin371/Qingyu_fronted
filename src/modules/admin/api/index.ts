@@ -19,5 +19,11 @@ export {
   getUserList,
   updateUser,
   deleteUser,
-  getOperationLogs
+  getOperationLogs,
+  getConfigBackups,
+  restoreConfigBackup,
+  getBanners,
+  createBanner,
+  updateBanner,
+  deleteBanner
 } from './admin'

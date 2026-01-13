@@ -103,10 +103,10 @@ export function verifyEmail() {
 }
 
 /**
- * 修改密码
+ * 修改密码（安全版）
  * PUT /api/v1/users/password/change
  */
-export function changePassword(data: {
+export function changePasswordSecure(data: {
   oldPassword: string
   newPassword: string
 }) {

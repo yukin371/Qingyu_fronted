@@ -316,4 +316,68 @@ export async function validateConfig(configs: Record<string, any>): Promise<APIR
   return httpService.post<APIResponse<{ valid: boolean; errors?: string[] }>>('/admin/config/validate', { configs })
 }
 
+/**
+ * ==================== 配置备份 ====================
+ * 对接后端: /api/v1/admin/config/backup/*
+ */
+
+/**
+ * 获取配置备份列表
+ */
+export async function getConfigBackups(): Promise<APIResponse<any[]>> {
+  return httpService.get<APIResponse<any[]>>('/admin/config/backups')
+}
+
+/**
+ * 恢复配置备份
+ */
+export async function restoreConfigBackup(backupId: string): Promise<APIResponse<void>> {
+  return httpService.post<APIResponse<void>>(`/admin/config/backups/${backupId}/restore`)
+}
+
+/**
+ * ==================== Banner管理 ====================
+ * 对接后端: /api/v1/admin/banners/*
+ */
+
+/**
+ * 获取Banner列表
+ */
+export async function getBanners(params?: {
+  page?: number
+  pageSize?: number
+  position?: string
+  status?: string
+}): Promise<APIResponse<{ items: any[]; total: number }>> {
+  return httpService.get<APIResponse<{ items: any[]; total: number }>>('/admin/banners', { params })
+}
+
+/**
+ * 创建Banner
+ */
+export async function createBanner(data: {
+  title: string
+  imageUrl: string
+  link?: string
+  position: string
+  sortOrder?: number
+  startTime?: string
+  endTime?: string
+}): Promise<APIResponse<any>> {
+  return httpService.post<APIResponse<any>>('/admin/banners', data)
+}
+
+/**
+ * 更新Banner
+ */
+export async function updateBanner(id: string, data: any): Promise<APIResponse<any>> {
+  return httpService.put<APIResponse<any>>(`/admin/banners/${id}`, data)
+}
+
+/**
+ * 删除Banner
+ */
+export async function deleteBanner(id: string): Promise<APIResponse<void>> {
+  return httpService.delete<APIResponse<void>>(`/admin/banners/${id}`)
+}
 

@@ -51,7 +51,7 @@ import {
   Trophy,
   Wallet,
   Reading,
-  At
+  Promotion
 } from '@element-plus/icons-vue'
 import type { NotificationMessage, NotificationType } from '@/types/notification'
 
@@ -85,7 +85,7 @@ const iconMap: Record<NotificationType, any> = {
   vip: Trophy,
   achievement: Trophy,
   book_update: Reading,
-  mention: At
+  mention: Promotion
 }
 
 // 颜色映射

@@ -181,3 +181,13 @@ export function resendNotification(notificationId: string, channels: Notificatio
     data: { channels }
   })
 }
+
+/**
+ * 获取WebSocket端点
+ */
+export function getWebSocketEndpoint() {
+  return request<{ url: string }>({
+    url: '/api/v1/notifications/ws-endpoint',
+    method: 'get'
+  })
+}

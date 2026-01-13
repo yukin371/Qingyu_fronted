@@ -110,7 +110,7 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/api/user')
+      const { userAPI } = await import('@/modules/shared/api/auth')
       const response = await userAPI.getProfile()
       userInfo.value = response
       return response
@@ -148,7 +148,7 @@ export const useUserStore = defineStore('user', () => {
   async function updateProfile(data: any) {
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/api/user')
+      const { userAPI } = await import('@/modules/shared/api/auth')
       const response = await userAPI.updateProfile(data)
       updateUserInfo(response)
       return response

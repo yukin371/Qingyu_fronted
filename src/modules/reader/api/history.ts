@@ -98,7 +98,7 @@ export const historyAPI = {
 }
 
 // 向后兼容：导出旧的函数名
-export const getReadingHistory = (params?: any) => historyAPI.getReadingHistories(params)
+export const getReadingHistories = (params?: any) => historyAPI.getReadingHistories(params)
 export const recordReadingHistory = (data: any) => historyAPI.recordReadingHistory(data)
 export const deleteHistory = (id: string) => historyAPI.deleteHistory(id)
 export const batchDeleteHistory = (ids: string[]) => historyAPI.batchDeleteHistory(ids)

@@ -36,7 +36,7 @@ export { collectionsAPI, addCollection, getCollections, updateCollection, delete
 
 // 阅读历史
 export * from './history'
-export { historyAPI, getReadingHistory, recordReadingHistory, deleteHistory, batchDeleteHistory, clearAllHistory, clearHistory } from './history'
+export { historyAPI, getReadingHistories, recordReadingHistory, deleteHistory, batchDeleteHistory, clearAllHistory, clearHistory } from './history'
 
 // 评分功能
 export * from './rating'
