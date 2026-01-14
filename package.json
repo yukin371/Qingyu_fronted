@@ -5,8 +5,14 @@
   "description": "青羽写作平台前端项目",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "build:staging": "vite build --mode staging",
+    "build:prod": "vite build --mode production",
+    "type-check": "vue-tsc --noEmit",
+    "preview": "vite preview",
+    "deploy:vercel": "node scripts/deploy.js vercel",
+    "deploy:cloudbase": "node scripts/deploy.js cloudbase",
+    "deploy:server": "node scripts/deploy.js server"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",

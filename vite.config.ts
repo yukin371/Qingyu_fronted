@@ -21,7 +21,22 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    open: true
+    open: true,
+    proxy: {
+      // API代理到后端
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      },
+      // WebSocket代理（实时通知、评论等）
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+        changeOrigin: true
+      }
+    }
   },
   build: {
     // 提高chunk大小警告阈值
