@@ -106,8 +106,7 @@ export function searchBooks(params: SearchParams) {
 export async function searchByTitle(title: string, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
     '/bookstore/books/search/title',
-    { title, page, size },
-    { returnFullResponse: true }
+    { params: { title, page, size }, returnFullResponse: true }
   )
   return transformPagination<Book>(res)
 }
@@ -118,8 +117,7 @@ export async function searchByTitle(title: string, page = 1, size = 20) {
 export async function searchByAuthor(author: string, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
     '/bookstore/books/search/author',
-    { author, page, size },
-    { returnFullResponse: true }
+    { params: { author, page, size }, returnFullResponse: true }
   )
   return transformPagination<Book>(res)
 }
@@ -130,8 +128,7 @@ export async function searchByAuthor(author: string, page = 1, size = 20) {
 export async function getBooksByStatus(status: BookStatus, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
     '/bookstore/books/status',
-    { status, page, size },
-    { returnFullResponse: true }
+    { params: { status, page, size }, returnFullResponse: true }
   )
   return transformPagination<Book>(res)
 }
@@ -142,8 +139,7 @@ export async function getBooksByStatus(status: BookStatus, page = 1, size = 20) 
 export async function getBooksByTags(tags: string[], page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
     '/bookstore/books/tags',
-    { tags: tags.join(','), page, size },
-    { returnFullResponse: true }
+    { params: { tags: tags.join(','), page, size }, returnFullResponse: true }
   )
   return transformPagination<Book>(res)
 }
@@ -172,21 +168,21 @@ export function getFeaturedBooks(limit = 10) {
  * 获取热门书籍
  */
 export function getPopularBooks(limit = 10) {
-  return httpService.get<Book[]>('/bookstore/books/popular', { limit })
+  return httpService.get<Book[]>('/bookstore/books/popular', { params: { limit } })
 }
 
 /**
  * 获取最新书籍
  */
 export function getLatestBooks(limit = 10) {
-  return httpService.get<Book[]>('/bookstore/books/latest', { limit })
+  return httpService.get<Book[]>('/bookstore/books/latest', { params: { limit } })
 }
 
 /**
  * 获取相似书籍推荐
  */
 export function getSimilarBooks(bookId: string, limit = 10) {
-  return httpService.get<Book[]>(`/bookstore/books/${bookId}/similar`, { limit })
+  return httpService.get<Book[]>(`/bookstore/books/${bookId}/similar`, { params: { limit } })
 }
 
 // ==================== 交互操作 ====================
