@@ -62,40 +62,61 @@ Qingyu_fronted/
 
 ## 快速开始
 
+> 💡 **首次使用？** 查看 [快速开始指南](./docs/QUICK_START.md) 获取详细步骤
+
 ### 环境要求
 
-- Node.js >= 16.x
-- npm >= 8.x 或 pnpm >= 7.x
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
 
-### 安装依赖
+### 安装与启动
 
 ```bash
+# 1. 安装依赖
 npm install
+
+# 2. 启动开发服务器
+npm run dev
+
+# 3. 访问应用
+# 前端: http://localhost:5173
+# 后端: http://localhost:8080 (需单独启动)
 ```
 
-### 开发模式
-
-启动开发服务器（默认端口 5173）：
+### 完整服务（前端+后端）
 
 ```bash
+# 终端1: 启动后端
+cd Qingyu_backend
+go run cmd/server/main.go
+
+# 终端2: 启动前端
+cd Qingyu_fronted
 npm run dev
 ```
-
-访问 http://localhost:5173
 
 ### 生产构建
 
 ```bash
+# 开发环境
+npm run dev
+
+# 生产构建
 npm run build
-```
 
-构建产物将输出到 `dist/` 目录。
-
-### 预览构建
-
-```bash
+# 预览构建
 npm run preview
 ```
+
+---
+
+📚 **更多文档：**
+- [快速开始指南](./docs/QUICK_START.md) - 5分钟上手
+- [使用指南](./docs/USER_GUIDE.md) - 完整功能说明
+- [API连接配置](./docs/api-connection-guide.md) - 环境配置
+- [部署指南](./docs/deployment-guide.md) - 生产部署
+
+---
 
 ## 开发指南
 
@@ -123,18 +144,25 @@ export default [
 
 ### API调用
 
-使用统一的 request 工具进行 API 调用：
+使用统一的 `httpService` 进行 API 调用：
 
 ```typescript
-import request from '@/utils/request'
+import { httpService } from '@/core/services/http.service'
 
-export const getBookList = (params: BookListParams) => {
-  return request<BookListResponse>({
-    url: '/api/books',
-    method: 'get',
-    params
-  })
+export const getBookList = (params?: BookListParams) => {
+  return httpService.get<BookListResponse>('/books', { params })
 }
+
+export const getBookDetail = (bookId: string) => {
+  return httpService.get<BookDetail>(`/books/${bookId}`)
+}
+```
+
+每个模块都有自己的API文件，位于 `src/modules/{module}/api/`：
+```typescript
+// 使用模块API
+import { getBookList, getBookDetail } from '@bookstore/api'
+import { addToBookshelf } from '@reader/api'
 ```
 
 ### 状态管理
@@ -182,16 +210,59 @@ export const useUserStore = defineStore('user', {
 - Gzip: ~372 KB
 - 符合性能要求（< 500KB gzip）
 
-## 环境变量
+## 环境配置
 
-在项目根目录创建 `.env.local` 文件：
+项目支持三种环境配置：
+
+- `.env.development` - 本地开发环境
+- `.env.staging` - 预发布/测试环境
+- `.env.production` - 生产环境
+
+### 开发环境配置
+
+开发环境使用 Vite Proxy 代理API请求，无需额外配置：
 
 ```bash
-# API 基础路径
-VITE_API_BASE_URL=http://localhost:8080/api
+# .env.development（已配置）
+VITE_API_BASE_URL=/api/v1
+VITE_WS_BASE_URL=/ws
+```
 
-# 其他配置
-VITE_APP_TITLE=青羽阅读
+启动开发服务器：
+```bash
+npm run dev
+```
+
+### 生产环境配置
+
+根据部署平台修改 `.env.production`：
+
+**腾讯云 CloudBase：**
+```bash
+VITE_API_BASE_URL=https://your-env-id.service.tcloudbase.com/api/v1
+```
+
+**自有服务器：**
+```bash
+VITE_API_BASE_URL=https://yourdomain.com/api/v1
+```
+
+详细的配置说明请参考 [API连接配置指南](./docs/api-connection-guide.md)
+
+### 构建命令
+
+```bash
+# 开发环境
+npm run dev
+
+# 生产构建
+npm run build
+
+# 预发布构建
+npm run build:staging
+
+# 类型检查
+npm run type-check
 ```
 
 ## 浏览器支持
@@ -240,26 +311,57 @@ VITE_APP_TITLE=青羽阅读
 
 ## 常见问题
 
-### Q: 如何修改 API 地址？
-A: 在 `.env.local` 文件中修改 `VITE_API_BASE_URL`
+### 开发相关
 
-### Q: 开发环境跨域如何解决？
-A: Vite 已配置代理，在 `vite.config.ts` 中修改 server.proxy 配置
+**Q: 如何修改 API 地址？**
+A: 编辑对应环境的 `.env` 文件（如 `.env.development`），修改 `VITE_API_BASE_URL`
 
-### Q: 如何添加新模块？
-A: 在 `src/modules` 下创建新模块目录，包含 routes、views、components 等
+**Q: 开发环境跨域如何解决？**
+A: Vite 已配置代理，API请求会自动转发到后端。确保后端运行在 `localhost:8080`
 
-## 相关文档
+**Q: 如何添加新模块？**
+A: 在 `src/modules` 下创建新模块目录，包含 api、views、components 等。详见[使用指南](./docs/USER_GUIDE.md)
+
+**Q: 构建失败怎么办？**
+A:
+1. 检查 Node.js 版本（>= 18.0.0）
+2. 删除 `node_modules` 和 `package-lock.json`
+3. 重新安装依赖：`npm install`
+4. 如果仍有问题，尝试使用 `npm run build` 跳过类型检查
+
+**Q: 如何启用 API 健康检查？**
+A: 开发环境自动启用，启动项目后查看控制台输出
+
+### 部署相关
+
+**Q: 如何部署到生产环境？**
+A: 参考 [API连接配置指南](./docs/api-connection-guide.md) 和 [部署指南](./docs/deployment-guide.md)
+
+**Q: 支持哪些部署平台？**
+A:
+- 腾讯云 CloudBase（推荐，国内访问快）
+- 阿里云 Serverless
+- Vercel（海外用户）
+- 自有服务器 + Nginx
+
+**Q: 如何配置环境变量？**
+A: 复制 `.env.example` 为 `.env.production`，修改其中的配置值
+
+## 项目文档
+
+- **[使用指南](./docs/USER_GUIDE.md)** - 开发者和用户完整使用指南
+- **[API连接配置](./docs/api-connection-guide.md)** - 环境配置和多平台部署
+- **[部署指南](./docs/deployment-guide.md)** - 生产环境部署详细说明
+- **[集成测试报告](./docs/integration-test-results.md)** - 功能测试验证
+- **[API迁移文档](./docs/api-migration.md)** - API架构迁移说明
+
+### 外部文档
 
 - [Vite 文档](https://vitejs.dev/)
 - [Vue 3 文档](https://vuejs.org/)
 - [Element Plus 文档](https://element-plus.org/)
 - [Pinia 文档](https://pinia.vuejs.org/)
 - [TypeScript 文档](https://www.typescriptlang.org/)
-
-## 部署指南
-
-详细的部署指南请参考 [Deployment Guide](./docs/deployment-guide.md)
 
 ## License
 
