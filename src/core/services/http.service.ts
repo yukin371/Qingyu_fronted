@@ -160,3 +160,6 @@ function handleAuthError() {
 
 // 导出实例供模块使用
 export default apiClient
+
+// 别名导出，保持向后兼容
+export const httpService = apiClient
