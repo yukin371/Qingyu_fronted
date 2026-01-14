@@ -68,8 +68,8 @@ apiClient.interceptors.response.use(
     const { code, message, error: errorType } = response.data
 
     // 处理令牌过期 - 尝试刷新
-    if (code === 2005 && config) {
-      // TOKEN_EXPIRED
+    if (code === 1102 && config) {
+      // TOKEN_EXPIRED (1102)
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -106,36 +106,34 @@ apiClient.interceptors.response.use(
     // 根据错误码分类处理
     switch (code) {
       // 认证错误 - 跳转登录
-      case 1003: // UNAUTHORIZED
-      case 2006: // TOKEN_INVALID
-      case 2007: // REFRESH_TOKEN_EXPIRED
+      case 1002: // UNAUTHORIZED (1002)
+      case 1102: // TOKEN_EXPIRED (1102)
+      case 1103: // TOKEN_INVALID (1103)
         handleAuthError()
         break
 
       // 权限错误
-      case 1004: // FORBIDDEN
-      case 2008: // PERMISSION_DENIED
+      case 1003: // FORBIDDEN (1003)
         ElMessage.error('您没有权限执行此操作')
         break
 
       // 参数错误
-      case 1001: // INVALID_PARAM
-      case 1002: // MISSING_PARAM
+      case 1001: // INVALID_PARAMS (1001)
         ElMessage.warning(message || '参数错误，请检查输入')
         break
 
       // 资源不存在
-      case 1005: // NOT_FOUND
+      case 1004: // NOT_FOUND (1004)
         ElMessage.warning(message || '请求的资源不存在')
         break
 
       // 业务逻辑错误
-      case 4001: // RATE_LIMIT_EXCEEDED
+      case 1007: // RATE_LIMIT_EXCEEDED (1007)
         ElMessage.error('操作过于频繁，请稍后再试')
         break
 
       // 系统错误
-      case 5001: // INTERNAL_ERROR
+      case 5000: // INTERNAL_ERROR (5000)
         ElMessage.error('服务器内部错误，请稍后重试')
         break
 
