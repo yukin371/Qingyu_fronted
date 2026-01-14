@@ -1,6 +1,6 @@
 // src/composables/useErrorHandler.ts
 
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { ErrorResponse } from '@/types/error.types'
 
@@ -21,6 +21,8 @@ export function useErrorHandler() {
     visible: false
   })
 
+  let hideTimer: ReturnType<typeof setTimeout> | null = null
+
   /**
    * 显示错误信息
    */
@@ -30,13 +32,27 @@ export function useErrorHandler() {
 
     ElMessage.error(error.message)
 
+    // 清除之前的定时器，避免竞态条件
+    if (hideTimer) {
+      clearTimeout(hideTimer)
+    }
+
     // 自动隐藏
     if (duration > 0) {
-      setTimeout(() => {
+      hideTimer = setTimeout(() => {
         state.value.visible = false
+        hideTimer = null
       }, duration)
     }
   }
+
+  // 组件卸载时清理定时器，避免内存泄漏
+  onUnmounted(() => {
+    if (hideTimer) {
+      clearTimeout(hideTimer)
+      hideTimer = null
+    }
+  })
 
   /**
    * 处理 API 错误响应
