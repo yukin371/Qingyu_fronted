@@ -201,7 +201,6 @@ const handleAvatarUpload = async (file: File) => {
       ElMessage.success('头像上传成功')
     }
   } catch (error: any) {
-    console.error('上传头像失败:', error)
     ElMessage.error(error.message || '上传头像失败')
   } finally {
     loading.value = false
@@ -231,7 +230,6 @@ const loadProfile = async () => {
     profileForm.nickname = userStore.profile?.nickname || ''
     profileForm.bio = userStore.profile?.bio || ''
   } catch (error: any) {
-    console.error('加载用户信息失败:', error)
     ElMessage.error(error.message || '加载用户信息失败')
   } finally {
     loading.value = false

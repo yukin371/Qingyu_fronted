@@ -197,7 +197,6 @@ async function loadBookmarks(): Promise<void> {
     bookmarks.value = Array.isArray(data) ? data : (data.data || [])
     total.value = data.total || (response as any).total || 0
   } catch (error: any) {
-    console.error('加载书签失败:', error)
     ElMessage.error(error.message || '加载书签失败')
   } finally {
     loading.value = false
@@ -236,7 +235,8 @@ async function saveNote(): Promise<void> {
   saving.value = true
   try {
     await updateBookmark(editingBookmark.value.id, {
-      note: noteContent.value
+      note: noteContent.value,
+      highlightText: editingBookmark.value.highlightText
     })
 
     const index = bookmarks.value.findIndex(b => b.id === editingBookmark.value!.id)
@@ -247,7 +247,6 @@ async function saveNote(): Promise<void> {
     ElMessage.success('保存成功')
     showNoteDialog.value = false
   } catch (error: any) {
-    console.error('保存笔记失败:', error)
     ElMessage.error(error.message || '保存失败')
   } finally {
     saving.value = false

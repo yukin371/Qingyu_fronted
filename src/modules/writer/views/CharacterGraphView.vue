@@ -311,7 +311,6 @@ const handleDeleteCharacter = async (character: Character) => {
     ElMessage.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error(error.message || '删除失败')
     }
   }
@@ -359,7 +358,6 @@ const handleSubmit = async () => {
       ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
       dialogVisible.value = false
     } catch (error: any) {
-      console.error('操作失败:', error)
       ElMessage.error(error.message || '操作失败')
     } finally {
       submitting.value = false

@@ -8,7 +8,9 @@
 
 // 用户核心 API
 export * from './user.api'
-export { userAPI, getProfile, updateProfile, uploadAvatar, getBookshelf, getReadingHistory } from './user.api'
+export { userAPI } from './user.api'
+// 注意：getProfile 等方法是 userAPI 对象的方法，不是独立导出的函数
+// 使用方式：userAPI.getProfile()
 
 // 用户个人资料 API
 export * from './profile'
@@ -26,7 +28,7 @@ export {
   changeEmail,
   unbindEmail,
   verifyEmail,
-  changePassword as changeSecurityPassword,
+  changePasswordSecure as changeSecurityPassword,
   sendPasswordResetCode,
   verifyResetCode,
   resetPassword,

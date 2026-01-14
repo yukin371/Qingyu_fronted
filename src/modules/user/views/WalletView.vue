@@ -384,7 +384,6 @@ async function loadWalletInfo(): Promise<void> {
       }
     }
   } catch (error: any) {
-    console.error('加载钱包信息失败:', error)
     ElMessage.error(error.message || '加载钱包信息失败')
   }
 }
@@ -406,7 +405,6 @@ async function loadTransactions(): Promise<void> {
       total.value = response.total || 0
     }
   } catch (error: any) {
-    console.error('加载交易记录失败:', error)
     ElMessage.error(error.message || '加载交易记录失败')
   } finally {
     loading.value = false
@@ -453,7 +451,6 @@ async function submitRecharge(): Promise<void> {
       await loadTransactions()
     }
   } catch (error: any) {
-    console.error('充值失败:', error)
     ElMessage.error(error.message || '充值失败，请稍后重试')
   } finally {
     recharging.value = false
@@ -496,7 +493,6 @@ async function submitWithdraw(): Promise<void> {
       await loadTransactions()
     }
   } catch (error: any) {
-    console.error('提现失败:', error)
     ElMessage.error(error.message || '提现申请失败，请稍后重试')
   } finally {
     withdrawing.value = false

@@ -309,4 +309,37 @@ export interface Rating {
   isLiked?: boolean
 }
 
+// ==================== 段落评论相关 ⭐️新增 ====================
+
+/**
+ * 段落评论
+ */
+export interface ParagraphComment {
+  id: string
+  paragraphId: string
+  chapterId: string
+  paragraphIndex: number
+  userId: string
+  username: string
+  avatar: string
+  content?: string
+  emoji?: string
+  likes: number
+  likedByMe: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 段落评论摘要
+ */
+export interface ParagraphCommentSummary {
+  paragraphId: string
+  commentCount: number
+  latestComment?: {
+    content: string
+    username: string
+    time: string
+  }
+}
 

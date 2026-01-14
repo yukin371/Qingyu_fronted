@@ -368,13 +368,68 @@ const handleRegister = async () => {
   })
 }
 
-// TODO: 实现找回密码逻辑
-const sendResetCode = async () => { /* ... */ }
-const verifyResetCode = async () => {
-  resetStep.value = 1
+// 找回密码功能
+const sendResetCode = async () => {
+  if (!resetForm.value.email) {
+    ElMessage.warning('请输入邮箱')
+    return
+  }
+
+  sendingReset.value = true
+  try {
+    await sendPasswordResetCode(resetForm.value.email)
+    ElMessage.success('验证码已发送')
+    resetCountdown.value = 60
+    const timer = setInterval(() => {
+      resetCountdown.value--
+      if (resetCountdown.value <= 0) clearInterval(timer)
+    }, 1000)
+  } catch (error: any) {
+    ElMessage.error(error.message || '发送验证码失败')
+  } finally {
+    sendingReset.value = false
+  }
 }
+
+const verifyResetCode = async () => {
+  if (!resetFormRef.value) return
+
+  await resetFormRef.value.validate(async (valid) => {
+    if (valid) {
+      loading.value = true
+      try {
+        await verifyResetCodeAPI(resetForm.value.email, resetForm.value.code)
+        resetStep.value = 1
+      } catch (error: any) {
+        ElMessage.error(error.message || '验证码错误')
+      } finally {
+        loading.value = false
+      }
+    }
+  })
+}
+
 const handleReset = async () => {
-  resetStep.value = 2
+  if (!resetFormRef.value) return
+
+  await resetFormRef.value.validate(async (valid) => {
+    if (valid) {
+      loading.value = true
+      try {
+        await resetPasswordAPI({
+          account: resetForm.value.email,
+          code: resetForm.value.code,
+          newPassword: resetForm.value.newPassword
+        })
+        resetStep.value = 2
+        ElMessage.success('密码重置成功')
+      } catch (error: any) {
+        ElMessage.error(error.message || '重置密码失败')
+      } finally {
+        loading.value = false
+      }
+    }
+  })
 }
 const handleTabChange = (n: string) => { if (n === 'reset') resetStep.value = 0 }
 const goHome = () => router.push('/')
