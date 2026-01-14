@@ -16,10 +16,10 @@ export async function checkApiHealth(): Promise<HealthCheckResult> {
   const startTime = performance.now()
 
   try {
-    // 尝试请求后端健康检查接口（如果有的话）
-    // 如果没有健康检查接口，可以请求一个简单的公开接口
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/health`, {
-      method: 'HEAD',
+    // 请求后端健康检查接口
+    // 注意：后端 health 端点在 /api/v1/system/health
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/system/health`, {
+      method: 'GET',
       signal: AbortSignal.timeout(5000)
     })
 
