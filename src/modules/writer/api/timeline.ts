@@ -105,7 +105,7 @@ export const timelineApi = {
    * GET /api/v1/events/{eventId}?projectId=...
    */
   getEvent(eventId: string, projectId: string) {
-    return httpService.get<TimelineEvent>(`${BASE_EVENT_URL}/${eventId}`, { projectId })
+    return httpService.get<TimelineEvent>(`${BASE_EVENT_URL}/${eventId}`, { params: { projectId } })
   },
 
   /**
@@ -123,6 +123,6 @@ export const timelineApi = {
    * DELETE /api/v1/events/{eventId}?projectId=...
    */
   deleteEvent(eventId: string, projectId: string) {
-    return httpService.delete<void>(`${BASE_EVENT_URL}/${eventId}`, { projectId })
+    return httpService.delete<void>(`${BASE_EVENT_URL}/${eventId}`, { params: { projectId } })
   },
 }
