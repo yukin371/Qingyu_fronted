@@ -1,233 +1,164 @@
-/**
- * HTTP Service Optimized
- * Unified HTTP client wrapper with strict typing, retry logic, and enhanced features.
- */
+// src/core/services/http.service.ts
 
-import axios, {
-  type AxiosInstance,
-  type AxiosError,
-  type InternalAxiosRequestConfig, // 拦截器里用这个
-  type AxiosResponse,
-  type AxiosRequestConfig, // 公开方法参数用这个
-} from 'axios'
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/stores/auth' // 引入 Pinia
-import { ErrorHandler } from '@/utils/errorHandler'
-import type { APIResponse } from '@/core/types/api.types' // 引入统一类型
+import type { Router } from 'vue-router'
+import type { ErrorResponse } from '@/types/error.types'
 
-// 扩展 Axios 请求配置
-export interface RequestConfig extends AxiosRequestConfig {
-  skipErrorHandler?: boolean // 是否跳过全局错误提示
-  silent?: boolean // 是否静默模式（不弹窗）
-  deduplicate?: boolean // 是否开启防抖/去重
-  retry?: number // 失败重试次数
-  retryDelay?: number // 重试延迟(ms)
-  returnFullResponse?: boolean // 是否返回完整的 AxiosResponse (包含 headers 等)
-  isUpload?: boolean // 是否是文件上传
-  keepCache?: boolean // 是否保持缓存
-}
-
-class HttpService {
-  private instance: AxiosInstance
-  private pendingRequests: Map<string, AbortController>
-
-  constructor() {
-    this.pendingRequests = new Map()
-    this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-      timeout: 10000,
-      headers: { 'Content-Type': 'application/json;charset=utf-8' },
-    })
-    this.setupInterceptors()
+// 创建 axios 实例
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json'
   }
+})
 
-  /**
-   * 生成请求的唯一 Key
-   * 优化：包含 method, url, params 和 data，并对对象键进行排序以保证一致性
-   */
-  private getRequestKey(config: InternalAxiosRequestConfig): string {
-    const { method, url, params, data } = config
-
-    // 辅助函数：对对象键排序并序列化
-    const sortedStringify = (obj: any) =>
-      obj && typeof obj === 'object' ? JSON.stringify(obj, Object.keys(obj).sort()) : String(obj)
-    return [method, url, sortedStringify(params), sortedStringify(data)].join('&')
-  }
-
-  private setupInterceptors(): void {
-    // Request 拦截器
-    this.instance.interceptors.request.use(
-      (config) => {
-        // 1. 自动注入 Token
-        const authStore = useAuthStore()
-        if (authStore.token && config.headers) {
-          config.headers.Authorization = `Bearer ${authStore.token}`
-        }
-
-        // 2. 处理去重
-        if (config.deduplicate) {
-          const key = this.getRequestKey(config)
-          if (this.pendingRequests.has(key)) {
-            this.pendingRequests.get(key)?.abort()
-            this.pendingRequests.delete(key)
-          }
-          const controller = new AbortController()
-          config.signal = controller.signal
-          this.pendingRequests.set(key, controller)
-        }
-
-        // 3. GET 缓存控制
-        if (config.method?.toLowerCase() === 'get' && !config.keepCache) {
-          config.params = { ...config.params, _t: Date.now() }
-        }
-
-        // 4. 上传处理
-        if (config.isUpload && config.headers) {
-          config.headers['Content-Type'] = 'multipart/form-data'
-        }
-
-        return config
-      },
-      (error) => Promise.reject(error)
-    )
-
-    // Response 拦截器
-    this.instance.interceptors.response.use(
-      (response: AxiosResponse<any>) => {
-        const config = response.config
-
-        // 清理去重 Map
-        if (config.deduplicate) {
-          const key = this.getRequestKey(config)
-          this.pendingRequests.delete(key)
-        }
-
-        const { data } = response
-
-        // 二进制流直接返回
-        if (config.responseType === 'blob' || config.responseType === 'arraybuffer') {
-          return data
-        }
-
-        // 兼容逻辑：如果 data 不是标准结构，直接返回
-        if (!data || typeof data !== 'object' || !('code' in data)) {
-          return data
-        }
-
-        const apiData = data as APIResponse
-
-        // 打印日志
-        if (import.meta.env.DEV && apiData.request_id) {
-          console.debug(`[API] ${apiData.request_id}`, apiData)
-        }
-
-        // 成功判定 (兼容 200 和 201)
-        if (apiData.code === 200 || apiData.code === 201) {
-          // ★ 关键决策：
-          // 默认只返回 result (data.data)，让组件代码更干净。
-          // 如果配置了 returnFullResponse: true，则返回整个 APIResponse
-          return config.returnFullResponse ? apiData : apiData.data
-        }
-
-        // 业务错误处理
-        return this.handleBusinessError(apiData, config)
-      },
-      (error: AxiosError) => {
-        // 401 认证失败处理
-        if (error.response?.status === 401) {
-          const authStore = useAuthStore()
-
-          // 判断是否为登录请求，避免登录失败时触发登出
-          const isLoginRequest = error.config?.url?.includes('/login')
-          const isRegisterRequest = error.config?.url?.includes('/register')
-
-          // 只有在非登录/注册请求的401时才自动登出（表示token过期）
-          if (!isLoginRequest && !isRegisterRequest && authStore.isLoggedIn) {
-            authStore.logout()
-          }
-        }
-
-        // 统一错误处理
-        if (!error.config?.skipErrorHandler) {
-          ErrorHandler.handle(error)
-        }
-        return Promise.reject(error)
-      }
-    )
-  }
-
-  private handleBusinessError(data: APIResponse, config: InternalAxiosRequestConfig) {
-    const err = new Error(data.message) as any
-    err.code = data.code
-    if (!config.silent && !config.skipErrorHandler) {
-      ElMessage.error(data.message)
+// 请求拦截器 - 添加认证令牌
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem('token')
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`
     }
-    return Promise.reject(err)
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
   }
+)
 
-  // --- 公开方法 (使用泛型 T 指代业务 Data 类型) ---
+// 令牌刷新队列
+let isRefreshing = false
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void
+  reject: (reason?: unknown) => void
+}>[] = []
 
-  public get<T = any>(url: string, params?: any, config?: RequestConfig): Promise<T> {
-    return this.instance.get(url, { params, ...config })
-  }
-
-  public post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
-    return this.instance.post(url, data, config)
-  }
-
-  public put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
-    return this.instance.put(url, data, config)
-  }
-
-  public delete<T = any>(url: string, params?: any, config?: RequestConfig): Promise<T> {
-    return this.instance.delete(url, { params, ...config })
-  }
-
-  /**
-   * 文件上传封装
-   */
-  public upload<T = any>(
-    url: string,
-    file: File | FormData,
-    config?: InternalAxiosRequestConfig
-  ): Promise<T> {
-    let formData: FormData
-    if (!(file instanceof FormData)) {
-      formData = new FormData()
-      formData.append('file', file)
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
     } else {
-      formData = file
+      prom.resolve(token)
     }
-    return this.instance.post(url, formData, {
-      ...config,
-      isUpload: true,
-      timeout: config?.timeout || 60000, // 上传通常需要更长时间
-    } as RequestConfig)
-  }
-
-  public cancelAllRequests(): void {
-    this.pendingRequests.forEach((controller) => controller.abort())
-    this.pendingRequests.clear()
-  }
-
-  public getInstance(): AxiosInstance {
-    return this.instance
-  }
+  })
+  failedQueue = []
 }
 
-// 扩展 axios 模块声明，加入自定义配置属性
-declare module 'axios' {
-  export interface InternalAxiosRequestConfig {
-    skipErrorHandler?: boolean
-    silent?: boolean
-    deduplicate?: boolean
-    retry?: number
-    retryDelay?: number
-    returnFullResponse?: boolean
-    isUpload?: boolean // 是否为文件上传
-    keepCache?: boolean
+// 响应拦截器 - 统一错误处理
+apiClient.interceptors.response.use(
+  (response) => {
+    // 统一返回 data 字段
+    return response.data
+  },
+  async (error: AxiosError<ErrorResponse>) => {
+    const { response, config } = error
+
+    // 网络错误处理
+    if (!response) {
+      if (error.code === 'ECONNABORTED') {
+        ElMessage.error('请求超时，请检查网络连接')
+      } else {
+        ElMessage.error('网络连接失败，请检查网络')
+      }
+      return Promise.reject(error)
+    }
+
+    const { code, message, error: errorType } = response.data
+
+    // 处理令牌过期 - 尝试刷新
+    if (code === 2005 && config) {
+      // TOKEN_EXPIRED
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(() => {
+            return apiClient(config)
+          })
+          .catch((err) => {
+            return Promise.reject(err)
+          })
+      }
+
+      isRefreshing = true
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken')
+        const res = await axios.post('/api/v1/auth/refresh', { token: refreshToken })
+
+        const { token: newToken } = res.data.data
+        localStorage.setItem('token', newToken)
+
+        processQueue(null, newToken)
+
+        return apiClient(config)
+      } catch (err) {
+        processQueue(err, null)
+        handleAuthError()
+        return Promise.reject(err)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
+    // 根据错误码分类处理
+    switch (code) {
+      // 认证错误 - 跳转登录
+      case 1003: // UNAUTHORIZED
+      case 2006: // TOKEN_INVALID
+      case 2007: // REFRESH_TOKEN_EXPIRED
+        handleAuthError()
+        break
+
+      // 权限错误
+      case 1004: // FORBIDDEN
+      case 2008: // PERMISSION_DENIED
+        ElMessage.error('您没有权限执行此操作')
+        break
+
+      // 参数错误
+      case 1001: // INVALID_PARAM
+      case 1002: // MISSING_PARAM
+        ElMessage.warning(message || '参数错误，请检查输入')
+        break
+
+      // 资源不存在
+      case 1005: // NOT_FOUND
+        ElMessage.warning(message || '请求的资源不存在')
+        break
+
+      // 业务逻辑错误
+      case 4001: // RATE_LIMIT_EXCEEDED
+        ElMessage.error('操作过于频繁，请稍后再试')
+        break
+
+      // 系统错误
+      case 5001: // INTERNAL_ERROR
+        ElMessage.error('服务器内部错误，请稍后重试')
+        break
+
+      default:
+        ElMessage.error(message || '请求失败，请稍后重试')
+    }
+
+    return Promise.reject(error)
   }
+)
+
+// 处理认证错误
+function handleAuthError() {
+  ElMessage.warning('登录已过期，请重新登录')
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+
+  // 延迟跳转，避免路由拦截器问题
+  setTimeout(() => {
+    const router = require('@/router').default as Router
+    router.push('/login')
+  }, 1000)
 }
 
-export const httpService = new HttpService()
-export default httpService
+// 导出实例供模块使用
+export default apiClient
