@@ -1,15 +1,26 @@
 // src/types/error.types.ts
 
 /**
- * 标准错误响应接口
+ * 统一错误响应接口 (UER - Unified Error Response)
+ *
+ * NOTE: This interface is used for the NEW unified error handling system.
+ * The old ErrorResponse in src/types/api.ts is for backward compatibility.
+ *
+ * Key differences from api.ts ErrorResponse:
+ * - error field is required (not optional)
+ * - timestamp is ISO 8601 string (not Unix number)
+ * - includes details field for additional error context
  */
-export interface ErrorResponse {
+export interface UnifiedErrorResponse {
   code: number
   message: string
   error: string
   details?: Record<string, unknown>
   timestamp: string
 }
+
+// Type alias for clearer usage in the unified system
+export type ErrorResponse = UnifiedErrorResponse
 
 /**
  * 模块码枚举
