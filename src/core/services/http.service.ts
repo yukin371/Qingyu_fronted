@@ -51,7 +51,14 @@ const processQueue = (error: unknown, token: string | null = null) => {
 apiClient.interceptors.response.use(
   (response) => {
     // 统一返回 data 字段
-    return response.data
+    const res = response.data
+
+    // 如果是标准API响应格式，自动解包 data 字段
+    if (res && typeof res === 'object' && 'code' in res && 'data' in res) {
+      return res.data
+    }
+
+    return res
   },
   async (error: AxiosError<ErrorResponse>) => {
     const { response, config } = error
