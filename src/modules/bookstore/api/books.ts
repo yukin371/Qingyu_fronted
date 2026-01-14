@@ -150,17 +150,19 @@ export async function getBooksByTags(tags: string[], page = 1, size = 20) {
  * 获取推荐书籍
  * GET /api/v1/bookstore/books/recommended
  */
-export function getRecommendedBooks(params?: { page?: number; pageSize?: number; limit?: number }) {
-  return httpService.get<Book[]>('/bookstore/books/recommended', { params })
+export function getRecommendedBooks(page: number = 1, pageSize: number = 20) {
+  return httpService.get<Book[]>('/bookstore/books/recommended', {
+    params: { page, pageSize }
+  })
 }
 
 /**
  * 获取精选书籍
  * GET /api/v1/bookstore/books/featured
  */
-export function getFeaturedBooks(limit = 10) {
+export function getFeaturedBooks(page: number = 1, pageSize: number = 20) {
   return httpService.get<Book[]>('/bookstore/books/featured', {
-    params: { limit },
+    params: { page, pageSize }
   })
 }
 
