@@ -124,19 +124,19 @@ export const bookApi = {
   getRecommended: (limit = 10) => {
     // 后端返回 APIResponse{ Data: []Book }
     // httpService 自动解包 Data
-    return http.get<Book[]>(`${BASE_URL}/recommended`, { limit })
+    return http.get<Book[]>(`${BASE_URL}/recommended`, { params: { limit } })
   },
 
   getPopular: (limit = 10) => {
-    return http.get<Book[]>(`${BASE_URL}/popular`, { limit })
+    return http.get<Book[]>(`${BASE_URL}/popular`, { params: { limit } })
   },
 
   getLatest: (limit = 10) => {
-    return http.get<Book[]>(`${BASE_URL}/latest`, { limit })
+    return http.get<Book[]>(`${BASE_URL}/latest`, { params: { limit } })
   },
 
   getSimilar: (id: string, limit = 10) => {
-    return http.get<Book[]>(`${BASE_URL}/${id}/similar`, { limit })
+    return http.get<Book[]>(`${BASE_URL}/${id}/similar`, { params: { limit } })
   },
 
   // ==================== 交互操作 ====================
