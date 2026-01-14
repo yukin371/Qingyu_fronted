@@ -4,6 +4,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { Router } from 'vue-router'
 import type { ErrorResponse } from '@/types/error.types'
+import { errorReporter } from './error-reporter'
 
 // 创建 axios 实例
 export const apiClient = axios.create({
@@ -67,7 +68,8 @@ apiClient.interceptors.response.use(
 
     const { code, message, error: errorType } = response.data
 
-    // 处理令牌过期 - 尝试刷新
+    // 上报错误到监控系统
+    errorReporter.report(response.data)
     if (code === 1102 && config) {
       // TOKEN_EXPIRED (1102)
       if (isRefreshing) {
