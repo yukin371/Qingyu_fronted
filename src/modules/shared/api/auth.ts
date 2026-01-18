@@ -1,9 +1,11 @@
 /**
- * 共享认证服务API模块
+ * 认证服务API模块
  *
- * 对接后端 /api/v1/shared/auth 路由
+ * 对接后端 /api/v1/auth 路由
  * 后端路由文档:
- *   - Qingyu_backend/router/shared/shared_router.go
+ *   - Qingyu_backend/router/auth/auth_router.go
+ *
+ * 注意：路由已从 /api/v1/shared/auth 迁移到 /api/v1/auth
  */
 
 import { httpService } from '@/core/services/http.service'
@@ -18,24 +20,10 @@ import type {
 } from '@/types/auth'
 
 /**
- * 认证路由配置
- * 支持两种模式:
- * 1. shared模式: 使用完整的shared认证服务 (/api/v1/shared/auth/*)
- * 2. user模式: 使用user服务提供的简化认证接口 (/api/v1/register, /api/v1/login)
- */
-const AUTH_CONFIG = {
-  useSharedRoutes: true,  // 是否使用shared路由
-}
-
-/**
  * 获取认证API路径
  */
 function getAuthPath(endpoint: string): string {
-  if (AUTH_CONFIG.useSharedRoutes) {
-    return `/shared/auth/${endpoint}`  // /api/v1/shared/auth/register
-  } else {
-    return endpoint  // /register, /login
-  }
+  return `/auth/${endpoint}`  // /api/v1/auth/register, /api/v1/auth/login
 }
 
 /**
@@ -55,18 +43,18 @@ export interface CheckAvailabilityResponse {
 }
 
 /**
- * 共享认证服务API接口
+ * 认证服务API接口
  *
  * 后端路由说明：
- * - 用户路由: /api/v1/register, /api/v1/login, /api/v1/users/*
- * - 共享服务路由: /api/v1/shared/auth/*
+ * - 认证路由: /api/v1/auth/* (统一认证入口)
+ * - 用户路由: /api/v1/user/* (用户信息管理)
  *
  * 前端baseURL配置为: http://localhost:8080/api/v1
  */
 export const sharedAuthAPI = {
   /**
    * 用户注册
-   * POST /api/v1/shared/auth/register
+   * POST /api/v1/auth/register
    */
   async register(data: RegisterData): Promise<LoginResponse> {
     return httpService.post<LoginResponse>(getAuthPath('register'), data)
@@ -74,7 +62,7 @@ export const sharedAuthAPI = {
 
   /**
    * 用户登录
-   * POST /api/v1/shared/auth/login
+   * POST /api/v1/auth/login
    */
   async login(data: LoginCredentials): Promise<LoginResponse> {
     return httpService.post<LoginResponse>(getAuthPath('login'), data)
@@ -82,7 +70,7 @@ export const sharedAuthAPI = {
 
   /**
    * 用户登出
-   * POST /api/v1/shared/auth/logout
+   * POST /api/v1/auth/logout
    */
   async logout(): Promise<void> {
     return httpService.post<void>(getAuthPath('logout'))
@@ -90,7 +78,7 @@ export const sharedAuthAPI = {
 
   /**
    * 刷新Token
-   * POST /api/v1/shared/auth/refresh
+   * POST /api/v1/auth/refresh
    */
   async refreshToken(): Promise<TokenRefreshResponse> {
     return httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
@@ -98,7 +86,7 @@ export const sharedAuthAPI = {
 
   /**
    * 获取用户权限
-   * GET /api/v1/shared/auth/permissions
+   * GET /api/v1/auth/permissions
    */
   async getUserPermissions(): Promise<UserPermission[]> {
     return httpService.get<UserPermission[]>(getAuthPath('permissions'))
@@ -106,9 +94,9 @@ export const sharedAuthAPI = {
 
   /**
    * 获取用户角色
-   * GET /api/v1/shared/auth/roles
+   * GET /api/v1/auth/roles
    */
-  async getUserRoles(): Promise<UserRole[]> {
+  async getUserRoles(): UserRole[] {
     return httpService.get<UserRole[]>(getAuthPath('roles'))
   },
 
