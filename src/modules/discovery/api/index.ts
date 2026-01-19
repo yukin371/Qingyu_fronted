@@ -2,7 +2,7 @@
  * 发现/推荐系统 API
  */
 import { http } from '@/core/http'
-import type { RecommendationItem, RecommendationConfig, PersonalizedRecommendations } from '@/types/discovery'
+import type { RecommendationItem, RecommendationConfig, PersonalizedRecommendations, RecommendationSlot } from '@/types/discovery'
 
 /**
  * 获取推荐内容

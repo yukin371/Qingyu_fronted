@@ -10,8 +10,9 @@ import type {
   SearchParams,
   PaginationResponse,
   PaginatedAPIResponse,
-} from '@/types/bookstore'
-import type { BackendPaginatedResponse, APIResponse } from '@/types/bookstore'
+  BackendPaginatedResponse,
+  APIResponse,
+} from '../types'
 
 /**
  * 辅助函数：转换分页响应

@@ -79,7 +79,7 @@
                     <el-icon>
                       <Star />
                     </el-icon>
-                    {{ book.rating.toFixed(1) }}
+                    {{ formatRating(book.rating) }}
                   </span>
                   <span class="words">{{ formatNumber(book.wordCount) }}字</span>
                 </div>
@@ -111,7 +111,7 @@
                   <el-icon>
                     <Star />
                   </el-icon>
-                  {{ book.rating.toFixed(1) }}分
+                  {{ formatRating(book.rating) }}分
                 </span>
                 <span>{{ formatNumber(book.wordCount) }}字</span>
                 <span>{{ formatNumber(book.viewCount) }}阅读</span>
@@ -202,11 +202,17 @@ const filters = reactive({
 })
 
 // 格式化数字
-const formatNumber = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
+const formatNumber = (num?: number): string => {
+  const safeNumber = typeof num === 'number' && !Number.isNaN(num) ? num : 0
+  if (safeNumber >= 10000) {
+    return (safeNumber / 10000).toFixed(1) + '万'
   }
-  return num.toString()
+  return safeNumber.toString()
+}
+
+const formatRating = (rating?: number): string => {
+  const safeRating = typeof rating === 'number' && !Number.isNaN(rating) ? rating : 0
+  return safeRating.toFixed(1)
 }
 
 // 跳转到详情页

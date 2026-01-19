@@ -26,7 +26,7 @@ export {
   changeEmail,
   unbindEmail,
   verifyEmail,
-  changePassword as changeSecurityPassword,
+  changePasswordSecure as changeSecurityPassword,
   sendPasswordResetCode,
   verifyResetCode,
   resetPassword,

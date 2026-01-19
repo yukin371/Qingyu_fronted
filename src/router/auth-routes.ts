@@ -9,13 +9,13 @@ export const authRoutes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: () => import('@/modules/user/views/AuthenticationView.vue'),
-    meta: { requiresAuth: false, title: '登录' },
+    meta: { requiresAuth: false, guest: true, title: '登录' },
   },
   {
     path: '/register',
     name: 'register',
     component: () => import('@/modules/user/views/AuthenticationView.vue'),
-    meta: { requiresAuth: false, title: '注册' },
+    meta: { requiresAuth: false, guest: true, title: '注册' },
   },
 ]
 

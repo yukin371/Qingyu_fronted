@@ -20,7 +20,6 @@ interface LazyOptions {
 
 // 默认占位图
 const DEFAULT_LOADING = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E'
-const DEFAULT_ERROR = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23ffebee" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23f44336"%3E✕%3C/text%3E%3C/svg%3E'
 
 // 存储观察器实例
 const observerMap = new WeakMap<HTMLElement, IntersectionObserver>()
@@ -60,7 +59,7 @@ const loadImage = (
  * 创建观察器
  */
 const createObserver = (
-  el: HTMLImageElement,
+  _el: HTMLImageElement,
   options: LazyOptions
 ): IntersectionObserver => {
   const observer = new IntersectionObserver(

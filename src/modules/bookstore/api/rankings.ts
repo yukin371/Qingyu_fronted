@@ -3,7 +3,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { RankingItem } from '@/types/bookstore'
+import type { RankingItem } from '../types'
 
 /**
  * 获取实时榜

@@ -3,7 +3,7 @@
  */
 import { ElMessage, ElNotification } from 'element-plus'
 import type { AxiosError } from 'axios'
-import type { ApiResponse } from '@/types/api'
+import type { APIResponse } from '@/types/api'
 
 export interface ErrorOptions {
   showMessage?: boolean // 是否显示错误消息
@@ -225,7 +225,7 @@ export class ErrorHandler {
   /**
    * 解析 API 响应错误
    */
-  private static parseApiError(error: ApiResponse, timestamp: number): AppError {
+  private static parseApiError(error: APIResponse, timestamp: number): AppError {
     return {
       code: ErrorCode.BAD_REQUEST,
       message: error.message || '操作失败',
@@ -290,7 +290,7 @@ export class ErrorHandler {
   /**
    * 判断是否为 API 错误
    */
-  private static isApiError(error: any): error is ApiResponse {
+  private static isApiError(error: any): error is APIResponse {
     return (
       error != null &&
       typeof error === 'object' &&
@@ -366,14 +366,16 @@ export async function retry<T>(
  * Vue 错误处理器
  */
 export function createVueErrorHandler() {
-  return (err: Error, instance: any, info: string) => {
+  return (err: unknown, instance: any, info: string) => {
     console.error('[Vue Error]', {
       error: err,
       component: instance?.$options?.name || 'Unknown',
       info
     })
 
-    handleError(err, {
+    // 将 unknown 转换为 Error
+    const error = err instanceof Error ? err : new Error(String(err))
+    handleError(error, {
       messageType: 'notification',
       showMessage: true
     })

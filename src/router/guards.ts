@@ -47,51 +47,54 @@ function createTitleGuard(router: Router) {
  * 3. 核心认证与权限守卫
  */
 function createAuthGuard(router: Router) {
-  router.beforeEach(async (to, from, next) => {
-    const authStore = useAuthStore()
+  router.beforeEach((to, from, next) => {
+    console.log('[Route Guard] Checking:', to.path)
 
-    // 3.1 登录状态检查
+    const authStore = useAuthStore()
+    console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
+
+    // 处理 guest 页面（登录、注册等）- 已登录用户访问 guest 页面时重定向
+    if (authStore.isLoggedIn && to.meta.guest) {
+      console.log('[Route Guard] Redirecting guest page to /bookstore')
+      next({ path: '/bookstore', replace: true })
+      return
+    }
+
+    // 检查需要认证的页面
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+      console.log('[Route Guard] Auth required, redirecting to /auth')
       next({
-        path: '/login',
+        path: '/auth',
         query: { redirect: to.fullPath } as LocationQueryRaw,
+        replace: true,
       })
       return
     }
 
-    // 3.2 已登录用户访问 Guest 页面 (如登录页) 自动跳走
-    if (authStore.isLoggedIn && ['/login', '/register'].includes(to.path)) {
-      next({ path: '/' }) // 或者是 /bookstore
+    // 已登录用户访问登录/注册页面时重定向
+    if (authStore.isLoggedIn && !to.meta.guest && ['/login', '/register'].includes(to.path)) {
+      console.log('[Route Guard] Redirecting logged-in user from login page')
+      next({ path: '/bookstore', replace: true })
       return
     }
 
-    // 3.3 角色/权限检查
-    // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['writer', 'admin'] }
+    // 角色权限检查
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       const requiredRoles = to.meta.roles
       const hasRole = authStore.user?.roles?.some((role) => requiredRoles.includes(role))
 
-      // 如果没有权限
       if (!hasRole) {
-        // 如果是去作家后台，但没权限，可能是普通读者，跳转申请页或首页
+        console.log('[Route Guard] Permission denied')
         if (to.path.startsWith('/writer')) {
-          // 可以跳转到一个 "申请成为作家" 的页面，或者直接回首页提示
-          // next({ name: 'apply-writer' })
-          next({ path: '/bookstore', query: { error: 'permission_denied' } })
+          next({ path: '/bookstore', query: { error: 'permission_denied' }, replace: true })
         } else {
-          next({ path: '/403' }) // 建议添加 403 页面
+          next({ path: '/403', replace: true })
         }
         return
       }
     }
 
-    // 3.4 动态路由加载 (如果你的应用涉及后端返回路由表)
-    // if (authStore.isLoggedIn && !authStore.routesLoaded) {
-    //    await authStore.generateRoutes()
-    //    next({ ...to, replace: true })
-    //    return
-    // }
-
+    console.log('[Route Guard] Navigation allowed')
     next()
   })
 }

@@ -53,7 +53,9 @@ if (isDev) {
   })
 }
 
+// 先注册 Pinia，确保 store 可用
 app.use(createPinia())
+// 再注册 Router，路由守卫需要访问 store
 app.use(router)
 app.use(ElementPlus)
 

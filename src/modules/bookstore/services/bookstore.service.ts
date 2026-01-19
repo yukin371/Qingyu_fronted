@@ -79,7 +79,7 @@ class BookstoreService {
     let books: BookBrief[] = []
     let total = 0
     let page = params.page || 1
-    let size = params.size || params.page_size || 20
+    let size = params.size || 20
 
     if (response) {
       if (response.data) {
@@ -130,7 +130,7 @@ class BookstoreService {
     page: number = 1,
     size: number = 20
   ): Promise<SearchResult> {
-    return await bookstoreAPI.getBooksByCategory(categoryId, { page, size })
+    return await bookstoreAPI.getBooksByCategory(categoryId, { page, pageSize: size })
   }
 
   /**

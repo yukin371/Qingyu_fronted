@@ -8,6 +8,7 @@ export enum NodeType {
 
 export interface Node extends BaseEntity {
   projectId: ID
+  documentId?: ID // 别名，指向id字段
   parentId?: ID
   name: string
   type: NodeType | string

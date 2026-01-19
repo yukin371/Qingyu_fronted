@@ -7,8 +7,7 @@ import * as adminAPI from '@/modules/admin/api'
 import type {
   DashboardStats,
   ReviewItem,
-  WithdrawalRequest,
-  UserManagementItem
+  WithdrawalRequest
 } from '../types/admin.types'
 import type { APIResponse } from '@/core/types/api.types'
 
@@ -16,22 +15,24 @@ class AdminService {
   /**
    * Get dashboard statistics
    */
-  async getDashboardStats(): Promise<APIResponse<DashboardStats>> {
-    return await adminAPI.getDashboardStats()
+  async getDashboardStats(): Promise<DashboardStats> {
+    const response = await adminAPI.getDashboardStats()
+    return response.data as DashboardStats
   }
 
   /**
    * Get pending reviews
    */
-  async getPendingReviews(page: number = 1, size: number = 20): Promise<APIResponse<ReviewItem[]>> {
-    return await adminAPI.getReviews('pending', page, size)
+  async getPendingReviews(page: number = 1, size: number = 20): Promise<ReviewItem[]> {
+    const response = await adminAPI.getReviewList({ status: 'pending', page, pageSize: size })
+    return (response.data as any)?.items || response.data || []
   }
 
   /**
    * Approve review
    */
   async approveReview(reviewId: string, feedback?: string): Promise<void> {
-    await adminAPI.updateReviewStatus(reviewId, 'approved', feedback)
+    await adminAPI.reviewContent(reviewId, { status: 'approved', reason: feedback })
   }
 
   /**
@@ -41,21 +42,22 @@ class AdminService {
     if (!reason || reason.trim().length < 5) {
       throw new Error('拒绝原因至少需要5个字符')
     }
-    await adminAPI.updateReviewStatus(reviewId, 'rejected', reason)
+    await adminAPI.reviewContent(reviewId, { status: 'rejected', reason })
   }
 
   /**
    * Get pending withdrawals
    */
-  async getPendingWithdrawals(): Promise<APIResponse<WithdrawalRequest[]>> {
-    return await adminAPI.getWithdrawals('pending')
+  async getPendingWithdrawals(): Promise<WithdrawalRequest[]> {
+    const response = await adminAPI.getWithdrawalList({ status: 'pending' })
+    return (response.data as any)?.items || response.data || []
   }
 
   /**
    * Approve withdrawal
    */
   async approveWithdrawal(withdrawalId: string): Promise<void> {
-    await adminAPI.updateWithdrawalStatus(withdrawalId, 'approved')
+    await adminAPI.reviewWithdraw(withdrawalId, { status: 'approved' })
   }
 
   /**
@@ -65,7 +67,7 @@ class AdminService {
     if (!reason || reason.trim().length < 5) {
       throw new Error('拒绝原因至少需要5个字符')
     }
-    await adminAPI.updateWithdrawalStatus(withdrawalId, 'rejected', reason)
+    await adminAPI.reviewWithdraw(withdrawalId, { status: 'rejected', reason })
   }
 
   /**

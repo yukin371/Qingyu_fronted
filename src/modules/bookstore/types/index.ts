@@ -5,6 +5,9 @@
 // 通用基础类型
 export * from './core'
 
+// API响应类型
+export * from './api'
+
 // Banner (轮播图)
 export * from './banner'
 
@@ -25,3 +28,13 @@ export * from './chapter'
 
 // Ranking (榜单)
 export * from './ranking'
+
+// Bookstore综合类型（包含BookBrief, HomepageData等）
+// 注意：选择性导出以避免与上面的类型冲突
+export type {
+  BookBrief,
+  HomepageData,
+  SearchFilter,
+  SearchParams,
+  SearchResult
+} from './bookstore.types'

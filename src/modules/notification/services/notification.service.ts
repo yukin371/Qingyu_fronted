@@ -34,8 +34,11 @@ export class NotificationService {
    * 初始化 WebSocket
    */
   private async initializeWebSocket(): Promise<void> {
+    const wsEndpoint = await getWebSocketEndpoint()
+    const url = typeof wsEndpoint === 'string' ? wsEndpoint : (wsEndpoint as any)?.url || ''
+
     this.wsService = createWebSocketService({
-      url: getWebSocketEndpoint(),
+      url: url,
       heartbeatInterval: 30000,
       reconnectInterval: 3000,
       maxReconnectAttempts: 10,
@@ -63,7 +66,7 @@ export class NotificationService {
    */
   private initializePolling(): void {
     this.pollingService = createPollingService({
-      axios: http,
+      axios: httpService,
       endpoint: '/api/v1/notifications/polling',
       interval: 30000,
       minInterval: 10000,
@@ -153,7 +156,7 @@ export class NotificationService {
       }
     }>('/api/v1/notifications', { params })
 
-    return data.data
+    return data
   }
 
   /**
@@ -166,7 +169,7 @@ export class NotificationService {
       data: NotificationStats
     }>('/api/v1/notifications/stats')
 
-    return data.data
+    return data
   }
 
   /**
@@ -179,7 +182,7 @@ export class NotificationService {
       data: { success: boolean }
     }>(`/api/v1/notifications/${notificationId}/read`)
 
-    return data.data.success
+    return data.success
   }
 
   /**
@@ -192,7 +195,7 @@ export class NotificationService {
       data: { success: boolean; affected: number }
     }>('/api/v1/notifications/read-all', { type })
 
-    return data.data
+    return data
   }
 
   /**
@@ -205,7 +208,7 @@ export class NotificationService {
       data: { success: boolean }
     }>(`/api/v1/notifications/${notificationId}`)
 
-    return data.data.success
+    return data.success
   }
 
   /**

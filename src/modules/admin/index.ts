@@ -6,7 +6,7 @@
 export { adminService } from './services/admin.service'
 
 // API
-export { adminAPI } from './api/admin.api'
+export { adminAPI } from './api'
 
 // Types
 export * from './types/admin.types'

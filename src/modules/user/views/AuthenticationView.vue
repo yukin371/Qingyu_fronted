@@ -383,7 +383,6 @@ onMounted(() => {
   const mode = route.query.mode as string
   if (mode && ['login', 'register', 'reset'].includes(mode)) activeMode.value = mode as any
 })
-watch(activeMode, (n) => router.replace({ query: { ...route.query, mode: n } }))
 </script>
 
 <style scoped lang="scss">

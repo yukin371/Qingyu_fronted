@@ -3,7 +3,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { HomepageData } from '@/types/bookstore'
+import type { HomepageData } from '../types'
 
 /**
  * 获取书城首页数据

@@ -201,8 +201,8 @@ const loadAnnouncements = async () => {
       limit: pageSize.value,
       offset: (currentPage.value - 1) * pageSize.value
     })
-    announcements.value = response.announcements
-    total.value = response.total
+    announcements.value = response.data?.items || []
+    total.value = response.data?.total || 0
   } catch (error) {
     ElMessage.error('加载公告列表失败')
   } finally {

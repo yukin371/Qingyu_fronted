@@ -16,7 +16,8 @@ import type {
   CreateProviderRequest,
   UpdateProviderRequest,
   TestProviderRequest,
-  UpdateModelRequest
+  UpdateModelRequest,
+  ProviderHealth
 } from '../types/ai-admin.types'
 
 // ============ API基础路径 ============

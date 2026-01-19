@@ -4,6 +4,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
+import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'

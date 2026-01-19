@@ -126,26 +126,26 @@ export const readerAPI = {
   // ==================== 章节阅读 ====================
 
   /**
-   * 获取章节信息
-   * GET /api/v1/reader/chapters/:id
+   * 获取章节信息（不含内容）
+   * GET /api/v1/reader/chapters/:chapterId/info
    */
   async getChapterInfo(chapterId: string): Promise<APIResponse<Chapter>> {
-    return httpService.get<APIResponse<Chapter>>(`/reader/chapters/${chapterId}`)
+    return httpService.get<APIResponse<Chapter>>(`/reader/chapters/${chapterId}/info`)
   },
 
   /**
    * 获取章节内容（需要登录）
-   * GET /api/v1/reader/chapters/:id/content
+   * GET /api/v1/reader/books/:bookId/chapters/:chapterId
    */
-  async getChapterContent(chapterId: string): Promise<APIResponse<ChapterContent>> {
+  async getChapterContent(bookId: string, chapterId: string): Promise<APIResponse<ChapterContent>> {
     return httpService.get<APIResponse<ChapterContent>>(
-      `/reader/chapters/${chapterId}/content`
+      `/reader/books/${bookId}/chapters/${chapterId}`
     )
   },
 
   /**
    * 获取书籍章节列表
-   * GET /api/v1/reader/chapters/book/:bookId
+   * GET /api/v1/reader/books/:bookId/chapters
    */
   async getChapterList(
     bookId: string,
@@ -153,38 +153,37 @@ export const readerAPI = {
     size: number = 20
   ): Promise<PaginatedResponse<ChapterListItem>> {
     return httpService.get<PaginatedResponse<ChapterListItem>>(
-      `/reader/chapters/book/${bookId}`,
-      { params: { page, size } }
+      `/reader/books/${bookId}/chapters?page=${page}&size=${size}`
     )
   },
 
   /**
-   * 获取章节导航（上一章、下一章）
-   * GET /api/v1/reader/chapters/:id/navigation
+   * 获取下一章
+   * GET /api/v1/reader/books/:bookId/chapters/:chapterId/next
    */
-  async getChapterNavigation(chapterId: string): Promise<APIResponse<ChapterNavigation>> {
-    return httpService.get<APIResponse<ChapterNavigation>>(
-      `/reader/chapters/${chapterId}/navigation`
-    )
-  },
-
-  /**
-   * 获取第一章
-   * GET /api/v1/reader/chapters/book/:bookId/first
-   */
-  async getFirstChapter(bookId: string): Promise<APIResponse<Chapter>> {
+  async getNextChapter(bookId: string, chapterId: string): Promise<APIResponse<Chapter>> {
     return httpService.get<APIResponse<Chapter>>(
-      `/reader/chapters/book/${bookId}/first`
+      `/reader/books/${bookId}/chapters/${chapterId}/next`
     )
   },
 
   /**
-   * 获取最后一章
-   * GET /api/v1/reader/chapters/book/:bookId/last
+   * 获取上一章
+   * GET /api/v1/reader/books/:bookId/chapters/:chapterId/previous
    */
-  async getLastChapter(bookId: string): Promise<APIResponse<Chapter>> {
+  async getPreviousChapter(bookId: string, chapterId: string): Promise<APIResponse<Chapter>> {
     return httpService.get<APIResponse<Chapter>>(
-      `/reader/chapters/book/${bookId}/last`
+      `/reader/books/${bookId}/chapters/${chapterId}/previous`
+    )
+  },
+
+  /**
+   * 根据章节号获取章节
+   * GET /api/v1/reader/books/:bookId/chapters/by-number/:chapterNum
+   */
+  async getChapterByNumber(bookId: string, chapterNum: number): Promise<APIResponse<Chapter>> {
+    return httpService.get<APIResponse<Chapter>>(
+      `/reader/books/${bookId}/chapters/by-number/${chapterNum}`
     )
   },
 

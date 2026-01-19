@@ -270,10 +270,11 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getProjects(params)
-        if (response.code === 200 && response.data) {
-          this.projects = Array.isArray(response.data) ? response.data : []
+        // response 是 ProjectListResponse 类型，直接包含 projects 数组
+        if (response && response.projects) {
+          this.projects = Array.isArray(response.projects) ? response.projects : []
         } else {
-          this.error = response.message || '加载项目列表失败'
+          this.projects = []
         }
       } catch (error: any) {
         console.error('加载项目列表失败:', error)
@@ -293,10 +294,11 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getProjectById(projectId)
-        if (response.code === 200) {
-          this.currentProject = response.data
+        // response 是 ProjectDetailResponse 类型
+        if (response && response.id) {
+          this.currentProject = response
         } else {
-          this.error = response.message || '加载项目失败'
+          this.error = '加载项目失败'
         }
       } catch (error: any) {
         console.error('加载项目失败:', error)
@@ -316,11 +318,12 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await createProject(data)
-        if (response.code === 200) {
-          this.projects.unshift(response.data)
-          return response.data
+        // response 是 ProjectDetailResponse 类型
+        if (response && response.id) {
+          this.projects.unshift(response as Project)
+          return response as Project
         } else {
-          this.error = response.message || '创建项目失败'
+          this.error = '创建项目失败'
           return null
         }
       } catch (error: any) {
@@ -341,9 +344,10 @@ export const useWriterStore = defineStore('writer', {
       }
 
       try {
-        const response = await updateProject(this.currentProject.projectId, data)
-        if (response.code === 200) {
-          this.currentProject = { ...this.currentProject, ...response.data }
+        const response = await updateProject(this.currentProject.projectId!, data)
+        // response 是 ProjectDetailResponse 类型
+        if (response && response.id) {
+          this.currentProject = { ...this.currentProject, ...response as any }
           // 更新项目列表中的项目
           const index = this.projects.findIndex(
             (p) => p.projectId === this.currentProject!.projectId
@@ -352,7 +356,7 @@ export const useWriterStore = defineStore('writer', {
             this.projects[index] = this.currentProject
           }
         } else {
-          this.error = response.message || '更新项目失败'
+          this.error = '更新项目失败'
         }
       } catch (error: any) {
         console.error('更新项目失败:', error)

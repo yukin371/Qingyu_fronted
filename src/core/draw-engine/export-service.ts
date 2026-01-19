@@ -2,7 +2,7 @@
  * 图形导出导入服务
  */
 
-import type { DrawNode, DrawEdge, DrawCanvas, MarkdownExport } from './types'
+import type { DrawNode, DrawEdge } from './types'
 
 /**
  * 导出/导入服务
@@ -220,7 +220,7 @@ export class DrawExportService {
   /**
    * 生成下载链接
    */
-  static createDownloadLink(content: string, filename: string, mimeType: string = 'text/plain'): string {
+  static createDownloadLink(content: string, _filename: string, mimeType: string = 'text/plain'): string {
     const blob = new Blob([content], { type: mimeType })
     return URL.createObjectURL(blob)
   }

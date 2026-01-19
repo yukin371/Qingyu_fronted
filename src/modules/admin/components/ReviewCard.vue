@@ -76,7 +76,8 @@ const truncatedContent = computed(() => {
 })
 
 // 格式化时间
-const formatTime = (time: string) => {
+const formatTime = (time?: string) => {
+  if (!time) return '-'
   try {
     return formatRelativeTime(time)
   } catch {

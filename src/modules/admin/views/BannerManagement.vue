@@ -173,8 +173,8 @@ const loadBanners = async () => {
       limit: pageSize.value,
       offset: (currentPage.value - 1) * pageSize.value
     })
-    banners.value = response.banners
-    total.value = response.total
+    banners.value = response.data?.items || []
+    total.value = response.data?.total || 0
   } catch (error) {
     ElMessage.error('加载Banner列表失败')
   } finally {

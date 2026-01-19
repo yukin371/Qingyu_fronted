@@ -304,7 +304,7 @@ const handleApprove = async (item: WithdrawRecord) => {
       type: 'success'
     })
 
-    await adminAPI.reviewWithdraw(item.withdrawId, {
+    await adminAPI.reviewWithdraw(item.withdrawId || item.id, {
       status: 'approved'
     })
 

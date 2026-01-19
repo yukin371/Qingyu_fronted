@@ -38,7 +38,7 @@
           <div class="flex items-center space-x-4">
             <el-avatar
               :size="36"
-              :src="userStore.userInfo?.avatar"
+              :src="userStore.avatar"
               :icon="UserFilled"
             />
           </div>

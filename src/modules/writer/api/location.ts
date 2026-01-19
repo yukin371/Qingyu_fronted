@@ -109,3 +109,7 @@ export const locationApi = {
     return httpService.delete<void>(`${BASE_LOCATION_URL}/relations/${relationId}`, { projectId })
   },
 }
+
+// 便捷函数导出（兼容旧代码）
+export const listLocations = (projectId: string) => locationApi.list(projectId)
+export const getLocationTree = (projectId: string) => locationApi.getTree(projectId)

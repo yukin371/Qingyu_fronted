@@ -36,6 +36,7 @@ export const historyAPI = {
     keyword?: string
     startDate?: string
     endDate?: string
+    bookId?: string // 按书籍筛选
   }): Promise<PaginatedResponse<ReadingHistory>> {
     return httpService.get<PaginatedResponse<ReadingHistory>>(
       '/reader/reading-history',

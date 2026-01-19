@@ -62,6 +62,22 @@ export interface BookBrief {
   description?: string
 }
 
+/**
+ * 书籍详细信息（别名）
+ */
+export type BookDetail = Book
+
+/**
+ * 首页数据
+ */
+export interface HomepageData {
+  banners: Banner[]
+  recommendations?: BookBrief[]
+  newBooks?: BookBrief[]
+  hotBooks?: BookBrief[]
+  completedBooks?: BookBrief[]
+}
+
 // ==================== 分类相关 ====================
 
 /**

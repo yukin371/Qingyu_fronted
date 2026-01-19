@@ -3,7 +3,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { Banner } from '@/types/bookstore'
+import type { Banner } from '../types'
 
 /**
  * 获取Banner列表

@@ -11,12 +11,8 @@ import type {
   DrawEngineEvent,
   DrawEventType,
   DrawCommand,
-  ExportOptions,
-  MarkdownExport,
   DrawTheme,
-  LayoutOptions,
-  NodePosition,
-  DrawCanvasType
+  MarkdownExport
 } from './types'
 import { DRAW_THEMES } from './types'
 
@@ -442,10 +438,10 @@ export class DrawEngine {
         const x2 = toNode.x + toNode.width / 2 + this.canvas.offsetX
         const y2 = toNode.y + toNode.height / 2 + this.canvas.offsetY
 
-        svg += `  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${edge.color}" stroke-width="${edge.lineWidth}"/>\n`
+        svg += `  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${edge.color || '#000'}" stroke-width="${edge.lineWidth || 1}"/>\n`
 
         if (edge.showArrow) {
-          svg += this.generateArrow(x2, y2, x1, y1, edge.color)
+          svg += this.generateArrow(x2, y2, x1, y1, edge.color || '#000')
         }
       }
     })

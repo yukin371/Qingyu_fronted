@@ -183,6 +183,24 @@ class HttpService {
     return this.instance.delete(url, { params, ...config })
   }
 
+  public patch<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
+    return this.instance.patch(url, data, config)
+  }
+
+  /**
+   * 设置认证令牌
+   */
+  public setAuthToken(token: string): void {
+    this.instance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  }
+
+  /**
+   * 清除认证令牌
+   */
+  public clearAuthToken(): void {
+    delete this.instance.defaults.headers.common['Authorization']
+  }
+
   /**
    * 文件上传封装
    */

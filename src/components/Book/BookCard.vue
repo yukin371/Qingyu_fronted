@@ -47,7 +47,7 @@
       <div class="flex items-center justify-between text-xs text-gray-500">
         <span class="flex items-center">
           <el-icon class="mr-1"><View /></el-icon>
-          {{ formatCount(book.viewCount) }}
+          {{ formatCount(book.viewCount || 0) }}
         </span>
         <span v-if="book.rating">
           <el-rate

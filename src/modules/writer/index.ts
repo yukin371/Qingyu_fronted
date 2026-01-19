@@ -8,4 +8,7 @@
 export * from './api'
 
 // 类型导出
-export type { Project, Document, DocumentTreeNode } from './types'
+export type { Project, Document, Node } from './types'
+
+// DocumentTreeNode 作为 Node 的别名
+export type { Node as DocumentTreeNode } from './types'

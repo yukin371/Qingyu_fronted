@@ -16,14 +16,16 @@ class WalletService {
    * Get wallet balance
    */
   async getWalletBalance(): Promise<WalletBalance> {
-    return await walletAPI.getWalletBalance()
+    const response = await walletAPI.getBalance()
+    return response.data || { balance: 0 }
   }
 
   /**
    * Get transaction history
    */
   async getTransactions(page: number = 1, size: number = 20): Promise<Transaction[]> {
-    return await walletAPI.getTransactions(page, size)
+    const response = await walletAPI.getTransactions({ page, pageSize: size })
+    return (response.data as any)?.items || response.data || []
   }
 
   /**
@@ -56,7 +58,7 @@ class WalletService {
       throw new Error('提现金额不能超过可用余额')
     }
 
-    await walletAPI.withdraw(params)
+    await walletAPI.submitWithdraw(params)
   }
 
   /**

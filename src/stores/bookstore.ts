@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Book, BookDetail, Category, Banner, HomepageData } from '@/types/bookstore'
+import type { Book, BookDetail, Category, Banner, HomepageData } from '@/modules/bookstore/types'
 import { getHomepage } from '@/modules/bookstore/api/homepage'
 import { getBookDetail } from '@/modules/bookstore/api/books'
 import { getCategoryTree } from '@/modules/bookstore/api/categories'
@@ -50,8 +50,9 @@ export const useBookstoreStore = defineStore('bookstore', () => {
     try {
       isLoading.value = true
       const data = await getBookDetail(bookId)
-      currentBook.value = data
-      return data
+      const bookDetail = (data as any)?.data || (data as any)?.book || data
+      currentBook.value = bookDetail as BookDetail
+      return bookDetail
     } catch (error) {
       console.error('获取书籍详情失败:', error)
       throw error

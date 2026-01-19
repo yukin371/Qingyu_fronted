@@ -114,3 +114,10 @@ export const characterApi = {
     return httpService.get<CharacterGraph>(`${BASE_PROJECT_URL}/${projectId}/characters/graph`)
   },
 }
+
+// 便捷函数导出（兼容旧代码）
+export const listCharacters = (projectId: string) => characterApi.list(projectId)
+export const listCharacterRelations = (projectId: string, characterId?: string) => characterApi.listRelations(projectId, characterId)
+export const createCharacter = (projectId: string, data: CreateCharacterRequest) => characterApi.create(projectId, data)
+export const updateCharacter = (characterId: string, projectId: string, data: UpdateCharacterRequest) => characterApi.update(characterId, projectId, data)
+export const deleteCharacter = (characterId: string, projectId: string) => characterApi.delete(characterId, projectId)

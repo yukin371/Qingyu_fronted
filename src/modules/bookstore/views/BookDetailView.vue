@@ -11,7 +11,7 @@
         <div class="container">
           <el-row :gutter="40">
             <!-- 封面 -->
-            <el-col :xs="24" :sm="8" :md="6">
+            <el-col :span="6" :xs="24" :sm="8">
               <div class="book-cover">
                 <el-image :src="book.cover" fit="cover" :alt="book.title">
                   <template #error>
@@ -26,7 +26,7 @@
             </el-col>
 
             <!-- 书籍信息 -->
-            <el-col :xs="24" :sm="16" :md="18">
+            <el-col :span="18" :xs="24" :sm="16">
               <div class="book-info">
                 <h1 class="book-title">{{ book.title }}</h1>
 
@@ -48,7 +48,7 @@
 
                 <div class="book-stats">
                   <div class="stat-item">
-                    <el-rate v-model="book.rating" disabled show-score text-color="#ff9900" />
+                    <el-rate :model-value="book.rating ?? 0" disabled show-score text-color="#ff9900" />
                     <span class="rating-count">({{ book.ratingCount || 0 }}人评分)</span>
                   </div>
                   <div class="stat-item">
@@ -67,7 +67,7 @@
                     <el-icon>
                       <Document />
                     </el-icon>
-                    {{ book.wordCount }}字 · {{ book.chapterCount }}章
+                    {{ formatNumber(book.wordCount) }}字 · {{ book.chapterCount || 0 }}章
                   </div>
                 </div>
 
@@ -289,11 +289,12 @@ const displayedChapters = computed(() => {
 })
 
 // 格式化数字
-const formatNumber = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
+const formatNumber = (num?: number): string => {
+  const safeNumber = typeof num === 'number' && !Number.isNaN(num) ? num : 0
+  if (safeNumber >= 10000) {
+    return (safeNumber / 10000).toFixed(1) + '万'
   }
-  return num.toString()
+  return safeNumber.toString()
 }
 
 // 开始阅读
@@ -489,24 +490,31 @@ onMounted(() => {
 .book-detail-view {
   min-height: 100vh;
   background-color: #f5f5f5;
+
+  :deep(.el-container) {
+    flex-direction: column !important;
+  }
 }
 
 .back-button {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .book-header {
   background: white;
   padding: 40px 0;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  width: 100%;
 }
 
 .book-cover {
@@ -577,6 +585,7 @@ onMounted(() => {
   background: white;
   padding: 24px 0;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .book-description {
@@ -662,6 +671,7 @@ onMounted(() => {
 .recommended-section {
   background: white;
   padding: 40px 0;
+  width: 100%;
 
   .section-title {
     font-size: 24px;

@@ -9,6 +9,7 @@ import readerAPI from '@/modules/reader/api/reader'
 
 export const useReaderStore = defineStore('reader', () => {
   // 状态
+  const currentBookId = ref<string | null>(null)
   const currentChapter = ref<Chapter | null>(null)
   const chapterContent = ref<ChapterContent | null>(null)
   const chapterList = ref<Chapter[]>([])
@@ -36,14 +37,23 @@ export const useReaderStore = defineStore('reader', () => {
   /**
    * 加载章节内容
    */
-  async function loadChapter(chapterId: string) {
+  async function loadChapter(chapterId: string, bookId?: string) {
     try {
       isLoading.value = true
+
+      // 使用提供的bookId或当前的bookId
+      const targetBookId = bookId || currentBookId.value
+      if (!targetBookId) {
+        throw new Error('未指定书籍ID')
+      }
+
+      // 更新当前书籍ID
+      currentBookId.value = targetBookId
 
       // 并行加载章节信息和内容
       const [chapterRes, contentRes] = await Promise.all([
         readerAPI.getChapterInfo(chapterId),
-        readerAPI.getChapterContent(chapterId),
+        readerAPI.getChapterContent(targetBookId, chapterId),
       ])
 
       currentChapter.value = chapterRes.data as any
@@ -93,7 +103,9 @@ export const useReaderStore = defineStore('reader', () => {
   async function loadChapterList(bookId: string) {
     try {
       const response = await readerAPI.getChapterList(bookId, 1, 1000)
-      const list = response.data?.chapters || []
+      const list = Array.isArray(response)
+        ? response
+        : (response as any)?.data?.chapters || (response as any)?.chapters || []
       chapterList.value = list as any
       return list
     } catch (error) {

@@ -88,3 +88,81 @@ export interface OperationLog {
   ip?: string
 }
 
+/**
+ * Announcement
+ */
+export interface Announcement {
+  id: string
+  title: string
+  content: string
+  type: 'system' | 'event' | 'maintenance'
+  priority: 'low' | 'medium' | 'high'
+  status: 'active' | 'inactive'
+  effectiveStartTime: string
+  effectiveEndTime: string
+  targetUsers?: string[]
+  createdAt: string
+  updatedAt?: string
+
+  // 别名属性，兼容不同API版本
+  isActive?: boolean // = status === 'active'
+  startTime?: string // = effectiveStartTime
+  endTime?: string // = effectiveEndTime
+}
+
+/**
+ * Banner
+ */
+export interface Banner {
+  id: string
+  title: string
+  imageUrl: string
+  link?: string
+  position: string
+  sortOrder?: number
+  status: 'active' | 'inactive'
+  startTime?: string
+  endTime?: string
+  createdAt: string
+  updatedAt?: string
+
+  // 别名属性，兼容不同API版本
+  isActive?: boolean // = status === 'active'
+  description?: string
+  image?: string // = imageUrl
+  target?: string
+  targetType?: string
+}
+
+/**
+ * Config Group
+ */
+export interface ConfigGroup {
+  key: string
+  label: string
+  description?: string
+  items: ConfigItem[]
+  name?: string // 别名，兼容
+}
+
+/**
+ * Config Item
+ */
+export interface ConfigItem {
+  key: string
+  label: string
+  value: any
+  type: 'string' | 'number' | 'boolean' | 'json'
+  description?: string // 别名，兼容
+  editable?: boolean // 别名，兼容
+  sensitive?: boolean // 别名，兼容
+}
+
+/**
+ * Update Config Request
+ */
+export interface UpdateConfigRequest {
+  key: string
+  value: any
+}
+

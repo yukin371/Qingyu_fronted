@@ -152,7 +152,8 @@ const rejectForm = reactive({
 })
 
 // 获取类型名称
-const getTypeName = (type: string): string => {
+const getTypeName = (type?: string): string => {
+  if (!type) return '-'
   const typeMap: Record<string, string> = {
     book: '书籍',
     chapter: '章节',
@@ -215,7 +216,7 @@ const handleApprove = async (item: PendingReview) => {
       type: 'success'
     })
 
-    await adminAPI.reviewContent(item.contentId, {
+    await adminAPI.reviewContent(item.contentId || item.targetId, {
       status: 'approved'
     })
 
@@ -248,7 +249,7 @@ const confirmReject = async () => {
 
   submitting.value = true
   try {
-    await adminAPI.reviewContent(currentItem.value.contentId, {
+    await adminAPI.reviewContent(currentItem.value.contentId || currentItem.value.targetId, {
       status: 'rejected',
       reason: rejectForm.reason
     })

@@ -75,4 +75,11 @@ export const userAPI = {
   }
 }
 
+// 便捷导出函数，提供更简洁的 API 调用方式
+export const getProfile = () => userAPI.getProfile()
+export const updateProfile = (data: UpdateProfileData) => userAPI.updateProfile(data)
+export const uploadAvatar = (file: File) => userAPI.uploadAvatar(file)
+export const getBookshelf = () => userAPI.getBookshelf()
+export const getReadingHistory = () => userAPI.getReadingHistory()
+
 export default userAPI

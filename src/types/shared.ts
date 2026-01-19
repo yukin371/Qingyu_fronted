@@ -100,6 +100,10 @@ export interface WithdrawRequest {
   createdAt: string
   processedAt?: string
   processedBy?: string
+
+  // 别名属性
+  withdrawId?: string // = id
+  reviewedAt?: string // = processedAt
 }
 
 /**
@@ -193,6 +197,51 @@ export interface ReviewItem {
   reason?: string
   createdAt: string
   reviewedAt?: string
+
+  // 别名属性，兼容不同API版本
+  // title = targetTitle
+  title?: string
+  // contentId = targetId
+  contentId?: string
+  // submittedAt = createdAt
+  submittedAt?: string
+  // submittedBy/submitterId = submitterId
+  submittedBy?: string
+  // contentType = type
+  contentType?: ReviewItemType
+}
+
+/**
+ * 待审核项（别名）
+ */
+export type PendingReview = ReviewItem
+
+/**
+ * 提现记录（别名）
+ */
+export type WithdrawRecord = WithdrawRequest
+
+/**
+ * 操作日志
+ */
+export interface OperationLog {
+  id: string
+  operatorId: string
+  operatorName?: string
+  action: string
+  target?: string
+  targetId?: string
+  details?: Record<string, any>
+  ip?: string
+  userAgent?: string
+  createdAt: string
+
+  // 别名属性，兼容不同API版本
+  logId?: string // = id
+  adminName?: string // = operatorName
+  adminId?: string // = operatorId
+  operation?: string // = action
+  targetType?: string // = target
 }
 
 /**

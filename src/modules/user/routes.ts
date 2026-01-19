@@ -4,8 +4,13 @@
 
 import type { RouteRecordRaw } from 'vue-router'
 import MainLayout from '@/shared/components/layout/MainLayout.vue'
+import UserRedirect from './components/UserRedirect.vue'
 
 const userRoutes: RouteRecordRaw[] = [
+  {
+    path: '/user',
+    component: UserRedirect,
+  },
   {
     path: '/auth',
     name: 'auth',
@@ -71,4 +76,3 @@ const userRoutes: RouteRecordRaw[] = [
 ]
 
 export default userRoutes
-

@@ -53,6 +53,7 @@ export interface Collaborator {
 
 export interface Project extends BaseEntity {
   authorId: ID
+  projectId?: ID // 别名，指向id字段
   title: string
   summary?: string
   coverUrl?: string

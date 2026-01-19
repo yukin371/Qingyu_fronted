@@ -4,8 +4,13 @@
 
 import type { RouteRecordRaw } from 'vue-router'
 import MainLayout from '@/shared/components/layout/MainLayout.vue'
+import ReaderRedirect from './components/ReaderRedirect.vue'
 
 const readerRoutes: RouteRecordRaw[] = [
+  {
+    path: '/reader',
+    component: ReaderRedirect,
+  },
   {
     path: '/reader/:chapterId',
     name: 'reader',
@@ -53,4 +58,3 @@ const readerRoutes: RouteRecordRaw[] = [
 ]
 
 export default readerRoutes
-

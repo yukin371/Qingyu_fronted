@@ -3,7 +3,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { Book, Category, PaginationResponse } from '@/types/bookstore'
+import type { Book, Category, PaginationResponse } from '../types'
 import type { APIResponse } from '@/types/api'
 
 /**
@@ -11,7 +11,11 @@ import type { APIResponse } from '@/types/api'
  * GET /api/v1/bookstore/categories/tree
  */
 export function getAllCategories(): Promise<APIResponse<Category[]>> {
-  return httpService.get<APIResponse<Category[]>>('/bookstore/categories/tree')
+  return httpService.get<APIResponse<Category[]>>(
+    '/bookstore/categories/tree',
+    undefined,
+    { returnFullResponse: true }
+  )
 }
 
 /**
@@ -54,4 +58,3 @@ export function getBooksByCategory(
     { params }
   )
 }
-

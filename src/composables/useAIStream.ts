@@ -187,7 +187,9 @@ export function useAIStream(options: AIStreamOptions): UseAIStreamReturn {
 
       error.value = err.message || '请求失败'
       onError?.(err)
-      ElMessage.error(error.value)
+      if (error.value) {
+        ElMessage.error(error.value)
+      }
       throw err
     } finally {
       streaming.value = false

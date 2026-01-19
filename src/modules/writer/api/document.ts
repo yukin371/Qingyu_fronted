@@ -170,3 +170,31 @@ export const deleteDocument = (documentId: string) => {
 export const moveDocument = (documentId: string, data: MoveDocumentRequest) => {
   return documentApi.move(documentId, data)
 }
+
+/**
+ * 获取大纲树
+ */
+export const getOutlineTree = (projectId: string) => {
+  return documentApi.getTree(projectId)
+}
+
+/**
+ * 创建大纲节点
+ */
+export const createOutlineNode = (projectId: string, data: CreateDocumentRequest) => {
+  return documentApi.create(projectId, data)
+}
+
+/**
+ * 更新大纲节点
+ */
+export const updateOutlineNode = (documentId: string, data: UpdateDocumentMetaRequest) => {
+  return documentApi.update(documentId, data)
+}
+
+/**
+ * 删除大纲节点
+ */
+export const deleteOutlineNode = (documentId: string) => {
+  return documentApi.delete(documentId)
+}

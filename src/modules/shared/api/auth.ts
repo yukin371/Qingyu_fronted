@@ -119,7 +119,7 @@ export const sharedAuthAPI = {
    * GET /api/v1/users/profile
    */
   async getUserInfo(): Promise<{ user: UserInfo; permissions?: UserPermission[]; roles?: UserRole[] }> {
-    const user = await httpService.get<UserInfo>('/users/profile')
+    const user = await httpService.get<UserInfo>('/user/profile')
     return { user }
   },
 

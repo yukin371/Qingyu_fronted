@@ -150,7 +150,8 @@ const dialogVisible = ref(false)
 const currentItem = ref<OperationLog | null>(null)
 
 // 获取操作类型
-const getOperationType = (operation: string): any => {
+const getOperationType = (operation?: string): any => {
+  if (!operation) return 'info'
   const typeMap: Record<string, any> = {
     approve_content: 'success',
     reject_content: 'danger',
@@ -163,7 +164,8 @@ const getOperationType = (operation: string): any => {
 }
 
 // 获取操作文本
-const getOperationText = (operation: string): string => {
+const getOperationText = (operation?: string): string => {
+  if (!operation) return '-'
   const textMap: Record<string, string> = {
     approve_content: '批准内容',
     reject_content: '拒绝内容',
@@ -207,7 +209,7 @@ const loadLogs = async () => {
         operation: 'approve_book',
         targetType: 'book',
         targetId: 'book_123',
-        details: '批准书籍《测试书籍》发布',
+        details: { message: '批准书籍《测试书籍》发布' },
         createdAt: '2025-10-21T14:30:00Z'
       },
       {
@@ -217,7 +219,7 @@ const loadLogs = async () => {
         operation: 'approve_withdraw',
         targetType: 'withdrawal',
         targetId: 'wd_001',
-        details: '批准用户提现申请 ¥500',
+        details: { message: '批准用户提现申请 ¥500' },
         createdAt: '2025-10-21T14:25:00Z'
       },
       {
@@ -227,7 +229,7 @@ const loadLogs = async () => {
         operation: 'reject_content',
         targetType: 'chapter',
         targetId: 'chapter_456',
-        details: '拒绝章节审核：内容违规',
+        details: { message: '拒绝章节审核：内容违规' },
         createdAt: '2025-10-21T14:20:00Z'
       }
     ]

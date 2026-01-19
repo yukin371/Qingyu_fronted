@@ -33,6 +33,7 @@ export enum ContentType {
  */
 export interface Document extends BaseEntity {
   projectId: ID
+  documentId?: ID // 别名，指向id字段
   parentId?: ID // 空字符串或 undefined 表示根节点
   title: string
   type: DocumentType

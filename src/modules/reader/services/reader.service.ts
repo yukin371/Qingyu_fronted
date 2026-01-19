@@ -17,15 +17,15 @@ class ReaderService {
   /**
    * Get chapter content
    */
-  async getChapterContent(chapterId: string): Promise<ChapterContent> {
-    return await readerAPI.getChapterContent(chapterId)
+  async getChapterContent(bookId: string, chapterId: string): Promise<ChapterContent> {
+    return await readerAPI.getChapterContent(bookId, chapterId)
   }
 
   /**
    * Get book chapters
    */
-  async getBookChapters(bookId: string): Promise<Chapter[]> {
-    return await readerAPI.getBookChapters(bookId)
+  async getBookChapters(bookId: string, page = 1, size = 50): Promise<Chapter[]> {
+    return await readerAPI.getBookChapters(bookId, page, size)
   }
 
   /**
