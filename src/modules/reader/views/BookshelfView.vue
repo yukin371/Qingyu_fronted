@@ -212,6 +212,7 @@ import {
     removeFromBookshelf
 } from '@/modules/reader/api'
 import { getReadingHistory } from '@/modules/reader/api'
+import { bookshelfService } from '@/modules/reader/services/bookshelf.service'
 
 const router = useRouter()
 
@@ -392,11 +393,26 @@ async function handleAction(command: string, book: any): Promise<void> {
     }
 }
 
-// 移动书籍到不同状态 (暂时移除该功能，因为后端API不支持)
+// 移动书籍到不同状态
 async function handleMove(bookId: string, status: string): Promise<void> {
     try {
-        // TODO: 后端API暂不支持更新书架状态，需要后续实现
-        ElMessage.info('该功能暂未实现')
+        // 映射前端状态到后端状态
+        const statusMap: Record<string, 'reading' | 'want_read' | 'finished'> = {
+            'reading': 'reading',
+            'want_to_read': 'want_read',
+            'completed': 'finished'
+        }
+
+        const backendStatus = statusMap[status]
+        if (!backendStatus) {
+            ElMessage.error('无效的状态')
+            return
+        }
+
+        // 调用服务层更新状态
+        await bookshelfService.updateBookStatus(bookId, backendStatus)
+        ElMessage.success('状态更新成功')
+        loadBooks() // 重新加载书架数据
     } catch (error: any) {
         ElMessage.error(error.message || '操作失败')
     }
@@ -421,7 +437,7 @@ async function handleRemove(bookId: string): Promise<void> {
     }
 }
 
-// 批量移动 (暂时移除该功能，因为后端API不支持)
+// 批量移动书籍到不同状态
 async function handleBatchMove(): Promise<void> {
     if (selectedBooks.value.length === 0) {
         ElMessage.warning('请选择要移动的书籍')
@@ -429,11 +445,34 @@ async function handleBatchMove(): Promise<void> {
     }
 
     try {
-        // TODO: 后端API暂不支持批量操作，需要后续实现
-        ElMessage.info('批量移动功能暂未实现')
+        // 显示状态选择对话框
+        const { value } = await ElMessageBox({
+            title: '批量移动书籍',
+            message: '请选择目标状态',
+            showCancelButton: true,
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            inputType: 'select',
+            inputValue: 'reading',
+            options: [
+                { value: 'reading', label: '在读' },
+                { value: 'want_read', label: '想读' },
+                { value: 'finished', label: '读完' }
+            ]
+        })
+
+        if (!value) {
+            return
+        }
+
+        // 调用服务层批量更新状态
+        const result = await bookshelfService.batchUpdateBookStatus(selectedBooks.value, value)
+        ElMessage.success(`已成功移动 ${result.count} 本书籍`)
+        toggleBatchMode()
+        loadBooks() // 重新加载书架数据
     } catch (error: any) {
         if (error !== 'cancel' && error !== 'close') {
-            ElMessage.error(error.message || '操作失败')
+            ElMessage.error(error.message || '批量操作失败')
         }
     }
 }

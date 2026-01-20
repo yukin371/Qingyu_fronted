@@ -370,14 +370,11 @@ export const useWriterStore = defineStore('writer', {
      */
     async deleteProjectById(projectId: string): Promise<void> {
       try {
-        const response = await deleteProject(projectId)
-        if (response.code === 200) {
-          this.projects = this.projects.filter((p) => p.projectId !== projectId)
-          if (this.currentProject?.projectId === projectId) {
-            this.currentProject = null
-          }
-        } else {
-          this.error = response.message || '删除项目失败'
+        await deleteProject(projectId)
+        // deleteProject 返回 void，直接执行删除操作
+        this.projects = this.projects.filter((p) => p.projectId !== projectId)
+        if (this.currentProject?.projectId === projectId) {
+          this.currentProject = null
         }
       } catch (error: any) {
         console.error('删除项目失败:', error)
@@ -397,10 +394,11 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getDocuments(projectId, params)
-        if (response.code === 200 && response.data) {
-          this.documents = Array.isArray(response.data) ? response.data : []
+        // response 是 { documents: Document[]; total: number } 类型
+        if (response && response.documents) {
+          this.documents = Array.isArray(response.documents) ? response.documents : []
         } else {
-          this.error = response.message || '加载文档列表失败'
+          this.documents = []
         }
       } catch (error: any) {
         console.error('加载文档列表失败:', error)
@@ -420,11 +418,8 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getDocumentTree(projectId)
-        if (response.code === 200) {
-          this.documentTree = response.data
-        } else {
-          this.error = response.message || '加载文档树失败'
-        }
+        // response 返回树形结构
+        this.documentTree = response || []
       } catch (error: any) {
         console.error('加载文档树失败:', error)
         this.error = error.message || '网络错误，请稍后重试'
@@ -443,11 +438,12 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getDocumentById(documentId)
-        if (response.code === 200) {
-          this.currentDocument = response.data
-          this.editorVersion = response.data.version || 0
+        // response 是 Document 类型
+        if (response && response.id) {
+          this.currentDocument = response
+          this.editorVersion = (response as any).version || 0
         } else {
-          this.error = response.message || '加载文档失败'
+          this.error = '加载文档失败'
         }
       } catch (error: any) {
         console.error('加载文档失败:', error)
@@ -467,11 +463,12 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await getDocumentContent(documentId)
-        if (response.code === 200) {
-          this.editorContent = response.data.content || ''
+        // response 是 DocumentContentResponse 类型
+        if (response && (response as any).content) {
+          this.editorContent = (response as any).content || ''
           this.isDirty = false
         } else {
-          this.error = response.message || '加载文档内容失败'
+          this.error = '加载文档内容失败'
         }
       } catch (error: any) {
         console.error('加载文档内容失败:', error)
@@ -485,19 +482,21 @@ export const useWriterStore = defineStore('writer', {
     /**
      * 创建文档
      */
-    async createNewDocument(projectId: string, data: DocumentCreateData): Promise<Document | null> {
+    async createNewDocument(projectId: string, data: any): Promise<Document | null> {
       this.documentsLoading = true
       this.error = null
 
       try {
         const response = await createDocument(projectId, data)
-        if (response.code === 200) {
-          this.documents.push(response.data)
+        // response 是 CreateDocumentResponse 类型
+        if (response && (response as any).id) {
+          const newDoc = response as Document
+          this.documents.push(newDoc)
           // 重新加载文档树
           await this.loadDocumentTree(projectId)
-          return response.data
+          return newDoc
         } else {
-          this.error = response.message || '创建文档失败'
+          this.error = '创建文档失败'
           return null
         }
       } catch (error: any) {
@@ -512,20 +511,17 @@ export const useWriterStore = defineStore('writer', {
     /**
      * 更新文档
      */
-    async updateDocumentById(documentId: string, data: DocumentUpdateData): Promise<void> {
+    async updateDocumentById(documentId: string, data: any): Promise<void> {
       try {
-        const response = await updateDocument(documentId, data)
-        if (response.code === 200) {
-          if (this.currentDocument?.documentId === documentId) {
-            this.currentDocument = { ...this.currentDocument, ...response.data }
-          }
-          // 更新文档列表中的文档
-          const index = this.documents.findIndex((d) => d.documentId === documentId)
-          if (index !== -1) {
-            this.documents[index] = { ...this.documents[index], ...response.data }
-          }
-        } else {
-          this.error = response.message || '更新文档失败'
+        await updateDocument(documentId, data)
+        // updateDocument 返回 void，直接更新本地状态
+        if (this.currentDocument?.documentId === documentId) {
+          this.currentDocument = { ...this.currentDocument, ...data }
+        }
+        // 更新文档列表中的文档
+        const index = this.documents.findIndex((d) => d.documentId === documentId)
+        if (index !== -1) {
+          this.documents[index] = { ...this.documents[index], ...data }
         }
       } catch (error: any) {
         console.error('更新文档失败:', error)
@@ -541,16 +537,12 @@ export const useWriterStore = defineStore('writer', {
       this.isSaving = true
 
       try {
-        const response = await updateDocumentContent(documentId, content)
-        if (response.code === 200) {
-          this.editorContent = content
-          this.isDirty = false
-          this.lastSaved = new Date()
-          this.editorVersion = (response.data as any)?.version || this.editorVersion + 1
-        } else {
-          this.error = response.message || '保存文档失败'
-          throw new Error(this.error)
-        }
+        await updateDocumentContent(documentId, content)
+        // updateDocumentContent 返回 void，直接更新本地状态
+        this.editorContent = content
+        this.isDirty = false
+        this.lastSaved = new Date()
+        this.editorVersion = this.editorVersion + 1
       } catch (error: any) {
         console.error('保存文档失败:', error)
         this.error = error.message || '网络错误，请稍后重试'
@@ -570,12 +562,13 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const response = await autosaveDocument(documentId, content, this.editorVersion)
-        if (response.code === 200) {
+        // response 是 AutoSaveResponse 类型
+        if (response && (response as any).version !== undefined) {
           this.lastSaved = new Date()
           this.isDirty = false
 
           // 检查版本冲突
-          const newVersion = (response.data as any)?.version
+          const newVersion = (response as any).version
           if (newVersion && newVersion !== this.editorVersion) {
             console.warn('检测到版本冲突')
             // 可以触发版本冲突处理逻辑
@@ -591,20 +584,17 @@ export const useWriterStore = defineStore('writer', {
      */
     async deleteDocumentById(documentId: string): Promise<void> {
       try {
-        const response = await deleteDocument(documentId)
-        if (response.code === 200) {
-          this.documents = this.documents.filter((d) => d.documentId !== documentId)
-          if (this.currentDocument?.documentId === documentId) {
-            this.currentDocument = null
-            this.editorContent = ''
-            this.isDirty = false
-          }
-          // 重新加载文档树
-          if (this.currentProject) {
-            await this.loadDocumentTree(this.currentProject.projectId)
-          }
-        } else {
-          this.error = response.message || '删除文档失败'
+        await deleteDocument(documentId)
+        // deleteDocument 返回 void，直接更新本地状态
+        this.documents = this.documents.filter((d) => d.documentId !== documentId)
+        if (this.currentDocument?.documentId === documentId) {
+          this.currentDocument = null
+          this.editorContent = ''
+          this.isDirty = false
+        }
+        // 重新加载文档树
+        if (this.currentProject) {
+          await this.loadDocumentTree(this.currentProject.projectId!)
         }
       } catch (error: any) {
         console.error('删除文档失败:', error)

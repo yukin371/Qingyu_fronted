@@ -262,7 +262,13 @@ const hasMoreComments = computed(() => {
   return comments.value.length < commentTotal.value
 })
 
-const book = computed(() => bookstoreStore.currentBook as any)
+const book = computed(() => {
+  const currentBook = bookstoreStore.currentBook as any
+  console.log('[BookDetailView] book computed called, currentBook:', currentBook)
+  console.log('[BookDetailView] book.title:', currentBook?.title)
+  console.log('[BookDetailView] book.cover:', currentBook?.cover)
+  return currentBook
+})
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -443,7 +449,10 @@ const goToBook = (id: string) => {
 const loadBookDetail = async () => {
   loading.value = true
   try {
+    console.log('[BookDetailView] Loading book detail for ID:', bookId)
     await bookstoreStore.fetchBookDetail(bookId)
+
+    console.log('[BookDetailView] Book loaded, currentBook:', bookstoreStore.currentBook)
 
     // 加载章节列表
     await loadChapters()
@@ -454,7 +463,7 @@ const loadBookDetail = async () => {
     // 加载阅读进度
     // 调整：当前 readerStore 未提供对应方法
   } catch (error) {
-    console.error('加载书籍详情失败:', error)
+    console.error('[BookDetailView] 加载书籍详情失败:', error)
     ElMessage.error('加载失败')
   } finally {
     loading.value = false

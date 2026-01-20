@@ -8,7 +8,7 @@
 
 // 书架管理
 export * from './books'
-export { bookshelfAPI, getBookshelf, getRecentReading, getUnfinishedBooks, getFinishedBooks, addToBookshelf, removeFromBookshelf } from './books'
+export { bookshelfAPI, getBookshelf, getRecentReading, getUnfinishedBooks, getFinishedBooks, addToBookshelf, removeFromBookshelf, updateBookStatus, batchUpdateBookStatus } from './books'
 
 // 章节内容
 export * from './chapters'
@@ -25,6 +25,9 @@ export { bookmarksAPI, getUserBookmarks, createBookmark, updateBookmark, deleteB
 // 评论系统
 export * from './comments'
 export { commentsAPI, getBookComments, createComment, replyComment, deleteComment, likeComment, unlikeComment, getChapterComments } from './comments'
+
+// 别名导出：commentAPI 等同于 commentsAPI
+export { commentsAPI as commentAPI } from './comments'
 
 // 点赞功能
 export * from './likes'

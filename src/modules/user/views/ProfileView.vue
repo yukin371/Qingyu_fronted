@@ -123,13 +123,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Edit, Picture, Upload } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { userAPI } from '@/modules/user/api'
+import * as bookshelfAPI from '@/modules/reader/api'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -223,6 +224,15 @@ onMounted(async () => {
   await loadProfile()
 })
 
+// 监听标签页切换，加载相应数据
+watch(activeTab, async (newTab) => {
+  if (newTab === 'shelf' && shelfBooks.value.length === 0) {
+    await loadShelf()
+  } else if (newTab === 'history' && readingHistory.value.length === 0) {
+    await loadHistory()
+  }
+})
+
 // 加载用户信息
 const loadProfile = async () => {
   loading.value = true
@@ -238,36 +248,57 @@ const loadProfile = async () => {
   }
 }
 
-// 数据加载功能（TODO: 后续实现）
-// const loadShelf = async () => {
-//   shelfLoading.value = true
-//   try {
-//     // TODO: 调用书架API
-//     // const res = await bookshelfAPI.getBooks()
-//     // shelfBooks.value = res.data
-//     shelfBooks.value = []
-//   } catch (error: any) {
-//     console.error('加载书架失败:', error)
-//     ElMessage.error('加载书架失败')
-//   } finally {
-//     shelfLoading.value = false
-//   }
-// }
+// 数据加载功能
+const loadShelf = async () => {
+  shelfLoading.value = true
+  try {
+    const response = await bookshelfAPI.getBookshelf({ page: 1, pageSize: 20 })
+    // 处理响应数据
+    const data = response.data || response
+    const books = data.books || data.data || []
 
-// const loadHistory = async () => {
-//   historyLoading.value = true
-//   try {
-//     // TODO: 调用阅读历史API
-//     // const res = await readingAPI.getHistory()
-//     // readingHistory.value = res.data
-//     readingHistory.value = []
-//   } catch (error: any) {
-//     console.error('加载阅读历史失败:', error)
-//     ElMessage.error('加载阅读历史失败')
-//   } finally {
-//     historyLoading.value = false
-//   }
-// }
+    // 转换为界面需要的格式
+    shelfBooks.value = books.map((book: any) => ({
+      id: book.id || book.bookId,
+      title: book.title,
+      author: book.author,
+      coverUrl: book.cover || book.coverUrl
+    }))
+  } catch (error: any) {
+    console.error('加载书架失败:', error)
+    ElMessage.error('加载书架失败')
+    shelfBooks.value = []
+  } finally {
+    shelfLoading.value = false
+  }
+}
+
+const loadHistory = async () => {
+  historyLoading.value = true
+  try {
+    const response = await bookshelfAPI.getRecentReading(10)
+    // 处理响应数据
+    const data = response.data || response
+    const history = Array.isArray(data) ? data : (data.data || [])
+
+    // 转换为界面需要的格式
+    readingHistory.value = history.map((item: any) => ({
+      id: item.id || item._id,
+      book: {
+        title: item.title || item.book?.title,
+        coverUrl: item.cover || item.book?.coverUrl
+      },
+      chapterTitle: item.chapterTitle || item.last_read_chapter || '未知章节',
+      progress: (item.progress || 0) * 100 // 转换为百分比
+    }))
+  } catch (error: any) {
+    console.error('加载阅读历史失败:', error)
+    ElMessage.error('加载阅读历史失败')
+    readingHistory.value = []
+  } finally {
+    historyLoading.value = false
+  }
+}
 
 // 编辑相关
 const startEdit = () => {

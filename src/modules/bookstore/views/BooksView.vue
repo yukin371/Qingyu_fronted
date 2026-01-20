@@ -235,6 +235,7 @@ const loadBooks = async () => {
       order: 'desc' as 'desc'
     }
 
+    console.log('[BooksView] Loading books with params:', params)
     const response = await getBookList(params)
     console.log('[BooksView] API response:', response)
     console.log('[BooksView] Response type:', typeof response, 'Is array:', Array.isArray(response))
@@ -243,6 +244,7 @@ const loadBooks = async () => {
     // 格式1: response 直接是书籍数组 (httpService 默认行为)
     if (Array.isArray(response)) {
       console.log('[BooksView] Response is array, using directly')
+      console.log('[BooksView] First book data:', response[0])
       books.value = response
       total.value = response.length
       return
@@ -250,6 +252,8 @@ const loadBooks = async () => {
 
     // 格式2: 标准 APIResponse { code, message, data, total }
     if (response && typeof response === 'object') {
+      console.log('[BooksView] Response is object, keys:', Object.keys(response))
+
       // 检查是否为空数据（数据库中没有书籍）
       if (isEmptyData(response)) {
         console.log('[BooksView] Empty data detected')
@@ -260,25 +264,37 @@ const loadBooks = async () => {
 
       // API调用成功且有数据
       if (response.code === 200) {
-        console.log('[BooksView] Success, processing data...')
+        console.log('[BooksView] Success code 200, processing data...')
+        console.log('[BooksView] response.data:', response.data)
+        console.log('[BooksView] response.data type:', typeof response.data, 'Is array:', Array.isArray(response.data))
+
         // 后端返回格式: { code, message, data: [...], total, page, size }
         // data 直接是书籍数组，total/page/size 在根级别
         if (Array.isArray(response.data)) {
+          console.log('[BooksView] response.data is array with', response.data.length, 'items')
+          if (response.data.length > 0) {
+            console.log('[BooksView] First book data:', response.data[0])
+          }
           books.value = response.data
           total.value = (response as any).total || response.data.length
         } else if (response.data && response.data.items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
+          console.log('[BooksView] Found nested items format')
           books.value = response.data.items
           total.value = response.data.total || 0
         } else if (response.data && response.data.books) {
           // 兼容另一种格式 { data: { books: [...], total, ... } }
+          console.log('[BooksView] Found nested books format')
           books.value = response.data.books
           total.value = response.data.total || 0
         } else {
+          console.warn('[BooksView] Unexpected data structure:', response.data)
           books.value = []
           total.value = 0
         }
         console.log('[BooksView] Books loaded:', books.value.length, 'Total:', total.value)
+      } else {
+        console.warn('[BooksView] Non-200 response code:', response.code)
       }
     } else {
       // API返回错误状态码 - 静默处理，只显示UI错误状态
@@ -293,7 +309,12 @@ const loadBooks = async () => {
       }
     }
   } catch (err: any) {
-    console.error('[BooksView]加载书籍列表失败:', err)
+    console.error('[BooksView] 加载书籍列表失败:', err)
+    console.error('[BooksView] Error details:', {
+      message: err.message,
+      code: err.code,
+      response: err.response?.data
+    })
 
     // 使用统一的错误处理 - 静默处理，只显示UI错误状态，避免重复提示
     const appError = handleApiError(err, { showMessage: false })

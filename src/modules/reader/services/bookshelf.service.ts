@@ -41,6 +41,24 @@ class BookshelfService {
   }
 
   /**
+   * Update book status (reading/want_read/finished)
+   */
+  async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<void> {
+    await bookshelfAPI.updateBookStatus(bookId, status)
+  }
+
+  /**
+   * Batch update book status
+   */
+  async batchUpdateBookStatus(
+    bookIds: string[],
+    status: 'reading' | 'want_read' | 'finished'
+  ): Promise<{ count: number }> {
+    const response = await bookshelfAPI.batchUpdateBookStatus(bookIds, status)
+    return response.data || { count: bookIds.length }
+  }
+
+  /**
    * Sort bookshelf items
    */
   sortBookshelf(

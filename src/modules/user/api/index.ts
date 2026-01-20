@@ -34,3 +34,7 @@ export {
   removeDevice,
   cancelAccount
 } from './security'
+
+// 关注功能 API
+export * from './follow'
+export { followAPI, followUser, unfollowUser, checkFollowStatus, getFollowers, getFollowing, getFollowingAuthors } from './follow'

@@ -9,7 +9,8 @@ import type { LoginCredentials, RegisterData } from '@/types/user'
 const STORAGE_KEYS = {
   TOKEN: 'token',
   REFRESH_TOKEN: 'refreshToken',
-  USER: 'user'
+  USER: 'user',
+  ROLES: 'roles'  // 添加roles存储key
 }
 
 /**
@@ -57,6 +58,7 @@ export const useAuthStore = defineStore('auth', {
     const savedToken = storage.get<string>(STORAGE_KEYS.TOKEN)
     const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
     const savedUser = storage.get<any>(STORAGE_KEYS.USER)
+    const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
 
     return {
       // 用户信息
@@ -76,8 +78,8 @@ export const useAuthStore = defineStore('auth', {
       // 权限列表
       permissions: [],
 
-      // 角色列表
-      roles: []
+      // 角色列表 - 从localStorage恢复
+      roles: savedRoles || []
     }
   },
 
@@ -155,6 +157,7 @@ export const useAuthStore = defineStore('auth', {
         storage.set(STORAGE_KEYS.TOKEN, this.token)
         storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
         storage.set(STORAGE_KEYS.USER, this.user)
+        storage.set(STORAGE_KEYS.ROLES, this.roles)  // 保存roles到localStorage
 
         return response
       } catch (error: any) {
@@ -189,6 +192,7 @@ export const useAuthStore = defineStore('auth', {
           storage.set(STORAGE_KEYS.TOKEN, this.token)
           storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           storage.set(STORAGE_KEYS.USER, this.user)
+          storage.set(STORAGE_KEYS.ROLES, this.roles)
         }
 
         return response
@@ -299,6 +303,7 @@ export const useAuthStore = defineStore('auth', {
 
           // 更新本地存储
           storage.set(STORAGE_KEYS.TOKEN, this.token)
+          storage.set(STORAGE_KEYS.ROLES, this.roles)
           if ('refreshToken' in data && data.refreshToken) {
             storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           }
@@ -405,6 +410,7 @@ export const useAuthStore = defineStore('auth', {
       storage.remove(STORAGE_KEYS.TOKEN)
       storage.remove(STORAGE_KEYS.REFRESH_TOKEN)
       storage.remove(STORAGE_KEYS.USER)
+      storage.remove(STORAGE_KEYS.ROLES)  // 清除roles
     },
 
     // 清除错误信息

@@ -35,3 +35,8 @@ build/
 
 # Git worktrees
 .worktrees/
+
+# Test reports and screenshots
+test-results/
+playwright-report/
+tests/e2e/screenshots/

@@ -14,6 +14,7 @@ import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth' // 引入 Pinia
 import { ErrorHandler } from '@/utils/errorHandler'
 import type { APIResponse } from '@/core/types/api.types' // 引入统一类型
+import { convertObjectKeysToCamelCase } from '@/utils/caseConverter' // 引入字段名转换工具
 
 // 扩展 Axios 请求配置
 export interface RequestConfig extends AxiosRequestConfig {
@@ -25,6 +26,7 @@ export interface RequestConfig extends AxiosRequestConfig {
   returnFullResponse?: boolean // 是否返回完整的 AxiosResponse (包含 headers 等)
   isUpload?: boolean // 是否是文件上传
   keepCache?: boolean // 是否保持缓存
+  skipCaseConversion?: boolean // 是否跳过字段名转换（snake_case -> camelCase）
 }
 
 class HttpService {
@@ -126,7 +128,35 @@ class HttpService {
           // ★ 关键决策：
           // 默认只返回 result (data.data)，让组件代码更干净。
           // 如果配置了 returnFullResponse: true，则返回整个 APIResponse
-          return config.returnFullResponse ? apiData : apiData.data
+
+          const dataToReturn = config.returnFullResponse ? apiData : apiData.data
+
+          // 自动转换snake_case到camelCase（仅对对象类型）
+          // 注意：跳过某些已知已经使用camelCase的API
+          const skipConversion = config.skipCaseConversion || false
+
+          if (!skipConversion && dataToReturn && typeof dataToReturn === 'object') {
+            try {
+              // 对data字段进行递归转换
+              if (config.returnFullResponse) {
+                // 如果返回完整响应，只转换data部分
+                const converted = convertObjectKeysToCamelCase(dataToReturn.data)
+                return {
+                  ...dataToReturn,
+                  data: converted
+                }
+              } else {
+                // 直接返回转换后的data
+                return convertObjectKeysToCamelCase(dataToReturn)
+              }
+            } catch (error) {
+              // 转换失败时返回原始数据
+              console.warn('[HTTP] 字段名转换失败，返回原始数据:', error)
+              return dataToReturn
+            }
+          }
+
+          return dataToReturn
         }
 
         // 业务错误处理
@@ -244,6 +274,7 @@ declare module 'axios' {
     returnFullResponse?: boolean
     isUpload?: boolean // 是否为文件上传
     keepCache?: boolean
+    skipCaseConversion?: boolean // 是否跳过字段名转换
   }
 }
 

@@ -49,12 +49,34 @@ export const useBookstoreStore = defineStore('bookstore', () => {
   async function fetchBookDetail(bookId: string) {
     try {
       isLoading.value = true
+      console.log('[fetchBookDetail] Fetching book detail for ID:', bookId)
+
+      // httpService会自动将snake_case转换为camelCase
       const data = await getBookDetail(bookId)
-      const bookDetail = (data as any)?.data || (data as any)?.book || data
+
+      console.log('[fetchBookDetail] Received data from API:', data)
+
+      // 数据可能被httpService自动转换，也可能需要手动处理
+      // 兼容多种可能的数据结构
+      let bookDetail = data
+
+      // 如果data有嵌套的data或book字段，提取出来
+      if (data && typeof data === 'object') {
+        if ((data as any).data) {
+          bookDetail = (data as any).data
+        } else if ((data as any).book) {
+          bookDetail = (data as any).book
+        }
+      }
+
+      console.log('[fetchBookDetail] Processed book detail:', bookDetail)
+      console.log('[fetchBookDetail] Book title:', bookDetail?.title)
+      console.log('[fetchBookDetail] Book cover:', bookDetail?.cover)
+
       currentBook.value = bookDetail as BookDetail
       return bookDetail
     } catch (error) {
-      console.error('获取书籍详情失败:', error)
+      console.error('[fetchBookDetail] 获取书籍详情失败:', error)
       throw error
     } finally {
       isLoading.value = false

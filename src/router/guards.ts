@@ -81,10 +81,12 @@ function createAuthGuard(router: Router) {
     // 角色权限检查
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       const requiredRoles = to.meta.roles
-      const hasRole = authStore.user?.roles?.some((role) => requiredRoles.includes(role))
+      const hasRole = authStore.roles?.some((role) => requiredRoles.includes(role))
 
       if (!hasRole) {
         console.log('[Route Guard] Permission denied')
+        console.log('[Route Guard] Required roles:', requiredRoles)
+        console.log('[Route Guard] User roles:', authStore.roles)
         if (to.path.startsWith('/writer')) {
           next({ path: '/bookstore', query: { error: 'permission_denied' }, replace: true })
         } else {

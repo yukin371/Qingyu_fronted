@@ -209,6 +209,8 @@ import { Picture, Clock, Reading, Document, Star } from '@element-plus/icons-vue
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
+import * as bookshelfAPI from '@/modules/reader/api'
+import { followAPI } from '@/modules/user/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -278,22 +280,52 @@ const loadUserProfile = async () => {
 const loadBookshelf = async () => {
   loadingBookshelf.value = true
   try {
-    // TODO: 调用书架API
-    // const response = await httpService.get(`/reader/bookshelf/${userId.value}`, {
-    //   params: {
-    //     page: bookshelfPagination.value.page,
-    //     size: bookshelfPagination.value.size
-    //   }
-    // })
-    // bookshelfList.value = response.data.books || []
-    // bookshelfPagination.value.total = response.data.total || 0
+    if (isCurrentUser.value) {
+      // 查看自己的书架：使用reader API
+      const response = await bookshelfAPI.getBookshelf({
+        page: bookshelfPagination.value.page,
+        pageSize: bookshelfPagination.value.size
+      })
 
-    // 模拟数据
-    bookshelfList.value = []
-    bookshelfPagination.value.total = 0
+      const data = response.data || response
+      const books = data.books || data.data || []
+
+      bookshelfList.value = books.map((book: any) => ({
+        id: book.id || book.bookId,
+        title: book.title,
+        author: book.author,
+        cover: book.cover || book.coverUrl,
+        progress: book.progress || 0,
+        status: book.status
+      }))
+
+      bookshelfPagination.value.total = data.total || 0
+    } else {
+      // 查看他人的书架：使用user API
+      const response = await httpService.get(`/user/users/${userId.value}/books`, {
+        params: {
+          page: bookshelfPagination.value.page,
+          size: bookshelfPagination.value.size
+        }
+      })
+
+      const books = response.data?.books || response.data || []
+      bookshelfList.value = books.map((book: any) => ({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        cover: book.cover,
+        progress: book.progress || 0,
+        status: book.status
+      }))
+
+      bookshelfPagination.value.total = response.data?.total || 0
+    }
   } catch (error: any) {
     console.error('加载书架失败:', error)
     ElMessage.error('加载书架失败')
+    bookshelfList.value = []
+    bookshelfPagination.value.total = 0
   } finally {
     loadingBookshelf.value = false
   }
@@ -302,16 +334,51 @@ const loadBookshelf = async () => {
 // 加载最近阅读
 const loadRecentReadings = async () => {
   try {
-    // TODO: 调用阅读历史API
-    // const response = await httpService.get(`/reader/history/${userId.value}`, {
-    //   params: { limit: 5 }
-    // })
-    // recentReadings.value = response.data || []
+    if (isCurrentUser.value) {
+      // 查看自己的阅读历史：使用reader API
+      const response = await bookshelfAPI.getRecentReading(5)
+      const data = response.data || response
+      const history = Array.isArray(data) ? data : (data.data || [])
 
-    // 模拟数据
-    recentReadings.value = []
+      recentReadings.value = history.map((item: any) => ({
+        id: item.id || item._id,
+        book: {
+          id: item.bookId || item.book?.id,
+          title: item.title || item.book?.title,
+          cover: item.cover || item.book?.coverUrl
+        },
+        chapterTitle: item.chapterTitle || item.last_read_chapter || '未知章节',
+        progress: (item.progress || 0) * 100,
+        lastReadAt: item.lastReadAt || item.last_read_at || item.updated_at
+      }))
+    } else {
+      // 查看他人的阅读历史：使用user API（如果后端支持）
+      try {
+        const response = await httpService.get(`/user/users/${userId.value}/recent-readings`, {
+          params: { limit: 5 }
+        })
+
+        const history = response.data || []
+        recentReadings.value = history.map((item: any) => ({
+          id: item.id,
+          book: {
+            id: item.bookId || item.book?.id,
+            title: item.book?.title,
+            cover: item.book?.cover
+          },
+          chapterTitle: item.chapterTitle || '未知章节',
+          progress: (item.progress || 0) * 100,
+          lastReadAt: item.lastReadAt
+        }))
+      } catch (err) {
+        // 如果后端不支持获取他人的阅读历史，返回空数组
+        console.log('不支持查看他人的阅读历史')
+        recentReadings.value = []
+      }
+    }
   } catch (error: any) {
     console.error('加载阅读记录失败:', error)
+    recentReadings.value = []
   }
 }
 
@@ -347,7 +414,7 @@ const handleFollow = async () => {
   }
 
   try {
-    await httpService.post(`/users/${userId.value}/follow`)
+    await followAPI.followUser(userId.value)
     isFollowing.value = true
     ElMessage.success('关注成功')
     if (userStats.value) {
@@ -362,7 +429,7 @@ const handleFollow = async () => {
 // 处理取消关注
 const handleUnfollow = async () => {
   try {
-    await httpService.delete(`/users/${userId.value}/follow`)
+    await followAPI.unfollowUser(userId.value)
     isFollowing.value = false
     ElMessage.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {

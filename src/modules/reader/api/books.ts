@@ -99,6 +99,28 @@ export const bookshelfAPI = {
    */
   async removeFromBookshelf(bookId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/reader/books/${bookId}`)
+  },
+
+  /**
+   * 更新书籍状态
+   * PUT /api/v1/reader/books/:bookId/status
+   */
+  async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<APIResponse<void>> {
+    return httpService.put<APIResponse<void>>(`/reader/books/${bookId}/status`, { status })
+  },
+
+  /**
+   * 批量更新书籍状态
+   * PUT /api/v1/reader/books/batch/status
+   */
+  async batchUpdateBookStatus(
+    bookIds: string[],
+    status: 'reading' | 'want_read' | 'finished'
+  ): Promise<APIResponse<{ count: number }>> {
+    return httpService.put<APIResponse<{ count: number }>>('/reader/books/batch/status', {
+      bookIds,
+      status
+    })
   }
 }
 
@@ -109,6 +131,8 @@ export const getUnfinishedBooks = (params?: any) => bookshelfAPI.getUnfinishedBo
 export const getFinishedBooks = (params?: any) => bookshelfAPI.getFinishedBooks(params)
 export const addToBookshelf = (bookId: string) => bookshelfAPI.addToBookshelf(bookId)
 export const removeFromBookshelf = (bookId: string) => bookshelfAPI.removeFromBookshelf(bookId)
+export const updateBookStatus = (bookId: string, status: 'reading' | 'want_read' | 'finished') => bookshelfAPI.updateBookStatus(bookId, status)
+export const batchUpdateBookStatus = (bookIds: string[], status: 'reading' | 'want_read' | 'finished') => bookshelfAPI.batchUpdateBookStatus(bookIds, status)
 
 // 别名导出：booksAPI 等同于 bookshelfAPI
 export const booksAPI = bookshelfAPI
