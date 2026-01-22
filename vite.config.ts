@@ -3,9 +3,17 @@ import vue from '@vitejs/plugin-vue'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import { fileURLToPath, URL } from 'node:url'
 
+// 根据环境决定是否加载 VueDevTools
+// Vitest 环境下禁用，避免兼容性问题
+const isTest = process.env.VITEST || process.env.NODE_ENV === 'test'
+const plugins = [vue()]
+if (!isTest) {
+  plugins.push(VueDevTools())
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), VueDevTools()],
+  plugins,
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
