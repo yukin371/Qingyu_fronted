@@ -19,5 +19,11 @@ export * from './data'
 // 表单组件
 export * from './form'
 
+// 反馈组件
+export * from './feedback'
+
+// 导航组件
+export * from './navigation'
+
 // 工具函数
 export * from './utils/cn'
