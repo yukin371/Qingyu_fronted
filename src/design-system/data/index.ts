@@ -7,3 +7,9 @@ export * from './Pagination'
 
 // Tree 组件
 export * from './Tree'
+
+// Tabs 组件
+export * from './Tabs'
+
+// Table 组件
+export * from './Table'
