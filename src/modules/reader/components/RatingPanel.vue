@@ -4,7 +4,7 @@
             <div class="average-rating">
                 <div class="rating-number">{{ averageRating.toFixed(1) }}</div>
                 <el-rate v-model="averageRating" disabled show-score text-color="#ff9900"
-                    :colors="['#99A9BF', '#F7BA2A', '#FF9900']" />
+                    :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="5" />
                 <div class="rating-count">{{ totalRatings }} 人评分</div>
             </div>
 
@@ -23,7 +23,7 @@
         <div class="my-rating">
             <h4>我的评分</h4>
             <el-rate v-model="myRating" :disabled="disabled" @change="handleRatingChange" size="large"
-                :colors="['#99A9BF', '#F7BA2A', '#FF9900']" />
+                :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="5" :min="1" />
             <el-button v-if="myRating > 0 && !disabled" type="primary" @click="handleSubmit" :loading="submitting">
                 提交评分
             </el-button>

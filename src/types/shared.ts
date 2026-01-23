@@ -9,15 +9,16 @@ import type { APIResponse, PaginatedResponse } from './api'
 
 /**
  * 钱包信息
+ * 金额字段单位：分 (需要除以100转换为元显示)
  */
 export interface WalletInfo {
   userId: string
-  balance: number
-  frozenBalance?: number
-  frozenAmount?: number
-  availableAmount?: number
-  totalIncome?: number
-  totalExpense?: number
+  balance: number // 单位：分
+  frozenBalance?: number // 单位：分
+  frozenAmount?: number // 单位：分
+  availableAmount?: number // 单位：分
+  totalIncome?: number // 单位：分
+  totalExpense?: number // 单位：分
   currency?: string
   updatedAt?: string
 }
@@ -34,13 +35,14 @@ export type TransactionStatus = 'pending' | 'success' | 'failed' | 'cancelled'
 
 /**
  * 交易记录
+ * 金额字段单位：分 (需要除以100转换为元显示)
  */
 export interface Transaction {
   id: string
   userId: string
   type: TransactionType
-  amount: number
-  balance: number
+  amount: number // 单位：分
+  balance: number // 单位：分
   reason: string
   description?: string
   status: TransactionStatus
@@ -51,48 +53,53 @@ export interface Transaction {
 
 /**
  * 充值参数
+ * amount 单位：分 (需要将用户输入的元乘以100)
  */
 export interface RechargeParams {
-  amount: number
+  amount: number // 单位：分
   method: string // 支付方式
   channel?: string
 }
 
 /**
  * 消费参数
+ * amount 单位：分 (需要将用户输入的元乘以100)
  */
 export interface ConsumeParams {
-  amount: number
+  amount: number // 单位：分
   reason: string
   relatedId?: string
 }
 
 /**
  * 转账参数
+ * amount 单位：分 (需要将用户输入的元乘以100)
  */
 export interface TransferParams {
   toUserId: string
   targetUserId?: string
-  amount: number
+  amount: number // 单位：分
   reason?: string
 }
 
 /**
  * 转账请求（兼容）
+ * amount 单位：分 (需要将用户输入的元乘以100)
  */
 export interface TransferRequest {
   targetUserId: string
-  amount: number
+  amount: number // 单位：分
   reason?: string
 }
 
 /**
  * 提现申请
+ * amount 单位：分 (需要除以100转换为元显示)
  */
 export interface WithdrawRequest {
   id: string
   userId: string
-  amount: number
+  amount: number // 单位：分
   account: string
   accountType: string // 提现账户类型
   status: 'pending' | 'approved' | 'rejected'
@@ -108,9 +115,10 @@ export interface WithdrawRequest {
 
 /**
  * 提现申请参数
+ * amount 单位：分 (需要将用户输入的元乘以100)
  */
 export interface WithdrawParams {
-  amount: number
+  amount: number // 单位：分
   account: string
   accountType: string
   verifyCode?: string

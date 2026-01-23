@@ -8,14 +8,14 @@
   >
     <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
       <el-form-item label="可用余额">
-        <div class="available-balance">¥{{ availableAmount.toFixed(2) }}</div>
+        <div class="available-balance">¥{{ availableAmountDisplay.toFixed(2) }}</div>
       </el-form-item>
 
       <el-form-item label="提现金额" prop="amount">
         <el-input-number
           v-model="form.amount"
           :min="1"
-          :max="availableAmount"
+          :max="availableAmountDisplay"
           :precision="2"
           :step="100"
           style="width: 100%"
@@ -83,7 +83,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { WithdrawRequest } from '@/types/shared'
+import type { WithdrawParams } from '@/types/shared'
+import { yuanToCents, centsToYuan } from '@/utils/currency'
 
 interface Props {
   modelValue: boolean
@@ -93,12 +94,12 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'confirm', data: WithdrawRequest): void
+  (e: 'confirm', data: WithdrawParams): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  availableAmount: 0
+  availableAmount: 0 // 单位：分
 })
 
 const emit = defineEmits<Emits>()
@@ -106,14 +107,20 @@ const emit = defineEmits<Emits>()
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 
-// 表单数据
-const form = ref<WithdrawRequest>({
+// 表单数据（用户输入，单位：元）
+const form = ref<WithdrawParams>({
   amount: 0,
-  account: ''
+  account: '',
+  accountType: 'alipay'
 })
 
 // 手续费率 (1%)
 const feeRate = 0.01
+
+// 可用余额显示（分转元）
+const availableAmountDisplay = computed(() => {
+  return centsToYuan(props.availableAmount)
+})
 
 // 计算手续费
 const fee = computed(() => {
@@ -137,7 +144,7 @@ const rules: FormRules = {
     },
     {
       validator: (rule, value, callback) => {
-        if (value > props.availableAmount) {
+        if (value > availableAmountDisplay.value) {
           callback(new Error('提现金额不能超过可用余额'))
         } else {
           callback()
@@ -146,6 +153,10 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  account: [
+    { required: true, message: '请输入提现账户', trigger: 'blur' },
+    { min: 5, max: 100, message: '账户信息长度在5-100个字符', trigger: 'blur' }
+  ]
   account: [
     { required: true, message: '请输入提现账户', trigger: 'blur' },
     { min: 5, max: 100, message: '账户信息长度在5-100个字符', trigger: 'blur' }
@@ -168,7 +179,7 @@ watch(
 
 // 全部提现
 const withdrawAll = () => {
-  form.value.amount = props.availableAmount
+  form.value.amount = availableAmountDisplay.value
 }
 
 // 确认提现
@@ -177,7 +188,13 @@ const handleConfirm = async () => {
 
   await formRef.value.validate((valid) => {
     if (valid) {
-      emit('confirm', { ...form.value })
+      // 将元转换为分后再提交
+      const data: WithdrawParams = {
+        amount: yuanToCents(form.value.amount),
+        account: form.value.account,
+        accountType: form.value.accountType
+      }
+      emit('confirm', data)
     }
   })
 }

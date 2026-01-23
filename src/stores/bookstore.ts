@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Book, BookDetail, Category, Banner, HomepageData } from '@/modules/bookstore/types'
 import { getHomepage } from '@/modules/bookstore/api/homepage'
-import { getBookDetail } from '@/modules/bookstore/api/books'
+import { getBookDetail, searchBooks as searchBooksAPI } from '@/modules/bookstore/api/books'
 import { getCategoryTree } from '@/modules/bookstore/api/categories'
 import { getBanners } from '@/modules/bookstore/api/banners'
 
@@ -17,6 +17,12 @@ export const useBookstoreStore = defineStore('bookstore', () => {
   const categories = ref<Category[]>([])
   const banners = ref<Banner[]>([])
   const isLoading = ref(false)
+
+  // 搜索相关状态
+  const books = ref({
+    searchResults: [] as Book[],
+    searchResultsCount: 0
+  })
 
   /**
    * 获取首页数据
@@ -118,6 +124,54 @@ export const useBookstoreStore = defineStore('bookstore', () => {
     currentBook.value = null
   }
 
+  /**
+   * 搜索书籍
+   */
+  async function searchBooks(keyword: string, filters?: any) {
+    try {
+      isLoading.value = true
+      const params: any = {
+        keyword,
+        page: filters?.page || 1,
+        size: filters?.size || 20,
+      }
+      if (filters?.category) params.category = filters.category
+      if (filters?.status) params.status = filters.status
+      if (filters?.sort) params.sort = filters.sort
+
+      const response = await searchBooksAPI(params)
+
+      // 处理搜索结果
+      let results: Book[] = []
+      let total = 0
+
+      if (response) {
+        if (Array.isArray(response)) {
+          results = response
+          total = response.length
+        } else if ((response as any).data && Array.isArray((response as any).data)) {
+          results = (response as any).data
+          total = (response as any).total || results.length
+        } else if ((response as any).books && Array.isArray((response as any).books)) {
+          results = (response as any).books
+          total = (response as any).total || results.length
+        }
+      }
+
+      books.value.searchResults = results
+      books.value.searchResultsCount = total
+
+      return { results, total }
+    } catch (error) {
+      console.error('[searchBooks] 搜索失败:', error)
+      books.value.searchResults = []
+      books.value.searchResultsCount = 0
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     // 状态
     homepageData,
@@ -125,6 +179,7 @@ export const useBookstoreStore = defineStore('bookstore', () => {
     categories,
     banners,
     isLoading,
+    books,
 
     // 方法
     fetchHomepage,
@@ -132,5 +187,6 @@ export const useBookstoreStore = defineStore('bookstore', () => {
     fetchCategoryTree,
     fetchBanners,
     clearCurrentBook,
+    searchBooks,
   }
 })

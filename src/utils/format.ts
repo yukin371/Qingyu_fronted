@@ -90,8 +90,14 @@ export function formatReadingTime(minutes: number): string {
 
 /**
  * 格式化价格
+ * 注意：price 参数应该是分（后端返回的单位）
+ * 使用 formatCurrency 替代，此函数保留用于向后兼容
+ * @deprecated 使用 formatCurrency 替代
  */
 export function formatPrice(price: number, currency: string = '¥'): string {
+  // 如果传入的 price 是分（后端单位），需要转换
+  // 为了向后兼容，假设传入的是元（旧代码），不转换
+  // 新代码应该使用 formatCurrency
   return `${currency}${price.toFixed(2)}`
 }
 

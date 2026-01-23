@@ -23,10 +23,27 @@
           </h1>
 
           <!-- 章节内容 -->
-          <div v-if="currentChapter" class="chapter-content" v-html="formattedContent"></div>
+          <div v-if="currentChapter" class="chapter-content" data-testid="chapter-content" v-html="formattedContent"></div>
 
           <!-- 空状态 -->
           <el-empty v-else description="加载中..." />
+        </div>
+
+        <!-- 评论区 -->
+        <div v-if="currentChapter" class="comments-section-wrapper" data-testid="comments-section">
+          <el-divider />
+          <div class="comments-container">
+            <h3>本章评论</h3>
+            <!-- 简化的评论区，用于E2E测试定位 -->
+            <el-empty v-if="!comments || comments.length === 0" description="暂无评论" />
+            <div v-else class="comments-list">
+              <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                <div class="comment-user">{{ comment.userName || '匿名' }}</div>
+                <div class="comment-content">{{ comment.content }}</div>
+                <div class="comment-time" data-testid="comment-time">{{ comment.createdAt || '刚刚' }}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </el-main>
 
@@ -174,6 +191,9 @@ const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
 const startTime = ref(Date.now())
 const readerContainerRef = ref()
+
+// 评论区数据
+const comments = ref<any[]>([])
 
 // 主题配置
 const themes = [
@@ -539,6 +559,50 @@ watch(() => route.params.chapterId, (newId) => {
       margin-bottom: 1em;
       text-indent: 2em;
       text-align: justify;
+    }
+  }
+}
+
+.comments-section-wrapper {
+  margin-top: 60px;
+  padding: 0 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+
+  .comments-container {
+    h3 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #303133;
+    }
+
+    .comments-list {
+      .comment-item {
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .comment-user {
+          font-weight: bold;
+          color: #606266;
+          margin-bottom: 8px;
+        }
+
+        .comment-content {
+          color: #303133;
+          line-height: 1.6;
+          margin-bottom: 8px;
+        }
+
+        .comment-time {
+          font-size: 12px;
+          color: #909399;
+        }
+      }
     }
   }
 }

@@ -302,7 +302,8 @@ const registerRules: FormRules = {
   // ... 请保留您的验证规则 ...
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { type: 'email', message: '格式不正确', trigger: 'blur' }],
-  emailCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+  // 注意：后端注册API不需要验证码字段，所以emailCode改为可选
+  emailCode: [],  // 移除required，改为可选
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 6, message: '至少6位', trigger: 'blur' }],
   confirmPassword: [{
     validator: (r, v, c) => v !== registerForm.value.password ? c(new Error('密码不一致')) : c(),

@@ -5,7 +5,9 @@
 // Button 组件
 export * from './Button'
 
+// Icon 组件
+export * from './Icon'
+
 // 更多组件将在后续添加...
-// export * from './Icon'
 // export * from './Tag'
 // export * from './Card'

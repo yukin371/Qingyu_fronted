@@ -13,6 +13,7 @@
           disabled
           show-score
           text-color="#ff9900"
+          :max="5"
         />
         <div class="rating-count">{{ totalRatings }} 人评分</div>
       </div>
@@ -44,11 +45,13 @@
           :texts="['极差', '失望', '一般', '满意', '惊喜']"
           show-text
           @change="handleRatingChange"
+          :max="5"
+          :min="1"
         />
       </div>
       <div v-else class="user-rated">
         <p>你的评分</p>
-        <el-rate v-model="userRating.score" disabled />
+        <el-rate v-model="userRating.score" disabled :max="5" />
         <el-button text type="primary" @click="editRating">修改评分</el-button>
       </div>
     </div>
@@ -68,6 +71,8 @@
             v-model="ratingForm.score"
             :texts="['极差', '失望', '一般', '满意', '惊喜']"
             show-text
+            :max="5"
+            :min="1"
           />
         </el-form-item>
         <el-form-item label="评价">

@@ -35,7 +35,12 @@
                     <el-icon>
                       <User />
                     </el-icon>
-                    {{ book.author }}
+                    <span v-if="book.author" class="author-name">
+                      {{ book.author }}
+                    </span>
+                    <span v-else class="author-name">
+                      未知作者
+                    </span>
                   </span>
                   <span class="category">
                     <el-icon>
@@ -80,7 +85,11 @@
 
                 <!-- 操作按钮 -->
                 <div class="book-actions">
-                  <el-button type="primary" size="large" @click="startReading">
+                  <el-button
+                    type="primary"
+                    size="large"
+                    :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
+                    @click="startReading">
                     <el-icon>
                       <Reading />
                     </el-icon>
@@ -308,6 +317,8 @@ const startReading = async () => {
   try {
     // 从第一章开始
     if (chapters.value.length > 0) {
+      // 设置当前bookId到readerStore，以便reader页面可以加载章节
+      readerStore.currentBookId = bookId
       router.push(`/reader/${chapters.value[0].id}`)
     } else {
       ElMessage.warning('暂无章节')
@@ -319,6 +330,8 @@ const startReading = async () => {
 
 // 阅读章节
 const readChapter = (chapterId: string) => {
+  // 设置当前bookId到readerStore
+  readerStore.currentBookId = bookId
   router.push(`/reader/${chapterId}`)
 }
 
@@ -473,10 +486,17 @@ const loadBookDetail = async () => {
 // 加载章节列表
 const loadChapters = async () => {
   try {
-    const list = await readerStore.loadChapterList(bookId)
-    chapters.value = Array.isArray(list) ? list : []
+    // 使用公开的bookstore API（不需要认证）
+    const response = await fetch(`http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`)
+    const data = await response.json()
+    if (data.code === 200 && Array.isArray(data.data)) {
+      chapters.value = data.data
+    } else {
+      chapters.value = []
+    }
   } catch (error) {
     console.error('加载章节列表失败:', error)
+    chapters.value = []
   }
 }
 
@@ -555,6 +575,17 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+
+    .author-link {
+      color: #409eff;
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #66b1ff;
+        text-decoration: underline;
+      }
     }
   }
 

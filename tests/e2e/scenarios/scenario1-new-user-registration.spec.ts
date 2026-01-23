@@ -61,7 +61,7 @@ test.describe('场景1：新用户首次访问与注册', () => {
     await page.waitForLoadState('networkidle')
 
     // Mock邮箱验证码API
-    await page.route(`${TEST_CONFIG.apiBaseURL}/api/v1/auth/send-email-code`, (route) => {
+    await page.route(`${TEST_CONFIG.apiBaseURL}/api/v1/user/email/send-code`, (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -77,7 +77,7 @@ test.describe('场景1：新用户首次访问与注册', () => {
     })
 
     // 监听注册API响应
-    await page.route(`${TEST_CONFIG.apiBaseURL}/api/v1/auth/register`, (route) => {
+    await page.route(`${TEST_CONFIG.apiBaseURL}/api/v1/shared/auth/register`, (route) => {
       route.continue() // 继续真实请求
     })
   })
@@ -331,7 +331,7 @@ test.describe('场景1：新用户首次访问与注册', () => {
       // 监听注册API响应
       let apiResponse: APIResponse | null = null
       page.on('response', async (response) => {
-        if (response.url().includes('/api/v1/auth/register')) {
+        if (response.url().includes('/api/v1/shared/auth/register')) {
           try {
             apiResponse = await response.json() as APIResponse
             console.log(`注册API响应: ${JSON.stringify(apiResponse)}`)

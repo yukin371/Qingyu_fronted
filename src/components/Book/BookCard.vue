@@ -57,6 +57,7 @@
             show-score
             text-color="#ff9900"
             score-template="{value}"
+            :max="5"
           />
         </span>
       </div>
@@ -75,6 +76,7 @@
 import { useRouter } from 'vue-router'
 import { View } from '@element-plus/icons-vue'
 import type { Book } from '@/types/bookstore'
+import { formatCurrency } from '@/utils/currency'
 
 interface Props {
   book: Book
@@ -91,9 +93,10 @@ function handleClick() {
 // 获取状态类型
 function getStatusType(status: string) {
   const typeMap: Record<string, any> = {
+    draft: 'info',
     ongoing: 'success',
     completed: 'info',
-    hiatus: 'warning',
+    paused: 'warning',
   }
   return typeMap[status] || 'info'
 }
@@ -101,9 +104,10 @@ function getStatusType(status: string) {
 // 获取状态文本
 function getStatusText(status: string) {
   const textMap: Record<string, string> = {
+    draft: '草稿',
     ongoing: '连载中',
     completed: '已完结',
-    hiatus: '已停更',
+    paused: '已暂停',
   }
   return textMap[status] || status
 }

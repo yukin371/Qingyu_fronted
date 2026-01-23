@@ -98,7 +98,7 @@ export function deleteBook(bookId: string) {
  * GET /api/v1/bookstore/books/search
  */
 export function searchBooks(params: SearchParams) {
-  return httpService.get<PaginationResponse<Book>>('/bookstore/books/search', { params })
+  return httpService.get<PaginationResponse<Book>>('/bookstore/books/search', params)
 }
 
 /**

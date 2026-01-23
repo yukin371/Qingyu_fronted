@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试登录</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>测试登录API</h1>
+    <button onclick="testLogin()">测试登录</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testLogin() {
+            const result = document.getElementById('result');
+            result.textContent = '正在测试...';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/shared/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'reader01',
+                        password: 'Reader123456'
+                    })
+                });
+
+                const data = await response.json();
+                result.textContent = '状态码: ' + response.status + '\n\n响应:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = '错误: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

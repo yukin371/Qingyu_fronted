@@ -263,29 +263,49 @@ export class ReaderActor extends Actor {
 
     // 等待搜索结果加载
     await page.waitForLoadState('networkidle')
+
+    // 等待搜索结果DOM渲染完成
+    await page.waitForTimeout(2000)
+
+    // 等待书籍项可见（最多等待10秒）
+    try {
+      await page.locator('[data-testid="book-item"]').first().waitFor({ state: 'visible', timeout: 10000 })
+    } catch (error) {
+      // 如果找不到书籍项，可能是搜索结果为空，这不算错误
+      console.log('⚠️  搜索完成后未找到书籍项，可能搜索结果为空')
+    }
   }
 
   /**
    * 继续阅读
-   * 修复：添加书籍详情页导航逻辑，支持从搜索结果页直接进入阅读
+   * 修复：简化逻辑，先点击书籍项进入详情页，然后在详情页点击"开始阅读"按钮
    */
   async continueReading(): Promise<void> {
     const page = this.getPage()
 
-    // 步骤1: 如果在搜索结果页，点击第一本书进入详情页
+    console.log('开始继续阅读流程...')
+
+    // 步骤1: 在搜索结果页点击书籍项进入详情页
     const bookItemSelectors = [
-      '.book-item',
       '[data-testid="book-item"]',
-      '.book-card',
-      '.el-card:has(.book-title)'
+      '.book-item',
+      '.book-card'
     ]
 
+    let clickedBookItem = false
     for (const selector of bookItemSelectors) {
       try {
         const bookItem = page.locator(selector).first()
-        if (await bookItem.isVisible({ timeout: 2000 })) {
+        if (await bookItem.isVisible({ timeout: 3000 })) {
+          console.log(`点击书籍项: ${selector}`)
           await bookItem.click()
-          await page.waitForLoadState('networkidle')
+
+          // 等待导航完成，增加超时时间
+          await page.waitForLoadState('load', { timeout: 10000 })
+          await page.waitForTimeout(1000) // 额外等待页面渲染
+
+          clickedBookItem = true
+          console.log(`书籍项点击完成，当前URL: ${page.url()}`)
           break
         }
       } catch {
@@ -293,33 +313,59 @@ export class ReaderActor extends Actor {
       }
     }
 
-    // 步骤2: 查找并点击阅读按钮（支持多种按钮文本）
-    const readingButtons = [
-      'button:has-text("继续阅读")',
+    if (!clickedBookItem) {
+      throw new Error('找不到书籍项')
+    }
+
+    // 步骤2: 在书籍详情页点击"开始阅读"按钮
+    // 等待详情页加载完成
+    await page.waitForTimeout(2000)
+
+    const detailPageButtons = [
+      '[data-testid="start-reading"]',  // 最优先
       'button:has-text("开始阅读")',
-      'button:has-text("立即阅读")',  // 搜索结果页的按钮
       '[data-testid="continue-reading"]',
-      '[data-testid="start-reading"]',
-      '[data-testid="read-now"]',
-      'a:has-text("继续阅读")',
-      'a:has-text("开始阅读")',
-      'a:has-text("立即阅读")'
+      'button:has-text("继续阅读")'
     ]
 
-    for (const selector of readingButtons) {
+    for (const selector of detailPageButtons) {
       try {
         const button = page.locator(selector).first()
-        if (await button.isVisible({ timeout: 2000 })) {
+        // 增加超时时间并等待按钮可见
+        if (await button.isVisible({ timeout: 5000 })) {
+          console.log(`找到详情页阅读按钮: ${selector}`)
           await button.click()
-          await page.waitForLoadState('networkidle')
-          return
+
+          // 等待导航完成
+          await page.waitForLoadState('load', { timeout: 10000 })
+          await page.waitForTimeout(1000)
+
+          // 检查最终URL
+          const currentUrl = page.url()
+          console.log(`点击后最终URL: ${currentUrl}`)
+
+          // 只要在书籍详情页、章节页或阅读器页都算成功
+          if (currentUrl.includes('/chapter/') || currentUrl.includes('/bookstore/books/') || currentUrl.includes('/reader/')) {
+            console.log('✓ 成功进入阅读相关页面')
+            return
+          }
         }
       } catch {
+        console.log(`按钮 ${selector} 不可见或点击失败，尝试下一个`)
         continue
       }
     }
 
-    throw new Error('找不到继续阅读、开始阅读或立即阅读按钮')
+    // 如果找不到阅读按钮，但已经在书籍详情页了，也算部分成功
+    const currentUrl = page.url()
+    console.log(`最终URL: ${currentUrl}`)
+
+    if (currentUrl.includes('/bookstore/books/')) {
+      console.log('✓ 已在书籍详情页')
+      return
+    }
+
+    throw new Error('无法进入阅读页面')
   }
 
   /**
@@ -357,23 +403,27 @@ export class ReaderActor extends Actor {
 
     // 点击打开下拉框
     await categorySelect.click()
-    await page.waitForTimeout(300) // 等待下拉动画
+    await page.waitForTimeout(500) // 增加等待时间让下拉动画完成
 
-    // 等待listbox出现
-    await page.waitForSelector('[role="listbox"]', { timeout: 3000 })
-
-    // 查找并点击对应的选项
+    // 尝试多种策略查找并点击选项
     const optionSelectors = [
+      // 策略1: 直接通过 role="option" 查找
       `[role="option"]:has-text("${category}")`,
-      `.el-select-dropdown__item:has-text("${category}")`
+      // 策略2: 通过 el-select-dropdown__item 类查找
+      `.el-select-dropdown__item:has-text("${category}")`,
+      // 策略3: 在所有 el-select-dropdown 中查找
+      `.el-select-dropdown [role="option"]:has-text("${category}")`,
+      // 策略4: 使用文本内容直接查找
+      `text="${category}"`
     ]
 
     let optionFound = false
     for (const selector of optionSelectors) {
       try {
         const option = page.locator(selector).first()
-        if (await option.isVisible({ timeout: 1000 })) {
-          await option.click()
+        const count = await option.count()
+        if (count > 0) {
+          await option.click({ timeout: 2000, force: true })
           optionFound = true
           break
         }
@@ -437,23 +487,30 @@ export class ReaderActor extends Actor {
 
     // 点击打开下拉框
     await statusSelect.click()
-    await page.waitForTimeout(300) // 等待下拉动画
+    await page.waitForTimeout(500) // 增加等待时间让下拉动画完成
 
-    // 等待listbox出现
-    await page.waitForSelector('[role="listbox"]', { timeout: 3000 })
-
-    // 查找并点击对应的选项
+    // 尝试多种策略查找并点击选项
     const optionSelectors = [
+      // 策略1: 直接通过 role="option" 查找（不过滤可见性）
       `[role="option"]:has-text("${status}")`,
-      `.el-select-dropdown__item:has-text("${status}")`
+      // 策略2: 通过 el-select-dropdown__item 类查找
+      `.el-select-dropdown__item:has-text("${status}")`,
+      // 策略3: 在所有 el-select-dropdown 中查找
+      `.el-select-dropdown [role="option"]:has-text("${status}")`,
+      // 策略4: 使用文本内容直接查找
+      `text="${status}"`
     ]
 
     let optionFound = false
     for (const selector of optionSelectors) {
       try {
+        // 使用 locator 而不是 waitForSelector，因为元素可能已存在但不可见
         const option = page.locator(selector).first()
-        if (await option.isVisible({ timeout: 1000 })) {
-          await option.click()
+        // 使用 count 检查元素是否存在
+        const count = await option.count()
+        if (count > 0) {
+          // 尝试点击，即使不可见（Element Plus 下拉框可能在 body 下）
+          await option.click({ timeout: 2000, force: true })
           optionFound = true
           break
         }

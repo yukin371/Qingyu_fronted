@@ -63,6 +63,7 @@ import { ref } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import type { Transaction } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format'
+import { formatTransactionAmount } from '@/utils/currency'
 
 interface Props {
   transactions: Transaction[]
@@ -119,9 +120,9 @@ const getAmountClass = (type: string): string => {
 }
 
 // 格式化金额
+// 注意：amount 参数单位是分（后端返回），formatTransactionAmount 会自动处理
 const formatAmount = (amount: number, type: string): string => {
-  const prefix = type === 'recharge' ? '+' : '-'
-  return `${prefix}¥${Math.abs(amount).toFixed(2)}`
+  return formatTransactionAmount(amount, type)
 }
 
 // 格式化时间

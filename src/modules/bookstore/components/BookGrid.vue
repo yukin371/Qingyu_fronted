@@ -33,6 +33,7 @@
     <!-- 真实数据列表 -->
     <div v-else class="books-layout" :style="gridStyle">
       <div v-for="book in displayBooks" :key="book.id || book._id" class="book-card" :class="[`style-${cardStyle}`]"
+        data-testid="book-item"
         @click="handleBookClick(book)">
         <!-- 封面区域 -->
         <div class="cover-wrapper">
@@ -56,7 +57,7 @@
 
           <!-- 悬浮遮罩 -->
           <div class="hover-overlay">
-            <el-button type="primary" round class="read-btn">
+            <el-button type="primary" round class="read-btn" data-testid="read-now">
               立即阅读
             </el-button>
           </div>
@@ -75,8 +76,8 @@
             </div>
 
             <div class="meta-right">
-              <span v-if="book.price" class="price">
-                <span class="symbol">¥</span>{{ book.price }}
+              <span v-if="book.price && book.price > 0" class="price">
+                {{ formatCurrency(book.price) }}
               </span>
               <span v-else class="free-badge">免费</span>
             </div>
@@ -95,6 +96,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ArrowRight, Picture, StarFilled } from '@element-plus/icons-vue'
+import { formatCurrency } from '@/utils/currency'
 
 // Props 定义
 const props = defineProps({

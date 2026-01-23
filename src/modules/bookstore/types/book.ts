@@ -6,7 +6,6 @@ import type { ID, ISODate, BaseFilter } from './core'
 
 export enum BookStatus {
   Draft = 'draft',
-  Published = 'published',
   Ongoing = 'ongoing',
   Completed = 'completed',
   Paused = 'paused',
@@ -14,6 +13,7 @@ export enum BookStatus {
 
 // 对应 Go 中的 Book 结构体 (列表展示用)
 // 注意：此处 JSON tag 为 camelCase
+// 价格字段单位：分 (需要除以100转换为元显示)
 export interface Book {
   id: ID
   title: string
@@ -27,7 +27,7 @@ export interface Book {
   status: BookStatus
   wordCount: number
   chapterCount: number
-  price: number
+  price: number // 单位：分
   isFree: boolean
   isRecommended: boolean
   isFeatured: boolean
@@ -57,7 +57,7 @@ export interface BookFilter extends BaseFilter {
 // 书籍总览统计
 export interface BookStats {
   totalBooks: number
-  publishedBooks: number
+  ongoingBooks: number // 已发布且连载中的书籍
   draftBooks: number
   recommendedBooks: number
   featuredBooks: number

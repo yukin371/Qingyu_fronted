@@ -117,6 +117,56 @@
             <el-skeleton v-else :rows="5" animated />
           </div>
         </el-tab-pane>
+
+        <!-- 阅读统计 -->
+        <el-tab-pane label="阅读统计" name="statistics">
+          <div v-loading="statsLoading" class="statistics-content">
+            <template v-if="!statsLoading">
+              <!-- 快捷入口 -->
+              <div class="stats-shortcuts">
+                <el-card shadow="hover" class="stat-card" @click="goToReadingStatistics">
+                  <div class="stat-card-content">
+                    <el-icon :size="40" color="#409eff"><TrendCharts /></el-icon>
+                    <h4>阅读统计</h4>
+                    <p>查看详细阅读数据</p>
+                    <el-button type="primary" link data-testid="reading-statistics">查看详情</el-button>
+                  </div>
+                </el-card>
+              </div>
+
+              <!-- 简要统计 -->
+              <div class="stats-summary">
+                <el-row :gutter="20">
+                  <el-col :span="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ readingStats.totalBooks || 0 }}</div>
+                      <div class="stat-label">阅读书籍</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ readingStats.totalChapters || 0 }}</div>
+                      <div class="stat-label">阅读章节数</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ readingStats.totalWords || 0 }}</div>
+                      <div class="stat-label">阅读字数(万)</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ readingStats.totalDays || 0 }}</div>
+                      <div class="stat-label">阅读天数</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </template>
+            <el-skeleton v-else :rows="6" animated />
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
   </div>
@@ -126,7 +176,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Edit, Picture, Upload } from '@element-plus/icons-vue'
+import { Edit, Picture, Upload, TrendCharts } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { userAPI } from '@/modules/user/api'
@@ -141,6 +191,7 @@ const isEditing = ref(false)
 const loading = ref(false)
 const shelfLoading = ref(false)
 const historyLoading = ref(false)
+const statsLoading = ref(false)
 
 // 表单数据
 const profileForm = reactive({
@@ -168,6 +219,20 @@ interface HistoryItem {
   progress: number
 }
 const readingHistory = ref<HistoryItem[]>([])
+
+// 阅读统计
+interface ReadingStats {
+  totalBooks: number
+  totalChapters: number
+  totalWords: number
+  totalDays: number
+}
+const readingStats = ref<ReadingStats>({
+  totalBooks: 0,
+  totalChapters: 0,
+  totalWords: 0,
+  totalDays: 0
+})
 
 // 头像上传相关
 const uploadAction = '' // 使用自定义上传逻辑
@@ -230,6 +295,8 @@ watch(activeTab, async (newTab) => {
     await loadShelf()
   } else if (newTab === 'history' && readingHistory.value.length === 0) {
     await loadHistory()
+  } else if (newTab === 'statistics') {
+    await loadStatistics()
   }
 })
 
@@ -327,6 +394,31 @@ const saveProfile = async () => {
 // 跳转到书籍详情
 const goToBook = (bookId: string) => {
   router.push(`/bookstore/books/${bookId}`)
+}
+
+// 加载阅读统计
+const loadStatistics = async () => {
+  statsLoading.value = true
+  try {
+    // 调用阅读统计API
+    // const response = await bookshelfAPI.getReadingStatistics()
+    // 临时使用模拟数据
+    readingStats.value = {
+      totalBooks: 12,
+      totalChapters: 256,
+      totalWords: 358,
+      totalDays: 45
+    }
+  } catch (error: any) {
+    console.error('加载阅读统计失败:', error)
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+// 跳转到阅读统计详情页
+const goToReadingStatistics = () => {
+  router.push('/profile/statistics')
 }
 </script>
 
@@ -473,5 +565,60 @@ const goToBook = (bookId: string) => {
   background-color: #f5f7fa;
   color: #909399;
   font-size: 30px;
+}
+
+.statistics-content {
+  min-height: 300px;
+}
+
+.stats-shortcuts {
+  margin-bottom: 30px;
+
+  .stat-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-card-content {
+      text-align: center;
+      padding: 20px;
+
+      h4 {
+        margin: 15px 0 10px 0;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 0 0 15px 0;
+        color: #909399;
+      }
+    }
+  }
+}
+
+.stats-summary {
+  margin-top: 30px;
+
+  .stat-item {
+    text-align: center;
+    padding: 20px;
+    background: #f5f7fa;
+    border-radius: 8px;
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #409eff;
+      margin-bottom: 10px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #606266;
+    }
+  }
 }
 </style>

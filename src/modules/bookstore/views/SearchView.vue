@@ -96,7 +96,7 @@
 
         <!-- 结果列表 -->
         <div v-loading="loading" class="results-list">
-          <div v-for="book in searchResults" :key="book.id" class="result-item" @click="goToDetail(book.id)">
+          <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
             <div class="item-cover">
               <el-image :src="book.cover" fit="cover">
                 <template #error>
@@ -142,7 +142,9 @@
             </div>
 
             <div class="item-action">
-              <el-button type="primary">阅读</el-button>
+              <el-button type="primary" data-testid="read-now" @click.stop="handleStartReading(book.id)">
+                阅读
+              </el-button>
             </div>
           </div>
 
@@ -168,6 +170,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
+import { getFirstChapter } from '@/modules/reader/api'
 import { ElMessage } from 'element-plus'
 import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
@@ -300,6 +303,15 @@ const handleSearch = async () => {
     // 保存搜索历史
     saveSearchHistory(keyword)
 
+    // 更新URL查询参数（支持分享链接）
+    const query: any = { q: keyword }
+    if (filters.categoryId) query.category = filters.categoryId
+    if (filters.status) query.status = filters.status
+    if (filters.sortBy) query.sort = filters.sortBy
+    query.page = currentPage.value
+
+    router.push({ path: '/bookstore/search', query })
+
     const params: any = {
       keyword,
       ...filters,
@@ -337,6 +349,27 @@ const clearSearch = () => {
 // 跳转到详情
 const goToDetail = (id: string) => {
   router.push(`/bookstore/books/${id}`)
+}
+
+// 开始阅读（点击搜索结果中的阅读按钮）
+const handleStartReading = async (bookId: string) => {
+  try {
+    // 获取第一章
+    const response = await getFirstChapter(bookId) as any
+    const firstChapter = response?.data || response
+
+    if (firstChapter?.id) {
+      // 跳转到阅读页面
+      await router.push(`/reader/${firstChapter.id}`)
+    } else {
+      // 如果没有章节，直接跳转到书籍详情页
+      await router.push(`/bookstore/books/${bookId}`)
+    }
+  } catch (error) {
+    console.error('开始阅读失败:', error)
+    // 出错时跳转到书籍详情页
+    await router.push(`/bookstore/books/${bookId}`)
+  }
 }
 
 // 分页处理

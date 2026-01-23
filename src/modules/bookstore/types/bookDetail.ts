@@ -7,6 +7,7 @@ import type { BookStatus } from './book'
 
 // 对应 Go 中的 BookDetail 结构体
 // 注意：此处 JSON tag 为 snake_case，与列表 Book 结构不同
+// 价格字段单位：分 (需要除以100转换为元显示)
 export interface BookDetail {
   id?: ID
   title: string
@@ -32,7 +33,7 @@ export interface BookDetail {
   wordCount?: number // camelCase 别名
   chapter_count: number
   chapterCount?: number // camelCase 别名
-  price: number
+  price: number // 单位：分
   is_free: boolean
   isFree?: boolean // camelCase 别名
 

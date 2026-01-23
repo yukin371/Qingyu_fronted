@@ -81,7 +81,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { RechargeRequest } from '@/types/shared'
+import type { RechargeParams } from '@/types/shared'
+import { yuanToCents } from '@/utils/currency'
 
 interface Props {
   modelValue: boolean
@@ -90,7 +91,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'confirm', data: RechargeRequest): void
+  (e: 'confirm', data: RechargeParams): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -105,8 +106,8 @@ const formRef = ref<FormInstance>()
 // 快速充值金额
 const quickAmounts = [10, 50, 100, 200, 500, 1000]
 
-// 表单数据
-const form = ref<RechargeRequest>({
+// 表单数据（用户输入，单位：元）
+const form = ref<RechargeParams>({
   amount: 100,
   method: 'alipay'
 })
@@ -146,7 +147,12 @@ const handleConfirm = async () => {
 
   await formRef.value.validate((valid) => {
     if (valid) {
-      emit('confirm', { ...form.value })
+      // 将元转换为分后再提交
+      const data: RechargeParams = {
+        amount: yuanToCents(form.value.amount),
+        method: form.value.method
+      }
+      emit('confirm', data)
     }
   })
 }

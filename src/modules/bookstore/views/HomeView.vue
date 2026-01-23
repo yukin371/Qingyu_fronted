@@ -46,8 +46,8 @@
             </div>
             <el-divider direction="vertical" />
             <div class="stat-mini">
-              <strong>{{ formatNumber(stats.publishedBooks) }}</strong>
-              <span>作者</span>
+              <strong>{{ formatNumber(stats.ongoingBooks) }}</strong>
+              <span>连载中</span>
             </div>
           </div>
         </div>

@@ -126,26 +126,26 @@ export const readerAPI = {
   // ==================== 章节阅读 ====================
 
   /**
-   * 获取章节信息（不含内容）
-   * GET /api/v1/reader/chapters/:chapterId/info
+   * 获取章节信息（使用公开API，不需要登录）
+   * GET /api/v1/bookstore/chapters/:chapterId
    */
   async getChapterInfo(chapterId: string): Promise<APIResponse<Chapter>> {
-    return httpService.get<APIResponse<Chapter>>(`/reader/chapters/${chapterId}/info`)
+    return httpService.get<APIResponse<Chapter>>(`/bookstore/chapters/${chapterId}`)
   },
 
   /**
-   * 获取章节内容（需要登录）
-   * GET /api/v1/reader/books/:bookId/chapters/:chapterId
+   * 获取章节内容（使用公开API，不需要登录）
+   * GET /api/v1/bookstore/chapters/:chapterId/content
    */
   async getChapterContent(bookId: string, chapterId: string): Promise<APIResponse<ChapterContent>> {
     return httpService.get<APIResponse<ChapterContent>>(
-      `/reader/books/${bookId}/chapters/${chapterId}`
+      `/bookstore/chapters/${chapterId}/content`
     )
   },
 
   /**
-   * 获取书籍章节列表
-   * GET /api/v1/reader/books/:bookId/chapters
+   * 获取书籍章节列表（使用公开API，不需要登录）
+   * GET /api/v1/bookstore/books/:bookId/chapters
    */
   async getChapterList(
     bookId: string,
@@ -153,7 +153,7 @@ export const readerAPI = {
     size: number = 20
   ): Promise<PaginatedResponse<ChapterListItem>> {
     return httpService.get<PaginatedResponse<ChapterListItem>>(
-      `/reader/books/${bookId}/chapters?page=${page}&size=${size}`
+      `/bookstore/books/${bookId}/chapters?page=${page}&size=${size}`
     )
   },
 

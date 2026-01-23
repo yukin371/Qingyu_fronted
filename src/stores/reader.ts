@@ -56,8 +56,29 @@ export const useReaderStore = defineStore('reader', () => {
         readerAPI.getChapterContent(targetBookId, chapterId),
       ])
 
-      currentChapter.value = chapterRes.data as any
-      chapterContent.value = contentRes.data as any
+      // 合并章节信息和内容数据，并转换字段名
+      const chapterInfo = chapterRes.data as any
+      const contentData = contentRes.data as any
+
+      // 转换API响应数据格式为前端Chapter类型
+      const chapter: any = {
+        id: chapterInfo.id,
+        bookId: chapterInfo.book_id,
+        title: chapterInfo.title,
+        chapterNumber: chapterInfo.chapter_num,
+        wordCount: chapterInfo.word_count,
+        isFree: chapterInfo.is_free,
+        price: chapterInfo.price,
+        publishedAt: chapterInfo.publish_time,
+        createdAt: chapterInfo.created_at,
+        updatedAt: chapterInfo.updated_at,
+        prevChapterId: null,
+        nextChapterId: null,
+        content: contentData.content || '',
+      }
+
+      currentChapter.value = chapter
+      chapterContent.value = chapter
       readingProgress.value = 0
 
       return { chapter: currentChapter.value, content: chapterContent.value }
@@ -259,6 +280,7 @@ export const useReaderStore = defineStore('reader', () => {
 
   return {
     // 状态
+    currentBookId,
     currentChapter,
     chapterContent,
     chapterList,

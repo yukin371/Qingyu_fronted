@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import { Refresh, Plus, Minus } from '@element-plus/icons-vue'
+import { formatCurrency } from '@/utils/currency'
 
 interface Props {
   balance?: number
@@ -74,8 +75,9 @@ withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // 格式化金额
+// 注意：amount 参数单位是分（后端返回），需要转换为元显示
 const formatAmount = (amount: number): string => {
-  return amount.toFixed(2)
+  return formatCurrency(amount).replace('¥', '')
 }
 
 // 事件处理
