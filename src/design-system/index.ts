@@ -13,6 +13,9 @@ export * from './base'
 // 布局组件
 export * from './layout'
 
+// 数据展示组件
+export * from './data'
+
 // 表单组件
 export * from './form'
 
