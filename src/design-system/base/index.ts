@@ -17,5 +17,5 @@ export * from './Avatar'
 // Tag 组件
 export * from './Tag'
 
-// 更多组件将在后续添加...
-// export * from './Card'
+// Card 组件
+export * from './Card'
