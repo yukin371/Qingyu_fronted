@@ -13,5 +13,8 @@ export * from './base'
 // 布局组件
 export * from './layout'
 
+// 表单组件
+export * from './form'
+
 // 工具函数
 export * from './utils/cn'
