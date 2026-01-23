@@ -6,7 +6,7 @@
  * 支持响应式断点、偏移和排序
  */
 
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { cn } from '../../utils/cn'
 import type { ColProps } from './types'
 
@@ -15,6 +15,9 @@ const props = withDefaults(defineProps<ColProps>(), {
   span: 12,
   offset: 0,
 })
+
+// 从父 Row 组件注入 gutter 值
+const gutter = inject<number>('gutter', 0)
 
 /**
  * 将 span 数值转换为 Tailwind CSS 类名
@@ -111,11 +114,26 @@ const orderClass = computed(() => {
 })
 
 /**
+ * 获取 gutter padding 类名
+ */
+const gutterPaddingClass = computed(() => {
+  const gutterMap: Record<number, string> = {
+    0: '',
+    8: 'px-2',
+    16: 'px-4',
+    24: 'px-6',
+    32: 'px-8',
+  }
+  return gutterMap[gutter] || ''
+})
+
+/**
  * 计算容器类名
  */
 const containerClasses = computed(() => {
   return cn(
     'min-w-0', // 防止内容溢出
+    gutterPaddingClass.value, // gutter padding
     baseSpanClass.value,
     getResponsiveClasses.value,
     offsetClass.value,
