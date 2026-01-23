@@ -10,5 +10,8 @@ export * from './tokens'
 // 基础组件
 export * from './base'
 
+// 布局组件
+export * from './layout'
+
 // 工具函数
 export * from './utils/cn'
