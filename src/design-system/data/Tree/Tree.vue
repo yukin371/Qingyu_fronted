@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 /**
  * Tree 组件
  *

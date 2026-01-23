@@ -1,17 +1,26 @@
-<script setup lang="ts">
 /**
  * Row 组件 Storybook 故事
  *
  * 展示 Row 组件的各种用法和配置
  */
 
+import type { Meta, StoryObj } from '@storybook/vue3'
 import Row from './Row.vue'
 import Col from '../Col/Col.vue'
+
+const meta = {
+  title: 'Layout/Row',
+  component: Row,
+  tags: ['autodocs'],
+} satisfies Meta<typeof Row>
+
+export default meta
+type Story = StoryObj<typeof meta>
 
 /**
  * 默认故事 - 基本 Row 组件
  */
-export const Default = {
+export const Default: Story = {
   render: () => ({
     components: { Row, Col },
     template: `

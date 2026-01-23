@@ -345,7 +345,7 @@ export const TableExample: Story = {
 
       return { currentPage, pageSize, total, data }
     },
-    template: \`
+    template: `
       <div class="space-y-4">
         <div class="border border-slate-200 dark:border-slate-700 rounded-md overflow-hidden">
           <table class="w-full">
@@ -375,7 +375,7 @@ export const TableExample: Story = {
           />
         </div>
       </div>
-    \`,
+    `,
   }),
 }
 

@@ -413,7 +413,7 @@ export const RatingForm: Story = {
       })
 
       const submit = () => {
-        alert(\`评分提交：\${JSON.stringify(ratings.value, null, 2)}\`)
+        alert(`评分提交：${JSON.stringify(ratings.value, null, 2)}`)
       }
 
       return { ratings, texts, canSubmit, submit }

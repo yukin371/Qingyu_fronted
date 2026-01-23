@@ -172,7 +172,7 @@ export const LimitedUpload: Story = {
       const fileList = ref<FileItem[]>([])
       const handleExceed = (files: File[], fileList: FileItem[]) => {
         console.log('超出限制', files, fileList)
-        alert(\`最多只能上传 3 个文件，当前选择了 \${files.length} 个文件\`)
+        alert(`最多只能上传 3 个文件，当前选择了 ${files.length} 个文件`)
       }
       return { fileList, handleExceed }
     },

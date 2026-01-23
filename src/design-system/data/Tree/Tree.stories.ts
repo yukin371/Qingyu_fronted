@@ -491,8 +491,6 @@ export const Controlled: Story = {
   render: () => ({
     components: { Tree },
     setup() {
-      import { ref } from 'vue'
-      
       const data: TreeNode[] = [
         {
           id: '1',

@@ -145,7 +145,7 @@ export const WithLabel: Story = {
 export const CheckboxGroupHorizontal: Story = {
   render: () => ({
     components: { CheckboxGroup, Checkbox },
-    setup() => {
+    setup() {
       const fruits = ref(['apple'])
       return { fruits }
     },
