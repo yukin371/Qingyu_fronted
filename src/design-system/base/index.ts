@@ -31,3 +31,9 @@ export * from './Skeleton'
 
 // Image 组件
 export * from './Image'
+
+// Checkbox 组件
+export * from './Checkbox'
+
+// Textarea 组件
+export * from './Textarea'
