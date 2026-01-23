@@ -31,7 +31,13 @@ const config: StorybookConfig = {
   },
 
   // Vite 配置
-  async viteFinal(config) {
+  async viteFinal(config, { configType }) {
+    // 禁用 vite-plugin-inspect 以避免与 Storybook 冲突
+    if (config.plugins) {
+      config.plugins = config.plugins.filter(p => {
+        return p && typeof p === 'object' && p.name !== 'vite-plugin-inspect'
+      })
+    }
     // 确保正确处理 Vue 单文件组件
     return config
   },
