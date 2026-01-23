@@ -15,12 +15,35 @@ export type {
   BeforeChangeReturn,
 } from './Switch'
 
+// Slider 组件
+export { Slider } from './Slider'
+export type {
+  SliderProps,
+  SliderEmits,
+  SliderSize,
+  SliderColor,
+  SliderValue,
+  SliderMarks,
+  TooltipFormatter,
+} from './Slider'
+
 // Radio 组件
 export * from './Radio'
 export * from './Select'
 
+// Upload 组件
+export * from './Upload'
+
+// Rate 组件
+export * from './Rate'
+
+// DatePicker 组件
+export * from './DatePicker'
+
+// Form 组件
+export * from './Form'
+
 // 其他表单组件将在后续添加
 // export { Input } from './Input'
 // export { Textarea } from './Textarea'
-// export { Select } from './Select'
 // export { Checkbox } from './Checkbox'
