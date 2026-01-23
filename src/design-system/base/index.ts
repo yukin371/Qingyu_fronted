@@ -25,3 +25,9 @@ export * from './Empty'
 
 // Divider 组件
 export * from './Divider'
+
+// Skeleton 组件
+export * from './Skeleton'
+
+// Image 组件
+export * from './Image'
