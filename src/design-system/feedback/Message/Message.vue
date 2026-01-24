@@ -52,6 +52,7 @@ const emit = defineEmits<{
 // 内部状态
 const visible = ref(false)
 const timer = ref<number | null>(null)
+const currentOffset = ref(props.offset)
 
 // 图标组件映射
 const iconMap: Record<MessageType, string> = {
@@ -77,8 +78,13 @@ const iconHtml = computed(() => iconMap[props.type])
 
 // 计算消息内容的 top 值
 const topStyle = computed(() => ({
-  top: `${props.offset}px`,
+  top: `${currentOffset.value}px`,
 }))
+
+// 监听 offset prop 变化，同步到内部状态
+watch(() => props.offset, (newOffset) => {
+  currentOffset.value = newOffset
+})
 
 // 计算消息内容的类名
 const messageClass = computed(() => ({
@@ -180,7 +186,7 @@ watch(visible, (val) => {
       <!-- 关闭按钮 -->
       <button
         v-if="showClose"
-        class="qy-message__close"
+        class="qy-message__close self-center flex-shrink-0"
         @click="handleClose"
         aria-label="关闭"
       >
@@ -224,6 +230,9 @@ watch(visible, (val) => {
     opacity: 0.6;
     transition: opacity 0.2s;
     color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &__close:hover {

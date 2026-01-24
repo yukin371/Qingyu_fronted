@@ -4,7 +4,7 @@
  * 全局调用 Message 的组合式函数
  */
 
-import { createApp, h, type App, type VNode } from 'vue'
+import { createApp, h, reactive, type App, type VNode } from 'vue'
 import Message from './Message.vue'
 import type { MessageProps, MessageOptions, MessageHandler, MessageType } from './types'
 
@@ -54,8 +54,8 @@ const createMessage = (options: MessageOptions): MessageHandler => {
   // 生成唯一 ID
   const id = `message-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
-  // 构建消息属性
-  const props: MessageProps = {
+  // 构建消息属性（使用 reactive 使其成为响应式对象）
+  const props = reactive<MessageProps>({
     message: options.message || '',
     type: options.type || 'info',
     duration: options.duration ?? 3000,
@@ -64,7 +64,7 @@ const createMessage = (options: MessageOptions): MessageHandler => {
     dangerouslyUseHTMLString: options.dangerouslyUseHTMLString ?? false,
     offset: options.offset ?? calculateOffset(instances.length, options.offset),
     onClose: options.onClose,
-  }
+  })
 
   // 创建 Vue 应用实例
   const app = createApp({
