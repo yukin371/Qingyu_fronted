@@ -1,4 +1,3 @@
-<script setup lang="ts">
 /**
  * Calendar.stories.ts
  *
@@ -6,6 +5,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { ref } from 'vue'
 import Calendar from './Calendar.vue'
 import type { CalendarProps } from './types'
 
@@ -144,7 +144,7 @@ export const Range: Story = {
       <div class="w-fit">
         <Calendar v-bind="args" v-model="range" />
         <div class="mt-4 text-sm text-slate-600">
-          选中的范围: 
+          选中的范围:
           <span v-if="range">
             {{ range[0].toLocaleDateString('zh-CN') }} - {{ range[1].toLocaleDateString('zh-CN') }}
           </span>
@@ -367,7 +367,7 @@ export const RangeWithWeeks: Story = {
       <div class="w-fit">
         <Calendar v-bind="args" v-model="range" />
         <div class="mt-4 text-sm text-slate-600">
-          选中的范围: 
+          选中的范围:
           <span v-if="range">
             {{ range[0].toLocaleDateString('zh-CN') }} - {{ range[1].toLocaleDateString('zh-CN') }}
           </span>
