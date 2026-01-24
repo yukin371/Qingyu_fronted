@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 /**
  * Anchor 锚点组件
  *
