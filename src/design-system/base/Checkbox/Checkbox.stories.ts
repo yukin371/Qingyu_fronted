@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { ref, computed } from 'vue'
 import Checkbox from './Checkbox.vue'
 import CheckboxGroup from './CheckboxGroup.vue'
 
@@ -60,11 +61,13 @@ export const Default: Story = {
   render: (args) => ({
     components: { Checkbox },
     setup() {
-      const checked = ref(args.modelValue)
-      return { args, checked }
+      const checked = ref(args.modelValue ?? false)
+      return { checked }
     },
     template: `
-      <Checkbox v-bind="args" v-model="checked">{{ args.label }}</Checkbox>
+      <Checkbox v-model="checked" :label="args.label" :size="args.size" :color="args.color">
+        {{ args.label }}
+      </Checkbox>
       <div class="mt-2 text-sm text-slate-500">当前值: {{ checked }}</div>
     `,
   }),
