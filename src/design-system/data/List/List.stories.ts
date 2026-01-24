@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { ref } from 'vue'
 import List from './List.vue'
 import ListItem from './ListItem.vue'
 
