@@ -4,7 +4,31 @@
     <div class="tree-toolbar">
       <div class="header-row">
         <span class="title">目录</span>
-        <div class="actions">
+        <div class="actions flex items-center gap-2">
+          <!-- 多选模式切换按钮 -->
+          <button
+            v-if="!isMultiSelectMode"
+            type="button"
+            class="p-1.5 text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+            title="多选模式"
+            @click="toggleMultiSelectMode"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="p-1.5 text-blue-500 bg-blue-50 rounded transition-colors"
+            title="退出多选"
+            @click="toggleMultiSelectMode"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           <el-tooltip content="展开/折叠全部">
             <el-button link size="small" @click="toggleExpand">
               <el-icon>
@@ -26,14 +50,56 @@
       </div>
     </div>
 
+    <!-- 多选模式提示栏 -->
+    <div v-if="isMultiSelectMode" class="multi-select-hint px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">已选择</span>
+        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-sm font-medium">{{ selectionCount }}</span>
+        <span class="text-sm text-gray-600">个文档</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="hasSelection"
+          type="button"
+          class="px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-medium"
+          @click="handleBatchDelete"
+        >
+          批量删除
+        </button>
+        <button
+          v-if="hasSelection"
+          type="button"
+          class="px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
+          @click="clearSelection"
+        >
+          取消选择
+        </button>
+      </div>
+    </div>
+
     <!-- 树形控件 -->
-    <div class="tree-content" @click.right.prevent>
-      <el-tree ref="treeRef" :data="treeData" node-key="id" :props="treeProps" :highlight-current="true"
+    <div class="tree-content" @click.right.prevent @click="handleTreeClick">
+      <el-tree ref="treeRef" :data="treeData" node-key="id" :props="treeProps" :highlight-current="!isMultiSelectMode"
         :expand-on-click-node="false" :default-expanded-keys="defaultExpandedKeys" :filter-node-method="filterNode"
         :allow-drop="allowDrop" :allow-drag="allowDrag" draggable empty-text="暂无文档，点击右上角新建"
         @node-click="handleNodeClick" @node-drop="handleNodeDrop" @node-contextmenu="handleContextMenu">
         <template #default="{ node, data }">
-          <div class="custom-tree-node">
+          <div
+            class="custom-tree-node"
+            :class="{
+              'is-selected': isSelected(data.id),
+              'is-multi-select-mode': isMultiSelectMode
+            }"
+          >
+            <!-- 多选复选框 -->
+            <input
+              v-if="isMultiSelectMode"
+              type="checkbox"
+              class="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500 cursor-pointer mr-2"
+              :checked="isSelected(data.id)"
+              @click.stop="toggleSelection(data.id, $event)"
+            />
+
             <!-- 图标区分：卷用文件夹，章用文档 -->
             <el-icon class="node-icon" :class="data.type">
               <Folder v-if="data.type === 'volume'" />
@@ -53,6 +119,21 @@
         </template>
       </el-tree>
     </div>
+
+    <!-- 批量操作确认对话框 -->
+    <BatchOperationConfirmDialog
+      v-model="showConfirmDialog"
+      :operation-type="pendingOperationType"
+      :selected-count="selectionCount"
+      @confirm="executeBatchOperation"
+    />
+
+    <!-- 批量操作进度对话框 -->
+    <BatchOperationProgressDialog
+      v-model:visible="showProgressDialog"
+      :operation-id="activeOperationId"
+      @complete="handleOperationComplete"
+    />
 
     <!-- 自定义右键菜单 (Teleport 到 body 防止被遮挡) -->
     <teleport to="body">
@@ -84,13 +165,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, nextTick } from 'vue'
-import { ElTree } from 'element-plus'
+import { ref, watch, reactive, computed } from 'vue'
+import { ElTree, ElMessageBox } from 'element-plus'
 import {
   Plus, Document as DocumentIcon, Edit, Delete,
   Folder, Search, Sort
 } from '@element-plus/icons-vue'
-import type { Document, DocumentType } from '@/modules/writer/types/document'
+import type { Document } from '@/modules/writer/types/document'
+import { useDocumentSelection } from '../composables/useDocumentSelection'
+import { useBatchOperationStore } from '../stores/batchOperationStore'
+import BatchOperationConfirmDialog from './BatchOperationConfirmDialog.vue'
+import BatchOperationProgressDialog from './BatchOperationProgressDialog.vue'
 
 // 使用标准的 Document 类型
 interface Props {
@@ -107,6 +192,44 @@ const emit = defineEmits<{
   rename: [doc: Document]
   delete: [doc: Document]
 }>()
+
+// =======================
+// 选择状态管理
+// =======================
+const {
+  selectedIds,
+  isSelected,
+  selectionCount,
+  hasSelection,
+  toggleSelection,
+  selectRange,
+  clearSelection
+} = useDocumentSelection()
+
+// 扁平化文档列表（用于范围选择）
+const flatDocs = computed(() => {
+  const flatten = (docs: Document[]): Document[] => {
+    const result: Document[] = []
+    for (const doc of docs) {
+      result.push(doc)
+      if (doc.children?.length) {
+        result.push(...flatten(doc.children))
+      }
+    }
+    return result
+  }
+  return flatten(props.treeData)
+})
+
+// 多选模式
+const isMultiSelectMode = ref(false)
+
+function toggleMultiSelectMode(): void {
+  isMultiSelectMode.value = !isMultiSelectMode.value
+  if (!isMultiSelectMode.value) {
+    clearSelection()
+  }
+}
 
 // 树引用
 const treeRef = ref<InstanceType<typeof ElTree>>()
@@ -156,8 +279,27 @@ const allowDrop = (draggingNode: any, dropNode: any, type: string) => {
 // 事件处理
 // =======================
 
-const handleNodeClick = (data: Document) => {
-  emit('select', data)
+const handleNodeClick = (data: Document, event?: MouseEvent) => {
+  if (isMultiSelectMode.value) {
+    // 多选模式
+    if (event && event.shiftKey) {
+      // Shift+点击：范围选择
+      selectRange(data.id, flatDocs.value)
+    } else {
+      // Ctrl/Cmd+点击或普通点击：切换选择
+      toggleSelection(data.id, event || null)
+    }
+  } else {
+    // 普通模式：选中并打开文档
+    emit('select', data)
+  }
+}
+
+// 树点击空白处取消选择
+function handleTreeClick(event: MouseEvent): void {
+  if (isMultiSelectMode.value && event.target === event.currentTarget) {
+    clearSelection()
+  }
 }
 
 const handleNodeDrop = (dragNode: any, dropNode: any, type: any) => {
@@ -196,6 +338,49 @@ const handleMenuAction = (action: 'add' | 'rename' | 'delete') => {
     emit('delete', contextMenu.target)
   }
   closeContextMenu()
+}
+
+// =======================
+// 批量操作
+// =======================
+const batchOpStore = useBatchOperationStore()
+const showConfirmDialog = ref(false)
+const showProgressDialog = ref(false)
+const pendingOperationType = ref<'delete' | 'move' | 'export'>('delete')
+const activeOperationId = ref<string | null>(null)
+
+async function handleBatchDelete(): Promise<void> {
+  pendingOperationType.value = 'delete'
+  showConfirmDialog.value = true
+}
+
+async function executeBatchOperation(): Promise<void> {
+  showConfirmDialog.value = false
+
+  try {
+    const operation = await batchOpStore.submit({
+      projectId: props.treeData[0]?.projectId || '',
+      type: pendingOperationType.value,
+      targetIds: Array.from(selectedIds.value),
+      atomic: true,
+      includeDescendants: true
+    })
+
+    activeOperationId.value = operation.batchId
+    showProgressDialog.value = true
+
+    // 清除选择
+    clearSelection()
+    isMultiSelectMode.value = false
+  } catch (error) {
+    ElMessageBox.alert('批量操作提交失败：' + (error as Error).message, '错误')
+  }
+}
+
+function handleOperationComplete(): void {
+  showProgressDialog.value = false
+  activeOperationId.value = null
+  // TODO: 刷新文档树
 }
 
 // =======================
@@ -278,6 +463,24 @@ const formatCount = (count: number) => {
   font-size: 14px;
   padding-right: 8px;
   overflow: hidden;
+  transition: background-color 0.2s;
+
+  &.is-selected {
+    background-color: var(--el-color-primary-light-9);
+    border-radius: 4px;
+
+    .node-title {
+      color: var(--el-color-primary);
+    }
+
+    .node-icon {
+      color: var(--el-color-primary);
+    }
+  }
+
+  &.is-multi-select-mode {
+    cursor: pointer;
+  }
 
   .node-icon {
     margin-right: 6px;
