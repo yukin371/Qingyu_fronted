@@ -662,10 +662,10 @@ export const DynamicContent: Story = {
       )
       
       const addSection = () => {
-        const id = \`section-\${sections.value.length + 1}\`
+        const id = `section-${sections.value.length + 1}`
         sections.value.push({
           id,
-          title: \`新章节 \${sections.value.length + 1}\`,
+          title: `新章节 ${sections.value.length + 1}`,
           content: '这是新添加的内容...',
         })
       }
