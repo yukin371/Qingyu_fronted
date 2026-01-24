@@ -156,12 +156,12 @@ export const CustomRender: Story = {
       }
       return { data, value, renderContent, h }
     },
-    template: \`
+    template: `
       <div class="p-8 max-w-4xl mx-auto">
         <h3 class="text-lg font-semibold mb-4">自定义渲染</h3>
         <Transfer v-model="value" :data="data" :render-content="renderContent" />
       </div>
-    \`,
+    `,
   }),
 }
 
@@ -179,7 +179,7 @@ export const Pagination: Story = {
         for (let i = 1; i <= 50; i++) {
           allData.push({
             key: i,
-            label: \`项目 \${i}\`,
+            label: `项目 ${i}`,
             disabled: false,
           })
         }
@@ -312,7 +312,7 @@ export const TargetOrder: Story = {
       const value3 = ref([1, 4, 7])
       return { data, value1, value2, value3 }
     },
-    template: \`
+    template: `
       <div class="p-8 space-y-8">
         <div>
           <h3 class="text-lg font-semibold mb-4">original - 原始顺序</h3>
@@ -329,7 +329,7 @@ export const TargetOrder: Story = {
           <Transfer v-model="value3" :data="data" target-order="unshift" />
         </div>
       </div>
-    \`,
+    `,
   }),
 }
 
@@ -397,7 +397,7 @@ export const FullFeatured: Story = {
         h,
       }
     },
-    template: \`
+    template: `
       <div class="p-8 max-w-6xl mx-auto">
         <h3 class="text-xl font-bold mb-6">完整功能演示 - 团队成员管理</h3>
         <Transfer
@@ -418,7 +418,7 @@ export const FullFeatured: Story = {
           <p class="text-xs text-slate-600">ID: {{ selectedUsers.join(', ') }}</p>
         </div>
       </div>
-    \`,
+    `,
   }),
 }
 
@@ -527,7 +527,7 @@ export const Validation: Story = {
 
       return { data, value, error, validate, handleSubmit }
     },
-    template: \`
+    template: `
       <div class="p-8 max-w-4xl mx-auto">
         <h3 class="text-lg font-semibold mb-4">表单验证</h3>
         <p class="text-sm text-slate-600 mb-4">请选择 1-5 项</p>
@@ -544,6 +544,6 @@ export const Validation: Story = {
           提交
         </button>
       </div>
-    \`,
+    `,
   }),
 }

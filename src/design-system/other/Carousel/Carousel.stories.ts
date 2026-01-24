@@ -197,12 +197,12 @@ export const DifferentTriggers: Story = {
       ]
       return { slides }
     },
-    template: \`
+    template: `
       <div class="p-8 space-y-8">
         <div>
           <h3 class="text-lg font-semibold mb-4">Click 触发（默认）</h3>
           <Carousel height="300px" trigger="click">
-            <div v-for="(slide, i) in slides" :key="i" class="w-full h-full bg-gradient-to-br \${slide.color} flex items-center justify-center text-white text-2xl font-bold">
+            <div v-for="(slide, i) in slides" :key="i" class="w-full h-full bg-gradient-to-br ${slide.color} flex items-center justify-center text-white text-2xl font-bold">
               {{ slide.title }} - {{ i + 1 }}
             </div>
           </Carousel>
@@ -210,13 +210,13 @@ export const DifferentTriggers: Story = {
         <div>
           <h3 class="text-lg font-semibold mb-4">Hover 触发</h3>
           <Carousel height="300px" trigger="hover">
-            <div v-for="(slide, i) in slides" :key="i" class="w-full h-full bg-gradient-to-br \${slide.color} flex items-center justify-center text-white text-2xl font-bold">
+            <div v-for="(slide, i) in slides" :key="i" class="w-full h-full bg-gradient-to-br ${slide.color} flex items-center justify-center text-white text-2xl font-bold">
               {{ slide.title }} - {{ i + 1 }}
             </div>
           </Carousel>
         </div>
       </div>
-    \`,
+    `,
   }),
 }
 
@@ -358,11 +358,11 @@ export const Thumbs: Story = {
       ]
       return { products }
     },
-    template: \`
+    template: `
       <div class="p-8 max-w-4xl mx-auto">
         <h3 class="text-lg font-semibold mb-4">产品展示轮播</h3>
         <Carousel height="500px" :autoplay="true" :interval="4000">
-          <div v-for="(product, i) in products" :key="i" class="w-full h-full p-12 flex flex-col items-center justify-center bg-gradient-to-br \${product.color} text-white">
+          <div v-for="(product, i) in products" :key="i" class="w-full h-full p-12 flex flex-col items-center justify-center bg-gradient-to-br ${product.color} text-white">
             <div class="text-6xl font-bold mb-4">{{ product.name }}</div>
             <div class="text-xl opacity-90 text-center max-w-md">{{ product.desc }}</div>
             <button class="mt-8 px-6 py-3 bg-white text-slate-800 rounded-lg font-semibold hover:bg-opacity-90 transition">
@@ -371,7 +371,7 @@ export const Thumbs: Story = {
           </div>
         </Carousel>
       </div>
-    \`,
+    `,
   }),
 }
 

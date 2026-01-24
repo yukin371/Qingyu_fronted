@@ -657,7 +657,7 @@ export const DynamicContent: Story = {
         sections.value.map(s => ({
           key: s.id,
           title: s.title,
-          href: \`#\${s.id}\`,
+          href: `#${s.id}`,
         }))
       )
       

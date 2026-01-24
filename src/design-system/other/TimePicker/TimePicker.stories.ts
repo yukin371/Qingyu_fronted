@@ -206,7 +206,7 @@ export const Format: Story = {
       const time4 = ref<string | null>(null)
       return { time1, time2, time3, time4 }
     },
-    template: \`
+    template: `
       <div class="p-8 space-y-4 max-w-md">
         <h3 class="text-lg font-semibold mb-2">时间格式</h3>
 
@@ -234,7 +234,7 @@ export const Format: Story = {
           <p class="text-sm text-slate-500 mt-1">值: {{ time4 }}</p>
         </div>
       </div>
-    \`,
+    `,
   }),
 }
 
