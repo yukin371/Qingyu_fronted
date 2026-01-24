@@ -58,7 +58,7 @@ export const Default: Story = {
  */
 export const WithImage: Story = {
   args: {
-    src: 'https://i.pravatar.cc/150?img=1',
+    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
     alt: 'Jane Smith',
     size: 'md',
   },
@@ -85,7 +85,7 @@ export const Sizes: Story = {
     `,
   }),
   args: {
-    src: 'https://i.pravatar.cc/150?img=3',
+    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
   },
 }
 
@@ -107,7 +107,7 @@ export const Variants: Story = {
     `,
   }),
   args: {
-    src: 'https://i.pravatar.cc/150?img=5',
+    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=5',
     size: 'lg',
   },
 }
@@ -152,7 +152,7 @@ export const Status: Story = {
     `,
   }),
   args: {
-    src: 'https://i.pravatar.cc/150?img=8',
+    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=8',
     size: 'lg',
   },
 }
@@ -189,10 +189,10 @@ export const UserList: Story = {
     components: { Avatar },
     setup() {
       const users = [
-        { name: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?img=1', status: 'online' as const },
-        { name: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?img=2', status: 'offline' as const },
-        { name: 'Charlie Brown', avatar: 'https://i.pravatar.cc/150?img=3', status: 'away' as const },
-        { name: 'Diana Prince', avatar: 'https://i.pravatar.cc/150?img=4', status: 'busy' as const },
+        { name: 'Alice Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1', status: 'online' as const },
+        { name: 'Bob Smith', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2', status: 'offline' as const },
+        { name: 'Charlie Brown', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3', status: 'away' as const },
+        { name: 'Diana Prince', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4', status: 'busy' as const },
         { name: 'Eve Wilson', avatar: null, status: 'online' as const },
       ]
       return { users, args }
@@ -227,10 +227,10 @@ export const AvatarGroup: Story = {
     },
     template: `
       <div class="flex -space-x-2">
-        <Avatar src="https://i.pravatar.cc/150?img=1" alt="User 1" v-bind="args" />
-        <Avatar src="https://i.pravatar.cc/150?img=2" alt="User 2" v-bind="args" />
-        <Avatar src="https://i.pravatar.cc/150?img=3" alt="User 3" v-bind="args" />
-        <Avatar src="https://i.pravatar.cc/150?img=4" alt="User 4" v-bind="args" />
+        <Avatar src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" alt="User 1" v-bind="args" />
+        <Avatar src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" alt="User 2" v-bind="args" />
+        <Avatar src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" alt="User 3" v-bind="args" />
+        <Avatar src="https://api.dicebear.com/7.x/avataaars/svg?seed=4" alt="User 4" v-bind="args" />
         <Avatar alt="+5" v-bind="args" />
       </div>
     `,
@@ -261,7 +261,7 @@ export const Clickable: Story = {
     `,
   }),
   args: {
-    src: 'https://i.pravatar.cc/150?img=10',
+    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=10',
     alt: 'Clickable Avatar',
     size: 'xl',
   },

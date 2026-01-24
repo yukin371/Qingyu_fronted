@@ -265,25 +265,25 @@ export const AvatarImages: Story = {
     template: `
       <div class="flex items-center gap-4 p-8">
         <Image
-          src="https://i.pravatar.cc/150?img=1"
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=1"
           alt="用户 1"
           size="sm"
           shape="circle"
         />
         <Image
-          src="https://i.pravatar.cc/150?img=2"
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=2"
           alt="用户 2"
           size="md"
           shape="circle"
         />
         <Image
-          src="https://i.pravatar.cc/150?img=3"
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=3"
           alt="用户 3"
           size="lg"
           shape="circle"
         />
         <Image
-          src="https://i.pravatar.cc/150?img=4"
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=4"
           alt="用户 4"
           size="xl"
           shape="circle"
