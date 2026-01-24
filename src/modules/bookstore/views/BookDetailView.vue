@@ -1,201 +1,191 @@
 <template>
   <div class="book-detail-view">
-    <el-container v-loading="loading">
-      <!-- 返回按钮 -->
-      <div class="back-button">
-        <el-button @click="$router.back()" :icon="ArrowLeft">返回</el-button>
-      </div>
+    <div class="detail-container">
+      <!-- 加载状态 -->
+      <Spinner v-if="loading" :size="48" class="loading-spinner" />
 
-      <!-- 书籍信息区 -->
-      <div v-if="book" class="book-header">
-        <div class="container">
-          <el-row :gutter="40">
-            <!-- 封面 -->
-            <el-col :span="6" :xs="24" :sm="8">
-              <div class="book-cover">
-                <el-image :src="book.cover" fit="cover" :alt="book.title">
-                  <template #error>
-                    <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
-                    </div>
-                  </template>
-                </el-image>
-              </div>
-            </el-col>
-
-            <!-- 书籍信息 -->
-            <el-col :span="18" :xs="24" :sm="16">
-              <div class="book-info">
-                <h1 class="book-title">{{ book.title }}</h1>
-
-                <div class="book-meta">
-                  <span class="author">
-                    <el-icon>
-                      <User />
-                    </el-icon>
-                    <span v-if="book.author" class="author-name">
-                      {{ book.author }}
-                    </span>
-                    <span v-else class="author-name">
-                      未知作者
-                    </span>
-                  </span>
-                  <span class="category">
-                    <el-icon>
-                      <Collection />
-                    </el-icon>
-                    {{ book.categoryName || book.category || '未分类' }}
-                  </span>
-                  <el-tag :type="statusType">{{ statusText }}</el-tag>
-                </div>
-
-                <div class="book-stats">
-                  <div class="stat-item">
-                    <el-rate :model-value="book.rating ?? 0" disabled show-score text-color="#ff9900" />
-                    <span class="rating-count">({{ book.ratingCount || 0 }}人评分)</span>
-                  </div>
-                  <div class="stat-item">
-                    <el-icon>
-                      <View />
-                    </el-icon>
-                    {{ formatNumber(book.viewCount) }} 阅读
-                  </div>
-                  <div class="stat-item">
-                    <el-icon>
-                      <Star />
-                    </el-icon>
-                    {{ formatNumber(book.favoriteCount) }} 收藏
-                  </div>
-                  <div class="stat-item">
-                    <el-icon>
-                      <Document />
-                    </el-icon>
-                    {{ formatNumber(book.wordCount) }}字 · {{ book.chapterCount || 0 }}章
-                  </div>
-                </div>
-
-                <!-- 标签 -->
-                <div v-if="book.tags && book.tags.length" class="book-tags">
-                  <el-tag v-for="tag in book.tags" :key="tag" size="small">
-                    {{ tag }}
-                  </el-tag>
-                </div>
-
-                <!-- 操作按钮 -->
-                <div class="book-actions">
-                  <el-button
-                    type="primary"
-                    size="large"
-                    :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
-                    @click="startReading">
-                    <el-icon>
-                      <Reading />
-                    </el-icon>
-                    {{ hasProgress ? '继续阅读' : '开始阅读' }}
-                  </el-button>
-                  <el-button size="large" @click="addToShelf">
-                    <el-icon>
-                      <FolderAdd />
-                    </el-icon>
-                    加入书架
-                  </el-button>
-                  <el-button size="large" @click="toggleFavorite">
-                    <el-icon>
-                      <Star />
-                    </el-icon>
-                    {{ isFavorited ? '已收藏' : '收藏' }}
-                  </el-button>
-                </div>
-              </div>
-            </el-col>
-          </el-row>
+      <template v-else>
+        <!-- 返回按钮 -->
+        <div class="back-button">
+          <Button @click="$router.back()">
+            <Icon name="arrow-left" size="sm" class="mr-1" />
+            返回
+          </Button>
         </div>
-      </div>
+
+        <!-- 书籍信息区 -->
+        <div v-if="book" class="book-header">
+          <div class="container">
+            <Row :gutter="40">
+              <!-- 封面 -->
+              <Col :span="6" :xs="24" :sm="8">
+                <div class="book-cover">
+                  <Image :src="book.cover" fit="cover" :alt="book.title">
+                    <template #error>
+                      <div class="image-slot">
+                        <Icon name="photo" size="lg" />
+                      </div>
+                    </template>
+                  </Image>
+                </div>
+              </Col>
+
+              <!-- 书籍信息 -->
+              <Col :span="18" :xs="24" :sm="16">
+                <div class="book-info">
+                  <h1 class="book-title">{{ book.title }}</h1>
+
+                  <div class="book-meta">
+                    <span class="author">
+                      <Icon name="user" size="sm" />
+                      <span v-if="book.author" class="author-name">
+                        {{ book.author }}
+                      </span>
+                      <span v-else class="author-name">
+                        未知作者
+                      </span>
+                    </span>
+                    <span class="category">
+                      <Icon name="folder" size="sm" />
+                      {{ book.categoryName || book.category || '未分类' }}
+                    </span>
+                    <Tag :variant="statusType">{{ statusText }}</Tag>
+                  </div>
+
+                  <div class="book-stats">
+                    <div class="stat-item">
+                      <Rate :model-value="book.rating ?? 0" disabled size="sm" />
+                      <span class="rating-count">({{ book.ratingCount || 0 }}人评分)</span>
+                    </div>
+                    <div class="stat-item">
+                      <Icon name="eye" size="md" />
+                      {{ formatNumber(book.viewCount) }} 阅读
+                    </div>
+                    <div class="stat-item">
+                      <Icon name="star" size="md" />
+                      {{ formatNumber(book.favoriteCount) }} 收藏
+                    </div>
+                    <div class="stat-item">
+                      <Icon name="document" size="md" />
+                      {{ formatNumber(book.wordCount) }}字 · {{ book.chapterCount || 0 }}章
+                    </div>
+                  </div>
+
+                  <!-- 标签 -->
+                  <div v-if="book.tags && book.tags.length" class="book-tags">
+                    <Tag v-for="tag in book.tags" :key="tag" size="sm">
+                      {{ tag }}
+                    </Tag>
+                  </div>
+
+                  <!-- 操作按钮 -->
+                  <div class="book-actions">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
+                      @click="startReading">
+                      <Icon name="book-open" size="md" class="mr-1" />
+                      {{ hasProgress ? '继续阅读' : '开始阅读' }}
+                    </Button>
+                    <Button size="lg" @click="addToShelf">
+                      <Icon name="folder-plus" size="md" class="mr-1" />
+                      加入书架
+                    </Button>
+                    <Button size="lg" @click="toggleFavorite">
+                      <Icon name="star" size="md" class="mr-1" />
+                      {{ isFavorited ? '已收藏' : '收藏' }}
+                    </Button>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </div>
+        </div>
+      </template>
 
       <!-- 内容区 -->
       <div v-if="book" class="book-content">
         <div class="container">
-          <el-tabs v-model="activeTab">
+          <Tabs v-model:active-tab="activeTab">
             <!-- 简介 -->
-            <el-tab-pane label="简介" name="intro">
+            <TabPane label="简介" name="intro">
               <div class="book-description">
                 <p>{{ book.description || '暂无简介' }}</p>
               </div>
-            </el-tab-pane>
+            </TabPane>
 
             <!-- 章节列表 -->
-            <el-tab-pane label="目录" name="chapters">
+            <TabPane label="目录" name="chapters">
               <div class="chapter-list">
                 <div class="chapter-header">
                   <span>共 {{ book.chapterCount }} 章</span>
-                  <el-button text @click="reverseChapterOrder">
+                  <Button variant="text" @click="reverseChapterOrder">
                     {{ isReversed ? '正序' : '倒序' }}
-                  </el-button>
+                  </Button>
                 </div>
 
-                <el-scrollbar max-height="600px">
+                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto;">
                   <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item"
                     :class="{ 'is-read': chapter.isRead }" @click="readChapter(chapter.id)">
                     <span class="chapter-title">{{ chapter.title }}</span>
                     <span class="chapter-info">
-                      <el-icon v-if="!chapter.isFree">
-                        <Lock />
-                      </el-icon>
+                      <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
                       {{ chapter.wordCount }}字
                     </span>
                   </div>
-                </el-scrollbar>
+                </div>
               </div>
-            </el-tab-pane>
+            </TabPane>
 
             <!-- 评分 -->
-            <el-tab-pane label="评分与评价" name="rating">
+            <TabPane label="评分与评价" name="rating">
               <RatingSection :book-id="bookId" />
-            </el-tab-pane>
+            </TabPane>
 
             <!-- 评论 -->
-            <el-tab-pane label="书评" name="comments">
+            <TabPane label="书评" name="comments">
               <div class="comments-container">
                 <!-- 发表评论 -->
                 <div class="comment-post">
-                  <el-input
+                  <Textarea
                     v-model="newComment"
-                    type="textarea"
                     :rows="4"
                     placeholder="写下你的看法..."
                     maxlength="1000"
                     show-word-limit
                   />
                   <div class="comment-actions">
-                    <el-button type="primary" @click="submitComment" :loading="submittingComment">
+                    <Button variant="primary" @click="submitComment" :loading="submittingComment">
                       发表
-                    </el-button>
+                    </Button>
                   </div>
                 </div>
 
                 <!-- 评论列表 -->
-                <div v-loading="commentsLoading" class="comments-list">
-                  <div v-if="comments.length === 0 && !commentsLoading" class="empty-comments">
-                    <el-empty description="暂无评论，来发表第一条评论吧" />
-                  </div>
-                  <CommentItem
-                    v-for="comment in comments"
-                    :key="comment.id"
-                    :comment="comment"
-                    @delete="handleDeleteComment"
-                    @update="onCommentUpdated"
-                  />
-                  <div v-if="hasMoreComments" class="load-more">
-                    <el-button @click="loadMoreComments" :loading="loadingMore">
-                      加载更多
-                    </el-button>
-                  </div>
+                <div class="comments-list">
+                  <Spinner v-if="commentsLoading" :size="32" class="loading-spinner" />
+                  <template v-else>
+                    <div v-if="comments.length === 0" class="empty-comments">
+                      <Empty title="暂无评论，来发表第一条评论吧" />
+                    </div>
+                    <CommentItem
+                      v-for="comment in comments"
+                      :key="comment.id"
+                      :comment="comment"
+                      @delete="handleDeleteComment"
+                      @update="onCommentUpdated"
+                    />
+                    <div v-if="hasMoreComments" class="load-more">
+                      <Button @click="loadMoreComments" :loading="loadingMore">
+                        加载更多
+                      </Button>
+                    </div>
+                  </template>
                 </div>
               </div>
-            </el-tab-pane>
-          </el-tabs>
+            </TabPane>
+          </Tabs>
         </div>
       </div>
 
@@ -203,26 +193,24 @@
       <div v-if="recommendedBooks.length" class="recommended-section">
         <div class="container">
           <h2 class="section-title">相似推荐</h2>
-          <el-row :gutter="20">
-            <el-col v-for="item in recommendedBooks" :key="item.id" :xs="12" :sm="8" :md="6" :lg="4">
+          <Row :gutter="20">
+            <Col v-for="item in recommendedBooks" :key="item.id" :xs="12" :sm="8" :md="6" :lg="4">
               <div class="book-card" @click="goToBook(item.id)">
-                <el-image :src="item.cover" fit="cover">
+                <Image :src="item.cover" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
+                      <Icon name="photo" size="lg" />
                     </div>
                   </template>
-                </el-image>
+                </Image>
                 <h4>{{ item.title }}</h4>
                 <p>{{ item.author }}</p>
               </div>
-            </el-col>
-          </el-row>
+            </Col>
+          </Row>
         </div>
       </div>
-    </el-container>
+    </div>
   </div>
 </template>
 
@@ -233,10 +221,8 @@ import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  ArrowLeft, User, Collection, View, Star, Document,
-  Reading, FolderAdd, Picture, Lock
-} from '@element-plus/icons-vue'
+import { Button, Textarea, Tabs, Rate, Empty, Image, Tag, Spinner, Row, Col } from '@/design-system'
+import Icon from '@/design-system'
 import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/modules/reader/api'
@@ -520,9 +506,20 @@ onMounted(() => {
   min-height: 100vh;
   background-color: #f5f5f5;
 
-  :deep(.el-container) {
+  :deep(.container) {
     flex-direction: column !important;
   }
+}
+
+.detail-container {
+  position: relative;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
 }
 
 .back-button {
@@ -547,7 +544,7 @@ onMounted(() => {
 }
 
 .book-cover {
-  .el-image {
+  .image-wrapper {
     width: 100%;
     aspect-ratio: 3/4;
     border-radius: 8px;
@@ -633,6 +630,29 @@ onMounted(() => {
   line-height: 1.8;
   color: #606266;
   white-space: pre-wrap;
+}
+
+.chapter-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #dcdfe6 #f5f5f5;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #dcdfe6;
+    border-radius: 4px;
+
+    &:hover {
+      background: #c0c4cc;
+    }
+  }
 }
 
 .chapter-list {
@@ -727,7 +747,7 @@ onMounted(() => {
       transform: translateY(-4px);
     }
 
-    .el-image {
+    .image-wrapper {
       width: 100%;
       aspect-ratio: 3/4;
       border-radius: 4px;
@@ -771,7 +791,7 @@ onMounted(() => {
   .book-actions {
     width: 100%;
 
-    .el-button {
+    .button {
       flex: 1;
     }
   }
