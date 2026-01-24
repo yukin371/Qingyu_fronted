@@ -214,7 +214,7 @@ export const InsideButton: Story = {
             :key="btn.text"
             :class="[
               'px-4 py-2 text-white rounded disabled:opacity-75 disabled:cursor-not-allowed flex items-center gap-2',
-              variantClasses[btn.variant as keyof typeof variantClasses]
+              variantClasses[btn.variant]
             ]"
             disabled
           >
