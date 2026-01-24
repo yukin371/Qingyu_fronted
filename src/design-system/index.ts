@@ -25,5 +25,8 @@ export * from './feedback'
 // 导航组件
 export * from './navigation'
 
+// 其他组件
+export * from './other'
+
 // 工具函数
 export * from './utils/cn'
