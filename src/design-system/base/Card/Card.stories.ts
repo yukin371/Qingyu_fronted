@@ -207,8 +207,8 @@ export const ArticleCard: Story = {
       <div class="p-8">
         <Card variant="elevated" :hoverable="true" class="max-w-md">
           <template #header>
-            <div class="aspect-video bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg mb-4"></div>
-            <span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded">技术</span>
+            <div class="aspect-video bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg mb-4"></div>
+            <span class="inline-block px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded">技术</span>
           </template>
           <h3 class="text-xl font-semibold mb-2">Vue 3 Composition API 最佳实践</h3>
           <p class="text-slate-600 text-sm mb-4">
