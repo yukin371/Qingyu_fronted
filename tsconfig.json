@@ -35,14 +35,15 @@
     },
 
     /* Types */
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "unplugin-vue-router/client"]
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/utils/request.ts.disabled"
+    "src/utils/request.ts.disabled",
+    "./typed-router.d.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
