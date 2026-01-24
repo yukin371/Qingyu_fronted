@@ -37,6 +37,8 @@ const iconSvgMap: Record<string, { solid: string; outline: string }> = {
   star: { solid: iconsData.starIconSolidSvg, outline: iconsData.starIconOutlineSvg },
   'lock-closed': { solid: iconsData.lockClosedIconSolidSvg, outline: iconsData.lockClosedIconOutlineSvg },
   'information-circle': { solid: iconsData.informationCircleIconSolidSvg, outline: iconsData.informationCircleIconOutlineSvg },
+  'book-open': { solid: iconsData.bookOpenIconSolidSvg, outline: iconsData.bookOpenIconOutlineSvg },
+  'photo': { solid: iconsData.photoIconSolidSvg, outline: iconsData.photoIconOutlineSvg },
 }
 
 // 尺寸映射
