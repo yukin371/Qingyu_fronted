@@ -62,7 +62,7 @@ export const Default: Story = {
     components: { Checkbox },
     setup() {
       const checked = ref(args.modelValue ?? false)
-      return { checked }
+      return { args, checked }
     },
     template: `
       <Checkbox v-model="checked" :label="args.label" :size="args.size" :color="args.color">
