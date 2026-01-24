@@ -8,6 +8,8 @@ import Button from '../../base/Button/Button.vue'
  * 展示所有方向、尺寸和交互方式
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Other/Drawer',
   component: Drawer,

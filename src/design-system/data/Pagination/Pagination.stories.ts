@@ -2,6 +2,8 @@
  * Pagination 组件 Storybook 故事
  */
 
+import { ref } from 'vue'
+
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Pagination from './Pagination.vue'
 

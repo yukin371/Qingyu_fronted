@@ -7,6 +7,8 @@ import Progress from './Progress.vue'
  * 展示所有类型、变体和功能
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Feedback/Progress',
   component: Progress,

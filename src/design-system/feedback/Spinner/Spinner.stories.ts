@@ -7,6 +7,8 @@ import Spinner from './Spinner.vue'
  * 展示所有类型、变体和功能
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Feedback/Spinner',
   component: Spinner,

@@ -2,6 +2,8 @@
  * Tree 组件 Storybook 故事
  */
 
+import { ref } from 'vue'
+
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Tree from './Tree.vue'
 import type { TreeNode } from './types'

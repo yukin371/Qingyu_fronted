@@ -9,6 +9,8 @@ import Button from '../../base/Button/Button.vue'
  * 展示所有尺寸、状态和交互方式
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Feedback/Dialog',
   component: Dialog,

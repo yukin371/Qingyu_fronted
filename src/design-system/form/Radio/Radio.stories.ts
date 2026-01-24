@@ -8,6 +8,8 @@ import RadioGroup from './RadioGroup.vue'
  * 展示所有尺寸、状态和模式
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Form/Radio',
   component: Radio,

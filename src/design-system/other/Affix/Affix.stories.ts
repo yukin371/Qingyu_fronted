@@ -7,6 +7,8 @@ import Affix from './Affix.vue'
  * 展示固钉组件的各种用法和配置
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Other/Affix',
   component: Affix,

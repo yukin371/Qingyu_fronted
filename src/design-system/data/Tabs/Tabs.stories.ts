@@ -2,6 +2,8 @@
  * Tabs 组件 Storybook 故事
  */
 
+import { ref } from 'vue'
+
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Tabs from './Tabs.vue'
 import TabPane from './TabPane.vue'

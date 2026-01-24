@@ -7,6 +7,8 @@ import Select from './Select.vue'
  * 展示单选、多选、可搜索、可清空等各种功能
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Form/Select',
   component: Select,

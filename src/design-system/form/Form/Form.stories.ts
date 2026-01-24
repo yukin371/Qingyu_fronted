@@ -14,6 +14,8 @@ import Select from '../Select/Select.vue'
  * 展示表单组件的各种使用场景和配置
  */
 
+import { ref } from 'vue'
+
 const meta: Meta<typeof Form> = {
   title: 'Form/Form',
   component: Form,

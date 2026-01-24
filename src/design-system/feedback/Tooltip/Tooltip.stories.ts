@@ -7,6 +7,8 @@ import Tooltip from './Tooltip.vue'
  * 展示所有触发方式、位置选项和功能
  */
 
+import { ref } from 'vue'
+
 const meta = {
   title: 'Design System/Feedback/Tooltip',
   component: Tooltip,
