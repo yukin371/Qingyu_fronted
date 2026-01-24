@@ -14,7 +14,7 @@
         </div>
 
         <!-- 书籍信息区 -->
-        <div v-if="book" class="book-header">
+        <div v-if="book" class="book-header" data-testid="book-detail">
           <div class="container">
             <Row :gutter="40">
               <!-- 封面 -->
@@ -33,7 +33,7 @@
               <!-- 书籍信息 -->
               <Col :span="18" :xs="24" :sm="16">
                 <div class="book-info">
-                  <h1 class="book-title">{{ book.title }}</h1>
+                  <h1 class="book-title" data-testid="book-title">{{ book.title }}</h1>
 
                   <div class="book-meta">
                     <span class="author">
