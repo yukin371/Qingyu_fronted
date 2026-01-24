@@ -71,7 +71,8 @@ const popperStyle = computed(() => {
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop
 
   let top = 0
-  let left = 0
+  let left: number | undefined = undefined
+  let right: number | undefined = undefined
   const offset = props.offset
 
   switch (props.placement) {
@@ -101,15 +102,16 @@ const popperStyle = computed(() => {
       break
     case 'left':
       top = triggerRect.top + scrollTop + (triggerRect.height - popperRect.height) / 2
-      left = triggerRect.left + scrollLeft - popperRect.width - offset
+      // 使用 right 定位，让 tooltip 右边缘对齐到按钮左边缘左侧 offset 处
+      right = document.body.clientWidth - triggerRect.left + offset
       break
     case 'left-start':
       top = triggerRect.top + scrollTop
-      left = triggerRect.left + scrollLeft - popperRect.width - offset
+      right = document.body.clientWidth - triggerRect.left + offset
       break
     case 'left-end':
       top = triggerRect.bottom + scrollTop - popperRect.height
-      left = triggerRect.left + scrollLeft - popperRect.width - offset
+      right = document.body.clientWidth - triggerRect.left + offset
       break
     case 'right':
       top = triggerRect.top + scrollTop + (triggerRect.height - popperRect.height) / 2
@@ -127,7 +129,8 @@ const popperStyle = computed(() => {
 
   return {
     top: `${top}px`,
-    left: `${left}px`,
+    ...(left !== undefined && { left: `${left}px` }),
+    ...(right !== undefined && { right: `${right}px` }),
   }
 })
 
