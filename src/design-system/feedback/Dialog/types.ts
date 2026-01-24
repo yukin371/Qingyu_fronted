@@ -69,6 +69,12 @@ export interface DialogProps {
   lockScroll?: boolean
 
   /**
+   * Teleport 目标，指定对话框传送到哪个元素
+   * @default 'body'
+   */
+  teleportTo?: string | HTMLElement
+
+  /**
    * 遮罩层的自定义类名
    */
   modalClass?: string

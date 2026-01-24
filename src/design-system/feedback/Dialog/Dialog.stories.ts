@@ -59,7 +59,7 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     title: '对话框标题',
-    visible: true,
+    visible: false,
     size: 'md',
   },
   render: (args) => ({

@@ -70,7 +70,7 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     title: '基础抽屉',
-    modelValue: true,
+    modelValue: false,
     direction: 'right',
     size: '30%',
   },

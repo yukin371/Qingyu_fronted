@@ -47,6 +47,7 @@ const props = withDefaults(defineProps<DialogProps>(), {
   closeOnClickModal: true,
   closeOnPressEscape: true,
   lockScroll: true,
+  teleportTo: 'body',
 })
 
 // 组件 Emits
@@ -207,7 +208,7 @@ defineExpose({
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport :to="teleportTo">
     <!-- 遮罩层 -->
     <Transition
       enter-active-class="transition-opacity duration-300"
