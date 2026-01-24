@@ -52,3 +52,6 @@ export * from './export'
 
 // 发布管理 API
 export * from './publish'
+
+// 批量操作 API
+export * from './batch-operation'
