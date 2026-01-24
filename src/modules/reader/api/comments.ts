@@ -77,10 +77,23 @@ export interface ReplyCommentParams {
  * 评论 API 接口 (v2.0)
  * 对接后端: /api/v1/social/comments
  */
+/**
+ * 评论相关 API
+ * @description 对接后端 /api/v1/social/comments 路由
+ * @endpoint /api/v1/social/comments
+ * @category social
+ * @tags 评论相关
+ */
 export const commentsAPI = {
   /**
    * 发表评论
-   * POST /api/v1/social/comments
+   * @description 创建新的书评或章节评论
+   * @endpoint POST /api/v1/social/comments
+   * @category social
+   * @tags 评论相关
+   * @param {CreateCommentParams} params - 评论参数（包含书籍ID、章节ID、内容、评分等）
+   * @response {APIResponse<Comment>} 201 - 成功创建评论
+   * @security BearerAuth
    */
   async createComment(params: CreateCommentParams): Promise<APIResponse<Comment>> {
     return httpService.post<APIResponse<Comment>>('/social/comments', params)
@@ -88,7 +101,12 @@ export const commentsAPI = {
 
   /**
    * 获取评论列表
-   * GET /api/v1/social/comments
+   * @description 获取指定书籍或章节的评论列表，支持分页和排序
+   * @endpoint GET /api/v1/social/comments
+   * @category social
+   * @tags 评论相关
+   * @param {GetCommentListParams} params - 查询参数（书籍ID、章节ID、页码、排序方式等）
+   * @response {CommentListResponse} 200 - 成功返回评论列表
    */
   async getCommentList(params: GetCommentListParams): Promise<CommentListResponse> {
     return httpService.get<CommentListResponse>('/social/comments', { params })
@@ -96,7 +114,12 @@ export const commentsAPI = {
 
   /**
    * 获取评论详情
-   * GET /api/v1/social/comments/:id
+   * @description 根据评论ID获取评论的详细信息
+   * @endpoint GET /api/v1/social/comments/:id
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 评论ID
+   * @response {APIResponse<Comment>} 200 - 成功返回评论详情
    */
   async getCommentById(commentId: string): Promise<APIResponse<Comment>> {
     return httpService.get<APIResponse<Comment>>(`/social/comments/${commentId}`)
@@ -104,7 +127,14 @@ export const commentsAPI = {
 
   /**
    * 更新评论
-   * PUT /api/v1/social/comments/:id
+   * @description 更新已有评论的内容或评分
+   * @endpoint PUT /api/v1/social/comments/:id
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 评论ID
+   * @param {UpdateCommentParams} params - 更新参数（内容和评分）
+   * @response {APIResponse<Comment>} 200 - 成功更新评论
+   * @security BearerAuth
    */
   async updateComment(
     commentId: string,
@@ -115,7 +145,13 @@ export const commentsAPI = {
 
   /**
    * 删除评论
-   * DELETE /api/v1/social/comments/:id
+   * @description 删除指定评论
+   * @endpoint DELETE /api/v1/social/comments/:id
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 评论ID
+   * @response {APIResponse<void>} 204 - 成功删除评论
+   * @security BearerAuth
    */
   async deleteComment(commentId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}`)
@@ -123,7 +159,14 @@ export const commentsAPI = {
 
   /**
    * 回复评论
-   * POST /api/v1/social/comments/:id/reply
+   * @description 对指定评论进行回复
+   * @endpoint POST /api/v1/social/comments/:id/reply
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 父评论ID
+   * @param {ReplyCommentParams} params - 回复参数（回复内容）
+   * @response {APIResponse<Comment>} 201 - 成功创建回复
+   * @security BearerAuth
    */
   async replyComment(
     commentId: string,
@@ -137,7 +180,13 @@ export const commentsAPI = {
 
   /**
    * 点赞评论
-   * POST /api/v1/social/comments/:id/like
+   * @description 对指定评论进行点赞
+   * @endpoint POST /api/v1/social/comments/:id/like
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 评论ID
+   * @response {APIResponse<void>} 200 - 成功点赞
+   * @security BearerAuth
    */
   async likeComment(commentId: string): Promise<APIResponse<void>> {
     return httpService.post<APIResponse<void>>(`/social/comments/${commentId}/like`)
@@ -145,7 +194,13 @@ export const commentsAPI = {
 
   /**
    * 取消点赞评论
-   * DELETE /api/v1/social/comments/:id/like
+   * @description 取消对指定评论的点赞
+   * @endpoint DELETE /api/v1/social/comments/:id/like
+   * @category social
+   * @tags 评论相关
+   * @param {string} commentId - 评论ID
+   * @response {APIResponse<void>} 204 - 成功取消点赞
+   * @security BearerAuth
    */
   async unlikeComment(commentId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}/like`)

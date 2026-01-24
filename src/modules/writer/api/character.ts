@@ -19,7 +19,14 @@ export const characterApi = {
 
   /**
    * 创建角色
-   * POST /api/v1/projects/{projectId}/characters
+   * @description 在指定项目中创建新角色
+   * @endpoint POST /api/v1/projects/:projectId/characters
+   * @category writer
+   * @tags 角色管理
+   * @param {string} projectId - 项目ID
+   * @param {CreateCharacterRequest} data - 角色创建数据
+   * @response {Character} 201 - 成功返回创建的角色信息
+   * @security BearerAuth
    */
   create(projectId: string, data: CreateCharacterRequest) {
     return httpService.post<Character>(`${BASE_PROJECT_URL}/${projectId}/characters`, data)
@@ -27,7 +34,14 @@ export const characterApi = {
 
   /**
    * 获取角色详情
-   * GET /api/v1/characters/{characterId}?projectId=...
+   * @description 获取指定角色的详细信息
+   * @endpoint GET /api/v1/characters/:characterId
+   * @category writer
+   * @tags 角色管理
+   * @param {string} characterId - 角色ID
+   * @param {string} projectId - 项目ID（作为查询参数）
+   * @response {Character} 200 - 成功返回角色详情
+   * @security BearerAuth
    */
   getDetail(characterId: string, projectId: string) {
     return httpService.get<Character>(
@@ -38,7 +52,13 @@ export const characterApi = {
 
   /**
    * 获取项目角色列表
-   * GET /api/v1/projects/{projectId}/characters
+   * @description 获取指定项目的所有角色列表
+   * @endpoint GET /api/v1/projects/:projectId/characters
+   * @category writer
+   * @tags 角色管理
+   * @param {string} projectId - 项目ID
+   * @response {Character[]} 200 - 成功返回角色列表
+   * @security BearerAuth
    */
   list(projectId: string) {
     return httpService.get<Character[]>(`${BASE_PROJECT_URL}/${projectId}/characters`)
@@ -46,7 +66,15 @@ export const characterApi = {
 
   /**
    * 更新角色
-   * PUT /api/v1/characters/{characterId}?projectId=...
+   * @description 更新指定角色的信息
+   * @endpoint PUT /api/v1/characters/:characterId
+   * @category writer
+   * @tags 角色管理
+   * @param {string} characterId - 角色ID
+   * @param {string} projectId - 项目ID（作为查询参数）
+   * @param {UpdateCharacterRequest} data - 角色更新数据
+   * @response {Character} 200 - 成功返回更新后的角色信息
+   * @security BearerAuth
    */
   update(characterId: string, projectId: string, data: UpdateCharacterRequest) {
     return httpService.put<Character>(
@@ -58,7 +86,14 @@ export const characterApi = {
 
   /**
    * 删除角色
-   * DELETE /api/v1/characters/{characterId}?projectId=...
+   * @description 删除指定角色
+   * @endpoint DELETE /api/v1/characters/:characterId
+   * @category writer
+   * @tags 角色管理
+   * @param {string} characterId - 角色ID
+   * @param {string} projectId - 项目ID（作为查询参数）
+   * @response {void} 204 - 成功删除角色
+   * @security BearerAuth
    */
   delete(characterId: string, projectId: string) {
     return httpService.delete<void>(
@@ -73,7 +108,14 @@ export const characterApi = {
 
   /**
    * 创建角色关系
-   * POST /api/v1/characters/relations?projectId=...
+   * @description 为指定项目的角色创建关系
+   * @endpoint POST /api/v1/characters/relations
+   * @category writer
+   * @tags 角色管理
+   * @param {string} projectId - 项目ID（作为查询参数）
+   * @param {SaveRelationRequest} data - 关系创建数据
+   * @response {CharacterRelation} 201 - 成功返回创建的关系信息
+   * @security BearerAuth
    */
   createRelation(projectId: string, data: SaveRelationRequest) {
     return httpService.post<CharacterRelation>(
@@ -85,8 +127,14 @@ export const characterApi = {
 
   /**
    * 获取角色关系列表
-   * GET /api/v1/projects/{projectId}/characters/relations
-   * 可选参数: characterId (筛选特定角色的关系)
+   * @description 获取指定项目的角色关系列表，可筛选特定角色的关系
+   * @endpoint GET /api/v1/projects/:projectId/characters/relations
+   * @category writer
+   * @tags 角色管理
+   * @param {string} projectId - 项目ID
+   * @param {string} [characterId] - 角色ID（可选，用于筛选特定角色的关系）
+   * @response {CharacterRelation[]} 200 - 成功返回角色关系列表
+   * @security BearerAuth
    */
   listRelations(projectId: string, characterId?: string) {
     const params: any = {}
@@ -100,15 +148,28 @@ export const characterApi = {
 
   /**
    * 删除角色关系
-   * DELETE /api/v1/characters/relations/{relationId}?projectId=...
+   * @description 删除指定的角色关系
+   * @endpoint DELETE /api/v1/characters/relations/:relationId
+   * @category writer
+   * @tags 角色管理
+   * @param {string} relationId - 关系ID
+   * @param {string} projectId - 项目ID（作为查询参数）
+   * @response {void} 204 - 成功删除角色关系
+   * @security BearerAuth
    */
   deleteRelation(relationId: string, projectId: string) {
     return httpService.delete<void>(`${BASE_CHAR_URL}/relations/${relationId}`, { projectId })
   },
 
   /**
-   * 获取角色关系图谱 (用于可视化)
-   * GET /api/v1/projects/{projectId}/characters/graph
+   * 获取角色关系图谱
+   * @description 获取指定项目的角色关系图谱数据，用于可视化展示角色关系网络
+   * @endpoint GET /api/v1/projects/:projectId/characters/graph
+   * @category writer
+   * @tags 角色管理
+   * @param {string} projectId - 项目ID
+   * @response {CharacterGraph} 200 - 成功返回角色关系图谱数据
+   * @security BearerAuth
    */
   getGraph(projectId: string) {
     return httpService.get<CharacterGraph>(`${BASE_PROJECT_URL}/${projectId}/characters/graph`)
@@ -116,8 +177,68 @@ export const characterApi = {
 }
 
 // 便捷函数导出（兼容旧代码）
+
+/**
+ * 获取项目角色列表（便捷函数）
+ * @description 获取指定项目的所有角色列表
+ * @endpoint GET /api/v1/projects/:projectId/characters
+ * @category writer
+ * @tags 角色管理
+ * @param {string} projectId - 项目ID
+ * @response {Character[]} 200 - 成功返回角色列表
+ * @security BearerAuth
+ */
 export const listCharacters = (projectId: string) => characterApi.list(projectId)
+
+/**
+ * 获取角色关系列表（便捷函数）
+ * @description 获取指定项目的角色关系列表，可筛选特定角色的关系
+ * @endpoint GET /api/v1/projects/:projectId/characters/relations
+ * @category writer
+ * @tags 角色管理
+ * @param {string} projectId - 项目ID
+ * @param {string} [characterId] - 角色ID（可选，用于筛选特定角色的关系）
+ * @response {CharacterRelation[]} 200 - 成功返回角色关系列表
+ * @security BearerAuth
+ */
 export const listCharacterRelations = (projectId: string, characterId?: string) => characterApi.listRelations(projectId, characterId)
+
+/**
+ * 创建角色（便捷函数）
+ * @description 在指定项目中创建新角色
+ * @endpoint POST /api/v1/projects/:projectId/characters
+ * @category writer
+ * @tags 角色管理
+ * @param {string} projectId - 项目ID
+ * @param {CreateCharacterRequest} data - 角色创建数据
+ * @response {Character} 201 - 成功返回创建的角色信息
+ * @security BearerAuth
+ */
 export const createCharacter = (projectId: string, data: CreateCharacterRequest) => characterApi.create(projectId, data)
+
+/**
+ * 更新角色（便捷函数）
+ * @description 更新指定角色的信息
+ * @endpoint PUT /api/v1/characters/:characterId
+ * @category writer
+ * @tags 角色管理
+ * @param {string} characterId - 角色ID
+ * @param {string} projectId - 项目ID（作为查询参数）
+ * @param {UpdateCharacterRequest} data - 角色更新数据
+ * @response {Character} 200 - 成功返回更新后的角色信息
+ * @security BearerAuth
+ */
 export const updateCharacter = (characterId: string, projectId: string, data: UpdateCharacterRequest) => characterApi.update(characterId, projectId, data)
+
+/**
+ * 删除角色（便捷函数）
+ * @description 删除指定角色
+ * @endpoint DELETE /api/v1/characters/:characterId
+ * @category writer
+ * @tags 角色管理
+ * @param {string} characterId - 角色ID
+ * @param {string} projectId - 项目ID（作为查询参数）
+ * @response {void} 204 - 成功删除角色
+ * @security BearerAuth
+ */
 export const deleteCharacter = (characterId: string, projectId: string) => characterApi.delete(characterId, projectId)

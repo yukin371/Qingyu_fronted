@@ -26,12 +26,21 @@ export interface UserLikeStats {
 
 /**
  * 点赞 API 接口 (v2.0)
- * 对接后端: /api/v1/social/
+ * @description 对接后端 /api/v1/social/
+ * @endpoint /api/v1/social
+ * @category reader
+ * @tags 点赞管理
  */
 export const likesAPI = {
   /**
    * 点赞书籍
-   * POST /api/v1/social/books/:bookId/like
+   * @description 为指定书籍点赞
+   * @endpoint POST /api/v1/social/books/:bookId/like
+   * @category reader
+   * @tags 点赞管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<void>} 201 - 成功点赞
+   * @security BearerAuth
    */
   async likeBook(bookId: string): Promise<APIResponse<void>> {
     return httpService.post<APIResponse<void>>(`/social/books/${bookId}/like`)
@@ -39,7 +48,13 @@ export const likesAPI = {
 
   /**
    * 取消点赞书籍
-   * DELETE /api/v1/social/books/:bookId/like
+   * @description 取消对指定书籍的点赞
+   * @endpoint DELETE /api/v1/social/books/:bookId/like
+   * @category reader
+   * @tags 点赞管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<void>} 204 - 成功取消点赞
+   * @security BearerAuth
    */
   async unlikeBook(bookId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/books/${bookId}/like`)
@@ -47,7 +62,13 @@ export const likesAPI = {
 
   /**
    * 获取书籍点赞信息
-   * GET /api/v1/social/books/:bookId/like
+   * @description 获取指定书籍的点赞信息（点赞数和当前用户是否已点赞）
+   * @endpoint GET /api/v1/social/books/:bookId/like
+   * @category reader
+   * @tags 点赞管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<LikeInfo>} 200 - 成功返回点赞信息
+   * @security BearerAuth
    */
   async getBookLikeInfo(bookId: string): Promise<APIResponse<LikeInfo>> {
     return httpService.get<APIResponse<LikeInfo>>(`/social/books/${bookId}/like`)
@@ -55,7 +76,15 @@ export const likesAPI = {
 
   /**
    * 获取用户点赞的书籍列表
-   * GET /api/v1/social/likes/books
+   * @description 获取当前用户点赞的所有书籍，支持分页
+   * @endpoint GET /api/v1/social/likes/books
+   * @category reader
+   * @tags 点赞管理
+   * @param {Object} [params] - 查询参数（可选）
+   * @param {number} [params.page] - 页码（默认1）
+   * @param {number} [params.pageSize] - 每页数量（默认20）
+   * @response {PaginatedResponse<any>} 200 - 成功返回点赞的书籍列表
+   * @security BearerAuth
    */
   async getUserLikedBooks(params?: {
     page?: number
@@ -66,7 +95,12 @@ export const likesAPI = {
 
   /**
    * 获取用户点赞统计
-   * GET /api/v1/social/likes/stats
+   * @description 获取当前用户的点赞统计信息
+   * @endpoint GET /api/v1/social/likes/stats
+   * @category reader
+   * @tags 点赞管理
+   * @response {APIResponse<UserLikeStats>} 200 - 成功返回点赞统计数据
+   * @security BearerAuth
    */
   async getUserLikeStats(): Promise<APIResponse<UserLikeStats>> {
     return httpService.get<APIResponse<UserLikeStats>>('/social/likes/stats')

@@ -39,7 +39,17 @@ function transformPagination<T>(res: any): PaginationResponse<T> {
 
 /**
  * 获取书籍列表
- * GET /api/v1/bookstore/books/recommended
+ * @description 支持分页、分类筛选、状态过滤的书籍列表接口
+ * @endpoint GET /api/v1/bookstore/books/recommended
+ * @category books
+ * @tags 书籍相关
+ * @param {number} page - 页码（默认1）
+ * @param {number} size - 每页数量（默认10）
+ * @param {string} category - 分类ID（可选）
+ * @param {string} status - 书籍状态（serializing/completed/paused）
+ * @param {string} sort - 排序字段（created_at/updated_at/view_count/like_count/rating）
+ * @param {string} order - 排序方向（asc/desc）
+ * @response {PaginatedAPIResponse} 200 - 成功返回书籍列表
  */
 export function getBookList(params?: {
   page?: number
@@ -61,7 +71,12 @@ export function getBookList(params?: {
 
 /**
  * 获取书籍详情
- * GET /api/v1/bookstore/books/:id
+ * @description 根据书籍ID获取书籍的详细信息，包括作者、简介、统计数据等
+ * @endpoint GET /api/v1/bookstore/books/:id
+ * @category books
+ * @tags 书籍相关
+ * @param {string} bookId - 书籍ID
+ * @response {BookDetail} 200 - 成功返回书籍详情
  */
 export function getBookDetail(bookId: string) {
   return httpService.get<BookDetail>(`/bookstore/books/${bookId}`)
@@ -69,7 +84,18 @@ export function getBookDetail(bookId: string) {
 
 /**
  * 创建书籍
- * POST /api/v1/bookstore/books
+ * @description 创建新书籍，需要作者或管理员权限
+ * @endpoint POST /api/v1/bookstore/books
+ * @category books
+ * @tags 书籍管理
+ * @param {Partial<BookDetail>} data - 书籍数据
+ * @param {string} data.title - 书名
+ * @param {string} data.author - 作者
+ * @param {string} data.description - 简介
+ * @param {string} data.category_id - 分类ID
+ * @param {number} data.price - 价格（分）
+ * @response {BookDetail} 201 - 创建成功
+ * @security BearerAuth
  */
 export function createBook(data: Partial<BookDetail>) {
   return httpService.post<BookDetail>('/bookstore/books', data)
@@ -77,7 +103,14 @@ export function createBook(data: Partial<BookDetail>) {
 
 /**
  * 更新书籍详情
- * PUT /api/v1/bookstore/books/:id
+ * @description 更新书籍信息，需要作者或管理员权限
+ * @endpoint PUT /api/v1/bookstore/books/:id
+ * @category books
+ * @tags 书籍管理
+ * @param {string} bookId - 书籍ID
+ * @param {Partial<BookDetail>} data - 书籍数据
+ * @response {BookDetail} 200 - 更新成功
+ * @security BearerAuth
  */
 export function updateBook(bookId: string, data: Partial<BookDetail>) {
   return httpService.put<BookDetail>(`/bookstore/books/${bookId}`, data)
@@ -85,7 +118,13 @@ export function updateBook(bookId: string, data: Partial<BookDetail>) {
 
 /**
  * 删除书籍
- * DELETE /api/v1/bookstore/books/:id
+ * @description 删除书籍，需要作者或管理员权限
+ * @endpoint DELETE /api/v1/bookstore/books/:id
+ * @category books
+ * @tags 书籍管理
+ * @param {string} bookId - 书籍ID
+ * @response {void} 200 - 删除成功
+ * @security BearerAuth
  */
 export function deleteBook(bookId: string) {
   return httpService.delete(`/bookstore/books/${bookId}`)
@@ -95,14 +134,30 @@ export function deleteBook(bookId: string) {
 
 /**
  * 搜索书籍（全局搜索）
- * GET /api/v1/bookstore/books/search
+ * @description 支持关键词搜索书籍，可按标题、作者、标签等多维度搜索
+ * @endpoint GET /api/v1/bookstore/books/search
+ * @category books
+ * @tags 书籍搜索
+ * @param {SearchParams} params - 搜索参数
+ * @param {string} params.keyword - 搜索关键词
+ * @param {number} params.page - 页码（默认1）
+ * @param {number} params.pageSize - 每页数量（默认20）
+ * @response {PaginationResponse<Book>} 200 - 成功返回搜索结果
  */
 export function searchBooks(params: SearchParams) {
   return httpService.get<PaginationResponse<Book>>('/bookstore/books/search', params)
 }
 
 /**
- * 按标题搜索
+ * 按标题搜索书籍
+ * @description 根据书籍标题进行搜索，支持模糊匹配
+ * @endpoint GET /api/v1/bookstore/books/search/title
+ * @category books
+ * @tags 书籍搜索
+ * @param {string} title - 书籍标题关键词
+ * @param {number} page - 页码（默认1）
+ * @param {number} size - 每页数量（默认20）
+ * @response {PaginationResponse<Book>} 200 - 成功返回搜索结果
  */
 export async function searchByTitle(title: string, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
@@ -114,7 +169,15 @@ export async function searchByTitle(title: string, page = 1, size = 20) {
 }
 
 /**
- * 按作者搜索
+ * 按作者搜索书籍
+ * @description 根据作者名称进行搜索，支持模糊匹配
+ * @endpoint GET /api/v1/bookstore/books/search/author
+ * @category books
+ * @tags 书籍搜索
+ * @param {string} author - 作者名称关键词
+ * @param {number} page - 页码（默认1）
+ * @param {number} size - 每页数量（默认20）
+ * @response {PaginationResponse<Book>} 200 - 成功返回搜索结果
  */
 export async function searchByAuthor(author: string, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
@@ -126,7 +189,15 @@ export async function searchByAuthor(author: string, page = 1, size = 20) {
 }
 
 /**
- * 按状态获取书籍
+ * 按状态获取书籍列表
+ * @description 根据书籍状态（连载中、已完结、暂停）获取书籍列表
+ * @endpoint GET /api/v1/bookstore/books/status
+ * @category books
+ * @tags 书籍筛选
+ * @param {BookStatus} status - 书籍状态（serializing/completed/paused）
+ * @param {number} page - 页码（默认1）
+ * @param {number} size - 每页数量（默认20）
+ * @response {PaginationResponse<Book>} 200 - 成功返回书籍列表
  */
 export async function getBooksByStatus(status: BookStatus, page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
@@ -138,7 +209,15 @@ export async function getBooksByStatus(status: BookStatus, page = 1, size = 20) 
 }
 
 /**
- * 按标签获取书籍
+ * 按标签获取书籍列表
+ * @description 根据一个或多个标签筛选书籍，支持多标签组合查询
+ * @endpoint GET /api/v1/bookstore/books/tags
+ * @category books
+ * @tags 书籍筛选
+ * @param {string[]} tags - 标签列表
+ * @param {number} page - 页码（默认1）
+ * @param {number} size - 每页数量（默认20）
+ * @response {PaginationResponse<Book>} 200 - 成功返回书籍列表
  */
 export async function getBooksByTags(tags: string[], page = 1, size = 20) {
   const res = await httpService.get<BackendPaginatedResponse<Book>>(
@@ -153,7 +232,15 @@ export async function getBooksByTags(tags: string[], page = 1, size = 20) {
 
 /**
  * 获取推荐书籍
- * GET /api/v1/bookstore/books/recommended
+ * @description 根据用户偏好和书籍热度获取个性化推荐书籍
+ * @endpoint GET /api/v1/bookstore/books/recommended
+ * @category books
+ * @tags 书籍推荐
+ * @param {Object} params - 推荐参数（可选）
+ * @param {number} params.page - 页码（默认1）
+ * @param {number} params.pageSize - 每页数量（默认10）
+ * @param {number} params.limit - 限制返回数量
+ * @response {Book[]} 200 - 成功返回推荐书籍列表
  */
 export function getRecommendedBooks(params?: { page?: number; pageSize?: number; limit?: number }) {
   return httpService.get<Book[]>('/bookstore/books/recommended', { params })
@@ -161,7 +248,12 @@ export function getRecommendedBooks(params?: { page?: number; pageSize?: number;
 
 /**
  * 获取精选书籍
- * GET /api/v1/bookstore/books/featured
+ * @description 获取编辑精选的优质书籍推荐
+ * @endpoint GET /api/v1/bookstore/books/featured
+ * @category books
+ * @tags 书籍推荐
+ * @param {number} limit - 限制返回数量（默认10）
+ * @response {Book[]} 200 - 成功返回精选书籍列表
  */
 export function getFeaturedBooks(limit = 10) {
   return httpService.get<Book[]>('/bookstore/books/featured', {
@@ -171,6 +263,12 @@ export function getFeaturedBooks(limit = 10) {
 
 /**
  * 获取热门书籍
+ * @description 获取当前热门书籍，按浏览量、点赞量等综合排序
+ * @endpoint GET /api/v1/bookstore/books/popular
+ * @category books
+ * @tags 书籍推荐
+ * @param {number} limit - 限制返回数量（默认10）
+ * @response {Book[]} 200 - 成功返回热门书籍列表
  */
 export function getPopularBooks(limit = 10) {
   return httpService.get<Book[]>('/bookstore/books/popular', { limit })
@@ -178,6 +276,12 @@ export function getPopularBooks(limit = 10) {
 
 /**
  * 获取最新书籍
+ * @description 获取最新发布或更新的书籍列表
+ * @endpoint GET /api/v1/bookstore/books/latest
+ * @category books
+ * @tags 书籍推荐
+ * @param {number} limit - 限制返回数量（默认10）
+ * @response {Book[]} 200 - 成功返回最新书籍列表
  */
 export function getLatestBooks(limit = 10) {
   return httpService.get<Book[]>('/bookstore/books/latest', { limit })
@@ -185,6 +289,13 @@ export function getLatestBooks(limit = 10) {
 
 /**
  * 获取相似书籍推荐
+ * @description 根据指定书籍获取相似的推荐书籍，基于类型、标签等相似度计算
+ * @endpoint GET /api/v1/bookstore/books/:id/similar
+ * @category books
+ * @tags 书籍推荐
+ * @param {string} bookId - 书籍ID
+ * @param {number} limit - 限制返回数量（默认10）
+ * @response {Book[]} 200 - 成功返回相似书籍列表
  */
 export function getSimilarBooks(bookId: string, limit = 10) {
   return httpService.get<Book[]>(`/bookstore/books/${bookId}/similar`, { limit })
@@ -194,7 +305,12 @@ export function getSimilarBooks(bookId: string, limit = 10) {
 
 /**
  * 增加书籍浏览量
- * POST /api/v1/bookstore/books/:id/view
+ * @description 记录书籍被浏览的次数，用于统计和推荐算法
+ * @endpoint POST /api/v1/bookstore/books/:id/view
+ * @category books
+ * @tags 书籍交互
+ * @param {string} bookId - 书籍ID
+ * @response {void} 200 - 浏览量记录成功
  */
 export function incrementBookView(bookId: string) {
   return httpService.post<void>(`/bookstore/books/${bookId}/view`)
@@ -202,6 +318,12 @@ export function incrementBookView(bookId: string) {
 
 /**
  * 获取书籍统计数据
+ * @description 获取书籍的详细统计数据，包括浏览量、点赞数、收藏数等
+ * @endpoint GET /api/v1/bookstore/books/:id/statistics
+ * @category books
+ * @tags 书籍统计
+ * @param {string} bookId - 书籍ID
+ * @response {Record<string, any>} 200 - 成功返回统计数据
  */
 export function getBookStatistics(bookId: string) {
   return httpService.get<Record<string, any>>(`/bookstore/books/${bookId}/statistics`)
@@ -209,13 +331,27 @@ export function getBookStatistics(bookId: string) {
 
 /**
  * 点赞书籍
+ * @description 为书籍添加点赞，需要用户登录
+ * @endpoint POST /api/v1/bookstore/books/:id/like
+ * @category books
+ * @tags 书籍交互
+ * @param {string} bookId - 书籍ID
+ * @response {void} 200 - 点赞成功
+ * @security BearerAuth
  */
 export function likeBook(bookId: string) {
   return httpService.post(`/bookstore/books/${bookId}/like`)
 }
 
 /**
- * 取消点赞
+ * 取消点赞书籍
+ * @description 取消对书籍的点赞，需要用户登录
+ * @endpoint POST /api/v1/bookstore/books/:id/unlike
+ * @category books
+ * @tags 书籍交互
+ * @param {string} bookId - 书籍ID
+ * @response {void} 200 - 取消点赞成功
+ * @security BearerAuth
  */
 export function unlikeBook(bookId: string) {
   return httpService.post(`/bookstore/books/${bookId}/unlike`)

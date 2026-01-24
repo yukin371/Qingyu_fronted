@@ -116,32 +116,53 @@ export interface ProjectListParams {
 
 const BASE_URL = '/projects'
 
+/**
+ * 写作项目 API
+ * @description 对接后端 /api/v1/projects 路由，提供写作项目的管理功能
+ * @endpoint /api/v1/projects
+ * @category writer
+ * @tags 项目管理
+ */
 export const projectApi = {
   /**
    * 创建项目
-   * POST /api/v1/projects
+   * @description 创建新的写作项目
+   * @endpoint POST /api/v1/projects
+   * @category writer
+   * @tags 项目管理
+   * @param {CreateProjectRequest} data - 项目创建数据
+   * @response {ProjectDetailResponse} 201 - 成功创建项目，返回项目详情
+   * @security BearerAuth
    */
   create(data: CreateProjectRequest) {
-    // 注意：根据 HttpService 逻辑，这里返回的是 Promise<T>，
-    // 其中 T 是后端 ApiResponse.data 的内容。
-    // 假设后端 CreateProjectResponse 返回的是创建后的项目详情或ID
     return httpService.post<ProjectDetailResponse>(BASE_URL, data)
   },
 
   /**
    * 获取项目列表
-   * GET /api/v1/projects
+   * @description 获取用户的写作项目列表，支持分页和筛选
+   * @endpoint GET /api/v1/projects
+   * @category writer
+   * @tags 项目管理
+   * @param {ProjectListParams} params - 查询参数（页码、每页数量、状态、分类）
+   * @response {ProjectListResponse} 200 - 成功返回项目列表
+   * @security BearerAuth
    */
   list(params?: ProjectListParams) {
     return httpService.get<ProjectListResponse>(BASE_URL, params, {
-      // 列表页通常不需要防抖，但如果要做搜索建议可以开启 deduplicate
       deduplicate: true,
     })
   },
 
   /**
    * 获取项目详情
-   * GET /api/v1/projects/:id
+   * @description 获取指定项目的详细信息，包含文档、角色、场景等
+   * @endpoint GET /api/v1/projects/:id
+   * @category writer
+   * @tags 项目管理
+   * @param {string} id - 项目ID
+   * @response {ProjectDetailResponse} 200 - 成功返回项目详情
+   * @security BearerAuth
    */
   getDetail(id: string) {
     return httpService.get<ProjectDetailResponse>(`${BASE_URL}/${id}`)
@@ -149,7 +170,14 @@ export const projectApi = {
 
   /**
    * 更新项目信息
-   * PUT /api/v1/projects/:id
+   * @description 更新项目的基本信息
+   * @endpoint PUT /api/v1/projects/:id
+   * @category writer
+   * @tags 项目管理
+   * @param {string} id - 项目ID
+   * @param {UpdateProjectRequest} data - 要更新的项目字段
+   * @response {void} 200 - 成功更新项目
+   * @security BearerAuth
    */
   update(id: string, data: UpdateProjectRequest) {
     return httpService.put<void>(`${BASE_URL}/${id}`, data)
@@ -157,7 +185,13 @@ export const projectApi = {
 
   /**
    * 删除项目
-   * DELETE /api/v1/projects/:id
+   * @description 删除指定的写作项目
+   * @endpoint DELETE /api/v1/projects/:id
+   * @category writer
+   * @tags 项目管理
+   * @param {string} id - 项目ID
+   * @response {void} 204 - 成功删除项目
+   * @security BearerAuth
    */
   delete(id: string) {
     return httpService.delete<void>(`${BASE_URL}/${id}`)
@@ -165,11 +199,16 @@ export const projectApi = {
 
   /**
    * 手动触发更新项目统计信息 (字数、章节数)
-   * PUT /api/v1/projects/:id/statistics
+   * @description 重新计算并更新项目的统计数据
+   * @endpoint PUT /api/v1/projects/:id/statistics
+   * @category writer
+   * @tags 项目管理
+   * @param {string} id - 项目ID
+   * @response {void} 200 - 成功更新统计信息
+   * @security BearerAuth
    */
   refreshStatistics(id: string) {
     return httpService.put<void>(`${BASE_URL}/${id}/statistics`, null, {
-      // 统计计算可能耗时较长，静默处理避免打扰用户
       silent: true,
     })
   },

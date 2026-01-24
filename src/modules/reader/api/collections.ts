@@ -46,12 +46,25 @@ export interface CollectionStats {
 
 /**
  * 收藏 API 接口 (v2.0)
- * 对接后端: /api/v1/social/collections
+ * @description 对接后端 /api/v1/social/collections
+ * @endpoint /api/v1/social/collections
+ * @category reader
+ * @tags 收藏管理
  */
 export const collectionsAPI = {
   /**
    * 添加收藏
-   * POST /api/v1/social/collections
+   * @description 将指定书籍添加到收藏列表
+   * @endpoint POST /api/v1/social/collections
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} bookId - 书籍ID
+   * @param {Object} [data] - 收藏附加信息（可选）
+   * @param {string} [data.title] - 自定义标题（可选）
+   * @param {string} [data.description] - 自定义描述（可选）
+   * @param {string[]} [data.tags] - 自定义标签（可选）
+   * @response {APIResponse<Collection>} 201 - 成功添加收藏
+   * @security BearerAuth
    */
   async addCollection(
     bookId: string,
@@ -65,7 +78,15 @@ export const collectionsAPI = {
 
   /**
    * 获取收藏列表
-   * GET /api/v1/social/collections
+   * @description 获取当前用户的收藏列表，支持分页
+   * @endpoint GET /api/v1/social/collections
+   * @category reader
+   * @tags 收藏管理
+   * @param {Object} [params] - 查询参数（可选）
+   * @param {number} [params.page] - 页码（默认1）
+   * @param {number} [params.pageSize] - 每页数量（默认20）
+   * @response {PaginatedResponse<Collection>} 200 - 成功返回收藏列表
+   * @security BearerAuth
    */
   async getCollections(params?: {
     page?: number
@@ -76,7 +97,14 @@ export const collectionsAPI = {
 
   /**
    * 更新收藏
-   * PUT /api/v1/social/collections/:id
+   * @description 更新指定收藏的信息
+   * @endpoint PUT /api/v1/social/collections/:id
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏ID
+   * @param {Partial<Collection>} data - 更新数据
+   * @response {APIResponse<Collection>} 200 - 成功更新收藏
+   * @security BearerAuth
    */
   async updateCollection(
     id: string,
@@ -87,7 +115,13 @@ export const collectionsAPI = {
 
   /**
    * 删除收藏
-   * DELETE /api/v1/social/collections/:id
+   * @description 删除指定的收藏
+   * @endpoint DELETE /api/v1/social/collections/:id
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏ID
+   * @response {APIResponse<void>} 204 - 成功删除收藏
+   * @security BearerAuth
    */
   async deleteCollection(id: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/collections/${id}`)
@@ -95,7 +129,13 @@ export const collectionsAPI = {
 
   /**
    * 检查是否已收藏
-   * GET /api/v1/social/collections/check/:book_id
+   * @description 检查指定书籍是否已被收藏
+   * @endpoint GET /api/v1/social/collections/check/:book_id
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<{collected: boolean}>} 200 - 成功返回收藏状态
+   * @security BearerAuth
    */
   async checkCollected(bookId: string): Promise<APIResponse<{ collected: boolean }>> {
     return httpService.get<APIResponse<{ collected: boolean }>>(
@@ -105,7 +145,13 @@ export const collectionsAPI = {
 
   /**
    * 根据标签获取收藏
-   * GET /api/v1/social/collections/tags/:tag
+   * @description 获取带有指定标签的所有收藏
+   * @endpoint GET /api/v1/social/collections/tags/:tag
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} tag - 标签名称
+   * @response {APIResponse<Collection[]>} 200 - 成功返回带有该标签的收藏列表
+   * @security BearerAuth
    */
   async getCollectionsByTag(tag: string): Promise<APIResponse<Collection[]>> {
     return httpService.get<APIResponse<Collection[]>>(`/social/collections/tags/${tag}`)
@@ -113,7 +159,12 @@ export const collectionsAPI = {
 
   /**
    * 获取收藏统计
-   * GET /api/v1/social/collections/stats
+   * @description 获取用户的收藏统计信息
+   * @endpoint GET /api/v1/social/collections/stats
+   * @category reader
+   * @tags 收藏管理
+   * @response {APIResponse<CollectionStats>} 200 - 成功返回收藏统计数据
+   * @security BearerAuth
    */
   async getCollectionStats(): Promise<APIResponse<CollectionStats>> {
     return httpService.get<APIResponse<CollectionStats>>('/social/collections/stats')
@@ -121,7 +172,13 @@ export const collectionsAPI = {
 
   /**
    * 分享收藏
-   * POST /api/v1/social/collections/:id/share
+   * @description 生成指定收藏的分享链接
+   * @endpoint POST /api/v1/social/collections/:id/share
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏ID
+   * @response {APIResponse<{shareUrl: string}>} 201 - 成功生成分享链接
+   * @security BearerAuth
    */
   async shareCollection(id: string): Promise<APIResponse<{ shareUrl: string }>> {
     return httpService.post<APIResponse<{ shareUrl: string }>>(
@@ -131,7 +188,13 @@ export const collectionsAPI = {
 
   /**
    * 取消分享收藏
-   * DELETE /api/v1/social/collections/:id/share
+   * @description 取消指定收藏的分享链接
+   * @endpoint DELETE /api/v1/social/collections/:id/share
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏ID
+   * @response {APIResponse<void>} 204 - 成功取消分享
+   * @security BearerAuth
    */
   async unshareCollection(id: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/collections/${id}/share`)
@@ -139,7 +202,14 @@ export const collectionsAPI = {
 
   /**
    * 创建收藏夹
-   * POST /api/v1/social/collections/folders
+   * @description 创建一个新的收藏夹
+   * @endpoint POST /api/v1/social/collections/folders
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} name - 收藏夹名称
+   * @param {string} [description] - 收藏夹描述（可选）
+   * @response {APIResponse<CollectionFolder>} 201 - 成功创建收藏夹
+   * @security BearerAuth
    */
   async createFolder(
     name: string,
@@ -153,7 +223,12 @@ export const collectionsAPI = {
 
   /**
    * 获取收藏夹列表
-   * GET /api/v1/social/collections/folders
+   * @description 获取用户的所有收藏夹
+   * @endpoint GET /api/v1/social/collections/folders
+   * @category reader
+   * @tags 收藏管理
+   * @response {APIResponse<CollectionFolder[]>} 200 - 成功返回收藏夹列表
+   * @security BearerAuth
    */
   async getFolders(): Promise<APIResponse<CollectionFolder[]>> {
     return httpService.get<APIResponse<CollectionFolder[]>>('/social/collections/folders')
@@ -161,7 +236,14 @@ export const collectionsAPI = {
 
   /**
    * 更新收藏夹
-   * PUT /api/v1/social/collections/folders/:id
+   * @description 更新指定收藏夹的信息
+   * @endpoint PUT /api/v1/social/collections/folders/:id
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏夹ID
+   * @param {Partial<CollectionFolder>} data - 更新数据
+   * @response {APIResponse<CollectionFolder>} 200 - 成功更新收藏夹
+   * @security BearerAuth
    */
   async updateFolder(
     id: string,
@@ -175,7 +257,13 @@ export const collectionsAPI = {
 
   /**
    * 删除收藏夹
-   * DELETE /api/v1/social/collections/folders/:id
+   * @description 删除指定的收藏夹
+   * @endpoint DELETE /api/v1/social/collections/folders/:id
+   * @category reader
+   * @tags 收藏管理
+   * @param {string} id - 收藏夹ID
+   * @response {APIResponse<void>} 204 - 成功删除收藏夹
+   * @security BearerAuth
    */
   async deleteFolder(id: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/social/collections/folders/${id}`)

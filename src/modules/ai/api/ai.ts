@@ -111,9 +111,16 @@ export interface ChatSession {
 
 /**
  * AI对话接口
- * @param message 用户消息
- * @param history 对话历史（可选）
- * @returns AI回复
+ * @description 与AI进行对话交互
+ * @endpoint POST /api/v1/ai/chat
+ * @category ai
+ * @tags AI辅助
+ * @param {string} message - 用户消息
+ * @param {ChatMessage[]} history - 对话历史（可选）
+ * @response {Object} 200 - 成功返回AI回复
+ * @response {string} reply - AI回复内容
+ * @response {Object} usage - Token使用情况
+ * @security BearerAuth
  */
 export const chatWithAI = async (
   message: string,
@@ -132,10 +139,15 @@ export const chatWithAI = async (
 
 /**
  * 续写接口
- * @param projectId 项目ID
- * @param currentText 当前文本
- * @param length 续写长度
- * @returns 生成的文本
+ * @description 基于当前文本续写内容
+ * @endpoint POST /api/v1/ai/generate
+ * @category ai
+ * @tags AI辅助
+ * @param {string} projectId - 项目ID
+ * @param {string} currentText - 当前文本
+ * @param {number} length - 续写长度（默认200）
+ * @response {AIGenerateResponse} 200 - 成功返回生成文本
+ * @security BearerAuth
  */
 export const continueWriting = async (
   projectId: string,
@@ -155,10 +167,15 @@ export const continueWriting = async (
 
 /**
  * 润色接口
- * @param projectId 项目ID
- * @param text 原始文本
- * @param instructions 润色指示（可选）
- * @returns 润色后的文本
+ * @description 对文本进行润色优化
+ * @endpoint POST /api/v1/ai/polish
+ * @category ai
+ * @tags AI辅助
+ * @param {string} projectId - 项目ID
+ * @param {string} text - 原始文本
+ * @param {string} instructions - 润色指示（可选）
+ * @response {AIGenerateResponse} 200 - 成功返回润色后的文本
+ * @security BearerAuth
  */
 export const polishText = async (
   projectId: string,
@@ -177,11 +194,16 @@ export const polishText = async (
 
 /**
  * 扩写接口
- * @param projectId 项目ID
- * @param text 原始文本
- * @param instructions 扩写指示（可选）
- * @param targetLength 目标长度（可选）
- * @returns 扩写后的文本
+ * @description 对文本进行扩写丰富
+ * @endpoint POST /api/v1/ai/expand
+ * @category ai
+ * @tags AI辅助
+ * @param {string} projectId - 项目ID
+ * @param {string} text - 原始文本
+ * @param {string} instructions - 扩写指示（可选）
+ * @param {number} targetLength - 目标长度（可选）
+ * @response {AIGenerateResponse} 200 - 成功返回扩写后的文本
+ * @security BearerAuth
  */
 export const expandText = async (
   projectId: string,
@@ -202,11 +224,16 @@ export const expandText = async (
 
 /**
  * 改写接口
- * @param projectId 项目ID
- * @param text 原始文本
- * @param mode 改写模式
- * @param instructions 改写指示（可选）
- * @returns 改写后的文本
+ * @description 对文本进行改写
+ * @endpoint POST /api/v1/ai/rewrite
+ * @category ai
+ * @tags AI辅助
+ * @param {string} projectId - 项目ID
+ * @param {string} text - 原始文本
+ * @param {string} mode - 改写模式（polish/simplify/formal/casual）
+ * @param {string} instructions - 改写指示（可选）
+ * @response {AIGenerateResponse} 200 - 成功返回改写后的文本
+ * @security BearerAuth
  */
 export const rewriteText = async (
   projectId: string,
@@ -226,7 +253,11 @@ export const rewriteText = async (
 
 /**
  * 获取AI服务健康状态
- * @returns 健康状态
+ * @description 获取AI服务的健康检查状态
+ * @endpoint GET /api/v1/ai/health
+ * @category ai
+ * @tags AI系统
+ * @response {Object} 200 - 成功返回健康状态
  */
 export const getAIHealth = async (): Promise<any> => {
   const response = await httpService.get('/api/v1/ai/health')
@@ -235,7 +266,11 @@ export const getAIHealth = async (): Promise<any> => {
 
 /**
  * 获取AI提供商列表
- * @returns 提供商列表
+ * @description 获取可用的AI服务提供商列表
+ * @endpoint GET /api/v1/ai/providers
+ * @category ai
+ * @tags AI系统
+ * @response {Object} 200 - 成功返回提供商列表
  */
 export const getAIProviders = async (): Promise<any> => {
   const response = await httpService.get('/api/v1/ai/providers')
@@ -244,7 +279,11 @@ export const getAIProviders = async (): Promise<any> => {
 
 /**
  * 获取AI模型列表
- * @returns 模型列表
+ * @description 获取可用的AI模型列表
+ * @endpoint GET /api/v1/ai/models
+ * @category ai
+ * @tags AI系统
+ * @response {Object} 200 - 成功返回模型列表
  */
 export const getAIModels = async (): Promise<any> => {
   const response = await httpService.get('/api/v1/ai/models')
@@ -258,7 +297,12 @@ export const getAIModels = async (): Promise<any> => {
 
 /**
  * 获取配额信息
- * GET /api/v1/ai/quota
+ * @description 获取当前用户的AI配额信息
+ * @endpoint GET /ai/quota
+ * @category ai
+ * @tags AI配额
+ * @response {QuotaInfo} 200 - 成功返回配额信息
+ * @security BearerAuth
  */
 export const getQuotaInfo = async (): Promise<APIResponse<QuotaInfo>> => {
   return httpService.get<APIResponse<QuotaInfo>>('/ai/quota')
@@ -266,7 +310,12 @@ export const getQuotaInfo = async (): Promise<APIResponse<QuotaInfo>> => {
 
 /**
  * 获取所有配额（管理员）
- * GET /api/v1/ai/quota/all
+ * @description 获取所有用户的AI配额信息
+ * @endpoint GET /ai/quota/all
+ * @category ai
+ * @tags AI配额
+ * @response {QuotaInfo[]} 200 - 成功返回所有配额信息
+ * @security BearerAuth
  */
 export const getAllQuotas = async (): Promise<APIResponse<QuotaInfo[]>> => {
   return httpService.get<APIResponse<QuotaInfo[]>>('/ai/quota/all')
@@ -274,7 +323,12 @@ export const getAllQuotas = async (): Promise<APIResponse<QuotaInfo[]>> => {
 
 /**
  * 获取配额统计（管理员）
- * GET /api/v1/ai/quota/statistics
+ * @description 获取AI配额的统计数据
+ * @endpoint GET /ai/quota/statistics
+ * @category ai
+ * @tags AI配额
+ * @response {QuotaStatistics} 200 - 成功返回配额统计
+ * @security BearerAuth
  */
 export const getQuotaStatistics = async (): Promise<APIResponse<QuotaStatistics>> => {
   return httpService.get<APIResponse<QuotaStatistics>>('/ai/quota/statistics')
@@ -282,7 +336,14 @@ export const getQuotaStatistics = async (): Promise<APIResponse<QuotaStatistics>
 
 /**
  * 获取交易历史
- * GET /api/v1/ai/quota/transactions
+ * @description 获取AI配额的交易历史记录
+ * @endpoint GET /ai/quota/transactions
+ * @category ai
+ * @tags AI配额
+ * @param {number} page - 页码
+ * @param {number} pageSize - 每页数量
+ * @response {PaginatedResponse} 200 - 成功返回交易历史
+ * @security BearerAuth
  */
 export const getTransactionHistory = async (params?: {
   page?: number
@@ -298,7 +359,12 @@ export const getTransactionHistory = async (params?: {
 
 /**
  * 获取会话列表
- * GET /api/v1/ai/chat/sessions
+ * @description 获取AI聊天会话列表
+ * @endpoint GET /ai/chat/sessions
+ * @category ai
+ * @tags AI会话
+ * @response {ChatSession[]} 200 - 成功返回会话列表
+ * @security BearerAuth
  */
 export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => {
   return httpService.get<APIResponse<ChatSession[]>>('/ai/chat/sessions')
@@ -306,7 +372,13 @@ export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => 
 
 /**
  * 获取会话历史
- * GET /api/v1/ai/chat/sessions/:sessionId
+ * @description 获取指定会话的聊天历史
+ * @endpoint GET /ai/chat/sessions/:sessionId
+ * @category ai
+ * @tags AI会话
+ * @param {string} sessionId - 会话ID
+ * @response {ChatMessage[]} 200 - 成功返回会话历史
+ * @security BearerAuth
  */
 export const getSessionHistory = async (sessionId: string): Promise<APIResponse<ChatMessage[]>> => {
   return httpService.get<APIResponse<ChatMessage[]>>(`/ai/chat/sessions/${sessionId}`)
@@ -314,7 +386,13 @@ export const getSessionHistory = async (sessionId: string): Promise<APIResponse<
 
 /**
  * 删除会话
- * DELETE /api/v1/ai/chat/sessions/:sessionId
+ * @description 删除指定的AI聊天会话
+ * @endpoint DELETE /ai/chat/sessions/:sessionId
+ * @category ai
+ * @tags AI会话
+ * @param {string} sessionId - 会话ID
+ * @response {void} 200 - 删除成功
+ * @security BearerAuth
  */
 export const deleteSession = async (sessionId: string): Promise<APIResponse<void>> => {
   return httpService.delete<APIResponse<void>>(`/ai/chat/sessions/${sessionId}`)
@@ -322,7 +400,13 @@ export const deleteSession = async (sessionId: string): Promise<APIResponse<void
 
 /**
  * 创建新会话
- * POST /api/v1/ai/chat/sessions
+ * @description 创建新的AI聊天会话
+ * @endpoint POST /ai/chat/sessions
+ * @category ai
+ * @tags AI会话
+ * @param {string} title - 会话标题（可选）
+ * @response {ChatSession} 201 - 成功返回创建的会话
+ * @security BearerAuth
  */
 export const createSession = async (title?: string): Promise<APIResponse<ChatSession>> => {
   return httpService.post<APIResponse<ChatSession>>('/ai/chat/sessions', { title })
@@ -330,7 +414,14 @@ export const createSession = async (title?: string): Promise<APIResponse<ChatSes
 
 /**
  * 更新会话标题
- * PUT /api/v1/ai/chat/sessions/:sessionId
+ * @description 更新AI聊天会话的标题
+ * @endpoint PUT /ai/chat/sessions/:sessionId
+ * @category ai
+ * @tags AI会话
+ * @param {string} sessionId - 会话ID
+ * @param {string} title - 新标题
+ * @response {ChatSession} 200 - 成功返回更新的会话
+ * @security BearerAuth
  */
 export const updateSession = async (
   sessionId: string,
