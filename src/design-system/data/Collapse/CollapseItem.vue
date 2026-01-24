@@ -8,7 +8,7 @@
 import { inject, computed } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import Icon from '../Icon/Icon.vue'
+import Icon from '../../base/Icon/Icon.vue'
 import type { CollapseItemProps } from './types'
 
 // Collapse 上下文类型

@@ -8,7 +8,7 @@
 import { computed, provide, ref, useSlots, watch } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import Icon from '../Icon/Icon.vue'
+import Icon from '../../base/Icon/Icon.vue'
 import type { TreeNode, TreeEmits, TreeProps, TreeNodeState, TreeInstance } from './types'
 
 // Tree 上下文 Key
