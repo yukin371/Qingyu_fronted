@@ -20,7 +20,7 @@
       <div class="comment-actions">
         <el-dropdown v-if="isOwnComment" @command="handleCommand">
           <el-button text>
-            <el-icon><More /></el-icon>
+            <QyIcon name="More"  />
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
@@ -43,7 +43,7 @@
         {{ comment.likes || 0 }}
       </el-button>
       <el-button text size="small" @click="showReply = !showReply">
-        <el-icon><ChatDotRound /></el-icon>
+        <QyIcon name="ChatDotRound"  />
         回复
       </el-button>
     </div>
@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { More, Star, StarFilled, ChatDotRound } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api'
 import { useAuthStore } from '@/stores/auth'
 

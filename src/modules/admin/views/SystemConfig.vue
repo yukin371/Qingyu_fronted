@@ -105,7 +105,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Check, Refresh, FolderOpened } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as configApi from '@/modules/admin/api'
 
 const loading = ref(false)

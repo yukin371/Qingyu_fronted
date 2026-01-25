@@ -7,7 +7,7 @@
 
 import { ref, computed, watch, nextTick } from 'vue'
 import QyDialog from '../Dialog/Dialog.vue'
-import QyButton from '../../../components/basic/QyButton/QyButton.vue'
+import QyButton from '../../components/basic/QyButton/QyButton.vue'
 import type { MessageBoxProps, MessageBoxState, MessageBoxAction } from './types'
 
 // 组件 Props

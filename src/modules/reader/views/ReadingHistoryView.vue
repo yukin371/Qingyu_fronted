@@ -40,7 +40,7 @@
                   >
                     <template #error>
                       <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
+                        <QyIcon name="Picture"  />
                       </div>
                     </template>
                   </el-image>
@@ -70,7 +70,7 @@
                     继续阅读
                   </el-button>
                   <el-button @click="removeHistory(item.id)" text>
-                    <el-icon><Close /></el-icon>
+                    <QyIcon name="Close"  />
                   </el-button>
                 </div>
               </div>
@@ -99,7 +99,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture, Close } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/models'
 

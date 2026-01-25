@@ -5,7 +5,7 @@
       <div class="page-header">
         <h1>社区动态</h1>
         <el-button type="primary" @click="goToCreatePost">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           发布动态
         </el-button>
       </div>
@@ -15,7 +15,7 @@
         <el-empty description="社区功能开发中，敬请期待...">
           <template #image>
             <el-icon :size="120" color="#ddd">
-              <ChatDotRound />
+              <QyIcon name="ChatDotRound"  />
             </el-icon>
           </template>
         </el-empty>
@@ -26,8 +26,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Plus, ChatDotRound } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const router = useRouter()
 
 const goToCreatePost = () => {

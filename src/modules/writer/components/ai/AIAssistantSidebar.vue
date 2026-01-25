@@ -87,14 +87,7 @@
 import { ref, watch } from 'vue'
 import { useWriterStore } from '../../stores/writerStore'
 import { ElMessage } from 'element-plus'
-import {
-  MagicStick,
-  Close,
-  ArrowLeft,
-  ArrowRight,
-  DocumentCopy,
-  CopyDocument
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as AIChatPanel from './AIChatPanel.vue'
 import * as AIToolsPanel from './AIToolsPanel.vue'
 import * as AIAgentPanel from './AIAgentPanel.vue'

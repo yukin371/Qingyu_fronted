@@ -25,15 +25,13 @@
                   @click.stop="handleButtonClick(banner)">
                   {{ banner.buttonText }}
                   <el-icon class="el-icon--right">
-                    <ArrowRight />
+                    <QyIcon name="ArrowRight"  />
                   </el-icon>
                 </el-button>
 
                 <!-- 如果没有按钮文字，显示简单的 "探索" 链接 -->
                 <span v-else class="explore-link">
-                  立即探索 <el-icon>
-                    <ArrowRight />
-                  </el-icon>
+                  立即探索 <QyIcon name="ArrowRight"  />
                 </span>
               </div>
             </div>
@@ -53,14 +51,10 @@
       <!-- 翻页按钮 -->
       <div class="nav-arrows">
         <button class="nav-btn prev" @click.stop="prevSlide">
-          <el-icon>
-            <ArrowLeft />
-          </el-icon>
+          <QyIcon name="ArrowLeft"  />
         </button>
         <button class="nav-btn next" @click.stop="nextSlide">
-          <el-icon>
-            <ArrowRight />
-          </el-icon>
+          <QyIcon name="ArrowRight"  />
         </button>
       </div>
     </div>
@@ -83,8 +77,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { ArrowRight, ArrowLeft } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 // Props
 const props = defineProps({
   banners: {

@@ -8,7 +8,7 @@
             <el-dropdown @command="handleFilterChange">
               <span class="filter-trigger">
                 {{ currentFilterText }}
-                <el-icon><ArrowDown /></el-icon>
+                <QyIcon name="ArrowDown"  />
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -34,7 +34,7 @@
               size="small"
               @click="showSettingsDialog = true"
             >
-              <el-icon><Setting /></el-icon>
+              <QyIcon name="Setting"  />
             </el-button>
           </div>
         </div>
@@ -227,16 +227,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  ArrowDown,
-  Setting,
-  Bell,
-  ChatDotRound,
-  Star,
-  User,
-  Message,
-  Trophy
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getNotifications,
   getUnreadCount,

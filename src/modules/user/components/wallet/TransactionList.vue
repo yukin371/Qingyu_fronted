@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Transaction } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format'
 import { formatTransactionAmount } from '@/utils/currency'

@@ -4,15 +4,15 @@
       <template #extra>
         <div class="header-actions">
           <el-button type="primary" @click="showRechargeDialog = true">
-            <el-icon><Plus /></el-icon>
+            <QyIcon name="Plus"  />
             充值
           </el-button>
           <el-button @click="goToTransfer">
-            <el-icon><Sort /></el-icon>
+            <QyIcon name="Sort"  />
             转账
           </el-button>
           <el-button @click="showWithdrawDialog = true">
-            <el-icon><Minus /></el-icon>
+            <QyIcon name="Minus"  />
             提现
           </el-button>
         </div>
@@ -245,16 +245,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import {
-  Plus,
-  Minus,
-  Wallet,
-  TrendCharts,
-  ShoppingCart,
-  CreditCard,
-  ChatDotSquare,
-  Sort
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'

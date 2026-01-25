@@ -16,7 +16,7 @@
           <!-- 次要指标：阅读时间 (新功能) -->
           <div class="sub-stat">
             <el-icon class="icon">
-              <Timer />
+              <QyIcon name="Timer"  />
             </el-icon>
             <span class="value">{{ readingTime }}</span>
           </div>
@@ -76,8 +76,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Timer } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 // 定义接口 (建议后续移至 types/editor.ts 复用)
 export interface WordCountStats {
   total: number

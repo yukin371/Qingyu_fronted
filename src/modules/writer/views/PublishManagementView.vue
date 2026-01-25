@@ -49,11 +49,11 @@
               <h3>发布管理</h3>
               <div class="header-actions">
                 <el-button @click="showExportDialog = true">
-                  <el-icon><Download /></el-icon>
+                  <QyIcon name="Download"  />
                   导出
                 </el-button>
                 <el-button type="primary" @click="showPublishPlanDialog = true">
-                  <el-icon><Setting /></el-icon>
+                  <QyIcon name="Setting"  />
                   发布计划
                 </el-button>
               </div>
@@ -404,7 +404,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Download, Setting } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getPublishPlan,
   createPublishPlan,

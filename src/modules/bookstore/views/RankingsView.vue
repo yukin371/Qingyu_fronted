@@ -4,7 +4,7 @@
       <!-- 页面头部 -->
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><TrendCharts /></el-icon>
+          <QyIcon name="TrendCharts"  />
           排行榜
         </h1>
         <p class="page-subtitle">发现最热门的作品</p>
@@ -120,7 +120,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import RankingList from '../components/RankingList.vue'
-import { TrendCharts } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()

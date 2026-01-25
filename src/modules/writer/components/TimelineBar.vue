@@ -4,9 +4,7 @@
     <div class="timeline-header">
       <div class="header-left" @click="toggleExpand">
         <div class="icon-wrapper">
-          <el-icon>
-            <Timer />
-          </el-icon>
+          <QyIcon name="Timer"  />
         </div>
         <span class="title">时间线</span>
         <el-tag v-if="events.length" size="small" type="info" round effect="plain" class="count-tag">
@@ -33,9 +31,7 @@
             <!-- 新建按钮节点 (最左侧) -->
             <div class="timeline-node add-node" @click="handleAddEvent">
               <div class="node-dot">
-                <el-icon>
-                  <Plus />
-                </el-icon>
+                <QyIcon name="Plus"  />
               </div>
               <div class="node-label">新建</div>
             </div>
@@ -114,11 +110,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElMessage, type FormInstance } from 'element-plus'
-import {
-  Timer, Plus, ArrowDown, ArrowUp,
-  Stamp, User, Location, Document, Trophy
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 import { timelineApi } from '@/modules/writer/api'
 import {
   type TimelineEvent,

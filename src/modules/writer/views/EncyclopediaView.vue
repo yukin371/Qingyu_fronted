@@ -27,22 +27,22 @@
           @select="handleCategoryChange"
         >
           <el-menu-item index="characters">
-            <el-icon><User /></el-icon>
+            <QyIcon name="User"  />
             <span>角色</span>
             <el-badge v-if="characters.length > 0" :value="characters.length" class="nav-badge" />
           </el-menu-item>
           <el-menu-item index="locations">
-            <el-icon><LocationInformation /></el-icon>
+            <QyIcon name="LocationInformation"  />
             <span>地点</span>
             <el-badge v-if="locations.length > 0" :value="locations.length" class="nav-badge" />
           </el-menu-item>
           <el-menu-item index="items" disabled>
-            <el-icon><Box /></el-icon>
+            <QyIcon name="Box"  />
             <span>物品</span>
             <el-tag size="small" type="info" style="margin-left: auto;">待开发</el-tag>
           </el-menu-item>
           <el-menu-item index="other" disabled>
-            <el-icon><Document /></el-icon>
+            <QyIcon name="Document"  />
             <span>其他</span>
             <el-tag size="small" type="info" style="margin-left: auto;">待开发</el-tag>
           </el-menu-item>
@@ -99,7 +99,7 @@
                 @click="handleSelectItem(location, 'location')"
               >
                 <el-avatar :size="50" :src="location.imageUrl" shape="square">
-                  <el-icon><LocationInformation /></el-icon>
+                  <QyIcon name="LocationInformation"  />
                 </el-avatar>
                 <div class="item-info">
                   <div class="item-name">{{ location.name }}</div>
@@ -175,7 +175,7 @@
             <div class="detail-header">
               <div class="header-info">
                 <el-avatar :size="60" :src="(selectedItem as Location).imageUrl" shape="square">
-                  <el-icon><LocationInformation /></el-icon>
+                  <QyIcon name="LocationInformation"  />
                 </el-avatar>
                 <div class="header-text">
                   <h2>{{ (selectedItem as Location).name }}</h2>
@@ -222,17 +222,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
-import {
-  Collection,
-  Search,
-  User,
-  LocationInformation,
-  Box,
-  Document,
-  Plus,
-  Edit,
-  Close
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage } from 'element-plus'
 
 const writerStore = useWriterStore()

@@ -47,7 +47,7 @@
                 >
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -59,8 +59,8 @@
                     <span class="word-count">{{ formatNumber(book.word_count) }} 字</span>
                   </div>
                   <div class="book-stats">
-                    <span><el-icon><View /></el-icon> {{ formatNumber(book.read_count || 0) }}</span>
-                    <span><el-icon><Star /></el-icon> {{ formatNumber(book.favorite_count || 0) }}</span>
+                    <span><QyIcon name="View"  /> {{ formatNumber(book.read_count || 0) }}</span>
+                    <span><QyIcon name="Star"  /> {{ formatNumber(book.favorite_count || 0) }}</span>
                   </div>
                 </div>
               </div>
@@ -93,7 +93,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Picture, View, Star } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'

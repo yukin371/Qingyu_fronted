@@ -31,16 +31,12 @@
 
           <el-tooltip content="展开/折叠全部">
             <el-button link size="small" @click="toggleExpand">
-              <el-icon>
-                <Sort />
-              </el-icon>
+              <QyIcon name="Sort"  />
             </el-button>
           </el-tooltip>
           <el-tooltip content="新建文档">
             <el-button link type="primary" size="small" @click="emit('add')">
-              <el-icon>
-                <Plus />
-              </el-icon>
+              <QyIcon name="Plus"  />
             </el-button>
           </el-tooltip>
         </div>
@@ -102,7 +98,7 @@
 
             <!-- 图标区分：卷用文件夹，章用文档 -->
             <el-icon class="node-icon" :class="data.type">
-              <Folder v-if="data.type === 'volume'" />
+              <QyIcon name="Folder" v-if="data.type === 'volume'"  />
               <DocumentIcon v-else />
             </el-icon>
 
@@ -140,20 +136,14 @@
       <div v-show="contextMenu.visible" class="custom-context-menu"
         :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }" @click.stop>
         <div class="menu-item" @click="handleMenuAction('add')">
-          <el-icon>
-            <Plus />
-          </el-icon> 新建子文档
+          <QyIcon name="Plus"  /> 新建子文档
         </div>
         <div class="menu-item" @click="handleMenuAction('rename')">
-          <el-icon>
-            <Edit />
-          </el-icon> 重命名
+          <QyIcon name="Edit"  /> 重命名
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item danger" @click="handleMenuAction('delete')">
-          <el-icon>
-            <Delete />
-          </el-icon> 删除
+          <QyIcon name="Delete"  /> 删除
         </div>
       </div>
     </teleport>
@@ -167,10 +157,7 @@
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
 import { ElTree, ElMessageBox, ElMessage } from 'element-plus'
-import {
-  Plus, Document as DocumentIcon, Edit, Delete,
-  Folder, Sort
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
 import { useDocumentSelection } from '../composables/useDocumentSelection'
 import { useBatchOperationStore } from '../stores/batchOperationStore'

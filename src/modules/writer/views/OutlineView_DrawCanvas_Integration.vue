@@ -4,7 +4,7 @@
     <div class="outline-header">
       <div class="header-left">
         <el-icon class="header-icon">
-          <List />
+          <QyIcon name="List"  />
         </el-icon>
         <span class="header-title">大纲</span>
       </div>
@@ -12,15 +12,11 @@
         <!-- 视图切换按钮 -->
         <el-button-group>
           <el-button :type="viewMode === 'tree' ? 'primary' : ''" size="small" @click="viewMode = 'tree'">
-            <el-icon>
-              <List />
-            </el-icon>
+            <QyIcon name="List"  />
             树形视图
           </el-button>
           <el-button :type="viewMode === 'mindmap' ? 'primary' : ''" size="small" @click="viewMode = 'mindmap'">
-            <el-icon>
-              <Share />
-            </el-icon>
+            <QyIcon name="Share"  />
             思维导图
           </el-button>
         </el-button-group>
@@ -47,10 +43,10 @@
                 <div class="tree-node">
                   <div class="node-content">
                     <el-icon v-if="data.level === 1">
-                      <Folder />
+                      <QyIcon name="Folder"  />
                     </el-icon>
                     <el-icon v-else-if="data.level === 2">
-                      <Document />
+                      <QyIcon name="Document"  />
                     </el-icon>
                     <el-icon v-else>
                       <Memo />
@@ -160,17 +156,7 @@ import type { OutlineNode } from '@/types/writer'
 import type { DrawNode, DrawEdge } from '@/core/draw-engine/types'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import DrawExportService from '@/core/draw-engine/export-service'
-import {
-  List,
-  Share,
-  Plus,
-  Edit,
-  Delete,
-  Close,
-  Folder,
-  Document,
-  Memo
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const writerStore = useWriterStore()

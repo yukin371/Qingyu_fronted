@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { ElTree } from 'element-plus'
-import { Folder, FolderOpened, CollectionTag, Management } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 // 假设 Category 定义在 types 目录
 // import type { Category } from '@/types/models'
 

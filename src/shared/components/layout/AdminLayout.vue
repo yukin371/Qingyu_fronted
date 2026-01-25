@@ -80,8 +80,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
-import { Bell } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()

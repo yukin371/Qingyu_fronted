@@ -69,7 +69,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
-import { UploadFilled, Close } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { UploadProgress } from '@/types/shared'
 import { useAuthStore } from '@/stores/auth'
 

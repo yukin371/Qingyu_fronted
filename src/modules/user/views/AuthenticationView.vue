@@ -27,7 +27,7 @@
                 <el-input v-model="loginForm.username" placeholder="用户名或邮箱" size="large" class="premium-input">
                   <template #prefix>
                     <el-icon class="input-icon">
-                      <User />
+                      <QyIcon name="User"  />
                     </el-icon>
                   </template>
                 </el-input>
@@ -38,7 +38,7 @@
                   @keyup.enter="handleLogin" class="premium-input">
                   <template #prefix>
                     <el-icon class="input-icon">
-                      <Lock />
+                      <QyIcon name="Lock"  />
                     </el-icon>
                   </template>
                 </el-input>
@@ -65,7 +65,7 @@
                 <el-input v-model="registerForm.username" placeholder="设置用户名 (3-20字符)" size="large"
                   class="premium-input">
                   <template #prefix><el-icon class="input-icon">
-                      <User />
+                      <QyIcon name="User"  />
                     </el-icon></template>
                 </el-input>
               </el-form-item>
@@ -96,7 +96,7 @@
                 <el-input v-model="registerForm.password" type="password" placeholder="设置密码" size="large" show-password
                   class="premium-input">
                   <template #prefix><el-icon class="input-icon">
-                      <Lock />
+                      <QyIcon name="Lock"  />
                     </el-icon></template>
                 </el-input>
                 <!-- 密码强度 -->
@@ -114,7 +114,7 @@
                 <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" size="large"
                   show-password class="premium-input" @keyup.enter="handleRegister">
                   <template #prefix><el-icon class="input-icon">
-                      <Lock />
+                      <QyIcon name="Lock"  />
                     </el-icon></template>
                 </el-input>
               </el-form-item>
@@ -174,7 +174,7 @@
                     <el-input v-model="resetForm.newPassword" type="password" placeholder="新密码" size="large"
                       show-password class="premium-input">
                       <template #prefix><el-icon class="input-icon">
-                          <Lock />
+                          <QyIcon name="Lock"  />
                         </el-icon></template>
                     </el-input>
                   </el-form-item>
@@ -182,7 +182,7 @@
                     <el-input v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="large"
                       show-password class="premium-input">
                       <template #prefix><el-icon class="input-icon">
-                          <Lock />
+                          <QyIcon name="Lock"  />
                         </el-icon></template>
                     </el-input>
                   </el-form-item>
@@ -193,7 +193,7 @@
                 <template v-if="resetStep === 2">
                   <div class="success-result">
                     <el-icon class="success-icon">
-                      <CircleCheckFilled />
+                      <QyIcon name="CircleCheckFilled"  />
                     </el-icon>
                     <h3>密码重置成功</h3>
                     <el-button type="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</el-button>
@@ -221,9 +221,7 @@
 
         <!-- 返回首页 -->
         <div class="back-home">
-          <span class="back-text" @click="goHome">返回首页 <el-icon>
-              <ArrowRight />
-            </el-icon></span>
+          <span class="back-text" @click="goHome">返回首页 <QyIcon name="ArrowRight"  /></span>
         </div>
       </div>
     </div>
@@ -235,7 +233,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Message, Key, CircleCheckFilled, ArrowRight } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
 import {

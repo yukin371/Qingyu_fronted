@@ -4,7 +4,7 @@
     <div class="graph-header">
       <div class="header-left">
         <el-icon class="header-icon">
-          <User />
+          <QyIcon name="User"  />
         </el-icon>
         <span class="header-title">角色图谱</span>
         <el-tag v-if="characters.length > 0" size="small" type="info">
@@ -205,14 +205,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
-import {
-  User,
-  Plus,
-  Edit,
-  Delete,
-  Close,
-  Refresh
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const writerStore = useWriterStore()

@@ -5,7 +5,7 @@
         <div class="card-header">
           <h3>阅读器主题设置</h3>
           <el-button type="primary" @click="saveAllSettings" :loading="saving">
-            <el-icon><Check /></el-icon>
+            <QyIcon name="Check"  />
             保存设置
           </el-button>
         </div>
@@ -28,7 +28,7 @@
                 </div>
                 <div class="theme-name">{{ theme.name }}</div>
                 <el-icon v-if="currentTheme.id === theme.id" class="check-icon">
-                  <Check />
+                  <QyIcon name="Check"  />
                 </el-icon>
               </div>
             </div>
@@ -53,7 +53,7 @@
               </div>
               <div class="theme-card add-theme" @click="showCreateThemeDialog = true">
                 <div class="add-icon">
-                  <el-icon><Plus /></el-icon>
+                  <QyIcon name="Plus"  />
                 </div>
                 <div class="theme-name">新建主题</div>
               </div>
@@ -78,7 +78,7 @@
                 </div>
                 <div class="font-name">{{ font.name }}</div>
                 <el-icon v-if="currentFont.id === font.id" class="check-icon">
-                  <Check />
+                  <QyIcon name="Check"  />
                 </el-icon>
               </div>
             </div>
@@ -215,7 +215,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Check, Plus } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   builtinThemes,
   getThemes,

@@ -4,7 +4,7 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><Grid /></el-icon>
+          <QyIcon name="Grid"  />
           图书分类
         </h1>
         <p class="page-subtitle">探索不同类型的精彩作品</p>
@@ -118,7 +118,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Grid } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getBooksByCategory } from '@/modules/bookstore/api'
 import BookGrid from '@bookstore/components/BookGrid.vue'

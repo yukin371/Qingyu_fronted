@@ -49,7 +49,7 @@
                 >
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -67,7 +67,7 @@
                   </div>
                   <div class="book-meta">
                     <span class="last-read">
-                      <el-icon><Clock /></el-icon>
+                      <QyIcon name="Clock"  />
                       {{ formatTime(item.last_read_at) }}
                     </span>
                   </div>
@@ -109,7 +109,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #67c23a20;">
-                        <el-icon :size="32" color="#67c23a"><Clock /></el-icon>
+                        <el-icon :size="32" color="#67c23a"><QyIcon name="Clock"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalReadingTime || 0 }}h</div>
@@ -123,7 +123,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #e6a23c20;">
-                        <el-icon :size="32" color="#e6a23c"><Document /></el-icon>
+                        <el-icon :size="32" color="#e6a23c"><QyIcon name="Document"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalChapters || 0 }}</div>
@@ -137,7 +137,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #f5622120;">
-                        <el-icon :size="32" color="#f56221"><Star /></el-icon>
+                        <el-icon :size="32" color="#f56221"><QyIcon name="Star"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalComments || 0 }}</div>
@@ -174,7 +174,7 @@
                     >
                       <template #error>
                         <div class="image-slot-small">
-                          <el-icon><Picture /></el-icon>
+                          <QyIcon name="Picture"  />
                         </div>
                       </template>
                     </el-image>
@@ -205,7 +205,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Picture, Clock, Reading, Document, Star } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'

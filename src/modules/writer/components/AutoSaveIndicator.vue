@@ -4,10 +4,10 @@
             <Loading />
         </el-icon>
         <el-icon v-else-if="status === 'saved'">
-            <Check />
+            <QyIcon name="Check"  />
         </el-icon>
         <el-icon v-else-if="status === 'error'">
-            <Close />
+            <QyIcon name="Close"  />
         </el-icon>
         <el-icon v-else-if="status === 'conflict'">
             <Warning />
@@ -18,8 +18,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Loading, Check, Close, Warning } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
 
 interface Props {

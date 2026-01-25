@@ -22,24 +22,16 @@
           <!-- 功能 Tab 切换 -->
           <el-radio-group v-model="activeTab" size="small">
             <el-radio-button label="editor">
-              <el-icon>
-                <Edit />
-              </el-icon> 写作
+              <QyIcon name="Edit"  /> 写作
             </el-radio-button>
             <el-radio-button label="outline">
-              <el-icon>
-                <List />
-              </el-icon> 大纲
+              <QyIcon name="List"  /> 大纲
             </el-radio-button>
             <el-radio-button label="characters">
-              <el-icon>
-                <User />
-              </el-icon> 角色
+              <QyIcon name="User"  /> 角色
             </el-radio-button>
             <el-radio-button label="world">
-              <el-icon>
-                <LocationInformation />
-              </el-icon> 设定
+              <QyIcon name="LocationInformation"  /> 设定
             </el-radio-button>
           </el-radio-group>
         </div>
@@ -48,9 +40,7 @@
           <!-- AI 入口 -->
           <el-tooltip content="AI 助手 (Ctrl+Shift+A)">
             <el-button text class="ai-trigger-btn" @click="toggleAISidebar">
-              <el-icon>
-                <MagicStick />
-              </el-icon> AI 助手
+              <QyIcon name="MagicStick"  /> AI 助手
             </el-button>
           </el-tooltip>
 
@@ -59,17 +49,13 @@
           <!-- 工具按钮 -->
           <el-tooltip content="导出">
             <el-button text @click="showExportDialog = true">
-              <el-icon>
-                <Download />
-              </el-icon>
+              <QyIcon name="Download"  />
             </el-button>
           </el-tooltip>
 
           <el-tooltip :content="isFocusMode ? '退出专注' : '专注模式'">
             <el-button text @click="toggleFocusMode" :type="isFocusMode ? 'primary' : ''">
-              <el-icon>
-                <FullScreen />
-              </el-icon>
+              <QyIcon name="FullScreen"  />
             </el-button>
           </el-tooltip>
         </div>
@@ -118,9 +104,7 @@
 
         <div class="footer-center">
           <span class="save-status" :class="saveStatusClass">
-            <el-icon>
-              <component :is="saveStatusIcon" />
-            </el-icon>
+            <QyIcon name="component" :is="saveStatusIcon"  />
             {{ saveStatusText }}
           </span>
         </div>
@@ -161,10 +145,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import {
-  Edit, List, User, LocationInformation, MagicStick,
-  Download, FullScreen, Loading, CircleCheck, Warning
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage } from 'element-plus'
 
 // Stores

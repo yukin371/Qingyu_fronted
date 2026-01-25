@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div class="outline-header">
       <div class="header-left">
-        <el-icon class="header-icon"><List /></el-icon>
+        <el-icon class="header-icon"><QyIcon name="List"  /></el-icon>
         <span class="header-title">大纲</span>
       </div>
       <div class="header-actions">
@@ -13,7 +13,7 @@
             size="small"
             @click="viewMode = 'tree'"
           >
-            <el-icon><List /></el-icon>
+            <QyIcon name="List"  />
             树形
           </el-button>
           <el-button
@@ -21,7 +21,7 @@
             size="small"
             @click="viewMode = 'mindmap'"
           >
-            <el-icon><Share /></el-icon>
+            <QyIcon name="Share"  />
             思维导图
           </el-button>
         </el-button-group>
@@ -56,8 +56,8 @@
               <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
-                    <el-icon v-if="data.level === 1"><Folder /></el-icon>
-                    <el-icon v-else-if="data.level === 2"><Document /></el-icon>
+                    <el-icon v-if="data.level === 1"><QyIcon name="Folder"  /></el-icon>
+                    <el-icon v-else-if="data.level === 2"><QyIcon name="Document"  /></el-icon>
                     <el-icon v-else><Memo /></el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
@@ -201,17 +201,7 @@ import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEdge, DrawEngineConfig } from '@/core/draw-engine/types'
-import {
-  List,
-  Share,
-  Plus,
-  Edit,
-  Delete,
-  Close,
-  Folder,
-  Document,
-  Memo
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const writerStore = useWriterStore()

@@ -63,7 +63,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" :class="healthIconClass">
-              <el-icon :size="32"><CircleCheckFilled v-if="overallHealthStatus === 'healthy'" /><WarningFilled v-else /></el-icon>
+              <el-icon :size="32"><QyIcon name="CircleCheckFilled" v-if="overallHealthStatus === 'healthy'"  /><QyIcon name="WarningFilled" v-else  /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">系统状态</div>
@@ -84,7 +84,7 @@
           <div class="card-header">
             <span class="card-title">提供商状态</span>
             <el-button text type="primary" @click="goToProviders">
-              查看全部 <el-icon><ArrowRight /></el-icon>
+              查看全部 <QyIcon name="ArrowRight"  />
             </el-button>
           </div>
         </template>
@@ -107,7 +107,7 @@
                 <span class="provider-models">{{ provider.modelCount }} 个模型</span>
               </div>
             </div>
-            <el-icon class="provider-arrow"><ArrowRight /></el-icon>
+            <el-icon class="provider-arrow"><QyIcon name="ArrowRight"  /></el-icon>
           </div>
         </div>
       </el-card>
@@ -133,9 +133,9 @@
           >
             <div class="activity-icon" :class="`activity-${activity.type}`">
               <el-icon>
-                <SuccessFilled v-if="activity.type === 'request'" />
-                <CircleCloseFilled v-else-if="activity.type === 'error'" />
-                <Setting v-else-if="activity.type === 'config_change'" />
+                <QyIcon name="SuccessFilled" v-if="activity.type === 'request'"  />
+                <QyIcon name="CircleCloseFilled" v-else-if="activity.type === 'error'"  />
+                <QyIcon name="Setting" v-else-if="activity.type === 'config_change'"  />
                 <Monitor v-else />
               </el-icon>
             </div>
@@ -160,21 +160,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, Grid, LoadingOverlay } from '@/shared/components/design-system'
-import {
-  Refresh,
-  Plus,
-  ArrowRight,
-  OfficeBuilding,
-  Cpu,
-  DataLine,
-  CircleCheckFilled,
-  WarningFilled,
-  SuccessFilled,
-  CircleCloseFilled,
-  Setting,
-  Monitor
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const router = useRouter()
 const aiStore = useAIAdminStore()
 

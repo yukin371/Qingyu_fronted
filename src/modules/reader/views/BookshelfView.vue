@@ -72,7 +72,7 @@
                         >
                             <template #error>
                                 <div class="image-slot">
-                                    <el-icon><Picture /></el-icon>
+                                    <QyIcon name="Picture"  />
                                 </div>
                             </template>
                         </el-image>
@@ -97,7 +97,7 @@
                             </el-button>
                             <el-dropdown @command="(cmd) => handleAction(cmd, book)">
                                 <el-button size="small" text>
-                                    <el-icon><MoreFilled /></el-icon>
+                                    <QyIcon name="MoreFilled"  />
                                 </el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -120,9 +120,7 @@
                         <el-image :src="book.cover" fit="cover" class="recent-cover">
                             <template #error>
                                 <div class="image-slot">
-                                    <el-icon>
-                                        <Picture />
-                                    </el-icon>
+                                    <QyIcon name="Picture"  />
                                 </div>
                             </template>
                         </el-image>
@@ -203,7 +201,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Picture, MoreFilled, Collection } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatDate, formatReadingTime } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {

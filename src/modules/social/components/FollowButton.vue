@@ -6,7 +6,7 @@
       class="follow-btn following"
       @click="handleUnfollow"
     >
-      <el-icon><Select /></el-icon>
+      <QyIcon name="Select"  />
       <span>已关注</span>
     </el-button>
 
@@ -16,7 +16,7 @@
       class="follow-btn mutual"
       @click="handleUnfollow"
     >
-      <el-icon><UserFilled /></el-icon>
+      <QyIcon name="UserFilled"  />
       <span>互相关注</span>
     </el-button>
 
@@ -28,7 +28,7 @@
       :loading="loading"
       @click="handleFollow"
     >
-      <el-icon><Plus /></el-icon>
+      <QyIcon name="Plus"  />
       <span>{{ showText ? '关注' : '' }}</span>
     </el-button>
 
@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Select, UserFilled, Plus } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useSocialStore } from '@/stores/social'
 
 interface Props {

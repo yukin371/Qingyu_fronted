@@ -12,7 +12,7 @@
     <!-- 对话区域 -->
     <div class="conversation-area" ref="conversationRef">
       <div v-if="messages.length === 0" class="welcome-message">
-        <el-icon :size="48" color="#409eff"><ChatDotRound /></el-icon>
+        <el-icon :size="48" color="#409eff"><QyIcon name="ChatDotRound"  /></el-icon>
         <p>您好！我是AI阅读助手</p>
         <p class="hint">选择下方的快捷问题，或输入您的问题</p>
       </div>
@@ -21,10 +21,10 @@
       <div v-for="(msg, index) in messages" :key="index" class="message-item" :class="msg.role">
         <div class="message-avatar">
           <el-avatar v-if="msg.role === 'user'" :size="32">
-            <el-icon><User /></el-icon>
+            <QyIcon name="User"  />
           </el-avatar>
           <el-avatar v-else :size="32" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-            <el-icon><MagicStick /></el-icon>
+            <QyIcon name="MagicStick"  />
           </el-avatar>
         </div>
         <div class="message-content">
@@ -37,7 +37,7 @@
       <div v-if="streaming" class="message-item assistant">
         <div class="message-avatar">
           <el-avatar :size="32" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-            <el-icon><MagicStick /></el-icon>
+            <QyIcon name="MagicStick"  />
           </el-avatar>
         </div>
         <div class="message-content">
@@ -100,14 +100,7 @@
 <script setup lang="ts" name="AIReadingAssistant">
 import { ref, watch, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import {
-  MagicStick,
-  Close,
-  User,
-  ChatDotRound,
-  Promotion,
-  VideoPause
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useAIStream } from '../../../composables/useAIStream'
 
 interface Message {

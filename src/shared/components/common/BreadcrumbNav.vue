@@ -18,8 +18,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { HomeFilled, Reading, User, Edit, Setting } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 interface Breadcrumb {
   title: string
   path?: string

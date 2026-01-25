@@ -44,7 +44,7 @@
           >
             <div class="user-avatar" @click="goToUserPage(item.id)">
               <el-avatar :size="60" :src="item.avatar">
-                <el-icon><User /></el-icon>
+                <QyIcon name="User"  />
               </el-avatar>
             </div>
 
@@ -83,7 +83,7 @@
         >
           <template #image>
             <el-icon :size="120" color="#ddd">
-              <User />
+              <QyIcon name="User"  />
             </el-icon>
           </template>
         </el-empty>
@@ -108,7 +108,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search, User } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
 import { ElMessage } from 'element-plus'

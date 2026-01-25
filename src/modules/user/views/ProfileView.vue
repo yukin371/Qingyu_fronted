@@ -76,7 +76,7 @@
                   <el-image :src="book.coverUrl || '/placeholder-book.png'" fit="cover" class="book-cover">
                     <template #error>
                       <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
+                        <QyIcon name="Picture"  />
                       </div>
                     </template>
                   </el-image>
@@ -101,7 +101,7 @@
                   <el-image :src="item.book?.coverUrl || '/placeholder-book.png'" fit="cover" class="history-cover">
                     <template #error>
                       <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
+                        <QyIcon name="Picture"  />
                       </div>
                     </template>
                   </el-image>
@@ -176,7 +176,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Edit, Picture, Upload, TrendCharts } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { userAPI } from '@/modules/user/api'

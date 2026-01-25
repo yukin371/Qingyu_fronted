@@ -68,7 +68,10 @@
     <div class="recent-activities">
       <div class="activities-header">
         <h3>最近活动</h3>
-        <el-button text :icon="Refresh" @click="loadActivities">刷新</el-button>
+        <el-button text @click="loadActivities">
+          <QyIcon name="Refresh" :size="14" />
+          刷新
+        </el-button>
       </div>
       <el-timeline>
         <el-timeline-item
@@ -86,14 +89,22 @@
     <div class="quick-actions">
       <h3>快捷操作</h3>
       <div class="action-buttons">
-        <el-button :icon="DocumentChecked" type="primary" @click="goToReviews">
+        <el-button type="primary" @click="goToReviews">
+          <QyIcon name="DocumentChecked" :size="16" />
           内容审核
         </el-button>
-        <el-button :icon="Wallet" type="success" @click="goToWithdrawals">
+        <el-button type="success" @click="goToWithdrawals">
+          <QyIcon name="Wallet" :size="16" />
           提现审核
         </el-button>
-        <el-button :icon="User" @click="goToUsers">用户管理</el-button>
-        <el-button :icon="Document" @click="goToLogs">操作日志</el-button>
+        <el-button @click="goToUsers">
+          <QyIcon name="User" :size="16" />
+          用户管理
+        </el-button>
+        <el-button @click="goToLogs">
+          <QyIcon name="Document" :size="16" />
+          操作日志
+        </el-button>
       </div>
     </div>
   </div>
@@ -103,7 +114,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Refresh, DocumentChecked, Wallet, User, Document } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 
 const router = useRouter()
 

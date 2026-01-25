@@ -19,7 +19,7 @@
             class="back-button"
             @click="goBack"
           >
-            <el-icon><ArrowLeft /></el-icon>
+            <QyIcon name="ArrowLeft"  />
             返回
           </el-button>
 
@@ -66,12 +66,12 @@
                     @click="handleLike"
                     :class="{ 'is-liked': comment.isLiked }"
                   >
-                    <el-icon><Star /></el-icon>
+                    <QyIcon name="Star"  />
                     {{ comment.likeCount || 0 }} 点赞
                   </el-button>
 
                   <el-button text>
-                    <el-icon><ChatLineRound /></el-icon>
+                    <QyIcon name="ChatLineRound"  />
                     {{ comment.replyCount || 0 }} 回复
                   </el-button>
                 </div>
@@ -108,7 +108,7 @@
                   class="reply-trigger"
                   @click="showReplyBox = true"
                 >
-                  <el-icon><Edit /></el-icon>
+                  <QyIcon name="Edit"  />
                   回复这条评论
                 </el-button>
               </div>
@@ -172,12 +172,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  ArrowLeft,
-  Star,
-  ChatLineRound,
-  Edit
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import BreadcrumbNav from '@/shared/components/common/BreadcrumbNav.vue'
 import SkeletonLoader from '@/shared/components/common/SkeletonLoader.vue'
 import CommentTree from '@/shared/components/common/CommentTree.vue'

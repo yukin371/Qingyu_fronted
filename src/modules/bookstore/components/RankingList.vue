@@ -25,9 +25,7 @@
         <!-- 排名序号 (前三名特殊样式) -->
         <div class="rank-index" :class="getRankClass(index + 1)">
           <span v-if="index < 3" class="crown-icon">
-            <el-icon>
-              <Trophy />
-            </el-icon>
+            <QyIcon name="Trophy"  />
           </span>
           <span class="rank-num">{{ index + 1 }}</span>
         </div>
@@ -37,9 +35,7 @@
           <el-image :src="item.book?.cover || item.cover" fit="cover" class="book-cover" loading="lazy">
             <template #error>
               <div class="image-slot">
-                <el-icon>
-                  <Picture />
-                </el-icon>
+                <QyIcon name="Picture"  />
               </div>
             </template>
           </el-image>
@@ -67,18 +63,14 @@
               <span class="score-label">分</span>
             </div>
             <span class="view-count">
-              <el-icon>
-                <View />
-              </el-icon> {{ formatNumber(item.viewCount) }}
+              <QyIcon name="View"  /> {{ formatNumber(item.viewCount) }}
             </span>
           </div>
         </div>
 
         <!-- 悬浮时的右箭头 -->
         <div class="action-arrow">
-          <el-icon>
-            <ArrowRight />
-          </el-icon>
+          <QyIcon name="ArrowRight"  />
         </div>
       </li>
     </ul>
@@ -91,16 +83,14 @@
     <!-- 查看更多 (如果父组件没有提供 Header 里的 View More，这里可以作为底部补充) -->
     <div v-if="displayItems.length > 0" class="list-footer" @click="$emit('view-more')">
       <span>查看完整榜单</span>
-      <el-icon>
-        <ArrowRight />
-      </el-icon>
+      <QyIcon name="ArrowRight"  />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Trophy, View, Picture, ArrowRight } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useBookstoreStore } from '@/stores/bookstore' // 假设路径
 
 // Props 定义

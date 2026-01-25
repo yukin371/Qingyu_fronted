@@ -53,14 +53,14 @@
               v-if="item.change > 0"
               class="text-green-600 flex items-center justify-end"
             >
-              <el-icon><CaretTop /></el-icon>
+              <QyIcon name="CaretTop" :size="16" />
               {{ item.change }}
             </span>
             <span
               v-else-if="item.change < 0"
               class="text-red-600 flex items-center justify-end"
             >
-              <el-icon><CaretBottom /></el-icon>
+              <QyIcon name="CaretBottom" :size="16" />
               {{ Math.abs(item.change) }}
             </span>
             <span v-else class="text-gray-500">-</span>
@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { CaretTop, CaretBottom } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { RankingItem } from '@/types/bookstore'
 
 interface Props {

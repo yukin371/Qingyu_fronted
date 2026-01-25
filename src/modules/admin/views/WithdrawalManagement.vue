@@ -183,7 +183,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as adminAPI from '@/modules/admin/api'
 import type { WithdrawRecord } from '@/types/shared'
 import { formatDate } from '@/utils/format'

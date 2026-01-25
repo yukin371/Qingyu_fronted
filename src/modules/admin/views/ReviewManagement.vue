@@ -3,7 +3,10 @@
     <div class="page-header">
       <h2 class="page-title">内容审核</h2>
       <div class="header-actions">
-        <el-button :icon="Refresh" @click="loadReviews">刷新</el-button>
+        <el-button @click="loadReviews">
+          <QyIcon name="Refresh" :size="14" />
+          刷新
+        </el-button>
       </div>
     </div>
 
@@ -25,7 +28,7 @@
         @keyup.enter="handleFilterChange"
       >
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <QyIcon name="Search" :size="16" />
         </template>
       </el-input>
 
@@ -118,7 +121,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Search } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import ReviewCard from '@admin/components/ReviewCard.vue'
 import * as adminAPI from '@/modules/admin/api'
 import type { PendingReview } from '@/types/shared'

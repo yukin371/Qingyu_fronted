@@ -26,7 +26,7 @@
             @change="loadChapters"
           >
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <QyIcon name="Search"  />
             </template>
           </el-input>
         </el-col>
@@ -250,7 +250,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { getProjects, type Project } from '@/modules/writer/api'
 
 const router = useRouter()

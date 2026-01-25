@@ -60,6 +60,11 @@ class HttpService {
     // Request 拦截器
     this.instance.interceptors.request.use(
       (config) => {
+        // 0. 自动添加 /api/v1 前缀（如果路径以 / 开头但不是 /api/v1）
+        if (config.url && config.url.startsWith('/') && !config.url.startsWith('/api/v1') && !config.url.startsWith('/socket.io')) {
+          config.url = `/api/v1${config.url}`
+        }
+
         // 1. 自动注入 Token
         const authStore = useAuthStore()
         if (authStore.token && config.headers) {

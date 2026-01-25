@@ -10,7 +10,7 @@
         @input="handleSearch"
       >
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <QyIcon name="Search"  />
         </template>
       </el-input>
       <div class="action-buttons">
@@ -26,7 +26,7 @@
           </el-button>
         </el-button-group>
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           创建书单
         </el-button>
       </div>
@@ -70,11 +70,11 @@
           <p class="booklist-desc">{{ booklist.description }}</p>
           <div class="booklist-meta">
             <span class="meta-item">
-              <el-icon><Collection /></el-icon>
+              <QyIcon name="Collection"  />
               {{ booklist.book_count }} 本书
             </span>
             <span class="meta-item">
-              <el-icon><User /></el-icon>
+              <QyIcon name="User"  />
               {{ booklist.follower_count }} 关注
             </span>
           </div>
@@ -238,7 +238,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus, Collection, User } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getBooklists,
   getBooklistDetail,

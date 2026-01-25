@@ -275,14 +275,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Search,
-  Refresh,
-  View,
-  Edit,
-  Delete
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()

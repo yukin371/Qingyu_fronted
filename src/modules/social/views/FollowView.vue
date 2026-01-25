@@ -41,7 +41,7 @@
 
       <div v-if="activeTab === 'recommended'" class="refresh-btn">
         <el-button @click="loadRecommendedFollows" :loading="loading">
-          <el-icon><Refresh /></el-icon>
+          <QyIcon name="Refresh"  />
           换一批
         </el-button>
       </div>
@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getFollowingList,
   getFollowersList,

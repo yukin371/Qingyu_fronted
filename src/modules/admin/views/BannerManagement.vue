@@ -7,7 +7,7 @@
           <p class="subtitle">管理首页轮播图Banner</p>
         </div>
         <el-button type="primary" @click="handleCreate">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus" :size="16" />
           新建Banner
         </el-button>
       </div>
@@ -126,7 +126,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as bannerApi from '@/modules/admin/api'
 
 const loading = ref(false)

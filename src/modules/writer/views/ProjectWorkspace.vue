@@ -17,20 +17,16 @@
 
         <div class="header-right">
           <el-button link @click="toggleAISidebar">
-            <el-icon>
-              <MagicStick />
-            </el-icon> AI助手
+            <QyIcon name="MagicStick"  /> AI助手
           </el-button>
           <el-divider direction="vertical" />
           <el-tooltip content="专注模式">
             <el-button link @click="isFocusMode = !isFocusMode">
-              <el-icon>
-                <FullScreen />
-              </el-icon>
+              <QyIcon name="FullScreen"  />
             </el-button>
           </el-tooltip>
           <el-button type="primary" link @click="handleManualSave">
-            <el-icon><Select /></el-icon> 保存
+            <QyIcon name="Select"  /> 保存
           </el-button>
         </div>
       </div>
@@ -70,9 +66,7 @@
         </div>
         <div class="footer-right">
           <el-button link size="small" @click="showTimeline = !showTimeline">
-            <el-icon>
-              <Clock />
-            </el-icon> {{ showTimeline ? '隐藏时间线' : '时间线' }}
+            <QyIcon name="Clock"  /> {{ showTimeline ? '隐藏时间线' : '时间线' }}
           </el-button>
         </div>
       </div>
@@ -113,10 +107,7 @@
 import { ref, computed, onMounted, reactive, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  MagicStick, FullScreen, Select, Clock
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'

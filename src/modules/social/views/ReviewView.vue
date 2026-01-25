@@ -17,7 +17,7 @@
           <el-option label="评分" value="rating" />
         </el-select>
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           写书评
         </el-button>
       </div>
@@ -73,15 +73,15 @@
 
         <div class="review-actions">
           <div class="action-item" @click="toggleLike(review)">
-            <el-icon :class="{ 'is-liked': review.is_liked }"><Star /></el-icon>
+            <el-icon :class="{ 'is-liked': review.is_liked }"><QyIcon name="Star"  /></el-icon>
             <span>{{ review.like_count || 0 }}</span>
           </div>
           <div class="action-item" @click="viewComments(review)">
-            <el-icon><ChatDotRound /></el-icon>
+            <QyIcon name="ChatDotRound"  />
             <span>{{ review.comment_count || 0 }}</span>
           </div>
           <div class="action-item" @click="shareReview(review)">
-            <el-icon><Share /></el-icon>
+            <QyIcon name="Share"  />
             <span>分享</span>
           </div>
         </div>
@@ -181,7 +181,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Star, ChatDotRound, Share } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getReviews,
   createReview,

@@ -3,9 +3,7 @@
         <div class="section-header">
             <h3>评论 ({{ total }})</h3>
             <el-button @click="showCommentDialog = true">
-                <el-icon>
-                    <Edit />
-                </el-icon>
+                <QyIcon name="Edit"  />
                 发表评论
             </el-button>
         </div>
@@ -37,15 +35,11 @@
                         <div class="comment-actions">
                             <el-button text size="small" @click="handleLike(comment)"
                                 :type="comment.isLiked ? 'primary' : 'default'">
-                                <el-icon>
-                                    <Star :filled="comment.isLiked" />
-                                </el-icon>
+                                <QyIcon name="Star" :filled="comment.isLiked"  />
                                 {{ comment.likeCount }}
                             </el-button>
                             <el-button text size="small" @click="handleReply(comment)">
-                                <el-icon>
-                                    <ChatDotRound />
-                                </el-icon>
+                                <QyIcon name="ChatDotRound"  />
                                 回复
                             </el-button>
                         </div>
@@ -84,7 +78,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Edit, Star, ChatDotRound } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatDate } from '@/utils/format'
 import { ElMessage } from 'element-plus'
 import { commentAPI } from '@/modules/reader/api'

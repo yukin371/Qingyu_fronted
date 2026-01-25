@@ -13,8 +13,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 interface Props {
   visible?: boolean
   text?: string

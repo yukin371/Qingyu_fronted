@@ -2,15 +2,11 @@
   <div class="filter-container">
     <div class="filter-header">
       <div class="header-left">
-        <el-icon>
-          <Filter />
-        </el-icon>
+        <QyIcon name="Filter"  />
         <span class="title">筛选检索</span>
       </div>
       <el-button link type="primary" class="reset-btn" :disabled="!hasActiveFilters" @click="handleReset">
-        <el-icon>
-          <RefreshLeft />
-        </el-icon> 重置
+        <QyIcon name="RefreshLeft"  /> 重置
       </el-button>
     </div>
 
@@ -107,7 +103,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Filter, RefreshLeft } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 // import type { Category, Tag } from '@/types/models'
 
 // 类型定义占位

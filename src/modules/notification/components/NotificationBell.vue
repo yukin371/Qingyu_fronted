@@ -1,7 +1,7 @@
 <template>
   <div class="notification-bell" @click="goToNotifications">
     <el-icon :size="24" :class="{ 'has-notification': hasUnread }">
-      <Bell />
+      <QyIcon name="Bell"  />
     </el-icon>
 
     <!-- 未读数量角标 -->
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Bell } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useNotificationStore } from '@/stores/notification'
 
 const router = useRouter()

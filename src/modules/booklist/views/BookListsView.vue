@@ -5,7 +5,7 @@
       <div class="page-header">
         <h1>书单广场</h1>
         <el-button type="primary" @click="showCreate = true">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           创建书单
         </el-button>
       </div>
@@ -31,8 +31,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Collection } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const showCreate = ref(false)
 </script>
 

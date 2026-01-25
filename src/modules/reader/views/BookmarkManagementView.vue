@@ -11,7 +11,7 @@
           @input="handleSearch"
         >
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <QyIcon name="Search"  />
           </template>
         </el-input>
         <el-select v-model="filterType" placeholder="筛选类型" style="width: 120px" @change="loadBookmarks">
@@ -47,7 +47,7 @@
               >
                 <template #error>
                   <div class="image-slot">
-                    <el-icon><Picture /></el-icon>
+                    <QyIcon name="Picture"  />
                   </div>
                 </template>
               </el-image>
@@ -61,18 +61,18 @@
                 跳转阅读
               </el-button>
               <el-button size="small" @click="editNote(bookmark)">
-                <el-icon><Edit /></el-icon>
+                <QyIcon name="Edit"  />
                 {{ bookmark.content ? '编辑笔记' : '添加笔记' }}
               </el-button>
               <el-button type="danger" size="small" @click="removeBookmark(bookmark.id)" text>
-                <el-icon><Delete /></el-icon>
+                <QyIcon name="Delete"  />
               </el-button>
             </div>
           </div>
 
           <div v-if="bookmark.content" class="bookmark-note">
             <div class="note-label">
-              <el-icon><Memo /></el-icon>
+              <QyIcon name="Memo"  />
               笔记内容：
             </div>
             <div class="note-content">{{ bookmark.content }}</div>
@@ -127,7 +127,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Picture, Edit, Delete, Memo } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/modules/reader/api'
 import type { Bookmark } from '@/types/models'
 

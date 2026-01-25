@@ -39,8 +39,11 @@
             <el-avatar
               :size="36"
               :src="userStore.avatar"
-              :icon="UserFilled"
-            />
+            >
+              <template #icon>
+                <QyIcon name="UserFilled" />
+              </template>
+            </el-avatar>
           </div>
         </div>
       </div>
@@ -54,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { UserFilled } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()

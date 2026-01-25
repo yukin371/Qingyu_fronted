@@ -15,7 +15,7 @@
                     <el-image :src="book.cover" fit="cover" :alt="book.title">
                       <template #error>
                         <div class="image-slot">
-                          <el-icon><Picture /></el-icon>
+                          <QyIcon name="Picture"  />
                         </div>
                       </template>
                     </el-image>
@@ -27,8 +27,8 @@
                     <h1 class="book-title">{{ book.title }}</h1>
 
                     <div class="book-meta">
-                      <span class="author"><el-icon><User /></el-icon>{{ book.author }}</span>
-                      <span class="category"><el-icon><Collection /></el-icon>{{ book.categoryName }}</span>
+                      <span class="author"><QyIcon name="User"  />{{ book.author }}</span>
+                      <span class="category"><QyIcon name="Collection"  />{{ book.categoryName }}</span>
                       <el-tag :type="statusType">{{ statusText }}</el-tag>
                     </div>
 
@@ -42,25 +42,25 @@
                         <span class="rating-count">({{ book.ratingCount }}人评分)</span>
                       </div>
                       <div class="stat-item">
-                        <el-icon><View /></el-icon>{{ formatNumber(book.viewCount) }} 阅读
+                        <QyIcon name="View"  />{{ formatNumber(book.viewCount) }} 阅读
                       </div>
                       <div class="stat-item">
-                        <el-icon><Star /></el-icon>{{ formatNumber(book.favoriteCount) }} 收藏
+                        <QyIcon name="Star"  />{{ formatNumber(book.favoriteCount) }} 收藏
                       </div>
                       <div class="stat-item">
-                        <el-icon><Document /></el-icon>{{ book.wordCount }}字 · {{ book.chapterCount }}章
+                        <QyIcon name="Document"  />{{ book.wordCount }}字 · {{ book.chapterCount }}章
                       </div>
                     </div>
 
                     <div class="book-actions">
                       <el-button type="primary" size="large" @click="startReading">
-                        <el-icon><Reading /></el-icon>{{ hasProgress ? '继续阅读' : '开始阅读' }}
+                        <QyIcon name="Reading"  />{{ hasProgress ? '继续阅读' : '开始阅读' }}
                       </el-button>
                       <el-button size="large" @click="addToShelf" :type="inShelf ? 'success' : 'default'">
-                        <el-icon><FolderAdd /></el-icon>{{ inShelf ? '已在书架' : '加入书架' }}
+                        <QyIcon name="FolderAdd"  />{{ inShelf ? '已在书架' : '加入书架' }}
                       </el-button>
                       <el-button size="large" @click="toggleFavorite" :type="isFavorited ? 'warning' : 'default'">
-                        <el-icon><Star /></el-icon>{{ isFavorited ? '已收藏' : '收藏' }}
+                        <QyIcon name="Star"  />{{ isFavorited ? '已收藏' : '收藏' }}
                       </el-button>
                       <el-button size="large" @click="copyLink">
                         复制链接
@@ -152,7 +152,7 @@
                   <div class="book-card" @click="goToBook(item.id)">
                     <el-image :src="item.cover" fit="cover">
                       <template #error>
-                        <div class="image-slot"><el-icon><Picture /></el-icon></div>
+                        <div class="image-slot"><QyIcon name="Picture"  /></div>
                       </template>
                     </el-image>
                     <h4>{{ item.title }}</h4>
@@ -172,8 +172,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, User, Collection, View, Star, Document, Reading, FolderAdd, Picture } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 // Mock data (no API/auth required)
 const router = useRouter()
 const activeTab = ref('intro')

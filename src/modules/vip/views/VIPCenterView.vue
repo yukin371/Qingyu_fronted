@@ -4,7 +4,7 @@
       <!-- VIP卡片 -->
       <div class="vip-card">
         <div class="vip-badge">
-          <el-icon :size="48"><Crown /></el-icon>
+          <el-icon :size="48"><QyIcon name="Crown"  /></el-icon>
         </div>
         <h2 class="vip-title">VIP会员中心</h2>
         <p class="vip-subtitle">尊享特权，畅读无限</p>
@@ -36,7 +36,7 @@
           <el-empty description="会员权益展示开发中...">
             <template #image>
               <el-icon :size="100" color="#ddd">
-                <Present />
+                <QyIcon name="Present"  />
               </el-icon>
             </template>
           </el-empty>
@@ -48,8 +48,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Crown, Present } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const selectedLevel = ref('monthly')
 
 const levels = [

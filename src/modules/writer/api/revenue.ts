@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 写作端 - 作家收入统计API
  */
 
@@ -163,7 +163,7 @@ export function getRevenueRecords(params?: {
   startDate?: string
   endDate?: string
 }) {
-  return httpService.get('/writer/revenue/records', { params })
+  return httpService.get('/api/v1/writer/revenue/records', { params })
 }
 
 export default {

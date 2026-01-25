@@ -7,7 +7,7 @@
           <p class="subtitle">管理系统公告通知</p>
         </div>
         <el-button type="primary" @click="handleCreate">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus" :size="16" />
           新建公告
         </el-button>
       </div>
@@ -143,7 +143,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as announcementApi from '@/modules/admin/api'
 
 const loading = ref(false)

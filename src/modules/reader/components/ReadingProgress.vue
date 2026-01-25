@@ -7,15 +7,11 @@
         <el-progress :percentage="percentage" :stroke-width="8" :show-text="false" :color="progressColor" />
         <div class="progress-stats" v-if="showStats">
             <div class="stat-item">
-                <el-icon>
-                    <Clock />
-                </el-icon>
+                <QyIcon name="Clock"  />
                 <span>已读 {{ readingTime }}</span>
             </div>
             <div class="stat-item">
-                <el-icon>
-                    <Document />
-                </el-icon>
+                <QyIcon name="Document"  />
                 <span>{{ currentChapter }}/{{ totalChapters }} 章</span>
             </div>
         </div>
@@ -24,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Clock, Document } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatReadingTime } from '@/utils/reader'
 
 interface Props {

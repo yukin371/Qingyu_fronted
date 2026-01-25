@@ -32,7 +32,7 @@
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: #fef0f0">
-              <el-icon :size="24" color="#f56c6c"><Clock /></el-icon>
+              <el-icon :size="24" color="#f56c6c"><QyIcon name="Clock"  /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">¥{{ overview.pending_earnings?.toFixed(2) || '0.00' }}</div>
@@ -45,7 +45,7 @@
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: #fdf6ec">
-              <el-icon :size="24" color="#e6a23c"><User /></el-icon>
+              <el-icon :size="24" color="#e6a23c"><QyIcon name="User"  /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ overview.total_readers || 0 }}</div>
@@ -67,7 +67,7 @@
 
           <div class="table-header">
             <el-button type="primary" @click="handleRefreshEarnings">
-              <el-icon><Refresh /></el-icon>
+              <QyIcon name="Refresh"  />
               刷新
             </el-button>
           </div>
@@ -133,11 +133,11 @@
           <div class="withdrawal-section">
             <div class="withdrawal-actions">
               <el-button type="primary" @click="showWithdrawDialog = true">
-                <el-icon><Wallet /></el-icon>
+                <QyIcon name="Wallet"  />
                 申请提现
               </el-button>
               <el-button @click="loadWithdrawals">
-                <el-icon><Refresh /></el-icon>
+                <QyIcon name="Refresh"  />
                 刷新
               </el-button>
             </div>
@@ -298,7 +298,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Wallet, Money, Clock, User, Refresh } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import {
   getRevenueOverview,

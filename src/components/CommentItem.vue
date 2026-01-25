@@ -11,10 +11,12 @@
         </div>
       </div>
       <div v-if="isOwner || isAdmin" class="comment-actions">
-        <el-button text size="small" :icon="Edit" @click="handleEdit">
+        <el-button text size="small" @click="handleEdit">
+          <QyIcon name="Edit" :size="14" />
           编辑
         </el-button>
-        <el-button text size="small" type="danger" :icon="Delete" @click="handleDelete">
+        <el-button text size="small" type="danger" @click="handleDelete">
+          <QyIcon name="Delete" :size="14" />
           删除
         </el-button>
       </div>
@@ -58,10 +60,12 @@
 
       <!-- 点赞/反踩 -->
       <div class="comment-interaction">
-        <el-button text size="small" :icon="CircleCheck">
+        <el-button text size="small">
+          <QyIcon name="CircleCheck" :size="14" />
           {{ comment.likes || 0 }}
         </el-button>
-        <el-button text size="small" :icon="CircleCheck">
+        <el-button text size="small">
+          <QyIcon name="CircleCheck" :size="14" />
           {{ comment.dislikes || 0 }}
         </el-button>
       </div>
@@ -88,7 +92,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Edit, Delete, CircleCheck } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 
 interface Comment {
   id: string

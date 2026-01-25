@@ -6,7 +6,7 @@
         <div class="panel-header">
           <h3>消息</h3>
           <el-badge :value="totalUnread" :hidden="totalUnread === 0" class="badge">
-            <el-icon><ChatDotRound /></el-icon>
+            <QyIcon name="ChatDotRound"  />
           </el-badge>
         </div>
 
@@ -18,7 +18,7 @@
             @input="handleSearch"
           >
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <QyIcon name="Search"  />
             </template>
           </el-input>
         </div>
@@ -48,10 +48,10 @@
               </div>
               <div class="conv-preview">
                 <span v-if="conv.last_message_type === 'image'" class="message-type-icon">
-                  <el-icon><Picture /></el-icon>
+                  <QyIcon name="Picture"  />
                 </span>
                 <span v-else-if="conv.last_message_type === 'file'" class="message-type-icon">
-                  <el-icon><Document /></el-icon>
+                  <QyIcon name="Document"  />
                 </span>
                 <span class="message-text">{{ conv.last_message }}</span>
               </div>
@@ -63,10 +63,10 @@
       <!-- 聊天区域 -->
       <div class="chat-panel">
         <div v-if="!selectedConversation" class="empty-state">
-          <el-icon size="80"><ChatDotRound /></el-icon>
+          <el-icon size="80"><QyIcon name="ChatDotRound"  /></el-icon>
           <p>选择一个对话开始聊天</p>
           <el-button type="primary" @click="showNewChatDialog = true">
-            <el-icon><Plus /></el-icon>
+            <QyIcon name="Plus"  />
             新建对话
           </el-button>
         </div>
@@ -80,11 +80,11 @@
             </div>
             <div class="chat-actions">
               <el-button text @click="markAsRead">
-                <el-icon><Check /></el-icon>
+                <QyIcon name="Check"  />
                 标为已读
               </el-button>
               <el-button text type="danger" @click="confirmDeleteConversation">
-                <el-icon><Delete /></el-icon>
+                <QyIcon name="Delete"  />
                 删除对话
               </el-button>
             </div>
@@ -118,7 +118,7 @@
                   </div>
                   <!-- 文件消息 -->
                   <div v-else-if="msg.type === 'file'" class="message-file">
-                    <el-icon><Document /></el-icon>
+                    <QyIcon name="Document"  />
                     <div class="file-info">
                       <div class="file-name">{{ msg.file_name }}</div>
                       <div class="file-size">{{ formatFileSize(msg.file_size) }}</div>
@@ -128,12 +128,12 @@
                   <div class="message-time">
                     {{ formatMessageTime(msg.created_at) }}
                     <span v-if="msg.status === 'failed'" class="error-icon">
-                      <el-icon><Warning /></el-icon>
+                      <QyIcon name="Warning"  />
                     </span>
                   </div>
                 </div>
                 <el-dropdown trigger="click" @command="(cmd) => handleMessageAction(cmd, msg)">
-                  <el-icon class="more-btn"><MoreFilled /></el-icon>
+                  <el-icon class="more-btn"><QyIcon name="MoreFilled"  /></el-icon>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item command="copy">复制</el-dropdown-item>
@@ -155,7 +155,7 @@
                 accept="image/*"
               >
                 <el-button text>
-                  <el-icon><Picture /></el-icon>
+                  <QyIcon name="Picture"  />
                 </el-button>
               </el-upload>
               <el-upload
@@ -163,7 +163,7 @@
                 :before-upload="handleFileUpload"
               >
                 <el-button text>
-                  <el-icon><Folder /></el-icon>
+                  <QyIcon name="Folder"  />
                 </el-button>
               </el-upload>
             </div>
@@ -211,18 +211,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  ChatDotRound,
-  Search,
-  Picture,
-  Document,
-  Check,
-  Delete,
-  Plus,
-  Warning,
-  MoreFilled,
-  Folder
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getConversations,
   getMessages,

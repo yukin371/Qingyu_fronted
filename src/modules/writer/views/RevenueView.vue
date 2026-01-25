@@ -31,7 +31,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon total">
-              <el-icon><Wallet /></el-icon>
+              <QyIcon name="Wallet"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalRevenue) }}</div>
@@ -43,7 +43,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon today">
-              <el-icon><TrendCharts /></el-icon>
+              <QyIcon name="TrendCharts"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.todayRevenue) }}</div>
@@ -55,7 +55,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon available">
-              <el-icon><Money /></el-icon>
+              <QyIcon name="Money"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
@@ -67,7 +67,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon withdrawn">
-              <el-icon><DocumentChecked /></el-icon>
+              <QyIcon name="DocumentChecked"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalWithdrawn) }}</div>
@@ -217,7 +217,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Wallet, TrendCharts, Money, DocumentChecked } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 import type { FormInstance, FormRules } from 'element-plus'

@@ -4,7 +4,7 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><Clock /></el-icon>
+          <QyIcon name="Clock"  />
           阅读历史
         </h1>
         <div class="header-actions">
@@ -42,7 +42,7 @@
               @change="loadHistory"
             >
               <template #prefix>
-                <el-icon><Search /></el-icon>
+                <QyIcon name="Search"  />
               </template>
             </el-input>
           </el-col>
@@ -64,7 +64,7 @@
                 <el-image :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -79,7 +79,7 @@
               <div class="item-info">
                 <h3 class="book-title">{{ item.book?.title }}</h3>
                 <p class="book-author">
-                  <el-icon><User /></el-icon>
+                  <QyIcon name="User"  />
                   {{ item.book?.author }}
                 </p>
 
@@ -88,7 +88,7 @@
                     阅读到：{{ item.chapterTitle || `第${item.chapterNumber}章` }}
                   </el-tag>
                   <span class="reading-time">
-                    <el-icon><Timer /></el-icon>
+                    <QyIcon name="Timer"  />
                     阅读时长：{{ formatDuration(item.readingDuration || 0) }}
                   </span>
                 </div>
@@ -154,14 +154,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Clock,
-  Delete,
-  Search,
-  Picture,
-  User,
-  Timer
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { historyAPI } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
 

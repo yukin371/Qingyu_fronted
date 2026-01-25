@@ -21,9 +21,9 @@
         <div class="overall-status">
           <div class="status-icon" :class="`status-${overallStatus}`">
             <el-icon :size="64">
-              <CircleCheckFilled v-if="overallStatus === 'healthy'" />
-              <WarningFilled v-else-if="overallStatus === 'degraded'" />
-              <CircleCloseFilled v-else />
+              <QyIcon name="CircleCheckFilled" v-if="overallStatus === 'healthy'"  />
+              <QyIcon name="WarningFilled" v-else-if="overallStatus === 'degraded'"  />
+              <QyIcon name="CircleCloseFilled" v-else  />
             </el-icon>
           </div>
           <div class="status-info">
@@ -90,14 +90,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, Grid, LoadingOverlay } from '@/shared/components/design-system'
-import {
-  Refresh,
-  Monitor,
-  CircleCheckFilled,
-  WarningFilled,
-  CircleCloseFilled
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const aiStore = useAIAdminStore()
 
 // 状态

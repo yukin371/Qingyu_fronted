@@ -192,19 +192,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  CirclePlus,
-  Connection,
-  ZoomIn,
-  ZoomOut,
-  Expand,
-  Back,
-  Right,
-  Edit,
-  Delete,
-  Close,
-  ArrowDown
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import DrawEngine from '@/core/draw-engine/draw-engine'
 import type { DrawEngineConfig, DrawNode } from '@/core/draw-engine/types'
 

@@ -21,14 +21,12 @@
           <el-button
             @click="handleToggleMode"
           >
-            <el-icon>
-              <component :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'" />
-            </el-icon>
+            <QyIcon name="component" :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
             {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
           </el-button>
         </el-tooltip>
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           新建项目
         </el-button>
       </div>
@@ -38,7 +36,7 @@
       <div v-if="!loading && projectList.length === 0" class="empty-container">
         <el-empty description="还没有项目，创建一个开始吧！">
           <el-button type="primary" @click="showCreateDialog = true">
-            <el-icon><Plus /></el-icon>
+            <QyIcon name="Plus"  />
             创建第一个项目
           </el-button>
         </el-empty>
@@ -56,7 +54,7 @@
             <div class="card-header">
               <span class="project-name">{{ project.title }}</span>
               <el-dropdown @command="handleCommand($event, project)" @click.stop>
-                <el-icon class="more-icon"><MoreFilled /></el-icon>
+                <el-icon class="more-icon"><QyIcon name="MoreFilled"  /></el-icon>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item command="edit">编辑</el-dropdown-item>
@@ -130,7 +128,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, MoreFilled, Connection, FolderOpened } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useWriterStore } from '@/stores/writer'
 
 const router = useRouter()

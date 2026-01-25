@@ -32,8 +32,14 @@
       />
 
       <el-button type="primary" @click="handleFilterChange">查询</el-button>
-      <el-button :icon="Refresh" @click="loadLogs">刷新</el-button>
-      <el-button :icon="Download" @click="exportLogs">导出</el-button>
+      <el-button @click="loadLogs">
+          <QyIcon name="Refresh" :size="14" />
+          刷新
+        </el-button>
+        <el-button @click="exportLogs">
+          <QyIcon name="Download" :size="14" />
+          导出
+        </el-button>
     </div>
 
     <!-- 日志列表 -->
@@ -122,7 +128,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Refresh, Download } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import * as adminAPI from '@/modules/admin/api'
 import type { OperationLog } from '@/types/shared'
 import { formatDate } from '@/utils/format'

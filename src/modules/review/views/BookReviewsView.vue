@@ -5,7 +5,7 @@
       <div class="page-header">
         <h1>书评</h1>
         <el-button type="primary" @click="showWriteReview = true">
-          <el-icon><EditPen /></el-icon>
+          <QyIcon name="EditPen"  />
           写书评
         </el-button>
       </div>
@@ -15,7 +15,7 @@
         <el-empty description="书评系统开发中，敬请期待...">
           <template #image>
             <el-icon :size="120" color="#ddd">
-              <ChatLineSquare />
+              <QyIcon name="ChatLineSquare"  />
             </el-icon>
           </template>
         </el-empty>
@@ -31,8 +31,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { EditPen, ChatLineSquare } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const showWriteReview = ref(false)
 </script>
 

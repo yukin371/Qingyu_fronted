@@ -1,0 +1,464 @@
+{
+  "total": 114,
+  "success": 114,
+  "skipped": 169,
+  "errors": 0,
+  "files": [
+    {
+      "file": "src\\modules\\achievement\\views\\AchievementDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\achievement\\views\\AchievementRankingView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\achievement\\views\\AchievementsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\achievement\\views\\LevelInfoView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\ai\\views\\AIHealthView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\ai\\views\\AIMainView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\ai\\views\\AIModelsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\ai\\views\\AIProvidersView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\BookListDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\BookListsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\CreateBookListView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\EditBookListView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\FavoriteBookListsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\booklist\\views\\MyBookListsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\BannerCarousel.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\BookGrid.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\CategoryTree.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\FilterPanel.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\RankingList.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\components\\SearchBar.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\views\\BookDetailDemo.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\views\\CategoriesView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\bookstore\\views\\RankingsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\community\\views\\CommunityFeedView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\community\\views\\CreatePostView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\community\\views\\PostDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\community\\views\\TopicPostsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\discovery\\views\\EditorsPickView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\discovery\\views\\NewReleasesView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\discovery\\views\\TopicDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\discovery\\views\\TopicsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\finance\\views\\AuthorRevenueView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\finance\\views\\MembershipView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\notification\\components\\NotificationBell.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\notification\\components\\NotificationItem.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\notification\\components\\NotificationList.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\notification\\views\\NotificationCenter.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\notification\\views\\NotificationView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\AIReadingAssistant.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\BookmarkList.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\ChapterList.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\CommentItem.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\CommentSection.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\ReadingProgress.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\components\\ReadingSettings.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\BookmarkManagementView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\BookshelfView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\CommentDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\ReaderView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\ReadingHistoryView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reader\\views\\ThemeSettingsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reading-stats\\views\\ReadingHistoryDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reading-stats\\views\\ReadingRankingView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reading-stats\\views\\ReadingReportView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\reading-stats\\views\\ReadingStatsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\review\\views\\BookReviewsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\review\\views\\MyReviewsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\review\\views\\ReviewDetailView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\components\\FollowButton.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\views\\BooklistView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\views\\FollowListView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\views\\FollowView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\views\\MessageView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\social\\views\\ReviewView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\components\\wallet\\TransactionList.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\components\\wallet\\WalletCard.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\AccountSettings.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\AuthenticationView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\AuthorProfile.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\ProfileView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\ReaderProfile.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\ReadingHistoryView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\SecuritySettings.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\TransferView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\user\\views\\WalletView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\vip\\views\\VIPCenterView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\vip\\views\\VIPPrivilegesView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\vip\\views\\VIPPurchaseView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\vip\\views\\VIPSubscriptionView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ai\\AIAgentPanel.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ai\\AIAssistantSidebar.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ai\\AIChatPanel.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ai\\AIContextMenu.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ai\\AIToolsPanel.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\AutoSaveIndicator.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\DocumentTree.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\EditorToolbar.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ProjectCard.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\ProjectSidebar.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\TimelineBar.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\components\\WordCounter.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\CharacterGraphView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\EditorView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\EncyclopediaView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\OutlineView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\OutlineView_DrawCanvas_Integration.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\ProjectListView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\ProjectWorkspace.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\PublishManagement.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\PublishManagementView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\RevenueView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\StatisticsView.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\modules\\writer\\views\\WriterDashboard.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\common\\BreadcrumbNav.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\common\\CommentTree.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\common\\Loading.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\common\\ReadingSettings.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\design-system\\feedback\\ConfirmDialog.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\design-system\\feedback\\LoadingOverlay.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\draw\\DrawCanvas.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\layout\\AdminLayout.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\layout\\MainLayout.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\layout\\MobileLayout.vue",
+      "status": "success"
+    },
+    {
+      "file": "src\\shared\\components\\storage\\FileUploader.vue",
+      "status": "success"
+    }
+  ]
+}

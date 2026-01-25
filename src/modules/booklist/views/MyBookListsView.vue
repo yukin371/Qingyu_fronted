@@ -3,7 +3,7 @@
     <div class="container">
       <el-empty description="我的书单页开发中，敬请期待...">
         <template #image>
-          <el-icon :size="120" color="#ddd"><FolderOpened /></el-icon>
+          <el-icon :size="120" color="#ddd"><QyIcon name="FolderOpened"  /></el-icon>
         </template>
       </el-empty>
     </div>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { FolderOpened } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 </script>
 
 <style scoped lang="scss">

@@ -9,7 +9,7 @@
       <div class="header-actions" v-if="showMore">
         <el-button text class="view-more-btn" @click="$emit('view-more')">
           查看全部 <el-icon class="icon-right">
-            <ArrowRight />
+            <QyIcon name="ArrowRight"  />
           </el-icon>
         </el-button>
       </div>
@@ -40,18 +40,14 @@
           <el-image :src="book.cover || book.coverUrl" :alt="book.title" class="book-cover" fit="cover" loading="lazy">
             <template #error>
               <div class="image-slot">
-                <el-icon>
-                  <Picture />
-                </el-icon>
+                <QyIcon name="Picture"  />
               </div>
             </template>
           </el-image>
 
           <!-- 评分角标 (可选) -->
           <div class="rating-badge" v-if="book.score || book.rating">
-            <el-icon>
-              <StarFilled />
-            </el-icon>
+            <QyIcon name="StarFilled"  />
             <span>{{ book.score || book.rating }}</span>
           </div>
 
@@ -95,7 +91,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { ArrowRight, Picture, StarFilled } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatCurrency } from '@/utils/currency'
 
 // Props 定义

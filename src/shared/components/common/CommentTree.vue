@@ -29,12 +29,12 @@
             @click="handleLike"
             :class="{ 'is-liked': comment.isLiked }"
           >
-            <el-icon><Star /></el-icon>
+            <QyIcon name="Star"  />
             {{ comment.likeCount || 0 }}
           </el-button>
 
           <el-button text size="small" @click="showReplyBox = !showReplyBox">
-            <el-icon><ChatLineRound /></el-icon>
+            <QyIcon name="ChatLineRound"  />
             回复 {{ comment.replyCount > 0 ? `(${comment.replyCount})` : '' }}
           </el-button>
 
@@ -45,7 +45,7 @@
             type="danger"
             @click="handleDelete"
           >
-            <el-icon><Delete /></el-icon>
+            <QyIcon name="Delete"  />
             删除
           </el-button>
         </div>
@@ -91,7 +91,7 @@
         <!-- 加载更多回复 -->
         <div v-if="comment.hasMoreReplies" class="load-more-replies">
           <el-button text size="small" @click="loadMoreReplies">
-            <el-icon><ArrowDown /></el-icon>
+            <QyIcon name="ArrowDown"  />
             加载更多回复
           </el-button>
         </div>
@@ -104,7 +104,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Star, ChatLineRound, Delete, ArrowDown } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
 interface Comment {

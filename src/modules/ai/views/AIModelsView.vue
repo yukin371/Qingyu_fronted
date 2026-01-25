@@ -103,7 +103,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
-import { Refresh } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { AIModel, AIProvider } from '../types/ai-admin.types'
 
 const aiStore = useAIAdminStore()

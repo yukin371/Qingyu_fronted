@@ -193,7 +193,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { Monitor, Iphone, Van } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
 import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
 import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'

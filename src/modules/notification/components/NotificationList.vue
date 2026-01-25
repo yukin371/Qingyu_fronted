@@ -74,7 +74,7 @@
     >
       <template #image>
         <el-icon :size="120" color="#ddd">
-          <Bell />
+          <QyIcon name="Bell"  />
         </el-icon>
       </template>
     </el-empty>
@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Bell } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/stores/notification'

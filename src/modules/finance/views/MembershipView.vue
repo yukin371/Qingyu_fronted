@@ -37,7 +37,7 @@
                   <p class="plan-description">{{ plan.description }}</p>
                   <ul class="plan-benefits">
                     <li v-for="benefit in plan.benefits" :key="benefit">
-                      <el-icon><Check /></el-icon>
+                      <QyIcon name="Check"  />
                       {{ benefit }}
                     </li>
                   </ul>
@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Check } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import {
   getMembershipPlans,
   getUserMembership,

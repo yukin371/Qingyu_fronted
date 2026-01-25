@@ -3,7 +3,7 @@
     <!-- 上下文展示区 -->
     <div class="context-section">
       <h3 class="section-title">
-        <el-icon><InfoFilled /></el-icon>
+        <QyIcon name="InfoFilled"  />
         当前上下文
       </h3>
 
@@ -63,7 +63,7 @@
         @click="handleRefreshContext"
         :loading="isRefreshing"
       >
-        <el-icon><Refresh /></el-icon>
+        <QyIcon name="Refresh"  />
         加载上下文
       </el-button>
     </div>
@@ -71,7 +71,7 @@
     <!-- AI 生成工具 -->
     <div class="tools-section">
       <h3 class="section-title">
-        <el-icon><MagicStick /></el-icon>
+        <QyIcon name="MagicStick"  />
         智能生成
       </h3>
 
@@ -176,7 +176,7 @@
     <!-- 生成结果展示 -->
     <div v-if="generatedContent" class="result-section">
       <h3 class="section-title">
-        <el-icon><Document /></el-icon>
+        <QyIcon name="Document"  />
         生成结果
       </h3>
       <div class="result-content">
@@ -184,11 +184,11 @@
       </div>
       <div class="result-actions">
         <el-button size="small" @click="handleInsertResult">
-          <el-icon><DocumentCopy /></el-icon>
+          <QyIcon name="DocumentCopy"  />
           插入到编辑器
         </el-button>
         <el-button size="small" @click="handleCopyResult">
-          <el-icon><CopyDocument /></el-icon>
+          <QyIcon name="CopyDocument"  />
           复制
         </el-button>
       </div>
@@ -201,14 +201,7 @@ import { ref, computed } from 'vue'
 import { useWriterStore } from '../../stores/writerStore'
 // @ts-ignore - TypeScript 服务器可能需要重启才能识别新类型
 import type { Character, Location } from '@/types/writer'
-import {
-  InfoFilled,
-  MagicStick,
-  Document,
-  DocumentCopy,
-  CopyDocument,
-  Refresh
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { ElMessage } from 'element-plus'
 
 const emit = defineEmits<{

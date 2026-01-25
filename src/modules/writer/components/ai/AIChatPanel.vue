@@ -3,7 +3,7 @@
     <!-- 聊天消息列表 -->
     <div ref="messagesContainer" class="messages-container">
       <div v-if="chatHistory.length === 0" class="empty-state">
-        <el-icon class="empty-icon"><ChatLineSquare /></el-icon>
+        <el-icon class="empty-icon"><QyIcon name="ChatLineSquare"  /></el-icon>
         <p>开始与AI对话</p>
         <p class="hint">你可以询问写作建议、情节构思、角色设定等</p>
       </div>
@@ -15,7 +15,7 @@
         :class="[`message-${message.role}`]"
       >
         <div class="message-avatar">
-          <el-icon v-if="message.role === 'user'"><User /></el-icon>
+          <el-icon v-if="message.role === 'user'"><QyIcon name="User"  /></el-icon>
           <el-icon v-else><MagicStick /></el-icon>
         </div>
 
@@ -32,7 +32,7 @@
       <!-- 加载状态 -->
       <div v-if="isProcessing" class="message-item message-assistant">
         <div class="message-avatar">
-          <el-icon><MagicStick /></el-icon>
+          <QyIcon name="MagicStick"  />
         </div>
         <div class="message-content">
           <div class="typing-indicator">
@@ -89,13 +89,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { marked } from 'marked'
-import {
-  ChatLineSquare,
-  User,
-  MagicStick,
-  Promotion,
-  Delete
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { ChatMessage } from '../../../../types/ai'
 
 interface Props {

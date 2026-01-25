@@ -74,7 +74,7 @@
               </el-button>
               <el-dropdown @command="(cmd) => handleAction(cmd, row)">
                 <el-button size="small" text>
-                  <el-icon><MoreFilled /></el-icon>
+                  <QyIcon name="MoreFilled"  />
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -160,11 +160,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
-import {
-  Refresh,
-  Plus,
-  MoreFilled
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { AIProvider } from '../types/ai-admin.types'
 
 const router = useRouter()
