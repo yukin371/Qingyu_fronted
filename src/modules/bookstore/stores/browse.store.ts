@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import type { BookBrief } from '@/types/models'
 import type { BrowseFilters } from '@/types/models'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
+import { browseService } from '../services/browse.service'
 
 export const useBrowseStore = defineStore('browse', () => {
   const router = useRouter()
@@ -80,6 +81,30 @@ export const useBrowseStore = defineStore('browse', () => {
     router.replace({ query })
   }
 
+  // Data fetching
+  const fetchBooks = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await browseService.getBooks(filters)
+
+      books.value = response.data.books
+      pagination.total = response.data.total
+      pagination.hasMore = pagination.total > filters.page * filters.pageSize
+
+      // 清除之前的错误
+      error.value = null
+    } catch (err) {
+      error.value = err as Error
+      books.value = []
+      pagination.total = 0
+      pagination.hasMore = false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     books,
@@ -94,6 +119,7 @@ export const useBrowseStore = defineStore('browse', () => {
     updateFilters,
     resetFilters,
     syncFiltersFromURL,
-    syncFiltersToURL
+    syncFiltersToURL,
+    fetchBooks
   }
 })

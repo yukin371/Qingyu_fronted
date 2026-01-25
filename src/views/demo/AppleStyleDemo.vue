@@ -273,6 +273,13 @@ onBeforeUnmount(() => {
          </div>
       </div>
 
+      <!-- 主题切换器 -->
+      <div class="flex justify-center">
+        <div class="bg-white/60 backdrop-blur-xl border border-white/50 rounded-2xl px-6 py-4 shadow-sm">
+          <ThemeSwitcher />
+        </div>
+      </div>
+
       <!-- 分类筛选 (保持原样) -->
       <div class="flex items-center space-x-2 overflow-x-auto py-2 no-scrollbar touch-pan-x">
         <button v-for="cat in CATEGORIES" :key="cat.id" @click="selectCategory(cat.id)"
