@@ -280,6 +280,36 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <!-- 主题色示例（使用 CSS 变量，展示主题切换效果） -->
+      <div class="bg-white/60 backdrop-blur-xl border border-white/50 rounded-3xl p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">主题色示例</h3>
+        <div class="flex flex-wrap gap-4">
+          <!-- 主色按钮 -->
+          <button class="px-4 py-2 rounded-lg text-white font-medium transition-all" :style="{ backgroundColor: 'var(--color-primary-600)' }">
+            主按钮
+          </button>
+          <!-- 辅助色按钮 -->
+          <button class="px-4 py-2 rounded-lg text-white font-medium transition-all" :style="{ backgroundColor: 'var(--color-secondary-600)' }">
+            辅助按钮
+          </button>
+          <!-- 渐变背景 -->
+          <div class="px-4 py-2 rounded-lg text-white font-medium transition-all" :style="{ backgroundImage: 'linear-gradient(to right, var(--gradient-from), var(--gradient-to))' }">
+            渐变按钮
+          </div>
+          <!-- 渐变边框 -->
+          <div class="px-4 py-2 rounded-lg font-medium border-2 transition-all" :style="{ borderColor: 'var(--color-primary-600)', color: 'var(--color-primary-600)' }">
+            边框按钮
+          </div>
+        </div>
+      </div>
+
+      <!-- 分类筛选 (保持原样) -->
+      <div class="flex justify-center">
+        <div class="bg-white/60 backdrop-blur-xl border border-white/50 rounded-2xl px-6 py-4 shadow-sm">
+          <ThemeSwitcher />
+        </div>
+      </div>
+
       <!-- 分类筛选 (保持原样) -->
       <div class="flex items-center space-x-2 overflow-x-auto py-2 no-scrollbar touch-pan-x">
         <button v-for="cat in CATEGORIES" :key="cat.id" @click="selectCategory(cat.id)"
