@@ -1,9 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { BookBrief } from '@/types/models'
 import type { BrowseFilters } from '@/types/models'
+import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 
 export const useBrowseStore = defineStore('browse', () => {
+  const router = useRouter()
   // State
   const books = ref<BookBrief[]>([])
   
@@ -65,6 +68,18 @@ export const useBrowseStore = defineStore('browse', () => {
     error.value = null
   }
 
+  // URL同步方法
+  const syncFiltersFromURL = () => {
+    const query = router.currentRoute.value.query
+    const urlFilters = queryToFilters(query as Record<string, string | string[]>)
+    updateFilters(urlFilters)
+  }
+
+  const syncFiltersToURL = () => {
+    const query = filtersToQuery(filters)
+    router.replace({ query })
+  }
+
   return {
     // State
     books,
@@ -77,6 +92,8 @@ export const useBrowseStore = defineStore('browse', () => {
     isMobile,
     // Actions
     updateFilters,
-    resetFilters
+    resetFilters,
+    syncFiltersFromURL,
+    syncFiltersToURL
   }
 })
