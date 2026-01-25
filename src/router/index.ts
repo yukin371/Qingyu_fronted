@@ -20,7 +20,7 @@ import { errorRoutes } from './error-routes' // 废弃：将由 pages/[...all].p
 // adminRoutes 已迁移到 auto-routes ✅
 // financeRoutes 已迁移到 auto-routes ✅
 // notificationRoutes 已迁移到 auto-routes ✅
-import socialRoutes from '@/modules/social/routes'
+// socialRoutes 已迁移到 auto-routes ✅
 import aiRoutes from '@/modules/ai/routes'
 
 // 新增模块路由 (暂未实现，已注释)
@@ -64,7 +64,7 @@ const moduleRoutes: RouteRecordRaw[] = [
   // adminRoutes 已迁移到 auto-routes ✅
   // financeRoutes 已迁移到 auto-routes ✅
   // notificationRoutes 已迁移到 auto-routes ✅
-  ...socialRoutes,
+  // socialRoutes 已迁移到 auto-routes ✅
   ...aiRoutes,
 
   // 新增模块路由 (暂未实现，已注释)
