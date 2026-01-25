@@ -43,7 +43,7 @@ export * from './DatePicker'
 // Form 组件
 export * from './Form'
 
-// 其他表单组件将在后续添加
-// export { Input } from './Input'
-// export { Textarea } from './Textarea'
+// 其他表单组件
+export { Input } from './Input'
+// Textarea 已经在 base/index.ts 中导出
 // export { Checkbox } from './Checkbox'

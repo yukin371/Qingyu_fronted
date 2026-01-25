@@ -51,6 +51,17 @@ const routes: RouteRecordRaw[] = [
   ...socialRoutes,
   ...aiRoutes,
 
+  // 演示页面
+  {
+    path: '/demo/apple-style',
+    name: 'demo-apple-style',
+    component: () => import('@/views/demo/AppleStyleDemo.vue'),
+    meta: {
+      title: 'Apple 风格组件演示',
+      layout: 'blank'
+    }
+  },
+
   // 新增模块路由 (暂未实现，已注释)
   // ...reviewRoutes,
   // ...discoveryRoutes,

@@ -8,10 +8,8 @@
 import { computed, inject, ref, watch } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
+import { CHECKBOX_GROUP_KEY } from './contextKey'
 import type { CheckboxProps, CheckboxEmits } from './types'
-
-// Checkbox 组上下文 Key
-const CHECKBOX_GROUP_KEY = Symbol('checkboxGroup')
 
 // 使用 CVA 定义复选框变体
 const checkboxVariants = cva(
@@ -78,13 +76,9 @@ const props = withDefaults(defineProps<CheckboxProps>(), {
 const emit = defineEmits<CheckboxEmits>()
 
 // 注入组上下文
-const groupContext = inject<{
-  modelValue: { value: string[] }
-  disabled: { value: boolean }
-  size: { value: CheckboxProps['size'] }
-  toggle: (value: string | number | boolean) => void
-  isChecked: (value: string | number | boolean) => boolean
-}>(CHECKBOX_GROUP_KEY, undefined)
+import type { CheckboxGroupContext } from './contextKey'
+
+const groupContext = inject<CheckboxGroupContext>(CHECKBOX_GROUP_KEY, undefined)
 
 // 是否在组中
 const isInGroup = computed(() => groupContext !== undefined)
@@ -183,9 +177,9 @@ const handleChange = (event: Event) => {
 const inputRef = ref<HTMLInputElement>()
 
 // 设置 indeterminate 状态
-watch([isChecked, indeterminate], ([checked, indet]) => {
-  if (inputRef.value) {
-    inputRef.value.indeterminate = indet && !checked
+watch([isChecked, indeterminate, inputRef], ([checked, indet, ref]) => {
+  if (ref) {
+    ref.indeterminate = indet && !checked
   }
 }, { immediate: true })
 </script>

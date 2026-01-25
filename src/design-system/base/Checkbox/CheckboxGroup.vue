@@ -7,10 +7,8 @@
 
 import { computed, provide, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
+import { CHECKBOX_GROUP_KEY, type CheckboxGroupContext } from './contextKey'
 import type { CheckboxGroupProps, CheckboxGroupEmits } from './types'
-
-// Checkbox 组上下文 Key
-const CHECKBOX_GROUP_KEY = Symbol('checkboxGroup')
 
 // 组件 Props
 const props = withDefaults(defineProps<CheckboxGroupProps>(), {

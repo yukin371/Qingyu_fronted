@@ -163,9 +163,9 @@ describe('Menu 组件', () => {
           icon: TestIcon,
           default: '首页',
         },
-      },
-      global: {
-        components: { TestIcon },
+        global: {
+          components: { TestIcon },
+        },
       })
 
       expect(wrapper.find('.test-icon').exists()).toBe(true)
@@ -232,9 +232,9 @@ describe('Menu 组件', () => {
             <MenuItem index="1-2">角色管理</MenuItem>
           `,
         },
-      },
-      global: {
-        components: { MenuItem },
+        global: {
+          components: { MenuItem },
+        },
       })
 
       await nextTick()
@@ -272,9 +272,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub, MenuItem },
+        global: {
+          components: { MenuSub, MenuItem },
+        },
       })
 
       const subMenu = wrapper.findComponent(MenuSub)
@@ -307,9 +307,9 @@ describe('Menu 组件', () => {
             <MenuItem index="2">角色管理</MenuItem>
           `,
         },
-      },
-      global: {
-        components: { MenuItem },
+        global: {
+          components: { MenuItem },
+        },
       })
 
       expect(wrapper.find('.menu-group-list').exists()).toBe(true)
@@ -329,9 +329,9 @@ describe('Menu 组件', () => {
             <MenuItem index="2">用户管理</MenuItem>
           `,
         },
-      },
-      global: {
-        components: { MenuItem },
+        global: {
+          components: { MenuItem },
+        },
       })
 
       const items = wrapper.findAll('.menu-item')
@@ -357,9 +357,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub, MenuItem },
+        global: {
+          components: { MenuSub, MenuItem },
+        },
       })
 
       const title = wrapper.find('.menu-sub-title')
@@ -384,9 +384,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub, MenuItem },
+        global: {
+          components: { MenuSub, MenuItem },
+        },
       })
 
       const title = wrapper.find('.menu-sub-title')
@@ -437,9 +437,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub },
+        global: {
+          components: { MenuSub },
+        },
       })
 
       // 验证组件正确渲染
@@ -463,9 +463,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub },
+        global: {
+          components: { MenuSub },
+        },
       })
 
       // 验证组件正确渲染
@@ -535,9 +535,9 @@ describe('Menu 组件', () => {
             <MenuItem index="2">用户管理</MenuItem>
           `,
         },
-      },
-      global: {
-        components: { MenuItem },
+        global: {
+          components: { MenuItem },
+        },
       })
 
       await wrapper.setProps({ defaultActive: '2' })
@@ -562,9 +562,9 @@ describe('Menu 组件', () => {
             </MenuSub>
           `,
         },
-      },
-      global: {
-        components: { MenuSub },
+        global: {
+          components: { MenuSub },
+        },
       })
 
       await wrapper.setProps({ defaultOpeneds: ['1', '2'] })

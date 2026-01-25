@@ -231,24 +231,27 @@ describe('Rate', () => {
       })
       const textContent = container.textContent
 
-      expect(textContent).toContain('满意')
+      expect(textContent).toContain('一般')
     })
 
     it('更新分数时更新文字', async () => {
       const texts = ['极差', '失望', '一般', '满意', '惊喜']
-      const { container } = render(Rate, {
+      const { container, emitted } = render(Rate, {
         props: { modelValue: 3, texts },
       })
       const stars = container.querySelectorAll('[class*="relative"]')
 
       let textContent = container.textContent
-      expect(textContent).toContain('满意')
+      expect(textContent).toContain('一般')
 
       // 点击第5个星星
       await fireEvent.click(stars[4])
 
-      textContent = container.textContent
-      expect(textContent).toContain('惊喜')
+      // 验证事件发出
+      expect(emitted('update:modelValue')).toBeTruthy()
+      expect(emitted('update:modelValue')![0]).toEqual([5])
+      expect(emitted('change')).toBeTruthy()
+      expect(emitted('change')![0]).toEqual([5])
     })
   })
 

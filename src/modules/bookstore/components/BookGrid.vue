@@ -87,8 +87,8 @@
     </div>
 
     <!-- 空状态 -->
-    <div v-if="!loading && displayBooks.length === 0" class="empty-wrapper">
-      <el-empty :description="emptyText" :image-size="100" />
+    <div v-if="!loading && displayBooks.length === 0" class="empty-state">
+      <el-empty :image-size="80" :description="emptyText" />
     </div>
   </div>
 </template>
@@ -220,22 +220,30 @@ const formatNumber = (num) => {
   width: 100%;
 }
 
-/* 卡片通用样式 */
+/* 卡片通用样式 - Apple 风格 */
 .book-card {
   position: relative;
-  border-radius: 16px;
-  /* 更大的圆角 */
+  border-radius: 24px;
+  /* Apple 风格大圆角 */
   background: #fff;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 
-  /* 默认状态下几乎不可见的阴影，保持干净 */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  /* 多层精致阴影 - Apple 风格 */
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.06);
 
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px) scale(1.01);
+    /* 悬浮时更明显的多层阴影 */
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.04),
+      0 8px 16px rgba(0, 0, 0, 0.08),
+      0 16px 32px rgba(0, 0, 0, 0.10);
 
     .cover-wrapper .book-cover {
       transform: scale(1.08);
@@ -255,6 +263,7 @@ const formatNumber = (num) => {
   /* 锁定黄金比例，防止图片拉伸或参差不齐 */
   overflow: hidden;
   background-color: #f5f7fa;
+  border-radius: 20px 20px 0 0; /* 匹配卡片顶部圆角 */
 
   .book-cover {
     width: 100%;
@@ -406,7 +415,7 @@ const formatNumber = (num) => {
   }
 }
 
-.empty-wrapper {
+.empty-state {
   padding: 60px 0;
   text-align: center;
 }

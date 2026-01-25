@@ -379,7 +379,6 @@ export const DynamicTabs: Story = {
   render: () => ({
     components: { Tabs, TabPane },
     setup() {
-      const { ref } = require('vue')
       const activeTab = ref('1')
       const tabs = ref([
         { name: '1', label: 'Tab 1', content: 'Content 1' },

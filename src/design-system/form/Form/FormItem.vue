@@ -5,7 +5,7 @@
  * 表单项组件，负责显示标签、管理验证状态和错误信息
  */
 
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import type { FormContext, FormItemEmits, FormItemInstance, FormItemProps, FormRule } from './types'
 import { formItemDefaults } from './types'
 
@@ -308,6 +308,17 @@ watch(
   },
   { deep: true }
 )
+
+// 创建 FormItem 上下文，提供给子组件
+const formItemContext = {
+  fieldValue,
+  updateValue: (value: any) => {
+    setValue(value)
+  },
+}
+
+// 向子组件提供 FormItem 上下文
+provide('FormItemContext', formItemContext)
 
 // 组件挂载时注册到表单
 onMounted(() => {

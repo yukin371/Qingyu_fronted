@@ -536,7 +536,8 @@ describe('Affix 组件', () => {
       })
 
       await wrapper.setProps({ offset: 100 })
-      expect(wrapper.vm.offset).toBe(100)
+      await nextTick()
+      expect(wrapper.props('offset')).toBe(100)
     })
 
     it('position 变化应该响应式更新', async () => {
@@ -547,7 +548,8 @@ describe('Affix 组件', () => {
       })
 
       await wrapper.setProps({ position: 'bottom' })
-      expect(wrapper.vm.position).toBe('bottom')
+      await nextTick()
+      expect(wrapper.props('position')).toBe('bottom')
     })
 
     it('zIndex 变化应该响应式更新', async () => {
@@ -558,12 +560,13 @@ describe('Affix 组件', () => {
       })
 
       await wrapper.setProps({ zIndex: 100 })
-      expect(wrapper.vm.zIndex).toBe(100)
+      await nextTick()
+      expect(wrapper.props('zIndex')).toBe(100)
     })
   })
 
   describe('组件卸载', () => {
-    it('卸载时应该移除滚动监听器', () => {
+    it('卸载时应该移除滚动监听器', async () => {
       const removeSpy = vi.spyOn(window, 'removeEventListener')
 
       wrapper = mount(Affix, {
@@ -572,12 +575,13 @@ describe('Affix 组件', () => {
         },
       })
 
+      await nextTick()
       wrapper.unmount()
 
       expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.any(Object))
     })
 
-    it('卸载时应该移除 resize 监听器', () => {
+    it('卸载时应该移除 resize 监听器', async () => {
       const removeSpy = vi.spyOn(window, 'removeEventListener')
 
       wrapper = mount(Affix, {
@@ -586,6 +590,7 @@ describe('Affix 组件', () => {
         },
       })
 
+      await nextTick()
       wrapper.unmount()
 
       expect(removeSpy).toHaveBeenCalledWith('resize', expect.any(Function))

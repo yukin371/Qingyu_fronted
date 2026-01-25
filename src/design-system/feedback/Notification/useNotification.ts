@@ -90,8 +90,9 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
   const {
     position = globalConfig.position,
     duration = globalConfig.duration,
-    ...props
   } = options
+
+  const props = options
 
   // 检查最大数量限制
   if (globalConfig.maxCount > 0) {

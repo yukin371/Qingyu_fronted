@@ -2,12 +2,71 @@
  * Form 和 FormItem 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { nextTick, h, defineComponent } from 'vue'
 import Form from '@/design-system/form/Form/Form.vue'
 import FormItem from '@/design-system/form/Form/FormItem.vue'
 import Input from '@/design-system/form/Input/Input.vue'
+
+// 测试辅助组件
+const TestFormComponent = defineComponent({
+  name: 'TestFormComponent',
+  props: {
+    model: {
+      type: Object,
+      required: true,
+    },
+    rules: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+  setup(props) {
+    return () => h(Form, {
+      model: props.model,
+      rules: props.rules,
+    }, {
+      default: () => [
+        h(FormItem, {
+          label: '用户名',
+          prop: 'username',
+        }, {
+          default: () => h(Input, {
+            modelValue: props.model.username,
+            'onUpdate:modelValue': (value: string) => {
+              props.model.username = value
+            },
+          }),
+        }),
+        h(FormItem, {
+          label: '邮箱',
+          prop: 'email',
+        }, {
+          default: () => h(Input, {
+            modelValue: props.model.email,
+            'onUpdate:modelValue': (value: string) => {
+              props.model.email = value
+            },
+            type: 'email',
+          }),
+        }),
+        h(FormItem, {
+          label: '密码',
+          prop: 'password',
+        }, {
+          default: () => h(Input, {
+            modelValue: props.model.password,
+            'onUpdate:modelValue': (value: string) => {
+              props.model.password = value
+            },
+            type: 'password',
+          }),
+        }),
+      ],
+    })
+  },
+})
 
 describe('Form 组件', () => {
   let wrapper: VueWrapper<any>
@@ -150,23 +209,10 @@ describe('Form 组件', () => {
         ],
       }
 
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
           rules,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -189,23 +235,10 @@ describe('Form 组件', () => {
         ],
       }
 
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
           rules,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -229,23 +262,10 @@ describe('Form 组件', () => {
         ],
       }
 
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
           rules,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -270,23 +290,10 @@ describe('Form 组件', () => {
         ],
       }
 
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
           rules,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -304,22 +311,9 @@ describe('Form 组件', () => {
       formModel.username = 'testuser'
       formModel.email = 'test@example.com'
 
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -337,19 +331,9 @@ describe('Form 组件', () => {
 
   describe('清除验证', () => {
     it('应该清除所有验证', async () => {
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-          `,
         },
       })
 
@@ -363,22 +347,9 @@ describe('Form 组件', () => {
     })
 
     it('应该清除指定字段验证', async () => {
-      wrapper = mount(Form, {
+      wrapper = mount(TestFormComponent, {
         props: {
           model: formModel,
-        },
-        global: {
-          components: { FormItem, Input },
-        },
-        slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-            <FormItem label="邮箱" prop="email">
-              <Input v-model="model.email" type="email" />
-            </FormItem>
-          `,
         },
       })
 
@@ -442,15 +413,18 @@ describe('Form 组件', () => {
           model: formModel,
           rules,
         },
-        global: {
-          components: { FormItem, Input },
-        },
         slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-          `,
+          default: () => h(FormItem, {
+            label: '用户名',
+            prop: 'username',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.username,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.username = value
+              },
+            }),
+          }),
         },
       })
 
@@ -476,15 +450,18 @@ describe('Form 组件', () => {
           model: formModel,
           rules,
         },
-        global: {
-          components: { FormItem, Input },
-        },
         slots: {
-          default: `
-            <FormItem label="用户名" prop="username">
-              <Input v-model="model.username" />
-            </FormItem>
-          `,
+          default: () => h(FormItem, {
+            label: '用户名',
+            prop: 'username',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.username,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.username = value
+              },
+            }),
+          }),
         },
       })
 
@@ -727,7 +704,7 @@ describe('FormItem 组件', () => {
 
       await nextTick()
 
-      expect(wrapper.find('.tw-form-item-error').exists()).toBe(true)
+      expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(true)
       expect(wrapper.find('.tw-form-item-error-text').text()).toBe('用户名已存在')
     })
 
@@ -760,7 +737,7 @@ describe('FormItem 组件', () => {
 
       await nextTick()
 
-      expect(wrapper.find('.tw-form-item-error').exists()).toBe(false)
+      expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(false)
     })
 
     it('应该在 inline 为 true 时应用行内样式', () => {
@@ -992,7 +969,9 @@ describe('FormItem 组件', () => {
         props: {
           label: '用户名',
           prop: 'username',
-          error: '错误信息',
+          rules: [
+            { required: true, message: '请输入用户名', trigger: 'blur' },
+          ],
         },
         global: {
           provide: {
@@ -1016,11 +995,15 @@ describe('FormItem 组件', () => {
       await nextTick()
 
       const itemRef = wrapper.vm as any
-      itemRef.clearValidation()
-
+      // 首先设置一个错误
+      itemRef.setError('错误信息')
       await nextTick()
+      expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(true)
 
-      expect(wrapper.find('.tw-form-item-error').exists()).toBe(false)
+      // 然后清除验证
+      itemRef.clearValidation()
+      await nextTick()
+      expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(false)
     })
 
     it('应该设置错误信息', async () => {
@@ -1156,10 +1139,30 @@ describe('FormItem 组件', () => {
 
   describe('事件触发', () => {
     it('应该在值改变时触发 change 事件', async () => {
-      wrapper = mount(FormItem, {
+      // 创建一个测试辅助组件
+      const TestChangeComponent = defineComponent({
+        props: ['model'],
+        setup(props, { emit }) {
+          const handleChange = (value: any) => {
+            props.model.username = value
+            emit('change', value)
+          }
+          return () => h(FormItem, {
+            label: '用户名',
+            prop: 'username',
+          }, {
+            default: () => h('input', {
+              type: 'text',
+              value: props.model.username,
+              onInput: (e: any) => handleChange(e.target.value)
+            })
+          })
+        }
+      })
+
+      wrapper = mount(TestChangeComponent, {
         props: {
-          label: '用户名',
-          prop: 'username',
+          model: formModel,
         },
         global: {
           provide: {
@@ -1180,10 +1183,14 @@ describe('FormItem 组件', () => {
         },
       })
 
-      formModel.username = 'testuser'
+      // 找到输入框并模拟输入
+      const input = wrapper.find('input')
+      await input.setValue('testuser')
       await nextTick()
 
-      expect(wrapper.emitted('change')).toBeTruthy()
+      // 检查 FormItem 是否触发了 change 事件
+      const formItem = wrapper.findComponent(FormItem)
+      expect(formItem.emitted('change')).toBeTruthy()
     })
 
     it('应该在验证通过时触发 validate 事件', async () => {
@@ -1299,18 +1306,32 @@ describe('Form 和 FormItem 集成测试', () => {
         labelWidth: '100px',
         labelPosition: 'right',
       },
-      global: {
-        components: { FormItem, Input },
-      },
       slots: {
-        default: `
-          <FormItem label="用户名" prop="username">
-            <Input v-model="model.username" />
-          </FormItem>
-          <FormItem label="邮箱" prop="email">
-            <Input v-model="model.email" type="email" />
-          </FormItem>
-        `,
+        default: () => [
+          h(FormItem, {
+            label: '用户名',
+            prop: 'username',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.username,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.username = value
+              },
+            }),
+          }),
+          h(FormItem, {
+            label: '邮箱',
+            prop: 'email',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.email,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.email = value
+              },
+              type: 'email',
+            }),
+          }),
+        ],
       },
     })
 
@@ -1334,18 +1355,32 @@ describe('Form 和 FormItem 集成测试', () => {
         rules,
         labelWidth: '100px',
       },
-      global: {
-        components: { FormItem, Input },
-      },
       slots: {
-        default: `
-          <FormItem label="用户名" prop="username">
-            <Input v-model="model.username" />
-          </FormItem>
-          <FormItem label="邮箱" prop="email">
-            <Input v-model="model.email" type="email" />
-          </FormItem>
-        `,
+        default: () => [
+          h(FormItem, {
+            label: '用户名',
+            prop: 'username',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.username,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.username = value
+              },
+            }),
+          }),
+          h(FormItem, {
+            label: '邮箱',
+            prop: 'email',
+          }, {
+            default: () => h(Input, {
+              modelValue: formModel.email,
+              'onUpdate:modelValue': (value: string) => {
+                formModel.email = value
+              },
+              type: 'email',
+            }),
+          }),
+        ],
       },
     })
 
@@ -1354,7 +1389,7 @@ describe('Form 和 FormItem 集成测试', () => {
 
     await nextTick()
 
-    expect(wrapper.find('.tw-form-item-error').exists()).toBe(true)
+    expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(true)
   })
 
   it('应该在表单重置时清除所有错误信息', async () => {
@@ -1370,15 +1405,18 @@ describe('Form 和 FormItem 集成测试', () => {
         rules,
         labelWidth: '100px',
       },
-      global: {
-        components: { FormItem, Input },
-      },
       slots: {
-        default: `
-          <FormItem label="用户名" prop="username">
-            <Input v-model="model.username" />
-          </FormItem>
-        `,
+        default: () => h(FormItem, {
+          label: '用户名',
+          prop: 'username',
+        }, {
+          default: () => h(Input, {
+            modelValue: formModel.username,
+            'onUpdate:modelValue': (value: string) => {
+              formModel.username = value
+            },
+          }),
+        }),
       },
     })
 
@@ -1387,12 +1425,12 @@ describe('Form 和 FormItem 集成测试', () => {
 
     await nextTick()
 
-    expect(wrapper.find('.tw-form-item-error').exists()).toBe(true)
+    expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(true)
 
     formRef.resetFields()
 
     await nextTick()
 
-    expect(wrapper.find('.tw-form-item-error').exists()).toBe(false)
+    expect(wrapper.find('.tw-form-item-error-text').exists()).toBe(false)
   })
 })

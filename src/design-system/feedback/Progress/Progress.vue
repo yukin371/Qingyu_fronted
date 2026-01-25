@@ -341,219 +341,217 @@ watch(() => props.percentage, (newVal) => {
 </template>
 
 <style scoped>
-.qy-progress {
-  &__outer {
-    display: flex;
-    align-items: center;
-    width: 100%;
-  }
+.qy-progress__outer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
 
-  &__bar {
-    flex: 1;
-    position: relative;
-    margin-right: auto;
-  }
+.qy-progress__bar {
+  flex: 1;
+  position: relative;
+  margin-right: auto;
+}
 
-  &__bar-outer {
-    width: 100%;
-    height: 100%;
-    background-color: rgb(226 232 240);
-    border-radius: 9999px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
+.qy-progress__bar-outer {
+  width: 100%;
+  height: 100%;
+  background-color: rgb(226 232 240);
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
 
-  &__bar-outer--success {
-    background-color: rgb(209 250 229);
-  }
+.qy-progress__bar-outer--success {
+  background-color: rgb(209 250 229);
+}
 
-  &__bar-outer--exception {
-    background-color: rgb(254 226 226);
-  }
+.qy-progress__bar-outer--exception {
+  background-color: rgb(254 226 226);
+}
 
-  &__bar-outer--warning {
-    background-color: rgb(253 230 138);
-  }
+.qy-progress__bar-outer--warning {
+  background-color: rgb(253 230 138);
+}
 
-  &__bar-inner {
-    height: 100%;
-    border-radius: 9999px;
-    transition: width 0.3s ease, background-color 0.3s ease;
-    position: relative;
-    background-color: rgb(59 130 246);
-  }
+.qy-progress__bar-inner {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  position: relative;
+  background-color: rgb(59 130 246);
+}
 
-  &__bar-inner--animated {
-    animation: progress-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
+.qy-progress__bar-inner--animated {
+  animation: progress-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 
-  &__bar-inner--striped {
-    background-image: linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.15) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(255, 255, 255, 0.15) 75%,
-      transparent 75%,
-      transparent
-    );
-    background-size: 1rem 1rem;
-  }
+.qy-progress__bar-inner--striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
 
-  &__bar-inner--flow {
-    animation: progress-stripe-flow 1s linear infinite;
-  }
+.qy-progress__bar-inner--flow {
+  animation: progress-stripe-flow 1s linear infinite;
+}
 
-  &__text {
-    margin-left: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(71 85 105);
-    white-space: nowrap;
-  }
+.qy-progress__text {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(71 85 105);
+  white-space: nowrap;
+}
 
-  &__text--inner {
-    color: white;
-    margin-left: 0;
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+.qy-progress__text--inner {
+  color: white;
+  margin-left: 0;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-  &__text--success {
-    color: rgb(16 185 129);
-  }
+.qy-progress__text--success {
+  color: rgb(16 185 129);
+}
 
-  &__text--exception {
-    color: rgb(239 68 68);
-  }
+.qy-progress__text--exception {
+  color: rgb(239 68 68);
+}
 
-  &__text--warning {
-    color: rgb(245 158 11);
-  }
+.qy-progress__text--warning {
+  color: rgb(245 158 11);
+}
 
-  /* 圆形进度条 */
-  &__circle {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* 圆形进度条 */
+.qy-progress__circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  &__circle-svg {
-    transform: rotate(-90deg);
-    width: 100%;
-    height: 100%;
-  }
+.qy-progress__circle-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
 
-  &__circle-bg {
-    stroke: rgb(226 232 240);
-  }
+.qy-progress__circle-bg {
+  stroke: rgb(226 232 240);
+}
 
-  &__circle-stroke {
-    stroke: rgb(59 130 246);
-    transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
-  }
+.qy-progress__circle-stroke {
+  stroke: rgb(59 130 246);
+  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+}
 
-  &__circle-stroke--animated {
-    animation: circle-progress 1s ease-out;
-  }
+.qy-progress__circle-stroke--animated {
+  animation: circle-progress 1s ease-out;
+}
 
-  &__circle-stroke--success {
-    stroke: rgb(16 185 129);
-  }
+.qy-progress__circle-stroke--success {
+  stroke: rgb(16 185 129);
+}
 
-  &__circle-stroke--exception {
-    stroke: rgb(239 68 68);
-  }
+.qy-progress__circle-stroke--exception {
+  stroke: rgb(239 68 68);
+}
 
-  &__circle-stroke--warning {
-    stroke: rgb(245 158 11);
-  }
+.qy-progress__circle-stroke--warning {
+  stroke: rgb(245 158 11);
+}
 
-  &__circle-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: rgb(71 85 105);
-  }
+.qy-progress__circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(71 85 105);
+}
 
-  &__circle-text--success {
-    color: rgb(16 185 129);
-  }
+.qy-progress__circle-text--success {
+  color: rgb(16 185 129);
+}
 
-  &__circle-text--exception {
-    color: rgb(239 68 68);
-  }
+.qy-progress__circle-text--exception {
+  color: rgb(239 68 68);
+}
 
-  &__circle-text--warning {
-    color: rgb(245 158 11);
-  }
+.qy-progress__circle-text--warning {
+  color: rgb(245 158 11);
+}
 
-  /* 仪表盘进度条 */
-  &__dashboard {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* 仪表盘进度条 */
+.qy-progress__dashboard {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  &__dashboard-svg {
-    width: 100%;
-    height: 100%;
-  }
+.qy-progress__dashboard-svg {
+  width: 100%;
+  height: 100%;
+}
 
-  &__dashboard-bg {
-    stroke: rgb(226 232 240);
-  }
+.qy-progress__dashboard-bg {
+  stroke: rgb(226 232 240);
+}
 
-  &__dashboard-stroke {
-    stroke: rgb(59 130 246);
-    transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
-  }
+.qy-progress__dashboard-stroke {
+  stroke: rgb(59 130 246);
+  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+}
 
-  &__dashboard-stroke--animated {
-    animation: circle-progress 1s ease-out;
-  }
+.qy-progress__dashboard-stroke--animated {
+  animation: circle-progress 1s ease-out;
+}
 
-  &__dashboard-stroke--success {
-    stroke: rgb(16 185 129);
-  }
+.qy-progress__dashboard-stroke--success {
+  stroke: rgb(16 185 129);
+}
 
-  &__dashboard-stroke--exception {
-    stroke: rgb(239 68 68);
-  }
+.qy-progress__dashboard-stroke--exception {
+  stroke: rgb(239 68 68);
+}
 
-  &__dashboard-stroke--warning {
-    stroke: rgb(245 158 11);
-  }
+.qy-progress__dashboard-stroke--warning {
+  stroke: rgb(245 158 11);
+}
 
-  &__dashboard-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: rgb(71 85 105);
-  }
+.qy-progress__dashboard-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(71 85 105);
+}
 
-  &__dashboard-text--success {
-    color: rgb(16 185 129);
-  }
+.qy-progress__dashboard-text--success {
+  color: rgb(16 185 129);
+}
 
-  &__dashboard-text--exception {
-    color: rgb(239 68 68);
-  }
+.qy-progress__dashboard-text--exception {
+  color: rgb(239 68 68);
+}
 
-  &__dashboard-text--warning {
-    color: rgb(245 158 11);
-  }
+.qy-progress__dashboard-text--warning {
+  color: rgb(245 158 11);
 }
 
 @keyframes progress-pulse {

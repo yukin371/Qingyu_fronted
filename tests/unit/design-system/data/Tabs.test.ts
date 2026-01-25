@@ -83,6 +83,9 @@ describe('Tabs 组件', () => {
 
     it('应该正确更新 modelValue', async () => {
       const wrapper = mount(Tabs, {
+        props: {
+          modelValue: '1',
+        },
         global: {
           components: { TabPane },
         },
@@ -94,14 +97,19 @@ describe('Tabs 组件', () => {
         },
       })
 
-      wrapper.vm.currentName.value = '2'
-      await wrapper.vm.$nextTick()
+      // 直接调用 handleTabClick 方法来切换标签
+      const pane = wrapper.vm.panes[1]
+      await wrapper.vm.handleTabClick(pane, new MouseEvent('click'))
+
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')![0]).toEqual(['2'])
     })
 
     it('应该触发 tabChange 事件', async () => {
       const wrapper = mount(Tabs, {
+        props: {
+          modelValue: '1',
+        },
         global: {
           components: { TabPane },
         },
@@ -113,8 +121,10 @@ describe('Tabs 组件', () => {
         },
       })
 
-      wrapper.vm.currentName.value = '2'
-      await wrapper.vm.$nextTick()
+      // 直接调用 handleTabClick 方法来切换标签
+      const pane = wrapper.vm.panes[1]
+      await wrapper.vm.handleTabClick(pane, new MouseEvent('click'))
+
       expect(wrapper.emitted('tabChange')).toBeTruthy()
       expect(wrapper.emitted('tabChange')![0]).toEqual(['2'])
     })

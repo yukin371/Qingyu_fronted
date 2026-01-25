@@ -8,6 +8,7 @@
 import { computed, inject, onMounted, onUnmounted } from 'vue'
 import { cn } from '../../utils/cn'
 import type { StepEmits, StepProps } from './types'
+import { STEPS_KEY, type StepsContext } from './constants'
 
 // 组件 Props
 const props = withDefaults(defineProps<StepProps>(), {
@@ -18,8 +19,7 @@ const props = withDefaults(defineProps<StepProps>(), {
 const emit = defineEmits<StepEmits>()
 
 // 注入 Steps 上下文
-const STEPS_KEY = Symbol('stepsKey')
-const stepsContext = inject(STEPS_KEY, {
+const stepsContext = inject<StepsContext>(STEPS_KEY, {
   currentStep: { value: 0 },
   direction: { value: 'horizontal' },
   simple: { value: false },

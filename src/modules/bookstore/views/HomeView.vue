@@ -47,14 +47,18 @@
         </div>
 
         <div class="hero-banner animate-up delay-1">
-          <Skeleton width="100%" height="400px" :loading="loading" animated variant="image">
-            <div class="banner-wrapper">
-              <BannerCarousel :banners="banners" height="420px" indicator-position="none"
-                @banner-click="handleBannerClick" class="premium-carousel" />
-              <!-- 装饰性光晕 -->
-              <div class="glow-effect"></div>
-            </div>
-          </Skeleton>
+          <!-- Loading state -->
+          <div v-if="loading" class="banner-skeleton"
+               style="width: 100%; height: 400px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
+          </div>
+
+          <!-- Content -->
+          <div v-else class="banner-wrapper">
+            <BannerCarousel :banners="banners" height="420px" indicator-position="none"
+              @banner-click="handleBannerClick" class="premium-carousel" />
+            <!-- 装饰性光晕 -->
+            <div class="glow-effect"></div>
+          </div>
         </div>
       </section>
 
@@ -119,12 +123,42 @@
 
         <!-- 年度精选 -->
         <section class="section-block featured-section animate-on-scroll">
-          <!-- ...保持原有结构，样式会在下方 CSS 中优化... -->
           <div class="section-header">
             <h2 class="section-title">年度精选 <span class="title-en">Featured</span></h2>
           </div>
-          <div class="featured-layout">
-            <!-- ... -->
+          <div class="featured-layout" v-if="!loading">
+            <!-- 左侧：主打推荐 -->
+            <div class="featured-highlight" @click="handleBookClick(featuredBooks[0])" v-if="featuredBooks[0]">
+              <div class="image-wrapper">
+                <Image :src="featuredBooks[0].cover || featuredBooks[0].coverUrl" fit="cover">
+                  <template #error>
+                    <div class="image-placeholder">
+                      <Icon name="photo" size="xl" />
+                    </div>
+                  </template>
+                </Image>
+              </div>
+              <div class="highlight-info">
+                <div class="badge">年度推荐</div>
+                <h3 class="highlight-title">{{ featuredBooks[0].title }}</h3>
+                <p class="highlight-author">{{ featuredBooks[0].author }}</p>
+              </div>
+            </div>
+            <!-- 右侧：精选网格 -->
+            <div class="featured-grid">
+              <BookGrid 
+                :books="featuredBooks.slice(1)" 
+                :loading="loading"
+                :max-items="4"
+                :grid-cols="2"
+                @book-click="handleBookClick" 
+              />
+            </div>
+          </div>
+          <!-- 骨架屏 -->
+          <div v-else class="featured-skeleton">
+            <div class="skeleton-highlight"></div>
+            <div class="skeleton-grid"></div>
           </div>
         </section>
 
@@ -191,8 +225,9 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { Button, Input, Divider, Skeleton, Image } from '@/design-system'
-import Icon from '@/design-system'
+import { Button, Divider, Image } from '@/design-system'
+import { Icon } from '@/design-system'
+import { Input } from '@/design-system'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
@@ -204,7 +239,6 @@ export default {
     Button,
     Input,
     Divider,
-    Skeleton,
     Image,
     Icon
   },
@@ -775,6 +809,47 @@ export default {
   }
 }
 
+/* 年度精选骨架屏 */
+.featured-skeleton {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 30px;
+  height: 400px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .skeleton-highlight {
+    height: 400px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+
+    @media (max-width: 900px) {
+      height: 220px;
+    }
+  }
+
+  .skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+
+    &::before,
+    &::after {
+      content: '';
+      aspect-ratio: 2 / 3;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+  }
+}
+
 /* 猜你喜欢 (Masonry Grid) 适配 */
 .masonry-grid {
   display: grid;
@@ -977,5 +1052,10 @@ export default {
       }
     }
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

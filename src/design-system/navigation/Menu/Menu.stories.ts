@@ -42,6 +42,15 @@ const meta = {
       description: '激活文字颜色',
     },
   },
+  args: {
+    mode: 'vertical',
+    defaultActive: '',
+    collapse: false,
+    uniqueOpened: false,
+    backgroundColor: undefined,
+    textColor: undefined,
+    activeTextColor: undefined,
+  },
 } satisfies Meta<typeof Menu>
 
 export default meta

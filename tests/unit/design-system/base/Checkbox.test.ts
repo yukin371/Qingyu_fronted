@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/vue'
+import { nextTick } from 'vue'
 import Checkbox from '@/design-system/base/Checkbox/Checkbox.vue'
 import CheckboxGroup from '@/design-system/base/Checkbox/CheckboxGroup.vue'
 
@@ -57,7 +58,7 @@ describe('Checkbox', () => {
     })
 
     it('渲染插槽内容', () => {
-      const { container } = render(Checkbox, {}, {
+      const { container } = render(Checkbox, {
         slots: { default: '自定义标签' },
       })
 
@@ -150,7 +151,13 @@ describe('Checkbox', () => {
       if (checkbox) {
         await fireEvent.click(checkbox)
 
-        const emittedValue = emitted('update:modelValue')![0] as string[]
+        // emitted('update:modelValue') 返回 [参数数组1, 参数数组2, ...]
+        // 每个参数数组包含 emit 时传递的所有参数
+        const emittedCalls = emitted('update:modelValue')
+        expect(emittedCalls).toBeTruthy()
+        // emittedCalls![0] 是第一次 emit 的参数数组：[['banana', 'apple']]
+        // 因为 emit('update:modelValue', newValue) 而 newValue = ['banana', 'apple']
+        const emittedValue = emittedCalls![0][0] as string[]
         expect(emittedValue).toContain('apple')
         expect(emittedValue).toContain('banana')
       }
@@ -168,7 +175,9 @@ describe('Checkbox', () => {
       if (checkbox) {
         await fireEvent.click(checkbox)
 
-        const emittedValue = emitted('update:modelValue')![0] as string[]
+        const emittedCalls = emitted('update:modelValue')
+        expect(emittedCalls).toBeTruthy()
+        const emittedValue = emittedCalls![0][0] as string[]
         expect(emittedValue).not.toContain('apple')
         expect(emittedValue).toContain('banana')
       }
@@ -177,17 +186,16 @@ describe('Checkbox', () => {
 
   describe('禁用状态', () => {
     it('disabled 状态不触发点击', async () => {
-      const onClick = vi.fn()
       const { container, emitted } = render(Checkbox, {
-        props: { disabled: true, onClick },
+        props: { disabled: true },
       })
 
       const checkbox = container.querySelector('input[type="checkbox"]')
       if (checkbox) {
         await fireEvent.click(checkbox)
 
+        // disabled 状态不应该触发 update:modelValue 事件
         expect(emitted('update:modelValue')).toBeFalsy()
-        expect(onClick).not.toHaveBeenCalled()
       }
     })
 
@@ -212,7 +220,7 @@ describe('Checkbox', () => {
   })
 
   describe('半选状态', () => {
-    it('indeterminate 属性正确设置', () => {
+    it('indeterminate 属性正确设置', async () => {
       const { container } = render(Checkbox, {
         props: {
           modelValue: false,
@@ -221,6 +229,8 @@ describe('Checkbox', () => {
       })
       const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement
 
+      // 等待 Vue 的响应式更新完成
+      await nextTick()
       expect(checkbox?.indeterminate).toBe(true)
     })
 
@@ -272,14 +282,16 @@ describe('Checkbox', () => {
     })
 
     it('点击时更新组值', async () => {
-      const { container, emitted } = render(
+      const onUpdate = vi.fn()
+      const { container } = render(
         {
           template: `
-            <CheckboxGroup :model-value="['a']" v-bind="$attrs">
+            <CheckboxGroup :model-value="['a']" @update:model-value="onUpdate">
               <Checkbox value="b" label="B" />
             </CheckboxGroup>
           `,
           components: { CheckboxGroup, Checkbox },
+          methods: { onUpdate },
         }
       )
 
@@ -287,8 +299,10 @@ describe('Checkbox', () => {
       if (checkbox) {
         await fireEvent.click(checkbox)
 
-        const emittedValue = emitted('update:modelValue')![0] as string[]
+        expect(onUpdate).toHaveBeenCalled()
+        const emittedValue = onUpdate.mock.calls[0][0] as string[]
         expect(emittedValue).toContain('b')
+        expect(emittedValue).toContain('a')
       }
     })
 

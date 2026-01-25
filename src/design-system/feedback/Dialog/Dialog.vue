@@ -54,9 +54,10 @@ const props = withDefaults(defineProps<DialogProps>(), {
 const emit = defineEmits<DialogEmits>()
 
 // 内部状态
-const isVisible = ref(props.visible)
+const isVisible = ref(false)
 const isAnimating = ref(false)
 const dialogContent = ref<HTMLElement | null>(null)
+const isInitialized = ref(false) // 标记是否已完成初始化
 
 // 计算对话框容器样式类名
 const dialogClasses = computed(() =>
@@ -96,9 +97,34 @@ watch(() => props.visible, (newVal) => {
 })
 
 // 监听内部状态变化同步到父组件
-watch(isVisible, (newVal) => {
-  if (!isAnimating.value) {
+watch(isVisible, (newVal, oldVal) => {
+  // 只在初始化完成后且状态真正改变时才同步到父组件
+  if (isInitialized.value && newVal !== oldVal) {
     emit('update:visible', newVal)
+  }
+})
+
+// 监听 closeOnPressEscape 变化，动态添加/移除键盘监听
+watch(() => props.closeOnPressEscape, (newVal) => {
+  if (newVal) {
+    document.addEventListener('keydown', handleKeydown)
+  } else {
+    document.removeEventListener('keydown', handleKeydown)
+  }
+})
+
+// 初始化时处理 visible 状态
+onMounted(async () => {
+  if (props.visible) {
+    await open()
+  }
+
+  // 标记初始化完成
+  isInitialized.value = true
+
+  // 添加键盘监听
+  if (props.closeOnPressEscape) {
+    document.addEventListener('keydown', handleKeydown)
   }
 })
 
@@ -183,13 +209,6 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-// 组件挂载时添加键盘监听
-onMounted(() => {
-  if (props.closeOnPressEscape) {
-    document.addEventListener('keydown', handleKeydown)
-  }
-})
-
 // 组件卸载时移除键盘监听
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
@@ -236,7 +255,7 @@ defineExpose({
       leave-to-class="opacity-0 scale-95"
     >
       <div
-        v-if="visible"
+        v-if="isVisible"
         ref="dialogContent"
         :class="dialogClasses"
         role="dialog"
@@ -246,18 +265,20 @@ defineExpose({
       >
         <!-- 头部 -->
         <div
-          v-if="$slots.header || title"
+          v-if="$slots.header || title || $slots.footer || showClose"
           class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-700"
         >
           <div class="flex items-center gap-3">
             <slot name="header">
-              <h3
-                v-if="title"
-                id="dialog-title"
-                class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
-              >
-                {{ title }}
-              </h3>
+              <slot name="title">
+                <h3
+                  v-if="title"
+                  id="dialog-title"
+                  class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+                >
+                  {{ title }}
+                </h3>
+              </slot>
             </slot>
           </div>
           <button

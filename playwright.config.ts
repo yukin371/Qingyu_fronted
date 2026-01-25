@@ -34,9 +34,6 @@ export default defineConfig({
     // 基础URL
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
 
-    // 追踪设置（失败时记录）
-    trace: 'retain-on-failure',
-
     // 截图设置（失败时截图）
     screenshot: 'only-on-failure',
 

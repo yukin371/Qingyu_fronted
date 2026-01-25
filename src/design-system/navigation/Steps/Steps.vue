@@ -8,9 +8,7 @@
 import { computed, provide, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
 import type { StepsEmits, StepsProps } from './types'
-
-// 注入键
-const STEPS_KEY = Symbol('stepsKey')
+import { STEPS_KEY } from './constants'
 
 // 组件 Props
 const props = withDefaults(defineProps<StepsProps>(), {
@@ -70,11 +68,6 @@ provide(STEPS_KEY, {
     emit('change', index, currentStep.value)
   },
 })
-</script>
-
-<script lang="ts">
-// 导出 key 供子组件使用
-export const STEPS_KEY = Symbol('stepsKey')
 </script>
 
 <template>

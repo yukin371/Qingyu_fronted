@@ -2,6 +2,8 @@
  * ConfigProvider 全局配置组件类型定义
  */
 
+import type { InjectionKey } from 'vue'
+
 // 全局尺寸类型
 export type ConfigProviderSize = 'small' | 'medium' | 'large'
 
@@ -152,5 +154,3 @@ export interface ConfigProviderContext {
 
 // provide/inject 的键
 export const CONFIG_PROVIDER_KEY = Symbol('configProvider') as InjectionKey<ConfigProviderContext>
-
-import type { InjectionKey } from 'vue'

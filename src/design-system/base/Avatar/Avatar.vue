@@ -45,13 +45,13 @@ const showFallback = computed(() => {
 // 获取 fallback 文字（取首字母，最多两个字符）
 const fallbackText = computed(() => {
   if (!props.alt) return '?'
-  
+
   // 如果是中文字符，取第一个字
   const chineseRegex = /^[\u4e00-\u9fa5]/
   if (chineseRegex.test(props.alt)) {
     return props.alt.charAt(0).toUpperCase()
   }
-  
+
   // 英文取首字母，最多两个
   const words = props.alt.trim().split(/\s+/)
   if (words.length >= 2) {
@@ -118,7 +118,7 @@ const containerClasses = computed(() => {
 // 计算状态指示器样式类名
 const statusClasses = computed(() => {
   if (props.disableStatus || !props.status) return ''
-  
+
   return cn(
     'absolute rounded-full border-2 border-white dark:border-neutral-800',
     statusColorClasses[props.status],

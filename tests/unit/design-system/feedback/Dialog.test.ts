@@ -492,13 +492,19 @@ describe('Dialog 组件', () => {
       render(Dialog, {
         props: {
           visible: true,
+          title: '测试对话框',
           onClose,
         },
       })
 
-      const closeButton = await waitFor(() =>
-        document.querySelector('button[aria-label="关闭对话框"]')
-      )
+      // 等待对话框渲染
+      await waitFor(() => {
+        const dialog = document.querySelector('[role="dialog"]')
+        expect(dialog).toBeInTheDocument()
+      })
+
+      const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
+      expect(closeButton).toBeInTheDocument()
 
       await fireEvent.click(closeButton!)
 
@@ -562,13 +568,19 @@ describe('Dialog 组件', () => {
       const { emitted } = render(Dialog, {
         props: {
           visible: true,
+          title: '测试对话框',
           beforeClose,
         },
       })
 
-      const closeButton = await waitFor(() =>
-        document.querySelector('button[aria-label="关闭对话框"]')
-      )
+      // 等待对话框渲染
+      await waitFor(() => {
+        const dialog = document.querySelector('[role="dialog"]')
+        expect(dialog).toBeInTheDocument()
+      })
+
+      const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
+      expect(closeButton).toBeInTheDocument()
 
       await fireEvent.click(closeButton!)
 
@@ -583,13 +595,19 @@ describe('Dialog 组件', () => {
       const { emitted } = render(Dialog, {
         props: {
           visible: true,
+          title: '测试对话框',
           beforeClose,
         },
       })
 
-      const closeButton = await waitFor(() =>
-        document.querySelector('button[aria-label="关闭对话框"]')
-      )
+      // 等待对话框渲染
+      await waitFor(() => {
+        const dialog = document.querySelector('[role="dialog"]')
+        expect(dialog).toBeInTheDocument()
+      })
+
+      const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
+      expect(closeButton).toBeInTheDocument()
 
       await fireEvent.click(closeButton!)
 
@@ -609,13 +627,19 @@ describe('Dialog 组件', () => {
       render(Dialog, {
         props: {
           visible: true,
+          title: '测试对话框',
           beforeClose,
         },
       })
 
-      const closeButton = await waitFor(() =>
-        document.querySelector('button[aria-label="关闭对话框"]')
-      )
+      // 等待对话框渲染
+      await waitFor(() => {
+        const dialog = document.querySelector('[role="dialog"]')
+        expect(dialog).toBeInTheDocument()
+      })
+
+      const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
+      expect(closeButton).toBeInTheDocument()
 
       await fireEvent.click(closeButton!)
 

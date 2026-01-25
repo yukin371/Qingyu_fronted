@@ -103,10 +103,21 @@ export interface DatePickerProps {
   prefix?: string
 
   /**
+   * 后缀图标名称
+   */
+  suffix?: string
+
+  /**
    * 是否显示前缀图标
    * @default true
    */
   showPrefix?: boolean
+
+  /**
+   * 是否显示后缀图标
+   * @default false
+   */
+  showSuffix?: boolean
 
   /**
    * 自定义类名
@@ -197,6 +208,8 @@ export const datePickerDefaults: Partial<DatePickerProps> = {
   error: false,
   clearable: false,
   showPrefix: true,
+  suffix: undefined,
+  showSuffix: false,
   placement: 'bottom-start',
   showTime: false,
   timeFormat: 'HH:mm:ss',

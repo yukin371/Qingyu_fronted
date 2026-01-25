@@ -5,7 +5,7 @@
  * 树形控件组件，支持展开/收起、勾选、高亮等功能
  */
 
-import { computed, provide, ref, useSlots, watch } from 'vue'
+import { computed, provide, ref, useSlots, watch, h } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
@@ -67,41 +67,46 @@ const nodeStates = ref<TreeNodeState[]>([])
 // 初始化节点状态
 const initializeNodeStates = (nodes: TreeNode[], level: number = 0, parent: TreeNodeState | null = null): TreeNodeState[] => {
   const states: TreeNodeState[] = []
-  
+
   nodes.forEach((node) => {
     const nodeId = node.id || node.label
     const isExpanded = props.defaultExpandAll || (node.defaultExpand && !props.defaultExpandAll)
-    
+
     // 如果有默认展开的 keys，使用默认值
     if (!props.defaultExpandAll && props.defaultExpandedKeys?.includes(nodeId)) {
       expandedKeys.value.add(nodeId)
     } else if (isExpanded) {
       expandedKeys.value.add(nodeId)
     }
-    
+
     // 初始化选中状态
     if (props.defaultCheckedKeys?.includes(nodeId)) {
       checkedKeys.value.add(nodeId)
     }
-    
+
+    // 创建 Ref 对象
+    const expandedRef = ref(expandedKeys.value.has(nodeId))
+    const checkedRef = ref(checkedKeys.value.has(nodeId))
+    const indeterminateRef = ref(false)
+
     const nodeState: TreeNodeState = {
       node,
-      expanded: ref(expandedKeys.value.has(nodeId)),
-      checked: ref(checkedKeys.value.has(nodeId)),
-      indeterminate: ref(false),
+      expanded: expandedRef,
+      checked: checkedRef,
+      indeterminate: indeterminateRef,
       level,
       parent,
       children: [],
     }
-    
+
     states.push(nodeState)
-    
+
     // 递归处理子节点
     if (node.children && node.children.length > 0) {
       nodeState.children = initializeNodeStates(node.children, level + 1, nodeState)
     }
   })
-  
+
   return states
 }
 
@@ -112,6 +117,7 @@ nodeStates.value = initializeNodeStates(props.data)
 const treeClasses = computed(() =>
   cn(
     'tree',
+    treeNodeVariants({ size: props.size }),
     props.class
   )
 )
@@ -409,6 +415,8 @@ watch(() => props.data, () => {
 
 <template>
   <div :class="treeClasses">
-    {nodeStates.map((nodeState) => renderNode(nodeState))}
+    <template v-for="nodeState in nodeStates" :key="nodeState.node.id || nodeState.node.label">
+      <component :is="renderNode(nodeState)" />
+    </template>
   </div>
 </template>

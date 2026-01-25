@@ -55,6 +55,8 @@ const props = withDefaults(defineProps<DatePickerProps>(), {
   error: false,
   clearable: false,
   showPrefix: true,
+  suffix: undefined,
+  showSuffix: false,
   placement: 'bottom-start',
   showTime: false,
   timeFormat: 'HH:mm:ss',
@@ -304,7 +306,7 @@ defineExpose({
         <!-- 后缀图标/插槽和清空按钮 -->
         <div class="absolute right-0 top-0 h-full flex items-center pr-3 gap-1">
           <!-- 后缀图标/插槽 -->
-          <div v-if="suffix || slots.suffix" class="flex items-center text-slate-400">
+          <div v-if="showSuffix && (suffix || slots.suffix)" class="flex items-center text-slate-400">
             <slot name="suffix">
               <Icon :name="suffix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
             </slot>
