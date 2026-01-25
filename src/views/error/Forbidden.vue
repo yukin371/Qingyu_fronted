@@ -7,14 +7,12 @@
         抱歉，您没有权限访问此页面
       </p>
       <div class="error-actions">
-        <el-button type="primary" @click="goHome">
-          <el-icon><HomeFilled /></el-icon>
+        <QyButton variant="primary" :icon="homeIcon" @click="goHome">
           返回首页
-        </el-button>
-        <el-button @click="goToAuth">
-          <el-icon><User /></el-icon>
+        </QyButton>
+        <QyButton :icon="userIcon" @click="goToAuth">
           登录账号
-        </el-button>
+        </QyButton>
       </div>
       <div class="error-suggestion">
         <p>可能的原因：</p>
@@ -28,11 +26,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { HomeFilled, User } from '@element-plus/icons-vue'
+import { QyButton } from '@/design-system/components'
 
 const router = useRouter()
+
+// Home icon
+const homeIcon = ref('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>')
+
+// User icon
+const userIcon = ref('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>')
 
 const goHome = () => {
   router.push('/bookstore')
@@ -148,7 +153,7 @@ const goToAuth = () => {
     align-items: center;
   }
 
-  .error-actions .el-button {
+  .error-actions :deep(.qy-button) {
     width: 200px;
   }
 }
