@@ -103,4 +103,27 @@ const handleClear = () => {
     }
   }
 }
+
+@media (max-width: 640px) {
+  .search-bar {
+    max-width: 100%;
+  }
+
+  .input-wrapper {
+    padding: 10px 14px;
+    border-radius: 14px;
+
+    .search-icon {
+      margin-right: 10px;
+    }
+
+    .search-input {
+      font-size: 14px;
+    }
+
+    .clear-btn {
+      padding: 3px;
+    }
+  }
+}
 </style>
