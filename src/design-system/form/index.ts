@@ -43,7 +43,7 @@ export * from './DatePicker'
 // Form 组件
 export * from './Form'
 
-// 其他表单组件将在后续添加
-// export { Input } from './Input'
-// export { Textarea } from './Textarea'
-// export { Checkbox } from './Checkbox'
+// Input 组件
+export { Input } from './Input'
+// Textarea 组件已在 base 中导出
+// Checkbox 组件已在 base 中导出

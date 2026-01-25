@@ -191,8 +191,7 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { Button, Input, Divider, Skeleton, Image } from '@/design-system'
-import Icon from '@/design-system'
+import { Button, Input, Divider, Skeleton, Image, Icon } from '@/design-system'
 import { usePagination } from '@/composables/usePagination'
 
 export default {

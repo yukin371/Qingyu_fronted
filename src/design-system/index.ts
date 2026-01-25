@@ -30,3 +30,6 @@ export * from './other'
 
 // 工具函数
 export * from './utils/cn'
+
+// 默认导出（用于兼容 import Icon from '@/design-system'）
+export { default as Icon } from './base/Icon/Icon.vue'
