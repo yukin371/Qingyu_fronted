@@ -15,7 +15,7 @@ import { authRoutes } from './auth-routes'
 import { errorRoutes } from './error-routes' // 废弃：将由 pages/[...all].page.vue 处理
 // bookstoreRoutes 已迁移到 auto-routes ✅
 import readerRoutes from '@/modules/reader/routes'
-import userRoutes from '@/modules/user/routes'
+// userRoutes 已迁移到 auto-routes ✅
 import writerRoutes from '@/modules/writer/routes'
 import adminRoutes from '@/modules/admin/routes'
 import financeRoutes from '@/modules/finance/routes'
@@ -59,7 +59,7 @@ const manualRoutes: RouteRecordRaw[] = [
 const moduleRoutes: RouteRecordRaw[] = [
   // bookstoreRoutes 已迁移到 auto-routes ✅
   ...readerRoutes,
-  ...userRoutes,
+  // userRoutes 已迁移到 auto-routes ✅
   ...writerRoutes,
   ...adminRoutes,
   ...financeRoutes,
