@@ -7,6 +7,10 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 
+// Qingyu 全局服务
+import { message, messageBox, notification } from '@/design-system/services'
+import type { App as AppType } from 'vue'
+
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
 initTheme('qingyu')  // 初始化青羽主题
@@ -63,6 +67,20 @@ app.use(createPinia())
 // 再注册 Router，路由守卫需要访问 store
 app.use(router)
 app.use(ElementPlus)
+
+// 注册 Qingyu 全局服务（兼容 Element Plus API）
+app.config.globalProperties.$message = message
+app.config.globalProperties.$MessageBox = messageBox
+app.config.globalProperties.$notify = notification
+
+// 添加类型声明
+declare module '@vue/runtime-core' {
+  export interface ComponentCustomProperties {
+    $message: typeof message
+    $MessageBox: typeof messageBox
+    $notify: typeof notification
+  }
+}
 
 app.mount('#app')
 
