@@ -57,6 +57,10 @@ export interface Document extends BaseEntity {
   tags?: string[]
   notes?: string
 
+  // 批量操作支持字段
+  stableRef?: string  // 稳定引用（ULID），用于跨会话标识文档
+  orderKey?: string   // 排序键（LexoRank），支持精确的相对排序
+
   // 前端辅助字段（非后端返回，可选）
   children?: Document[] // 用于构建树形结构
 }

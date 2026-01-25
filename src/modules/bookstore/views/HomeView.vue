@@ -11,9 +11,7 @@
       <section class="hero-section">
         <div class="hero-content animate-up">
           <div class="brand-tag">
-            <el-icon>
-              <Reading />
-            </el-icon> 沉浸式阅读体验
+            <Icon name="book-open" size="sm" /> 沉浸式阅读体验
           </div>
           <h1 class="hero-title">青羽书城<span class="highlight">.</span></h1>
           <p class="hero-subtitle">
@@ -23,19 +21,15 @@
           <div class="hero-actions">
             <!-- 搜索框嵌入 -->
             <div class="search-wrapper">
-              <el-input placeholder="搜索书名、作者..." class="hero-search" size="large">
+              <Input placeholder="搜索书名、作者..." class="hero-search" size="lg">
                 <template #prefix>
-                  <el-icon>
-                    <Search />
-                  </el-icon>
+                  <Icon name="magnifying-glass" size="sm" />
                 </template>
-              </el-input>
+              </Input>
             </div>
-            <el-button plain round class="demo-btn" @click="goToReaderDemo">
-              体验阅读器 <el-icon class="el-icon--right">
-                <ArrowRight />
-              </el-icon>
-            </el-button>
+            <Button variant="default" rounded class="demo-btn" @click="goToReaderDemo">
+              体验阅读器 <Icon name="arrow-right" size="sm" class="ml-1" />
+            </Button>
           </div>
 
           <!-- 统计数据胶囊 -->
@@ -44,7 +38,7 @@
               <strong>{{ formatNumber(stats.totalBooks) }}</strong>
               <span>藏书</span>
             </div>
-            <el-divider direction="vertical" />
+            <Divider orientation="vertical" />
             <div class="stat-mini">
               <strong>{{ formatNumber(stats.ongoingBooks) }}</strong>
               <span>连载中</span>
@@ -53,37 +47,32 @@
         </div>
 
         <div class="hero-banner animate-up delay-1">
-          <el-skeleton style="width: 100%; height: 400px" :loading="loading" animated>
-            <template #template>
-              <el-skeleton-item variant="image" style="width: 100%; height: 100%; border-radius: 16px;" />
-            </template>
-            <template #default>
-              <div class="banner-wrapper">
-                <BannerCarousel :banners="banners" height="420px" indicator-position="none"
-                  @banner-click="handleBannerClick" class="premium-carousel" />
-                <!-- 装饰性光晕 -->
-                <div class="glow-effect"></div>
-              </div>
-            </template>
-          </el-skeleton>
+          <!-- Loading state -->
+          <div v-if="loading" class="banner-skeleton"
+               style="width: 100%; height: 400px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
+          </div>
+
+          <!-- Content -->
+          <div v-else class="banner-wrapper">
+            <BannerCarousel :banners="banners" height="420px" indicator-position="none"
+              @banner-click="handleBannerClick" class="premium-carousel" />
+            <!-- 装饰性光晕 -->
+            <div class="glow-effect"></div>
+          </div>
         </div>
       </section>
 
       <!-- 公告栏 (悬浮式) -->
       <section v-if="announcements.length > 0" class="floating-notice animate-up delay-2">
         <div class="notice-glass">
-          <el-icon class="notice-icon">
-            <Bell />
-          </el-icon>
+          <Icon name="bell" class="notice-icon" size="md" />
           <div class="notice-swiper">
             <!-- 这里可以用简单的轮播或者显示最新一条 -->
             <span>{{ announcements[0].content }}</span>
           </div>
-          <el-button link size="small" @click="announcements = []">
-            <el-icon>
-              <Close />
-            </el-icon>
-          </el-button>
+          <Button variant="text" size="sm" @click="announcements = []">
+            <Icon name="x-mark" size="sm" />
+          </Button>
         </div>
       </section>
 
@@ -122,7 +111,7 @@
               <h2 class="section-title">
                 编辑甄选 <span class="title-en">Editors' Choice</span>
               </h2>
-              <el-button text bg size="small" @click="handleViewBooks('recommended')">全部</el-button>
+              <Button variant="outline" size="sm" @click="handleViewBooks('recommended')">全部</Button>
             </div>
             <!-- 强制 Grid 组件响应式 -->
             <div class="responsive-grid-wrapper">
@@ -134,12 +123,42 @@
 
         <!-- 年度精选 -->
         <section class="section-block featured-section animate-on-scroll">
-          <!-- ...保持原有结构，样式会在下方 CSS 中优化... -->
           <div class="section-header">
             <h2 class="section-title">年度精选 <span class="title-en">Featured</span></h2>
           </div>
-          <div class="featured-layout">
-            <!-- ... -->
+          <div class="featured-layout" v-if="!loading">
+            <!-- 左侧：主打推荐 -->
+            <div class="featured-highlight" @click="handleBookClick(featuredBooks[0])" v-if="featuredBooks[0]">
+              <div class="image-wrapper">
+                <Image :src="featuredBooks[0].cover || featuredBooks[0].coverUrl" fit="cover">
+                  <template #error>
+                    <div class="image-placeholder">
+                      <Icon name="photo" size="xl" />
+                    </div>
+                  </template>
+                </Image>
+              </div>
+              <div class="highlight-info">
+                <div class="badge">年度推荐</div>
+                <h3 class="highlight-title">{{ featuredBooks[0].title }}</h3>
+                <p class="highlight-author">{{ featuredBooks[0].author }}</p>
+              </div>
+            </div>
+            <!-- 右侧：精选网格 -->
+            <div class="featured-grid">
+              <BookGrid 
+                :books="featuredBooks.slice(1)" 
+                :loading="loading"
+                :max-items="4"
+                :grid-cols="2"
+                @book-click="handleBookClick" 
+              />
+            </div>
+          </div>
+          <!-- 骨架屏 -->
+          <div v-else class="featured-skeleton">
+            <div class="skeleton-highlight"></div>
+            <div class="skeleton-grid"></div>
           </div>
         </section>
 
@@ -147,9 +166,7 @@
         <section class="section-block infinite-recommendations">
           <div class="section-header center-align">
             <h2 class="section-title">
-              <el-icon>
-                <StarFilled />
-              </el-icon> 猜你喜欢
+              <Icon name="star" solid size="md" /> 猜你喜欢
             </h2>
             <p class="section-desc">基于你的阅读偏好推荐</p>
           </div>
@@ -158,17 +175,15 @@
             <div v-for="(book, index) in recommendedItems" :key="book.id || book._id" class="premium-card"
               @click="handleBookClick(book)">
               <div class="card-image-box">
-                <el-image :src="book.cover" fit="cover" loading="lazy">
+                <Image :src="book.cover" fit="cover" loading="lazy">
                   <template #error>
                     <div class="image-placeholder">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
+                      <Icon name="photo" size="lg" />
                     </div>
                   </template>
-                </el-image>
+                </Image>
                 <div class="card-overlay">
-                  <el-button round size="small" type="primary">立即阅读</el-button>
+                  <Button variant="primary" size="sm" rounded>立即阅读</Button>
                 </div>
               </div>
               <div class="card-info">
@@ -176,9 +191,7 @@
                 <div class="book-meta-row">
                   <span class="author">{{ book.author }}</span>
                   <span class="rating">
-                    <el-icon color="#f7ba2a">
-                      <Star />
-                    </el-icon> {{ book.rating || '4.5' }}
+                    <Icon name="star" size="sm" class="text-yellow-400" /> {{ book.rating || '4.5' }}
                   </span>
                 </div>
                 <div class="tags-row" v-if="book.categoryName">
@@ -212,10 +225,9 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import {
-  Reading, Search, ArrowRight, Bell, Close,
-  Star, StarFilled, Picture
-} from '@element-plus/icons-vue'
+import { Button, Divider, Image } from '@/design-system'
+import { Icon } from '@/design-system'
+import { Input } from '@/design-system'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
@@ -224,7 +236,11 @@ export default {
     BannerCarousel,
     RankingList,
     BookGrid,
-    Reading, Search, ArrowRight, Bell, Close, Star, StarFilled, Picture
+    Button,
+    Input,
+    Divider,
+    Image,
+    Icon
   },
   setup() {
     const router = useRouter()
@@ -510,7 +526,7 @@ export default {
       flex: 1;
       max-width: 300px;
 
-      :deep(.el-input__wrapper) {
+      :deep(.input-wrapper) {
         border-radius: 30px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         padding-left: 20px;
@@ -566,8 +582,8 @@ export default {
     }
   }
 
-  .el-skeleton,
-  :deep(.el-carousel__container) {
+  .skeleton,
+  :deep(.carousel__container) {
     @media (max-width: 768px) {
       height: 240px !important;
       /* 手机端减小轮播高度 */
@@ -742,7 +758,7 @@ export default {
       height: 220px;
     }
 
-    .el-image {
+    .image-wrapper {
       width: 100%;
       height: 100%;
       transition: transform 0.5s;
@@ -778,7 +794,7 @@ export default {
       }
     }
 
-    &:hover .el-image {
+    &:hover .image-wrapper {
       transform: scale(1.05);
     }
   }
@@ -789,6 +805,47 @@ export default {
     /* 注意：这里假设 BookGrid 内部使用 grid 布局，我们需要穿透或者包裹控制 */
     :deep(.book-grid) {
       grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+}
+
+/* 年度精选骨架屏 */
+.featured-skeleton {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 30px;
+  height: 400px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .skeleton-highlight {
+    height: 400px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+
+    @media (max-width: 900px) {
+      height: 220px;
+    }
+  }
+
+  .skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+
+    &::before,
+    &::after {
+      content: '';
+      aspect-ratio: 2 / 3;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
     }
   }
 }
@@ -828,7 +885,7 @@ export default {
     height: 320px;
     overflow: hidden;
 
-    .el-image {
+    .image-wrapper {
       width: 100%;
       height: 100%;
     }
@@ -995,5 +1052,10 @@ export default {
       }
     }
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

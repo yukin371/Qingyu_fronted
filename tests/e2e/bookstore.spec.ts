@@ -62,9 +62,11 @@ test.describe('书城功能测试', () => {
       .step(builder => builder
         .addNavigationStep('/bookstore/books', page)
         .addWaitStep('.filter-bar', page)
-        .addClickStep('.el-select', page)
-        .addClickStep('.el-option:has-text("玄幻")', page)
-        .addWaitStep('.book-card', page)
+        .addClickStep('select', page)
+        .addCustomStep(async () => {
+          await page.selectOption('select', '玄幻')
+        }, '选择分类')
+        .addWaitStep('.book-card, .book-list-item', page)
       )
       .build()
   })

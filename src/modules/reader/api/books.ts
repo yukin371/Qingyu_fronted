@@ -38,12 +38,21 @@ export interface BookshelfParams {
 
 /**
  * 书架API接口 (v1.0)
- * 对接后端: /api/v1/reader/books
+ * @description 对接后端 /api/v1/reader/books 路由
+ * @endpoint /api/v1/reader/books
+ * @category reader
+ * @tags 书架管理
  */
 export const bookshelfAPI = {
   /**
    * 获取书架列表
-   * GET /api/v1/reader/books
+   * @description 获取用户的书架列表，支持按状态和排序方式筛选
+   * @endpoint GET /api/v1/reader/books
+   * @category reader
+   * @tags 书架管理
+   * @param {BookshelfParams} params - 查询参数（页码、每页数量、状态、排序方式）
+   * @response {PaginatedResponse<BookshelfBook>} 200 - 成功返回书架列表
+   * @security BearerAuth
    */
   async getBookshelf(params?: BookshelfParams): Promise<PaginatedResponse<BookshelfBook>> {
     return httpService.get<PaginatedResponse<BookshelfBook>>('/reader/books', { params })
@@ -51,7 +60,13 @@ export const bookshelfAPI = {
 
   /**
    * 获取最近阅读
-   * GET /api/v1/reader/books/recent
+   * @description 获取用户最近阅读的书籍列表
+   * @endpoint GET /api/v1/reader/books/recent
+   * @category reader
+   * @tags 书架管理
+   * @param {number} limit - 返回数量限制（默认10）
+   * @response {APIResponse<BookshelfBook[]>} 200 - 成功返回最近阅读列表
+   * @security BearerAuth
    */
   async getRecentReading(limit: number = 10): Promise<APIResponse<BookshelfBook[]>> {
     return httpService.get<APIResponse<BookshelfBook[]>>('/reader/books/recent', {
@@ -61,7 +76,15 @@ export const bookshelfAPI = {
 
   /**
    * 获取未读完的书籍
-   * GET /api/v1/reader/books/unfinished
+   * @description 获取用户未读完的书籍列表，支持分页
+   * @endpoint GET /api/v1/reader/books/unfinished
+   * @category reader
+   * @tags 书架管理
+   * @param {Object} params - 分页参数
+   * @param {number} params.page - 页码
+   * @param {number} params.pageSize - 每页数量
+   * @response {PaginatedResponse<BookshelfBook>} 200 - 成功返回未读完的书籍列表
+   * @security BearerAuth
    */
   async getUnfinishedBooks(params?: {
     page?: number
@@ -74,7 +97,15 @@ export const bookshelfAPI = {
 
   /**
    * 获取已读完的书籍
-   * GET /api/v1/reader/books/finished
+   * @description 获取用户已读完的书籍列表，支持分页
+   * @endpoint GET /api/v1/reader/books/finished
+   * @category reader
+   * @tags 书架管理
+   * @param {Object} params - 分页参数
+   * @param {number} params.page - 页码
+   * @param {number} params.pageSize - 每页数量
+   * @response {PaginatedResponse<BookshelfBook>} 200 - 成功返回已读完的书籍列表
+   * @security BearerAuth
    */
   async getFinishedBooks(params?: {
     page?: number
@@ -87,7 +118,13 @@ export const bookshelfAPI = {
 
   /**
    * 添加书籍到书架
-   * POST /api/v1/reader/books/:bookId
+   * @description 将指定书籍添加到用户的书架
+   * @endpoint POST /api/v1/reader/books/:bookId
+   * @category reader
+   * @tags 书架管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<void>} 201 - 成功添加到书架
+   * @security BearerAuth
    */
   async addToBookshelf(bookId: string): Promise<APIResponse<void>> {
     return httpService.post<APIResponse<void>>(`/reader/books/${bookId}`)
@@ -95,7 +132,13 @@ export const bookshelfAPI = {
 
   /**
    * 从书架移除书籍
-   * DELETE /api/v1/reader/books/:bookId
+   * @description 将指定书籍从用户的书架中移除
+   * @endpoint DELETE /api/v1/reader/books/:bookId
+   * @category reader
+   * @tags 书架管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<void>} 204 - 成功从书架移除
+   * @security BearerAuth
    */
   async removeFromBookshelf(bookId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/reader/books/${bookId}`)
@@ -103,7 +146,14 @@ export const bookshelfAPI = {
 
   /**
    * 更新书籍状态
-   * PUT /api/v1/reader/books/:bookId/status
+   * @description 更新书架中书籍的阅读状态
+   * @endpoint PUT /api/v1/reader/books/:bookId/status
+   * @category reader
+   * @tags 书架管理
+   * @param {string} bookId - 书籍ID
+   * @param {string} status - 阅读状态（reading: 阅读中, want_read: 想读, finished: 已读完）
+   * @response {APIResponse<void>} 200 - 成功更新书籍状态
+   * @security BearerAuth
    */
   async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<APIResponse<void>> {
     return httpService.put<APIResponse<void>>(`/reader/books/${bookId}/status`, { status })
@@ -111,7 +161,14 @@ export const bookshelfAPI = {
 
   /**
    * 批量更新书籍状态
-   * PUT /api/v1/reader/books/batch/status
+   * @description 批量更新多本书籍的阅读状态
+   * @endpoint PUT /api/v1/reader/books/batch/status
+   * @category reader
+   * @tags 书架管理
+   * @param {string[]} bookIds - 书籍ID数组
+   * @param {string} status - 阅读状态（reading: 阅读中, want_read: 想读, finished: 已读完）
+   * @response {APIResponse<{count: number}>} 200 - 成功更新，返回更新的书籍数量
+   * @security BearerAuth
    */
   async batchUpdateBookStatus(
     bookIds: string[],

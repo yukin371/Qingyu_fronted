@@ -157,10 +157,6 @@ const rules: FormRules = {
     { required: true, message: '请输入提现账户', trigger: 'blur' },
     { min: 5, max: 100, message: '账户信息长度在5-100个字符', trigger: 'blur' }
   ]
-  account: [
-    { required: true, message: '请输入提现账户', trigger: 'blur' },
-    { min: 5, max: 100, message: '账户信息长度在5-100个字符', trigger: 'blur' }
-  ]
 }
 
 // 监听 modelValue 变化

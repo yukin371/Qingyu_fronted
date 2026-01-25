@@ -23,7 +23,7 @@ export default defineConfig({
 
   // 测试报告
   reporter: [
-    ['html', { outputFolder: 'test-results/playwright-report' }],
+    ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/playwright-results.json' }],
     ['junit', { outputFile: 'test-results/playwright-junit.xml' }],
     ['list']
@@ -33,9 +33,6 @@ export default defineConfig({
   use: {
     // 基础URL
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
-
-    // 追踪设置（失败时记录）
-    trace: 'retain-on-failure',
 
     // 截图设置（失败时截图）
     screenshot: 'only-on-failure',

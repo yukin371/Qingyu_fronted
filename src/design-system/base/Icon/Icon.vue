@@ -37,6 +37,8 @@ const iconSvgMap: Record<string, { solid: string; outline: string }> = {
   star: { solid: iconsData.starIconSolidSvg, outline: iconsData.starIconOutlineSvg },
   'lock-closed': { solid: iconsData.lockClosedIconSolidSvg, outline: iconsData.lockClosedIconOutlineSvg },
   'information-circle': { solid: iconsData.informationCircleIconSolidSvg, outline: iconsData.informationCircleIconOutlineSvg },
+  'book-open': { solid: iconsData.bookOpenIconSolidSvg, outline: iconsData.bookOpenIconOutlineSvg },
+  'photo': { solid: iconsData.photoIconSolidSvg, outline: iconsData.photoIconOutlineSvg },
 }
 
 // 尺寸映射
@@ -84,13 +86,14 @@ const SvgComponent = defineComponent({
     return () => {
       if (!svgContent.value) return null
 
-      // 解析 SVG 字符串并添加类名和 aria-label
+      // 解析 SVG 字符串并添加 aria-label
       const svgWithClass = svgContent.value.replace(
         /<svg/,
-        `<svg class="${classes.value}" aria-label="${props.ariaLabel || props.name}"`
+        `<svg style="width: 100%; height: 100%;" aria-label="${props.ariaLabel || props.name}"`
       )
 
       return h('div', {
+        class: classes.value,
         innerHTML: svgWithClass,
         onClick: (e: MouseEvent) => emit('click', e),
       })

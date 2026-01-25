@@ -20,6 +20,18 @@ export interface ReorderDocumentsRequest {
   parentId?: string // 这些文档属于哪个父节点
 }
 
+export interface DuplicateDocumentRequest {
+  targetParentId?: string // 目标父文档ID
+  position: 'inner' | 'before' | 'after' // 放置位置
+  copyContent: boolean // 是否复制内容
+}
+
+export interface DuplicateDocumentResponse {
+  documentId: string
+  title: string
+  stableRef: string
+}
+
 const BASE_PROJECT_URL = '/projects'
 const BASE_DOC_URL = '/documents'
 
@@ -106,6 +118,18 @@ export const documentApi = {
    */
   reorder(projectId: string, data: ReorderDocumentsRequest) {
     return httpService.put<void>(`${BASE_PROJECT_URL}/${projectId}/documents/reorder`, data)
+  },
+
+  // ==========================================
+  // 复制操作 (Duplicate)
+  // ==========================================
+
+  /**
+   * 复制文档
+   * POST /api/v1/writer/documents/{id}/duplicate
+   */
+  duplicate(documentId: string, data: DuplicateDocumentRequest) {
+    return httpService.post<DuplicateDocumentResponse>(`/writer/documents/${documentId}/duplicate`, data)
   },
 
   // ==========================================
@@ -197,4 +221,11 @@ export const updateOutlineNode = (documentId: string, data: UpdateDocumentMetaRe
  */
 export const deleteOutlineNode = (documentId: string) => {
   return documentApi.delete(documentId)
+}
+
+/**
+ * 复制文档
+ */
+export const duplicateDocument = (documentId: string, data: DuplicateDocumentRequest) => {
+  return documentApi.duplicate(documentId, data)
 }

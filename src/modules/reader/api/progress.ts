@@ -30,13 +30,22 @@ export interface ReadingStats {
 }
 
 /**
- * 阅读 API 接口 (v1.0)
- * 对接后端: /api/v1/reader/progress
+ * 阅读进度 API 接口 (v1.0)
+ * @description 对接后端 /api/v1/reader/progress 路由
+ * @endpoint /api/v1/reader/progress
+ * @category reader
+ * @tags 阅读进度
  */
 export const progressAPI = {
   /**
    * 获取书籍阅读进度
-   * GET /api/v1/reader/progress/:bookId
+   * @description 获取指定书籍的阅读进度信息
+   * @endpoint GET /api/v1/reader/progress/:bookId
+   * @category reader
+   * @tags 阅读进度
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<ReadingProgress>} 200 - 成功返回阅读进度
+   * @security BearerAuth
    */
   async getReadingProgress(bookId: string): Promise<APIResponse<ReadingProgress>> {
     return httpService.get<APIResponse<ReadingProgress>>(`/reader/progress/${bookId}`)
@@ -44,7 +53,17 @@ export const progressAPI = {
 
   /**
    * 保存阅读进度
-   * POST /api/v1/reader/progress
+   * @description 保存或更新当前书籍的阅读进度
+   * @endpoint POST /api/v1/reader/progress
+   * @category reader
+   * @tags 阅读进度
+   * @param {Object} data - 阅读进度数据
+   * @param {string} data.bookId - 书籍ID
+   * @param {string} data.chapterId - 章节ID
+   * @param {number} data.chapterNumber - 章节序号
+   * @param {number} data.progress - 阅读进度（0-100）
+   * @response {APIResponse<void>} 201 - 成功保存阅读进度
+   * @security BearerAuth
    */
   async saveReadingProgress(data: {
     bookId: string
@@ -57,19 +76,33 @@ export const progressAPI = {
 
   /**
    * 更新阅读时长
-   * POST /api/v1/reader/progress/time
+   * @description 更新当前章节的阅读时长统计
+   * @endpoint POST /api/v1/reader/progress/time
+   * @category reader
+   * @tags 阅读进度
+   * @param {Object} data - 阅读时长数据
+   * @param {string} data.bookId - 书籍ID
+   * @param {string} data.chapterId - 章节ID
+   * @param {number} data.duration - 阅读时长（秒）
+   * @response {APIResponse<void>} 200 - 成功更新阅读时长
+   * @security BearerAuth
    */
   async updateReadingTime(data: {
     bookId: string
     chapterId: string
-    duration: number // 秒
+    duration: number
   }): Promise<APIResponse<void>> {
     return httpService.post<APIResponse<void>>('/reader/progress/time', data)
   },
 
   /**
    * 获取最近阅读
-   * GET /api/v1/reader/progress/recent
+   * @description 获取用户最近阅读的书籍列表
+   * @endpoint GET /api/v1/reader/progress/recent
+   * @category reader
+   * @tags 阅读进度
+   * @response {APIResponse<ReadingProgress[]>} 200 - 成功返回最近阅读列表
+   * @security BearerAuth
    */
   async getRecentReading(): Promise<APIResponse<ReadingProgress[]>> {
     return httpService.get<APIResponse<ReadingProgress[]>>('/reader/progress/recent')
@@ -77,7 +110,15 @@ export const progressAPI = {
 
   /**
    * 获取阅读历史
-   * GET /api/v1/reader/progress/history
+   * @description 获取用户的阅读历史记录，支持分页
+   * @endpoint GET /api/v1/reader/progress/history
+   * @category reader
+   * @tags 阅读进度
+   * @param {Object} params - 分页参数
+   * @param {number} [params.page] - 页码
+   * @param {number} [params.pageSize] - 每页数量
+   * @response {PaginatedResponse<ReadingProgress>} 200 - 成功返回阅读历史
+   * @security BearerAuth
    */
   async getReadingHistory(params?: {
     page?: number
@@ -90,7 +131,12 @@ export const progressAPI = {
 
   /**
    * 获取阅读统计
-   * GET /api/v1/reader/progress/stats
+   * @description 获取用户的阅读统计数据
+   * @endpoint GET /api/v1/reader/progress/stats
+   * @category reader
+   * @tags 阅读进度
+   * @response {APIResponse<ReadingStats>} 200 - 成功返回阅读统计
+   * @security BearerAuth
    */
   async getReadingStats(): Promise<APIResponse<ReadingStats>> {
     return httpService.get<APIResponse<ReadingStats>>('/reader/progress/stats')
@@ -98,7 +144,12 @@ export const progressAPI = {
 
   /**
    * 获取未读完的书籍
-   * GET /api/v1/reader/progress/unfinished
+   * @description 获取用户未读完的书籍列表
+   * @endpoint GET /api/v1/reader/progress/unfinished
+   * @category reader
+   * @tags 阅读进度
+   * @response {APIResponse<ReadingProgress[]>} 200 - 成功返回未读完的书籍列表
+   * @security BearerAuth
    */
   async getUnfinishedBooks(): Promise<APIResponse<ReadingProgress[]>> {
     return httpService.get<APIResponse<ReadingProgress[]>>('/reader/progress/unfinished')
@@ -106,7 +157,12 @@ export const progressAPI = {
 
   /**
    * 获取已读完的书籍
-   * GET /api/v1/reader/progress/finished
+   * @description 获取用户已读完的书籍列表
+   * @endpoint GET /api/v1/reader/progress/finished
+   * @category reader
+   * @tags 阅读进度
+   * @response {APIResponse<ReadingProgress[]>} 200 - 成功返回已读完的书籍列表
+   * @security BearerAuth
    */
   async getFinishedBooks(): Promise<APIResponse<ReadingProgress[]>> {
     return httpService.get<APIResponse<ReadingProgress[]>>('/reader/progress/finished')

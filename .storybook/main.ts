@@ -1,6 +1,9 @@
 import type { StorybookConfig } from '@storybook/vue3-vite'
 import { resolve, dirname } from 'path'
 
+// 设置环境变量，确保 vite.config.ts 正确检测到 Storybook 环境
+process.env.STORYBOOK = 'true'
+
 /**
  * Storybook 配置
  *
@@ -31,8 +34,14 @@ const config: StorybookConfig = {
   },
 
   // Vite 配置
-  async viteFinal(config) {
-    // 确保正确处理 Vue 单文件组件
+  async viteFinal(config, { configType }) {
+    // 禁用 vite-plugin-inspect 以避免与 Storybook 冲突
+    config.plugins = config.plugins?.filter((p) => {
+      if (!p) return false
+      const name = typeof p === 'string' ? p : p.name || ''
+      return !name.includes('inspect')
+    }) || []
+
     return config
   },
 }

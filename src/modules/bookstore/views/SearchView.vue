@@ -3,89 +3,85 @@
     <div class="container">
       <!-- 搜索框 -->
       <div class="search-header">
-        <el-input v-model="searchKeyword" placeholder="搜索书名、作者、标签..." size="large" clearable
+        <Input v-model="searchKeyword" placeholder="搜索书名、作者、标签..." size="lg" clearable
           @keyup.enter="handleSearch">
           <template #prepend>
-            <el-icon>
-              <Search />
-            </el-icon>
+            <Icon name="magnifying-glass" size="md" />
           </template>
           <template #append>
-            <el-button @click="handleSearch">搜索</el-button>
+            <Button @click="handleSearch">搜索</Button>
           </template>
-        </el-input>
+        </Input>
       </div>
 
       <!-- 搜索历史和热门搜索 -->
       <div v-if="!hasSearched" class="search-suggestions">
-        <el-row :gutter="20">
+        <Row :gutter="20">
           <!-- 搜索历史 -->
-          <el-col :xs="24" :sm="12">
+          <Col :xs="24" :sm="12">
             <div v-if="searchHistory.length > 0" class="suggestion-section">
               <div class="section-header">
                 <h3>搜索历史</h3>
-                <el-button text type="danger" @click="clearHistory">
-                  <el-icon>
-                    <Delete />
-                  </el-icon>
+                <Button variant="text" className="text-red-500" @click="clearHistory">
+                  <Icon name="trash" size="sm" />
                   清空
-                </el-button>
+                </Button>
               </div>
               <div class="tags-list">
-                <el-tag v-for="(item, index) in searchHistory" :key="index"
+                <Tag v-for="(item, index) in searchHistory" :key="index" clickable
                   @click="searchKeyword = item; handleSearch()" style="cursor: pointer; margin: 4px;">
                   {{ item }}
-                </el-tag>
+                </Tag>
               </div>
             </div>
-          </el-col>
+          </Col>
 
           <!-- 热门搜索 -->
-          <el-col :xs="24" :sm="12">
+          <Col :xs="24" :sm="12">
             <div class="suggestion-section">
               <div class="section-header">
                 <h3>热门搜索</h3>
               </div>
               <div class="tags-list">
-                <el-tag v-for="(item, index) in hotSearches" :key="index" :type="index < 3 ? 'danger' : 'info'"
-                  @click="searchKeyword = item; handleSearch()" style="cursor: pointer; margin: 4px;">
+                <Tag v-for="(item, index) in hotSearches" :key="index" :variant="index < 3 ? 'danger' : 'default'"
+                  @click="searchKeyword = item; handleSearch()" clickable style="cursor: pointer; margin: 4px;">
                   {{ index + 1 }}. {{ item }}
-                </el-tag>
+                </Tag>
               </div>
             </div>
-          </el-col>
-        </el-row>
+          </Col>
+        </Row>
       </div>
 
       <!-- 搜索结果 -->
       <div v-if="hasSearched" class="search-results">
         <!-- 筛选栏 -->
         <div class="filter-bar">
-          <el-row :gutter="16">
-            <el-col :xs="24" :sm="8" :md="6">
-              <el-select v-model="filters.categoryId" placeholder="分类" clearable @change="handleSearch">
-                <el-option label="全部分类" value="" />
-                <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
-              </el-select>
-            </el-col>
+          <Row :gutter="16">
+            <Col :xs="24" :sm="8" :md="6">
+              <Select v-model="filters.categoryId" placeholder="分类" clearable @change="handleSearch">
+                <option value="">全部分类</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+              </Select>
+            </Col>
 
-            <el-col :xs="24" :sm="8" :md="6">
-              <el-select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
-                <el-option label="全部状态" value="" />
-                <el-option label="连载中" value="serializing" />
-                <el-option label="已完结" value="completed" />
-              </el-select>
-            </el-col>
+            <Col :xs="24" :sm="8" :md="6">
+              <Select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
+                <option value="">全部状态</option>
+                <option value="serializing">连载中</option>
+                <option value="completed">已完结</option>
+              </Select>
+            </Col>
 
-            <el-col :xs="24" :sm="8" :md="6">
-              <el-select v-model="filters.sortBy" placeholder="排序" @change="handleSearch">
-                <el-option label="相关度" value="relevance" />
-                <el-option label="最新更新" value="updateTime" />
-                <el-option label="最高评分" value="rating" />
-                <el-option label="最多阅读" value="viewCount" />
-              </el-select>
-            </el-col>
-          </el-row>
+            <Col :xs="24" :sm="8" :md="6">
+              <Select v-model="filters.sortBy" placeholder="排序" @change="handleSearch">
+                <option value="relevance">相关度</option>
+                <option value="updateTime">最新更新</option>
+                <option value="rating">最高评分</option>
+                <option value="viewCount">最多阅读</option>
+              </Select>
+            </Col>
+          </Row>
         </div>
 
         <!-- 结果统计 -->
@@ -95,68 +91,66 @@
         </div>
 
         <!-- 结果列表 -->
-        <div v-loading="loading" class="results-list">
-          <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
-            <div class="item-cover">
-              <el-image :src="book.cover" fit="cover">
-                <template #error>
-                  <div class="image-slot">
-                    <el-icon>
-                      <Picture />
-                    </el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </div>
+        <div class="results-list">
+          <Spinner v-if="loading" :size="48" class="loading-spinner" />
 
-            <div class="item-content">
-              <h3 class="item-title" v-html="highlightKeyword(book.title)"></h3>
-              <p class="item-author">
-                <el-icon>
-                  <User />
-                </el-icon>
-                <span v-html="highlightKeyword(book.author)"></span>
-                <el-tag size="small" type="info">{{ book.categoryName }}</el-tag>
-              </p>
-
-              <div class="item-meta">
-                <span class="rating">
-                  <el-icon>
-                    <Star />
-                  </el-icon>
-                  {{ book.rating.toFixed(1) }}
-                </span>
-                <span>{{ formatNumber(book.wordCount) }}字</span>
-                <span>{{ formatNumber(book.viewCount) }}阅读</span>
-                <el-tag v-if="book.status === 'completed'" size="small" type="success">
-                  完结
-                </el-tag>
-                <el-tag v-else size="small" type="warning">
-                  连载
-                </el-tag>
+          <template v-else>
+            <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
+              <div class="item-cover">
+                <Image :src="book.cover" fit="cover">
+                  <template #error>
+                    <div class="image-slot">
+                      <Icon name="photo" size="lg" />
+                    </div>
+                  </template>
+                </Image>
               </div>
 
-              <p v-if="book.latestChapter" class="latest-chapter">
-                最新: {{ book.latestChapter }}
-              </p>
+              <div class="item-content">
+                <h3 class="item-title" v-html="highlightKeyword(book.title)"></h3>
+                <p class="item-author">
+                  <Icon name="user" size="sm" />
+                  <span v-html="highlightKeyword(book.author)"></span>
+                  <Tag size="sm" variant="info">{{ book.categoryName }}</Tag>
+                </p>
+
+                <div class="item-meta">
+                  <span class="rating">
+                    <Icon name="star" size="xs" class="text-yellow-400" />
+                    {{ book.rating.toFixed(1) }}
+                  </span>
+                  <span>{{ formatNumber(book.wordCount) }}字</span>
+                  <span>{{ formatNumber(book.viewCount) }}阅读</span>
+                  <Tag v-if="book.status === 'completed'" size="sm" variant="success">
+                    完结
+                  </Tag>
+                  <Tag v-else size="sm" variant="warning">
+                    连载
+                  </Tag>
+                </div>
+
+                <p v-if="book.latestChapter" class="latest-chapter">
+                  最新: {{ book.latestChapter }}
+                </p>
+              </div>
+
+              <div class="item-action">
+                <Button variant="primary" data-testid="read-now" @click.stop="handleStartReading(book.id)">
+                  阅读
+                </Button>
+              </div>
             </div>
 
-            <div class="item-action">
-              <el-button type="primary" data-testid="read-now" @click.stop="handleStartReading(book.id)">
-                阅读
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 空状态 -->
-          <el-empty v-if="!loading && searchResults.length === 0" description="没有找到相关书籍">
-            <el-button @click="clearSearch">清空搜索</el-button>
-          </el-empty>
+            <!-- 空状态 -->
+            <Empty v-if="searchResults.length === 0" title="没有找到相关书籍">
+              <Button @click="clearSearch">清空搜索</Button>
+            </Empty>
+          </template>
         </div>
 
         <!-- 分页 -->
         <div v-if="totalResults > 0" class="pagination">
-          <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 30, 50]"
+          <Pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 30, 50]"
             :total="totalResults" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
             @current-change="handlePageChange" />
         </div>
@@ -172,7 +166,8 @@ import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getFirstChapter } from '@/modules/reader/api'
 import { ElMessage } from 'element-plus'
-import { Search, Delete, Picture, User, Star } from '@element-plus/icons-vue'
+import { Button, Select, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
+import { Icon } from '@/design-system'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
 import { useBookstoreStore } from '../stores/bookstore.store'
 
@@ -454,7 +449,8 @@ onMounted(() => {
     border-radius: 8px;
     margin-bottom: 16px;
 
-    .el-select {
+    .select,
+    :deep(.select) {
       width: 100%;
     }
   }
@@ -478,6 +474,14 @@ onMounted(() => {
 
   .results-list {
     min-height: 400px;
+    position: relative;
+
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 20px;
+    }
 
     .result-item {
       display: flex;
@@ -500,7 +504,7 @@ onMounted(() => {
         border-radius: 4px;
         overflow: hidden;
 
-        .el-image {
+        .image-wrapper {
           width: 100%;
           height: 100%;
         }
@@ -612,7 +616,7 @@ onMounted(() => {
     .item-action {
       padding: 16px 0 0 0;
 
-      .el-button {
+      .button {
         width: 100%;
       }
     }

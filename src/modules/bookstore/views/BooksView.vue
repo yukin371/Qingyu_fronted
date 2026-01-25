@@ -9,98 +9,90 @@
 
       <!-- 筛选栏 -->
       <div class="filter-bar">
-        <el-row :gutter="16">
-          <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange">
-              <el-option label="全部分类" value="" />
-              <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
-            </el-select>
-          </el-col>
+        <Row :gutter="16">
+          <Col :xs="24" :sm="8" :md="6">
+            <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange">
+              <option value="">全部分类</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </Select>
+          </Col>
 
-          <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
-              <el-option label="全部状态" value="" />
-              <el-option label="连载中" value="serializing" />
-              <el-option label="已完结" value="completed" />
-            </el-select>
-          </el-col>
+          <Col :xs="24" :sm="8" :md="6">
+            <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
+              <option value="">全部状态</option>
+              <option value="serializing">连载中</option>
+              <option value="completed">已完结</option>
+            </Select>
+          </Col>
 
-          <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
-              <el-option label="最新更新" value="updateTime" />
-              <el-option label="最高评分" value="rating" />
-              <el-option label="最多阅读" value="viewCount" />
-              <el-option label="字数最多" value="wordCount" />
-            </el-select>
-          </el-col>
+          <Col :xs="24" :sm="8" :md="6">
+            <Select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
+              <option value="updateTime">最新更新</option>
+              <option value="rating">最高评分</option>
+              <option value="viewCount">最多阅读</option>
+              <option value="wordCount">字数最多</option>
+            </Select>
+          </Col>
 
-          <el-col :xs="24" :sm="8" :md="6">
-            <el-radio-group v-model="viewMode" size="default">
-              <el-radio-button label="grid">
-                <el-icon>
-                  <Grid />
-                </el-icon>
-              </el-radio-button>
-              <el-radio-button label="list">
-                <el-icon>
-                  <List />
-                </el-icon>
-              </el-radio-button>
-            </el-radio-group>
-          </el-col>
-        </el-row>
+          <Col :xs="24" :sm="8" :md="6">
+            <Radio.Group v-model="viewMode" size="md">
+              <Radio.Button value="grid">
+                <Icon name="squares-2x2" size="sm" />
+              </Radio.Button>
+              <Radio.Button value="list">
+                <Icon name="list" size="sm" />
+              </Radio.Button>
+            </Radio.Group>
+          </Col>
+        </Row>
       </div>
 
       <!-- 书籍列表 -->
-      <div v-loading="loading" class="books-container">
+      <div class="books-container">
+        <Spinner v-if="loading" :size="48" class="loading-spinner" />
+
         <!-- 网格视图 -->
-        <el-row v-if="viewMode === 'grid'" :gutter="20">
-          <el-col v-for="book in books" :key="book.id" :xs="12" :sm="8" :md="6" :lg="4">
+        <Row v-else-if="viewMode === 'grid'" :gutter="20">
+          <Col v-for="book in books" :key="book.id" :xs="12" :sm="8" :md="6" :lg="4">
             <div class="book-card" @click="goToDetail(book.id)">
               <div class="book-cover">
-                <el-image :src="book.cover" fit="cover">
+                <Image :src="book.cover" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <el-icon>
-                        <Picture />
-                      </el-icon>
+                      <Icon name="photo" size="lg" />
                     </div>
                   </template>
-                </el-image>
-                <el-tag v-if="book.status === 'completed'" class="status-tag" type="success" size="small">
+                </Image>
+                <Tag v-if="book.status === 'completed'" class="status-tag" variant="success" size="sm">
                   完结
-                </el-tag>
+                </Tag>
               </div>
               <div class="book-info">
                 <h4 class="book-title" :title="book.title">{{ book.title }}</h4>
                 <p class="book-author">{{ book.author }}</p>
                 <div class="book-meta">
                   <span class="rating">
-                    <el-icon>
-                      <Star />
-                    </el-icon>
+                    <Icon name="star" size="xs" class="text-yellow-400" />
                     {{ formatRating(book.rating) }}
                   </span>
                   <span class="words">{{ formatNumber(book.wordCount) }}字</span>
                 </div>
               </div>
             </div>
-          </el-col>
-        </el-row>
+          </Col>
+        </Row>
 
         <!-- 列表视图 -->
         <div v-else class="books-list">
           <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)">
             <div class="item-cover">
-              <el-image :src="book.cover" fit="cover">
+              <Image :src="book.cover" fit="cover">
                 <template #error>
                   <div class="image-slot">
-                    <el-icon>
-                      <Picture />
-                    </el-icon>
+                    <Icon name="photo" size="lg" />
                   </div>
                 </template>
-              </el-image>
+              </Image>
             </div>
             <div class="item-info">
               <h3 class="item-title">{{ book.title }}</h3>
@@ -108,61 +100,61 @@
               <p class="item-desc">{{ book.title }}</p>
               <div class="item-meta">
                 <span class="rating">
-                  <el-icon>
-                    <Star />
-                  </el-icon>
+                  <Icon name="star" size="xs" class="text-yellow-400" />
                   {{ formatRating(book.rating) }}分
                 </span>
                 <span>{{ formatNumber(book.wordCount) }}字</span>
                 <span>{{ formatNumber(book.viewCount) }}阅读</span>
-                <el-tag v-if="book.status === 'completed'" type="success" size="small">
+                <Tag v-if="book.status === 'completed'" variant="success" size="sm">
                   完结
-                </el-tag>
-                <el-tag v-else type="warning" size="small">
+                </Tag>
+                <Tag v-else variant="warning" size="sm">
                   连载
-                </el-tag>
+                </Tag>
               </div>
             </div>
             <div class="item-action">
-              <el-button type="primary">阅读</el-button>
+              <Button variant="primary">阅读</Button>
             </div>
           </div>
         </div>
 
         <!-- 空状态 - 数据库为空 -->
-        <el-empty
+        <Empty
           v-if="!loading && !error && books.length === 0"
-          description="暂无书籍数据"
+          title="暂无书籍数据"
           :image-size="200"
         >
           <template #description>
             <p class="empty-description">书库中暂无书籍</p>
             <p class="empty-hint">数据库中还没有添加任何书籍</p>
           </template>
-          <el-button type="primary" @click="loadBooks">刷新页面</el-button>
-        </el-empty>
+          <Button variant="primary" @click="loadBooks">刷新页面</Button>
+        </Empty>
 
         <!-- 错误状态 -->
-        <el-result
-          v-if="!loading && error"
-          icon="error"
-          :title="error.title"
-          :sub-title="error.message"
-        >
-          <template #extra>
-            <el-space>
-              <el-button type="primary" @click="loadBooks">重试</el-button>
-              <el-button @click="handleBackHome">返回首页</el-button>
-            </el-space>
-          </template>
-        </el-result>
+        <div v-if="!loading && error" class="error-result">
+          <Icon name="x-circle" size="64" class="error-icon" />
+          <h3 class="error-title">{{ error.title }}</h3>
+          <p class="error-message">{{ error.message }}</p>
+          <div class="error-actions">
+            <Button variant="primary" @click="loadBooks">重试</Button>
+            <Button variant="outline" @click="handleBackHome">返回首页</Button>
+          </div>
+        </div>
       </div>
 
       <!-- 分页 -->
       <div v-if="total > 0" class="pagination">
-        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[20, 40, 60, 100]"
-          :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
-          @current-change="handlePageChange" />
+        <Pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[20, 40, 60, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange"
+        />
       </div>
     </div>
   </div>
@@ -173,7 +165,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBookList } from '@/modules/bookstore/api'
 import { getAllCategories } from '@/modules/bookstore/api'
-import { Grid, List, Picture, Star } from '@element-plus/icons-vue'
+import { Button, Select, Radio, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
+import { Icon } from '@/design-system'
 import type { BookBrief, Category } from '@/types/models'
 import type { Book } from '@/types/bookstore'
 import { isEmptyData, handleError as handleApiError, isNetworkError, isPermissionError, isServerError } from '@/utils/errorHandler'
@@ -439,8 +432,10 @@ onMounted(() => {
   margin-bottom: 24px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
-  .el-select,
-  .el-radio-group {
+  .select,
+  :deep(.select),
+  .radio-group,
+  :deep(.radio-group) {
     width: 100%;
   }
 }
@@ -448,6 +443,14 @@ onMounted(() => {
 .books-container {
   min-height: 400px;
   margin-bottom: 32px;
+  position: relative;
+
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+  }
 }
 
 // 网格视图样式
@@ -470,7 +473,7 @@ onMounted(() => {
     width: 100%;
     aspect-ratio: 3/4;
 
-    .el-image {
+    .image-wrapper {
       width: 100%;
       height: 100%;
     }
@@ -543,7 +546,7 @@ onMounted(() => {
       border-radius: 4px;
       overflow: hidden;
 
-      .el-image {
+      .image-wrapper {
         width: 100%;
         height: 100%;
       }
@@ -626,29 +629,44 @@ onMounted(() => {
   margin: 0;
 }
 
-.el-result {
-  padding: 40px 20px;
+.error-result {
+  padding: 60px 20px;
+  text-align: center;
 
-  :deep(.el-result__title) {
-    font-size: 24px;
-    font-weight: 600;
+  .error-icon {
+    color: #f56c6c;
+    margin-bottom: 16px;
   }
 
-  :deep(.el-result__subtitle) {
+  .error-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #303133;
+    margin: 0 0 8px 0;
+  }
+
+  .error-message {
     font-size: 14px;
     color: #909399;
-    margin-top: 8px;
+    margin: 0 0 24px 0;
+  }
+
+  .error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
   }
 }
 
-.el-empty {
+.empty,
+:deep(.empty) {
   padding: 60px 20px;
 
-  :deep(.el-empty__description) {
+  :deep(.empty-description) {
     font-size: 14px;
   }
 
-  .el-button {
+  .button {
     margin-top: 16px;
   }
 }
@@ -667,7 +685,7 @@ onMounted(() => {
   }
 
   .filter-bar {
-    .el-col {
+    .col {
       margin-bottom: 12px;
 
       &:last-child {
@@ -694,7 +712,7 @@ onMounted(() => {
       padding: 12px 0 0 0;
       justify-content: stretch;
 
-      .el-button {
+      .button {
         width: 100%;
       }
     }

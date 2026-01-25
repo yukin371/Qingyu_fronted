@@ -66,7 +66,12 @@ export interface CheckAvailabilityResponse {
 export const sharedAuthAPI = {
   /**
    * 用户注册
-   * POST /api/v1/shared/auth/register
+   * @description 创建新用户账号，注册成功后自动登录
+   * @endpoint POST /api/v1/shared/auth/register
+   * @category auth
+   * @tags 认证相关
+   * @param {RegisterData} data - 注册数据（用户名、邮箱、密码等）
+   * @response {LoginResponse} 201 - 注册成功，返回用户信息和Token
    */
   async register(data: RegisterData): Promise<LoginResponse> {
     return httpService.post<LoginResponse>(getAuthPath('register'), data)
@@ -74,7 +79,12 @@ export const sharedAuthAPI = {
 
   /**
    * 用户登录
-   * POST /api/v1/shared/auth/login
+   * @description 使用用户名或邮箱登录系统
+   * @endpoint POST /api/v1/shared/auth/login
+   * @category auth
+   * @tags 认证相关
+   * @param {LoginCredentials} data - 登录凭证（用户名/邮箱 + 密码）
+   * @response {LoginResponse} 200 - 登录成功，返回用户信息和Token
    */
   async login(data: LoginCredentials): Promise<LoginResponse> {
     return httpService.post<LoginResponse>(getAuthPath('login'), data)
@@ -82,7 +92,12 @@ export const sharedAuthAPI = {
 
   /**
    * 用户登出
-   * POST /api/v1/shared/auth/logout
+   * @description 退出当前登录状态，使Token失效
+   * @endpoint POST /api/v1/shared/auth/logout
+   * @category auth
+   * @tags 认证相关
+   * @response {void} 200 - 登出成功
+   * @security BearerAuth
    */
   async logout(): Promise<void> {
     return httpService.post<void>(getAuthPath('logout'))
@@ -90,7 +105,12 @@ export const sharedAuthAPI = {
 
   /**
    * 刷新Token
-   * POST /api/v1/shared/auth/refresh
+   * @description 使用刷新Token获取新的访问Token
+   * @endpoint POST /api/v1/shared/auth/refresh
+   * @category auth
+   * @tags 认证相关
+   * @response {TokenRefreshResponse} 200 - 成功返回新的Token
+   * @security BearerAuth
    */
   async refreshToken(): Promise<TokenRefreshResponse> {
     return httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
@@ -98,7 +118,12 @@ export const sharedAuthAPI = {
 
   /**
    * 获取用户权限
-   * GET /api/v1/shared/auth/permissions
+   * @description 获取当前登录用户的权限列表
+   * @endpoint GET /api/v1/shared/auth/permissions
+   * @category auth
+   * @tags 认证相关
+   * @response {UserPermission[]} 200 - 成功返回权限列表
+   * @security BearerAuth
    */
   async getUserPermissions(): Promise<UserPermission[]> {
     return httpService.get<UserPermission[]>(getAuthPath('permissions'))
@@ -106,7 +131,12 @@ export const sharedAuthAPI = {
 
   /**
    * 获取用户角色
-   * GET /api/v1/shared/auth/roles
+   * @description 获取当前登录用户的角色列表
+   * @endpoint GET /api/v1/shared/auth/roles
+   * @category auth
+   * @tags 认证相关
+   * @response {UserRole[]} 200 - 成功返回角色列表
+   * @security BearerAuth
    */
   async getUserRoles(): Promise<UserRole[]> {
     return httpService.get<UserRole[]>(getAuthPath('roles'))
@@ -116,7 +146,12 @@ export const sharedAuthAPI = {
 
   /**
    * 获取用户信息
-   * GET /api/v1/users/profile
+   * @description 获取当前登录用户的详细信息
+   * @endpoint GET /api/v1/users/profile
+   * @category auth
+   * @tags 认证相关
+   * @response {UserInfoResponse} 200 - 成功返回用户信息
+   * @security BearerAuth
    */
   async getUserInfo(): Promise<{ user: UserInfo; permissions?: UserPermission[]; roles?: UserRole[] }> {
     const user = await httpService.get<UserInfo>('/user/profile')
@@ -125,7 +160,13 @@ export const sharedAuthAPI = {
 
   /**
    * 更新用户信息
-   * PUT /api/v1/users/profile
+   * @description 更新当前登录用户的资料信息
+   * @endpoint PUT /api/v1/users/profile
+   * @category auth
+   * @tags 认证相关
+   * @param {Partial<UserInfo>} data - 用户信息更新数据
+   * @response {UserInfoResponse} 200 - 成功返回更新后的用户信息
+   * @security BearerAuth
    */
   async updateUserInfo(data: Partial<UserInfo>): Promise<{ user: UserInfo }> {
     const user = await httpService.put<UserInfo>('/users/profile', data)
@@ -134,7 +175,13 @@ export const sharedAuthAPI = {
 
   /**
    * 修改密码
-   * PUT /api/v1/users/password
+   * @description 修改当前登录用户的密码
+   * @endpoint PUT /api/v1/users/password
+   * @category auth
+   * @tags 认证相关
+   * @param {PasswordChangeData} data - 密码修改数据（旧密码和新密码）
+   * @response {void} 200 - 密码修改成功
+   * @security BearerAuth
    */
   async changePassword(data: PasswordChangeData): Promise<void> {
     return httpService.put<void>('/users/password', data)
@@ -144,7 +191,12 @@ export const sharedAuthAPI = {
 
   /**
    * 检查用户名是否可用
-   * 注意：此接口后端可能未实现，返回模拟数据
+   * @description 检查用户名是否已被注册（注意：后端暂时未实现，返回模拟数据）
+   * @endpoint GET /api/v1/shared/auth/check-username
+   * @category auth
+   * @tags 认证相关
+   * @param {string} username - 待检查的用户名
+   * @response {CheckAvailabilityResponse} 200 - 返回用户名可用性
    */
   async checkUsername(username: string): Promise<CheckAvailabilityResponse> {
     // 后端暂时没有此接口，返回模拟响应
@@ -153,7 +205,12 @@ export const sharedAuthAPI = {
 
   /**
    * 检查邮箱是否可用
-   * 注意：此接口后端可能未实现，返回模拟数据
+   * @description 检查邮箱是否已被注册（注意：后端暂时未实现，返回模拟数据）
+   * @endpoint GET /api/v1/shared/auth/check-email
+   * @category auth
+   * @tags 认证相关
+   * @param {string} email - 待检查的邮箱
+   * @response {CheckAvailabilityResponse} 200 - 返回邮箱可用性
    */
   async checkEmail(email: string): Promise<CheckAvailabilityResponse> {
     // 后端暂时没有此接口，返回模拟响应
@@ -164,7 +221,12 @@ export const sharedAuthAPI = {
 
   /**
    * 发送验证码
-   * 注意：此接口后端可能未实现
+   * @description 向指定邮箱发送验证码（注意：后端暂时未实现）
+   * @endpoint POST /api/v1/shared/auth/send-verification-code
+   * @category auth
+   * @tags 认证相关
+   * @param {string} email - 接收验证码的邮箱地址
+   * @response {void} 200 - 验证码发送成功
    */
   async sendVerificationCode(email: string): Promise<void> {
     // 后端暂时没有此接口，返回空响应
@@ -173,7 +235,13 @@ export const sharedAuthAPI = {
 
   /**
    * 验证邮箱
-   * 注意：此接口后端可能未实现
+   * @description 使用验证码验证邮箱地址（注意：后端暂时未实现）
+   * @endpoint POST /api/v1/shared/auth/verify-email
+   * @category auth
+   * @tags 认证相关
+   * @param {string} data.email - 邮箱地址
+   * @param {string} data.code - 验证码
+   * @response {void} 200 - 邮箱验证成功
    */
   async verifyEmail(data: { email: string; code: string }): Promise<void> {
     // 后端暂时没有此接口，返回空响应
@@ -182,7 +250,14 @@ export const sharedAuthAPI = {
 
   /**
    * 重置密码
-   * 注意：此接口后端可能未实现
+   * @description 通过验证码重置用户密码（注意：后端暂时未实现）
+   * @endpoint POST /api/v1/shared/auth/reset-password
+   * @category auth
+   * @tags 认证相关
+   * @param {string} data.email - 邮箱地址
+   * @param {string} data.code - 验证码
+   * @param {string} data.new_password - 新密码
+   * @response {void} 200 - 密码重置成功
    */
   async resetPassword(data: { email: string; code: string; new_password: string }): Promise<void> {
     // 后端暂时没有此接口，返回空响应

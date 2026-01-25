@@ -1,13 +1,21 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import { fileURLToPath, URL } from 'node:url'
 
 // 根据环境决定是否加载 VueDevTools
-// Vitest 环境下禁用，避免兼容性问题
+// Vitest 和 Storybook 环境下禁用，避免兼容性问题
 const isTest = process.env.VITEST || process.env.NODE_ENV === 'test'
-const plugins = [vue()]
-if (!isTest) {
+const isStorybook = process.env.STORYBOOK === 'true' || process.env.npm_lifecycle_event === 'storybook'
+const plugins = [vue({
+  // 启用 JSX 支持
+  script: {
+    defineModel: true,
+    propsDestructure: true
+  }
+}), vueJsx()]
+if (!isTest && !isStorybook) {
   plugins.push(VueDevTools())
 }
 

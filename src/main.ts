@@ -7,7 +7,12 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 
+// 主题系统 - 必须在样式之前初始化
+import { initTheme } from '@/design-system/tokens/theme'
+initTheme('qingyu')  // 初始化青羽主题
+
 // 全局样式
+import './style.css'  // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
 import '@/styles/common.scss'
 
