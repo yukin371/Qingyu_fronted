@@ -31,10 +31,9 @@ function handleThemeChange(themeName: ThemeName) {
             'px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200',
             'border',
             currentTheme === option.value
-              ? 'bg-gradient-to-r text-white border-transparent'
-              : 'bg-white/80 text-slate-600 border-white/50 hover:bg-white hover:border-slate-200'
+              ? ['bg-gradient-to-r', 'text-white', 'border-transparent', option.color]
+              : ['bg-white/80', 'text-slate-600', 'border-white/50', 'hover:bg-white', 'hover:border-slate-200']
           ]"
-          :class="currentTheme === option.value ? option.color : ''"
         >
           {{ option.label }}
         </button>

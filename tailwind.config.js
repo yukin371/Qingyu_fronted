@@ -1,3 +1,6 @@
+import { getTailwindColors } from './src/design-system/tokens/theme'
+import { qingyuTheme } from './src/design-system/tokens/theme'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -7,41 +10,17 @@ export default {
   darkMode: 'class', // 支持暗色模式
   theme: {
     extend: {
-      // 语义色
+      // 语义色 - 使用青羽主题
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
-        },
-        success: {
-          light: '#34d399',
-          DEFAULT: '#10b981',
-          dark: '#059669',
-        },
-        warning: {
-          light: '#fbbf24',
-          DEFAULT: '#f59e0b',
-          dark: '#d97706',
-        },
-        danger: {
-          light: '#f87171',
-          DEFAULT: '#ef4444',
-          dark: '#dc2626',
-        },
-        info: {
-          light: '#38bdf8',
-          DEFAULT: '#0ea5e9',
-          dark: '#0284c7',
-        },
+        // 主色（青色系）
+        cyan: qingyuTheme.primary,
+        // 辅助色（蓝色系）
+        blue: qingyuTheme.secondary,
+        // 功能色
+        success: qingyuTheme.success,
+        warning: qingyuTheme.warning,
+        danger: qingyuTheme.danger,
+        info: qingyuTheme.info,
         // 中性色（Slate）
         slate: {
           50: '#f8fafc',
@@ -56,6 +35,12 @@ export default {
           900: '#0f172a',
           950: '#020617',
         },
+      },
+      // 阴影 - 使用青色投影
+      boxShadow: {
+        'glow': '0 4px 20px rgba(6, 182, 212, 0.3)',
+        'glow-strong': '0 6px 30px rgba(6, 182, 212, 0.5)',
+        'dock': '0 8px 32px rgba(0,0,0,0.12)',
       },
       // 圆角
       borderRadius: {
@@ -72,6 +57,7 @@ export default {
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce': 'bounce 1s infinite',
+        'float': 'float 7s ease-in-out infinite',
       },
     },
   },

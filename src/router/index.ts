@@ -61,6 +61,33 @@ const routes: RouteRecordRaw[] = [
       layout: 'blank'
     }
   },
+  {
+    path: '/demo/qingyu-components',
+    name: 'QingyuComponentsDemo',
+    component: () => import('@/views/demo/QingyuComponentsDemo.vue'),
+    meta: {
+      title: '青羽组件库演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/navigation-components',
+    name: 'NavigationComponentsDemo',
+    component: () => import('@/views/demo/NavigationComponentsDemo.vue'),
+    meta: {
+      title: '青羽导航组件演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/advanced-components',
+    name: 'AdvancedComponentsDemo',
+    component: () => import('@/views/demo/AdvancedComponentsDemo.vue'),
+    meta: {
+      title: '青羽高级组件演示',
+      layout: 'blank'
+    }
+  },
 
   // 新增模块路由 (暂未实现，已注释)
   // ...reviewRoutes,
