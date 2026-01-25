@@ -18,9 +18,13 @@ const bookstoreRoutes: RouteRecordRaw[] = [
       },
       {
         path: 'books',
-        name: 'books',
-        component: () => import('./views/BooksView.vue'),
-        meta: { title: '书库' }
+        redirect: '/bookstore/browse'
+      },
+      {
+        path: 'browse',
+        name: 'browse',
+        component: () => import('./views/BrowseBooksView.vue'),
+        meta: { title: '浏览书籍' }
       },
       {
         path: 'books/:id',
@@ -37,9 +41,13 @@ const bookstoreRoutes: RouteRecordRaw[] = [
       },
       {
         path: 'categories',
-        name: 'categories',
-        component: () => import('./views/CategoriesView.vue'),
-        meta: { title: '分类' }
+        redirect: to => {
+          const categoryId = to.query.id as string
+          return {
+            path: '/bookstore/browse',
+            query: categoryId ? { categoryId } : undefined
+          }
+        }
       },
       {
         path: 'rankings',
@@ -49,9 +57,10 @@ const bookstoreRoutes: RouteRecordRaw[] = [
       },
       {
         path: 'search',
-        name: 'search',
-        component: () => import('./views/SearchView.vue'),
-        meta: { title: '搜索' }
+        redirect: to => ({
+          path: '/bookstore/browse',
+          query: to.query
+        })
       }
       ,
       {
