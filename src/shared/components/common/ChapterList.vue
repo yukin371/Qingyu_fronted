@@ -4,15 +4,15 @@
         <div class="chapter-header">
             <span class="chapter-count">共 {{ chapters.length }} 章</span>
             <div class="chapter-controls">
-                <el-button v-if="showSort" text @click="toggleOrder">
+                <QyButton v-if="showSort" variant="ghost" size="small" @click="toggleOrder">
                     {{ isReversed ? '正序' : '倒序' }}
-                </el-button>
+                </QyButton>
                 <slot name="header-actions" />
             </div>
         </div>
 
         <!-- 章节列表 -->
-        <el-scrollbar :max-height="maxHeight">
+        <div class="chapter-scroll" :style="{ maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight }">
             <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item" :class="{
                 'is-active': activeChapterId === chapter.id,
                 'is-read': chapter.isRead,
@@ -27,9 +27,7 @@
                 <!-- 章节信息 -->
                 <div class="chapter-info">
                     <!-- 锁定图标 -->
-                    <el-icon v-if="!chapter.isFree" class="lock-icon">
-                        <Lock />
-                    </el-icon>
+                    <span v-if="!chapter.isFree" class="lock-icon" v-html="lockIcon"></span>
 
                     <!-- 字数 -->
                     <span v-if="showWordCount && chapter.wordCount" class="word-count">
@@ -44,15 +42,23 @@
             </div>
 
             <!-- 空状态 -->
-            <el-empty v-if="chapters.length === 0" description="暂无章节" />
-        </el-scrollbar>
+            <div v-if="chapters.length === 0" class="empty-state">
+                <div class="empty-icon" v-html="emptyIcon"></div>
+                <p class="empty-text">暂无章节</p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Lock } from '@element-plus/icons-vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
 import type { ChapterListItem } from '@/types/models'
+
+// SVG 图标
+const lockIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>'
+
+const emptyIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 80px; height: 80px; color: #c0c4cc;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>'
 
 interface Props {
     chapters: ChapterListItem[]

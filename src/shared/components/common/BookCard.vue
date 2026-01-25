@@ -2,24 +2,23 @@
     <div class="book-card" :class="{ 'is-horizontal': layout === 'horizontal' }" @click="handleClick">
         <!-- 封面 -->
         <div class="book-cover">
-            <el-image :src="book.cover" fit="cover" :alt="book.title">
-                <template #error>
-                    <div class="image-slot">
-                        <el-icon>
-                            <Picture />
-                        </el-icon>
-                    </div>
-                </template>
-            </el-image>
+            <img
+                :src="book.cover"
+                :alt="book.title"
+                class="cover-image"
+                @error="handleImageError"
+            />
 
             <!-- 状态标签 -->
-            <el-tag v-if="showStatus && book.status === 'completed'" class="status-tag" type="success" size="small">
+            <span v-if="showStatus && book.status === 'completed'" class="status-tag status-tag-success">
                 完结
-            </el-tag>
+            </span>
 
             <!-- 阅读进度 -->
             <div v-if="showProgress && progress !== undefined" class="progress-overlay">
-                <el-progress :percentage="progress" :show-text="false" :stroke-width="3" />
+                <div class="progress-bar">
+                    <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
+                </div>
             </div>
         </div>
 
@@ -31,9 +30,7 @@
             <!-- 元数据 -->
             <div v-if="showMeta" class="book-meta">
                 <span v-if="book.rating" class="rating">
-                    <el-icon>
-                        <Star />
-                    </el-icon>
+                    <span class="star-icon" v-html="starIcon"></span>
                     {{ book.rating.toFixed(1) }}
                 </span>
                 <span v-if="book.wordCount" class="word-count">
@@ -52,12 +49,8 @@
             <!-- 操作按钮 -->
             <div v-if="showActions" class="book-actions" @click.stop>
                 <slot name="actions">
-                    <el-button size="small" type="primary" @click.stop="handleRead">阅读</el-button>
-                    <el-button size="small" @click.stop="handleFavorite">
-                        <el-icon>
-                            <Star />
-                        </el-icon>
-                    </el-button>
+                    <QyButton variant="primary" size="small" @click.stop="handleRead">阅读</QyButton>
+                    <QyButton variant="ghost" size="small" :icon="starIcon" @click.stop="handleFavorite" />
                 </slot>
             </div>
         </div>
@@ -65,9 +58,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Picture, Star } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
 import type { BookBrief } from '@/types/models'
+
+// SVG 图标
+const starIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>'
 
 interface Props {
     book: BookBrief
@@ -94,6 +90,12 @@ const emit = defineEmits<{
     read: [book: BookBrief]
     favorite: [book: BookBrief]
 }>()
+
+const imageError = ref(false)
+
+const handleImageError = () => {
+    imageError.value = true
+}
 
 const formatNumber = (num: number): string => {
     if (num >= 10000) {
@@ -150,10 +152,12 @@ const handleFavorite = () => {
         width: 100%;
         aspect-ratio: 3/4;
         overflow: hidden;
+        background-color: #f5f7fa;
 
-        .el-image {
+        .cover-image {
             width: 100%;
             height: 100%;
+            object-fit: cover;
         }
 
         .status-tag {
@@ -161,6 +165,15 @@ const handleFavorite = () => {
             top: 8px;
             right: 8px;
             z-index: 1;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+
+            &.status-tag-success {
+                background-color: #f0f9ff;
+                color: #67c23a;
+                border: 1px solid #c2e7b0;
+            }
         }
 
         .progress-overlay {
@@ -170,6 +183,19 @@ const handleFavorite = () => {
             right: 0;
             padding: 8px;
             background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+
+            .progress-bar {
+                height: 3px;
+                background-color: rgba(255, 255, 255, 0.3);
+                border-radius: 2px;
+                overflow: hidden;
+
+                .progress-fill {
+                    height: 100%;
+                    background-color: #67c23a;
+                    transition: width 0.3s ease;
+                }
+            }
         }
     }
 
@@ -210,6 +236,11 @@ const handleFavorite = () => {
                 align-items: center;
                 gap: 2px;
                 color: #f56c6c;
+
+                .star-icon {
+                    width: 14px;
+                    height: 14px;
+                }
             }
         }
 
@@ -228,16 +259,6 @@ const handleFavorite = () => {
             margin-top: 8px;
         }
     }
-}
-
-.image-slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    background-color: #f5f7fa;
-    color: #909399;
-    font-size: 30px;
 }
 
 // 响应式
