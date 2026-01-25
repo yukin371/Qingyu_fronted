@@ -11,20 +11,11 @@ import { setupLayouts } from 'virtual:generated-layouts'
 // 导入手动维护的路由（仅 auth 相关）
 import { authRoutes } from './auth-routes'
 
-// 导入模块路由（逐步迁移后将被移除）
-import { errorRoutes } from './error-routes' // 废弃：将由 pages/[...all].page.vue 处理
 // ✅ 所有模块已迁移到 auto-routes！
 // ✅ bookstore, reader, user, writer, admin, finance, notification, social, ai
 // ✅ achievement, booklist, community, discovery, reading-stats, review, vip
-
-// 新增模块路由 (暂未实现，已注释)
-// import reviewRoutes from '@/modules/review/routes'
-// import discoveryRoutes from '@/modules/discovery/routes'
-// import booklistRoutes from '@/modules/booklist/routes'
-// import vipRoutes from '@/modules/vip/routes'
-// import communityRoutes from '@/modules/community/routes'
-// import achievementRoutes from '@/modules/achievement/routes'
-// import readingStatsRoutes from '@/modules/reading-stats/routes'
+// ✅ 所有 routes.ts 文件已删除，error-routes.ts 已删除
+// ✅ 404 统一由 pages/[...all].page.vue 处理
 
 // 定义路由元数据类型扩展
 declare module 'vue-router' {
@@ -48,40 +39,12 @@ const manualRoutes: RouteRecordRaw[] = [
   ...authRoutes,
 ]
 
-// 模块路由（逐步迁移中，迁移完成后将移除）
-// 注意：迁移模块时必须从下面的数组中移除对应路由
-const moduleRoutes: RouteRecordRaw[] = [
-  // bookstoreRoutes 已迁移到 auto-routes ✅
-  // readerRoutes 已迁移到 auto-routes ✅
-  // userRoutes 已迁移到 auto-routes ✅
-  // writerRoutes 已迁移到 auto-routes ✅
-  // adminRoutes 已迁移到 auto-routes ✅
-  // financeRoutes 已迁移到 auto-routes ✅
-  // notificationRoutes 已迁移到 auto-routes ✅
-  // socialRoutes 已迁移到 auto-routes ✅
-  // aiRoutes 已迁移到 auto-routes ✅
-
-  // 新增模块路由 (暂未实现，已注释)
-  // ...reviewRoutes,
-  // ...discoveryRoutes,
-  // ...booklistRoutes,
-  // ...vipRoutes,
-  // ...communityRoutes,
-  // ...achievementRoutes,
-  // ...readingStatsRoutes,
-
-  // 404 处理 (废弃：将由 pages/[...all].page.vue 处理)
-  ...errorRoutes,
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/404',
-  },
-]
-
-// 合并所有路由：手动路由 + 模块路由 + 自动路由（使用布局包装）
+// 模块路由已全部迁移到 auto-routes ✅
+// 404 处理由 pages/[...all].page.vue 统一处理
 const routes: RouteRecordRaw[] = [
+  // 手动路由（重定向、auth 等）
   ...manualRoutes,
-  ...moduleRoutes,
+  // 自动路由（使用布局包装）
   ...setupLayouts(autoRoutes),
 ]
 
