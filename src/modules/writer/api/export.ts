@@ -1,221 +1,257 @@
 /**
  * 写作导出 API
+ * 与后端API契约保持一致
+ *
+ * 后端路由：
+ * - POST /api/v1/writer/documents/:id/export - 导出文档
+ * - POST /api/v1/writer/projects/:id/export - 导出项目
+ * - GET /api/v1/writer/exports/:id - 获取导出任务
+ * - GET /api/v1/writer/projects/:projectId/exports - 列出项目的导出任务
+ * - GET /api/v1/writer/exports/:id/download - 下载导出文件
+ * - DELETE /api/v1/writer/exports/:id - 删除导出任务
+ * - POST /api/v1/writer/exports/:id/cancel - 取消导出任务
  */
 import request from '@/utils/request-adapter'
-
-// 导出格式
-export type ExportFormat = 'txt' | 'docx' | 'pdf' | 'markdown' | 'epub' | 'html'
-
-// 导出范围
-export type ExportScope = 'chapter' | 'volume' | 'book' | 'selection'
-
-// 导出选项
-export interface ExportOptions {
-  format: ExportFormat
-  scope: ExportScope
-  include_metadata?: boolean // 是否包含元数据
-  include_comments?: boolean // 是否包含评论
-  include_toc?: boolean // 是否包含目录
-  page_breaks?: boolean // 是否分页
-  toc_title?: string // 目录标题
-}
-
-// 导出任务
-export interface ExportTask {
-  id: string
-  book_id: string
-  chapter_id?: string
-  format: ExportFormat
-  scope: ExportScope
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  progress: number
-  file_url?: string
-  file_size?: number
-  error_message?: string
-  created_at: string
-  completed_at?: string
-}
-
-// 导出历史
-export interface ExportHistory {
-  total: number
-  items: ExportTask[]
-}
+import type {
+  ExportDocumentRequest,
+  ExportProjectRequest,
+  ExportTask,
+  ExportFile,
+  ExportTaskListResponse
+} from '../types/export'
 
 /**
- * 创建导出任务
+ * 导出API对象
  */
-export function createExportTask(bookId: string, options: ExportOptions) {
-  return request<ExportTask>({
-    url: `/api/v1/writer/export/books/${bookId}`,
-    method: 'post',
-    data: options
-  })
+export const exportApi = {
+  /**
+   * 导出文档
+   * POST /api/v1/writer/documents/:id/export
+   *
+   * @param documentId - 文档ID
+   * @param projectId - 项目ID（通过query参数传递）
+   * @param options - 导出选项
+   * @returns 导出任务
+   */
+  async exportDocument(
+    documentId: string,
+    projectId: string,
+    options: ExportDocumentRequest
+  ): Promise<ExportTask> {
+    return request<ExportTask>({
+      url: `/api/v1/writer/documents/${documentId}/export`,
+      method: 'post',
+      params: { projectId },
+      data: options
+    })
+  },
+
+  /**
+   * 导出项目
+   * POST /api/v1/writer/projects/:id/export
+   *
+   * @param projectId - 项目ID
+   * @param options - 导出选项
+   * @returns 导出任务
+   */
+  async exportProject(projectId: string, options: ExportProjectRequest): Promise<ExportTask> {
+    return request<ExportTask>({
+      url: `/api/v1/writer/projects/${projectId}/export`,
+      method: 'post',
+      data: options
+    })
+  },
+
+  /**
+   * 获取导出任务
+   * GET /api/v1/writer/exports/:id
+   *
+   * @param taskId - 任务ID
+   * @returns 导出任务详情
+   */
+  async getTask(taskId: string): Promise<ExportTask> {
+    return request<ExportTask>({
+      url: `/api/v1/writer/exports/${taskId}`,
+      method: 'get'
+    })
+  },
+
+  /**
+   * 列出项目的导出任务
+   * GET /api/v1/writer/projects/:projectId/exports
+   *
+   * @param projectId - 项目ID
+   * @param page - 页码（默认1）
+   * @param pageSize - 每页数量（默认20）
+   * @returns 导出任务列表
+   */
+  async listTasks(
+    projectId: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<ExportTaskListResponse> {
+    return request<ExportTaskListResponse>({
+      url: `/api/v1/writer/projects/${projectId}/exports`,
+      method: 'get',
+      params: { page, pageSize }
+    })
+  },
+
+  /**
+   * 下载导出文件
+   * GET /api/v1/writer/exports/:id/download
+   *
+   * @param taskId - 任务ID
+   * @returns 文件Blob
+   */
+  async downloadFile(taskId: string): Promise<Blob> {
+    return request<Blob>({
+      url: `/api/v1/writer/exports/${taskId}/download`,
+      method: 'get',
+      responseType: 'blob'
+    })
+  },
+
+  /**
+   * 取消导出任务
+   * POST /api/v1/writer/exports/:id/cancel
+   *
+   * @param taskId - 任务ID
+   * @returns 成功响应
+   */
+  async cancelTask(taskId: string): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>({
+      url: `/api/v1/writer/exports/${taskId}/cancel`,
+      method: 'post'
+    })
+  },
+
+  /**
+   * 删除导出任务
+   * DELETE /api/v1/writer/exports/:id
+   *
+   * @param taskId - 任务ID
+   * @returns 成功响应
+   */
+  async deleteTask(taskId: string): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>({
+      url: `/api/v1/writer/exports/${taskId}`,
+      method: 'delete'
+    })
+  }
 }
 
+// 导出类型和常量
+export * from '../types/export'
+
+// 为了向后兼容，保留旧的导出格式（已废弃）
+// @deprecated 请使用 exportApi.exportDocument 代替
+export { exportApi as default }
+
 /**
- * 导出章节
+ * @deprecated 请使用 exportApi.exportDocument(documentId, projectId, options) 代替
+ * 旧版本的创建导出任务方法
  */
-export function exportChapter(chapterId: string, format: ExportFormat) {
-  return request<ExportTask>({
-    url: `/api/v1/writer/export/chapters/${chapterId}`,
-    method: 'post',
-    data: { format }
-  })
+export function createExportTask(bookId: string, options: any) {
+  console.warn('[DEPRECATED] createExportTask 已废弃，请使用 exportApi.exportDocument 代替')
+  return exportApi.exportProject(bookId, options)
 }
 
 /**
- * 导出选中文本
+ * @deprecated 请使用 exportApi.exportDocument 代替
+ * 旧版本的导出章节方法
  */
-export function exportSelection(data: {
-  book_id: string
-  chapter_id: string
-  content: string
-  format: ExportFormat
-}) {
-  return request<ExportTask>({
-    url: '/api/v1/writer/export/selection',
-    method: 'post',
-    data
-  })
+export function exportChapter(chapterId: string, format: string) {
+  console.warn('[DEPRECATED] exportChapter 已废弃，请使用 exportApi.exportDocument 代替')
+  return exportApi.exportDocument(chapterId, '', { format: format as any })
 }
 
 /**
- * 获取导出任务状态
+ * @deprecated 后端不支持此功能
+ * 旧版本的导出选中文本方法
+ */
+export function exportSelection(data: any) {
+  console.warn('[DEPRECATED] exportSelection 功能后端不支持，此方法将失效')
+  return Promise.reject(new Error('后端不支持导出选中内容'))
+}
+
+/**
+ * @deprecated 请使用 exportApi.getTask 代替
+ * 旧版本的获取导出任务状态方法
  */
 export function getExportTaskStatus(taskId: string) {
-  return request<ExportTask>({
-    url: `/api/v1/writer/export/tasks/${taskId}`,
-    method: 'get'
-  })
+  console.warn('[DEPRECATED] getExportTaskStatus 已废弃，请使用 exportApi.getTask 代替')
+  return exportApi.getTask(taskId)
 }
 
 /**
- * 取消导出任务
+ * @deprecated 请使用 exportApi.cancelTask 代替
+ * 旧版本的取消导出任务方法
  */
 export function cancelExportTask(taskId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/export/tasks/${taskId}/cancel`,
-    method: 'post'
-  })
+  console.warn('[DEPRECATED] cancelExportTask 已废弃，请使用 exportApi.cancelTask 代替')
+  return exportApi.cancelTask(taskId)
 }
 
 /**
- * 获取书籍导出历史
+ * @deprecated 请使用 exportApi.listTasks 代替
+ * 旧版本的获取书籍导出历史方法
  */
-export function getExportHistory(bookId: string, params?: {
-  page?: number
-  page_size?: number
-}) {
-  return request<ExportHistory>({
-    url: `/api/v1/writer/export/books/${bookId}/history`,
-    method: 'get',
-    params
-  })
+export function getExportHistory(bookId: string, params?: any) {
+  console.warn('[DEPRECATED] getExportHistory 已废弃，请使用 exportApi.listTasks 代替')
+  return exportApi.listTasks(bookId, params?.page, params?.page_size)
 }
 
 /**
- * 获取用户所有导出历史
+ * @deprecated 后端不支持此功能
+ * 旧版本的获取用户所有导出历史方法
  */
-export function getAllExportHistory(params?: {
-  page?: number
-  page_size?: number
-  format?: ExportFormat
-  status?: string
-}) {
-  return request<ExportHistory>({
-    url: '/api/v1/writer/export/history',
-    method: 'get',
-    params
-  })
+export function getAllExportHistory(params?: any) {
+  console.warn('[DEPRECATED] getAllExportHistory 功能后端不支持，此方法将失效')
+  return Promise.reject(new Error('后端不支持全局导出历史查询'))
 }
 
 /**
- * 下载导出文件
+ * @deprecated 请使用 exportApi.downloadFile 代替
+ * 旧版本的下载导出文件方法
  */
 export function downloadExportFile(taskId: string) {
-  return request<Blob>({
-    url: `/api/v1/writer/export/tasks/${taskId}/download`,
-    method: 'get',
-    responseType: 'blob'
-  })
+  console.warn('[DEPRECATED] downloadExportFile 已废弃，请使用 exportApi.downloadFile 代替')
+  return exportApi.downloadFile(taskId)
 }
 
 /**
- * 删除导出任务
+ * @deprecated 请使用 exportApi.deleteTask 代替
+ * 旧版本的删除导出任务方法
  */
 export function deleteExportTask(taskId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/export/tasks/${taskId}`,
-    method: 'delete'
-  })
+  console.warn('[DEPRECATED] deleteExportTask 已废弃，请使用 exportApi.deleteTask 代替')
+  return exportApi.deleteTask(taskId)
 }
 
 /**
- * 获取导出模板列表
+ * @deprecated 后端不支持此功能
+ * 旧版本的获取导出模板列表方法
  */
 export function getExportTemplates() {
-  return request<
-    {
-      id: string
-      name: string
-      format: ExportFormat
-      description: string
-      options: Partial<ExportOptions>
-    }[]
-  >({
-    url: '/api/v1/writer/export/templates',
-    method: 'get'
-  })
+  console.warn('[DEPRECATED] getExportTemplates 功能后端不支持，此方法将失效')
+  return Promise.reject(new Error('后端不支持导出模板管理'))
 }
 
 /**
- * 保存导出模板
+ * @deprecated 后端不支持此功能
+ * 旧版本的保存导出模板方法
  */
-export function saveExportTemplate(data: {
-  name: string
-  format: ExportFormat
-  options: ExportOptions
-}) {
-  return request<{
-    id: string
-    name: string
-  }>({
-    url: '/api/v1/writer/export/templates',
-    method: 'post',
-    data
-  })
+export function saveExportTemplate(data: any) {
+  console.warn('[DEPRECATED] saveExportTemplate 功能后端不支持，此方法将失效')
+  return Promise.reject(new Error('后端不支持导出模板管理'))
 }
 
 /**
- * 批量导出
+ * @deprecated 后端不支持此功能
+ * 旧版本的批量导出方法
  */
-export function batchExport(data: {
-  book_ids: string[]
-  format: ExportFormat
-  scope: ExportScope
-}) {
-  return request<ExportTask[]>({
-    url: '/api/v1/writer/export/batch',
-    method: 'post',
-    data
-  })
+export function batchExport(data: any) {
+  console.warn('[DEPRECATED] batchExport 功能后端不支持，此方法将失效')
+  return Promise.reject(new Error('后端不支持批量导出'))
 }
-
-// 导出格式选项
-export const exportFormatOptions = [
-  { label: 'TXT 文本', value: 'txt' as ExportFormat, icon: 'Document' },
-  { label: 'Word 文档', value: 'docx' as ExportFormat, icon: 'Document' },
-  { label: 'PDF 文档', value: 'pdf' as ExportFormat, icon: 'Document' },
-  { label: 'Markdown', value: 'markdown' as ExportFormat, icon: 'Document' },
-  { label: 'EPUB 电子书', value: 'epub' as ExportFormat, icon: 'Reading' },
-  { label: 'HTML 网页', value: 'html' as ExportFormat, icon: 'Link' }
-]
-
-// 导出范围选项
-export const exportScopeOptions = [
-  { label: '当前章节', value: 'chapter' as ExportScope },
-  { label: '当前分卷', value: 'volume' as ExportScope },
-  { label: '整本书', value: 'book' as ExportScope },
-  { label: '选中内容', value: 'selection' as ExportScope }
-]

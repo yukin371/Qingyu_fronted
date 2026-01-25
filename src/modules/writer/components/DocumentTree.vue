@@ -46,7 +46,7 @@
         </div>
       </div>
       <div class="search-row">
-        <el-input v-model="filterText" placeholder="搜索文档..." prefix-icon="Search" size="small" clearable />
+        <el-input v-model="filterText" placeholder="搜索文档..." size="small" clearable />
       </div>
     </div>
 
@@ -82,8 +82,8 @@
       <el-tree ref="treeRef" :data="treeData" node-key="id" :props="treeProps" :highlight-current="!isMultiSelectMode"
         :expand-on-click-node="false" :default-expanded-keys="defaultExpandedKeys" :filter-node-method="filterNode"
         :allow-drop="allowDrop" :allow-drag="allowDrag" draggable empty-text="暂无文档，点击右上角新建"
-        @node-click="handleNodeClick" @node-drop="handleNodeDrop" @node-contextmenu="handleContextMenu">
-        <template #default="{ node, data }">
+        @node-click="handleNodeClick" @node-drop="handleNodeDrop" @node-drag-start="handleDragStart" @node-contextmenu="handleContextMenu">
+        <template #default="{ data }">
           <div
             class="custom-tree-node"
             :class="{
@@ -166,28 +166,40 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
-import { ElTree, ElMessageBox } from 'element-plus'
+import { ElTree, ElMessageBox, ElMessage } from 'element-plus'
 import {
   Plus, Document as DocumentIcon, Edit, Delete,
-  Folder, Search, Sort
+  Folder, Sort
 } from '@element-plus/icons-vue'
 import type { Document } from '@/modules/writer/types/document'
 import { useDocumentSelection } from '../composables/useDocumentSelection'
 import { useBatchOperationStore } from '../stores/batchOperationStore'
+import { duplicateDocument, moveDocument } from '../api/document'
 import BatchOperationConfirmDialog from './BatchOperationConfirmDialog.vue'
 import BatchOperationProgressDialog from './BatchOperationProgressDialog.vue'
+
+// 拖拽数据类型定义
+interface DragData {
+  kind: 'documents'
+  sourceProjectId: string
+  ids: string[]
+  mode: 'copy' | 'move'
+}
 
 // 使用标准的 Document 类型
 interface Props {
   treeData: Document[]
   currentDocumentId?: string
+  projectId?: string // 添加 projectId 以支持拖拽复制
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  projectId: ''
+})
 
 const emit = defineEmits<{
   select: [doc: Document]
-  drop: [dragId: string, dropId: string, type: 'inner' | 'before' | 'after']
+  drop: [dragId: string, dropId: string, type: 'inner' | 'before' | 'after' | '']
   add: [parent?: Document]
   rename: [doc: Document]
   delete: [doc: Document]
@@ -250,7 +262,7 @@ watch(filterText, (val) => {
 })
 
 // 过滤节点逻辑
-const filterNode = (value: string, data: any): data is Document => {
+const filterNode = (value: string, data: any): boolean => {
   if (!value) return true
   return 'title' in data &&
     typeof data.title === 'string' &&
@@ -262,17 +274,91 @@ const filterNode = (value: string, data: any): data is Document => {
 // =======================
 
 // 允许拖拽：所有节点都可拖拽
-const allowDrag = (node: any) => true
+const allowDrag = (_node: any) => true
 
 // 允许放置：
 // 1. 'inner': 只能放入 'volume' (卷/文件夹) 类型，不能放入 'chapter' (章)
 // 2. 'prev'/'next': 同级排序始终允许
-const allowDrop = (draggingNode: any, dropNode: any, type: string) => {
+const allowDrop = (_draggingNode: any, dropNode: any, type: string) => {
   const dropData = dropNode.data as Document
   if (type === 'inner') {
     return dropData.type === 'volume'
   }
   return true
+}
+
+// =======================
+// 拖拽复制功能
+// =======================
+
+/**
+ * 拖拽状态接口
+ */
+interface DragState {
+  isCopy: boolean
+  draggedNodeId: string
+  sourceProjectId: string
+}
+
+// 组件级拖拽状态（可靠的数据源）
+const dragState = ref<DragState | null>(null)
+
+/**
+ * 检测复制模式
+ * Mac: Option键, Windows: Ctrl键
+ */
+function detectCopyMode(event: DragEvent): boolean {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  return isMac ? event.altKey : event.ctrlKey
+}
+
+/**
+ * 获取有效的项目ID
+ * 优先使用props.projectId,其次使用data.projectId
+ * 如果都不存在,抛出错误
+ */
+function getValidProjectId(data: Document): string {
+  const projectId = props.projectId || data.projectId
+
+  if (!projectId) {
+    throw new Error('projectId is required but not provided')
+  }
+
+  return projectId
+}
+
+/**
+ * 处理拖拽开始事件
+ * 设置拖拽数据和效果
+ */
+const handleDragStart = (node: any, event: DragEvent) => {
+  const isCopy = detectCopyMode(event)
+  const data = node.data as Document
+
+  // 获取有效的projectId
+  const sourceProjectId = getValidProjectId(data)
+
+  // 保存到组件状态（可靠）
+  dragState.value = {
+    isCopy,
+    draggedNodeId: data.id,
+    sourceProjectId
+  }
+
+  const payload: DragData = {
+    kind: 'documents',
+    sourceProjectId: sourceProjectId,
+    ids: [data.id],
+    mode: isCopy ? 'copy' : 'move'
+  }
+
+  // 设置拖拽效果
+  event.dataTransfer!.effectAllowed = isCopy ? 'copy' : 'move'
+
+  // 设置拖拽数据（用于跨组件/跨窗口拖拽）
+  const jsonData = JSON.stringify(payload)
+  event.dataTransfer!.setData('application/x-documents+json', jsonData)
+  event.dataTransfer!.setData('text/plain', jsonData) // 兼容性
 }
 
 // =======================
@@ -302,8 +388,100 @@ function handleTreeClick(event: MouseEvent): void {
   }
 }
 
-const handleNodeDrop = (dragNode: any, dropNode: any, type: any) => {
-  emit('drop', dragNode.data.id, dropNode.data.id, type)
+const handleNodeDrop = async (dragNode: any, dropNode: any, type: 'inner' | 'before' | 'after', event?: DragEvent) => {
+  const dragData = dragNode.data as Document
+  const dropData = dropNode.data as Document
+
+  // 优先使用组件状态（可靠）
+  let dragMode: 'copy' | 'move' = 'move'
+
+  if (dragState.value) {
+    // 使用组件状态
+    dragMode = dragState.value.isCopy ? 'copy' : 'move'
+  } else if (event?.dataTransfer) {
+    // 如果没有状态，尝试从 dataTransfer 获取（跨组件拖拽）
+    try {
+      const dragDataJson = event.dataTransfer.getData('application/x-documents+json')
+      if (dragDataJson) {
+        const dragPayload: DragData = JSON.parse(dragDataJson)
+        dragMode = dragPayload.mode
+      }
+    } catch (e) {
+      console.warn('Failed to parse drag data from dataTransfer:', e)
+    }
+  }
+
+  // 清除拖拽状态
+  dragState.value = null
+
+  // 执行拖拽操作
+  await executeDragOperation(dragData, dropData, type, dragMode)
+}
+
+/**
+ * 执行拖拽操作（复制或移动）
+ * 处理API调用和错误恢复
+ */
+async function executeDragOperation(
+  dragData: Document,
+  dropData: Document,
+  type: 'inner' | 'before' | 'after',
+  dragMode: 'copy' | 'move'
+): Promise<void> {
+  try {
+    if (dragMode === 'copy') {
+      // 复制模式：调用 duplicate API
+      await duplicateDocument(dragData.id, {
+        targetParentId: dropData.id,
+        position: type,
+        copyContent: true
+      })
+
+      ElMessage.success({
+        message: `已复制 "${dragData.title}" 到 "${dropData.title}"`,
+        duration: 2000
+      })
+    } else {
+      // 移动模式：调用 move API
+      const newParentId = type === 'inner' ? dropData.id : dropData.parentId
+
+      await moveDocument(dragData.id, {
+        parentId: newParentId
+      })
+
+      ElMessage.success({
+        message: `已移动 "${dragData.title}" 到 "${dropData.title}"`,
+        duration: 2000
+      })
+    }
+
+    // API调用成功后，触发刷新事件
+    emit('drop', dragData.id, dropData.id, type)
+  } catch (error) {
+    console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
+
+    ElMessage.error({
+      message: `${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`,
+      duration: 3000
+    })
+
+    // API失败后，刷新树节点以同步后端状态
+    // 这会撤销ElTree的默认UI更新
+    await refreshTreeState()
+  }
+}
+
+/**
+ * 刷新树状态以同步后端状态
+ * 用于API失败后的状态恢复
+ */
+async function refreshTreeState(): Promise<void> {
+  try {
+    // 触发drop事件但不传递参数，让父组件重新加载整个树
+    emit('drop', dragState.value?.draggedNodeId || '', '', '')
+  } catch (error) {
+    console.error('Failed to refresh tree state:', error)
+  }
 }
 
 // =======================
@@ -402,7 +580,7 @@ const toggleExpand = () => {
 }
 
 // 判断是否有未保存修改 (需配合 Store 状态，这里仅作演示)
-const isModified = (data: Document) => {
+const isModified = (_data: Document) => {
   // return data.id === currentEditingId && isDirty
   return false
 }

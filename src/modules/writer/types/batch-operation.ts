@@ -240,3 +240,28 @@ export interface SubmitBatchOperationResponse {
   status: BatchOperationStatus       // 初始状态
   preflightSummary?: PreflightSummary // Preflight摘要
 }
+
+// =======================
+// Interfaces - UI Display
+// =======================
+
+/**
+ * 批量操作结果项（UI展示用）
+ */
+export interface BatchOperationResultItem {
+  id: string                         // 项ID
+  title: string                      // 显示标题
+  status: 'succeeded' | 'failed' | 'skipped'  // UI状态
+  errorCode?: string                 // 错误码
+  errorMessage?: string              // 错误信息
+  retryable?: boolean                // 是否可重试
+}
+
+/**
+ * 批量操作结果汇总（UI展示用）
+ */
+export interface BatchOperationSummary {
+  successCount: number               // 成功数量
+  failedCount: number                // 失败数量
+  skippedCount: number               // 跳过数量
+}

@@ -55,3 +55,6 @@ export * from './publish'
 
 // 批量操作 API
 export * from './batch-operation'
+
+// 模板管理 API
+export * from './template'
