@@ -30,6 +30,160 @@ declare module 'vue-router/auto-routes' {
       { all: ParamValue<false> },
       | never
     >,
+    'achievements:list': RouteRecordInfo<
+      'achievements:list',
+      '/achievements',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'achievements:detail': RouteRecordInfo<
+      'achievements:detail',
+      '/achievements/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    'achievements:level': RouteRecordInfo<
+      'achievements:level',
+      '/achievements/level',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'achievements:ranking': RouteRecordInfo<
+      'achievements:ranking',
+      '/achievements/ranking',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:dashboard': RouteRecordInfo<
+      'admin:dashboard',
+      '/admin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:ai:overview': RouteRecordInfo<
+      'admin:ai:overview',
+      '/admin/ai',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:ai:health': RouteRecordInfo<
+      'admin:ai:health',
+      '/admin/ai/health',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:ai:models': RouteRecordInfo<
+      'admin:ai:models',
+      '/admin/ai/models',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:ai:providers': RouteRecordInfo<
+      'admin:ai:providers',
+      '/admin/ai/providers',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:announcements': RouteRecordInfo<
+      'admin:announcements',
+      '/admin/announcements',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:banners': RouteRecordInfo<
+      'admin:banners',
+      '/admin/banners',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:logs': RouteRecordInfo<
+      'admin:logs',
+      '/admin/logs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:reviews': RouteRecordInfo<
+      'admin:reviews',
+      '/admin/reviews',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:system-config': RouteRecordInfo<
+      'admin:system-config',
+      '/admin/system-config',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:users': RouteRecordInfo<
+      'admin:users',
+      '/admin/users',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'admin:withdrawals': RouteRecordInfo<
+      'admin:withdrawals',
+      '/admin/withdrawals',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'booklists:list': RouteRecordInfo<
+      'booklists:list',
+      '/booklists',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'booklists:detail': RouteRecordInfo<
+      'booklists:detail',
+      '/booklists/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | 'booklists:edit'
+    >,
+    'booklists:edit': RouteRecordInfo<
+      'booklists:edit',
+      '/booklists/:id/edit',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    'booklists:create': RouteRecordInfo<
+      'booklists:create',
+      '/booklists/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'booklists:favorite': RouteRecordInfo<
+      'booklists:favorite',
+      '/booklists/favorite',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'booklists:my': RouteRecordInfo<
+      'booklists:my',
+      '/booklists/my',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     'bookstore:home': RouteRecordInfo<
       'bookstore:home',
       '/bookstore',
@@ -42,6 +196,363 @@ declare module 'vue-router/auto-routes' {
       '/bookstore/books',
       Record<never, never>,
       Record<never, never>,
+      | 'bookstore:book-detail'
+    >,
+    'bookstore:book-detail': RouteRecordInfo<
+      'bookstore:book-detail',
+      '/bookstore/books/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    'bookstore:categories': RouteRecordInfo<
+      'bookstore:categories',
+      '/bookstore/categories',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'bookstore:rankings': RouteRecordInfo<
+      'bookstore:rankings',
+      '/bookstore/rankings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'bookstore:search': RouteRecordInfo<
+      'bookstore:search',
+      '/bookstore/search',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'community:feed': RouteRecordInfo<
+      'community:feed',
+      '/community',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'community:create-post': RouteRecordInfo<
+      'community:create-post',
+      '/community/post',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'community:post-detail': RouteRecordInfo<
+      'community:post-detail',
+      '/community/post/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    'community:topic-posts': RouteRecordInfo<
+      'community:topic-posts',
+      '/community/topic/:tag',
+      { tag: ParamValue<true> },
+      { tag: ParamValue<false> },
+      | never
+    >,
+    'discovery:home': RouteRecordInfo<
+      'discovery:home',
+      '/discovery',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'discovery:editors-pick': RouteRecordInfo<
+      'discovery:editors-pick',
+      '/discovery/editors-pick',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'discovery:new-releases': RouteRecordInfo<
+      'discovery:new-releases',
+      '/discovery/new-releases',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'discovery:topic-detail': RouteRecordInfo<
+      'discovery:topic-detail',
+      '/discovery/topic/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    'discovery:topics': RouteRecordInfo<
+      'discovery:topics',
+      '/discovery/topics',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'finance:membership': RouteRecordInfo<
+      'finance:membership',
+      '/finance/membership',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'finance:revenue': RouteRecordInfo<
+      'finance:revenue',
+      '/finance/revenue',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'notifications:center': RouteRecordInfo<
+      'notifications:center',
+      '/notifications',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'notifications:by-type': RouteRecordInfo<
+      'notifications:by-type',
+      '/notifications/:type',
+      { type: ParamValue<true> },
+      { type: ParamValue<false> },
+      | never
+    >,
+    'reader:chapter': RouteRecordInfo<
+      'reader:chapter',
+      '/reader/:chapterId',
+      { chapterId: ParamValue<true> },
+      { chapterId: ParamValue<false> },
+      | never
+    >,
+    'reading:bookmarks': RouteRecordInfo<
+      'reading:bookmarks',
+      '/reading/bookmarks',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:bookshelf': RouteRecordInfo<
+      'reading:bookshelf',
+      '/reading/bookshelf',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:comment-detail': RouteRecordInfo<
+      'reading:comment-detail',
+      '/reading/comments/:commentId',
+      { commentId: ParamValue<true> },
+      { commentId: ParamValue<false> },
+      | never
+    >,
+    'reading:history-detail': RouteRecordInfo<
+      'reading:history-detail',
+      '/reading/history',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:ranking': RouteRecordInfo<
+      'reading:ranking',
+      '/reading/ranking',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:report': RouteRecordInfo<
+      'reading:report',
+      '/reading/report',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:report-period': RouteRecordInfo<
+      'reading:report-period',
+      '/reading/report/:period',
+      { period: ParamValue<true> },
+      { period: ParamValue<false> },
+      | never
+    >,
+    'reading:stats': RouteRecordInfo<
+      'reading:stats',
+      '/reading/stats',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reading:theme-settings': RouteRecordInfo<
+      'reading:theme-settings',
+      '/reading/theme-settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'reviews:detail': RouteRecordInfo<
+      'reviews:detail',
+      '/reviews/:reviewId',
+      { reviewId: ParamValue<true> },
+      { reviewId: ParamValue<false> },
+      | never
+    >,
+    'reviews:book-reviews': RouteRecordInfo<
+      'reviews:book-reviews',
+      '/reviews/book/:bookId',
+      { bookId: ParamValue<true> },
+      { bookId: ParamValue<false> },
+      | never
+    >,
+    'reviews:my': RouteRecordInfo<
+      'reviews:my',
+      '/reviews/my',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'social:followers': RouteRecordInfo<
+      'social:followers',
+      '/social/followers/:userId',
+      { userId: ParamValue<true> },
+      { userId: ParamValue<false> },
+      | never
+    >,
+    'social:following': RouteRecordInfo<
+      'social:following',
+      '/social/following/:userId',
+      { userId: ParamValue<true> },
+      { userId: ParamValue<false> },
+      | never
+    >,
+    'social:mutual': RouteRecordInfo<
+      'social:mutual',
+      '/social/mutual/:userId',
+      { userId: ParamValue<true> },
+      { userId: ParamValue<false> },
+      | never
+    >,
+    'user:profile': RouteRecordInfo<
+      'user:profile',
+      '/user/profile',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'user:reader-profile': RouteRecordInfo<
+      'user:reader-profile',
+      '/user/readers/:userId',
+      { userId: ParamValue<true> },
+      { userId: ParamValue<false> },
+      | never
+    >,
+    'user:settings-account': RouteRecordInfo<
+      'user:settings-account',
+      '/user/settings/account',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'user:settings-security': RouteRecordInfo<
+      'user:settings-security',
+      '/user/settings/security',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'user:transfer': RouteRecordInfo<
+      'user:transfer',
+      '/user/transfer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'user:author-profile': RouteRecordInfo<
+      'user:author-profile',
+      '/user/users/:userId',
+      { userId: ParamValue<true> },
+      { userId: ParamValue<false> },
+      | never
+    >,
+    'user:wallet': RouteRecordInfo<
+      'user:wallet',
+      '/user/wallet',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'vip:center': RouteRecordInfo<
+      'vip:center',
+      '/vip',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'vip:privileges': RouteRecordInfo<
+      'vip:privileges',
+      '/vip/privileges',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'vip:purchase': RouteRecordInfo<
+      'vip:purchase',
+      '/vip/purchase',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'vip:subscription': RouteRecordInfo<
+      'vip:subscription',
+      '/vip/subscription',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'writer:dashboard': RouteRecordInfo<
+      'writer:dashboard',
+      '/writer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'writer:editor': RouteRecordInfo<
+      'writer:editor',
+      '/writer/editor/:projectId/:chapterId',
+      { projectId: ParamValue<true>, chapterId: ParamValue<true> },
+      { projectId: ParamValue<false>, chapterId: ParamValue<false> },
+      | never
+    >,
+    'writer:projects': RouteRecordInfo<
+      'writer:projects',
+      '/writer/projects',
+      Record<never, never>,
+      Record<never, never>,
+      | 'writer:project'
+    >,
+    'writer:project': RouteRecordInfo<
+      'writer:project',
+      '/writer/projects/:projectId',
+      { projectId: ParamValue<true> },
+      { projectId: ParamValue<false> },
+      | never
+    >,
+    'writer:publish': RouteRecordInfo<
+      'writer:publish',
+      '/writer/publish',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'writer:revenue': RouteRecordInfo<
+      'writer:revenue',
+      '/writer/revenue/:bookId',
+      { bookId: ParamValue<true> },
+      { bookId: ParamValue<false> },
+      | never
+    >,
+    'writer:statistics': RouteRecordInfo<
+      'writer:statistics',
+      '/writer/statistics/:bookId',
+      { bookId: ParamValue<true> },
+      { bookId: ParamValue<false> },
       | never
     >,
   }
@@ -63,6 +574,139 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/achievements/index.page.vue': {
+      routes:
+        | 'achievements:list'
+      views:
+        | never
+    }
+    'src/pages/achievements/[id].page.vue': {
+      routes:
+        | 'achievements:detail'
+      views:
+        | never
+    }
+    'src/pages/achievements/level.page.vue': {
+      routes:
+        | 'achievements:level'
+      views:
+        | never
+    }
+    'src/pages/achievements/ranking.page.vue': {
+      routes:
+        | 'achievements:ranking'
+      views:
+        | never
+    }
+    'src/pages/admin/index.page.vue': {
+      routes:
+        | 'admin:dashboard'
+      views:
+        | never
+    }
+    'src/pages/admin/ai/index.page.vue': {
+      routes:
+        | 'admin:ai:overview'
+      views:
+        | never
+    }
+    'src/pages/admin/ai/health.page.vue': {
+      routes:
+        | 'admin:ai:health'
+      views:
+        | never
+    }
+    'src/pages/admin/ai/models.page.vue': {
+      routes:
+        | 'admin:ai:models'
+      views:
+        | never
+    }
+    'src/pages/admin/ai/providers.page.vue': {
+      routes:
+        | 'admin:ai:providers'
+      views:
+        | never
+    }
+    'src/pages/admin/announcements.page.vue': {
+      routes:
+        | 'admin:announcements'
+      views:
+        | never
+    }
+    'src/pages/admin/banners.page.vue': {
+      routes:
+        | 'admin:banners'
+      views:
+        | never
+    }
+    'src/pages/admin/logs.page.vue': {
+      routes:
+        | 'admin:logs'
+      views:
+        | never
+    }
+    'src/pages/admin/reviews.page.vue': {
+      routes:
+        | 'admin:reviews'
+      views:
+        | never
+    }
+    'src/pages/admin/system-config.page.vue': {
+      routes:
+        | 'admin:system-config'
+      views:
+        | never
+    }
+    'src/pages/admin/users.page.vue': {
+      routes:
+        | 'admin:users'
+      views:
+        | never
+    }
+    'src/pages/admin/withdrawals.page.vue': {
+      routes:
+        | 'admin:withdrawals'
+      views:
+        | never
+    }
+    'src/pages/booklists/index.page.vue': {
+      routes:
+        | 'booklists:list'
+      views:
+        | never
+    }
+    'src/pages/booklists/[id].page.vue': {
+      routes:
+        | 'booklists:detail'
+        | 'booklists:edit'
+      views:
+        | 'default'
+    }
+    'src/pages/booklists/[id]/edit.page.vue': {
+      routes:
+        | 'booklists:edit'
+      views:
+        | never
+    }
+    'src/pages/booklists/create.page.vue': {
+      routes:
+        | 'booklists:create'
+      views:
+        | never
+    }
+    'src/pages/booklists/favorite.page.vue': {
+      routes:
+        | 'booklists:favorite'
+      views:
+        | never
+    }
+    'src/pages/booklists/my.page.vue': {
+      routes:
+        | 'booklists:my'
+      views:
+        | never
+    }
     'src/pages/bookstore/index.page.vue': {
       routes:
         | 'bookstore:home'
@@ -71,7 +715,315 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/bookstore/books.page.vue': {
       routes:
+        | 'bookstore:book-detail'
         | 'bookstore:books'
+      views:
+        | 'default'
+    }
+    'src/pages/bookstore/books/[id].page.vue': {
+      routes:
+        | 'bookstore:book-detail'
+      views:
+        | never
+    }
+    'src/pages/bookstore/categories.page.vue': {
+      routes:
+        | 'bookstore:categories'
+      views:
+        | never
+    }
+    'src/pages/bookstore/rankings.page.vue': {
+      routes:
+        | 'bookstore:rankings'
+      views:
+        | never
+    }
+    'src/pages/bookstore/search.page.vue': {
+      routes:
+        | 'bookstore:search'
+      views:
+        | never
+    }
+    'src/pages/community/index.page.vue': {
+      routes:
+        | 'community:feed'
+      views:
+        | never
+    }
+    'src/pages/community/post/index.page.vue': {
+      routes:
+        | 'community:create-post'
+      views:
+        | never
+    }
+    'src/pages/community/post/[id].page.vue': {
+      routes:
+        | 'community:post-detail'
+      views:
+        | never
+    }
+    'src/pages/community/topic/[tag].page.vue': {
+      routes:
+        | 'community:topic-posts'
+      views:
+        | never
+    }
+    'src/pages/discovery/index.page.vue': {
+      routes:
+        | 'discovery:home'
+      views:
+        | never
+    }
+    'src/pages/discovery/editors-pick.page.vue': {
+      routes:
+        | 'discovery:editors-pick'
+      views:
+        | never
+    }
+    'src/pages/discovery/new-releases.page.vue': {
+      routes:
+        | 'discovery:new-releases'
+      views:
+        | never
+    }
+    'src/pages/discovery/topic/[id].page.vue': {
+      routes:
+        | 'discovery:topic-detail'
+      views:
+        | never
+    }
+    'src/pages/discovery/topics.page.vue': {
+      routes:
+        | 'discovery:topics'
+      views:
+        | never
+    }
+    'src/pages/finance/membership.page.vue': {
+      routes:
+        | 'finance:membership'
+      views:
+        | never
+    }
+    'src/pages/finance/revenue.page.vue': {
+      routes:
+        | 'finance:revenue'
+      views:
+        | never
+    }
+    'src/pages/notifications/index.page.vue': {
+      routes:
+        | 'notifications:center'
+      views:
+        | never
+    }
+    'src/pages/notifications/[type].page.vue': {
+      routes:
+        | 'notifications:by-type'
+      views:
+        | never
+    }
+    'src/pages/reader/[chapterId].page.vue': {
+      routes:
+        | 'reader:chapter'
+      views:
+        | never
+    }
+    'src/pages/reading/bookmarks.page.vue': {
+      routes:
+        | 'reading:bookmarks'
+      views:
+        | never
+    }
+    'src/pages/reading/bookshelf.page.vue': {
+      routes:
+        | 'reading:bookshelf'
+      views:
+        | never
+    }
+    'src/pages/reading/comments/[commentId].page.vue': {
+      routes:
+        | 'reading:comment-detail'
+      views:
+        | never
+    }
+    'src/pages/reading/history.page.vue': {
+      routes:
+        | 'reading:history-detail'
+      views:
+        | never
+    }
+    'src/pages/reading/ranking.page.vue': {
+      routes:
+        | 'reading:ranking'
+      views:
+        | never
+    }
+    'src/pages/reading/report/index.page.vue': {
+      routes:
+        | 'reading:report'
+      views:
+        | never
+    }
+    'src/pages/reading/report/[period].page.vue': {
+      routes:
+        | 'reading:report-period'
+      views:
+        | never
+    }
+    'src/pages/reading/stats.page.vue': {
+      routes:
+        | 'reading:stats'
+      views:
+        | never
+    }
+    'src/pages/reading/theme-settings.page.vue': {
+      routes:
+        | 'reading:theme-settings'
+      views:
+        | never
+    }
+    'src/pages/reviews/[reviewId].page.vue': {
+      routes:
+        | 'reviews:detail'
+      views:
+        | never
+    }
+    'src/pages/reviews/book/[bookId].page.vue': {
+      routes:
+        | 'reviews:book-reviews'
+      views:
+        | never
+    }
+    'src/pages/reviews/my.page.vue': {
+      routes:
+        | 'reviews:my'
+      views:
+        | never
+    }
+    'src/pages/social/followers/[userId].page.vue': {
+      routes:
+        | 'social:followers'
+      views:
+        | never
+    }
+    'src/pages/social/following/[userId].page.vue': {
+      routes:
+        | 'social:following'
+      views:
+        | never
+    }
+    'src/pages/social/mutual/[userId].page.vue': {
+      routes:
+        | 'social:mutual'
+      views:
+        | never
+    }
+    'src/pages/user/profile.page.vue': {
+      routes:
+        | 'user:profile'
+      views:
+        | never
+    }
+    'src/pages/user/readers/[userId].page.vue': {
+      routes:
+        | 'user:reader-profile'
+      views:
+        | never
+    }
+    'src/pages/user/settings/account.page.vue': {
+      routes:
+        | 'user:settings-account'
+      views:
+        | never
+    }
+    'src/pages/user/settings/security.page.vue': {
+      routes:
+        | 'user:settings-security'
+      views:
+        | never
+    }
+    'src/pages/user/transfer.page.vue': {
+      routes:
+        | 'user:transfer'
+      views:
+        | never
+    }
+    'src/pages/user/users/[userId].page.vue': {
+      routes:
+        | 'user:author-profile'
+      views:
+        | never
+    }
+    'src/pages/user/wallet.page.vue': {
+      routes:
+        | 'user:wallet'
+      views:
+        | never
+    }
+    'src/pages/vip/index.page.vue': {
+      routes:
+        | 'vip:center'
+      views:
+        | never
+    }
+    'src/pages/vip/privileges.page.vue': {
+      routes:
+        | 'vip:privileges'
+      views:
+        | never
+    }
+    'src/pages/vip/purchase.page.vue': {
+      routes:
+        | 'vip:purchase'
+      views:
+        | never
+    }
+    'src/pages/vip/subscription.page.vue': {
+      routes:
+        | 'vip:subscription'
+      views:
+        | never
+    }
+    'src/pages/writer/index.page.vue': {
+      routes:
+        | 'writer:dashboard'
+      views:
+        | never
+    }
+    'src/pages/writer/editor/[projectId]/[chapterId].page.vue': {
+      routes:
+        | 'writer:editor'
+      views:
+        | never
+    }
+    'src/pages/writer/projects.page.vue': {
+      routes:
+        | 'writer:project'
+        | 'writer:projects'
+      views:
+        | 'default'
+    }
+    'src/pages/writer/projects/[projectId].page.vue': {
+      routes:
+        | 'writer:project'
+      views:
+        | never
+    }
+    'src/pages/writer/publish.page.vue': {
+      routes:
+        | 'writer:publish'
+      views:
+        | never
+    }
+    'src/pages/writer/revenue/[bookId].page.vue': {
+      routes:
+        | 'writer:revenue'
+      views:
+        | never
+    }
+    'src/pages/writer/statistics/[bookId].page.vue': {
+      routes:
+        | 'writer:statistics'
       views:
         | never
     }
