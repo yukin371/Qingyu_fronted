@@ -1,100 +1,193 @@
 /**
- * QyForm component type definitions
+ * QyForm 表单组件类型定义
+ * 与 Element Plus Form API 兼容
  */
 
+// QyForm 标签位置
 export type QyFormLabelPosition = 'left' | 'top' | 'right'
 
+// QyForm 验证触发时机
+export type QyValidateTrigger = 'blur' | 'change' | 'submit'
+
+// QyForm Props 接口
 export interface QyFormProps {
   /**
-   * Form data model (v-model)
+   * 表单数据对象 (v-model)
    */
   modelValue: Record<string, any>
 
   /**
-   * Validation rules
+   * 验证规则
    */
-  rules?: Record<string, any[]>
+  rules?: Record<string, QyValidationRule[]>
 
   /**
-   * Label width
+   * 标签宽度
    * @default '100px'
    */
   labelWidth?: string
 
   /**
-   * Label position
+   * 标签位置
    * @default 'top'
    */
   labelPosition?: QyFormLabelPosition
+
+  /**
+   * 表单项标签宽度
+   */
+  labelWidth?: string
 }
 
+// QyForm Events 接口
 export interface QyFormEmits {
   /**
-   * Emitted when form data changes (v-model)
+   * 表单数据更新事件 (v-model)
    */
   (e: 'update:modelValue', value: Record<string, any>): void
 
   /**
-   * Emitted on form validation
+   * 表单验证事件
    */
   (e: 'validate', valid: boolean): void
 }
 
+// QyFormItem Props 接口
 export interface QyFormItemProps {
   /**
-   * Form field name (for validation)
+   * 表单域模型字段（用于验证）
    */
   prop?: string
 
   /**
-   * Label text
+   * 标签文本
    */
   label?: string
 
   /**
-   * Label width (overrides form level)
+   * 标签宽度（覆盖表单级别）
    */
   labelWidth?: string
 
   /**
-   * Required field indicator
+   * 是否必填
    */
   required?: boolean
 
   /**
-   * Error message (external control)
+   * 错误信息（外部控制）
    */
   error?: string
 }
 
+// QyFormItem 实例接口
+export interface QyFormItemInstance {
+  /**
+   * 验证表单项
+   */
+  validate: () => Promise<boolean>
+
+  /**
+   * 清除验证
+   */
+  clearValidation: () => void
+
+  /**
+   * 重置表单项
+   */
+  resetField: () => void
+}
+
+// QyForm 实例接口（暴露给父组件）
+export interface QyFormInstance {
+  /**
+   * 验证整个表单
+   */
+  validate: () => Promise<boolean>
+
+  /**
+   * 验证指定字段
+   */
+  validateFields: (props: string | string[]) => Promise<boolean>
+
+  /**
+   * 重置表单
+   */
+  resetFields: () => void
+
+  /**
+   * 清除验证
+   */
+  clearValidation: (props?: string | string[]) => void
+}
+
+// QyValidationRule 验证规则接口
 export interface QyValidationRule {
   /**
-   * Required validation
+   * 是否必填
    */
   required?: boolean
 
   /**
-   * Minimum length
+   * 错误提示信息
+   */
+  message?: string
+
+  /**
+   * 触发验证的时机
+   */
+  trigger?: QyValidateTrigger | QyValidateTrigger[]
+
+  /**
+   * 最小长度/值
    */
   min?: number
 
   /**
-   * Maximum length
+   * 最大长度/值
    */
   max?: number
 
   /**
-   * Pattern validation
+   * 精确长度
+   */
+  len?: number
+
+  /**
+   * 正则表达式验证
    */
   pattern?: RegExp
 
   /**
-   * Custom validator function
+   * 自定义验证器
    */
-  validator?: (value: any) => boolean | string
+  validator?: (rule: QyValidationRule, value: any) => boolean | Promise<boolean> | string | Promise<string>
+}
+
+// QyForm 表单上下文（通过 provide/inject 传递）
+export interface QyFormContext {
+  model: Record<string, any>
+  rules?: Record<string, QyValidationRule[]>
+  labelWidth: string
+  labelPosition: QyFormLabelPosition
 
   /**
-   * Error message
+   * 注册表单项
    */
-  message?: string
+  registerItem: (prop: string, item: QyFormItemInstance) => void
+
+  /**
+   * 注销表单项
+   */
+  unregisterItem: (prop: string) => void
+
+  /**
+   * 验证指定字段
+   */
+  validateField: (prop: string) => Promise<boolean>
+
+  /**
+   * 清除字段验证
+   */
+  clearFieldValidation: (prop: string) => void
 }

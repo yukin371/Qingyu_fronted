@@ -1,11 +1,10 @@
 <template>
   <div class="register-form">
-    <el-form
+    <qy-form
       ref="registerFormRef"
       :model="registerForm"
       :rules="registerRules"
       label-width="0"
-      size="large"
       @submit.prevent="handleRegister"
     >
       <div class="form-header">
@@ -13,81 +12,81 @@
         <p class="form-subtitle">创建账号，开启您的阅读之旅</p>
       </div>
 
-      <el-form-item prop="username">
-        <el-input
+      <qy-form-item prop="username">
+        <qy-input
           v-model="registerForm.username"
           placeholder="请输入用户名"
-          prefix-icon="User"
           clearable
+          size="lg"
           @blur="checkUsernameAvailable"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="email">
-        <el-input
+      <qy-form-item prop="email">
+        <qy-input
           v-model="registerForm.email"
           type="email"
           placeholder="请输入邮箱地址"
-          prefix-icon="Message"
           clearable
+          size="lg"
           @blur="checkEmailAvailable"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="password">
-        <el-input
+      <qy-form-item prop="password">
+        <qy-input
           v-model="registerForm.password"
           type="password"
           placeholder="请输入密码"
-          prefix-icon="Lock"
           show-password
           clearable
+          size="lg"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="confirmPassword">
-        <el-input
+      <qy-form-item prop="confirmPassword">
+        <qy-input
           v-model="registerForm.confirmPassword"
           type="password"
           placeholder="请确认密码"
-          prefix-icon="Lock"
           show-password
           clearable
+          size="lg"
           @keyup.enter="handleRegister"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="agreement">
-        <el-checkbox v-model="registerForm.agreement">
+      <qy-form-item prop="agreement">
+        <qy-checkbox v-model="registerForm.agreement">
           我已阅读并同意
-          <el-link type="primary" @click="showTerms">《用户协议》</el-link>
+          <a class="link-primary" @click="showTerms">《用户协议》</a>
           和
-          <el-link type="primary" @click="showPrivacy">《隐私政策》</el-link>
-        </el-checkbox>
-      </el-form-item>
+          <a class="link-primary" @click="showPrivacy">《隐私政策》</a>
+        </qy-checkbox>
+      </qy-form-item>
 
-      <el-form-item>
-        <el-button
+      <qy-form-item>
+        <qy-button
           type="primary"
-          size="large"
+          size="lg"
           :loading="loading"
           :disabled="!isFormValid"
           class="register-button"
           @click="handleRegister"
         >
           {{ loading ? '注册中...' : '注册' }}
-        </el-button>
-      </el-form-item>
+        </qy-button>
+      </qy-form-item>
 
       <div class="form-footer">
         <span class="login-hint">
           已有账号？
-          <el-link type="primary" @click="$emit('switch-to-login')">
+          <a class="link-primary" @click="$emit('switch-to-login')">
             立即登录
-          </el-link>
+          </a>
         </span>
       </div>
-    </el-form>
+    </qy-form>
 
     <!-- 用户协议对话框 -->
     <UserAgreementDialog v-model:visible="showAgreementDialog" />
@@ -100,13 +99,23 @@
 <script>
 import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage } from 'element-plus'
+import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
+import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
+import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import QyCheckbox from '@/design-system/base/Checkbox/Checkbox.vue'
+import { message } from '@/design-system/services'
 import UserAgreementDialog from '@/shared/components/common/UserAgreementDialog.vue'
 import PrivacyPolicyDialog from '@/shared/components/common/PrivacyPolicyDialog.vue'
 
 export default {
   name: 'RegisterForm',
   components: {
+    QyForm,
+    QyFormItem,
+    QyInput,
+    QyButton,
+    QyCheckbox,
     UserAgreementDialog,
     PrivacyPolicyDialog
   },
@@ -227,7 +236,7 @@ export default {
       try {
         const available = await authStore.checkUsername(registerForm.username)
         if (!available) {
-          ElMessage.warning('用户名已被使用')
+          message.warning('用户名已被使用')
         }
       } catch (error) {
         console.error('检查用户名失败:', error)
@@ -244,7 +253,7 @@ export default {
       try {
         const available = await authStore.checkEmail(registerForm.email)
         if (!available) {
-          ElMessage.warning('邮箱已被注册')
+          message.warning('邮箱已被注册')
         }
       } catch (error) {
         console.error('检查邮箱失败:', error)
@@ -268,11 +277,11 @@ export default {
           password: registerForm.password
         })
 
-        ElMessage.success('注册成功')
+        message.success('注册成功')
         emit('register-success')
       } catch (error) {
         if (error.message) {
-          ElMessage.error(error.message)
+          message.error(error.message)
         }
       }
     }
@@ -364,6 +373,17 @@ export default {
 .login-hint {
   font-size: 14px;
   color: #606266;
+}
+
+.link-primary {
+  color: #409eff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.link-primary:hover {
+  color: #66b1ff;
 }
 
 /* 响应式设计 */

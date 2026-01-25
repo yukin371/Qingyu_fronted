@@ -1,6 +1,6 @@
 <template>
   <div class="forgot-password-form">
-    <el-form
+    <qy-form
       ref="formRef"
       :model="form"
       :rules="rules"
@@ -12,8 +12,8 @@
         <p class="form-subtitle">请输入您的邮箱地址，我们将发送重置链接</p>
       </div>
 
-      <el-form-item prop="email">
-        <el-input
+      <qy-form-item prop="email">
+        <qy-input
           v-model="form.email"
           type="email"
           placeholder="请输入注册邮箱"
@@ -21,30 +21,30 @@
           clearable
           size="large"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="verificationCode" v-if="showVerificationCode">
+      <qy-form-item prop="verificationCode" v-if="showVerificationCode">
         <div class="verification-input">
-          <el-input
+          <qy-input
             v-model="form.verificationCode"
             placeholder="请输入验证码"
             prefix-icon="Key"
             clearable
             size="large"
           />
-          <el-button
+          <qy-button
             type="primary"
             :disabled="!canSendCode || codeSending"
             :loading="codeSending"
             @click="sendVerificationCode"
           >
             {{ codeButtonText }}
-          </el-button>
+          </qy-button>
         </div>
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="newPassword" v-if="showPasswordFields">
-        <el-input
+      <qy-form-item prop="newPassword" v-if="showPasswordFields">
+        <qy-input
           v-model="form.newPassword"
           type="password"
           placeholder="请输入新密码"
@@ -53,10 +53,10 @@
           clearable
           size="large"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="confirmPassword" v-if="showPasswordFields">
-        <el-input
+      <qy-form-item prop="confirmPassword" v-if="showPasswordFields">
+        <qy-input
           v-model="form.confirmPassword"
           type="password"
           placeholder="请确认新密码"
@@ -66,16 +66,16 @@
           size="large"
           @keyup.enter="handleSubmit"
         />
-      </el-form-item>
+      </qy-form-item>
 
       <div class="form-actions">
-        <el-button
+        <qy-button
           size="large"
           @click="$emit('cancel')"
         >
           取消
-        </el-button>
-        <el-button
+        </qy-button>
+        <qy-button
           type="primary"
           size="large"
           :loading="loading"
@@ -83,19 +83,29 @@
           @click="handleSubmit"
         >
           {{ submitButtonText }}
-        </el-button>
+        </qy-button>
       </div>
-    </el-form>
+    </qy-form>
   </div>
 </template>
 
 <script>
 import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage } from 'element-plus'
+import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
+import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
+import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import { message } from '@/design-system/services'
 
 export default {
   name: 'ForgotPasswordForm',
+  components: {
+    QyForm,
+    QyFormItem,
+    QyInput,
+    QyButton
+  },
   emits: ['reset-success', 'cancel'],
   setup(props, { emit }) {
     const authStore = useAuthStore()
@@ -227,7 +237,7 @@ export default {
       codeSending.value = true
       try {
         await authStore.sendVerificationCode(form.email)
-        ElMessage.success('验证码已发送到您的邮箱')
+        message.success('验证码已发送到您的邮箱')
         
         // 切换到第二步
         currentStep.value = 2
@@ -244,7 +254,7 @@ export default {
           }
         }, 1000)
       } catch (error) {
-        ElMessage.error(error.message || '发送验证码失败')
+        message.error(error.message || '发送验证码失败')
       } finally {
         codeSending.value = false
       }
@@ -269,12 +279,12 @@ export default {
             newPassword: form.newPassword
           })
 
-          ElMessage.success('密码重置成功')
+          message.success('密码重置成功')
           emit('reset-success')
         }
       } catch (error) {
         if (error.message) {
-          ElMessage.error(error.message)
+          message.error(error.message)
         }
       }
     }
@@ -353,11 +363,11 @@ export default {
   gap: 10px;
 }
 
-.verification-input .el-input {
+.verification-input .qy-input {
   flex: 1;
 }
 
-.verification-input .el-button {
+.verification-input .qy-button {
   flex-shrink: 0;
   width: 120px;
 }
@@ -368,7 +378,7 @@ export default {
   margin-top: 20px;
 }
 
-.form-actions .el-button {
+.form-actions .qy-button {
   flex: 1;
   height: 44px;
   font-size: 16px;
@@ -380,7 +390,7 @@ export default {
     flex-direction: column;
   }
 
-  .verification-input .el-button {
+  .verification-input .qy-button {
     width: 100%;
   }
 

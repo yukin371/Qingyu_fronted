@@ -27,7 +27,7 @@
             to="/bookstore/search"
             class="text-gray-700 hover:text-blue-600 transition-colors"
           >
-            <el-icon><Search /></el-icon>
+            <QyIcon name="Search" :size="20" />
           </router-link>
         </nav>
 
@@ -40,12 +40,13 @@
                 <el-avatar
                   :size="32"
                   :src="authStore.user?.avatar"
-                  :icon="UserFilled"
-                />
+                >
+                  <QyIcon name="UserFilled" :size="20" />
+                </el-avatar>
                 <span class="text-sm font-medium text-gray-700">
                   {{ authStore.user?.nickname || authStore.user?.username }}
                 </span>
-                <el-icon><ArrowDown /></el-icon>
+                <QyIcon name="ArrowDown" :size="16" />
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -78,7 +79,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { Search, UserFilled, ArrowDown } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

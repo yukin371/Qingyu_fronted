@@ -1,144 +1,144 @@
 <template>
     <div class="security-settings">
-        <el-page-header @back="goBack" class="page-header">
+        <qy-page-header @back="goBack" class="page-header">
             <template #content>
                 <span class="page-title">安全设置</span>
             </template>
-        </el-page-header>
+        </qy-page-header>
 
         <!-- 修改密码 -->
-        <el-card class="settings-section">
+        <qy-card class="settings-section">
             <template #header>
                 <div class="section-header">
                     <span>修改密码</span>
                 </div>
             </template>
-            <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="120px"
+            <qy-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="120px"
                 class="settings-form">
-                <el-form-item label="当前密码" prop="old_password">
-                    <el-input v-model="passwordForm.old_password" type="password" placeholder="请输入当前密码" show-password
+                <qy-form-item label="当前密码" prop="old_password">
+                    <qy-input v-model="passwordForm.old_password" type="password" placeholder="请输入当前密码" show-password
                         clearable />
-                </el-form-item>
+                </qy-form-item>
 
-                <el-form-item label="新密码" prop="new_password">
-                    <el-input v-model="passwordForm.new_password" type="password" placeholder="请输入新密码（至少6位）"
+                <qy-form-item label="新密码" prop="new_password">
+                    <qy-input v-model="passwordForm.new_password" type="password" placeholder="请输入新密码（至少6位）"
                         show-password clearable />
-                </el-form-item>
+                </qy-form-item>
 
-                <el-form-item label="确认密码" prop="confirm_password">
-                    <el-input v-model="passwordForm.confirm_password" type="password" placeholder="请再次输入新密码"
+                <qy-form-item label="确认密码" prop="confirm_password">
+                    <qy-input v-model="passwordForm.confirm_password" type="password" placeholder="请再次输入新密码"
                         show-password clearable />
-                </el-form-item>
+                </qy-form-item>
 
-                <el-form-item>
-                    <el-button type="primary" :loading="passwordSaving" @click="handleChangePassword">
+                <qy-form-item>
+                    <qy-button type="primary" :loading="passwordSaving" @click="handleChangePassword">
                         修改密码
-                    </el-button>
-                    <el-button @click="resetPasswordForm">重置</el-button>
-                </el-form-item>
-            </el-form>
-        </el-card>
+                    </qy-button>
+                    <qy-button @click="resetPasswordForm">重置</qy-button>
+                </qy-form-item>
+            </qy-form>
+        </qy-card>
 
         <!-- 绑定手机 -->
-        <el-card class="settings-section">
+        <qy-card class="settings-section">
             <template #header>
                 <div class="section-header">
                     <span>手机绑定</span>
-                    <el-tag v-if="userStore.profile?.phone" type="success" size="small">已绑定</el-tag>
-                    <el-tag v-else type="info" size="small">未绑定</el-tag>
+                    <qy-tag v-if="userStore.profile?.phone" type="success" size="small">已绑定</qy-tag>
+                    <qy-tag v-else type="info" size="small">未绑定</qy-tag>
                 </div>
             </template>
-            <el-form ref="phoneFormRef" :model="phoneForm" :rules="phoneRules" label-width="120px"
+            <qy-form ref="phoneFormRef" :model="phoneForm" :rules="phoneRules" label-width="120px"
                 class="settings-form">
-                <el-form-item label="当前手机">
-                    <el-input :value="formatPhone(userStore.profile?.phone)" disabled />
-                </el-form-item>
+                <qy-form-item label="当前手机">
+                    <qy-input :value="formatPhone(userStore.profile?.phone)" disabled />
+                </qy-form-item>
 
                 <template v-if="phoneEditMode">
-                    <el-form-item label="新手机号" prop="phone">
-                        <el-input v-model="phoneForm.phone" placeholder="请输入新手机号" maxlength="11" clearable />
-                    </el-form-item>
+                    <qy-form-item label="新手机号" prop="phone">
+                        <qy-input v-model="phoneForm.phone" placeholder="请输入新手机号" maxlength="11" clearable />
+                    </qy-form-item>
 
-                    <el-form-item label="验证码" prop="code">
+                    <qy-form-item label="验证码" prop="code">
                         <div class="code-input">
-                            <el-input v-model="phoneForm.code" placeholder="请输入验证码" maxlength="6" clearable />
-                            <el-button :disabled="codeCooldown > 0" @click="sendPhoneCode">
+                            <qy-input v-model="phoneForm.code" placeholder="请输入验证码" maxlength="6" clearable />
+                            <qy-button :disabled="codeCooldown > 0" @click="sendPhoneCode">
                                 {{ codeCooldown > 0 ? `${codeCooldown}秒后重试` : '发送验证码' }}
-                            </el-button>
+                            </qy-button>
                         </div>
-                    </el-form-item>
+                    </qy-form-item>
 
-                    <el-form-item>
-                        <el-button type="primary" :loading="phoneSaving" @click="handleBindPhone">
+                    <qy-form-item>
+                        <qy-button type="primary" :loading="phoneSaving" @click="handleBindPhone">
                             确认绑定
-                        </el-button>
-                        <el-button @click="cancelPhoneEdit">取消</el-button>
-                    </el-form-item>
+                        </qy-button>
+                        <qy-button @click="cancelPhoneEdit">取消</qy-button>
+                    </qy-form-item>
                 </template>
 
-                <el-form-item v-else>
-                    <el-button type="primary" @click="phoneEditMode = true">
+                <qy-form-item v-else>
+                    <qy-button type="primary" @click="phoneEditMode = true">
                         {{ userStore.profile?.phone ? '更换手机号' : '绑定手机号' }}
-                    </el-button>
-                </el-form-item>
-            </el-form>
-        </el-card>
+                    </qy-button>
+                </qy-form-item>
+            </qy-form>
+        </qy-card>
 
         <!-- 绑定邮箱 -->
-        <el-card class="settings-section">
+        <qy-card class="settings-section">
             <template #header>
                 <div class="section-header">
                     <span>邮箱绑定</span>
-                    <el-tag v-if="userStore.profile?.emailVerified" type="success" size="small">已验证</el-tag>
-                    <el-tag v-else type="warning" size="small">未验证</el-tag>
+                    <qy-tag v-if="userStore.profile?.emailVerified" type="success" size="small">已验证</qy-tag>
+                    <qy-tag v-else type="warning" size="small">未验证</qy-tag>
                 </div>
             </template>
-            <el-form ref="emailFormRef" :model="emailForm" :rules="emailRules" label-width="120px"
+            <qy-form ref="emailFormRef" :model="emailForm" :rules="emailRules" label-width="120px"
                 class="settings-form">
-                <el-form-item label="当前邮箱">
-                    <el-input :value="userStore.email" disabled />
-                </el-form-item>
+                <qy-form-item label="当前邮箱">
+                    <qy-input :value="userStore.email" disabled />
+                </qy-form-item>
 
                 <template v-if="!userStore.profile?.emailVerified">
-                    <el-form-item>
-                        <el-button type="primary" :loading="emailSending" @click="sendEmailVerification">
+                    <qy-form-item>
+                        <qy-button type="primary" :loading="emailSending" @click="sendEmailVerification">
                             发送验证邮件
-                        </el-button>
-                    </el-form-item>
+                        </qy-button>
+                    </qy-form-item>
                 </template>
 
                 <template v-if="emailEditMode">
-                    <el-form-item label="新邮箱" prop="email">
-                        <el-input v-model="emailForm.email" placeholder="请输入新邮箱地址" clearable />
-                    </el-form-item>
+                    <qy-form-item label="新邮箱" prop="email">
+                        <qy-input v-model="emailForm.email" placeholder="请输入新邮箱地址" clearable />
+                    </qy-form-item>
 
-                    <el-form-item label="验证码" prop="code">
+                    <qy-form-item label="验证码" prop="code">
                         <div class="code-input">
-                            <el-input v-model="emailForm.code" placeholder="请输入验证码" maxlength="6" clearable />
-                            <el-button :disabled="emailCooldown > 0" @click="sendEmailCode">
+                            <qy-input v-model="emailForm.code" placeholder="请输入验证码" maxlength="6" clearable />
+                            <qy-button :disabled="emailCooldown > 0" @click="sendEmailCode">
                                 {{ emailCooldown > 0 ? `${emailCooldown}秒后重试` : '发送验证码' }}
-                            </el-button>
+                            </qy-button>
                         </div>
-                    </el-form-item>
+                    </qy-form-item>
 
-                    <el-form-item>
-                        <el-button type="primary" :loading="emailSaving" @click="handleBindEmail">
+                    <qy-form-item>
+                        <qy-button type="primary" :loading="emailSaving" @click="handleBindEmail">
                             确认绑定
-                        </el-button>
-                        <el-button @click="cancelEmailEdit">取消</el-button>
-                    </el-form-item>
+                        </qy-button>
+                        <qy-button @click="cancelEmailEdit">取消</qy-button>
+                    </qy-form-item>
                 </template>
 
-                <el-form-item v-else-if="userStore.profile?.emailVerified">
-                    <el-button type="primary" @click="emailEditMode = true">
+                <qy-form-item v-else-if="userStore.profile?.emailVerified">
+                    <qy-button type="primary" @click="emailEditMode = true">
                         更换邮箱
-                    </el-button>
-                </el-form-item>
-            </el-form>
-        </el-card>
+                    </qy-button>
+                </qy-form-item>
+            </qy-form>
+        </qy-card>
 
         <!-- 登录设备 -->
-        <el-card class="settings-section">
+        <qy-card class="settings-section">
             <template #header>
                 <div class="section-header">
                     <span>登录设备</span>
@@ -148,11 +148,11 @@
                 <el-empty v-if="loginDevices.length === 0" description="暂无登录设备" />
                 <div v-else v-for="device in loginDevices" :key="device.id" class="device-item">
                     <div class="device-icon">
-                        <el-icon :size="32">
+                        <qy-icon :size="32">
                             <Monitor v-if="device.deviceType === 'desktop'" />
                             <Iphone v-else-if="device.deviceType === 'mobile'" />
                             <Van v-else />
-                        </el-icon>
+                        </qy-icon>
                     </div>
                     <div class="device-info">
                         <div class="device-name">{{ device.deviceName || device.browser }}</div>
@@ -163,17 +163,17 @@
                         </div>
                     </div>
                     <div class="device-action">
-                        <el-tag v-if="device.isCurrent" type="success">当前设备</el-tag>
-                        <el-button v-else type="danger" text @click="removeDevice(device.id)">
+                        <qy-tag v-if="device.isCurrent" type="success">当前设备</qy-tag>
+                        <qy-button v-else type="danger" text @click="removeDevice(device.id)">
                             移除
-                        </el-button>
+                        </qy-button>
                     </div>
                 </div>
             </div>
-        </el-card>
+        </qy-card>
 
         <!-- 账号注销 -->
-        <el-card class="settings-section danger-section">
+        <qy-card class="settings-section danger-section">
             <template #header>
                 <div class="section-header">
                     <span>危险操作</span>
@@ -181,19 +181,25 @@
             </template>
             <div class="danger-content">
                 <p>注销账号后，您的所有数据将被永久删除且无法恢复，请谨慎操作。</p>
-                <el-button type="danger" @click="handleDeleteAccount">
+                <qy-button type="danger" @click="handleDeleteAccount">
                     注销账号
-                </el-button>
+                </qy-button>
             </div>
-        </el-card>
+        </qy-card>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { Monitor, Iphone, Van } from '@element-plus/icons-vue'
+import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
+import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
+import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import QyCard from '@/design-system/components/basic/QyCard/QyCard.vue'
+import QyTag from '@/design-system/components/basic/QyTag/QyTag.vue'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -305,7 +311,7 @@ const handleChangePassword = async () => {
         const valid = await passwordFormRef.value.validate()
         if (!valid) return
 
-        await ElMessageBox.confirm('确定要修改密码吗？修改后需要重新登录', '提示', {
+        await messageBox.confirm('确定要修改密码吗？修改后需要重新登录', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -317,7 +323,7 @@ const handleChangePassword = async () => {
             newPassword: passwordForm.new_password
         })
 
-        ElMessage.success('密码修改成功，请重新登录')
+        message.success('密码修改成功，请重新登录')
         resetPasswordForm()
 
         // 退出登录
@@ -326,7 +332,7 @@ const handleChangePassword = async () => {
         }, 1500)
     } catch (error: any) {
         if (error !== 'cancel') {
-            ElMessage.error(error.message || '修改密码失败')
+            message.error(error.message || '修改密码失败')
         }
     } finally {
         passwordSaving.value = false
@@ -344,18 +350,18 @@ const resetPasswordForm = () => {
 // 发送手机验证码
 const sendPhoneCode = async () => {
     if (!phoneForm.phone) {
-        ElMessage.warning('请先输入手机号')
+        message.warning('请先输入手机号')
         return
     }
 
     if (!/^1[3-9]\d{9}$/.test(phoneForm.phone)) {
-        ElMessage.warning('请输入有效的手机号')
+        message.warning('请输入有效的手机号')
         return
     }
 
     try {
         await sendPhoneVerifyCode(phoneForm.phone, userStore.profile?.phone ? 'change' : 'bind')
-        ElMessage.success('验证码已发送')
+        message.success('验证码已发送')
 
         // 开始倒计时
         codeCooldown.value = 60
@@ -367,7 +373,7 @@ const sendPhoneCode = async () => {
         }, 1000)
     } catch (error: any) {
         console.error('发送验证码失败:', error)
-        ElMessage.error(error.message || '发送验证码失败')
+        message.error(error.message || '发送验证码失败')
     }
 }
 
@@ -393,13 +399,13 @@ const handleBindPhone = async () => {
             })
         }
 
-        ElMessage.success('绑定成功')
+        message.success('绑定成功')
         phoneEditMode.value = false
         phoneForm.phone = ''
         phoneForm.code = ''
         await userStore.fetchProfile()
     } catch (error: any) {
-        ElMessage.error(error.message || '绑定失败')
+        message.error(error.message || '绑定失败')
     } finally {
         phoneSaving.value = false
     }
@@ -418,9 +424,9 @@ const sendEmailVerification = async () => {
     emailSending.value = true
     try {
         await verifyEmail()
-        ElMessage.success('验证邮件已发送，请查收')
+        message.success('验证邮件已发送，请查收')
     } catch (error) {
-        ElMessage.error('发送失败')
+        message.error('发送失败')
     } finally {
         emailSending.value = false
     }
@@ -429,13 +435,13 @@ const sendEmailVerification = async () => {
 // 发送邮箱验证码
 const sendEmailCode = async () => {
     if (!emailForm.email) {
-        ElMessage.warning('请先输入邮箱地址')
+        message.warning('请先输入邮箱地址')
         return
     }
 
     try {
         await sendEmailVerifyCode(emailForm.email, userStore.profile?.emailVerified ? 'change' : 'bind')
-        ElMessage.success('验证码已发送')
+        message.success('验证码已发送')
 
         // 开始倒计时
         emailCooldown.value = 60
@@ -446,7 +452,7 @@ const sendEmailCode = async () => {
             }
         }, 1000)
     } catch (error) {
-        ElMessage.error('发送验证码失败')
+        message.error('发送验证码失败')
     }
 }
 
@@ -472,13 +478,13 @@ const handleBindEmail = async () => {
             })
         }
 
-        ElMessage.success('绑定成功')
+        message.success('绑定成功')
         emailEditMode.value = false
         emailForm.email = ''
         emailForm.code = ''
         await userStore.fetchProfile()
     } catch (error: any) {
-        ElMessage.error(error.message || '绑定失败')
+        message.error(error.message || '绑定失败')
     } finally {
         emailSaving.value = false
     }
@@ -495,7 +501,7 @@ const cancelEmailEdit = () => {
 // 移除设备
 const removeDevice = async (deviceId: string) => {
     try {
-        await ElMessageBox.confirm('确定要移除此设备吗？', '提示', {
+        await messageBox.confirm('确定要移除此设备吗？', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -503,10 +509,10 @@ const removeDevice = async (deviceId: string) => {
 
         await removeDeviceAPI(deviceId)
         loginDevices.value = loginDevices.value.filter(d => d.id !== deviceId)
-        ElMessage.success('已移除')
+        message.success('已移除')
     } catch (error: any) {
         if (error !== 'cancel') {
-            ElMessage.error('操作失败')
+            message.error('操作失败')
         }
     }
 }
@@ -514,7 +520,7 @@ const removeDevice = async (deviceId: string) => {
 // 注销账号
 const handleDeleteAccount = async () => {
     try {
-        await ElMessageBox.confirm(
+        await messageBox.confirm(
             '注销账号后，您的所有数据将被永久删除且无法恢复。确定要继续吗？',
             '警告',
             {
@@ -525,7 +531,7 @@ const handleDeleteAccount = async () => {
         )
 
         // 需要输入密码确认
-        const { value: password } = await ElMessageBox.prompt(
+        const { value: password } = await messageBox.prompt(
             '请输入您的账号密码以确认注销',
             '确认密码',
             {
@@ -541,11 +547,11 @@ const handleDeleteAccount = async () => {
             password: password as string
         })
 
-        ElMessage.success('账号已注销')
+        message.success('账号已注销')
         authStore.logout()
     } catch (error: any) {
         if (error !== 'cancel') {
-            ElMessage.error('操作失败')
+            message.error('操作失败')
         }
     }
 }
@@ -624,7 +630,7 @@ onMounted(async () => {
         display: flex;
         gap: 12px;
 
-        .el-input {
+        .qy-input {
             flex: 1;
         }
     }
@@ -692,7 +698,7 @@ onMounted(async () => {
     .code-input {
         flex-direction: column;
 
-        .el-button {
+        .qy-button {
             width: 100%;
         }
     }

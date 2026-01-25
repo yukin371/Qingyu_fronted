@@ -1,11 +1,10 @@
 <template>
   <div class="login-form">
-    <el-form
+    <qy-form
       ref="loginFormRef"
       :model="loginForm"
       :rules="loginRules"
       label-width="0"
-      size="large"
       @submit.prevent="handleLogin"
     >
       <div class="form-header">
@@ -13,71 +12,83 @@
         <p class="form-subtitle">欢迎回来，开始您的阅读之旅</p>
       </div>
 
-      <el-form-item prop="username">
-        <el-input
+      <qy-form-item prop="username">
+        <qy-input
           v-model="loginForm.username"
           placeholder="请输入用户名或邮箱"
-          prefix-icon="User"
           clearable
+          size="lg"
           @keyup.enter="handleLogin"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item prop="password">
-        <el-input
+      <qy-form-item prop="password">
+        <qy-input
           v-model="loginForm.password"
           type="password"
           placeholder="请输入密码"
-          prefix-icon="Lock"
           show-password
           clearable
+          size="lg"
           @keyup.enter="handleLogin"
         />
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item>
+      <qy-form-item>
         <div class="form-options">
-          <el-checkbox v-model="loginForm.rememberMe">
+          <qy-checkbox v-model="loginForm.rememberMe">
             记住我
-          </el-checkbox>
-          <el-link type="primary" @click="$emit('forgot-password')">
+          </qy-checkbox>
+          <a class="link-primary" @click="$emit('forgot-password')">
             忘记密码？
-          </el-link>
+          </a>
         </div>
-      </el-form-item>
+      </qy-form-item>
 
-      <el-form-item>
-        <el-button
+      <qy-form-item>
+        <qy-button
           type="primary"
-          size="large"
+          size="lg"
           :loading="loading"
           :disabled="!isFormValid"
           class="login-button"
           @click="handleLogin"
         >
           {{ loading ? '登录中...' : '登录' }}
-        </el-button>
-      </el-form-item>
+        </qy-button>
+      </qy-form-item>
 
       <div class="form-footer">
         <span class="register-hint">
           还没有账号？
-          <el-link type="primary" @click="$emit('switch-to-register')">
+          <a class="link-primary" @click="$emit('switch-to-register')">
             立即注册
-          </el-link>
+          </a>
         </span>
       </div>
-    </el-form>
+    </qy-form>
   </div>
 </template>
 
 <script>
 import { ref, reactive, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage } from 'element-plus'
+import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
+import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
+import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import QyCheckbox from '@/design-system/base/Checkbox/Checkbox.vue'
+import { message } from '@/design-system/services'
 
 export default {
   name: 'LoginForm',
+  components: {
+    QyForm,
+    QyFormItem,
+    QyInput,
+    QyButton,
+    QyCheckbox
+  },
   emits: ['login-success', 'switch-to-register', 'forgot-password'],
   setup(props, { emit }) {
     const authStore = useAuthStore()
@@ -123,11 +134,11 @@ export default {
           rememberMe: loginForm.rememberMe
         })
 
-        ElMessage.success('登录成功')
+        message.success('登录成功')
         emit('login-success')
       } catch (error) {
         if (error.message) {
-          ElMessage.error(error.message)
+          message.error(error.message)
         }
       }
     }
@@ -208,6 +219,17 @@ export default {
 .register-hint {
   font-size: 14px;
   color: #606266;
+}
+
+.link-primary {
+  color: #409eff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.link-primary:hover {
+  color: #66b1ff;
 }
 
 /* 响应式设计 */
