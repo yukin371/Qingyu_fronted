@@ -14,7 +14,7 @@ import { authRoutes } from './auth-routes'
 // 导入模块路由（逐步迁移后将被移除）
 import { errorRoutes } from './error-routes' // 废弃：将由 pages/[...all].page.vue 处理
 // bookstoreRoutes 已迁移到 auto-routes ✅
-import readerRoutes from '@/modules/reader/routes'
+// readerRoutes 已迁移到 auto-routes ✅
 // userRoutes 已迁移到 auto-routes ✅
 import writerRoutes from '@/modules/writer/routes'
 import adminRoutes from '@/modules/admin/routes'
@@ -58,7 +58,7 @@ const manualRoutes: RouteRecordRaw[] = [
 // 注意：迁移模块时必须从下面的数组中移除对应路由
 const moduleRoutes: RouteRecordRaw[] = [
   // bookstoreRoutes 已迁移到 auto-routes ✅
-  ...readerRoutes,
+  // readerRoutes 已迁移到 auto-routes ✅
   // userRoutes 已迁移到 auto-routes ✅
   ...writerRoutes,
   ...adminRoutes,
