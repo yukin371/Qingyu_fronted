@@ -194,7 +194,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
 const router = useRouter()
@@ -258,7 +258,7 @@ const handleMenuSelect = (index: string) => {
 // 搜索处理
 const handleSearch = () => {
   if (!searchKeyword.value.trim()) {
-    ElMessage.warning('请输入搜索关键词')
+    message.warning('请输入搜索关键词')
     return
   }
   router.push({
@@ -291,7 +291,7 @@ const handleQuickLogin = async () => {
           password: quickLoginForm.value.password
         })
 
-        ElMessage.success('登录成功')
+        message.success('登录成功')
         showQuickLogin.value = false
 
         // 重置表单
@@ -301,7 +301,7 @@ const handleQuickLogin = async () => {
           rememberMe: false
         }
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败')
+        message.error(error.message || '登录失败')
       } finally {
         quickLoginLoading.value = false
       }
@@ -326,13 +326,13 @@ const handleUserCommand = async (command: string) => {
       break
     case 'logout':
       try {
-        await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        await messageBox.confirm('确定要退出登录吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         })
         await authStore.logout()
-        ElMessage.success('已退出登录')
+        message.success('已退出登录')
         router.push('/bookstore')
       } catch (error) {
         // 用户取消

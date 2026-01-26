@@ -232,7 +232,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
@@ -327,9 +327,9 @@ const handleLogin = async () => {
       loading.value = true
       try {
         await authStore.login(loginForm.value)
-        ElMessage.success('登录成功')
+        message.success('登录成功')
         router.push((route.query.redirect as string) || '/bookstore')
-      } catch (e: any) { ElMessage.error(e.message || '登录失败') }
+      } catch (e: any) { message.error(e.message || '登录失败') }
 
       finally { loading.value = false }
     }
@@ -338,17 +338,17 @@ const handleLogin = async () => {
 
 const sendEmailCode = async () => {
   // 模拟发送逻辑
-  if (!registerForm.value.email) return ElMessage.warning('请输入邮箱')
+  if (!registerForm.value.email) return message.warning('请输入邮箱')
   sendingEmail.value = true
   try {
     await sendEmailVerifyCode(registerForm.value.email, 'bind')
-    ElMessage.success('已发送')
+    message.success('已发送')
     emailCountdown.value = 60
     const t = setInterval(() => {
       emailCountdown.value--
       if (emailCountdown.value <= 0) clearInterval(t)
     }, 1000)
-  } catch (e: any) { ElMessage.error(e.message) }
+  } catch (e: any) { message.error(e.message) }
   finally { sendingEmail.value = false }
 }
 
@@ -359,9 +359,9 @@ const handleRegister = async () => {
       loading.value = true
       try {
         await authStore.register(registerForm.value)
-        ElMessage.success('注册成功')
+        message.success('注册成功')
         activeMode.value = 'login'
-      } catch (e: any) { ElMessage.error(e.message) }
+      } catch (e: any) { message.error(e.message) }
       finally { loading.value = false }
     }
   })

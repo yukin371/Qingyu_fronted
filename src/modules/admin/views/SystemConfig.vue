@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import * as configApi from '@/modules/admin/api'
 
@@ -134,7 +134,7 @@ const loadConfigs = async () => {
     // 默认展开所有组
     activeGroups.value = groups.map(g => g.name)
   } catch (error) {
-    ElMessage.error('加载配置失败')
+    message.error('加载配置失败')
     console.error(error)
   } finally {
     loading.value = false
@@ -144,7 +144,7 @@ const loadConfigs = async () => {
 // 保存配置
 const handleSave = async () => {
   try {
-    await ElMessageBox.confirm('确定要保存所有修改吗？', '确认', {
+    await messageBox.confirm('确定要保存所有修改吗？', '确认', {
       type: 'warning'
     })
 
@@ -158,11 +158,11 @@ const handleSave = async () => {
 
     await configApi.batchUpdateConfig({ updates })
 
-    ElMessage.success('配置保存成功')
+    message.success('配置保存成功')
     await loadConfigs() // 重新加载
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('保存配置失败')
+      message.error('保存配置失败')
       console.error(error)
     }
   } finally {
@@ -181,7 +181,7 @@ const loadBackups = async () => {
   try {
     backups.value = await configApi.getConfigBackups()
   } catch (error) {
-    ElMessage.error('加载备份列表失败')
+    message.error('加载备份列表失败')
     console.error(error)
   } finally {
     loadingBackups.value = false
@@ -191,17 +191,17 @@ const loadBackups = async () => {
 // 恢复备份
 const handleRestore = async () => {
   try {
-    await ElMessageBox.confirm('恢复备份将覆盖当前配置，确定继续吗？', '警告', {
+    await messageBox.confirm('恢复备份将覆盖当前配置，确定继续吗？', '警告', {
       type: 'warning'
     })
 
     await configApi.restoreConfigBackup()
-    ElMessage.success('配置恢复成功')
+    message.success('配置恢复成功')
     showBackupDialog.value = false
     await loadConfigs()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('恢复配置失败')
+      message.error('恢复配置失败')
       console.error(error)
     }
   }

@@ -127,7 +127,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useWriterStore } from '@/stores/writer'
 
@@ -160,7 +160,7 @@ const formatDate = (dateStr: string) => {
 const openProject = (projectId: string) => {
   console.log('打开项目, projectId:', projectId)
   if (!projectId) {
-    ElMessage.error('项目ID无效')
+    message.error('项目ID无效')
     console.error('projectId 为空或未定义')
     return
   }
@@ -169,7 +169,7 @@ const openProject = (projectId: string) => {
 
 const handleCreate = async () => {
   if (!newProject.value.title.trim()) {
-    ElMessage.warning('请输入项目名称')
+    message.warning('请输入项目名称')
     return
   }
 
@@ -193,22 +193,22 @@ const handleCreate = async () => {
         openProject(projectId)
       } else {
         console.error('项目对象缺少 projectId 字段:', project)
-        ElMessage.error('项目创建成功，但缺少项目ID')
+        message.error('项目创建成功，但缺少项目ID')
       }
     }
   } catch (error: any) {
     console.error('创建项目失败:', error)
-    ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
+    message.error('创建项目失败：' + (error.message || '未知错误'))
   }
 }
 
 const handleCommand = async (command: string, project: any) => {
   if (command === 'edit') {
     // TODO: 实现编辑功能
-    ElMessage.info('编辑功能开发中')
+    message.info('编辑功能开发中')
   } else if (command === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定要删除项目"${project.title}"吗？此操作不可恢复。`,
         '确认删除',
         {
@@ -221,7 +221,7 @@ const handleCommand = async (command: string, project: any) => {
       await writerStore.deleteProjectById(project.projectId)
     } catch (error: any) {
       if (error !== 'cancel') {
-        ElMessage.error('删除失败：' + (error.message || '未知错误'))
+        message.error('删除失败：' + (error.message || '未知错误'))
       }
     }
   }
@@ -256,7 +256,7 @@ async function handleToggleMode() {
   try {
     await writerStore.fetchProjects()
   } catch (error: any) {
-    ElMessage.error('加载项目列表失败：' + (error.message || '未知错误'))
+    message.error('加载项目列表失败：' + (error.message || '未知错误'))
   }
 }
 
@@ -265,7 +265,7 @@ onMounted(async () => {
   try {
     await writerStore.fetchProjects()
   } catch (error: any) {
-    ElMessage.error('加载项目列表失败：' + (error.message || '未知错误'))
+    message.error('加载项目列表失败：' + (error.message || '未知错误'))
   }
 })
 </script>

@@ -208,7 +208,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { exportApi } from '../api/export'
 import type { ExportTask, ExportTaskStatus, ExportFormat } from '../types/export'
 
@@ -345,7 +345,7 @@ async function fetchTask(): Promise<void> {
     }
   } catch (error) {
     console.error('获取任务状态失败:', error)
-    ElMessage.error('获取任务状态失败，请刷新页面重试')
+    message.error('获取任务状态失败，请刷新页面重试')
   } finally {
     loading.value = false
   }
@@ -382,10 +382,10 @@ async function handleCancel(): Promise<void> {
     await exportApi.cancelTask(props.taskId)
     stopPolling()
     await fetchTask()
-    ElMessage.success('任务已取消')
+    message.success('任务已取消')
   } catch (error) {
     console.error('取消任务失败:', error)
-    ElMessage.error('取消任务失败，请稍后重试')
+    message.error('取消任务失败，请稍后重试')
   }
 }
 
@@ -394,7 +394,7 @@ async function handleCancel(): Promise<void> {
  */
 async function handleDownload(): Promise<void> {
   if (!task.value?.fileUrl) {
-    ElMessage.warning('文件尚未生成')
+    message.warning('文件尚未生成')
     return
   }
 
@@ -410,10 +410,10 @@ async function handleDownload(): Promise<void> {
     a.click()
     URL.revokeObjectURL(url)
 
-    ElMessage.success('下载已开始')
+    message.success('下载已开始')
   } catch (error) {
     console.error('下载失败:', error)
-    ElMessage.error('下载失败，请稍后重试')
+    message.error('下载失败，请稍后重试')
   }
 }
 
@@ -423,10 +423,10 @@ async function handleDownload(): Promise<void> {
 async function handleRetry(): Promise<void> {
   try {
     emit('retry')
-    ElMessage.info('开始重新导出...')
+    message.info('开始重新导出...')
   } catch (error) {
     console.error('重试失败:', error)
-    ElMessage.error('重试失败，请稍后再试')
+    message.error('重试失败，请稍后再试')
   }
 }
 

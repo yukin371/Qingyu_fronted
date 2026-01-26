@@ -3,8 +3,7 @@ import { ref, watch } from 'vue'
 import { editorApi } from '../api/editor'
 import { useDocumentStore } from './documentStore' // 引用其他 Store
 import { debounce } from '@/utils/editor'
-import { ElMessage, ElMessageBox } from 'element-plus'
-
+import { message, messageBox } from '@/design-system/services'
 export const useEditorStore = defineStore('writer-editor', () => {
   const documentStore = useDocumentStore()
 
@@ -68,7 +67,7 @@ export const useEditorStore = defineStore('writer-editor', () => {
       lastSavedAt.value = res.lastSavedAt
       isDirty.value = false
 
-      if (!isAuto) ElMessage.success('保存成功')
+      if (!isAuto) message.success('保存成功')
     } catch (error: any) {
       if (error.response?.status === 409 || error.code === 409) {
         handleConflict()
@@ -83,7 +82,7 @@ export const useEditorStore = defineStore('writer-editor', () => {
 
   // 5. 冲突处理
   function handleConflict() {
-    ElMessageBox.confirm('云端版本比本地新，是否覆盖云端？', '版本冲突', {
+    messageBox.confirm('云端版本比本地新，是否覆盖云端？', '版本冲突', {
       confirmButtonText: '强制覆盖',
       cancelButtonText: '刷新获取最新',
       type: 'warning',

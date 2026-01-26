@@ -1,7 +1,7 @@
 /**
  * 全局错误处理工具
  */
-import { ElMessage, ElNotification } from 'element-plus'
+import { message, notification } from '@/design-system/services'
 import type { AxiosError } from 'axios'
 import type { APIResponse } from '@/types/api'
 
@@ -242,13 +242,13 @@ export class ErrorHandler {
     const message = this.getErrorMessage(error)
 
     if (type === 'notification') {
-      ElNotification.error({
+      notification.error({
         title: '错误',
         message,
         duration: 4000
       })
     } else {
-      ElMessage.error({
+      message.error({
         message,
         duration: 3000
       })

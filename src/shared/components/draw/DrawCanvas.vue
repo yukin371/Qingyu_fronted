@@ -191,7 +191,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import DrawEngine from '@/core/draw-engine/draw-engine'
 import type { DrawEngineConfig, DrawNode } from '@/core/draw-engine/types'
@@ -545,7 +545,7 @@ const confirmEdit = () => {
 }
 
 const handleDeleteNode = (node: DrawNode) => {
-  ElMessageBox.confirm('确定要删除该节点吗？', '提示', {
+  messageBox.confirm('确定要删除该节点吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -598,12 +598,12 @@ const handleExport = (command: string) => {
   switch (command) {
     case 'json':
       emit('export', { type: 'json', data: drawEngine.exportAsJSON() })
-      ElMessage.success('已复制到剪贴板')
+      message.success('已复制到剪贴板')
       break
     case 'markdown':
       const md = drawEngine.exportAsMarkdown()
       emit('export', { type: 'markdown', data: md })
-      ElMessage.success('已导出为Markdown')
+      message.success('已导出为Markdown')
       break
     case 'svg':
       const rect = canvasRef.value?.getBoundingClientRect()

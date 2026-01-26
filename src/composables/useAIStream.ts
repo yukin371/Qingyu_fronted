@@ -6,8 +6,7 @@
  */
 
 import { ref, Ref } from 'vue'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 export interface AIStreamOptions {
   endpoint: string
   method?: 'POST' | 'GET'
@@ -188,7 +187,7 @@ export function useAIStream(options: AIStreamOptions): UseAIStreamReturn {
       error.value = err.message || '请求失败'
       onError?.(err)
       if (error.value) {
-        ElMessage.error(error.value)
+        message.error(error.value)
       }
       throw err
     } finally {

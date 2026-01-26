@@ -120,7 +120,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import ReviewCard from '@admin/components/ReviewCard.vue'
 import * as adminAPI from '@/modules/admin/api'
@@ -192,7 +192,7 @@ const loadReviews = async () => {
     }
   } catch (error) {
     console.error('加载审核列表失败:', error)
-    ElMessage.error('加载审核列表失败')
+    message.error('加载审核列表失败')
   } finally {
     loading.value = false
   }
@@ -213,7 +213,7 @@ const handleView = (item: PendingReview) => {
 // 批准
 const handleApprove = async (item: PendingReview) => {
   try {
-    await ElMessageBox.confirm('确认批准该内容吗？', '提示', {
+    await messageBox.confirm('确认批准该内容吗？', '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'success'
@@ -223,13 +223,13 @@ const handleApprove = async (item: PendingReview) => {
       status: 'approved'
     })
 
-    ElMessage.success('批准成功')
+    message.success('批准成功')
     dialogVisible.value = false
     loadReviews()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('批准失败:', error)
-      ElMessage.error('批准失败')
+      message.error('批准失败')
     }
   }
 }
@@ -244,7 +244,7 @@ const handleReject = (item: PendingReview) => {
 // 确认拒绝
 const confirmReject = async () => {
   if (!rejectForm.reason.trim()) {
-    ElMessage.warning('请输入拒绝原因')
+    message.warning('请输入拒绝原因')
     return
   }
 
@@ -257,13 +257,13 @@ const confirmReject = async () => {
       reason: rejectForm.reason
     })
 
-    ElMessage.success('已拒绝')
+    message.success('已拒绝')
     rejectDialogVisible.value = false
     dialogVisible.value = false
     loadReviews()
   } catch (error) {
     console.error('拒绝失败:', error)
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   } finally {
     submitting.value = false
   }

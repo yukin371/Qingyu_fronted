@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 
 const router = useRouter()
@@ -276,7 +276,7 @@ const recentActivities = ref([
 
 // 加载活动
 const loadActivities = () => {
-  ElMessage.success('数据已刷新')
+  message.success('数据已刷新')
 }
 
 // 路由跳转

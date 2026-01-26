@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+// Element Plus - 保留类型导入和部分组件
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
@@ -30,11 +30,6 @@ import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/er
 import { performanceMonitor, measureFirstScreenTime } from './utils/performance'
 
 const app = createApp(App)
-
-// 注册Element Plus图标
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
 
 // 注册全局指令
 app.directive('lazy', vLazy)
@@ -66,6 +61,7 @@ if (isDev) {
 app.use(createPinia())
 // 再注册 Router，路由守卫需要访问 store
 app.use(router)
+// Element Plus - 仅保留部分组件（如 ElTree）
 app.use(ElementPlus)
 
 // 注册 Qingyu 全局服务（兼容 Element Plus API）

@@ -204,7 +204,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -270,7 +270,7 @@ const loadUserProfile = async () => {
     }
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
-    ElMessage.error('加载用户信息失败')
+    message.error('加载用户信息失败')
   } finally {
     loading.value = false
   }
@@ -323,7 +323,7 @@ const loadBookshelf = async () => {
     }
   } catch (error: any) {
     console.error('加载书架失败:', error)
-    ElMessage.error('加载书架失败')
+    message.error('加载书架失败')
     bookshelfList.value = []
     bookshelfPagination.value.total = 0
   } finally {
@@ -408,7 +408,7 @@ const formatTime = (dateStr: string): string => {
 // 处理关注
 const handleFollow = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push('/auth')
     return
   }
@@ -416,13 +416,13 @@ const handleFollow = async () => {
   try {
     await followAPI.followUser(userId.value)
     isFollowing.value = true
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     if (userStats.value) {
       userStats.value.followerCount++
     }
   } catch (error: any) {
     console.error('关注失败:', error)
-    ElMessage.error('关注失败')
+    message.error('关注失败')
   }
 }
 
@@ -431,19 +431,19 @@ const handleUnfollow = async () => {
   try {
     await followAPI.unfollowUser(userId.value)
     isFollowing.value = false
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {
       userStats.value.followerCount--
     }
   } catch (error: any) {
     console.error('取消关注失败:', error)
-    ElMessage.error('取消关注失败')
+    message.error('取消关注失败')
   }
 }
 
 // 处理私信
 const handleMessage = () => {
-  ElMessage.info('私信功能开发中')
+  message.info('私信功能开发中')
 }
 
 // 前往书籍详情

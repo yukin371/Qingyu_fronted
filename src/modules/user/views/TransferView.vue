@@ -221,7 +221,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { message, FormInstance, FormRules } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'

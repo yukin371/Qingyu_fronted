@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import { ElMessageBox } from 'element-plus'
+import { messageBox } from '@/design-system/services'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -196,7 +196,7 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
     emit('edit-chapter', chapter)
   } else if (cmd === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定删除章节 "第${chapter.chapterNum}章 ${chapter.title}" 吗？`,
         '危险操作',
         { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }

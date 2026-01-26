@@ -210,7 +210,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getConversations,
@@ -268,7 +268,7 @@ const loadConversations = async () => {
     })
     conversations.value = res.items
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loadingConversations.value = false
   }
@@ -317,7 +317,7 @@ const loadMessages = async (loadMore = false) => {
       scrollToBottom()
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '加载消息失败')
+    message.error(error.message || '加载消息失败')
   } finally {
     loadingMessages.value = false
   }
@@ -344,7 +344,7 @@ const sendMessage = async () => {
       conv.last_message_type = msg.type
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '发送失败')
+    message.error(error.message || '发送失败')
   } finally {
     sending.value = false
   }
@@ -360,7 +360,7 @@ const handleImageUpload = async (file: File) => {
     })
     loadMessages()
   } catch (error: any) {
-    ElMessage.error(error.message || '上传失败')
+    message.error(error.message || '上传失败')
   }
   return false
 }
@@ -376,7 +376,7 @@ const handleFileUpload = async (file: File) => {
     })
     loadMessages()
   } catch (error: any) {
-    ElMessage.error(error.message || '上传失败')
+    message.error(error.message || '上传失败')
   }
   return false
 }
@@ -393,13 +393,13 @@ const markAsRead = async () => {
     }
     loadStats()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 // 删除对话
 const confirmDeleteConversation = () => {
-  ElMessageBox.confirm('确定要删除此对话吗？', '确认删除', {
+  messageBox.confirm('确定要删除此对话吗？', '确认删除', {
     type: 'warning'
   }).then(async () => {
     if (!selectedConversation.value) return
@@ -409,9 +409,9 @@ const confirmDeleteConversation = () => {
       conversations.value = conversations.value.filter(c => c.id !== selectedConversation.value?.id)
       selectedConversation.value = null
       messages.value = []
-      ElMessage.success('删除成功')
+      message.success('删除成功')
     } catch (error: any) {
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   })
 }
@@ -421,16 +421,16 @@ const handleMessageAction = async (command: string, msg: Message) => {
   switch (command) {
     case 'copy':
       navigator.clipboard.writeText(msg.content)
-      ElMessage.success('已复制')
+      message.success('已复制')
       break
     case 'recall':
       if (canRecall(msg)) {
         try {
           await recallMessage(msg.id)
           messages.value = messages.value.filter(m => m.id !== msg.id)
-          ElMessage.success('已撤回')
+          message.success('已撤回')
         } catch (error: any) {
-          ElMessage.error(error.message || '撤回失败')
+          message.error(error.message || '撤回失败')
         }
       }
       break
@@ -438,9 +438,9 @@ const handleMessageAction = async (command: string, msg: Message) => {
       try {
         await deleteMessage(msg.id)
         messages.value = messages.value.filter(m => m.id !== msg.id)
-        ElMessage.success('删除成功')
+        message.success('删除成功')
       } catch (error: any) {
-        ElMessage.error(error.message || '删除失败')
+        message.error(error.message || '删除失败')
       }
       break
   }
@@ -455,7 +455,7 @@ const canRecall = (msg: Message) => {
 // 新建对话
 const createNewConversation = async () => {
   if (!newChatUserId.value) {
-    ElMessage.warning('请输入用户ID')
+    message.warning('请输入用户ID')
     return
   }
 
@@ -468,7 +468,7 @@ const createNewConversation = async () => {
     newChatUserId.value = ''
     loadMessages()
   } catch (error: any) {
-    ElMessage.error(error.message || '创建失败')
+    message.error(error.message || '创建失败')
   } finally {
     creating.value = false
   }
@@ -485,7 +485,7 @@ const handleSearch = async () => {
     const res = await searchConversations(searchKeyword.value)
     conversations.value = res
   } catch (error: any) {
-    ElMessage.error(error.message || '搜索失败')
+    message.error(error.message || '搜索失败')
   }
 }
 

@@ -214,7 +214,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   builtinThemes,
@@ -308,17 +308,17 @@ const getPreviewContentStyle = () => ({
 // 创建自定义主题
 const createCustomTheme = async () => {
   if (!customThemeForm.name) {
-    ElMessage.warning('请输入主题名称')
+    message.warning('请输入主题名称')
     return
   }
 
   try {
     const res = await apiCreateTheme(customThemeForm)
     customThemes.value.push(res)
-    ElMessage.success('主题创建成功')
+    message.success('主题创建成功')
     showCreateThemeDialog.value = false
   } catch (error: any) {
-    ElMessage.error(error.message || '创建失败')
+    message.error(error.message || '创建失败')
   }
 }
 
@@ -336,9 +336,9 @@ const deleteCustomTheme = async (themeId: string) => {
   try {
     await apiDeleteTheme(themeId)
     customThemes.value = customThemes.value.filter(t => t.id !== themeId)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '删除失败')
+    message.error(error.message || '删除失败')
   }
 }
 
@@ -353,9 +353,9 @@ const saveAllSettings = async () => {
     await setFont(currentFont.value.id)
     await updateFontSettings(fontSettings)
 
-    ElMessage.success('设置保存成功')
+    message.success('设置保存成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '保存失败')
+    message.error(error.message || '保存失败')
   } finally {
     saving.value = false
   }

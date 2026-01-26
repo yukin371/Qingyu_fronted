@@ -249,7 +249,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { getProjects, type Project } from '@/modules/writer/api'
 
@@ -336,7 +336,7 @@ const loadBooks = async () => {
     }
   } catch (error) {
     console.error('加载书籍列表失败:', error)
-    ElMessage.error('加载书籍列表失败')
+    message.error('加载书籍列表失败')
   }
 }
 
@@ -354,7 +354,7 @@ const loadChapters = async () => {
     chapters.value = generateMockChapters()
   } catch (error) {
     console.error('加载章节列表失败:', error)
-    ElMessage.error('加载章节列表失败')
+    message.error('加载章节列表失败')
   } finally {
     loading.value = false
   }
@@ -407,26 +407,26 @@ const publishChapter = (chapter: any) => {
 const confirmPublish = async () => {
   try {
     // 实际应该调用API发布
-    ElMessage.success('发布成功')
+    message.success('发布成功')
     publishDialogVisible.value = false
     loadChapters()
   } catch (error) {
     console.error('发布失败:', error)
-    ElMessage.error('发布失败')
+    message.error('发布失败')
   }
 }
 
 // 下架章节
 const unpublishChapter = async (chapter: any) => {
   try {
-    await ElMessageBox.confirm('确定要下架该章节吗？', '提示', {
+    await messageBox.confirm('确定要下架该章节吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     // 实际应该调用API下架
-    ElMessage.success('下架成功')
+    message.success('下架成功')
     loadChapters()
   } catch (error) {
     // 用户取消
@@ -436,14 +436,14 @@ const unpublishChapter = async (chapter: any) => {
 // 批量发布
 const batchPublish = async () => {
   try {
-    await ElMessageBox.confirm(`确定要发布选中的 ${selectedChapters.value.length} 个章节吗？`, '批量发布', {
+    await messageBox.confirm(`确定要发布选中的 ${selectedChapters.value.length} 个章节吗？`, '批量发布', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     // 实际应该调用API批量发布
-    ElMessage.success('批量发布成功')
+    message.success('批量发布成功')
     loadChapters()
   } catch (error) {
     // 用户取消
@@ -453,14 +453,14 @@ const batchPublish = async () => {
 // 批量下架
 const batchUnpublish = async () => {
   try {
-    await ElMessageBox.confirm(`确定要下架选中的 ${selectedChapters.value.length} 个章节吗？`, '批量下架', {
+    await messageBox.confirm(`确定要下架选中的 ${selectedChapters.value.length} 个章节吗？`, '批量下架', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     // 实际应该调用API批量下架
-    ElMessage.success('批量下架成功')
+    message.success('批量下架成功')
     loadChapters()
   } catch (error) {
     // 用户取消
@@ -475,14 +475,14 @@ const editChapter = (chapter: any) => {
 // 删除章节
 const deleteChapter = async (chapter: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除该章节吗？删除后无法恢复！', '警告', {
+    await messageBox.confirm('确定要删除该章节吗？删除后无法恢复！', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'error'
     })
 
     // 实际应该调用API删除
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     loadChapters()
   } catch (error) {
     // 用户取消

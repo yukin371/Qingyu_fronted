@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
@@ -106,7 +106,7 @@ async function handleCommand(command: string) {
 // 退出登录
 async function handleLogout() {
   try {
-    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    await messageBox.confirm('确定要退出登录吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',

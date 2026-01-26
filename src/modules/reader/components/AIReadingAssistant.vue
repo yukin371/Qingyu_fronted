@@ -99,7 +99,7 @@
 
 <script setup lang="ts" name="AIReadingAssistant">
 import { ref, watch, nextTick, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useAIStream } from '../../../composables/useAIStream'
 
@@ -160,7 +160,7 @@ const {
     scrollToBottom()
   },
   onError: (error) => {
-    ElMessage.error('AI响应失败: ' + error.message)
+    message.error('AI响应失败: ' + error.message)
   }
 })
 

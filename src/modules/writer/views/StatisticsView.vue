@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
@@ -246,7 +246,7 @@ async function loadStatistics(): Promise<void> {
     loadReadingHeatmap()
   } catch (error: any) {
     console.error('加载统计数据失败:', error)
-    ElMessage.error(error.message || '加载统计数据失败')
+    message.error(error.message || '加载统计数据失败')
   } finally {
     loading.value = false
   }

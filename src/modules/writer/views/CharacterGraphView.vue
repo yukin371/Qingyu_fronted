@@ -206,8 +206,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
-import { ElMessage, ElMessageBox } from 'element-plus'
-
+import { message, messageBox } from '@/design-system/services'
 const writerStore = useWriterStore()
 const graphCanvasRef = ref()
 const selectedCharacter = ref<Character | null>(null)
@@ -282,7 +281,7 @@ const handleEditCharacter = (character: Character) => {
 
 const handleDeleteCharacter = async (character: Character) => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要删除角色"${character.name}"吗？`,
       '提示',
       {
@@ -301,11 +300,11 @@ const handleDeleteCharacter = async (character: Character) => {
     if (selectedCharacter.value?.id === character.id) {
       selectedCharacter.value = null
     }
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -334,7 +333,7 @@ const handleSubmit = async () => {
 
     const projectId = writerStore.currentProjectId
     if (!projectId) {
-      ElMessage.warning('请先选择项目')
+      message.warning('请先选择项目')
       return
     }
 
@@ -349,11 +348,11 @@ const handleSubmit = async () => {
       }
 
       await handleRefresh()
-      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+      message.success(isEdit.value ? '更新成功' : '创建成功')
       dialogVisible.value = false
     } catch (error: any) {
       console.error('操作失败:', error)
-      ElMessage.error(error.message || '操作失败')
+      message.error(error.message || '操作失败')
     } finally {
       submitting.value = false
     }
@@ -361,7 +360,7 @@ const handleSubmit = async () => {
 }
 
 const handleManageRelations = (character: Character) => {
-  ElMessage.info('关系管理功能开发中...')
+  message.info('关系管理功能开发中...')
 }
 
 const getCharacterRelations = (characterId: string): CharacterRelation[] => {

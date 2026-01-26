@@ -156,7 +156,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
-import { ElTree, ElMessageBox, ElMessage } from 'element-plus'
+import { messageBox, message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
 import { useDocumentSelection } from '../composables/useDocumentSelection'
@@ -424,7 +424,7 @@ async function executeDragOperation(
         copyContent: true
       })
 
-      ElMessage.success({
+      message.success({
         message: `已复制 "${dragData.title}" 到 "${dropData.title}"`,
         duration: 2000
       })
@@ -436,7 +436,7 @@ async function executeDragOperation(
         parentId: newParentId
       })
 
-      ElMessage.success({
+      message.success({
         message: `已移动 "${dragData.title}" 到 "${dropData.title}"`,
         duration: 2000
       })
@@ -447,7 +447,7 @@ async function executeDragOperation(
   } catch (error) {
     console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
 
-    ElMessage.error({
+    message.error({
       message: `${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`,
       duration: 3000
     })
@@ -538,7 +538,7 @@ async function executeBatchOperation(): Promise<void> {
     clearSelection()
     isMultiSelectMode.value = false
   } catch (error) {
-    ElMessageBox.alert('批量操作提交失败：' + (error as Error).message, '错误')
+    messageBox.alert('批量操作提交失败：' + (error as Error).message, '错误')
   }
 }
 

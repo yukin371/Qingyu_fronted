@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage, type FormInstance } from 'element-plus'
+import { message, type FormInstance } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { timelineApi } from '@/modules/writer/api'
 import {
@@ -210,7 +210,7 @@ const handleSubmit = async () => {
     const projectId = writerStore.currentProjectId
 
     if (!timelineId || !projectId) {
-      ElMessage.warning('上下文缺失 (无项目或时间线)')
+      message.warning('上下文缺失 (无项目或时间线)')
       return
     }
 
@@ -226,7 +226,7 @@ const handleSubmit = async () => {
         storyTime: { description: eventForm.value.storyTimeDescription }
       })
 
-      ElMessage.success('创建成功')
+      message.success('创建成功')
       dialogVisible.value = false
 
       // 刷新数据

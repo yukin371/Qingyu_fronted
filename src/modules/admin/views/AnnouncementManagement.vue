@@ -142,7 +142,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import * as announcementApi from '@/modules/admin/api'
 
@@ -204,7 +204,7 @@ const loadAnnouncements = async () => {
     announcements.value = response.data?.items || []
     total.value = response.data?.total || 0
   } catch (error) {
-    ElMessage.error('加载公告列表失败')
+    message.error('加载公告列表失败')
   } finally {
     loading.value = false
   }
@@ -256,15 +256,15 @@ const handleSubmit = async () => {
   try {
     if (editingAnnouncement.value) {
       await announcementApi.updateAnnouncement(editingAnnouncement.value.id, announcementForm)
-      ElMessage.success('更新成功')
+      message.success('更新成功')
     } else {
       await announcementApi.createAnnouncement(announcementForm)
-      ElMessage.success('创建成功')
+      message.success('创建成功')
     }
     dialogVisible.value = false
     await loadAnnouncements()
   } catch (error) {
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   } finally {
     submitting.value = false
   }
@@ -273,25 +273,25 @@ const handleSubmit = async () => {
 const handleStatusChange = async (announcement: announcementApi.Announcement) => {
   try {
     await announcementApi.updateAnnouncement(announcement.id, { isActive: announcement.isActive })
-    ElMessage.success('状态更新成功')
+    message.success('状态更新成功')
   } catch (error) {
-    ElMessage.error('状态更新失败')
+    message.error('状态更新失败')
     announcement.isActive = !announcement.isActive
   }
 }
 
 const handleDelete = async (announcement: announcementApi.Announcement) => {
   try {
-    await ElMessageBox.confirm('确定要删除此公告吗？', '确认', {
+    await messageBox.confirm('确定要删除此公告吗？', '确认', {
       type: 'warning'
     })
 
     await announcementApi.deleteAnnouncement(announcement.id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     await loadAnnouncements()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }

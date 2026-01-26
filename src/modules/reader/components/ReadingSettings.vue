@@ -122,7 +122,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { ReadingSettings as IReadingSettings } from '@/types/models'
 
@@ -208,14 +208,14 @@ const handleSave = () => {
     localStorage.setItem('reading_settings', JSON.stringify(settings))
 
     emit('change', { ...settings })
-    ElMessage.success('设置已保存')
+    message.success('设置已保存')
     visible.value = false
 }
 
 // 恢复默认
 const handleReset = () => {
     Object.assign(settings, defaultSettings)
-    ElMessage.info('已恢复默认设置')
+    message.info('已恢复默认设置')
 }
 
 // 监听设置变化，实时预览

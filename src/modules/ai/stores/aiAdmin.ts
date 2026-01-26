@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { aiAdminAPI } from '../api/ai.admin'
 import type {
   AIProvider,
@@ -91,7 +91,7 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       const response = await aiAdminAPI.getProviders()
       providers.value = response.providers || []
     } catch (error: any) {
-      ElMessage.error(error.message || '加载提供商列表失败')
+      message.error(error.message || '加载提供商列表失败')
       console.error('加载提供商失败:', error)
     } finally {
       providersLoading.value = false
@@ -102,10 +102,10 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
     try {
       const provider = await aiAdminAPI.createProvider(data)
       providers.value.push(provider)
-      ElMessage.success('提供商创建成功')
+      message.success('提供商创建成功')
       return provider
     } catch (error: any) {
-      ElMessage.error(error.message || '创建提供商失败')
+      message.error(error.message || '创建提供商失败')
       throw error
     }
   }
@@ -117,10 +117,10 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       if (index !== -1) {
         providers.value[index] = provider
       }
-      ElMessage.success('提供商更新成功')
+      message.success('提供商更新成功')
       return provider
     } catch (error: any) {
-      ElMessage.error(error.message || '更新提供商失败')
+      message.error(error.message || '更新提供商失败')
       throw error
     }
   }
@@ -129,9 +129,9 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
     try {
       await aiAdminAPI.deleteProvider(providerId)
       providers.value = providers.value.filter(p => p.id !== providerId)
-      ElMessage.success('提供商删除成功')
+      message.success('提供商删除成功')
     } catch (error: any) {
-      ElMessage.error(error.message || '删除提供商失败')
+      message.error(error.message || '删除提供商失败')
       throw error
     }
   }
@@ -140,13 +140,13 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
     try {
       const result = await aiAdminAPI.testProvider(providerId, testModel)
       if (result.success) {
-        ElMessage.success(`连接测试成功，响应时间: ${result.responseTime}ms`)
+        message.success(`连接测试成功，响应时间: ${result.responseTime}ms`)
       } else {
-        ElMessage.warning(result.message || '连接测试失败')
+        message.warning(result.message || '连接测试失败')
       }
       return result
     } catch (error: any) {
-      ElMessage.error(error.message || '连接测试失败')
+      message.error(error.message || '连接测试失败')
       throw error
     }
   }
@@ -158,9 +158,9 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       if (index !== -1) {
         providers.value[index] = provider
       }
-      ElMessage.success(`提供商已${status === 'active' ? '启用' : '禁用'}`)
+      message.success(`提供商已${status === 'active' ? '启用' : '禁用'}`)
     } catch (error: any) {
-      ElMessage.error(error.message || '更新状态失败')
+      message.error(error.message || '更新状态失败')
       throw error
     }
   }
@@ -173,7 +173,7 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       const response = await aiAdminAPI.getModels(provider)
       models.value = response.models || []
     } catch (error: any) {
-      ElMessage.error(error.message || '加载模型列表失败')
+      message.error(error.message || '加载模型列表失败')
       console.error('加载模型失败:', error)
     } finally {
       modelsLoading.value = false
@@ -187,10 +187,10 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       if (index !== -1) {
         models.value[index] = model
       }
-      ElMessage.success('模型更新成功')
+      message.success('模型更新成功')
       return model
     } catch (error: any) {
-      ElMessage.error(error.message || '更新模型失败')
+      message.error(error.message || '更新模型失败')
       throw error
     }
   }
@@ -202,9 +202,9 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
       if (index !== -1) {
         models.value[index] = model
       }
-      ElMessage.success(`模型已${status === 'active' ? '启用' : '禁用'}`)
+      message.success(`模型已${status === 'active' ? '启用' : '禁用'}`)
     } catch (error: any) {
-      ElMessage.error(error.message || '更新状态失败')
+      message.error(error.message || '更新状态失败')
       throw error
     }
   }
@@ -250,9 +250,9 @@ export const useAIAdminStore = defineStore('aiAdmin', () => {
     healthLoading.value = true
     try {
       healthStatus.value = await aiAdminAPI.triggerHealthCheck()
-      ElMessage.success('健康检查完成')
+      message.success('健康检查完成')
     } catch (error: any) {
-      ElMessage.error(error.message || '健康检查失败')
+      message.error(error.message || '健康检查失败')
     } finally {
       healthLoading.value = false
     }

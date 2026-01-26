@@ -192,7 +192,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { exportApi } from '../api/export'
 import type { ExportFormat, ExportDocumentRequest, ExportProjectRequest, ExportOptions } from '../types/export'
 
@@ -292,7 +292,7 @@ async function handleExport(): Promise<void> {
     handleClose()
   } catch (error) {
     console.error('导出失败:', error)
-    ElMessage.error({
+    message.error({
       message: '导出失败，请稍后重试',
       duration: 3000
     })

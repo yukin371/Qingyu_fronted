@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
 import { login, logout, register } from '@/modules/shared/api/auth'
 
@@ -96,7 +96,7 @@ export const useUserStore = defineStore('user', () => {
       token.value = ''
       userInfo.value = null
       localStorage.removeItem('token')
-      ElMessage.success('已退出登录')
+      message.success('已退出登录')
     }
   }
 

@@ -103,7 +103,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
@@ -182,7 +182,7 @@ const goToUserProfile = (userId?: string) => {
 // 处理点赞
 const handleLike = () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
   emit('like', props.comment.id, !props.comment.isLiked)
@@ -191,7 +191,7 @@ const handleLike = () => {
 // 处理回复
 const handleReply = () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
   if (!replyContent.value.trim()) {
@@ -225,7 +225,7 @@ const handleLikeComment = (commentId: string, isLike: boolean) => {
 // 加载更多回复
 const loadMoreReplies = () => {
   // TODO: 实现加载更多回复的逻辑
-  ElMessage.info('加载更多回复功能开发中')
+  message.info('加载更多回复功能开发中')
 }
 </script>
 

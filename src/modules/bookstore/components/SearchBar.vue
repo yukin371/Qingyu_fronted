@@ -69,8 +69,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 // --- 类型定义 ---
 interface SearchSuggestion {
   value: string

@@ -208,7 +208,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 interface Props {
   selectedText?: string
@@ -270,7 +270,7 @@ const handleGenerate = (tool: string) => {
   const config = toolConfig[tool]
 
   if (!config.text && !props.selectedText) {
-    ElMessage.warning('请输入文本')
+    message.warning('请输入文本')
     return
   }
 
@@ -309,9 +309,9 @@ const handleGenerate = (tool: string) => {
 const handleCopyResult = async () => {
   try {
     await navigator.clipboard.writeText(props.lastResult)
-    ElMessage.success('已复制到剪贴板')
+    message.success('已复制到剪贴板')
   } catch (error) {
-    ElMessage.error('复制失败')
+    message.error('复制失败')
   }
 }
 

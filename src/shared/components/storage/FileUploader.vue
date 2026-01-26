@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
 import type { UploadProgress } from '@/types/shared'
@@ -128,7 +128,7 @@ const handleBeforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   // 检查文件大小
   const fileSizeMB = rawFile.size / 1024 / 1024
   if (fileSizeMB > props.maxSize) {
-    ElMessage.error(`文件大小不能超过 ${props.maxSize}MB`)
+    message.error(`文件大小不能超过 ${props.maxSize}MB`)
     return false
   }
 
@@ -179,7 +179,7 @@ const handleProgress: UploadProps['onProgress'] = (evt, uploadFile) => {
 
 // 超出文件数量限制
 const handleExceed: UploadProps['onExceed'] = (files) => {
-  ElMessage.warning(`最多只能上传 ${props.limit} 个文件`)
+  message.warning(`最多只能上传 ${props.limit} 个文件`)
 }
 
 // 获取状态图标

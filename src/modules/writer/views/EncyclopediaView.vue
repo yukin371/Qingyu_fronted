@@ -223,8 +223,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 const writerStore = useWriterStore()
 const activeCategory = ref('characters')
 const searchKeyword = ref('')
@@ -275,15 +274,15 @@ const selectedLocation = computed(() => {
 })
 
 const handleAddCharacter = () => {
-  ElMessage.info('添加角色功能开发中...')
+  message.info('添加角色功能开发中...')
 }
 
 const handleAddLocation = () => {
-  ElMessage.info('添加地点功能开发中...')
+  message.info('添加地点功能开发中...')
 }
 
 const handleEditItem = () => {
-  ElMessage.info('编辑功能开发中...')
+  message.info('编辑功能开发中...')
 }
 
 onMounted(() => {

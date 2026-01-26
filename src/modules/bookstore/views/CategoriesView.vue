@@ -117,7 +117,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getBooksByCategory } from '@/modules/bookstore/api'
@@ -173,7 +173,7 @@ const loadCategoryTree = async () => {
     categoryTree.value = Array.isArray(response) ? response : []
   } catch (error: any) {
     console.error('加载分类树失败:', error)
-    ElMessage.error(error.message || '加载分类失败')
+    message.error(error.message || '加载分类失败')
     categoryTree.value = []
   } finally {
     treeLoading.value = false
@@ -219,7 +219,7 @@ const loadBooks = async () => {
     }
   } catch (error: any) {
     console.error('加载书籍列表失败:', error)
-    ElMessage.error(error.message || '加载书籍失败')
+    message.error(error.message || '加载书籍失败')
   } finally {
     booksLoading.value = false
   }

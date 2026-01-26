@@ -171,7 +171,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 // Mock data (no API/auth required)
 const router = useRouter()
@@ -232,35 +232,35 @@ const formatNumber = (num?: number): string => {
 
 const startReading = () => {
   if (chapters.value.length > 0) {
-    ElMessage.success(`开始阅读：${chapters.value[0].title}`)
+    message.success(`开始阅读：${chapters.value[0].title}`)
   } else {
-    ElMessage.warning('暂无章节')
+    message.warning('暂无章节')
   }
 }
-const readChapter = (id: string) => ElMessage.info(`阅读章节：${id}`)
+const readChapter = (id: string) => message.info(`阅读章节：${id}`)
 const reverseChapterOrder = () => (isReversed.value = !isReversed.value)
 const addToShelf = () => {
   inShelf.value = true
-  ElMessage.success('已加入书架（演示）')
+  message.success('已加入书架（演示）')
 }
 const toggleFavorite = () => {
   isFavorited.value = !isFavorited.value
-  ElMessage.success(isFavorited.value ? '收藏成功（演示）' : '取消收藏（演示）')
+  message.success(isFavorited.value ? '收藏成功（演示）' : '取消收藏（演示）')
 }
 const copyLink = async () => {
   const url = location.origin + '/bookstore/books-demo'
   await navigator.clipboard.writeText(url)
-  ElMessage.success('链接已复制（演示）')
+  message.success('链接已复制（演示）')
 }
 const share = () => {
-  ElMessage.info('分享功能演示：可接入 Web Share API 或自定义弹窗')
+  message.info('分享功能演示：可接入 Web Share API 或自定义弹窗')
 }
 const goToBook = (id: string) => router.push({ name: 'book-detail-demo', params: { id } })
 
 const userRating = ref(4)
 const ratingText = ref('')
 const submitRating = () => {
-  ElMessage.success(`评分成功（演示）：${userRating.value} ⭐`)
+  message.success(`评分成功（演示）：${userRating.value} ⭐`)
   ratingText.value = ''
 }
 
@@ -270,12 +270,12 @@ const hasMoreComments = ref(true)
 const loadingMore = ref(false)
 const submitComment = () => {
   if (!commentInput.value.trim()) {
-    ElMessage.warning('请输入评论内容（演示）')
+    message.warning('请输入评论内容（演示）')
     return
   }
   mockComments.value.unshift({ id: 'c' + Math.random().toString(36).slice(2), user: '你', time: '刚刚', content: commentInput.value })
   commentInput.value = ''
-  ElMessage.success('发表成功（演示）')
+  message.success('发表成功（演示）')
 }
 const loadMoreComments = async () => {
   loadingMore.value = true

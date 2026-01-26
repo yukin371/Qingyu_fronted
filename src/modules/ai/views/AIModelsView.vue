@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
@@ -206,7 +206,7 @@ async function toggleModelStatus(model: AIModel) {
   try {
     await aiStore.toggleModelStatus(model.id, newStatus)
   } catch (error: any) {
-    ElMessage.error(error.message || '更新状态失败')
+    message.error(error.message || '更新状态失败')
   }
 }
 

@@ -111,7 +111,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { followAPI } from '@/modules/social/api'
 
 interface UserItem {
@@ -231,7 +231,7 @@ const loadUserList = async () => {
     }
   } catch (error) {
     console.error('[FollowListView] 加载列表失败:', error)
-    ElMessage.error('加载失败，请稍后重试')
+    message.error('加载失败，请稍后重试')
   } finally {
     loading.value = false
   }

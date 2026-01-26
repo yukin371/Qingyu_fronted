@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/modules/reader/api'
@@ -197,7 +197,7 @@ const editRating = () => {
 // 提交评分
 const submitRating = async () => {
   if (ratingForm.value.score === 0) {
-    ElMessage.warning('请选择评分')
+    message.warning('请选择评分')
     return
   }
 
@@ -205,10 +205,10 @@ const submitRating = async () => {
   try {
     if (userRating.value) {
       await updateRating(props.bookId, ratingForm.value.score, ratingForm.value.review)
-      ElMessage.success('评分已更新')
+      message.success('评分已更新')
     } else {
       await rateBook(props.bookId, ratingForm.value.score, ratingForm.value.review)
-      ElMessage.success('评分成功')
+      message.success('评分成功')
     }
 
     showRatingDialog.value = false
@@ -217,7 +217,7 @@ const submitRating = async () => {
     // 重新加载数据
     await Promise.all([loadRatingData(), loadUserRating()])
   } catch (error: any) {
-    ElMessage.error(error.message || '评分失败')
+    message.error(error.message || '评分失败')
   } finally {
     submitting.value = false
   }

@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 
 interface Comment {
@@ -153,7 +153,7 @@ const handleEdit = () => {
 }
 
 const handleDelete = () => {
-  ElMessageBox.confirm('确定要删除评论吗？', '提示', {
+  messageBox.confirm('确定要删除评论吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -163,9 +163,9 @@ const handleDelete = () => {
         // TODO: 调用 API 删除评论
         // await deleteComment(props.comment.id)
         emit('delete', props.comment.id)
-        ElMessage.success('评论已删除')
+        message.success('评论已删除')
       } catch (error) {
-        ElMessage.error('删除失败，请重试')
+        message.error('删除失败，请重试')
       }
     })
     .catch(() => {})
@@ -173,7 +173,7 @@ const handleDelete = () => {
 
 const submitEdit = async () => {
   if (!editContent.value.trim()) {
-    ElMessage.error('评论不能为空')
+    message.error('评论不能为空')
     return
   }
 
@@ -183,9 +183,9 @@ const submitEdit = async () => {
     // await updateComment(props.comment.id, editContent.value)
     emit('update', props.comment.id, editContent.value)
     isEditing.value = false
-    ElMessage.success('评论已更新')
+    message.success('评论已更新')
   } catch (error) {
-    ElMessage.error('更新失败，请重试')
+    message.error('更新失败，请重试')
   } finally {
     submitting.value = false
   }

@@ -106,7 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
@@ -240,14 +240,14 @@ const handleTitleSave = async () => {
     // 刷新左侧树
     await documentStore.loadTree(currentProjectId.value)
   } catch (e) {
-    ElMessage.error('标题更新失败')
+    message.error('标题更新失败')
   }
 }
 
 // 手动保存内容
 const handleManualSave = async () => {
   await editorStore.save()
-  ElMessage.success('保存成功')
+  message.success('保存成功')
 }
 
 // 创建文档
@@ -268,14 +268,14 @@ const handleCreateDoc = async () => {
       currentChapterId.value = newDoc.id
     }
   } catch (e) {
-    ElMessage.error('创建失败')
+    message.error('创建失败')
   }
 }
 
 // 删除文档
 const handleDeleteChapter = async (docId: string) => {
   try {
-    await ElMessageBox.confirm('确定删除该章节吗？此操作不可恢复', '警告', { type: 'warning' })
+    await messageBox.confirm('确定删除该章节吗？此操作不可恢复', '警告', { type: 'warning' })
     await documentStore.remove(docId)
     // 如果删除的是当前文档，清空编辑器
     if (docId === currentChapterId.value) {

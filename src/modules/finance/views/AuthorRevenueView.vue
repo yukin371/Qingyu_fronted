@@ -297,7 +297,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import {
@@ -370,7 +370,7 @@ const loadEarnings = async (page = earningsPage.value) => {
     earningsTotal.value = res.data?.total || 0
     earningsPage.value = page
   } catch (error) {
-    ElMessage.error('获取收入明细失败')
+    message.error('获取收入明细失败')
   } finally {
     earningsLoading.value = false
   }
@@ -388,7 +388,7 @@ const loadWithdrawals = async (page = withdrawalsPage.value) => {
     withdrawalsTotal.value = res.data?.total || 0
     withdrawalsPage.value = page
   } catch (error) {
-    ElMessage.error('获取提现记录失败')
+    message.error('获取提现记录失败')
   } finally {
     withdrawalsLoading.value = false
   }
@@ -401,7 +401,7 @@ const loadSettlements = async () => {
     const res = await getSettlements({ page: 1, page_size: 10 })
     settlementsData.value = res.data?.items || []
   } catch (error) {
-    ElMessage.error('获取结算记录失败')
+    message.error('获取结算记录失败')
   } finally {
     settlementsLoading.value = false
   }
@@ -425,12 +425,12 @@ const handleWithdraw = async () => {
       account_info: withdrawForm.value.account_info
     })
 
-    ElMessage.success('提现申请已提交')
+    message.success('提现申请已提交')
     showWithdrawDialog.value = false
     loadWithdrawals(1)
     loadOverview()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '提现申请失败')
+    message.error(error.response?.data?.message || '提现申请失败')
   } finally {
     withdrawing.value = false
   }
@@ -438,12 +438,12 @@ const handleWithdraw = async () => {
 
 // 取消提现
 const handleCancelWithdraw = async (id: string) => {
-  ElMessage.info('取消提现功能待实现')
+  message.info('取消提现功能待实现')
 }
 
 // 查看拒绝原因
 const showRejectReason = (reason: string) => {
-  ElMessage.info(reason)
+  message.info(reason)
 }
 
 // 获取收入类型颜色

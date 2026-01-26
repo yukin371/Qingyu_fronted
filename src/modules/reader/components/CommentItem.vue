@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api'
 import { useAuthStore } from '@/stores/auth'
@@ -166,26 +166,26 @@ const toggleLike = async () => {
       props.comment.isLiked = true
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 // 提交回复
 const submitReply = async () => {
   if (!replyContent.value.trim()) {
-    ElMessage.warning('请输入回复内容')
+    message.warning('请输入回复内容')
     return
   }
 
   replyLoading.value = true
   try {
     await replyComment(props.comment.id, replyContent.value)
-    ElMessage.success('回复成功')
+    message.success('回复成功')
     replyContent.value = ''
     showReply.value = false
     emit('update')
   } catch (error: any) {
-    ElMessage.error(error.message || '回复失败')
+    message.error(error.message || '回复失败')
   } finally {
     replyLoading.value = false
   }

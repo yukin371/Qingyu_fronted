@@ -127,7 +127,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import * as adminAPI from '@/modules/admin/api'
 import type { OperationLog } from '@/types/shared'
@@ -244,7 +244,7 @@ const loadLogs = async () => {
     total.value = mockData.length
   } catch (error) {
     console.error('加载日志失败:', error)
-    ElMessage.error('加载日志失败')
+    message.error('加载日志失败')
   } finally {
     loading.value = false
   }
@@ -264,7 +264,7 @@ const handleView = (item: OperationLog) => {
 
 // 导出日志
 const exportLogs = () => {
-  ElMessage.info('导出功能开发中')
+  message.info('导出功能开发中')
 }
 
 onMounted(() => {

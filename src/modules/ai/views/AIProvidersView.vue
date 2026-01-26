@@ -157,7 +157,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { message, messageBox, FormInstance, FormRules } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
@@ -330,7 +330,7 @@ async function handleAction(command: string, provider: AIProvider) {
     const actionText = newStatus === 'active' ? '启用' : '禁用'
 
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定要${actionText}提供商 "${provider.displayName}" 吗？`,
         '确认操作',
         {
@@ -344,7 +344,7 @@ async function handleAction(command: string, provider: AIProvider) {
     }
   } else if (command === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定要删除提供商 "${provider.displayName}" 吗？此操作不可恢复。`,
         '确认删除',
         {

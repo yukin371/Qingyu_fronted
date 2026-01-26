@@ -226,7 +226,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getNotifications,
@@ -328,7 +328,7 @@ const loadNotifications = async (page = currentPage.value) => {
     total.value = res.data?.total || 0
     currentPage.value = page
   } catch (error) {
-    ElMessage.error('获取通知列表失败')
+    message.error('获取通知列表失败')
   } finally {
     loading.value = false
   }
@@ -371,7 +371,7 @@ const handleMarkAsRead = async (id: string) => {
     }
     loadUnreadCount()
   } catch (error) {
-    ElMessage.error('标记失败')
+    message.error('标记失败')
   }
 }
 
@@ -379,12 +379,12 @@ const handleMarkAsRead = async (id: string) => {
 const handleBatchMarkRead = async () => {
   try {
     await markMultipleAsRead(selectedIds.value)
-    ElMessage.success(`已标记 ${selectedIds.value.length} 条通知为已读`)
+    message.success(`已标记 ${selectedIds.value.length} 条通知为已读`)
     selectedIds.value = []
     loadNotifications(currentPage.value)
     loadUnreadCount()
   } catch (error) {
-    ElMessage.error('批量标记失败')
+    message.error('批量标记失败')
   }
 }
 
@@ -392,11 +392,11 @@ const handleBatchMarkRead = async () => {
 const handleMarkAllRead = async () => {
   try {
     const res = await markAllAsRead()
-    ElMessage.success(`已标记 ${res.data?.count || 0} 条通知为已读`)
+    message.success(`已标记 ${res.data?.count || 0} 条通知为已读`)
     loadNotifications(currentPage.value)
     loadUnreadCount()
   } catch (error) {
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   }
 }
 
@@ -408,27 +408,27 @@ const handleDelete = async (id: string) => {
     total.value--
     loadUnreadCount()
   } catch (error) {
-    ElMessage.error('删除失败')
+    message.error('删除失败')
   }
 }
 
 // 批量删除
 const handleBatchDelete = async () => {
   try {
-    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条通知吗？`, '提示', {
+    await messageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条通知吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     await deleteMultipleNotifications(selectedIds.value)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     selectedIds.value = []
     loadNotifications(currentPage.value)
     loadUnreadCount()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }
@@ -524,10 +524,10 @@ const handleSaveSettings = async () => {
     }
 
     await updateNotificationPreference(data)
-    ElMessage.success('设置保存成功')
+    message.success('设置保存成功')
     showSettingsDialog.value = false
   } catch (error) {
-    ElMessage.error('保存失败')
+    message.error('保存失败')
   }
 }
 

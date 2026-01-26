@@ -237,7 +237,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getBooklists,
@@ -325,7 +325,7 @@ const loadBooklists = async () => {
     booklists.value = res.items
     total.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -341,7 +341,7 @@ const viewBooklistDetail = async (id: string) => {
     booklistItems.value = res.items || []
     isFollowing.value = false // 需要从后端返回
   } catch (error: any) {
-    ElMessage.error(error.message || '加载详情失败')
+    message.error(error.message || '加载详情失败')
   } finally {
     loadingBooks.value = false
   }
@@ -394,15 +394,15 @@ const editBooklist = (booklist: Booklist) => {
 
 // 删除书单
 const confirmDelete = (booklist: Booklist) => {
-  ElMessageBox.confirm(`确定要删除书单"${booklist.name}"吗？`, '确认删除', {
+  messageBox.confirm(`确定要删除书单"${booklist.name}"吗？`, '确认删除', {
     type: 'warning'
   }).then(async () => {
     try {
       await deleteBooklist(booklist.id)
-      ElMessage.success('删除成功')
+      message.success('删除成功')
       loadBooklists()
     } catch (error: any) {
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   })
 }
@@ -422,16 +422,16 @@ const submitBooklist = async () => {
 
     if (editingBooklist.value) {
       await updateBooklist(editingBooklist.value.id, data)
-      ElMessage.success('更新成功')
+      message.success('更新成功')
     } else {
       await createBooklist(data)
-      ElMessage.success('创建成功')
+      message.success('创建成功')
     }
 
     showCreateDialog.value = false
     loadBooklists()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   } finally {
     submitting.value = false
   }
@@ -445,24 +445,24 @@ const toggleFollow = async () => {
     if (isFollowing.value) {
       await unfollowBooklist(currentBooklist.value.id)
       isFollowing.value = false
-      ElMessage.success('已取消关注')
+      message.success('已取消关注')
     } else {
       await followBooklist(currentBooklist.value.id)
       isFollowing.value = true
-      ElMessage.success('关注成功')
+      message.success('关注成功')
     }
     if (currentBooklist.value) {
       currentBooklist.value.follower_count += isFollowing.value ? 1 : -1
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 // 添加书籍
 const addBook = async () => {
   if (!currentBooklist.value || !addBookForm.book_id) {
-    ElMessage.warning('请输入书籍ID')
+    message.warning('请输入书籍ID')
     return
   }
 
@@ -472,14 +472,14 @@ const addBook = async () => {
       book_id: addBookForm.book_id,
       note: addBookForm.note
     })
-    ElMessage.success('添加成功')
+    message.success('添加成功')
     showAddBookDialog.value = false
     addBookForm.book_id = ''
     addBookForm.note = ''
     // 重新加载详情
     await viewBooklistDetail(currentBooklist.value.id)
   } catch (error: any) {
-    ElMessage.error(error.message || '添加失败')
+    message.error(error.message || '添加失败')
   } finally {
     addingBook.value = false
   }
@@ -491,13 +491,13 @@ const removeBook = async (itemId: string) => {
 
   try {
     await removeBookFromBooklist(currentBooklist.value.id, itemId)
-    ElMessage.success('移除成功')
+    message.success('移除成功')
     booklistItems.value = booklistItems.value.filter(item => item.id !== itemId)
     if (currentBooklist.value) {
       currentBooklist.value.book_count--
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '移除失败')
+    message.error(error.message || '移除失败')
   }
 }
 

@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, Grid, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
@@ -165,9 +165,9 @@ async function triggerCheck() {
   checking.value = true
   try {
     await aiStore.triggerHealthCheck()
-    ElMessage.success('健康检查完成')
+    message.success('健康检查完成')
   } catch (error: any) {
-    ElMessage.error(error.message || '健康检查失败')
+    message.error(error.message || '健康检查失败')
   } finally {
     checking.value = false
   }

@@ -175,7 +175,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
@@ -243,11 +243,11 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   const isLt2M = rawFile.size / 1024 / 1024 < 2
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
+    message.error('只能上传图片文件!')
     return false
   }
   if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB!')
+    message.error('图片大小不能超过 2MB!')
     return false
   }
 
@@ -264,11 +264,11 @@ const handleAvatarUpload = async (file: File) => {
     if (response && response.url) {
       // 更新store中的头像
       await userStore.fetchProfile()
-      ElMessage.success('头像上传成功')
+      message.success('头像上传成功')
     }
   } catch (error: any) {
     console.error('上传头像失败:', error)
-    ElMessage.error(error.message || '上传头像失败')
+    message.error(error.message || '上传头像失败')
   } finally {
     loading.value = false
   }
@@ -276,12 +276,12 @@ const handleAvatarUpload = async (file: File) => {
 
 // 上传成功回调（备用）
 const handleAvatarSuccess: UploadProps['onSuccess'] = () => {
-  ElMessage.success('头像上传成功')
+  message.success('头像上传成功')
 }
 
 // 上传失败回调
 const handleAvatarError: UploadProps['onError'] = () => {
-  ElMessage.error('头像上传失败')
+  message.error('头像上传失败')
 }
 
 // 初始化
@@ -309,7 +309,7 @@ const loadProfile = async () => {
     profileForm.bio = userStore.profile?.bio || ''
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
-    ElMessage.error(error.message || '加载用户信息失败')
+    message.error(error.message || '加载用户信息失败')
   } finally {
     loading.value = false
   }
@@ -333,7 +333,7 @@ const loadShelf = async () => {
     }))
   } catch (error: any) {
     console.error('加载书架失败:', error)
-    ElMessage.error('加载书架失败')
+    message.error('加载书架失败')
     shelfBooks.value = []
   } finally {
     shelfLoading.value = false
@@ -360,7 +360,7 @@ const loadHistory = async () => {
     }))
   } catch (error: any) {
     console.error('加载阅读历史失败:', error)
-    ElMessage.error('加载阅读历史失败')
+    message.error('加载阅读历史失败')
     readingHistory.value = []
   } finally {
     historyLoading.value = false
@@ -382,10 +382,10 @@ const saveProfile = async () => {
   loading.value = true
   try {
     await userStore.updateProfile(profileForm)
-    ElMessage.success('保存成功')
+    message.success('保存成功')
     isEditing.value = false
   } catch (error: any) {
-    ElMessage.error(error.message || '保存失败')
+    message.error(error.message || '保存失败')
   } finally {
     loading.value = false
   }

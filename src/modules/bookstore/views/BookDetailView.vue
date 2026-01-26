@@ -220,7 +220,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { Button, Tabs, Rate, Empty, Image, Tag, Spinner, Row, Col } from '@/design-system'
 import { Icon } from '@/design-system'
 import { Textarea } from '@/design-system'
@@ -308,10 +308,10 @@ const startReading = async () => {
       readerStore.currentBookId = bookId
       router.push(`/reader/${chapters.value[0].id}`)
     } else {
-      ElMessage.warning('暂无章节')
+      message.warning('暂无章节')
     }
   } catch (error) {
-    ElMessage.error('加载阅读失败')
+    message.error('加载阅读失败')
   }
 }
 
@@ -325,29 +325,29 @@ const readChapter = (chapterId: string) => {
 // 加入书架
 const addToShelf = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push({ path: '/auth', query: { redirect: route.fullPath } })
     return
   }
 
   try {
     await addToBookshelf(bookId)
-    ElMessage.success('已加入书架')
+    message.success('已加入书架')
   } catch (error: any) {
-    ElMessage.error(error.message || '添加失败')
+    message.error(error.message || '添加失败')
   }
 }
 
 // 切换收藏
 const toggleFavorite = () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push({ path: '/auth', query: { redirect: route.fullPath } })
     return
   }
 
   isFavorited.value = !isFavorited.value
-  ElMessage.success(isFavorited.value ? '收藏成功' : '取消收藏')
+  message.success(isFavorited.value ? '收藏成功' : '取消收藏')
 }
 
 // 加载评论
@@ -375,7 +375,7 @@ const loadComments = async (reset = false) => {
       commentTotal.value = data.total || 0
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '加载评论失败')
+    message.error(error.message || '加载评论失败')
   } finally {
     commentsLoading.value = false
   }
@@ -392,25 +392,25 @@ const loadMoreComments = async () => {
 // 提交评论
 const submitComment = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push({ path: '/auth', query: { redirect: route.fullPath } })
     return
   }
 
   if (!newComment.value.trim()) {
-    ElMessage.warning('请输入评论内容')
+    message.warning('请输入评论内容')
     return
   }
 
   submittingComment.value = true
   try {
     await createComment(bookId, newComment.value)
-    ElMessage.success('发表成功')
+    message.success('发表成功')
     newComment.value = ''
     // 重新加载评论列表
     await loadComments(true)
   } catch (error: any) {
-    ElMessage.error(error.message || '发表失败')
+    message.error(error.message || '发表失败')
   } finally {
     submittingComment.value = false
   }
@@ -419,18 +419,18 @@ const submitComment = async () => {
 // 删除评论
 const handleDeleteComment = async (commentId: string) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+    await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     await deleteComment(commentId)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     await loadComments(true)
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -464,7 +464,7 @@ const loadBookDetail = async () => {
     // 调整：当前 readerStore 未提供对应方法
   } catch (error) {
     console.error('[BookDetailView] 加载书籍详情失败:', error)
-    ElMessage.error('加载失败')
+    message.error('加载失败')
   } finally {
     loading.value = false
   }

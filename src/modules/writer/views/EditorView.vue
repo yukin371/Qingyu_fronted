@@ -146,8 +146,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 // Stores
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
@@ -306,7 +305,7 @@ const handleTitleChange = async (val: string) => {
     // 更新左侧树
     await documentStore.loadTree(currentProjectId.value)
   } catch (error) {
-    ElMessage.error('标题更新失败')
+    message.error('标题更新失败')
   }
 }
 
@@ -314,7 +313,7 @@ const handleTitleChange = async (val: string) => {
 const handleTimelineEventClick = (event: any) => {
   // 这里可以处理点击事件，例如跳转到对应文本位置，或弹出编辑框
   console.log('Timeline event clicked:', event)
-  ElMessage.info(`选中事件：${event.title}`)
+  message.info(`选中事件：${event.title}`)
   // 如果需要编辑，可以复用 TimelineBar 内部的逻辑，或者在这里弹窗
 }
 

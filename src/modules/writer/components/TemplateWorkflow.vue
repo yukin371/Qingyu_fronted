@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { templateApi, type Template, type TemplateVariable } from '../api/template'
 import TemplateManagerPanel from './TemplateManagerPanel.vue'
 import TemplateVariablesDialog from './TemplateVariablesDialog.vue'
@@ -124,7 +124,7 @@ async function applyTemplate(templateId: string, variables: Record<string, strin
     })
 
     emit('applied', result.renderedContent)
-    ElMessage.success('模板应用成功')
+    message.success('模板应用成功')
 
     // 关闭所有对话框
     showTemplateManager.value = false
@@ -132,7 +132,7 @@ async function applyTemplate(templateId: string, variables: Record<string, strin
     showPreviewDialog.value = false
   } catch (error) {
     console.error('应用模板失败:', error)
-    ElMessage.error('应用模板失败')
+    message.error('应用模板失败')
   }
 }
 
@@ -146,7 +146,7 @@ async function handlePreviewTemplate(templateId: string): Promise<void> {
     showPreviewDialog.value = true
   } catch (error) {
     console.error('获取模板详情失败:', error)
-    ElMessage.error('获取模板详情失败')
+    message.error('获取模板详情失败')
   }
 }
 </script>

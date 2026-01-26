@@ -189,7 +189,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getMembershipPlans,
@@ -226,7 +226,7 @@ const loadMembershipPlans = async () => {
     const res = await getMembershipPlans()
     membershipPlans.value = res.data || []
   } catch (error) {
-    ElMessage.error('获取套餐列表失败')
+    message.error('获取套餐列表失败')
   }
 }
 
@@ -276,55 +276,55 @@ const handleConfirmSubscribe = async () => {
       plan_id: selectedPlan.value.id,
       payment_method: subscribeForm.value.payment_method
     })
-    ElMessage.success('订阅成功')
+    message.success('订阅成功')
     subscribeDialogVisible.value = false
     loadUserMembership()
     loadMembershipBenefits()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '订阅失败')
+    message.error(error.response?.data?.message || '订阅失败')
   }
 }
 
 // 取消会员
 const handleCancelMembership = async () => {
   try {
-    await ElMessageBox.confirm('确定要取消会员吗？取消后将无法享受会员权益', '提示', {
+    await messageBox.confirm('确定要取消会员吗？取消后将无法享受会员权益', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     await cancelMembership()
-    ElMessage.success('已取消会员')
+    message.success('已取消会员')
     loadUserMembership()
     loadMembershipBenefits()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(error.response?.data?.message || '取消失败')
+      message.error(error.response?.data?.message || '取消失败')
     }
   }
 }
 
 // 自动续费开关
 const handleAutoRenewChange = (value: boolean) => {
-  ElMessage.success(value ? '已开启自动续费' : '已关闭自动续费')
+  message.success(value ? '已开启自动续费' : '已关闭自动续费')
 }
 
 // 激活会员卡
 const handleActivateCard = async () => {
   if (!cardForm.value.code) {
-    ElMessage.warning('请输入会员卡码')
+    message.warning('请输入会员卡码')
     return
   }
 
   try {
     await activateMembershipCard({ code: cardForm.value.code })
-    ElMessage.success('会员卡激活成功')
+    message.success('会员卡激活成功')
     cardForm.value.code = ''
     loadUserMembership()
     loadMembershipBenefits()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '激活失败')
+    message.error(error.response?.data?.message || '激活失败')
   }
 }
 

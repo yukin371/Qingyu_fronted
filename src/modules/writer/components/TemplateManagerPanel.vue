@@ -203,7 +203,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { templateApi, type Template, type TemplateVariable, type TemplateType } from '../api/template'
 import TemplateVariablesDialog from './TemplateVariablesDialog.vue'
 
@@ -320,7 +320,7 @@ function getTypeLabelClass(type: TemplateType): string {
  */
 async function handleApply(template: Template): Promise<void> {
   if (!props.documentId) {
-    ElMessage.warning('请先选择文档')
+    message.warning('请先选择文档')
     return
   }
 
@@ -361,13 +361,13 @@ async function applyTemplateToDocument(
 
     // 触发applied事件，传递渲染后的内容
     emit('applied', result.renderedContent)
-    ElMessage.success('模板应用成功')
+    message.success('模板应用成功')
 
     // 关闭面板
     emit('update:modelValue', false)
   } catch (error) {
     console.error('应用模板失败:', error)
-    ElMessage.error('应用模板失败，请稍后重试')
+    message.error('应用模板失败，请稍后重试')
   }
 }
 
@@ -404,7 +404,7 @@ async function loadTemplates(): Promise<void> {
     templates.value = response.templates
   } catch (error) {
     console.error('加载模板列表失败:', error)
-    ElMessage.error('加载模板列表失败，请稍后重试')
+    message.error('加载模板列表失败，请稍后重试')
     templates.value = []
   } finally {
     loading.value = false

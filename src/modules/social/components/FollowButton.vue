@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useSocialStore } from '@/stores/social'
 
@@ -95,10 +95,10 @@ const handleFollow = async () => {
   loading.value = true
   try {
     await socialStore.followUser(props.userId)
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     emit('follow', props.userId)
   } catch (error: any) {
-    ElMessage.error(error.message || '关注失败')
+    message.error(error.message || '关注失败')
   } finally {
     loading.value = false
   }
@@ -116,10 +116,10 @@ const confirmUnfollow = async () => {
 
   try {
     await socialStore.unfollowUser(props.userId)
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     emit('unfollow', props.userId)
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   } finally {
     loading.value = false
   }
