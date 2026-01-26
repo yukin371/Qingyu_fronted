@@ -44,7 +44,7 @@ const containerClasses = computed(() => {
   const base = 'fixed z-50 transition-all duration-300'
 
   if (props.position === 'top') {
-    return `${base} top-0 left-0 w-full`
+    return `${base} top-0 left-0 w-full position-top`
   } else {
     return `${base} bottom-0 left-0 w-full safe-area-bottom`
   }
@@ -114,7 +114,7 @@ const handleTabClick = (tab: QyTabBarTab, index: number) => {
 }
 
 /* Position: Top */
-.fixed.top-0 .tab-bar-container {
+.position-top .tab-bar-container {
   @apply border-t-0 border-b border-white/50;
 }
 
@@ -138,7 +138,7 @@ const handleTabClick = (tab: QyTabBarTab, index: number) => {
 }
 
 /* Top position indicator */
-.fixed.top-0 .active-indicator {
+.position-top .active-indicator {
   @apply bottom-auto top-0 rounded-b-full rounded-t-none;
 }
 
