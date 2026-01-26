@@ -162,12 +162,12 @@ async function validate(): Promise<boolean> {
 // 验证指定字段
 async function validateFields(props: string | string[]): Promise<boolean> {
   const propArray = Array.isArray(props) ? props : [props]
-  
+
   try {
     const results = await Promise.all(
       propArray.map(prop => validateField(prop))
     )
-    
+
     return results.every(valid => valid)
   } catch (error) {
     console.error('[QyForm] Failed to validate fields:', error)
@@ -204,6 +204,11 @@ function setFormData(data: Partial<Record<string, any>>): void {
   emit('update:modelValue', { ...formModel.value, ...data })
 }
 
+// 提交表单
+function handleSubmit(event: Event) {
+  emit('submit', event)
+}
+
 // 暴露的方法
 const formInstance: QyFormInstance = {
   validate,
@@ -233,32 +238,6 @@ watch(
   { deep: true }
 )
 </script>
-
-<template>
-  <form :class="formClasses" @submit.prevent="handleSubmit">
-    <slot />
-  </form>
-</template>
-
-<style scoped>
-.qy-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.qy-form--left {
-  gap: 0.75rem;
-}
-
-.qy-form--top {
-  gap: 1rem;
-}
-
-.qy-form--right {
-  gap: 0.75rem;
-}
-</style>
 
 <style scoped>
 .qy-form {
