@@ -5,7 +5,7 @@ export default defineConfig({
     input: {
       target: '../Qingyu_backend/docs/swagger.yaml',
       filters: {
-        paths: ['^/reader/'],
+        paths: ['^/api/v1/reader/'],
       },
     },
     output: {
@@ -30,7 +30,7 @@ export default defineConfig({
     input: {
       target: '../Qingyu_backend/docs/swagger.yaml',
       filters: {
-        paths: ['^/bookstore/'],
+        paths: ['^/api/v1/bookstore/'],
       },
     },
     output: {
@@ -55,7 +55,7 @@ export default defineConfig({
     input: {
       target: '../Qingyu_backend/docs/swagger.yaml',
       filters: {
-        paths: ['^/admin/'],
+        paths: ['^/api/v1/admin/'],
       },
     },
     output: {

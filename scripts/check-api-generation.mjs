@@ -82,7 +82,8 @@ function checkModuleOutputsIsolation() {
   for (const mod of modules) {
     const hasFilter =
       configContent.includes(`${mod}:`) &&
-      (configContent.includes(`paths: ['^/${mod}/']`) ||
+      (configContent.includes(`paths: ['^/api/v1/${mod}/']`) ||
+        configContent.includes(`paths: ['^/${mod}/']`) ||
         configContent.includes(`tags: ['${mod}']`))
 
     if (!hasFilter) {
