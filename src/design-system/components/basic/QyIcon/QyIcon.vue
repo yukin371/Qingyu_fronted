@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { getIconSVG } from '../../utils/icon-mapper'
+import { getIconSVG } from '../../../utils/icon-mapper'
 import type { QyIconProps } from './types'
 
 /**
