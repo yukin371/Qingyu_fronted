@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/vue'
-import List from '@/design-system/base/List/List.vue'
-import ListItem from '@/design-system/base/List/ListItem.vue'
+import List from '@/design-system/data/List/List.vue'
+import ListItem from '@/design-system/data/List/ListItem.vue'
 
 describe('List 组件', () => {
   describe('基础渲染', () => {
