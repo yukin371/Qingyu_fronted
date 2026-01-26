@@ -22,7 +22,15 @@
     "api:gen:frontend": "tsx scripts/generate-frontend-api.ts",
     "api:gen:backend": "bash scripts/generate-backend-api.sh",
     "api:validate": "node scripts/validate-api-consistency.js",
-    "api:gen:watch": "chokidar 'src/modules/*/api/*.ts' -c 'npm run api:gen:frontend'"
+    "api:gen:watch": "chokidar 'src/modules/*/api/*.ts' -c 'npm run api:gen:frontend'",
+    "generate:api": "orval --config orval.config.ts",
+    "generate:api:reader": "orval --config orval.config.ts --project reader",
+    "generate:api:bookstore": "orval --config orval.config.ts --project bookstore",
+    "generate:api:admin": "orval --config orval.config.ts --project admin",
+    "swagger:generate": "cd ../Qingyu_backend && swag init && cd ../Qingyu_fronted",
+    "api:all": "npm run swagger:generate && npm run generate:api",
+    "ci:check-api": "node scripts/check-api-generation.mjs",
+    "generate:api:safe": "npm run swagger:generate && npm run generate:api && npm run ci:check-api"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
