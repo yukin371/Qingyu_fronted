@@ -27,10 +27,14 @@
     "generate:api:reader": "orval --config orval.config.ts --project reader",
     "generate:api:bookstore": "orval --config orval.config.ts --project bookstore",
     "generate:api:admin": "orval --config orval.config.ts --project admin",
+    "generate:api:writer": "orval --config orval.config.ts --project writer",
+    "generate:api:social": "orval --config orval.config.ts --project social",
+    "generate:api:ai": "orval --config orval.config.ts --project ai",
     "swagger:generate": "cd ../Qingyu_backend && swag init && cd ../Qingyu_fronted",
     "api:all": "npm run swagger:generate && npm run generate:api",
     "ci:check-api": "node scripts/check-api-generation.mjs",
-    "generate:api:safe": "npm run swagger:generate && npm run generate:api && npm run ci:check-api"
+    "generate:api:safe": "npm run swagger:generate && npm run generate:api && npm run ci:check-api",
+    "generate:api:phase4": "node scripts/generate-phase4-apis.mjs",
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
