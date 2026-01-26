@@ -54,4 +54,3 @@
  */
 
 export { default } from './QyModal.vue'
-export type from './types'

@@ -48,4 +48,3 @@
  */
 
 export { default } from './QyEmpty.vue'
-export type from './types'

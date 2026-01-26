@@ -31,8 +31,17 @@
             <el-icon class="search-icon">
               <QyIcon name="Search"  />
             </el-icon>
-            <input v-model="searchKeyword" type="text" placeholder="探索未知的世界..." class="custom-search-input"
-              @focus="searchFocused = true" @blur="searchFocused = false" @keyup.enter="handleSearch" />
+            <input
+              id="main-search-input"
+              name="search"
+              v-model="searchKeyword"
+              type="text"
+              placeholder="探索未知的世界..."
+              class="custom-search-input"
+              @focus="searchFocused = true"
+              @blur="searchFocused = false"
+              @keyup.enter="handleSearch"
+            />
           </div>
 
           <!-- 创作中心按钮 -->
@@ -123,13 +132,9 @@
           <QyIcon name="HomeFilled"  />
           <span>首页</span>
         </el-menu-item>
-        <el-menu-item index="/books">
+        <el-menu-item index="/bookstore/browse">
           <QyIcon name="Reading"  />
           <span>书库</span>
-        </el-menu-item>
-        <el-menu-item index="/bookstore/categories">
-          <QyIcon name="Grid"  />
-          <span>分类</span>
         </el-menu-item>
         <el-menu-item index="/bookstore/rankings">
           <QyIcon name="TrendCharts"  />
@@ -209,8 +214,7 @@ const showFooter = computed(() => !route.meta.hideFooter)
 // 菜单配置
 const menuItems = [
   { name: '首页', path: '/bookstore' },
-  { name: '书库', path: '/bookstore/books' },
-  { name: '分类', path: '/bookstore/categories' },
+  { name: '书库', path: '/bookstore/browse' },
   { name: '榜单', path: '/bookstore/rankings' },
 ]
 
@@ -243,8 +247,7 @@ const userDisplayName = computed(() => authStore.user?.nickname || authStore.use
 const activeMenu = computed(() => {
   const path = route.path
   if (path === '/' || path === '/bookstore') return '/bookstore'
-  if (path.startsWith('/bookstore/books')) return '/bookstore/books'
-  if (path.startsWith('/bookstore/categories')) return '/bookstore/categories'
+  if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse')) return '/bookstore/browse'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
   return '/bookstore'
 })

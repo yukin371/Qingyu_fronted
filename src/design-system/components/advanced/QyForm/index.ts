@@ -62,4 +62,3 @@
 
 export { default as QyForm } from './QyForm.vue'
 export { default as QyFormItem } from './QyFormItem.vue'
-export type from './types'

@@ -556,7 +556,7 @@ import {
   QyBadge,
   QyAvatar
 } from '@/design-system/components'
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import ThemeSwitcher from '@/design-system/other/ThemeSwitcher.vue'
 
 // Input refs
 const textInput = ref('')

@@ -40,4 +40,3 @@
  */
 
 export { default } from './QyLoading.vue'
-export type from './types'
