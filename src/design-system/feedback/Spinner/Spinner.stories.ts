@@ -198,7 +198,7 @@ export const InsideButton: Story = {
       ])
 
       const variantClasses = {
-        primary: 'bg-blue-500 hover:bg-blue-600',
+        primary: 'bg-secondary-500 hover:bg-secondary-600',
         success: 'bg-green-500 hover:bg-green-600',
         warning: 'bg-orange-500 hover:bg-orange-600',
         danger: 'bg-red-500 hover:bg-red-600',
@@ -276,7 +276,7 @@ export const CustomSlot: Story = {
       <div class="space-y-4 p-8">
         <Spinner type="default">
           <template #default>
-            <span class="text-blue-600 font-semibold">自定义加载文字</span>
+            <span class="text-secondary-600 font-semibold">自定义加载文字</span>
           </template>
         </Spinner>
         <Spinner type="dots">
@@ -291,7 +291,7 @@ export const CustomSlot: Story = {
         <Spinner type="wave">
           <div class="flex items-center gap-2">
             <span>数据加载中</span>
-            <button class="text-xs text-blue-500 hover:underline">取消</button>
+            <button class="text-xs text-secondary-500 hover:underline">取消</button>
           </div>
         </Spinner>
       </div>
