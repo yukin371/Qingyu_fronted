@@ -594,7 +594,7 @@ export const DarkMode: Story = {
               <div class="space-y-2">
                 <h4 class="font-semibold text-white">深色标题</h4>
                 <p class="text-sm text-slate-300">深色模式下的内容文本</p>
-                <button class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                <button class="px-3 py-1 bg-secondary-600 text-white text-sm rounded hover:bg-secondary-700">
                   操作按钮
                 </button>
               </div>

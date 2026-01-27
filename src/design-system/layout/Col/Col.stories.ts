@@ -527,7 +527,7 @@ export const NestedCols: Story = {
         
         <div class="flex gap-2">
           <Col :span="8">
-            <div class="bg-blue-500 p-4 rounded-md">
+            <div class="bg-secondary-500 p-4 rounded-md">
               <p class="text-white font-semibold mb-3">外层列（8 列）</p>
               
               <div class="flex gap-2">
