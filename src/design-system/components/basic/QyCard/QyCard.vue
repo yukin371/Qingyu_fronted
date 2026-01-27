@@ -44,7 +44,7 @@ const cardClasses = computed(() => {
     // Shadow
     props.shadow && 'shadow-sm',
     // Hoverable styles
-    props.hoverable && 'cursor-pointer hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1'
+    props.hoverable && 'cursor-pointer hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1'
   ]
 
   return classes.filter(Boolean).join(' ')

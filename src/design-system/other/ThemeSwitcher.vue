@@ -4,9 +4,9 @@ import { setTheme, currentThemeName, type ThemeName } from '@/design-system/toke
 
 // 主题选项
 const themeOptions: { label: string; value: ThemeName; color: string }[] = [
-  { label: '青羽', value: 'qingyu', color: 'from-cyan-500 to-blue-600' },
+  { label: '青羽', value: 'qingyu', color: 'from-primary-500 to-secondary-600' },
   { label: '紫粉', value: 'berry', color: 'from-purple-500 to-pink-600' },
-  { label: '森林', value: 'forest', color: 'from-green-600 to-cyan-600' },
+  { label: '森林', value: 'forest', color: 'from-green-600 to-primary-600' },
 ]
 
 const currentTheme = ref(currentThemeName)

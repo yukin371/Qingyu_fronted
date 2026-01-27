@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="flex items-center space-x-8">
             <router-link to="/bookstore" class="flex items-center space-x-2">
-              <div class="text-2xl font-bold text-blue-600">青羽</div>
+              <div class="text-2xl font-bold text-primary-600">青羽</div>
               <span class="text-gray-600 text-sm">创作中心</span>
             </router-link>
 
@@ -15,19 +15,19 @@
             <nav class="hidden md:flex items-center space-x-6">
               <router-link
                 to="/writer/projects"
-                class="text-gray-700 hover:text-blue-600 transition-colors"
+                class="text-gray-700 hover:text-primary-600 transition-colors"
               >
                 我的项目
               </router-link>
               <router-link
                 to="/writer/statistics"
-                class="text-gray-700 hover:text-blue-600 transition-colors"
+                class="text-gray-700 hover:text-primary-600 transition-colors"
               >
                 数据统计
               </router-link>
               <router-link
                 to="/bookstore"
-                class="text-gray-700 hover:text-blue-600 transition-colors"
+                class="text-gray-700 hover:text-primary-600 transition-colors"
               >
                 返回书城
               </router-link>

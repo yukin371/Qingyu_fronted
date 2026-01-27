@@ -3,7 +3,7 @@
     <!-- Logo Slot or Default Logo -->
     <div class="flex items-center gap-2">
       <slot name="logo">
-        <span v-if="logo && !isImage(logo)" class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/20">
+        <span v-if="logo && !isImage(logo)" class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-600 to-secondary-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/20">
           {{ logo.charAt(0).toUpperCase() }}
         </span>
         <img
@@ -12,7 +12,7 @@
           alt="Logo"
           class="w-8 h-8 rounded-lg"
         />
-        <span v-else class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/20">
+        <span v-else class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-600 to-secondary-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/20">
           Q
         </span>
         <div class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight">
@@ -45,7 +45,7 @@
           aria-label="Search"
           @click="handleAction('search')"
         >
-          <svg class="w-5 h-5 text-slate-600 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-slate-600 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </button>
@@ -56,7 +56,7 @@
           aria-label="Notifications"
           @click="handleAction('notifications')"
         >
-          <svg class="w-5 h-5 text-slate-600 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-slate-600 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
         </button>
@@ -64,7 +64,7 @@
         <!-- Avatar -->
         <div
           v-if="avatarUrl"
-          class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-cyan-300 p-[2px] cursor-pointer hover:scale-105 transition-transform"
+          class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-primary-300 p-[2px] cursor-pointer hover:scale-105 transition-transform"
           @click="handleAvatarClick"
         >
           <img
@@ -78,7 +78,7 @@
       <!-- Mobile Avatar Only -->
       <div v-if="avatarUrl" class="md:hidden">
         <div
-          class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-cyan-300 p-[2px] cursor-pointer hover:scale-105 transition-transform"
+          class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-primary-300 p-[2px] cursor-pointer hover:scale-105 transition-transform"
           @click="handleAvatarClick"
         >
           <img
@@ -118,7 +118,7 @@ const navClasses = computed(() => {
 const linkClasses = (active = false) => {
   return [
     'nav-btn',
-    active && 'bg-cyan-50 text-cyan-600 border-cyan-200'
+    active && 'bg-primary-50 text-primary-600 border-primary-200'
   ].filter(Boolean).join(' ')
 }
 

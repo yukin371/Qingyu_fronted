@@ -39,7 +39,7 @@
       <span
         v-for="(tag, index) in tags.slice(0, 3)"
         :key="index"
-        class="px-2 py-1 bg-cyan-100 text-cyan-600 rounded-lg text-xs font-medium"
+        class="px-2 py-1 bg-primary-100 text-primary-600 rounded-lg text-xs font-medium"
       >
         {{ tag }}
       </span>
@@ -65,7 +65,7 @@
       </div>
       <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
         <div
-          class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
+          class="h-full bg-gradient-to-r from-primary-500 to-secondary-500 transition-all duration-500"
           :style="{ width: readProgress + '%' }"
         ></div>
       </div>
@@ -100,7 +100,7 @@ const cardClasses = computed(() => {
     // Transition
     'transition-all duration-500',
     // Hover effects
-    'cursor-pointer hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1'
+    'cursor-pointer hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1'
   ].join(' ')
 })
 
@@ -108,7 +108,7 @@ const cardClasses = computed(() => {
 const statusBadgeClasses = computed(() => {
   const base = 'px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm'
   const statusStyles = {
-    reading: 'bg-cyan-500/90 text-white',
+    reading: 'bg-primary-500/90 text-white',
     completed: 'bg-green-500/90 text-white',
     planned: 'bg-slate-400/90 text-white'
   }

@@ -36,7 +36,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="搜索模板名称或描述..."
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent text-sm"
           />
           <svg
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -62,7 +62,7 @@
             :class="[
               'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
               selectedType === type.value
-                ? 'bg-blue-500 text-white'
+                ? 'bg-secondary-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             ]"
             @click="selectedType = type.value"
@@ -74,7 +74,7 @@
         <!-- 新建模板按钮 -->
         <button
           type="button"
-          class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+          class="w-full px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
           @click="handleCreate"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
         <!-- 加载状态 -->
         <div v-if="loading" class="flex items-center justify-center py-12">
           <div class="flex flex-col items-center gap-3">
-            <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-8 h-8 border-4 border-secondary-500 border-t-transparent rounded-full animate-spin"></div>
             <p class="text-sm text-gray-500">加载中...</p>
           </div>
         </div>
@@ -113,7 +113,7 @@
           <div
             v-for="template in filteredTemplates"
             :key="template.id"
-            class="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all bg-white"
+            class="p-4 border border-gray-200 rounded-lg hover:border-secondary-300 hover:shadow-md transition-all bg-white"
           >
             <!-- 模板头部 -->
             <div class="flex items-start justify-between mb-2">
@@ -124,7 +124,7 @@
               <!-- 系统模板标识 -->
               <span
                 v-if="template.isSystem"
-                class="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded flex-shrink-0"
+                class="ml-2 px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded flex-shrink-0"
               >
                 系统
               </span>
@@ -159,7 +159,7 @@
                 :class="[
                   'flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                   props.documentId
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    ? 'bg-secondary-500 text-white hover:bg-secondary-600'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 ]"
                 :title="props.documentId ? '' : '请先选择文档'"

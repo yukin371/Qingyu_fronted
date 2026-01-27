@@ -74,7 +74,7 @@ const getTabClasses = (tab: QyTabBarTab) => {
 const getIconClasses = (tab: QyTabBarTab) => {
   return [
     'w-6 h-6 transition-colors duration-300',
-    isActive(tab) ? 'text-cyan-600' : 'text-slate-500'
+    isActive(tab) ? 'text-primary-600' : 'text-slate-500'
   ].join(' ')
 }
 
@@ -82,7 +82,7 @@ const getIconClasses = (tab: QyTabBarTab) => {
 const getLabelClasses = (tab: QyTabBarTab) => {
   return [
     'text-xs font-medium mt-1 transition-colors duration-300',
-    isActive(tab) ? 'text-cyan-600' : 'text-slate-500'
+    isActive(tab) ? 'text-primary-600' : 'text-slate-500'
   ].join(' ')
 }
 
@@ -127,13 +127,13 @@ const handleTabClick = (tab: QyTabBarTab, index: number) => {
 
 /* Active State */
 .tab-btn.active {
-  @apply text-cyan-600;
+  @apply text-primary-600;
 }
 
 /* Active Indicator */
 .active-indicator {
   @apply absolute bottom-0 left-1/2 -translate-x-1/2;
-  @apply w-8 h-1 bg-cyan-600 rounded-t-full;
+  @apply w-8 h-1 bg-primary-600 rounded-t-full;
   @apply transition-all duration-300;
 }
 

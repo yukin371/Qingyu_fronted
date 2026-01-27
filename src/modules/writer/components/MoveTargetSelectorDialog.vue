@@ -68,7 +68,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">插入位置</label>
           <div class="flex gap-2" role="radiogroup" aria-label="插入位置选择">
             <button
-              :class="position === 'before' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+              :class="position === 'before' ? 'bg-secondary-500 text-white border-secondary-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
               @click="position = 'before'"
               class="flex-1 px-4 py-2 rounded border transition-colors text-sm font-medium"
               type="button"
@@ -79,7 +79,7 @@
               之前
             </button>
             <button
-              :class="position === 'inner' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+              :class="position === 'inner' ? 'bg-secondary-500 text-white border-secondary-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
               @click="position = 'inner'"
               class="flex-1 px-4 py-2 rounded border transition-colors text-sm font-medium"
               type="button"
@@ -90,7 +90,7 @@
               内部
             </button>
             <button
-              :class="position === 'after' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+              :class="position === 'after' ? 'bg-secondary-500 text-white border-secondary-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
               @click="position = 'after'"
               class="flex-1 px-4 py-2 rounded border transition-colors text-sm font-medium"
               type="button"
@@ -119,7 +119,7 @@
         <button
           type="button"
           :disabled="!selectedParentId"
-          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+          class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
           @click="handleConfirm"
         >
           移动

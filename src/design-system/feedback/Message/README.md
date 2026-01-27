@@ -219,7 +219,7 @@ const message = {
 | 类型 | 背景色 | 边框色 | 文字色 | 图标 |
 |------|--------|--------|--------|------|
 | success | emerald-50 | emerald-500 | emerald-800 | ✓ |
-| info | blue-50 | blue-500 | blue-800 | ℹ |
+| info | info-50 | info-500 | info-800 | ℹ |
 | warning | amber-50 | amber-500 | amber-800 | ⚠ |
 | error | red-50 | red-500 | red-800 | ✕ |
 

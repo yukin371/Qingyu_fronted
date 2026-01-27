@@ -1,14 +1,14 @@
 <template>
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center space-x-3">
-      <QyIcon v-if="icon" :name="icon" :size="24" class="text-blue-600" />
+      <QyIcon v-if="icon" :name="icon" :size="24" class="text-primary-600" />
       <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
     </div>
     <slot name="action">
       <router-link
         v-if="moreLink"
         :to="moreLink"
-        class="text-sm text-blue-600 hover:text-blue-700 flex items-center"
+        class="text-sm text-primary-600 hover:text-primary-700 flex items-center"
       >
         {{ moreText }}
         <QyIcon name="ArrowRight" :size="16" class="ml-1" />

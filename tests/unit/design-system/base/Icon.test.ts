@@ -12,11 +12,13 @@ describe('Icon', () => {
       const { container } = render(Icon, {
         props: { name: 'home' },
       })
+      const wrapper = container.querySelector('div')
       const svg = container.querySelector('svg')
 
+      expect(wrapper).toBeTruthy()
+      expect(wrapper).toHaveClass('h-6')
+      expect(wrapper).toHaveClass('w-6')
       expect(svg).toBeTruthy()
-      expect(svg).toHaveClass('h-6')
-      expect(svg).toHaveClass('w-6')
     })
 
     it('正确渲染所有尺寸', () => {
@@ -26,20 +28,20 @@ describe('Icon', () => {
         const { container } = render(Icon, {
           props: { name: 'home', size },
         })
-        const svg = container.querySelector('svg')
+        const wrapper = container.querySelector('div')
 
-        expect(svg).toBeTruthy()
+        expect(wrapper).toBeTruthy()
 
         if (size === 'xs') {
-          expect(svg).toHaveClass('h-4')
+          expect(wrapper).toHaveClass('h-4', 'w-4')
         } else if (size === 'sm') {
-          expect(svg).toHaveClass('h-5')
+          expect(wrapper).toHaveClass('h-5', 'w-5')
         } else if (size === 'md') {
-          expect(svg).toHaveClass('h-6')
+          expect(wrapper).toHaveClass('h-6', 'w-6')
         } else if (size === 'lg') {
-          expect(svg).toHaveClass('h-8')
+          expect(wrapper).toHaveClass('h-8', 'w-8')
         } else if (size === 'xl') {
-          expect(svg).toHaveClass('h-10')
+          expect(wrapper).toHaveClass('h-10', 'w-10')
         }
       }
     })
@@ -151,9 +153,9 @@ describe('Icon', () => {
       const { container } = render(Icon, {
         props: { name: 'home' },
       })
-      const svg = container.querySelector('svg')
+      const wrapper = container.querySelector('div')
 
-      expect(svg).toHaveClass('inline-flex-shrink-0')
+      expect(wrapper).toHaveClass('inline-flex-shrink-0')
     })
   })
 
@@ -165,9 +167,9 @@ describe('Icon', () => {
           class: 'text-red-500',
         },
       })
-      const svg = container.querySelector('svg')
+      const wrapper = container.querySelector('div')
 
-      expect(svg).toHaveClass('text-red-500')
+      expect(wrapper).toHaveClass('text-red-500')
     })
 
     it('保持基础类名', () => {
@@ -177,12 +179,12 @@ describe('Icon', () => {
           class: 'custom-class',
         },
       })
-      const svg = container.querySelector('svg')
+      const wrapper = container.querySelector('div')
 
-      expect(svg).toHaveClass('h-6')
-      expect(svg).toHaveClass('w-6')
-      expect(svg).toHaveClass('inline-flex-shrink-0')
-      expect(svg).toHaveClass('custom-class')
+      expect(wrapper).toHaveClass('h-6')
+      expect(wrapper).toHaveClass('w-6')
+      expect(wrapper).toHaveClass('inline-flex-shrink-0')
+      expect(wrapper).toHaveClass('custom-class')
     })
   })
 

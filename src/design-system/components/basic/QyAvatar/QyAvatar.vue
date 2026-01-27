@@ -139,8 +139,8 @@ const avatarPlaceholderClasses = computed(() => {
 // Color background classes for text avatar
 const avatarTextBgClasses = computed(() => {
   const colors = {
-    cyan: 'bg-gradient-to-br from-cyan-400 to-cyan-600',
-    blue: 'bg-gradient-to-br from-blue-400 to-blue-600',
+    cyan: 'bg-gradient-to-br from-primary-400 to-primary-600',
+    blue: 'bg-gradient-to-br from-secondary-400 to-secondary-600',
     green: 'bg-gradient-to-br from-green-400 to-green-600',
     red: 'bg-gradient-to-br from-red-400 to-red-600',
     yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',

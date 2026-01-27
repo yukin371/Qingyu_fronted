@@ -66,10 +66,10 @@ const emit = defineEmits<QyButtonEmits>()
 // Compute variant classes
 const variantClasses = computed(() => {
   const variants = {
-    primary: 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-lg hover:shadow-cyan-500/30',
+    primary: 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:shadow-lg hover:shadow-primary-500/30',
     secondary: 'bg-white/60 backdrop-blur-xl border border-white/50 text-slate-700 hover:bg-white',
     danger: 'bg-red-600 text-white hover:bg-red-700',
-    ghost: 'text-cyan-600 hover:bg-cyan-50'
+    ghost: 'text-primary-600 hover:bg-primary-50'
   }
   return variants[props.variant]
 })

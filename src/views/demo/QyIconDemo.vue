@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-8">
+  <div class="min-h-screen bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] dark:from-gray-900 dark:to-gray-800 p-8">
     <div class="max-w-7xl mx-auto">
       <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-8">
         QyIcon Component Demo
@@ -161,7 +161,7 @@
             />
             <input 
               type="text" 
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent"
               placeholder="Search..."
             />
           </div>
@@ -171,7 +171,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-4">
           <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">Button with Icon</h3>
           <div class="flex gap-3">
-            <button class="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors">
+            <button class="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary-600)] text-white rounded-lg hover:bg-[var(--color-primary-700)] transition-colors">
               <QyIcon name="Plus" :size="16" />
               <span>Add New</span>
             </button>

@@ -9,7 +9,7 @@
           <button
             v-if="!isMultiSelectMode"
             type="button"
-            class="p-1.5 text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+            class="p-1.5 text-gray-600 hover:text-secondary-500 hover:bg-secondary-50 rounded transition-colors"
             title="多选模式"
             @click="toggleMultiSelectMode"
           >
@@ -20,7 +20,7 @@
           <button
             v-else
             type="button"
-            class="p-1.5 text-blue-500 bg-blue-50 rounded transition-colors"
+            class="p-1.5 text-secondary-500 bg-secondary-50 rounded transition-colors"
             title="退出多选"
             @click="toggleMultiSelectMode"
           >
@@ -50,7 +50,7 @@
     <div v-if="isMultiSelectMode" class="multi-select-hint px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-600">已选择</span>
-        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-sm font-medium">{{ selectionCount }}</span>
+        <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 rounded text-sm font-medium">{{ selectionCount }}</span>
         <span class="text-sm text-gray-600">个文档</span>
       </div>
       <div class="flex items-center gap-2">
@@ -91,7 +91,7 @@
             <input
               v-if="isMultiSelectMode"
               type="checkbox"
-              class="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500 cursor-pointer mr-2"
+              class="w-4 h-4 text-secondary-500 rounded border-gray-300 focus:ring-secondary-500 cursor-pointer mr-2"
               :checked="isSelected(data.id)"
               @click.stop="toggleSelection(data.id, $event)"
             />

@@ -86,7 +86,7 @@ const frameClasses = computed(() => {
     // Shadow
     props.shadow && 'shadow-md',
     // Hover effects
-    'group-hover:shadow-xl group-hover:shadow-cyan-500/20'
+    'group-hover:shadow-xl group-hover:shadow-primary-500/20'
   ].filter(Boolean).join(' ')
 })
 
@@ -112,7 +112,7 @@ const fallbackClasses = computed(() => {
 const overlayClasses = computed(() => {
   return [
     'absolute inset-0 pointer-events-none',
-    'bg-gradient-to-br from-cyan-500/5 to-blue-500/5',
+    'bg-gradient-to-br from-primary-500/5 to-secondary-500/5',
     'rounded-inherit'
   ].join(' ')
 })

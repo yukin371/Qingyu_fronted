@@ -42,24 +42,52 @@ export interface ThemeColors {
   }
   // 功能色
   success: {
-    light: string
-    DEFAULT: string
-    dark: string
+    50: string
+    100: string
+    200: string
+    300: string
+    400: string
+    500: string
+    600: string
+    700: string
+    800: string
+    900: string
   }
   warning: {
-    light: string
-    DEFAULT: string
-    dark: string
+    50: string
+    100: string
+    200: string
+    300: string
+    400: string
+    500: string
+    600: string
+    700: string
+    800: string
+    900: string
   }
   danger: {
-    light: string
-    DEFAULT: string
-    dark: string
+    50: string
+    100: string
+    200: string
+    300: string
+    400: string
+    500: string
+    600: string
+    700: string
+    800: string
+    900: string
   }
   info: {
-    light: string
-    DEFAULT: string
-    dark: string
+    50: string
+    100: string
+    200: string
+    300: string
+    400: string
+    500: string
+    600: string
+    700: string
+    800: string
+    900: string
   }
 }
 
@@ -98,24 +126,52 @@ export const qingyuTheme: ThemeColors = {
     },
   },
   success: {
-    light: '#34d399',
-    DEFAULT: '#10b981',
-    dark: '#059669',
+    50: '#ecfdf5',
+    100: '#d1fae5',
+    200: '#a7f3d0',
+    300: '#6ee7b7',
+    400: '#34d399',
+    500: '#10b981',
+    600: '#059669',
+    700: '#047857',
+    800: '#065f46',
+    900: '#064e3b',
   },
   warning: {
-    light: '#fbbf24',
-    DEFAULT: '#f59e0b',
-    dark: '#d97706',
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
   danger: {
-    light: '#f87171',
-    DEFAULT: '#ef4444',
-    dark: '#dc2626',
+    50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
+    500: '#ef4444',
+    600: '#dc2626',
+    700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
   },
   info: {
-    light: '#38bdf8',
-    DEFAULT: '#0ea5e9',
-    dark: '#0284c7',
+    50: '#f0f9ff',
+    100: '#e0f2fe',
+    200: '#bae6fd',
+    300: '#7dd3fc',
+    400: '#38bdf8',
+    500: '#0ea5e9',
+    600: '#0284c7',
+    700: '#0369a1',
+    800: '#075985',
+    900: '#0c4a6e',
   },
 }
 
@@ -154,24 +210,52 @@ export const berryTheme: ThemeColors = {
     },
   },
   success: {
-    light: '#34d399',
-    DEFAULT: '#10b981',
-    dark: '#059669',
+    50: '#ecfdf5',
+    100: '#d1fae5',
+    200: '#a7f3d0',
+    300: '#6ee7b7',
+    400: '#34d399',
+    500: '#10b981',
+    600: '#059669',
+    700: '#047857',
+    800: '#065f46',
+    900: '#064e3b',
   },
   warning: {
-    light: '#fbbf24',
-    DEFAULT: '#f59e0b',
-    dark: '#d97706',
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
   danger: {
-    light: '#f87171',
-    DEFAULT: '#ef4444',
-    dark: '#dc2626',
+    50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
+    500: '#ef4444',
+    600: '#dc2626',
+    700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
   },
   info: {
-    light: '#38bdf8',
-    DEFAULT: '#0ea5e9',
-    dark: '#0284c7',
+    50: '#f0f9ff',
+    100: '#e0f2fe',
+    200: '#bae6fd',
+    300: '#7dd3fc',
+    400: '#38bdf8',
+    500: '#0ea5e9',
+    600: '#0284c7',
+    700: '#0369a1',
+    800: '#075985',
+    900: '#0c4a6e',
   },
 }
 
@@ -210,24 +294,52 @@ export const forestTheme: ThemeColors = {
     },
   },
   success: {
-    light: '#34d399',
-    DEFAULT: '#10b981',
-    dark: '#059669',
+    50: '#ecfdf5',
+    100: '#d1fae5',
+    200: '#a7f3d0',
+    300: '#6ee7b7',
+    400: '#34d399',
+    500: '#10b981',
+    600: '#059669',
+    700: '#047857',
+    800: '#065f46',
+    900: '#064e3b',
   },
   warning: {
-    light: '#fbbf24',
-    DEFAULT: '#f59e0b',
-    dark: '#d97706',
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
   danger: {
-    light: '#f87171',
-    DEFAULT: '#ef4444',
-    dark: '#dc2626',
+    50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
+    500: '#ef4444',
+    600: '#dc2626',
+    700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
   },
   info: {
-    light: '#38bdf8',
-    DEFAULT: '#0ea5e9',
-    dark: '#0284c7',
+    50: '#f0f9ff',
+    100: '#e0f2fe',
+    200: '#bae6fd',
+    300: '#7dd3fc',
+    400: '#38bdf8',
+    500: '#0ea5e9',
+    600: '#0284c7',
+    700: '#0369a1',
+    800: '#075985',
+    900: '#0c4a6e',
   },
 }
 
@@ -265,13 +377,44 @@ function updateCSSVariables(theme: ThemeColors): void {
   const root = document.documentElement
 
   // 主色
+  root.style.setProperty('--color-primary-200', theme.primary[200])
+  root.style.setProperty('--color-primary-300', theme.primary[300])
   root.style.setProperty('--color-primary-400', theme.primary[400])
   root.style.setProperty('--color-primary-500', theme.primary[500])
   root.style.setProperty('--color-primary-600', theme.primary[600])
+  root.style.setProperty('--color-primary-700', theme.primary[700])
+  root.style.setProperty('--color-primary-900', theme.primary[900])
 
   // 辅助色
+  root.style.setProperty('--color-secondary-200', theme.secondary[200])
+  root.style.setProperty('--color-secondary-400', theme.secondary[400])
   root.style.setProperty('--color-secondary-500', theme.secondary[500])
   root.style.setProperty('--color-secondary-600', theme.secondary[600])
+
+  // RGB 变量（用于 rgba() 函数）
+  const hexToRgb = (hex: string): string | null => {
+    // 移除 # 号
+    const cleanHex = hex.replace('#', '')
+
+    // 处理 3 位缩写（如 #FFF → #FFFFFF）
+    const fullHex = cleanHex.length === 3
+      ? cleanHex.split('').map(c => c + c).join('')
+      : cleanHex
+
+    // 验证格式
+    const isValid = /^[0-9A-Fa-f]{6}$/.test(fullHex)
+    if (!isValid) return null
+
+    // 转换为 RGB
+    const r = parseInt(fullHex.substring(0, 2), 16)
+    const g = parseInt(fullHex.substring(2, 4), 16)
+    const b = parseInt(fullHex.substring(4, 6), 16)
+
+    return `${r}, ${g}, ${b}`
+  }
+
+  root.style.setProperty('--color-primary-500-rgb', hexToRgb(theme.primary[500]) || '6, 182, 212')
+  root.style.setProperty('--color-secondary-500-rgb', hexToRgb(theme.secondary[500]) || '59, 130, 246')
 
   // 渐变
   root.style.setProperty('--gradient-from', theme.gradient.from)
@@ -280,10 +423,53 @@ function updateCSSVariables(theme: ThemeColors): void {
   root.style.setProperty('--gradient-soft-to', theme.gradient.soft.to)
 
   // 功能色
-  root.style.setProperty('--color-success', theme.success.DEFAULT)
-  root.style.setProperty('--color-warning', theme.warning.DEFAULT)
-  root.style.setProperty('--color-danger', theme.danger.DEFAULT)
-  root.style.setProperty('--color-info', theme.info.DEFAULT)
+  // Success 颜色
+  root.style.setProperty('--color-success-50', theme.success[50])
+  root.style.setProperty('--color-success-100', theme.success[100])
+  root.style.setProperty('--color-success-200', theme.success[200])
+  root.style.setProperty('--color-success-300', theme.success[300])
+  root.style.setProperty('--color-success-400', theme.success[400])
+  root.style.setProperty('--color-success-500', theme.success[500])
+  root.style.setProperty('--color-success-600', theme.success[600])
+  root.style.setProperty('--color-success-700', theme.success[700])
+  root.style.setProperty('--color-success-800', theme.success[800])
+  root.style.setProperty('--color-success-900', theme.success[900])
+
+  // Warning 颜色
+  root.style.setProperty('--color-warning-50', theme.warning[50])
+  root.style.setProperty('--color-warning-100', theme.warning[100])
+  root.style.setProperty('--color-warning-200', theme.warning[200])
+  root.style.setProperty('--color-warning-300', theme.warning[300])
+  root.style.setProperty('--color-warning-400', theme.warning[400])
+  root.style.setProperty('--color-warning-500', theme.warning[500])
+  root.style.setProperty('--color-warning-600', theme.warning[600])
+  root.style.setProperty('--color-warning-700', theme.warning[700])
+  root.style.setProperty('--color-warning-800', theme.warning[800])
+  root.style.setProperty('--color-warning-900', theme.warning[900])
+
+  // Danger 颜色
+  root.style.setProperty('--color-danger-50', theme.danger[50])
+  root.style.setProperty('--color-danger-100', theme.danger[100])
+  root.style.setProperty('--color-danger-200', theme.danger[200])
+  root.style.setProperty('--color-danger-300', theme.danger[300])
+  root.style.setProperty('--color-danger-400', theme.danger[400])
+  root.style.setProperty('--color-danger-500', theme.danger[500])
+  root.style.setProperty('--color-danger-600', theme.danger[600])
+  root.style.setProperty('--color-danger-700', theme.danger[700])
+  root.style.setProperty('--color-danger-800', theme.danger[800])
+  root.style.setProperty('--color-danger-900', theme.danger[900])
+
+  // Info 颜色
+  root.style.setProperty('--color-info-50', theme.info[50])
+  root.style.setProperty('--color-info-100', theme.info[100])
+  root.style.setProperty('--color-info-200', theme.info[200])
+  root.style.setProperty('--color-info-300', theme.info[300])
+  root.style.setProperty('--color-info-400', theme.info[400])
+  root.style.setProperty('--color-info-500', theme.info[500])
+  root.style.setProperty('--color-info-600', theme.info[600])
+  root.style.setProperty('--color-info-700', theme.info[700])
+  root.style.setProperty('--color-info-800', theme.info[800])
+  root.style.setProperty('--color-info-900', theme.info[900])
 }
 
 /**

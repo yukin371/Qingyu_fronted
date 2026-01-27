@@ -94,7 +94,7 @@ const getItemClasses = (item: QyBottomDockItem) => {
 // Get icon classes
 const iconClasses = (item: QyBottomDockItem) => {
   const base = item.highlight ? 'w-7 h-7' : 'w-6 h-6'
-  const color = item.active ? 'text-cyan-600' : 'text-slate-500'
+  const color = item.active ? 'text-primary-600' : 'text-slate-500'
 
   return [base, color].join(' ')
 }
@@ -134,13 +134,13 @@ const handleItemClick = (item: QyBottomDockItem, index: number) => {
 /* 中间按钮特殊样式 - 放大并突出显示 */
 .dock-btn-highlight {
   transform: scale(1.1) translateY(-12px); /* 放大且上浮更多 */
-  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 4px 20px rgba(var(--color-primary-500-rgb), 0.3);
 }
 
 /* 中间按钮悬停时的光晕效果 */
 .dock-btn-highlight:not(:disabled):hover {
   transform: scale(1.15) translateY(-20px); /* 悬停时上浮到 -20px */
-  box-shadow: 0 6px 30px rgba(6, 182, 212, 0.5);
+  box-shadow: 0 6px 30px rgba(var(--color-primary-500-rgb), 0.5);
 }
 
 /* 中间按钮点击时的效果 */
@@ -150,7 +150,7 @@ const handleItemClick = (item: QyBottomDockItem, index: number) => {
 
 /* 激活状态 */
 .dock-btn.active {
-  @apply text-cyan-600 bg-cyan-100;
+  @apply text-primary-600 bg-primary-100;
 }
 
 /* 悬停状态（非激活） */

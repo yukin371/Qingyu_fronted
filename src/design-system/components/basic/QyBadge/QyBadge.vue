@@ -43,14 +43,14 @@ defineSlots<{ default?: () => any }>()
 const colorClasses = computed(() => {
   const colors = {
     cyan: {
-      bg: 'bg-cyan-500',
+      bg: 'bg-primary-500',
       text: 'text-white',
-      dot: 'bg-cyan-500'
+      dot: 'bg-primary-500'
     },
     blue: {
-      bg: 'bg-blue-500',
+      bg: 'bg-secondary-500',
       text: 'text-white',
-      dot: 'bg-blue-500'
+      dot: 'bg-secondary-500'
     },
     green: {
       bg: 'bg-green-500',

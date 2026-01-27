@@ -45,7 +45,7 @@
 
         <!-- 统计信息 -->
         <div class="flex-shrink-0 text-right">
-          <div class="text-sm font-semibold text-blue-600">
+          <div class="text-sm font-semibold text-primary-600">
             {{ formatScore(item.score) }}
           </div>
           <div v-if="item.change !== undefined" class="text-xs mt-1">

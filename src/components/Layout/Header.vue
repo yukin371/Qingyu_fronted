@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link to="/bookstore" class="flex items-center space-x-2">
-          <div class="text-2xl font-bold text-blue-600">青羽</div>
+          <div class="text-2xl font-bold text-primary-600">青羽</div>
           <span class="text-gray-600 text-sm">写作平台</span>
         </router-link>
 
@@ -12,20 +12,20 @@
         <nav class="hidden md:flex items-center space-x-6">
           <router-link
             to="/bookstore"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
             书城
           </router-link>
           <router-link
             v-if="authStore.isLoggedIn"
             to="/writer/projects"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
             创作中心
           </router-link>
           <router-link
             to="/bookstore/search"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
             <QyIcon name="Search" :size="20" />
           </router-link>

@@ -155,12 +155,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f3f4f6] relative overflow-hidden font-sans selection:bg-cyan-200 selection:text-cyan-900">
+  <div class="min-h-screen bg-[#f3f4f6] relative overflow-hidden font-sans selection:bg-[var(--color-primary-200)] selection:text-[var(--color-primary-900)]">
 
     <!-- 背景动画 - 添加基础背景色防止白色闪烁 -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0 backface-hidden bg-gradient-to-br from-slate-50 to-slate-100">
-      <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-200/40 rounded-full blur-[100px] mix-blend-multiply animate-float will-change-transform"></div>
-      <div class="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[100px] mix-blend-multiply animate-float animation-delay-2000 will-change-transform"></div>
+      <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary-200)]/40 rounded-full blur-[100px] mix-blend-multiply animate-float will-change-transform"></div>
+      <div class="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-[var(--color-secondary-200)]/40 rounded-full blur-[100px] mix-blend-multiply animate-float animation-delay-2000 will-change-transform"></div>
       <div class="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-sky-200/40 rounded-full blur-[100px] mix-blend-multiply animate-float animation-delay-4000 will-change-transform"></div>
       <div class="absolute inset-0 bg-noise opacity-[0.03]"></div>
     </div>
@@ -175,26 +175,26 @@ onBeforeUnmount(() => {
     <nav class="fixed top-0 w-full z-50 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center bg-white/60 backdrop-blur-md border-b border-white/30 transition-all duration-300">
       <!-- Logo: 永远显示 -->
       <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/20">Q</span>
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-tr from-[var(--gradient-from)] to-[var(--gradient-to)] flex items-center justify-center text-white font-bold shadow-lg shadow-[var(--color-primary-500)]/20">Q</span>
         <div class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight">Qingyu</div>
       </div>
 
       <!-- PC端菜单: 手机端隐藏 (hidden), 平板以上显示 (md:flex) -->
       <div class="hidden md:flex space-x-3">
         <button class="nav-btn group" aria-label="Search">
-           <svg class="w-5 h-5 text-slate-600 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+           <svg class="w-5 h-5 text-slate-600 group-hover:text-[var(--color-primary-600)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </button>
         <button class="nav-btn group" aria-label="Notifications">
-           <svg class="w-5 h-5 text-slate-600 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+           <svg class="w-5 h-5 text-slate-600 group-hover:text-[var(--color-primary-600)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
         </button>
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-cyan-300 p-[2px] cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-[var(--color-secondary-400)] to-[var(--color-primary-300)] p-[2px] cursor-pointer">
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full bg-white" alt="Avatar" />
         </div>
       </div>
 
       <!-- 手机端头像: 放在右上角 -->
       <div class="md:hidden">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-cyan-300 p-[2px] cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-[var(--color-secondary-400)] to-[var(--color-primary-300)] p-[2px] cursor-pointer">
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full bg-white" alt="Avatar" />
         </div>
       </div>
@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
       <div class="flex items-center justify-around md:justify-center md:gap-2 px-3 py-3 md:py-4 bg-white/80 backdrop-blur-2xl border-t md:border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/5 md:rounded-full safe-area-bottom">
 
         <!-- 按钮 1: 首页 (激活状态示例) -->
-        <button class="dock-btn active text-cyan-600 bg-cyan-100">
+        <button class="dock-btn active text-[var(--color-primary-600)] bg-[var(--color-primary-100)]">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
         </button>
 
         <!-- 按钮 3: 发现 (中间按钮 - 特殊放大样式) -->
-        <button class="dock-btn dock-btn-highlight text-cyan-600 bg-cyan-100 relative">
+        <button class="dock-btn dock-btn-highlight text-[var(--color-primary-600)] bg-[var(--color-primary-100)] relative">
           <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
           </svg>
@@ -251,8 +251,8 @@ onBeforeUnmount(() => {
     <!-- 主内容区域 -->
     <main class="relative z-10 pt-24 pb-24 md:pb-10 px-4 max-w-7xl mx-auto space-y-10">
       <!-- Hero (保持原样) -->
-      <div class="relative w-full rounded-[2rem] overflow-hidden bg-white/60 backdrop-blur-xl border border-white/50 shadow-xl shadow-cyan-500/5 group transition-all hover:shadow-2xl hover:shadow-cyan-500/10 duration-500">
-         <div class="absolute -right-20 -top-20 w-96 h-96 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 blur-3xl rounded-full pointer-events-none"></div>
+      <div class="relative w-full rounded-[2rem] overflow-hidden bg-white/60 backdrop-blur-xl border border-white/50 shadow-xl shadow-[var(--color-primary-500)]/5 group transition-all hover:shadow-2xl hover:shadow-[var(--color-primary-500)]/10 duration-500">
+         <div class="absolute -right-20 -top-20 w-96 h-96 bg-gradient-to-br from-[var(--color-primary-200)]/30 to-[var(--color-secondary-200)]/30 blur-3xl rounded-full pointer-events-none"></div>
          <div class="relative z-10 flex flex-col md:flex-row items-center p-8 md:p-12 gap-8 md:gap-16">
             <div class="book-3d-container flex-shrink-0">
                <div class="book-3d w-[160px] h-[240px] md:w-[180px] md:h-[270px]">
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex-1 text-center md:text-left space-y-6">
                <h1 class="text-4xl md:text-5xl font-bold text-slate-800">
-                 探索 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">未知世界</span>
+                 探索 <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)]">未知世界</span>
                </h1>
                <p class="text-slate-500 text-lg">高性能渲染与丝滑交互体验的完美结合。</p>
             </div>
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="text-center space-y-1 px-2">
-              <h3 class="text-lg font-bold text-slate-800 line-clamp-1 group-hover:text-cyan-700 transition-colors">{{ book.title }}</h3>
+              <h3 class="text-lg font-bold text-slate-800 line-clamp-1 group-hover:text-[var(--color-primary-700)] transition-colors">{{ book.title }}</h3>
               <p class="text-sm text-slate-400">{{ book.author }}</p>
               <div class="flex items-center justify-center gap-1 mt-2">
                  <span class="text-yellow-400">★</span>
@@ -376,9 +376,9 @@ onBeforeUnmount(() => {
         <!-- Loading -->
         <div ref="sentinel" class="h-24 flex items-center justify-center mt-8">
            <div v-if="loading" class="flex gap-2">
-             <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
-             <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce delay-100"></div>
-             <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce delay-200"></div>
+             <div class="w-2 h-2 bg-[var(--color-primary-500)] rounded-full animate-bounce"></div>
+             <div class="w-2 h-2 bg-[var(--color-primary-500)] rounded-full animate-bounce delay-100"></div>
+             <div class="w-2 h-2 bg-[var(--color-primary-500)] rounded-full animate-bounce delay-200"></div>
            </div>
            <div v-else-if="!hasMore" class="text-slate-400 text-sm">—— 到底啦 ——</div>
         </div>
@@ -439,13 +439,13 @@ onBeforeUnmount(() => {
 /* 中间按钮特殊样式 - 放大并突出显示 */
 .dock-btn-highlight {
   transform: scale(1.1) translateY(-12px);  /* 放大且上浮更多 */
-  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 4px 20px rgba(var(--color-primary-500-rgb), 0.3);
 }
 
 /* 中间按钮悬停时的光晕效果 */
 .dock-btn-highlight:hover {
   transform: scale(1.15) translateY(-20px);  /* 悬停时上浮到 -20px */
-  box-shadow: 0 6px 30px rgba(6, 182, 212, 0.5);
+  box-shadow: 0 6px 30px rgba(var(--color-primary-500-rgb), 0.5);
 }
 
 /* 中间按钮点击时的效果 */
@@ -453,9 +453,10 @@ onBeforeUnmount(() => {
   transform: scale(1.05) translateY(-12px);  /* 点击时回到默认上浮位置 */
 }
 
-/* 激活状态 - 使用您提供的样式 */
+/* 激活状态 - 使用语义化颜色变量 */
 .dock-btn.active {
-  @apply text-cyan-600 bg-cyan-100;
+  color: rgb(var(--color-primary-600));
+  background-color: rgb(var(--color-primary-100));
 }
 
 /* 悬停状态 - 使用您提供的样式 */

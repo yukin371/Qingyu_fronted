@@ -8,7 +8,7 @@
     <!-- 打开预览按钮 -->
     <button
       @click="showPreview = true"
-      class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600"
     >
       预览模板
     </button>

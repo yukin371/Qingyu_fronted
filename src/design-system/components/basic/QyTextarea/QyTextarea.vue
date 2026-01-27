@@ -52,7 +52,7 @@ const textareaClasses = computed(() => {
   }
   
   const stateClasses = {
-    default: 'border-slate-300 bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20',
+    default: 'border-slate-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
     error: 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20',
     success: 'border-green-500 bg-green-50 focus:border-green-500 focus:ring-green-500/20',
     warning: 'border-yellow-500 bg-yellow-50 focus:border-yellow-500 focus:ring-yellow-500/20',

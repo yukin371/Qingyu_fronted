@@ -60,7 +60,7 @@
                     v-model="formData[variable.name]"
                     type="text"
                     :placeholder="variable.placeholder || `请输入${variable.label}`"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-secondary-500 focus:border-secondary-500 transition-colors"
                   />
 
                   <!-- 多行文本框 -->
@@ -70,7 +70,7 @@
                     v-model="formData[variable.name]"
                     :placeholder="variable.placeholder || `请输入${variable.label}`"
                     rows="2"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-y"
+                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-secondary-500 focus:border-secondary-500 transition-colors resize-y"
                   />
 
                   <!-- 下拉选择框 -->
@@ -78,7 +78,7 @@
                     v-else-if="variable.type === 'select'"
                     :id="`preview-field-${variable.name}`"
                     v-model="formData[variable.name]"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-secondary-500 focus:border-secondary-500 transition-colors bg-white"
                   >
                     <option value="">{{ variable.placeholder || `请选择${variable.label}` }}</option>
                     <option
@@ -97,7 +97,7 @@
                     v-model.number="formData[variable.name]"
                     type="number"
                     :placeholder="variable.placeholder || `请输入${variable.label}`"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-secondary-500 focus:border-secondary-500 transition-colors"
                   />
                 </div>
               </div>
@@ -122,7 +122,7 @@
               <div class="flex-1 p-4 overflow-hidden">
                 <textarea
                   v-model="editableContent"
-                  class="w-full h-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none bg-white"
+                  class="w-full h-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-colors resize-none bg-white"
                   placeholder="在此编辑模板内容..."
                 />
               </div>
@@ -141,7 +141,7 @@
               </h4>
               <button
                 type="button"
-                class="text-xs px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex items-center gap-1"
+                class="text-xs px-2 py-1 text-secondary-600 hover:text-secondary-700 hover:bg-secondary-50 rounded transition-colors flex items-center gap-1"
                 @click="showRawContent = !showRawContent"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

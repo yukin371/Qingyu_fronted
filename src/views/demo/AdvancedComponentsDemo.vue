@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-gradient-to-br from-[var(--gradient-from)] via-white to-[var(--gradient-to)] py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] bg-clip-text text-transparent mb-4">
           Qingyu Advanced Components
         </h1>
         <p class="text-slate-600 text-lg">Phase 3: Advanced Components Demo</p>
@@ -84,7 +84,7 @@
         <QyModal v-model:visible="modalHeader">
           <template #header>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <div class="w-10 h-10 bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-secondary-500)] rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -107,7 +107,7 @@
         </QyModal>
 
         <QyModal v-model:visible="modalWidthVisible" :width="modalWidthValue" title="不同宽度示例">
-          <p class="text-slate-600">当前模态框宽度: <span class="font-semibold text-cyan-600">{{ modalWidthValue }}</span></p>
+          <p class="text-slate-600">当前模态框宽度: <span class="font-semibold text-[var(--color-primary-600)]">{{ modalWidthValue }}</span></p>
         </QyModal>
       </section>
 

@@ -9,13 +9,13 @@
         <img
           :src="avatar"
           :alt="username"
-          class="w-24 h-24 rounded-full ring-4 ring-cyan-500/20 object-cover transition-all duration-300 group-hover:ring-cyan-500/40"
+          class="w-24 h-24 rounded-full ring-4 ring-primary-500/20 object-cover transition-all duration-300 group-hover:ring-primary-500/40"
         />
         
         <!-- Level Badge -->
         <div
           v-if="level !== undefined"
-          class="absolute -bottom-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg"
+          class="absolute -bottom-2 -right-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg"
         >
           Lv{{ level }}
         </div>
@@ -79,7 +79,7 @@ const cardClasses = computed(() => {
     // Transition
     'transition-all duration-500',
     // Hover effects
-    'cursor-pointer hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1'
+    'cursor-pointer hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1'
   ].join(' ')
 })
 

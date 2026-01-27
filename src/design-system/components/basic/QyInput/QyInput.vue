@@ -55,7 +55,7 @@ const baseInputClasses = computed(() => {
     'text-slate-800',
     'placeholder:text-slate-400',
     'transition-all',
-    'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500',
+    'focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500',
     'disabled:opacity-50 disabled:cursor-not-allowed'
   ].join(' ')
 })

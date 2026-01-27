@@ -45,7 +45,7 @@ describe('Notification 组件', () => {
       })
 
       await waitFor(() => {
-        const element = container.querySelector('.border-blue-200')
+        const element = container.querySelector('.border-info-200')
         expect(element).toBeInTheDocument()
       })
     })
@@ -108,7 +108,7 @@ describe('Notification 组件', () => {
       })
 
       await waitFor(() => {
-        const element = container.querySelector('.border-blue-200')
+        const element = container.querySelector('.border-info-200')
         expect(element).toBeInTheDocument()
       })
     })
@@ -168,7 +168,7 @@ describe('Notification 组件', () => {
       })
 
       await waitFor(() => {
-        const icon = container.querySelector('.text-blue-500')
+        const icon = container.querySelector('.text-info-500')
         expect(icon).toBeInTheDocument()
       })
     })
@@ -437,7 +437,7 @@ describe('Notification 组件', () => {
       })
 
       await waitFor(() => {
-        const element = container.querySelector('.dark\\:bg-blue-950')
+        const element = container.querySelector('.dark\\:bg-info-950')
         expect(element).toBeInTheDocument()
       })
     })

@@ -35,11 +35,11 @@ const tagClasses = computed(() => {
   // Variant classes
   const variants = {
     default: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-    primary: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200',
+    primary: 'bg-primary-100 text-primary-700 hover:bg-primary-200',
     success: 'bg-green-100 text-green-700 hover:bg-green-200',
     warning: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
     danger: 'bg-red-100 text-red-700 hover:bg-red-200',
-    info: 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+    info: 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
   }
 
   // Disabled state

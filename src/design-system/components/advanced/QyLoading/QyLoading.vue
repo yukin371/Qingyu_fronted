@@ -58,12 +58,12 @@ const borderWidth = computed(() => {
 const spinnerColors = computed(() => {
   const colors = {
     cyan: {
-      border: 'rgb(165 243 252)', // cyan-200
-      active: 'rgb(8 145 178)' // cyan-600
+      border: 'rgb(165 243 252)', // primary-200
+      active: 'rgb(8 145 178)' // primary-600
     },
     blue: {
-      border: 'rgb(191 219 254)', // blue-200
-      active: 'rgb(37 99 235)' // blue-600
+      border: 'rgb(191 219 254)', // secondary-200
+      active: 'rgb(37 99 235)' // secondary-600
     },
     white: {
       border: 'rgb(255 255 255 / 0.3)',

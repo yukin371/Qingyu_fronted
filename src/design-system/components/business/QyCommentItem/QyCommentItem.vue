@@ -5,7 +5,7 @@
       <img
         :src="avatar"
         :alt="username"
-        class="w-10 h-10 rounded-full object-cover ring-2 ring-cyan-500/20"
+        class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-500/20"
       />
     </div>
 
@@ -97,7 +97,7 @@ const itemClasses = computed(() => {
     // Transition
     'transition-all duration-300',
     // Hover effect
-    'hover:shadow-md hover:shadow-cyan-500/5 hover:bg-white/70'
+    'hover:shadow-md hover:shadow-primary-500/5 hover:bg-white/70'
   ].join(' ')
 })
 
@@ -106,7 +106,7 @@ const likeButtonClasses = computed(() => {
   const base = 'inline-flex items-center transition-colors duration-200'
   const liked = props.isLiked
     ? 'text-red-500 hover:text-red-600'
-    : 'text-slate-500 hover:text-cyan-600'
+    : 'text-slate-500 hover:text-primary-600'
   return `${base} ${liked}`
 })
 
@@ -114,7 +114,7 @@ const likeButtonClasses = computed(() => {
 const replyButtonClasses = computed(() => {
   return [
     'inline-flex items-center',
-    'text-slate-500 hover:text-cyan-600',
+    'text-slate-500 hover:text-primary-600',
     'transition-colors duration-200'
   ].join(' ')
 })

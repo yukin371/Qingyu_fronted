@@ -41,7 +41,7 @@
               v-model="formData[variable.name]"
               type="text"
               :placeholder="variable.placeholder || `请输入${variable.label}`"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-colors text-sm"
               :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors[variable.name] }"
             />
 
@@ -52,7 +52,7 @@
               v-model="formData[variable.name]"
               :placeholder="variable.placeholder || `请输入${variable.label}`"
               rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm resize-y"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-colors text-sm resize-y"
               :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors[variable.name] }"
             />
 
@@ -61,7 +61,7 @@
               v-else-if="variable.type === 'select'"
               :id="`field-${variable.name}`"
               v-model="formData[variable.name]"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm bg-white"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-colors text-sm bg-white"
               :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors[variable.name] }"
             >
               <option value="">{{ variable.placeholder || `请选择${variable.label}` }}</option>
@@ -81,7 +81,7 @@
               v-model.number="formData[variable.name]"
               type="number"
               :placeholder="variable.placeholder || `请输入${variable.label}`"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-colors text-sm"
               :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors[variable.name] }"
             />
 
@@ -109,7 +109,7 @@
         </button>
         <button
           type="button"
-          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+          class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium"
           @click="handleConfirm"
         >
           确定

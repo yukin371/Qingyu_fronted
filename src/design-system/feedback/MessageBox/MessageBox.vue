@@ -33,7 +33,7 @@ const iconMap: Record<string, string> = {
 // 图标颜色映射
 const iconColorMap: Record<string, string> = {
   alert: 'text-amber-500',
-  confirm: 'text-blue-500',
+  confirm: 'text-info-500',
   success: 'text-emerald-500',
 }
 
@@ -202,8 +202,8 @@ defineExpose({
 .qy-message-box {
   &__input:focus {
     outline: none;
-    border-color: rgb(59 130 246);
-    box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2);
+    border-color: rgb(var(--color-secondary-500-rgb));
+    box-shadow: 0 0 0 2px rgba(var(--color-secondary-500-rgb), 0.2);
   }
 }
 </style>
