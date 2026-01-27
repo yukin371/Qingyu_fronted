@@ -17,8 +17,8 @@ export { default as QyEmpty } from './QyEmpty'
 export { QyForm, QyFormItem } from './QyForm'
 
 // Re-export types
-export type from './QyModal/types'
-export type from './QyDialog/types'
-export type from './QyLoading/types'
-export type from './QyEmpty/types'
-export type from './QyForm/types'
+export type * from './QyModal/types'
+export type * from './QyDialog/types'
+export type * from './QyLoading/types'
+export type * from './QyEmpty/types'
+export type * from './QyForm/types'

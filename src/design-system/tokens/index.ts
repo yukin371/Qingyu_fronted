@@ -19,7 +19,7 @@ export * from './typography'
 import { colors } from './colors'
 import { spacing } from './spacing'
 import { typography } from './typography'
-import { qingyuTheme, currentTheme } from './theme'
+import { currentTheme } from './theme'
 
 export const designTokens = {
   colors,
