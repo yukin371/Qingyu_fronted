@@ -13,7 +13,7 @@ import type { App as AppType } from 'vue'
 
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
-initTheme('qingyu')  // 初始化青羽主题
+initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
 
 // 全局样式
 import './style.css'  // Tailwind CSS - MUST be imported first

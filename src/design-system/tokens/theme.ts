@@ -492,9 +492,18 @@ export function getTailwindColors(theme: ThemeColors = currentTheme) {
 
 /**
  * 初始化主题（在应用启动时调用）
+ * 优先从 localStorage 读取保存的主题，如果没有则使用默认主题
  */
-export function initTheme(themeName: ThemeName = 'qingyu'): void {
-  setTheme(themeName)
+export function initTheme(defaultThemeName: ThemeName = 'qingyu'): void {
+  const savedTheme = loadTheme()
+
+  if (savedTheme) {
+    console.log(`[Theme] Loading saved theme: ${savedTheme}`)
+    setTheme(savedTheme)
+  } else {
+    console.log(`[Theme] No saved theme found, using default: ${defaultThemeName}`)
+    setTheme(defaultThemeName)
+  }
 }
 
 /**
