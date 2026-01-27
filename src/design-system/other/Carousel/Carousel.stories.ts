@@ -275,7 +275,7 @@ export const Loop: Story = {
           <h3 class="text-lg font-semibold">循环播放控制</h3>
           <button
             @click="toggleLoop"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600"
           >
             {{ loop ? '循环播放：开启' : '循环播放：关闭' }}
           </button>

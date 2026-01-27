@@ -246,7 +246,7 @@ export const Horizontal: Story = {
         
         <!-- 内容区域 -->
         <div class="space-y-16 max-w-4xl">
-          <section id="product" class="p-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 rounded-lg">
+          <section id="product" class="p-8 bg-gradient-to-r from-secondary-50 to-indigo-50 dark:from-secondary-900 dark:to-indigo-900 rounded-lg">
             <h2 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               产品介绍
             </h2>
@@ -383,7 +383,7 @@ export const CustomMarker: Story = {
           </div>
           
           <div class="flex-1 space-y-16">
-            <section id="step1" class="p-6 border-l-4 border-blue-500 bg-secondary-50 dark:bg-secondary-900 pl-6">
+            <section id="step1" class="p-6 border-l-4 border-secondary-500 bg-secondary-50 dark:bg-secondary-900 pl-6">
               <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                 步骤一：需求分析
               </h2>

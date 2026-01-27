@@ -160,7 +160,7 @@ export const Inline: Story = {
         <p class="text-slate-700">
           数据同步中 <Spinner type="wave" size="sm" />
         </p>
-        <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">
+        <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600 disabled:opacity-50">
           <span class="flex items-center gap-2">
             <Spinner type="default" size="sm" color="white" />
             提交中...
@@ -313,7 +313,7 @@ export const RealWorldUsage: Story = {
               <div class="h-4 bg-slate-200 rounded animate-pulse"></div>
               <div class="h-4 bg-slate-200 rounded w-2/3 animate-pulse"></div>
               <div class="flex justify-end mt-4">
-                <button class="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2">
+                <button class="px-4 py-2 bg-secondary-500 text-white rounded flex items-center gap-2">
                   <Spinner size="sm" color="white" />
                   提交中...
                 </button>

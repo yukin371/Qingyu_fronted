@@ -210,7 +210,7 @@ export const NestedContent: Story = {
               <h4 class="font-semibold">标题</h4>
               <p class="text-sm text-slate-600">这是一段详细描述内容，可以包含更多信息。</p>
               <div class="flex gap-2 mt-2">
-                <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded hover:bg-secondary-600">
                   确认
                 </button>
                 <button class="px-3 py-1 bg-slate-200 text-sm rounded hover:bg-slate-300">
@@ -497,7 +497,7 @@ export const CardContent: Story = {
                 </p>
               </div>
               <div class="flex gap-2">
-                <button class="flex-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                <button class="flex-1 px-3 py-1.5 bg-secondary-500 text-white text-sm rounded hover:bg-secondary-600">
                   发消息
                 </button>
                 <button class="flex-1 px-3 py-1.5 bg-slate-200 text-sm rounded hover:bg-slate-300">
@@ -584,7 +584,7 @@ export const DarkMode: Story = {
       <div class="p-20 bg-slate-900">
         <div class="space-x-4">
           <Popover content="深色模式下的 Popover">
-            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button class="px-4 py-2 bg-secondary-600 text-white rounded hover:bg-secondary-700">
               深色模式
             </button>
           </Popover>
