@@ -320,7 +320,7 @@ export const WithoutLine: Story = {
           </div>
           
           <div class="flex-1 space-y-16">
-            <section id="react" class="p-6 bg-blue-50 dark:bg-blue-900 rounded-lg">
+            <section id="react" class="p-6 bg-secondary-50 dark:bg-secondary-900 rounded-lg">
               <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                 React
               </h2>
@@ -383,7 +383,7 @@ export const CustomMarker: Story = {
           </div>
           
           <div class="flex-1 space-y-16">
-            <section id="step1" class="p-6 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900 pl-6">
+            <section id="step1" class="p-6 border-l-4 border-blue-500 bg-secondary-50 dark:bg-secondary-900 pl-6">
               <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                 步骤一：需求分析
               </h2>
@@ -449,7 +449,7 @@ export const ScrollTo: Story = {
           </div>
           
           <div class="flex-1 space-y-16">
-            <section id="top" class="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900 dark:to-blue-900 rounded-lg">
+            <section id="top" class="p-6 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900 dark:to-secondary-900 rounded-lg">
               <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                 顶部区域
               </h2>
@@ -529,7 +529,7 @@ export const CustomContainer: Story = {
                 </p>
               </section>
               
-              <section id="chapter2" class="p-6 bg-blue-50 dark:bg-blue-900 rounded-lg">
+              <section id="chapter2" class="p-6 bg-secondary-50 dark:bg-secondary-900 rounded-lg">
                 <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
                   第二章：发展
                 </h2>
@@ -587,7 +587,7 @@ export const ChangeEvent: Story = {
     },
     template: `
       <div class="p-8" style="min-height: 2000px;">
-        <div class="mb-8 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+        <div class="mb-8 p-4 bg-secondary-50 dark:bg-secondary-900 rounded-lg">
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
             当前激活锚点
           </h3>
