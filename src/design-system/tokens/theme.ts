@@ -367,6 +367,9 @@ export function setTheme(themeName: ThemeName): void {
 
   // 更新 CSS 变量
   updateCSSVariables(currentTheme)
+
+  // 保存到 localStorage
+  saveTheme(themeName)
 }
 
 /**
@@ -492,4 +495,49 @@ export function getTailwindColors(theme: ThemeColors = currentTheme) {
  */
 export function initTheme(themeName: ThemeName = 'qingyu'): void {
   setTheme(themeName)
+}
+
+/**
+ * 保存主题偏好到 localStorage
+ */
+export function saveTheme(themeName: ThemeName): void {
+  try {
+    localStorage.setItem('qingyu-theme', themeName)
+  } catch (error) {
+    console.warn('Failed to save theme preference:', error)
+  }
+}
+
+/**
+ * 从 localStorage 读取主题偏好
+ */
+export function loadTheme(): ThemeName | null {
+  try {
+    const saved = localStorage.getItem('qingyu-theme')
+    if (saved && isValidThemeName(saved)) {
+      return saved as ThemeName
+    }
+    return null
+  } catch (error) {
+    console.warn('Failed to load theme preference:', error)
+    return null
+  }
+}
+
+/**
+ * 验证主题名称是否有效
+ */
+function isValidThemeName(name: string): name is ThemeName {
+  return ['qingyu', 'berry', 'forest'].includes(name)
+}
+
+/**
+ * 清除主题偏好
+ */
+export function clearTheme(): void {
+  try {
+    localStorage.removeItem('qingyu-theme')
+  } catch (error) {
+    console.warn('Failed to clear theme preference:', error)
+  }
 }
