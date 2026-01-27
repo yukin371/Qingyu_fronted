@@ -88,7 +88,7 @@ export const Default: Story = {
     template: `
       <div class="p-20">
         <Popover v-bind="args">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             点击我
           </button>
         </Popover>
@@ -104,7 +104,7 @@ export const Basic: Story = {
     template: `
       <div class="p-20 space-x-4">
         <Popover content="这是一段内容">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             点击触发
           </button>
         </Popover>
@@ -219,7 +219,7 @@ export const NestedContent: Story = {
               </div>
             </div>
           </template>
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             复杂内容
           </button>
         </Popover>
@@ -228,8 +228,8 @@ export const NestedContent: Story = {
           <template #content>
             <div class="space-y-2">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                  <svg class="w-6 h-6 text-secondary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -319,7 +319,7 @@ export const CustomWidth: Story = {
     template: `
       <div class="p-20 space-x-4">
         <Popover content="这是一段内容" :width="200">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             200px 宽度
           </button>
         </Popover>
@@ -347,7 +347,7 @@ export const WithDelay: Story = {
     template: `
       <div class="p-20 space-x-4">
         <Popover trigger="hover" content="延迟 500ms 显示" :open-delay="500">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             延迟显示 500ms
           </button>
         </Popover>
@@ -381,7 +381,7 @@ export const Disabled: Story = {
         </Popover>
 
         <Popover content="正常状态">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             正常的 Popover
           </button>
         </Popover>
@@ -397,7 +397,7 @@ export const WithoutArrow: Story = {
     template: `
       <div class="p-20 space-x-4">
         <Popover content="没有箭头的 Popover" :show-arrow="false">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             无箭头
           </button>
         </Popover>
@@ -447,7 +447,7 @@ export const WithEvents: Story = {
             @before-leave="handleBeforeLeave"
             @after-leave="handleAfterLeave"
           >
-            <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
               点击测试事件
             </button>
           </Popover>
@@ -506,7 +506,7 @@ export const CardContent: Story = {
               </div>
             </div>
           </template>
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             用户卡片
           </button>
         </Popover>
@@ -567,7 +567,7 @@ export const ListMenu: Story = {
               </ul>
             </div>
           </template>
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             通知菜单
           </button>
         </Popover>
@@ -699,11 +699,11 @@ export const RealWorldUsage: Story = {
                   <p class="text-sm mb-3">确定要发送邮件吗？</p>
                   <div class="flex justify-end gap-2">
                     <button class="px-3 py-1 text-sm text-slate-600 hover:text-slate-800">取消</button>
-                    <button class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">发送</button>
+                    <button class="px-3 py-1 text-sm bg-secondary-500 text-white rounded hover:bg-secondary-600">发送</button>
                   </div>
                 </div>
               </template>
-              <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
                 发送邮件
               </button>
             </Popover>
