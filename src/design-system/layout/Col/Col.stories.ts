@@ -333,7 +333,7 @@ export const Ordering: Story = {
     components: { Col },
     template: `
       <div class="w-full">
-        <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+        <div class="mb-4 p-4 bg-blue-50 dark:bg-secondary-900/20 rounded-md">
           <p class="text-sm text-blue-800 dark:text-blue-300">
             <strong>order 属性：</strong>可以改变列的视觉顺序，不影响 DOM 顺序
           </p>
@@ -464,7 +464,7 @@ export const CardGrid: Story = {
         <div class="flex gap-4 flex-wrap">
           <Col :xs="12" :sm="6" :md="4" :lg="3">
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 shadow-sm">
-              <div class="w-full h-24 bg-blue-100 dark:bg-blue-900/30 rounded-md mb-3"></div>
+              <div class="w-full h-24 bg-secondary-100 dark:bg-secondary-900/30 rounded-md mb-3"></div>
               <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-1">卡片 1</h3>
               <p class="text-sm text-slate-600 dark:text-slate-400">描述文字</p>
             </div>
