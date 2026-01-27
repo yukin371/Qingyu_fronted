@@ -150,4 +150,54 @@ export default defineConfig({
         'prettier --write "src/**/api/generated/**/*.{ts,tsx}" "src/api/generated/**/*.{ts,tsx}"',
     },
   },
+
+  finance: {
+    input: {
+      target: '../Qingyu_backend/docs/swagger.yaml',
+      filters: {
+        paths: ['^/api/v1/finance/'],
+      },
+    },
+    output: {
+      mode: 'single',
+      client: 'axios',
+      target: 'src/modules/finance/api/generated/finance.ts',
+      schemas: 'src/api/generated/model.ts',
+      override: {
+        mutator: {
+          path: 'src/core/config/orval-mutator.ts',
+          name: 'default',
+        },
+      },
+    },
+    hooks: {
+      afterAllFilesWrite:
+        'prettier --write "src/**/api/generated/**/*.{ts,tsx}" "src/api/generated/**/*.{ts,tsx}"',
+    },
+  },
+
+  notification: {
+    input: {
+      target: '../Qingyu_backend/docs/swagger.yaml',
+      filters: {
+        paths: ['^/api/v1/notification/'],
+      },
+    },
+    output: {
+      mode: 'single',
+      client: 'axios',
+      target: 'src/modules/notification/api/generated/notification.ts',
+      schemas: 'src/api/generated/model.ts',
+      override: {
+        mutator: {
+          path: 'src/core/config/orval-mutator.ts',
+          name: 'default',
+        },
+      },
+    },
+    hooks: {
+      afterAllFilesWrite:
+        'prettier --write "src/**/api/generated/**/*.{ts,tsx}" "src/api/generated/**/*.{ts,tsx}"',
+    },
+  },
 })

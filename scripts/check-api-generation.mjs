@@ -68,7 +68,7 @@ function checkSwaggerNoColonParams() {
 function checkModuleOutputsIsolation() {
   console.log('\n🔍 检查 2️⃣：模块输出隔离...')
 
-  const modules = ['reader', 'bookstore', 'admin', 'writer', 'social', 'ai']
+  const modules = ['reader', 'bookstore', 'admin', 'writer', 'social', 'ai', 'finance', 'notification']
   const orvalConfig = path.resolve(root, 'orval.config.ts')
 
   if (!fs.existsSync(orvalConfig)) {
