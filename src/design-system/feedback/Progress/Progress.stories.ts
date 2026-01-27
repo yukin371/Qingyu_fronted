@@ -235,7 +235,7 @@ export const Dynamic: Story = {
           </button>
           <button
             @click="increase"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600 transition-colors"
           >
             +10%
           </button>
