@@ -51,15 +51,19 @@ function checkSwaggerNoColonParams() {
   }
 
   const content = fs.readFileSync(swaggerPath, 'utf8')
-  const colonPaths = content.match(/\n\s*\/[^\s]*:/g)
+
+  // 匹配 Gin 风格的路径参数 /:param（不是 OpenAPI 的 {param}）
+  // 负向先行断言确保 : 后面不是 {
+  // 匹配 /: 后面跟着变量名的模式
+  const colonPaths = content.match(/\/:(?![{])[a-zA-Z_][a-zA-Z0-9_]*/g)
 
   if (colonPaths) {
     fail(
-      `发现 Gin 风格路径参数 /: (应该是 OpenAPI 的 {}):\n` +
-        colonPaths.map((s) => `   ${s.trim()}`).join('\n')
+      `发现 Gin 风格路径参数 /:param (应该是 OpenAPI 的 {param}):\n` +
+        colonPaths.map((s) => `   ${s}`).join('\n')
     )
   } else {
-    ok('Swagger 路径参数格式正确（无 /:）。')
+    ok('Swagger 路径参数格式正确（使用 OpenAPI {param} 格式）。')
   }
 }
 
