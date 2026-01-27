@@ -16,7 +16,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -41,7 +41,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -66,7 +66,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -91,7 +91,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -116,7 +116,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -141,7 +141,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -166,7 +166,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },
@@ -191,7 +191,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: 'src/core/config/orval-mutator.ts',
-          name: 'default',
+          name: 'orvalMutator',
         },
       },
     },

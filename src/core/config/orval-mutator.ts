@@ -68,4 +68,7 @@ export const defaultMutator = async <TResponse = any, TBody = any>(
   }
 }
 
-export default defaultMutator
+// 为 Orval 添加别名（避免使用保留关键字 'default'）
+export const orvalMutator = defaultMutator
+// 注意：不使用默认导出，因为 'default' 是 TypeScript 保留关键字
+// export default defaultMutator

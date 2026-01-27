@@ -161,7 +161,7 @@ import type {
   WriterWordCountRequest
 } from '../../../../api/generated';
 
-import { default } from '../../../../core/config/orval-mutator';
+import { orvalMutator } from '../../../../core/config/orval-mutator';
 export const getApi = () => {
 /**
  * 人工复核申诉（管理员接口）
@@ -171,7 +171,7 @@ const postApiV1AdminAuditIdAppealReview = (
     id: string,
     writerReviewAppealRequest: WriterReviewAppealRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/audit/${id}/appeal/review`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerReviewAppealRequest
@@ -187,7 +187,7 @@ const postApiV1AdminAuditIdReview = (
     id: string,
     writerReviewAuditRequest: WriterReviewAuditRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/audit/${id}/review`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerReviewAuditRequest
@@ -202,7 +202,7 @@ const postApiV1AdminAuditIdReview = (
 const getApiV1AdminAuditHighRisk = (
     params?: GetApiV1AdminAuditHighRiskParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/audit/high-risk`, method: 'GET',
         params
     },
@@ -216,7 +216,7 @@ const getApiV1AdminAuditHighRisk = (
 const getApiV1AdminAuditPending = (
     params?: GetApiV1AdminAuditPendingParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/audit/pending`, method: 'GET',
         params
     },
@@ -230,7 +230,7 @@ const getApiV1AdminAuditPending = (
 const getApiV1AdminUsers = (
     params?: GetApiV1AdminUsersParams,
  ) => {
-      return default<SharedPaginatedResponse>(
+      return orvalMutator<SharedPaginatedResponse>(
       {url: `/api/v1/admin/users`, method: 'GET',
         params
     },
@@ -244,7 +244,7 @@ const getApiV1AdminUsers = (
 const deleteApiV1AdminUsersId = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/users/${id}`, method: 'DELETE'
     },
       );
@@ -257,7 +257,7 @@ const deleteApiV1AdminUsersId = (
 const getApiV1AdminUsersId = (
     id: string,
  ) => {
-      return default<GetApiV1AdminUsersId200>(
+      return orvalMutator<GetApiV1AdminUsersId200>(
       {url: `/api/v1/admin/users/${id}`, method: 'GET'
     },
       );
@@ -271,7 +271,7 @@ const putApiV1AdminUsersId = (
     id: string,
     systemAdminUpdateUserRequest: SystemAdminUpdateUserRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/admin/users/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: systemAdminUpdateUserRequest
@@ -287,7 +287,7 @@ const postApiV1AuditIdAppeal = (
     id: string,
     writerSubmitAppealRequest: WriterSubmitAppealRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/audit/${id}/appeal`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerSubmitAppealRequest
@@ -302,7 +302,7 @@ const postApiV1AuditIdAppeal = (
 const postApiV1AuditCheck = (
     writerCheckContentRequest: WriterCheckContentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/audit/check`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerCheckContentRequest
@@ -317,7 +317,7 @@ const postApiV1AuditCheck = (
 const postApiV1Books = (
     bookstoreBookDetail: BookstoreBookDetail,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreBookDetail
@@ -333,7 +333,7 @@ const getApiV1BooksBookIdChapters = (
     bookId: string,
     params?: GetApiV1BooksBookIdChaptersParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters`, method: 'GET',
         params
     },
@@ -348,7 +348,7 @@ const getApiV1BooksBookIdChaptersChapterNum = (
     bookId: string,
     chapterNum: number,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/${chapterNum}`, method: 'GET'
     },
       );
@@ -361,7 +361,7 @@ const getApiV1BooksBookIdChaptersChapterNum = (
 const getApiV1BooksBookIdChaptersFirst = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/first`, method: 'GET'
     },
       );
@@ -375,7 +375,7 @@ const getApiV1BooksBookIdChaptersFree = (
     bookId: string,
     params?: GetApiV1BooksBookIdChaptersFreeParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/free`, method: 'GET',
         params
     },
@@ -389,7 +389,7 @@ const getApiV1BooksBookIdChaptersFree = (
 const getApiV1BooksBookIdChaptersLast = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/last`, method: 'GET'
     },
       );
@@ -403,7 +403,7 @@ const getApiV1BooksBookIdChaptersPaid = (
     bookId: string,
     params?: GetApiV1BooksBookIdChaptersPaidParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/paid`, method: 'GET',
         params
     },
@@ -418,7 +418,7 @@ const getApiV1BooksBookIdChaptersPublished = (
     bookId: string,
     params?: GetApiV1BooksBookIdChaptersPublishedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/published`, method: 'GET',
         params
     },
@@ -432,7 +432,7 @@ const getApiV1BooksBookIdChaptersPublished = (
 const getApiV1BooksBookIdChaptersStatistics = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${bookId}/chapters/statistics`, method: 'GET'
     },
       );
@@ -445,7 +445,7 @@ const getApiV1BooksBookIdChaptersStatistics = (
 const deleteApiV1BooksId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}`, method: 'DELETE'
     },
       );
@@ -458,7 +458,7 @@ const deleteApiV1BooksId = (
 const getApiV1BooksId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}`, method: 'GET'
     },
       );
@@ -472,7 +472,7 @@ const putApiV1BooksId = (
     id: string,
     bookstoreBookDetail: BookstoreBookDetail,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreBookDetail
@@ -487,7 +487,7 @@ const putApiV1BooksId = (
 const postApiV1BooksIdLike = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}/like`, method: 'POST'
     },
       );
@@ -501,7 +501,7 @@ const getApiV1BooksIdSimilar = (
     id: string,
     params?: GetApiV1BooksIdSimilarParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}/similar`, method: 'GET',
         params
     },
@@ -515,7 +515,7 @@ const getApiV1BooksIdSimilar = (
 const getApiV1BooksIdStatistics = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}/statistics`, method: 'GET'
     },
       );
@@ -528,7 +528,7 @@ const getApiV1BooksIdStatistics = (
 const postApiV1BooksIdUnlike = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}/unlike`, method: 'POST'
     },
       );
@@ -541,7 +541,7 @@ const postApiV1BooksIdUnlike = (
 const postApiV1BooksIdView = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/${id}/view`, method: 'POST'
     },
       );
@@ -554,7 +554,7 @@ const postApiV1BooksIdView = (
 const getApiV1BooksCategory = (
     params: GetApiV1BooksCategoryParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/category`, method: 'GET',
         params
     },
@@ -568,7 +568,7 @@ const getApiV1BooksCategory = (
 const getApiV1BooksLatest = (
     params?: GetApiV1BooksLatestParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/latest`, method: 'GET',
         params
     },
@@ -582,7 +582,7 @@ const getApiV1BooksLatest = (
 const getApiV1BooksPopular = (
     params?: GetApiV1BooksPopularParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/popular`, method: 'GET',
         params
     },
@@ -596,7 +596,7 @@ const getApiV1BooksPopular = (
 const getApiV1BooksRecommended = (
     params?: GetApiV1BooksRecommendedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/recommended`, method: 'GET',
         params
     },
@@ -610,7 +610,7 @@ const getApiV1BooksRecommended = (
 const getApiV1BooksSearch = (
     params: GetApiV1BooksSearchParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/search`, method: 'GET',
         params
     },
@@ -624,7 +624,7 @@ const getApiV1BooksSearch = (
 const getApiV1BooksSearchAuthor = (
     params: GetApiV1BooksSearchAuthorParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/search/author`, method: 'GET',
         params
     },
@@ -638,7 +638,7 @@ const getApiV1BooksSearchAuthor = (
 const getApiV1BooksSearchTitle = (
     params: GetApiV1BooksSearchTitleParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/search/title`, method: 'GET',
         params
     },
@@ -652,7 +652,7 @@ const getApiV1BooksSearchTitle = (
 const getApiV1BooksStatus = (
     params: GetApiV1BooksStatusParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/status`, method: 'GET',
         params
     },
@@ -666,7 +666,7 @@ const getApiV1BooksStatus = (
 const getApiV1BooksTags = (
     params: GetApiV1BooksTagsParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/books/tags`, method: 'GET',
         params
     },
@@ -680,7 +680,7 @@ const getApiV1BooksTags = (
 const getApiV1BookstoreBanners = (
     params?: GetApiV1BookstoreBannersParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/banners`, method: 'GET',
         params
     },
@@ -694,7 +694,7 @@ const getApiV1BookstoreBanners = (
 const postApiV1BookstoreBannersIdClick = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/banners/${id}/click`, method: 'POST'
     },
       );
@@ -707,7 +707,7 @@ const postApiV1BookstoreBannersIdClick = (
 const getApiV1BookstoreBooksId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/books/${id}`, method: 'GET'
     },
       );
@@ -720,7 +720,7 @@ const getApiV1BookstoreBooksId = (
 const postApiV1BookstoreBooksIdView = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/books/${id}/view`, method: 'POST'
     },
       );
@@ -733,7 +733,7 @@ const postApiV1BookstoreBooksIdView = (
 const getApiV1BookstoreBooksFeatured = (
     params?: GetApiV1BookstoreBooksFeaturedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/books/featured`, method: 'GET',
         params
     },
@@ -747,7 +747,7 @@ const getApiV1BookstoreBooksFeatured = (
 const getApiV1BookstoreBooksRecommended = (
     params?: GetApiV1BookstoreBooksRecommendedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/books/recommended`, method: 'GET',
         params
     },
@@ -761,7 +761,7 @@ const getApiV1BookstoreBooksRecommended = (
 const getApiV1BookstoreBooksSearch = (
     params?: GetApiV1BookstoreBooksSearchParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/books/search`, method: 'GET',
         params
     },
@@ -776,7 +776,7 @@ const getApiV1BookstoreCategoriesCategoryIdBooks = (
     categoryId: string,
     params?: GetApiV1BookstoreCategoriesCategoryIdBooksParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/categories/${categoryId}/books`, method: 'GET',
         params
     },
@@ -790,7 +790,7 @@ const getApiV1BookstoreCategoriesCategoryIdBooks = (
 const getApiV1BookstoreCategoriesId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/categories/${id}`, method: 'GET'
     },
       );
@@ -803,7 +803,7 @@ const getApiV1BookstoreCategoriesId = (
 const getApiV1BookstoreCategoriesTree = (
     
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/categories/tree`, method: 'GET'
     },
       );
@@ -816,7 +816,7 @@ const getApiV1BookstoreCategoriesTree = (
 const getApiV1BookstoreHomepage = (
     
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/homepage`, method: 'GET'
     },
       );
@@ -830,7 +830,7 @@ const getApiV1BookstoreRankingsType = (
     type: 'realtime' | 'weekly' | 'monthly' | 'newbie',
     params?: GetApiV1BookstoreRankingsTypeParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/rankings/${type}`, method: 'GET',
         params
     },
@@ -844,7 +844,7 @@ const getApiV1BookstoreRankingsType = (
 const getApiV1BookstoreRankingsMonthly = (
     params?: GetApiV1BookstoreRankingsMonthlyParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/rankings/monthly`, method: 'GET',
         params
     },
@@ -858,7 +858,7 @@ const getApiV1BookstoreRankingsMonthly = (
 const getApiV1BookstoreRankingsNewbie = (
     params?: GetApiV1BookstoreRankingsNewbieParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/rankings/newbie`, method: 'GET',
         params
     },
@@ -872,7 +872,7 @@ const getApiV1BookstoreRankingsNewbie = (
 const getApiV1BookstoreRankingsRealtime = (
     params?: GetApiV1BookstoreRankingsRealtimeParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/rankings/realtime`, method: 'GET',
         params
     },
@@ -886,7 +886,7 @@ const getApiV1BookstoreRankingsRealtime = (
 const getApiV1BookstoreRankingsWeekly = (
     params?: GetApiV1BookstoreRankingsWeeklyParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/bookstore/rankings/weekly`, method: 'GET',
         params
     },
@@ -900,7 +900,7 @@ const getApiV1BookstoreRankingsWeekly = (
 const postApiV1Chapters = (
     bookstoreChapter: BookstoreChapter,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreChapter
@@ -915,7 +915,7 @@ const postApiV1Chapters = (
 const deleteApiV1ChaptersId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}`, method: 'DELETE'
     },
       );
@@ -928,7 +928,7 @@ const deleteApiV1ChaptersId = (
 const getApiV1ChaptersId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}`, method: 'GET'
     },
       );
@@ -942,7 +942,7 @@ const putApiV1ChaptersId = (
     id: string,
     bookstoreChapter: BookstoreChapter,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreChapter
@@ -957,7 +957,7 @@ const putApiV1ChaptersId = (
 const getApiV1ChaptersIdContent = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}/content`, method: 'GET'
     },
       );
@@ -970,7 +970,7 @@ const getApiV1ChaptersIdContent = (
 const getApiV1ChaptersIdNext = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}/next`, method: 'GET'
     },
       );
@@ -983,7 +983,7 @@ const getApiV1ChaptersIdNext = (
 const getApiV1ChaptersIdPrevious = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/${id}/previous`, method: 'GET'
     },
       );
@@ -996,7 +996,7 @@ const getApiV1ChaptersIdPrevious = (
 const getApiV1ChaptersSearch = (
     params: GetApiV1ChaptersSearchParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/chapters/search`, method: 'GET',
         params
     },
@@ -1011,7 +1011,7 @@ const getApiV1DocumentsDocumentIdVersions = (
     documentId: string,
     params?: GetApiV1DocumentsDocumentIdVersionsParams,
  ) => {
-      return default<GetApiV1DocumentsDocumentIdVersions200>(
+      return orvalMutator<GetApiV1DocumentsDocumentIdVersions200>(
       {url: `/api/v1/documents/${documentId}/versions`, method: 'GET',
         params
     },
@@ -1026,7 +1026,7 @@ const getApiV1DocumentsDocumentIdVersionsVersionId = (
     documentId: string,
     versionId: string,
  ) => {
-      return default<GetApiV1DocumentsDocumentIdVersionsVersionId200>(
+      return orvalMutator<GetApiV1DocumentsDocumentIdVersionsVersionId200>(
       {url: `/api/v1/documents/${documentId}/versions/${versionId}`, method: 'GET'
     },
       );
@@ -1040,7 +1040,7 @@ const postApiV1DocumentsDocumentIdVersionsVersionIdRestore = (
     documentId: string,
     versionId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${documentId}/versions/${versionId}/restore`, method: 'POST'
     },
       );
@@ -1054,7 +1054,7 @@ const getApiV1DocumentsDocumentIdVersionsCompare = (
     documentId: string,
     params: GetApiV1DocumentsDocumentIdVersionsCompareParams,
  ) => {
-      return default<GetApiV1DocumentsDocumentIdVersionsCompare200>(
+      return orvalMutator<GetApiV1DocumentsDocumentIdVersionsCompare200>(
       {url: `/api/v1/documents/${documentId}/versions/compare`, method: 'GET',
         params
     },
@@ -1068,7 +1068,7 @@ const getApiV1DocumentsDocumentIdVersionsCompare = (
 const deleteApiV1DocumentsId = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}`, method: 'DELETE'
     },
       );
@@ -1081,7 +1081,7 @@ const deleteApiV1DocumentsId = (
 const getApiV1DocumentsId = (
     id: string,
  ) => {
-      return default<GetApiV1DocumentsId200>(
+      return orvalMutator<GetApiV1DocumentsId200>(
       {url: `/api/v1/documents/${id}`, method: 'GET'
     },
       );
@@ -1095,7 +1095,7 @@ const putApiV1DocumentsId = (
     id: string,
     documentUpdateDocumentRequest: DocumentUpdateDocumentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: documentUpdateDocumentRequest
@@ -1111,7 +1111,7 @@ const postApiV1DocumentsIdAudit = (
     id: string,
     writerAuditDocumentRequest: WriterAuditDocumentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}/audit`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerAuditDocumentRequest
@@ -1127,7 +1127,7 @@ const getApiV1DocumentsIdAuditResult = (
     id: string,
     params?: GetApiV1DocumentsIdAuditResultParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}/audit-result`, method: 'GET',
         params
     },
@@ -1142,7 +1142,7 @@ const postApiV1DocumentsIdAutosave = (
     id: string,
     documentAutoSaveRequest: DocumentAutoSaveRequest,
  ) => {
-      return default<PostApiV1DocumentsIdAutosave200>(
+      return orvalMutator<PostApiV1DocumentsIdAutosave200>(
       {url: `/api/v1/documents/${id}/autosave`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: documentAutoSaveRequest
@@ -1157,7 +1157,7 @@ const postApiV1DocumentsIdAutosave = (
 const getApiV1DocumentsIdContent = (
     id: string,
  ) => {
-      return default<GetApiV1DocumentsIdContent200>(
+      return orvalMutator<GetApiV1DocumentsIdContent200>(
       {url: `/api/v1/documents/${id}/content`, method: 'GET'
     },
       );
@@ -1171,7 +1171,7 @@ const putApiV1DocumentsIdContent = (
     id: string,
     documentUpdateContentRequest: DocumentUpdateContentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}/content`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: documentUpdateContentRequest
@@ -1187,7 +1187,7 @@ const putApiV1DocumentsIdMove = (
     id: string,
     documentMoveDocumentRequest: DocumentMoveDocumentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/documents/${id}/move`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: documentMoveDocumentRequest
@@ -1202,7 +1202,7 @@ const putApiV1DocumentsIdMove = (
 const getApiV1DocumentsIdSaveStatus = (
     id: string,
  ) => {
-      return default<GetApiV1DocumentsIdSaveStatus200>(
+      return orvalMutator<GetApiV1DocumentsIdSaveStatus200>(
       {url: `/api/v1/documents/${id}/save-status`, method: 'GET'
     },
       );
@@ -1216,7 +1216,7 @@ const postApiV1DocumentsIdWordCount = (
     id: string,
     writerWordCountRequest: WriterWordCountRequest,
  ) => {
-      return default<PostApiV1DocumentsIdWordCount200>(
+      return orvalMutator<PostApiV1DocumentsIdWordCount200>(
       {url: `/api/v1/documents/${id}/word-count`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: writerWordCountRequest
@@ -1231,7 +1231,7 @@ const postApiV1DocumentsIdWordCount = (
 const postApiV1Login = (
     systemLoginRequest: SystemLoginRequest,
  ) => {
-      return default<PostApiV1Login200>(
+      return orvalMutator<PostApiV1Login200>(
       {url: `/api/v1/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: systemLoginRequest
@@ -1246,7 +1246,7 @@ const postApiV1Login = (
 const getApiV1Projects = (
     params?: GetApiV1ProjectsParams,
  ) => {
-      return default<GetApiV1Projects200>(
+      return orvalMutator<GetApiV1Projects200>(
       {url: `/api/v1/projects`, method: 'GET',
         params
     },
@@ -1260,7 +1260,7 @@ const getApiV1Projects = (
 const postApiV1Projects = (
     projectCreateProjectRequest: ProjectCreateProjectRequest,
  ) => {
-      return default<PostApiV1Projects201>(
+      return orvalMutator<PostApiV1Projects201>(
       {url: `/api/v1/projects`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: projectCreateProjectRequest
@@ -1275,7 +1275,7 @@ const postApiV1Projects = (
 const deleteApiV1ProjectsId = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/projects/${id}`, method: 'DELETE'
     },
       );
@@ -1288,7 +1288,7 @@ const deleteApiV1ProjectsId = (
 const getApiV1ProjectsId = (
     id: string,
  ) => {
-      return default<GetApiV1ProjectsId200>(
+      return orvalMutator<GetApiV1ProjectsId200>(
       {url: `/api/v1/projects/${id}`, method: 'GET'
     },
       );
@@ -1302,7 +1302,7 @@ const putApiV1ProjectsId = (
     id: string,
     projectUpdateProjectRequest: ProjectUpdateProjectRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/projects/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: projectUpdateProjectRequest
@@ -1317,7 +1317,7 @@ const putApiV1ProjectsId = (
 const putApiV1ProjectsIdStatistics = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/projects/${id}/statistics`, method: 'PUT'
     },
       );
@@ -1331,7 +1331,7 @@ const getApiV1ProjectsProjectIdDocuments = (
     projectId: string,
     params?: GetApiV1ProjectsProjectIdDocumentsParams,
  ) => {
-      return default<GetApiV1ProjectsProjectIdDocuments200>(
+      return orvalMutator<GetApiV1ProjectsProjectIdDocuments200>(
       {url: `/api/v1/projects/${projectId}/documents`, method: 'GET',
         params
     },
@@ -1346,7 +1346,7 @@ const postApiV1ProjectsProjectIdDocuments = (
     projectId: string,
     documentCreateDocumentRequest: DocumentCreateDocumentRequest,
  ) => {
-      return default<PostApiV1ProjectsProjectIdDocuments201>(
+      return orvalMutator<PostApiV1ProjectsProjectIdDocuments201>(
       {url: `/api/v1/projects/${projectId}/documents`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: documentCreateDocumentRequest
@@ -1362,7 +1362,7 @@ const putApiV1ProjectsProjectIdDocumentsReorder = (
     projectId: string,
     documentReorderDocumentsRequest: DocumentReorderDocumentsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/projects/${projectId}/documents/reorder`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: documentReorderDocumentsRequest
@@ -1377,7 +1377,7 @@ const putApiV1ProjectsProjectIdDocumentsReorder = (
 const getApiV1ProjectsProjectIdDocumentsTree = (
     projectId: string,
  ) => {
-      return default<GetApiV1ProjectsProjectIdDocumentsTree200>(
+      return orvalMutator<GetApiV1ProjectsProjectIdDocumentsTree200>(
       {url: `/api/v1/projects/${projectId}/documents/tree`, method: 'GET'
     },
       );
@@ -1389,7 +1389,7 @@ const getApiV1ProjectsProjectIdDocumentsTree = (
 const postApiV1ReaderAnnotations = (
     readerCreateAnnotationRequest: ReaderCreateAnnotationRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: readerCreateAnnotationRequest
@@ -1403,7 +1403,7 @@ const postApiV1ReaderAnnotations = (
 const deleteApiV1ReaderAnnotationsId = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/${id}`, method: 'DELETE'
     },
       );
@@ -1416,7 +1416,7 @@ const putApiV1ReaderAnnotationsId = (
     id: string,
     readerUpdateAnnotationRequest: ReaderUpdateAnnotationRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: readerUpdateAnnotationRequest
@@ -1430,7 +1430,7 @@ const putApiV1ReaderAnnotationsId = (
 const deleteApiV1ReaderAnnotationsBatch = (
     readerBatchDeleteAnnotationsRequest: ReaderBatchDeleteAnnotationsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/batch`, method: 'DELETE',
       headers: {'Content-Type': 'application/json', },
       data: readerBatchDeleteAnnotationsRequest
@@ -1444,7 +1444,7 @@ const deleteApiV1ReaderAnnotationsBatch = (
 const postApiV1ReaderAnnotationsBatch = (
     readerBatchCreateAnnotationsRequest: ReaderBatchCreateAnnotationsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/batch`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: readerBatchCreateAnnotationsRequest
@@ -1458,7 +1458,7 @@ const postApiV1ReaderAnnotationsBatch = (
 const putApiV1ReaderAnnotationsBatch = (
     readerBatchUpdateAnnotationsRequest: ReaderBatchUpdateAnnotationsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/batch`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: readerBatchUpdateAnnotationsRequest
@@ -1472,7 +1472,7 @@ const putApiV1ReaderAnnotationsBatch = (
 const getApiV1ReaderAnnotationsBook = (
     params: GetApiV1ReaderAnnotationsBookParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/book`, method: 'GET',
         params
     },
@@ -1485,7 +1485,7 @@ const getApiV1ReaderAnnotationsBook = (
 const getApiV1ReaderAnnotationsBookmarks = (
     params: GetApiV1ReaderAnnotationsBookmarksParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/bookmarks`, method: 'GET',
         params
     },
@@ -1498,7 +1498,7 @@ const getApiV1ReaderAnnotationsBookmarks = (
 const getApiV1ReaderAnnotationsBookmarksLatest = (
     params: GetApiV1ReaderAnnotationsBookmarksLatestParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/bookmarks/latest`, method: 'GET',
         params
     },
@@ -1511,7 +1511,7 @@ const getApiV1ReaderAnnotationsBookmarksLatest = (
 const getApiV1ReaderAnnotationsChapter = (
     params: GetApiV1ReaderAnnotationsChapterParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/chapter`, method: 'GET',
         params
     },
@@ -1524,7 +1524,7 @@ const getApiV1ReaderAnnotationsChapter = (
 const getApiV1ReaderAnnotationsExport = (
     params: GetApiV1ReaderAnnotationsExportParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/export`, method: 'GET',
         params
     },
@@ -1537,7 +1537,7 @@ const getApiV1ReaderAnnotationsExport = (
 const getApiV1ReaderAnnotationsHighlights = (
     params: GetApiV1ReaderAnnotationsHighlightsParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/highlights`, method: 'GET',
         params
     },
@@ -1550,7 +1550,7 @@ const getApiV1ReaderAnnotationsHighlights = (
 const getApiV1ReaderAnnotationsNotes = (
     params: GetApiV1ReaderAnnotationsNotesParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/notes`, method: 'GET',
         params
     },
@@ -1563,7 +1563,7 @@ const getApiV1ReaderAnnotationsNotes = (
 const getApiV1ReaderAnnotationsNotesSearch = (
     params: GetApiV1ReaderAnnotationsNotesSearchParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/notes/search`, method: 'GET',
         params
     },
@@ -1576,7 +1576,7 @@ const getApiV1ReaderAnnotationsNotesSearch = (
 const getApiV1ReaderAnnotationsPublic = (
     params: GetApiV1ReaderAnnotationsPublicParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/public`, method: 'GET',
         params
     },
@@ -1589,7 +1589,7 @@ const getApiV1ReaderAnnotationsPublic = (
 const getApiV1ReaderAnnotationsRecent = (
     params?: GetApiV1ReaderAnnotationsRecentParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/recent`, method: 'GET',
         params
     },
@@ -1602,7 +1602,7 @@ const getApiV1ReaderAnnotationsRecent = (
 const getApiV1ReaderAnnotationsStats = (
     params: GetApiV1ReaderAnnotationsStatsParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/stats`, method: 'GET',
         params
     },
@@ -1615,7 +1615,7 @@ const getApiV1ReaderAnnotationsStats = (
 const postApiV1ReaderAnnotationsSync = (
     readerSyncAnnotationsRequest: ReaderSyncAnnotationsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/annotations/sync`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: readerSyncAnnotationsRequest
@@ -1630,7 +1630,7 @@ const postApiV1ReaderAnnotationsSync = (
 const postApiV1ReaderBehavior = (
     statsReaderBehavior: StatsReaderBehavior,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/behavior`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: statsReaderBehavior
@@ -1644,7 +1644,7 @@ const postApiV1ReaderBehavior = (
 const getApiV1ReaderChapters = (
     params: GetApiV1ReaderChaptersParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters`, method: 'GET',
         params
     },
@@ -1657,7 +1657,7 @@ const getApiV1ReaderChapters = (
 const getApiV1ReaderChaptersId = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters/${id}`, method: 'GET'
     },
       );
@@ -1669,7 +1669,7 @@ const getApiV1ReaderChaptersId = (
 const getApiV1ReaderChaptersIdContent = (
     id: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters/${id}/content`, method: 'GET'
     },
       );
@@ -1681,7 +1681,7 @@ const getApiV1ReaderChaptersIdContent = (
 const getApiV1ReaderChaptersFirst = (
     params: GetApiV1ReaderChaptersFirstParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters/first`, method: 'GET',
         params
     },
@@ -1694,7 +1694,7 @@ const getApiV1ReaderChaptersFirst = (
 const getApiV1ReaderChaptersLast = (
     params: GetApiV1ReaderChaptersLastParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters/last`, method: 'GET',
         params
     },
@@ -1707,7 +1707,7 @@ const getApiV1ReaderChaptersLast = (
 const getApiV1ReaderChaptersNavigation = (
     params: GetApiV1ReaderChaptersNavigationParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/chapters/navigation`, method: 'GET',
         params
     },
@@ -1720,7 +1720,7 @@ const getApiV1ReaderChaptersNavigation = (
 const postApiV1ReaderProgress = (
     readerSaveProgressRequest: ReaderSaveProgressRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: readerSaveProgressRequest
@@ -1734,7 +1734,7 @@ const postApiV1ReaderProgress = (
 const getApiV1ReaderProgressBookId = (
     bookId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/${bookId}`, method: 'GET'
     },
       );
@@ -1746,7 +1746,7 @@ const getApiV1ReaderProgressBookId = (
 const getApiV1ReaderProgressFinished = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/finished`, method: 'GET'
     },
       );
@@ -1758,7 +1758,7 @@ const getApiV1ReaderProgressFinished = (
 const getApiV1ReaderProgressHistory = (
     params?: GetApiV1ReaderProgressHistoryParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/history`, method: 'GET',
         params
     },
@@ -1771,7 +1771,7 @@ const getApiV1ReaderProgressHistory = (
 const putApiV1ReaderProgressReadingTime = (
     readerUpdateReadingTimeRequest: ReaderUpdateReadingTimeRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/reading-time`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: readerUpdateReadingTimeRequest
@@ -1785,7 +1785,7 @@ const putApiV1ReaderProgressReadingTime = (
 const getApiV1ReaderProgressRecent = (
     params?: GetApiV1ReaderProgressRecentParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/recent`, method: 'GET',
         params
     },
@@ -1798,7 +1798,7 @@ const getApiV1ReaderProgressRecent = (
 const getApiV1ReaderProgressStats = (
     params?: GetApiV1ReaderProgressStatsParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/stats`, method: 'GET',
         params
     },
@@ -1811,7 +1811,7 @@ const getApiV1ReaderProgressStats = (
 const getApiV1ReaderProgressUnfinished = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/progress/unfinished`, method: 'GET'
     },
       );
@@ -1823,7 +1823,7 @@ const getApiV1ReaderProgressUnfinished = (
 const getApiV1ReaderSettings = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/settings`, method: 'GET'
     },
       );
@@ -1835,7 +1835,7 @@ const getApiV1ReaderSettings = (
 const postApiV1ReaderSettings = (
     readerReadingSettings: ReaderReadingSettings,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/settings`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: readerReadingSettings
@@ -1849,7 +1849,7 @@ const postApiV1ReaderSettings = (
 const putApiV1ReaderSettings = (
     readerUpdateSettingsRequest: ReaderUpdateSettingsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/reader/settings`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: readerUpdateSettingsRequest
@@ -1864,7 +1864,7 @@ const putApiV1ReaderSettings = (
 const getApiV1ReadingBooksBookIdAverageRating = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/average-rating`, method: 'GET'
     },
       );
@@ -1877,7 +1877,7 @@ const getApiV1ReadingBooksBookIdAverageRating = (
 const postApiV1ReadingBooksBookIdFavorite = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/favorite`, method: 'POST'
     },
       );
@@ -1890,7 +1890,7 @@ const postApiV1ReadingBooksBookIdFavorite = (
 const getApiV1ReadingBooksBookIdRatingDistribution = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/rating-distribution`, method: 'GET'
     },
       );
@@ -1904,7 +1904,7 @@ const getApiV1ReadingBooksBookIdRatings = (
     bookId: string,
     params?: GetApiV1ReadingBooksBookIdRatingsParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/ratings`, method: 'GET',
         params
     },
@@ -1918,7 +1918,7 @@ const getApiV1ReadingBooksBookIdRatings = (
 const getApiV1ReadingBooksBookIdStatistics = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/statistics`, method: 'GET'
     },
       );
@@ -1931,7 +1931,7 @@ const getApiV1ReadingBooksBookIdStatistics = (
 const postApiV1ReadingBooksBookIdView = (
     bookId: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/books/${bookId}/view`, method: 'POST'
     },
       );
@@ -1944,7 +1944,7 @@ const postApiV1ReadingBooksBookIdView = (
 const postApiV1ReadingRatings = (
     bookstoreBookRating: BookstoreBookRating,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreBookRating
@@ -1959,7 +1959,7 @@ const postApiV1ReadingRatings = (
 const deleteApiV1ReadingRatingsId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/${id}`, method: 'DELETE'
     },
       );
@@ -1972,7 +1972,7 @@ const deleteApiV1ReadingRatingsId = (
 const getApiV1ReadingRatingsId = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/${id}`, method: 'GET'
     },
       );
@@ -1986,7 +1986,7 @@ const putApiV1ReadingRatingsId = (
     id: string,
     bookstoreBookRating: BookstoreBookRating,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/${id}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: bookstoreBookRating
@@ -2001,7 +2001,7 @@ const putApiV1ReadingRatingsId = (
 const postApiV1ReadingRatingsIdLike = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/${id}/like`, method: 'POST'
     },
       );
@@ -2014,7 +2014,7 @@ const postApiV1ReadingRatingsIdLike = (
 const postApiV1ReadingRatingsIdUnlike = (
     id: string,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/${id}/unlike`, method: 'POST'
     },
       );
@@ -2027,7 +2027,7 @@ const postApiV1ReadingRatingsIdUnlike = (
 const getApiV1ReadingRatingsSearch = (
     params: GetApiV1ReadingRatingsSearchParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/ratings/search`, method: 'GET',
         params
     },
@@ -2041,7 +2041,7 @@ const getApiV1ReadingRatingsSearch = (
 const getApiV1ReadingStatisticsAggregated = (
     
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/aggregated`, method: 'GET'
     },
       );
@@ -2054,7 +2054,7 @@ const getApiV1ReadingStatisticsAggregated = (
 const getApiV1ReadingStatisticsDailyReport = (
     params: GetApiV1ReadingStatisticsDailyReportParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/daily-report`, method: 'GET',
         params
     },
@@ -2068,7 +2068,7 @@ const getApiV1ReadingStatisticsDailyReport = (
 const getApiV1ReadingStatisticsHottest = (
     params?: GetApiV1ReadingStatisticsHottestParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/hottest`, method: 'GET',
         params
     },
@@ -2082,7 +2082,7 @@ const getApiV1ReadingStatisticsHottest = (
 const getApiV1ReadingStatisticsMonthlyReport = (
     params: GetApiV1ReadingStatisticsMonthlyReportParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/monthly-report`, method: 'GET',
         params
     },
@@ -2096,7 +2096,7 @@ const getApiV1ReadingStatisticsMonthlyReport = (
 const getApiV1ReadingStatisticsSearch = (
     params: GetApiV1ReadingStatisticsSearchParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/search`, method: 'GET',
         params
     },
@@ -2110,7 +2110,7 @@ const getApiV1ReadingStatisticsSearch = (
 const getApiV1ReadingStatisticsTimeRange = (
     params: GetApiV1ReadingStatisticsTimeRangeParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/time-range`, method: 'GET',
         params
     },
@@ -2124,7 +2124,7 @@ const getApiV1ReadingStatisticsTimeRange = (
 const getApiV1ReadingStatisticsTopFavorited = (
     params?: GetApiV1ReadingStatisticsTopFavoritedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/top-favorited`, method: 'GET',
         params
     },
@@ -2138,7 +2138,7 @@ const getApiV1ReadingStatisticsTopFavorited = (
 const getApiV1ReadingStatisticsTopRated = (
     params?: GetApiV1ReadingStatisticsTopRatedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/top-rated`, method: 'GET',
         params
     },
@@ -2152,7 +2152,7 @@ const getApiV1ReadingStatisticsTopRated = (
 const getApiV1ReadingStatisticsTopViewed = (
     params?: GetApiV1ReadingStatisticsTopViewedParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/top-viewed`, method: 'GET',
         params
     },
@@ -2166,7 +2166,7 @@ const getApiV1ReadingStatisticsTopViewed = (
 const getApiV1ReadingStatisticsTrending = (
     params?: GetApiV1ReadingStatisticsTrendingParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/trending`, method: 'GET',
         params
     },
@@ -2180,7 +2180,7 @@ const getApiV1ReadingStatisticsTrending = (
 const getApiV1ReadingStatisticsWeeklyReport = (
     params: GetApiV1ReadingStatisticsWeeklyReportParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/statistics/weekly-report`, method: 'GET',
         params
     },
@@ -2195,7 +2195,7 @@ const getApiV1ReadingUsersUserIdRatings = (
     userId: string,
     params?: GetApiV1ReadingUsersUserIdRatingsParams,
  ) => {
-      return default<ReadingAPIResponse>(
+      return orvalMutator<ReadingAPIResponse>(
       {url: `/api/v1/reading/users/${userId}/ratings`, method: 'GET',
         params
     },
@@ -2208,7 +2208,7 @@ const getApiV1ReadingUsersUserIdRatings = (
 const postApiV1RecommendationBehavior = (
     postApiV1RecommendationBehaviorBody: PostApiV1RecommendationBehaviorBody,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/behavior`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: postApiV1RecommendationBehaviorBody
@@ -2222,7 +2222,7 @@ const postApiV1RecommendationBehavior = (
 const getApiV1RecommendationCategory = (
     params: GetApiV1RecommendationCategoryParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/category`, method: 'GET',
         params
     },
@@ -2235,7 +2235,7 @@ const getApiV1RecommendationCategory = (
 const getApiV1RecommendationHomepage = (
     params?: GetApiV1RecommendationHomepageParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/homepage`, method: 'GET',
         params
     },
@@ -2248,7 +2248,7 @@ const getApiV1RecommendationHomepage = (
 const getApiV1RecommendationHot = (
     params?: GetApiV1RecommendationHotParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/hot`, method: 'GET',
         params
     },
@@ -2261,7 +2261,7 @@ const getApiV1RecommendationHot = (
 const getApiV1RecommendationPersonalized = (
     params?: GetApiV1RecommendationPersonalizedParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/personalized`, method: 'GET',
         params
     },
@@ -2274,7 +2274,7 @@ const getApiV1RecommendationPersonalized = (
 const getApiV1RecommendationSimilar = (
     params: GetApiV1RecommendationSimilarParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/recommendation/similar`, method: 'GET',
         params
     },
@@ -2288,7 +2288,7 @@ const getApiV1RecommendationSimilar = (
 const postApiV1Register = (
     systemRegisterRequest: SystemRegisterRequest,
  ) => {
-      return default<PostApiV1Register200>(
+      return orvalMutator<PostApiV1Register200>(
       {url: `/api/v1/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: systemRegisterRequest
@@ -2303,7 +2303,7 @@ const postApiV1Register = (
 const getApiV1SharedAdminOperationLogs = (
     params?: GetApiV1SharedAdminOperationLogsParams,
  ) => {
-      return default<SharedPaginatedResponse>(
+      return orvalMutator<SharedPaginatedResponse>(
       {url: `/api/v1/shared/admin/operation-logs`, method: 'GET',
         params
     },
@@ -2317,7 +2317,7 @@ const getApiV1SharedAdminOperationLogs = (
 const postApiV1SharedAdminReviews = (
     sharedReviewContentRequest: SharedReviewContentRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/admin/reviews`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedReviewContentRequest
@@ -2332,7 +2332,7 @@ const postApiV1SharedAdminReviews = (
 const getApiV1SharedAdminReviewsPending = (
     params?: GetApiV1SharedAdminReviewsPendingParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/admin/reviews/pending`, method: 'GET',
         params
     },
@@ -2346,7 +2346,7 @@ const getApiV1SharedAdminReviewsPending = (
 const getApiV1SharedAdminUsersUserIdStatistics = (
     userId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/admin/users/${userId}/statistics`, method: 'GET'
     },
       );
@@ -2359,7 +2359,7 @@ const getApiV1SharedAdminUsersUserIdStatistics = (
 const postApiV1SharedAdminWithdrawReview = (
     sharedReviewWithdrawRequest: SharedReviewWithdrawRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/admin/withdraw/review`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedReviewWithdrawRequest
@@ -2374,7 +2374,7 @@ const postApiV1SharedAdminWithdrawReview = (
 const postApiV1SharedAuthLogin = (
     authLoginRequest: AuthLoginRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: authLoginRequest
@@ -2389,7 +2389,7 @@ const postApiV1SharedAuthLogin = (
 const postApiV1SharedAuthLogout = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/logout`, method: 'POST'
     },
       );
@@ -2402,7 +2402,7 @@ const postApiV1SharedAuthLogout = (
 const getApiV1SharedAuthPermissions = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/permissions`, method: 'GET'
     },
       );
@@ -2415,7 +2415,7 @@ const getApiV1SharedAuthPermissions = (
 const postApiV1SharedAuthRefresh = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/refresh`, method: 'POST'
     },
       );
@@ -2428,7 +2428,7 @@ const postApiV1SharedAuthRefresh = (
 const postApiV1SharedAuthRegister = (
     authRegisterRequest: AuthRegisterRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: authRegisterRequest
@@ -2443,7 +2443,7 @@ const postApiV1SharedAuthRegister = (
 const getApiV1SharedAuthRoles = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/auth/roles`, method: 'GET'
     },
       );
@@ -2456,7 +2456,7 @@ const getApiV1SharedAuthRoles = (
 const getApiV1SharedStorageDownloadFileId = (
     fileId: string,
  ) => {
-      return default<Blob>(
+      return orvalMutator<Blob>(
       {url: `/api/v1/shared/storage/download/${fileId}`, method: 'GET',
         responseType: 'blob'
     },
@@ -2470,7 +2470,7 @@ const getApiV1SharedStorageDownloadFileId = (
 const getApiV1SharedStorageFiles = (
     params?: GetApiV1SharedStorageFilesParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/storage/files`, method: 'GET',
         params
     },
@@ -2484,7 +2484,7 @@ const getApiV1SharedStorageFiles = (
 const deleteApiV1SharedStorageFilesFileId = (
     fileId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/storage/files/${fileId}`, method: 'DELETE'
     },
       );
@@ -2497,7 +2497,7 @@ const deleteApiV1SharedStorageFilesFileId = (
 const getApiV1SharedStorageFilesFileId = (
     fileId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/storage/files/${fileId}`, method: 'GET'
     },
       );
@@ -2511,7 +2511,7 @@ const getApiV1SharedStorageFilesFileIdUrl = (
     fileId: string,
     params?: GetApiV1SharedStorageFilesFileIdUrlParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/storage/files/${fileId}/url`, method: 'GET',
         params
     },
@@ -2530,7 +2530,7 @@ if(postApiV1SharedStorageUploadBody.path !== undefined) {
  formData.append(`path`, postApiV1SharedStorageUploadBody.path);
  }
 
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/storage/upload`, method: 'POST',
       headers: {'Content-Type': 'multipart/form-data', },
        data: formData
@@ -2545,7 +2545,7 @@ if(postApiV1SharedStorageUploadBody.path !== undefined) {
 const getApiV1SharedWallet = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet`, method: 'GET'
     },
       );
@@ -2558,7 +2558,7 @@ const getApiV1SharedWallet = (
 const getApiV1SharedWalletBalance = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/balance`, method: 'GET'
     },
       );
@@ -2571,7 +2571,7 @@ const getApiV1SharedWalletBalance = (
 const postApiV1SharedWalletConsume = (
     sharedConsumeRequest: SharedConsumeRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/consume`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedConsumeRequest
@@ -2586,7 +2586,7 @@ const postApiV1SharedWalletConsume = (
 const postApiV1SharedWalletRecharge = (
     sharedRechargeRequest: SharedRechargeRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/recharge`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedRechargeRequest
@@ -2601,7 +2601,7 @@ const postApiV1SharedWalletRecharge = (
 const getApiV1SharedWalletTransactions = (
     params?: GetApiV1SharedWalletTransactionsParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/transactions`, method: 'GET',
         params
     },
@@ -2615,7 +2615,7 @@ const getApiV1SharedWalletTransactions = (
 const postApiV1SharedWalletTransfer = (
     sharedTransferRequest: SharedTransferRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/transfer`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedTransferRequest
@@ -2630,7 +2630,7 @@ const postApiV1SharedWalletTransfer = (
 const postApiV1SharedWalletWithdraw = (
     sharedWithdrawRequest: SharedWithdrawRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/withdraw`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sharedWithdrawRequest
@@ -2645,7 +2645,7 @@ const postApiV1SharedWalletWithdraw = (
 const getApiV1SharedWalletWithdrawals = (
     params?: GetApiV1SharedWalletWithdrawalsParams,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/shared/wallet/withdrawals`, method: 'GET',
         params
     },
@@ -2659,7 +2659,7 @@ const getApiV1SharedWalletWithdrawals = (
 const getApiV1UserShortcuts = (
     
  ) => {
-      return default<GetApiV1UserShortcuts200>(
+      return orvalMutator<GetApiV1UserShortcuts200>(
       {url: `/api/v1/user/shortcuts`, method: 'GET'
     },
       );
@@ -2672,7 +2672,7 @@ const getApiV1UserShortcuts = (
 const putApiV1UserShortcuts = (
     writerUpdateShortcutsRequest: WriterUpdateShortcutsRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/user/shortcuts`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: writerUpdateShortcutsRequest
@@ -2687,7 +2687,7 @@ const putApiV1UserShortcuts = (
 const getApiV1UserShortcutsHelp = (
     
  ) => {
-      return default<GetApiV1UserShortcutsHelp200>(
+      return orvalMutator<GetApiV1UserShortcutsHelp200>(
       {url: `/api/v1/user/shortcuts/help`, method: 'GET'
     },
       );
@@ -2700,7 +2700,7 @@ const getApiV1UserShortcutsHelp = (
 const postApiV1UserShortcutsReset = (
     
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/user/shortcuts/reset`, method: 'POST'
     },
       );
@@ -2713,7 +2713,7 @@ const postApiV1UserShortcutsReset = (
 const getApiV1UsersUserIdViolationSummary = (
     userId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/users/${userId}/violation-summary`, method: 'GET'
     },
       );
@@ -2726,7 +2726,7 @@ const getApiV1UsersUserIdViolationSummary = (
 const getApiV1UsersUserIdViolations = (
     userId: string,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/users/${userId}/violations`, method: 'GET'
     },
       );
@@ -2739,7 +2739,7 @@ const getApiV1UsersUserIdViolations = (
 const putApiV1UsersPassword = (
     systemChangePasswordRequest: SystemChangePasswordRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/users/password`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: systemChangePasswordRequest
@@ -2754,7 +2754,7 @@ const putApiV1UsersPassword = (
 const getApiV1UsersProfile = (
     
  ) => {
-      return default<GetApiV1UsersProfile200>(
+      return orvalMutator<GetApiV1UsersProfile200>(
       {url: `/api/v1/users/profile`, method: 'GET'
     },
       );
@@ -2767,7 +2767,7 @@ const getApiV1UsersProfile = (
 const putApiV1UsersProfile = (
     systemUpdateProfileRequest: SystemUpdateProfileRequest,
  ) => {
-      return default<SharedAPIResponse>(
+      return orvalMutator<SharedAPIResponse>(
       {url: `/api/v1/users/profile`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: systemUpdateProfileRequest
@@ -2783,7 +2783,7 @@ const getApiV1WriterBooksBookIdDailyStats = (
     bookId: string,
     params?: GetApiV1WriterBooksBookIdDailyStatsParams,
  ) => {
-      return default<GetApiV1WriterBooksBookIdDailyStats200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdDailyStats200>(
       {url: `/api/v1/writer/books/${bookId}/daily-stats`, method: 'GET',
         params
     },
@@ -2797,7 +2797,7 @@ const getApiV1WriterBooksBookIdDailyStats = (
 const getApiV1WriterBooksBookIdDropOffPoints = (
     bookId: string,
  ) => {
-      return default<GetApiV1WriterBooksBookIdDropOffPoints200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdDropOffPoints200>(
       {url: `/api/v1/writer/books/${bookId}/drop-off-points`, method: 'GET'
     },
       );
@@ -2810,7 +2810,7 @@ const getApiV1WriterBooksBookIdDropOffPoints = (
 const getApiV1WriterBooksBookIdHeatmap = (
     bookId: string,
  ) => {
-      return default<GetApiV1WriterBooksBookIdHeatmap200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdHeatmap200>(
       {url: `/api/v1/writer/books/${bookId}/heatmap`, method: 'GET'
     },
       );
@@ -2824,7 +2824,7 @@ const getApiV1WriterBooksBookIdRetention = (
     bookId: string,
     params?: GetApiV1WriterBooksBookIdRetentionParams,
  ) => {
-      return default<GetApiV1WriterBooksBookIdRetention200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdRetention200>(
       {url: `/api/v1/writer/books/${bookId}/retention`, method: 'GET',
         params
     },
@@ -2839,7 +2839,7 @@ const getApiV1WriterBooksBookIdRevenue = (
     bookId: string,
     params?: GetApiV1WriterBooksBookIdRevenueParams,
  ) => {
-      return default<GetApiV1WriterBooksBookIdRevenue200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdRevenue200>(
       {url: `/api/v1/writer/books/${bookId}/revenue`, method: 'GET',
         params
     },
@@ -2853,7 +2853,7 @@ const getApiV1WriterBooksBookIdRevenue = (
 const getApiV1WriterBooksBookIdStats = (
     bookId: string,
  ) => {
-      return default<GetApiV1WriterBooksBookIdStats200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdStats200>(
       {url: `/api/v1/writer/books/${bookId}/stats`, method: 'GET'
     },
       );
@@ -2866,7 +2866,7 @@ const getApiV1WriterBooksBookIdStats = (
 const getApiV1WriterBooksBookIdTopChapters = (
     bookId: string,
  ) => {
-      return default<GetApiV1WriterBooksBookIdTopChapters200>(
+      return orvalMutator<GetApiV1WriterBooksBookIdTopChapters200>(
       {url: `/api/v1/writer/books/${bookId}/top-chapters`, method: 'GET'
     },
       );
@@ -2879,7 +2879,7 @@ const getApiV1WriterBooksBookIdTopChapters = (
 const getApiV1WriterChaptersChapterIdStats = (
     chapterId: string,
  ) => {
-      return default<GetApiV1WriterChaptersChapterIdStats200>(
+      return orvalMutator<GetApiV1WriterChaptersChapterIdStats200>(
       {url: `/api/v1/writer/chapters/${chapterId}/stats`, method: 'GET'
     },
       );
