@@ -128,8 +128,8 @@ export const ContentCards: Story = {
       <div class="grid grid-cols-3 gap-4 p-8 max-w-4xl">
         <Card variant="elevated" :hoverable="true">
           <template #header>
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
@@ -175,7 +175,7 @@ export const UserCard: Story = {
         <Card variant="bordered" class="max-w-sm">
           <template #header>
             <div class="flex items-center gap-4">
-              <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+              <div class="w-16 h-16 bg-gradient-to-br from-secondary-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                 JD
               </div>
               <div>
@@ -207,7 +207,7 @@ export const ArticleCard: Story = {
       <div class="p-8">
         <Card variant="elevated" :hoverable="true" class="max-w-md">
           <template #header>
-            <div class="aspect-video bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg mb-4"></div>
+            <div class="aspect-video bg-gradient-to-br from-secondary-100 to-secondary-50 rounded-lg mb-4"></div>
             <span class="inline-block px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded">技术</span>
           </template>
           <h3 class="text-xl font-semibold mb-2">Vue 3 Composition API 最佳实践</h3>
