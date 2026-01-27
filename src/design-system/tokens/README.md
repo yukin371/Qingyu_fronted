@@ -25,12 +25,12 @@
 
 #### TypeScript 组件
 ```typescript
-import { colors, spacing, typography } from '@/design-system/tokens'
+import { colors, spacing, fontSize } from '@/design-system/tokens'
 
 const buttonStyle = {
-  backgroundColor: colors.primary[500],
-  padding: `${spacing[3]} ${spacing[6]}`,
-  fontSize: typography.fontSize.base,
+  backgroundColor: colors.primary[500],      // '#06b6d4'
+  padding: `${spacing.padding.sm} ${spacing.padding.xl}`,  // '0.5rem 2rem' = 8px 32px
+  fontSize: fontSize.base[0],                // '1rem'
 }
 ```
 
