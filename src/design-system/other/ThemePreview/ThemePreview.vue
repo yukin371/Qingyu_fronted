@@ -18,14 +18,21 @@ const props = withDefaults(defineProps<ThemePreviewProps>(), {
 })
 
 // 当前选中的主题
-const selectedTheme = ref<ThemeName>(currentTheme)
+const selectedTheme = ref<ThemeName>(currentThemeName)
+
+// 主题显示名称映射
+const themeDisplayNames: Record<ThemeName, string> = {
+  qingyu: '青羽',
+  berry: '紫粉',
+  forest: '森林',
+}
 
 // 主题列表
 const themeList = Object.entries(themes).map(([name, theme]) => ({
   name: name as ThemeName,
-  displayName: theme.displayName,
-  primary: theme.colors.primary[500],
-  secondary: theme.colors.secondary[500],
+  displayName: themeDisplayNames[name as ThemeName],
+  primary: theme.primary[500],
+  secondary: theme.secondary[500],
   gradientFrom: theme.gradient.from,
   gradientTo: theme.gradient.to,
 }))
