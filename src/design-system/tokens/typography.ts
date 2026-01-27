@@ -177,11 +177,116 @@ export const textTransform = {
   capitalize: 'capitalize',
 } as const
 
+// Apple 风格字体栈
+export const appleFontStack = {
+  // 中文优先字体栈
+  chinese: [
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'PingFang SC',
+    'Microsoft YaHei',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
+  ].join(', '),
+
+  // 英文优先字体栈
+  english: [
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'SF Pro Display',
+    'SF Pro Text',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
+  ].join(', '),
+
+  // 等宽字体栈（代码）
+  mono: [
+    'SF Mono',
+    'Monaco',
+    'Cascadia Code',
+    'Roboto Mono',
+    'Courier New',
+    'monospace',
+  ].join(', '),
+} as const
+
+// Apple 风格字体权重
+export const appleFontWeight = {
+  // 系统标准权重
+  ultralight: 100,  // iOS: Ultralight
+  thin: 200,        // iOS: Thin
+  light: 300,       // iOS: Light
+  regular: 400,     // iOS: Regular
+  medium: 500,      // iOS: Medium
+  semibold: 600,    // iOS: Semibold
+  bold: 700,        // iOS: Bold
+  heavy: 800,       // iOS: Heavy
+  black: 900,       // iOS: Black
+} as const
+
+// Apple 风格行高（相对于字号）
+export const appleLineHeight = {
+  tight: 1.2,      // 大标题紧凑行高
+  standard: 1.4,   // 标准行高
+  relaxed: 1.6,    // 宽松行高
+  loose: 1.8,      // 正文宽松行高
+} as const
+
+// Apple 风格语义化字体预设
+export const appleTypography = {
+  // macOS 大标题风格
+  macTitle: {
+    fontFamily: appleFontStack.english,
+    fontSize: fontSize['7xl'],  // 4.5rem / 72px
+    fontWeight: appleFontWeight.bold,  // 700
+    lineHeight: appleLineHeight.tight,  // 1.2
+    letterSpacing: letterSpacing.tighter,  // -0.025em
+  },
+  // iOS 导航栏大标题风格
+  iosNavigation: {
+    fontFamily: appleFontStack.chinese,
+    fontSize: fontSize['3xl'],  // 2.25rem / 36px
+    fontWeight: appleFontWeight.bold,  // 700
+    lineHeight: appleLineHeight.standard,  // 1.4
+    letterSpacing: letterSpacing.normal,  // 0
+  },
+  // iOS 次级标题风格
+  iosSecondary: {
+    fontFamily: appleFontStack.chinese,
+    fontSize: fontSize['2xl'],  // 1.5rem / 24px
+    fontWeight: appleFontWeight.semibold,  // 600
+    lineHeight: appleLineHeight.standard,  // 1.4
+    letterSpacing: letterSpacing.normal,  // 0
+  },
+  // 正文风格
+  body: {
+    fontFamily: appleFontStack.chinese,
+    fontSize: fontSize.base,  // 1rem / 16px
+    fontWeight: appleFontWeight.regular,  // 400
+    lineHeight: appleLineHeight.relaxed,  // 1.6
+    letterSpacing: letterSpacing.normal,  // 0
+  },
+  // 辅助文字风格
+  caption: {
+    fontFamily: appleFontStack.chinese,
+    fontSize: fontSize.sm,  // 0.875rem / 14px
+    fontWeight: appleFontWeight.regular,  // 400
+    lineHeight: appleLineHeight.standard,  // 1.4
+    letterSpacing: letterSpacing.normal,  // 0
+  },
+} as const
+
 // 类型定义
 export type FontSize = keyof typeof fontSize
 export type FontWeight = keyof typeof fontWeight
 export type LineHeight = keyof typeof lineHeight
 export type LetterSpacing = keyof typeof letterSpacing
+export type AppleFontStack = typeof appleFontStack
+export type AppleFontWeight = typeof appleFontWeight
+export type AppleLineHeight = typeof appleLineHeight
+export type AppleTypography = typeof appleTypography
 
 // Tailwind 配置映射
 export const tailwindTypography = {
