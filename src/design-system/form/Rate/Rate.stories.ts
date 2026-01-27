@@ -220,7 +220,7 @@ export const DifferentColors: Story = {
           <span class="text-sm text-slate-700">Emerald</span>
         </div>
         <div class="flex items-center gap-3">
-          <Rate v-model="blue" color="blue-400" />
+          <Rate v-model="blue" color="secondary-400" />
           <span class="text-sm text-slate-700">Blue</span>
         </div>
         <div class="flex items-center gap-3">

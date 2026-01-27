@@ -67,7 +67,7 @@ export const Default: Story = {
     template: `
       <div class="w-full">
         <Col v-bind="args">
-          <div class="bg-blue-500 text-white p-4 rounded-md text-center">
+          <div class="bg-secondary-500 text-white p-4 rounded-md text-center">
             占 12 列（整行）
           </div>
         </Col>
@@ -87,7 +87,7 @@ export const AllSpans: Story = {
         <!-- span 1-12 -->
         <div class="flex gap-2">
           <Col :span="1">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">1</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">1</div>
           </Col>
           <Col :span="11">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">11</div>
@@ -96,7 +96,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="2">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">2</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">2</div>
           </Col>
           <Col :span="10">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">10</div>
@@ -105,7 +105,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="3">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">3</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">3</div>
           </Col>
           <Col :span="9">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">9</div>
@@ -114,7 +114,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="4">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">4</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">4</div>
           </Col>
           <Col :span="8">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">8</div>
@@ -123,7 +123,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="5">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">5</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">5</div>
           </Col>
           <Col :span="7">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">7</div>
@@ -132,16 +132,16 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="6">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">6</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">6</div>
           </Col>
           <Col :span="6">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">6</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">6</div>
           </Col>
         </div>
         
         <div class="flex gap-2">
           <Col :span="7">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">7</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">7</div>
           </Col>
           <Col :span="5">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">5</div>
@@ -150,7 +150,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="8">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">8</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">8</div>
           </Col>
           <Col :span="4">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">4</div>
@@ -159,7 +159,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="9">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">9</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">9</div>
           </Col>
           <Col :span="3">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">3</div>
@@ -168,7 +168,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="10">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">10</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">10</div>
           </Col>
           <Col :span="2">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">2</div>
@@ -177,7 +177,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="11">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">11</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">11</div>
           </Col>
           <Col :span="1">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-sm text-slate-600 dark:text-slate-300">1</div>
@@ -186,7 +186,7 @@ export const AllSpans: Story = {
         
         <div class="flex gap-2">
           <Col :span="12">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center text-sm">12</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center text-sm">12</div>
           </Col>
         </div>
       </div>
@@ -204,7 +204,7 @@ export const Offsets: Story = {
       <div class="w-full space-y-4">
         <div class="flex gap-2">
           <Col :span="4" :offset="0">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">偏移 0</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">偏移 0</div>
           </Col>
           <Col :span="8">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-slate-600 dark:text-slate-300">剩余 8 列</div>
@@ -213,7 +213,7 @@ export const Offsets: Story = {
         
         <div class="flex gap-2">
           <Col :span="4" :offset="2">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">偏移 2</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">偏移 2</div>
           </Col>
           <Col :span="6">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-slate-600 dark:text-slate-300">剩余 6 列</div>
@@ -222,7 +222,7 @@ export const Offsets: Story = {
         
         <div class="flex gap-2">
           <Col :span="4" :offset="4">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">偏移 4</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">偏移 4</div>
           </Col>
           <Col :span="4">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-slate-600 dark:text-slate-300">剩余 4 列</div>
@@ -231,7 +231,7 @@ export const Offsets: Story = {
         
         <div class="flex gap-2">
           <Col :span="4" :offset="6">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">偏移 6</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">偏移 6</div>
           </Col>
           <Col :span="2">
             <div class="bg-slate-200 dark:bg-slate-700 p-4 rounded-md text-center text-slate-600 dark:text-slate-300">剩余 2 列</div>
@@ -240,7 +240,7 @@ export const Offsets: Story = {
         
         <div class="flex gap-2">
           <Col :span="4" :offset="8">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">偏移 8</div>
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">偏移 8</div>
           </Col>
         </div>
       </div>
@@ -333,8 +333,8 @@ export const Ordering: Story = {
     components: { Col },
     template: `
       <div class="w-full">
-        <div class="mb-4 p-4 bg-blue-50 dark:bg-secondary-900/20 rounded-md">
-          <p class="text-sm text-blue-800 dark:text-blue-300">
+        <div class="mb-4 p-4 bg-secondary-50 dark:bg-secondary-900/20 rounded-md">
+          <p class="text-sm text-secondary-800 dark:text-secondary-300">
             <strong>order 属性：</strong>可以改变列的视觉顺序，不影响 DOM 顺序
           </p>
         </div>
@@ -351,7 +351,7 @@ export const Ordering: Story = {
             </div>
           </Col>
           <Col :span="4" :order="1">
-            <div class="bg-blue-500 text-white p-4 rounded-md text-center">
+            <div class="bg-secondary-500 text-white p-4 rounded-md text-center">
               第三列（order:1）
             </div>
           </Col>
@@ -376,7 +376,7 @@ export const ThreeColumns: Story = {
       <div class="w-full">
         <div class="flex gap-4">
           <Col :span="4">
-            <div class="bg-blue-500 text-white p-6 rounded-md">
+            <div class="bg-secondary-500 text-white p-6 rounded-md">
               <h3 class="text-lg font-semibold mb-2">左侧栏</h3>
               <p class="text-sm opacity-90">占 4/12 宽度</p>
             </div>
@@ -419,7 +419,7 @@ export const HolyGrail: Story = {
         <!-- 主体三列 -->
         <div class="flex gap-2">
           <Col :span="3">
-            <div class="bg-blue-500 text-white p-4 rounded-md min-h-48">
+            <div class="bg-secondary-500 text-white p-4 rounded-md min-h-48">
               <h3 class="font-semibold mb-2">左侧导航</h3>
               <p class="text-sm opacity-90">占 3/12</p>
             </div>
@@ -504,7 +504,7 @@ export const CardGrid: Story = {
           
           <Col :xs="12" :sm="6" :md="4" :lg="3">
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 shadow-sm">
-              <div class="w-full h-24 bg-cyan-100 dark:bg-cyan-900/30 rounded-md mb-3"></div>
+              <div class="w-full h-24 bg-primary-100 dark:bg-primary-900/30 rounded-md mb-3"></div>
               <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-1">卡片 6</h3>
               <p class="text-sm text-slate-600 dark:text-slate-400">描述文字</p>
             </div>
@@ -532,12 +532,12 @@ export const NestedCols: Story = {
               
               <div class="flex gap-2">
                 <Col :span="6">
-                  <div class="bg-blue-400 text-white p-3 rounded-md text-center text-sm">
+                  <div class="bg-secondary-400 text-white p-3 rounded-md text-center text-sm">
                     内层 1（6/12）
                   </div>
                 </Col>
                 <Col :span="6">
-                  <div class="bg-blue-400 text-white p-3 rounded-md text-center text-sm">
+                  <div class="bg-secondary-400 text-white p-3 rounded-md text-center text-sm">
                     内层 2（6/12）
                   </div>
                 </Col>

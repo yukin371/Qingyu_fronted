@@ -438,7 +438,7 @@ export const CustomOffset: Story = {
         </Tooltip>
 
         <Tooltip placement="bottom" :offset="24" content="偏移 24px">
-          <button class="px-4 py-2 bg-blue-700 text-white rounded ml-4">24px</button>
+          <button class="px-4 py-2 bg-secondary-700 text-white rounded ml-4">24px</button>
         </Tooltip>
       </div>
     `,
