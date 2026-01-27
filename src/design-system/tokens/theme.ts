@@ -362,14 +362,34 @@ export let currentThemeName: ThemeName = 'qingyu'
  * @param themeName 主题名称
  */
 export function setTheme(themeName: ThemeName): void {
-  currentTheme = themes[themeName]
-  currentThemeName = themeName
+  const theme = themes[themeName]
+  if (!theme) {
+    console.error(`Theme "${themeName}" not found`)
+    return
+  }
 
-  // 更新 CSS 变量
-  updateCSSVariables(currentTheme)
+  // 添加切换中类（禁用过渡，避免闪烁）
+  document.documentElement.classList.add('theme-switching')
 
-  // 保存到 localStorage
-  saveTheme(themeName)
+  // 使用 requestAnimationFrame 确保类名生效后再更新 CSS 变量
+  requestAnimationFrame(() => {
+    // 更新 CSS 变量
+    updateCSSVariables(theme)
+
+    // 更新当前主题状态
+    currentThemeName = themeName
+    currentTheme = theme
+
+    // 保存到 localStorage
+    saveTheme(themeName)
+
+    // 下一帧移除切换中类（启用过渡）
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('theme-switching')
+    })
+  })
+
+  console.log(`Theme switched to: ${themeName}`)
 }
 
 /**
