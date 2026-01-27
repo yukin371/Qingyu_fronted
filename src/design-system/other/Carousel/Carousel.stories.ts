@@ -69,7 +69,7 @@ export const Default: Story = {
     template: `
       <div class="p-8 max-w-4xl mx-auto">
         <Carousel height="400px">
-          <div class="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
+          <div class="w-full h-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-4xl font-bold">
             Slide 1
           </div>
           <div class="w-full h-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-4xl font-bold">
@@ -98,7 +98,7 @@ export const AutoPlay: Story = {
           <div class="w-full h-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-4xl font-bold">
             自动播放 2
           </div>
-          <div class="w-full h-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-4xl font-bold">
+          <div class="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-4xl font-bold">
             自动播放 3
           </div>
         </Carousel>
@@ -139,8 +139,8 @@ export const CardMode: Story = {
         <h3 class="text-lg font-semibold mb-4">卡片模式轮播</h3>
         <Carousel height="400px">
           <div class="w-full h-full p-8 flex items-center justify-center bg-white">
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-8 shadow-lg max-w-md">
-              <h4 class="text-2xl font-bold text-blue-600 mb-4">功能卡片 1</h4>
+            <div class="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-8 shadow-lg max-w-md">
+              <h4 class="text-2xl font-bold text-secondary-600 mb-4">功能卡片 1</h4>
               <p class="text-slate-600">这是一个卡片样式的轮播项，适合展示产品特性、服务介绍等内容。</p>
             </div>
           </div>
@@ -191,7 +191,7 @@ export const DifferentTriggers: Story = {
     components: { Carousel },
     setup() {
       const slides = [
-        { color: 'from-blue-400 to-blue-600', title: '点击触发' },
+        { color: 'from-secondary-400 to-secondary-600', title: '点击触发' },
         { color: 'from-purple-400 to-purple-600', title: 'Hover 触发' },
         { color: 'from-pink-400 to-pink-600', title: '自动播放' },
       ]
@@ -229,14 +229,14 @@ export const CustomArrow: Story = {
         <h3 class="text-lg font-semibold mb-4">自定义箭头按钮</h3>
         <Carousel height="400px" arrow="always">
           <template #prev>
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all cursor-pointer">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-secondary-500 hover:bg-secondary-600 text-white rounded-full shadow-lg transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </div>
           </template>
           <template #next>
-            <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all cursor-pointer">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-secondary-500 hover:bg-secondary-600 text-white rounded-full shadow-lg transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -337,7 +337,7 @@ export const Thumbs: Story = {
       const products = [
         {
           name: '商品 1',
-          color: 'from-blue-400 to-blue-600',
+          color: 'from-secondary-400 to-secondary-600',
           desc: '这是第一件商品的详细描述'
         },
         {
@@ -432,7 +432,7 @@ export const ResponsiveHeight: Story = {
         <div>
           <h3 class="text-lg font-semibold mb-4">小高度轮播（200px）</h3>
           <Carousel height="200px">
-            <div class="w-full h-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+            <div class="w-full h-full bg-gradient-to-r from-secondary-400 to-secondary-600 flex items-center justify-center text-white font-bold">
               小高度 1
             </div>
             <div class="w-full h-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold">
@@ -467,7 +467,7 @@ export const OutsideIndicators: Story = {
           <div class="w-full h-full bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white text-4xl font-bold">
             外部指示器 1
           </div>
-          <div class="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
+          <div class="w-full h-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-4xl font-bold">
             外部指示器 2
           </div>
           <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold">
