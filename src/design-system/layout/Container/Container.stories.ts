@@ -54,7 +54,7 @@ export const Default: Story = {
     },
     template: `
       <Container v-bind="args">
-        <div class="bg-blue-500 text-white p-6 rounded-md">
+        <div class="bg-secondary-500 text-white p-6 rounded-md">
           <h2 class="text-xl font-bold mb-2">默认容器</h2>
           <p class="text-sm opacity-90">全宽容器，带有默认内边距</p>
         </div>
@@ -74,8 +74,8 @@ export const AllSizes: Story = {
         <div>
           <h3 class="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">XS - 320px</h3>
           <Container size="xs">
-            <div class="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-md border-2 border-blue-300 dark:border-blue-700">
-              <p class="text-sm text-blue-800 dark:text-blue-300 text-center">max-w-xs (320px)</p>
+            <div class="bg-secondary-100 dark:bg-secondary-900/30 p-4 rounded-md border-2 border-secondary-300 dark:border-secondary-700">
+              <p class="text-sm text-secondary-800 dark:text-secondary-300 text-center">max-w-xs (320px)</p>
             </div>
           </Container>
         </div>
@@ -119,8 +119,8 @@ export const AllSizes: Story = {
         <div>
           <h3 class="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">FULL - 无限制</h3>
           <Container size="full">
-            <div class="bg-cyan-100 dark:bg-cyan-900/30 p-4 rounded-md border-2 border-cyan-300 dark:border-cyan-700">
-              <p class="text-sm text-cyan-800 dark:text-cyan-300 text-center">max-w-full (无限制)</p>
+            <div class="bg-primary-100 dark:bg-primary-900/30 p-4 rounded-md border-2 border-primary-300 dark:border-primary-700">
+              <p class="text-sm text-primary-800 dark:text-primary-300 text-center">max-w-full (无限制)</p>
             </div>
           </Container>
         </div>
@@ -144,7 +144,7 @@ export const Fluid: Story = {
         </div>
 
         <Container :fluid="true">
-          <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-6 rounded-md">
+          <div class="bg-gradient-to-r from-secondary-500 to-purple-500 text-white p-6 rounded-md">
             <h2 class="text-xl font-bold mb-2">流体容器</h2>
             <p class="text-sm opacity-90">宽度 100%，适合全宽背景或横幅</p>
           </div>
@@ -169,8 +169,8 @@ export const NoPadding: Story = {
     components: { Container },
     template: `
       <div class="space-y-4">
-        <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-          <p class="text-sm text-blue-800 dark:text-blue-300">
+        <div class="mb-4 p-4 bg-secondary-50 dark:bg-secondary-900/20 rounded-md">
+          <p class="text-sm text-secondary-800 dark:text-secondary-300">
             <strong>提示：</strong>:padding="false" 时容器没有内边距，适合嵌套使用
           </p>
         </div>
@@ -219,7 +219,7 @@ export const NotCentered: Story = {
         <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-md overflow-hidden">
           <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">容器居中（默认）：</p>
           <Container size="sm">
-            <div class="bg-blue-500 text-white p-4 rounded-md">
+            <div class="bg-secondary-500 text-white p-4 rounded-md">
               <p class="text-sm font-semibold text-center">居中容器 (size="sm")</p>
             </div>
           </Container>
@@ -243,7 +243,7 @@ export const WithCol: Story = {
           <div class="space-y-4">
             <div class="flex gap-2">
               <Col :span="12">
-                <div class="bg-blue-500 text-white p-4 rounded-md text-center">
+                <div class="bg-secondary-500 text-white p-4 rounded-md text-center">
                   <h3 class="font-bold">全宽标题</h3>
                 </div>
               </Col>
@@ -281,7 +281,7 @@ export const Nested: Story = {
         <h2 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">嵌套 Container</h2>
         
         <Container size="xl">
-          <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-4">
+          <div class="bg-gradient-to-br from-secondary-500 to-purple-600 text-white p-6 rounded-lg mb-4">
             <h3 class="text-xl font-bold mb-2">外层 Container (size="xl")</h3>
             <p class="text-sm opacity-90">最大宽度 576px</p>
           </div>
@@ -339,15 +339,15 @@ export const PageLayout: Story = {
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">侧边栏</h3>
                 <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span class="w-2 h-2 bg-secondary-500 rounded-full"></span>
                     导航链接 1
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span class="w-2 h-2 bg-secondary-500 rounded-full"></span>
                     导航链接 2
                   </li>
                   <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span class="w-2 h-2 bg-secondary-500 rounded-full"></span>
                     导航链接 3
                   </li>
                 </ul>
@@ -383,7 +383,7 @@ export const SizeComparison: Story = {
           <div class="flex items-center gap-4">
             <div class="w-24 text-sm font-medium text-slate-600 dark:text-slate-400">XS (320px)</div>
             <Container size="xs" class="flex-1">
-              <div class="h-12 bg-blue-500 rounded-md"></div>
+              <div class="h-12 bg-secondary-500 rounded-md"></div>
             </Container>
           </div>
 
@@ -418,7 +418,7 @@ export const SizeComparison: Story = {
           <div class="flex items-center gap-4">
             <div class="w-24 text-sm font-medium text-slate-600 dark:text-slate-400">FULL (100%)</div>
             <Container size="full" class="flex-1">
-              <div class="h-12 bg-cyan-500 rounded-md"></div>
+              <div class="h-12 bg-primary-500 rounded-md"></div>
             </Container>
           </div>
         </div>
@@ -437,8 +437,8 @@ export const ResponsivePadding: Story = {
       <div>
         <h2 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">响应式内边距</h2>
         
-        <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-          <p class="text-sm text-blue-800 dark:text-blue-300">
+        <div class="mb-4 p-4 bg-secondary-50 dark:bg-secondary-900/20 rounded-md">
+          <p class="text-sm text-secondary-800 dark:text-secondary-300">
             <strong>内边距规则：</strong>px-4（移动端）→ sm:px-6（平板）→ lg:px-8（桌面）
           </p>
         </div>
