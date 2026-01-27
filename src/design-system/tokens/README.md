@@ -41,15 +41,23 @@ const buttonStyle = {
 </button>
 ```
 
-#### 使用统一导出对象
+#### 使用语义化颜色和组件间距
 ```typescript
-import { designTokens } from '@/design-system/tokens'
+import { semantic, component, borderRadius } from '@/design-system/tokens'
 
-const { colors, spacing, typography } = designTokens
 const cardStyle = {
-  backgroundColor: colors.semantic.background.glass,
-  padding: spacing.component.card,
-  borderRadius: spacing.component.borderRadius,
+  backgroundColor: semantic.background.DEFAULT,  // 使用中性色背景
+  padding: component.card.md,                    // 24px 卡片内边距
+  borderRadius: borderRadius.lg,                 // 8px 圆角
+  color: semantic.text.primary,                  // 主要文本颜色
+  borderColor: semantic.border.DEFAULT,          // 默认边框颜色
+}
+
+// 玻璃拟态卡片示例
+const glassCardStyle = {
+  backgroundColor: semantic.background.paper,
+  boxShadow: `0 ${semantic.shadow.light}`,
+  padding: component.card.lg,
 }
 ```
 
@@ -118,30 +126,59 @@ module.exports = {
 #### 中性色
 - **neutral**: 灰度色系（50-950）
 
-#### 语义化颜色
-- **semantic**: 语义化别名
-  - `background`: 背景色（glass, solid, hover）
-  - `border`: 边框色（default, subtle, strong）
-  - `text`: 文本色（primary, secondary, disabled）
-  - `shadow`: 阴影色（brand, glass, solid）
+#### 语义化颜色（`semantic`）
+- **background**: 背景色
+  - `DEFAULT`: 默认背景（neutral-50）
+  - `paper`: 纸张背景（白色）
+  - `overlay`: 遮罩层背景（半透明黑色）
+- **border**: 边框色
+  - `DEFAULT`: 默认边框（neutral-200）
+  - `focus`: 聚焦边框（primary-500）
+- **text**: 文本色
+  - `primary`: 主要文本（neutral-900）
+  - `secondary`: 次要文本（neutral-600）
+  - `disabled`: 禁用文本（neutral-400）
+  - `inverse`: 反色文本（白色）
+- **shadow**: 阴影色
+  - `DEFAULT`: 默认阴影（10% 透明度）
+  - `light`: 浅阴影（5% 透明度）
+  - `medium`: 中阴影（15% 透明度）
+  - `dark`: 深阴影（25% 透明度）
 
 ### 间距令牌 (`spacing.ts`)
 
-#### 基础间距
-- **0-96**: 基础间距单位（以 4px 为步进）
-- **xs, sm, md, lg, xl**: 语义化间距预设
+#### 基础间距（`base`）
+- **px**: 1px
+- **0-96**: 以 0.25rem (4px) 为基础单位的完整刻度
+- 包含所有 Tailwind 默认间距值（0, 0.5, 1, 1.5, 2, ... 96）
 
-#### 组件间距
-- **component**: 组件特定间距
-  - `padding`: 内边距（sm, md, lg）
-  - `gap`: 间隙（xs, sm, md, lg）
-  - `borderRadius`: 圆角（md, lg, xl）
+#### 语义化间距预设（`spacing`）
+- **padding**: 内边距预设（none, xs, sm, md, lg, xl, 2xl, 3xl）
+- **margin**: 外边距预设（none, xs, sm, md, lg, xl, 2xl, 3xl）
+- **gap**: 间隙预设（0, xs, sm, md, lg, xl）
 
-#### Apple 风格玻璃拟态间距
-- **glass**: 玻璃拟态专用间距
-  - `padding`: 内边距
-  - `gap`: 元素间隙
-  - `margin`: 外边距
+#### 组件间距（`component`）
+- **button**: 按钮内边距（xs, sm, md, lg, xl）
+- **input**: 输入框内边距（sm, md, lg）
+- **card**: 卡片内边距（sm, md, lg）
+- **form**: 表单项间距（item, section）
+
+#### 圆角（`borderRadius`）
+- **预设值**: none, sm, DEFAULT, md, lg, xl, 2xl, 3xl, full
+- **值范围**: 0 到 9999px
+
+#### Apple 风格间距（`glassmorphism`, `grid`, `animation`）
+- **glassmorphism**: 玻璃拟态专用间距
+  - `card`: 玻璃卡片内边距（sm, md, lg）
+  - `blur`: 模糊区域外边距（sm, md, lg）
+  - `floatShadow`: 浮动元素阴影扩散距离（sm, md, lg）
+- **grid**: Apple 风格栅格间距
+  - `macWindow`: macOS 窗口栅格（16px）
+  - `iosApp`: iOS 应用网格（12px）
+  - `dashboard`: 仪表盘卡片栅格（24px）
+- **animation**: Apple 风格动画时序
+  - `duration`: 动画时长（instant, fast, standard, slow）
+  - `easing`: 缓动函数（ios, mac, spring）
 
 ### 字体令牌 (`typography.ts`)
 
@@ -157,12 +194,19 @@ module.exports = {
   - 桌面端自动适配
 
 #### 字体权重
-- **fontWeight**: 字体粗细（100 到 900）
-- **light**: 300
-- **normal**: 400
-- **medium**: 500
-- **semibold**: 600
-- **bold**: 700
+- **fontWeight**: 字体粗细（字符串类型）
+  - `thin`: '100'
+  - `light`: '300'
+  - `normal`: '400'
+  - `medium`: '500'
+  - `semibold`: '600'
+  - `bold`: '700'
+- **appleFontWeight**: Apple 风格字重（数字类型）
+  - `light`: 300
+  - `regular`: 400
+  - `medium`: 500
+  - `semibold`: 600
+  - `bold`: 700
 
 #### 字体预设
 - **heading**: 标题字体（h1-h6）
