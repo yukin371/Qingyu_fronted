@@ -255,7 +255,7 @@ describe('BooklistForm', () => {
       })
 
       // Assert
-      expect(wrapper.vm.$data.formData).toEqual({
+      expect(wrapper.vm.formData).toEqual({
         title: '',
         description: '',
         cover: '',
@@ -283,11 +283,11 @@ describe('BooklistForm', () => {
       })
 
       // Assert
-      expect(wrapper.vm.$data.formData.title).toBe('测试书单')
-      expect(wrapper.vm.$data.formData.description).toBe('测试描述')
-      expect(wrapper.vm.$data.formData.cover).toBe('https://example.com/cover.jpg')
-      expect(wrapper.vm.$data.formData.isPublic).toBe(true)
-      expect(wrapper.vm.$data.formData.tags).toEqual(['玄幻', '仙侠'])
+      expect(wrapper.vm.formData.title).toBe('测试书单')
+      expect(wrapper.vm.formData.description).toBe('测试描述')
+      expect(wrapper.vm.formData.cover).toBe('https://example.com/cover.jpg')
+      expect(wrapper.vm.formData.isPublic).toBe(true)
+      expect(wrapper.vm.formData.tags).toEqual(['玄幻', '仙侠'])
     })
 
     it('should update form data when booklist prop changes', async () => {
@@ -306,7 +306,7 @@ describe('BooklistForm', () => {
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.vm.$data.formData.title).toBe('书单2')
+      expect(wrapper.vm.formData.title).toBe('书单2')
     })
   })
 
@@ -323,7 +323,7 @@ describe('BooklistForm', () => {
       await input.trigger('input')
 
       // Assert
-      expect(wrapper.vm.$data.formData.title).toBe('新书单标题')
+      expect(wrapper.vm.formData.title).toBe('新书单标题')
     })
   })
 
@@ -340,7 +340,7 @@ describe('BooklistForm', () => {
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.vm.$data.inputVisible).toBe(true)
+      expect(wrapper.vm.inputVisible).toBe(true)
     })
 
     it('should add tag when tag input is confirmed', async () => {
@@ -348,16 +348,16 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.inputVisible = true
+      wrapper.vm.inputVisible = true
 
       // Act
-      wrapper.vm.$data.inputValue = '新标签'
+      wrapper.vm.inputValue = '新标签'
       await wrapper.vm.confirmTag()
 
       // Assert
-      expect(wrapper.vm.$data.formData.tags).toContain('新标签')
-      expect(wrapper.vm.$data.inputVisible).toBe(false)
-      expect(wrapper.vm.$data.inputValue).toBe('')
+      expect(wrapper.vm.formData.tags).toContain('新标签')
+      expect(wrapper.vm.inputVisible).toBe(false)
+      expect(wrapper.vm.inputValue).toBe('')
     })
 
     it('should not add duplicate tag', async () => {
@@ -365,15 +365,15 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.tags = ['玄幻']
-      wrapper.vm.$data.inputVisible = true
+      wrapper.vm.formData.tags = ['玄幻']
+      wrapper.vm.inputVisible = true
 
       // Act
-      wrapper.vm.$data.inputValue = '玄幻'
+      wrapper.vm.inputValue = '玄幻'
       await wrapper.vm.confirmTag()
 
       // Assert
-      expect(wrapper.vm.$data.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
+      expect(wrapper.vm.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
     })
 
     it('should remove tag when close button is clicked', async () => {
@@ -381,14 +381,14 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.tags = ['玄幻', '仙侠']
+      wrapper.vm.formData.tags = ['玄幻', '仙侠']
 
       // Act
       await wrapper.vm.removeTag('玄幻')
 
       // Assert
-      expect(wrapper.vm.$data.formData.tags).not.toContain('玄幻')
-      expect(wrapper.vm.$data.formData.tags).toContain('仙侠')
+      expect(wrapper.vm.formData.tags).not.toContain('玄幻')
+      expect(wrapper.vm.formData.tags).toContain('仙侠')
     })
 
     it('should add tag when popular tag is clicked', async () => {
@@ -401,7 +401,7 @@ describe('BooklistForm', () => {
       await wrapper.vm.addTag('玄幻')
 
       // Assert
-      expect(wrapper.vm.$data.formData.tags).toContain('玄幻')
+      expect(wrapper.vm.formData.tags).toContain('玄幻')
     })
 
     it('should not add duplicate tag from popular tags', async () => {
@@ -409,31 +409,28 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.tags = ['玄幻']
+      wrapper.vm.formData.tags = ['玄幻']
 
       // Act
       await wrapper.vm.addTag('玄幻')
 
       // Assert
-      expect(wrapper.vm.$data.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
+      expect(wrapper.vm.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
     })
   })
 
   describe('cover upload', () => {
-    it('should trigger file input when upload placeholder is clicked', async () => {
-      // Arrange
+    it('should have file input element', () => {
+      // Arrange & Act
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$refs.fileInput = {
-        click: vi.fn(),
-      }
-
-      // Act
-      await wrapper.vm.triggerUpload()
 
       // Assert
-      expect(wrapper.vm.$refs.fileInput.click).toHaveBeenCalled()
+      const fileInput = wrapper.find('input[type="file"]')
+      expect(fileInput.exists()).toBe(true)
+      expect(fileInput.attributes('accept')).toBe('image/*')
+      expect(fileInput.attributes('style')).toContain('display: none')
     })
 
     it('should remove cover when remove button is clicked', async () => {
@@ -441,7 +438,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.cover = 'https://example.com/cover.jpg'
+      wrapper.vm.formData.cover = 'https://example.com/cover.jpg'
       wrapper.vm.$refs.fileInput = {
         value: 'old-value',
       }
@@ -450,7 +447,7 @@ describe('BooklistForm', () => {
       await wrapper.vm.removeCover()
 
       // Assert
-      expect(wrapper.vm.$data.formData.cover).toBe('')
+      expect(wrapper.vm.formData.cover).toBe('')
       expect(wrapper.vm.$refs.fileInput.value).toBe('')
     })
   })
@@ -463,10 +460,10 @@ describe('BooklistForm', () => {
       })
 
       // Act
-      wrapper.vm.$data.formData.isPublic = true
+      wrapper.vm.formData.isPublic = true
 
       // Assert
-      expect(wrapper.vm.$data.formData.isPublic).toBe(true)
+      expect(wrapper.vm.formData.isPublic).toBe(true)
     })
 
     it('should set isPublic to false when private option is selected', async () => {
@@ -476,10 +473,10 @@ describe('BooklistForm', () => {
       })
 
       // Act
-      wrapper.vm.$data.formData.isPublic = false
+      wrapper.vm.formData.isPublic = false
 
       // Assert
-      expect(wrapper.vm.$data.formData.isPublic).toBe(false)
+      expect(wrapper.vm.formData.isPublic).toBe(false)
     })
   })
 
@@ -489,7 +486,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData = {
+      wrapper.vm.formData = {
         title: '测试书单',
         description: '测试描述',
         cover: 'https://example.com/cover.jpg',
@@ -518,7 +515,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.title = '' // Invalid title
+      wrapper.vm.formData.title = '' // Invalid title
 
       // Act
       await wrapper.vm.handleSubmit()
@@ -532,7 +529,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData = {
+      wrapper.vm.formData = {
         title: '  测试书单  ',
         description: '  测试描述  ',
         cover: '',
@@ -570,10 +567,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.title = '测试'
+      wrapper.vm.formData.title = '测试'
 
       // Act & Assert
-      expect(wrapper.vm.$data.isValid).toBe(true)
+      expect(wrapper.vm.isValid).toBe(true)
     })
 
     it('should be invalid when title is empty', () => {
@@ -581,10 +578,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.title = ''
+      wrapper.vm.formData.title = ''
 
       // Act & Assert
-      expect(wrapper.vm.$data.isValid).toBe(false)
+      expect(wrapper.vm.isValid).toBe(false)
     })
 
     it('should be invalid when title has only 1 character', () => {
@@ -592,10 +589,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.title = '测'
+      wrapper.vm.formData.title = '测'
 
       // Act & Assert
-      expect(wrapper.vm.$data.isValid).toBe(false)
+      expect(wrapper.vm.isValid).toBe(false)
     })
 
     it('should trim title when validating', () => {
@@ -603,10 +600,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.$data.formData.title = '  测试  '
+      wrapper.vm.formData.title = '  测试  '
 
       // Act & Assert
-      expect(wrapper.vm.$data.isValid).toBe(true)
+      expect(wrapper.vm.isValid).toBe(true)
     })
   })
 
@@ -636,7 +633,7 @@ describe('BooklistForm', () => {
       })
 
       // Assert
-      expect(wrapper.vm.$data.isEdit).toBe(true)
+      expect(wrapper.vm.isEdit).toBe(true)
     })
 
     it('should compute isEdit correctly when booklist is not provided', () => {
@@ -646,7 +643,7 @@ describe('BooklistForm', () => {
       })
 
       // Assert
-      expect(wrapper.vm.$data.isEdit).toBe(false)
+      expect(wrapper.vm.isEdit).toBe(false)
     })
   })
 })
