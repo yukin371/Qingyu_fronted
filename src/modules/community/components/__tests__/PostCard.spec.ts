@@ -340,9 +340,10 @@ describe('PostCard', () => {
       // Act
       const topicBadge = wrapper.findAll('.qy-badge')[0]
       await topicBadge.trigger('click')
+      await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.emitted('topic')).toBeTruthy()
+      expect(wrapper.emitted('topic')).toBeDefined()
       expect(wrapper.emitted('topic')?.[0]).toEqual(['玄幻'])
     })
 
@@ -371,10 +372,11 @@ describe('PostCard', () => {
       // Act
       const topicBadge = wrapper.findAll('.qy-badge')[0]
       await topicBadge.trigger('click')
+      await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.emitted('click')).toBeFalsy()
-      expect(wrapper.emitted('topic')).toBeTruthy()
+      expect(wrapper.emitted('click')).toBeUndefined()
+      expect(wrapper.emitted('topic')).toBeDefined()
     })
   })
 

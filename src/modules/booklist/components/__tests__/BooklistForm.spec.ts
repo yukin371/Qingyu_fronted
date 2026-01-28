@@ -57,7 +57,7 @@ vi.mock('@/design-system/components', () => {
       type: { type: String, default: 'button' },
     },
     emits: ['click'],
-    setup(props, { emit }) {
+    setup(props, { emit, slots }) {
       const classes = [
         'qy-button',
         `qy-button--${props.variant}`,
@@ -74,7 +74,7 @@ vi.mock('@/design-system/components', () => {
           type: props.type,
           onClick: (e) => emit('click', e),
         },
-        ['默认按钮']
+        slots.default ? slots.default() : []
       )
     },
   })
