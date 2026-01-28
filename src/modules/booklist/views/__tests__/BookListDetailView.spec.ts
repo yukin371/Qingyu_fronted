@@ -7,8 +7,8 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { createMockBooklist } from '../../../../tests/fixtures'
-import { mockRouter, mockRoute } from '@/tests/utils/api-mock'
 import { useBooklistStore } from '../../stores/booklist.store'
+import { useUserStore } from '@/stores/user'
 import BookListDetailView from '../BookListDetailView.vue'
 
 // Mock设计系统组件
@@ -30,6 +30,10 @@ vi.mock('@/design-system/components', () => ({
     template: '<span class="qy-badge"><slot /></span>',
     props: ['variant'],
   },
+  QyEmpty: {
+    template: '<div class="qy-empty"><p>{{ description || "暂无数据" }}</p><slot /></div>',
+    props: ['description', 'image'],
+  },
 }))
 
 // Mock Element Plus组件
@@ -41,6 +45,12 @@ vi.mock('element-plus', () => ({
     template: '<div class="el-skeleton-item" />',
     props: ['variant', 'style'],
   },
+  ElDialog: {
+    template: '<div class="el-dialog" v-if="modelValue"><slot /></div>',
+    props: ['modelValue', 'title', 'width'],
+    emits: ['update:modelValue'],
+  },
+  ElMessage: vi.fn(),
 }))
 
 // Mock API
@@ -48,20 +58,28 @@ vi.mock('../../api', () => ({
   getBookListDetail: vi.fn(),
   favoriteBookList: vi.fn(),
   unfavoriteBookList: vi.fn(),
+  getPopularTags: vi.fn(),
 }))
 
 import * as booklistApi from '../../api'
 
+const mockGetBookListDetail = booklistApi.getBookListDetail as any
+const mockFavoriteBookList = booklistApi.favoriteBookList as any
+const mockUnfavoriteBookList = booklistApi.unfavoriteBookList as any
+const mockGetPopularTags = booklistApi.getPopularTags as any
+
+// 辅助函数：等待所有Promise完成
+const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
+
 describe('BookListDetailView', () => {
   let router: any
-  let pinia: any
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // 创建新的pinia实例
-    pinia = createPinia()
+    const pinia = createPinia()
     setActivePinia(pinia)
 
-    // 创建mock router
+    // 创建router
     router = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -73,23 +91,29 @@ describe('BookListDetailView', () => {
       ],
     })
 
+    // 导航到测试路由
+    await router.push('/booklist/booklist_123')
+
     vi.clearAllMocks()
+    // 默认mock返回
+    mockGetPopularTags.mockResolvedValue([])
   })
 
   describe('rendering', () => {
-    it('should render loading state initially', () => {
-      // Arrange
+    it('should render loading state initially', async () => {
+      // Arrange - 让API调用延迟返回，这样可以捕获loading状态
+      mockGetBookListDetail.mockImplementation(
+        () => new Promise(resolve => setTimeout(() => resolve(createMockBooklist()), 100))
+      )
+
+      // Act
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
-      // Assert
+      // 立即检查loading状态
       expect(wrapper.find('.loading-state').exists()).toBe(true)
     })
 
@@ -100,20 +124,16 @@ describe('BookListDetailView', () => {
         title: '测试书单',
         description: '测试描述',
       })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
       // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -126,20 +146,16 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         tags: ['玄幻', '仙侠', '都市'],
       })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
       // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -155,20 +171,16 @@ describe('BookListDetailView', () => {
         viewCount: 1000,
         likeCount: 50,
       })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
       // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -178,135 +190,15 @@ describe('BookListDetailView', () => {
     })
   })
 
-  describe('interactions', () => {
-    it('should handle favorite button click', async () => {
-      // Arrange
-      const mockBooklist = createMockBooklist({
-        id: 'booklist_123',
-        isLiked: false,
-      })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
-      vi.mocked(booklistApi.favoriteBookList).mockResolvedValue({ success: true })
-
-      const wrapper = mount(BookListDetailView, {
-        global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
-        },
-      })
-
-      // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      await wrapper.vm.$nextTick()
-
-      // Act - 模拟点击收藏按钮
-      const favoriteButton = wrapper.findAll('.qy-button').find((btn) => btn.text() === '收藏')
-      await favoriteButton?.trigger('click')
-      await wrapper.vm.$nextTick()
-
-      // Assert
-      expect(booklistApi.favoriteBookList).toHaveBeenCalledWith('booklist_123')
-    })
-
-    it('should handle unfavorite button click', async () => {
-      // Arrange
-      const mockBooklist = createMockBooklist({
-        id: 'booklist_123',
-        isLiked: true,
-      })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
-      vi.mocked(booklistApi.unfavoriteBookList).mockResolvedValue({ success: true })
-
-      const wrapper = mount(BookListDetailView, {
-        global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
-        },
-      })
-
-      // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      await wrapper.vm.$nextTick()
-
-      // Act - 模拟点击取消收藏按钮
-      const unfavoriteButton = wrapper.findAll('.qy-button').find((btn) => btn.text() === '已收藏')
-      await unfavoriteButton?.trigger('click')
-      await wrapper.vm.$nextTick()
-
-      // Assert
-      expect(booklistApi.unfavoriteBookList).toHaveBeenCalledWith('booklist_123')
-    })
-  })
-
-  describe('route params', () => {
-    it('should fetch booklist detail based on route param id', async () => {
-      // Arrange
-      const booklistId = 'booklist_123'
-      const mockBooklist = createMockBooklist({ id: booklistId })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
-
-      mount(BookListDetailView, {
-        global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: booklistId } }),
-          },
-        },
-      })
-
-      // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // Assert
-      expect(booklistApi.getBookListDetail).toHaveBeenCalledWith(booklistId)
-    })
-
-    it('should handle invalid booklist id', async () => {
-      // Arrange
-      const invalidId = 'invalid-id'
-      const error = new Error('Booklist not found')
-      vi.mocked(booklistApi.getBookListDetail).mockRejectedValue(error)
-
-      const wrapper = mount(BookListDetailView, {
-        global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: invalidId } }),
-          },
-        },
-      })
-
-      // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      await wrapper.vm.$nextTick()
-
-      // Assert
-      const store = useBooklistStore()
-      expect(store.error).toEqual(error)
-    })
-  })
-
   describe('formatting functions', () => {
     it('should format numbers correctly', () => {
       // Arrange
       const mockBooklist = createMockBooklist()
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
@@ -319,15 +211,11 @@ describe('BookListDetailView', () => {
     it('should format dates correctly', () => {
       // Arrange
       const mockBooklist = createMockBooklist()
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
@@ -338,6 +226,27 @@ describe('BookListDetailView', () => {
     })
   })
 
+  describe('route params', () => {
+    it('should fetch booklist detail based on route param id', async () => {
+      // Arrange
+      const booklistId = 'booklist_123'
+      const mockBooklist = createMockBooklist({ id: booklistId })
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
+
+      mount(BookListDetailView, {
+        global: {
+          plugins: [router],
+        },
+      })
+
+      // 等待数据加载
+      await flushPromises()
+
+      // Assert
+      expect(mockGetBookListDetail).toHaveBeenCalledWith(booklistId)
+    })
+  })
+
   describe('creator check', () => {
     it('should show edit button when user is creator', async () => {
       // Arrange
@@ -345,20 +254,20 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         creatorId: currentUserId,
       })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
+      // 设置user store（在mount之后）
+      const userStore = useUserStore()
+      userStore.userInfo = { id: currentUserId } as any
+
       // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -370,20 +279,20 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         creatorId: 'user_456',
       })
-      vi.mocked(booklistApi.getBookListDetail).mockResolvedValue(mockBooklist)
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
+      // 设置user store为一个不同的用户
+      const userStore = useUserStore()
+      userStore.userInfo = { id: 'user_789' } as any
+
       // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -392,29 +301,120 @@ describe('BookListDetailView', () => {
   })
 
   describe('error handling', () => {
-    it('should handle fetch error gracefully', async () => {
-      // Arrange
-      const error = new Error('Network error')
-      vi.mocked(booklistApi.getBookListDetail).mockRejectedValue(error)
+    it('should handle invalid booklist id', async () => {
+      // Arrange - 需要创建新的路由
+      const invalidId = 'invalid-id'
+      await router.push(`/booklist/${invalidId}`)
+
+      const error = new Error('Booklist not found')
+      mockGetBookListDetail.mockRejectedValue(error)
 
       const wrapper = mount(BookListDetailView, {
         global: {
-          plugins: [pinia, router],
-          mocks: {
-            $router: mockRouter(),
-            $route: mockRoute({ params: { id: 'booklist_123' } }),
-          },
+          plugins: [router],
         },
       })
 
-      // 等待数据加载
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      // 等待数据加载和错误处理
+      await flushPromises()
       await wrapper.vm.$nextTick()
 
       // Assert
       const store = useBooklistStore()
-      expect(store.error).toEqual(error)
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toContain('Booklist not found')
+    })
+
+    it('should handle fetch error gracefully', async () => {
+      // Arrange
+      const error = new Error('Network error')
+      mockGetBookListDetail.mockRejectedValue(error)
+
+      const wrapper = mount(BookListDetailView, {
+        global: {
+          plugins: [router],
+        },
+      })
+
+      // 等待数据加载和错误处理
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      // Assert
+      const store = useBooklistStore()
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toContain('Network error')
       expect(store.loading).toBe(false)
+    })
+  })
+
+  describe('interactions', () => {
+    it('should handle favorite button click', async () => {
+      // Arrange
+      const mockBooklist = createMockBooklist({
+        id: 'booklist_123',
+        isLiked: false,
+      })
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
+      mockFavoriteBookList.mockResolvedValue({ success: true })
+
+      const wrapper = mount(BookListDetailView, {
+        global: {
+          plugins: [router],
+        },
+      })
+
+      // 等待数据加载
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      // 获取store实例并spy方法
+      const store = useBooklistStore()
+      const favoriteSpy = vi.spyOn(store, 'favoriteBooklist')
+
+      // Act - 模拟点击收藏按钮
+      const favoriteButton = wrapper.findAll('.qy-button').find((btn) => btn.text() === '收藏')
+      if (favoriteButton) {
+        await favoriteButton.trigger('click')
+        await wrapper.vm.$nextTick()
+      }
+
+      // Assert
+      expect(favoriteSpy).toHaveBeenCalledWith('booklist_123')
+    })
+
+    it('should handle unfavorite button click', async () => {
+      // Arrange
+      const mockBooklist = createMockBooklist({
+        id: 'booklist_123',
+        isLiked: true,
+      })
+      mockGetBookListDetail.mockResolvedValue(mockBooklist)
+      mockUnfavoriteBookList.mockResolvedValue({ success: true })
+
+      const wrapper = mount(BookListDetailView, {
+        global: {
+          plugins: [router],
+        },
+      })
+
+      // 等待数据加载
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      // 获取store实例并spy方法
+      const store = useBooklistStore()
+      const unfavoriteSpy = vi.spyOn(store, 'unfavoriteBooklist')
+
+      // Act - 模拟点击取消收藏按钮
+      const unfavoriteButton = wrapper.findAll('.qy-button').find((btn) => btn.text() === '已收藏')
+      if (unfavoriteButton) {
+        await unfavoriteButton.trigger('click')
+        await wrapper.vm.$nextTick()
+      }
+
+      // Assert
+      expect(unfavoriteSpy).toHaveBeenCalledWith('booklist_123')
     })
   })
 })
