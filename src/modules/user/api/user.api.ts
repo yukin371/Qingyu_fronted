@@ -62,16 +62,18 @@ export const userAPI = {
 
   /**
    * 获取用户书架
+   * 注意：使用reader路径，因为这是读者功能而非用户管理功能
    */
   async getBookshelf(): Promise<any[]> {
-    return httpService.get<any[]>('/user/bookshelf')
+    return httpService.get<any[]>('/reader/books')
   },
 
   /**
    * 获取阅读历史
+   * 注意：使用reader路径，因为这是读者功能而非用户管理功能
    */
   async getReadingHistory(): Promise<any[]> {
-    return httpService.get<any[]>('/user/reading-history')
+    return httpService.get<any[]>('/reader/reading-history')
   }
 }
 
