@@ -203,22 +203,140 @@ export * from './bookstore'
 5. **统一导出**：规范的导入方式
 6. **可扩展**：易于添加新模块
 
+## 🚀 最新进展：Orval Generated API 集成（2026-01-29）
+
+### bookstore 模块 wrapper 层实现完成
+
+**已完成的工作**：
+
+1. **创建 wrapper.ts**（`src/modules/bookstore/api/wrapper.ts`）
+   - ✅ 导出 62 个 API 方法
+   - ✅ 覆盖所有 bookstore 相关功能：
+     - Banners（轮播图）
+     - Books（书籍管理）
+     - Categories（分类）
+     - Chapters（章节）
+     - Homepage（首页）
+     - Rankings（榜单）
+   - ✅ 类型安全，完全兼容旧 API 签名
+
+2. **创建测试文件**（`src/modules/bookstore/api/__tests__/wrapper.test.ts`）
+   - ✅ 40 个测试用例全部通过
+   - ✅ 覆盖所有主要 API 方法
+   - ✅ Mock orvalMutator 测试
+
+3. **创建统一导出文件**（`src/modules/bookstore/api/bookstore.ts`）
+   - ✅ 导出 wrapper 所有方法
+   - ✅ 提供默认导出
+
+4. **更新入口文件**（`src/modules/bookstore/api/index.ts`）
+   - ✅ 切换使用 wrapper 作为默认导出
+   - ✅ 保留回滚选项
+
+### 使用方式
+
+```typescript
+// 导入方式 1：命名空间导入（推荐）
+import * as bookstoreAPI from '@/modules/bookstore/api'
+
+// 使用 API
+const books = await bookstoreAPI.getBookList({ page: 1, size: 20 })
+const detail = await bookstoreAPI.getBookDetail('book-123')
+const banners = await bookstoreAPI.getBanners()
+
+// 导入方式 2：直接导入函数
+import { getBookList, getBookDetail } from '@/modules/bookstore/api'
+
+const books = await getBookList({ page: 1, size: 20 })
+```
+
+### API 方法列表（部分）
+
+**Banners**:
+- `getBanners()` - 获取轮播图列表
+- `incrementBannerClick(id)` - 增加轮播图点击次数
+
+**Books**:
+- `getBookList(params)` - 获取书籍列表
+- `getBookDetail(id)` - 获取书籍详情
+- `createBook(data)` - 创建书籍
+- `updateBook(id, data)` - 更新书籍
+- `deleteBook(id)` - 删除书籍
+- `searchBooks(params)` - 搜索书籍
+- `searchByTitle(params)` - 按书名搜索
+- `searchByAuthor(params)` - 按作者搜索
+- `getBooksByStatus(params)` - 按状态获取书籍
+- `getBooksByTags(params)` - 按标签获取书籍
+- `getRecommendedBooks(params)` - 获取推荐书籍
+- `getFeaturedBooks(params)` - 获取精选书籍
+- `getPopularBooks(params)` - 获取热门书籍
+- `getLatestBooks(params)` - 获取最新书籍
+- `getSimilarBooks(id)` - 获取相似书籍
+- `incrementBookView(id)` - 增加书籍浏览次数
+- `getBookStatistics(id)` - 获取书籍统计信息
+- `likeBook(id)` - 点赞书籍
+- `unlikeBook(id)` - 取消点赞书籍
+
+**Categories**:
+- `getAllCategories()` - 获取所有分类（树形结构）
+- `getCategoryTree()` - 获取分类树
+- `getCategoryDetail(id)` - 获取分类详情
+- `getBooksByCategoryWithPagination(id, params)` - 获取分类下的书籍
+
+**Chapters**:
+- `getChapterDetail(id)` - 获取章节详情
+- `getChapterContent(id)` - 获取章节内容
+- `getNextChapter(id)` - 获取下一章
+- `getPreviousChapter(id)` - 获取上一章
+- `getChapterPrice(id)` - 获取章节价格
+- `searchChapters(params)` - 搜索章节
+
+**Homepage**:
+- `getHomepage()` - 获取首页数据
+
+**Rankings**:
+- `getRealtimeRanking(params)` - 获取实时榜单
+- `getWeeklyRanking(params)` - 获取周榜
+- `getMonthlyRanking(params)` - 获取月榜
+- `getNewbieRanking(params)` - 获取新人榜
+- `getRankingByType(params)` - 按类型获取榜单
+
+### 测试结果
+
+```
+✅ 40 个测试全部通过
+✅ 所有 API 方法可正常调用
+✅ 类型检查通过
+```
+
+### 参照模块
+
+本实现完全参照 `reader` 模块的 wrapper 模式：
+- 文件：`src/modules/reader/api/wrapper.ts`
+- 测试：`src/modules/reader/api/__tests__/wrapper.test.ts`
+
+---
+
 ## 📝 后续工作建议
 
-### 1. 修复模块导入错误（优先级：高）
+### 1. 推广到其他模块（优先级：高）
 
-- 检查 `reading/books.ts` 是否存在
-- 如果不存在，创建该文件或修改导入路径
+- ✅ reader 模块已完成
+- ✅ bookstore 模块已完成
+- ⏳ admin 模块待实现
+- ⏳ writer 模块待实现
+- ⏳ social 模块待实现
+- ⏳ finance 模块待实现
 
-### 2. 完善类型定义（优先级：中）
+### 2. 修复模块导入错误（优先级：中）
+
+- 检查各模块的导入路径是否正确
+- 确保类型定义完整
+
+### 3. 完善类型定义（优先级：中）
 
 - 确保所有API响应都有对应的TypeScript类型
 - 统一错误处理类型
-
-### 3. 添加API测试（优先级：中）
-
-- 为每个模块添加单元测试
-- 测试API调用是否正常
 
 ### 4. 优化构建配置（优先级：低）
 
