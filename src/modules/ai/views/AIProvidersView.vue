@@ -74,7 +74,7 @@
               </el-button>
               <el-dropdown @command="(cmd) => handleAction(cmd, row)">
                 <el-button size="small" text>
-                  <el-icon><MoreFilled /></el-icon>
+                  <QyIcon name="MoreFilled"  />
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -157,14 +157,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { message, messageBox, FormInstance, FormRules } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
-import {
-  Refresh,
-  Plus,
-  MoreFilled
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { AIProvider } from '../types/ai-admin.types'
 
 const router = useRouter()
@@ -334,7 +330,7 @@ async function handleAction(command: string, provider: AIProvider) {
     const actionText = newStatus === 'active' ? '启用' : '禁用'
 
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定要${actionText}提供商 "${provider.displayName}" 吗？`,
         '确认操作',
         {
@@ -348,7 +344,7 @@ async function handleAction(command: string, provider: AIProvider) {
     }
   } else if (command === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定要删除提供商 "${provider.displayName}" 吗？此操作不可恢复。`,
         '确认删除',
         {

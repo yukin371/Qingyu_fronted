@@ -18,7 +18,7 @@ const messageVariants = cva(
     variants: {
       type: {
         success: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-400 dark:text-emerald-200',
-        info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-800 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-200',
+        info: 'bg-info-50 border-l-4 border-info-500 text-info-800 dark:bg-info-900/20 dark:border-info-400 dark:text-info-200',
         warning: 'bg-amber-50 border-l-4 border-amber-500 text-amber-800 dark:bg-amber-900/20 dark:border-amber-400 dark:text-amber-200',
         error: 'bg-red-50 border-l-4 border-red-500 text-red-800 dark:bg-red-900/20 dark:border-red-400 dark:text-red-200',
       },

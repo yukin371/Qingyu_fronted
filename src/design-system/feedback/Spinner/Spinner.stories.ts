@@ -160,7 +160,7 @@ export const Inline: Story = {
         <p class="text-slate-700">
           数据同步中 <Spinner type="wave" size="sm" />
         </p>
-        <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">
+        <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600 disabled:opacity-50">
           <span class="flex items-center gap-2">
             <Spinner type="default" size="sm" color="white" />
             提交中...
@@ -198,7 +198,7 @@ export const InsideButton: Story = {
       ])
 
       const variantClasses = {
-        primary: 'bg-blue-500 hover:bg-blue-600',
+        primary: 'bg-secondary-500 hover:bg-secondary-600',
         success: 'bg-green-500 hover:bg-green-600',
         warning: 'bg-orange-500 hover:bg-orange-600',
         danger: 'bg-red-500 hover:bg-red-600',
@@ -276,7 +276,7 @@ export const CustomSlot: Story = {
       <div class="space-y-4 p-8">
         <Spinner type="default">
           <template #default>
-            <span class="text-blue-600 font-semibold">自定义加载文字</span>
+            <span class="text-secondary-600 font-semibold">自定义加载文字</span>
           </template>
         </Spinner>
         <Spinner type="dots">
@@ -291,7 +291,7 @@ export const CustomSlot: Story = {
         <Spinner type="wave">
           <div class="flex items-center gap-2">
             <span>数据加载中</span>
-            <button class="text-xs text-blue-500 hover:underline">取消</button>
+            <button class="text-xs text-secondary-500 hover:underline">取消</button>
           </div>
         </Spinner>
       </div>
@@ -313,7 +313,7 @@ export const RealWorldUsage: Story = {
               <div class="h-4 bg-slate-200 rounded animate-pulse"></div>
               <div class="h-4 bg-slate-200 rounded w-2/3 animate-pulse"></div>
               <div class="flex justify-end mt-4">
-                <button class="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2">
+                <button class="px-4 py-2 bg-secondary-500 text-white rounded flex items-center gap-2">
                   <Spinner size="sm" color="white" />
                   提交中...
                 </button>

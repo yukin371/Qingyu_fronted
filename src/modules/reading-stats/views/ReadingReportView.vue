@@ -27,8 +27,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { DataAnalysis } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const period = ref('week')
 </script>
 

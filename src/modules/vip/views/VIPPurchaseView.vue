@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 </script>
 
 <style scoped lang="scss">

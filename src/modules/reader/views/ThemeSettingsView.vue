@@ -5,7 +5,7 @@
         <div class="card-header">
           <h3>阅读器主题设置</h3>
           <el-button type="primary" @click="saveAllSettings" :loading="saving">
-            <el-icon><Check /></el-icon>
+            <QyIcon name="Check"  />
             保存设置
           </el-button>
         </div>
@@ -28,7 +28,7 @@
                 </div>
                 <div class="theme-name">{{ theme.name }}</div>
                 <el-icon v-if="currentTheme.id === theme.id" class="check-icon">
-                  <Check />
+                  <QyIcon name="Check"  />
                 </el-icon>
               </div>
             </div>
@@ -53,7 +53,7 @@
               </div>
               <div class="theme-card add-theme" @click="showCreateThemeDialog = true">
                 <div class="add-icon">
-                  <el-icon><Plus /></el-icon>
+                  <QyIcon name="Plus"  />
                 </div>
                 <div class="theme-name">新建主题</div>
               </div>
@@ -78,7 +78,7 @@
                 </div>
                 <div class="font-name">{{ font.name }}</div>
                 <el-icon v-if="currentFont.id === font.id" class="check-icon">
-                  <Check />
+                  <QyIcon name="Check"  />
                 </el-icon>
               </div>
             </div>
@@ -214,8 +214,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Check, Plus } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import {
   builtinThemes,
   getThemes,
@@ -308,17 +308,17 @@ const getPreviewContentStyle = () => ({
 // 创建自定义主题
 const createCustomTheme = async () => {
   if (!customThemeForm.name) {
-    ElMessage.warning('请输入主题名称')
+    message.warning('请输入主题名称')
     return
   }
 
   try {
     const res = await apiCreateTheme(customThemeForm)
     customThemes.value.push(res)
-    ElMessage.success('主题创建成功')
+    message.success('主题创建成功')
     showCreateThemeDialog.value = false
   } catch (error: any) {
-    ElMessage.error(error.message || '创建失败')
+    message.error(error.message || '创建失败')
   }
 }
 
@@ -336,9 +336,9 @@ const deleteCustomTheme = async (themeId: string) => {
   try {
     await apiDeleteTheme(themeId)
     customThemes.value = customThemes.value.filter(t => t.id !== themeId)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '删除失败')
+    message.error(error.message || '删除失败')
   }
 }
 
@@ -353,9 +353,9 @@ const saveAllSettings = async () => {
     await setFont(currentFont.value.id)
     await updateFontSettings(fontSettings)
 
-    ElMessage.success('设置保存成功')
+    message.success('设置保存成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '保存失败')
+    message.error(error.message || '保存失败')
   } finally {
     saving.value = false
   }

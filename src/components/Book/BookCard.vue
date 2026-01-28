@@ -46,7 +46,7 @@
       <!-- 统计信息 -->
       <div class="flex items-center justify-between text-xs text-gray-500">
         <span class="flex items-center">
-          <el-icon class="mr-1"><View /></el-icon>
+          <QyIcon name="View" class="mr-1" :size="16" />
           {{ formatCount(book.viewCount || 0) }}
         </span>
         <span v-if="book.rating">
@@ -74,7 +74,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { View } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Book } from '@/types/bookstore'
 import { formatCurrency } from '@/utils/currency'
 

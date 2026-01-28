@@ -32,8 +32,14 @@
       />
 
       <el-button type="primary" @click="handleFilterChange">查询</el-button>
-      <el-button :icon="Refresh" @click="loadLogs">刷新</el-button>
-      <el-button :icon="Download" @click="exportLogs">导出</el-button>
+      <el-button @click="loadLogs">
+          <QyIcon name="Refresh" :size="14" />
+          刷新
+        </el-button>
+        <el-button @click="exportLogs">
+          <QyIcon name="Download" :size="14" />
+          导出
+        </el-button>
     </div>
 
     <!-- 日志列表 -->
@@ -121,8 +127,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Refresh, Download } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as adminAPI from '@/modules/admin/api'
 import type { OperationLog } from '@/types/shared'
 import { formatDate } from '@/utils/format'
@@ -238,7 +244,7 @@ const loadLogs = async () => {
     total.value = mockData.length
   } catch (error) {
     console.error('加载日志失败:', error)
-    ElMessage.error('加载日志失败')
+    message.error('加载日志失败')
   } finally {
     loading.value = false
   }
@@ -258,7 +264,7 @@ const handleView = (item: OperationLog) => {
 
 // 导出日志
 const exportLogs = () => {
-  ElMessage.info('导出功能开发中')
+  message.info('导出功能开发中')
 }
 
 onMounted(() => {

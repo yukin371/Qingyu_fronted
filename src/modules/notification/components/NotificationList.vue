@@ -74,7 +74,7 @@
     >
       <template #image>
         <el-icon :size="120" color="#ddd">
-          <Bell />
+          <QyIcon name="Bell"  />
         </el-icon>
       </template>
     </el-empty>
@@ -90,8 +90,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Bell } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { QyIcon } from '@/design-system/components'
+import { message, messageBox } from '@/design-system/services'
 import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/stores/notification'
 import type { NotificationMessage, NotificationType } from '@/types/notification'
@@ -243,7 +243,7 @@ const handleSelectAll = () => {
 // 标记单个已读
 const handleMarkRead = async (id: string) => {
   await notificationStore.markAsRead(id)
-  ElMessage.success('已标记为已读')
+  message.success('已标记为已读')
 }
 
 // 标记选中项已读
@@ -255,9 +255,9 @@ const handleMarkSelectedRead = async () => {
       await notificationStore.markAsRead(id)
     }
     selectedIds.value = []
-    ElMessage.success(`已标记 ${selectedIds.value.length} 条为已读`)
+    message.success(`已标记 ${selectedIds.value.length} 条为已读`)
   } catch (error) {
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   }
 }
 
@@ -266,9 +266,9 @@ const handleMarkAllRead = async () => {
   try {
     const type = currentType.value !== 'all' ? currentType.value : undefined
     await notificationStore.markAllAsRead(type)
-    ElMessage.success('已全部标记为已读')
+    message.success('已全部标记为已读')
   } catch (error) {
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   }
 }
 
@@ -276,7 +276,7 @@ const handleMarkAllRead = async () => {
 const handleDelete = async (id: string) => {
   try {
     await notificationStore.deleteNotification(id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
 
     // 从选中列表中移除
     const index = selectedIds.value.indexOf(id)
@@ -284,7 +284,7 @@ const handleDelete = async (id: string) => {
       selectedIds.value.splice(index, 1)
     }
   } catch (error) {
-    ElMessage.error('删除失败')
+    message.error('删除失败')
   }
 }
 
@@ -293,7 +293,7 @@ const handleDeleteSelected = async () => {
   if (selectedIds.value.length === 0) return
 
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要删除选中的 ${selectedIds.value.length} 条通知吗？`,
       '确认删除',
       {
@@ -306,10 +306,10 @@ const handleDeleteSelected = async () => {
     }
 
     selectedIds.value = []
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }
@@ -317,7 +317,7 @@ const handleDeleteSelected = async () => {
 // 清空所有通知
 const handleClearAll = async () => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       '确定要清空所有通知吗？此操作不可恢复。',
       '确认清空',
       {
@@ -330,10 +330,10 @@ const handleClearAll = async () => {
     // 这里需要调用清空API
     await notificationStore.markAllAsRead()
     notifications.value = []
-    ElMessage.success('已清空所有通知')
+    message.success('已清空所有通知')
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('操作失败')
+      message.error('操作失败')
     }
   }
 }

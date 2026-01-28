@@ -10,7 +10,7 @@ import axios, {
   type AxiosResponse,
   type AxiosRequestConfig, // 公开方法参数用这个
 } from 'axios'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth' // 引入 Pinia
 import { ErrorHandler } from '@/utils/errorHandler'
 import type { APIResponse } from '@/core/types/api.types' // 引入统一类型
@@ -60,6 +60,11 @@ class HttpService {
     // Request 拦截器
     this.instance.interceptors.request.use(
       (config) => {
+        // 0. 自动添加 /api/v1 前缀（如果路径以 / 开头但不是 /api/v1）
+        if (config.url && config.url.startsWith('/') && !config.url.startsWith('/api/v1') && !config.url.startsWith('/socket.io')) {
+          config.url = `/api/v1${config.url}`
+        }
+
         // 1. 自动注入 Token
         const authStore = useAuthStore()
         if (authStore.token && config.headers) {
@@ -190,7 +195,7 @@ class HttpService {
     const err = new Error(data.message) as any
     err.code = data.code
     if (!config.silent && !config.skipErrorHandler) {
-      ElMessage.error(data.message)
+      message.error(data.message)
     }
     return Promise.reject(err)
   }

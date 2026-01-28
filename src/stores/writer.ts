@@ -17,8 +17,7 @@ import {
   initLocalStorage,
   type LocalProject
 } from '@/utils/localStorageAPI'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 // 运行模式
 type StorageMode = 'online' | 'offline'
 
@@ -69,13 +68,13 @@ export const useWriterStore = defineStore('writer', () => {
         const localProjects = await getLocalProjects()
         projects.value = localProjects || []
         total.value = projects.value.length
-        ElMessage.warning('在线模式API功能待完善，已切换到离线模式')
+        message.warning('在线模式API功能待完善，已切换到离线模式')
         storageMode.value = 'offline'
         return projects.value
       }
     } catch (error: any) {
       console.error('获取项目列表失败:', error)
-      ElMessage.error('获取项目列表失败')
+      message.error('获取项目列表失败')
       return []
     } finally {
       loading.value = false
@@ -93,7 +92,7 @@ export const useWriterStore = defineStore('writer', () => {
           projects.value = []
         }
         projects.value.unshift(project as any)
-        ElMessage.success('项目创建成功（本地存储）')
+        message.success('项目创建成功（本地存储）')
         return project as any
       } else {
         // 在线模式：使用 API
@@ -104,16 +103,16 @@ export const useWriterStore = defineStore('writer', () => {
           //     projects.value = [] // Original line commented out
           //   } // Original line commented out
           //   projects.value.unshift(response.data) // Original line commented out
-          //   ElMessage.success('项目创建成功') // Original line commented out
+          //   message.success('项目创建成功') // Original line commented out
           //   return response.data // Original line commented out
           // } // Original line commented out
           // return null // Original line commented out
           // Temporarily disable API calls - will be restored when API is fully integrated
-          ElMessage.warning('API功能待完善，请使用离线模式')
+          message.warning('API功能待完善，请使用离线模式')
           return { code: 501, message: 'API功能待完善' } // Placeholder response
         } catch (apiError: any) {
           console.error('在线模式API调用失败:', apiError)
-          ElMessage.warning('网络错误，已切换到离线模式')
+          message.warning('网络错误，已切换到离线模式')
           storageMode.value = 'offline'
           return createNewProject(data)
         }
@@ -141,7 +140,7 @@ export const useWriterStore = defineStore('writer', () => {
         // } // Original line commented out
         // return null // Original line commented out
         // Temporarily disable API calls - will be restored when API is fully integrated
-        ElMessage.warning('API功能待完善，请使用离线模式')
+        message.warning('API功能待完善，请使用离线模式')
         return { code: 501, message: 'API功能待完善' } // Placeholder response
       }
     } catch (error: any) {
@@ -168,7 +167,7 @@ export const useWriterStore = defineStore('writer', () => {
           currentProject.value = updatedProject as any
         }
 
-        ElMessage.success('项目更新成功（本地存储）')
+        message.success('项目更新成功（本地存储）')
         return updatedProject as any
       } else {
         // 在线模式：使用 API
@@ -185,12 +184,12 @@ export const useWriterStore = defineStore('writer', () => {
         //     currentProject.value = response.data // Original line commented out
         //   } // Original line commented out
 
-        //   ElMessage.success('项目更新成功') // Original line commented out
+        //   message.success('项目更新成功') // Original line commented out
         //   return response.data // Original line commented out
         // } // Original line commented out
         // return null // Original line commented out
         // Temporarily disable API calls - will be restored when API is fully integrated
-        ElMessage.warning('API功能待完善，请使用离线模式')
+        message.warning('API功能待完善，请使用离线模式')
         return { code: 501, message: 'API功能待完善' } // Placeholder response
       }
     } catch (error: any) {
@@ -214,7 +213,7 @@ export const useWriterStore = defineStore('writer', () => {
           currentProject.value = null
         }
 
-        ElMessage.success('项目删除成功（本地存储）')
+        message.success('项目删除成功（本地存储）')
         return true
       } else {
         // 在线模式：使用 API
@@ -228,12 +227,12 @@ export const useWriterStore = defineStore('writer', () => {
         //     currentProject.value = null // Original line commented out
         //   } // Original line commented out
 
-        //   ElMessage.success('项目删除成功') // Original line commented out
+        //   message.success('项目删除成功') // Original line commented out
         //   return true // Original line commented out
         // } // Original line commented out
         // return false // Original line commented out
         // Temporarily disable API calls - will be restored when API is fully integrated
-        ElMessage.warning('API功能待完善，请使用离线模式')
+        message.warning('API功能待完善，请使用离线模式')
         return { code: 501, message: 'API功能待完善' } // Placeholder response
       }
     } catch (error: any) {
@@ -265,7 +264,7 @@ export const useWriterStore = defineStore('writer', () => {
   // 切换存储模式
   const toggleStorageMode = () => {
     storageMode.value = storageMode.value === 'online' ? 'offline' : 'online'
-    ElMessage.info(`已切换到${storageMode.value === 'online' ? '在线' : '离线'}模式`)
+    message.info(`已切换到${storageMode.value === 'online' ? '在线' : '离线'}模式`)
     // 清空当前数据
     projects.value = []
     currentProject.value = null

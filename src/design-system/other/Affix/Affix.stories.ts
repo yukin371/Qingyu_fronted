@@ -85,7 +85,7 @@ export const Offset: Story = {
         <div style="height: 2000px;">
           <div class="space-y-4">
             <Affix :offset="0">
-              <div class="mx-8 px-4 py-2 bg-blue-500 text-white rounded shadow">
+              <div class="mx-8 px-4 py-2 bg-secondary-500 text-white rounded shadow">
                 偏移量: 0px
               </div>
             </Affix>
@@ -296,7 +296,7 @@ export const ZIndex: Story = {
               </div>
             </Affix>
             <Affix :offset="40" :z-index="10">
-              <div class="mx-8 px-4 py-2 bg-blue-500 text-white rounded shadow">
+              <div class="mx-8 px-4 py-2 bg-secondary-500 text-white rounded shadow">
                 z-index: 10
               </div>
             </Affix>
@@ -410,7 +410,7 @@ export const BothPositions: Story = {
       <div class="relative">
         <div style="height: 2000px;">
           <Affix :offset="0">
-            <div class="px-6 py-3 bg-blue-500 text-white rounded-b-lg shadow-lg">
+            <div class="px-6 py-3 bg-secondary-500 text-white rounded-b-lg shadow-lg">
               <span class="font-medium">固定在顶部 - 头部导航</span>
             </div>
           </Affix>
@@ -448,7 +448,7 @@ export const MultipleAffix: Story = {
         <div style="height: 2000px;">
           <div class="grid grid-cols-3 gap-4 px-8">
             <Affix :offset="10">
-              <div class="px-4 py-3 bg-blue-500 text-white rounded-lg shadow-lg text-center">
+              <div class="px-4 py-3 bg-secondary-500 text-white rounded-lg shadow-lg text-center">
                 <div class="font-bold">工具栏 1</div>
               </div>
             </Affix>

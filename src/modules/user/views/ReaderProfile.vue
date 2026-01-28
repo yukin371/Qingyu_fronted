@@ -49,7 +49,7 @@
                 >
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -67,7 +67,7 @@
                   </div>
                   <div class="book-meta">
                     <span class="last-read">
-                      <el-icon><Clock /></el-icon>
+                      <QyIcon name="Clock"  />
                       {{ formatTime(item.last_read_at) }}
                     </span>
                   </div>
@@ -109,7 +109,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #67c23a20;">
-                        <el-icon :size="32" color="#67c23a"><Clock /></el-icon>
+                        <el-icon :size="32" color="#67c23a"><QyIcon name="Clock"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalReadingTime || 0 }}h</div>
@@ -123,7 +123,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #e6a23c20;">
-                        <el-icon :size="32" color="#e6a23c"><Document /></el-icon>
+                        <el-icon :size="32" color="#e6a23c"><QyIcon name="Document"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalChapters || 0 }}</div>
@@ -137,7 +137,7 @@
                   <el-card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #f5622120;">
-                        <el-icon :size="32" color="#f56221"><Star /></el-icon>
+                        <el-icon :size="32" color="#f56221"><QyIcon name="Star"  /></el-icon>
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalComments || 0 }}</div>
@@ -174,7 +174,7 @@
                     >
                       <template #error>
                         <div class="image-slot-small">
-                          <el-icon><Picture /></el-icon>
+                          <QyIcon name="Picture"  />
                         </div>
                       </template>
                     </el-image>
@@ -204,8 +204,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Picture, Clock, Reading, Document, Star } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
@@ -270,7 +270,7 @@ const loadUserProfile = async () => {
     }
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
-    ElMessage.error('加载用户信息失败')
+    message.error('加载用户信息失败')
   } finally {
     loading.value = false
   }
@@ -323,7 +323,7 @@ const loadBookshelf = async () => {
     }
   } catch (error: any) {
     console.error('加载书架失败:', error)
-    ElMessage.error('加载书架失败')
+    message.error('加载书架失败')
     bookshelfList.value = []
     bookshelfPagination.value.total = 0
   } finally {
@@ -408,7 +408,7 @@ const formatTime = (dateStr: string): string => {
 // 处理关注
 const handleFollow = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push('/auth')
     return
   }
@@ -416,13 +416,13 @@ const handleFollow = async () => {
   try {
     await followAPI.followUser(userId.value)
     isFollowing.value = true
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     if (userStats.value) {
       userStats.value.followerCount++
     }
   } catch (error: any) {
     console.error('关注失败:', error)
-    ElMessage.error('关注失败')
+    message.error('关注失败')
   }
 }
 
@@ -431,19 +431,19 @@ const handleUnfollow = async () => {
   try {
     await followAPI.unfollowUser(userId.value)
     isFollowing.value = false
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {
       userStats.value.followerCount--
     }
   } catch (error: any) {
     console.error('取消关注失败:', error)
-    ElMessage.error('取消关注失败')
+    message.error('取消关注失败')
   }
 }
 
 // 处理私信
 const handleMessage = () => {
-  ElMessage.info('私信功能开发中')
+  message.info('私信功能开发中')
 }
 
 // 前往书籍详情

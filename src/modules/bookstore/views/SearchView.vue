@@ -165,7 +165,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getFirstChapter } from '@/modules/reader/api'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { Button, Select, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
 import { Icon } from '@/design-system'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
@@ -280,14 +280,14 @@ const saveSearchHistory = (keyword: string) => {
 const clearHistory = () => {
   searchHistory.value = []
   localStorage.removeItem('search_history')
-  ElMessage.success('已清空搜索历史')
+  message.success('已清空搜索历史')
 }
 
 // 执行搜索
 const handleSearch = async () => {
   const keyword = searchKeyword.value.trim()
   if (!keyword) {
-    ElMessage.warning('请输入搜索关键词')
+    message.warning('请输入搜索关键词')
     return
   }
 
@@ -323,7 +323,7 @@ const handleSearch = async () => {
     totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
   } catch (error) {
     console.error('搜索失败:', error)
-    ElMessage.error('搜索失败')
+    message.error('搜索失败')
   } finally {
     loading.value = false
   }

@@ -23,7 +23,7 @@
         <!-- 进度条 -->
         <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            class="h-full bg-blue-500 transition-all duration-300"
+            class="h-full bg-secondary-500 transition-all duration-300"
             :style="{ width: progressPercentage + '%' }"
           />
         </div>
@@ -53,7 +53,7 @@
           </button>
           <button
             type="button"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+            class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium"
             @click="handleClose"
           >
             关闭

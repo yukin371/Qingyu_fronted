@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 用户安全功能API
  * 根据后端API需求文档 (Qingyu_backend/doc/api/frontend/用户安全功能API需求.md)
  * 注意：这些API后端尚未实现，需要后端开发
@@ -11,7 +11,7 @@ import { httpService } from '@/core/services/http.service'
  * POST /api/v1/users/verify/phone/send
  */
 export function sendPhoneVerifyCode(phone: string, type: 'bind' | 'change' | 'unbind' = 'bind') {
-  return httpService.post('/users/verify/phone/send', {
+  return httpService.post('/api/v1/users/verify/phone/send', {
     phone,
     type
   })
@@ -25,7 +25,7 @@ export function bindPhone(data: {
   phone: string
   code: string
 }) {
-  return httpService.post('/users/phone/bind', data)
+  return httpService.post('/api/v1/users/phone/bind', data)
 }
 
 /**
@@ -37,7 +37,7 @@ export function changePhone(data: {
   code: string
   oldPhoneCode?: string
 }) {
-  return httpService.put('/users/phone/change', data)
+  return httpService.put('/api/v1/users/phone/change', data)
 }
 
 /**
@@ -45,7 +45,7 @@ export function changePhone(data: {
  * DELETE /api/v1/users/phone/unbind
  */
 export function unbindPhone(code: string) {
-  return httpService.delete('/users/phone/unbind', {
+  return httpService.delete('/api/v1/users/phone/unbind', {
     data: { code }
   })
 }
@@ -55,7 +55,7 @@ export function unbindPhone(code: string) {
  * POST /api/v1/users/verify/email/send
  */
 export function sendEmailVerifyCode(email: string, type: 'bind' | 'change' | 'unbind' | 'verify' = 'bind') {
-  return httpService.post('/users/verify/email/send', {
+  return httpService.post('/api/v1/users/verify/email/send', {
     email,
     type
   })
@@ -69,7 +69,7 @@ export function bindEmail(data: {
   email: string
   code: string
 }) {
-  return httpService.post('/users/email/bind', data)
+  return httpService.post('/api/v1/users/email/bind', data)
 }
 
 /**
@@ -81,7 +81,7 @@ export function changeEmail(data: {
   code: string
   oldEmailCode?: string
 }) {
-  return httpService.put('/users/email/change', data)
+  return httpService.put('/api/v1/users/email/change', data)
 }
 
 /**
@@ -89,7 +89,7 @@ export function changeEmail(data: {
  * DELETE /api/v1/users/email/unbind
  */
 export function unbindEmail(code: string) {
-  return httpService.delete('/users/email/unbind', {
+  return httpService.delete('/api/v1/users/email/unbind', {
     data: { code }
   })
 }
@@ -99,7 +99,7 @@ export function unbindEmail(code: string) {
  * POST /api/v1/users/email/verify
  */
 export function verifyEmail() {
-  return httpService.post('/users/email/verify')
+  return httpService.post('/api/v1/users/email/verify')
 }
 
 /**
@@ -110,7 +110,7 @@ export function changePasswordSecure(data: {
   oldPassword: string
   newPassword: string
 }) {
-  return httpService.put('/users/password/change', data)
+  return httpService.put('/api/v1/users/password/change', data)
 }
 
 /**
@@ -118,7 +118,7 @@ export function changePasswordSecure(data: {
  * POST /api/v1/users/password/reset/send
  */
 export function sendPasswordResetCode(account: string) {
-  return httpService.post('/users/password/reset/send', {
+  return httpService.post('/api/v1/users/password/reset/send', {
     account
   })
 }
@@ -128,7 +128,7 @@ export function sendPasswordResetCode(account: string) {
  * POST /api/v1/users/password/reset/verify
  */
 export function verifyResetCode(account: string, code: string) {
-  return httpService.post('/users/password/reset/verify', {
+  return httpService.post('/api/v1/users/password/reset/verify', {
     account,
     code
   })
@@ -143,7 +143,7 @@ export function resetPassword(data: {
   code: string
   newPassword: string
 }) {
-  return httpService.post('/users/password/reset', data)
+  return httpService.post('/api/v1/users/password/reset', data)
 }
 
 /**
@@ -154,7 +154,7 @@ export function getLoginDevices(params?: {
   page?: number
   size?: number
 }) {
-  return httpService.get('/users/devices', { params })
+  return httpService.get('/api/v1/users/devices', { params })
 }
 
 /**
@@ -173,7 +173,7 @@ export function cancelAccount(data: {
   password: string
   reason?: string
 }) {
-  return httpService.post('/users/cancel', data)
+  return httpService.post('/api/v1/users/cancel', data)
 }
 
 /**

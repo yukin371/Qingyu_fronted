@@ -3,9 +3,7 @@
         <div class="list-header">
             <h3>书签列表</h3>
             <el-button text @click="$emit('add')">
-                <el-icon>
-                    <Plus />
-                </el-icon>
+                <QyIcon name="Plus"  />
                 添加书签
             </el-button>
         </div>
@@ -23,9 +21,7 @@
                 <div class="bookmark-actions">
                     <span class="bookmark-time">{{ formatTime(bookmark.createTime) }}</span>
                     <el-button text type="danger" size="small" @click.stop="$emit('delete', bookmark.id)">
-                        <el-icon>
-                            <Delete />
-                        </el-icon>
+                        <QyIcon name="Delete"  />
                     </el-button>
                 </div>
             </div>
@@ -34,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatDate } from '@/utils/format'
 
 interface Bookmark {

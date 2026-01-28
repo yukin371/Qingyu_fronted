@@ -18,7 +18,7 @@ const notificationVariants = cva(
     variants: {
       type: {
         success: 'bg-white border-emerald-200 dark:bg-emerald-950 dark:border-emerald-800',
-        info: 'bg-white border-blue-200 dark:bg-blue-950 dark:border-blue-800',
+        info: 'bg-white border-info-200 dark:bg-info-950 dark:border-info-800',
         warning: 'bg-white border-amber-200 dark:bg-amber-950 dark:border-amber-800',
         error: 'bg-white border-red-200 dark:bg-red-950 dark:border-red-800',
       },
@@ -59,7 +59,7 @@ const iconMap: Record<NotificationType, string> = {
 // 图标颜色映射
 const iconColorMap: Record<NotificationType, string> = {
   success: 'text-emerald-500 dark:text-emerald-400',
-  info: 'text-blue-500 dark:text-blue-400',
+  info: 'text-info-500 dark:text-info-400',
   warning: 'text-amber-500 dark:text-amber-400',
   error: 'text-red-500 dark:text-red-400',
 }
@@ -67,7 +67,7 @@ const iconColorMap: Record<NotificationType, string> = {
 // 标题颜色映射
 const titleColorMap: Record<NotificationType, string> = {
   success: 'text-emerald-900 dark:text-emerald-100',
-  info: 'text-blue-900 dark:text-blue-100',
+  info: 'text-info-900 dark:text-info-100',
   warning: 'text-amber-900 dark:text-amber-100',
   error: 'text-red-900 dark:text-red-100',
 }
@@ -95,7 +95,7 @@ const titleClass = computed(() => titleColorMap[props.type])
 const messageClass = computed(() => {
   const colors: Record<NotificationType, string> = {
     success: 'text-emerald-700 dark:text-emerald-300',
-    info: 'text-blue-700 dark:text-blue-300',
+    info: 'text-info-700 dark:text-info-300',
     warning: 'text-amber-700 dark:text-amber-300',
     error: 'text-red-700 dark:text-red-300',
   }

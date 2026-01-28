@@ -182,8 +182,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as adminAPI from '@/modules/admin/api'
 import type { WithdrawRecord } from '@/types/shared'
 import { formatDate } from '@/utils/format'
@@ -277,7 +277,7 @@ const loadWithdrawals = async () => {
     total.value = mockData.length
   } catch (error) {
     console.error('加载提现列表失败:', error)
-    ElMessage.error('加载提现列表失败')
+    message.error('加载提现列表失败')
   } finally {
     loading.value = false
   }
@@ -298,7 +298,7 @@ const handleView = (item: WithdrawRecord) => {
 // 批准
 const handleApprove = async (item: WithdrawRecord) => {
   try {
-    await ElMessageBox.confirm(`确认批准提现 ¥${item.amount} 吗？`, '提示', {
+    await messageBox.confirm(`确认批准提现 ¥${item.amount} 吗？`, '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'success'
@@ -308,13 +308,13 @@ const handleApprove = async (item: WithdrawRecord) => {
       status: 'approved'
     })
 
-    ElMessage.success('批准成功')
+    message.success('批准成功')
     dialogVisible.value = false
     loadWithdrawals()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('批准失败:', error)
-      ElMessage.error('批准失败')
+      message.error('批准失败')
     }
   }
 }
@@ -329,7 +329,7 @@ const handleReject = (item: WithdrawRecord) => {
 // 确认拒绝
 const confirmReject = async () => {
   if (!rejectForm.reason.trim()) {
-    ElMessage.warning('请输入拒绝原因')
+    message.warning('请输入拒绝原因')
     return
   }
 
@@ -342,13 +342,13 @@ const confirmReject = async () => {
       reason: rejectForm.reason
     })
 
-    ElMessage.success('已拒绝')
+    message.success('已拒绝')
     rejectDialogVisible.value = false
     dialogVisible.value = false
     loadWithdrawals()
   } catch (error) {
     console.error('拒绝失败:', error)
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   } finally {
     submitting.value = false
   }

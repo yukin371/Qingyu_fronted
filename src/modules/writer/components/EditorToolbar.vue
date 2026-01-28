@@ -4,16 +4,12 @@
     <div class="toolbar-group history-group" v-if="!isSimpleMode">
       <el-tooltip content="撤销 (Ctrl+Z)" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('undo')" :disabled="!canUndo">
-          <el-icon>
-            <RefreshLeft />
-          </el-icon>
+          <QyIcon name="RefreshLeft"  />
         </el-button>
       </el-tooltip>
       <el-tooltip content="重做 (Ctrl+Y)" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('redo')" :disabled="!canRedo">
-          <el-icon>
-            <RefreshRight />
-          </el-icon>
+          <QyIcon name="RefreshRight"  />
         </el-button>
       </el-tooltip>
     </div>
@@ -27,7 +23,7 @@
           <el-button text class="tool-btn heading-btn">
             <span class="btn-text">H</span>
             <el-icon class="el-icon--right">
-              <ArrowDown />
+              <QyIcon name="ArrowDown"  />
             </el-icon>
           </el-button>
           <template #dropdown>
@@ -76,25 +72,19 @@
     <div class="toolbar-group">
       <el-tooltip content="引用" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('quote')">
-          <el-icon>
-            <ChatLineSquare />
-          </el-icon>
+          <QyIcon name="ChatLineSquare"  />
         </el-button>
       </el-tooltip>
 
       <el-tooltip content="无序列表" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('list')">
-          <el-icon>
-            <Operation />
-          </el-icon>
+          <QyIcon name="Operation"  />
         </el-button>
       </el-tooltip>
 
       <el-tooltip content="有序列表" :show-after="500" v-if="!isSimpleMode">
         <el-button text class="tool-btn" @click="emitCommand('orderedList')">
-          <el-icon>
-            <finished />
-          </el-icon>
+          <QyIcon name="finished"  />
         </el-button>
       </el-tooltip>
     </div>
@@ -105,33 +95,25 @@
     <div class="toolbar-group" v-if="!isSimpleMode">
       <el-tooltip content="代码块" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('code')">
-          <el-icon>
-            <files />
-          </el-icon>
+          <QyIcon name="files"  />
         </el-button>
       </el-tooltip>
 
       <el-tooltip content="链接 (Ctrl+K)" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('link')">
-          <el-icon>
-            <Link />
-          </el-icon>
+          <QyIcon name="Link"  />
         </el-button>
       </el-tooltip>
 
       <el-tooltip content="图片" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('image')">
-          <el-icon>
-            <Picture />
-          </el-icon>
+          <QyIcon name="Picture"  />
         </el-button>
       </el-tooltip>
 
       <el-tooltip content="分隔线" :show-after="500">
         <el-button text class="tool-btn" @click="emitCommand('line')">
-          <el-icon>
-            <Minus />
-          </el-icon>
+          <QyIcon name="Minus"  />
         </el-button>
       </el-tooltip>
     </div>
@@ -141,9 +123,7 @@
       <el-divider direction="vertical" />
       <el-tooltip :content="showPreview ? '隐藏预览' : '双栏预览'" :show-after="500">
         <el-button text class="tool-btn" :class="{ 'is-active': showPreview }" @click="emitTogglePreview">
-          <el-icon>
-            <View />
-          </el-icon>
+          <QyIcon name="View"  />
         </el-button>
       </el-tooltip>
     </div>
@@ -151,12 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  RefreshLeft, RefreshRight, ArrowDown,
-  ChatLineSquare, Operation, Finished,
-  Files, Link, Picture, Minus, View
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 interface Props {
   isSimpleMode?: boolean
   showPreview?: boolean

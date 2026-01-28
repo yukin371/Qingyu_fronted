@@ -32,7 +32,7 @@
               :class="[
                 'p-4 rounded-lg border-2 transition-all text-left',
                 format === formatOption.value
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  ? 'border-secondary-500 bg-secondary-50 text-secondary-700'
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
               ]"
               @click="handleFormatSelect(formatOption.value)"
@@ -100,7 +100,7 @@
                 <input
                   v-model="options.toc"
                   type="checkbox"
-                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  class="w-4 h-4 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
                 />
                 <span class="text-sm text-gray-700">生成目录</span>
               </label>
@@ -110,7 +110,7 @@
                 <input
                   v-model="options.pageNumbers"
                   type="checkbox"
-                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  class="w-4 h-4 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
                 />
                 <span class="text-sm text-gray-700">添加页码</span>
               </label>
@@ -120,7 +120,7 @@
                 <input
                   v-model="options.includeNotes"
                   type="checkbox"
-                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  class="w-4 h-4 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
                 />
                 <span class="text-sm text-gray-700">包含注释</span>
               </label>
@@ -130,7 +130,7 @@
                 <input
                   v-model="options.includeTags"
                   type="checkbox"
-                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  class="w-4 h-4 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
                 />
                 <span class="text-sm text-gray-700">包含标签</span>
               </label>
@@ -139,16 +139,16 @@
         </div>
 
         <!-- 导出提示 -->
-        <div v-if="isProject && format === 'zip'" class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div v-if="isProject && format === 'zip'" class="p-3 bg-secondary-50 border border-secondary-200 rounded-lg">
           <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-5 h-5 text-secondary-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fill-rule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 clip-rule="evenodd"
               />
             </svg>
-            <p class="text-sm text-blue-800">ZIP 格式将包含整个项目的所有文档和资源。</p>
+            <p class="text-sm text-secondary-800">ZIP 格式将包含整个项目的所有文档和资源。</p>
           </div>
         </div>
       </div>
@@ -166,7 +166,7 @@
         <button
           type="button"
           :disabled="exporting || !format"
-          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           @click="handleExport"
         >
           <svg
@@ -192,7 +192,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { exportApi } from '../api/export'
 import type { ExportFormat, ExportDocumentRequest, ExportProjectRequest, ExportOptions } from '../types/export'
 
@@ -292,7 +292,7 @@ async function handleExport(): Promise<void> {
     handleClose()
   } catch (error) {
     console.error('导出失败:', error)
-    ElMessage.error({
+    message.error({
       message: '导出失败，请稍后重试',
       duration: 3000
     })

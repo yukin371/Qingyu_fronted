@@ -79,9 +79,8 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage } from 'element-plus'
-import { Bell } from '@element-plus/icons-vue'
-
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -158,7 +157,7 @@ const isActive = (path: string): boolean => {
 }
 
 const showNotifications = () => {
-  ElMessage.info('通知功能开发中')
+  message.info('通知功能开发中')
 }
 
 const handleUserCommand = (command: string) => {
@@ -167,7 +166,7 @@ const handleUserCommand = (command: string) => {
       router.push('/account/profile')
       break
     case 'settings':
-      ElMessage.info('设置功能开发中')
+      message.info('设置功能开发中')
       break
     case 'logout':
       authStore.logout()

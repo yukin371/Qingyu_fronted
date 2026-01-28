@@ -2,8 +2,7 @@
  * WebSocket 核心服务
  * 提供实时消息推送功能，支持自动重连、心跳保活、消息队列
  */
-import { ElNotification } from 'element-plus'
-
+import { notification } from '@/design-system/services'
 export interface WebSocketConfig {
   url: string
   heartbeatInterval?: number  // 心跳间隔（毫秒）

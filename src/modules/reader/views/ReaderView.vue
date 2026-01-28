@@ -73,7 +73,7 @@
           <span class="chapter-num">{{ chapter.chapterNum }}</span>
           <span class="chapter-name">{{ chapter.title }}</span>
           <el-icon v-if="!chapter.isFree" class="lock-icon">
-            <Lock />
+            <QyIcon name="Lock"  />
           </el-icon>
         </div>
       </el-scrollbar>
@@ -169,11 +169,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
-import { ElMessage } from 'element-plus'
-import {
-  ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,
-  Minus, Plus, Lock, MagicStick
-} from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
 
 const route = useRoute()
@@ -312,7 +309,7 @@ const changeTheme = (theme: string) => {
 
 const resetSettings = () => {
   readerStore.resetSettings()
-  ElMessage.success('设置已重置')
+  message.success('设置已重置')
 }
 
 const handleProgressChange = (value: number) => {
@@ -341,7 +338,7 @@ const loadChapter = async () => {
     }
   } catch (error) {
     console.error('加载章节失败:', error)
-    ElMessage.error('加载章节失败')
+    message.error('加载章节失败')
   } finally {
     loading.value = false
   }

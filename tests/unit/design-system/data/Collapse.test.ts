@@ -5,8 +5,8 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
-import Collapse from '@/design-system/base/Collapse/Collapse.vue'
-import CollapseItem from '@/design-system/base/Collapse/CollapseItem.vue'
+import Collapse from '@/design-system/data/Collapse/Collapse.vue'
+import CollapseItem from '@/design-system/data/Collapse/CollapseItem.vue'
 
 describe('Collapse 组件', () => {
   describe('基础渲染', () => {

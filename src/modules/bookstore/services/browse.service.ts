@@ -32,34 +32,34 @@ export const browseService = {
       Object.entries(params).filter(([_, v]) => v !== undefined)
     )
 
-    return httpService.get('/api/books', { params: cleanParams })
+    return httpService.get('/bookstore/books', { params: cleanParams })
   },
 
   /**
    * 获取搜索建议
    */
   async getSearchSuggestions(query: string) {
-    return httpService.get('/api/books/suggestions', { params: { q: query } })
+    return httpService.get('/bookstore/books/suggestions', { params: { q: query } })
   },
 
   /**
    * 获取标签列表
    */
   async getTags(categoryId?: string) {
-    return httpService.get('/api/tags', { params: { categoryId } })
+    return httpService.get('/bookstore/tags', { params: { categoryId } })
   },
 
   /**
    * 获取分类列表
    */
   async getCategories() {
-    return httpService.get('/api/categories')
+    return httpService.get('/bookstore/categories/tree')
   },
 
   /**
    * 获取年份列表
    */
   async getYears() {
-    return httpService.get('/api/books/years')
+    return httpService.get('/bookstore/books/years')
   }
 }

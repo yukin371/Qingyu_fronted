@@ -3,7 +3,7 @@
     <div class="container">
       <el-empty description="成就详情页开发中，敬请期待...">
         <template #image>
-          <el-icon :size="120" color="#ddd"><Medal /></el-icon>
+          <el-icon :size="120" color="#ddd"><QyIcon name="Medal"  /></el-icon>
         </template>
       </el-empty>
     </div>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { Medal } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 </script>
 
 <style scoped lang="scss">

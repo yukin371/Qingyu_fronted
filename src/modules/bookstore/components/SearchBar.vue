@@ -7,7 +7,7 @@
       <!-- 前缀图标 -->
       <template #prefix>
         <el-icon class="search-icon">
-          <Search />
+          <QyIcon name="Search"  />
         </el-icon>
       </template>
 
@@ -33,7 +33,7 @@
 
             <!-- 删除历史记录按钮 -->
             <el-icon v-if="item.isHistory" class="delete-icon" @click.stop="removeHistoryItem(item.value)">
-              <Close />
+              <QyIcon name="Close"  />
             </el-icon>
           </div>
         </div>
@@ -54,9 +54,7 @@
 
     <!-- 热门搜索标签 -->
     <div v-if="showHotTags && hotTags.length > 0" class="hot-section">
-      <span class="hot-label"><el-icon>
-          <Trophy />
-        </el-icon> 热门搜索</span>
+      <span class="hot-label"><QyIcon name="Trophy"  /> 热门搜索</span>
       <div class="tags-wrapper">
         <span v-for="(tag, index) in hotTags" :key="tag" class="hot-tag" :class="`rank-${index + 1}`"
           @click="handleHotTagClick(tag)">
@@ -70,11 +68,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  Search, Document, User, Collection, Clock, Close, Trophy
-} from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-
+import { QyIcon } from '@/design-system/components'
+import { message } from '@/design-system/services'
 // --- 类型定义 ---
 interface SearchSuggestion {
   value: string

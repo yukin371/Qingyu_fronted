@@ -26,7 +26,7 @@ export const Default: Story = {
     template: `
       <Row>
         <Col :span="6">
-          <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1 (span=6)</div>
+          <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1 (span=6)</div>
         </Col>
         <Col :span="6">
           <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2 (span=6)</div>
@@ -51,7 +51,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="start" (默认)</h3>
           <Row justify="start">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -63,7 +63,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="center"</h3>
           <Row justify="center">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -75,7 +75,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="end"</h3>
           <Row justify="end">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -87,7 +87,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="space-between"</h3>
           <Row justify="space-between">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -99,7 +99,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="space-around"</h3>
           <Row justify="space-around">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -111,7 +111,7 @@ export const JustifyAlignment = {
           <h3 class="text-lg font-semibold mb-4">justify="space-evenly"</h3>
           <Row justify="space-evenly">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -135,7 +135,7 @@ export const AlignItems = {
           <h3 class="text-lg font-semibold mb-4">align="top" (默认)</h3>
           <Row align="top" class="bg-gray-100 dark:bg-gray-800 h-32">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4">短内容</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4">短内容</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4">中等高度内容</div>
@@ -152,7 +152,7 @@ export const AlignItems = {
           <h3 class="text-lg font-semibold mb-4">align="center"</h3>
           <Row align="center" class="bg-gray-100 dark:bg-gray-800 h-32">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4">短内容</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4">短内容</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4">中等高度内容</div>
@@ -169,7 +169,7 @@ export const AlignItems = {
           <h3 class="text-lg font-semibold mb-4">align="bottom"</h3>
           <Row align="bottom" class="bg-gray-100 dark:bg-gray-800 h-32">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4">短内容</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4">短内容</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4">中等高度内容</div>
@@ -186,7 +186,7 @@ export const AlignItems = {
           <h3 class="text-lg font-semibold mb-4">align="stretch"</h3>
           <Row align="stretch" class="bg-gray-100 dark:bg-gray-800 h-32">
             <Col :span="4">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 h-full">拉伸内容 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 h-full">拉伸内容 1</div>
             </Col>
             <Col :span="4">
               <div class="bg-green-100 dark:bg-green-900 p-4 h-full">拉伸内容 2</div>
@@ -213,7 +213,7 @@ export const GutterSpacing = {
           <h3 class="text-lg font-semibold mb-4">gutter={0} (默认)</h3>
           <Row :gutter="0">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -228,7 +228,7 @@ export const GutterSpacing = {
           <h3 class="text-lg font-semibold mb-4">gutter={8}</h3>
           <Row :gutter="8">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -243,7 +243,7 @@ export const GutterSpacing = {
           <h3 class="text-lg font-semibold mb-4">gutter={16}</h3>
           <Row :gutter="16">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -258,7 +258,7 @@ export const GutterSpacing = {
           <h3 class="text-lg font-semibold mb-4">gutter={24}</h3>
           <Row :gutter="24">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -273,7 +273,7 @@ export const GutterSpacing = {
           <h3 class="text-lg font-semibold mb-4">gutter={32}</h3>
           <Row :gutter="32">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2</div>
@@ -300,7 +300,7 @@ export const WrapBehavior = {
           <h3 class="text-lg font-semibold mb-4">wrap={true} (默认)</h3>
           <Row :wrap="true">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1 (6)</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1 (6)</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2 (6)</div>
@@ -322,7 +322,7 @@ export const WrapBehavior = {
           <div class="overflow-x-auto">
             <Row :wrap="false">
               <Col :span="6">
-                <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">列 1 (6)</div>
+                <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">列 1 (6)</div>
               </Col>
               <Col :span="6">
                 <div class="bg-green-100 dark:bg-green-900 p-4 rounded">列 2 (6)</div>
@@ -355,7 +355,7 @@ export const NestedLayout = {
         <h3 class="text-lg font-semibold mb-4">嵌套 Row 和 Col</h3>
         <Row :gutter="16">
           <Col :span="12">
-            <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded h-full">
+            <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded h-full">
               <h4 class="font-semibold mb-2">左侧区域 (12)</h4>
               <Row :gutter="8">
                 <Col :span="12">
@@ -398,7 +398,7 @@ export const ClassicLayouts = {
           <h3 class="text-lg font-semibold mb-4">三栏布局</h3>
           <Row :gutter="16">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">侧边栏 (6)</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">侧边栏 (6)</div>
             </Col>
             <Col :span="12">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">主内容 (12)</div>
@@ -413,7 +413,7 @@ export const ClassicLayouts = {
           <h3 class="text-lg font-semibold mb-4">两栏布局 (左窄右宽)</h3>
           <Row :gutter="16">
             <Col :span="8">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">侧边栏 (8)</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">侧边栏 (8)</div>
             </Col>
             <Col :span="16">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">主内容 (16)</div>
@@ -425,7 +425,7 @@ export const ClassicLayouts = {
           <h3 class="text-lg font-semibold mb-4">两栏布局 (左宽右窄)</h3>
           <Row :gutter="16">
             <Col :span="16">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">主内容 (16)</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">主内容 (16)</div>
             </Col>
             <Col :span="8">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">侧边栏 (8)</div>
@@ -437,7 +437,7 @@ export const ClassicLayouts = {
           <h3 class="text-lg font-semibold mb-4">四栏网格</h3>
           <Row :gutter="16">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">项目 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">项目 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">项目 2</div>
@@ -460,7 +460,7 @@ export const ClassicLayouts = {
           </Row>
           <Row :gutter="16" class="mb-4">
             <Col :span="6">
-              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded">卡片 1</div>
+              <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded">卡片 1</div>
             </Col>
             <Col :span="6">
               <div class="bg-green-100 dark:bg-green-900 p-4 rounded">卡片 2</div>
@@ -497,7 +497,7 @@ export const CombinedExample = {
         <h3 class="text-lg font-semibold mb-4">组合属性示例</h3>
         <Row justify="center" align="center" :gutter="24" :wrap="true">
           <Col :span="6">
-            <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded text-center">
+            <div class="bg-secondary-100 dark:bg-secondary-900 p-4 rounded text-center">
               <div class="text-2xl mb-2">📦</div>
               <div class="font-semibold">功能 1</div>
               <div class="text-sm text-gray-600 dark:text-gray-400">描述文本</div>

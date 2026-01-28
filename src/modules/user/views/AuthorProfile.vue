@@ -47,7 +47,7 @@
                 >
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -59,8 +59,8 @@
                     <span class="word-count">{{ formatNumber(book.word_count) }} 字</span>
                   </div>
                   <div class="book-stats">
-                    <span><el-icon><View /></el-icon> {{ formatNumber(book.read_count || 0) }}</span>
-                    <span><el-icon><Star /></el-icon> {{ formatNumber(book.favorite_count || 0) }}</span>
+                    <span><QyIcon name="View"  /> {{ formatNumber(book.read_count || 0) }}</span>
+                    <span><QyIcon name="Star"  /> {{ formatNumber(book.favorite_count || 0) }}</span>
                   </div>
                 </div>
               </div>
@@ -92,8 +92,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Picture, View, Star } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
@@ -135,7 +135,7 @@ const loadUserProfile = async () => {
     }
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
-    ElMessage.error('加载用户信息失败')
+    message.error('加载用户信息失败')
   } finally {
     loading.value = false
   }
@@ -155,7 +155,7 @@ const loadBooks = async () => {
     pagination.value.total = response.data.total || 0
   } catch (error: any) {
     console.error('加载作品列表失败:', error)
-    ElMessage.error('加载作品列表失败')
+    message.error('加载作品列表失败')
   } finally {
     loadingBooks.value = false
   }
@@ -164,7 +164,7 @@ const loadBooks = async () => {
 // 处理关注
 const handleFollow = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     router.push('/auth')
     return
   }
@@ -173,13 +173,13 @@ const handleFollow = async () => {
     // TODO: 调用关注API
     await httpService.post(`/users/${userId.value}/follow`)
     isFollowing.value = true
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     if (userStats.value) {
       userStats.value.followerCount++
     }
   } catch (error: any) {
     console.error('关注失败:', error)
-    ElMessage.error('关注失败')
+    message.error('关注失败')
   }
 }
 
@@ -189,19 +189,19 @@ const handleUnfollow = async () => {
     // TODO: 调用取消关注API
     await httpService.delete(`/users/${userId.value}/follow`)
     isFollowing.value = false
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     if (userStats.value && userStats.value.followerCount > 0) {
       userStats.value.followerCount--
     }
   } catch (error: any) {
     console.error('取消关注失败:', error)
-    ElMessage.error('取消关注失败')
+    message.error('取消关注失败')
   }
 }
 
 // 处理私信
 const handleMessage = () => {
-  ElMessage.info('私信功能开发中')
+  message.info('私信功能开发中')
 }
 
 // 前往书籍详情

@@ -244,7 +244,7 @@ notification.closeAll()
 ```vue
 <Notification
   message="自定义样式"
-  class="border-2 border-blue-500"
+  class="border-2 border-info-500"
 />
 ```
 

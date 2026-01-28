@@ -4,7 +4,7 @@
       <!-- 页面头部 -->
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><TrendCharts /></el-icon>
+          <QyIcon name="TrendCharts"  />
           排行榜
         </h1>
         <p class="page-subtitle">发现最热门的作品</p>
@@ -120,9 +120,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import RankingList from '../components/RankingList.vue'
-import { TrendCharts } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-
+import { QyIcon } from '@/design-system/components'
+import { message } from '@/design-system/services'
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
 
@@ -170,7 +169,7 @@ const loadRankingData = async (type: string) => {
     // 检查是否还有更多数据（这里简化处理，实际应从API返回判断）
     hasMore[type] = (rankings.value[type]?.length || 0) >= 50
   } catch (error: any) {
-    ElMessage.error(`加载${type}榜单失败: ${error.message}`)
+    message.error(`加载${type}榜单失败: ${error.message}`)
   } finally {
     loading[type] = false
   }
@@ -192,7 +191,7 @@ const loadMore = async (type: string) => {
     // 由于当前API不支持分页，这里只是重新加载
     await bookstoreStore.fetchRankings(type as any)
   } catch (error: any) {
-    ElMessage.error(`加载更多失败: ${error.message}`)
+    message.error(`加载更多失败: ${error.message}`)
   } finally {
     loadingMore[type] = false
   }
@@ -204,7 +203,7 @@ const handleItemClick = (item: any) => {
   if (bookId) {
     router.push(`/bookstore/books/${bookId}`)
   } else {
-    ElMessage.warning('无法获取书籍信息')
+    message.warning('无法获取书籍信息')
   }
 }
 

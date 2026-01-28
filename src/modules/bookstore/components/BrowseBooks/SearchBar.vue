@@ -3,6 +3,8 @@
     <div class="input-wrapper">
       <Icon name="magnifying-glass" class="search-icon" />
       <input
+        id="browse-search-input"
+        name="search"
         :value="modelValue"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @keyup.enter="handleEnter"

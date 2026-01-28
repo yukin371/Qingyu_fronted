@@ -138,7 +138,7 @@ export const AutoClose: Story = {
         <p class="text-gray-600 mb-4">消息将在 3 秒后自动关闭</p>
         <button
           @click="show"
-          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          class="px-4 py-2 bg-info-500 text-white rounded-md hover:bg-info-600"
         >
           显示消息
         </button>
@@ -286,7 +286,7 @@ export const GlobalCall: Story = {
           </button>
           <button
             @click="showInfo"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            class="px-4 py-2 bg-info-500 text-white rounded-md hover:bg-info-600"
           >
             Info
           </button>

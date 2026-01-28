@@ -6,7 +6,7 @@
         <h1>成就系统</h1>
         <div class="level-info">
           <div class="level-badge">
-            <el-icon :size="32"><Trophy /></el-icon>
+            <el-icon :size="32"><QyIcon name="Trophy"  /></el-icon>
           </div>
           <div class="level-text">
             <div class="level-title">Lv.1</div>
@@ -20,7 +20,7 @@
         <el-empty description="成就系统开发中，敬请期待...">
           <template #image>
             <el-icon :size="120" color="#ddd">
-              <Medal />
+              <QyIcon name="Medal"  />
             </el-icon>
           </template>
         </el-empty>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { Trophy, Medal } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 </script>
 
 <style scoped lang="scss">

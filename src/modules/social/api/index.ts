@@ -1,7 +1,5 @@
-/**
- * 社交模块 API 统一导出
- */
-export * from './booklist'
-export * from './follow'
-export * from './message'
-export * from './review'
+// ✅ 默认使用生成的 API
+export * from './generated/social'
+
+// 🔁 需要回滚时，改成：
+// export * from './manual'

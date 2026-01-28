@@ -67,8 +67,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 interface Props {
   bookId: string
 }
@@ -109,9 +108,9 @@ const submitRating = async () => {
     // await submitBookRating(props.bookId, userRatingValue.value)
     userRating.value = userRatingValue.value
     userRatingValue.value = 0
-    ElMessage.success('评分成功')
+    message.success('评分成功')
   } catch (error) {
-    ElMessage.error('评分失败，请重试')
+    message.error('评分失败，请重试')
   } finally {
     submittingRating.value = false
   }

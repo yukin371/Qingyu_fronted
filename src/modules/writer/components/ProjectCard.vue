@@ -5,9 +5,7 @@
       <el-image v-if="project.coverUrl" :src="project.coverUrl" fit="cover" class="cover-image" loading="lazy">
         <template #error>
           <div class="cover-placeholder error">
-            <el-icon>
-              <Picture />
-            </el-icon>
+            <QyIcon name="Picture"  />
           </div>
         </template>
       </el-image>
@@ -38,18 +36,14 @@
         <div class="meta-row">
           <el-tooltip content="总字数">
             <div class="meta-item">
-              <el-icon>
-                <EditPen />
-              </el-icon>
+              <QyIcon name="EditPen"  />
               <span>{{ formatNumber(project.statistics?.totalWords || 0) }}</span>
             </div>
           </el-tooltip>
 
           <el-tooltip content="章节数">
             <div class="meta-item">
-              <el-icon>
-                <DocumentCopy />
-              </el-icon>
+              <QyIcon name="DocumentCopy"  />
               <span>{{ project.statistics?.chapterCount || 0 }} 章</span>
             </div>
           </el-tooltip>
@@ -68,17 +62,13 @@
       <div class="card-actions">
         <el-tooltip content="编辑书籍">
           <el-button link class="action-btn primary" @click.stop="$emit('edit', project)">
-            <el-icon>
-              <Edit />
-            </el-icon>
+            <QyIcon name="Edit"  />
           </el-button>
         </el-tooltip>
 
         <el-tooltip content="数据统计">
           <el-button link class="action-btn" @click.stop="$emit('statistics', project)">
-            <el-icon>
-              <DataLine />
-            </el-icon>
+            <QyIcon name="DataLine"  />
           </el-button>
         </el-tooltip>
 
@@ -86,9 +76,7 @@
 
         <el-tooltip content="删除项目">
           <el-button link class="action-btn danger" @click.stop="$emit('delete', project.id)">
-            <el-icon>
-              <Delete />
-            </el-icon>
+            <QyIcon name="Delete"  />
           </el-button>
         </el-tooltip>
       </div>
@@ -98,10 +86,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  Edit, DataLine, Delete, Picture,
-  DocumentCopy, EditPen
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Project } from '@/modules/writer/types/project'
 import { ProjectStatus } from '@/modules/writer/types/project'
 import dayjs from 'dayjs'

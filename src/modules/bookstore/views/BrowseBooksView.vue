@@ -78,14 +78,14 @@
 
           <!-- 桌面端分页 -->
           <div v-if="!browseStore.isMobile" class="pagination-section">
-            <el-pagination
-              v-model:current-page="browseStore.filters.page"
+            <Pagination
+              :current-page="browseStore.filters.page"
               :page-size="browseStore.filters.pageSize"
               :total="browseStore.pagination.total"
               :page-sizes="[12, 24, 36, 48]"
               layout="total, sizes, prev, pager, next"
-              @current-change="handlePageChange"
-              @size-change="handleSizeChange"
+              @update:current-page="handlePageChange"
+              @update:page-size="handleSizeChange"
             />
           </div>
 
@@ -141,6 +141,7 @@ import BookGridSkeleton from '../components/BrowseBooks/BookGridSkeleton.vue'
 import { Button } from '@/design-system/base/Button'
 import { Icon } from '@/design-system/base/Icon'
 import { Empty } from '@/design-system/base/Empty'
+import { Pagination } from '@/design-system/data'
 
 const browseStore = useBrowseStore()
 const metaStore = useMetaStore()
@@ -342,10 +343,6 @@ onMounted(async () => {
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid #e8e8e8;
-
-  :deep(.el-pagination) {
-    justify-content: center;
-  }
 }
 
 .load-more-section {

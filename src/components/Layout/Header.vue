@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link to="/bookstore" class="flex items-center space-x-2">
-          <div class="text-2xl font-bold text-blue-600">青羽</div>
+          <div class="text-2xl font-bold text-primary-600">青羽</div>
           <span class="text-gray-600 text-sm">写作平台</span>
         </router-link>
 
@@ -12,22 +12,22 @@
         <nav class="hidden md:flex items-center space-x-6">
           <router-link
             to="/bookstore"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
             书城
           </router-link>
           <router-link
             v-if="authStore.isLoggedIn"
             to="/writer/projects"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
             创作中心
           </router-link>
           <router-link
             to="/bookstore/search"
-            class="text-gray-700 hover:text-blue-600 transition-colors"
+            class="text-gray-700 hover:text-primary-600 transition-colors"
           >
-            <el-icon><Search /></el-icon>
+            <QyIcon name="Search" :size="20" />
           </router-link>
         </nav>
 
@@ -40,12 +40,13 @@
                 <el-avatar
                   :size="32"
                   :src="authStore.user?.avatar"
-                  :icon="UserFilled"
-                />
+                >
+                  <QyIcon name="UserFilled" :size="20" />
+                </el-avatar>
                 <span class="text-sm font-medium text-gray-700">
                   {{ authStore.user?.nickname || authStore.user?.username }}
                 </span>
-                <el-icon><ArrowDown /></el-icon>
+                <QyIcon name="ArrowDown" :size="16" />
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -77,8 +78,8 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
-import { Search, UserFilled, ArrowDown } from '@element-plus/icons-vue'
+import { messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -105,7 +106,7 @@ async function handleCommand(command: string) {
 // 退出登录
 async function handleLogout() {
   try {
-    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    await messageBox.confirm('确定要退出登录吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',

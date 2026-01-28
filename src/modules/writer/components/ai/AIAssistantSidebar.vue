@@ -86,15 +86,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useWriterStore } from '../../stores/writerStore'
-import { ElMessage } from 'element-plus'
-import {
-  MagicStick,
-  Close,
-  ArrowLeft,
-  ArrowRight,
-  DocumentCopy,
-  CopyDocument
-} from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as AIChatPanel from './AIChatPanel.vue'
 import * as AIToolsPanel from './AIToolsPanel.vue'
 import * as AIAgentPanel from './AIAgentPanel.vue'
@@ -152,14 +145,14 @@ const handleSendMessage = async (message: string) => {
   try {
     await writerStore.sendChatMessage(message)
   } catch (error: any) {
-    ElMessage.error(error.message || '发送消息失败')
+    message.error(error.message || '发送消息失败')
   }
 }
 
 // 清空聊天历史
 const handleClearHistory = () => {
   writerStore.clearChatHistory()
-  ElMessage.success('聊天历史已清空')
+  message.success('聊天历史已清空')
 }
 
 // 生成内容
@@ -182,9 +175,9 @@ const handleGenerate = async (params: any) => {
         break
     }
 
-    ElMessage.success('生成成功')
+    message.success('生成成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '生成失败')
+    message.error(error.message || '生成失败')
   }
 }
 
@@ -192,27 +185,27 @@ const handleGenerate = async (params: any) => {
 const handleInsert = () => {
   const text = writerStore.ai?.lastResult
   if (!text) {
-    ElMessage.warning('没有可插入的内容')
+    message.warning('没有可插入的内容')
     return
   }
 
   emit('insert', text)
-  ElMessage.success('已插入到编辑器')
+  message.success('已插入到编辑器')
 }
 
 // 复制到剪贴板
 const handleCopy = async () => {
   const text = writerStore.ai?.lastResult
   if (!text) {
-    ElMessage.warning('没有可复制的内容')
+    message.warning('没有可复制的内容')
     return
   }
 
   try {
     await navigator.clipboard.writeText(text)
-    ElMessage.success('已复制到剪贴板')
+    message.success('已复制到剪贴板')
   } catch {
-    ElMessage.error('复制失败')
+    message.error('复制失败')
   }
 }
 

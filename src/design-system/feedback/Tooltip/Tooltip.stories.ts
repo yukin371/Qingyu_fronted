@@ -82,7 +82,7 @@ export const Default: Story = {
     template: `
       <div class="p-8">
         <Tooltip v-bind="args">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             鼠标悬停查看提示
           </button>
         </Tooltip>
@@ -101,7 +101,7 @@ export const Placements: Story = {
           <!-- Top -->
           <div class="col-start-2 flex justify-center">
             <Tooltip placement="top" content="Top 提示">
-              <button class="px-4 py-2 bg-blue-500 text-white rounded">Top</button>
+              <button class="px-4 py-2 bg-secondary-500 text-white rounded">Top</button>
             </Tooltip>
           </div>
 
@@ -109,13 +109,13 @@ export const Placements: Story = {
           <div class="flex items-center justify-between">
             <div>
               <Tooltip placement="left" content="Left 提示">
-                <button class="px-4 py-2 bg-blue-500 text-white rounded">Left</button>
+                <button class="px-4 py-2 bg-secondary-500 text-white rounded">Left</button>
               </Tooltip>
             </div>
             <div class="text-gray-400 text-sm">触发位置</div>
             <div>
               <Tooltip placement="right" content="Right 提示">
-                <button class="px-4 py-2 bg-blue-500 text-white rounded">Right</button>
+                <button class="px-4 py-2 bg-secondary-500 text-white rounded">Right</button>
               </Tooltip>
             </div>
           </div>
@@ -123,7 +123,7 @@ export const Placements: Story = {
           <!-- Bottom -->
           <div class="col-start-2 flex justify-center">
             <Tooltip placement="bottom" content="Bottom 提示">
-              <button class="px-4 py-2 bg-blue-500 text-white rounded">Bottom</button>
+              <button class="px-4 py-2 bg-secondary-500 text-white rounded">Bottom</button>
             </Tooltip>
           </div>
         </div>
@@ -141,69 +141,69 @@ export const AllPlacements: Story = {
         <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
           <div class="text-center">
             <Tooltip placement="top-start" content="Top Start">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Top Start</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Top Start</button>
             </Tooltip>
           </div>
           <div class="text-center">
             <Tooltip placement="top" content="Top">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Top</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Top</button>
             </Tooltip>
           </div>
           <div class="text-center">
             <Tooltip placement="top-end" content="Top End">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Top End</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Top End</button>
             </Tooltip>
           </div>
 
           <div class="text-right">
             <Tooltip placement="left-start" content="Left Start">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Left Start</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Left Start</button>
             </Tooltip>
           </div>
           <div class="text-center text-gray-400 text-xs">触发区域</div>
           <div class="text-left">
             <Tooltip placement="right-start" content="Right Start">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Right Start</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Right Start</button>
             </Tooltip>
           </div>
 
           <div class="text-right">
             <Tooltip placement="left" content="Left">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Left</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Left</button>
             </Tooltip>
           </div>
           <div></div>
           <div class="text-left">
             <Tooltip placement="right" content="Right">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Right</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Right</button>
             </Tooltip>
           </div>
 
           <div class="text-right">
             <Tooltip placement="left-end" content="Left End">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Left End</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Left End</button>
             </Tooltip>
           </div>
           <div></div>
           <div class="text-left">
             <Tooltip placement="right-end" content="Right End">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Right End</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Right End</button>
             </Tooltip>
           </div>
 
           <div class="text-center">
             <Tooltip placement="bottom-start" content="Bottom Start">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Bottom Start</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Bottom Start</button>
             </Tooltip>
           </div>
           <div class="text-center">
             <Tooltip placement="bottom" content="Bottom">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Bottom</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Bottom</button>
             </Tooltip>
           </div>
           <div class="text-center">
             <Tooltip placement="bottom-end" content="Bottom End">
-              <button class="px-3 py-1 bg-blue-500 text-white text-sm rounded">Bottom End</button>
+              <button class="px-3 py-1 bg-secondary-500 text-white text-sm rounded">Bottom End</button>
             </Tooltip>
           </div>
         </div>
@@ -221,7 +221,7 @@ export const DarkTheme: Story = {
         <h3 class="text-lg font-semibold text-white mb-8">暗色主题</h3>
         <div class="flex gap-8">
           <Tooltip effect="dark" content="暗色提示">
-            <button class="px-4 py-2 bg-blue-500 text-white rounded">Dark Tooltip</button>
+            <button class="px-4 py-2 bg-secondary-500 text-white rounded">Dark Tooltip</button>
           </Tooltip>
           <Tooltip effect="light" content="亮色提示">
             <button class="px-4 py-2 bg-green-500 text-white rounded">Light Tooltip</button>
@@ -239,7 +239,7 @@ export const ClickTrigger: Story = {
     template: `
       <div class="p-8 space-y-4">
         <Tooltip trigger="click" content="点击触发的提示">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             点击我
           </button>
         </Tooltip>
@@ -266,7 +266,7 @@ export const FocusTrigger: Story = {
             <input
               type="text"
               placeholder="用户名"
-              class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
           </Tooltip>
         </div>
@@ -277,7 +277,7 @@ export const FocusTrigger: Story = {
             <input
               type="password"
               placeholder="密码"
-              class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
           </Tooltip>
         </div>
@@ -306,7 +306,7 @@ export const Disabled: Story = {
         </div>
 
         <Tooltip :disabled="disabled" content="这个提示可能被禁用">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600">
             鼠标悬停查看提示
           </button>
         </Tooltip>
@@ -322,7 +322,7 @@ export const MoreContent: Story = {
     template: `
       <div class="p-8 space-y-4">
         <Tooltip content="这是一段较长的提示文本，可以包含更多的信息和说明。">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded">长文本提示</button>
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded">长文本提示</button>
         </Tooltip>
 
         <Tooltip
@@ -354,7 +354,7 @@ export const CustomContent: Story = {
               <div class="text-xs opacity-80">这是自定义的提示内容</div>
             </div>
           </template>
-          <button class="px-4 py-2 bg-blue-500 text-white rounded">自定义内容</button>
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded">自定义内容</button>
         </Tooltip>
 
         <Tooltip>
@@ -390,7 +390,7 @@ export const Delayed: Story = {
         <div>
           <p class="text-sm text-gray-600 mb-2">延迟 500ms 显示</p>
           <Tooltip :open-delay="500" content="延迟 500ms 显示的提示">
-            <button class="px-4 py-2 bg-blue-500 text-white rounded">延迟显示</button>
+            <button class="px-4 py-2 bg-secondary-500 text-white rounded">延迟显示</button>
           </Tooltip>
         </div>
 
@@ -412,7 +412,7 @@ export const WithoutArrow: Story = {
     template: `
       <div class="p-8 space-y-4">
         <Tooltip :show-arrow="false" content="不显示箭头的提示">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded">无箭头提示</button>
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded">无箭头提示</button>
         </Tooltip>
 
         <Tooltip :show-arrow="false" placement="right" content="右侧无箭头提示">
@@ -430,15 +430,15 @@ export const CustomOffset: Story = {
     template: `
       <div class="p-16">
         <Tooltip placement="bottom" :offset="8" content="偏移 8px">
-          <button class="px-4 py-2 bg-blue-500 text-white rounded">8px</button>
+          <button class="px-4 py-2 bg-secondary-500 text-white rounded">8px</button>
         </Tooltip>
 
         <Tooltip placement="bottom" :offset="16" content="偏移 16px">
-          <button class="px-4 py-2 bg-blue-600 text-white rounded ml-4">16px</button>
+          <button class="px-4 py-2 bg-secondary-600 text-white rounded ml-4">16px</button>
         </Tooltip>
 
         <Tooltip placement="bottom" :offset="24" content="偏移 24px">
-          <button class="px-4 py-2 bg-blue-700 text-white rounded ml-4">24px</button>
+          <button class="px-4 py-2 bg-secondary-700 text-white rounded ml-4">24px</button>
         </Tooltip>
       </div>
     `,
@@ -555,7 +555,7 @@ export const ManualControl: Story = {
         <div class="flex gap-2">
           <button
             @click="visible = true"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            class="px-4 py-2 bg-secondary-500 text-white rounded hover:bg-secondary-600"
           >
             显示
           </button>

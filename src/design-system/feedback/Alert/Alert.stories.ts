@@ -198,13 +198,13 @@ export const CustomContent: Story = {
           <template #title>
             <span class="flex items-center gap-2">
               自定义标题
-              <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">New</span>
+              <span class="text-xs bg-secondary-100 text-secondary-800 px-2 py-0.5 rounded">New</span>
             </span>
           </template>
           <template #default>
             <div class="space-y-2">
               <p>这是自定义的描述内容</p>
-              <a href="#" class="text-blue-600 hover:underline">了解更多</a>
+              <a href="#" class="text-secondary-600 hover:underline">了解更多</a>
             </div>
           </template>
         </Alert>

@@ -134,3 +134,60 @@ export const tailwindSpacing = Object.fromEntries(
 export const tailwindBorderRadius = Object.fromEntries(
   Object.entries(borderRadius).map(([k, v]) => [k, v])
 )
+
+// Apple 风格玻璃拟态间距
+export const glassmorphism = {
+  // 玻璃卡片内边距
+  card: {
+    sm: base[4],  // 16px - 小玻璃卡片
+    md: base[6],  // 24px - 中等玻璃卡片
+    lg: base[8],  // 32px - 大玻璃卡片
+  },
+  // 模糊区域外边距
+  blur: {
+    sm: base[2],  // 8px - 小模糊区域
+    md: base[3],  // 12px - 中等模糊区域
+    lg: base[4],  // 16px - 大模糊区域
+  },
+  // 浮动元素阴影扩散距离
+  floatShadow: {
+    sm: base[2],  // 8px
+    md: base[4],  // 16px
+    lg: base[6],  // 24px
+  },
+} as const
+
+// Apple 风格栅格间距
+export const grid = {
+  // macOS 风格窗口栅格
+  macWindow: base[4],  // 16px - 窗口之间的间距
+  // iOS 风格应用网格
+  iosApp: base[3],     // 12px - 应用图标之间的间距
+  // 仪表盘卡片栅格
+  dashboard: base[6],  // 24px - 仪表盘卡片间距
+} as const
+
+// Apple 风格动画时序
+export const animation = {
+  // 标准动画时长
+  duration: {
+    instant: '150ms',
+    fast: '200ms',
+    standard: '300ms',
+    slow: '500ms',
+  },
+  // 缓动函数
+  easing: {
+    // iOS 风格
+    ios: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+    // macOS 风格
+    mac: 'cubic-bezier(0.42, 0, 0.58, 1)',
+    // 自定义弹性
+    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  },
+} as const
+
+// 类型定义
+export type GlassmorphismSpacing = typeof glassmorphism
+export type GridSpacing = typeof grid
+export type AnimationTiming = typeof animation

@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { Refresh, Plus, Minus } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatCurrency } from '@/utils/currency'
 
 interface Props {

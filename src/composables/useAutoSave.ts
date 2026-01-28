@@ -5,8 +5,7 @@
  */
 
 import { ref, watch, onUnmounted, Ref } from 'vue'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 export interface AutoSaveOptions {
   delay?: number // 防抖延迟（毫秒）
   onSave: (data: any) => Promise<void> // 保存函数
@@ -75,7 +74,7 @@ export function useAutoSave<T>(
           performSave()
         }, retryDelay)
       } else {
-        ElMessage.error('保存失败，请手动保存')
+        message.error('保存失败，请手动保存')
         onError?.(error)
         retryCount = 0
       }

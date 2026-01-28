@@ -1,0 +1,448 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mE:/Github/Qingyu/Qingyu_fronted[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+[90mstdout[2m | tests/unit/design-system/base/Avatar.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Image.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Checkbox.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Tag.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Icon.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Textarea.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Card.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Skeleton.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Button.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/List.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Badge.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Divider.test.ts
+[22m[39m✅ Unit test setup completed
+
+[90mstdout[2m | tests/unit/design-system/base/Empty.test.ts
+[22m[39m✅ Unit test setup completed
+
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m基础渲染[2m > [22m应该正确渲染组件
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m基础渲染[2m > [22m应该设置正确的 aria-label
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m基础渲染[2m > [22m应该在无 alt 时显示问号
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22mFallback 文字[2m > [22m应该显示英文名首字母
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22mFallback 文字[2m > [22m应该显示单个单词的首字母
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22mFallback 文字[2m > [22m应该显示中文的第一个字
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22mFallback 文字[2m > [22m应该正确处理多余空格
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m图片渲染[2m > [22m应该渲染图片元素
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m图片渲染[2m > [22m应该在图片加载失败时显示 fallback
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m图片渲染[2m > [22m应该在没有 src 时显示 fallback
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 xs 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 sm 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 md 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 lg 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 xl 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 2xl 尺寸样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m形状变体[2m > [22m应该正确应用 circle 样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m形状变体[2m > [22m应该正确应用 square 样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m形状变体[2m > [22m应该正确应用 rounded 样式
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该显示 online 状态
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该显示 offline 状态
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该显示 away 状态
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该显示 busy 状态
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该在 disableStatus 为 true 时不显示状态指示器
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m状态指示器[2m > [22m应该在无 status 时不显示状态指示器
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m点击事件[2m > [22m应该正确触发点击事件
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m自定义类名[2m > [22m应该正确应用自定义类名
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m默认属性[2m > [22m应该使用默认尺寸 md
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m默认属性[2m > [22m应该使用默认形状 circle
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m默认属性[2m > [22m应该使用默认 disableStatus false
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m可访问性[2m > [22m应该设置正确的 role 属性
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m可访问性[2m > [22m应该为状态指示器设置 aria-hidden
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m响应式[2m > [22m应该在 src prop 变化时更新图片
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m响应式[2m > [22m应该在 alt prop 变化时更新 fallback 文字
+ [32m✓[39m tests/unit/design-system/base/Avatar.test.ts[2m > [22mAvatar.vue[2m > [22m响应式[2m > [22m应该在 status prop 变化时更新状态指示器
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m基础渲染[2m > [22m应该正确渲染默认的水平分隔线
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m基础渲染[2m > [22m应该应用正确的容器类名
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m基础渲染[2m > [22m应该应用正确的线条样式
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m方向切换[2m > [22m应该正确渲染垂直分隔线
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m方向切换[2m > [22m垂直分隔线应该使用 border-l 而不是 border-t
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m方向切换[2m > [22m水平分隔线应该使用 border-t
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m标签文字[2m > [22m应该显示标签文字
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m标签文字[2m > [22m标签应该有正确的样式类
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m标签文字[2m > [22m有标签时应该渲染两条线
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m标签文字[2m > [22m无标签时只渲染一条线
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m标签文字[2m > [22m标签应该是不可换行的
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m变体样式[2m > [22m应该正确应用 solid 变体
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m变体样式[2m > [22m应该正确应用 dashed 变体
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m变体样式[2m > [22m应该正确应用 dotted 变体
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m变体样式[2m > [22m默认应该使用 solid 变体
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m深色模式[2m > [22m应该支持深色模式样式
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m深色模式[2m > [22m标签在深色模式下应该有正确的颜色
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m组合使用[2m > [22m应该同时支持方向和标签
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m组合使用[2m > [22m应该同时支持变体和标签
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m组合使用[2m > [22m应该同时支持所有属性
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m自定义类名[2m > [22m应该支持自定义类名
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m响应式行为[2m > [22m水平分隔线应该占满容器宽度
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m响应式行为[2m > [22m垂直分隔线应该占满容器高度
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m边缘情况[2m > [22m空标签不应该显示内容
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m边缘情况[2m > [22m非常长的标签应该正确显示
+ [32m✓[39m tests/unit/design-system/base/Divider.test.ts[2m > [22mDivider 组件[2m > [22m边缘情况[2m > [22m包含特殊字符的标签应该正确显示
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该正确渲染默认的 text 类型骨架
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该正确渲染 circle 类型骨架
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该正确渲染 rect 类型骨架
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该正确渲染 avatar 类型骨架
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该正确渲染 image 类型骨架
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m基础渲染[2m > [22m应该设置 aria-hidden 为 true
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 text 类型的 xs 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 text 类型的 sm 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 text 类型的 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 text 类型的 lg 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 text 类型的 xl 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 circle 类型的 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 rect 类型的 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 avatar 类型的 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m尺寸变体[2m > [22m应该正确应用 image 类型的 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义尺寸[2m > [22m应该正确应用自定义宽度
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义尺寸[2m > [22m应该正确应用自定义高度
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义尺寸[2m > [22m应该正确应用自定义宽度和高度
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义尺寸[2m > [22m自定义尺寸应该覆盖默认尺寸类
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m动画效果[2m > [22m默认应该有动画效果
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m动画效果[2m > [22m应该支持禁用动画
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m动画效果[2m > [22m应该支持启用动画
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义类名[2m > [22m应该支持自定义类名
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m自定义类名[2m > [22m应该保留基础类名
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m组合使用[2m > [22m应该可以组合多个 Skeleton 组件
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m组合使用[2m > [22m应该可以在卡片中组合使用
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m暗色模式[2m > [22m应该支持暗色模式样式
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m响应式更新[2m > [22m应该响应 type 属性变化
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m响应式更新[2m > [22m应该响应 size 属性变化
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m响应式更新[2m > [22m应该响应 animated 属性变化
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m响应式更新[2m > [22m应该响应 width 属性变化
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m边界情况[2m > [22m应该处理空字符串宽度
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m边界情况[2m > [22m应该处理空字符串高度
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m边界情况[2m > [22m应该处理百分比尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m边界情况[2m > [22m应该处理像素尺寸
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m边界情况[2m > [22m应该处理 rem 单位
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m默认值[2m > [22m应该使用默认的 type 为 text
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m默认值[2m > [22m应该使用默认的 size 为 md
+ [32m✓[39m tests/unit/design-system/base/Skeleton.test.ts[2m > [22mSkeleton 组件[2m > [22m默认值[2m > [22m应该使用默认的 animated 为 true
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m基础渲染[2m > [22m应该正确渲染默认状态
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m基础渲染[2m > [22m应该渲染自定义描述
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m基础渲染[2m > [22m应该渲染标题
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m尺寸变体[2m > [22m应该正确渲染 sm 尺寸
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m尺寸变体[2m > [22m应该正确渲染 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m尺寸变体[2m > [22m应该正确渲染 lg 尺寸
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m尺寸变体[2m > [22m应该正确渲染 xl 尺寸
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m图标渲染[2m > [22m当没有提供 icon 时不应该渲染图标
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m图标渲染[2m > [22m应该渲染指定的图标
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m插槽[2m > [22m应该渲染 action 插槽内容
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m插槽[2m > [22m应该渲染默认插槽内容
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m事件[2m > [22m应该触发点击事件
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m样式类名[2m > [22m应该应用自定义类名
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m样式类名[2m > [22m应该包含正确的布局类名
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m可访问性[2m > [22m应该有正确的 role 属性
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m可访问性[2m > [22m应该有 aria-live 属性
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m文字样式[2m > [22mmd 尺寸应该有正确的文字大小
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22m文字样式[2m > [22mxl 尺寸应该有更大的文字
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22mProps 默认值[2m > [22mdescription 默认值应该是 "暂无数据"
+ [32m✓[39m tests/unit/design-system/base/Empty.test.ts[2m > [22mEmpty 组件[2m > [22mProps 默认值[2m > [22msize 默认值应该是 "md"
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m基础渲染[2m > [22m应该正确渲染组件
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m基础渲染[2m > [22m应该设置正确的 aria-label
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m基础渲染[2m > [22m应该在加载时显示骨架屏
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m图片渲染[2m > [22m应该渲染图片元素
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m图片渲染[2m > [22m应该在图片加载完成后隐藏骨架屏[33m 589[2mms[22m[39m
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m图片渲染[2m > [22m应该在图片加载失败时显示错误状态
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m图片渲染[2m > [22m应该在没有 src 时显示错误状态
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m懒加载[2m > [22m应该默认启用懒加载
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m懒加载[2m > [22m应该支持禁用懒加载
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 xs 尺寸
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 md 尺寸
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m尺寸变体[2m > [22m应该正确应用 full 尺寸
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m形状变体[2m > [22m应该正确应用 rect 形状
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m形状变体[2m > [22m应该正确应用 circle 形状
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m形状变体[2m > [22m应该正确应用 rounded 形状
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m对象填充方式[2m > [22m应该正确应用 cover 填充
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m对象填充方式[2m > [22m应该正确应用 contain 填充
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m对象填充方式[2m > [22m应该正确应用 fill 填充
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m对象填充方式[2m > [22m应该默认使用 cover 填充
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m自定义尺寸[2m > [22m应该支持自定义宽度
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m自定义尺寸[2m > [22m应该支持自定义高度
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m自定义尺寸[2m > [22m应该同时支持自定义宽高
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m自定义尺寸[2m > [22m自定义尺寸应该覆盖预设尺寸
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m骨架屏[2m > [22m应该默认显示骨架屏
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m骨架屏[2m > [22m应该支持禁用骨架屏
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22mFallback 图标[2m > [22m应该支持自定义 fallback 图标
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22mFallback 图标[2m > [22m应该默认使用 document 图标
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m事件处理[2m > [22m应该正确触发 load 事件
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m事件处理[2m > [22m应该正确触发 error 事件
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m事件处理[2m > [22m应该正确触发 click 事件
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m自定义类名[2m > [22m应该正确应用自定义类名
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m默认属性[2m > [22m应该使用默认尺寸 md
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m默认属性[2m > [22m应该使用默认形状 rect
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m默认属性[2m > [22m应该使用默认填充方式 cover
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m默认属性[2m > [22m应该默认启用懒加载
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m默认属性[2m > [22m应该默认显示骨架屏
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m可访问性[2m > [22m应该设置正确的 role 属性
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m可访问性[2m > [22m应该设置 aria-label
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m可访问性[2m > [22m应该为图片设置 alt 属性
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m响应式[2m > [22m应该在 src prop 变化时重置加载状态
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m响应式[2m > [22m应该在 size prop 变化时更新尺寸类
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m响应式[2m > [22m应该在 shape prop 变化时更新形状类
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m容器样式[2m > [22m应该有正确的背景色
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m容器样式[2m > [22m应该有 overflow-hidden
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m容器样式[2m > [22m应该是 inline-flex
+ [32m✓[39m tests/unit/design-system/base/Image.test.ts[2m > [22mImage.vue[2m > [22m图片样式[2m > [22m应该有 block 和 w-full h-full
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m基础渲染[2m > [22m默认渲染为 default variant
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m基础渲染[2m > [22m正确渲染所有变体
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m基础渲染[2m > [22mhoverable 状态添加正确的类名
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m插槽渲染[2m > [22mheader 不存在时不渲染 header 容器
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m插槽渲染[2m > [22mfooter 不存在时不渲染 footer 容器
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m交互行为[2m > [22m点击时触发 click 事件
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m交互行为[2m > [22mhoverable 卡片有正确的光标样式
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m交互行为[2m > [22m非 hoverable 卡片没有光标样式
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22m有 transition 动画
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22mdefault variant 没有边框和阴影
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22mbordered variant 有边框但没有阴影
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22melevated variant 有阴影但没有边框
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m样式[2m > [22mhoverable 卡片有 hover 效果类
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m可访问性[2m > [22m使用语义化的 div 元素
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m可访问性[2m > [22m支持鼠标交互
+ [32m✓[39m tests/unit/design-system/base/Card.test.ts[2m > [22mCard[2m > [22m响应式[2m > [22m在不同 variant 下保持响应式类
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m基础渲染[2m > [22m默认渲染为 outline variant 和 md size
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m基础渲染[2m > [22m正确渲染 outline 变体
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m基础渲染[2m > [22m正确渲染 solid 变体
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m基础渲染[2m > [22m渲染不存在的图标显示占位符
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m图标名称[2m > [22m正确渲染 home 图标
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m图标名称[2m > [22m正确渲染 user 图标
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m图标名称[2m > [22m正确渲染 check 图标
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m图标名称[2m > [22m正确渲染 arrow-down 图标
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m交互行为[2m > [22m点击时触发 click 事件
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m可访问性[2m > [22m使用 name 作为默认 aria-label
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m可访问性[2m > [22m支持自定义 aria-label
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m可访问性[2m > [22m有正确的 inline-flex-shrink-0 类
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m样式[2m > [22m保持基础类名
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m边角情况[2m > [22m处理空字符串 name
+ [32m✓[39m tests/unit/design-system/base/Icon.test.ts[2m > [22mIcon[2m > [22m边角情况[2m > [22m处理特殊字符的 ariaLabel
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m基础渲染[2m > [22m应该正确渲染列表数据
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m基础渲染[2m > [22m应该正确渲染带边框的列表
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m基础渲染[2m > [22m应该正确渲染不带分割线的列表
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m加载状态[2m > [22m应该显示加载状态
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m加载状态[2m > [22m应该显示自定义加载内容
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m加载状态[2m > [22m加载状态下不应显示列表内容
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m空状态[2m > [22m应该显示空状态
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m空状态[2m > [22m应该显示自定义空状态内容
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m点击事件[2m > [22m应该触发 itemClick 事件
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m点击事件[2m > [22m应该传递正确的索引
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m自定义渲染[2m > [22m应该支持自定义列表项渲染
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 组件[2m > [22m自定义类名[2m > [22m应该支持自定义类名
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mListItem 组件[2m > [22m基础渲染[2m > [22m应该正确渲染内容
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mListItem 组件[2m > [22m基础渲染[2m > [22m应该有正确的样式类
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mListItem 组件[2m > [22m禁用状态[2m > [22m应该应用禁用样式
+ [32m✓[39m tests/unit/design-system/base/List.test.ts[2m > [22mListItem 组件[2m > [22m自定义类名[2m > [22m应该支持自定义类名
+ [31m×[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 和 ListItem 组合[2m > [22m应该正确渲染组合的列表
+[31m   → Unable to find an element with the text: 项目 1. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-white rounded-lg overflow-hidden"[31m
+    [36m>[31m
+      [0m[0m
+      [36m<div[31m
+        [33mclass[31m=[32m"p-8 flex items-center justify-center"[31m
+      [36m>[31m
+        [0m[0m
+        [36m<div[31m
+          [33mclass[31m=[32m"text-center text-slate-400"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"h-12 w-12 mx-auto mb-2 opacity-50"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<path[31m
+              [33md[31m=[32m"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<p>[31m
+            [0m暂无数据[0m
+          [36m</p>[31m
+        [36m</div>[31m
+        [0m[0m
+      [36m</div>[31m
+      [0m[0m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+ [31m×[39m tests/unit/design-system/base/List.test.ts[2m > [22mList 和 ListItem 组合[2m > [22m应该正确渲染带禁用项的组合列表
+[31m   → expected  to have a length of 3 but got +0[39m
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m基础渲染[2m > [22m默认渲染为 default variant 和 md size
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m基础渲染[2m > [22m正确渲染所有变体
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m基础渲染[2m > [22m正确渲染插槽内容
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可关闭功能[2m > [22mremovable 为 false 时不显示关闭按钮
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可关闭功能[2m > [22mremovable 为 true 时显示关闭按钮
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可关闭功能[2m > [22m点击关闭按钮触发 close 事件
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可关闭功能[2m > [22m关闭按钮点击不会触发 Tag 的点击事件
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m图标功能[2m > [22m不显示图标时 icon prop 为空
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m图标功能[2m > [22m显示图标时渲染 Icon 组件
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m交互行为[2m > [22m点击 Tag 触发 click 事件
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m交互行为[2m > [22mclick 事件包含 MouseEvent
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m样式[2m > [22m保持基础类名
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m样式[2m > [22m正确应用 variant 样式
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m样式[2m > [22m正确应用 size 样式
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m过渡动画[2m > [22m包含 transition-colors 类
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m过渡动画[2m > [22m关闭按钮包含 transition 类
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可访问性[2m > [22m关闭按钮有正确的 aria-label
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m可访问性[2m > [22m关闭按钮有正确的 type 属性
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m边角情况[2m > [22m处理空内容
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m边角情况[2m > [22m处理长文本内容
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m边角情况[2m > [22m处理同时有 icon 和 removable
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m边角情况[2m > [22m处理最小尺寸 sm 的关闭按钮
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m边角情况[2m > [22m处理最大尺寸 lg 的关闭按钮
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m不同变体的样式组合[2m > [22mprimary variant 有边框样式
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m不同变体的样式组合[2m > [22msuccess variant 有边框样式
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m不同变体的样式组合[2m > [22mwarning variant 有边框样式
+ [32m✓[39m tests/unit/design-system/base/Tag.test.ts[2m > [22mTag[2m > [22m不同变体的样式组合[2m > [22mdanger variant 有边框样式
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m基础渲染[2m > [22m默认渲染为 default variant 和 md size
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m基础渲染[2m > [22m正确渲染所有变体
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m内容显示[2m > [22m正确显示数字内容
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m内容显示[2m > [22m正确显示字符串内容
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m内容显示[2m > [22m空内容时显示为空（红点）
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m内容显示[2m > [22mundefined 内容时显示为空（红点）
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m内容显示[2m > [22mdot 模式下不显示内容
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22m小于 max 时显示原数字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22m等于 max 时显示原数字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22m大于 max 时显示 max+
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22m远大于 max 时显示 max+
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22m自定义 max 值
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22mmax 属性[2m > [22mmax 对字符串内容无效
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m定位[2m > [22mabsolute 为 false 时不添加定位类
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m定位[2m > [22mabsolute 为 true 时添加定位类
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m定位[2m > [22m支持自定义 position
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m样式[2m > [22m有 rounded-full 类
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m样式[2m > [22m有 transition 动画
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m样式[2m > [22m有 flex 居中对齐
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m颜色主题[2m > [22mdefault 变体有正确的文字颜色
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m颜色主题[2m > [22mprimary 变体有白色文字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m颜色主题[2m > [22msuccess 变体有白色文字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m颜色主题[2m > [22mwarning 变体有白色文字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m颜色主题[2m > [22mdanger 变体有白色文字
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m最小宽度[2m > [22msm 尺寸有最小宽度
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m最小宽度[2m > [22mmd 尺寸有最小宽度
+ [32m✓[39m tests/unit/design-system/base/Badge.test.ts[2m > [22mBadge[2m > [22m最小宽度[2m > [22mlg 尺寸有最小宽度
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m基础渲染[2m > [22m默认渲染为 md size 和 primary color
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m基础渲染[2m > [22m正确渲染所有颜色
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m基础渲染[2m > [22m渲染标签文本
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m基础渲染[2m > [22m渲染插槽内容
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m布尔模式[2m > [22m正确处理选中状态
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m布尔模式[2m > [22m正确处理未选中状态
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m布尔模式[2m > [22m点击时切换状态
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m布尔模式[2m > [22mv-model 双向绑定正常工作
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m数组模式[2m > [22m正确处理值在数组中
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m数组模式[2m > [22m正确处理值不在数组中
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m数组模式[2m > [22m选中时添加值到数组
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m数组模式[2m > [22m取消选中时从数组移除值
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m禁用状态[2m > [22mdisabled 状态不触发点击
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m禁用状态[2m > [22mdisabled 状态有正确的样式
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m禁用状态[2m > [22m禁用时标签文本有正确的样式
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m半选状态[2m > [22mindeterminate 属性正确设置
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m半选状态[2m > [22m显示半选图标
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m半选状态[2m > [22m选中时清除半选状态
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22mCheckboxGroup 集成[2m > [22m正确响应组的选中状态
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22mCheckboxGroup 集成[2m > [22m点击时更新组值
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22mCheckboxGroup 集成[2m > [22m组的 disabled 状态传递给子项
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22mCheckboxGroup 集成[2m > [22m组的 size 传递给子项
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22mCheckboxGroup 集成[2m > [22mvertical 垂直排列
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m可访问性[2m > [22m支持键盘 Enter 键
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m可访问性[2m > [22m支持空格键
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m可访问性[2m > [22m有正确的 focus-visible 样式
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m可访问性[2m > [22m有正确的 type 属性
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m样式[2m > [22m有 transition 动画
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m样式[2m > [22m有正确的边框样式
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m样式[2m > [22m选中时有正确的背景色
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m图标显示[2m > [22m选中时显示对勾图标
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m图标显示[2m > [22m未选中时不显示图标
+ [32m✓[39m tests/unit/design-system/base/Checkbox.test.ts[2m > [22mCheckbox[2m > [22m图标显示[2m > [22m半选时显示横线图标
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m基础渲染[2m > [22m默认渲染为 primary variant 和 md size[33m 625[2mms[22m[39m
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m基础渲染[2m > [22m正确渲染所有变体[33m 357[2mms[22m[39m
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m交互行为[2m > [22m点击时触发 click 事件
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m交互行为[2m > [22mdisabled 状态不触发点击
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m交互行为[2m > [22mloading 状态不触发点击
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m交互行为[2m > [22mloading 状态显示加载动画
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m交互行为[2m > [22mblock 状态占满容器宽度
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m可访问性[2m > [22m支持键盘 Enter 键
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m可访问性[2m > [22m支持空格键
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m可访问性[2m > [22mdisabled 时不响应键盘
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m可访问性[2m > [22m有正确的 type 属性
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m插槽内容[2m > [22m渲染默认插槽内容
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m插槽内容[2m > [22mloading 时保留插槽内容
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m样式[2m > [22m接受自定义 class
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m样式[2m > [22m有 focus-visible 样式
+ [32m✓[39m tests/unit/design-system/base/Button.test.ts[2m > [22mButton[2m > [22m样式[2m > [22m有 transition 动画
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m基础渲染[2m > [22m默认渲染为 md size[33m 683[2mms[22m[39m
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m基础渲染[2m > [22m正确渲染所有尺寸
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 placeholder
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 rows
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 disabled 状态
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 readonly 状态
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 maxlength
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 minlength
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 name 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 id 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 required 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 autofocus 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mProps 测试[2m > [22m正确设置 autocomplete 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m状态测试[2m > [22m正确应用默认状态样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m状态测试[2m > [22m正确应用错误状态样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m状态测试[2m > [22m正确应用成功状态样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m状态测试[2m > [22m正确应用警告状态样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m状态测试[2m > [22merror 属性覆盖 state 属性
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m调整大小测试[2m > [22m正确应用 resize: none 样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m调整大小测试[2m > [22m正确应用 resize: both 样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m调整大小测试[2m > [22m正确应用 resize: horizontal 样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m调整大小测试[2m > [22m正确应用 resize: vertical 样式
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m字数统计测试[2m > [22mshowCount 和 maxlength 都设置时显示字数统计
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m字数统计测试[2m > [22mshowCount 为 false 时不显示字数统计
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22mv-model 测试[2m > [22m正确绑定初始值
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m可访问性测试[2m > [22m禁用状态正确设置
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m可访问性测试[2m > [22m只读状态正确设置
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m可访问性测试[2m > [22m必填状态正确设置
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m边角情况测试[2m > [22m空字符串正确处理
+ [32m✓[39m tests/unit/design-system/base/Textarea.test.ts[2m > [22mTextarea[2m > [22m边角情况测试[2m > [22m自定义 class 正确应用
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m356 passed[39m[22m[2m | [22m[33m5 skipped[39m[90m (363)[39m
+[2m   Start at [22m 16:54:19
+[2m   Duration [22m 28.15s[2m (transform 4.91s, setup 7.33s, collect 27.72s, tests 10.47s, environment 46.37s, prepare 6.72s)[22m
+

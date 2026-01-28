@@ -29,7 +29,7 @@
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-icon total-views">
-              <el-icon><View /></el-icon>
+              <QyIcon name="View"  />
             </div>
             <div class="stat-details">
               <div class="stat-value">{{ formatNumber(stats.totalViews) }}</div>
@@ -41,7 +41,7 @@
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-icon subscribers">
-              <el-icon><Star /></el-icon>
+              <QyIcon name="Star"  />
             </div>
             <div class="stat-details">
               <div class="stat-value">{{ formatNumber(stats.subscribers) }}</div>
@@ -53,7 +53,7 @@
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-icon favorites">
-              <el-icon><Collection /></el-icon>
+              <QyIcon name="Collection"  />
             </div>
             <div class="stat-details">
               <div class="stat-value">{{ formatNumber(stats.favorites) }}</div>
@@ -65,7 +65,7 @@
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-icon comments">
-              <el-icon><ChatDotRound /></el-icon>
+              <QyIcon name="ChatDotRound"  />
             </div>
             <div class="stat-details">
               <div class="stat-value">{{ formatNumber(stats.comments) }}</div>
@@ -138,8 +138,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import { View, Star, Collection, ChatDotRound } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 import {
@@ -246,7 +246,7 @@ async function loadStatistics(): Promise<void> {
     loadReadingHeatmap()
   } catch (error: any) {
     console.error('加载统计数据失败:', error)
-    ElMessage.error(error.message || '加载统计数据失败')
+    message.error(error.message || '加载统计数据失败')
   } finally {
     loading.value = false
   }

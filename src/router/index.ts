@@ -15,14 +15,16 @@ import notificationRoutes from '@/modules/notification/routes'
 import socialRoutes from '@/modules/social/routes'
 import aiRoutes from '@/modules/ai/routes'
 
-// 新增模块路由 (暂未实现，已注释)
+// Phase 1 模块路由
+import booklistRoutes from '@/modules/booklist/routes'
+import communityRoutes from '@/modules/community/routes'
+import discoveryRoutes from '@/modules/discovery/routes'
+import readingStatsRoutes from '@/modules/reading-stats/routes'
+
+// 后续阶段模块路由 (暂未实现，已注释)
 // import reviewRoutes from '@/modules/review/routes'
-// import discoveryRoutes from '@/modules/discovery/routes'
-// import booklistRoutes from '@/modules/booklist/routes'
 // import vipRoutes from '@/modules/vip/routes'
-// import communityRoutes from '@/modules/community/routes'
 // import achievementRoutes from '@/modules/achievement/routes'
-// import readingStatsRoutes from '@/modules/reading-stats/routes'
 
 // 定义路由元数据类型扩展
 declare module 'vue-router' {
@@ -51,6 +53,12 @@ const routes: RouteRecordRaw[] = [
   ...socialRoutes,
   ...aiRoutes,
 
+  // Phase 1 模块路由
+  ...booklistRoutes,
+  ...communityRoutes,
+  ...discoveryRoutes,
+  ...readingStatsRoutes,
+
   // 演示页面
   {
     path: '/demo/apple-style',
@@ -61,15 +69,33 @@ const routes: RouteRecordRaw[] = [
       layout: 'blank'
     }
   },
-
-  // 新增模块路由 (暂未实现，已注释)
-  // ...reviewRoutes,
-  // ...discoveryRoutes,
-  // ...booklistRoutes,
-  // ...vipRoutes,
-  // ...communityRoutes,
-  // ...achievementRoutes,
-  // ...readingStatsRoutes,
+  {
+    path: '/demo/qingyu-components',
+    name: 'QingyuComponentsDemo',
+    component: () => import('@/views/demo/QingyuComponentsDemo.vue'),
+    meta: {
+      title: '青羽组件库演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/navigation-components',
+    name: 'NavigationComponentsDemo',
+    component: () => import('@/views/demo/NavigationComponentsDemo.vue'),
+    meta: {
+      title: '青羽导航组件演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/advanced-components',
+    name: 'AdvancedComponentsDemo',
+    component: () => import('@/views/demo/AdvancedComponentsDemo.vue'),
+    meta: {
+      title: '青羽高级组件演示',
+      layout: 'blank'
+    }
+  },
 
   // 404 处理 (必须放在最后)
   ...errorRoutes,

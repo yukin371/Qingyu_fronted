@@ -41,7 +41,7 @@
 
       <div v-if="activeTab === 'recommended'" class="refresh-btn">
         <el-button @click="loadRecommendedFollows" :loading="loading">
-          <el-icon><Refresh /></el-icon>
+          <QyIcon name="Refresh"  />
           换一批
         </el-button>
       </div>
@@ -110,8 +110,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import {
   getFollowingList,
   getFollowersList,
@@ -174,7 +174,7 @@ const loadFollowingList = async () => {
     userList.value = res.items
     followingTotal.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -191,7 +191,7 @@ const loadFollowersList = async () => {
     userList.value = res.items
     followersTotal.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -205,7 +205,7 @@ const loadMutualFollows = async () => {
     userList.value = res
     mutualTotal.value = res.length
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -218,7 +218,7 @@ const loadRecommendedFollows = async () => {
     const res = await getRecommendedFollows(20)
     userList.value = res
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -259,7 +259,7 @@ const handleSizeChange = () => {
 const handleFollow = async (userId: string) => {
   try {
     await followUser(userId)
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     // 更新用户状态
     const user = userList.value.find(u => u.user_id === userId)
     if (user) {
@@ -268,7 +268,7 @@ const handleFollow = async (userId: string) => {
     // 重新加载统计数据
     loadStats()
   } catch (error: any) {
-    ElMessage.error(error.message || '关注失败')
+    message.error(error.message || '关注失败')
   }
 }
 
@@ -276,7 +276,7 @@ const handleFollow = async (userId: string) => {
 const handleUnfollow = async (userId: string) => {
   try {
     await unfollowUser(userId)
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     // 更新用户状态
     const user = userList.value.find(u => u.user_id === userId)
     if (user) {
@@ -290,7 +290,7 @@ const handleUnfollow = async (userId: string) => {
     // 重新加载统计数据
     loadStats()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 

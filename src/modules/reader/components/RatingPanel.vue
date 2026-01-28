@@ -33,8 +33,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-
+import { message } from '@/design-system/services'
 interface Props {
     averageRating: number
     totalRatings: number
@@ -71,16 +70,16 @@ function handleRatingChange(value: number): void {
 
 async function handleSubmit(): Promise<void> {
     if (myRating.value === 0) {
-        ElMessage.warning('请先选择评分')
+        message.warning('请先选择评分')
         return
     }
 
     submitting.value = true
     try {
         emit('submit', myRating.value)
-        ElMessage.success('评分提交成功')
+        message.success('评分提交成功')
     } catch (error) {
-        ElMessage.error('评分提交失败')
+        message.error('评分提交失败')
     } finally {
         submitting.value = false
     }

@@ -40,7 +40,7 @@
                   >
                     <template #error>
                       <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
+                        <QyIcon name="Picture"  />
                       </div>
                     </template>
                   </el-image>
@@ -70,7 +70,7 @@
                     继续阅读
                   </el-button>
                   <el-button @click="removeHistory(item.id)" text>
-                    <el-icon><Close /></el-icon>
+                    <QyIcon name="Close"  />
                   </el-button>
                 </div>
               </div>
@@ -98,8 +98,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture, Close } from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/models'
 
@@ -179,7 +179,7 @@ async function loadHistory(): Promise<void> {
     total.value = data.total || (response as any).total || 0
   } catch (error: any) {
     console.error('加载历史记录失败:', error)
-    ElMessage.error(error.message || '加载历史记录失败')
+    message.error(error.message || '加载历史记录失败')
   } finally {
     loading.value = false
   }
@@ -198,7 +198,7 @@ function continueReading(item: ReadingHistory): void {
 // 删除单条历史
 async function removeHistory(id: string): Promise<void> {
   try {
-    await ElMessageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
+    await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -207,11 +207,11 @@ async function removeHistory(id: string): Promise<void> {
     await deleteHistory(id)
     histories.value = histories.value.filter(h => h.id !== id)
     total.value = Math.max(0, total.value - 1)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -219,7 +219,7 @@ async function removeHistory(id: string): Promise<void> {
 // 清空所有历史
 async function clearAll(): Promise<void> {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       '确定要清空所有阅读历史吗？此操作不可恢复。',
       '警告',
       {
@@ -232,11 +232,11 @@ async function clearAll(): Promise<void> {
     await clearHistory()
     histories.value = []
     total.value = 0
-    ElMessage.success('已清空阅读历史')
+    message.success('已清空阅读历史')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('清空失败:', error)
-      ElMessage.error(error.message || '清空失败')
+      message.error(error.message || '清空失败')
     }
   }
 }

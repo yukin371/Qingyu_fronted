@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { PriceTag } from '@element-plus/icons-vue'
+// QyIcon导入已移除 - 当前未使用
 </script>
 
 <style scoped lang="scss">

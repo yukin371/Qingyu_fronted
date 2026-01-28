@@ -11,7 +11,7 @@
                             :style="{ backgroundColor: theme.bgColor, color: theme.textColor }"
                             @click="handleThemeChange(theme.value)">
                             <el-icon v-if="settings.theme === theme.value" class="check-icon">
-                                <CircleCheck />
+                                <QyIcon name="CircleCheck"  />
                             </el-icon>
                             <span>{{ theme.label }}</span>
                         </div>
@@ -37,12 +37,12 @@
                     </div>
                     <div class="slider-container">
                         <el-icon class="slider-icon" @click="decreaseFontSize">
-                            <Minus />
+                            <QyIcon name="Minus"  />
                         </el-icon>
                         <el-slider v-model="settings.fontSize" :min="12" :max="32" :step="2" :show-tooltip="false"
                             class="font-slider" />
                         <el-icon class="slider-icon" @click="increaseFontSize">
-                            <Plus />
+                            <QyIcon name="Plus"  />
                         </el-icon>
                     </div>
                 </div>
@@ -122,8 +122,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import { CircleCheck, Minus, Plus } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import type { ReadingSettings as IReadingSettings } from '@/types/models'
 
 interface Props {
@@ -208,14 +208,14 @@ const handleSave = () => {
     localStorage.setItem('reading_settings', JSON.stringify(settings))
 
     emit('change', { ...settings })
-    ElMessage.success('设置已保存')
+    message.success('设置已保存')
     visible.value = false
 }
 
 // 恢复默认
 const handleReset = () => {
     Object.assign(settings, defaultSettings)
-    ElMessage.info('已恢复默认设置')
+    message.info('已恢复默认设置')
 }
 
 // 监听设置变化，实时预览

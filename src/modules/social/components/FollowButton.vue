@@ -6,7 +6,7 @@
       class="follow-btn following"
       @click="handleUnfollow"
     >
-      <el-icon><Select /></el-icon>
+      <QyIcon name="Select"  />
       <span>已关注</span>
     </el-button>
 
@@ -16,7 +16,7 @@
       class="follow-btn mutual"
       @click="handleUnfollow"
     >
-      <el-icon><UserFilled /></el-icon>
+      <QyIcon name="UserFilled"  />
       <span>互相关注</span>
     </el-button>
 
@@ -28,7 +28,7 @@
       :loading="loading"
       @click="handleFollow"
     >
-      <el-icon><Plus /></el-icon>
+      <QyIcon name="Plus"  />
       <span>{{ showText ? '关注' : '' }}</span>
     </el-button>
 
@@ -49,8 +49,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Select, UserFilled, Plus } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { useSocialStore } from '@/stores/social'
 
 interface Props {
@@ -95,10 +95,10 @@ const handleFollow = async () => {
   loading.value = true
   try {
     await socialStore.followUser(props.userId)
-    ElMessage.success('关注成功')
+    message.success('关注成功')
     emit('follow', props.userId)
   } catch (error: any) {
-    ElMessage.error(error.message || '关注失败')
+    message.error(error.message || '关注失败')
   } finally {
     loading.value = false
   }
@@ -116,10 +116,10 @@ const confirmUnfollow = async () => {
 
   try {
     await socialStore.unfollowUser(props.userId)
-    ElMessage.success('已取消关注')
+    message.success('已取消关注')
     emit('unfollow', props.userId)
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   } finally {
     loading.value = false
   }

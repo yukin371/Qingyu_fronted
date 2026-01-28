@@ -184,49 +184,94 @@ const toggleCheck = (nodeState: TreeNodeState) => {
 // 更新节点及其子节点的选中状态
 const updateNodeCheckState = (nodeState: TreeNodeState, checked: boolean) => {
   const nodeId = nodeState.node.id || nodeState.node.label
+
+  // 安全检查：确保 checked 是 Ref
+  if (typeof nodeState.checked !== 'object' || nodeState.checked === null) {
+    console.error('[Tree] Invalid nodeState.checked for node:', nodeId)
+    return
+  }
+
+  if (typeof nodeState.indeterminate !== 'object' || nodeState.indeterminate === null) {
+    console.error('[Tree] Invalid nodeState.indeterminate for node:', nodeId)
+    return
+  }
+
   nodeState.checked.value = checked
   nodeState.indeterminate.value = false
-  
+
   if (checked) {
     checkedKeys.value.add(nodeId)
   } else {
     checkedKeys.value.delete(nodeId)
   }
-  
+
   // 递归更新子节点
-  nodeState.children.forEach((child) => {
-    updateNodeCheckState(child, checked)
-  })
+  if (nodeState.children && Array.isArray(nodeState.children)) {
+    nodeState.children.forEach((child) => {
+      // 递归前验证 child 的结构
+      if (child && typeof child.checked === 'object' && child.checked !== null) {
+        updateNodeCheckState(child, checked)
+      }
+    })
+  }
 }
 
 // 更新父节点的选中状态
 const updateParentCheckState = (nodeState: TreeNodeState) => {
   if (!nodeState.parent) return
-  
-  const allChildrenChecked = nodeState.parent.children.every((child) => child.checked.value)
-  const someChildrenChecked = nodeState.parent.children.some((child) => child.checked.value || child.indeterminate.value)
-  
-  const parentId = nodeState.parent.node.id || nodeState.parent.node.label
-  
+
+  // 安全检查：验证 parent 的结构
+  const parent = nodeState.parent
+  if (!parent.children || !Array.isArray(parent.children)) {
+    console.warn('[Tree] Invalid parent node state for:', nodeState.node)
+    return
+  }
+
+  const allChildrenChecked = parent.children.every((child) => {
+    if (!child || typeof child.checked !== 'object' || child.checked === null) {
+      return false
+    }
+    return child.checked.value
+  })
+
+  const someChildrenChecked = parent.children.some((child) => {
+    if (!child || typeof child.checked !== 'object' || child.checked === null) {
+      return false
+    }
+    return child.checked.value || (child.indeterminate?.value ?? false)
+  })
+
+  const parentId = parent.node.id || parent.node.label
+
+  // 安全检查：确保 parent.checked 和 parent.indeterminate 是 Ref
+  if (typeof parent.checked !== 'object' || parent.checked === null) {
+    console.error('[Tree] Invalid parent.checked for node:', parentId)
+    return
+  }
+  if (typeof parent.indeterminate !== 'object' || parent.indeterminate === null) {
+    console.error('[Tree] Invalid parent.indeterminate for node:', parentId)
+    return
+  }
+
   if (allChildrenChecked) {
-    nodeState.parent.checked.value = true
-    nodeState.parent.indeterminate.value = false
+    parent.checked.value = true
+    parent.indeterminate.value = false
     checkedKeys.value.add(parentId)
     indeterminateKeys.value.delete(parentId)
   } else if (someChildrenChecked) {
-    nodeState.parent.checked.value = false
-    nodeState.parent.indeterminate.value = true
+    parent.checked.value = false
+    parent.indeterminate.value = true
     checkedKeys.value.delete(parentId)
     indeterminateKeys.value.add(parentId)
   } else {
-    nodeState.parent.checked.value = false
-    nodeState.parent.indeterminate.value = false
+    parent.checked.value = false
+    parent.indeterminate.value = false
     checkedKeys.value.delete(parentId)
     indeterminateKeys.value.delete(parentId)
   }
-  
+
   // 递归更新上级父节点
-  updateParentCheckState(nodeState.parent)
+  updateParentCheckState(parent)
 }
 
 // 节点点击

@@ -53,15 +53,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  HomeFilled,
-  Reading,
-  ChatDotRound,
-  Collection,
-  User,
-  Bell
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 interface TabItem {
   path: string
   label: string

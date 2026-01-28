@@ -4,7 +4,7 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><Clock /></el-icon>
+          <QyIcon name="Clock"  />
           阅读历史
         </h1>
         <div class="header-actions">
@@ -42,7 +42,7 @@
               @change="loadHistory"
             >
               <template #prefix>
-                <el-icon><Search /></el-icon>
+                <QyIcon name="Search"  />
               </template>
             </el-input>
           </el-col>
@@ -64,7 +64,7 @@
                 <el-image :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <el-icon><Picture /></el-icon>
+                      <QyIcon name="Picture"  />
                     </div>
                   </template>
                 </el-image>
@@ -79,7 +79,7 @@
               <div class="item-info">
                 <h3 class="book-title">{{ item.book?.title }}</h3>
                 <p class="book-author">
-                  <el-icon><User /></el-icon>
+                  <QyIcon name="User"  />
                   {{ item.book?.author }}
                 </p>
 
@@ -88,7 +88,7 @@
                     阅读到：{{ item.chapterTitle || `第${item.chapterNumber}章` }}
                   </el-tag>
                   <span class="reading-time">
-                    <el-icon><Timer /></el-icon>
+                    <QyIcon name="Timer"  />
                     阅读时长：{{ formatDuration(item.readingDuration || 0) }}
                   </span>
                 </div>
@@ -153,15 +153,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Clock,
-  Delete,
-  Search,
-  Picture,
-  User,
-  Timer
-} from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { historyAPI } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
 
@@ -238,7 +231,7 @@ const loadHistory = async () => {
     }
   } catch (error: any) {
     console.error('加载阅读历史失败:', error)
-    ElMessage.error(error.message || '加载阅读历史失败')
+    message.error(error.message || '加载阅读历史失败')
   } finally {
     loading.value = false
   }
@@ -249,7 +242,7 @@ const continueReading = (item: ReadingHistory) => {
   if (item.chapterId) {
     router.push(`/reader/${item.chapterId}`)
   } else {
-    ElMessage.warning('章节信息缺失')
+    message.warning('章节信息缺失')
   }
 }
 
@@ -261,7 +254,7 @@ const goToBookDetail = (bookId: string) => {
 // 删除单条历史
 const removeHistory = async (historyId: string) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
+    await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -270,13 +263,13 @@ const removeHistory = async (historyId: string) => {
     const response = await historyAPI.deleteHistory(historyId)
 
     if (response.code === 200) {
-      ElMessage.success('删除成功')
+      message.success('删除成功')
       await loadHistory()
     }
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除历史失败:', error)
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -284,7 +277,7 @@ const removeHistory = async (historyId: string) => {
 // 清空所有历史
 const clearAllHistory = async () => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       '确定要清空所有阅读历史吗？此操作不可恢复！',
       '警告',
       {
@@ -298,14 +291,14 @@ const clearAllHistory = async () => {
     const response = await historyAPI.clearAllHistory()
 
     if (response.code === 200) {
-      ElMessage.success('已清空所有历史')
+      message.success('已清空所有历史')
       historyList.value = []
       total.value = 0
     }
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('清空历史失败:', error)
-      ElMessage.error(error.message || '清空失败')
+      message.error(error.message || '清空失败')
     }
   }
 }

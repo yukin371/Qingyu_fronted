@@ -1,10 +1,5 @@
-/**
- * 书城系统 API 统一导出
- */
+// ✅ 默认使用生成的 API
+export * from './generated/bookstore'
 
-export * from './homepage'
-export * from './books'
-export * from './categories'
-export * from './banners'
-export * from './rankings'
-
+// 🔁 需要回滚时，改成：
+// export * from './manual'

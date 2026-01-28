@@ -11,7 +11,7 @@
           @input="handleSearch"
         >
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <QyIcon name="Search"  />
           </template>
         </el-input>
         <el-select v-model="filterType" placeholder="筛选类型" style="width: 120px" @change="loadBookmarks">
@@ -47,7 +47,7 @@
               >
                 <template #error>
                   <div class="image-slot">
-                    <el-icon><Picture /></el-icon>
+                    <QyIcon name="Picture"  />
                   </div>
                 </template>
               </el-image>
@@ -61,18 +61,18 @@
                 跳转阅读
               </el-button>
               <el-button size="small" @click="editNote(bookmark)">
-                <el-icon><Edit /></el-icon>
+                <QyIcon name="Edit"  />
                 {{ bookmark.content ? '编辑笔记' : '添加笔记' }}
               </el-button>
               <el-button type="danger" size="small" @click="removeBookmark(bookmark.id)" text>
-                <el-icon><Delete /></el-icon>
+                <QyIcon name="Delete"  />
               </el-button>
             </div>
           </div>
 
           <div v-if="bookmark.content" class="bookmark-note">
             <div class="note-label">
-              <el-icon><Memo /></el-icon>
+              <QyIcon name="Memo"  />
               笔记内容：
             </div>
             <div class="note-content">{{ bookmark.content }}</div>
@@ -126,8 +126,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Picture, Edit, Delete, Memo } from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/modules/reader/api'
 import type { Bookmark } from '@/types/models'
 
@@ -198,7 +198,7 @@ async function loadBookmarks(): Promise<void> {
     total.value = data.total || (response as any).total || 0
   } catch (error: any) {
     console.error('加载书签失败:', error)
-    ElMessage.error(error.message || '加载书签失败')
+    message.error(error.message || '加载书签失败')
   } finally {
     loading.value = false
   }
@@ -244,11 +244,11 @@ async function saveNote(): Promise<void> {
       bookmarks.value[index].content = noteContent.value
     }
 
-    ElMessage.success('保存成功')
+    message.success('保存成功')
     showNoteDialog.value = false
   } catch (error: any) {
     console.error('保存笔记失败:', error)
-    ElMessage.error(error.message || '保存失败')
+    message.error(error.message || '保存失败')
   } finally {
     saving.value = false
   }
@@ -257,7 +257,7 @@ async function saveNote(): Promise<void> {
 // 删除书签
 async function removeBookmark(id: string): Promise<void> {
   try {
-    await ElMessageBox.confirm('确定要删除这个书签吗？', '提示', {
+    await messageBox.confirm('确定要删除这个书签吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -265,10 +265,10 @@ async function removeBookmark(id: string): Promise<void> {
 
     await deleteBookmark(id)
     bookmarks.value = bookmarks.value.filter(b => b.id !== id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }

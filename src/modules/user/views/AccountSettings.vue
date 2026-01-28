@@ -7,83 +7,83 @@
         </el-page-header>
 
         <el-card class="settings-card">
-            <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="settings-form">
+            <qy-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="settings-form">
                 <!-- 头像设置 -->
-                <el-form-item label="头像">
+                <qy-form-item label="头像">
                     <div class="avatar-upload-container">
-                        <el-avatar :size="100" :src="form.avatar || userStore.avatar">
+                        <qy-avatar :size="100" :src="form.avatar || userStore.avatar">
                             {{ userStore.displayName.charAt(0) }}
-                        </el-avatar>
+                        </qy-avatar>
                         <div class="avatar-actions">
-                            <el-upload :action="uploadUrl" :headers="uploadHeaders" :show-file-list="false"
+                            <qy-upload :action="uploadUrl" :headers="uploadHeaders" :show-file-list="false"
                                 :before-upload="beforeAvatarUpload" :on-success="handleAvatarSuccess"
                                 :on-error="handleUploadError">
-                                <el-button type="primary" :icon="Upload" :loading="uploading">
+                                <qy-button type="primary" :icon="Upload" :loading="uploading">
                                     上传头像
-                                </el-button>
-                            </el-upload>
+                                </qy-button>
+                            </qy-upload>
                             <p class="upload-tip">支持 JPG、PNG 格式，大小不超过 2MB</p>
                         </div>
                     </div>
-                </el-form-item>
+                </qy-form-item>
 
                 <!-- 昵称 -->
-                <el-form-item label="昵称" prop="nickname">
-                    <el-input v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
-                </el-form-item>
+                <qy-form-item label="昵称" prop="nickname">
+                    <qy-input v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
+                </qy-form-item>
 
                 <!-- 个人简介 -->
-                <el-form-item label="个人简介" prop="bio">
-                    <el-input v-model="form.bio" type="textarea" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
+                <qy-form-item label="个人简介" prop="bio">
+                    <qy-input v-model="form.bio" type="textarea" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
                         show-word-limit />
-                </el-form-item>
+                </qy-form-item>
 
                 <!-- 性别 -->
-                <el-form-item label="性别" prop="gender">
+                <qy-form-item label="性别" prop="gender">
                     <el-radio-group v-model="form.gender">
                         <el-radio label="male">男</el-radio>
                         <el-radio label="female">女</el-radio>
                         <el-radio label="other">保密</el-radio>
                     </el-radio-group>
-                </el-form-item>
+                </qy-form-item>
 
                 <!-- 生日 -->
-                <el-form-item label="生日" prop="birthday">
+                <qy-form-item label="生日" prop="birthday">
                     <el-date-picker v-model="form.birthday" type="date" placeholder="选择生日" :disabled-date="disabledDate"
                         value-format="YYYY-MM-DD" />
-                </el-form-item>
+                </qy-form-item>
 
                 <!-- 所在地 -->
-                <el-form-item label="所在地" prop="location">
-                    <el-input v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
-                </el-form-item>
+                <qy-form-item label="所在地" prop="location">
+                    <qy-input v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
+                </qy-form-item>
 
                 <!-- 个人网站 -->
-                <el-form-item label="个人网站" prop="website">
-                    <el-input v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
-                </el-form-item>
+                <qy-form-item label="个人网站" prop="website">
+                    <qy-input v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
+                </qy-form-item>
 
                 <!-- 社交账号 -->
-                <el-form-item label="微博">
-                    <el-input v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
-                </el-form-item>
+                <qy-form-item label="微博">
+                    <qy-input v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
+                </qy-form-item>
 
-                <el-form-item label="微信">
-                    <el-input v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
-                </el-form-item>
+                <qy-form-item label="微信">
+                    <qy-input v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
+                </qy-form-item>
 
-                <el-form-item label="QQ">
-                    <el-input v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
-                </el-form-item>
+                <qy-form-item label="QQ">
+                    <qy-input v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
+                </qy-form-item>
 
                 <!-- 提交按钮 -->
-                <el-form-item>
-                    <el-button type="primary" :loading="saving" @click="handleSave">
+                <qy-form-item>
+                    <qy-button type="primary" :loading="saving" @click="handleSave">
                         保存设置
-                    </el-button>
-                    <el-button @click="handleReset">重置</el-button>
-                </el-form-item>
-            </el-form>
+                    </qy-button>
+                    <qy-button @click="handleReset">重置</qy-button>
+                </qy-form-item>
+            </qy-form>
         </el-card>
     </div>
 </template>
@@ -91,8 +91,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, type FormInstance, type UploadProps } from 'element-plus'
-import { Upload } from '@element-plus/icons-vue'
+import { message, type UploadProps } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
+import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
+import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
+import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import QyCard from '@/design-system/components/basic/QyCard/QyCard.vue'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import QyUpload from '@/design-system/form/Upload/Upload.vue'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
 
@@ -170,11 +177,11 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (file) => {
     const isLt2M = file.size / 1024 / 1024 < 2
 
     if (!isImage) {
-        ElMessage.error('只能上传 JPG/PNG 格式的图片')
+        message.error('只能上传 JPG/PNG 格式的图片')
         return false
     }
     if (!isLt2M) {
-        ElMessage.error('图片大小不能超过 2MB')
+        message.error('图片大小不能超过 2MB')
         return false
     }
 
@@ -187,16 +194,16 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (response) => {
     uploading.value = false
     if (response.code === 200) {
         form.avatar = response.data.url
-        ElMessage.success('头像上传成功')
+        message.success('头像上传成功')
     } else {
-        ElMessage.error(response.message || '上传失败')
+        message.error(response.message || '上传失败')
     }
 }
 
 // 上传失败
 const handleUploadError: UploadProps['onError'] = () => {
     uploading.value = false
-    ElMessage.error('上传失败,请重试')
+    message.error('上传失败,请重试')
 }
 
 // 保存设置
@@ -221,9 +228,9 @@ const handleSave = async () => {
         updateData.social = form.social
 
         await userStore.updateProfile(updateData)
-        ElMessage.success('保存成功')
+        message.success('保存成功')
     } catch (error: any) {
-        ElMessage.error(error.message || '保存失败')
+        message.error(error.message || '保存失败')
     } finally {
         saving.value = false
     }
@@ -233,7 +240,7 @@ const handleSave = async () => {
 const handleReset = () => {
     initForm()
     formRef.value?.clearValidate()
-    ElMessage.info('已重置')
+    message.info('已重置')
 }
 
 // 返回

@@ -220,7 +220,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'

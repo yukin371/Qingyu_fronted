@@ -29,17 +29,24 @@
           <!-- 搜索框：胶囊样式 -->
           <div class="search-wrapper" :class="{ focused: searchFocused }">
             <el-icon class="search-icon">
-              <Search />
+              <QyIcon name="Search"  />
             </el-icon>
-            <input v-model="searchKeyword" type="text" placeholder="探索未知的世界..." class="custom-search-input"
-              @focus="searchFocused = true" @blur="searchFocused = false" @keyup.enter="handleSearch" />
+            <input
+              id="main-search-input"
+              name="search"
+              v-model="searchKeyword"
+              type="text"
+              placeholder="探索未知的世界..."
+              class="custom-search-input"
+              @focus="searchFocused = true"
+              @blur="searchFocused = false"
+              @keyup.enter="handleSearch"
+            />
           </div>
 
           <!-- 创作中心按钮 -->
           <el-button v-if="isLoggedIn" class="create-btn" round @click="router.push('/writer')">
-            <el-icon>
-              <EditPen />
-            </el-icon> 创作
+            <QyIcon name="EditPen"  /> 创作
           </el-button>
 
           <!-- 用户操作区 -->
@@ -55,21 +62,11 @@
                 <template #dropdown>
                   <el-dropdown-menu class="premium-dropdown">
                     <!-- 保持原有下拉菜单项不变 -->
-                    <el-dropdown-item command="profile"><el-icon>
-                        <User />
-                      </el-icon>个人中心</el-dropdown-item>
-                    <el-dropdown-item command="writer-dashboard"><el-icon>
-                        <EditPen />
-                      </el-icon>创作工作台</el-dropdown-item>
-                    <el-dropdown-item command="shelf"><el-icon>
-                        <Collection />
-                      </el-icon>我的书架</el-dropdown-item>
-                    <el-dropdown-item command="history"><el-icon>
-                        <Clock />
-                      </el-icon>阅读历史</el-dropdown-item>
-                    <el-dropdown-item divided command="logout"><el-icon>
-                        <SwitchButton />
-                      </el-icon>退出登录</el-dropdown-item>
+                    <el-dropdown-item command="profile"><QyIcon name="User"  />个人中心</el-dropdown-item>
+                    <el-dropdown-item command="writer-dashboard"><QyIcon name="EditPen"  />创作工作台</el-dropdown-item>
+                    <el-dropdown-item command="shelf"><QyIcon name="Collection"  />我的书架</el-dropdown-item>
+                    <el-dropdown-item command="history"><QyIcon name="Clock"  />阅读历史</el-dropdown-item>
+                    <el-dropdown-item divided command="logout"><QyIcon name="SwitchButton"  />退出登录</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -132,33 +129,19 @@
     <el-drawer v-model="drawerVisible" title="导航" direction="rtl" size="280px">
       <el-menu :default-active="activeMenu" @select="handleMenuSelect">
         <el-menu-item index="/">
-          <el-icon>
-            <HomeFilled />
-          </el-icon>
+          <QyIcon name="HomeFilled"  />
           <span>首页</span>
         </el-menu-item>
-        <el-menu-item index="/books">
-          <el-icon>
-            <Reading />
-          </el-icon>
+        <el-menu-item index="/bookstore/browse">
+          <QyIcon name="Reading"  />
           <span>书库</span>
         </el-menu-item>
-        <el-menu-item index="/bookstore/categories">
-          <el-icon>
-            <Grid />
-          </el-icon>
-          <span>分类</span>
-        </el-menu-item>
         <el-menu-item index="/bookstore/rankings">
-          <el-icon>
-            <TrendCharts />
-          </el-icon>
+          <QyIcon name="TrendCharts"  />
           <span>榜单</span>
         </el-menu-item>
         <el-menu-item v-if="isLoggedIn" index="/profile">
-          <el-icon>
-            <User />
-          </el-icon>
+          <QyIcon name="User"  />
           <span>个人中心</span>
         </el-menu-item>
       </el-menu>
@@ -174,9 +157,7 @@
           <el-input v-model="quickLoginForm.username" placeholder="用户名或邮箱" size="large" clearable
             @keyup.enter="handleQuickLogin">
             <template #prefix>
-              <el-icon>
-                <User />
-              </el-icon>
+              <QyIcon name="User"  />
             </template>
           </el-input>
         </el-form-item>
@@ -185,9 +166,7 @@
           <el-input v-model="quickLoginForm.password" type="password" placeholder="密码" size="large" show-password
             @keyup.enter="handleQuickLogin">
             <template #prefix>
-              <el-icon>
-                <Lock />
-              </el-icon>
+              <QyIcon name="Lock"  />
             </template>
           </el-input>
         </el-form-item>
@@ -220,13 +199,9 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from 'element-plus'
-import {
-  Search, User, Collection, Clock, SwitchButton, Menu,
-  HomeFilled, Reading, Grid, TrendCharts, Lock, EditPen
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -239,8 +214,7 @@ const showFooter = computed(() => !route.meta.hideFooter)
 // 菜单配置
 const menuItems = [
   { name: '首页', path: '/bookstore' },
-  { name: '书库', path: '/bookstore/books' },
-  { name: '分类', path: '/bookstore/categories' },
+  { name: '书库', path: '/bookstore/browse' },
   { name: '榜单', path: '/bookstore/rankings' },
 ]
 
@@ -273,8 +247,7 @@ const userDisplayName = computed(() => authStore.user?.nickname || authStore.use
 const activeMenu = computed(() => {
   const path = route.path
   if (path === '/' || path === '/bookstore') return '/bookstore'
-  if (path.startsWith('/bookstore/books')) return '/bookstore/books'
-  if (path.startsWith('/bookstore/categories')) return '/bookstore/categories'
+  if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse')) return '/bookstore/browse'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
   return '/bookstore'
 })
@@ -288,7 +261,7 @@ const handleMenuSelect = (index: string) => {
 // 搜索处理
 const handleSearch = () => {
   if (!searchKeyword.value.trim()) {
-    ElMessage.warning('请输入搜索关键词')
+    message.warning('请输入搜索关键词')
     return
   }
   router.push({
@@ -321,7 +294,7 @@ const handleQuickLogin = async () => {
           password: quickLoginForm.value.password
         })
 
-        ElMessage.success('登录成功')
+        message.success('登录成功')
         showQuickLogin.value = false
 
         // 重置表单
@@ -331,7 +304,7 @@ const handleQuickLogin = async () => {
           rememberMe: false
         }
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败')
+        message.error(error.message || '登录失败')
       } finally {
         quickLoginLoading.value = false
       }
@@ -356,13 +329,13 @@ const handleUserCommand = async (command: string) => {
       break
     case 'logout':
       try {
-        await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        await messageBox.confirm('确定要退出登录吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         })
         await authStore.logout()
-        ElMessage.success('已退出登录')
+        message.success('已退出登录')
         router.push('/bookstore')
       } catch (error) {
         // 用户取消

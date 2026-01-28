@@ -4,9 +4,7 @@
     <div class="timeline-header">
       <div class="header-left" @click="toggleExpand">
         <div class="icon-wrapper">
-          <el-icon>
-            <Timer />
-          </el-icon>
+          <QyIcon name="Timer"  />
         </div>
         <span class="title">时间线</span>
         <el-tag v-if="events.length" size="small" type="info" round effect="plain" class="count-tag">
@@ -33,9 +31,7 @@
             <!-- 新建按钮节点 (最左侧) -->
             <div class="timeline-node add-node" @click="handleAddEvent">
               <div class="node-dot">
-                <el-icon>
-                  <Plus />
-                </el-icon>
+                <QyIcon name="Plus"  />
               </div>
               <div class="node-label">新建</div>
             </div>
@@ -113,12 +109,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage, type FormInstance } from 'element-plus'
-import {
-  Timer, Plus, ArrowDown, ArrowUp,
-  Stamp, User, Location, Document, Trophy
-} from '@element-plus/icons-vue'
-
+import { message, type FormInstance } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { timelineApi } from '@/modules/writer/api'
 import {
   type TimelineEvent,
@@ -218,7 +210,7 @@ const handleSubmit = async () => {
     const projectId = writerStore.currentProjectId
 
     if (!timelineId || !projectId) {
-      ElMessage.warning('上下文缺失 (无项目或时间线)')
+      message.warning('上下文缺失 (无项目或时间线)')
       return
     }
 
@@ -234,7 +226,7 @@ const handleSubmit = async () => {
         storyTime: { description: eventForm.value.storyTimeDescription }
       })
 
-      ElMessage.success('创建成功')
+      message.success('创建成功')
       dialogVisible.value = false
 
       // 刷新数据

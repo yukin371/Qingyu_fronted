@@ -49,11 +49,11 @@
               <h3>发布管理</h3>
               <div class="header-actions">
                 <el-button @click="showExportDialog = true">
-                  <el-icon><Download /></el-icon>
+                  <QyIcon name="Download"  />
                   导出
                 </el-button>
                 <el-button type="primary" @click="showPublishPlanDialog = true">
-                  <el-icon><Setting /></el-icon>
+                  <QyIcon name="Setting"  />
                   发布计划
                 </el-button>
               </div>
@@ -403,8 +403,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Download, Setting } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import {
   getPublishPlan,
   createPublishPlan,
@@ -519,7 +519,7 @@ const loadPublishRecords = async () => {
     publishRecords.value = res.items
     recordTotal.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loadingRecords.value = false
   }
@@ -536,7 +536,7 @@ const loadExportHistory = async () => {
     exportHistory.value = res.items
     exportTotal.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loadingExport.value = false
   }
@@ -561,7 +561,7 @@ const savePublishPlan = async () => {
           vip_discount: planForm.vipDiscount
         }
       })
-      ElMessage.success('更新成功')
+      message.success('更新成功')
     } else {
       await createPublishPlan(bookId.value, {
         name: planForm.name,
@@ -578,12 +578,12 @@ const savePublishPlan = async () => {
           vip_discount: planForm.vipDiscount
         }
       })
-      ElMessage.success('创建成功')
+      message.success('创建成功')
     }
     showPublishPlanDialog.value = false
     loadPublishPlan()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -609,10 +609,10 @@ const pausePlan = async () => {
   if (!publishPlan.value) return
   try {
     await pausePublishPlan(publishPlan.value.id)
-    ElMessage.success('已暂停')
+    message.success('已暂停')
     loadPublishPlan()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -621,10 +621,10 @@ const resumePlan = async () => {
   if (!publishPlan.value) return
   try {
     await resumePublishPlan(publishPlan.value.id)
-    ElMessage.success('已恢复')
+    message.success('已恢复')
     loadPublishPlan()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -632,11 +632,11 @@ const resumePlan = async () => {
 const publishChapter = async (record: PublishRecord) => {
   try {
     await apiPublishChapter(record.chapter_id, {})
-    ElMessage.success('发布成功')
+    message.success('发布成功')
     loadPublishRecords()
     loadStats()
   } catch (error: any) {
-    ElMessage.error(error.message || '发布失败')
+    message.error(error.message || '发布失败')
   }
 }
 
@@ -644,31 +644,31 @@ const publishChapter = async (record: PublishRecord) => {
 const unpublishChapter = async (record: PublishRecord) => {
   try {
     await apiUnpublishChapter(record.chapter_id)
-    ElMessage.success('下架成功')
+    message.success('下架成功')
     loadPublishRecords()
     loadStats()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
 // 定时发布
 const scheduleChapter = (record: PublishRecord) => {
-  ElMessage.info('定时发布功能开发中')
+  message.info('定时发布功能开发中')
 }
 
 // 查看审核
 const viewReview = (record: PublishRecord) => {
-  ElMessage.info('审核详情功能开发中')
+  message.info('审核详情功能开发中')
 }
 
 // 提交审核
 const submitReview = async () => {
   try {
     await submitForReview(bookId.value)
-    ElMessage.success('已提交审核')
+    message.success('已提交审核')
   } catch (error: any) {
-    ElMessage.error(error.message || '提交失败')
+    message.error(error.message || '提交失败')
   }
 }
 
@@ -683,12 +683,12 @@ const startExport = async () => {
       include_toc: exportForm.options.includes('include_toc'),
       page_breaks: exportForm.options.includes('page_breaks')
     })
-    ElMessage.success('导出任务已创建')
+    message.success('导出任务已创建')
     showExportDialog.value = false
     activeTab.value = 'export'
     loadExportHistory()
   } catch (error: any) {
-    ElMessage.error(error.message || '导出失败')
+    message.error(error.message || '导出失败')
   }
 }
 
@@ -702,9 +702,9 @@ const downloadExport = async (task: ExportTask) => {
     a.download = `export_${task.id}.${task.format}`
     a.click()
     URL.revokeObjectURL(url)
-    ElMessage.success('下载成功')
+    message.success('下载成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '下载失败')
+    message.error(error.message || '下载失败')
   }
 }
 
@@ -712,10 +712,10 @@ const downloadExport = async (task: ExportTask) => {
 const cancelExport = async (task: ExportTask) => {
   try {
     await cancelExportTask(task.id)
-    ElMessage.success('已取消')
+    message.success('已取消')
     loadExportHistory()
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -723,10 +723,10 @@ const cancelExport = async (task: ExportTask) => {
 const deleteExport = async (task: ExportTask) => {
   try {
     await apiDeleteExportTask(task.id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     loadExportHistory()
   } catch (error: any) {
-    ElMessage.error(error.message || '删除失败')
+    message.error(error.message || '删除失败')
   }
 }
 

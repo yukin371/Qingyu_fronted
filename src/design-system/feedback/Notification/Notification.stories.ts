@@ -192,7 +192,7 @@ export const Multiple: Story = {
       <div>
         <button
           @click="showMultiple"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-info-500 text-white rounded hover:bg-info-600 transition-colors"
         >
           显示多条通知
         </button>
@@ -258,7 +258,7 @@ export const GlobalCall: Story = {
         </button>
         <button
           @click="showInfo"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-info-500 text-white rounded hover:bg-info-600 transition-colors"
         >
           信息通知
         </button>
@@ -314,7 +314,7 @@ export const ClickEvent: Story = {
       <div>
         <button
           @click="showClickable"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-info-500 text-white rounded hover:bg-info-600 transition-colors"
         >
           显示可点击通知
         </button>
@@ -385,7 +385,7 @@ export const Config: Story = {
       <div class="flex gap-2">
         <button
           @click="configureAndShow"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-info-500 text-white rounded hover:bg-info-600 transition-colors"
         >
           应用自定义配置
         </button>
@@ -424,7 +424,7 @@ export const CloseAll: Story = {
       <div class="flex gap-2">
         <button
           @click="showMultiple"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-info-500 text-white rounded hover:bg-info-600 transition-colors"
         >
           显示5条通知
         </button>

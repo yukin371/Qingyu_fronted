@@ -194,13 +194,13 @@ export const CustomStyle: Story = {
       <div class="space-y-6">
         <!-- 大号字体 -->
         <Breadcrumb class="text-lg">
-          <BreadcrumbItem to="/" class="text-blue-600 hover:text-blue-700">
+          <BreadcrumbItem to="/" class="text-secondary-600 hover:text-secondary-700">
             首页
           </BreadcrumbItem>
-          <BreadcrumbItem to="/docs" class="text-blue-600 hover:text-blue-700">
+          <BreadcrumbItem to="/docs" class="text-secondary-600 hover:text-secondary-700">
             文档
           </BreadcrumbItem>
-          <BreadcrumbItem class="text-blue-900 font-bold">
+          <BreadcrumbItem class="text-secondary-900 font-bold">
             快速开始
           </BreadcrumbItem>
         </Breadcrumb>

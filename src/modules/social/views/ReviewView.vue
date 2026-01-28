@@ -17,7 +17,7 @@
           <el-option label="评分" value="rating" />
         </el-select>
         <el-button type="primary" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus"  />
           写书评
         </el-button>
       </div>
@@ -73,15 +73,15 @@
 
         <div class="review-actions">
           <div class="action-item" @click="toggleLike(review)">
-            <el-icon :class="{ 'is-liked': review.is_liked }"><Star /></el-icon>
+            <el-icon :class="{ 'is-liked': review.is_liked }"><QyIcon name="Star"  /></el-icon>
             <span>{{ review.like_count || 0 }}</span>
           </div>
           <div class="action-item" @click="viewComments(review)">
-            <el-icon><ChatDotRound /></el-icon>
+            <QyIcon name="ChatDotRound"  />
             <span>{{ review.comment_count || 0 }}</span>
           </div>
           <div class="action-item" @click="shareReview(review)">
-            <el-icon><Share /></el-icon>
+            <QyIcon name="Share"  />
             <span>分享</span>
           </div>
         </div>
@@ -180,8 +180,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Plus, Star, ChatDotRound, Share } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import {
   getReviews,
   createReview,
@@ -253,7 +253,7 @@ const loadReviews = async () => {
     reviews.value = res.items
     total.value = res.total
   } catch (error: any) {
-    ElMessage.error(error.message || '加载失败')
+    message.error(error.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -272,7 +272,7 @@ const submitReview = async () => {
       rating: reviewForm.rating,
       is_spoiler: reviewForm.is_spoiler
     })
-    ElMessage.success('发布成功')
+    message.success('发布成功')
     showCreateDialog.value = false
     // 重置表单
     Object.assign(reviewForm, {
@@ -285,7 +285,7 @@ const submitReview = async () => {
     })
     loadReviews()
   } catch (error: any) {
-    ElMessage.error(error.message || '发布失败')
+    message.error(error.message || '发布失败')
   } finally {
     submitting.value = false
   }
@@ -303,7 +303,7 @@ const toggleLike = async (review: Review) => {
     }
     review.is_liked = !review.is_liked
   } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -323,7 +323,7 @@ const loadComments = async () => {
     const res = await getReviewComments(currentReview.value.id)
     comments.value = res.items
   } catch (error: any) {
-    ElMessage.error(error.message || '加载评论失败')
+    message.error(error.message || '加载评论失败')
   } finally {
     loadingComments.value = false
   }
@@ -332,7 +332,7 @@ const loadComments = async () => {
 // 提交评论
 const submitComment = async () => {
   if (!currentReview.value || !newComment.value.trim()) {
-    ElMessage.warning('请输入评论内容')
+    message.warning('请输入评论内容')
     return
   }
 
@@ -341,7 +341,7 @@ const submitComment = async () => {
     await addReviewComment(currentReview.value.id, {
       content: newComment.value.trim()
     })
-    ElMessage.success('评论成功')
+    message.success('评论成功')
     newComment.value = ''
     loadComments()
     // 更新评论数
@@ -349,7 +349,7 @@ const submitComment = async () => {
       currentReview.value.comment_count = (currentReview.value.comment_count || 0) + 1
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '评论失败')
+    message.error(error.message || '评论失败')
   } finally {
     submittingComment.value = false
   }
@@ -358,7 +358,7 @@ const submitComment = async () => {
 // 分享
 const shareReview = (review: Review) => {
   // TODO: 实现分享功能
-  ElMessage.info('分享功能开发中')
+  message.info('分享功能开发中')
 }
 
 // 分页

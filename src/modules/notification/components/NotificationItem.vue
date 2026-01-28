@@ -43,16 +43,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  Bell,
-  ChatDotRound,
-  Star,
-  User,
-  Trophy,
-  Wallet,
-  Reading,
-  Promotion
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { NotificationMessage, NotificationType } from '@/types/notification'
 
 interface Props {

@@ -29,12 +29,12 @@
             @click="handleLike"
             :class="{ 'is-liked': comment.isLiked }"
           >
-            <el-icon><Star /></el-icon>
+            <QyIcon name="Star"  />
             {{ comment.likeCount || 0 }}
           </el-button>
 
           <el-button text size="small" @click="showReplyBox = !showReplyBox">
-            <el-icon><ChatLineRound /></el-icon>
+            <QyIcon name="ChatLineRound"  />
             回复 {{ comment.replyCount > 0 ? `(${comment.replyCount})` : '' }}
           </el-button>
 
@@ -45,7 +45,7 @@
             type="danger"
             @click="handleDelete"
           >
-            <el-icon><Delete /></el-icon>
+            <QyIcon name="Delete"  />
             删除
           </el-button>
         </div>
@@ -91,7 +91,7 @@
         <!-- 加载更多回复 -->
         <div v-if="comment.hasMoreReplies" class="load-more-replies">
           <el-button text size="small" @click="loadMoreReplies">
-            <el-icon><ArrowDown /></el-icon>
+            <QyIcon name="ArrowDown"  />
             加载更多回复
           </el-button>
         </div>
@@ -103,8 +103,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Star, ChatLineRound, Delete, ArrowDown } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { useAuthStore } from '@/stores/auth'
 
 interface Comment {
@@ -182,7 +182,7 @@ const goToUserProfile = (userId?: string) => {
 // 处理点赞
 const handleLike = () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
   emit('like', props.comment.id, !props.comment.isLiked)
@@ -191,7 +191,7 @@ const handleLike = () => {
 // 处理回复
 const handleReply = () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
   if (!replyContent.value.trim()) {
@@ -225,7 +225,7 @@ const handleLikeComment = (commentId: string, isLike: boolean) => {
 // 加载更多回复
 const loadMoreReplies = () => {
   // TODO: 实现加载更多回复的逻辑
-  ElMessage.info('加载更多回复功能开发中')
+  message.info('加载更多回复功能开发中')
 }
 </script>
 

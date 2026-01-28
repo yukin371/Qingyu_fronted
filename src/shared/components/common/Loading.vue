@@ -17,8 +17,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 const props = defineProps({
   // 是否显示
   visible: {

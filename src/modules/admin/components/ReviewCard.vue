@@ -14,20 +14,25 @@
     </div>
 
     <div class="review-actions">
-      <el-button type="success" size="small" :icon="Select" @click="handleApprove">
+      <el-button type="success" size="small" @click="handleApprove">
+        <QyIcon name="Select" :size="14" />
         批准
       </el-button>
-      <el-button type="danger" size="small" :icon="CloseBold" @click="handleReject">
+      <el-button type="danger" size="small" @click="handleReject">
+        <QyIcon name="CloseBold" :size="14" />
         拒绝
       </el-button>
-      <el-button size="small" :icon="View" @click="handleView">详情</el-button>
+      <el-button size="small" @click="handleView">
+        <QyIcon name="View" :size="14" />
+        详情
+      </el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Select, CloseBold, View } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { PendingReview } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format'
 

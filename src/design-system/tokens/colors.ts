@@ -5,19 +5,42 @@
  * 参考: https://tailwindcss.com/docs/customizing-colors
  */
 
-// 语义色 - 主色
+// 语义色 - 主色（青羽主题 cyan）
 export const primary = {
+  50: '#ecfeff',
+  100: '#cffafe',
+  200: '#a5f3fc',
+  300: '#67e8f9',
+  400: '#22d3ee',  // 悬停状态
+  500: '#06b6d4',  // DEFAULT - 青羽主题主色
+  600: '#0891b2',  // 激活状态
+  700: '#0e7490',
+  800: '#155e75',
+  900: '#164e63',
+  950: '#083344',
+} as const
+
+// 语义色 - 辅助色（青羽主题 blue）
+export const secondary = {
   50: '#eff6ff',
   100: '#dbeafe',
   200: '#bfdbfe',
   300: '#93c5fd',
   400: '#60a5fa',
-  500: '#3b82f6', // DEFAULT
-  600: '#2563eb',
+  500: '#3b82f6',  // DEFAULT - 青羽主题辅助色
+  600: '#2563eb',  // 深色状态
   700: '#1d4ed8',
   800: '#1e40af',
   900: '#1e3a8a',
   950: '#172554',
+} as const
+
+// 渐变色（青羽主题 cyan-blue）
+export const gradient = {
+  from: '#0891b2',    // cyan-600
+  to: '#2563eb',      // blue-600
+  'soft-from': '#22d3ee',  // cyan-400
+  'soft-to': '#3b82f6',    // blue-500
 } as const
 
 // 功能色 - 成功
@@ -66,6 +89,8 @@ export const neutral = {
 // 颜色变量映射
 export const colors = {
   primary,
+  secondary,
+  gradient,
   success,
   warning,
   danger,
@@ -76,6 +101,8 @@ export const colors = {
 // 颜色类型
 export type Color = typeof colors
 export type PrimaryColor = typeof primary
+export type SecondaryColor = typeof secondary
+export type GradientColor = typeof gradient
 export type SuccessColor = typeof success
 export type WarningColor = typeof warning
 export type DangerColor = typeof danger
@@ -84,6 +111,8 @@ export type NeutralColor = typeof neutral
 
 // 颜色值类型
 export type PrimaryShade = keyof PrimaryColor
+export type SecondaryShade = keyof SecondaryColor
+export type GradientShade = keyof GradientColor
 export type NeutralShade = keyof NeutralColor
 
 // 功能色变体
@@ -94,6 +123,15 @@ export const tailwindColors = {
   primary: Object.fromEntries(
     Object.entries(primary).map(([k, v]) => [k, v])
   ),
+  secondary: Object.fromEntries(
+    Object.entries(secondary).map(([k, v]) => [k, v])
+  ),
+  gradient: {
+    from: gradient.from,
+    to: gradient.to,
+    'soft-from': gradient['soft-from'],
+    'soft-to': gradient['soft-to'],
+  },
   success: {
     light: success.light,
     DEFAULT: success.DEFAULT,
@@ -134,7 +172,7 @@ export const semantic = {
   },
   border: {
     DEFAULT: neutral[200], // '#e2e8f0'
-    focus: primary[500], // '#3b82f6'
+    focus: primary[500], // '#06b6d4'
   },
   shadow: {
     DEFAULT: 'rgba(0, 0, 0, 0.1)',

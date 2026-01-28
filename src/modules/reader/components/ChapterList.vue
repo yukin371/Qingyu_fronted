@@ -39,9 +39,7 @@
                   <span class="chapter-title">{{ chapter.title }}</span>
                   <div class="chapter-meta">
                     <span v-if="chapter.locked" class="meta-tag locked">
-                      <el-icon>
-                        <Lock />
-                      </el-icon>
+                      <QyIcon name="Lock"  />
                       付费
                     </span>
                     <span v-if="chapter.isFree" class="meta-tag free">免费</span>
@@ -55,7 +53,7 @@
                 </div>
                 <div class="chapter-action">
                   <el-icon v-if="isChapterRead(chapter.id)" class="read-icon">
-                    <CircleCheck />
+                    <QyIcon name="CircleCheck"  />
                   </el-icon>
                 </div>
               </div>
@@ -76,9 +74,7 @@
               <span class="chapter-title">{{ chapter.title }}</span>
               <div class="chapter-meta">
                 <span v-if="chapter.locked" class="meta-tag locked">
-                  <el-icon>
-                    <Lock />
-                  </el-icon>
+                  <QyIcon name="Lock"  />
                   付费
                 </span>
                 <span v-if="chapter.isFree" class="meta-tag free">免费</span>
@@ -89,7 +85,7 @@
             </div>
             <div class="chapter-action">
               <el-icon v-if="isChapterRead(chapter.id)" class="read-icon">
-                <CircleCheck />
+                <QyIcon name="CircleCheck"  />
               </el-icon>
             </div>
           </div>
@@ -104,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Lock, CircleCheck } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Chapter } from '@/types/models'
 
 interface Props {

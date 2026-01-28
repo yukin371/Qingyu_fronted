@@ -515,7 +515,7 @@ export async function deleteAnnouncement(id: string): Promise<APIResponse<void>>
  * @security BearerAuth
  */
 export async function batchUpdateAnnouncementStatus(ids: string[], status: 'active' | 'inactive'): Promise<APIResponse<void>> {
-  return httpService.put<APIResponse<void>>('/admin/announcements/batch-status', { ids, status })
+  return httpService.post<APIResponse<void>>('/admin/announcements/batch-status', { ids, status })
 }
 
 /**

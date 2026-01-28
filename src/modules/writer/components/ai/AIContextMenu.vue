@@ -33,9 +33,7 @@
                 :class="{ 'is-active': isItemActive(item.action) }" @click="handleMenuClick(item.action)"
                 @mouseenter="hoverIndex = getItemGlobalIndex(gIndex, iIndex)">
                 <div class="item-left">
-                  <el-icon>
-                    <component :is="item.icon" />
-                  </el-icon>
+                  <QyIcon name="component" :is="item.icon"  />
                   <span class="item-label">{{ item.label }}</span>
                 </div>
                 <span class="shortcut" v-if="item.shortcut">{{ item.shortcut }}</span>
@@ -57,11 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import {
-  MagicStick, Brush, Plus, RefreshRight, Edit, ChatLineSquare, Loading,
-  VideoPause, Star
-} from '@element-plus/icons-vue'
-
+import { QyIcon } from '@/design-system/components'
 interface Props {
   visible: boolean
   x: number

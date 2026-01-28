@@ -1,15 +1,19 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+// Element Plus - 保留类型导入和部分组件
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
 
+// Qingyu 全局服务
+import { message, messageBox, notification } from '@/design-system/services'
+import type { App as AppType } from 'vue'
+
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
-initTheme('qingyu')  // 初始化青羽主题
+initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
 
 // 全局样式
 import './style.css'  // Tailwind CSS - MUST be imported first
@@ -26,11 +30,6 @@ import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/er
 import { performanceMonitor, measureFirstScreenTime } from './utils/performance'
 
 const app = createApp(App)
-
-// 注册Element Plus图标
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
 
 // 注册全局指令
 app.directive('lazy', vLazy)
@@ -62,7 +61,22 @@ if (isDev) {
 app.use(createPinia())
 // 再注册 Router，路由守卫需要访问 store
 app.use(router)
+// Element Plus - 仅保留部分组件（如 ElTree）
 app.use(ElementPlus)
+
+// 注册 Qingyu 全局服务（兼容 Element Plus API）
+app.config.globalProperties.$message = message
+app.config.globalProperties.$MessageBox = messageBox
+app.config.globalProperties.$notify = notification
+
+// 添加类型声明
+declare module '@vue/runtime-core' {
+  export interface ComponentCustomProperties {
+    $message: typeof message
+    $MessageBox: typeof messageBox
+    $notify: typeof notification
+  }
+}
 
 app.mount('#app')
 

@@ -72,7 +72,7 @@
                         >
                             <template #error>
                                 <div class="image-slot">
-                                    <el-icon><Picture /></el-icon>
+                                    <QyIcon name="Picture"  />
                                 </div>
                             </template>
                         </el-image>
@@ -97,7 +97,7 @@
                             </el-button>
                             <el-dropdown @command="(cmd) => handleAction(cmd, book)">
                                 <el-button size="small" text>
-                                    <el-icon><MoreFilled /></el-icon>
+                                    <QyIcon name="MoreFilled"  />
                                 </el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
@@ -120,9 +120,7 @@
                         <el-image :src="book.cover" fit="cover" class="recent-cover">
                             <template #error>
                                 <div class="image-slot">
-                                    <el-icon>
-                                        <Picture />
-                                    </el-icon>
+                                    <QyIcon name="Picture"  />
                                 </div>
                             </template>
                         </el-image>
@@ -203,9 +201,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Picture, MoreFilled, Collection } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatDate, formatReadingTime } from '@/utils/format'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, messageBox } from '@/design-system/services'
 import {
     getBookshelf,
     addToBookshelf,
@@ -256,7 +254,7 @@ async function loadData(): Promise<void> {
         await loadStats()
     } catch (error) {
         console.error('加载数据失败:', error)
-        ElMessage.error('加载数据失败')
+        message.error('加载数据失败')
     } finally {
         loading.value = false
     }
@@ -292,7 +290,7 @@ async function loadBooks(): Promise<void> {
         }
     } catch (error: any) {
         console.error('加载书架失败:', error)
-        ElMessage.error(error.message || '加载书架失败')
+        message.error(error.message || '加载书架失败')
     }
 }
 
@@ -405,34 +403,34 @@ async function handleMove(bookId: string, status: string): Promise<void> {
 
         const backendStatus = statusMap[status]
         if (!backendStatus) {
-            ElMessage.error('无效的状态')
+            message.error('无效的状态')
             return
         }
 
         // 调用服务层更新状态
         await bookshelfService.updateBookStatus(bookId, backendStatus)
-        ElMessage.success('状态更新成功')
+        message.success('状态更新成功')
         loadBooks() // 重新加载书架数据
     } catch (error: any) {
-        ElMessage.error(error.message || '操作失败')
+        message.error(error.message || '操作失败')
     }
 }
 
 // 移除书籍
 async function handleRemove(bookId: string): Promise<void> {
     try {
-        await ElMessageBox.confirm('确定要移出书架吗？', '提示', {
+        await messageBox.confirm('确定要移出书架吗？', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
         })
 
         await removeFromBookshelf(bookId)
-        ElMessage.success('已移出书架')
+        message.success('已移出书架')
         loadBooks()
     } catch (error: any) {
         if (error !== 'cancel') {
-            ElMessage.error(error.message || '移除失败')
+            message.error(error.message || '移除失败')
         }
     }
 }
@@ -440,7 +438,7 @@ async function handleRemove(bookId: string): Promise<void> {
 // 批量移动书籍到不同状态
 async function handleBatchMove(): Promise<void> {
     if (selectedBooks.value.length === 0) {
-        ElMessage.warning('请选择要移动的书籍')
+        message.warning('请选择要移动的书籍')
         return
     }
 
@@ -467,12 +465,12 @@ async function handleBatchMove(): Promise<void> {
 
         // 调用服务层批量更新状态
         const result = await bookshelfService.batchUpdateBookStatus(selectedBooks.value, value)
-        ElMessage.success(`已成功移动 ${result.count} 本书籍`)
+        message.success(`已成功移动 ${result.count} 本书籍`)
         toggleBatchMode()
         loadBooks() // 重新加载书架数据
     } catch (error: any) {
         if (error !== 'cancel' && error !== 'close') {
-            ElMessage.error(error.message || '批量操作失败')
+            message.error(error.message || '批量操作失败')
         }
     }
 }
@@ -480,12 +478,12 @@ async function handleBatchMove(): Promise<void> {
 // 批量删除 (循环调用单个删除接口)
 async function handleBatchDelete(): Promise<void> {
     if (selectedBooks.value.length === 0) {
-        ElMessage.warning('请选择要删除的书籍')
+        message.warning('请选择要删除的书籍')
         return
     }
 
     try {
-        await ElMessageBox.confirm(`确定要移出所选的 ${selectedBooks.value.length} 本书吗？`, '提示', {
+        await messageBox.confirm(`确定要移出所选的 ${selectedBooks.value.length} 本书吗？`, '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -493,12 +491,12 @@ async function handleBatchDelete(): Promise<void> {
 
         // 逐个删除书籍
         await Promise.all(selectedBooks.value.map(bookId => removeFromBookshelf(bookId)))
-        ElMessage.success('已移出书架')
+        message.success('已移出书架')
         toggleBatchMode()
         loadBooks()
     } catch (error: any) {
         if (error !== 'cancel') {
-            ElMessage.error(error.message || '操作失败')
+            message.error(error.message || '操作失败')
         }
     }
 }

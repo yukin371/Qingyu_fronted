@@ -4,15 +4,15 @@
       <template #extra>
         <div class="header-actions">
           <el-button type="primary" @click="showRechargeDialog = true">
-            <el-icon><Plus /></el-icon>
+            <QyIcon name="Plus"  />
             充值
           </el-button>
           <el-button @click="goToTransfer">
-            <el-icon><Sort /></el-icon>
+            <QyIcon name="Sort"  />
             转账
           </el-button>
           <el-button @click="showWithdrawDialog = true">
-            <el-icon><Minus /></el-icon>
+            <QyIcon name="Minus"  />
             提现
           </el-button>
         </div>
@@ -244,17 +244,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import {
-  Plus,
-  Minus,
-  Wallet,
-  TrendCharts,
-  ShoppingCart,
-  CreditCard,
-  ChatDotSquare,
-  Sort
-} from '@element-plus/icons-vue'
+import { message, FormInstance, FormRules } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
@@ -385,7 +376,7 @@ async function loadWalletInfo(): Promise<void> {
     }
   } catch (error: any) {
     console.error('加载钱包信息失败:', error)
-    ElMessage.error(error.message || '加载钱包信息失败')
+    message.error(error.message || '加载钱包信息失败')
   }
 }
 
@@ -407,7 +398,7 @@ async function loadTransactions(): Promise<void> {
     }
   } catch (error: any) {
     console.error('加载交易记录失败:', error)
-    ElMessage.error(error.message || '加载交易记录失败')
+    message.error(error.message || '加载交易记录失败')
   } finally {
     loading.value = false
   }
@@ -424,12 +415,12 @@ async function submitRecharge(): Promise<void> {
   const amount = customAmount.value || rechargeAmount.value
 
   if (!amount || amount < 10) {
-    ElMessage.warning('请选择或输入充值金额，最低充值10元')
+    message.warning('请选择或输入充值金额，最低充值10元')
     return
   }
 
   if (!paymentMethod.value) {
-    ElMessage.warning('请选择支付方式')
+    message.warning('请选择支付方式')
     return
   }
 
@@ -441,7 +432,7 @@ async function submitRecharge(): Promise<void> {
     })
 
     if (response.code === 200) {
-      ElMessage.success('充值成功')
+      message.success('充值成功')
       showRechargeDialog.value = false
 
       // 重置表单
@@ -454,7 +445,7 @@ async function submitRecharge(): Promise<void> {
     }
   } catch (error: any) {
     console.error('充值失败:', error)
-    ElMessage.error(error.message || '充值失败，请稍后重试')
+    message.error(error.message || '充值失败，请稍后重试')
   } finally {
     recharging.value = false
   }
@@ -471,7 +462,7 @@ async function submitWithdraw(): Promise<void> {
   }
 
   if (withdrawForm.amount > walletInfo.value.balance) {
-    ElMessage.error('提现金额不能超过可用余额')
+    message.error('提现金额不能超过可用余额')
     return
   }
 
@@ -483,7 +474,7 @@ async function submitWithdraw(): Promise<void> {
     })
 
     if (response.code === 200) {
-      ElMessage.success('提现申请已提交，预计1-3个工作日到账')
+      message.success('提现申请已提交，预计1-3个工作日到账')
       showWithdrawDialog.value = false
 
       // 重置表单
@@ -497,7 +488,7 @@ async function submitWithdraw(): Promise<void> {
     }
   } catch (error: any) {
     console.error('提现失败:', error)
-    ElMessage.error(error.message || '提现申请失败，请稍后重试')
+    message.error(error.message || '提现申请失败，请稍后重试')
   } finally {
     withdrawing.value = false
   }

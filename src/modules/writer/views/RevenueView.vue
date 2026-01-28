@@ -31,7 +31,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon total">
-              <el-icon><Wallet /></el-icon>
+              <QyIcon name="Wallet"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalRevenue) }}</div>
@@ -43,7 +43,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon today">
-              <el-icon><TrendCharts /></el-icon>
+              <QyIcon name="TrendCharts"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.todayRevenue) }}</div>
@@ -55,7 +55,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon available">
-              <el-icon><Money /></el-icon>
+              <QyIcon name="Money"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
@@ -67,7 +67,7 @@
         <el-card class="revenue-card">
           <div class="revenue-item">
             <div class="revenue-icon withdrawn">
-              <el-icon><DocumentChecked /></el-icon>
+              <QyIcon name="DocumentChecked"  />
             </div>
             <div class="revenue-details">
               <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalWithdrawn) }}</div>
@@ -216,8 +216,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Wallet, TrendCharts, Money, DocumentChecked } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -405,7 +405,7 @@ async function loadRevenue(): Promise<void> {
     loadRevenueSources()
   } catch (error: any) {
     console.error('加载收入数据失败:', error)
-    ElMessage.error(error.message || '加载收入数据失败')
+    message.error(error.message || '加载收入数据失败')
   } finally {
     loading.value = false
   }
@@ -583,7 +583,7 @@ async function submitWithdraw(): Promise<void> {
     await withdrawFormRef.value.validate()
 
     if (withdrawForm.amount > revenueStats.value.availableBalance) {
-      ElMessage.error('提现金额不能超过可提现余额')
+      message.error('提现金额不能超过可提现余额')
       return
     }
 
@@ -595,13 +595,13 @@ async function submitWithdraw(): Promise<void> {
       remark: withdrawForm.remark
     })
 
-    ElMessage.success('提现申请已提交，请等待审核')
+    message.success('提现申请已提交，请等待审核')
     showWithdrawDialog.value = false
     withdrawFormRef.value.resetFields()
     loadRevenue()
   } catch (error: any) {
     if (error !== false) {
-      ElMessage.error(error.message || '提交失败')
+      message.error(error.message || '提交失败')
     }
   } finally {
     withdrawing.value = false

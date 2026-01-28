@@ -198,6 +198,8 @@ watch(() => props.target, () => {
 defineExpose({
   isFixed: computed(() => state.value.isFixed),
   checkFixed,
+  getScrollTarget,
+  state,
 })
 </script>
 

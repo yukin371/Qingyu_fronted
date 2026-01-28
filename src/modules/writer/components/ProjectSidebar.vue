@@ -4,9 +4,7 @@
     <div class="sidebar-header" v-if="!isCollapsed">
       <div class="project-selector">
         <el-select v-model="internalProjectId" placeholder="选择书籍" size="default" filterable class="full-width">
-          <template #prefix><el-icon>
-              <Reading />
-            </el-icon></template>
+          <template #prefix><QyIcon name="Reading"  /></template>
           <el-option v-for="p in projects" :key="p.id" :label="p.title" :value="p.id">
             <span class="option-label">{{ p.title }}</span>
             <span class="option-meta">{{ formatCount(p.wordCount) }}</span>
@@ -17,16 +15,12 @@
       <!-- 项目极简统计 -->
       <div class="project-stats" v-if="currentProject">
         <div class="stat-item" title="总字数">
-          <el-icon>
-            <EditPen />
-          </el-icon>
+          <QyIcon name="EditPen"  />
           <span>{{ formatCount(currentProject.wordCount) }}</span>
         </div>
         <el-divider direction="vertical" />
         <div class="stat-item" title="章节数">
-          <el-icon>
-            <DocumentCopy />
-          </el-icon>
+          <QyIcon name="DocumentCopy"  />
           <span>{{ currentProject.chapterCount }} 章</span>
         </div>
         <el-divider direction="vertical" />
@@ -39,9 +33,7 @@
     <!-- 2. 工具栏：搜索与新建 -->
     <div class="sidebar-toolbar" v-if="!isCollapsed">
       <el-input v-model="searchKeyword" placeholder="搜索章节..." size="small" clearable class="search-input">
-        <template #prefix><el-icon>
-            <Search />
-          </el-icon></template>
+        <template #prefix><QyIcon name="Search"  /></template>
       </el-input>
 
       <el-tooltip content="新建章节">
@@ -78,21 +70,15 @@
         <div class="item-actions" @click.stop>
           <el-dropdown trigger="click" @command="(cmd: 'edit' | 'delete') => handleAction(cmd, chapter)">
             <div class=" action-btn">
-              <el-icon>
-                <MoreFilled />
-              </el-icon>
+              <QyIcon name="MoreFilled"  />
             </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="edit">
-                  <el-icon>
-                    <Edit />
-                  </el-icon> 重命名/设置
+                  <QyIcon name="Edit"  /> 重命名/设置
                 </el-dropdown-item>
                 <el-dropdown-item command="delete" class="danger-item">
-                  <el-icon>
-                    <Delete />
-                  </el-icon> 删除章节
+                  <QyIcon name="Delete"  /> 删除章节
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -106,20 +92,15 @@
 
     <!-- 4. 折叠/展开 触发条 -->
     <div class="collapse-trigger" @click="isCollapsed = !isCollapsed">
-      <el-icon>
-        <component :is="isCollapsed ? 'Expand' : 'Fold'" />
-      </el-icon>
+      <QyIcon name="component" :is="isCollapsed ? 'Expand' : 'Fold'"  />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import {
-  Search, Plus, MoreFilled, Edit, Delete,
-  DocumentCopy, EditPen, Reading
-} from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { QyIcon } from '@/design-system/components'
+import { messageBox } from '@/design-system/services'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -215,7 +196,7 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
     emit('edit-chapter', chapter)
   } else if (cmd === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await messageBox.confirm(
         `确定删除章节 "第${chapter.chapterNum}章 ${chapter.title}" 吗？`,
         '危险操作',
         { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }

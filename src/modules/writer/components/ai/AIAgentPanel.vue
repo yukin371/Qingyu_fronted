@@ -3,7 +3,7 @@
     <!-- 上下文展示区 -->
     <div class="context-section">
       <h3 class="section-title">
-        <el-icon><InfoFilled /></el-icon>
+        <QyIcon name="InfoFilled"  />
         当前上下文
       </h3>
 
@@ -63,7 +63,7 @@
         @click="handleRefreshContext"
         :loading="isRefreshing"
       >
-        <el-icon><Refresh /></el-icon>
+        <QyIcon name="Refresh"  />
         加载上下文
       </el-button>
     </div>
@@ -71,7 +71,7 @@
     <!-- AI 生成工具 -->
     <div class="tools-section">
       <h3 class="section-title">
-        <el-icon><MagicStick /></el-icon>
+        <QyIcon name="MagicStick"  />
         智能生成
       </h3>
 
@@ -176,7 +176,7 @@
     <!-- 生成结果展示 -->
     <div v-if="generatedContent" class="result-section">
       <h3 class="section-title">
-        <el-icon><Document /></el-icon>
+        <QyIcon name="Document"  />
         生成结果
       </h3>
       <div class="result-content">
@@ -184,11 +184,11 @@
       </div>
       <div class="result-actions">
         <el-button size="small" @click="handleInsertResult">
-          <el-icon><DocumentCopy /></el-icon>
+          <QyIcon name="DocumentCopy"  />
           插入到编辑器
         </el-button>
         <el-button size="small" @click="handleCopyResult">
-          <el-icon><CopyDocument /></el-icon>
+          <QyIcon name="CopyDocument"  />
           复制
         </el-button>
       </div>
@@ -201,16 +201,8 @@ import { ref, computed } from 'vue'
 import { useWriterStore } from '../../stores/writerStore'
 // @ts-ignore - TypeScript 服务器可能需要重启才能识别新类型
 import type { Character, Location } from '@/types/writer'
-import {
-  InfoFilled,
-  MagicStick,
-  Document,
-  DocumentCopy,
-  CopyDocument,
-  Refresh
-} from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-
+import { QyIcon } from '@/design-system/components'
+import { message } from '@/design-system/services'
 const emit = defineEmits<{
   insert: [text: string]
 }>()
@@ -231,9 +223,9 @@ const handleRefreshContext = async () => {
   isRefreshing.value = true
   try {
     await writerStore.updateAgentContext()
-    ElMessage.success('上下文已更新')
+    message.success('上下文已更新')
   } catch (error: any) {
-    ElMessage.error(error.message || '加载上下文失败')
+    message.error(error.message || '加载上下文失败')
   } finally {
     isRefreshing.value = false
   }
@@ -241,17 +233,17 @@ const handleRefreshContext = async () => {
 
 const handleSelectCharacter = (character: Character) => {
   selectedCharacter.value = character.id
-  ElMessage.info(`已选择角色: ${character.name}`)
+  message.info(`已选择角色: ${character.name}`)
 }
 
 const handleSelectLocation = (location: Location) => {
   selectedLocation.value = location.id
-  ElMessage.info(`已选择地点: ${location.name}`)
+  message.info(`已选择地点: ${location.name}`)
 }
 
 const handleGenerateDialogue = async () => {
   if (!selectedCharacter.value) {
-    ElMessage.warning('请先选择角色')
+    message.warning('请先选择角色')
     return
   }
 
@@ -274,9 +266,9 @@ const handleGenerateDialogue = async () => {
     // 调用 AI 生成
     const result = await writerStore.aiContinueWriting(prompt, 200)
     generatedContent.value = result
-    ElMessage.success('对话生成成功')
+    message.success('对话生成成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '生成失败')
+    message.error(error.message || '生成失败')
   } finally {
     isGenerating.value = false
   }
@@ -284,7 +276,7 @@ const handleGenerateDialogue = async () => {
 
 const handleGenerateScene = async () => {
   if (!selectedLocation.value) {
-    ElMessage.warning('请先选择地点')
+    message.warning('请先选择地点')
     return
   }
 
@@ -307,9 +299,9 @@ const handleGenerateScene = async () => {
 
     const result = await writerStore.aiContinueWriting(prompt, 300)
     generatedContent.value = result
-    ElMessage.success('场景生成成功')
+    message.success('场景生成成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '生成失败')
+    message.error(error.message || '生成失败')
   } finally {
     isGenerating.value = false
   }
@@ -317,7 +309,7 @@ const handleGenerateScene = async () => {
 
 const handleGeneratePlot = async () => {
   if (!selectedEvent.value) {
-    ElMessage.warning('请先选择事件')
+    message.warning('请先选择事件')
     return
   }
 
@@ -336,9 +328,9 @@ const handleGeneratePlot = async () => {
 
     const result = await writerStore.aiContinueWriting(prompt, 300)
     generatedContent.value = result
-    ElMessage.success('情节建议生成成功')
+    message.success('情节建议生成成功')
   } catch (error: any) {
-    ElMessage.error(error.message || '生成失败')
+    message.error(error.message || '生成失败')
   } finally {
     isGenerating.value = false
   }
@@ -347,7 +339,7 @@ const handleGeneratePlot = async () => {
 const handleInsertResult = () => {
   if (generatedContent.value) {
     emit('insert', generatedContent.value)
-    ElMessage.success('已插入到编辑器')
+    message.success('已插入到编辑器')
   }
 }
 
@@ -355,9 +347,9 @@ const handleCopyResult = async () => {
   if (generatedContent.value) {
     try {
       await navigator.clipboard.writeText(generatedContent.value)
-      ElMessage.success('已复制到剪贴板')
+      message.success('已复制到剪贴板')
     } catch {
-      ElMessage.error('复制失败')
+      message.error('复制失败')
     }
   }
 }

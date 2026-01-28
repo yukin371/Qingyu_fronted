@@ -162,7 +162,7 @@
         :close-on-click-modal="false"
       >
         <div class="confirm-content">
-          <el-icon class="confirm-icon" :size="48" color="#409eff"><WarningFilled /></el-icon>
+          <el-icon class="confirm-icon" :size="48" color="#409eff"><QyIcon name="WarningFilled"  /></el-icon>
           <div class="confirm-details">
             <div class="confirm-item">
               <span class="confirm-label">收款人：</span>
@@ -221,8 +221,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, FormInstance, FormRules } from 'element-plus'
-import { WarningFilled, Warning } from '@element-plus/icons-vue'
+import { message, FormInstance, FormRules } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'

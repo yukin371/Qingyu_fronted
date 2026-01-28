@@ -32,7 +32,7 @@
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: #fef0f0">
-              <el-icon :size="24" color="#f56c6c"><Clock /></el-icon>
+              <el-icon :size="24" color="#f56c6c"><QyIcon name="Clock"  /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">¥{{ overview.pending_earnings?.toFixed(2) || '0.00' }}</div>
@@ -45,7 +45,7 @@
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: #fdf6ec">
-              <el-icon :size="24" color="#e6a23c"><User /></el-icon>
+              <el-icon :size="24" color="#e6a23c"><QyIcon name="User"  /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ overview.total_readers || 0 }}</div>
@@ -67,7 +67,7 @@
 
           <div class="table-header">
             <el-button type="primary" @click="handleRefreshEarnings">
-              <el-icon><Refresh /></el-icon>
+              <QyIcon name="Refresh"  />
               刷新
             </el-button>
           </div>
@@ -133,11 +133,11 @@
           <div class="withdrawal-section">
             <div class="withdrawal-actions">
               <el-button type="primary" @click="showWithdrawDialog = true">
-                <el-icon><Wallet /></el-icon>
+                <QyIcon name="Wallet"  />
                 申请提现
               </el-button>
               <el-button @click="loadWithdrawals">
-                <el-icon><Refresh /></el-icon>
+                <QyIcon name="Refresh"  />
                 刷新
               </el-button>
             </div>
@@ -297,8 +297,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Wallet, Money, Clock, User, Refresh } from '@element-plus/icons-vue'
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
 import {
   getRevenueOverview,
@@ -370,7 +370,7 @@ const loadEarnings = async (page = earningsPage.value) => {
     earningsTotal.value = res.data?.total || 0
     earningsPage.value = page
   } catch (error) {
-    ElMessage.error('获取收入明细失败')
+    message.error('获取收入明细失败')
   } finally {
     earningsLoading.value = false
   }
@@ -388,7 +388,7 @@ const loadWithdrawals = async (page = withdrawalsPage.value) => {
     withdrawalsTotal.value = res.data?.total || 0
     withdrawalsPage.value = page
   } catch (error) {
-    ElMessage.error('获取提现记录失败')
+    message.error('获取提现记录失败')
   } finally {
     withdrawalsLoading.value = false
   }
@@ -401,7 +401,7 @@ const loadSettlements = async () => {
     const res = await getSettlements({ page: 1, page_size: 10 })
     settlementsData.value = res.data?.items || []
   } catch (error) {
-    ElMessage.error('获取结算记录失败')
+    message.error('获取结算记录失败')
   } finally {
     settlementsLoading.value = false
   }
@@ -425,12 +425,12 @@ const handleWithdraw = async () => {
       account_info: withdrawForm.value.account_info
     })
 
-    ElMessage.success('提现申请已提交')
+    message.success('提现申请已提交')
     showWithdrawDialog.value = false
     loadWithdrawals(1)
     loadOverview()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '提现申请失败')
+    message.error(error.response?.data?.message || '提现申请失败')
   } finally {
     withdrawing.value = false
   }
@@ -438,12 +438,12 @@ const handleWithdraw = async () => {
 
 // 取消提现
 const handleCancelWithdraw = async (id: string) => {
-  ElMessage.info('取消提现功能待实现')
+  message.info('取消提现功能待实现')
 }
 
 // 查看拒绝原因
 const showRejectReason = (reason: string) => {
-  ElMessage.info(reason)
+  message.info(reason)
 }
 
 // 获取收入类型颜色

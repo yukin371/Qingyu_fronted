@@ -36,35 +36,25 @@
           <template #header>
             <div class="card-header">
               <span class="header-title">
-                <el-icon>
-                  <Lightning />
-                </el-icon> 快捷操作
+                <QyIcon name="Lightning"  /> 快捷操作
               </span>
             </div>
           </template>
           <div class="action-grid">
             <div class="action-item" @click="createProject">
-              <div class="icon-box primary"><el-icon>
-                  <Plus />
-                </el-icon></div>
+              <div class="icon-box primary"><QyIcon name="Plus"  /></div>
               <span>新建作品</span>
             </div>
             <div class="action-item" @click="quickWrite">
-              <div class="icon-box success"><el-icon>
-                  <EditPen />
-                </el-icon></div>
+              <div class="icon-box success"><QyIcon name="EditPen"  /></div>
               <span>快速写作</span>
             </div>
             <div class="action-item" @click="goToPublish">
-              <div class="icon-box warning"><el-icon>
-                  <Upload />
-                </el-icon></div>
+              <div class="icon-box warning"><QyIcon name="Upload"  /></div>
               <span>发布管理</span>
             </div>
             <div class="action-item" @click="goToStatistics">
-              <div class="icon-box info"><el-icon>
-                  <DataAnalysis />
-                </el-icon></div>
+              <div class="icon-box info"><QyIcon name="DataAnalysis"  /></div>
               <span>数据报表</span>
             </div>
           </div>
@@ -75,14 +65,10 @@
           <template #header>
             <div class="card-header">
               <span class="header-title">
-                <el-icon>
-                  <Timer />
-                </el-icon> 最近编辑
+                <QyIcon name="Timer"  /> 最近编辑
               </span>
               <el-button link type="primary" @click="goToAllProjects">
-                全部项目 <el-icon>
-                  <ArrowRight />
-                </el-icon>
+                全部项目 <QyIcon name="ArrowRight"  />
               </el-button>
             </div>
           </template>
@@ -109,13 +95,9 @@
                   </el-tag>
                 </div>
                 <div class="item-meta">
-                  <span><el-icon>
-                      <Document />
-                    </el-icon> {{ formatNumber(project.totalWords) }} 字</span>
+                  <span><QyIcon name="Document"  /> {{ formatNumber(project.totalWords) }} 字</span>
                   <el-divider direction="vertical" />
-                  <span><el-icon>
-                      <Clock />
-                    </el-icon> {{ formatTime(project.lastUpdateTime) }}</span>
+                  <span><QyIcon name="Clock"  /> {{ formatTime(project.lastUpdateTime) }}</span>
                 </div>
               </div>
 
@@ -132,9 +114,7 @@
           <template #header>
             <div class="card-header">
               <span class="header-title">
-                <el-icon>
-                  <Trophy />
-                </el-icon> 今日目标
+                <QyIcon name="Trophy"  /> 今日目标
               </span>
               <el-button link size="small" @click="editGoal">设置</el-button>
             </div>
@@ -169,7 +149,7 @@
         <el-card class="section-card daily-quote" shadow="hover">
           <div class="quote-content">
             <el-icon class="quote-icon">
-              <ChatDotRound />
+              <QyIcon name="ChatDotRound"  />
             </el-icon>
             <p class="quote-text">“写作就是把原本不存在的事物变成存在。”</p>
             <p class="quote-author">—— 佚名</p>
@@ -186,11 +166,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import type { Project } from '@/modules/writer/types/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
-import {
-  Document, Reading, EditPen, Clock, Lightning,
-  Plus, Upload, DataAnalysis, Timer, ArrowRight,
-  Trophy, ChatDotRound
-} from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'

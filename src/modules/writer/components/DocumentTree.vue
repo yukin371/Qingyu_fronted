@@ -9,7 +9,7 @@
           <button
             v-if="!isMultiSelectMode"
             type="button"
-            class="p-1.5 text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+            class="p-1.5 text-gray-600 hover:text-secondary-500 hover:bg-secondary-50 rounded transition-colors"
             title="多选模式"
             @click="toggleMultiSelectMode"
           >
@@ -20,7 +20,7 @@
           <button
             v-else
             type="button"
-            class="p-1.5 text-blue-500 bg-blue-50 rounded transition-colors"
+            class="p-1.5 text-secondary-500 bg-secondary-50 rounded transition-colors"
             title="退出多选"
             @click="toggleMultiSelectMode"
           >
@@ -31,16 +31,12 @@
 
           <el-tooltip content="展开/折叠全部">
             <el-button link size="small" @click="toggleExpand">
-              <el-icon>
-                <Sort />
-              </el-icon>
+              <QyIcon name="Sort"  />
             </el-button>
           </el-tooltip>
           <el-tooltip content="新建文档">
             <el-button link type="primary" size="small" @click="emit('add')">
-              <el-icon>
-                <Plus />
-              </el-icon>
+              <QyIcon name="Plus"  />
             </el-button>
           </el-tooltip>
         </div>
@@ -54,7 +50,7 @@
     <div v-if="isMultiSelectMode" class="multi-select-hint px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-600">已选择</span>
-        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-sm font-medium">{{ selectionCount }}</span>
+        <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 rounded text-sm font-medium">{{ selectionCount }}</span>
         <span class="text-sm text-gray-600">个文档</span>
       </div>
       <div class="flex items-center gap-2">
@@ -95,14 +91,14 @@
             <input
               v-if="isMultiSelectMode"
               type="checkbox"
-              class="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500 cursor-pointer mr-2"
+              class="w-4 h-4 text-secondary-500 rounded border-gray-300 focus:ring-secondary-500 cursor-pointer mr-2"
               :checked="isSelected(data.id)"
               @click.stop="toggleSelection(data.id, $event)"
             />
 
             <!-- 图标区分：卷用文件夹，章用文档 -->
             <el-icon class="node-icon" :class="data.type">
-              <Folder v-if="data.type === 'volume'" />
+              <QyIcon name="Folder" v-if="data.type === 'volume'"  />
               <DocumentIcon v-else />
             </el-icon>
 
@@ -140,20 +136,14 @@
       <div v-show="contextMenu.visible" class="custom-context-menu"
         :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }" @click.stop>
         <div class="menu-item" @click="handleMenuAction('add')">
-          <el-icon>
-            <Plus />
-          </el-icon> 新建子文档
+          <QyIcon name="Plus"  /> 新建子文档
         </div>
         <div class="menu-item" @click="handleMenuAction('rename')">
-          <el-icon>
-            <Edit />
-          </el-icon> 重命名
+          <QyIcon name="Edit"  /> 重命名
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item danger" @click="handleMenuAction('delete')">
-          <el-icon>
-            <Delete />
-          </el-icon> 删除
+          <QyIcon name="Delete"  /> 删除
         </div>
       </div>
     </teleport>
@@ -166,11 +156,8 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
-import { ElTree, ElMessageBox, ElMessage } from 'element-plus'
-import {
-  Plus, Document as DocumentIcon, Edit, Delete,
-  Folder, Sort
-} from '@element-plus/icons-vue'
+import { messageBox, message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
 import { useDocumentSelection } from '../composables/useDocumentSelection'
 import { useBatchOperationStore } from '../stores/batchOperationStore'
@@ -437,7 +424,7 @@ async function executeDragOperation(
         copyContent: true
       })
 
-      ElMessage.success({
+      message.success({
         message: `已复制 "${dragData.title}" 到 "${dropData.title}"`,
         duration: 2000
       })
@@ -449,7 +436,7 @@ async function executeDragOperation(
         parentId: newParentId
       })
 
-      ElMessage.success({
+      message.success({
         message: `已移动 "${dragData.title}" 到 "${dropData.title}"`,
         duration: 2000
       })
@@ -460,7 +447,7 @@ async function executeDragOperation(
   } catch (error) {
     console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
 
-    ElMessage.error({
+    message.error({
       message: `${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`,
       duration: 3000
     })
@@ -551,7 +538,7 @@ async function executeBatchOperation(): Promise<void> {
     clearSelection()
     isMultiSelectMode.value = false
   } catch (error) {
-    ElMessageBox.alert('批量操作提交失败：' + (error as Error).message, '错误')
+    messageBox.alert('批量操作提交失败：' + (error as Error).message, '错误')
   }
 }
 

@@ -3,7 +3,7 @@
  * 提供统一的验证规则、错误提示和验证状态管理
  */
 
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { log, LogCategory } from './logger'
 
 export type ValidationRule = 'required' | 'email' | 'phone' | 'username' | 'password' | 'url' | 'number' | 'min' | 'max' | 'minLength' | 'maxLength' | 'pattern' | 'custom'
@@ -531,7 +531,7 @@ export class FormErrorHelper {
     // 显示提示
     if (showToast && Object.keys(errors).length > 0) {
       const firstError = Object.values(errors)[0]
-      ElMessage.error(firstError)
+      message.error(firstError)
     }
 
     // 滚动到第一个错误字段

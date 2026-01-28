@@ -3,9 +3,7 @@
         <div class="section-header">
             <h3>评论 ({{ total }})</h3>
             <el-button @click="showCommentDialog = true">
-                <el-icon>
-                    <Edit />
-                </el-icon>
+                <QyIcon name="Edit"  />
                 发表评论
             </el-button>
         </div>
@@ -37,15 +35,11 @@
                         <div class="comment-actions">
                             <el-button text size="small" @click="handleLike(comment)"
                                 :type="comment.isLiked ? 'primary' : 'default'">
-                                <el-icon>
-                                    <Star :filled="comment.isLiked" />
-                                </el-icon>
+                                <QyIcon name="Star" :filled="comment.isLiked"  />
                                 {{ comment.likeCount }}
                             </el-button>
                             <el-button text size="small" @click="handleReply(comment)">
-                                <el-icon>
-                                    <ChatDotRound />
-                                </el-icon>
+                                <QyIcon name="ChatDotRound"  />
                                 回复
                             </el-button>
                         </div>
@@ -84,9 +78,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Edit, Star, ChatDotRound } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import { formatDate } from '@/utils/format'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { commentAPI } from '@/modules/reader/api'
 import type { Comment } from '@/types/reader'
 
@@ -133,7 +127,7 @@ function handlePageChange(page: number): void {
 
 async function handleSubmitComment(): Promise<void> {
     if (!commentContent.value.trim()) {
-        ElMessage.warning('请输入评论内容')
+        message.warning('请输入评论内容')
         return
     }
 
@@ -143,9 +137,9 @@ async function handleSubmitComment(): Promise<void> {
         commentContent.value = ''
         showCommentDialog.value = false
         replyToComment.value = null
-        ElMessage.success('评论发表成功')
+        message.success('评论发表成功')
     } catch (error) {
-        ElMessage.error('评论发表失败')
+        message.error('评论发表失败')
     } finally {
         submitting.value = false
     }
@@ -159,16 +153,16 @@ async function handleLike(comment: Comment): Promise<void> {
         if (comment.isLiked) {
             // 取消点赞
             await commentAPI.unlikeComment(comment.id)
-            ElMessage.success('已取消点赞')
+            message.success('已取消点赞')
         } else {
             // 点赞
             await commentAPI.likeComment(comment.id)
-            ElMessage.success('点赞成功')
+            message.success('点赞成功')
         }
         // 刷新评论列表以更新点赞状态
         emit('refresh')
     } catch (error: any) {
-        ElMessage.error(error.message || '操作失败')
+        message.error(error.message || '操作失败')
     }
 }
 

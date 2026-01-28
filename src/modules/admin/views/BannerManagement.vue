@@ -7,7 +7,7 @@
           <p class="subtitle">管理首页轮播图Banner</p>
         </div>
         <el-button type="primary" @click="handleCreate">
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus" :size="16" />
           新建Banner
         </el-button>
       </div>
@@ -125,8 +125,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import * as bannerApi from '@/modules/admin/api'
 
 const loading = ref(false)
@@ -176,7 +176,7 @@ const loadBanners = async () => {
     banners.value = response.data?.items || []
     total.value = response.data?.total || 0
   } catch (error) {
-    ElMessage.error('加载Banner列表失败')
+    message.error('加载Banner列表失败')
   } finally {
     loading.value = false
   }
@@ -226,15 +226,15 @@ const handleSubmit = async () => {
   try {
     if (editingBanner.value) {
       await bannerApi.updateBanner(editingBanner.value.id, bannerForm)
-      ElMessage.success('更新成功')
+      message.success('更新成功')
     } else {
       await bannerApi.createBanner(bannerForm)
-      ElMessage.success('创建成功')
+      message.success('创建成功')
     }
     dialogVisible.value = false
     await loadBanners()
   } catch (error) {
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   } finally {
     submitting.value = false
   }
@@ -243,25 +243,25 @@ const handleSubmit = async () => {
 const handleStatusChange = async (banner: bannerApi.Banner) => {
   try {
     await bannerApi.updateBanner(banner.id, { isActive: banner.isActive })
-    ElMessage.success('状态更新成功')
+    message.success('状态更新成功')
   } catch (error) {
-    ElMessage.error('状态更新失败')
+    message.error('状态更新失败')
     banner.isActive = !banner.isActive
   }
 }
 
 const handleDelete = async (banner: bannerApi.Banner) => {
   try {
-    await ElMessageBox.confirm('确定要删除此Banner吗？', '确认', {
+    await messageBox.confirm('确定要删除此Banner吗？', '确认', {
       type: 'warning'
     })
 
     await bannerApi.deleteBanner(banner.id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     await loadBanners()
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }

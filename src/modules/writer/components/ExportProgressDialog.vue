@@ -45,7 +45,7 @@
           <!-- 格式标签 -->
           <div class="flex items-center gap-2">
             <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800"
             >
               {{ formatLabel }}
             </span>
@@ -151,7 +151,7 @@
         <template v-else-if="task?.status === 'completed'">
           <button
             type="button"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex items-center gap-2"
+            class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium flex items-center gap-2"
             @click="handleDownload"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +177,7 @@
         <template v-else-if="task?.status === 'failed' || task?.status === 'cancelled'">
           <button
             type="button"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+            class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors text-sm font-medium"
             @click="handleRetry"
           >
             重试
@@ -208,7 +208,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import { exportApi } from '../api/export'
 import type { ExportTask, ExportTaskStatus, ExportFormat } from '../types/export'
 
@@ -271,7 +271,7 @@ const statusClass = computed(() => {
   if (!task.value) return ''
   const classMap: Record<ExportTaskStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
-    processing: 'bg-blue-100 text-blue-800',
+    processing: 'bg-secondary-100 text-secondary-800',
     completed: 'bg-green-100 text-green-800',
     failed: 'bg-red-100 text-red-800',
     cancelled: 'bg-gray-100 text-gray-800'
@@ -300,7 +300,7 @@ const progressColorClass = computed(() => {
   if (task.value.status === 'completed') {
     return 'bg-green-500'
   }
-  return 'bg-blue-500'
+  return 'bg-secondary-500'
 })
 
 /**
@@ -345,7 +345,7 @@ async function fetchTask(): Promise<void> {
     }
   } catch (error) {
     console.error('获取任务状态失败:', error)
-    ElMessage.error('获取任务状态失败，请刷新页面重试')
+    message.error('获取任务状态失败，请刷新页面重试')
   } finally {
     loading.value = false
   }
@@ -382,10 +382,10 @@ async function handleCancel(): Promise<void> {
     await exportApi.cancelTask(props.taskId)
     stopPolling()
     await fetchTask()
-    ElMessage.success('任务已取消')
+    message.success('任务已取消')
   } catch (error) {
     console.error('取消任务失败:', error)
-    ElMessage.error('取消任务失败，请稍后重试')
+    message.error('取消任务失败，请稍后重试')
   }
 }
 
@@ -394,7 +394,7 @@ async function handleCancel(): Promise<void> {
  */
 async function handleDownload(): Promise<void> {
   if (!task.value?.fileUrl) {
-    ElMessage.warning('文件尚未生成')
+    message.warning('文件尚未生成')
     return
   }
 
@@ -410,10 +410,10 @@ async function handleDownload(): Promise<void> {
     a.click()
     URL.revokeObjectURL(url)
 
-    ElMessage.success('下载已开始')
+    message.success('下载已开始')
   } catch (error) {
     console.error('下载失败:', error)
-    ElMessage.error('下载失败，请稍后重试')
+    message.error('下载失败，请稍后重试')
   }
 }
 
@@ -423,10 +423,10 @@ async function handleDownload(): Promise<void> {
 async function handleRetry(): Promise<void> {
   try {
     emit('retry')
-    ElMessage.info('开始重新导出...')
+    message.info('开始重新导出...')
   } catch (error) {
     console.error('重试失败:', error)
-    ElMessage.error('重试失败，请稍后再试')
+    message.error('重试失败，请稍后再试')
   }
 }
 

@@ -70,7 +70,7 @@ const tabVariants = cva(
       {
         type: 'line',
         active: true,
-        class: 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400',
+        class: 'text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400',
       },
       {
         type: 'line',
@@ -81,7 +81,7 @@ const tabVariants = cva(
       {
         type: 'card',
         active: true,
-        class: 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm',
+        class: 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm',
       },
       {
         type: 'card',
@@ -92,7 +92,7 @@ const tabVariants = cva(
       {
         type: 'border-card',
         active: true,
-        class: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-slate-700',
+        class: 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-slate-700',
       },
       {
         type: 'border-card',

@@ -82,7 +82,8 @@ describe('Affix 组件', () => {
         },
       })
       const vm = wrapper.vm as any
-      expect(vm.isFixed.value).toBe(false)
+      // 直接访问内部状态 state
+      expect(vm.state?.isFixed).toBe(false)
     })
 
     it('滚动后应该触发固定状态检查', async () => {
@@ -109,7 +110,8 @@ describe('Affix 组件', () => {
       })
 
       const vm = wrapper.vm as any
-      expect(vm.isFixed.value).toBe(false)
+      // 直接访问内部状态 state
+      expect(vm.state?.isFixed).toBe(false)
     })
   })
 
@@ -286,7 +288,8 @@ describe('Affix 组件', () => {
   describe('target 属性', () => {
     it('默认 target 应该是 window', () => {
       wrapper = mount(Affix)
-      const target = wrapper.vm.getScrollTarget()
+      const exposed = wrapper.vm as any
+      const target = exposed.getScrollTarget()
       expect(target).toBe(window)
     })
 
@@ -302,7 +305,8 @@ describe('Affix 组件', () => {
         },
       })
 
-      expect(wrapper.vm.target).toBe('#test-container')
+      const exposed = wrapper.vm as any
+      expect(exposed.target).toBe('#test-container')
 
       // 清理
       document.body.removeChild(container)
@@ -320,7 +324,8 @@ describe('Affix 组件', () => {
         },
       })
 
-      const target = wrapper.vm.getScrollTarget()
+      const exposed = wrapper.vm as any
+      const target = exposed.getScrollTarget()
       expect(target).toBe(container)
 
       // 清理

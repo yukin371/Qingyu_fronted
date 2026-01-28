@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div class="outline-header">
       <div class="header-left">
-        <el-icon class="header-icon"><List /></el-icon>
+        <el-icon class="header-icon"><QyIcon name="List"  /></el-icon>
         <span class="header-title">大纲</span>
       </div>
       <div class="header-actions">
@@ -13,7 +13,7 @@
             size="small"
             @click="viewMode = 'tree'"
           >
-            <el-icon><List /></el-icon>
+            <QyIcon name="List"  />
             树形
           </el-button>
           <el-button
@@ -21,7 +21,7 @@
             size="small"
             @click="viewMode = 'mindmap'"
           >
-            <el-icon><Share /></el-icon>
+            <QyIcon name="Share"  />
             思维导图
           </el-button>
         </el-button-group>
@@ -56,8 +56,8 @@
               <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
-                    <el-icon v-if="data.level === 1"><Folder /></el-icon>
-                    <el-icon v-else-if="data.level === 2"><Document /></el-icon>
+                    <el-icon v-if="data.level === 1"><QyIcon name="Folder"  /></el-icon>
+                    <el-icon v-else-if="data.level === 2"><QyIcon name="Document"  /></el-icon>
                     <el-icon v-else><Memo /></el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
@@ -201,19 +201,8 @@ import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEdge, DrawEngineConfig } from '@/core/draw-engine/types'
-import {
-  List,
-  Share,
-  Plus,
-  Edit,
-  Delete,
-  Close,
-  Folder,
-  Document,
-  Memo
-} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-
+import { QyIcon } from '@/design-system/components'
+import { message, messageBox } from '@/design-system/services'
 const writerStore = useWriterStore()
 const viewMode = ref<'tree' | 'mindmap'>('tree')
 const selectedNode = ref<OutlineNode | null>(null)
@@ -337,7 +326,7 @@ const handleEditNode = (node: OutlineNode) => {
 
 const handleDeleteNode = async (node: OutlineNode) => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要删除节点"${node.title}"吗？`,
       '提示',
       {
@@ -352,11 +341,11 @@ const handleDeleteNode = async (node: OutlineNode) => {
 
     await writerStore.deleteOutlineNode(node.id, projectId)
     await writerStore.loadOutlineTree()
-    ElMessage.success('删除成功')
+    message.success('删除成功')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -369,7 +358,7 @@ const handleNodeClick = (node: OutlineNode) => {
 const handleNodeDrop = async () => {
   // 处理节点拖拽排序
   // 这里需要实现节点顺序更新逻辑
-  ElMessage.info('节点顺序已更新')
+  message.info('节点顺序已更新')
 }
 
 const handleSubmit = async () => {
@@ -380,7 +369,7 @@ const handleSubmit = async () => {
 
     const projectId = writerStore.currentProjectId
     if (!projectId) {
-      ElMessage.warning('请先选择项目')
+      message.warning('请先选择项目')
       return
     }
 
@@ -398,11 +387,11 @@ const handleSubmit = async () => {
       }
 
       await writerStore.loadOutlineTree()
-      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+      message.success(isEdit.value ? '更新成功' : '创建成功')
       dialogVisible.value = false
     } catch (error: any) {
       console.error('操作失败:', error)
-      ElMessage.error(error.message || '操作失败')
+      message.error(error.message || '操作失败')
     } finally {
       submitting.value = false
     }
@@ -412,30 +401,30 @@ const handleSubmit = async () => {
 const handleJumpToChapter = (node: OutlineNode) => {
   if (node.documentId) {
     // 跳转到章节编辑
-    ElMessage.info(`跳转到章节: ${node.title}`)
+    message.info(`跳转到章节: ${node.title}`)
   } else {
-    ElMessage.warning('该节点未关联章节')
+    message.warning('该节点未关联章节')
   }
 }
 
 // 思维导图事件处理
 const handleMindmapNodeAdd = (node: DrawNode) => {
-  ElMessage.info(`添加节点: ${node.label}`)
+  message.info(`添加节点: ${node.label}`)
   // 可以在这里调用添加节点的API
 }
 
 const handleMindmapNodeUpdate = (node: DrawNode) => {
-  ElMessage.info(`更新节点: ${node.label}`)
+  message.info(`更新节点: ${node.label}`)
   // 可以在这里调用更新节点的API
 }
 
 const handleMindmapNodeDelete = (nodeId: string) => {
-  ElMessage.info(`删除节点: ${nodeId}`)
+  message.info(`删除节点: ${nodeId}`)
   // 可以在这里调用删除节点的API
 }
 
 const handleMindmapExport = async (format: string, data: any) => {
-  ElMessage.success(`已导出为 ${format} 格式`)
+  message.success(`已导出为 ${format} 格式`)
   // 处理导出逻辑
 }
 

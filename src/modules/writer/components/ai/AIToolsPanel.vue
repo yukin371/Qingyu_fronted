@@ -32,7 +32,7 @@
               :disabled="!canGenerate"
               class="generate-button"
             >
-              <el-icon><Edit /></el-icon>
+              <QyIcon name="Edit"  />
               开始续写
             </el-button>
           </el-form>
@@ -79,7 +79,7 @@
               :disabled="!toolConfig.polish.text"
               class="generate-button"
             >
-              <el-icon><Brush /></el-icon>
+              <QyIcon name="Brush"  />
               开始润色
             </el-button>
           </el-form>
@@ -126,7 +126,7 @@
               :disabled="!toolConfig.expand.text"
               class="generate-button"
             >
-              <el-icon><Plus /></el-icon>
+              <QyIcon name="Plus"  />
               开始扩写
             </el-button>
           </el-form>
@@ -174,7 +174,7 @@
               :disabled="!toolConfig.rewrite.text"
               class="generate-button"
             >
-              <el-icon><RefreshRight /></el-icon>
+              <QyIcon name="RefreshRight"  />
               开始改写
             </el-button>
           </el-form>
@@ -208,15 +208,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import {
-  Edit,
-  Brush,
-  Plus,
-  RefreshRight,
-  DocumentCopy
-} from '@element-plus/icons-vue'
-
+import { message } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 interface Props {
   selectedText?: string
   lastResult: string
@@ -277,7 +270,7 @@ const handleGenerate = (tool: string) => {
   const config = toolConfig[tool]
 
   if (!config.text && !props.selectedText) {
-    ElMessage.warning('请输入文本')
+    message.warning('请输入文本')
     return
   }
 
@@ -316,9 +309,9 @@ const handleGenerate = (tool: string) => {
 const handleCopyResult = async () => {
   try {
     await navigator.clipboard.writeText(props.lastResult)
-    ElMessage.success('已复制到剪贴板')
+    message.success('已复制到剪贴板')
   } catch (error) {
-    ElMessage.error('复制失败')
+    message.error('复制失败')
   }
 }
 

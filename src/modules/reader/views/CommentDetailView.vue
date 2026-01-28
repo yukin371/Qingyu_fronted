@@ -19,7 +19,7 @@
             class="back-button"
             @click="goBack"
           >
-            <el-icon><ArrowLeft /></el-icon>
+            <QyIcon name="ArrowLeft"  />
             返回
           </el-button>
 
@@ -66,12 +66,12 @@
                     @click="handleLike"
                     :class="{ 'is-liked': comment.isLiked }"
                   >
-                    <el-icon><Star /></el-icon>
+                    <QyIcon name="Star"  />
                     {{ comment.likeCount || 0 }} 点赞
                   </el-button>
 
                   <el-button text>
-                    <el-icon><ChatLineRound /></el-icon>
+                    <QyIcon name="ChatLineRound"  />
                     {{ comment.replyCount || 0 }} 回复
                   </el-button>
                 </div>
@@ -108,7 +108,7 @@
                   class="reply-trigger"
                   @click="showReplyBox = true"
                 >
-                  <el-icon><Edit /></el-icon>
+                  <QyIcon name="Edit"  />
                   回复这条评论
                 </el-button>
               </div>
@@ -171,13 +171,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  ArrowLeft,
-  Star,
-  ChatLineRound,
-  Edit
-} from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import BreadcrumbNav from '@/shared/components/common/BreadcrumbNav.vue'
 import SkeletonLoader from '@/shared/components/common/SkeletonLoader.vue'
 import CommentTree from '@/shared/components/common/CommentTree.vue'
@@ -221,7 +216,7 @@ const loadComment = async () => {
     comment.value = response.data
   } catch (error: any) {
     console.error('加载评论失败:', error)
-    ElMessage.error('加载评论失败')
+    message.error('加载评论失败')
   } finally {
     loading.value = false
   }
@@ -243,7 +238,7 @@ const loadReplies = async () => {
     hasMore.value = response.data.total > currentPage.value * 20
   } catch (error: any) {
     console.error('加载回复失败:', error)
-    ElMessage.error('加载回复失败')
+    message.error('加载回复失败')
   } finally {
     loadingReplies.value = false
   }
@@ -265,7 +260,7 @@ const loadMoreReplies = async () => {
     hasMore.value = response.data.total > currentPage.value * 20
   } catch (error: any) {
     console.error('加载回复失败:', error)
-    ElMessage.error('加载回复失败')
+    message.error('加载回复失败')
   } finally {
     loadingMore.value = false
   }
@@ -274,7 +269,7 @@ const loadMoreReplies = async () => {
 // 处理点赞
 const handleLike = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
 
@@ -283,23 +278,23 @@ const handleLike = async () => {
       await httpService.delete(`/reader/comments/${commentId.value}/like`)
       comment.value.isLiked = false
       comment.value.likeCount = Math.max(0, (comment.value.likeCount || 0) - 1)
-      ElMessage.success('已取消点赞')
+      message.success('已取消点赞')
     } else {
       await httpService.post(`/reader/comments/${commentId.value}/like`)
       comment.value.isLiked = true
       comment.value.likeCount = (comment.value.likeCount || 0) + 1
-      ElMessage.success('点赞成功')
+      message.success('点赞成功')
     }
   } catch (error: any) {
     console.error('点赞操作失败:', error)
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   }
 }
 
 // 处理回复
 const handleReply = async () => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
 
@@ -312,7 +307,7 @@ const handleReply = async () => {
     await httpService.post(`/reader/comments/${commentId.value}/reply`, {
       content: replyContent.value.trim()
     })
-    ElMessage.success('回复成功')
+    message.success('回复成功')
     replyContent.value = ''
     showReplyBox.value = false
 
@@ -325,7 +320,7 @@ const handleReply = async () => {
     }
   } catch (error: any) {
     console.error('回复失败:', error)
-    ElMessage.error('回复失败')
+    message.error('回复失败')
   } finally {
     submitting.value = false
   }
@@ -334,7 +329,7 @@ const handleReply = async () => {
 // 处理子评论的回复
 const handleReplySubmit = async (replyCommentId: string, content: string) => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
 
@@ -342,34 +337,34 @@ const handleReplySubmit = async (replyCommentId: string, content: string) => {
     await httpService.post(`/reader/comments/${replyCommentId}/reply`, {
       content
     })
-    ElMessage.success('回复成功')
+    message.success('回复成功')
 
     // 刷新回复列表
     loadReplies()
   } catch (error: any) {
     console.error('回复失败:', error)
-    ElMessage.error('回复失败')
+    message.error('回复失败')
   }
 }
 
 // 处理删除评论
 const handleDeleteComment = async (deleteCommentId: string) => {
   try {
-    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+    await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
     await httpService.delete(`/reader/comments/${deleteCommentId}`)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
 
     // 刷新回复列表
     loadReplies()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }
@@ -377,7 +372,7 @@ const handleDeleteComment = async (deleteCommentId: string) => {
 // 处理点赞评论
 const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
   if (!authStore.isLoggedIn) {
-    ElMessage.warning('请先登录')
+    message.warning('请先登录')
     return
   }
 
@@ -403,7 +398,7 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
     updateCommentLike(replies.value)
   } catch (error: any) {
     console.error('点赞操作失败:', error)
-    ElMessage.error('操作失败')
+    message.error('操作失败')
   }
 }
 

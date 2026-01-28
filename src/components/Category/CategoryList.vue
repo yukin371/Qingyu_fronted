@@ -9,15 +9,15 @@
       <!-- 图标 -->
       <div
         v-if="category.icon"
-        class="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xl"
+        class="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center text-white text-xl"
       >
         {{ category.icon }}
       </div>
       <div
         v-else
-        class="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center"
+        class="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center"
       >
-        <el-icon :size="24" class="text-white"><Grid /></el-icon>
+        <QyIcon name="Grid" :size="24" class="text-white" />
       </div>
 
       <!-- 分类名称 -->
@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Grid } from '@element-plus/icons-vue'
+import { QyIcon } from '@/design-system/components'
 import type { Category } from '@/types/bookstore'
 
 interface Props {

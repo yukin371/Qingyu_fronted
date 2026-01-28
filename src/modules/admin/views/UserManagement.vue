@@ -274,15 +274,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Search,
-  Refresh,
-  View,
-  Edit,
-  Delete
-} from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -357,7 +350,7 @@ const loadUserList = async () => {
       ...searchForm
     })
   } catch (error) {
-    ElMessage.error('加载用户列表失败')
+    message.error('加载用户列表失败')
   }
 }
 
@@ -407,7 +400,7 @@ const handleView = async (row) => {
     Object.assign(userForm, userData)
     dialogVisible.value = true
   } catch (error) {
-    ElMessage.error('获取用户信息失败')
+    message.error('获取用户信息失败')
   }
 }
 
@@ -421,14 +414,14 @@ const handleEdit = async (row) => {
     Object.assign(userForm, userData)
     dialogVisible.value = true
   } catch (error) {
-    ElMessage.error('获取用户信息失败')
+    message.error('获取用户信息失败')
   }
 }
 
 // 删除用户
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要删除用户 "${row.username}" 吗？此操作不可恢复！`,
       '警告',
       {
@@ -439,11 +432,11 @@ const handleDelete = async (row) => {
     )
 
     await userStore.deleteUser(row.user_id)
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     loadUserList()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -457,7 +450,7 @@ const handleSubmit = async () => {
   try {
     if (dialogMode.value === 'add') {
       // 添加用户（暂未实现后端接口）
-      ElMessage.warning('添加用户功能暂未实现')
+      message.warning('添加用户功能暂未实现')
     } else if (dialogMode.value === 'edit') {
       // 更新用户
       const updateData = {
@@ -472,12 +465,12 @@ const handleSubmit = async () => {
       }
 
       await userStore.updateUser(userForm.user_id, updateData)
-      ElMessage.success('更新成功')
+      message.success('更新成功')
       dialogVisible.value = false
       loadUserList()
     }
   } catch (error) {
-    ElMessage.error(error.message || '操作失败')
+    message.error(error.message || '操作失败')
   } finally {
     submitting.value = false
   }
