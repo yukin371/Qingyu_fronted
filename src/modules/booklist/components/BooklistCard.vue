@@ -32,7 +32,7 @@
         <QyAvatar
           :src="booklist.creator?.avatar"
           :name="booklist.creator?.nickname"
-          :size="24"
+          size="sm"
         />
         <span class="creator-name">{{ booklist.creator?.nickname }}</span>
       </div>

@@ -96,7 +96,7 @@
           <QyButton
             v-if="hasMore"
             :loading="booklistStore.loading"
-            variant="outline"
+            variant="secondary"
             @click="loadMore"
           >
             加载更多
@@ -179,8 +179,8 @@ function selectTag(tag: string) {
 }
 
 // 选择排序
-function selectSort(sort: 'latest' | 'hottest' | 'mostBooks') {
-  currentSort.value = sort
+function selectSort(sort: string) {
+  currentSort.value = sort as 'latest' | 'hottest' | 'mostBooks'
   fetchBooklists()
 }
 

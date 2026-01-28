@@ -83,7 +83,7 @@
         />
         <QyButton
           v-else
-          variant="outline"
+          variant="secondary"
           size="sm"
           @click="showTagInput"
         >
@@ -140,7 +140,7 @@
 
     <!-- 提交按钮 -->
     <div class="form-actions">
-      <QyButton variant="outline" @click="handleCancel">
+      <QyButton variant="secondary" @click="handleCancel">
         取消
       </QyButton>
       <QyButton

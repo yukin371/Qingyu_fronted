@@ -27,10 +27,10 @@ export const useCommunityStore = defineStore('community', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await communityApi.getPosts(params)
-      if (response.data.code === 0) {
-        posts.value = response.data.data.list
-        total.value = response.data.data.total
+      const data = await communityApi.getPosts(params)
+      if (data && data.list) {
+        posts.value = data.list
+        total.value = data.total
       }
     } catch (err) {
       error.value = err as Error
@@ -47,9 +47,9 @@ export const useCommunityStore = defineStore('community', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await communityApi.getPostDetail(id)
-      if (response.data.code === 0) {
-        currentPost.value = response.data.data
+      const data = await communityApi.getPostDetail(id)
+      if (data) {
+        currentPost.value = data
       }
     } catch (err) {
       error.value = err as Error
@@ -64,9 +64,9 @@ export const useCommunityStore = defineStore('community', () => {
    */
   async function fetchComments(postId: string) {
     try {
-      const response = await communityApi.getPostComments(postId)
-      if (response.data.code === 0) {
-        comments.value = response.data.data.list
+      const data = await communityApi.getPostComments(postId)
+      if (data && data.list) {
+        comments.value = data.list
       }
     } catch (err) {
       console.error('获取评论失败:', err)
@@ -85,10 +85,10 @@ export const useCommunityStore = defineStore('community', () => {
   }) {
     loading.value = true
     try {
-      const response = await communityApi.createPost(data)
-      if (response.data.code === 0) {
-        posts.value.unshift(response.data.data)
-        return response.data.data
+      const result = await communityApi.createPost(data)
+      if (result) {
+        posts.value.unshift(result)
+        return result
       }
     } catch (err) {
       console.error('发布动态失败:', err)
@@ -103,13 +103,13 @@ export const useCommunityStore = defineStore('community', () => {
    */
   async function createComment(postId: string, content: string, replyTo?: string) {
     try {
-      const response = await communityApi.createPostComment(postId, { content, replyTo })
-      if (response.data.code === 0) {
-        comments.value.unshift(response.data.data)
+      const result = await communityApi.createPostComment(postId, { content, replyTo })
+      if (result) {
+        comments.value.unshift(result)
         if (currentPost.value) {
           currentPost.value.commentCount++
         }
-        return response.data.data
+        return result
       }
     } catch (err) {
       console.error('发表评论失败:', err)
@@ -144,9 +144,9 @@ export const useCommunityStore = defineStore('community', () => {
    */
   async function fetchTopics() {
     try {
-      const response = await communityApi.getTopics()
-      if (response.data.code === 0) {
-        topics.value = response.data.data.list
+      const data = await communityApi.getTopics()
+      if (data && data.list) {
+        topics.value = data.list
       }
     } catch (err) {
       console.error('获取话题失败:', err)
@@ -159,9 +159,9 @@ export const useCommunityStore = defineStore('community', () => {
   async function fetchTopicPosts(topicId: string) {
     loading.value = true
     try {
-      const response = await communityApi.getTopicPosts(topicId)
-      if (response.data.code === 0) {
-        posts.value = response.data.data.list
+      const data = await communityApi.getTopicPosts(topicId)
+      if (data && data.list) {
+        posts.value = data.list
       }
     } catch (err) {
       console.error('获取话题动态失败:', err)

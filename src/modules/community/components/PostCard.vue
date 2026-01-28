@@ -5,7 +5,7 @@
       <QyAvatar
         :src="post.user?.avatar"
         :name="post.user?.nickname"
-        :size="40"
+        size="md"
       />
       <div class="user-info">
         <span class="nickname">{{ post.user?.nickname }}</span>
@@ -139,7 +139,7 @@ function goToBook() {
   // 跳转到书籍详情
 }
 
-function previewImage(img: string) {
+function previewImage(_img: string) {
   // 预览图片
 }
 </script>

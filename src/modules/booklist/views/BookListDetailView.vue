@@ -42,7 +42,7 @@
               <QyAvatar
                 :src="booklistStore.currentBooklist.creator?.avatar"
                 :name="booklistStore.currentBooklist.creator?.nickname"
-                :size="40"
+                size="md"
               />
               <div class="creator-meta">
                 <span class="creator-name">{{ booklistStore.currentBooklist.creator?.nickname }}</span>
@@ -76,19 +76,19 @@
             <!-- 操作按钮 -->
             <div class="header-actions">
               <QyButton
-                :variant="booklistStore.currentBooklist.isLiked ? 'primary' : 'outline'"
+                :variant="booklistStore.currentBooklist.isLiked ? 'primary' : 'secondary'"
                 @click="handleFavorite"
               >
                 <QyIcon :name="booklistStore.currentBooklist.isLiked ? 'StarFilled' : 'Star'" :size="16" />
                 {{ booklistStore.currentBooklist.isLiked ? '已收藏' : '收藏' }}
               </QyButton>
-              <QyButton variant="outline" @click="handleShare">
+              <QyButton variant="secondary" @click="handleShare">
                 <QyIcon name="Share" :size="16" />
                 分享
               </QyButton>
               <QyButton
                 v-if="isCreator"
-                variant="outline"
+                variant="secondary"
                 @click="showEditDialog = true"
               >
                 <QyIcon name="Edit" :size="16" />
@@ -206,7 +206,7 @@ const updating = ref(false)
 // 计算属性
 const booklistId = computed(() => route.params.id as string)
 const isCreator = computed(() => {
-  return booklistStore.currentBooklist?.creatorId === userStore.userInfo?.id
+  return booklistStore.currentBooklist?.creatorId === userStore.userInfo?.value?.id
 })
 
 // 格式化日期

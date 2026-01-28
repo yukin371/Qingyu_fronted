@@ -9,14 +9,10 @@ import type { Post, PostComment, Topic, PostQuery } from '@/types/community'
  */
 export function getPosts(params?: PostQuery) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: Post[]
-      total: number
-      page: number
-      size: number
-    }
+    list: Post[]
+    total: number
+    page: number
+    size: number
   }>('/api/v1/community/posts', { params })
 }
 
@@ -24,11 +20,7 @@ export function getPosts(params?: PostQuery) {
  * 获取动态详情
  */
 export function getPostDetail(id: string) {
-  return http.get<{
-    code: number
-    message: string
-    data: Post
-  }>(`/api/v1/community/posts/${id}`)
+  return http.get<Post>(`/api/v1/community/posts/${id}`)
 }
 
 /**
@@ -41,11 +33,7 @@ export function createPost(data: {
   bookId?: string
   topics?: string[]
 }) {
-  return http.post<{
-    code: number
-    message: string
-    data: Post
-  }>('/api/v1/community/posts', data)
+  return http.post<Post>('/api/v1/community/posts', data)
 }
 
 /**
@@ -55,55 +43,35 @@ export function updatePost(id: string, data: {
   content?: string
   topics?: string[]
 }) {
-  return http.put<{
-    code: number
-    message: string
-    data: Post
-  }>(`/api/v1/community/posts/${id}`, data)
+  return http.put<Post>(`/api/v1/community/posts/${id}`, data)
 }
 
 /**
  * 删除动态
  */
 export function deletePost(id: string) {
-  return http.delete<{
-    code: number
-    message: string
-    data: { success: boolean }
-  }>(`/api/v1/community/posts/${id}`)
+  return http.delete<{ success: boolean }>(`/api/v1/community/posts/${id}`)
 }
 
 /**
  * 点赞动态
  */
 export function likePost(id: string) {
-  return http.post<{
-    code: number
-    message: string
-    data: { success: boolean; likeCount: number }
-  }>(`/api/v1/community/posts/${id}/like`)
+  return http.post<{ success: boolean; likeCount: number }>(`/api/v1/community/posts/${id}/like`)
 }
 
 /**
  * 取消点赞动态
  */
 export function unlikePost(id: string) {
-  return http.delete<{
-    code: number
-    message: string
-    data: { success: boolean; likeCount: number }
-  }>(`/api/v1/community/posts/${id}/like`)
+  return http.delete<{ success: boolean; likeCount: number }>(`/api/v1/community/posts/${id}/like`)
 }
 
 /**
  * 收藏动态
  */
 export function bookmarkPost(id: string) {
-  return http.post<{
-    code: number
-    message: string
-    data: { success: boolean }
-  }>(`/api/v1/community/posts/${id}/bookmark`)
+  return http.post<{ success: boolean }>(`/api/v1/community/posts/${id}/bookmark`)
 }
 
 /**
@@ -111,12 +79,8 @@ export function bookmarkPost(id: string) {
  */
 export function getPostComments(postId: string, params?: { page?: number; size?: number }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: PostComment[]
-      total: number
-    }
+    list: PostComment[]
+    total: number
   }>(`/api/v1/community/posts/${postId}/comments`, { params })
 }
 
@@ -127,11 +91,7 @@ export function createPostComment(postId: string, data: {
   content: string
   replyTo?: string
 }) {
-  return http.post<{
-    code: number
-    message: string
-    data: PostComment
-  }>(`/api/v1/community/posts/${postId}/comments`, data)
+  return http.post<PostComment>(`/api/v1/community/posts/${postId}/comments`, data)
 }
 
 /**
@@ -139,12 +99,8 @@ export function createPostComment(postId: string, data: {
  */
 export function getTopics(params?: { page?: number; size?: number }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: Topic[]
-      total: number
-    }
+    list: Topic[]
+    total: number
   }>('/api/v1/community/topics', { params })
 }
 
@@ -152,23 +108,17 @@ export function getTopics(params?: { page?: number; size?: number }) {
  * 关注话题
  */
 export function followTopic(topicId: string) {
-  return http.post<{
-    code: number
-    message: string
-    data: { success: boolean }
-  }>(`/api/v1/community/topics/${topicId}/follow`)
+  return http.post<{ success: boolean }>(`/api/v1/community/topics/${topicId}/follow`)
 }
+
 
 /**
  * 获取话题动态
  */
 export function getTopicPosts(topicId: string, params?: { page?: number; size?: number }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: Post[]
-      total: number
-    }
+    list: Post[]
+    total: number
   }>(`/api/v1/community/topics/${topicId}/posts`, { params })
 }
+

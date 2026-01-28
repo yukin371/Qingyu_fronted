@@ -29,10 +29,10 @@ export const useBooklistStore = defineStore('booklist', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await booklistApi.getBookLists(params)
-      if (response.data.code === 0) {
-        booklists.value = response.data.data.list
-        total.value = response.data.data.total
+      const data = await booklistApi.getBookLists(params)
+      if (data && data.list) {
+        booklists.value = data.list
+        total.value = data.total
       }
     } catch (err) {
       error.value = err as Error
@@ -49,9 +49,9 @@ export const useBooklistStore = defineStore('booklist', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await booklistApi.getBookListDetail(id)
-      if (response.data.code === 0) {
-        currentBooklist.value = response.data.data
+      const data = await booklistApi.getBookListDetail(id)
+      if (data) {
+        currentBooklist.value = data
       }
     } catch (err) {
       error.value = err as Error
@@ -68,9 +68,9 @@ export const useBooklistStore = defineStore('booklist', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await booklistApi.getBookLists({ sort: 'latest' })
-      if (response.data.code === 0) {
-        myBooklists.value = response.data.data.list
+      const data = await booklistApi.getBookLists({ sort: 'latest' })
+      if (data && data.list) {
+        myBooklists.value = data.list
       }
     } catch (err) {
       error.value = err as Error
@@ -88,9 +88,9 @@ export const useBooklistStore = defineStore('booklist', () => {
     error.value = null
     try {
       // 这里应该调用专门的收藏API，暂时使用列表API
-      const response = await booklistApi.getBookLists({ sort: 'hottest' })
-      if (response.data.code === 0) {
-        favoriteBooklists.value = response.data.data.list
+      const data = await booklistApi.getBookLists({ sort: 'hottest' })
+      if (data && data.list) {
+        favoriteBooklists.value = data.list
       }
     } catch (err) {
       error.value = err as Error
@@ -105,9 +105,9 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function fetchMyStats() {
     try {
-      const response = await booklistApi.getMyBookListStats()
-      if (response.data.code === 0) {
-        myStats.value = response.data.data
+      const data = await booklistApi.getMyBookListStats()
+      if (data) {
+        myStats.value = data
       }
     } catch (err) {
       console.error('获取书单统计失败:', err)
@@ -119,9 +119,9 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function fetchPopularTags() {
     try {
-      const response = await booklistApi.getPopularTags(20)
-      if (response.data.code === 0) {
-        popularTags.value = response.data.data.map(item => item.tag)
+      const data = await booklistApi.getPopularTags(20)
+      if (data && Array.isArray(data)) {
+        popularTags.value = data.map((item: { tag: string }) => item.tag)
       }
     } catch (err) {
       console.error('获取热门标签失败:', err)
@@ -140,9 +140,9 @@ export const useBooklistStore = defineStore('booklist', () => {
   }) {
     loading.value = true
     try {
-      const response = await booklistApi.createBookList(data)
-      if (response.data.code === 0) {
-        return response.data.data
+      const result = await booklistApi.createBookList(data)
+      if (result) {
+        return result
       }
     } catch (err) {
       console.error('创建书单失败:', err)
@@ -164,9 +164,9 @@ export const useBooklistStore = defineStore('booklist', () => {
   }) {
     loading.value = true
     try {
-      const response = await booklistApi.updateBookList(id, data)
-      if (response.data.code === 0) {
-        return response.data.data
+      const result = await booklistApi.updateBookList(id, data)
+      if (result) {
+        return result
       }
     } catch (err) {
       console.error('更新书单失败:', err)
@@ -182,8 +182,8 @@ export const useBooklistStore = defineStore('booklist', () => {
   async function deleteBooklist(id: string) {
     loading.value = true
     try {
-      const response = await booklistApi.deleteBookList(id)
-      if (response.data.code === 0) {
+      const result = await booklistApi.deleteBookList(id)
+      if (result) {
         // 从列表中移除
         booklists.value = booklists.value.filter(item => item.id !== id)
         myBooklists.value = myBooklists.value.filter(item => item.id !== id)
@@ -202,8 +202,8 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function favoriteBooklist(id: string) {
     try {
-      const response = await booklistApi.favoriteBookList(id)
-      if (response.data.code === 0) {
+      const result = await booklistApi.favoriteBookList(id)
+      if (result) {
         // 更新本地状态
         const booklist = booklists.value.find(item => item.id === id)
         if (booklist) {
@@ -223,8 +223,8 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function unfavoriteBooklist(id: string) {
     try {
-      const response = await booklistApi.unfavoriteBookList(id)
-      if (response.data.code === 0) {
+      const result = await booklistApi.unfavoriteBookList(id)
+      if (result) {
         // 更新本地状态
         const booklist = booklists.value.find(item => item.id === id)
         if (booklist) {
@@ -244,9 +244,9 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function addBookToList(listId: string, bookId: string, note?: string) {
     try {
-      const response = await booklistApi.addBookToList(listId, { bookId, note })
-      if (response.data.code === 0) {
-        return response.data.data
+      const result = await booklistApi.addBookToList(listId, { bookId, note })
+      if (result) {
+        return result
       }
     } catch (err) {
       console.error('添加书籍失败:', err)
@@ -259,8 +259,8 @@ export const useBooklistStore = defineStore('booklist', () => {
    */
   async function removeBookFromList(listId: string, bookId: string) {
     try {
-      const response = await booklistApi.removeBookFromList(listId, bookId)
-      if (response.data.code === 0) {
+      const result = await booklistApi.removeBookFromList(listId, bookId)
+      if (result) {
         // 更新当前书单
         if (currentBooklist.value && currentBooklist.value.id === listId) {
           currentBooklist.value.books = currentBooklist.value.books.filter(
