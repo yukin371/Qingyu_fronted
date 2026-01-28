@@ -25,6 +25,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@/tests': fileURLToPath(new URL('./tests', import.meta.url)),
       '@bookstore': fileURLToPath(new URL('./src/modules/bookstore', import.meta.url)),
       '@reader': fileURLToPath(new URL('./src/modules/reader', import.meta.url)),
       '@user': fileURLToPath(new URL('./src/modules/user', import.meta.url)),

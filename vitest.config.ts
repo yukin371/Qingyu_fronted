@@ -13,7 +13,8 @@ export default mergeConfig(
       // 测试文件匹配模式
       include: [
         'tests/unit/**/*.{test,spec}.{js,ts,jsx,tsx}',
-        'src/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}'
+        'src/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}',
+        'src/modules/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}'
       ],
 
       // 覆盖率配置
