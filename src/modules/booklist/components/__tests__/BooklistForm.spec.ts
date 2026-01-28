@@ -27,13 +27,24 @@ vi.mock('@/design-system/components', () => {
     setup(props, { emit }) {
       const handleInput = (e) => {
         const target = e.target
-        emit('update:modelValue', target.value)
-        emit('change', target.value)
+        const value = target.value
+        emit('update:modelValue', value)
+        emit('change', value)
       }
+
+      const handleBlur = () => {
+        emit('blur')
+      }
+
+      const handleFocus = () => {
+        emit('focus')
+      }
+
       return () => h(
         props.type === 'textarea' ? 'textarea' : 'input',
         {
           class: 'qy-input',
+          type: props.type === 'textarea' ? undefined : props.type,
           placeholder: props.placeholder,
           disabled: props.disabled,
           readonly: props.readonly,
@@ -41,8 +52,11 @@ vi.mock('@/design-system/components', () => {
           maxlength: props.maxlength,
           value: props.modelValue,
           onInput: handleInput,
+          onBlur: handleBlur,
+          onFocus: handleFocus,
+          'data-testid': 'qy-input',
         },
-        props.modelValue !== undefined ? [props.modelValue] : []
+        []
       )
     },
   })

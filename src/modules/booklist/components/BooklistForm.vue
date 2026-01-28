@@ -284,6 +284,15 @@ function handleSubmit() {
 function handleCancel() {
   emit('cancel')
 }
+
+// 暴露内部状态供测试使用
+defineExpose({
+  formData,
+  inputVisible,
+  inputValue,
+  isValid,
+  isEdit
+})
 </script>
 
 <style scoped lang="scss">
