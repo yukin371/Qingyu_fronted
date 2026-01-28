@@ -1,9 +1,20 @@
 /**
  * 全局错误处理工具
+ * 集成错误码映射模块，支持后端6位数字错误码到前端字符串错误码的转换
  */
 import { message, notification } from '@/design-system/services'
 import type { AxiosError } from 'axios'
 import type { APIResponse } from '@/types/api'
+import {
+  FrontendErrorCode,
+  mapBackendCodeToFrontend,
+  getErrorMessage,
+  getErrorHandlingAdvice,
+  type ErrorMessage
+} from './errorCode'
+
+// 重新导出错误码枚举，保持向后兼容
+export { FrontendErrorCode as ErrorCode }
 
 export interface ErrorOptions {
   showMessage?: boolean // 是否显示错误消息
@@ -11,38 +22,17 @@ export interface ErrorOptions {
   silent?: boolean // 静默模式（不显示任何提示）
   logToConsole?: boolean // 是否打印到控制台
   onError?: (error: AppError) => void // 自定义错误处理
-}
-
-export enum ErrorCode {
-  // 网络错误
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  TIMEOUT = 'TIMEOUT',
-
-  // 认证错误
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-
-  // 业务错误
-  BAD_REQUEST = 'BAD_REQUEST',
-  NOT_FOUND = 'NOT_FOUND',
-  CONFLICT = 'CONFLICT',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-
-  // 服务器错误
-  SERVER_ERROR = 'SERVER_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-
-  // 其他错误
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  locale?: string // 语言代码（用于国际化）
 }
 
 export interface AppError {
-  code: ErrorCode
+  code: FrontendErrorCode
   message: string
   details?: any
   statusCode?: number
   timestamp: number
+  backendCode?: number // 原始后端错误码
+  errorInfo?: ErrorMessage // 完整的错误信息
 }
 
 /**
@@ -53,7 +43,8 @@ export class ErrorHandler {
     showMessage: true,
     messageType: 'message',
     silent: false,
-    logToConsole: true
+    logToConsole: true,
+    locale: 'zh-CN'
   }
 
   /**
@@ -61,7 +52,7 @@ export class ErrorHandler {
    */
   static handle(error: any, options: ErrorOptions = {}): AppError {
     const opts = { ...this.defaultOptions, ...options }
-    const appError = this.parseError(error)
+    const appError = this.parseError(error, opts.locale)
 
     // 打印到控制台
     if (opts.logToConsole && !opts.silent) {
@@ -84,33 +75,35 @@ export class ErrorHandler {
   /**
    * 解析错误
    */
-  private static parseError(error: any): AppError {
+  private static parseError(error: any, locale?: string): AppError {
     const timestamp = Date.now()
 
     // null 或 undefined
     if (error == null) {
+      const errorInfo = getErrorMessage(FrontendErrorCode.UNKNOWN_ERROR, locale)
       return {
-        code: ErrorCode.UNKNOWN_ERROR,
-        message: '发生未知错误',
+        code: FrontendErrorCode.UNKNOWN_ERROR,
+        message: errorInfo.message,
         details: error,
-        timestamp
+        timestamp,
+        errorInfo
       }
     }
 
     // Axios 错误
     if (this.isAxiosError(error)) {
-      return this.parseAxiosError(error, timestamp)
+      return this.parseAxiosError(error, timestamp, locale)
     }
 
-    // API 响应错误
+    // API 响应错误（包含后端错误码）
     if (this.isApiError(error)) {
-      return this.parseApiError(error, timestamp)
+      return this.parseApiError(error, timestamp, locale)
     }
 
     // 普通错误对象
     if (error instanceof Error) {
       return {
-        code: ErrorCode.UNKNOWN_ERROR,
+        code: FrontendErrorCode.UNKNOWN_ERROR,
         message: error.message,
         details: error.stack,
         timestamp
@@ -120,130 +113,249 @@ export class ErrorHandler {
     // 字符串错误
     if (typeof error === 'string') {
       return {
-        code: ErrorCode.UNKNOWN_ERROR,
+        code: FrontendErrorCode.UNKNOWN_ERROR,
         message: error,
         timestamp
       }
     }
 
     // 未知错误
+    const errorInfo = getErrorMessage(FrontendErrorCode.UNKNOWN_ERROR, locale)
     return {
-      code: ErrorCode.UNKNOWN_ERROR,
-      message: '发生未知错误',
+      code: FrontendErrorCode.UNKNOWN_ERROR,
+      message: errorInfo.message,
       details: error,
-      timestamp
+      timestamp,
+      errorInfo
     }
   }
 
   /**
    * 解析 Axios 错误
    */
-  private static parseAxiosError(error: AxiosError, timestamp: number): AppError {
+  private static parseAxiosError(
+    error: AxiosError,
+    timestamp: number,
+    locale?: string
+  ): AppError {
     const statusCode = error.response?.status
+    const responseData = error.response?.data as any
 
     // 网络错误
     if (!error.response) {
+      const errorInfo = getErrorMessage(FrontendErrorCode.NETWORK_ERROR, locale)
       return {
-        code: ErrorCode.NETWORK_ERROR,
-        message: error.message || '网络连接失败，请检查网络设置',
-        timestamp
+        code: FrontendErrorCode.NETWORK_ERROR,
+        message: error.message || errorInfo.message,
+        timestamp,
+        errorInfo
       }
     }
 
-    // 根据状态码解析
+    // 尝试从响应数据中提取后端错误码
+    const backendCode = responseData?.code
+    if (backendCode && typeof backendCode === 'number' && backendCode !== 0) {
+      // 使用新的错误码映射
+      const frontendCode = mapBackendCodeToFrontend(backendCode, statusCode)
+      const errorInfo = getErrorMessage(frontendCode, locale)
+
+      return {
+        code: frontendCode,
+        message: responseData?.message || errorInfo.message,
+        statusCode,
+        backendCode,
+        details: responseData,
+        timestamp,
+        errorInfo
+      }
+    }
+
+    // 根据HTTP状态码解析（兜底处理）
+    return this.parseByHttpStatus(statusCode, responseData, timestamp, locale)
+  }
+
+  /**
+   * 根据HTTP状态码解析错误
+   */
+  private static parseByHttpStatus(
+    statusCode: number | undefined,
+    responseData: any,
+    timestamp: number,
+    locale?: string
+  ): AppError {
     switch (statusCode) {
-      case 400:
+      case 400: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.BAD_REQUEST, locale)
         return {
-          code: ErrorCode.BAD_REQUEST,
-          message: '请求参数错误',
+          code: FrontendErrorCode.BAD_REQUEST,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          details: error.response.data,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 401:
+      }
+      case 401: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.UNAUTHORIZED, locale)
         return {
-          code: ErrorCode.UNAUTHORIZED,
-          message: '未登录或登录已过期，请重新登录',
+          code: FrontendErrorCode.UNAUTHORIZED,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 403:
+      }
+      case 403: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.FORBIDDEN, locale)
         return {
-          code: ErrorCode.FORBIDDEN,
-          message: '没有权限访问此资源',
+          code: FrontendErrorCode.FORBIDDEN,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 404:
+      }
+      case 404: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.NOT_FOUND, locale)
         return {
-          code: ErrorCode.NOT_FOUND,
-          message: '请求的资源不存在',
+          code: FrontendErrorCode.NOT_FOUND,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 409:
+      }
+      case 409: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.CONFLICT, locale)
         return {
-          code: ErrorCode.CONFLICT,
-          message: '资源冲突',
+          code: FrontendErrorCode.CONFLICT,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          details: error.response.data,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 422:
+      }
+      case 422: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.VALIDATION_ERROR, locale)
         return {
-          code: ErrorCode.VALIDATION_ERROR,
-          message: '数据验证失败',
+          code: FrontendErrorCode.VALIDATION_ERROR,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          details: error.response.data,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 500:
+      }
+      case 429: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.RATE_LIMITED, locale)
         return {
-          code: ErrorCode.SERVER_ERROR,
-          message: '服务器内部错误',
+          code: FrontendErrorCode.RATE_LIMITED,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      case 503:
+      }
+      case 500: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.SERVER_ERROR, locale)
         return {
-          code: ErrorCode.SERVICE_UNAVAILABLE,
-          message: '服务暂时不可用，请稍后再试',
+          code: FrontendErrorCode.SERVER_ERROR,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
-      default:
+      }
+      case 502:
+      case 503: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.SERVICE_UNAVAILABLE, locale)
         return {
-          code: ErrorCode.UNKNOWN_ERROR,
-          message: `请求失败 (${statusCode})`,
+          code: FrontendErrorCode.SERVICE_UNAVAILABLE,
+          message: responseData?.message || errorInfo.message,
           statusCode,
-          details: error.response.data,
-          timestamp
+          details: responseData,
+          timestamp,
+          errorInfo
         }
+      }
+      case 504: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.TIMEOUT, locale)
+        return {
+          code: FrontendErrorCode.TIMEOUT,
+          message: responseData?.message || errorInfo.message,
+          statusCode,
+          details: responseData,
+          timestamp,
+          errorInfo
+        }
+      }
+      default: {
+        const errorInfo = getErrorMessage(FrontendErrorCode.UNKNOWN_ERROR, locale)
+        return {
+          code: FrontendErrorCode.UNKNOWN_ERROR,
+          message: responseData?.message || `请求失败 (${statusCode})`,
+          statusCode,
+          details: responseData,
+          timestamp,
+          errorInfo
+        }
+      }
     }
   }
 
   /**
    * 解析 API 响应错误
    */
-  private static parseApiError(error: APIResponse, timestamp: number): AppError {
+  private static parseApiError(
+    error: APIResponse,
+    timestamp: number,
+    locale?: string
+  ): AppError {
+    // 检查是否包含后端错误码
+    const backendCode = error.code
+    if (typeof backendCode === 'number' && backendCode !== 0 && backendCode !== 200) {
+      const frontendCode = mapBackendCodeToFrontend(backendCode)
+      const errorInfo = getErrorMessage(frontendCode, locale)
+
+      return {
+        code: frontendCode,
+        message: error.message || errorInfo.message,
+        statusCode: backendCode,
+        backendCode,
+        details: error,
+        timestamp,
+        errorInfo
+      }
+    }
+
+    // 默认处理
+    const errorInfo = getErrorMessage(FrontendErrorCode.BAD_REQUEST, locale)
     return {
-      code: ErrorCode.BAD_REQUEST,
-      message: error.message || '操作失败',
+      code: FrontendErrorCode.BAD_REQUEST,
+      message: error.message || errorInfo.message,
       statusCode: error.code,
       details: error,
-      timestamp
+      timestamp,
+      errorInfo
     }
   }
 
   /**
    * 显示错误消息
    */
-  private static showError(error: AppError, type: 'message' | 'notification') {
-    const message = this.getErrorMessage(error)
+  private static showError(appError: AppError, type: 'message' | 'notification') {
+    const message = this.getErrorMessage(appError)
+    const title = appError.errorInfo?.title || '错误'
 
     if (type === 'notification') {
       notification.error({
-        title: '错误',
+        title,
         message,
         duration: 4000
       })
@@ -258,25 +370,30 @@ export class ErrorHandler {
   /**
    * 获取用户友好的错误消息
    */
-  private static getErrorMessage(error: AppError): string {
-    // 对于某些错误，可以提供更友好的提示
-    switch (error.code) {
-      case ErrorCode.NETWORK_ERROR:
+  private static getErrorMessage(appError: AppError): string {
+    // 优先使用错误信息中的消息
+    if (appError.errorInfo?.message) {
+      return appError.errorInfo.message
+    }
+
+    // 兜底处理
+    switch (appError.code) {
+      case FrontendErrorCode.NETWORK_ERROR:
         return '网络连接失败，请检查网络设置'
-      case ErrorCode.TIMEOUT:
+      case FrontendErrorCode.TIMEOUT:
         return '请求超时，请稍后重试'
-      case ErrorCode.UNAUTHORIZED:
+      case FrontendErrorCode.UNAUTHORIZED:
         return '登录已过期，请重新登录'
-      case ErrorCode.FORBIDDEN:
+      case FrontendErrorCode.FORBIDDEN:
         return '没有权限执行此操作'
-      case ErrorCode.NOT_FOUND:
+      case FrontendErrorCode.NOT_FOUND:
         return '请求的内容不存在'
-      case ErrorCode.SERVER_ERROR:
+      case FrontendErrorCode.SERVER_ERROR:
         return '服务器错误，请稍后重试'
-      case ErrorCode.SERVICE_UNAVAILABLE:
+      case FrontendErrorCode.SERVICE_UNAVAILABLE:
         return '服务暂时不可用，请稍后重试'
       default:
-        return error.message || '操作失败，请稍后重试'
+        return appError.message || '操作失败，请稍后重试'
     }
   }
 
@@ -298,6 +415,29 @@ export class ErrorHandler {
       'message' in error &&
       'data' in error
     )
+  }
+
+  /**
+   * 获取错误处理建议
+   */
+  static getAdvice(appError: AppError) {
+    return getErrorHandlingAdvice(appError.code)
+  }
+
+  /**
+   * 判断是否应该重试
+   */
+  static shouldRetry(appError: AppError): boolean {
+    const advice = getErrorHandlingAdvice(appError.code)
+    return advice.shouldRetry
+  }
+
+  /**
+   * 判断是否需要登出
+   */
+  static shouldLogout(appError: AppError): boolean {
+    const advice = getErrorHandlingAdvice(appError.code)
+    return advice.shouldLogout
   }
 }
 
@@ -342,9 +482,10 @@ export async function retry<T>(
   options: {
     maxRetries?: number
     delay?: number
+    shouldRetry?: (error: AppError) => boolean
   } = {}
 ): Promise<T> {
-  const { maxRetries = 3, delay = 1000 } = options
+  const { maxRetries = 3, delay = 1000, shouldRetry } = options
   let lastError: any
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -352,9 +493,22 @@ export async function retry<T>(
       return await fn()
     } catch (error) {
       lastError = error
+      const appError = handleErrorSilently(error)
+
+      // 自定义重试判断
+      if (shouldRetry && !shouldRetry(appError)) {
+        throw lastError
+      }
+
+      // 使用错误处理建议
+      if (!ErrorHandler.shouldRetry(appError)) {
+        throw lastError
+      }
 
       if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, delay * attempt))
+        const advice = ErrorHandler.getAdvice(appError)
+        const retryDelay = advice.retryDelay || delay * attempt
+        await new Promise((resolve) => setTimeout(resolve, retryDelay))
       }
     }
   }
@@ -405,7 +559,7 @@ export function isEmptyData(response: any): boolean {
   if (!response) return false
 
   // 检查是否为成功的API响应
-  if (response.code === 200 || response.code === 201) {
+  if (response.code === 200 || response.code === 201 || response.code === 0) {
     // data为null或undefined
     if (response.data === null || response.data === undefined) {
       return true
@@ -452,9 +606,11 @@ export function isNetworkError(error: any): boolean {
   }
 
   // 网络错误代码
-  if (error.code === 'ERR_NETWORK' ||
-      error.code === 'ERR_INTERNET_DISCONNECTED' ||
-      error.code === 'ECONNRESET') {
+  if (
+    error.code === 'ERR_NETWORK' ||
+    error.code === 'ERR_INTERNET_DISCONNECTED' ||
+    error.code === 'ECONNRESET'
+  ) {
     return true
   }
 
@@ -466,6 +622,17 @@ export function isNetworkError(error: any): boolean {
  */
 export function isPermissionError(error: any): boolean {
   if (!error || error == null) return false
+
+  // 检查是否是AppError
+  if (error.code && typeof error.code === 'string') {
+    return (
+      error.code === FrontendErrorCode.UNAUTHORIZED ||
+      error.code === FrontendErrorCode.FORBIDDEN ||
+      error.code === FrontendErrorCode.TOKEN_EXPIRED ||
+      error.code === FrontendErrorCode.TOKEN_INVALID
+    )
+  }
+
   const status = error.response?.status
   return status === 401 || status === 403
 }
@@ -475,6 +642,16 @@ export function isPermissionError(error: any): boolean {
  */
 export function isServerError(error: any): boolean {
   if (!error || error == null) return false
+
+  // 检查是否是AppError
+  if (error.code && typeof error.code === 'string') {
+    return (
+      error.code === FrontendErrorCode.SERVER_ERROR ||
+      error.code === FrontendErrorCode.SERVICE_UNAVAILABLE ||
+      error.code === FrontendErrorCode.EXTERNAL_ERROR
+    )
+  }
+
   const status = error.response?.status
   return status !== undefined && status >= 500
 }
@@ -484,7 +661,65 @@ export function isServerError(error: any): boolean {
  */
 export function isClientError(error: any): boolean {
   if (!error || error == null) return false
+
+  // 检查是否是AppError
+  if (error.code && typeof error.code === 'string') {
+    const clientErrors = [
+      FrontendErrorCode.BAD_REQUEST,
+      FrontendErrorCode.NOT_FOUND,
+      FrontendErrorCode.CONFLICT,
+      FrontendErrorCode.VALIDATION_ERROR,
+      FrontendErrorCode.RESOURCE_EXISTS,
+      FrontendErrorCode.RESOURCE_GONE
+    ]
+    return clientErrors.includes(error.code as FrontendErrorCode)
+  }
+
   const status = error.response?.status
   return status !== undefined && status >= 400 && status < 500
 }
 
+/**
+ * 处理后端错误码（便捷方法）
+ * 用于直接处理后端返回的错误码
+ */
+export function handleBackendError(
+  backendCode: number,
+  message?: string,
+  options?: ErrorOptions
+): AppError {
+  const frontendCode = mapBackendCodeToFrontend(backendCode)
+  const errorInfo = getErrorMessage(frontendCode, options?.locale)
+
+  const appError: AppError = {
+    code: frontendCode,
+    message: message || errorInfo.message,
+    backendCode,
+    timestamp: Date.now(),
+    errorInfo
+  }
+
+  if (options?.showMessage !== false && !options?.silent) {
+    ErrorHandler.handle(appError, options)
+  }
+
+  return appError
+}
+
+// 默认导出
+export default {
+  ErrorHandler,
+  handleError,
+  handleErrorSilently,
+  handleBackendError,
+  catchAsync,
+  retry,
+  createVueErrorHandler,
+  createPromiseRejectionHandler,
+  isEmptyData,
+  isNetworkError,
+  isPermissionError,
+  isServerError,
+  isClientError,
+  FrontendErrorCode
+}
