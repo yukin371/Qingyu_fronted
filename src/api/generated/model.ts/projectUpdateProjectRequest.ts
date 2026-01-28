@@ -7,10 +7,10 @@
  */
 
 export interface ProjectUpdateProjectRequest {
-  category?: string;
-  coverUrl?: string;
-  status?: string;
-  summary?: string;
-  tags?: string[];
-  title?: string;
+  category?: string
+  coverUrl?: string
+  status?: string
+  summary?: string
+  tags?: string[]
+  title?: string
 }

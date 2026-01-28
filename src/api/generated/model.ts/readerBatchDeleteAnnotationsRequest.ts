@@ -11,5 +11,5 @@ export interface ReaderBatchDeleteAnnotationsRequest {
    * @minItems 1
    * @maxItems 100
    */
-  ids: string[];
+  ids: string[]
 }

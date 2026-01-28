@@ -7,7 +7,7 @@
  */
 
 export interface ReadingAPIResponse {
-  code?: number;
-  data?: unknown;
-  message?: string;
+  code?: number
+  data?: unknown
+  message?: string
 }

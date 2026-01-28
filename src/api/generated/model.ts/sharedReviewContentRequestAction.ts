@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type SharedReviewContentRequestAction = typeof SharedReviewContentRequestAction[keyof typeof SharedReviewContentRequestAction];
-
+export type SharedReviewContentRequestAction =
+  (typeof SharedReviewContentRequestAction)[keyof typeof SharedReviewContentRequestAction]
 
 export const SharedReviewContentRequestAction = {
   approve: 'approve',
   reject: 'reject',
-} as const;
+} as const

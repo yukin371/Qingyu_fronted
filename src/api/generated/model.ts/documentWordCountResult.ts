@@ -8,19 +8,19 @@
 
 export interface DocumentWordCountResult {
   /** 中文字数 */
-  chineseCount?: number;
+  chineseCount?: number
   /** 英文单词数 */
-  englishCount?: number;
+  englishCount?: number
   /** 数字个数 */
-  numberCount?: number;
+  numberCount?: number
   /** 段落数 */
-  paragraphCount?: number;
+  paragraphCount?: number
   /** 预计阅读时长（分钟） */
-  readingTime?: number;
+  readingTime?: number
   /** 阅读时长文本 */
-  readingTimeText?: string;
+  readingTimeText?: string
   /** 句子数 */
-  sentenceCount?: number;
+  sentenceCount?: number
   /** 总字数 */
-  totalCount?: number;
+  totalCount?: number
 }

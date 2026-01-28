@@ -6,8 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type BookstoreBookStatus = typeof BookstoreBookStatus[keyof typeof BookstoreBookStatus];
-
+export type BookstoreBookStatus = (typeof BookstoreBookStatus)[keyof typeof BookstoreBookStatus]
 
 export const BookstoreBookStatus = {
   /** 草稿 */
@@ -20,4 +19,4 @@ export const BookstoreBookStatus = {
   BookStatusCompleted: 'completed',
   /** 暂停更新 */
   BookStatusPaused: 'paused',
-} as const;
+} as const

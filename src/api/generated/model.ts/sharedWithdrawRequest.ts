@@ -7,6 +7,6 @@
  */
 
 export interface SharedWithdrawRequest {
-  account: string;
-  amount: number;
+  account: string
+  amount: number
 }

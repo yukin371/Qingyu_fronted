@@ -7,9 +7,9 @@
  */
 
 export interface DocumentSaveStatusResponse {
-  currentVersion?: number;
-  documentId?: string;
-  isSaving?: boolean;
-  lastSavedAt?: string;
-  wordCount?: number;
+  currentVersion?: number
+  documentId?: string
+  isSaving?: boolean
+  lastSavedAt?: string
+  wordCount?: number
 }

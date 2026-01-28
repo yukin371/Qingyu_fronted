@@ -5,35 +5,35 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { DocumentCollaborator } from './documentCollaborator';
-import type { DocumentProjectSettings } from './documentProjectSettings';
-import type { DocumentProjectStats } from './documentProjectStats';
-import type { DocumentProjectStatus } from './documentProjectStatus';
-import type { DocumentVisibility } from './documentVisibility';
+import type { DocumentCollaborator } from './documentCollaborator'
+import type { DocumentProjectSettings } from './documentProjectSettings'
+import type { DocumentProjectStats } from './documentProjectStats'
+import type { DocumentProjectStatus } from './documentProjectStatus'
+import type { DocumentVisibility } from './documentVisibility'
 
 export interface DocumentProject {
-  authorId: string;
-  category?: string;
+  authorId: string
+  category?: string
   /** 协作信息 */
-  collaborators?: DocumentCollaborator[];
-  coverUrl?: string;
+  collaborators?: DocumentCollaborator[]
+  coverUrl?: string
   /** 时间戳 */
-  createdAt?: string;
-  deletedAt?: string;
-  id?: string;
-  publishedAt?: string;
+  createdAt?: string
+  deletedAt?: string
+  id?: string
+  publishedAt?: string
   /** 设置信息 */
-  settings?: DocumentProjectSettings;
+  settings?: DocumentProjectSettings
   /** 统计信息 */
-  statistics?: DocumentProjectStats;
-  status?: DocumentProjectStatus;
-  summary?: string;
-  tags?: string[];
+  statistics?: DocumentProjectStats
+  status?: DocumentProjectStatus
+  summary?: string
+  tags?: string[]
   /**
    * @minLength 1
    * @maxLength 100
    */
-  title: string;
-  updatedAt?: string;
-  visibility?: DocumentVisibility;
+  title: string
+  updatedAt?: string
+  visibility?: DocumentVisibility
 }

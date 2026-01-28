@@ -7,10 +7,10 @@
  */
 
 export interface ProjectVersionInfo {
-  createdAt?: string;
-  createdBy?: string;
-  message?: string;
-  version?: number;
-  versionId?: string;
-  wordCount?: number;
+  createdAt?: string
+  createdBy?: string
+  message?: string
+  version?: number
+  versionId?: string
+  wordCount?: number
 }

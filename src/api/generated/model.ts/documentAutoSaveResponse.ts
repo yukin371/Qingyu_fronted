@@ -7,9 +7,9 @@
  */
 
 export interface DocumentAutoSaveResponse {
-  hasConflict?: boolean;
-  newVersion?: number;
-  saved?: boolean;
-  savedAt?: string;
-  wordCount?: number;
+  hasConflict?: boolean
+  newVersion?: number
+  saved?: boolean
+  savedAt?: string
+  wordCount?: number
 }

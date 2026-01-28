@@ -7,18 +7,18 @@
  */
 
 export interface StatsBookStatsDaily {
-  book_id?: string;
-  created_at?: string;
+  book_id?: string
+  created_at?: string
   /** 当日新增读者 */
-  daily_new_readers?: number;
+  daily_new_readers?: number
   /** 当日收入 */
-  daily_revenue?: number;
+  daily_revenue?: number
   /** 当日订阅数 */
-  daily_subscribers?: number;
+  daily_subscribers?: number
   /** 当日阅读量 */
-  daily_views?: number;
+  daily_views?: number
   /** 统计日期 */
-  date?: string;
-  id?: string;
-  updated_at?: string;
+  date?: string
+  id?: string
+  updated_at?: string
 }

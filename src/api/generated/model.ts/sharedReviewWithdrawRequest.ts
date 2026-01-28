@@ -7,7 +7,7 @@
  */
 
 export interface SharedReviewWithdrawRequest {
-  approved?: boolean;
-  reason?: string;
-  withdraw_id: string;
+  approved?: boolean
+  reason?: string
+  withdraw_id: string
 }

@@ -8,20 +8,20 @@
 
 export interface ReaderAnnotation {
   /** 书籍ID */
-  bookId?: string;
+  bookId?: string
   /** 章节ID */
-  chapterId?: string;
-  createdAt?: string;
-  id?: string;
+  chapterId?: string
+  createdAt?: string
+  id?: string
   /** 注释 */
-  note?: string;
+  note?: string
   /** 标注范围：start-end */
-  range?: string;
+  range?: string
   /** 标注文本 */
-  text?: string;
+  text?: string
   /** 标注类型 书签 | 划线 */
-  type?: string;
-  updatedAt?: string;
+  type?: string
+  updatedAt?: string
   /** 用户ID */
-  userId?: string;
+  userId?: string
 }

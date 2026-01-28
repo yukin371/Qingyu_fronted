@@ -8,15 +8,15 @@
 
 export interface StatsRevenueBreakdown {
   /** 广告收入 */
-  ad_revenue?: number;
-  book_id?: string;
+  ad_revenue?: number
+  book_id?: string
   /** 章节付费 */
-  chapter_revenue?: number;
-  end_date?: string;
+  chapter_revenue?: number
+  end_date?: string
   /** 打赏收入 */
-  reward_revenue?: number;
-  start_date?: string;
+  reward_revenue?: number
+  start_date?: string
   /** 订阅收入 */
-  subscribe_revenue?: number;
-  total_revenue?: number;
+  subscribe_revenue?: number
+  total_revenue?: number
 }

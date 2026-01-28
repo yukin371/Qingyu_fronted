@@ -7,20 +7,20 @@
  */
 
 export type GetApiV1ChaptersSearchParams = {
-/**
- * 搜索关键词
- */
-keyword: string;
-/**
- * 书籍ID(可选)
- */
-book_id?: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 搜索关键词
+   */
+  keyword: string
+  /**
+   * 书籍ID(可选)
+   */
+  book_id?: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

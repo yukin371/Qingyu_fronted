@@ -7,6 +7,6 @@
  */
 
 export interface WriterAuditDocumentRequest {
-  content: string;
-  documentId: string;
+  content: string
+  documentId: string
 }

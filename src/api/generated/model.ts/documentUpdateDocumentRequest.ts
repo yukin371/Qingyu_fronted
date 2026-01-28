@@ -7,11 +7,11 @@
  */
 
 export interface DocumentUpdateDocumentRequest {
-  characterIds?: string[];
-  locationIds?: string[];
-  notes?: string;
-  status?: string;
-  tags?: string[];
-  timelineIds?: string[];
-  title?: string;
+  characterIds?: string[]
+  locationIds?: string[]
+  notes?: string
+  status?: string
+  tags?: string[]
+  timelineIds?: string[]
+  title?: string
 }

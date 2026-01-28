@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksSearchTitleParams = {
-/**
- * 书籍标题
- */
-title: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 书籍标题
+   */
+  title: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

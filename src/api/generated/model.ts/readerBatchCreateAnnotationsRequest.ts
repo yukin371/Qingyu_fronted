@@ -5,12 +5,12 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { ReaderCreateAnnotationRequest } from './readerCreateAnnotationRequest';
+import type { ReaderCreateAnnotationRequest } from './readerCreateAnnotationRequest'
 
 export interface ReaderBatchCreateAnnotationsRequest {
   /**
    * @minItems 1
    * @maxItems 50
    */
-  annotations: ReaderCreateAnnotationRequest[];
+  annotations: ReaderCreateAnnotationRequest[]
 }

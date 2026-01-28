@@ -7,11 +7,11 @@
  */
 
 export interface ReaderSaveProgressRequest {
-  bookId: string;
-  chapterId: string;
+  bookId: string
+  chapterId: string
   /**
    * @minimum 0
    * @maximum 1
    */
-  progress: number;
+  progress: number
 }

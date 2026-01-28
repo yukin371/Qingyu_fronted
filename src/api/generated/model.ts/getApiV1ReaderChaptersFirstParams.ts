@@ -7,8 +7,8 @@
  */
 
 export type GetApiV1ReaderChaptersFirstParams = {
-/**
- * 书籍ID
- */
-bookId: string;
-};
+  /**
+   * 书籍ID
+   */
+  bookId: string
+}

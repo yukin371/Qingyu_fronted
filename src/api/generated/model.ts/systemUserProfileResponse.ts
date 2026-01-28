@@ -7,19 +7,19 @@
  */
 
 export interface SystemUserProfileResponse {
-  avatar?: string;
-  bio?: string;
-  created_at?: string;
-  email?: string;
-  email_verified?: boolean;
-  last_login_at?: string;
-  last_login_ip?: string;
-  nickname?: string;
-  phone?: string;
-  phone_verified?: boolean;
-  role?: string;
-  status?: string;
-  updated_at?: string;
-  user_id?: string;
-  username?: string;
+  avatar?: string
+  bio?: string
+  created_at?: string
+  email?: string
+  email_verified?: boolean
+  last_login_at?: string
+  last_login_ip?: string
+  nickname?: string
+  phone?: string
+  phone_verified?: boolean
+  role?: string
+  status?: string
+  updated_at?: string
+  user_id?: string
+  username?: string
 }

@@ -8,31 +8,31 @@
 
 export interface StatsReaderBehavior {
   /** 行为类型 */
-  behavior_type?: string;
+  behavior_type?: string
   /** 作品ID */
-  book_id?: string;
+  book_id?: string
   /** 章节ID */
-  chapter_id?: string;
+  chapter_id?: string
   /** IP地址 */
-  client_ip?: string;
-  created_at?: string;
+  client_ip?: string
+  created_at?: string
   /** 设备信息 */
-  device_type?: string;
+  device_type?: string
   /** 结束位置(字符数) */
-  end_position?: number;
-  id?: string;
+  end_position?: number
+  id?: string
   /** 阅读进度(0-1) */
-  progress?: number;
+  progress?: number
   /** 阅读时间 */
-  read_at?: string;
+  read_at?: string
   /** 时间数据 */
-  read_duration?: number;
+  read_duration?: number
   /** 引荐页面 */
-  referrer?: string;
+  referrer?: string
   /** 来源信息 */
-  source?: string;
+  source?: string
   /** 阅读进度 */
-  start_position?: number;
+  start_position?: number
   /** 用户ID */
-  user_id?: string;
+  user_id?: string
 }

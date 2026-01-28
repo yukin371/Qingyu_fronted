@@ -5,44 +5,44 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { DocumentDocumentType } from './documentDocumentType';
+import type { DocumentDocumentType } from './documentDocumentType'
 
 export interface DocumentDocument {
   /** 关联信息 */
-  characterIds?: string[];
+  characterIds?: string[]
   /** 时间戳 */
-  createdAt?: string;
-  deletedAt?: string;
-  id?: string;
+  createdAt?: string
+  deletedAt?: string
+  id?: string
   /** 关键点 */
-  keyPoints?: string[];
+  keyPoints?: string[]
   /** 层级深度（0-2） */
-  level?: number;
+  level?: number
   /** 关联地点 */
-  locationIds?: string[];
-  notes?: string;
+  locationIds?: string[]
+  notes?: string
   /** 同级排序 */
-  order?: number;
+  order?: number
   /** 父文档ID，空表示根文档 */
-  parentId?: string;
+  parentId?: string
   /** 写作辅助（AI上下文需要） */
-  plotThreads?: string[];
-  projectId: string;
+  plotThreads?: string[]
+  projectId: string
   /** planned | writing | completed */
-  status?: string;
+  status?: string
   /** 标签和备注 */
-  tags?: string[];
+  tags?: string[]
   /** 关联时间线 */
-  timelineIds?: string[];
+  timelineIds?: string[]
   /**
    * @minLength 1
    * @maxLength 200
    */
-  title: string;
-  type: DocumentDocumentType;
-  updatedAt?: string;
+  title: string
+  type: DocumentDocumentType
+  updatedAt?: string
   /** 统计信息（从DocumentContent同步） */
-  wordCount?: number;
+  wordCount?: number
   /** 写作提示 */
-  writingHints?: string[];
+  writingHints?: string[]
 }

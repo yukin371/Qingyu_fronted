@@ -5,13 +5,13 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { SharedReviewContentRequestAction } from './sharedReviewContentRequestAction';
+import type { SharedReviewContentRequestAction } from './sharedReviewContentRequestAction'
 
 export interface SharedReviewContentRequest {
-  action: SharedReviewContentRequestAction;
+  action: SharedReviewContentRequestAction
   /** @minLength 1 */
-  content_id: string;
-  content_type: string;
+  content_id: string
+  content_type: string
   /** @maxLength 500 */
-  reason?: string;
+  reason?: string
 }

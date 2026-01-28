@@ -8,9 +8,9 @@
 
 export interface ReaderUpdateAnnotationRequest {
   /** 注释内容 */
-  note?: string;
+  note?: string
   /** 标注范围 */
-  range?: string;
+  range?: string
   /** 标注文本 */
-  text?: string;
+  text?: string
 }

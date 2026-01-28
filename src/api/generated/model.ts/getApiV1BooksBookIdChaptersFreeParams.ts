@@ -7,12 +7,12 @@
  */
 
 export type GetApiV1BooksBookIdChaptersFreeParams = {
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

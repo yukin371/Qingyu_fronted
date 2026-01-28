@@ -7,8 +7,8 @@
  */
 
 export interface DocumentCreateDocumentResponse {
-  createdAt?: string;
-  documentId?: string;
-  title?: string;
-  type?: string;
+  createdAt?: string
+  documentId?: string
+  title?: string
+  type?: string
 }

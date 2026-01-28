@@ -7,10 +7,10 @@
  */
 
 export interface SystemRegisterResponse {
-  email?: string;
-  role?: string;
-  status?: string;
-  token?: string;
-  user_id?: string;
-  username?: string;
+  email?: string
+  role?: string
+  status?: string
+  token?: string
+  user_id?: string
+  username?: string
 }

@@ -7,8 +7,8 @@
  */
 
 export type GetApiV1BooksPopularParams = {
-/**
- * 数量限制
- */
-limit?: number;
-};
+  /**
+   * 数量限制
+   */
+  limit?: number
+}

@@ -5,9 +5,9 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { DocumentWordCountResult } from './documentWordCountResult';
-import type { SharedAPIResponse } from './sharedAPIResponse';
+import type { DocumentWordCountResult } from './documentWordCountResult'
+import type { SharedAPIResponse } from './sharedAPIResponse'
 
 export type PostApiV1DocumentsIdWordCount200 = SharedAPIResponse & {
-  data?: DocumentWordCountResult;
-};
+  data?: DocumentWordCountResult
+}

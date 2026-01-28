@@ -6,12 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type DocumentVisibility = typeof DocumentVisibility[keyof typeof DocumentVisibility];
-
+export type DocumentVisibility = (typeof DocumentVisibility)[keyof typeof DocumentVisibility]
 
 export const DocumentVisibility = {
   /** 私密 */
   VisibilityPrivate: 'private',
   /** 公开 */
   VisibilityPublic: 'public',
-} as const;
+} as const

@@ -7,13 +7,13 @@
  */
 
 export interface ReaderUpdateSettingsRequest {
-  autoSave?: boolean;
-  backgroundColor?: string;
-  fontFamily?: string;
-  fontSize?: number;
-  lineHeight?: number;
+  autoSave?: boolean
+  backgroundColor?: string
+  fontFamily?: string
+  fontSize?: number
+  lineHeight?: number
   /** scroll, paginate */
-  pageMode?: string;
-  showProgress?: boolean;
-  textColor?: string;
+  pageMode?: string
+  showProgress?: boolean
+  textColor?: string
 }

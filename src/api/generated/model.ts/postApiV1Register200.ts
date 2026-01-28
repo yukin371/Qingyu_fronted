@@ -5,9 +5,9 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { SharedAPIResponse } from './sharedAPIResponse';
-import type { SystemRegisterResponse } from './systemRegisterResponse';
+import type { SharedAPIResponse } from './sharedAPIResponse'
+import type { SystemRegisterResponse } from './systemRegisterResponse'
 
 export type PostApiV1Register200 = SharedAPIResponse & {
-  data?: SystemRegisterResponse;
-};
+  data?: SystemRegisterResponse
+}

@@ -7,10 +7,10 @@
  */
 
 export interface AuthRegisterRequest {
-  email: string;
+  email: string
   /** @minLength 6 */
-  password: string;
+  password: string
   /** 可选，默认为 "reader" */
-  role?: string;
-  username: string;
+  role?: string
+  username: string
 }

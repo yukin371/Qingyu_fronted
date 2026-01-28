@@ -7,7 +7,7 @@
  */
 
 export interface ReaderUpdateReadingTimeRequest {
-  bookId: string;
+  bookId: string
   /** @minimum 1 */
-  duration: number;
+  duration: number
 }

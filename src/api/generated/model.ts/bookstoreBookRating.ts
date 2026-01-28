@@ -7,14 +7,14 @@
  */
 
 export interface BookstoreBookRating {
-  book_id?: string;
-  comment?: string;
-  created_at?: string;
-  id?: string;
-  likes?: number;
+  book_id?: string
+  comment?: string
+  created_at?: string
+  id?: string
+  likes?: number
   /** 1-5星 */
-  rating?: number;
-  tags?: string[];
-  updated_at?: string;
-  user_id?: string;
+  rating?: number
+  tags?: string[]
+  updated_at?: string
+  user_id?: string
 }

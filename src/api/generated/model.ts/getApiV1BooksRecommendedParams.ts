@@ -7,8 +7,8 @@
  */
 
 export type GetApiV1BooksRecommendedParams = {
-/**
- * 数量限制
- */
-limit?: number;
-};
+  /**
+   * 数量限制
+   */
+  limit?: number
+}

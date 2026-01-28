@@ -7,20 +7,20 @@
  */
 
 export type GetApiV1SharedAdminOperationLogsParams = {
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-page_size?: number;
-/**
- * 管理员ID
- */
-admin_id?: string;
-/**
- * 操作类型
- */
-operation?: string;
-};
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  page_size?: number
+  /**
+   * 管理员ID
+   */
+  admin_id?: string
+  /**
+   * 操作类型
+   */
+  operation?: string
+}

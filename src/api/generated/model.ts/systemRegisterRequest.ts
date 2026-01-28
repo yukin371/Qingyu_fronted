@@ -7,12 +7,12 @@
  */
 
 export interface SystemRegisterRequest {
-  email: string;
+  email: string
   /** @minLength 6 */
-  password: string;
+  password: string
   /**
    * @minLength 3
    * @maxLength 50
    */
-  username: string;
+  username: string
 }

@@ -7,9 +7,9 @@
  */
 
 export interface DocumentDocumentContentResponse {
-  content?: string;
-  documentId?: string;
-  updatedAt?: string;
-  version?: number;
-  wordCount?: number;
+  content?: string
+  documentId?: string
+  updatedAt?: string
+  version?: number
+  wordCount?: number
 }

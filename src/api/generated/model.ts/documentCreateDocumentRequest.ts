@@ -7,18 +7,18 @@
  */
 
 export interface DocumentCreateDocumentRequest {
-  characterIds?: string[];
-  locationIds?: string[];
-  notes?: string;
-  order?: number;
-  parentId?: string;
-  projectId: string;
-  tags?: string[];
-  timelineIds?: string[];
+  characterIds?: string[]
+  locationIds?: string[]
+  notes?: string
+  order?: number
+  parentId?: string
+  projectId: string
+  tags?: string[]
+  timelineIds?: string[]
   /**
    * @minLength 1
    * @maxLength 200
    */
-  title: string;
-  type: string;
+  title: string
+  type: string
 }

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export type DocumentCollaboratorRole = typeof DocumentCollaboratorRole[keyof typeof DocumentCollaboratorRole];
-
+export type DocumentCollaboratorRole =
+  (typeof DocumentCollaboratorRole)[keyof typeof DocumentCollaboratorRole]
 
 export const DocumentCollaboratorRole = {
   /** 所有者 */
@@ -16,4 +16,4 @@ export const DocumentCollaboratorRole = {
   RoleEditor: 'editor',
   /** 查看者 */
   RoleViewer: 'viewer',
-} as const;
+} as const

@@ -7,11 +7,11 @@
  */
 
 export interface SharedAPIResponse {
-  code?: number;
-  data?: unknown;
-  message?: string;
+  code?: number
+  data?: unknown
+  message?: string
   /** 请求ID（用于追踪） */
-  request_id?: string;
+  request_id?: string
   /** 响应时间戳 */
-  timestamp?: number;
+  timestamp?: number
 }

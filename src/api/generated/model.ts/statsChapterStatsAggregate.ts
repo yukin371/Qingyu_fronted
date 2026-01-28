@@ -7,11 +7,11 @@
  */
 
 export interface StatsChapterStatsAggregate {
-  chapter_id?: string;
-  completion_rate?: number;
-  drop_off_rate?: number;
-  revenue?: number;
-  title?: string;
-  unique_viewers?: number;
-  view_count?: number;
+  chapter_id?: string
+  completion_rate?: number
+  drop_off_rate?: number
+  revenue?: number
+  title?: string
+  unique_viewers?: number
+  view_count?: number
 }

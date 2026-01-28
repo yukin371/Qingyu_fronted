@@ -7,13 +7,13 @@
  */
 
 export interface ProjectCreateProjectRequest {
-  category?: string;
-  coverUrl?: string;
-  summary?: string;
-  tags?: string[];
+  category?: string
+  coverUrl?: string
+  summary?: string
+  tags?: string[]
   /**
    * @minLength 1
    * @maxLength 100
    */
-  title: string;
+  title: string
 }

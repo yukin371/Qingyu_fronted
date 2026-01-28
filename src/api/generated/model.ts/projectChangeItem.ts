@@ -7,8 +7,8 @@
  */
 
 export interface ProjectChangeItem {
-  content?: string;
-  line?: number;
+  content?: string
+  line?: number
   /** added, deleted, modified */
-  type?: string;
+  type?: string
 }

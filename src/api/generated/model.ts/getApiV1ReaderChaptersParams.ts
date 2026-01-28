@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1ReaderChaptersParams = {
-/**
- * 书籍ID
- */
-bookId: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 书籍ID
+   */
+  bookId: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

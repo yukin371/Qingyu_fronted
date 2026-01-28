@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksSearchAuthorParams = {
-/**
- * 作者名称
- */
-author: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 作者名称
+   */
+  author: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

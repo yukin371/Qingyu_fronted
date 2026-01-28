@@ -7,8 +7,8 @@
  */
 
 export type GetApiV1SharedAdminReviewsPendingParams = {
-/**
- * 内容类型
- */
-content_type?: string;
-};
+  /**
+   * 内容类型
+   */
+  content_type?: string
+}

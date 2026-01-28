@@ -9,4 +9,4 @@
 /**
  * documentID -> order
  */
-export type DocumentReorderDocumentsRequestOrders = {[key: string]: number};
+export type DocumentReorderDocumentsRequestOrders = { [key: string]: number }

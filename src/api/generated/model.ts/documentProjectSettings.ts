@@ -8,9 +8,9 @@
 
 export interface DocumentProjectSettings {
   /** 自动备份 */
-  autoBackup?: boolean;
+  autoBackup?: boolean
   /** 备份间隔（小时） */
-  backupInterval?: number;
+  backupInterval?: number
   /** 字数目标 */
-  wordCountGoal?: number;
+  wordCountGoal?: number
 }

@@ -7,8 +7,8 @@
  */
 
 export interface SystemLoginResponse {
-  email?: string;
-  token?: string;
-  user_id?: string;
-  username?: string;
+  email?: string
+  token?: string
+  user_id?: string
+  username?: string
 }

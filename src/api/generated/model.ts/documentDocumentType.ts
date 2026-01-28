@@ -6,8 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type DocumentDocumentType = typeof DocumentDocumentType[keyof typeof DocumentDocumentType];
-
+export type DocumentDocumentType = (typeof DocumentDocumentType)[keyof typeof DocumentDocumentType]
 
 export const DocumentDocumentType = {
   /** 卷 */
@@ -18,4 +17,4 @@ export const DocumentDocumentType = {
   TypeSection: 'section',
   /** 场景 */
   TypeScene: 'scene',
-} as const;
+} as const

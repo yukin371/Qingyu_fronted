@@ -5,11 +5,11 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { DocumentProject } from './documentProject';
+import type { DocumentProject } from './documentProject'
 
 export interface ProjectListProjectsResponse {
-  page?: number;
-  pageSize?: number;
-  projects?: DocumentProject[];
-  total?: number;
+  page?: number
+  pageSize?: number
+  projects?: DocumentProject[]
+  total?: number
 }

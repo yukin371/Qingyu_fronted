@@ -7,8 +7,8 @@
  */
 
 export interface ProjectCreateProjectResponse {
-  createdAt?: string;
-  projectId?: string;
-  status?: string;
-  title?: string;
+  createdAt?: string
+  projectId?: string
+  status?: string
+  title?: string
 }

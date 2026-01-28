@@ -6,11 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type SharedRechargeRequestMethod = typeof SharedRechargeRequestMethod[keyof typeof SharedRechargeRequestMethod];
-
+export type SharedRechargeRequestMethod =
+  (typeof SharedRechargeRequestMethod)[keyof typeof SharedRechargeRequestMethod]
 
 export const SharedRechargeRequestMethod = {
   alipay: 'alipay',
   wechat: 'wechat',
   bank: 'bank',
-} as const;
+} as const

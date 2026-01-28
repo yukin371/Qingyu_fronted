@@ -7,7 +7,7 @@
  */
 
 export interface WriterWordCountRequest {
-  content: string;
+  content: string
   /** 是否过滤Markdown语法 */
-  filterMarkdown?: boolean;
+  filterMarkdown?: boolean
 }

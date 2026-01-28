@@ -7,10 +7,10 @@
  */
 
 export interface SharedConsumeRequest {
-  amount: number;
+  amount: number
   /**
    * @minLength 1
    * @maxLength 200
    */
-  reason: string;
+  reason: string
 }

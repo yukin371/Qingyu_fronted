@@ -7,9 +7,9 @@
  */
 
 export interface SharedTransferRequest {
-  amount: number;
+  amount: number
   /** @maxLength 200 */
-  reason?: string;
+  reason?: string
   /** @minLength 1 */
-  to_user_id: string;
+  to_user_id: string
 }

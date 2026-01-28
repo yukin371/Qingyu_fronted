@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksCategoryParams = {
-/**
- * 分类名称
- */
-category: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 分类名称
+   */
+  category: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

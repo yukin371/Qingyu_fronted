@@ -11,5 +11,5 @@ export interface WriterSubmitAppealRequest {
    * @minLength 10
    * @maxLength 500
    */
-  reason: string;
+  reason: string
 }

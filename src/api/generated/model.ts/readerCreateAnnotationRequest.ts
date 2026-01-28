@@ -7,14 +7,14 @@
  */
 
 export interface ReaderCreateAnnotationRequest {
-  bookId: string;
-  chapterId: string;
+  bookId: string
+  chapterId: string
   /** 注释内容 */
-  note?: string;
+  note?: string
   /** 标注范围：start-end */
-  range?: string;
+  range?: string
   /** 标注文本 */
-  text?: string;
+  text?: string
   /** bookmark(书签) | highlight(高亮) | note(笔记) */
-  type: string;
+  type: string
 }

@@ -8,6 +8,6 @@
 
 export interface SystemChangePasswordRequest {
   /** @minLength 6 */
-  new_password: string;
-  old_password: string;
+  new_password: string
+  old_password: string
 }

@@ -8,13 +8,13 @@
 
 export interface DocumentShortcut {
   /** 操作名称 */
-  action?: string;
+  action?: string
   /** 分类 */
-  category?: string;
+  category?: string
   /** 描述 */
-  description?: string;
+  description?: string
   /** 是否自定义 */
-  isCustom?: boolean;
+  isCustom?: boolean
   /** 按键组合 (e.g., "Ctrl+S") */
-  key?: string;
+  key?: string
 }

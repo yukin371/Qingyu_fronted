@@ -7,7 +7,7 @@
  */
 
 export interface DocumentMoveDocumentRequest {
-  documentId: string;
-  newParentId?: string;
-  order?: number;
+  documentId: string
+  newParentId?: string
+  order?: number
 }

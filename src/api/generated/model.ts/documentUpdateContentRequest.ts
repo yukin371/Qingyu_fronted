@@ -7,8 +7,8 @@
  */
 
 export interface DocumentUpdateContentRequest {
-  content: string;
-  documentId: string;
+  content: string
+  documentId: string
   /** 用于版本冲突检测 */
-  version?: number;
+  version?: number
 }

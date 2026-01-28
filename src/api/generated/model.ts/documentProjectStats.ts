@@ -8,11 +8,11 @@
 
 export interface DocumentProjectStats {
   /** 章节数 */
-  chapterCount?: number;
+  chapterCount?: number
   /** 文档数 */
-  documentCount?: number;
+  documentCount?: number
   /** 最后更新时间 */
-  lastUpdateAt?: string;
+  lastUpdateAt?: string
   /** 总字数 */
-  totalWords?: number;
+  totalWords?: number
 }

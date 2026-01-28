@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1SharedStorageFilesParams = {
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-page_size?: number;
-/**
- * 路径前缀
- */
-path?: string;
-};
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  page_size?: number
+  /**
+   * 路径前缀
+   */
+  path?: string
+}

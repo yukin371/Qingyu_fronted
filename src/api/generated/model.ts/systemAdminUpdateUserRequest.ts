@@ -5,18 +5,18 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { SystemAdminUpdateUserRequestRole } from './systemAdminUpdateUserRequestRole';
+import type { SystemAdminUpdateUserRequestRole } from './systemAdminUpdateUserRequestRole'
 
 export interface SystemAdminUpdateUserRequest {
-  avatar?: string;
+  avatar?: string
   /** @maxLength 500 */
-  bio?: string;
-  email_verified?: boolean;
+  bio?: string
+  email_verified?: boolean
   /** @maxLength 50 */
-  nickname?: string;
-  phone?: string;
-  phone_verified?: boolean;
-  role?: SystemAdminUpdateUserRequestRole;
+  nickname?: string
+  phone?: string
+  phone_verified?: boolean
+  role?: SystemAdminUpdateUserRequestRole
   /** usersModel.UserStatus */
-  status?: string;
+  status?: string
 }

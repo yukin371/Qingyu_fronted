@@ -5,7 +5,7 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { BookstoreBookStatus } from './bookstoreBookStatus';
+import type { BookstoreBookStatus } from './bookstoreBookStatus'
 
 export interface BookstoreBookDetail {
   /**
@@ -13,105 +13,105 @@ export interface BookstoreBookDetail {
    * @minLength 1
    * @maxLength 100
    */
-  author: string;
+  author: string
   /** 作者ID */
-  author_id?: string;
+  author_id?: string
   /** 分类列表 */
-  categories?: string[];
+  categories?: string[]
   /** 分类ID列表 */
-  category_ids?: string[];
+  category_ids?: string[]
   /**
    * 章节数
    * @minimum 0
    */
-  chapter_count?: number;
+  chapter_count?: number
   /**
    * 收藏数
    * @minimum 0
    */
-  collect_count?: number;
+  collect_count?: number
   /**
    * 评论数
    * @minimum 0
    */
-  comment_count?: number;
+  comment_count?: number
   /** 完结时间 */
-  completed_at?: string;
+  completed_at?: string
   /** 封面图片URL */
-  cover_url?: string;
+  cover_url?: string
   /** 创建时间 */
-  created_at?: string;
+  created_at?: string
   /**
    * 详细描述
    * @maxLength 5000
    */
-  description?: string;
+  description?: string
   /** 书籍ID */
-  id?: string;
+  id?: string
   /**
    * 简介
    * @maxLength 1000
    */
-  introduction?: string;
+  introduction?: string
   /** 是否免费 */
-  is_free?: boolean;
+  is_free?: boolean
   /** 最新章节更新时间 */
-  last_chapter_at?: string;
+  last_chapter_at?: string
   /** 最新章节信息 */
-  last_chapter_title?: string;
+  last_chapter_title?: string
   /**
    * 点赞数
    * @minimum 0
    */
-  like_count?: number;
+  like_count?: number
   /**
    * 价格（按章节或全本）
    * @minimum 0
    */
-  price?: number;
+  price?: number
   /**
    * 评分
    * @minimum 0
    * @maximum 5
    */
-  rating?: number;
+  rating?: number
   /**
    * 评分人数
    * @minimum 0
    */
-  rating_count?: number;
+  rating_count?: number
   /** 网络小说特有字段 */
-  serialized_at?: string;
+  serialized_at?: string
   /**
    * 分享数
    * @minimum 0
    */
-  share_count?: number;
+  share_count?: number
   /** 状态 */
-  status?: BookstoreBookStatus;
+  status?: BookstoreBookStatus
   /**
    * 副标题
    * @maxLength 200
    */
-  subtitle?: string;
+  subtitle?: string
   /** 标签 */
-  tags?: string[];
+  tags?: string[]
   /**
    * 书名
    * @minLength 1
    * @maxLength 200
    */
-  title: string;
+  title: string
   /** 更新时间 */
-  updated_at?: string;
+  updated_at?: string
   /**
    * 统计数据
    * @minimum 0
    */
-  view_count?: number;
+  view_count?: number
   /**
    * 总字数
    * @minimum 0
    */
-  word_count?: number;
+  word_count?: number
 }

@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksSearchParams = {
-/**
- * 搜索关键词
- */
-keyword: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 搜索关键词
+   */
+  keyword: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

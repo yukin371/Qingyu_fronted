@@ -5,9 +5,9 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { ReaderUpdateAnnotationRequest } from './readerUpdateAnnotationRequest';
+import type { ReaderUpdateAnnotationRequest } from './readerUpdateAnnotationRequest'
 
 export type ReaderBatchUpdateAnnotationsRequestUpdatesItem = {
-  id: string;
-  updates?: ReaderUpdateAnnotationRequest;
-};
+  id: string
+  updates?: ReaderUpdateAnnotationRequest
+}

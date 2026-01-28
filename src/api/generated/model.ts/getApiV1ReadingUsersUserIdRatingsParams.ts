@@ -7,12 +7,12 @@
  */
 
 export type GetApiV1ReadingUsersUserIdRatingsParams = {
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-limit?: number;
-};
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  limit?: number
+}

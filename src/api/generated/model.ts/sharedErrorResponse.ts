@@ -7,11 +7,11 @@
  */
 
 export interface SharedErrorResponse {
-  code?: number;
+  code?: number
   /** 调试信息，仅开发环境使用 */
-  debug?: string;
-  error?: string;
-  message?: string;
-  request_id?: string;
-  timestamp?: number;
+  debug?: string
+  error?: string
+  message?: string
+  request_id?: string
+  timestamp?: number
 }

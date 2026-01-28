@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export type DocumentProjectStatus = typeof DocumentProjectStatus[keyof typeof DocumentProjectStatus];
-
+export type DocumentProjectStatus =
+  (typeof DocumentProjectStatus)[keyof typeof DocumentProjectStatus]
 
 export const DocumentProjectStatus = {
   /** 草稿 */
@@ -20,4 +20,4 @@ export const DocumentProjectStatus = {
   StatusSuspended: 'suspended',
   /** 已归档 */
   StatusArchived: 'archived',
-} as const;
+} as const

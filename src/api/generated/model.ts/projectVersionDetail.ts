@@ -7,12 +7,12 @@
  */
 
 export interface ProjectVersionDetail {
-  content?: string;
-  createdAt?: string;
-  createdBy?: string;
-  documentId?: string;
-  message?: string;
-  version?: number;
-  versionId?: string;
-  wordCount?: number;
+  content?: string
+  createdAt?: string
+  createdBy?: string
+  documentId?: string
+  message?: string
+  version?: number
+  versionId?: string
+  wordCount?: number
 }

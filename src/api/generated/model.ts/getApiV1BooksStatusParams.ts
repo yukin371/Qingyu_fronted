@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksStatusParams = {
-/**
- * 书籍状态(serializing/completed/paused)
- */
-status: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 书籍状态(serializing/completed/paused)
+   */
+  status: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

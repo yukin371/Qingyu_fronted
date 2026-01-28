@@ -5,14 +5,14 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { DocumentShortcutConfigShortcuts } from './documentShortcutConfigShortcuts';
+import type { DocumentShortcutConfigShortcuts } from './documentShortcutConfigShortcuts'
 
 export interface DocumentShortcutConfig {
-  createdAt?: string;
-  id?: string;
+  createdAt?: string
+  id?: string
   /** 快捷键映射 */
-  shortcuts?: DocumentShortcutConfigShortcuts;
-  updatedAt?: string;
+  shortcuts?: DocumentShortcutConfigShortcuts
+  updatedAt?: string
   /** 用户ID */
-  userId?: string;
+  userId?: string
 }

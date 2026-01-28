@@ -7,7 +7,7 @@
  */
 
 export interface WriterReviewAuditRequest {
-  approved?: boolean;
+  approved?: boolean
   /** @maxLength 500 */
-  note?: string;
+  note?: string
 }

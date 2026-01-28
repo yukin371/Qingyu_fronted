@@ -7,8 +7,8 @@
  */
 
 export type GetApiV1SharedStorageFilesFileIdUrlParams = {
-/**
- * 过期时间(秒)
- */
-expire?: number;
-};
+  /**
+   * 过期时间(秒)
+   */
+  expire?: number
+}

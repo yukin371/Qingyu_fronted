@@ -8,7 +8,7 @@
 
 export type PostApiV1SharedStorageUploadBody = {
   /** 上传文件 */
-  file: Blob;
+  file: Blob
   /** 存储路径 */
-  path?: string;
-};
+  path?: string
+}

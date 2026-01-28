@@ -7,16 +7,16 @@
  */
 
 export type GetApiV1BooksTagsParams = {
-/**
- * 标签列表(逗号分隔)
- */
-tags: string;
-/**
- * 页码
- */
-page?: number;
-/**
- * 每页数量
- */
-size?: number;
-};
+  /**
+   * 标签列表(逗号分隔)
+   */
+  tags: string
+  /**
+   * 页码
+   */
+  page?: number
+  /**
+   * 每页数量
+   */
+  size?: number
+}

@@ -8,24 +8,24 @@
 
 export interface ReaderReadingSettings {
   /** 自动滚动 */
-  autoScroll?: boolean;
+  autoScroll?: boolean
   /** 背景色 */
-  background?: string;
-  createdAt?: string;
+  background?: string
+  createdAt?: string
   /** 字体 */
-  fontFamily?: string;
+  fontFamily?: string
   /** 字号 */
-  fontSize?: number;
-  id?: string;
+  fontSize?: number
+  id?: string
   /** 行高 */
-  lineHeight?: number;
+  lineHeight?: number
   /** 翻页模式：1-滑动，2-仿真 */
-  pageMode?: number;
+  pageMode?: number
   /** 滚动速度 */
-  scrollSpeed?: number;
+  scrollSpeed?: number
   /** 主题 */
-  theme?: string;
-  updatedAt?: string;
+  theme?: string
+  updatedAt?: string
   /** 用户ID */
-  userId?: string;
+  userId?: string
 }

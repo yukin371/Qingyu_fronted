@@ -7,12 +7,12 @@
  */
 
 export type GetApiV1ReaderChaptersNavigationParams = {
-/**
- * 书籍ID
- */
-bookId: string;
-/**
- * 当前章节号
- */
-chapterNum: number;
-};
+  /**
+   * 书籍ID
+   */
+  bookId: string
+  /**
+   * 当前章节号
+   */
+  chapterNum: number
+}

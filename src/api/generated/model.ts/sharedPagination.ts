@@ -8,15 +8,15 @@
 
 export interface SharedPagination {
   /** 是否有下一页 */
-  has_next?: boolean;
+  has_next?: boolean
   /** 是否有上一页 */
-  has_previous?: boolean;
+  has_previous?: boolean
   /** 当前页码 */
-  page?: number;
+  page?: number
   /** 每页大小 */
-  page_size?: number;
+  page_size?: number
   /** 总记录数 */
-  total?: number;
+  total?: number
   /** 总页数 */
-  total_pages?: number;
+  total_pages?: number
 }

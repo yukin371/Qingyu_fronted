@@ -5,8 +5,8 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import type { SharedAPIResponse } from './sharedAPIResponse';
+import type { SharedAPIResponse } from './sharedAPIResponse'
 
 export type GetApiV1WriterBooksBookIdRetention200 = SharedAPIResponse & {
-  data?: {[key: string]: number};
-};
+  data?: { [key: string]: number }
+}

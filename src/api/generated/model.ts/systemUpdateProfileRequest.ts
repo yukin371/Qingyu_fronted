@@ -7,10 +7,10 @@
  */
 
 export interface SystemUpdateProfileRequest {
-  avatar?: string;
+  avatar?: string
   /** @maxLength 500 */
-  bio?: string;
+  bio?: string
   /** @maxLength 50 */
-  nickname?: string;
-  phone?: string;
+  nickname?: string
+  phone?: string
 }

@@ -7,10 +7,10 @@
  */
 
 export interface DocumentAutoSaveRequest {
-  content: string;
+  content: string
   /** 客户端当前版本号 */
-  currentVersion?: number;
-  documentId: string;
+  currentVersion?: number
+  documentId: string
   /** auto|manual */
-  saveType?: string;
+  saveType?: string
 }

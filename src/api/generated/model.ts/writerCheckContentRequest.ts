@@ -11,5 +11,5 @@ export interface WriterCheckContentRequest {
    * @minLength 1
    * @maxLength 100000
    */
-  content: string;
+  content: string
 }

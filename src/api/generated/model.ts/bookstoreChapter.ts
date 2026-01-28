@@ -7,15 +7,15 @@
  */
 
 export interface BookstoreChapter {
-  book_id?: string;
-  chapter_num?: number;
-  content?: string;
-  created_at?: string;
-  id?: string;
-  is_free?: boolean;
-  price?: number;
-  publish_time?: string;
-  title?: string;
-  updated_at?: string;
-  word_count?: number;
+  book_id?: string
+  chapter_num?: number
+  content?: string
+  created_at?: string
+  id?: string
+  is_free?: boolean
+  price?: number
+  publish_time?: string
+  title?: string
+  updated_at?: string
+  word_count?: number
 }

@@ -8,15 +8,15 @@
 
 export interface StatsHeatmapPoint {
   /** 章节ID */
-  chapter_id?: string;
+  chapter_id?: string
   /** 章节序号 */
-  chapter_num?: number;
+  chapter_num?: number
   /** 完读率 */
-  completion_rate?: number;
+  completion_rate?: number
   /** 跳出率 */
-  drop_off_rate?: number;
+  drop_off_rate?: number
   /** 热度分数(0-100) */
-  heat_score?: number;
+  heat_score?: number
   /** 阅读量 */
-  view_count?: number;
+  view_count?: number
 }
