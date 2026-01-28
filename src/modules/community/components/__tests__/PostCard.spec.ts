@@ -5,24 +5,76 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createMockPost } from '../../../../tests/fixtures'
-import PostCard from '../PostCard.vue'
 
-// Mock设计系统组件
-vi.mock('@/design-system/components', () => ({
-  QyAvatar: {
-    template: '<div class="qy-avatar">{{ name }}</div>',
-    props: ['src', 'name', 'size'],
-  },
-  QyBadge: {
-    template: '<span class="qy-badge" @click="$emit(\'click\')"><slot /></span>',
-    props: ['variant'],
-    emits: ['click'],
-  },
-  QyIcon: {
-    template: '<i class="qy-icon" />',
-    props: ['name', 'size'],
-  },
-}))
+// Mock设计系统组件 - 必须在导入组件之前
+vi.mock('@/design-system/components', () => {
+  const { h, defineComponent } = require('vue')
+
+  const MockQyAvatar = defineComponent({
+    name: 'QyAvatar',
+    props: {
+      src: { type: String },
+      name: { type: String, default: '' },
+      size: { type: String, default: 'md' },
+    },
+    setup(props) {
+      return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
+    },
+  })
+
+  const MockQyBadge = defineComponent({
+    name: 'QyBadge',
+    props: {
+      variant: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      closable: { type: Boolean, default: false },
+    },
+    emits: ['click', 'close'],
+    setup(props, { emit, slots }) {
+      const children = [
+        slots.default ? slots.default() : '',
+      ]
+      if (props.closable) {
+        children.push(
+          h('span', {
+            class: 'close-btn',
+            onClick: (e) => {
+              e.stopPropagation()
+              emit('close')
+            },
+          }, '×')
+        )
+      }
+      return () => h(
+        'span',
+        {
+          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+          onClick: () => emit('click'),
+        },
+        children
+      )
+    },
+  })
+
+  const MockQyIcon = defineComponent({
+    name: 'QyIcon',
+    props: {
+      name: { type: String, required: true },
+      size: { type: Number, default: 16 },
+    },
+    setup(props) {
+      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    },
+  })
+
+  return {
+    QyAvatar: MockQyAvatar,
+    QyBadge: MockQyBadge,
+    QyIcon: MockQyIcon,
+  }
+})
+
+import PostCard from '../PostCard.vue'
 
 describe('PostCard', () => {
   const defaultProps = {

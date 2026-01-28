@@ -8,19 +8,31 @@ import { useBooklistStore } from '../booklist.store'
 import { createMockBooklist, createMockBooklists } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
 
-// Mock API
+// Mock API - 必须在import之前
+const mockGetBookLists = vi.fn()
+const mockGetBookListDetail = vi.fn()
+const mockCreateBookList = vi.fn()
+const mockUpdateBookList = vi.fn()
+const mockDeleteBookList = vi.fn()
+const mockFavoriteBookList = vi.fn()
+const mockUnfavoriteBookList = vi.fn()
+const mockAddBookToList = vi.fn()
+const mockRemoveBookFromList = vi.fn()
+const mockGetMyBookListStats = vi.fn()
+const mockGetPopularTags = vi.fn()
+
 vi.mock('../api', () => ({
-  getBookLists: vi.fn(),
-  getBookListDetail: vi.fn(),
-  createBookList: vi.fn(),
-  updateBookList: vi.fn(),
-  deleteBookList: vi.fn(),
-  favoriteBookList: vi.fn(),
-  unfavoriteBookList: vi.fn(),
-  addBookToList: vi.fn(),
-  removeBookFromList: vi.fn(),
-  getMyBookListStats: vi.fn(),
-  getPopularTags: vi.fn(),
+  getBookLists: mockGetBookLists,
+  getBookListDetail: mockGetBookListDetail,
+  createBookList: mockCreateBookList,
+  updateBookList: mockUpdateBookList,
+  deleteBookList: mockDeleteBookList,
+  favoriteBookList: mockFavoriteBookList,
+  unfavoriteBookList: mockUnfavoriteBookList,
+  addBookToList: mockAddBookToList,
+  removeBookFromList: mockRemoveBookFromList,
+  getMyBookListStats: mockGetMyBookListStats,
+  getPopularTags: mockGetPopularTags,
 }))
 
 import * as booklistApi from '../api'
@@ -73,7 +85,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(booklistApi.getBookLists).mockImplementation(
+      vi.mocked(getBookLists).mockImplementation(
         mockSuccessApiCall(mockData)
       )
       const store = useBooklistStore()
@@ -86,13 +98,13 @@ describe('useBooklistStore', () => {
       expect(store.booklists).toEqual(mockData.list)
       expect(store.total).toBe(mockData.total)
       expect(store.error).toBeNull()
-      expect(booklistApi.getBookLists).toHaveBeenCalledWith({ page: 1, size: 10 })
+      expect(getBookLists).toHaveBeenCalledWith({ page: 1, size: 10 })
     })
 
     it('should handle fetch booklists error', async () => {
       // Arrange
       const error = new Error('Network error')
-      vi.mocked(booklistApi.getBookLists).mockImplementation(
+      vi.mocked(getBookLists).mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useBooklistStore()
@@ -114,7 +126,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(booklistApi.getBookLists).mockImplementation(
+      vi.mocked(getBookLists).mockImplementation(
         () => new Promise((resolve) => {
           setTimeout(() => resolve(mockData), 100)
         })
@@ -139,7 +151,7 @@ describe('useBooklistStore', () => {
     it('should fetch booklist detail successfully', async () => {
       // Arrange
       const mockBooklist = createMockBooklist()
-      vi.mocked(booklistApi.getBookListDetail).mockImplementation(
+      vi.mocked(getBookListDetail).mockImplementation(
         mockSuccessApiCall(mockBooklist)
       )
       const store = useBooklistStore()
@@ -151,13 +163,13 @@ describe('useBooklistStore', () => {
       expect(store.loading).toBe(false)
       expect(store.currentBooklist).toEqual(mockBooklist)
       expect(store.error).toBeNull()
-      expect(booklistApi.getBookListDetail).toHaveBeenCalledWith(mockBooklist.id)
+      expect(getBookListDetail).toHaveBeenCalledWith(mockBooklist.id)
     })
 
     it('should handle fetch booklist detail error', async () => {
       // Arrange
       const error = new Error('Booklist not found')
-      vi.mocked(booklistApi.getBookListDetail).mockImplementation(
+      vi.mocked(getBookListDetail).mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useBooklistStore()
@@ -181,7 +193,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(booklistApi.getBookLists).mockImplementation(
+      vi.mocked(getBookLists).mockImplementation(
         mockSuccessApiCall(mockData)
       )
       const store = useBooklistStore()
@@ -192,7 +204,7 @@ describe('useBooklistStore', () => {
       // Assert
       expect(store.myBooklists).toEqual(mockData.list)
       expect(store.loading).toBe(false)
-      expect(booklistApi.getBookLists).toHaveBeenCalledWith({ sort: 'latest' })
+      expect(getBookLists).toHaveBeenCalledWith({ sort: 'latest' })
     })
   })
 
@@ -205,7 +217,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(booklistApi.getBookLists).mockImplementation(
+      vi.mocked(getBookLists).mockImplementation(
         mockSuccessApiCall(mockData)
       )
       const store = useBooklistStore()
@@ -216,7 +228,7 @@ describe('useBooklistStore', () => {
       // Assert
       expect(store.favoriteBooklists).toEqual(mockData.list)
       expect(store.loading).toBe(false)
-      expect(booklistApi.getBookLists).toHaveBeenCalledWith({ sort: 'hottest' })
+      expect(getBookLists).toHaveBeenCalledWith({ sort: 'hottest' })
     })
   })
 
@@ -228,7 +240,7 @@ describe('useBooklistStore', () => {
         totalBooks: 100,
         totalLikes: 50,
       }
-      vi.mocked(booklistApi.getMyBookListStats).mockImplementation(
+      vi.mocked(getMyBookListStats).mockImplementation(
         mockSuccessApiCall(mockStats)
       )
       const store = useBooklistStore()
@@ -238,7 +250,7 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(store.myStats).toEqual(mockStats)
-      expect(booklistApi.getMyBookListStats).toHaveBeenCalledWith()
+      expect(getMyBookListStats).toHaveBeenCalledWith()
     })
   })
 
@@ -249,7 +261,7 @@ describe('useBooklistStore', () => {
         { tag: '玄幻', count: 100 },
         { tag: '仙侠', count: 80 },
       ]
-      vi.mocked(booklistApi.getPopularTags).mockImplementation(
+      vi.mocked(getPopularTags).mockImplementation(
         mockSuccessApiCall(mockTags)
       )
       const store = useBooklistStore()
@@ -259,7 +271,7 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(store.popularTags).toEqual(['玄幻', '仙侠'])
-      expect(booklistApi.getPopularTags).toHaveBeenCalledWith(20)
+      expect(getPopularTags).toHaveBeenCalledWith(20)
     })
   })
 
@@ -273,7 +285,7 @@ describe('useBooklistStore', () => {
         tags: ['玄幻'],
       }
       const mockBooklist = createMockBooklist(newBooklist)
-      vi.mocked(booklistApi.createBookList).mockImplementation(
+      vi.mocked(createBookList).mockImplementation(
         mockSuccessApiCall(mockBooklist)
       )
       const store = useBooklistStore()
@@ -284,7 +296,7 @@ describe('useBooklistStore', () => {
       // Assert
       expect(result).toEqual(mockBooklist)
       expect(store.loading).toBe(false)
-      expect(booklistApi.createBookList).toHaveBeenCalledWith(newBooklist)
+      expect(createBookList).toHaveBeenCalledWith(newBooklist)
     })
 
     it('should handle create booklist error', async () => {
@@ -295,7 +307,7 @@ describe('useBooklistStore', () => {
         isPublic: true,
       }
       const error = new Error('Create failed')
-      vi.mocked(booklistApi.createBookList).mockImplementation(
+      vi.mocked(createBookList).mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useBooklistStore()
@@ -314,7 +326,7 @@ describe('useBooklistStore', () => {
         title: '更新后的标题',
       }
       const updatedBooklist = createMockBooklist(updateData)
-      vi.mocked(booklistApi.updateBookList).mockImplementation(
+      vi.mocked(updateBookList).mockImplementation(
         mockSuccessApiCall(updatedBooklist)
       )
       const store = useBooklistStore()
@@ -325,7 +337,7 @@ describe('useBooklistStore', () => {
       // Assert
       expect(result).toEqual(updatedBooklist)
       expect(store.loading).toBe(false)
-      expect(booklistApi.updateBookList).toHaveBeenCalledWith(booklistId, updateData)
+      expect(updateBookList).toHaveBeenCalledWith(booklistId, updateData)
     })
   })
 
@@ -335,7 +347,7 @@ describe('useBooklistStore', () => {
       const booklistId = 'booklist_123'
       const mockBooklists = createMockBooklists(3)
       const mockResponse = { success: true }
-      vi.mocked(booklistApi.deleteBookList).mockImplementation(
+      vi.mocked(deleteBookList).mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useBooklistStore()
@@ -353,7 +365,7 @@ describe('useBooklistStore', () => {
       expect(store.myBooklists).not.toContainEqual(
         expect.objectContaining({ id: booklistId })
       )
-      expect(booklistApi.deleteBookList).toHaveBeenCalledWith(booklistId)
+      expect(deleteBookList).toHaveBeenCalledWith(booklistId)
     })
   })
 
@@ -367,7 +379,7 @@ describe('useBooklistStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true }
-      vi.mocked(booklistApi.favoriteBookList).mockImplementation(
+      vi.mocked(favoriteBookList).mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useBooklistStore()
@@ -380,7 +392,7 @@ describe('useBooklistStore', () => {
       expect(result).toBe(true)
       expect(store.booklists[0].isLiked).toBe(true)
       expect(store.booklists[0].likeCount).toBe(11)
-      expect(booklistApi.favoriteBookList).toHaveBeenCalledWith(booklistId)
+      expect(favoriteBookList).toHaveBeenCalledWith(booklistId)
     })
   })
 
@@ -394,7 +406,7 @@ describe('useBooklistStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true }
-      vi.mocked(booklistApi.unfavoriteBookList).mockImplementation(
+      vi.mocked(unfavoriteBookList).mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useBooklistStore()
@@ -407,7 +419,7 @@ describe('useBooklistStore', () => {
       expect(result).toBe(true)
       expect(store.booklists[0].isLiked).toBe(false)
       expect(store.booklists[0].likeCount).toBe(9)
-      expect(booklistApi.unfavoriteBookList).toHaveBeenCalledWith(booklistId)
+      expect(unfavoriteBookList).toHaveBeenCalledWith(booklistId)
     })
   })
 
@@ -423,7 +435,7 @@ describe('useBooklistStore', () => {
         note,
         addedAt: new Date().toISOString(),
       }
-      vi.mocked(booklistApi.addBookToList).mockImplementation(
+      vi.mocked(addBookToList).mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useBooklistStore()
@@ -433,7 +445,7 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(result).toEqual(mockResponse)
-      expect(booklistApi.addBookToList).toHaveBeenCalledWith(listId, {
+      expect(addBookToList).toHaveBeenCalledWith(listId, {
         bookId,
         note,
       })
@@ -464,7 +476,7 @@ describe('useBooklistStore', () => {
         bookCount: 2,
       })
       const mockResponse = { success: true }
-      vi.mocked(booklistApi.removeBookFromList).mockImplementation(
+      vi.mocked(removeBookFromList).mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useBooklistStore()
@@ -478,7 +490,7 @@ describe('useBooklistStore', () => {
       expect(store.currentBooklist?.books).toHaveLength(1)
       expect(store.currentBooklist?.books[0].bookId).toBe('book_789')
       expect(store.currentBooklist?.bookCount).toBe(1)
-      expect(booklistApi.removeBookFromList).toHaveBeenCalledWith(listId, bookId)
+      expect(removeBookFromList).toHaveBeenCalledWith(listId, bookId)
     })
   })
 })

@@ -5,33 +5,134 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createMockBooklist } from '../../../../tests/fixtures'
-import BooklistForm from '../BooklistForm.vue'
 
-// Mock设计系统组件
-vi.mock('@/design-system/components', () => ({
-  QyInput: {
-    template:
-      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" :type="type" :placeholder="placeholder" :rows="rows" :maxlength="maxlength" :show-count="showCount" :size="size" />',
-    props: ['modelValue', 'type', 'placeholder', 'rows', 'maxlength', 'showCount', 'size'],
-    emits: ['update:modelValue'],
-  },
-  QyButton: {
-    template:
-      '<button :disabled="disabled" :loading="loading" @click="$emit(\'click\')"><slot /></button>',
-    props: ['variant', 'size', 'loading', 'disabled'],
+// Mock设计系统组件 - 必须在导入组件之前
+vi.mock('@/design-system/components', () => {
+  const { h, defineComponent } = require('vue')
+
+  const MockQyInput = defineComponent({
+    name: 'QyInput',
+    props: {
+      modelValue: { type: [String, Number], default: '' },
+      type: { type: String, default: 'text' },
+      placeholder: { type: String, default: '' },
+      disabled: { type: Boolean, default: false },
+      readonly: { type: Boolean, default: false },
+      rows: { type: Number, default: 3 },
+      maxlength: { type: Number },
+      showCount: { type: Boolean, default: false },
+      size: { type: String, default: 'medium' },
+    },
+    emits: ['update:modelValue', 'change', 'blur', 'focus'],
+    setup(props, { emit }) {
+      const handleInput = (e) => {
+        const target = e.target
+        emit('update:modelValue', target.value)
+        emit('change', target.value)
+      }
+      return () => h(
+        props.type === 'textarea' ? 'textarea' : 'input',
+        {
+          class: 'qy-input',
+          placeholder: props.placeholder,
+          disabled: props.disabled,
+          readonly: props.readonly,
+          rows: props.rows,
+          maxlength: props.maxlength,
+          value: props.modelValue,
+          onInput: handleInput,
+        },
+        props.modelValue !== undefined ? [props.modelValue] : []
+      )
+    },
+  })
+
+  const MockQyButton = defineComponent({
+    name: 'QyButton',
+    props: {
+      variant: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      disabled: { type: Boolean, default: false },
+      loading: { type: Boolean, default: false },
+      type: { type: String, default: 'button' },
+    },
     emits: ['click'],
-  },
-  QyBadge: {
-    template:
-      '<span class="qy-badge" @click="$emit(\'click\')"><slot /></span><button v-if="closable" class="close-btn" @click="$emit(\'close\')">×</button>',
-    props: ['variant', 'size', 'closable'],
+    setup(props, { emit }) {
+      const classes = [
+        'qy-button',
+        `qy-button--${props.variant}`,
+        `qy-button--${props.size}`,
+      ]
+      if (props.disabled) classes.push('is-disabled')
+      if (props.loading) classes.push('is-loading')
+
+      return () => h(
+        'button',
+        {
+          class: classes,
+          disabled: props.disabled,
+          type: props.type,
+          onClick: (e) => emit('click', e),
+        },
+        ['默认按钮']
+      )
+    },
+  })
+
+  const MockQyBadge = defineComponent({
+    name: 'QyBadge',
+    props: {
+      variant: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      closable: { type: Boolean, default: false },
+    },
     emits: ['click', 'close'],
-  },
-  QyIcon: {
-    template: '<i class="qy-icon" />',
-    props: ['name', 'size'],
-  },
-}))
+    setup(props, { emit, slots }) {
+      const children = [
+        slots.default ? slots.default() : '',
+      ]
+      if (props.closable) {
+        children.push(
+          h('span', {
+            class: 'close-btn',
+            onClick: (e) => {
+              e.stopPropagation()
+              emit('close')
+            },
+          }, '×')
+        )
+      }
+      return () => h(
+        'span',
+        {
+          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+          onClick: () => emit('click'),
+        },
+        children
+      )
+    },
+  })
+
+  const MockQyIcon = defineComponent({
+    name: 'QyIcon',
+    props: {
+      name: { type: String, required: true },
+      size: { type: Number, default: 16 },
+    },
+    setup(props) {
+      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    },
+  })
+
+  return {
+    QyInput: MockQyInput,
+    QyButton: MockQyButton,
+    QyBadge: MockQyBadge,
+    QyIcon: MockQyIcon,
+  }
+})
+
+import BooklistForm from '../BooklistForm.vue'
 
 describe('BooklistForm', () => {
   const defaultProps = {

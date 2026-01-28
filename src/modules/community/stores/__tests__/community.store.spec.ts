@@ -15,19 +15,31 @@ import {
 } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
 
-// Mock API
+// Mock API - 必须在import之前
+const mockGetPosts = vi.fn()
+const mockGetPostDetail = vi.fn()
+const mockGetPostComments = vi.fn()
+const mockCreatePost = vi.fn()
+const mockCreatePostComment = vi.fn()
+const mockLikePost = vi.fn()
+const mockUnlikePost = vi.fn()
+const mockBookmarkPost = vi.fn()
+const mockGetTopics = vi.fn()
+const mockFollowTopic = vi.fn()
+const mockGetTopicPosts = vi.fn()
+
 vi.mock('../api', () => ({
-  getPosts: vi.fn(),
-  getPostDetail: vi.fn(),
-  getPostComments: vi.fn(),
-  createPost: vi.fn(),
-  createPostComment: vi.fn(),
-  likePost: vi.fn(),
-  unlikePost: vi.fn(),
-  bookmarkPost: vi.fn(),
-  getTopics: vi.fn(),
-  followTopic: vi.fn(),
-  getTopicPosts: vi.fn(),
+  getPosts: mockGetPosts,
+  getPostDetail: mockGetPostDetail,
+  getPostComments: mockGetPostComments,
+  createPost: mockCreatePost,
+  createPostComment: mockCreatePostComment,
+  likePost: mockLikePost,
+  unlikePost: mockUnlikePost,
+  bookmarkPost: mockBookmarkPost,
+  getTopics: mockGetTopics,
+  followTopic: mockFollowTopic,
+  getTopicPosts: mockGetTopicPosts,
 }))
 
 import * as communityApi from '../api'
@@ -78,7 +90,7 @@ describe('useCommunityStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(communityApi.getPosts).mockImplementation(mockSuccessApiCall(mockData))
+      mockGetPosts.mockImplementation(mockSuccessApiCall(mockData))
       const store = useCommunityStore()
 
       // Act
@@ -89,13 +101,13 @@ describe('useCommunityStore', () => {
       expect(store.posts).toEqual(mockData.list)
       expect(store.total).toBe(mockData.total)
       expect(store.error).toBeNull()
-      expect(communityApi.getPosts).toHaveBeenCalledWith({ page: 1, size: 10 })
+      expect(getPosts).toHaveBeenCalledWith({ page: 1, size: 10 })
     })
 
     it('should handle fetch posts error', async () => {
       // Arrange
       const error = new Error('Network error')
-      vi.mocked(communityApi.getPosts).mockImplementation(mockErrorApiCall(error.message))
+      mockGetPosts.mockImplementation(mockErrorApiCall(error.message))
       const store = useCommunityStore()
 
       // Act
@@ -115,7 +127,7 @@ describe('useCommunityStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(communityApi.getPosts).mockImplementation(
+      mockGetPosts.mockImplementation(
         () => new Promise((resolve) => {
           setTimeout(() => resolve(mockData), 100)
         })
@@ -140,7 +152,7 @@ describe('useCommunityStore', () => {
     it('should fetch post detail successfully', async () => {
       // Arrange
       const mockPost = createMockPost()
-      vi.mocked(communityApi.getPostDetail).mockImplementation(mockSuccessApiCall(mockPost))
+      mockGetPostDetail.mockImplementation(mockSuccessApiCall(mockPost))
       const store = useCommunityStore()
 
       // Act
@@ -150,13 +162,13 @@ describe('useCommunityStore', () => {
       expect(store.loading).toBe(false)
       expect(store.currentPost).toEqual(mockPost)
       expect(store.error).toBeNull()
-      expect(communityApi.getPostDetail).toHaveBeenCalledWith(mockPost.id)
+      expect(getPostDetail).toHaveBeenCalledWith(mockPost.id)
     })
 
     it('should handle fetch post detail error', async () => {
       // Arrange
       const error = new Error('Post not found')
-      vi.mocked(communityApi.getPostDetail).mockImplementation(
+      mockGetPostDetail.mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useCommunityStore()
@@ -179,7 +191,7 @@ describe('useCommunityStore', () => {
         list: createMockComments(3),
         total: 3,
       }
-      vi.mocked(communityApi.getPostComments).mockImplementation(mockSuccessApiCall(mockData))
+      mockGetPostComments.mockImplementation(mockSuccessApiCall(mockData))
       const store = useCommunityStore()
 
       // Act
@@ -187,13 +199,13 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.comments).toEqual(mockData.list)
-      expect(communityApi.getPostComments).toHaveBeenCalledWith(postId, undefined)
+      expect(getPostComments).toHaveBeenCalledWith(postId, undefined)
     })
 
     it('should handle fetch comments error silently', async () => {
       // Arrange
       const postId = 'post_123'
-      vi.mocked(communityApi.getPostComments).mockImplementation(
+      mockGetPostComments.mockImplementation(
         mockErrorApiCall('Error')
       )
       const store = useCommunityStore()
@@ -215,7 +227,7 @@ describe('useCommunityStore', () => {
         topics: ['玄幻'],
       }
       const mockPost = createMockPost(newPost)
-      vi.mocked(communityApi.createPost).mockImplementation(mockSuccessApiCall(mockPost))
+      mockCreatePost.mockImplementation(mockSuccessApiCall(mockPost))
       const store = useCommunityStore()
 
       // Act
@@ -225,7 +237,7 @@ describe('useCommunityStore', () => {
       expect(result).toEqual(mockPost)
       expect(store.posts[0]).toEqual(mockPost)
       expect(store.loading).toBe(false)
-      expect(communityApi.createPost).toHaveBeenCalledWith(newPost)
+      expect(createPost).toHaveBeenCalledWith(newPost)
     })
 
     it('should handle create post error', async () => {
@@ -235,7 +247,7 @@ describe('useCommunityStore', () => {
         content: '这是一个新动态',
       }
       const error = new Error('Create failed')
-      vi.mocked(communityApi.createPost).mockImplementation(
+      mockCreatePost.mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useCommunityStore()
@@ -252,7 +264,7 @@ describe('useCommunityStore', () => {
       const postId = 'post_123'
       const content = '这是一个新评论'
       const mockComment = createMockComment({ content })
-      vi.mocked(communityApi.createPostComment).mockImplementation(
+      mockCreatePostComment.mockImplementation(
         mockSuccessApiCall(mockComment)
       )
       const store = useCommunityStore()
@@ -265,7 +277,7 @@ describe('useCommunityStore', () => {
       expect(result).toEqual(mockComment)
       expect(store.comments[0]).toEqual(mockComment)
       expect(store.currentPost?.commentCount).toBe(6)
-      expect(communityApi.createPostComment).toHaveBeenCalledWith(postId, {
+      expect(createPostComment).toHaveBeenCalledWith(postId, {
         content,
         replyTo: undefined,
       })
@@ -277,7 +289,7 @@ describe('useCommunityStore', () => {
       const content = '这是一个回复'
       const replyTo = 'comment_456'
       const mockComment = createMockComment({ content, replyTo })
-      vi.mocked(communityApi.createPostComment).mockImplementation(
+      mockCreatePostComment.mockImplementation(
         mockSuccessApiCall(mockComment)
       )
       const store = useCommunityStore()
@@ -287,7 +299,7 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(communityApi.createPostComment).toHaveBeenCalledWith(postId, {
+      expect(createPostComment).toHaveBeenCalledWith(postId, {
         content,
         replyTo,
       })
@@ -298,7 +310,7 @@ describe('useCommunityStore', () => {
       const postId = 'post_123'
       const content = '这是一个新评论'
       const error = new Error('Create failed')
-      vi.mocked(communityApi.createPostComment).mockImplementation(
+      mockCreatePostComment.mockImplementation(
         mockErrorApiCall(error.message)
       )
       const store = useCommunityStore()
@@ -317,7 +329,7 @@ describe('useCommunityStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true, likeCount: 11 }
-      vi.mocked(communityApi.likePost).mockImplementation(mockSuccessApiCall(mockResponse))
+      mockLikePost.mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useCommunityStore()
       store.posts = [mockPost]
 
@@ -327,7 +339,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts[0].isLiked).toBe(true)
       expect(store.posts[0].likeCount).toBe(11)
-      expect(communityApi.likePost).toHaveBeenCalledWith('post_123')
+      expect(likePost).toHaveBeenCalledWith('post_123')
     })
 
     it('should unlike post when liked', async () => {
@@ -338,7 +350,7 @@ describe('useCommunityStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true, likeCount: 9 }
-      vi.mocked(communityApi.unlikePost).mockImplementation(
+      mockUnlikePost.mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useCommunityStore()
@@ -350,7 +362,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts[0].isLiked).toBe(false)
       expect(store.posts[0].likeCount).toBe(9)
-      expect(communityApi.unlikePost).toHaveBeenCalledWith('post_123')
+      expect(unlikePost).toHaveBeenCalledWith('post_123')
     })
 
     it('should handle toggle like error silently', async () => {
@@ -359,7 +371,7 @@ describe('useCommunityStore', () => {
         id: 'post_123',
         isLiked: false,
       })
-      vi.mocked(communityApi.likePost).mockImplementation(
+      mockLikePost.mockImplementation(
         mockErrorApiCall('Error')
       )
       const store = useCommunityStore()
@@ -380,7 +392,7 @@ describe('useCommunityStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true, likeCount: 11 }
-      vi.mocked(communityApi.likePost).mockImplementation(mockSuccessApiCall(mockResponse))
+      mockLikePost.mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useCommunityStore()
       store.currentPost = mockPost
 
@@ -400,7 +412,7 @@ describe('useCommunityStore', () => {
         list: createMockTopics(3),
         total: 3,
       }
-      vi.mocked(communityApi.getTopics).mockImplementation(mockSuccessApiCall(mockData))
+      mockGetTopics.mockImplementation(mockSuccessApiCall(mockData))
       const store = useCommunityStore()
 
       // Act
@@ -408,12 +420,12 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.topics).toEqual(mockData.list)
-      expect(communityApi.getTopics).toHaveBeenCalledWith(undefined)
+      expect(getTopics).toHaveBeenCalledWith(undefined)
     })
 
     it('should handle fetch topics error silently', async () => {
       // Arrange
-      vi.mocked(communityApi.getTopics).mockImplementation(
+      mockGetTopics.mockImplementation(
         mockErrorApiCall('Error')
       )
       const store = useCommunityStore()
@@ -434,7 +446,7 @@ describe('useCommunityStore', () => {
         list: createMockPosts(3),
         total: 3,
       }
-      vi.mocked(communityApi.getTopicPosts).mockImplementation(mockSuccessApiCall(mockData))
+      mockGetTopicPosts.mockImplementation(mockSuccessApiCall(mockData))
       const store = useCommunityStore()
 
       // Act
@@ -443,13 +455,13 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts).toEqual(mockData.list)
       expect(store.loading).toBe(false)
-      expect(communityApi.getTopicPosts).toHaveBeenCalledWith(topicId, undefined)
+      expect(getTopicPosts).toHaveBeenCalledWith(topicId, undefined)
     })
 
     it('should handle fetch topic posts error silently', async () => {
       // Arrange
       const topicId = 'topic_123'
-      vi.mocked(communityApi.getTopicPosts).mockImplementation(
+      mockGetTopicPosts.mockImplementation(
         mockErrorApiCall('Error')
       )
       const store = useCommunityStore()

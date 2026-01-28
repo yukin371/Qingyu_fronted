@@ -5,6 +5,159 @@
 
 import { mount, VueWrapper } from '@vue/test-utils'
 import { ComponentPublicInstance } from 'vue'
+import { h, defineComponent } from 'vue'
+
+/**
+ * 创建完整的QyButton组件mock
+ */
+export const MockQyButton = defineComponent({
+  name: 'QyButton',
+  props: {
+    variant: { type: String, default: 'default' },
+    size: { type: String, default: 'medium' },
+    disabled: { type: Boolean, default: false },
+    loading: { type: Boolean, default: false },
+    type: { type: String, default: 'button' },
+  },
+  emits: ['click'],
+  setup(props, { emit }) {
+    const classes = [
+      'qy-button',
+      `qy-button--${props.variant}`,
+      `qy-button--${props.size}`,
+    ]
+    if (props.disabled) classes.push('is-disabled')
+    if (props.loading) classes.push('is-loading')
+
+    return () => h(
+      'button',
+      {
+        class: classes,
+        disabled: props.disabled,
+        type: props.type,
+        onClick: (e: MouseEvent) => emit('click', e),
+      },
+      [h('slot')]
+    )
+  },
+})
+
+/**
+ * 创建完整的QyInput组件mock
+ */
+export const MockQyInput = defineComponent({
+  name: 'QyInput',
+  props: {
+    modelValue: { type: [String, Number], default: '' },
+    type: { type: String, default: 'text' },
+    placeholder: { type: String, default: '' },
+    disabled: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
+    rows: { type: Number, default: 3 },
+    maxlength: { type: Number },
+    showCount: { type: Boolean, default: false },
+    size: { type: String, default: 'medium' },
+  },
+  emits: ['update:modelValue', 'change', 'blur', 'focus'],
+  setup(props, { emit }) {
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      emit('update:modelValue', target.value)
+      emit('change', target.value)
+    }
+    return () => h(
+      props.type === 'textarea' ? 'textarea' : 'input',
+      {
+        class: 'qy-input',
+        placeholder: props.placeholder,
+        disabled: props.disabled,
+        readonly: props.readonly,
+        rows: props.rows,
+        maxlength: props.maxlength,
+        value: props.modelValue,
+        onInput: handleInput,
+      },
+      props.modelValue !== undefined ? [h('slot')] : []
+    )
+  },
+})
+
+/**
+ * 创建完整的QyBadge组件mock
+ */
+export const MockQyBadge = defineComponent({
+  name: 'QyBadge',
+  props: {
+    variant: { type: String, default: 'default' },
+    size: { type: String, default: 'medium' },
+    closable: { type: Boolean, default: false },
+  },
+  emits: ['click', 'close'],
+  setup(props, { emit }) {
+    return () => h(
+      'span',
+      {
+        class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+        onClick: () => emit('click'),
+      },
+      [
+        h('slot'),
+        props.closable
+          ? h('span', {
+              class: 'close-btn',
+              onClick: (e: Event) => {
+                e.stopPropagation()
+                emit('close')
+              },
+            }, '×')
+          : null,
+      ]
+    )
+  },
+})
+
+/**
+ * 创建完整的QyAvatar组件mock
+ */
+export const MockQyAvatar = defineComponent({
+  name: 'QyAvatar',
+  props: {
+    src: { type: String },
+    name: { type: String, default: '' },
+    size: { type: String, default: 'md' },
+  },
+  setup(props) {
+    return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || props.src ? [props.name || ''] : [])
+  },
+})
+
+/**
+ * 创建完整的QyIcon组件mock
+ */
+export const MockQyIcon = defineComponent({
+  name: 'QyIcon',
+  props: {
+    name: { type: String, required: true },
+    size: { type: Number, default: 16 },
+  },
+  setup(props) {
+    return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+  },
+})
+
+/**
+ * 创建完整的QyCard组件mock
+ */
+export const MockQyCard = defineComponent({
+  name: 'QyCard',
+  props: {
+    shadow: { type: String, default: 'always' },
+    bodyStyle: { type: Object },
+  },
+  setup(props, { slots }) {
+    return () => h('div', { class: ['qy-card', `qy-card--${props.shadow}`] }, [slots.default ? slots.default() : h('slot')])
+  },
+})
 
 /**
  * 组件挂载选项的扩展类型

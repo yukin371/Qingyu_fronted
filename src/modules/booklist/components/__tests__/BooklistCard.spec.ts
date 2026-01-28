@@ -5,26 +5,109 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createMockBooklist } from '../../../../tests/fixtures'
-import BooklistCard from '../BooklistCard.vue'
 
-// Mock设计系统组件
-vi.mock('@/design-system/components', () => ({
-  QyBadge: {
-    template: '<span class="qy-badge"><slot /></span>',
-  },
-  QyAvatar: {
-    template: '<div class="qy-avatar">{{ name }}</div>',
-    props: ['src', 'name', 'size'],
-  },
-  QyButton: {
-    template: '<button class="qy-button" :class="{ "is-active": $props.isAuth }"><slot /></button>',
-    props: ['variant', 'size', 'isAuth'],
-  },
-  QyIcon: {
-    template: '<i class="qy-icon" />',
-    props: ['name', 'size'],
-  },
-}))
+// Mock设计系统组件 - 必须在导入组件之前
+vi.mock('@/design-system/components', () => {
+  const { h, defineComponent } = require('vue')
+
+  const MockQyButton = defineComponent({
+    name: 'QyButton',
+    props: {
+      variant: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      disabled: { type: Boolean, default: false },
+      loading: { type: Boolean, default: false },
+      type: { type: String, default: 'button' },
+    },
+    emits: ['click'],
+    setup(props, { emit }) {
+      const classes = [
+        'qy-button',
+        `qy-button--${props.variant}`,
+        `qy-button--${props.size}`,
+      ]
+      if (props.disabled) classes.push('is-disabled')
+      if (props.loading) classes.push('is-loading')
+
+      return () => h(
+        'button',
+        {
+          class: classes,
+          disabled: props.disabled,
+          type: props.type,
+          onClick: (e) => emit('click', e),
+        },
+        ['默认按钮']
+      )
+    },
+  })
+
+  const MockQyBadge = defineComponent({
+    name: 'QyBadge',
+    props: {
+      variant: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      closable: { type: Boolean, default: false },
+    },
+    emits: ['click', 'close'],
+    setup(props, { emit, slots }) {
+      const children = [
+        slots.default ? slots.default() : '',
+      ]
+      if (props.closable) {
+        children.push(
+          h('span', {
+            class: 'close-btn',
+            onClick: (e) => {
+              e.stopPropagation()
+              emit('close')
+            },
+          }, '×')
+        )
+      }
+      return () => h(
+        'span',
+        {
+          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+          onClick: () => emit('click'),
+        },
+        children
+      )
+    },
+  })
+
+  const MockQyAvatar = defineComponent({
+    name: 'QyAvatar',
+    props: {
+      src: { type: String },
+      name: { type: String, default: '' },
+      size: { type: String, default: 'md' },
+    },
+    setup(props) {
+      return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
+    },
+  })
+
+  const MockQyIcon = defineComponent({
+    name: 'QyIcon',
+    props: {
+      name: { type: String, required: true },
+      size: { type: Number, default: 16 },
+    },
+    setup(props) {
+      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    },
+  })
+
+  return {
+    QyBadge: MockQyBadge,
+    QyAvatar: MockQyAvatar,
+    QyButton: MockQyButton,
+    QyIcon: MockQyIcon,
+  }
+})
+
+import BooklistCard from '../BooklistCard.vue'
 
 describe('BooklistCard', () => {
   const defaultProps = {
@@ -283,7 +366,7 @@ describe('BooklistCard', () => {
   describe('computed properties', () => {
     it('should truncate description when it is too long', () => {
       // Arrange
-      const longDescription = '这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常长的描述'
+      const longDescription = '这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常长非常长的描述，用来测试截断功能是否正常工作，这个描述已经超过了六十个字符的限制'
       const wrapper = mount(BooklistCard, {
         props: {
           booklist: createMockBooklist({
@@ -292,8 +375,10 @@ describe('BooklistCard', () => {
         },
       })
 
-      // Act & Assert
-      expect(wrapper.text()).toContain('...')
+      // Act & Assert - 检查描述段落的内容是否包含省略号
+      const descElement = wrapper.find('.booklist-description')
+      expect(descElement.text()).toContain('...')
+      expect(descElement.text().length).toBeLessThan(longDescription.length)
     })
 
     it('should not truncate description when it is short', () => {
