@@ -13,7 +13,7 @@ export interface APIResponse<T = any> {
   message: string
   data?: T
   timestamp: number // Unix时间戳
-  request_id?: string // 请求追踪ID
+  requestId?: string // 请求追踪ID
 }
 
 /**
