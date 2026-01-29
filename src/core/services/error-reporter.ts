@@ -1,6 +1,6 @@
 // src/core/services/error-reporter.ts
 
-import type { ErrorResponse } from '@/types/error.types'
+import type { ErrorResponse } from '@/types/api'
 
 /**
  * 错误上报数据

@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth' // 引入 Pinia
 import { ErrorHandler } from '@/utils/errorHandler'
 import type { APIResponse } from '@/core/types/api.types' // 引入统一类型
 import { convertObjectKeysToCamelCase } from '@/utils/caseConverter' // 引入字段名转换工具
+import { errorReporter } from './error-reporter' // 引入错误上报服务
 
 // 扩展 Axios 请求配置
 export interface RequestConfig extends AxiosRequestConfig {
@@ -170,6 +171,17 @@ class HttpService {
         return this.handleBusinessError(apiData, config)
       },
       (error: AxiosError) => {
+        // 上报网络错误到监控系统（仅生产环境）
+        if (import.meta.env.PROD && error.response?.data) {
+          const errorResponse = {
+            code: error.response.status,
+            message: error.message,
+            error: 'NETWORK_ERROR',
+            timestamp: Date.now()
+          }
+          errorReporter.report(errorResponse)
+        }
+
         // 401 认证失败处理
         if (error.response?.status === 401) {
           const authStore = useAuthStore()
@@ -196,6 +208,18 @@ class HttpService {
   private handleBusinessError(data: APIResponse, config: InternalAxiosRequestConfig) {
     const err = new Error(data.message) as any
     err.code = data.code
+
+    // 上报错误到监控系统（仅生产环境）
+    if (import.meta.env.PROD) {
+      const errorResponse = {
+        code: data.code,
+        message: data.message,
+        error: data.code.toString(),
+        timestamp: data.timestamp || Date.now()
+      }
+      errorReporter.report(errorResponse)
+    }
+
     if (!config.silent && !config.skipErrorHandler) {
       message.error(data.message)
     }
