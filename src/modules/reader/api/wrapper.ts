@@ -231,6 +231,14 @@ export async function getReadingHistory(
 }
 
 /**
+ * 清除阅读历史
+ * 兼容旧API: clearReadingHistory()
+ */
+export async function clearReadingHistory(): Promise<APIResponse<void>> {
+  return api.deleteApiV1ReaderReadingHistory() as any
+}
+
+/**
  * 获取总阅读时长统计
  * 兼容旧API: getTotalReadingTime()
  */
@@ -433,13 +441,13 @@ export default {
   deleteBookmark,
   // 阅读进度相关
   getReadingProgress,
-  updateReadingProgress,
+  saveReadingProgress,
   // 阅读历史相关
   getReadingHistory,
   clearReadingHistory,
   // 笔记相关
   getAnnotations,
-  getAnnotation,
+  getBookAnnotations,
   createAnnotation,
   updateAnnotation,
   deleteAnnotation,

@@ -128,8 +128,10 @@ class HttpService {
           console.debug(`[API] ${apiData.request_id}`, apiData)
         }
 
-        // 成功判定 (兼容 200 和 201)
-        if (apiData.code === 200 || apiData.code === 201) {
+        // 成功判定 (兼容业务成功码 0 和 HTTP状态码 200-299)
+        const code = apiData.code
+        const isSuccess = code === 0 || (code >= 200 && code < 300)
+        if (isSuccess) {
           // ★ 关键决策：
           // 默认只返回 result (data.data)，让组件代码更干净。
           // 如果配置了 returnFullResponse: true，则返回整个 APIResponse

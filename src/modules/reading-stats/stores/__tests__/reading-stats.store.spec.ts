@@ -95,13 +95,7 @@ describe('useReadingStatsStore', () => {
         weeklyStats: [],
         monthlyStats: [],
       }
-      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockStats,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue(mockStats)
       const store = useReadingStatsStore()
 
       await store.fetchStats('weekly')
@@ -113,13 +107,7 @@ describe('useReadingStatsStore', () => {
     })
 
     it('should use weekly period as default', async () => {
-      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {},
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({})
       const store = useReadingStatsStore()
 
       await store.fetchStats()
@@ -140,19 +128,15 @@ describe('useReadingStatsStore', () => {
     })
 
     it('should not update stats when code is not 0', async () => {
-      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({
-        data: {
-          code: 1,
-          message: 'error',
-          data: {},
-        },
-      } as any)
+      const mockError = new Error('API error: code is not 0')
+      vi.mocked(readingStatsApi.getReadingStats).mockRejectedValue(mockError)
       const store = useReadingStatsStore()
 
       await store.fetchStats()
 
       expect(store.stats).toBeNull()
       expect(store.loading).toBe(false)
+      expect(store.error).toEqual(mockError)
     })
   })
 
@@ -170,13 +154,7 @@ describe('useReadingStatsStore', () => {
         dailyBreakdown: [],
         topBooks: [],
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockReport,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
       const store = useReadingStatsStore()
 
       await store.fetchReport('weekly')
@@ -187,13 +165,7 @@ describe('useReadingStatsStore', () => {
     })
 
     it('should use weekly period as default', async () => {
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {},
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({})
       const store = useReadingStatsStore()
 
       await store.fetchReport()
@@ -212,20 +184,16 @@ describe('useReadingStatsStore', () => {
       expect(store.report).toBeNull()
     })
 
-    it('should not update report when code is not 0', async () => {
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 1,
-          message: 'error',
-          data: {},
-        },
-      } as any)
+    it('should not update report when API call fails', async () => {
+      const mockError = new Error('API error: code is not 0')
+      vi.mocked(readingStatsApi.getReadingReport).mockRejectedValue(mockError)
       const store = useReadingStatsStore()
 
       await store.fetchReport()
 
       expect(store.report).toBeNull()
       expect(store.loading).toBe(false)
+      expect(store.error).toEqual(mockError)
     })
   })
 
@@ -235,13 +203,7 @@ describe('useReadingStatsStore', () => {
         period: 'weekly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockReport,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
       const store = useReadingStatsStore()
 
       await store.fetchWeeklyReport()
@@ -269,13 +231,7 @@ describe('useReadingStatsStore', () => {
         period: 'monthly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockReport,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
       const store = useReadingStatsStore()
 
       await store.fetchMonthlyReport()
@@ -303,13 +259,7 @@ describe('useReadingStatsStore', () => {
         period: 'yearly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockReport,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
       const store = useReadingStatsStore()
 
       await store.fetchYearlyReport()
@@ -343,13 +293,7 @@ describe('useReadingStatsStore', () => {
           rank: 1,
         },
       ]
-      vi.mocked(readingStatsApi.getReadingRanking).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockRanking,
-        },
-      } as any)
+      vi.mocked(readingStatsApi.getReadingRanking).mockResolvedValue(mockRanking)
       const store = useReadingStatsStore()
 
       await store.fetchRanking('daily')
@@ -383,19 +327,16 @@ describe('useReadingStatsStore', () => {
       expect(store.ranking).toEqual([])
     })
 
-    it('should not update ranking when code is not 0', async () => {
-      vi.mocked(readingStatsApi.getReadingRanking).mockResolvedValue({
-        data: {
-          code: 1,
-          message: 'error',
-          data: [],
-        },
-      } as any)
+    it('should not update ranking when API call fails', async () => {
+      const mockError = new Error('API error: code is not 0')
+      vi.mocked(readingStatsApi.getReadingRanking).mockRejectedValue(mockError)
       const store = useReadingStatsStore()
 
       await store.fetchRanking()
 
       expect(store.ranking).toEqual([])
+      expect(store.loading).toBe(false)
+      expect(store.error).toEqual(mockError)
     })
   })
 
@@ -412,15 +353,9 @@ describe('useReadingStatsStore', () => {
         },
       ]
       vi.mocked(readingStatsApi.getReadingHistory).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {
-            list: mockHistory,
-            total: 1,
-          },
-        },
-      } as any)
+        list: mockHistory,
+        total: 1,
+      })
       const store = useReadingStatsStore()
 
       await store.fetchHistory()
@@ -441,23 +376,16 @@ describe('useReadingStatsStore', () => {
       expect(store.history).toEqual([])
     })
 
-    it('should not update history when code is not 0', async () => {
-      vi.mocked(readingStatsApi.getReadingHistory).mockResolvedValue({
-        data: {
-          code: 1,
-          message: 'error',
-          data: {
-            list: [],
-            total: 0,
-          },
-        },
-      } as any)
+    it('should not update history when API call fails', async () => {
+      const mockError = new Error('API error: code is not 0')
+      vi.mocked(readingStatsApi.getReadingHistory).mockRejectedValue(mockError)
       const store = useReadingStatsStore()
 
       await store.fetchHistory()
 
       expect(store.history).toEqual([])
       expect(store.loading).toBe(false)
+      expect(store.error).toEqual(mockError)
     })
   })
 })

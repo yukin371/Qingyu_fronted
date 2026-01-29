@@ -72,14 +72,23 @@ export const getWithdrawalList = (...args: any[]) => {
 /**
  * 处理提现申请
  * @deprecated 请使用 reviewWithdrawRequest 代替
+ * 提现功能已移至 finance 模块
  */
-export const handleWithdrawal = reviewWithdrawRequest
+export const handleWithdrawal = (...args: any[]) => {
+  throw new Error(
+    '[DEPRECATED] handleWithdrawal 已移至 finance 模块。\n' +
+    '请使用:\n' +
+    '  - financeAPI.reviewAuthorWithdrawal() 审核作者提现申请\n' +
+    '  - financeAPI.reviewWalletWithdrawal() 审核钱包提现申请'
+  )
+}
 
 /**
  * 审核提现申请（别名）
  * @deprecated 请使用 reviewWithdrawRequest 代替
+ * 提现功能已移至 finance 模块
  */
-export const reviewWithdraw = reviewWithdrawRequest
+export const reviewWithdraw = handleWithdrawal
 
 // ==================== 用户管理相关 API ====================
 

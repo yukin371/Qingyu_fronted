@@ -97,13 +97,7 @@ describe('useDiscoveryStore', () => {
           endTime: '2024-12-31',
         },
       ]
-      vi.mocked(discoveryApi.getRecommendations).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockRecommendations,
-        },
-      } as any)
+      vi.mocked(discoveryApi.getRecommendations).mockResolvedValue(mockRecommendations)
       const store = useDiscoveryStore()
 
       // Act
@@ -131,15 +125,10 @@ describe('useDiscoveryStore', () => {
       expect(store.recommendations).toEqual([])
     })
 
-    it('should not update recommendations when code is not 0', async () => {
+    it('should not update recommendations when API call fails', async () => {
       // Arrange
-      vi.mocked(discoveryApi.getRecommendations).mockResolvedValue({
-        data: {
-          code: 1,
-          message: 'error',
-          data: [],
-        },
-      } as any)
+      const mockError = new Error('API error')
+      vi.mocked(discoveryApi.getRecommendations).mockRejectedValue(mockError)
       const store = useDiscoveryStore()
 
       // Act
@@ -148,6 +137,7 @@ describe('useDiscoveryStore', () => {
       // Assert
       expect(store.recommendations).toEqual([])
       expect(store.loading).toBe(false)
+      expect(store.error).toEqual(mockError)
     })
   })
 
@@ -168,13 +158,7 @@ describe('useDiscoveryStore', () => {
           suggested: [],
         },
       }
-      vi.mocked(discoveryApi.getPersonalizedRecommendations).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockData,
-        },
-      } as any)
+      vi.mocked(discoveryApi.getPersonalizedRecommendations).mockResolvedValue(mockData)
       const store = useDiscoveryStore()
 
       // Act
@@ -209,15 +193,9 @@ describe('useDiscoveryStore', () => {
         { id: '2', title: '新书2' },
       ]
       vi.mocked(discoveryApi.getNewReleases).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {
-            list: mockData,
-            total: 2,
-          },
-        },
-      } as any)
+        list: mockData,
+        total: 2,
+      })
       const store = useDiscoveryStore()
 
       // Act
@@ -252,15 +230,9 @@ describe('useDiscoveryStore', () => {
         { id: '2', title: '编辑推荐2' },
       ]
       vi.mocked(discoveryApi.getEditorsPick).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {
-            list: mockData,
-            total: 2,
-          },
-        },
-      } as any)
+        list: mockData,
+        total: 2,
+      })
       const store = useDiscoveryStore()
 
       // Act
@@ -294,13 +266,7 @@ describe('useDiscoveryStore', () => {
         { id: '1', title: '热门1' },
         { id: '2', title: '热门2' },
       ]
-      vi.mocked(discoveryApi.getTrending).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: mockData,
-        },
-      } as any)
+      vi.mocked(discoveryApi.getTrending).mockResolvedValue(mockData)
       const store = useDiscoveryStore()
 
       // Act
@@ -313,13 +279,7 @@ describe('useDiscoveryStore', () => {
 
     it('should use default type daily when not provided', async () => {
       // Arrange
-      vi.mocked(discoveryApi.getTrending).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: [],
-        },
-      } as any)
+      vi.mocked(discoveryApi.getTrending).mockResolvedValue([])
       const store = useDiscoveryStore()
 
       // Act
@@ -351,15 +311,9 @@ describe('useDiscoveryStore', () => {
         { id: '2', title: '话题2' },
       ]
       vi.mocked(discoveryApi.getTopics).mockResolvedValue({
-        data: {
-          code: 0,
-          message: 'success',
-          data: {
-            list: mockData,
-            total: 2,
-          },
-        },
-      } as any)
+        list: mockData,
+        total: 2,
+      })
       const store = useDiscoveryStore()
 
       // Act
