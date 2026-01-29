@@ -277,11 +277,11 @@ const doHide = async () => {
 }
 
 // 切换显示状态
-const toggle = () => {
+const toggle = async () => {
   if (visible.value) {
-    hide()
+    await hide()
   } else {
-    show()
+    await show()
   }
 }
 
@@ -343,7 +343,8 @@ const handleClickOutside = (e: MouseEvent) => {
     triggerRef.value &&
     !triggerRef.value.contains(e.target as Node) &&
     popperRef.value &&
-    !popperRef.value.contains(e.target as Node)
+    !popperRef.value.contains(e.target as Node) &&
+    !(e.target as Node)?.contains?.(triggerRef.value)
   ) {
     hide()
   }

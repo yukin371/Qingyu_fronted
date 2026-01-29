@@ -57,16 +57,33 @@ describe('Calendar 组件', () => {
       const emit = vi.fn()
       const { container } = render(Calendar, {
         props: {
+          modelValue: new Date('2024-12-15'), // 设置一个具体的日期
           onSelect: emit,
         },
       })
 
-      // 查找第一个可点击的日期
-      const dateCell = container.querySelector('.hover\\:bg-slate-100') as HTMLElement
-      expect(dateCell).toBeInTheDocument()
+      // 查找所有包含数字的元素
+      const allElements = container.querySelectorAll('*')
+      const dateCells = Array.from(allElements).filter(cell => {
+        const text = cell.textContent?.trim()
+        const num = parseInt(text || '0')
+        // 过滤出只包含单个数字的元素，且数字在1-31之间
+        return text && text.match(/^\d+$/) && num >= 1 && num <= 31 &&
+               cell.tagName === 'DIV' // 必须是div元素
+      })
 
-      if (dateCell) {
-        await fireEvent.click(dateCell)
+      expect(dateCells.length).toBeGreaterThan(0)
+
+      // 找一个可点击的日期单元格（不是禁用的）
+      const clickableCell = dateCells.find(cell => {
+        const classList = cell.className
+        return !classList.includes('cursor-not-allowed')
+      }) as HTMLElement
+
+      expect(clickableCell).toBeInTheDocument()
+
+      if (clickableCell) {
+        await fireEvent.click(clickableCell)
         expect(emit).toHaveBeenCalled()
       }
     })
@@ -89,13 +106,19 @@ describe('Calendar 组件', () => {
         },
       })
 
-      // 点击两个日期
-      const dateCells = container.querySelectorAll('.hover\\:bg-slate-100')
-      if (dateCells.length >= 2) {
-        await fireEvent.click(dateCells[0] as HTMLElement)
-        await fireEvent.click(dateCells[6] as HTMLElement)
+      // 查找日期单元格
+      const allDivs = container.querySelectorAll('div')
+      const clickableCells = Array.from(allDivs).filter(cell => {
+        const classList = cell.className
+        return !classList.includes('cursor-not-allowed') &&
+               !classList.includes('text-slate-500') &&
+               cell.textContent &&
+               cell.textContent.trim().match(/^\d+$/)
+      })
 
-        // 验证事件被触发
+      if (clickableCells.length >= 2) {
+        await fireEvent.click(clickableCells[0] as HTMLElement)
+        await fireEvent.click(clickableCells[1] as HTMLElement)
         expect(emit).toHaveBeenCalled()
       }
     })
@@ -144,8 +167,7 @@ describe('Calendar 组件', () => {
   describe('周数显示', () => {
     it('默认不显示周数', () => {
       const { container } = render(Calendar)
-      const weekHeader = Array.from(container.querySelectorAll('div')).find(el => el.textContent === '周')
-      expect(weekHeader).not.toBeInTheDocument()
+      expect(container.textContent).not.toContain('周')
     })
 
     it('应该能够显示周数', () => {
@@ -186,10 +208,20 @@ describe('Calendar 组件', () => {
       }
 
       const { container } = render(Calendar, {
-        props: { disabledDate },
+        props: {
+          modelValue: new Date('2024-12-15'), // 设置一个具体的日期
+          disabledDate,
+        },
       })
 
-      const disabledCells = container.querySelectorAll('.cursor-not-allowed')
+      // 查找带有 cursor-not-allowed 类的单元格
+      const allDivs = container.querySelectorAll('div')
+      const disabledCells = Array.from(allDivs).filter(cell => {
+        const text = cell.textContent?.trim()
+        const num = parseInt(text || '0')
+        return cell.className.includes('cursor-not-allowed') &&
+               text && text.match(/^\d+$/) && num >= 1 && num <= 31
+      })
       expect(disabledCells.length).toBeGreaterThan(0)
     })
 
@@ -206,7 +238,14 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const disabledCells = container.querySelectorAll('.cursor-not-allowed')
+      const allDivs = container.querySelectorAll('div')
+      const disabledCells = Array.from(allDivs).filter(cell => {
+        const text = cell.textContent?.trim()
+        const num = parseInt(text || '0')
+        return cell.className.includes('cursor-not-allowed') &&
+               text && text.match(/^\d+$/) && num >= 1 && num <= 31
+      })
+
       if (disabledCells.length > 0) {
         await fireEvent.click(disabledCells[0] as HTMLElement)
         expect(emit).not.toHaveBeenCalled()
@@ -224,7 +263,13 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const disabledCells = container.querySelectorAll('.cursor-not-allowed')
+      const allDivs = container.querySelectorAll('div')
+      const disabledCells = Array.from(allDivs).filter(cell => {
+        const text = cell.textContent?.trim()
+        const num = parseInt(text || '0')
+        return cell.className.includes('cursor-not-allowed') &&
+               text && text.match(/^\d+$/) && num >= 1 && num <= 31
+      })
       expect(disabledCells.length).toBeGreaterThan(0)
     })
 
@@ -237,7 +282,13 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const disabledCells = container.querySelectorAll('.cursor-not-allowed')
+      const allDivs = container.querySelectorAll('div')
+      const disabledCells = Array.from(allDivs).filter(cell => {
+        const text = cell.textContent?.trim()
+        const num = parseInt(text || '0')
+        return cell.className.includes('cursor-not-allowed') &&
+               text && text.match(/^\d+$/) && num >= 1 && num <= 31
+      })
       expect(disabledCells.length).toBeGreaterThan(0)
     })
   })
@@ -283,10 +334,10 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const prevMonthButtons = container.querySelectorAll('button')
-      // 找到上个月按钮
-      if (prevMonthButtons.length >= 2) {
-        await fireEvent.click(prevMonthButtons[1] as HTMLElement)
+      const buttons = container.querySelectorAll('button')
+      // 找到上个月按钮（第二个按钮，第一个是上一年）
+      if (buttons.length >= 2) {
+        await fireEvent.click(buttons[1] as HTMLElement)
         expect(emit).toHaveBeenCalled()
       }
     })
@@ -299,10 +350,10 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const nextMonthButtons = container.querySelectorAll('button')
-      // 找到下个月按钮
-      if (nextMonthButtons.length >= 4) {
-        await fireEvent.click(nextMonthButtons[3] as HTMLElement)
+      const buttons = container.querySelectorAll('button')
+      // 找到下个月按钮（倒数第二个按钮）
+      if (buttons.length >= 4) {
+        await fireEvent.click(buttons[buttons.length - 3] as HTMLElement)
         expect(emit).toHaveBeenCalled()
       }
     })
@@ -344,9 +395,10 @@ describe('Calendar 组件', () => {
       })
 
       const buttons = container.querySelectorAll('button')
-      // 找到下一年按钮
+      // 下一年按钮应该是倒数第二个（最后一个是"今天"按钮）
       if (buttons.length >= 5) {
-        await fireEvent.click(buttons[4] as HTMLElement)
+        // 找到右边的两个按钮，第二个是下一年
+        await fireEvent.click(buttons[buttons.length - 2] as HTMLElement)
         expect(emit).toHaveBeenCalled()
       }
     })
@@ -359,9 +411,18 @@ describe('Calendar 组件', () => {
         props: { onSelect: select },
       })
 
-      const dateCell = container.querySelector('.hover\\:bg-slate-100') as HTMLElement
-      if (dateCell) {
-        await fireEvent.click(dateCell)
+      // 查找可点击的日期单元格
+      const allDivs = container.querySelectorAll('div')
+      const clickableCell = Array.from(allDivs).find(cell => {
+        const classList = cell.className
+        return !classList.includes('cursor-not-allowed') &&
+               !classList.includes('text-slate-500') &&
+               cell.textContent &&
+               cell.textContent.trim().match(/^\d+$/)
+      }) as HTMLElement
+
+      if (clickableCell) {
+        await fireEvent.click(clickableCell)
         expect(select).toHaveBeenCalled()
       }
     })
@@ -374,7 +435,8 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const nextMonthButton = container.querySelectorAll('button')[3]
+      const buttons = container.querySelectorAll('button')
+      const nextMonthButton = buttons[buttons.length - 3]
       if (nextMonthButton) {
         await fireEvent.click(nextMonthButton as HTMLElement)
         expect(panelChange).toHaveBeenCalled()
@@ -389,9 +451,18 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const dateCell = container.querySelector('.hover\\:bg-slate-100') as HTMLElement
-      if (dateCell) {
-        await fireEvent.click(dateCell)
+      // 查找可点击的日期单元格
+      const allDivs = container.querySelectorAll('div')
+      const clickableCell = Array.from(allDivs).find(cell => {
+        const classList = cell.className
+        return !classList.includes('cursor-not-allowed') &&
+               !classList.includes('text-slate-500') &&
+               cell.textContent &&
+               cell.textContent.trim().match(/^\d+$/)
+      }) as HTMLElement
+
+      if (clickableCell) {
+        await fireEvent.click(clickableCell)
         expect(updateModelValue).toHaveBeenCalled()
       }
     })
@@ -507,7 +578,11 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const disabledCells = container.querySelectorAll('.cursor-not-allowed')
+      const allCells = container.querySelectorAll('.grid-cols-7 > div')
+      const disabledCells = Array.from(allCells).filter(cell =>
+        cell.className.includes('cursor-not-allowed')
+      )
+
       if (disabledCells.length > 0) {
         await fireEvent.click(disabledCells[0] as HTMLElement)
         expect(select).not.toHaveBeenCalled()
@@ -523,12 +598,18 @@ describe('Calendar 组件', () => {
         },
       })
 
-      const cells = container.querySelectorAll('.hover\\:bg-slate-100')
-      if (cells.length >= 2) {
-        await fireEvent.click(cells[0] as HTMLElement)
-        await fireEvent.click(cells[6] as HTMLElement)
+      const allDivs = container.querySelectorAll('div')
+      const clickableCells = Array.from(allDivs).filter(cell => {
+        const classList = cell.className
+        return !classList.includes('cursor-not-allowed') &&
+               !classList.includes('text-slate-500') &&
+               cell.textContent &&
+               cell.textContent.trim().match(/^\d+$/)
+      })
 
-        // 应该触发选择
+      if (clickableCells.length >= 2) {
+        await fireEvent.click(clickableCells[0] as HTMLElement)
+        await fireEvent.click(clickableCells[1] as HTMLElement)
         expect(select).toHaveBeenCalled()
       }
     })

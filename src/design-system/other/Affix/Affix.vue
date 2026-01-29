@@ -144,6 +144,12 @@ const handleResize = () => {
 
 // 组件挂载时添加监听
 onMounted(() => {
+  // 添加滚动监听
+  const target = getScrollTarget()
+  target.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('resize', handleResize)
+
+  // 在下一个tick中初始化
   nextTick(() => {
     if (!affixRef.value) return
 
@@ -156,11 +162,6 @@ onMounted(() => {
       height: rect.height,
     }
 
-    // 添加滚动监听
-    const target = getScrollTarget()
-    target.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleResize)
-
     // 初始化检查
     checkFixed()
   })
@@ -171,7 +172,7 @@ onUnmounted(() => {
   try {
     const target = getScrollTarget()
     if (target && target.removeEventListener) {
-      target.removeEventListener('scroll', handleScroll)
+      target.removeEventListener('scroll', handleScroll, { passive: true })
     }
   } catch (error) {
     // Ignore errors during cleanup

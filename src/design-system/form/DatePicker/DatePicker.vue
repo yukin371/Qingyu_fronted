@@ -246,6 +246,7 @@ const handleClear = () => {
 
 // 快捷选项处理
 const handleShortcutClick = (shortcut: { text: string; value: Date | (() => Date) | [Date, Date] | (() => [Date, Date]) }) => {
+  if (props.disabled) return
   const value = typeof shortcut.value === 'function' ? shortcut.value() : shortcut.value
   emit('update:modelValue', value as DatePickerValue)
   emit('change', value as DatePickerValue)

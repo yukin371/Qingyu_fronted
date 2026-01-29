@@ -174,7 +174,6 @@ config.global.stubs = {
   'Setting': createIconStub('Setting'),
 
   // 时间与文档图标
-  'Calendar': createIconStub('Calendar'),
   'Clock': createIconStub('Clock'),
   'Document': createIconStub('Document'),
   'Folder': createIconStub('Folder'),

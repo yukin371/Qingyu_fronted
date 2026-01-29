@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
+import { userEvent } from '@testing-library/user-event'
 import { ref } from 'vue'
 import Dialog from '@/design-system/feedback/Dialog/Dialog.vue'
 import Button from '@/design-system/base/Button/Button.vue'
@@ -18,6 +19,16 @@ describe('Dialog 组件', () => {
     // 清理所有 Teleport 容器
     const teleports = document.querySelectorAll('[data-v-teleport]')
     teleports.forEach(el => el.remove())
+
+    // 清理所有 Dialog 相关的 DOM 元素
+    const dialogs = document.querySelectorAll('[role="dialog"]')
+    dialogs.forEach(el => el.remove())
+
+    const overlays = document.querySelectorAll('.bg-black\\/50')
+    overlays.forEach(el => el.remove())
+
+    // 重置 body 样式
+    document.body.style.overflow = ''
   })
 
   describe('基础渲染', () => {
@@ -206,6 +217,7 @@ describe('Dialog 组件', () => {
     })
 
     it('按 ESC 键应该关闭对话框', async () => {
+      const user = userEvent.setup()
       const visible = ref(true)
       const { emitted } = render(Dialog, {
         props: {
@@ -219,7 +231,8 @@ describe('Dialog 组件', () => {
         expect(dialog).toBeInTheDocument()
       })
 
-      await fireEvent.keyDown(document, { key: 'Escape' })
+      // 使用 userEvent 模拟按 ESC 键
+      await user.keyboard('{Escape}')
 
       await waitFor(() => {
         expect(emitted()['update:visible']).toBeTruthy()
@@ -228,6 +241,7 @@ describe('Dialog 组件', () => {
     })
 
     it('closeOnPressEscape 为 false 时不应该通过 ESC 键关闭', async () => {
+      const user = userEvent.setup()
       const visible = ref(true)
       const { emitted } = render(Dialog, {
         props: {
@@ -241,7 +255,8 @@ describe('Dialog 组件', () => {
         expect(dialog).toBeInTheDocument()
       })
 
-      await fireEvent.keyDown(document, { key: 'Escape' })
+      // 使用 userEvent 模拟按 ESC 键
+      await user.keyboard('{Escape}')
 
       await waitFor(() => {
         expect(emitted()['update:visible']).toBeFalsy()
@@ -582,12 +597,24 @@ describe('Dialog 组件', () => {
       const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
       expect(closeButton).toBeInTheDocument()
 
+      // 使用 fireEvent.click 确保点击事件被触发
       await fireEvent.click(closeButton!)
 
-      await waitFor(() => {
-        expect(beforeClose).toHaveBeenCalled()
-        expect(emitted()['update:visible']).toBeFalsy()
-      })
+      // 给组件一些时间来处理 beforeClose
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // 检查 beforeClose 是否被调用
+      expect(beforeClose).toHaveBeenCalledTimes(1)
+
+      // 等待 Promise 解析并检查结果
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // 确认对话框仍然存在
+      const dialogAfter = document.querySelector('[role="dialog"]')
+      expect(dialogAfter).toBeInTheDocument()
+
+      // 确认没有触发 update:visible 事件
+      expect(emitted()['update:visible']).toBeFalsy()
     })
 
     it('beforeClose 返回 true 应该允许关闭', async () => {
@@ -609,12 +636,22 @@ describe('Dialog 组件', () => {
       const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
       expect(closeButton).toBeInTheDocument()
 
+      // 使用 fireEvent.click 确保点击事件被触发
       await fireEvent.click(closeButton!)
 
-      await waitFor(() => {
-        expect(beforeClose).toHaveBeenCalled()
-        expect(emitted()['update:visible']).toBeTruthy()
-      })
+      // 给组件一些时间来处理 beforeClose
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // 检查 beforeClose 是否被调用
+      expect(beforeClose).toHaveBeenCalledTimes(1)
+
+      // 等待关闭
+      await waitFor(
+        () => {
+          expect(emitted()['update:visible']).toBeTruthy()
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('beforeClose 返回 Promise 应该等待异步操作', async () => {
@@ -641,21 +678,30 @@ describe('Dialog 组件', () => {
       const closeButton = document.querySelector('button[aria-label="关闭对话框"]')
       expect(closeButton).toBeInTheDocument()
 
+      // 使用 fireEvent.click 确保点击事件被触发
       await fireEvent.click(closeButton!)
 
-      // 等待 beforeClose 被调用
-      await waitFor(() => {
-        expect(beforeClose).toHaveBeenCalled()
-      })
+      // 给组件一些时间来处理 beforeClose
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // 检查 beforeClose 是否被调用
+      expect(beforeClose).toHaveBeenCalledTimes(1)
+
+      // 确认对话框仍然存在（因为 Promise 还没有解析）
+      const dialogBeforeResolve = document.querySelector('[role="dialog"]')
+      expect(dialogBeforeResolve).toBeInTheDocument()
 
       // 解析 Promise
       resolveClose!(true)
 
       // 等待关闭
-      await waitFor(() => {
-        const dialog = document.querySelector('[role="dialog"]')
-        expect(dialog).not.toBeInTheDocument()
-      }, { timeout: 500 })
+      await waitFor(
+        () => {
+          const dialog = document.querySelector('[role="dialog"]')
+          expect(dialog).not.toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
   })
 

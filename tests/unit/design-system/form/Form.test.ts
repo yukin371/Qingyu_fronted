@@ -4,10 +4,11 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { nextTick, h, defineComponent } from 'vue'
+import { nextTick, h, defineComponent, ref, reactive } from 'vue'
 import Form from '@/design-system/form/Form/Form.vue'
 import FormItem from '@/design-system/form/Form/FormItem.vue'
 import Input from '@/design-system/form/Input/Input.vue'
+import type { FormInstance } from '@/design-system/form/Form/types'
 
 // 测试辅助组件
 const TestFormComponent = defineComponent({
@@ -22,8 +23,34 @@ const TestFormComponent = defineComponent({
       default: () => ({}),
     },
   },
-  setup(props) {
+  setup(props, { expose }) {
+    // 使用ref引用Form组件实例
+    const formInstance = ref<FormInstance>()
+
+    // 暴露给父组件的方法
+    expose({
+      get validate() {
+        return formInstance.value?.validate
+      },
+      get validateField() {
+        return formInstance.value?.validateField
+      },
+      get resetFields() {
+        return formInstance.value?.resetFields
+      },
+      get clearValidation() {
+        return formInstance.value?.clearValidation
+      },
+      get getFormData() {
+        return formInstance.value?.getFormData
+      },
+      get setFormData() {
+        return formInstance.value?.setFormData
+      },
+    } as any)
+
     return () => h(Form, {
+      ref: formInstance,
       model: props.model,
       rules: props.rules,
     }, {
@@ -73,11 +100,11 @@ describe('Form 组件', () => {
   let formModel: any
 
   beforeEach(() => {
-    formModel = {
+    formModel = reactive({
       username: '',
       email: '',
       password: '',
-    }
+    })
   })
 
   afterEach(() => {
@@ -482,10 +509,10 @@ describe('FormItem 组件', () => {
   let formModel: any
 
   beforeEach(() => {
-    formModel = {
+    formModel = reactive({
       username: '',
       email: '',
-    }
+    })
   })
 
   afterEach(() => {
@@ -1276,11 +1303,11 @@ describe('Form 和 FormItem 集成测试', () => {
   let formModel: any
 
   beforeEach(() => {
-    formModel = {
+    formModel = reactive({
       username: '',
       email: '',
       password: '',
-    }
+    })
   })
 
   afterEach(() => {

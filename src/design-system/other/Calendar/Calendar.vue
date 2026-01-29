@@ -140,6 +140,10 @@ watch(
       if (Array.isArray(newValue) && newValue.length === 2) {
         rangeStartDate.value = stringToDate(newValue[0])
         rangeEndDate.value = stringToDate(newValue[1])
+        // 更新当前显示的日期为开始日期
+        if (rangeStartDate.value) {
+          currentDate.value = cloneDate(rangeStartDate.value)
+        }
       } else {
         rangeStartDate.value = null
         rangeEndDate.value = null
@@ -148,6 +152,8 @@ watch(
     } else {
       if (newValue && !Array.isArray(newValue)) {
         selectedDate.value = stringToDate(newValue)
+        // 更新当前显示的日期为选中的日期
+        currentDate.value = cloneDate(selectedDate.value)
       } else {
         selectedDate.value = null
       }
@@ -160,7 +166,8 @@ watch(
 
 // 计算月视图数据
 const monthView = computed(() => {
-  const { year, month } = currentDate.value
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
   return generateMonthView(
     year,
     month,
@@ -187,7 +194,8 @@ const weekdayLabels = computed(() => {
 
 // 计算当前年月显示文本
 const currentMonthYearText = computed(() => {
-  const { year, month } = currentDate.value
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
   return `${year}年 ${month + 1}月`
 })
 

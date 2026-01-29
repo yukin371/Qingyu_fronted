@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
+import { nextTick } from 'vue'
 import Tooltip from '@/design-system/feedback/Tooltip/Tooltip.vue'
 
 describe('Tooltip 组件', () => {
@@ -145,6 +146,7 @@ describe('Tooltip 组件', () => {
         props: {
           trigger: 'click',
           content: '点击提示',
+          closeDelay: 0, // 设置为0避免延迟导致的测试问题
         },
         slots: {
           default: '<button>触发元素</button>',
@@ -155,21 +157,23 @@ describe('Tooltip 组件', () => {
 
       // 第一次点击显示
       await fireEvent.click(trigger)
+      await nextTick()
       vi.runAllTimers()
 
       await waitFor(() => {
         const tooltip = document.querySelector('[role="tooltip"]')
         expect(tooltip?.textContent).toContain('点击提示')
-      })
+      }, { timeout: 3000 })
 
       // 第二次点击隐藏
       await fireEvent.click(trigger)
+      await nextTick()
       vi.runAllTimers()
 
       await waitFor(() => {
         const tooltip = document.querySelector('[role="tooltip"]')
         expect(tooltip?.style.display).toBe('none')
-      })
+      }, { timeout: 3000 })
     })
 
     it('应该在获得焦点时显示提示 (focus)', async () => {

@@ -517,7 +517,7 @@ describe('DatePicker', () => {
 
     it('渲染 suffix 插槽内容', () => {
       const { container } = render(DatePicker, {
-        props: { type: 'date' },
+        props: { type: 'date', showSuffix: true },
         slots: { suffix: 'Custom Suffix' },
       })
       const suffixSlot = container.querySelector('.absolute.right-0 .flex.items-center')
