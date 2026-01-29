@@ -35,7 +35,7 @@ describe('browseService', () => {
 
     const result = await browseService.getBooks(filters)
 
-    expect(httpService.get).toHaveBeenCalledWith('/api/books', {
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/books', {
       params: {
         q: '测试',
         page: 1,
@@ -70,7 +70,7 @@ describe('browseService', () => {
 
     await browseService.getBooks(filters)
 
-    expect(httpService.get).toHaveBeenCalledWith('/api/books', {
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/books', {
       params: {
         page: 1,
         pageSize: 24,
@@ -116,7 +116,7 @@ describe('browseService', () => {
 
     const result = await browseService.getCategories()
 
-    expect(httpService.get).toHaveBeenCalledWith('/api/categories')
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/categories/tree')
     expect(result.data).toEqual(mockCategories)
   })
 
@@ -126,7 +126,7 @@ describe('browseService', () => {
 
     const result = await browseService.getYears()
 
-    expect(httpService.get).toHaveBeenCalledWith('/api/books/years')
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/books/years')
     expect(result.data).toEqual(mockYears)
   })
 
@@ -136,7 +136,7 @@ describe('browseService', () => {
 
     const result = await browseService.getTags('fantasy')
 
-    expect(httpService.get).toHaveBeenCalledWith('/api/tags', { params: { categoryId: 'fantasy' } })
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/tags', { params: { categoryId: 'fantasy' } })
     expect(result.data).toEqual(mockTags)
   })
 })

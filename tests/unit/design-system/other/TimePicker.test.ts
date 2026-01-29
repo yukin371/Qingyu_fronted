@@ -1,8 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
-import { ref } from 'vue'
+import { h, defineComponent } from 'vue'
 import TimePicker from '@/design-system/other/TimePicker/TimePicker.vue'
 import * as utils from '@/design-system/other/TimePicker/utils'
+
+// Mock Icon component
+vi.mock('@/design-system/base/Icon/Icon.vue', () => ({
+  default: defineComponent({
+    name: 'Icon',
+    props: {
+      name: { type: String, required: true },
+      size: { type: String },
+    },
+    setup(props) {
+      return () => h('span', { class: `icon icon-${props.name}`, 'data-size': props.size })
+    },
+  }),
+}))
 
 describe('TimePicker 组件', () => {
   describe('渲染测试', () => {
@@ -183,7 +197,7 @@ describe('TimePicker 组件', () => {
     it('应该在输入时触发 update:modelValue 和 change 事件', async () => {
       const { container, emitted } = render(TimePicker, {
         props: {
-          modelValue: ref(null),
+          modelValue: null,
         },
       })
 
@@ -245,7 +259,7 @@ describe('TimePicker 组件', () => {
       const { container, emitted } = render(TimePicker, {
         props: {
           isRange: true,
-          modelValue: ref(null),
+          modelValue: null,
         },
       })
 

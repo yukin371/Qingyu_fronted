@@ -4,7 +4,22 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/vue'
+import { h, defineComponent } from 'vue'
 import DatePicker from '@/design-system/form/DatePicker/DatePicker.vue'
+
+// Mock Icon component
+vi.mock('@/design-system/base/Icon/Icon.vue', () => ({
+  default: defineComponent({
+    name: 'Icon',
+    props: {
+      name: { type: String, required: true },
+      size: { type: String },
+    },
+    setup(props) {
+      return () => h('span', { class: `icon icon-${props.name}`, 'data-size': props.size })
+    },
+  }),
+}))
 
 describe('DatePicker', () => {
   describe('基础渲染', () => {

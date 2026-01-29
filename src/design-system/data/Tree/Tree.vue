@@ -417,18 +417,25 @@ const getExpandedKeys = (): Array<string | number> => {
 
 const setExpandedKeys = (keys: Array<string | number>) => {
   const newSet = new Set(keys)
-  
+
   nodeStates.value.forEach((nodeState) => {
     const nodeId = nodeState.node.id || nodeState.node.label
+
+    // 安全检查：确保 expanded 是 Ref
+    if (typeof nodeState.expanded !== 'object' || nodeState.expanded === null) {
+      console.error('[Tree] Invalid nodeState.expanded for node:', nodeId)
+      return
+    }
+
     nodeState.expanded.value = newSet.has(nodeId)
-    
+
     if (newSet.has(nodeId)) {
       expandedKeys.value.add(nodeId)
     } else {
       expandedKeys.value.delete(nodeId)
     }
   })
-  
+
   emit('update:expandedKeys', keys)
 }
 

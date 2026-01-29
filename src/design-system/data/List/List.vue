@@ -82,9 +82,9 @@ const listClasses = computed(() =>
       </slot>
     </div>
 
-    <!-- 空状态 -->
+    <!-- 空状态 (只在没有默认插槽内容时显示) -->
     <div
-      v-else-if="data && data.length === 0"
+      v-else-if="data && data.length === 0 && !$slots.default"
       class="p-8 flex items-center justify-center"
     >
       <slot name="empty">
