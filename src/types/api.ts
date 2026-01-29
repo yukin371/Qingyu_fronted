@@ -48,7 +48,7 @@ export interface PaginatedResponse<T = any> {
   data: T[]
   pagination: Pagination
   timestamp: number
-  request_id?: string
+  requestId?: string
 }
 
 // ==================== 向后兼容类型 ====================
@@ -58,7 +58,7 @@ export interface PaginatedResponse<T = any> {
  */
 export interface PaginationParams {
   page?: number
-  page_size?: number
+  pageSize?: number
   size?: number // 兼容旧参数名
 }
 
