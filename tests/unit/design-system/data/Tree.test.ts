@@ -101,13 +101,16 @@ describe('Tree 组件', () => {
       expect(wrapper.html()).not.toContain('二级 1-1')
     })
 
-    it('defaultExpandAll 为 true 时应该展开所有节点', () => {
+    it('defaultExpandAll 为 true 时应该展开所有节点', async () => {
       const wrapper = mount(Tree, {
         props: {
           data: mockData,
           defaultExpandAll: true,
         },
       })
+
+      // 等待DOM更新
+      await wrapper.vm.$nextTick()
 
       // 子节点应该显示
       expect(wrapper.html()).toContain('二级 1-1')
@@ -136,13 +139,16 @@ describe('Tree 组件', () => {
       }
     })
 
-    it('defaultExpandedKeys 应该默认展开指定节点', () => {
+    it('defaultExpandedKeys 应该默认展开指定节点', async () => {
       const wrapper = mount(Tree, {
         props: {
           data: mockData,
           defaultExpandedKeys: ['1', '2'],
         },
       })
+
+      // 等待DOM更新
+      await wrapper.vm.$nextTick()
 
       // 指定的节点应该展开
       expect(wrapper.html()).toContain('二级 1-1')
@@ -194,7 +200,7 @@ describe('Tree 组件', () => {
       }
     })
 
-    it('defaultCheckedKeys 应该默认选中指定节点', () => {
+    it('defaultCheckedKeys 应该默认选中指定节点', async () => {
       const wrapper = mount(Tree, {
         props: {
           data: mockData,
@@ -202,6 +208,9 @@ describe('Tree 组件', () => {
           defaultCheckedKeys: ['1-1', '2'],
         },
       })
+
+      // 等待DOM更新
+      await wrapper.vm.$nextTick()
 
       // 指定的节点应该被选中
       const emitted = wrapper.emitted('update:checkedKeys')

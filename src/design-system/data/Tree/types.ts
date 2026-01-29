@@ -96,11 +96,12 @@ export interface TreeProps {
 }
 
 // Tree 节点状态
+// 使用reactive对象代替嵌套Ref，确保响应式系统正确追踪状态变化
 export interface TreeNodeState {
   node: TreeNode
-  expanded: Ref<boolean>
-  checked: Ref<boolean>
-  indeterminate: Ref<boolean>
+  expanded: boolean  // 改为普通boolean，由reactive包装
+  checked: boolean   // 改为普通boolean，由reactive包装
+  indeterminate: boolean  // 改为普通boolean，由reactive包装
   level: number
   parent: TreeNodeState | null
   children: TreeNodeState[]

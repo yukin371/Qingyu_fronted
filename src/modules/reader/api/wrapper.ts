@@ -381,7 +381,77 @@ export async function updateSettings(
 }
 
 /**
+ * 批量更新书籍状态
+ */
+export const batchUpdateBookStatus = api.putApiV1ReaderBooksBatchStatus
+
+/**
+ * 获取书架（别名）
+ */
+export const getBookshelf = getRecentBooks
+
+/**
+ * 从书架移除（别名）
+ */
+export const removeFromBookshelf = removeBookFromShelf
+
+/**
  * 导出原始getApi函数（高级用法）
  * 可以传入自定义axios实例
  */
 export { getApi }
+
+/**
+ * 默认导出
+ */
+export default {
+  // 书架相关
+  getBooks,
+  getBookInfo,
+  addBookToShelf,
+  removeBookFromShelf,
+  likeBook,
+  unlikeBook,
+  updateBookStatus,
+  batchUpdateBookStatus,
+  getFinishedBooks,
+  getRecentBooks,
+  getUnfinishedBooks,
+  // 章节相关
+  getBookChapters,
+  getChapterInfo,
+  getChapterContent,
+  getChapterByNumber,
+  getNextChapter,
+  getPreviousChapter,
+  purchaseChapter,
+  // 书签相关
+  getBookmarks,
+  getBookmark,
+  addBookToBookmarks,
+  updateBookmark,
+  deleteBookmark,
+  // 阅读进度相关
+  getReadingProgress,
+  updateReadingProgress,
+  // 阅读历史相关
+  getReadingHistory,
+  clearReadingHistory,
+  // 笔记相关
+  getAnnotations,
+  getAnnotation,
+  createAnnotation,
+  updateAnnotation,
+  deleteAnnotation,
+  getAnnotationStats,
+  // 阅读设置相关
+  getSettings,
+  saveSettings,
+  updateSettings,
+  // 书架便捷方法（别名）
+  getBookshelf: getRecentBooks,
+  addToBookshelf: addBookToShelf,
+  removeFromBookshelf: removeBookFromShelf,
+  // 工具函数
+  getApi,
+}

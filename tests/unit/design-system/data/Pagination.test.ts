@@ -9,11 +9,11 @@ import Pagination from '@/design-system/data/Pagination/Pagination.vue'
 describe('Pagination', () => {
   describe('基础渲染', () => {
     it('默认渲染为第 1 页，每页 10 条，总数 0', () => {
-      const { getByRole, getByText } = render(Pagination)
-      
+      const { container } = render(Pagination)
+
       // 验证上一页按钮存在
-      const prevButton = getByRole('button')
-      expect(prevButton).toBeTruthy()
+      const buttons = container.querySelectorAll('button')
+      expect(buttons.length).toBeGreaterThan(0)
     })
 
     it('正确渲染总数信息', () => {
@@ -35,12 +35,13 @@ describe('Pagination', () => {
         },
       })
 
-      // 应该显示 10 个页码按钮
+      // 总页数为10,大于7时使用省略号,显示1,2,3,4,5,...,10
+      // 页码按钮: 1,2,3,4,5,10 = 6个
       const buttons = container.querySelectorAll('button')
       const pagerButtons = Array.from(buttons).filter(btn => {
         return btn.textContent?.match(/^\d+$/)
       })
-      expect(pagerButtons.length).toBe(10)
+      expect(pagerButtons.length).toBe(6)
     })
   })
 
@@ -407,8 +408,9 @@ describe('Pagination', () => {
         },
       })
 
+      // hideOnSinglePage为true且只有一页时,组件完全不渲染
       const wrapper = container.querySelector('.flex')
-      expect(wrapper?.textContent?.trim()).toBe('')
+      expect(wrapper).toBeNull()
     })
 
     it('只有一页且 hideOnSinglePage 为 false 时显示组件', () => {

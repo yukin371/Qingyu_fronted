@@ -155,8 +155,7 @@ const handleEdit = () => {
 const handleDelete = () => {
   messageBox.confirm('确定要删除评论吗？', '提示', {
     confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
+    cancelButtonText: '取消'
   })
     .then(async () => {
       try {

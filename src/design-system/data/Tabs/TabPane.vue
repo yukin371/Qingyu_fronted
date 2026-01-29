@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<TabPaneProps>(), {
   label: '',
   name: undefined,
   disabled: false,
-  closable: false,
+  closable: undefined,
 })
 
 // 标签名称（如果没有提供 name，使用 uid）
@@ -32,12 +32,17 @@ const paneName = computed(() => {
 
 // 是否激活
 const isActive = computed(() => {
-  return tabs?.currentName === paneName.value
+  return tabs?.currentName.value === paneName.value
 })
 
 // 是否可关闭（优先使用自身的 closable，其次使用 tabs 的 closable）
 const isClosable = computed(() => {
-  return props.closable !== undefined ? props.closable : tabs?.props.closable || false
+  // 如果自身显式设置了 closable（不是 undefined），使用自身的值
+  if (props.closable !== undefined) {
+    return props.closable
+  }
+  // 否则继承父组件的 closable
+  return tabs?.props.closable || false
 })
 
 // 使用 CVA 定义标签变体

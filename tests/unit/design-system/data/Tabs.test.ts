@@ -144,7 +144,7 @@ describe('Tabs 组件', () => {
         },
       })
 
-      const nav = wrapper.find('.flex')
+      const nav = wrapper.find('[role="tablist"]')
       expect(nav.classes()).toContain('border-b')
     })
 
@@ -161,7 +161,7 @@ describe('Tabs 组件', () => {
         },
       })
 
-      const nav = wrapper.find('.flex')
+      const nav = wrapper.find('[role="tablist"]')
       expect(nav.classes()).toContain('bg-slate-100')
     })
 
@@ -178,7 +178,7 @@ describe('Tabs 组件', () => {
         },
       })
 
-      const nav = wrapper.find('.flex')
+      const nav = wrapper.find('[role="tablist"]')
       expect(nav.classes()).toContain('border')
     })
   })

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render } from '@testing-library/vue'
+import { render, fireEvent } from '@testing-library/vue'
 import Table from '@/design-system/data/Table/Table.vue'
 import type { Column } from '@/design-system/data/Table/types'
 
@@ -270,7 +270,7 @@ describe('Table', () => {
 
       const firstRow = container.querySelector('tbody tr')
       if (firstRow) {
-        await firstRow.dblclick()
+        await fireEvent.dblClick(firstRow)
         expect(onRowDblclick).toHaveBeenCalled()
       }
     })

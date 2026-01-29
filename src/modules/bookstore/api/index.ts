@@ -1,5 +1,7 @@
-// ✅ 默认使用生成的 API（通过wrapper）
-export * from './bookstore'
+/**
+ * Bookstore API 统一导出
+ * 提供默认导出和命名导出
+ */
 
-// 🔁 需要回滚时，改成：
-// export * from './manual'
+export * from './bookstore'
+export { default } from './bookstore'

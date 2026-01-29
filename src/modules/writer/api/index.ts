@@ -1,5 +1,5 @@
-// ✅ 默认使用生成的 API
-export * from './generated/writer'
+// ✅ 默认使用 wrapper API
+export * from './writer'
 
 // 🔁 需要回滚时，改成：
-// export * from './manual'
+// export * from './generated/writer'

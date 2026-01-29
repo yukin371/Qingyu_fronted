@@ -1,18 +1,19 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 /**
  * Tree 组件
  *
  * 树形控件组件，支持展开/收起、勾选、高亮等功能
+ * 使用递归组件+template语法实现，确保Vue响应式系统正确追踪状态变化
+ * 重构：使用reactive对象代替嵌套Ref，避免响应式追踪问题
  */
 
-import { computed, provide, ref, useSlots, watch, h } from 'vue'
+import { computed, provide, reactive, ref, useSlots, watch, type Ref } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
+import TreeNodeItem from './TreeNodeItem.vue'
 import type { TreeNode, TreeEmits, TreeProps, TreeNodeState, TreeInstance } from './types'
-
-// Tree 上下文 Key
-const TREE_CONTEXT_KEY = Symbol('treeContext')
+import { TREE_CONTEXT_KEY } from './constants'
 
 // 使用 CVA 定义树节点变体
 const treeNodeVariants = cva(
@@ -65,17 +66,32 @@ const indeterminateKeys = ref<Set<string | number>>(new Set())
 const nodeStates = ref<TreeNodeState[]>([])
 
 // 初始化节点状态
+// 重构：使用reactive对象代替嵌套Ref，确保响应式系统正确追踪状态变化
 const initializeNodeStates = (nodes: TreeNode[], level: number = 0, parent: TreeNodeState | null = null): TreeNodeState[] => {
   const states: TreeNodeState[] = []
 
   nodes.forEach((node) => {
     const nodeId = node.id || node.label
-    const isExpanded = props.defaultExpandAll || (node.defaultExpand && !props.defaultExpandAll)
 
-    // 如果有默认展开的 keys，使用默认值
-    if (!props.defaultExpandAll && props.defaultExpandedKeys?.includes(nodeId)) {
-      expandedKeys.value.add(nodeId)
-    } else if (isExpanded) {
+    // 计算节点是否应该展开
+    const shouldExpand = props.defaultExpandAll || (node.defaultExpand && !props.defaultExpandAll) || props.defaultExpandedKeys?.includes(nodeId)
+
+    // 使用reactive创建响应式对象，不使用嵌套Ref
+    // 这样可以避免Vue在props传递时解包嵌套Ref的问题
+    const nodeState = reactive<TreeNodeState>({
+      node,
+      expanded: shouldExpand,
+      checked: props.defaultCheckedKeys?.includes(nodeId) || false,
+      indeterminate: false,
+      level,
+      parent,
+      children: [],
+    })
+
+    states.push(nodeState)
+
+    // 如果应该展开，添加到 expandedKeys
+    if (shouldExpand) {
       expandedKeys.value.add(nodeId)
     }
 
@@ -83,23 +99,6 @@ const initializeNodeStates = (nodes: TreeNode[], level: number = 0, parent: Tree
     if (props.defaultCheckedKeys?.includes(nodeId)) {
       checkedKeys.value.add(nodeId)
     }
-
-    // 创建 Ref 对象
-    const expandedRef = ref(expandedKeys.value.has(nodeId))
-    const checkedRef = ref(checkedKeys.value.has(nodeId))
-    const indeterminateRef = ref(false)
-
-    const nodeState: TreeNodeState = {
-      node,
-      expanded: expandedRef,
-      checked: checkedRef,
-      indeterminate: indeterminateRef,
-      level,
-      parent,
-      children: [],
-    }
-
-    states.push(nodeState)
 
     // 递归处理子节点
     if (node.children && node.children.length > 0) {
@@ -113,6 +112,14 @@ const initializeNodeStates = (nodes: TreeNode[], level: number = 0, parent: Tree
 // 初始化
 nodeStates.value = initializeNodeStates(props.data)
 
+// 初始化完成后emit事件，确保父组件能获取初始状态
+if (props.defaultCheckedKeys && props.defaultCheckedKeys.length > 0) {
+  emit('update:checkedKeys', Array.from(checkedKeys.value))
+}
+if (props.defaultExpandedKeys && props.defaultExpandedKeys.length > 0 || props.defaultExpandAll) {
+  emit('update:expandedKeys', Array.from(expandedKeys.value))
+}
+
 // 计算样式类名
 const treeClasses = computed(() =>
   cn(
@@ -122,44 +129,23 @@ const treeClasses = computed(() =>
   )
 )
 
-// 节点样式类名
-const getNodeClasses = computed(() => (nodeState: TreeNodeState) => {
-  const isCurrent = props.highlightCurrent && currentNode.value === nodeState
-  return cn(
-    treeNodeVariants({ size: props.size }),
-    'tree-node flex items-center py-1 px-2 rounded-md cursor-pointer',
-    'hover:bg-slate-100 dark:hover:bg-slate-800',
-    {
-      'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': isCurrent,
-      'opacity-50 cursor-not-allowed pointer-events-none': nodeState.node.disabled,
-    }
-  )
-})
-
-// 节点内容样式类名
-const getNodeContentClasses = computed(() => (nodeState: TreeNodeState) => {
-  const sizeClasses = {
-    sm: 'gap-1.5',
-    md: 'gap-2',
-    lg: 'gap-2.5',
-  }
-  return cn('flex items-center flex-1 min-w-0', sizeClasses[props.size])
-})
-
 // 切换展开状态
+// 重构：直接修改reactive对象的属性，不需要Ref
 const toggleExpand = (nodeState: TreeNodeState) => {
   if (nodeState.node.disabled) return
-  
+
   const nodeId = nodeState.node.id || nodeState.node.label
-  const newExpanded = !nodeState.expanded.value
-  nodeState.expanded.value = newExpanded
-  
+  const newExpanded = !nodeState.expanded
+
+  // 直接修改reactive对象的属性，Vue会自动追踪变化
+  nodeState.expanded = newExpanded
+
   if (newExpanded) {
     expandedKeys.value.add(nodeId)
   } else {
     expandedKeys.value.delete(nodeId)
   }
-  
+
   emit('nodeExpand', nodeState.node, newExpanded, nodeState)
   emit('update:expandedKeys', Array.from(expandedKeys.value))
 }
@@ -167,37 +153,28 @@ const toggleExpand = (nodeState: TreeNodeState) => {
 // 切换选中状态
 const toggleCheck = (nodeState: TreeNodeState) => {
   if (nodeState.node.disabled || !props.checkable) return
-  
+
   const nodeId = nodeState.node.id || nodeState.node.label
   const newChecked = !nodeState.checked.value
-  
+
   // 更新自身及所有子节点
   updateNodeCheckState(nodeState, newChecked)
-  
+
   // 更新父节点状态
   updateParentCheckState(nodeState)
-  
+
   emit('checkChange', nodeState.node, newChecked, nodeState)
   emit('update:checkedKeys', Array.from(checkedKeys.value))
 }
 
 // 更新节点及其子节点的选中状态
+// 重构：直接修改reactive对象的属性，不需要Ref
 const updateNodeCheckState = (nodeState: TreeNodeState, checked: boolean) => {
   const nodeId = nodeState.node.id || nodeState.node.label
 
-  // 安全检查：确保 checked 是 Ref
-  if (typeof nodeState.checked !== 'object' || nodeState.checked === null) {
-    console.error('[Tree] Invalid nodeState.checked for node:', nodeId)
-    return
-  }
-
-  if (typeof nodeState.indeterminate !== 'object' || nodeState.indeterminate === null) {
-    console.error('[Tree] Invalid nodeState.indeterminate for node:', nodeId)
-    return
-  }
-
-  nodeState.checked.value = checked
-  nodeState.indeterminate.value = false
+  // 直接修改reactive对象的属性
+  nodeState.checked = checked
+  nodeState.indeterminate = false
 
   if (checked) {
     checkedKeys.value.add(nodeId)
@@ -208,64 +185,42 @@ const updateNodeCheckState = (nodeState: TreeNodeState, checked: boolean) => {
   // 递归更新子节点
   if (nodeState.children && Array.isArray(nodeState.children)) {
     nodeState.children.forEach((child) => {
-      // 递归前验证 child 的结构
-      if (child && typeof child.checked === 'object' && child.checked !== null) {
-        updateNodeCheckState(child, checked)
-      }
+      updateNodeCheckState(child, checked)
     })
   }
 }
 
 // 更新父节点的选中状态
+// 重构：直接修改reactive对象的属性，不需要Ref
 const updateParentCheckState = (nodeState: TreeNodeState) => {
   if (!nodeState.parent) return
 
-  // 安全检查：验证 parent 的结构
+  // 验证 parent 的结构
   const parent = nodeState.parent
   if (!parent.children || !Array.isArray(parent.children)) {
     console.warn('[Tree] Invalid parent node state for:', nodeState.node)
     return
   }
 
-  const allChildrenChecked = parent.children.every((child) => {
-    if (!child || typeof child.checked !== 'object' || child.checked === null) {
-      return false
-    }
-    return child.checked.value
-  })
-
-  const someChildrenChecked = parent.children.some((child) => {
-    if (!child || typeof child.checked !== 'object' || child.checked === null) {
-      return false
-    }
-    return child.checked.value || (child.indeterminate?.value ?? false)
-  })
+  const allChildrenChecked = parent.children.every((child) => child?.checked ?? false)
+  const someChildrenChecked = parent.children.some((child) => (child?.checked ?? false) || (child?.indeterminate ?? false))
 
   const parentId = parent.node.id || parent.node.label
 
-  // 安全检查：确保 parent.checked 和 parent.indeterminate 是 Ref
-  if (typeof parent.checked !== 'object' || parent.checked === null) {
-    console.error('[Tree] Invalid parent.checked for node:', parentId)
-    return
-  }
-  if (typeof parent.indeterminate !== 'object' || parent.indeterminate === null) {
-    console.error('[Tree] Invalid parent.indeterminate for node:', parentId)
-    return
-  }
-
+  // 直接修改reactive对象的属性
   if (allChildrenChecked) {
-    parent.checked.value = true
-    parent.indeterminate.value = false
+    parent.checked = true
+    parent.indeterminate = false
     checkedKeys.value.add(parentId)
     indeterminateKeys.value.delete(parentId)
   } else if (someChildrenChecked) {
-    parent.checked.value = false
-    parent.indeterminate.value = true
+    parent.checked = false
+    parent.indeterminate = true
     checkedKeys.value.delete(parentId)
     indeterminateKeys.value.add(parentId)
   } else {
-    parent.checked.value = false
-    parent.indeterminate.value = false
+    parent.checked = false
+    parent.indeterminate = false
     checkedKeys.value.delete(parentId)
     indeterminateKeys.value.delete(parentId)
   }
@@ -277,10 +232,10 @@ const updateParentCheckState = (nodeState: TreeNodeState) => {
 // 节点点击
 const handleNodeClick = (nodeState: TreeNodeState, event: MouseEvent) => {
   if (nodeState.node.disabled) return
-  
+
   currentNode.value = nodeState
   emit('nodeClick', nodeState.node, nodeState)
-  
+
   if (props.expandOnClickNode) {
     toggleExpand(nodeState)
   }
@@ -298,97 +253,34 @@ const handleCheckClick = (nodeState: TreeNodeState, event: MouseEvent) => {
   toggleCheck(nodeState)
 }
 
-// 渲染节点
-const renderNode = (nodeState: TreeNodeState) => {
-  const hasChildren = nodeState.node.children && nodeState.node.children.length > 0
-  const indent = nodeState.level * 16
-  
-  return (
-    <div class="tree-node-wrapper" key={nodeState.node.id || nodeState.node.label}>
-      {/* 节点内容 */}
-      <div
-        class={getNodeClasses.value(nodeState)}
-        style={{ paddingLeft: `${indent}px` }}
-        onClick={(e) => handleNodeClick(nodeState, e)}
-      >
-        {/* 展开/收起图标 */}
-        <span
-          class={[
-            'expand-icon flex-shrink-0 cursor-pointer transition-transform duration-200',
-            nodeState.expanded.value && 'rotate-90',
-          ].join(' ')}
-          onClick={(e) => handleExpandClick(nodeState, e)}
-        >
-          {hasChildren && (
-            <Icon name="chevron-right" size="sm" class="text-slate-400" />
-          )}
-          {!hasChildren && <span class="w-4 inline-block" />}
-        </span>
-        
-        {/* 复选框 */}
-        {props.checkable && (
-          <span
-            class={['checkbox-wrapper flex-shrink-0 cursor-pointer', nodeState.node.disabled && 'opacity-50'].join(' ')}
-            onClick={(e) => handleCheckClick(nodeState, e)}
-          >
-            <span
-              class={[
-                'checkbox',
-                'relative flex-shrink-0 rounded border-2 transition-all duration-200',
-                'w-4 h-4 flex items-center justify-center',
-                nodeState.checked.value
-                  ? 'bg-primary-500 border-primary-500'
-                  : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700',
-                nodeState.indeterminate.value && 'bg-primary-500 border-primary-500',
-              ].join(' ')}
-            >
-              {nodeState.checked.value && (
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-              {nodeState.indeterminate.value && !nodeState.checked.value && (
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </span>
-          </span>
-        )}
-        
-        {/* 节点内容 */}
-        <div class={getNodeContentClasses.value(nodeState)}>
-          {/* 自定义插槽内容 */}
-          {slots.default ? (
-            slots.default({ node: nodeState.node, data: nodeState.node })
-          ) : (
-            <span class="node-label truncate">{nodeState.node.label}</span>
-          )}
-        </div>
-      </div>
-      
-      {/* 子节点 */}
-      {hasChildren && nodeState.expanded.value && (
-        <div class="tree-children">
-          {nodeState.children.map((child) => renderNode(child))}
-        </div>
-      )}
-    </div>
+// 节点样式类名
+const getNodeClasses = (nodeState: TreeNodeState) => {
+  const isCurrent = props.highlightCurrent && currentNode.value === nodeState
+  return cn(
+    treeNodeVariants({ size: props.size }),
+    'tree-node flex items-center py-1 px-2 rounded-md cursor-pointer',
+    'hover:bg-slate-100 dark:hover:bg-slate-800',
+    {
+      'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': isCurrent,
+      'opacity-50 cursor-not-allowed pointer-events-none': nodeState.node.disabled,
+    }
   )
 }
 
+// 节点内容样式类名
+const sizeClasses = {
+  sm: 'gap-1.5',
+  md: 'gap-2',
+  lg: 'gap-2.5',
+}
+
+const getNodeContentClasses = computed(() => sizeClasses[props.size])
+
 // 组件实例方法
+// 重构：直接访问reactive对象的属性，不需要.value
 const getCheckedNodes = (): TreeNode[] => {
   return nodeStates.value
-    .filter((ns) => ns.checked.value)
+    .filter((ns) => ns.checked)
     .map((ns) => ns.node)
 }
 
@@ -398,16 +290,14 @@ const getCheckedKeys = (): Array<string | number> => {
 
 const setCheckedKeys = (keys: Array<string | number>) => {
   const newSet = new Set(keys)
-  
+
   nodeStates.value.forEach((nodeState) => {
     const nodeId = nodeState.node.id || nodeState.node.label
     const checked = newSet.has(nodeId)
     updateNodeCheckState(nodeState, checked)
-    
-    // 更新父节点
     updateParentCheckState(nodeState)
   })
-  
+
   emit('update:checkedKeys', keys)
 }
 
@@ -421,13 +311,8 @@ const setExpandedKeys = (keys: Array<string | number>) => {
   nodeStates.value.forEach((nodeState) => {
     const nodeId = nodeState.node.id || nodeState.node.label
 
-    // 安全检查：确保 expanded 是 Ref
-    if (typeof nodeState.expanded !== 'object' || nodeState.expanded === null) {
-      console.error('[Tree] Invalid nodeState.expanded for node:', nodeId)
-      return
-    }
-
-    nodeState.expanded.value = newSet.has(nodeId)
+    // 直接修改reactive对象的属性
+    nodeState.expanded = newSet.has(nodeId)
 
     if (newSet.has(nodeId)) {
       expandedKeys.value.add(nodeId)
@@ -448,7 +333,7 @@ defineExpose<TreeInstance>({
   setExpandedKeys,
 })
 
-// 提供上下文
+// 提供上下文给子组件使用
 provide(TREE_CONTEXT_KEY, {
   props,
   currentNode,
@@ -457,6 +342,11 @@ provide(TREE_CONTEXT_KEY, {
   indeterminateKeys,
   toggleExpand,
   toggleCheck,
+  handleNodeClick,
+  handleExpandClick,
+  handleCheckClick,
+  getNodeClasses,
+  getNodeContentClasses,
 })
 
 // 监听数据变化
@@ -467,8 +357,15 @@ watch(() => props.data, () => {
 
 <template>
   <div :class="treeClasses">
-    <template v-for="nodeState in nodeStates" :key="nodeState.node.id || nodeState.node.label">
-      <component :is="renderNode(nodeState)" />
-    </template>
+    <!-- 使用递归的TreeNode组件渲染树节点 -->
+    <TreeNodeItem
+      v-for="nodeState in nodeStates"
+      :key="nodeState.node.id || nodeState.node.label"
+      :node-state="nodeState"
+    >
+      <template v-if="slots.default" #default="slotProps">
+        <slot v-bind="slotProps" />
+      </template>
+    </TreeNodeItem>
   </div>
 </template>

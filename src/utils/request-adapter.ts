@@ -5,6 +5,7 @@
 import { httpService } from '@/core/services/http.service'
 import type { RequestConfig } from '@/core/services/http.service'
 import type { APIResponse } from '@/core/types/api.types'
+import type { AxiosError } from 'axios'
 
 // 通用请求方法
 interface RequestOption extends RequestConfig {
@@ -46,7 +47,7 @@ export function request<T = any>(options: RequestOption) {
           reject(new Error(res.message || '请求失败'))
         }
       })
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         reject(error)
       })
   })

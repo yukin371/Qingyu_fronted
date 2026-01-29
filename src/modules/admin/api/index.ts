@@ -1,5 +1,8 @@
-// ✅ 默认使用生成的 API
-export * from './generated/admin'
+// ✅ 默认使用wrapper层API
+export * from './admin'
 
-// 🔁 需要回滚时，改成：
+// 🔁 需要回滚到generated API时，改成：
+// export * from './generated/admin'
+
+// 🔁 需要回滚到manual API时，改成：
 // export * from './manual'

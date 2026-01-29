@@ -93,7 +93,7 @@ const pagers = computed<PagerItem[]>(() => {
   const current = props.currentPage
   const total = totalPages.value
 
-  if (total === 0) return pages
+  if (total === 0 || props.pageSize <= 0) return pages
 
   // 始终显示第一页
   pages.push({ type: 'page', value: 1 })

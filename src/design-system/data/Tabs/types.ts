@@ -83,7 +83,7 @@ export const tabPaneDefaults: Partial<TabPaneProps> = {
   label: '',
   name: undefined,
   disabled: false,
-  closable: false,
+  closable: undefined,
 }
 
 // Tabs 事件类型
