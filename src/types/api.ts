@@ -22,9 +22,9 @@ export interface APIResponse<T = any> {
 export interface ErrorResponse {
   code: number
   message: string
-  error?: string // 详细错误信息
+  details?: string // 详细错误信息
   timestamp: number
-  request_id?: string
+  requestId?: string
 }
 
 /**
