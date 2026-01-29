@@ -15,6 +15,17 @@ import {
 } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
 
+// Mock core/http to avoid actual HTTP calls and errorHandler issues
+vi.mock('@/core/http', () => ({
+  http: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    patch: vi.fn(),
+  },
+}))
+
 // Mock API - 必须在import之前
 const mockGetPosts = vi.fn()
 const mockGetPostDetail = vi.fn()
@@ -28,21 +39,59 @@ const mockGetTopics = vi.fn()
 const mockFollowTopic = vi.fn()
 const mockGetTopicPosts = vi.fn()
 
-vi.mock('../api', () => ({
-  getPosts: mockGetPosts,
-  getPostDetail: mockGetPostDetail,
-  getPostComments: mockGetPostComments,
-  createPost: mockCreatePost,
-  createPostComment: mockCreatePostComment,
-  likePost: mockLikePost,
-  unlikePost: mockUnlikePost,
-  bookmarkPost: mockBookmarkPost,
-  getTopics: mockGetTopics,
-  followTopic: mockFollowTopic,
-  getTopicPosts: mockGetTopicPosts,
+// Mock design-system services
+vi.mock('@/design-system/services', () => ({
+  message: {
+    error: vi.fn(),
+    success: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    show: vi.fn(),
+  },
+  notification: {
+    error: vi.fn(),
+    success: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    show: vi.fn(),
+  },
+  messageBox: {
+    alert: vi.fn(),
+    confirm: vi.fn(),
+    prompt: vi.fn(),
+  },
 }))
 
-import * as communityApi from '../api'
+vi.mock('../../api', () => ({
+  getPosts: (...args: any[]) => mockGetPosts(...args),
+  getPostDetail: (...args: any[]) => mockGetPostDetail(...args),
+  getPostComments: (...args: any[]) => mockGetPostComments(...args),
+  createPost: (...args: any[]) => mockCreatePost(...args),
+  createPostComment: (...args: any[]) => mockCreatePostComment(...args),
+  likePost: (...args: any[]) => mockLikePost(...args),
+  unlikePost: (...args: any[]) => mockUnlikePost(...args),
+  bookmarkPost: (...args: any[]) => mockBookmarkPost(...args),
+  getTopics: (...args: any[]) => mockGetTopics(...args),
+  followTopic: (...args: any[]) => mockFollowTopic(...args),
+  getTopicPosts: (...args: any[]) => mockGetTopicPosts(...args),
+}))
+
+import * as communityApi from '../../api'
+
+// 导出API函数供测试使用
+const {
+  getPosts,
+  getPostDetail,
+  getPostComments,
+  createPost,
+  createPostComment,
+  likePost,
+  unlikePost,
+  bookmarkPost,
+  getTopics,
+  followTopic,
+  getTopicPosts,
+} = communityApi
 
 describe('useCommunityStore', () => {
   beforeEach(() => {
@@ -101,7 +150,7 @@ describe('useCommunityStore', () => {
       expect(store.posts).toEqual(mockData.list)
       expect(store.total).toBe(mockData.total)
       expect(store.error).toBeNull()
-      expect(getPosts).toHaveBeenCalledWith({ page: 1, size: 10 })
+      expect(mockGetPosts).toHaveBeenCalledWith({ page: 1, size: 10 })
     })
 
     it('should handle fetch posts error', async () => {
@@ -162,7 +211,7 @@ describe('useCommunityStore', () => {
       expect(store.loading).toBe(false)
       expect(store.currentPost).toEqual(mockPost)
       expect(store.error).toBeNull()
-      expect(getPostDetail).toHaveBeenCalledWith(mockPost.id)
+      expect(mockGetPostDetail).toHaveBeenCalledWith(mockPost.id)
     })
 
     it('should handle fetch post detail error', async () => {
@@ -199,7 +248,7 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.comments).toEqual(mockData.list)
-      expect(getPostComments).toHaveBeenCalledWith(postId, undefined)
+      expect(mockGetPostComments).toHaveBeenCalledWith(postId)
     })
 
     it('should handle fetch comments error silently', async () => {
@@ -237,7 +286,7 @@ describe('useCommunityStore', () => {
       expect(result).toEqual(mockPost)
       expect(store.posts[0]).toEqual(mockPost)
       expect(store.loading).toBe(false)
-      expect(createPost).toHaveBeenCalledWith(newPost)
+      expect(mockCreatePost).toHaveBeenCalledWith(newPost)
     })
 
     it('should handle create post error', async () => {
@@ -277,7 +326,7 @@ describe('useCommunityStore', () => {
       expect(result).toEqual(mockComment)
       expect(store.comments[0]).toEqual(mockComment)
       expect(store.currentPost?.commentCount).toBe(6)
-      expect(createPostComment).toHaveBeenCalledWith(postId, {
+      expect(mockCreatePostComment).toHaveBeenCalledWith(postId, {
         content,
         replyTo: undefined,
       })
@@ -299,7 +348,7 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(createPostComment).toHaveBeenCalledWith(postId, {
+      expect(mockCreatePostComment).toHaveBeenCalledWith(postId, {
         content,
         replyTo,
       })
@@ -339,7 +388,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts[0].isLiked).toBe(true)
       expect(store.posts[0].likeCount).toBe(11)
-      expect(likePost).toHaveBeenCalledWith('post_123')
+      expect(mockLikePost).toHaveBeenCalledWith('post_123')
     })
 
     it('should unlike post when liked', async () => {
@@ -362,7 +411,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts[0].isLiked).toBe(false)
       expect(store.posts[0].likeCount).toBe(9)
-      expect(unlikePost).toHaveBeenCalledWith('post_123')
+      expect(mockUnlikePost).toHaveBeenCalledWith('post_123')
     })
 
     it('should handle toggle like error silently', async () => {
@@ -420,7 +469,7 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.topics).toEqual(mockData.list)
-      expect(getTopics).toHaveBeenCalledWith(undefined)
+      expect(mockGetTopics).toHaveBeenCalledWith()
     })
 
     it('should handle fetch topics error silently', async () => {
@@ -455,7 +504,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(store.posts).toEqual(mockData.list)
       expect(store.loading).toBe(false)
-      expect(getTopicPosts).toHaveBeenCalledWith(topicId, undefined)
+      expect(mockGetTopicPosts).toHaveBeenCalledWith(topicId)
     })
 
     it('should handle fetch topic posts error silently', async () => {

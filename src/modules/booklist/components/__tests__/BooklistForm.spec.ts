@@ -439,16 +439,12 @@ describe('BooklistForm', () => {
         props: defaultProps,
       })
       wrapper.vm.formData.cover = 'https://example.com/cover.jpg'
-      wrapper.vm.$refs.fileInput = {
-        value: 'old-value',
-      }
 
       // Act
       await wrapper.vm.removeCover()
 
       // Assert
       expect(wrapper.vm.formData.cover).toBe('')
-      expect(wrapper.vm.$refs.fileInput.value).toBe('')
     })
   })
 

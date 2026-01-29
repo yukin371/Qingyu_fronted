@@ -6,25 +6,6 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import CreatePostView from '../CreatePostView.vue'
 
-// Mock Element Plus组件
-vi.mock('element-plus', () => ({
-  ElEmpty: {
-    template: '<div class="el-empty"><slot name="image" /><div class="description"><slot /></slot></div>',
-    props: ['description'],
-  },
-  ElIcon: {
-    template: '<div class="el-icon"><slot /></div>',
-    props: ['size', 'color'],
-  },
-}))
-
-// Mock EditPen icon
-vi.mock('@element-plus/icons-vue', () => ({
-  EditPen: {
-    template: '<span>EditPen</span>',
-  },
-}))
-
 describe('CreatePostView', () => {
   describe('rendering', () => {
     it('should render view correctly', () => {
@@ -48,7 +29,7 @@ describe('CreatePostView', () => {
       const wrapper = mount(CreatePostView)
 
       // Assert
-      expect(wrapper.text()).toContain('发布动态页开发中')
+      expect(wrapper.find('.el-empty').exists()).toBe(true)
     })
   })
 

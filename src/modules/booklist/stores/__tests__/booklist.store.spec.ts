@@ -4,38 +4,27 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useBooklistStore } from '../booklist.store'
 import { createMockBooklist, createMockBooklists } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
 
 // Mock API - 必须在import之前
-const mockGetBookLists = vi.fn()
-const mockGetBookListDetail = vi.fn()
-const mockCreateBookList = vi.fn()
-const mockUpdateBookList = vi.fn()
-const mockDeleteBookList = vi.fn()
-const mockFavoriteBookList = vi.fn()
-const mockUnfavoriteBookList = vi.fn()
-const mockAddBookToList = vi.fn()
-const mockRemoveBookFromList = vi.fn()
-const mockGetMyBookListStats = vi.fn()
-const mockGetPopularTags = vi.fn()
-
-vi.mock('../api', () => ({
-  getBookLists: mockGetBookLists,
-  getBookListDetail: mockGetBookListDetail,
-  createBookList: mockCreateBookList,
-  updateBookList: mockUpdateBookList,
-  deleteBookList: mockDeleteBookList,
-  favoriteBookList: mockFavoriteBookList,
-  unfavoriteBookList: mockUnfavoriteBookList,
-  addBookToList: mockAddBookToList,
-  removeBookFromList: mockRemoveBookFromList,
-  getMyBookListStats: mockGetMyBookListStats,
-  getPopularTags: mockGetPopularTags,
+vi.mock('../../api', () => ({
+  getBookLists: vi.fn(),
+  getBookListDetail: vi.fn(),
+  createBookList: vi.fn(),
+  updateBookList: vi.fn(),
+  deleteBookList: vi.fn(),
+  favoriteBookList: vi.fn(),
+  unfavoriteBookList: vi.fn(),
+  addBookToList: vi.fn(),
+  removeBookFromList: vi.fn(),
+  getMyBookListStats: vi.fn(),
+  getPopularTags: vi.fn(),
 }))
 
-import * as booklistApi from '../api'
+// 导入mock后的API函数
+import { getBookLists, getBookListDetail, createBookList, updateBookList, deleteBookList, favoriteBookList, unfavoriteBookList, addBookToList, removeBookFromList, getMyBookListStats, getPopularTags } from '../../api'
+import { useBooklistStore } from '../booklist.store'
 
 describe('useBooklistStore', () => {
   beforeEach(() => {

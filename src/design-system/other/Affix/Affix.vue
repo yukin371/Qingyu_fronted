@@ -168,9 +168,19 @@ onMounted(() => {
 
 // 组件卸载时移除监听
 onUnmounted(() => {
-  const target = getScrollTarget()
-  target.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('resize', handleResize)
+  try {
+    const target = getScrollTarget()
+    if (target && target.removeEventListener) {
+      target.removeEventListener('scroll', handleScroll)
+    }
+  } catch (error) {
+    // Ignore errors during cleanup
+  }
+  try {
+    window.removeEventListener('resize', handleResize)
+  } catch (error) {
+    // Ignore errors during cleanup
+  }
 })
 
 // 监听 offset 变化

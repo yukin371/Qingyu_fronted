@@ -5,7 +5,7 @@
  * 折叠面板容器组件，支持手风琴模式和多个面板同时展开
  */
 
-import { provide, computed, watch } from 'vue'
+import { provide, computed, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
 import type { CollapseProps, CollapseEmits } from './types'
 
@@ -26,10 +26,14 @@ const containerClasses = computed(() => {
   )
 })
 
+// 内部状态（用于非受控模式）
+const internalActiveNames = ref<(string | number)[]>(props.modelValue || [])
+
 // 当前激活的面板
 const activeNames = computed<(string | number)[]>({
-  get: () => props.modelValue || [],
+  get: () => internalActiveNames.value,
   set: (value) => {
+    internalActiveNames.value = value
     emit('update:modelValue', value)
     emit('change', value)
   },
@@ -39,7 +43,7 @@ const activeNames = computed<(string | number)[]>({
 watch(
   () => props.modelValue,
   (newVal) => {
-    activeNames.value = newVal || []
+    internalActiveNames.value = newVal || []
   }
 )
 

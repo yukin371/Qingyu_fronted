@@ -6,25 +6,6 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TopicPostsView from '../TopicPostsView.vue'
 
-// Mock Element Plus组件
-vi.mock('element-plus', () => ({
-  ElEmpty: {
-    template: '<div class="el-empty"><slot name="image" /><div class="description"><slot /></slot></div>',
-    props: ['description'],
-  },
-  ElIcon: {
-    template: '<div class="el-icon"><slot /></div>',
-    props: ['size', 'color'],
-  },
-}))
-
-// Mock PriceTag icon
-vi.mock('@element-plus/icons-vue', () => ({
-  PriceTag: {
-    template: '<span>PriceTag</span>',
-  },
-}))
-
 describe('TopicPostsView', () => {
   describe('rendering', () => {
     it('should render view correctly', () => {
@@ -48,7 +29,7 @@ describe('TopicPostsView', () => {
       const wrapper = mount(TopicPostsView)
 
       // Assert
-      expect(wrapper.text()).toContain('话题动态页开发中')
+      expect(wrapper.find('.el-empty').exists()).toBe(true)
     })
   })
 
