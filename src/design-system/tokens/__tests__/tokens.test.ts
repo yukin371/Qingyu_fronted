@@ -97,9 +97,11 @@ describe('设计令牌 - 主题一致性', () => {
   })
 
   it('功能色应该在两个文件中保持一致', () => {
-    expect(colors.success.DEFAULT).toBe(qingyuTheme.success.DEFAULT)
-    expect(colors.warning.DEFAULT).toBe(qingyuTheme.warning.DEFAULT)
-    expect(colors.danger.DEFAULT).toBe(qingyuTheme.danger.DEFAULT)
-    expect(colors.info.DEFAULT).toBe(qingyuTheme.info.DEFAULT)
+    // colors.ts 使用 DEFAULT 属性，theme.ts 使用完整的色阶
+    // DEFAULT 对应 500 色阶
+    expect(colors.success.DEFAULT).toBe(qingyuTheme.success[500])
+    expect(colors.warning.DEFAULT).toBe(qingyuTheme.warning[500])
+    expect(colors.danger.DEFAULT).toBe(qingyuTheme.danger[500])
+    expect(colors.info.DEFAULT).toBe(qingyuTheme.info[500])
   })
 })

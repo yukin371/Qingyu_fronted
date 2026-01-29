@@ -102,9 +102,13 @@ describe('BookListDetailView', () => {
   describe('rendering', () => {
     it('should render loading state initially', async () => {
       // Arrange - 让API调用延迟返回，这样可以捕获loading状态
+      let resolveApi: any
       mockGetBookListDetail.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(createMockBooklist()), 100))
+        () => new Promise(resolve => { resolveApi = resolve })
       )
+
+      // 先获取store实例，设置loading状态
+      const store = useBooklistStore()
 
       // Act
       const wrapper = mount(BookListDetailView, {
@@ -113,8 +117,17 @@ describe('BookListDetailView', () => {
         },
       })
 
-      // 立即检查loading状态
+      // 等待一个tick，让组件挂载和onMounted执行
+      await flushPromises()
+
+      // 检查loading状态
+      expect(store.loading).toBe(true)
       expect(wrapper.find('.loading-state').exists()).toBe(true)
+
+      // 清理：resolve API promise
+      if (resolveApi) {
+        resolveApi(createMockBooklist())
+      }
     })
 
     it('should render booklist detail when data is loaded', async () => {
@@ -254,6 +267,11 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         creatorId: currentUserId,
       })
+
+      // 先设置user store
+      const userStore = useUserStore()
+      userStore.userInfo = { id: currentUserId } as any
+
       mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
@@ -261,10 +279,6 @@ describe('BookListDetailView', () => {
           plugins: [router],
         },
       })
-
-      // 设置user store（在mount之后）
-      const userStore = useUserStore()
-      userStore.userInfo = { id: currentUserId } as any
 
       // 等待数据加载
       await flushPromises()

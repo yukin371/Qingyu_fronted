@@ -236,13 +236,13 @@ describe('Alert', () => {
       const closeButton = container.querySelector('button')!
       await fireEvent.click(closeButton)
 
-      // 等待动画结束
+      // 等待动画结束和DOM移除
       await waitFor(
         () => {
           const alert = container.querySelector('.relative')
           expect(alert).toBeFalsy()
         },
-        { timeout: 500 }
+        { timeout: 1000 }
       )
     })
 

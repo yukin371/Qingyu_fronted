@@ -7,7 +7,7 @@
  * 组件自身 props 优先级高于 ConfigProvider 提供的配置
  */
 
-import { provide, computed } from 'vue'
+import { provide, reactive, watchEffect } from 'vue'
 import type { ConfigProviderProps, ConfigProviderContext } from './types'
 import { configProviderDefaults, CONFIG_PROVIDER_KEY } from './types'
 
@@ -23,15 +23,25 @@ const props = withDefaults(defineProps<ConfigProviderProps>(), {
 // 组件 Emits
 const emit = defineEmits<{}>()
 
-// 计算配置上下文
-const configContext = computed<ConfigProviderContext>(() => ({
+// 创建响应式配置对象
+const configContext = reactive<ConfigProviderContext>({
   size: props.size,
   namespace: props.namespace,
   locale: props.locale,
   direction: props.direction,
   button: props.button,
   zIndex: props.zIndex,
-}))
+})
+
+// 监听 props 变化并更新响应式配置
+watchEffect(() => {
+  configContext.size = props.size
+  configContext.namespace = props.namespace
+  configContext.locale = props.locale
+  configContext.direction = props.direction
+  configContext.button = props.button
+  configContext.zIndex = props.zIndex
+})
 
 // 提供配置上下文给所有子组件
 provide(CONFIG_PROVIDER_KEY, configContext)

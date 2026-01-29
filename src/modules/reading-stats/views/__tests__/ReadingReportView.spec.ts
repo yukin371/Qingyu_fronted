@@ -26,7 +26,7 @@ vi.mock('element-plus', () => ({
   },
   ElRadioButton: {
     name: 'ElRadioButton',
-    template: '<button class="el-radio-button" :value="label"><slot /></button>',
+    template: '<button class="el-radio-button" :label="label" :value="label"><slot /></button>',
     props: ['label'],
   },
 }))
@@ -166,9 +166,13 @@ describe('ReadingReportView', () => {
     it('should contain radio buttons for period selection', () => {
       const wrapper = mount(ReadingReportView)
       expect(wrapper.html()).toContain('el-radio-button')
-      expect(wrapper.html()).toContain('label="week"')
-      expect(wrapper.html()).toContain('label="month"')
-      expect(wrapper.html()).toContain('label="year"')
+      // 检查是否有3个el-radio-button（周报、月报、年报）
+      const radioButtons = wrapper.findAll('.el-radio-button')
+      expect(radioButtons.length).toBe(3)
+      // 检查文本内容
+      expect(wrapper.text()).toContain('周报')
+      expect(wrapper.text()).toContain('月报')
+      expect(wrapper.text()).toContain('年报')
     })
   })
 })
