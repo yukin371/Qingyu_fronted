@@ -8,11 +8,7 @@ import type { ReadingStats, ReadingReport, StatsPeriod } from '@/types/reading-s
  * 获取阅读统计
  */
 export function getReadingStats(period: StatsPeriod) {
-  return http.get<{
-    code: number
-    message: string
-    data: ReadingStats
-  }>('/api/v1/reading/stats', {
+  return http.get<ReadingStats>('/api/v1/reading/stats', {
     params: { period }
   })
 }
@@ -21,11 +17,7 @@ export function getReadingStats(period: StatsPeriod) {
  * 获取阅读报告
  */
 export function getReadingReport(period: StatsPeriod) {
-  return http.get<{
-    code: number
-    message: string
-    data: ReadingReport
-  }>('/api/v1/reading/report', {
+  return http.get<ReadingReport>('/api/v1/reading/report', {
     params: { period }
   })
 }
@@ -59,17 +51,13 @@ export function getReadingRanking(params?: {
   limit?: number
 }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      userId: string
-      username: string
-      nickname: string
-      avatar: string
-      readingTime: number
-      rank: number
-    }[]
-  }>('/api/v1/reading/ranking', { params })
+    userId: string
+    username: string
+    nickname: string
+    avatar: string
+    readingTime: number
+    rank: number
+  }[]>('/api/v1/reading/ranking', { params })
 }
 
 /**
@@ -82,19 +70,15 @@ export function getReadingHistory(params?: {
   size?: number
 }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: {
-        date: string
-        bookId: string
-        bookTitle: string
-        bookCover: string
-        chapterTitle: string
-        readingTime: number
-      }[]
-      total: number
-    }
+    list: {
+      date: string
+      bookId: string
+      bookTitle: string
+      bookCover: string
+      chapterTitle: string
+      readingTime: number
+    }[]
+    total: number
   }>('/api/v1/reading/history', { params })
 }
 
@@ -107,8 +91,5 @@ export function syncReadingProgress(data: {
   progress: number
   readingTime: number
 }) {
-  return http.post<{
-    code: number
-    message: string
-  }>('/api/v1/reading/sync', data)
+  return http.post<void>('/api/v1/reading/sync', data)
 }

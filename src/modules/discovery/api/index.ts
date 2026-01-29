@@ -8,11 +8,7 @@ import type { RecommendationItem, RecommendationConfig, PersonalizedRecommendati
  * 获取推荐内容
  */
 export function getRecommendations(slot?: RecommendationSlot) {
-  return http.get<{
-    code: number
-    message: string
-    data: RecommendationItem[]
-  }>('/api/v1/discovery/recommendations', {
+  return http.get<RecommendationItem[]>('/api/v1/discovery/recommendations', {
     params: slot ? { slot } : {}
   })
 }
@@ -21,11 +17,7 @@ export function getRecommendations(slot?: RecommendationSlot) {
  * 获取个性化推荐
  */
 export function getPersonalizedRecommendations() {
-  return http.get<{
-    code: number
-    message: string
-    data: PersonalizedRecommendations
-  }>('/api/v1/discovery/personalized')
+  return http.get<PersonalizedRecommendations>('/api/v1/discovery/personalized')
 }
 
 /**
@@ -33,12 +25,8 @@ export function getPersonalizedRecommendations() {
  */
 export function getNewReleases(params?: { page?: number; size?: number; categoryId?: string }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: any[]
-      total: number
-    }
+    list: any[]
+    total: number
   }>('/api/v1/discovery/new-releases', { params })
 }
 
@@ -47,12 +35,8 @@ export function getNewReleases(params?: { page?: number; size?: number; category
  */
 export function getEditorsPick(params?: { page?: number; size?: number; tag?: string }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: any[]
-      total: number
-    }
+    list: any[]
+    total: number
   }>('/api/v1/discovery/editors-pick', { params })
 }
 
@@ -60,11 +44,7 @@ export function getEditorsPick(params?: { page?: number; size?: number; tag?: st
  * 获取热门榜单
  */
 export function getTrending(params?: { type?: 'daily' | 'weekly' | 'monthly'; limit?: number }) {
-  return http.get<{
-    code: number
-    message: string
-    data: any[]
-  }>('/api/v1/discovery/trending', { params })
+  return http.get<any[]>('/api/v1/discovery/trending', { params })
 }
 
 /**
@@ -72,12 +52,8 @@ export function getTrending(params?: { type?: 'daily' | 'weekly' | 'monthly'; li
  */
 export function getTopics(params?: { page?: number; size?: number }) {
   return http.get<{
-    code: number
-    message: string
-    data: {
-      list: any[]
-      total: number
-    }
+    list: any[]
+    total: number
   }>('/api/v1/discovery/topics', { params })
 }
 
@@ -85,11 +61,7 @@ export function getTopics(params?: { page?: number; size?: number }) {
  * 更新推荐偏好
  */
 export function updateRecommendationConfig(config: Partial<RecommendationConfig>) {
-  return http.put<{
-    code: number
-    message: string
-    data: RecommendationConfig
-  }>('/api/v1/discovery/preferences', config)
+  return http.put<RecommendationConfig>('/api/v1/discovery/preferences', config)
 }
 
 /**
@@ -100,8 +72,5 @@ export function trackRecommendationAction(data: {
   itemType: 'book' | 'booklist' | 'author'
   action: 'view' | 'click' | 'like' | 'dislike'
 }) {
-  return http.post<{
-    code: number
-    message: string
-  }>('/api/v1/discovery/track', data)
+  return http.post<void>('/api/v1/discovery/track', data)
 }

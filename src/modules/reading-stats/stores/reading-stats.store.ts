@@ -27,10 +27,8 @@ export const useReadingStatsStore = defineStore('readingStats', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await readingStatsApi.getReadingStats(period)
-      if (response.data.code === 0) {
-        stats.value = response.data.data
-      }
+      const data = await readingStatsApi.getReadingStats(period)
+      stats.value = data
     } catch (err) {
       error.value = err as Error
       console.error('获取阅读统计失败:', err)
@@ -45,10 +43,8 @@ export const useReadingStatsStore = defineStore('readingStats', () => {
   async function fetchReport(period: StatsPeriod = 'weekly') {
     loading.value = true
     try {
-      const response = await readingStatsApi.getReadingReport(period)
-      if (response.data.code === 0) {
-        report.value = response.data.data
-      }
+      const data = await readingStatsApi.getReadingReport(period)
+      report.value = data
     } catch (err) {
       console.error('获取阅读报告失败:', err)
     } finally {
@@ -82,10 +78,8 @@ export const useReadingStatsStore = defineStore('readingStats', () => {
    */
   async function fetchRanking(type: 'daily' | 'weekly' | 'monthly' = 'weekly') {
     try {
-      const response = await readingStatsApi.getReadingRanking({ type })
-      if (response.data.code === 0) {
-        ranking.value = response.data.data
-      }
+      const data = await readingStatsApi.getReadingRanking({ type })
+      ranking.value = data
     } catch (err) {
       console.error('获取阅读排行失败:', err)
     }
@@ -98,9 +92,7 @@ export const useReadingStatsStore = defineStore('readingStats', () => {
     loading.value = true
     try {
       const response = await readingStatsApi.getReadingHistory()
-      if (response.data.code === 0) {
-        history.value = response.data.data.list
-      }
+      history.value = response.list
     } catch (err) {
       console.error('获取阅读历史失败:', err)
     } finally {

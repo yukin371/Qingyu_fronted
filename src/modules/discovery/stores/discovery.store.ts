@@ -28,10 +28,8 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await discoveryApi.getRecommendations()
-      if (response.data.code === 0) {
-        recommendations.value = response.data.data
-      }
+      const data = await discoveryApi.getRecommendations()
+      recommendations.value = data
     } catch (err) {
       error.value = err as Error
       console.error('获取推荐失败:', err)
@@ -46,10 +44,8 @@ export const useDiscoveryStore = defineStore('discovery', () => {
   async function fetchPersonalized() {
     loading.value = true
     try {
-      const response = await discoveryApi.getPersonalizedRecommendations()
-      if (response.data.code === 0) {
-        personalized.value = response.data.data
-      }
+      const data = await discoveryApi.getPersonalizedRecommendations()
+      personalized.value = data
     } catch (err) {
       console.error('获取个性化推荐失败:', err)
     } finally {
@@ -64,9 +60,7 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     loading.value = true
     try {
       const response = await discoveryApi.getNewReleases()
-      if (response.data.code === 0) {
-        newReleases.value = response.data.data.list
-      }
+      newReleases.value = response.list
     } catch (err) {
       console.error('获取新书推荐失败:', err)
     } finally {
@@ -81,9 +75,7 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     loading.value = true
     try {
       const response = await discoveryApi.getEditorsPick()
-      if (response.data.code === 0) {
-        editorsPick.value = response.data.data.list
-      }
+      editorsPick.value = response.list
     } catch (err) {
       console.error('获取编辑推荐失败:', err)
     } finally {
@@ -96,10 +88,8 @@ export const useDiscoveryStore = defineStore('discovery', () => {
    */
   async function fetchTrending(type: 'daily' | 'weekly' | 'monthly' = 'daily') {
     try {
-      const response = await discoveryApi.getTrending({ type })
-      if (response.data.code === 0) {
-        trending.value = response.data.data
-      }
+      const data = await discoveryApi.getTrending({ type })
+      trending.value = data
     } catch (err) {
       console.error('获取热门榜单失败:', err)
     }
@@ -111,9 +101,7 @@ export const useDiscoveryStore = defineStore('discovery', () => {
   async function fetchTopics() {
     try {
       const response = await discoveryApi.getTopics()
-      if (response.data.code === 0) {
-        topics.value = response.data.data.list
-      }
+      topics.value = response.list
     } catch (err) {
       console.error('获取话题列表失败:', err)
     }
