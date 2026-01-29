@@ -32,12 +32,12 @@ class ErrorReporter {
     const report: ErrorReport = {
       errorCode: error.code,
       errorMessage: error.message,
-      errorType: error.error,
+      errorType: 'api', // API错误类型
       url: context?.url || window.location.href,
       userAgent: navigator.userAgent,
       userId: context?.userId || this.getUserId(),
-      timestamp: error.timestamp || new Date().toISOString(),
-      details: error.details
+      timestamp: new Date(error.timestamp).toISOString(),
+      details: error.details ? { message: error.details } : undefined
     }
 
     this.queue.push(report)
