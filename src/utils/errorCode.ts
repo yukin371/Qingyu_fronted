@@ -1,6 +1,6 @@
 /**
  * 错误码映射模块
- * 将后端6位数字错误码映射为前端字符串错误码
+ * 将后端4位数字错误码映射为前端字符串错误码
  * 支持国际化错误消息
  */
 
@@ -26,65 +26,75 @@ function getUseI18n(): UseI18nFunction | null {
 }
 
 // ============================================
-// 后端错误码定义（与后端 pkg/errors/codes.go 保持一致）
+// 后端错误码定义（与后端 pkg/response/codes.go 保持一致）
 // ============================================
 
 /**
  * 后端错误码枚举
- * 格式：6位数字，前2位表示类别，后4位为具体编号
+ * 格式：4位数字
+ * 分类规则：
+ *   0       - 成功
+ *   1xxx    - 通用客户端错误 (1000-1999)
+ *   2xxx    - 用户相关错误 (2000-2999)
+ *   3xxx    - 业务逻辑错误 (3000-3999)
+ *   4xxx    - 频率限制错误 (4000-4999)
+ *   5xxx    - 服务端错误 (5000-5999)
  */
 export enum BackendErrorCode {
   // 成功
   SUCCESS = 0,
 
-  // 10xxxx - 客户端错误（通用）
-  INVALID_PARAMS = 100001,
-  INVALID_REQUEST_BODY = 100002,
-  INVALID_QUERY_PARAMS = 100003,
-  MISSING_REQUIRED_FIELD = 100004,
+  // 通用客户端错误 (1000-1999)
+  INVALID_PARAMS = 1001, // 参数错误
+  UNAUTHORIZED = 1002, // 未授权
+  FORBIDDEN = 1003, // 禁止访问
+  NOT_FOUND = 1004, // 资源不存在（通用）
+  ALREADY_EXISTS = 1005, // 资源已存在
+  CONFLICT = 1006, // 资源冲突
+  INVALID_OPERATION = 1007, // 无效操作
 
-  // 11xxxx - 客户端错误（认证授权）
-  UNAUTHORIZED = 110001,
-  FORBIDDEN = 110002,
-  INVALID_CREDENTIALS = 110101,
-  TOKEN_EXPIRED = 110102,
-  TOKEN_INVALID = 110103,
-  TOKEN_MISSING = 110104,
-  PASSWORD_TOO_WEAK = 110105,
-  ACCOUNT_LOCKED = 110106,
-  ACCOUNT_DISABLED = 110107,
-  SESSION_EXPIRED = 110108,
-  PERMISSION_DENIED = 110109,
+  // 用户相关错误 (2000-2999)
+  USER_NOT_FOUND = 2001, // 用户不存在
+  INVALID_CREDENTIALS = 2002, // 用户名或密码错误
+  EMAIL_ALREADY_USED = 2003, // 邮箱已被使用
+  EMAIL_SEND_FAILED = 2004, // 邮件发送失败
+  INVALID_CODE = 2005, // 验证码无效
+  CODE_EXPIRED = 2006, // 验证码过期
+  TOKEN_EXPIRED = 2007, // Token过期
+  TOKEN_INVALID = 2008, // Token无效
+  PASSWORD_TOO_WEAK = 2009, // 密码强度不足
+  ACCOUNT_LOCKED = 2010, // 账户已锁定
+  ACCOUNT_DISABLED = 2011, // 账户已禁用
 
-  // 12xxxx - 客户端错误（资源操作）
-  NOT_FOUND = 120001,
-  ALREADY_EXISTS = 120002,
-  CONFLICT = 120003,
-  RESOURCE_GONE = 120004,
-  RESOURCE_LOCKED = 120005,
+  // 评分相关错误 (2500-2599)
+  RATING_NOT_FOUND = 2501, // 评分不存在
+  RATING_INVALID = 2502, // 评分值无效（不在1-5范围）
+  RATING_ALREADY_EXISTS = 2503, // 用户已评分
+  RATING_UNAUTHORIZED = 2504, // 无权操作此评分
+  RATING_TARGET_NOT_FOUND = 2505, // 评分目标不存在
 
-  // 13xxxx - 客户端错误（业务逻辑）
-  INSUFFICIENT_BALANCE = 130001,
-  INSUFFICIENT_QUOTA = 130002,
-  WALLET_FROZEN = 130003,
-  CONTENT_NOT_PUBLISHED = 130004,
-  CHAPTER_LOCKED = 130005,
-  OPERATION_NOT_ALLOWED = 130006,
-  RATE_LIMIT_EXCEEDED = 130007,
+  // 业务逻辑错误 (3000-3999)
+  BOOK_NOT_FOUND = 3001, // 书籍不存在
+  CHAPTER_NOT_FOUND = 3002, // 章节不存在
+  INSUFFICIENT_BALANCE = 3003, // 余额不足
+  INSUFFICIENT_QUOTA = 3010, // 配额不足
+  WALLET_FROZEN = 3011, // 钱包已冻结
+  CONTENT_NOT_PUBLISHED = 3012, // 内容未发布
+  CHAPTER_LOCKED = 3013, // 章节已锁定
+  CONTENT_PENDING_REVIEW = 3014, // 内容待审核
+  CONTENT_REJECTED = 3015, // 内容被拒绝
+  CONTENT_VIOLATION = 3016, // 内容违规
 
-  // 14xxxx - 客户端错误（内容审核）
-  CONTENT_PENDING_REVIEW = 140001,
-  CONTENT_REJECTED = 140002,
-  CONTENT_VIOLATION = 140003,
-  CONTENT_SPAM = 140004,
+  // 频率限制错误 (4000-4999)
+  RATE_LIMIT_EXCEEDED = 4290, // 频率限制超出
+  HOURLY_LIMIT_EXCEEDED = 4291, // 小时级限制超出
 
-  // 99xxxx - 服务器错误
-  INTERNAL_ERROR = 990001,
-  DATABASE_ERROR = 990002,
-  REDIS_ERROR = 990003,
-  EXTERNAL_API_ERROR = 990004,
-  SERVICE_UNAVAILABLE = 990005,
-  TIMEOUT_ERROR = 990006
+  // 服务端错误 (5000-5999)
+  INTERNAL_ERROR = 5000, // 内部错误
+  DATABASE_ERROR = 5001, // 数据库错误
+  SERVICE_UNAVAILABLE = 5002, // 服务不可用
+  REDIS_ERROR = 5003, // Redis错误
+  EXTERNAL_API_ERROR = 5004, // 外部API错误
 }
 
 // ============================================
@@ -146,54 +156,57 @@ export enum FrontendErrorCode {
  * 后端错误码到前端错误码的映射关系
  */
 export const errorCodeMap: Record<number, FrontendErrorCode> = {
-  // 10xxxx - 客户端错误（通用）
+  // 通用客户端错误 (1000-1999)
   [BackendErrorCode.INVALID_PARAMS]: FrontendErrorCode.VALIDATION_ERROR,
-  [BackendErrorCode.INVALID_REQUEST_BODY]: FrontendErrorCode.BAD_REQUEST,
-  [BackendErrorCode.INVALID_QUERY_PARAMS]: FrontendErrorCode.BAD_REQUEST,
-  [BackendErrorCode.MISSING_REQUIRED_FIELD]: FrontendErrorCode.VALIDATION_ERROR,
-
-  // 11xxxx - 客户端错误（认证授权）
   [BackendErrorCode.UNAUTHORIZED]: FrontendErrorCode.UNAUTHORIZED,
   [BackendErrorCode.FORBIDDEN]: FrontendErrorCode.FORBIDDEN,
-  [BackendErrorCode.INVALID_CREDENTIALS]: FrontendErrorCode.UNAUTHORIZED,
-  [BackendErrorCode.TOKEN_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
-  [BackendErrorCode.TOKEN_INVALID]: FrontendErrorCode.TOKEN_INVALID,
-  [BackendErrorCode.TOKEN_MISSING]: FrontendErrorCode.UNAUTHORIZED,
-  [BackendErrorCode.PASSWORD_TOO_WEAK]: FrontendErrorCode.VALIDATION_ERROR,
-  [BackendErrorCode.ACCOUNT_LOCKED]: FrontendErrorCode.ACCOUNT_LOCKED,
-  [BackendErrorCode.ACCOUNT_DISABLED]: FrontendErrorCode.ACCOUNT_DISABLED,
-  [BackendErrorCode.SESSION_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
-  [BackendErrorCode.PERMISSION_DENIED]: FrontendErrorCode.FORBIDDEN,
-
-  // 12xxxx - 客户端错误（资源操作）
   [BackendErrorCode.NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
   [BackendErrorCode.ALREADY_EXISTS]: FrontendErrorCode.RESOURCE_EXISTS,
   [BackendErrorCode.CONFLICT]: FrontendErrorCode.CONFLICT,
-  [BackendErrorCode.RESOURCE_GONE]: FrontendErrorCode.RESOURCE_GONE,
-  [BackendErrorCode.RESOURCE_LOCKED]: FrontendErrorCode.CONTENT_LOCKED,
+  [BackendErrorCode.INVALID_OPERATION]: FrontendErrorCode.BAD_REQUEST,
 
-  // 13xxxx - 客户端错误（业务逻辑）
+  // 用户相关错误 (2000-2999)
+  [BackendErrorCode.USER_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.INVALID_CREDENTIALS]: FrontendErrorCode.UNAUTHORIZED,
+  [BackendErrorCode.EMAIL_ALREADY_USED]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.EMAIL_SEND_FAILED]: FrontendErrorCode.EXTERNAL_ERROR,
+  [BackendErrorCode.INVALID_CODE]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.CODE_EXPIRED]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.TOKEN_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
+  [BackendErrorCode.TOKEN_INVALID]: FrontendErrorCode.TOKEN_INVALID,
+  [BackendErrorCode.PASSWORD_TOO_WEAK]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.ACCOUNT_LOCKED]: FrontendErrorCode.ACCOUNT_LOCKED,
+  [BackendErrorCode.ACCOUNT_DISABLED]: FrontendErrorCode.ACCOUNT_DISABLED,
+
+  // 评分相关错误 (2500-2599)
+  [BackendErrorCode.RATING_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.RATING_INVALID]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.RATING_ALREADY_EXISTS]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.RATING_UNAUTHORIZED]: FrontendErrorCode.FORBIDDEN,
+  [BackendErrorCode.RATING_TARGET_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+
+  // 业务逻辑错误 (3000-3999)
+  [BackendErrorCode.BOOK_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.CHAPTER_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
   [BackendErrorCode.INSUFFICIENT_BALANCE]: FrontendErrorCode.INSUFFICIENT_BALANCE,
   [BackendErrorCode.INSUFFICIENT_QUOTA]: FrontendErrorCode.INSUFFICIENT_QUOTA,
   [BackendErrorCode.WALLET_FROZEN]: FrontendErrorCode.WALLET_FROZEN,
   [BackendErrorCode.CONTENT_NOT_PUBLISHED]: FrontendErrorCode.CONTENT_LOCKED,
   [BackendErrorCode.CHAPTER_LOCKED]: FrontendErrorCode.CONTENT_LOCKED,
-  [BackendErrorCode.OPERATION_NOT_ALLOWED]: FrontendErrorCode.FORBIDDEN,
-  [BackendErrorCode.RATE_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
-
-  // 14xxxx - 客户端错误（内容审核）
   [BackendErrorCode.CONTENT_PENDING_REVIEW]: FrontendErrorCode.CONTENT_PENDING,
   [BackendErrorCode.CONTENT_REJECTED]: FrontendErrorCode.CONTENT_REJECTED,
   [BackendErrorCode.CONTENT_VIOLATION]: FrontendErrorCode.CONTENT_VIOLATION,
-  [BackendErrorCode.CONTENT_SPAM]: FrontendErrorCode.CONTENT_VIOLATION,
 
-  // 99xxxx - 服务器错误
+  // 频率限制错误 (4000-4999)
+  [BackendErrorCode.RATE_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.HOURLY_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+
+  // 服务端错误 (5000-5999)
   [BackendErrorCode.INTERNAL_ERROR]: FrontendErrorCode.SERVER_ERROR,
   [BackendErrorCode.DATABASE_ERROR]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.SERVICE_UNAVAILABLE]: FrontendErrorCode.SERVICE_UNAVAILABLE,
   [BackendErrorCode.REDIS_ERROR]: FrontendErrorCode.SERVER_ERROR,
   [BackendErrorCode.EXTERNAL_API_ERROR]: FrontendErrorCode.EXTERNAL_ERROR,
-  [BackendErrorCode.SERVICE_UNAVAILABLE]: FrontendErrorCode.SERVICE_UNAVAILABLE,
-  [BackendErrorCode.TIMEOUT_ERROR]: FrontendErrorCode.TIMEOUT
 }
 
 // ============================================
@@ -227,25 +240,36 @@ export const httpStatusCodeMap: Record<number, FrontendErrorCode> = {
  * 用于处理未明确定义的后端错误码
  */
 export function getFrontendCodeByRange(backendCode: number): FrontendErrorCode {
-  // 根据错误码范围判断
-  if (backendCode >= 100000 && backendCode < 110000) {
+  // 成功
+  if (backendCode === 0) {
+    return FrontendErrorCode.UNKNOWN_ERROR // 成功不应该调用此函数
+  }
+
+  // 通用客户端错误 (1000-1999)
+  if (backendCode >= 1000 && backendCode < 2000) {
     return FrontendErrorCode.BAD_REQUEST
   }
-  if (backendCode >= 110000 && backendCode < 120000) {
+
+  // 用户相关错误 (2000-2999)
+  if (backendCode >= 2000 && backendCode < 3000) {
     return FrontendErrorCode.UNAUTHORIZED
   }
-  if (backendCode >= 120000 && backendCode < 130000) {
-    return FrontendErrorCode.NOT_FOUND
-  }
-  if (backendCode >= 130000 && backendCode < 140000) {
+
+  // 业务逻辑错误 (3000-3999)
+  if (backendCode >= 3000 && backendCode < 4000) {
     return FrontendErrorCode.BAD_REQUEST
   }
-  if (backendCode >= 140000 && backendCode < 150000) {
-    return FrontendErrorCode.CONTENT_REJECTED
+
+  // 频率限制错误 (4000-4999)
+  if (backendCode >= 4000 && backendCode < 5000) {
+    return FrontendErrorCode.RATE_LIMITED
   }
-  if (backendCode >= 990000 && backendCode < 1000000) {
+
+  // 服务端错误 (5000-5999)
+  if (backendCode >= 5000 && backendCode < 6000) {
     return FrontendErrorCode.SERVER_ERROR
   }
+
   return FrontendErrorCode.UNKNOWN_ERROR
 }
 
@@ -255,7 +279,7 @@ export function getFrontendCodeByRange(backendCode: number): FrontendErrorCode {
 
 /**
  * 将后端错误码转换为前端错误码
- * @param backendCode - 后端6位数字错误码
+ * @param backendCode - 后端4位数字错误码
  * @param httpStatus - HTTP状态码（可选，用于兜底）
  * @returns 前端错误码
  */
