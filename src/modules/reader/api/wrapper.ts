@@ -169,6 +169,11 @@ export async function getChapterByNumber(
 // ==================== 书签相关 API ====================
 
 export const getBookmarks = api.getApiV1ReaderBookmarks
+
+/**
+ * 获取用户书签（别名）
+ */
+export const getUserBookmarks = getBookmarks
 export const getBookmark = api.getApiV1ReaderBookmarksId
 export const addBookToBookmarks = api.postApiV1ReaderBooksBookIdBookmarks
 export const updateBookmark = api.putApiV1ReaderBookmarksId
@@ -236,6 +241,19 @@ export async function getReadingHistory(
  */
 export async function clearReadingHistory(): Promise<APIResponse<void>> {
   return api.deleteApiV1ReaderReadingHistory() as any
+}
+
+/**
+ * 清除阅读历史（别名，兼容旧API: clearHistory）
+ */
+export const clearHistory = clearReadingHistory
+
+/**
+ * 删除单条阅读历史
+ * 兼容旧API: deleteHistory(id)
+ */
+export async function deleteHistory(id: string): Promise<APIResponse<void>> {
+  return api.deleteApiV1ReaderReadingHistoryId(id) as any
 }
 
 /**

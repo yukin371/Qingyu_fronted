@@ -9,7 +9,7 @@ import type {
   ReviewItem,
   WithdrawalRequest
 } from '../types/admin.types'
-import type { APIResponse } from '@/core/types/api.types'
+import type { APIResponse } from '@/types/api'
 
 class AdminService {
   /**

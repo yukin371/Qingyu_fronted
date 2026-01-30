@@ -4,7 +4,7 @@
  */
 import { httpService } from '@/core/services/http.service'
 import type { RequestConfig } from '@/core/services/http.service'
-import type { APIResponse } from '@/core/types/api.types'
+import type { APIResponse } from '@/types/api'
 import type { AxiosError } from 'axios'
 
 // 通用请求方法

@@ -13,7 +13,7 @@ import axios, {
 import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth' // 引入 Pinia
 import { ErrorHandler } from '@/utils/errorHandler'
-import type { APIResponse } from '@/core/types/api.types' // 引入统一类型
+import type { APIResponse } from '@/types/api' // 引入统一类型
 import { convertObjectKeysToCamelCase } from '@/utils/caseConverter' // 引入字段名转换工具
 import { errorReporter } from './error-reporter' // 引入错误上报服务
 
