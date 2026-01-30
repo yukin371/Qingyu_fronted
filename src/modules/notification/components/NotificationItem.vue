@@ -4,7 +4,7 @@
     :class="{ unread: !notification.isRead, selected }"
     @click="handleClick"
   >
-    <!-- 选择框 -->
+    <!-- TODO: 替换为Qingyu组件 qy-checkbox -->
     <el-checkbox
       v-if="showCheckbox"
       :model-value="selected"
@@ -30,12 +30,12 @@
 
       <!-- 操作按钮 -->
       <div v-if="!notification.isRead" class="notification-actions">
-        <el-button type="primary" size="small" @click.stop="handleMarkRead">
+        <QyButton variant="primary" size="sm" @click.stop="handleMarkRead">
           标为已读
-        </el-button>
-        <el-button size="small" @click.stop="handleDelete">
+        </QyButton>
+        <QyButton size="sm" @click.stop="handleDelete">
           删除
-        </el-button>
+        </QyButton>
       </div>
     </div>
   </div>
@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyButton } from '@/design-system/components'
 import type { NotificationMessage, NotificationType } from '@/types/notification'
 
 interface Props {
@@ -227,11 +227,6 @@ const handleDelete = () => {
   display: flex;
   gap: 8px;
   margin-top: 8px;
-
-  .el-button {
-    padding: 4px 12px;
-    font-size: 12px;
-  }
 }
 
 // 响应式
@@ -255,11 +250,6 @@ const handleDelete = () => {
 
   .notification-actions {
     flex-wrap: wrap;
-
-    .el-button {
-      flex: 1;
-      min-width: 60px;
-    }
   }
 }
 </style>

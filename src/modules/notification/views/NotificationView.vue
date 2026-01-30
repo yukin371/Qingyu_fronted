@@ -1,10 +1,11 @@
 <template>
   <div class="notification-container">
-    <el-card>
-      <template #header>
+    <QyCard>
+      <template #title>
         <div class="header-content">
           <h3>通知中心</h3>
           <div class="header-actions">
+            <!-- TODO: 替换为Qingyu组件 qy-dropdown -->
             <el-dropdown @command="handleFilterChange">
               <span class="filter-trigger">
                 {{ currentFilterText }}
@@ -22,20 +23,20 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button
-              type="primary"
-              size="small"
+            <QyButton
+              variant="primary"
+              size="sm"
               @click="handleMarkAllRead"
               :disabled="unreadCount === 0"
             >
               全部已读
-            </el-button>
-            <el-button
-              size="small"
+            </QyButton>
+            <QyButton
+              size="sm"
               @click="showSettingsDialog = true"
             >
               <QyIcon name="Setting"  />
-            </el-button>
+            </QyButton>
           </div>
         </div>
       </template>
@@ -44,15 +45,15 @@
       <div class="toolbar" v-if="selectedIds.length > 0">
         <span class="selection-info">已选择 {{ selectedIds.length }} 条通知</span>
         <div class="toolbar-actions">
-          <el-button size="small" @click="handleBatchMarkRead">
+          <QyButton size="sm" @click="handleBatchMarkRead">
             标记已读
-          </el-button>
-          <el-button size="small" type="danger" @click="handleBatchDelete">
+          </QyButton>
+          <QyButton size="sm" variant="danger" @click="handleBatchDelete">
             删除
-          </el-button>
-          <el-button size="small" @click="selectedIds = []">
+          </QyButton>
+          <QyButton size="sm" @click="selectedIds = []">
             取消选择
-          </el-button>
+          </QyButton>
         </div>
       </div>
 
@@ -68,6 +69,7 @@
           ]"
           @click="handleNotificationClick(notification)"
         >
+          <!-- TODO: 替换为Qingyu组件 qy-checkbox -->
           <el-checkbox
             :model-value="selectedIds.includes(notification.id)"
             @change="handleSelectChange(notification.id, $event)"
@@ -85,21 +87,20 @@
               <span :class="{ 'title-unread': notification.status === 'unread' }">
                 {{ notification.title }}
               </span>
-              <el-tag
+              <QyTag
                 v-if="notification.priority === 'high'"
-                type="danger"
-                size="small"
+                variant="danger"
+                size="sm"
               >
                 重要
-              </el-tag>
-              <el-tag
+              </QyTag>
+              <QyTag
                 v-else-if="notification.priority === 'urgent'"
-                type="danger"
-                size="small"
-                effect="dark"
+                variant="danger"
+                size="sm"
               >
                 紧急
-              </el-tag>
+              </QyTag>
             </div>
             <div class="notification-text">
               {{ notification.content }}
@@ -107,40 +108,40 @@
             <div class="notification-meta">
               <span class="notification-time">{{ formatRelativeTime(notification.created_at) }}</span>
               <div class="notification-actions">
-                <el-button
+                <QyButton
                   v-if="notification.status === 'unread'"
-                  type="primary"
-                  link
-                  size="small"
+                  variant="primary"
+                  size="sm"
                   @click.stop="handleMarkAsRead(notification.id)"
                 >
                   标记已读
-                </el-button>
-                <el-button
-                  type="danger"
-                  link
-                  size="small"
+                </QyButton>
+                <QyButton
+                  variant="danger"
+                  size="sm"
                   @click.stop="handleDelete(notification.id)"
                 >
                   删除
-                </el-button>
+                </QyButton>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 空状态 -->
-        <el-empty
+        <QyEmpty
           v-if="!loading && notifications.length === 0"
           :description="emptyText"
         >
-          <el-button v-if="currentFilter !== 'all'" type="primary" @click="handleFilterChange('all')">
-            查看全部通知
-          </el-button>
-        </el-empty>
+          <template #action>
+            <QyButton v-if="currentFilter !== 'all'" variant="primary" @click="handleFilterChange('all')">
+              查看全部通知
+            </QyButton>
+          </template>
+        </QyEmpty>
       </div>
 
-      <!-- 分页 -->
+      <!-- TODO: 替换为Qingyu组件 qy-pagination -->
       <el-pagination
         v-if="total > 0"
         v-model:current-page="currentPage"
@@ -150,14 +151,15 @@
         @current-change="loadNotifications"
         class="pagination"
       />
-    </el-card>
+    </QyCard>
 
     <!-- 设置对话框 -->
-    <el-dialog
-      v-model="showSettingsDialog"
+    <QyModal
+      v-model:visible="showSettingsDialog"
       title="通知设置"
       width="500px"
     >
+      <!-- TODO: 替换为Qingyu组件 qy-form, qy-form-item, qy-switch, qy-divider, qy-time-picker -->
       <el-form :model="preferences" label-width="100px">
         <h4>通知渠道</h4>
         <el-form-item label="站内通知">
@@ -215,19 +217,19 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="showSettingsDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveSettings">
+        <QyButton @click="showSettingsDialog = false">取消</QyButton>
+        <QyButton variant="primary" @click="handleSaveSettings">
           保存
-        </el-button>
+        </QyButton>
       </template>
-    </el-dialog>
+    </QyModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyCard, QyButton, QyTag, QyEmpty, QyModal } from '@/design-system/components'
 import {
   getNotifications,
   getUnreadCount,

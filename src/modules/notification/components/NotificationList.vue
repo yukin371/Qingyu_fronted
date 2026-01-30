@@ -16,38 +16,39 @@
 
     <!-- 批量操作栏 -->
     <div v-if="notifications.length > 0" class="action-bar">
+      <!-- TODO: 替换为Qingyu组件 qy-checkbox -->
       <el-checkbox v-model="selectAll" @change="handleSelectAll">
         全选
       </el-checkbox>
       <div class="actions">
-        <el-button
+        <QyButton
           v-if="selectedCount > 0"
-          type="primary"
-          size="small"
+          variant="primary"
+          size="sm"
           @click="handleMarkSelectedRead"
         >
           标记已读
-        </el-button>
-        <el-button
+        </QyButton>
+        <QyButton
           v-if="selectedCount > 0"
-          type="danger"
-          size="small"
+          variant="danger"
+          size="sm"
           @click="handleDeleteSelected"
         >
           删除
-        </el-button>
-        <el-button
-          size="small"
+        </QyButton>
+        <QyButton
+          size="sm"
           @click="handleMarkAllRead"
         >
           全部已读
-        </el-button>
-        <el-button
-          size="small"
+        </QyButton>
+        <QyButton
+          size="sm"
           @click="handleClearAll"
         >
           清空
-        </el-button>
+        </QyButton>
       </div>
     </div>
 
@@ -67,30 +68,27 @@
     </div>
 
     <!-- 空状态 -->
-    <el-empty
+    <QyEmpty
       v-if="!loading && notifications.length === 0"
       :description="emptyText"
-      :image-size="120"
     >
-      <template #image>
-        <el-icon :size="120" color="#ddd">
-          <QyIcon name="Bell"  />
-        </el-icon>
+      <template #icon>
+        <QyIcon name="Bell" :size="120" color="#ddd" />
       </template>
-    </el-empty>
+    </QyEmpty>
 
     <!-- 加载更多 -->
     <div v-if="hasMore" class="load-more">
-      <el-button @click="handleLoadMore" :loading="loadingMore">
+      <QyButton @click="handleLoadMore" :loading="loadingMore">
         加载更多
-      </el-button>
+      </QyButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyButton, QyEmpty } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
 import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/stores/notification'
