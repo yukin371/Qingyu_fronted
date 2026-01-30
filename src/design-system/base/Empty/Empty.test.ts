@@ -9,9 +9,9 @@
  * - 插槽内容
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, fireEvent } from '@testing-library/vue'
-import { BaseEmpty } from './index'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
+import { Empty as BaseEmpty } from './index'
 
 describe('BaseEmpty', () => {
   describe('基础渲染', () => {

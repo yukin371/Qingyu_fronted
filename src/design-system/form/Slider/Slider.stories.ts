@@ -7,7 +7,7 @@ import Slider from './Slider.vue'
  * 展示所有尺寸、颜色和功能
  */
 
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const meta = {
   title: 'Design System/Form/Slider',

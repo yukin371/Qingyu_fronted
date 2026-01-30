@@ -9,9 +9,9 @@
  * - 数字徽标
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render } from '@testing-library/vue'
-import { BaseBadge } from './index'
+import { Badge as BaseBadge } from './index'
 
 describe('BaseBadge', () => {
   describe('基础渲染', () => {

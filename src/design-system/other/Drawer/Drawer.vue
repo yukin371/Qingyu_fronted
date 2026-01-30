@@ -6,7 +6,7 @@
  */
 
 import { computed, watch, nextTick, ref, onMounted, onUnmounted } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { DrawerProps, DrawerEmits, DrawerDirection } from './types'
 import { Icon } from '../../base/Icon'
@@ -89,7 +89,7 @@ const sizeStyle = computed(() => {
 const transformStyle = computed(() => {
   const direction = props.rtl && props.direction === 'right' ? 'left' : props.direction
 
-  if (isVisible.value && !isAnimating) {
+  if (isVisible.value && !isAnimating.value) {
     return {}
   }
 
@@ -117,7 +117,7 @@ const modalClasses = computed(() =>
 
 // 计算遮罩层透明度
 const modalOpacity = computed(() => {
-  return isVisible.value && !isAnimating ? 'opacity-100' : 'opacity-0'
+  return isVisible.value && !isAnimating.value ? 'opacity-100' : 'opacity-0'
 })
 
 // 监听 modelValue 变化
@@ -131,7 +131,7 @@ watch(() => props.modelValue, (newVal) => {
 
 // 监听内部状态变化同步到父组件
 watch(isVisible, (newVal) => {
-  if (!isAnimating) {
+  if (!isAnimating.value) {
     emit('update:modelValue', newVal)
   }
 })

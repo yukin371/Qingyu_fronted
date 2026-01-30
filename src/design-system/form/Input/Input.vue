@@ -6,7 +6,7 @@
  */
 
 import { computed, ref } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
 import type { InputProps, InputEmits } from './types'

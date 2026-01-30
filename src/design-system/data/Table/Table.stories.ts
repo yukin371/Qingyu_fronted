@@ -2,7 +2,7 @@
  * Table 组件 Storybook 故事
  */
 
-import { ref } from 'vue'
+import { ref, computed, h } from 'vue'
 
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Table from './Table.vue'

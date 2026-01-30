@@ -8,7 +8,7 @@ import type { AnchorItem } from './types'
  * 展示锚点组件的各种用法和配置
  */
 
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const meta = {
   title: 'Design System/Other/Anchor',

@@ -6,7 +6,7 @@
  */
 
 import { computed, ref, watch, nextTick } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { SelectProps, SelectEmits, SelectSlots, SelectOption } from './types'
 

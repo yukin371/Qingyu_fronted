@@ -5,7 +5,7 @@
  * 通用的下拉菜单组件，支持多种触发方式和位置
  */
 
-import { ref, computed, watch, onMounted, onUnmounted, provide, type Ref } from 'vue'
+import { ref, computed, watch, provide } from 'vue'
 import { cn } from '../../utils/cn'
 import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
 

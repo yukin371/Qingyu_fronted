@@ -5,8 +5,8 @@
  * 时间选择器组件，支持单时间和时间范围选择
  */
 
-import { computed, ref, watch } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { computed, ref, } from 'vue'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
 import type { TimePickerProps, TimePickerEmits, TimePickerValue } from './types'

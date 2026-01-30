@@ -10,22 +10,14 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import {
   generateMonthView,
-  isSameDay,
   cloneDate,
-  addMonths,
-  addYears,
-  formatDate,
   stringToDate,
-  isValidDate,
   compareDates,
-  getMonthText,
-  getYearText,
   getWeekdayText,
   getPreviousMonth,
   getNextMonth,
   getPreviousYear,
   getNextYear,
-  isToday,
 } from './utils'
 import type { CalendarProps, CalendarEmits, CalendarValue, DateCell, WeekDay } from './types'
 import { zhCN, locales } from './types'

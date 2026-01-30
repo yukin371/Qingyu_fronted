@@ -2,7 +2,7 @@
  * Spinner 组件单元测试
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render, screen } from '@testing-library/vue'
 import Spinner from '../Spinner.vue'
 

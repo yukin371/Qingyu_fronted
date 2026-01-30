@@ -9,7 +9,6 @@ import router from './router'
 
 // Qingyu 全局服务
 import { message, messageBox, notification } from '@/design-system/services'
-import type { App as AppType } from 'vue'
 
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'

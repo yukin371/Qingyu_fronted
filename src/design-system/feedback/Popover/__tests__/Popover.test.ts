@@ -2,8 +2,8 @@
  * Popover 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
 import Popover from '../Popover.vue'
 
 describe('Popover 组件', () => {

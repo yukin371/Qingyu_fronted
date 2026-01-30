@@ -2,9 +2,8 @@
  * Message 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
-import { h } from 'vue'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
 import Message from '../Message.vue'
 
 describe('Message 组件', () => {

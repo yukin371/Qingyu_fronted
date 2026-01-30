@@ -9,9 +9,9 @@
  * - 自定义样式
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render } from '@testing-library/vue'
-import { BaseCard } from './index'
+import { Card as BaseCard } from './index'
 
 describe('BaseCard', () => {
   describe('基础渲染', () => {

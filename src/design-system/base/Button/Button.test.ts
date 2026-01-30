@@ -10,9 +10,9 @@
  * - 可访问性
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, fireEvent, waitFor } from '@testing-library/vue'
-import { BaseButton } from './index'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
+import { Button as BaseButton } from './index'
 
 describe('BaseButton', () => {
   describe('基础渲染', () => {

@@ -3,7 +3,7 @@
  * 验证所有令牌的正确性和一致性
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { colors, primary, secondary, gradient } from '../colors'
 import { qingyuTheme } from '../theme'
 import { spacing, base, component } from '../spacing'

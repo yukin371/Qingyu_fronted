@@ -9,9 +9,9 @@
  * - 多个骨架屏组合
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render } from '@testing-library/vue'
-import { BaseSkeleton } from './index'
+import { Skeleton as BaseSkeleton } from './index'
 
 describe('BaseSkeleton', () => {
   describe('基础渲染', () => {

@@ -7,7 +7,7 @@ import Transfer from './Transfer.vue'
  * 展示所有功能、变体和使用场景
  */
 
-import { ref } from 'vue'
+import { ref, onMounted, h } from 'vue'
 
 const meta = {
   title: 'Design System/Other/Transfer',

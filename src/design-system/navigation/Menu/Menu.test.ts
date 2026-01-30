@@ -2,7 +2,7 @@
  * Menu 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount, VueWrapper } from '@testing-library/vue'
 import { nextTick } from 'vue'
 import Menu from './Menu.vue'

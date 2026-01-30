@@ -2,8 +2,8 @@
  * Breadcrumb 组件单元测试
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/vue'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '../Breadcrumb.vue'
 import BreadcrumbItem from '../BreadcrumbItem.vue'

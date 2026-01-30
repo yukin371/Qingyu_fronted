@@ -7,10 +7,9 @@
  * 重构：使用reactive对象代替嵌套Ref，避免响应式追踪问题
  */
 
-import { computed, provide, reactive, ref, useSlots, watch, type Ref } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { computed, provide, reactive, ref, useSlots, watch } from 'vue'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import Icon from '../../base/Icon/Icon.vue'
 import TreeNodeItem from './TreeNodeItem.vue'
 import type { TreeNode, TreeEmits, TreeProps, TreeNodeState, TreeInstance } from './types'
 import { TREE_CONTEXT_KEY } from './constants'

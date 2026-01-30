@@ -10,9 +10,9 @@
  * - 点击事件
  */
 
-import { describe, it, expect, vi } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render, fireEvent } from '@testing-library/vue'
-import { BaseAvatar } from './index'
+import { Avatar as BaseAvatar } from './index'
 
 describe('BaseAvatar', () => {
   describe('基础渲染', () => {

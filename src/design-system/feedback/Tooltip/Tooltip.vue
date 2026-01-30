@@ -6,7 +6,7 @@
  */
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, useSlots } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { TooltipProps, TooltipPlacement, TooltipTrigger } from './types'
 

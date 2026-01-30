@@ -7,7 +7,7 @@
   >
     <img
       v-if="src"
-      :src="src"
+      v-lazy="src"
       :alt="alt"
       :class="avatarImageClasses"
     />
@@ -39,7 +39,7 @@
     >
       <img
         v-if="avatar.src"
-        :src="avatar.src"
+        v-lazy="avatar.src"
         :alt="avatar.alt || 'Avatar'"
         :class="avatarImageClasses"
       />

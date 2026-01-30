@@ -12,13 +12,11 @@ import type { QyTagProps } from './types'
 const props = withDefaults(defineProps<QyTagProps>(), {
   variant: 'default',
   size: 'md',
-  closable: false,
   disabled: false
 })
 
 // Emits
 const emit = defineEmits<{
-  close: []
 }>()
 
 // Tag classes
@@ -52,13 +50,6 @@ const tagClasses = computed(() => {
     disabled
   ].filter(Boolean).join(' ')
 })
-
-// Handle close
-const handleClose = () => {
-  if (!props.disabled) {
-    emit('close')
-  }
-}
 </script>
 
 <style scoped>

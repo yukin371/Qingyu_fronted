@@ -6,7 +6,7 @@
  */
 
 import { computed, ref, defineComponent, h } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { AlertProps } from './types'
 

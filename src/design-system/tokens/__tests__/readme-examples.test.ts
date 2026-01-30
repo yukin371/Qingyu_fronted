@@ -4,7 +4,7 @@
  * 此测试验证 README.md 中的所有代码示例可以正常运行
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 
 // 示例 1: TypeScript 组件 - 第一个代码示例
 import { colors, spacing, fontSize } from '../index'

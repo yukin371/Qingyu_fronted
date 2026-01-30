@@ -6,7 +6,7 @@
  * 与 Element Plus Select API 兼容
  */
 
-import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { cn } from '../../../utils/cn'
 import type { QySelectProps, QySelectEmits, QySelectSlots, QySelectOption } from './types'
 
@@ -35,7 +35,6 @@ const isDropdownVisible = ref(false)
 const searchText = ref('')
 const selectRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
-const dropdownRef = ref<HTMLElement>()
 const highlightedIndex = ref(-1)
 
 // 过滤后的选项

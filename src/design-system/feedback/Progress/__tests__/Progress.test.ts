@@ -2,15 +2,14 @@
  * Progress 组件单元测试
  */
 
-import { describe, it, expect, vi } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render, screen } from '@testing-library/vue'
-import { h } from 'vue'
 import Progress from '../Progress.vue'
 
 describe('Progress 组件', () => {
   describe('基础渲染', () => {
     it('应该正确渲染默认进度条', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
         },
@@ -22,7 +21,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该渲染 line 类型的进度条', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 50,
@@ -35,7 +34,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该渲染 circle 类型的进度条', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 50,
@@ -47,7 +46,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该渲染 dashboard 类型的进度条', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 50,
@@ -61,7 +60,7 @@ describe('Progress 组件', () => {
 
   describe('百分比显示', () => {
     it('应该正确显示 0%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 0,
         },
@@ -71,7 +70,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确显示 50%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
         },
@@ -81,7 +80,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确显示 100%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 100,
         },
@@ -91,13 +90,13 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确限制超出范围的百分比', () => {
-      const { container: container1 } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 150,
         },
       })
 
-      const { container: container2 } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: -10,
         },
@@ -111,7 +110,7 @@ describe('Progress 组件', () => {
     it('应该应用自定义格式', () => {
       const format = (percentage: number) => `${percentage} / 100`
 
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           format,
@@ -124,7 +123,7 @@ describe('Progress 组件', () => {
 
   describe('进度条宽度', () => {
     it('line 类型应该正确应用宽度百分比', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 50,
@@ -136,7 +135,7 @@ describe('Progress 组件', () => {
     })
 
     it('line 类型应该正确应用 0% 宽度', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 0,
@@ -148,7 +147,7 @@ describe('Progress 组件', () => {
     })
 
     it('line 类型应该正确应用 100% 宽度', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 100,
@@ -162,7 +161,7 @@ describe('Progress 组件', () => {
 
   describe('状态样式', () => {
     it('应该正确应用 success 状态', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 80,
           status: 'success',
@@ -174,7 +173,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 exception 状态', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           status: 'exception',
@@ -186,7 +185,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 warning 状态', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 40,
           status: 'warning',
@@ -198,7 +197,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 active 状态', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 30,
           status: 'active',
@@ -210,7 +209,7 @@ describe('Progress 组件', () => {
     })
 
     it('当百分比达到 100 时应该自动应用 success 状态', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 100,
         },
@@ -233,7 +232,7 @@ describe('Progress 组件', () => {
     })
 
     it('当 showText 为 false 时应该隐藏文字', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           showText: false,
@@ -244,7 +243,7 @@ describe('Progress 组件', () => {
     })
 
     it('line 类型应该支持文字在内部显示', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 50,
@@ -258,7 +257,7 @@ describe('Progress 组件', () => {
     })
 
     it('circle 类型应该正确显示中心文字', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -271,7 +270,7 @@ describe('Progress 组件', () => {
     })
 
     it('dashboard 类型应该正确显示中心文字', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 80,
@@ -286,7 +285,7 @@ describe('Progress 组件', () => {
 
   describe('条纹动画', () => {
     it('当 striped 为 true 时应该显示条纹', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           striped: true,
@@ -298,7 +297,7 @@ describe('Progress 组件', () => {
     })
 
     it('当 flow 为 true 时应该显示流动动画', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           striped: true,
@@ -311,7 +310,7 @@ describe('Progress 组件', () => {
     })
 
     it('当 striped 为 false 时 flow 不应该生效', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           striped: false,
@@ -326,7 +325,7 @@ describe('Progress 组件', () => {
 
   describe('自定义颜色', () => {
     it('应该正确应用单一颜色', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           color: '#8b5cf6',
@@ -338,7 +337,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用颜色数组（渐变）', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           color: ['#ec4899', '#8b5cf6', '#3b82f6'],
@@ -353,7 +352,7 @@ describe('Progress 组件', () => {
     it('应该正确应用函数颜色', () => {
       const colorFn = (percentage: number) => (percentage > 50 ? '#10b981' : '#f59e0b')
 
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           color: colorFn,
@@ -367,7 +366,7 @@ describe('Progress 组件', () => {
 
   describe('线条粗细', () => {
     it('应该正确应用自定义线条粗细（line 类型）', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 50,
@@ -382,7 +381,7 @@ describe('Progress 组件', () => {
 
   describe('容器尺寸', () => {
     it('circle 类型应该正确应用宽度', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -395,7 +394,7 @@ describe('Progress 组件', () => {
     })
 
     it('dashboard 类型应该正确应用宽度', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 80,
@@ -408,7 +407,7 @@ describe('Progress 组件', () => {
     })
 
     it('circle 类型应该使用默认宽度 126px', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -422,7 +421,7 @@ describe('Progress 组件', () => {
 
   describe('仪表盘配置', () => {
     it('应该正确应用 gapDegree', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 75,
@@ -435,7 +434,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 gapPosition top', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 75,
@@ -448,7 +447,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 gapPosition bottom', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 75,
@@ -463,7 +462,7 @@ describe('Progress 组件', () => {
 
   describe('动画', () => {
     it('当 animated 为 false 时应该禁用动画', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -476,7 +475,7 @@ describe('Progress 组件', () => {
     })
 
     it('当 animated 为 true 时应该启用动画', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -493,7 +492,7 @@ describe('Progress 组件', () => {
     it('百分比变化时应该触发 change 事件', async () => {
       const onChange = vi.fn()
 
-      const { container, rerender } = render(Progress, {
+      const { rerender } = render(Progress, {
         props: {
           percentage: 50,
           onChange,
@@ -510,7 +509,7 @@ describe('Progress 组件', () => {
 
   describe('自定义类名和样式', () => {
     it('应该正确应用自定义类名', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           class: 'custom-progress-class',
@@ -522,7 +521,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用自定义样式', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           style: { marginTop: '20px' },
@@ -536,7 +535,7 @@ describe('Progress 组件', () => {
 
   describe('圆形进度条 SVG', () => {
     it('应该正确渲染 SVG 元素', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -549,7 +548,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确渲染背景圆和进度圆', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -564,7 +563,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确应用 stroke-dasharray 和 stroke-dashoffset', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 50,
@@ -579,7 +578,7 @@ describe('Progress 组件', () => {
 
   describe('仪表盘 SVG', () => {
     it('应该正确渲染 SVG 元素', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 80,
@@ -592,7 +591,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确渲染背景圆弧和进度圆弧', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 80,
@@ -609,7 +608,7 @@ describe('Progress 组件', () => {
 
   describe('插槽', () => {
     it('应该支持默认插槽', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
         },
@@ -645,7 +644,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该处理空百分比（0）', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 0,
         },
@@ -656,7 +655,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该处理非常大的 strokeWidth', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 75,
@@ -671,7 +670,7 @@ describe('Progress 组件', () => {
 
   describe('响应式更新', () => {
     it('应该正确响应百分比变化', async () => {
-      const { container, rerender } = render(Progress, {
+      const { rerender } = render(Progress, {
         props: {
           percentage: 50,
         },
@@ -689,7 +688,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确响应状态变化', async () => {
-      const { container, rerender } = render(Progress, {
+      const { rerender } = render(Progress, {
         props: {
           percentage: 50,
           status: 'active',
@@ -706,7 +705,7 @@ describe('Progress 组件', () => {
 
   describe('样式类名组合', () => {
     it('应该正确组合多个状态类名', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'line',
           percentage: 80,
@@ -722,7 +721,7 @@ describe('Progress 组件', () => {
     })
 
     it('circle 类型应该正确应用状态类名', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'circle',
           percentage: 100,
@@ -735,7 +734,7 @@ describe('Progress 组件', () => {
     })
 
     it('dashboard 类型应该正确应用状态类名', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           type: 'dashboard',
           percentage: 60,

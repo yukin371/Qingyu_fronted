@@ -2,7 +2,7 @@
  * Drawer 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount, VueWrapper } from '@testing-library/vue'
 import { nextTick, ref } from 'vue'
 import Drawer from './Drawer.vue'

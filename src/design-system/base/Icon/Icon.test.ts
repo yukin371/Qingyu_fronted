@@ -9,9 +9,9 @@
  * - 可访问性
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { render } from '@testing-library/vue'
-import { BaseIcon } from './index'
+import { Icon as BaseIcon } from './index'
 
 describe('BaseIcon', () => {
   describe('基础渲染', () => {

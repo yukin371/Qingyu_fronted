@@ -2,7 +2,7 @@
  * ConfigProvider 组件单元测试
  */
 
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount } from '@vue/test-utils'
 import { inject } from 'vue'
 import ConfigProvider from '../ConfigProvider.vue'

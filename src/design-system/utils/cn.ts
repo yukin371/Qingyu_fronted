@@ -5,8 +5,13 @@
  * 避免样式冲突和重复
  */
 
-import { clsx, type ClassValue } from 'clsx'
+import { clsx, type ClassValue as ClsxClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+
+/**
+ * 导出类型供组件使用
+ */
+export type ClassValue = ClsxClassValue
 
 /**
  * 合并 className 的工具函数
@@ -21,8 +26,3 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
-/**
- * 导出类型供组件使用
- */
-export type ClassValue = ClassValue

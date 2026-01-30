@@ -2,8 +2,6 @@
  * Tree 组件类型定义
  */
 
-import type { Ref } from 'vue'
-
 // Tree 节点数据结构
 export interface TreeNode {
   /**

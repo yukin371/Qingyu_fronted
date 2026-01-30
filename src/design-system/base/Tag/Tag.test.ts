@@ -9,9 +9,9 @@
  * - 交互行为
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, fireEvent } from '@testing-library/vue'
-import { BaseTag } from './index'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
+import { Tag as BaseTag } from './index'
 
 describe('BaseTag', () => {
   describe('基础渲染', () => {

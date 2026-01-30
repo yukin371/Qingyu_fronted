@@ -10,9 +10,9 @@
  * - 预览功能
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, fireEvent, waitFor } from '@testing-library/vue'
-import { BaseImage } from './index'
+// vitest globals are configured in tsconfig.json
+ import { render } from '@testing-library/vue'
+import { Image as BaseImage } from './index'
 
 describe('BaseImage', () => {
   describe('基础渲染', () => {

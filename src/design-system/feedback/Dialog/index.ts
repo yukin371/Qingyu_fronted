@@ -3,7 +3,6 @@
  */
 
 import Dialog from './Dialog.vue'
-import DialogFooter from './DialogFooter.vue'
 
 export { default as DialogFooter } from './DialogFooter.vue'
 

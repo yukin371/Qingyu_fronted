@@ -2,10 +2,9 @@
  * Anchor 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount } from '@vue/test-utils'
 import { ref, nextTick } from 'vue'
-import Anchor from './Anchor.vue'
 import type { AnchorItem } from './types'
 
 describe('Anchor 组件', () => {

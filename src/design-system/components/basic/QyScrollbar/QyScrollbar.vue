@@ -35,8 +35,8 @@ const props = withDefaults(defineProps<QyScrollbarProps>(), {
 })
 
 // 模板引用
-const scrollbarWrapper = ref<HTMLElement>()
-const scrollbarView = ref<HTMLElement>()
+const scrollbarWrapper = ref<HTMLElement>() // eslint-disable-line @typescript-eslint/no-unused-vars
+const scrollbarView = ref<HTMLElement>() // eslint-disable-line @typescript-eslint/no-unused-vars
 
 // 计算包装器类名
 const wrapperClasses = computed(() => {

@@ -6,7 +6,7 @@
  */
 
 import { computed, ref, watch } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import TransferPanel from './TransferPanel.vue'
 import type { TransferProps, TransferEmits } from './types'

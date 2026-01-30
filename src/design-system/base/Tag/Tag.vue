@@ -6,7 +6,7 @@
  */
 
 import { computed } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../Icon/Icon.vue'
 import type { TagProps } from './types'

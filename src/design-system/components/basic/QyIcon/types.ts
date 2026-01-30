@@ -2,8 +2,6 @@
  * Qingyu Design System - QyIcon Component Types
  */
 
-import type { PropType } from 'vue'
-
 /**
  * Available icon names
  * This is a union type of all available icons
