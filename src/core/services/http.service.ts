@@ -129,9 +129,9 @@ class HttpService {
           console.debug(`[API] ${apiData.request_id}`, apiData)
         }
 
-        // 成功判定 (兼容业务成功码 0 和 HTTP状态码 200-299)
+        // 成功判定 (后端规范：成功码=0)
         const code = apiData.code
-        const isSuccess = code === 0 || (code >= 200 && code < 300)
+        const isSuccess = code === 0  // 后端规范：成功码=0，不接受HTTP状态码200-299
         if (isSuccess) {
           // ★ 关键决策：
           // 默认只返回 result (data.data)，让组件代码更干净。
