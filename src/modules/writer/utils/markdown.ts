@@ -2,6 +2,8 @@
  * Markdown rendering utilities
  */
 
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
+
 /**
  * Simple markdown to HTML renderer
  * Note: In production, consider using a library like marked or markdown-it
@@ -38,5 +40,8 @@ export function renderMarkdown(markdown: string): string {
   html = html.replace(/\n\n/g, '</p><p>')
   html = html.replace(/\n/g, '<br />')
 
-  return '<p>' + html + '</p>'
+  const result = '<p>' + html + '</p>'
+
+  // 使用DOMPurify清理Markdown生成的HTML，防止XSS攻击
+  return sanitizeMarkdownHtml(result)
 }

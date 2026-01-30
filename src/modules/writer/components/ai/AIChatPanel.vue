@@ -91,6 +91,7 @@ import { ref, watch, nextTick } from 'vue'
 import { marked } from 'marked'
 import { QyIcon } from '@/design-system/components'
 import type { ChatMessage } from '../../../../types/ai'
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
 
 interface Props {
   chatHistory: ChatMessage[]
@@ -130,7 +131,9 @@ const formatTime = (timestamp: number): string => {
 // 渲染Markdown
 const renderMarkdown = (content: string): string => {
   try {
-    return marked(content, { breaks: true, gfm: true }) as string
+    const html = marked(content, { breaks: true, gfm: true }) as string
+    // 使用DOMPurify清理Markdown生成的HTML，防止XSS攻击
+    return sanitizeMarkdownHtml(html)
   } catch (error) {
     return content
   }

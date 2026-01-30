@@ -172,6 +172,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const router = useRouter()
@@ -238,12 +239,14 @@ const containerStyle = computed(() => {
 const formattedContent = computed(() => {
   if (!currentChapter.value?.content) return ''
   // 将内容按段落分割并格式化
-  return currentChapter.value.content
+  const formatted = currentChapter.value.content
     .split('\n')
     .map(p => p.trim())
     .filter(p => p.length > 0)
     .map(p => `<p>${p}</p>`)
     .join('')
+  // 使用DOMPurify清理HTML，防止XSS攻击
+  return sanitizeHtml(formatted)
 })
 
 // 方法
