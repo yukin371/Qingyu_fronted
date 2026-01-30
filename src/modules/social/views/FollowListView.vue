@@ -186,49 +186,48 @@ const loadUserList = async () => {
     let response
     const params = {
       page: currentPage.value,
-      pageSize: pageSize.value,
+      page_size: pageSize.value,
       keyword: searchKeyword.value || undefined
     }
 
     if (currentTab.value === 'followers') {
-      response = await followAPI.getFollowers(targetUserId.value, params)
+      response = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
     } else if (currentTab.value === 'following') {
-      response = await followAPI.getFollowing(targetUserId.value, params)
+      response = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
     } else {
       // 互关列表需要前端过滤
-      const followersRes = await followAPI.getFollowers(targetUserId.value, params)
-      const followingRes = await followAPI.getFollowing(targetUserId.value, params)
+      const followersRes = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
+      const followingRes = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
 
-      // 合并并筛选互相关注的用户
-      if (followersRes.code === 200 && followingRes.code === 200) {
-        const followersList = Array.isArray(followersRes.data)
-          ? followersRes.data
-          : followersRes.data?.list || []
-        const followingList = Array.isArray(followingRes.data)
-          ? followingRes.data
-          : followingRes.data?.list || []
+      // API直接返回数据,不需要解包
+      const followersList = Array.isArray(followersRes)
+        ? followersRes
+        : followersRes?.items || []
+      const followingList = Array.isArray(followingRes)
+        ? followingRes
+        : followingRes?.items || []
 
-        const followingIds = new Set(followingList.map((u: any) => u.id))
-        const mutualUsers = followersList.filter((u: any) => followingIds.has(u.id))
+      const followingIds = new Set(followingList.map((u: any) => u.id))
+      const mutualUsers = followersList.filter((u: any) => followingIds.has(u.id))
 
-        list.value = mutualUsers.map((u: any) => ({
-          ...u,
-          isMutual: true
-        }))
-        totalCount.value = mutualUsers.length
-      }
+      list.value = mutualUsers.map((u: any) => ({
+        ...u,
+        isMutual: true
+      }))
+      totalCount.value = mutualUsers.length
       loading.value = false
       return
     }
 
-    if (response.code === 200 && response.data) {
-      const data = Array.isArray(response.data) ? response.data : response.data.list || []
-      list.value = data.map((u: any) => ({
-        ...u,
-        isMutual: socialStore.isMutualFollow(u.id)
-      }))
-      totalCount.value = response.data.total || data.length
-    }
+    // API直接返回数据,不需要解包
+    const data = Array.isArray(response)
+      ? response
+      : response?.items || []
+    list.value = data.map((u: any) => ({
+      ...u,
+      isMutual: socialStore.isMutualFollow(u.id)
+    }))
+    totalCount.value = response?.total || data.length
   } catch (error) {
     console.error('[FollowListView] 加载列表失败:', error)
     message.error('加载失败，请稍后重试')

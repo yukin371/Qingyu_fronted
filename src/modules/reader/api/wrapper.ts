@@ -427,6 +427,18 @@ export const removeFromBookshelf = removeBookFromShelf
  */
 export { getApi }
 
+// ==================== 主题和字体设置 ====================
+
+export * from './manual/themes'
+export * from './manual/fonts'
+export * from './manual/progress'
+export * from './manual/books'
+
+// 解决命名冲突：books的getRecentReading优先（用于ProfileView）
+// progress的版本重命名为getRecentReadingProgress
+export { getRecentReading } from './manual/books'
+export { getRecentReading as getRecentReadingProgress } from './manual/progress'
+
 /**
  * 默认导出
  */

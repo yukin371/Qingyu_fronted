@@ -54,6 +54,11 @@ export interface ConversationStats {
  * @param {number} params.page_size - 每页数量（默认20）
  * @response {ConversationListResponse} 200 - 成功返回对话列表
  * @security BearerAuth
+ *
+ * @todo 与后端团队确认API路径格式
+ * - 当前使用: /api/v1/social/messages/conversations
+ * - 是否应该改为: /api/v1/messages/conversations
+ * - 确认后更新所有相关API路径
  */
 export function getConversations(params?: {
   page?: number

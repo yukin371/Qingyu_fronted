@@ -176,3 +176,12 @@ export const exportFormatOptions = [
   { label: 'Word 文档', value: ExportFormats.DOCX, icon: 'Document' },
   { label: 'ZIP 压缩包', value: ExportFormats.ZIP, icon: 'FolderOpened' }
 ]
+
+/**
+ * 导出范围选项（用于UI展示）
+ */
+export const exportScopeOptions = [
+  { label: '全部章节', value: 'all' },
+  { label: '已发布章节', value: 'published' },
+  { label: '指定章节', value: 'custom' }
+]

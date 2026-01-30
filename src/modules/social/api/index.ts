@@ -2,6 +2,12 @@
 export * from './social'
 export { default } from './social'
 
+// 导出手动实现的API
+export * from './follow'
+export * from './message'
+export * from './review'
+export * from './booklist'
+
 // 🔁 需要回滚到原始 generated API 时，改成：
 // export * from './generated/social'
 

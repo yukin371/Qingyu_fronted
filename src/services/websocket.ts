@@ -13,11 +13,13 @@ export class MessageWebSocketService {
   private maxReconnectAttempts = 5
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private isConnected = false
+  private isManualClose = false
+  private currentToken = ''
 
   /**
    * 连接WebSocket服务
    * @param token 用户认证token
-   * @param url WebSocket服务器地址（默认：使用API_PATHS配置的路径）
+   * @param url WebSocket服务器地址（默认：从环境变量读取）
    */
   connect(token: string, url?: string) {
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -25,9 +27,16 @@ export class MessageWebSocketService {
       return
     }
 
+    this.currentToken = token
+    this.isManualClose = false
+
     // 使用API路径配置
     const wsPath = API_PATHS.WEBSOCKET.MESSAGING  // /ws/messages
-    const wsUrl = url || `ws://localhost:3000${wsPath}?token=${token}`
+    // 从环境变量读取WebSocket服务器地址
+    const wsBaseUrl = url || import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+    const wsUrl = `${wsBaseUrl}${wsPath}?token=${token}`
+
+    console.log('[WebSocket] 正在连接:', wsUrl)
 
     try {
       this.ws = new WebSocket(wsUrl)
@@ -51,17 +60,32 @@ export class MessageWebSocketService {
       this.ws.onerror = (error) => {
         console.error('[WebSocket] 错误:', error)
         eventBus.emit('websocket:error', error)
+
+        // 如果是连接错误且未达到最大重连次数,触发降级
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.error('[WebSocket] 达到最大重连次数,建议切换到轮询模式')
+          eventBus.emit('websocket:fallback-required')
+        }
       }
 
-      this.ws.onclose = () => {
-        console.log('[WebSocket] 连接已关闭')
+      this.ws.onclose = (event) => {
+        console.log('[WebSocket] 连接已关闭', event.code, event.reason)
         this.isConnected = false
         eventBus.emit('websocket:disconnected')
-        this.reconnect()
+
+        // 只有非手动关闭的情况下才尝试重连
+        if (!this.isManualClose) {
+          this.reconnect()
+        }
       }
     } catch (error) {
       console.error('[WebSocket] 连接失败:', error)
-      this.reconnect()
+      eventBus.emit('websocket:connection-failed', error)
+
+      // 连接失败时尝试重连
+      if (!this.isManualClose) {
+        this.reconnect()
+      }
     }
   }
 
@@ -104,6 +128,8 @@ export class MessageWebSocketService {
    * 断开连接
    */
   disconnect() {
+    this.isManualClose = true
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
@@ -112,6 +138,7 @@ export class MessageWebSocketService {
     this.ws?.close()
     this.ws = null
     this.isConnected = false
+    this.currentToken = ''
   }
 
   /**

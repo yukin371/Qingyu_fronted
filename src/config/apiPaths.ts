@@ -5,8 +5,12 @@
  * - 所有路径都基于 /api/v1 前缀
  * - Messages模块使用 /api/v1/social/messages/*
  * - WebSocket使用 /ws/messages（注意：不是 /ws/messaging）
+ *
+ * @todo 与后端团队确认统一的API路径规范
+ * - 当前Messages模块路径: /api/v1/social/messages/*
+ * - 是否需要调整为: /api/v1/messages/*
+ * - 确认后需要同步更新所有相关API调用
  */
-
 export const API_PATHS = {
   // Messages模块
   MESSAGES: {

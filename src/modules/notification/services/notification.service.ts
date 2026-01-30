@@ -7,6 +7,7 @@ import { PollingService, createPollingService } from '@/core/services/polling.se
 import { httpService } from '@/core/services/http.service'
 import { getWebSocketEndpoint } from '../api'
 import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
+import { API_PATHS } from '@/config/apiPaths'
 
 export type ConnectionMode = 'websocket' | 'polling'
 
@@ -34,8 +35,34 @@ export class NotificationService {
    * 初始化 WebSocket
    */
   private async initializeWebSocket(): Promise<void> {
-    const wsEndpoint = await getWebSocketEndpoint()
-    const url = typeof wsEndpoint === 'string' ? wsEndpoint : (wsEndpoint as any)?.url || ''
+    let url = ''
+
+    try {
+      // 尝试从后端获取WebSocket端点
+      const response = await getWebSocketEndpoint() as any
+      // 处理可能的响应格式
+      if (typeof response === 'string') {
+        url = response
+      } else if (response && typeof response === 'object') {
+        // 检查是否是axios响应格式
+        if ('data' in response && response.data) {
+          url = response.data.url || ''
+        } else if ('url' in response) {
+          url = response.url || ''
+        }
+      }
+
+      // 如果没有获取到端点，使用环境变量中的默认配置
+      if (!url) {
+        const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+        url = `${wsBaseUrl}${API_PATHS.WEBSOCKET.NOTIFICATIONS}`
+        console.warn('[NotificationService] 未获取到WebSocket端点，使用默认配置:', url)
+      }
+    } catch (error) {
+      // 如果获取端点失败，抛出错误以触发降级到轮询
+      console.error('[NotificationService] 获取WebSocket端点失败:', error)
+      throw new Error('WebSocket endpoint unavailable')
+    }
 
     this.wsService = createWebSocketService({
       url: url,
@@ -63,6 +90,11 @@ export class NotificationService {
 
   /**
    * 初始化轮询
+   *
+   * @todo 与后端团队确认轮询端点是否支持
+   * - 当前使用: /api/v1/notifications/polling
+   * - 需要确认后端是否实现了此端点
+   * - 如果不支持,需要实现或者使用其他降级方案
    */
   private initializePolling(): void {
     this.pollingService = createPollingService({

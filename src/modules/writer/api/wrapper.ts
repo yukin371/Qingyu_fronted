@@ -152,18 +152,71 @@ export interface ChapterStatistics {
   dropOffRate: number
 }
 
+// ==================== 类型别名（向后兼容） ====================
+
+/**
+ * 项目创建数据类型别名
+ */
+export type ProjectCreateData = {
+  title: string
+  description?: string
+  coverImage?: string
+  genre?: string
+  tags?: string[]
+  visibility?: 'public' | 'private'
+}
+
+/**
+ * 项目更新数据类型别名
+ */
+export type ProjectUpdateData = {
+  title?: string
+  description?: string
+  coverImage?: string
+  genre?: string
+  tags?: string[]
+  status?: string
+  visibility?: string
+}
+
+/**
+ * 文档创建数据类型别名
+ */
+export type DocumentCreateData = {
+  projectId: string
+  title: string
+  content?: string
+  chapterNumber?: number
+  status?: 'draft' | 'published' | 'archived'
+}
+
+/**
+ * 文档更新数据类型别名
+ */
+export type DocumentUpdateData = {
+  title?: string
+  content?: string
+  status?: 'draft' | 'published' | 'archived'
+}
+
 // ==================== 项目相关 API ====================
 
 export const getProjects = api.getApiV1Projects
 export const getProject = api.getApiV1ProjectsProjectId
+export const getProjectById = api.getApiV1ProjectsProjectId
 export const createProject = api.postApiV1Projects
 export const updateProject = api.putApiV1ProjectsProjectId
 export const deleteProject = api.deleteApiV1ProjectsProjectId
 
 // ==================== 文档相关 API ====================
 
+export const getDocuments = api.getApiV1ProjectsProjectIdDocuments
 export const getProjectDocuments = api.getApiV1ProjectsProjectIdDocuments
 export const getDocument = api.getApiV1DocumentsDocumentId
+export const getDocumentById = api.getApiV1DocumentsId
+export const getDocumentContent = api.getApiV1DocumentsIdContent
+export const getDocumentTree = api.getApiV1ProjectsProjectIdDocumentsTree
+export const getSaveStatus = api.getApiV1DocumentsIdSaveStatus
 
 /**
  * 创建文档（在指定项目下）
@@ -519,12 +572,18 @@ export default {
   // 项目相关
   getProjects,
   getProject,
+  getProjectById,
   createProject,
   updateProject,
   deleteProject,
   // 文档相关
+  getDocuments,
   getProjectDocuments,
   getDocument,
+  getDocumentById,
+  getDocumentContent,
+  getDocumentTree,
+  getSaveStatus,
   createDocument,
   updateDocument,
   deleteDocument,
