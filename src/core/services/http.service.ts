@@ -215,7 +215,8 @@ class HttpService {
         code: data.code,
         message: data.message,
         error: data.code.toString(),
-        timestamp: data.timestamp || Date.now()
+        timestamp: data.timestamp || Date.now(),
+        requestId: data.requestId  // 添加requestId字段
       }
       errorReporter.report(errorResponse)
     }

@@ -30,6 +30,7 @@ export interface AppError {
   message: string
   details?: any
   statusCode?: number
+  requestId?: string  // 添加requestId字段，用于错误追踪
   timestamp: number
   backendCode?: number // 原始后端错误码
   errorInfo?: ErrorMessage // 完整的错误信息
@@ -163,6 +164,7 @@ export class ErrorHandler {
         code: frontendCode,
         message: responseData?.message || errorInfo.message,
         statusCode,
+        requestId: responseData?.requestId,  // 添加requestId提取
         backendCode,
         details: responseData,
         timestamp,
@@ -191,6 +193,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -202,6 +205,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -213,6 +217,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -224,6 +229,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -235,6 +241,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -246,6 +253,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -257,6 +265,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -268,6 +277,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -280,6 +290,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -291,6 +302,7 @@ export class ErrorHandler {
           message: responseData?.message || errorInfo.message,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -302,6 +314,7 @@ export class ErrorHandler {
           message: responseData?.message || `请求失败 (${statusCode})`,
           statusCode,
           details: responseData,
+          requestId: responseData?.requestId,  // 添加requestId提取
           timestamp,
           errorInfo
         }
@@ -327,6 +340,7 @@ export class ErrorHandler {
         code: frontendCode,
         message: error.message || errorInfo.message,
         statusCode: backendCode,
+        requestId: error.requestId,  // 添加requestId提取
         backendCode,
         details: error,
         timestamp,
@@ -340,6 +354,7 @@ export class ErrorHandler {
       code: FrontendErrorCode.BAD_REQUEST,
       message: error.message || errorInfo.message,
       statusCode: error.code,
+      requestId: error.requestId,  // 添加requestId提取
       details: error,
       timestamp,
       errorInfo
