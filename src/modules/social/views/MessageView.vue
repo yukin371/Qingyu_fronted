@@ -240,6 +240,7 @@ import {
 } from '@/modules/social/api'
 import { messageWebSocket } from '@/services/websocket'
 import { eventBus } from '@/utils/eventBus'
+import { pollingService } from '@/services/polling'
 
 const currentUserId = ref('') // 从用户状态获取
 const currentUserAvatar = ref('')
@@ -596,16 +597,35 @@ onMounted(() => {
 
   // 监听新消息
   eventBus.on('websocket:message', handleNewMessage)
+
+  // 监听WebSocket最大重连次数到达，启动轮询降级
+  eventBus.on('websocket:max-reconnect-reached', () => {
+    console.log('[MessageView] WebSocket连接失败，启动轮询降级')
+    pollingService.start(() => {
+      // 重新加载当前对话的消息
+      if (selectedConversation.value) {
+        loadMessages()
+      }
+      // 重新加载对话列表
+      loadConversations()
+      // 重新加载未读统计
+      loadStats()
+    }, 5000)
+  })
 })
 
 onUnmounted(() => {
   // 断开WebSocket
   messageWebSocket.disconnect()
 
+  // 停止轮询
+  pollingService.stop()
+
   // 移除事件监听
   eventBus.off('websocket:message', handleNewMessage)
   eventBus.off('websocket:connected')
   eventBus.off('websocket:disconnected')
+  eventBus.off('websocket:max-reconnect-reached')
 })
 </script>
 
