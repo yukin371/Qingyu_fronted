@@ -1,5 +1,6 @@
 <template>
   <div class="notification-bell" @click="goToNotifications">
+    <!-- el-icon用于动态组件，保留 -->
     <el-icon :size="24" :class="{ 'has-notification': hasUnread }">
       <QyIcon name="Bell"  />
     </el-icon>
@@ -56,6 +57,7 @@ const goToNotifications = () => {
   align-items: center;
   justify-content: center;
 
+  /* Element Plus样式引用（el-icon用于动态组件） */
   .el-icon {
     transition: all 0.3s;
     color: #606266;

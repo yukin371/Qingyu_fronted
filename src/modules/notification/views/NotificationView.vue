@@ -77,6 +77,7 @@
           />
 
           <div class="notification-icon">
+            <!-- el-icon用于动态组件，保留 -->
             <el-icon :size="20" :color="getNotificationColor(notification.type)">
               <component :is="getNotificationIcon(notification.type)" />
             </el-icon>

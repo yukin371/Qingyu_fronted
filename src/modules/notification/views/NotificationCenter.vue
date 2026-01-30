@@ -125,6 +125,7 @@ onUnmounted(() => {
       color: #e6a23c;
     }
 
+    /* Element Plus样式引用（el-icon用于动态组件） */
     .el-icon {
       font-size: 16px;
     }

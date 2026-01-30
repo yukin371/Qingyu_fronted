@@ -14,6 +14,7 @@
 
     <!-- 图标 -->
     <div class="notification-icon">
+      <!-- el-icon用于动态组件，保留 -->
       <el-icon :size="20" :color="iconColor">
         <component :is="iconComponent" />
       </el-icon>
