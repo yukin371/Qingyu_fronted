@@ -14,7 +14,6 @@ export class MessageWebSocketService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private isConnected = false
   private isManualClose = false
-  private currentToken = ''
 
   /**
    * 连接WebSocket服务
@@ -27,7 +26,6 @@ export class MessageWebSocketService {
       return
     }
 
-    this.currentToken = token
     this.isManualClose = false
 
     // 使用API路径配置
@@ -138,7 +136,6 @@ export class MessageWebSocketService {
     this.ws?.close()
     this.ws = null
     this.isConnected = false
-    this.currentToken = ''
   }
 
   /**

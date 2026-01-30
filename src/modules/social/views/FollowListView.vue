@@ -11,10 +11,13 @@
           <el-input
             v-model="searchKeyword"
             placeholder="搜索用户"
-            :prefix-icon="Search"
             clearable
             @input="handleSearch"
-          />
+          >
+            <template #prefix>
+              <QyIcon name="Search" />
+            </template>
+          </el-input>
         </div>
       </div>
 
@@ -108,7 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyIconName } from '@/design-system/components'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
 import { message } from '@/design-system/services'
