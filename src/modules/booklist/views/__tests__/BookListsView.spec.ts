@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia' // 用于测试setup
 import { ElDialog, ElSkeleton, ElSkeletonItem } from 'element-plus'

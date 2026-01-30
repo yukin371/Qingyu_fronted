@@ -11,7 +11,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
-import { render, fireEvent } from '@testing-library/vue'
+import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { Avatar as BaseAvatar } from './index'
 
 describe('BaseAvatar', () => {

@@ -143,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
 import { message } from '@/design-system/services'

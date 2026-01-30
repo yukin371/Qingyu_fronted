@@ -3,7 +3,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
- import { render } from '@testing-library/vue'
+ import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { computed, ref } from 'vue'
 import Dropdown from './Dropdown.vue'
 import DropdownItem from './DropdownItem.vue'
@@ -62,7 +62,8 @@ describe('Dropdown 组件', () => {
     })
 
     it('应该正确应用自定义类名', () => {
-      render(Dropdown, {
+      const { container } = render(Dropdown, {
+
         props: {
           class: 'custom-dropdown',
         },
@@ -223,13 +224,16 @@ describe('Dropdown 组件', () => {
           expect(command).toHaveBeenCalledWith('test-command')
         })
       }
-    })
+
+      })
 
     it('应该在 hideOnClick 为 true 时点击后隐藏菜单', async () => {
       const visibleChange = vi.fn()
       const command = vi.fn()
 
-      render(Dropdown, {
+      const { container } = render(Dropdown, {
+
+
         props: {
           hideOnClick: true,
           onVisibleChange: visibleChange,
@@ -263,12 +267,16 @@ describe('Dropdown 组件', () => {
           expect(visibleChange).toHaveBeenCalledWith(false)
         })
       }
-    })
+
+
+      })
 
     it('禁用的菜单项不应该触发事件', async () => {
       const command = vi.fn()
 
-      render(Dropdown, {
+      const { container } = render(Dropdown, {
+
+
         props: {
           onCommand: command,
           trigger: 'click',
@@ -299,7 +307,9 @@ describe('Dropdown 组件', () => {
         await new Promise(resolve => setTimeout(resolve, 100))
         expect(command).not.toHaveBeenCalled()
       }
-    })
+
+
+      })
   })
 
   // 禁用状态测试

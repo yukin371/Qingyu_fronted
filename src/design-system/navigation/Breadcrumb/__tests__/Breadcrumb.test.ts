@@ -3,7 +3,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
- import { render } from '@testing-library/vue'
+ import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '../Breadcrumb.vue'
 import BreadcrumbItem from '../BreadcrumbItem.vue'

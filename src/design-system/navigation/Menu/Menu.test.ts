@@ -3,7 +3,8 @@
  */
 
 // vitest globals are configured in tsconfig.json
-import { mount, VueWrapper } from '@testing-library/vue'
+import { mount } from '@vue/test-utils'
+import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { nextTick } from 'vue'
 import Menu from './Menu.vue'
 import MenuItem from './MenuItem.vue'

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, } from 'vue'
 import { editorApi } from '../api/editor'
 import { useDocumentStore } from './documentStore' // 引用其他 Store
 import { debounce } from '@/utils/editor'

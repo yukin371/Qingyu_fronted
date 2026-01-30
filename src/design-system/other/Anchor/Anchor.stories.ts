@@ -10,6 +10,7 @@ import type { AnchorItem } from './types'
 
 import { ref, computed } from 'vue'
 
+import { Anchor } from '@/design-system/other/Anchor';
 const meta = {
   title: 'Design System/Other/Anchor',
   component: Anchor,

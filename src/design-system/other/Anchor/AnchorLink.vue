@@ -9,6 +9,7 @@ import { computed } from 'vue'
 import { cn } from '../../utils/cn'
 import type { AnchorLinkProps } from './types'
 
+import { Anchor } from '@/design-system/other/Anchor';
 // 组件 Props
 const props = withDefaults(defineProps<AnchorLinkProps>(), {
   target: '_self',

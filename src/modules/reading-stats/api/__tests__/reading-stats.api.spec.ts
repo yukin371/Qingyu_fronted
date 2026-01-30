@@ -1,7 +1,7 @@
 /**
  * Reading Stats API测试
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import * as readingStatsApi from '../index'
 import { http } from '@/core/http'
 

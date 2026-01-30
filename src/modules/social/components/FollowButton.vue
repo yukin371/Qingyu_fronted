@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useSocialStore } from '@/stores/social'

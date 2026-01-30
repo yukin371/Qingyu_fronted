@@ -1,3 +1,4 @@
+import { Anchor } from '@/design-system/other/Anchor';
 /**
  * Anchor 锚点组件类型定义
  */

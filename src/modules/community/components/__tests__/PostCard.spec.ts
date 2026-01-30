@@ -2,7 +2,7 @@
  * PostCard组件测试
  */
 
-import { describe, it, expect, vi } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount } from '@vue/test-utils'
 import { createMockPost } from '../../../../tests/fixtures'
 

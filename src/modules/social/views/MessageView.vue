@@ -99,7 +99,7 @@
           </div>
 
           <!-- 消息列表 -->
-          <div ref="messagesContainer" class="messages-container" @scroll="handleScroll">
+          <div="messagesContainer" class="messages-container" @scroll="handleScroll">
             <div v-loading="loadingMessages" class="messages-list">
               <div
                 v-for="msg in messages"
@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -551,7 +551,7 @@ const formatFileSize = (bytes?: number) => {
 }
 
 // WebSocket连接
-const wsConnected = ref(false)
+const wsConnected =(false)
 
 // 处理WebSocket接收的新消息
 const handleNewMessage = (msg: any) => {

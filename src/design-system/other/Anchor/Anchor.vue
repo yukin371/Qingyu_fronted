@@ -12,6 +12,7 @@ import { cn } from '../../utils/cn'
 import type { AnchorProps, AnchorEmits, AnchorItem, AnchorDirection } from './types'
 import { anchorDefaults } from './types'
 
+import { Anchor } from '@/design-system/other/Anchor';
 // 使用 CVA 定义容器变体
 const anchorVariants = cva(
   // 基础样式

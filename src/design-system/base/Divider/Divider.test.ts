@@ -10,7 +10,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
-import { render } from '@testing-library/vue'
+import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { Divider as BaseDivider } from './index'
 
 describe('BaseDivider', () => {

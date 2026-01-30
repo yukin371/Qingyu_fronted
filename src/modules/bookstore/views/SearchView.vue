@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'

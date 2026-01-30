@@ -3,7 +3,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
-import { render, screen } from '@testing-library/vue'
+import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import Spinner from '../Spinner.vue'
 
 describe('Spinner 组件', () => {

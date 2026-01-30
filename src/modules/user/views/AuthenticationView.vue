@@ -229,7 +229,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
@@ -237,10 +237,7 @@ import { QyIcon } from '@/design-system/components'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
 import {
-  sendEmailVerifyCode,
-  sendPasswordResetCode,
-  verifyResetCode as verifyResetCodeAPI,
-  resetPassword as resetPasswordAPI
+  sendEmailVerifyCode
 } from '@/modules/user/api'
 
 // ... (脚本逻辑部分不需要大幅修改，保持原有的业务逻辑即可)
@@ -268,7 +265,6 @@ const sendingReset = ref(false)
 
 const loginFormRef = ref<FormInstance>()
 const registerFormRef = ref<FormInstance>()
-const resetFormRef = ref<FormInstance>()
 // 表单数据
 const loginForm = ref({ username: '', password: '' })
 const registerForm = ref({ username: '', email: '', emailCode: '', phone: '', password: '', confirmPassword: '', agreement: false })
@@ -304,7 +300,7 @@ const registerRules: FormRules = {
   emailCode: [],  // 移除required，改为可选
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 6, message: '至少6位', trigger: 'blur' }],
   confirmPassword: [{
-    validator: (r, v, c) => v !== registerForm.value.password ? c(new Error('密码不一致')) : c(),
+    validator: (_r, v, c) => v !== registerForm.value.password ? c(new Error('密码不一致')) : c(),
     trigger: 'blur'
   }],
   agreement: [{ validator: (r, v, c) => !v ? c(new Error('请同意协议')) : c(), trigger: 'change' }]
@@ -314,7 +310,7 @@ const resetRules: FormRules = {
   code: [{ required: true, message: '验证码必填', trigger: 'blur' }],
   newPassword: [{ required: true, message: '新密码必填', trigger: 'blur' }],
   confirmNewPassword: [{
-    validator: (r, v, c) => v !== resetForm.value.newPassword ? c(new Error('密码不一致')) : c(),
+    validator: (_r, v, c) => v !== resetForm.value.newPassword ? c(new Error('密码不一致')) : c(),
     trigger: 'blur'
   }]
 }

@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { watch, computed } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { ReadingSettings as IReadingSettings } from '@/types/models'
@@ -179,7 +179,7 @@ const defaultSettings: IReadingSettings = {
 }
 
 // 设置数据
-const settings = reactive<IReadingSettings>({
+const settings =<IReadingSettings>({
     ...defaultSettings,
     ...props.initialSettings
 })

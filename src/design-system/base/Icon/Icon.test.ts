@@ -10,7 +10,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
-import { render } from '@testing-library/vue'
+import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import { Icon as BaseIcon } from './index'
 
 describe('BaseIcon', () => {

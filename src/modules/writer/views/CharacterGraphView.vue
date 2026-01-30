@@ -24,7 +24,7 @@
     <!-- 主内容区 -->
     <div class="graph-content">
       <!-- 图谱区域 -->
-      <div class="graph-canvas" ref="graphCanvasRef" v-loading="writerStore.characters.loading">
+      <div class="graph-canvas"="graphCanvasRef" v-loading="writerStore.characters.loading">
         <!-- 简化版：使用卡片展示角色关系 -->
         <div class="characters-grid">
           <div v-for="character in characters" :key="character.id" class="character-card"
@@ -152,7 +152,7 @@
 
     <!-- 添加/编辑角色对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '添加角色'" width="700px" :close-on-click-modal="false">
-      <el-form ref="formRef" :model="characterForm" :rules="formRules" label-width="110px">
+      <el-form="formRef" :model="characterForm" :rules="formRules" label-width="110px">
         <el-form-item label="角色名称" prop="name">
           <el-input v-model="characterForm.name" placeholder="请输入角色名称" />
         </el-form-item>
@@ -161,7 +161,7 @@
             @close="characterForm.alias.splice(index, 1)" style="margin-right: 8px;">
             {{ alias }}
           </el-tag>
-          <el-input v-if="showAliasInput" ref="aliasInputRef" v-model="newAlias" size="small" style="width: 120px;"
+          <el-input v-if="showAliasInput"="aliasInputRef" v-model="newAlias" size="small" style="width: 120px;"
             @blur="handleAliasInputConfirm" @keyup.enter="handleAliasInputConfirm" />
           <el-button v-else size="small" @click="showAliasInput = true">
             + 添加别名
@@ -175,7 +175,7 @@
             @close="characterForm.traits.splice(index, 1)" style="margin-right: 8px; margin-bottom: 8px;">
             {{ trait }}
           </el-tag>
-          <el-input v-if="showTraitInput" ref="traitInputRef" v-model="newTrait" size="small" style="width: 120px;"
+          <el-input v-if="showTraitInput"="traitInputRef" v-model="newTrait" size="small" style="width: 120px;"
             @blur="handleTraitInputConfirm" @keyup.enter="handleTraitInputConfirm" />
           <el-button v-else size="small" @click="showTraitInput = true">
             + 添加特征
@@ -202,7 +202,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
@@ -221,7 +221,7 @@ const traitInputRef = ref()
 const newAlias = ref('')
 const newTrait = ref('')
 
-const characterForm = ref({
+const characterForm =({
   name: '',
   alias: [] as string[],
   summary: '',

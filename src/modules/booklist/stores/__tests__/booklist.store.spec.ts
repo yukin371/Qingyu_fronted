@@ -2,7 +2,7 @@
  * Booklist Store测试
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { createPinia, setActivePinia } from 'pinia'
 import { createMockBooklist, createMockBooklists } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'

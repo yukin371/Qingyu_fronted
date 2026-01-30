@@ -191,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, } from 'vue'
 import { message } from '@/design-system/services'
 import { exportApi } from '../api/export'
 import type { ExportFormat, ExportDocumentRequest, ExportProjectRequest, ExportOptions } from '../types/export'

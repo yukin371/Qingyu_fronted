@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+// vitest globals are configured in tsconfig.json
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CommunityFeedView from '../CommunityFeedView.vue'

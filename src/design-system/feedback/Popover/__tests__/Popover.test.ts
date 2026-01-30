@@ -3,7 +3,7 @@
  */
 
 // vitest globals are configured in tsconfig.json
- import { render } from '@testing-library/vue'
+ import { render, fireEvent, waitFor, screen } from '@testing-library/vue'
 import Popover from '../Popover.vue'
 
 describe('Popover 组件', () => {

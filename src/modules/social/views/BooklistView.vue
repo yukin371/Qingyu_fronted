@@ -236,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
