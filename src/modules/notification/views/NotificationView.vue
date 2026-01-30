@@ -359,7 +359,71 @@ const handleNotificationClick = (notification: Notification) => {
   if (notification.status === 'unread') {
     handleMarkAsRead(notification.id)
   }
-  // 这里可以添加跳转到相关页面的逻辑
+
+  // 实现通知点击跳转逻辑
+  if (notification.link) {
+    // 如果通知包含link字段，直接跳转
+    window.location.href = notification.link
+  } else if (notification.data) {
+    // 根据通知类型和数据跳转到相应页面
+    const { type, data } = notification
+
+    switch (type) {
+      case 'comment':
+        // 评论通知：跳转到评论所在的书详情页
+        if (data.book_id) {
+          window.location.href = `/books/${data.book_id}#comment-${data.comment_id}`
+        }
+        break
+
+      case 'like':
+        // 点赞通知：跳转到被点赞的内容
+        if (data.book_id) {
+          window.location.href = `/books/${data.book_id}`
+        } else if (data.comment_id) {
+          window.location.href = `/books/${data.book_id}#comment-${data.comment_id}`
+        }
+        break
+
+      case 'follow':
+        // 关注通知：跳转到用户主页
+        if (data.follower_id) {
+          window.location.href = `/users/${data.follower_id}`
+        }
+        break
+
+      case 'message':
+        // 私信通知：跳转到消息详情页
+        if (data.conversation_id) {
+          window.location.href = `/messages/${data.conversation_id}`
+        } else {
+          window.location.href = '/messages'
+        }
+        break
+
+      case 'system':
+        // 系统通知：根据action类型跳转
+        if (data.action === 'book_update' && data.book_id) {
+          window.location.href = `/books/${data.book_id}`
+        } else if (data.action === 'achievement' && data.achievement_id) {
+          window.location.href = `/achievements/${data.achievement_id}`
+        }
+        break
+
+      case 'achievement':
+        // 成就通知：跳转到成就详情页
+        if (data.achievement_id) {
+          window.location.href = `/achievements/${data.achievement_id}`
+        } else {
+          window.location.href = '/achievements'
+        }
+        break
+
+      default:
+        // 默认不做跳转
+        console.log('Unknown notification type:', type)
+    }
+  }
 }
 
 // 标记已读
