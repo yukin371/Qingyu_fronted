@@ -405,8 +405,8 @@ export class APIValidators {
     console.log(`[createTestUser] Response message: ${result.message}`)
     console.log(`[createTestUser] Response data:`, JSON.stringify(result.data))
 
-    // 后端返回 200 表示注册成功
-    if (result.code !== 200 && result.code !== 201) {
+    // 后端返回 code: 0 表示成功
+    if (result.code !== 0) {
       throw new Error(`创建测试用户失败: ${result.message}`)
     }
 

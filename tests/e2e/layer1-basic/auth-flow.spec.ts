@@ -143,7 +143,8 @@ test.describe('Layer 1: 认证流程', () => {
 
       // 解析响应
       const registerData = await registerResponse.json()
-      expect(registerData.code).toBe(200)
+      // 后端返回 code: 0 表示成功
+      expect(registerData.code).toBe(0)
       expect(registerData.message).toBeTruthy()
 
       console.log(`  ✓ 注册成功: ${registerData.message}`)
@@ -264,7 +265,7 @@ test.describe('Layer 1: 认证流程', () => {
 
       // 解析响应
       const loginData = await loginResponse.json()
-      expect(loginData.code).toBe(200)
+      expect(loginData.code).toBe(0)
       expect(loginData.data).toHaveProperty('token')
 
       const token = loginData.data.token
@@ -366,7 +367,7 @@ test.describe('Layer 1: 认证流程', () => {
       apiValidators.setAuthToken(token)
       const userData = await apiValidators.fetchBackendData('/api/v1/user/profile')
 
-      expect(userData).toHaveProperty('user_id', userID)
+      expect(userData).toHaveProperty('id', userID)
       expect(userData).toHaveProperty('username', testUserData.username)
       expect(userData).toHaveProperty('email', testUserData.email)
 
@@ -475,7 +476,7 @@ test.describe('Layer 1: 认证流程', () => {
       const loginResult = await loginResponse.json()
       console.log(`  [DEBUG] 登录响应: ${JSON.stringify(loginResult)}`)
 
-      if (loginResult.code !== 200) {
+      if (loginResult.code !== 0) {
         throw new Error(`登录失败: ${loginResult.message}`)
       }
 

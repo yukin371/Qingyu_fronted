@@ -5,8 +5,8 @@
  * 滑块选择组件，支持单滑块、双滑块、垂直模式等多种功能
  */
 
-import { computed, ref, watch, nextTick } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { ref, computed, watch } from 'vue'
+ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { SliderProps, SliderEmits, SliderValue } from './types'
 

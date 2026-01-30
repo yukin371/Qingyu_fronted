@@ -297,15 +297,27 @@ export class TestDataGenerator {
   }
 
   /**
-   * 生成随机密码
+   * 生成随机密码（确保包含大小写字母和数字，符合后端验证要求）
    */
   static randomPassword(length: number = 12): string {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const digits = '0123456789'
+    const charset = lowercase + uppercase + digits
+
+    // 确保至少包含一个小写字母、一个大写字母和一个数字
     let password = ''
-    for (let i = 0; i < length; i++) {
+    password += lowercase.charAt(Math.floor(Math.random() * lowercase.length))
+    password += uppercase.charAt(Math.floor(Math.random() * uppercase.length))
+    password += digits.charAt(Math.floor(Math.random() * digits.length))
+
+    // 填充剩余长度
+    for (let i = 3; i < length; i++) {
       password += charset.charAt(Math.floor(Math.random() * charset.length))
     }
-    return password
+
+    // 打乱密码顺序
+    return password.split('').sort(() => Math.random() - 0.5).join('')
   }
 
   /**

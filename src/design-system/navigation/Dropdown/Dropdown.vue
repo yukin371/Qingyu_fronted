@@ -5,7 +5,7 @@
  * 通用的下拉菜单组件，支持多种触发方式和位置
  */
 
-import { computed, ref, watch, nextTick, onMounted, onUnmounted, provide, type Ref } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, provide, type Ref } from 'vue'
 import { cn } from '../../utils/cn'
 import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
 
@@ -129,7 +129,7 @@ const handleShow = () => {
       }
 
       // 添加点击外部监听
-      nextTick(() => {
+     (() => {
         document.addEventListener('click', handleClickOutside)
         document.addEventListener('contextmenu', handleContextMenuOutside)
       })
@@ -143,7 +143,7 @@ const handleShow = () => {
     }
 
     // 添加点击外部监听
-    nextTick(() => {
+   (() => {
       document.addEventListener('click', handleClickOutside)
       document.addEventListener('contextmenu', handleContextMenuOutside)
     })
@@ -296,7 +296,7 @@ provide(DROPDOWN_KEY, {
 // 监听可见性变化
 watch(isVisible, (newVal) => {
   if (newVal) {
-    nextTick(() => {
+   (() => {
       if (dropdownRef.value) {
         // 确保下拉菜单在视口内
         adjustPosition()
