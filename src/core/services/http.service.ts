@@ -219,7 +219,7 @@ class HttpService {
             code: error.response.status,
             message: error.message,
             error: 'NETWORK_ERROR',
-            timestamp: Date.now()
+            timestamp: Math.floor(Date.now() / 1000)
           }
           errorReporter.report(errorResponse)
         }
@@ -257,7 +257,7 @@ class HttpService {
         code: data.code,
         message: data.message,
         error: data.code.toString(),
-        timestamp: data.timestamp || Date.now(),
+        timestamp: data.timestamp || Math.floor(Date.now() / 1000),
         requestId: data.requestId  // 添加requestId字段
       }
       errorReporter.report(errorResponse)
