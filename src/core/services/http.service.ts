@@ -76,14 +76,14 @@ class HttpService {
 
       // 发送到错误监控系统
       errorReporter.report({
-        code: 'API_DEPRECATED',
+        code: 9999,  // 自定义错误码：API已废弃
         message: `API已废弃: ${response.config.url}`,
-        details: {
+        details: JSON.stringify({
           deprecated,
           sunsetDate,
           warning,
           url: response.config.url
-        },
+        }),
         timestamp: Date.now()
       })
     }
@@ -157,11 +157,18 @@ class HttpService {
           return data
         }
 
-        const apiData = data as APIResponse
+        // 手动映射顶层字段（snake_case -> camelCase）
+        const apiData: APIResponse = {
+          code: data.code,
+          message: data.message,
+          data: data.data,
+          timestamp: data.timestamp,
+          requestId: data.request_id  // request_id -> requestId
+        }
 
         // 打印日志
-        if (import.meta.env.DEV && apiData.request_id) {
-          console.debug(`[API] ${apiData.request_id}`, apiData)
+        if (import.meta.env.DEV && apiData.requestId) {
+          console.debug(`[API] ${apiData.requestId}`, apiData)
         }
 
         // 成功判定 (后端规范：成功码=0)
@@ -174,7 +181,7 @@ class HttpService {
 
           const dataToReturn = config.returnFullResponse ? apiData : apiData.data
 
-          // 自动转换snake_case到camelCase（仅对对象类型）
+          // 递归转换data字段（snake_case -> camelCase）
           // 注意：跳过某些已知已经使用camelCase的API
           const skipConversion = config.skipCaseConversion || false
 
