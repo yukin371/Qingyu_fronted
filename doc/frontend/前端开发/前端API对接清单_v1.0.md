@@ -441,6 +441,159 @@
 
 ---
 
+## 📐 前后端对接规范
+
+### 重要：字段命名转换规则
+
+**⚠️ 前端开发者必须了解的字段命名转换机制**
+
+#### 1. 命名规范对比
+
+| 层级 | 命名风格 | 示例 |
+|------|----------|------|
+| **后端响应** | `snake_case` | `request_id`, `user_name`, `created_at` |
+| **前端业务层** | `camelCase` | `requestId`, `userName`, `createdAt` |
+
+#### 2. 自动转换机制
+
+前端HTTP拦截器会自动处理字段名转换，开发者无需手动处理：
+
+**后端响应（snake_case）**：
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "user_id": "507f1f77bcf86cd799439011",
+    "user_name": "张三",
+    "email_address": "user@example.com",
+    "created_at": 1737792000,
+    "request_id": "01HR4XM2K9Y5P3Q7R6T8W0N1V2"
+  },
+  "timestamp": 1737792000
+}
+```
+
+**前端业务层（自动转换为camelCase）**：
+```typescript
+interface User {
+  userId: string      // ← 后端的 user_id
+  userName: string    // ← 后端的 user_name
+  emailAddress: string // ← 后端的 email_address
+  createdAt: number   // ← 后端的 created_at
+  requestId: string   // ← 后端的 request_id
+}
+```
+
+#### 3. 统一响应格式
+
+所有API响应都遵循以下格式（字段已转换为camelCase）：
+
+```typescript
+interface APIResponse<T = any> {
+  code: number           // 业务状态码：0=成功，1001-5999=错误
+  message: string        // 响应消息
+  data?: T              // 响应数据
+  requestId?: string    // 请求追踪ID（← 后端的 request_id）
+  timestamp: number      // 响应时间戳
+}
+```
+
+#### 4. 分页响应格式
+
+```typescript
+interface Pagination {
+  total: number         // 总记录数
+  page: number          // 当前页码
+  pageSize: number      // 每页大小（← 后端的 page_size）
+  totalPages: number    // 总页数（← 后端的 total_pages）
+  hasNext: boolean      // 是否有下一页（← 后端的 has_next）
+  hasPrev: boolean      // 是否有上一页（← 后端的 has_previous）
+}
+```
+
+#### 5. 开发注意事项
+
+**✅ 正确做法**：
+```typescript
+// 直接使用camelCase字段名
+const userId = response.data.userId
+const userName = response.data.userName
+const requestId = response.requestId
+
+// TypeScript类型定义使用camelCase
+interface User {
+  userId: string
+  userName: string
+  createdAt: number
+  requestId?: string
+}
+```
+
+**❌ 错误做法**：
+```typescript
+// 不要使用snake_case（拦截器已经转换了）
+const userId = response.data.user_id  // ❌ undefined
+
+// 不要在类型定义中混用snake_case
+interface User {
+  user_id: string  // ❌ 与实际接收的数据不符
+  userName: string // ✅
+}
+```
+
+#### 6. 常见字段转换对照表
+
+| 后端（snake_case） | 前端（camelCase） |
+|-------------------|------------------|
+| `request_id` | `requestId` |
+| `user_id` | `userId` |
+| `user_name` | `userName` |
+| `email_address` | `emailAddress` |
+| `created_at` | `createdAt` |
+| `updated_at` | `updatedAt` |
+| `page_size` | `pageSize` |
+| `total_pages` | `totalPages` |
+| `has_next` | `hasNext` |
+| `has_previous` | `hasPrev` |
+
+#### 7. 错误码规范
+
+前端判断API是否成功的标准：
+
+```typescript
+// ✅ 正确：只检查 code === 0
+if (response.code === 0) {
+  // 成功
+} else {
+  // 失败，根据错误码处理
+  if (response.code === 1002) {
+    // 未授权
+  } else if (response.code === 2007) {
+    // Token过期
+  }
+}
+
+// ❌ 错误：不要检查HTTP状态码判断业务成功
+if (response.status === 200) {  // ❌ 不足以判断业务成功
+  // 可能 code !== 0
+}
+```
+
+**常用错误码**：
+- `0` - 成功
+- `1001` - 参数错误
+- `1002` - 未授权
+- `1003` - 禁止访问
+- `1004` - 资源不存在（通用）
+- `2001` - 用户不存在
+- `2007` - Token过期
+- `3001` - 书籍不存在
+- `4290` - 频率限制超出
+- `5000` - 内部错误
+
+---
+
 ## 🛠️ 对接工具与资源
 
 ### 1. API文档
