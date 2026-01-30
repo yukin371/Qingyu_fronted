@@ -44,16 +44,36 @@ export enum BackendErrorCode {
   // 成功
   SUCCESS = 0,
 
-  // 通用客户端错误 (1000-1999)
+  // ========== 通用客户端错误 (1000-1099) ==========
+  // 参数验证错误 (1000-1019)
   INVALID_PARAMS = 1001, // 参数错误
+  MISSING_PARAM = 1008, // 缺少必填参数
+  INVALID_FORMAT = 1009, // 参数格式无效
+  INVALID_LENGTH = 1010, // 参数长度无效
+  INVALID_TYPE = 1011, // 参数类型无效
+  OUT_OF_RANGE = 1012, // 参数超出范围
+  DUPLICATE_FIELD = 1013, // 字段重复
+  UNKNOWN_FIELD = 1014, // 未知字段
+  VALIDATION_FAILED = 1015, // 验证失败
+  INVALID_VALUE = 1016, // 值无效
+  INVALID_OPERATION = 1007, // 无效操作
+
+  // 认证授权错误 (1020-1039)
   UNAUTHORIZED = 1002, // 未授权
   FORBIDDEN = 1003, // 禁止访问
+
+  // 资源相关错误 (1040-1059)
   NOT_FOUND = 1004, // 资源不存在（通用）
   ALREADY_EXISTS = 1005, // 资源已存在
   CONFLICT = 1006, // 资源冲突
-  INVALID_OPERATION = 1007, // 无效操作
+  RESOURCE_GONE = 1018, // 资源已删除
 
-  // 用户相关错误 (2000-2999)
+  // 请求相关错误 (1060-1079)
+  METHOD_NOT_ALLOWED = 1019, // 方法不允许
+  REQUEST_TIMEOUT = 1020, // 请求超时
+
+  // ========== 用户相关错误 (2000-2199) ==========
+  // 用户认证 (2000-2019)
   USER_NOT_FOUND = 2001, // 用户不存在
   INVALID_CREDENTIALS = 2002, // 用户名或密码错误
   EMAIL_ALREADY_USED = 2003, // 邮箱已被使用
@@ -62,39 +82,111 @@ export enum BackendErrorCode {
   CODE_EXPIRED = 2006, // 验证码过期
   TOKEN_EXPIRED = 2007, // Token过期
   TOKEN_INVALID = 2008, // Token无效
-  PASSWORD_TOO_WEAK = 2009, // 密码强度不足
-  ACCOUNT_LOCKED = 2010, // 账户已锁定
-  ACCOUNT_DISABLED = 2011, // 账户已禁用
+  TOKEN_FORMAT_ERROR = 2009, // Token格式错误
+  TOKEN_MISSING = 2010, // Token缺失
+  REFRESH_TOKEN_EXPIRED = 2011, // Refresh Token过期
+  REFRESH_TOKEN_INVALID = 2012, // Refresh Token无效
+  PASSWORD_TOO_WEAK = 2013, // 密码强度不足
+  ACCOUNT_LOCKED = 2014, // 账户已锁定
+  ACCOUNT_DISABLED = 2015, // 账户已禁用
+  TOKEN_REVOKED = 2016, // Token已被撤销
+  SESSION_EXPIRED = 2017, // 会话过期
+  TOO_MANY_ATTEMPTS = 2018, // 尝试次数过多
+  ACCOUNT_NOT_VERIFIED = 2019, // 账户未验证
 
-  // 评分相关错误 (2500-2599)
+  // 邮箱和手机 (2020-2039)
+  PHONE_ALREADY_USED = 2020, // 手机号已使用
+  INVALID_PHONE_FORMAT = 2021, // 手机号格式无效
+  EMAIL_NOT_VERIFIED = 2022, // 邮箱未验证
+  PHONE_NOT_VERIFIED = 2023, // 手机号未验证
+  SMS_SEND_FAILED = 2024, // 短信发送失败
+  EMAIL_SEND_TOO_FREQUENT = 2025, // 邮件发送过于频繁
+  SMS_SEND_TOO_FREQUENT = 2026, // 短信发送过于频繁
+
+  // 评分相关 (2500-2599)
   RATING_NOT_FOUND = 2501, // 评分不存在
   RATING_INVALID = 2502, // 评分值无效（不在1-5范围）
   RATING_ALREADY_EXISTS = 2503, // 用户已评分
   RATING_UNAUTHORIZED = 2504, // 无权操作此评分
   RATING_TARGET_NOT_FOUND = 2505, // 评分目标不存在
 
-  // 业务逻辑错误 (3000-3999)
+  // ========== 业务逻辑错误 (3000-3199) ==========
+  // 书籍相关 (3000-3039)
   BOOK_NOT_FOUND = 3001, // 书籍不存在
+  BOOK_ALREADY_EXISTS = 3004, // 书籍已存在
+  INVALID_BOOK_STATUS = 3005, // 书籍状态无效
+  BOOK_DELETED = 3006, // 书籍已删除
+
+  // 章节相关 (3040-3069)
   CHAPTER_NOT_FOUND = 3002, // 章节不存在
+  CHAPTER_ALREADY_EXISTS = 3007, // 章节已存在
+  INVALID_CHAPTER_STATUS = 3008, // 章节状态无效
+  CHAPTER_DELETED = 3009, // 章节已删除
+
+  // 财务相关 (3070-3099)
   INSUFFICIENT_BALANCE = 3003, // 余额不足
   INSUFFICIENT_QUOTA = 3010, // 配额不足
   WALLET_FROZEN = 3011, // 钱包已冻结
+  TRANSACTION_FAILED = 3017, // 交易失败
+
+  // 内容相关 (3100-3129)
   CONTENT_NOT_PUBLISHED = 3012, // 内容未发布
   CHAPTER_LOCKED = 3013, // 章节已锁定
+  CONTENT_LOCKED = 3018, // 内容已锁定
+  CONTENT_DELETED = 3019, // 内容已删除
+
+  // 内容审核 (3130-3159)
   CONTENT_PENDING_REVIEW = 3014, // 内容待审核
   CONTENT_REJECTED = 3015, // 内容被拒绝
   CONTENT_VIOLATION = 3016, // 内容违规
 
-  // 频率限制错误 (4000-4999)
-  RATE_LIMIT_EXCEEDED = 4290, // 频率限制超出
-  HOURLY_LIMIT_EXCEEDED = 4291, // 小时级限制超出
+  // 角色相关 (3160-3179)
+  CHARACTER_NOT_FOUND = 3020, // 角色不存在
+  INVALID_CHARACTER_DATA = 3021, // 角色数据无效
 
-  // 服务端错误 (5000-5999)
+  // 评论相关 (3180-3199)
+  REVIEW_NOT_FOUND = 3022, // 评论不存在
+
+  // 收藏和关注 (3200-3219)
+  COLLECTION_NOT_FOUND = 3023, // 收藏不存在
+  ALREADY_COLLECTED = 3024, // 已收藏
+  ALREADY_FOLLOWED = 3025, // 已关注
+
+  // ========== 限流和配额错误 (4000-4099) ==========
+  RATE_LIMIT_EXCEEDED = 4000, // 频率限制超出
+  DAILY_LIMIT_EXCEEDED = 4001, // 每日限制超出
+  HOURLY_LIMIT_EXCEEDED = 4002, // 每小时限制超出
+  MINUTE_LIMIT_EXCEEDED = 4003, // 每分钟限制超出
+  UPLOAD_LIMIT_EXCEEDED = 4004, // 上传限制超出
+  STORAGE_LIMIT_EXCEEDED = 4005, // 存储限制超出
+  API_QUOTA_EXCEEDED = 4006, // API配额超出
+  CONCURRENT_LIMIT_EXCEEDED = 4007, // 并发限制超出
+  RATE_LIMIT_LOGIN = 4008, // 登录频率限制
+  RATE_LIMIT_EMAIL_SEND = 4009, // 邮件发送频率限制
+  RATE_LIMIT_SMS_SEND = 4010, // 短信发送频率限制
+  HOURLY_LIMIT_EXCEEDED_OLD = 4291, // 小时级限制超出（旧版，保留兼容）
+
+  // ========== 服务端错误 (5000-5099) ==========
+  // 系统错误 (5000-5019)
   INTERNAL_ERROR = 5000, // 内部错误
   DATABASE_ERROR = 5001, // 数据库错误
   SERVICE_UNAVAILABLE = 5002, // 服务不可用
   REDIS_ERROR = 5003, // Redis错误
   EXTERNAL_API_ERROR = 5004, // 外部API错误
+  CACHE_ERROR = 5005, // 缓存错误
+  QUEUE_ERROR = 5006, // 队列错误
+  STORAGE_ERROR = 5007, // 存储错误
+  NETWORK_ERROR = 5008, // 网络错误
+  CONFIGURATION_ERROR = 5009, // 配置错误
+  DEPENDENCY_ERROR = 5010, // 依赖错误
+  TIMEOUT_ERROR = 5011, // 超时错误
+  OVERLOADED_ERROR = 5012, // 过载错误
+  MAINTENANCE_ERROR = 5013, // 维护中
+
+  // 数据库详细错误 (5040-5059)
+  DATABASE_CONNECTION_FAILED = 5014, // 数据库连接失败
+  DATABASE_QUERY_TIMEOUT = 5015, // 数据库查询超时
+  DATABASE_TRANSACTION_FAILED = 5016, // 数据库事务失败
 }
 
 // ============================================
@@ -158,12 +250,24 @@ export enum FrontendErrorCode {
 export const errorCodeMap: Record<number, FrontendErrorCode> = {
   // 通用客户端错误 (1000-1999)
   [BackendErrorCode.INVALID_PARAMS]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.MISSING_PARAM]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.INVALID_FORMAT]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.INVALID_LENGTH]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.INVALID_TYPE]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.OUT_OF_RANGE]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.DUPLICATE_FIELD]: FrontendErrorCode.CONFLICT,
+  [BackendErrorCode.UNKNOWN_FIELD]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.VALIDATION_FAILED]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.INVALID_VALUE]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.INVALID_OPERATION]: FrontendErrorCode.BAD_REQUEST,
   [BackendErrorCode.UNAUTHORIZED]: FrontendErrorCode.UNAUTHORIZED,
   [BackendErrorCode.FORBIDDEN]: FrontendErrorCode.FORBIDDEN,
   [BackendErrorCode.NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
   [BackendErrorCode.ALREADY_EXISTS]: FrontendErrorCode.RESOURCE_EXISTS,
   [BackendErrorCode.CONFLICT]: FrontendErrorCode.CONFLICT,
-  [BackendErrorCode.INVALID_OPERATION]: FrontendErrorCode.BAD_REQUEST,
+  [BackendErrorCode.RESOURCE_GONE]: FrontendErrorCode.RESOURCE_GONE,
+  [BackendErrorCode.METHOD_NOT_ALLOWED]: FrontendErrorCode.BAD_REQUEST,
+  [BackendErrorCode.REQUEST_TIMEOUT]: FrontendErrorCode.TIMEOUT,
 
   // 用户相关错误 (2000-2999)
   [BackendErrorCode.USER_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
@@ -174,9 +278,24 @@ export const errorCodeMap: Record<number, FrontendErrorCode> = {
   [BackendErrorCode.CODE_EXPIRED]: FrontendErrorCode.VALIDATION_ERROR,
   [BackendErrorCode.TOKEN_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
   [BackendErrorCode.TOKEN_INVALID]: FrontendErrorCode.TOKEN_INVALID,
+  [BackendErrorCode.TOKEN_FORMAT_ERROR]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.TOKEN_MISSING]: FrontendErrorCode.UNAUTHORIZED,
+  [BackendErrorCode.REFRESH_TOKEN_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
+  [BackendErrorCode.REFRESH_TOKEN_INVALID]: FrontendErrorCode.TOKEN_INVALID,
   [BackendErrorCode.PASSWORD_TOO_WEAK]: FrontendErrorCode.VALIDATION_ERROR,
   [BackendErrorCode.ACCOUNT_LOCKED]: FrontendErrorCode.ACCOUNT_LOCKED,
   [BackendErrorCode.ACCOUNT_DISABLED]: FrontendErrorCode.ACCOUNT_DISABLED,
+  [BackendErrorCode.TOKEN_REVOKED]: FrontendErrorCode.TOKEN_INVALID,
+  [BackendErrorCode.SESSION_EXPIRED]: FrontendErrorCode.TOKEN_EXPIRED,
+  [BackendErrorCode.TOO_MANY_ATTEMPTS]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.ACCOUNT_NOT_VERIFIED]: FrontendErrorCode.FORBIDDEN,
+  [BackendErrorCode.PHONE_ALREADY_USED]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.INVALID_PHONE_FORMAT]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.EMAIL_NOT_VERIFIED]: FrontendErrorCode.FORBIDDEN,
+  [BackendErrorCode.PHONE_NOT_VERIFIED]: FrontendErrorCode.FORBIDDEN,
+  [BackendErrorCode.SMS_SEND_FAILED]: FrontendErrorCode.EXTERNAL_ERROR,
+  [BackendErrorCode.EMAIL_SEND_TOO_FREQUENT]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.SMS_SEND_TOO_FREQUENT]: FrontendErrorCode.RATE_LIMITED,
 
   // 评分相关错误 (2500-2599)
   [BackendErrorCode.RATING_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
@@ -187,19 +306,44 @@ export const errorCodeMap: Record<number, FrontendErrorCode> = {
 
   // 业务逻辑错误 (3000-3999)
   [BackendErrorCode.BOOK_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.BOOK_ALREADY_EXISTS]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.INVALID_BOOK_STATUS]: FrontendErrorCode.BAD_REQUEST,
+  [BackendErrorCode.BOOK_DELETED]: FrontendErrorCode.RESOURCE_GONE,
   [BackendErrorCode.CHAPTER_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.CHAPTER_ALREADY_EXISTS]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.INVALID_CHAPTER_STATUS]: FrontendErrorCode.BAD_REQUEST,
+  [BackendErrorCode.CHAPTER_DELETED]: FrontendErrorCode.RESOURCE_GONE,
   [BackendErrorCode.INSUFFICIENT_BALANCE]: FrontendErrorCode.INSUFFICIENT_BALANCE,
   [BackendErrorCode.INSUFFICIENT_QUOTA]: FrontendErrorCode.INSUFFICIENT_QUOTA,
   [BackendErrorCode.WALLET_FROZEN]: FrontendErrorCode.WALLET_FROZEN,
+  [BackendErrorCode.TRANSACTION_FAILED]: FrontendErrorCode.SERVER_ERROR,
   [BackendErrorCode.CONTENT_NOT_PUBLISHED]: FrontendErrorCode.CONTENT_LOCKED,
   [BackendErrorCode.CHAPTER_LOCKED]: FrontendErrorCode.CONTENT_LOCKED,
+  [BackendErrorCode.CONTENT_LOCKED]: FrontendErrorCode.CONTENT_LOCKED,
+  [BackendErrorCode.CONTENT_DELETED]: FrontendErrorCode.RESOURCE_GONE,
   [BackendErrorCode.CONTENT_PENDING_REVIEW]: FrontendErrorCode.CONTENT_PENDING,
   [BackendErrorCode.CONTENT_REJECTED]: FrontendErrorCode.CONTENT_REJECTED,
   [BackendErrorCode.CONTENT_VIOLATION]: FrontendErrorCode.CONTENT_VIOLATION,
+  [BackendErrorCode.CHARACTER_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.INVALID_CHARACTER_DATA]: FrontendErrorCode.VALIDATION_ERROR,
+  [BackendErrorCode.REVIEW_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.COLLECTION_NOT_FOUND]: FrontendErrorCode.NOT_FOUND,
+  [BackendErrorCode.ALREADY_COLLECTED]: FrontendErrorCode.RESOURCE_EXISTS,
+  [BackendErrorCode.ALREADY_FOLLOWED]: FrontendErrorCode.RESOURCE_EXISTS,
 
   // 频率限制错误 (4000-4999)
   [BackendErrorCode.RATE_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.DAILY_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
   [BackendErrorCode.HOURLY_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.MINUTE_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.UPLOAD_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.STORAGE_LIMIT_EXCEEDED]: FrontendErrorCode.INSUFFICIENT_QUOTA,
+  [BackendErrorCode.API_QUOTA_EXCEEDED]: FrontendErrorCode.INSUFFICIENT_QUOTA,
+  [BackendErrorCode.CONCURRENT_LIMIT_EXCEEDED]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.RATE_LIMIT_LOGIN]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.RATE_LIMIT_EMAIL_SEND]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.RATE_LIMIT_SMS_SEND]: FrontendErrorCode.RATE_LIMITED,
+  [BackendErrorCode.HOURLY_LIMIT_EXCEEDED_OLD]: FrontendErrorCode.RATE_LIMITED,
 
   // 服务端错误 (5000-5999)
   [BackendErrorCode.INTERNAL_ERROR]: FrontendErrorCode.SERVER_ERROR,
@@ -207,6 +351,18 @@ export const errorCodeMap: Record<number, FrontendErrorCode> = {
   [BackendErrorCode.SERVICE_UNAVAILABLE]: FrontendErrorCode.SERVICE_UNAVAILABLE,
   [BackendErrorCode.REDIS_ERROR]: FrontendErrorCode.SERVER_ERROR,
   [BackendErrorCode.EXTERNAL_API_ERROR]: FrontendErrorCode.EXTERNAL_ERROR,
+  [BackendErrorCode.CACHE_ERROR]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.QUEUE_ERROR]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.STORAGE_ERROR]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.NETWORK_ERROR]: FrontendErrorCode.NETWORK_ERROR,
+  [BackendErrorCode.CONFIGURATION_ERROR]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.DEPENDENCY_ERROR]: FrontendErrorCode.EXTERNAL_ERROR,
+  [BackendErrorCode.TIMEOUT_ERROR]: FrontendErrorCode.TIMEOUT,
+  [BackendErrorCode.OVERLOADED_ERROR]: FrontendErrorCode.SERVICE_UNAVAILABLE,
+  [BackendErrorCode.MAINTENANCE_ERROR]: FrontendErrorCode.SERVICE_UNAVAILABLE,
+  [BackendErrorCode.DATABASE_CONNECTION_FAILED]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.DATABASE_QUERY_TIMEOUT]: FrontendErrorCode.SERVER_ERROR,
+  [BackendErrorCode.DATABASE_TRANSACTION_FAILED]: FrontendErrorCode.SERVER_ERROR,
 }
 
 // ============================================
