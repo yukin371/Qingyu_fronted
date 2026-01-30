@@ -58,6 +58,37 @@ class HttpService {
     return [method, url, sortedStringify(params), sortedStringify(data)].join('&')
   }
 
+  /**
+   * 检查废弃API响应头
+   */
+  private checkDeprecatedAPI(response: AxiosResponse) {
+    const deprecated = response.headers['x-api-deprecated']
+    const sunsetDate = response.headers['x-api-sunset-date']
+    const warning = response.headers['warning']
+
+    if (deprecated || sunsetDate || warning) {
+      const warningMsg = `[HTTP] API已废弃: ${response.config.url}`
+      console.warn(warningMsg, {
+        deprecated,
+        sunsetDate,
+        warning
+      })
+
+      // 发送到错误监控系统
+      errorReporter.report({
+        code: 'API_DEPRECATED',
+        message: `API已废弃: ${response.config.url}`,
+        details: {
+          deprecated,
+          sunsetDate,
+          warning,
+          url: response.config.url
+        },
+        timestamp: Date.now()
+      })
+    }
+  }
+
   private setupInterceptors(): void {
     // Request 拦截器
     this.instance.interceptors.request.use(
@@ -104,6 +135,9 @@ class HttpService {
     this.instance.interceptors.response.use(
       (response: AxiosResponse<any>) => {
         const config = response.config
+
+        // 检查废弃API
+        this.checkDeprecatedAPI(response)
 
         // 清理去重 Map
         if (config.deduplicate) {
