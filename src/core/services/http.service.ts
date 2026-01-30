@@ -16,6 +16,7 @@ import { ErrorHandler } from '@/utils/errorHandler'
 import type { APIResponse } from '@/types/api' // 引入统一类型
 import { convertObjectKeysToCamelCase } from '@/utils/caseConverter' // 引入字段名转换工具
 import { errorReporter } from './error-reporter' // 引入错误上报服务
+import { getApiBaseUrl } from '@/config/apiVersions' // 引入API版本配置
 
 // 扩展 Axios 请求配置
 export interface RequestConfig extends AxiosRequestConfig {
@@ -37,7 +38,7 @@ class HttpService {
   constructor() {
     this.pendingRequests = new Map()
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+      baseURL: import.meta.env.VITE_API_BASE_URL || getApiBaseUrl(),
       timeout: 10000,
       headers: { 'Content-Type': 'application/json;charset=utf-8' },
     })
