@@ -1,5 +1,13 @@
 <template>
   <div class="message-view">
+    <!-- WebSocket连接状态 -->
+    <div
+      class="connection-status"
+      :class="{ connected: wsConnected }"
+    >
+      {{ wsConnected ? '已连接' : '未连接' }}
+    </div>
+
     <div class="message-layout">
       <!-- 对话列表 -->
       <div class="conversation-panel">
@@ -209,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -230,6 +238,8 @@ import {
   type Message,
   type MessageType
 } from '@/modules/social/api'
+import { messageWebSocket } from '@/services/websocket'
+import { eventBus } from '@/utils/eventBus'
 
 const currentUserId = ref('') // 从用户状态获取
 const currentUserAvatar = ref('')
@@ -539,9 +549,63 @@ const formatFileSize = (bytes?: number) => {
   return `${size.toFixed(1)} ${units[unitIndex]}`
 }
 
+// WebSocket连接
+const wsConnected = ref(false)
+
+// 处理WebSocket接收的新消息
+const handleNewMessage = (msg: any) => {
+  console.log('[MessageView] 收到新消息:', msg)
+
+  // 检查消息是否属于当前对话
+  if (msg.conversationId === selectedConversation.value?.id) {
+    // 添加到消息列表
+    messages.value.push(msg)
+    scrollToBottom()
+  } else {
+    // 更新对话列表的最后消息
+    const conversation = conversations.value.find(c => c.id === msg.conversationId)
+    if (conversation) {
+      conversation.last_message = msg.content
+      conversation.unread_count = (conversation.unread_count || 0) + 1
+      totalUnread.value++
+    }
+  }
+}
+
 onMounted(() => {
   loadConversations()
   loadStats()
+
+  // 连接WebSocket
+  const token = localStorage.getItem('token') || ''
+  if (token) {
+    messageWebSocket.connect(token)
+    wsConnected.value = messageWebSocket.getConnectionState()
+  }
+
+  // 监听WebSocket连接状态
+  eventBus.on('websocket:connected', () => {
+    console.log('[MessageView] WebSocket已连接')
+    wsConnected.value = true
+  })
+
+  eventBus.on('websocket:disconnected', () => {
+    console.log('[MessageView] WebSocket已断开')
+    wsConnected.value = false
+  })
+
+  // 监听新消息
+  eventBus.on('websocket:message', handleNewMessage)
+})
+
+onUnmounted(() => {
+  // 断开WebSocket
+  messageWebSocket.disconnect()
+
+  // 移除事件监听
+  eventBus.off('websocket:message', handleNewMessage)
+  eventBus.off('websocket:connected')
+  eventBus.off('websocket:disconnected')
 })
 </script>
 
@@ -549,6 +613,24 @@ onMounted(() => {
 .message-view {
   height: calc(100vh - 100px);
   padding: 20px;
+  position: relative;
+}
+
+.connection-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #f56c6c;
+  color: white;
+  border-radius: 4px;
+  z-index: 100;
+  transition: background 0.3s;
+
+  &.connected {
+    background: #67c23a;
+  }
 }
 
 .message-layout {
