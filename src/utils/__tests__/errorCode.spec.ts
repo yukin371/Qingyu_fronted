@@ -23,41 +23,38 @@ describe('Error Code Mapping Module', () => {
       expect(BackendErrorCode.SUCCESS).toBe(0)
     })
 
-    it('should have correct client error codes (10xxxx)', () => {
-      expect(BackendErrorCode.INVALID_PARAMS).toBe(100001)
-      expect(BackendErrorCode.INVALID_REQUEST_BODY).toBe(100002)
-      expect(BackendErrorCode.MISSING_REQUIRED_FIELD).toBe(100004)
+    it('should have correct client error codes (1xxx)', () => {
+      expect(BackendErrorCode.INVALID_PARAMS).toBe(1001)
+      expect(BackendErrorCode.UNAUTHORIZED).toBe(1002)
+      expect(BackendErrorCode.FORBIDDEN).toBe(1003)
+      expect(BackendErrorCode.NOT_FOUND).toBe(1004)
+      expect(BackendErrorCode.ALREADY_EXISTS).toBe(1005)
+      expect(BackendErrorCode.CONFLICT).toBe(1006)
+      expect(BackendErrorCode.MISSING_PARAM).toBe(1008)
     })
 
-    it('should have correct auth error codes (11xxxx)', () => {
-      expect(BackendErrorCode.UNAUTHORIZED).toBe(110001)
-      expect(BackendErrorCode.FORBIDDEN).toBe(110002)
-      expect(BackendErrorCode.TOKEN_EXPIRED).toBe(110102)
-      expect(BackendErrorCode.ACCOUNT_LOCKED).toBe(110106)
+    it('should have correct user error codes (2xxx)', () => {
+      expect(BackendErrorCode.TOKEN_EXPIRED).toBe(2007)
+      expect(BackendErrorCode.ACCOUNT_LOCKED).toBe(2014)
     })
 
-    it('should have correct resource error codes (12xxxx)', () => {
-      expect(BackendErrorCode.NOT_FOUND).toBe(120001)
-      expect(BackendErrorCode.ALREADY_EXISTS).toBe(120002)
-      expect(BackendErrorCode.CONFLICT).toBe(120003)
+    it('should have correct business error codes (3xxx)', () => {
+      expect(BackendErrorCode.INSUFFICIENT_BALANCE).toBe(3003)
+      expect(BackendErrorCode.CHAPTER_NOT_FOUND).toBe(3002)
+      expect(BackendErrorCode.INSUFFICIENT_QUOTA).toBe(3010)
+      expect(BackendErrorCode.CONTENT_PENDING_REVIEW).toBe(3014)
+      expect(BackendErrorCode.CONTENT_REJECTED).toBe(3015)
+      expect(BackendErrorCode.CONTENT_VIOLATION).toBe(3016)
     })
 
-    it('should have correct business error codes (13xxxx)', () => {
-      expect(BackendErrorCode.INSUFFICIENT_BALANCE).toBe(130001)
-      expect(BackendErrorCode.INSUFFICIENT_QUOTA).toBe(130002)
-      expect(BackendErrorCode.RATE_LIMIT_EXCEEDED).toBe(130007)
+    it('should have correct rate limit error codes (4xxx)', () => {
+      expect(BackendErrorCode.RATE_LIMIT_EXCEEDED).toBe(4000)
     })
 
-    it('should have correct content moderation error codes (14xxxx)', () => {
-      expect(BackendErrorCode.CONTENT_PENDING_REVIEW).toBe(140001)
-      expect(BackendErrorCode.CONTENT_REJECTED).toBe(140002)
-      expect(BackendErrorCode.CONTENT_VIOLATION).toBe(140003)
-    })
-
-    it('should have correct server error codes (99xxxx)', () => {
-      expect(BackendErrorCode.INTERNAL_ERROR).toBe(990001)
-      expect(BackendErrorCode.DATABASE_ERROR).toBe(990002)
-      expect(BackendErrorCode.EXTERNAL_API_ERROR).toBe(990004)
+    it('should have correct server error codes (5xxx)', () => {
+      expect(BackendErrorCode.INTERNAL_ERROR).toBe(5000)
+      expect(BackendErrorCode.DATABASE_ERROR).toBe(5001)
+      expect(BackendErrorCode.EXTERNAL_API_ERROR).toBe(5004)
     })
   })
 
@@ -97,21 +94,13 @@ describe('Error Code Mapping Module', () => {
   })
 
   describe('Error Code Mapping', () => {
-    describe('Client Errors (10xxxx)', () => {
+    describe('Client Errors (1xxx)', () => {
       it('should map INVALID_PARAMS to VALIDATION_ERROR', () => {
         expect(errorCodeMap[BackendErrorCode.INVALID_PARAMS]).toBe(
           FrontendErrorCode.VALIDATION_ERROR
         )
       })
 
-      it('should map INVALID_REQUEST_BODY to BAD_REQUEST', () => {
-        expect(errorCodeMap[BackendErrorCode.INVALID_REQUEST_BODY]).toBe(
-          FrontendErrorCode.BAD_REQUEST
-        )
-      })
-    })
-
-    describe('Auth Errors (11xxxx)', () => {
       it('should map UNAUTHORIZED to UNAUTHORIZED', () => {
         expect(errorCodeMap[BackendErrorCode.UNAUTHORIZED]).toBe(
           FrontendErrorCode.UNAUTHORIZED
@@ -124,26 +113,6 @@ describe('Error Code Mapping Module', () => {
         )
       })
 
-      it('should map TOKEN_EXPIRED to TOKEN_EXPIRED', () => {
-        expect(errorCodeMap[BackendErrorCode.TOKEN_EXPIRED]).toBe(
-          FrontendErrorCode.TOKEN_EXPIRED
-        )
-      })
-
-      it('should map ACCOUNT_LOCKED to ACCOUNT_LOCKED', () => {
-        expect(errorCodeMap[BackendErrorCode.ACCOUNT_LOCKED]).toBe(
-          FrontendErrorCode.ACCOUNT_LOCKED
-        )
-      })
-
-      it('should map INVALID_CREDENTIALS to UNAUTHORIZED', () => {
-        expect(errorCodeMap[BackendErrorCode.INVALID_CREDENTIALS]).toBe(
-          FrontendErrorCode.UNAUTHORIZED
-        )
-      })
-    })
-
-    describe('Resource Errors (12xxxx)', () => {
       it('should map NOT_FOUND to NOT_FOUND', () => {
         expect(errorCodeMap[BackendErrorCode.NOT_FOUND]).toBe(
           FrontendErrorCode.NOT_FOUND
@@ -163,7 +132,33 @@ describe('Error Code Mapping Module', () => {
       })
     })
 
-    describe('Business Errors (13xxxx)', () => {
+    describe('User Errors (2xxx)', () => {
+      it('should map INVALID_CREDENTIALS to UNAUTHORIZED', () => {
+        expect(errorCodeMap[BackendErrorCode.INVALID_CREDENTIALS]).toBe(
+          FrontendErrorCode.UNAUTHORIZED
+        )
+      })
+
+      it('should map TOKEN_EXPIRED to TOKEN_EXPIRED', () => {
+        expect(errorCodeMap[BackendErrorCode.TOKEN_EXPIRED]).toBe(
+          FrontendErrorCode.TOKEN_EXPIRED
+        )
+      })
+
+      it('should map ACCOUNT_LOCKED to ACCOUNT_LOCKED', () => {
+        expect(errorCodeMap[BackendErrorCode.ACCOUNT_LOCKED]).toBe(
+          FrontendErrorCode.ACCOUNT_LOCKED
+        )
+      })
+
+      it('should map ACCOUNT_DISABLED to ACCOUNT_DISABLED', () => {
+        expect(errorCodeMap[BackendErrorCode.ACCOUNT_DISABLED]).toBe(
+          FrontendErrorCode.ACCOUNT_DISABLED
+        )
+      })
+    })
+
+    describe('Business Errors (3xxx)', () => {
       it('should map INSUFFICIENT_BALANCE to INSUFFICIENT_BALANCE', () => {
         expect(errorCodeMap[BackendErrorCode.INSUFFICIENT_BALANCE]).toBe(
           FrontendErrorCode.INSUFFICIENT_BALANCE
@@ -176,14 +171,6 @@ describe('Error Code Mapping Module', () => {
         )
       })
 
-      it('should map RATE_LIMIT_EXCEEDED to RATE_LIMITED', () => {
-        expect(errorCodeMap[BackendErrorCode.RATE_LIMIT_EXCEEDED]).toBe(
-          FrontendErrorCode.RATE_LIMITED
-        )
-      })
-    })
-
-    describe('Content Moderation Errors (14xxxx)', () => {
       it('should map CONTENT_PENDING_REVIEW to CONTENT_PENDING', () => {
         expect(errorCodeMap[BackendErrorCode.CONTENT_PENDING_REVIEW]).toBe(
           FrontendErrorCode.CONTENT_PENDING
@@ -203,9 +190,23 @@ describe('Error Code Mapping Module', () => {
       })
     })
 
-    describe('Server Errors (99xxxx)', () => {
+    describe('Rate Limit Errors (4xxx)', () => {
+      it('should map RATE_LIMIT_EXCEEDED to RATE_LIMITED', () => {
+        expect(errorCodeMap[BackendErrorCode.RATE_LIMIT_EXCEEDED]).toBe(
+          FrontendErrorCode.RATE_LIMITED
+        )
+      })
+    })
+
+    describe('Server Errors (5xxx)', () => {
       it('should map INTERNAL_ERROR to SERVER_ERROR', () => {
         expect(errorCodeMap[BackendErrorCode.INTERNAL_ERROR]).toBe(
+          FrontendErrorCode.SERVER_ERROR
+        )
+      })
+
+      it('should map DATABASE_ERROR to SERVER_ERROR', () => {
+        expect(errorCodeMap[BackendErrorCode.DATABASE_ERROR]).toBe(
           FrontendErrorCode.SERVER_ERROR
         )
       })
@@ -264,72 +265,72 @@ describe('Error Code Mapping Module', () => {
     })
 
     it('should map known backend codes correctly', () => {
-      expect(mapBackendCodeToFrontend(100001)).toBe(
+      expect(mapBackendCodeToFrontend(1001)).toBe(
         FrontendErrorCode.VALIDATION_ERROR
       )
-      expect(mapBackendCodeToFrontend(110001)).toBe(
+      expect(mapBackendCodeToFrontend(1002)).toBe(
         FrontendErrorCode.UNAUTHORIZED
       )
-      expect(mapBackendCodeToFrontend(120001)).toBe(FrontendErrorCode.NOT_FOUND)
+      expect(mapBackendCodeToFrontend(1004)).toBe(FrontendErrorCode.NOT_FOUND)
     })
 
     it('should use HTTP status code as fallback', () => {
-      // Unknown backend code 999999 with HTTP 401
-      expect(mapBackendCodeToFrontend(999999, 401)).toBe(
+      // Unknown backend code 9999 with HTTP 401
+      expect(mapBackendCodeToFrontend(9999, 401)).toBe(
         FrontendErrorCode.UNAUTHORIZED
       )
 
-      // Unknown backend code 999999 with HTTP 500
-      expect(mapBackendCodeToFrontend(999999, 500)).toBe(
+      // Unknown backend code 9999 with HTTP 500
+      expect(mapBackendCodeToFrontend(9999, 500)).toBe(
         FrontendErrorCode.SERVER_ERROR
       )
     })
 
     it('should use range mapping when no HTTP status provided', () => {
-      // Unknown code in 11xxxx range
-      expect(mapBackendCodeToFrontend(119999)).toBe(
+      // Unknown code in 2xxx range
+      expect(mapBackendCodeToFrontend(2999)).toBe(
         FrontendErrorCode.UNAUTHORIZED
       )
 
-      // Unknown code in 99xxxx range
-      expect(mapBackendCodeToFrontend(999999)).toBe(
+      // Unknown code in 5xxx range
+      expect(mapBackendCodeToFrontend(5999)).toBe(
         FrontendErrorCode.SERVER_ERROR
       )
     })
   })
 
   describe('getFrontendCodeByRange', () => {
-    it('should return BAD_REQUEST for 10xxxx range', () => {
-      expect(getFrontendCodeByRange(100000)).toBe(FrontendErrorCode.BAD_REQUEST)
-      expect(getFrontendCodeByRange(109999)).toBe(FrontendErrorCode.BAD_REQUEST)
+    it('should return BAD_REQUEST for 1xxx range', () => {
+      expect(getFrontendCodeByRange(1000)).toBe(FrontendErrorCode.BAD_REQUEST)
+      expect(getFrontendCodeByRange(1999)).toBe(FrontendErrorCode.BAD_REQUEST)
     })
 
-    it('should return UNAUTHORIZED for 11xxxx range', () => {
-      expect(getFrontendCodeByRange(110000)).toBe(
+    it('should return UNAUTHORIZED for 2xxx range', () => {
+      expect(getFrontendCodeByRange(2000)).toBe(
         FrontendErrorCode.UNAUTHORIZED
       )
-      expect(getFrontendCodeByRange(119999)).toBe(
+      expect(getFrontendCodeByRange(2999)).toBe(
         FrontendErrorCode.UNAUTHORIZED
       )
     })
 
-    it('should return NOT_FOUND for 12xxxx range', () => {
-      expect(getFrontendCodeByRange(120000)).toBe(FrontendErrorCode.NOT_FOUND)
-      expect(getFrontendCodeByRange(129999)).toBe(FrontendErrorCode.NOT_FOUND)
+    it('should return NOT_FOUND for 3xxx range', () => {
+      expect(getFrontendCodeByRange(3000)).toBe(FrontendErrorCode.BAD_REQUEST)
+      expect(getFrontendCodeByRange(3999)).toBe(FrontendErrorCode.BAD_REQUEST)
     })
 
-    it('should return SERVER_ERROR for 99xxxx range', () => {
-      expect(getFrontendCodeByRange(990000)).toBe(
+    it('should return SERVER_ERROR for 5xxx range', () => {
+      expect(getFrontendCodeByRange(5000)).toBe(
         FrontendErrorCode.SERVER_ERROR
       )
-      expect(getFrontendCodeByRange(999999)).toBe(
+      expect(getFrontendCodeByRange(5999)).toBe(
         FrontendErrorCode.SERVER_ERROR
       )
     })
 
     it('should return UNKNOWN_ERROR for undefined ranges', () => {
       expect(getFrontendCodeByRange(0)).toBe(FrontendErrorCode.UNKNOWN_ERROR)
-      expect(getFrontendCodeByRange(500000)).toBe(FrontendErrorCode.UNKNOWN_ERROR)
+      expect(getFrontendCodeByRange(6000)).toBe(FrontendErrorCode.UNKNOWN_ERROR)
     })
   })
 
@@ -465,34 +466,33 @@ describe('Error Code Mapping Module', () => {
 
   describe('Backward Compatibility', () => {
     it('should handle all backend error codes from codes.go', () => {
-      // These are the actual error codes defined in the backend
+      // These are the actual error codes defined in the backend (4-digit format)
       const backendCodes = [
         0, // Success
-        100001, // InvalidParams
-        100601, // Unauthorized (legacy)
-        100603, // Forbidden (legacy)
-        100404, // NotFound (legacy)
-        100201, // AlreadyExists (legacy)
-        100202, // Conflict (legacy)
-        100611, // InvalidCredentials (legacy)
-        100612, // TokenExpired (legacy)
-        100613, // TokenInvalid (legacy)
-        100114, // PasswordTooWeak (legacy)
-        100615, // AccountLocked (legacy)
-        100616, // AccountDisabled (legacy)
-        100301, // InsufficientBalance (legacy)
-        100302, // InsufficientQuota (legacy)
-        100303, // WalletFrozen (legacy)
-        100304, // ContentNotPublished (legacy)
-        100305, // ChapterLocked (legacy)
-        100401, // ContentPendingReview (legacy)
-        100403, // ContentRejected (legacy)
-        100405, // ContentViolation (legacy)
-        995001, // InternalError (legacy)
-        995002, // DatabaseError (legacy)
-        995004, // RedisError (legacy)
-        990001, // ExternalAPIError (legacy)
-        995007 // RateLimitExceeded (legacy)
+        1001, // InvalidParams
+        1002, // Unauthorized
+        1003, // Forbidden
+        1004, // NotFound
+        1005, // AlreadyExists
+        1006, // Conflict
+        2002, // InvalidCredentials
+        2007, // TokenExpired
+        2008, // TokenInvalid
+        2013, // PasswordTooWeak
+        2014, // AccountLocked
+        2015, // AccountDisabled
+        3003, // InsufficientBalance
+        3010, // InsufficientQuota
+        3011, // WalletFrozen
+        3012, // ContentNotPublished
+        3013, // ChapterLocked
+        3014, // ContentPendingReview
+        3015, // ContentRejected
+        3016, // ContentViolation
+        4000, // RateLimitExceeded
+        5000, // InternalError
+        5001, // DatabaseError
+        5004, // ExternalAPIError
       ]
 
       backendCodes.forEach((code) => {
@@ -509,7 +509,7 @@ describe('Error Code Mapping Module', () => {
     })
 
     it('should handle very large error codes', () => {
-      expect(mapBackendCodeToFrontend(9999999)).toBe(
+      expect(mapBackendCodeToFrontend(99999)).toBe(
         FrontendErrorCode.UNKNOWN_ERROR
       )
     })
