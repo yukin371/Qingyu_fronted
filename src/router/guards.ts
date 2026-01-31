@@ -66,21 +66,34 @@ function createAuthGuard(router: Router) {
     }
 
     // 3.3 角色/权限检查
-    // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['writer', 'admin'] }
+    // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['author', 'admin'] }
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       const requiredRoles = to.meta.roles
       const hasRole = authStore.user?.roles?.some((role) => requiredRoles.includes(role))
 
       // 如果没有权限
       if (!hasRole) {
-        // 如果是去作家后台，但没权限，可能是普通读者，跳转申请页或首页
-        if (to.path.startsWith('/writer')) {
-          // 可以跳转到一个 "申请成为作家" 的页面，或者直接回首页提示
-          // next({ name: 'apply-writer' })
-          next({ path: '/bookstore', query: { error: 'permission_denied' } })
+        // 如果是去作家后台，但没权限，可能是普通读者，跳转到引导页
+        if (to.path.startsWith('/writer') && to.path !== '/writer/become-author') {
+          // 检查用户是否有reader角色，如果有则跳转到引导页
+          const isReader = authStore.user?.roles?.includes('reader')
+          if (isReader) {
+            next({ name: 'become-author' })
+          } else {
+            next({ path: '/bookstore', query: { error: 'permission_denied' }})
+          }
         } else {
           next({ path: '/403' }) // 建议添加 403 页面
         }
+        return
+      }
+    }
+
+    // 特殊处理：读者访问/writer根路径时跳转到引导页
+    if (to.path === '/writer' || to.path === '/writer/') {
+      const hasAuthorRole = authStore.user?.roles?.includes('author') || authStore.user?.roles?.includes('admin')
+      if (!hasAuthorRole) {
+        next({ name: 'become-author' })
         return
       }
     }

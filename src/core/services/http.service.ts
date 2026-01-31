@@ -2,7 +2,6 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
-import type { Router } from 'vue-router'
 import type { ErrorResponse } from '@/types/error.types'
 import { errorReporter } from './error-reporter'
 
@@ -16,11 +15,16 @@ export const apiClient = axios.create({
 })
 
 // 请求拦截器 - 添加认证令牌
+// 注意：storage工具会自动添加 qingyu_ 前缀，所以需要使用 qingyu_token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token')
+    // 修复：使用 qingyu_token 前缀，与 authStore 的存储键保持一致
+    const token = localStorage.getItem('qingyu_token')
+    console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
+    console.log('[Request Interceptor] Token found:', !!token, token?.substring(0, 20) + '...')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('[Request Interceptor] Authorization header set')
     }
     return config
   },
@@ -32,8 +36,8 @@ apiClient.interceptors.request.use(
 // 令牌刷新队列
 let isRefreshing = false
 let failedQueue: Array<{
-  resolve: (value?: unknown) => void
-  reject: (reason?: unknown) => void
+  resolve: (_value?: unknown) => void
+  reject: (_reason?: unknown) => void
 }>[] = []
 
 const processQueue = (error: unknown, token: string | null = null) => {
@@ -73,7 +77,7 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    const { code, message, error: errorType } = response.data
+    const { code, message } = response.data
 
     // 上报错误到监控系统
     errorReporter.report(response.data)
@@ -94,11 +98,14 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        const res = await axios.post('/api/v1/auth/refresh', { token: refreshToken })
+        // 修复：使用 qingyu_refreshToken 前缀
+        const refreshToken = localStorage.getItem('qingyu_refreshToken')
+        // 修复：使用正确的刷新 API 路径
+        const res = await axios.post('/api/v1/shared/auth/refresh', { token: refreshToken })
 
         const { token: newToken } = res.data.data
-        localStorage.setItem('token', newToken)
+        // 修复：使用 qingyu_token 前缀
+        localStorage.setItem('qingyu_token', newToken)
 
         processQueue(null, newToken)
 
@@ -157,13 +164,13 @@ apiClient.interceptors.response.use(
 // 处理认证错误
 function handleAuthError() {
   ElMessage.warning('登录已过期，请重新登录')
-  localStorage.removeItem('token')
-  localStorage.removeItem('refreshToken')
+  // 修复：使用 qingyu_ 前缀
+  localStorage.removeItem('qingyu_token')
+  localStorage.removeItem('qingyu_refreshToken')
 
   // 延迟跳转，避免路由拦截器问题
   setTimeout(() => {
-    const router = require('@/router').default as Router
-    router.push('/login')
+    window.location.href = '/login'
   }, 1000)
 }
 
