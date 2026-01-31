@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { login, logout, register, refreshToken, sharedAuthAPI as authAPI } from '@/modules/shared/api/auth'
 import storage from '@/utils/storage'
-import router from '@/router'
+// 移除对router的直接导入以避免循环依赖
+// import router from '@/router'
 import type { User } from '@/types/models'
 import type { LoginCredentials, RegisterData } from '@/types/user'
 
@@ -230,8 +231,8 @@ export const useAuthStore = defineStore('auth', {
         // 清除本地状态
         this.clearAuth()
 
-        // 跳转到登录页
-        router.push('/login')
+        // 跳转到登录页 - 使用window.location避免循环依赖
+        window.location.href = '/login'
       }
     },
 
