@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig, Method, ResponseType } from 'axios'
-import type { RequestConfig } from '@/core/services/http.service'
+import type { RequestConfig } from '@/core/types/api.types'
 import { httpService } from '@/core/services/http.service'
 
 type OrvalConfig<TBody = any> = AxiosRequestConfig<TBody> & {
@@ -54,9 +54,15 @@ export const defaultMutator = async <TResponse = any, TBody = any>(
 
   switch (method) {
     case 'GET':
-      return (await httpService.get<TResponse>(url, cfg.params, requestConfig)) as TResponse
+      return (await httpService.get<TResponse>(url, {
+        params: cfg.params,
+        ...requestConfig
+      })) as TResponse
     case 'DELETE':
-      return (await httpService.delete<TResponse>(url, cfg.params, requestConfig)) as TResponse
+      return (await httpService.delete<TResponse>(url, {
+        params: cfg.params,
+        ...requestConfig
+      })) as TResponse
     case 'POST':
       return (await httpService.post<TResponse>(url, cfg.data, requestConfig)) as TResponse
     case 'PUT':

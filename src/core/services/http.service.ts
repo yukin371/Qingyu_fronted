@@ -1,18 +1,46 @@
 // src/core/services/http.service.ts
 
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosInstance, CancelTokenSource } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { ErrorResponse } from '@/types/error.types'
 import { errorReporter } from './error-reporter'
 
+// ==================== 类型扩展 ====================
+
+/**
+ * Promise回调对
+ */
+interface PromiseCallbacks {
+  resolve: (_value?: unknown) => void
+  reject: (_reason?: unknown) => void
+}
+
+/**
+ * 扩展AxiosInstance接口，添加自定义方法
+ */
+interface ExtendedAxiosInstance extends AxiosInstance {
+  /** 设置认证Token */
+  setAuthToken(token: string): void
+  /** 清除认证Token */
+  clearAuthToken(): void
+  /** 取消所有进行中的请求 */
+  cancelAllRequests(): void
+}
+
 // 创建 axios 实例
-export const apiClient = axios.create({
+const baseClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
+// 用于存储取消令牌
+const pendingRequests = new Map<string, CancelTokenSource>()
+
+// 扩展实例
+const apiClient = baseClient as ExtendedAxiosInstance
 
 // 请求拦截器 - 添加认证令牌
 // 注意：storage工具会自动添加 qingyu_ 前缀，所以需要使用 qingyu_token
@@ -35,12 +63,9 @@ apiClient.interceptors.request.use(
 
 // 令牌刷新队列
 let isRefreshing = false
-let failedQueue: Array<{
-  resolve: (_value?: unknown) => void
-  reject: (_reason?: unknown) => void
-}>[] = []
+let failedQueue: PromiseCallbacks[] = []
 
-const processQueue = (error: unknown, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null): void => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error)
@@ -174,8 +199,72 @@ function handleAuthError() {
   }, 1000)
 }
 
+// ==================== 自定义方法 ====================
+
+/**
+ * 设置认证Token
+ */
+apiClient.setAuthToken = function(token: string): void {
+  this.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
+
+/**
+ * 清除认证Token
+ */
+apiClient.clearAuthToken = function(): void {
+  delete this.defaults.headers.common['Authorization']
+}
+
+/**
+ * 取消所有进行中的请求
+ */
+apiClient.cancelAllRequests = function(): void {
+  pendingRequests.forEach((source) => {
+    source.cancel('Request canceled due to cancelAllRequests')
+  })
+  pendingRequests.clear()
+}
+
+// ==================== 请求取消支持 ====================
+
+// 生成请求唯一标识
+const generateRequestKey = (config: InternalAxiosRequestConfig): string => {
+  const { method, url } = config
+  return `${method}-${url}`
+}
+
+// 请求拦截器 - 添加取消令牌支持
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    // 修复：使用 qingyu_token 前缀，与 authStore 的存储键保持一致
+    const token = localStorage.getItem('qingyu_token')
+    console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
+    console.log('[Request Interceptor] Token found:', !!token, token?.substring(0, 20) + '...')
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`
+      console.log('[Request Interceptor] Authorization header set')
+    }
+
+    // 添加取消令牌支持
+    const key = generateRequestKey(config)
+    const source = axios.CancelToken.source()
+    config.cancelToken = source.token
+    pendingRequests.set(key, source)
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// ==================== 导出 ====================
+
 // 导出实例供模块使用
 export default apiClient
 
 // 别名导出，保持向后兼容
 export const httpService = apiClient
+
+// 同时导出类型化的实例
+export { apiClient }

@@ -438,6 +438,8 @@ const loadBookshelf = async () => {
         page: bookshelfPagination.value.page,
         pageSize: bookshelfPagination.value.size
       })
+      // TODO: 处理真实API响应
+    }
 
     // 模拟数据 - 用于测试批量操作功能
     bookshelfList.value = [

@@ -12,6 +12,31 @@
 
 import type { APIResponse } from '@/types/api'
 
+// ==================== 类型辅助函数 ====================
+
+/**
+ * 检查是否为标准API响应格式
+ */
+function isAPIResponse<T>(value: any): value is APIResponse<T> {
+  return (
+    value &&
+    typeof value === 'object' &&
+    'code' in value &&
+    'message' in value
+  )
+}
+
+/**
+ * 从API响应中提取数据
+ * 如果是标准APIResponse格式，提取data字段；否则直接返回
+ */
+function extractData<T>(response: APIResponse<T> | T): T {
+  if (isAPIResponse<T>(response)) {
+    return (response.data ?? null) as T
+  }
+  return response
+}
+
 // ==================== 类型定义 ====================
 
 /**
@@ -136,7 +161,8 @@ class ApiAdapterService {
 
       // 如果不使用新API，直接调用旧API
       if (!useNewApi && oldApi) {
-        const data = await oldApi(params)
+        const response = await oldApi(params)
+        const data = extractData<TResult>(response)
         return {
           data,
           usedFallback: true,
@@ -167,7 +193,8 @@ class ApiAdapterService {
           }
 
           // 降级到旧API
-          const data = await oldApi(params)
+          const response = await oldApi(params)
+          const data = extractData<TResult>(response)
           return {
             data,
             usedFallback: true,
