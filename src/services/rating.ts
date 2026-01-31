@@ -1,4 +1,4 @@
-import request from '@/modules/social/api/request'
+import request from '@/modules/social/request'
 import { API_PATHS } from '@/config/apiPaths'
 
 export type TargetType = 'comment' | 'review' | 'book' | 'chapter'

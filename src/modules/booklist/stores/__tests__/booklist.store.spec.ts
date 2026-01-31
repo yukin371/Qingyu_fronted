@@ -103,7 +103,8 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(store.loading).toBe(false)
-      expect(store.error).toEqual(error)
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toBe(error.message)
       expect(store.booklists).toEqual([])
     })
 
@@ -168,7 +169,8 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(store.loading).toBe(false)
-      expect(store.error).toEqual(error)
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toBe(error.message)
       expect(store.currentBooklist).toBeNull()
     })
   })

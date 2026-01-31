@@ -164,7 +164,8 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.loading).toBe(false)
-      expect(store.error).toEqual(error)
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toBe(error.message)
       expect(store.posts).toEqual([])
     })
 
@@ -227,7 +228,8 @@ describe('useCommunityStore', () => {
 
       // Assert
       expect(store.loading).toBe(false)
-      expect(store.error).toEqual(error)
+      expect(store.error).toBeInstanceOf(Error)
+      expect(store.error?.message).toBe(error.message)
       expect(store.currentPost).toBeNull()
     })
   })

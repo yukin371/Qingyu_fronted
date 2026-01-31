@@ -53,7 +53,7 @@ export default mergeConfig(
       minThreads: 1,
 
       // 报告器（移除 html 避免 @vitest/ui 依赖问题）
-      reporter: ['verbose', 'json']
+      reporter: ['verbose']
     },
   }),
 )
