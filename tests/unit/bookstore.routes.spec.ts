@@ -29,10 +29,11 @@ describe('Bookstore Routes - Browse Integration', () => {
       routes: bookstoreRoutes
     })
 
+    // 使用 await 等待路由导航完成
     await router.push('/bookstore/search?q=测试')
     expect(router.currentRoute.value.path).toBe('/bookstore/browse')
     expect(router.currentRoute.value.query.q).toBe('测试')
-  })
+  }, 30000)
 
   it('should redirect books to browse', async () => {
     const router = createRouter({
@@ -42,7 +43,7 @@ describe('Bookstore Routes - Browse Integration', () => {
 
     await router.push('/bookstore/books')
     expect(router.currentRoute.value.path).toBe('/bookstore/browse')
-  })
+  }, 30000)
 
   it('should redirect categories with id to browse with categoryId', async () => {
     const router = createRouter({

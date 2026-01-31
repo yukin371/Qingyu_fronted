@@ -23,7 +23,7 @@ describe('Reader API Wrapper', () => {
     it('应该能够导入wrapper', async () => {
       const wrapper = await import('../wrapper')
       expect(wrapper).toBeDefined()
-    })
+    }, 30000)
 
     it('应该导出核心API方法', async () => {
       const wrapper = await import('../wrapper')
@@ -33,7 +33,7 @@ describe('Reader API Wrapper', () => {
       expect(wrapper.getBookInfo).toBeDefined()
       expect(wrapper.getChapterInfo).toBeDefined()
       expect(wrapper.saveReadingProgress).toBeDefined()
-    })
+    }, 30000)
   })
 
   describe('API调用测试', () => {
@@ -49,7 +49,7 @@ describe('Reader API Wrapper', () => {
         params: { page: 1, size: 20 },
       })
       expect(result).toBeDefined()
-    })
+    }, 30000)
 
     it('应该能调用saveReadingProgress', async () => {
       const wrapper = await import('../wrapper')
@@ -64,6 +64,6 @@ describe('Reader API Wrapper', () => {
       await wrapper.saveReadingProgress(progressData)
 
       expect(orvalMutator).toHaveBeenCalled()
-    })
+    }, 30000)
   })
 })

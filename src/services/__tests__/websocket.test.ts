@@ -25,9 +25,31 @@ describe('WebSocket服务', () => {
       onclose: null as any
     }
 
+    // 创建一个可构造的 mock 类
+    class MockWebSocket {
+      static CONNECTING = 0
+      static OPEN = 1
+      static CLOSING = 2
+      static CLOSED = 3
+
+      constructor(url: string) {
+        // 返回 mockWs 对象
+        Object.assign(this, mockWs)
+      }
+
+      send = vi.fn()
+      close = vi.fn()
+      onopen: any = null
+      onmessage: any = null
+      onerror: any = null
+      onclose: any = null
+      readyState = WebSocket.CLOSED
+    }
+
     // 设置全局 WebSocket mock
-    wsMockFn = vi.fn(() => mockWs)
-    global.WebSocket = wsMockFn as any
+    global.WebSocket = MockWebSocket as any
+    // 使用 spyOn 来追踪构造函数调用
+    wsMockFn = vi.spyOn(global, 'WebSocket' as any)
 
     // 创建新的服务实例
     service = new MessageWebSocketService()
@@ -39,28 +61,18 @@ describe('WebSocket服务', () => {
   })
 
   it('应该成功连接WebSocket', () => {
-    // 先重置 mock 调用计数
-    wsMockFn.mockClear()
-
-    // 打印调试信息
-    console.log('DEBUG: global.WebSocket:', global.WebSocket)
-    console.log('DEBUG: wsMockFn:', wsMockFn)
-    console.log('DEBUG: global.WebSocket === wsMockFn:', global.WebSocket === wsMockFn)
-
     // 调用连接
     service.connect('test-token')
-
-    console.log('DEBUG: wsMockFn.mock.calls:', wsMockFn.mock.calls)
-    console.log('DEBUG: service.ws:', (service as any).ws)
-    console.log('DEBUG: mockWs.onopen:', mockWs.onopen)
 
     // 验证 WebSocket 构造函数被调用
     expect(wsMockFn).toHaveBeenCalled()
     // 检查事件处理器已被分配（非null）
-    expect(mockWs.onopen).not.toBeNull()
-    expect(mockWs.onmessage).not.toBeNull()
-    expect(mockWs.onerror).not.toBeNull()
-    expect(mockWs.onclose).not.toBeNull()
+    // 由于服务创建了新的 WebSocket 实例，检查 service.ws
+    expect((service as any).ws).not.toBeNull()
+    expect((service as any).ws?.onopen).not.toBeNull()
+    expect((service as any).ws?.onmessage).not.toBeNull()
+    expect((service as any).ws?.onerror).not.toBeNull()
+    expect((service as any).ws?.onclose).not.toBeNull()
   })
 
   it('应该在断开后自动重连', async () => {
