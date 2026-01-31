@@ -31,6 +31,7 @@
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.16",
+    "madge": "^8.0.0",
     "postcss": "^8.4.32",
     "sass-embedded": "^1.93.2",
     "tailwindcss": "^3.3.6",
