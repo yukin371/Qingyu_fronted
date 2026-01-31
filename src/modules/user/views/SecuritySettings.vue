@@ -372,8 +372,7 @@ const sendPhoneCode = async () => {
             }
         }, 1000)
     } catch (error: any) {
-        console.error('发送验证码失败:', error)
-        message.error(error.message || '发送验证码失败')
+        ElMessage.error(error.message || '发送验证码失败')
     }
 }
 
@@ -580,8 +579,7 @@ const loadLoginDevices = async () => {
             loginDevices.value = response.data
         }
     } catch (error: any) {
-        console.error('加载登录设备失败:', error)
-        // 如果API未实现，使用默认数据
+        ElMessage.error(error.message || '加载登录设备失败')
         loginDevices.value = []
     }
 }

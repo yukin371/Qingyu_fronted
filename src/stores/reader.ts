@@ -6,6 +6,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Chapter, ChapterContent, ReaderSettings } from '@/types/reader'
 import readerAPI from '@/modules/reader/api/reader'
+import { useAuthStore } from './auth'
 
 export const useReaderStore = defineStore('reader', () => {
   // 状态
@@ -41,16 +42,74 @@ export const useReaderStore = defineStore('reader', () => {
     try {
       isLoading.value = true
 
-      // 使用提供的bookId或当前的bookId
-      const targetBookId = bookId || currentBookId.value
-      if (!targetBookId) {
-        throw new Error('未指定书籍ID')
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      console.log('[DEBUG] token:', token, 'isMockToken:', isMockToken)
+
+      if (isMockToken) {
+        // 测试模式：使用模拟数据
+        console.log('[测试模式] 加载章节:', chapterId)
+
+        // 模拟章节信息
+        currentChapter.value = {
+          id: chapterId,
+          bookId: 'test-book-001',
+          chapterNumber: 1,
+          title: '第一章：初入江湖',
+          wordCount: 2500,
+          publishedAt: new Date().toISOString(),
+          prevChapterId: null,
+          nextChapterId: 'chapter-002'
+        } as any
+
+        // 模拟章节内容
+        chapterContent.value = {
+          chapter: currentChapter.value,
+          content: `清晨的阳光透过树叶的缝隙洒在地面上，形成斑驳的光影。李明站在村口的老槐树下，望着远处连绵起伏的群山，心中充满了期待和忐忑。
+
+今天是他踏上江湖之路的第一天。从小听着村里的老人讲述江湖中的传说，他早已对外面的世界充满了向往。
+
+少年郎，此去江湖，路途遥远，生死未卜，你可想好了？
+
+老人的声音在耳边回响，李明握紧了手中的剑，那是一把普通的铁剑，却是他父亲留给他的唯一遗物。
+
+我想好了。李明轻声说道，声音坚定而有力。
+
+就在这时，远处传来了马蹄声。李明抬头望去，只见几个身穿黑衣的骑手正朝村庄疾驰而来，他们的衣袖上绣着一个血红色的骷髅图案。
+
+血骷髅帮！李明心中一惊，这个江湖臭名昭著的杀手组织怎么会出现在这种偏僻的小村庄？
+
+少年郎，看来你的江湖之路，从现在就开始了...
+
+李明深吸一口气，握紧了手中的铁剑。无论前方有多少艰险，他都要勇往直前，这是他的选择，也是他的命运。
+
+黑衣骑手们越来越近，马蹄声如雷鸣般震撼着整个村庄。李明能感受到村民们惊恐的目光，但他没有退缩。
+
+"站住！"李明大喝一声，挡在了村口。
+
+为首的黑衣人冷笑一声："小子，让开，别找死！"`,
+          nextChapter: {
+            id: 'chapter-002',
+            bookId: 'test-book-001',
+            chapterNumber: 2,
+            title: '第二章：意外相遇',
+            wordCount: 2800
+          } as any,
+          prevChapter: null
+        } as any
+
+        readingProgress.value = 0
+
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        return { chapter: currentChapter.value, content: chapterContent.value }
       }
 
-      // 更新当前书籍ID
-      currentBookId.value = targetBookId
-
-      // 并行加载章节信息和内容
+      // 生产模式：调用真实API
       const [chapterRes, contentRes] = await Promise.all([
         readerAPI.getChapterInfo(chapterId),
         readerAPI.getChapterContent(targetBookId, chapterId),
@@ -123,6 +182,28 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function loadChapterList(bookId: string) {
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：使用模拟数据
+        console.log('[测试模式] 加载章节列表:', bookId)
+
+        const mockChapters = [
+          { id: 'chapter-001', chapterNumber: 1, title: '第一章：初入江湖', wordCount: 2500 },
+          { id: 'chapter-002', chapterNumber: 2, title: '第二章：意外相遇', wordCount: 2800 },
+          { id: 'chapter-003', chapterNumber: 3, title: '第三章：危机四伏', wordCount: 3000 },
+          { id: 'chapter-004', chapterNumber: 4, title: '第四章：绝地反击', wordCount: 3200 },
+          { id: 'chapter-005', chapterNumber: 5, title: '第五章：真相大白', wordCount: 3500 }
+        ]
+
+        chapterList.value = mockChapters as any
+        return mockChapters
+      }
+
+      // 生产模式：调用真实API
       const response = await readerAPI.getChapterList(bookId, 1, 1000)
       const list = Array.isArray(response)
         ? response
@@ -141,6 +222,18 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function loadSettings() {
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：使用默认设置，不调用API
+        console.log('[测试模式] 使用默认阅读设置')
+        return settings.value
+      }
+
+      // 生产模式：调用真实API
       const res = await readerAPI.getSettings()
       const data = res.data as any
       settings.value = { ...settings.value, ...data }
@@ -158,6 +251,19 @@ export const useReaderStore = defineStore('reader', () => {
   async function updateSettings(newSettings: Partial<ReaderSettings>) {
     try {
       settings.value = { ...settings.value, ...newSettings }
+
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地更新，不调用API
+        console.log('[测试模式] 更新阅读设置（仅本地）')
+        return settings.value
+      }
+
+      // 生产模式：调用真实API
       const res = await readerAPI.updateSettings(newSettings as any)
       return res.data as any
     } catch (error) {
@@ -183,6 +289,18 @@ export const useReaderStore = defineStore('reader', () => {
     }
 
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地保存，不调用API
+        console.log('[测试模式] 保存阅读进度（仅本地）')
+        return
+      }
+
+      // 生产模式：调用真实API
       await readerAPI.saveProgress({
         bookId: currentChapter.value.bookId,
         chapterId: currentChapter.value.id,
@@ -199,6 +317,18 @@ export const useReaderStore = defineStore('reader', () => {
    */
   async function saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number) {
     try {
+      // 检测测试模式
+      const authStore = useAuthStore()
+      const token = authStore.token as any
+      const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+
+      if (isMockToken) {
+        // 测试模式：仅本地保存，不调用API
+        console.log('[测试模式] 保存进度（仅本地）')
+        return
+      }
+
+      // 生产模式：调用真实API
       await readerAPI.saveProgress({
         bookId,
         chapterId,

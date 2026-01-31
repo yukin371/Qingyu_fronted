@@ -136,14 +136,23 @@ export const useBookstoreStore = defineStore('bookstore', {
       try {
         if (type) {
           const data = await bookstoreService.getRanking(type)
-          this.rankings[type] = data
+          this.rankings[type] = data || []
         } else {
           const data = await bookstoreService.getAllRankings()
-          this.rankings = data
+          this.rankings = {
+            realtime: data.realtime || [],
+            weekly: data.weekly || [],
+            monthly: data.monthly || [],
+            newbie: data.newbie || []
+          }
         }
       } catch (error: any) {
         console.error('获取排行榜失败:', error)
         this.error = '获取排行榜失败'
+        // 确保出错时也有默认空数组
+        if (type) {
+          this.rankings[type] = this.rankings[type] || []
+        }
       } finally {
         this.loading = false
       }

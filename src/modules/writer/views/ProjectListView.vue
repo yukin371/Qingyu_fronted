@@ -158,10 +158,8 @@ const formatDate = (dateStr: string) => {
 }
 
 const openProject = (projectId: string) => {
-  console.log('打开项目, projectId:', projectId)
   if (!projectId) {
-    message.error('项目ID无效')
-    console.error('projectId 为空或未定义')
+    ElMessage.error('项目ID无效')
     return
   }
   router.push({ name: 'writer-project', params: { projectId } })
@@ -180,25 +178,20 @@ const handleCreate = async () => {
       type: newProject.value.type
     })
 
-    console.log('项目创建完成:', project)
-
     if (project) {
       showCreateDialog.value = false
       newProject.value = { title: '', description: '', type: 'novel' }
 
       // 打开新创建的项目 - 兼容不同的字段名
       const projectId = project.projectId || project.id
-      console.log('准备打开项目, projectId:', projectId)
       if (projectId) {
         openProject(projectId)
       } else {
-        console.error('项目对象缺少 projectId 字段:', project)
-        message.error('项目创建成功，但缺少项目ID')
+        ElMessage.error('项目创建成功，但缺少项目ID')
       }
     }
   } catch (error: any) {
-    console.error('创建项目失败:', error)
-    message.error('创建项目失败：' + (error.message || '未知错误'))
+    ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
   }
 }
 

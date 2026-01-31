@@ -286,12 +286,18 @@ export default {
     }
 
     // Action Handlers 保持不变
-    const handleBannerClick = (item) => console.log('Banner:', item)
+    const handleBannerClick = (item) => {
+      // TODO: Implement banner click handler
+    }
     const handleBookClick = (book) => {
       router.push({ name: 'book-detail', params: { id: book.id || book._id } })
     }
-    const handleViewRanking = (type) => console.log('Ranking:', type)
-    const handleViewBooks = (type) => console.log('Books:', type)
+    const handleViewRanking = (type) => {
+      // TODO: Implement ranking view handler
+    }
+    const handleViewBooks = (type) => {
+      // TODO: Implement books view handler
+    }
     const goToReaderDemo = () => router.push('/bookstore/reader-demo')
 
     const loadHomepageData = async () => {
@@ -303,18 +309,25 @@ export default {
       }
     }
 
+    // Fix memory leak: store observer reference for cleanup
+    let scrollObserver = null
+
     onMounted(() => {
       loadHomepageData()
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
       // 添加简单的滚动显现动画观察器
-      const observer = new IntersectionObserver((entries) => {
+      scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) entry.target.classList.add('visible')
         })
       }, { threshold: 0.1 })
 
-      document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el))
+      document.querySelectorAll('.animate-on-scroll').forEach(el => scrollObserver?.observe(el))
+    })
+
+    onUnmounted(() => {
+      scrollObserver?.disconnect()
     })
 
     return {

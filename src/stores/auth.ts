@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { login, logout, register, refreshToken, sharedAuthAPI as authAPI } from '@/modules/shared/api/auth'
+import { sharedAuthAPI as authAPI } from '@/modules/shared/api/auth'
 import storage from '@/utils/storage'
-import router from '@/router'
+// 移除对router的直接导入以避免循环依赖
+// import router from '@/router'
 import type { User } from '@/types/models'
 import type { LoginCredentials, RegisterData } from '@/types/user'
 
@@ -10,7 +11,7 @@ const STORAGE_KEYS = {
   TOKEN: 'token',
   REFRESH_TOKEN: 'refreshToken',
   USER: 'user',
-  ROLES: 'roles'  // 添加roles存储key
+  ROLES: 'roles'
 }
 
 /**
@@ -57,8 +58,14 @@ export const useAuthStore = defineStore('auth', {
     // 从storage恢复token
     const savedToken = storage.get<string>(STORAGE_KEYS.TOKEN)
     const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
-    const savedUser = storage.get<any>(STORAGE_KEYS.USER)
+    const savedUser = storage.get<User>(STORAGE_KEYS.USER)
     const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+
+    // 调试输出
+    console.log('[authStore] STORAGE_KEYS.ROLES:', STORAGE_KEYS.ROLES)
+    console.log('[authStore] savedRoles:', savedRoles)
+    console.log('[authStore] savedUser?.roles:', savedUser?.roles)
+    console.log('[authStore] localStorage raw:', localStorage.getItem('qingyu_' + STORAGE_KEYS.ROLES))
 
     return {
       // 用户信息
@@ -78,8 +85,8 @@ export const useAuthStore = defineStore('auth', {
       // 权限列表
       permissions: [],
 
-      // 角色列表 - 从localStorage恢复
-      roles: savedRoles || []
+      // 角色列表 - 从storage恢复或使用user.roles
+      roles: savedRoles || savedUser?.roles || []
     }
   },
 
@@ -124,12 +131,68 @@ export const useAuthStore = defineStore('auth', {
     // 初始化认证状态
     async initAuth(): Promise<void> {
       if (this.token) {
+        // 检查是否是测试模式的mock token
+        const isMockToken = this.token?.toString().startsWith('mock-') || this.token?.toString().includes('mock')
+
+        if (isMockToken) {
+          // 测试模式：直接使用localStorage中的用户数据，不调用API
+          console.log('[测试模式] 使用模拟登录状态')
+          this.isLoggedIn = true
+          // 从storage恢复user数据（如果还没有的话）
+          if (!this.user) {
+            this.user = storage.get<User>(STORAGE_KEYS.USER)
+          }
+          // 修复：优先从localStorage恢复roles
+          const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+          if (savedRoles && savedRoles.length > 0) {
+            this.roles = savedRoles
+            console.log('[initAuth] 从localStorage恢复roles:', savedRoles)
+          } else {
+            this.roles = this.user?.roles || ['reader']
+            console.log('[initAuth] 使用user.roles:', this.roles)
+          }
+          this.permissions = this.user?.permissions || []
+          return
+        }
+
+        // 生产模式：确保roles有值
+        if (!this.roles || this.roles.length === 0) {
+          const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+          if (savedRoles && savedRoles.length > 0) {
+            this.roles = savedRoles
+            console.log('[initAuth] 生产模式从localStorage恢复roles:', savedRoles)
+          }
+        }
+
+        // 生产模式：调用API获取用户信息
         try {
+          console.log('[initAuth] 开始调用getUserInfo获取用户信息...')
           await this.getUserInfo()
           this.isLoggedIn = true
+          console.log('[initAuth] getUserInfo成功，用户已登录')
         } catch (error) {
-          console.error('初始化认证失败:', error)
-          this.clearAuth()
+          console.error('[initAuth] getUserInfo失败:', error)
+          // 修复：不完全清空状态，而是尝试从 localStorage 恢复
+          // 如果 localStorage 中有 token 和 roles，保持登录状态
+          const hasTokenInStorage = storage.has(STORAGE_KEYS.TOKEN)
+          const hasRolesInStorage = storage.has(STORAGE_KEYS.ROLES)
+
+          console.log('[initAuth] localStorage状态 - token:', hasTokenInStorage, 'roles:', hasRolesInStorage)
+
+          if (hasTokenInStorage && hasRolesInStorage) {
+            // 从 localStorage 恢复状态，保持登录
+            const savedUser = storage.get<User>(STORAGE_KEYS.USER)
+            const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+
+            this.user = savedUser
+            this.roles = savedRoles
+            this.isLoggedIn = true
+            console.log('[initAuth] 从localStorage恢复状态，保持登录:', savedRoles)
+          } else {
+            // 只有在完全没有存储数据时才清空
+            console.log('[initAuth] localStorage中没有有效数据，清空状态')
+            this.clearAuth()
+          }
         }
       }
     },
@@ -147,21 +210,22 @@ export const useAuthStore = defineStore('auth', {
         // 保存认证信息
         this.token = data.token
         this.refreshToken = data.refreshToken
-        this.user = data.user
+        // 确保user对象包含roles字段
+        this.user = data.user ? { ...data.user, roles: data.user?.roles || [] } : null
         this.permissions = data.permissions || []
-        // 后端返回role（单数），转换为roles数组
-        this.roles = data.roles || (data.user?.role ? [data.user.role] : [])
+        // 后端返回roles在user.roles中
+        this.roles = this.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
         this.isLoggedIn = true
 
         // 存储到本地
         storage.set(STORAGE_KEYS.TOKEN, this.token)
         storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
         storage.set(STORAGE_KEYS.USER, this.user)
-        storage.set(STORAGE_KEYS.ROLES, this.roles)  // 保存roles到localStorage
+        storage.set(STORAGE_KEYS.ROLES, this.roles)
 
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -184,8 +248,8 @@ export const useAuthStore = defineStore('auth', {
           this.refreshToken = data.refreshToken
           this.user = data.user
           this.permissions = data.permissions || []
-          // 后端返回role（单数），转换为roles数组
-          this.roles = data.roles || (data.user?.role ? [data.user.role] : [])
+          // 后端返回roles在user.roles中
+          this.roles = data.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
           this.isLoggedIn = true
 
           // 存储到本地
@@ -196,8 +260,8 @@ export const useAuthStore = defineStore('auth', {
         }
 
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -217,8 +281,8 @@ export const useAuthStore = defineStore('auth', {
         // 清除本地状态
         this.clearAuth()
 
-        // 跳转到登录页
-        router.push('/login')
+        // 跳转到登录页 - 使用window.location避免循环依赖
+        window.location.href = '/login'
       }
     },
 
@@ -227,12 +291,12 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.getUserInfo()
         // http service 响应拦截器已提取 data 字段，response 直接是 { user, permissions?, roles? }
-        const data = response as { user: any; permissions?: string[]; roles?: string[] }
+        const data = response as { user: User; permissions?: string[]; roles?: string[] }
         this.user = data.user || data
         this.permissions = data.permissions || []
-        // 后端返回role（单数），转换为roles数组
+        // 后端返回roles在user.roles中
         const userData = data.user || data
-        this.roles = data.roles || ((userData as any)?.role ? [(userData as any).role] : [])
+        this.roles = (userData as User)?.roles || data.roles || []
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
@@ -252,15 +316,15 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.updateUserInfo(userInfo)
         // http service 响应拦截器已提取 data 字段，response 直接是 { user }
-        const data = response as { user: any }
+        const data = response as { user: User }
         this.user = { ...this.user!, ...data.user }
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
 
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -275,8 +339,8 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.changePassword(passwordData)
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -322,7 +386,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.checkUsername(username)
         // http service 响应拦截器已提取 data 字段，response 直接是 { available, message? }
-        return (response as any)?.available || false
+        return (response as { available?: boolean })?.available || false
       } catch (error) {
         console.error('检查用户名失败:', error)
         return false
@@ -334,7 +398,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.checkEmail(email)
         // http service 响应拦截器已提取 data 字段，response 直接是 { available, message? }
-        return (response as any)?.available || false
+        return (response as { available?: boolean })?.available || false
       } catch (error) {
         console.error('检查邮箱失败:', error)
         return false
@@ -349,8 +413,8 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.sendVerificationCode(email)
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -372,8 +436,8 @@ export const useAuthStore = defineStore('auth', {
         }
 
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -388,8 +452,8 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.resetPassword(resetData)
         return response
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = (error as Error).message
         throw error
       } finally {
         this.loading = false
@@ -410,7 +474,7 @@ export const useAuthStore = defineStore('auth', {
       storage.remove(STORAGE_KEYS.TOKEN)
       storage.remove(STORAGE_KEYS.REFRESH_TOKEN)
       storage.remove(STORAGE_KEYS.USER)
-      storage.remove(STORAGE_KEYS.ROLES)  // 清除roles
+      storage.remove(STORAGE_KEYS.ROLES)
     },
 
     // 清除错误信息

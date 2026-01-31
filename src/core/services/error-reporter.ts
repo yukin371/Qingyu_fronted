@@ -1,6 +1,6 @@
 // src/core/services/error-reporter.ts
 
-import type { ErrorResponse } from '@/types/api'
+import type { ErrorResponse } from '@/types/error.types'
 
 /**
  * 错误上报数据
@@ -32,12 +32,12 @@ class ErrorReporter {
     const report: ErrorReport = {
       errorCode: error.code,
       errorMessage: error.message,
-      errorType: 'api', // API错误类型
+      errorType: error.error,
       url: context?.url || window.location.href,
       userAgent: navigator.userAgent,
       userId: context?.userId || this.getUserId(),
-      timestamp: new Date(error.timestamp).toISOString(),
-      details: error.details ? { message: error.details } : undefined
+      timestamp: error.timestamp || new Date().toISOString(),
+      details: error.details
     }
 
     this.queue.push(report)

@@ -6,39 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:staging": "vite build --mode staging",
+    "build:prod": "vite build --mode production",
+    "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:headed": "playwright test --headed",
-    "test:all": "npm run test:run && npm run test:e2e",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "api:gen": "npm run api:gen:frontend && npm run api:gen:backend",
-    "api:gen:frontend": "tsx scripts/generate-frontend-api.ts",
-    "api:gen:backend": "bash scripts/generate-backend-api.sh",
-    "api:validate": "node scripts/validate-api-consistency.js",
-    "api:gen:watch": "chokidar 'src/modules/*/api/*.ts' -c 'npm run api:gen:frontend'",
-    "generate:api": "orval --config orval.config.ts",
-    "generate:api:reader": "orval --config orval.config.ts --project reader",
-    "generate:api:bookstore": "orval --config orval.config.ts --project bookstore",
-    "generate:api:admin": "orval --config orval.config.ts --project admin",
-    "generate:api:writer": "orval --config orval.config.ts --project writer",
-    "generate:api:social": "orval --config orval.config.ts --project social",
-    "generate:api:ai": "orval --config orval.config.ts --project ai",
-    "generate:api:finance": "orval --config orval.config.ts --project finance",
-    "generate:api:notification": "orval --config orval.config.ts --project notification",
-    "swagger:generate": "cd ../Qingyu_backend && swag init && cd ../Qingyu_fronted",
-    "api:all": "npm run swagger:generate && npm run generate:api",
-    "ci:check-api": "node scripts/check-api-generation.mjs",
-    "generate:api:safe": "npm run swagger:generate && npm run generate:api && npm run ci:check-api",
-    "generate:api:phase4": "node scripts/generate-phase4-apis.mjs",
-    "generate:api:phase5": "node scripts/generate-phase5-apis.mjs",
-    "test:api": "node scripts/test-api-functions.mjs"
+    "deploy:vercel": "node scripts/deploy.js vercel",
+    "deploy:cloudbase": "node scripts/deploy.js cloudbase",
+    "deploy:server": "node scripts/deploy.js server",
+    "prepare": "husky"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
@@ -67,17 +42,17 @@
     "@testing-library/vue": "^8.1.0",
     "@types/node": "^24.9.2",
     "@types/nprogress": "^0.2.3",
-    "@typescript-eslint/typescript-estree": "^8.53.1",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vitejs/plugin-vue-jsx": "^5.1.3",
-    "@vitest/coverage-v8": "^2.1.9",
-    "@vue/test-utils": "^2.4.6",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.6.0",
     "autoprefixer": "^10.4.16",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "happy-dom": "^20.3.4",
-    "jsdom": "^27.4.0",
-    "orval": "^8.1.0",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "madge": "^8.0.0",
     "postcss": "^8.4.32",
     "sass-embedded": "^1.93.2",
     "storybook": "^8.6.15",
@@ -87,8 +62,17 @@
     "typescript": "^5.2.2",
     "vite": "^7.1.12",
     "vite-plugin-vue-devtools": "^8.0.3",
-    "vitest": "^2.1.8",
-    "vue-tsc": "^3.2.2",
-    "yaml": "^2.8.2"
+    "vue-tsc": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,vue}": [
+      "vue-tsc --noEmit"
+    ],
+    "*.{js,jsx,ts,tsx,vue}": [
+      "eslint --fix"
+    ],
+    "*.{js,jsx,ts,tsx,vue,css,scss,md,json}": [
+      "prettier --write"
+    ]
   }
 }

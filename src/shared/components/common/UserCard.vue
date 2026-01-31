@@ -52,6 +52,9 @@
             :icon="isFollowing ? checkIcon : plusIcon"
             @click="handleFollow"
           >
+            <el-icon>
+              <component :is="isFollowing ? Check : Plus" />
+            </el-icon>
             {{ isFollowing ? '已关注' : '关注' }}
           </QyButton>
 

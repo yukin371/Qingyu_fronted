@@ -25,14 +25,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/tests/*": ["tests/*"],
       "@bookstore/*": ["src/modules/bookstore/*"],
       "@reader/*": ["src/modules/reader/*"],
       "@user/*": ["src/modules/user/*"],
       "@writer/*": ["src/modules/writer/*"],
       "@admin/*": ["src/modules/admin/*"],
-      "@shared/*": ["src/modules/shared/*"],
-      "@ai/*": ["src/modules/ai/*"]
+      "@shared/*": ["src/modules/shared/*"]
     },
 
     /* Types */

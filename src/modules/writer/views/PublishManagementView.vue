@@ -286,6 +286,129 @@
                 />
               </div>
             </el-tab-pane>
+
+            <!-- 审核历史 -->
+            <el-tab-pane label="审核历史" name="review">
+              <div class="review-history">
+                <!-- 审核统计 -->
+                <el-row :gutter="20" class="review-stats">
+                  <el-col :span="6">
+                    <el-card shadow="hover">
+                      <el-statistic title="总审核数" :value="reviewStats.total" />
+                    </el-card>
+                  </el-col>
+                  <el-col :span="6">
+                    <el-card shadow="hover">
+                      <el-statistic title="通过" :value="reviewStats.approved">
+                        <template #suffix>
+                          <span style="color: #67c23a">({{ reviewStats.approvedRate }}%)</span>
+                        </template>
+                      </el-statistic>
+                    </el-card>
+                  </el-col>
+                  <el-col :span="6">
+                    <el-card shadow="hover">
+                      <el-statistic title="拒绝" :value="reviewStats.rejected">
+                        <template #suffix>
+                          <span style="color: #f56c6c">({{ reviewStats.rejectedRate }}%)</span>
+                        </template>
+                      </el-statistic>
+                    </el-card>
+                  </el-col>
+                  <el-col :span="6">
+                    <el-card shadow="hover">
+                      <el-statistic title="审核中" :value="reviewStats.pending" />
+                    </el-card>
+                  </el-col>
+                </el-row>
+
+                <!-- 审核趋势图表 -->
+                <el-card shadow="never" style="margin-top: 20px">
+                  <template #header>
+                    <div class="card-header">
+                      <h3>审核趋势</h3>
+                      <el-radio-group v-model="reviewTrendPeriod" size="small">
+                        <el-radio-button label="7d">近7天</el-radio-button>
+                        <el-radio-button label="30d">近30天</el-radio-button>
+                        <el-radio-button label="90d">近90天</el-radio-button>
+                      </el-radio-group>
+                    </div>
+                  </template>
+                  <div ref="reviewTrendChartRef" style="height: 300px"></div>
+                </el-card>
+
+                <!-- 审核历史列表 -->
+                <el-card shadow="never" style="margin-top: 20px">
+                  <template #header>
+                    <div class="card-header">
+                      <h3>审核记录</h3>
+                      <div class="header-actions">
+                        <el-select v-model="reviewFilter.status" placeholder="状态筛选" clearable size="small">
+                          <el-option label="全部" value="" />
+                          <el-option label="审核中" value="pending" />
+                          <el-option label="已通过" value="approved" />
+                          <el-option label="已拒绝" value="rejected" />
+                        </el-select>
+                        <el-button size="small" @click="loadReviewHistory">
+                          <el-icon><Refresh /></el-icon>
+                          刷新
+                        </el-button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <el-table :data="reviewHistory" v-loading="loadingReview" stripe>
+                    <el-table-column prop="chapter_title" label="章节标题" min-width="200" />
+                    <el-table-column prop="chapter_number" label="章节号" width="100" />
+                    <el-table-column label="审核状态" width="100">
+                      <template #default="{ row }">
+                        <el-tag :type="getReviewStatusType(row.status)">
+                          {{ getReviewStatusLabel(row.status) }}
+                        </el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="提交时间" width="180">
+                      <template #default="{ row }">
+                        {{ formatDate(row.submitted_at) }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="审核时间" width="180">
+                      <template #default="{ row }">
+                        {{ row.reviewed_at ? formatDate(row.reviewed_at) : '-' }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="审核人" width="120">
+                      <template #default="{ row }">
+                        {{ row.reviewer_name || '-' }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="150" fixed="right">
+                      <template #default="{ row }">
+                        <el-button
+                          size="small"
+                          type="primary"
+                          @click="viewReviewDetail(row)"
+                        >
+                          查看详情
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+
+                  <el-pagination
+                    v-if="reviewTotal > 0"
+                    v-model:current-page="reviewPage"
+                    v-model:page-size="reviewPageSize"
+                    :total="reviewTotal"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next"
+                    @current-change="loadReviewHistory"
+                    @size-change="loadReviewHistory"
+                    style="margin-top: 16px; justify-content: center"
+                  />
+                </el-card>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -398,13 +521,61 @@
         <el-button type="primary" @click="startExport">开始导出</el-button>
       </template>
     </el-dialog>
+
+    <!-- 审核详情对话框 -->
+    <el-dialog
+      v-model="reviewDetailDialogVisible"
+      title="审核详情"
+      width="600px"
+    >
+      <div v-if="currentReviewDetail" class="review-detail">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="章节标题" :span="2">
+            {{ currentReviewDetail.chapter_title }}
+          </el-descriptions-item>
+          <el-descriptions-item label="章节号">
+            {{ currentReviewDetail.chapter_number }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核状态">
+            <el-tag :type="getReviewStatusType(currentReviewDetail.status)">
+              {{ getReviewStatusLabel(currentReviewDetail.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="提交时间">
+            {{ formatDate(currentReviewDetail.submitted_at) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核时间">
+            {{ currentReviewDetail.reviewed_at ? formatDate(currentReviewDetail.reviewed_at) : '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核人" :span="2">
+            {{ currentReviewDetail.reviewer_name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核意见" :span="2" v-if="currentReviewDetail.review_comment">
+            <div class="review-comment">
+              {{ currentReviewDetail.review_comment }}
+            </div>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="reviewDetailDialogVisible = false">关闭</el-button>
+        <el-button
+          v-if="currentReviewDetail?.status === 'rejected'"
+          type="primary"
+          @click="resubmitReview"
+        >
+          重新提交
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Download, Setting, Refresh } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
 import {
   getPublishPlan,
   createPublishPlan,
@@ -483,6 +654,29 @@ const exportForm = reactive({
   format: 'pdf' as const,
   scope: 'book' as const,
   options: ['include_metadata', 'include_toc']
+})
+
+// 审核历史相关状态
+const loadingReview = ref(false)
+const reviewHistory = ref<any[]>([])
+const reviewPage = ref(1)
+const reviewPageSize = ref(20)
+const reviewTotal = ref(0)
+const reviewFilter = reactive({ status: '' })
+const reviewTrendPeriod = ref('7d')
+const reviewTrendChartRef = ref<HTMLElement | null>(null)
+const reviewTrendChart = ref<echarts.ECharts | null>(null)
+const reviewDetailDialogVisible = ref(false)
+const currentReviewDetail = ref<any>(null)
+
+// 审核统计数据
+const reviewStats = reactive({
+  total: 0,
+  approved: 0,
+  approvedRate: 0,
+  rejected: 0,
+  rejectedRate: 0,
+  pending: 0
 })
 
 // 加载发布统计
@@ -730,6 +924,197 @@ const deleteExport = async (task: ExportTask) => {
   }
 }
 
+// ========== 审核历史相关方法 ==========
+
+// 加载审核统计
+const loadReviewStats = async () => {
+  try {
+    // TODO: 调用审核统计 API
+    // const res = await getReviewStats(bookId.value)
+    // Object.assign(reviewStats, res)
+
+    // 模拟数据
+    reviewStats.total = 45
+    reviewStats.approved = 38
+    reviewStats.approvedRate = Math.round((reviewStats.approved / reviewStats.total) * 100)
+    reviewStats.rejected = 4
+    reviewStats.rejectedRate = Math.round((reviewStats.rejected / reviewStats.total) * 100)
+    reviewStats.pending = 3
+  } catch (error: any) {
+    console.error('加载审核统计失败', error)
+  }
+}
+
+// 加载审核历史
+const loadReviewHistory = async () => {
+  loadingReview.value = true
+  try {
+    // TODO: 调用审核历史 API
+    // const res = await getReviewHistory(bookId.value, {
+    //   page: reviewPage.value,
+    //   size: reviewPageSize.value,
+    //   status: reviewFilter.status
+    // })
+    // reviewHistory.value = res.items
+    // reviewTotal.value = res.total
+
+    // 模拟数据
+    reviewHistory.value = [
+      {
+        id: '1',
+        chapter_title: '第一章：初入江湖',
+        chapter_number: 1,
+        status: 'approved',
+        submitted_at: new Date(Date.now() - 86400000).toISOString(),
+        reviewed_at: new Date(Date.now() - 72000000).toISOString(),
+        reviewer_name: '审核员A',
+        review_comment: '内容质量良好，符合平台规范'
+      },
+      {
+        id: '2',
+        chapter_title: '第二章：意外发现',
+        chapter_number: 2,
+        status: 'approved',
+        submitted_at: new Date(Date.now() - 172800000).toISOString(),
+        reviewed_at: new Date(Date.now() - 158400000).toISOString(),
+        reviewer_name: '审核员B',
+        review_comment: '章节结构合理'
+      },
+      {
+        id: '3',
+        chapter_title: '第三章：神秘人物',
+        chapter_number: 3,
+        status: 'rejected',
+        submitted_at: new Date(Date.now() - 259200000).toISOString(),
+        reviewed_at: new Date(Date.now() - 244800000).toISOString(),
+        reviewer_name: '审核员C',
+        review_comment: '部分内容需修改，请重新提交'
+      },
+      {
+        id: '4',
+        chapter_title: '第四章：危机四伏',
+        chapter_number: 4,
+        status: 'pending',
+        submitted_at: new Date(Date.now() - 43200000).toISOString(),
+        reviewed_at: null,
+        reviewer_name: null,
+        review_comment: null
+      }
+    ]
+    reviewTotal.value = 4
+  } catch (error: any) {
+    console.error('加载审核历史失败', error)
+    ElMessage.error('加载审核历史失败')
+  } finally {
+    loadingReview.value = false
+  }
+}
+
+// 查看审核详情
+const viewReviewDetail = (row: any) => {
+  currentReviewDetail.value = row
+  reviewDetailDialogVisible.value = true
+}
+
+// 重新提交审核
+const resubmitReview = () => {
+  reviewDetailDialogVisible.value = false
+  ElMessage.info('重新提交功能开发中')
+  // TODO: 实现重新提交审核逻辑
+}
+
+// 获取审核状态标签
+const getReviewStatusLabel = (status: string) => {
+  const map: Record<string, string> = {
+    pending: '审核中',
+    approved: '已通过',
+    rejected: '已拒绝'
+  }
+  return map[status] || status
+}
+
+// 获取审核状态标签类型
+const getReviewStatusType = (status: string) => {
+  const map: Record<string, any> = {
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'danger'
+  }
+  return map[status] || ''
+}
+
+// 初始化审核趋势图表
+const initReviewTrendChart = () => {
+  if (!reviewTrendChartRef.value) return
+
+  reviewTrendChart.value = echarts.init(reviewTrendChartRef.value)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: ['提交审核', '审核通过', '审核拒绝']
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '提交审核',
+        type: 'line',
+        data: [5, 8, 6, 9, 7, 4, 6],
+        smooth: true,
+        itemStyle: { color: '#409eff' }
+      },
+      {
+        name: '审核通过',
+        type: 'line',
+        data: [4, 7, 5, 8, 6, 4, 5],
+        smooth: true,
+        itemStyle: { color: '#67c23a' }
+      },
+      {
+        name: '审核拒绝',
+        type: 'line',
+        data: [1, 1, 1, 1, 1, 0, 1],
+        smooth: true,
+        itemStyle: { color: '#f56c6c' }
+      }
+    ]
+  }
+
+  reviewTrendChart.value.setOption(option)
+}
+
+// 监听审核趋势周期变化
+watch(reviewTrendPeriod, () => {
+  // TODO: 根据周期重新加载图表数据
+  initReviewTrendChart()
+})
+
+// 监听 tab 切换，初始化图表
+watch(activeTab, (newTab) => {
+  if (newTab === 'review') {
+    loadReviewStats()
+    loadReviewHistory()
+    setTimeout(() => {
+      initReviewTrendChart()
+    }, 100)
+  }
+})
+
 // 辅助函数
 const formatNumber = (num: number) => {
   return num.toLocaleString()
@@ -906,6 +1291,39 @@ onMounted(() => {
 
 .chapter-publish,
 .export-history {
+  :deep(.el-pagination) {
+    display: flex;
+  }
+}
+
+.review-history {
+  .review-stats {
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+
+  .review-detail {
+    .review-comment {
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 12px;
+      background: #f5f7fa;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+  }
+
   :deep(.el-pagination) {
     display: flex;
   }

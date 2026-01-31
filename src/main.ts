@@ -29,6 +29,9 @@ import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/er
 // 性能监控
 import { performanceMonitor, measureFirstScreenTime } from './utils/performance'
 
+// API健康检查
+import { initApiHealthCheck } from './utils/api-health'
+
 const app = createApp(App)
 
 // 注册全局指令
@@ -55,6 +58,9 @@ if (isDev) {
       console.log('[Performance] 页面性能指标:', metrics)
     }, 1000)
   })
+
+  // API健康检查
+  initApiHealthCheck()
 }
 
 // 先注册 Pinia，确保 store 可用

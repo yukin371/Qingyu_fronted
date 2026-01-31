@@ -3,10 +3,10 @@
  */
 
 import type { RouteRecordRaw } from 'vue-router'
-import AIMainView from './views/AIMainView.vue'
-import AIProvidersView from './views/AIProvidersView.vue'
-import AIModelsView from './views/AIModelsView.vue'
-import AIHealthView from './views/AIHealthView.vue'
+import AIMainView from '@/modules/ai/views/AIMainView.vue'
+import AIProvidersView from '@/modules/ai/views/AIProvidersView.vue'
+import AIModelsView from '@/modules/ai/views/AIModelsView.vue'
+import AIHealthView from '@/modules/ai/views/AIHealthView.vue'
 
 const aiRoutes: RouteRecordRaw[] = [
   {

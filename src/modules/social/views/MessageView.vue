@@ -290,8 +290,8 @@ const loadStats = async () => {
   try {
     const res = await getConversationStats()
     totalUnread.value = res.total_unread
-  } catch (error) {
-    console.error('加载统计失败', error)
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载统计失败')
   }
 }
 

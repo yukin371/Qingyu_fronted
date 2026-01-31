@@ -230,6 +230,35 @@ import { getBookComments, createComment, deleteComment } from '@/modules/reader/
 import { addToBookshelf } from '@/modules/reader/api'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
+// Proper TypeScript interfaces
+interface Comment {
+  id: string
+  userId: string
+  userName: string
+  content: string
+  rating?: number
+  createdAt: string
+  updatedAt?: string
+}
+
+interface Book {
+  id: string
+  title: string
+  author: string
+  cover: string
+  description: string
+  categoryName?: string
+  category?: string
+  status: string
+  rating: number
+  ratingCount?: number
+  viewCount: number
+  favoriteCount: number
+  wordCount: number
+  chapterCount: number
+  tags?: string[]
+}
+
 const route = useRoute()
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
@@ -245,7 +274,7 @@ const chapters = ref<ChapterListItem[]>([])
 const recommendedBooks = ref<BookBrief[]>([])
 
 // 评论相关
-const comments = ref<any[]>([])
+const comments = ref<Comment[]>([])
 const commentsLoading = ref(false)
 const newComment = ref('')
 const submittingComment = ref(false)
@@ -258,13 +287,7 @@ const hasMoreComments = computed(() => {
   return comments.value.length < commentTotal.value
 })
 
-const book = computed(() => {
-  const currentBook = bookstoreStore.currentBook as any
-  console.log('[BookDetailView] book computed called, currentBook:', currentBook)
-  console.log('[BookDetailView] book.title:', currentBook?.title)
-  console.log('[BookDetailView] book.cover:', currentBook?.cover)
-  return currentBook
-})
+const book = computed(() => bookstoreStore.currentBook as Book | null)
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -278,7 +301,7 @@ const statusText = computed(() => {
     completed: '已完结',
     paused: '暂停'
   }
-  const key = String((book.value as any).status)
+  const key = String(book.value.status)
   return statusMap[key] || key
 })
 
@@ -332,9 +355,9 @@ const addToShelf = async () => {
 
   try {
     await addToBookshelf(bookId)
-    message.success('已加入书架')
-  } catch (error: any) {
-    message.error(error.message || '添加失败')
+    ElMessage.success('已加入书架')
+  } catch (error) {
+    ElMessage.error('添加失败')
   }
 }
 
@@ -364,18 +387,19 @@ const loadComments = async (reset = false) => {
       size: commentPageSize.value
     })
 
-    const data = (response as any).data || response
+    const data = (response as { data?: Comment[] | { data?: Comment[]; comments?: Comment[]; total?: number }; total?: number })?.data || response
     if (data) {
-      const commentList = Array.isArray(data) ? data : (data.data || data.comments || [])
+      const commentList = Array.isArray(data) ? data : ((data as { data?: Comment[] }).data || (data as { comments?: Comment[] }).comments || [])
       if (reset) {
         comments.value = commentList
       } else {
         comments.value.push(...commentList)
       }
-      commentTotal.value = data.total || 0
+      const totalData = data as { total?: number }
+      commentTotal.value = totalData.total || 0
     }
-  } catch (error: any) {
-    message.error(error.message || '加载评论失败')
+  } catch (error) {
+    ElMessage.error('加载评论失败')
   } finally {
     commentsLoading.value = false
   }
@@ -409,8 +433,8 @@ const submitComment = async () => {
     newComment.value = ''
     // 重新加载评论列表
     await loadComments(true)
-  } catch (error: any) {
-    message.error(error.message || '发表失败')
+  } catch (error) {
+    ElMessage.error('发表失败')
   } finally {
     submittingComment.value = false
   }
@@ -428,9 +452,9 @@ const handleDeleteComment = async (commentId: string) => {
     await deleteComment(commentId)
     message.success('删除成功')
     await loadComments(true)
-  } catch (error: any) {
+  } catch (error) {
     if (error !== 'cancel') {
-      message.error(error.message || '删除失败')
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -463,8 +487,7 @@ const loadBookDetail = async () => {
     // 加载阅读进度
     // 调整：当前 readerStore 未提供对应方法
   } catch (error) {
-    console.error('[BookDetailView] 加载书籍详情失败:', error)
-    message.error('加载失败')
+    ElMessage.error('加载失败')
   } finally {
     loading.value = false
   }
@@ -482,17 +505,18 @@ const loadChapters = async () => {
       chapters.value = []
     }
   } catch (error) {
-    console.error('加载章节列表失败:', error)
-    chapters.value = []
+    ElMessage.error('加载章节失败')
   }
 }
 
 // 加载推荐书籍
 const loadRecommendations = async () => {
   try {
-    recommendedBooks.value = []
+    const { getSimilarBooks } = await import('@/modules/bookstore/api')
+    const response = await getSimilarBooks(bookId, 6)
+    recommendedBooks.value = Array.isArray(response) ? response : []
   } catch (error) {
-    console.error('加载推荐书籍失败:', error)
+    recommendedBooks.value = []
   }
 }
 

@@ -36,18 +36,22 @@ export const useUserStore = defineStore('user', () => {
       isLoading.value = true
       const response = await login(loginData)
 
-      if (!response.data) {
-        throw new Error('服务端返回数据异常：缺少 data')
-      }
-
-      const { token: responseToken, user } = response.data
+      // HTTP拦截器已经解包了data字段，response直接是 { user, token }
+      const { token: responseToken, user } = response
 
       if (!responseToken) {
         throw new Error('服务端返回数据异常：缺少 token')
       }
 
       token.value = responseToken
-      userInfo.value = user
+
+      // 适配后端返回的用户数据：roles数组 -> role字符串
+      const adaptedUser: UserInfo = {
+        ...user,
+        role: user.roles?.[0] || 'user' // 取第一个角色作为主角色
+      }
+
+      userInfo.value = adaptedUser
 
       // 保存token到localStorage
       localStorage.setItem('token', responseToken)
