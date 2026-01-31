@@ -181,31 +181,29 @@ const uploading = ref(false)
 const downgradeDialogVisible = ref(false)
 const downgrading = ref(false)
 
-// 用户角色 - 优先从localStorage读取，确保总能获取到最新角色数据
+// 用户角色 - 优先使用响应式的authStore，localStorage作为后备
 const userRoles = computed(() => {
-    // 首先检查localStorage（最可靠的数据源）
+    // 优先：从authStore获取（响应式数据源，确保UI自动更新）
+    const storeRoles = authStore.roles || authStore.user?.roles
+    if (storeRoles && storeRoles.length > 0) {
+        console.log('[AccountSettings] ✅ Using authStore roles:', storeRoles)
+        return storeRoles
+    }
+
+    // 后备：从localStorage读取（用于初始化和持久化）
     try {
         const stored = localStorage.getItem('qingyu_roles')
         if (stored) {
             const parsed = JSON.parse(stored) as string[]
             if (parsed && parsed.length > 0) {
-                console.log('[AccountSettings] ✅ Using localStorage roles:', parsed)
+                console.log('[AccountSettings] ⚠️ Using localStorage roles as fallback:', parsed)
                 // 同步到authStore以保持一致
-                if (!authStore.roles || authStore.roles.length === 0) {
-                    ;(authStore as { roles: string[] }).roles = parsed
-                }
+                ;(authStore as { roles: string[] }).roles = parsed
                 return parsed
             }
         }
     } catch (e) {
         console.error('[AccountSettings] Failed to parse localStorage roles:', e)
-    }
-
-    // 后备：从authStore获取
-    const storeRoles = authStore.roles || authStore.user?.roles
-    if (storeRoles && storeRoles.length > 0) {
-        console.log('[AccountSettings] ⚠️ Using store roles as fallback:', storeRoles)
-        return storeRoles
     }
 
     console.log('[AccountSettings] ❌ No roles found anywhere')
@@ -311,14 +309,11 @@ const confirmDowngrade = async () => {
             ElMessage.success('降级成功')
             downgradeDialogVisible.value = false
 
-            // 更新 localStorage 和 authStore 中的 roles
+            // 更新 authStore 中的 roles（响应式，确保UI立即更新）
             const newRoles = result.data?.current_roles || ['reader']
             console.log('[降级] 准备更新roles为:', newRoles)
 
-            localStorage.setItem('qingyu_roles', JSON.stringify(newRoles))
-            console.log('[降级] localStorage已更新')
-
-            // 同步更新 authStore.roles 和 authStore.user.roles
+            // 先更新响应式数据，确保UI立即响应
             authStore.roles = newRoles
             if (authStore.user) {
                 authStore.user.roles = newRoles
@@ -326,12 +321,13 @@ const confirmDowngrade = async () => {
             console.log('[降级] authStore已更新, authStore.roles:', authStore.roles)
             console.log('[降级] authStore.user.roles:', authStore.user?.roles)
 
-            // 验证 localStorage 是否正确更新
+            // 然后持久化到 localStorage
+            localStorage.setItem('qingyu_roles', JSON.stringify(newRoles))
+            console.log('[降级] localStorage已更新')
+
+            // 验证更新是否成功
             const storedRoles = localStorage.getItem('qingyu_roles')
             console.log('[降级] 验证localStorage中的qingyu_roles:', storedRoles)
-
-            // 等待一下让状态更新
-            await new Promise(resolve => setTimeout(resolve, 1000))
 
             // 跳转到首页
             console.log('[降级] 准备跳转到首页')
@@ -351,15 +347,15 @@ const confirmDowngrade = async () => {
 
 // 初始化表单
 const initForm = () => {
-    const profile = userStore.profile as any
-    form.avatar = profile?.avatar || ''
-    form.nickname = profile?.nickname || ''
-    form.bio = profile?.bio || ''
-    form.gender = profile?.gender || 'other'
-    form.birthday = profile?.birthday || ''
-    form.location = profile?.location || ''
-    form.website = profile?.website || ''
-    form.social = profile?.social || { weibo: '', wechat: '', qq: '' }
+    const profile = userStore.profile as Record<string, unknown>
+    form.avatar = (profile?.avatar as string) || ''
+    form.nickname = (profile?.nickname as string) || ''
+    form.bio = (profile?.bio as string) || ''
+    form.gender = (profile?.gender as string) || 'other'
+    form.birthday = (profile?.birthday as string) || ''
+    form.location = (profile?.location as string) || ''
+    form.website = (profile?.website as string) || ''
+    form.social = (profile?.social as { weibo: string; wechat: string; qq: string }) || { weibo: '', wechat: '', qq: '' }
 }
 
 // 禁用未来日期
@@ -373,11 +369,11 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (file) => {
     const isLt2M = file.size / 1024 / 1024 < 2
 
     if (!isImage) {
-        message.error('只能上传 JPG/PNG 格式的图片')
+        ElMessage.error('只能上传 JPG/PNG 格式的图片')
         return false
     }
     if (!isLt2M) {
-        message.error('图片大小不能超过 2MB')
+        ElMessage.error('图片大小不能超过 2MB')
         return false
     }
 
@@ -400,7 +396,7 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (response: unknown) => {
 // 上传失败
 const handleUploadError: UploadProps['onError'] = () => {
     uploading.value = false
-    message.error('上传失败,请重试')
+    ElMessage.error('上传失败,请重试')
 }
 
 // 保存设置
@@ -437,7 +433,7 @@ const handleSave = async () => {
 const handleReset = () => {
     initForm()
     formRef.value?.clearValidate()
-    message.info('已重置')
+    ElMessage.info('已重置')
 }
 
 // 返回
