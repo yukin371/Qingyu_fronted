@@ -59,6 +59,12 @@ vi.mock('@/design-system/components', () => {
         []
       )
     },
+    methods: {
+      // 添加 focus 方法以支持组件测试中的 tagInputRef.value?.focus() 调用
+      focus() {
+        // Mock implementation
+      }
+    }
   })
 
   const MockQyButton = defineComponent({

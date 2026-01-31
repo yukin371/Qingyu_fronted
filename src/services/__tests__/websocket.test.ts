@@ -4,6 +4,7 @@ import { MessageWebSocketService } from '../websocket'
 describe('WebSocket服务', () => {
   let service: MessageWebSocketService
   let mockWs: any
+  let wsMockFn: any
 
   // 需要在所有测试之前 mock eventBus
   vi.mock('@/utils/eventBus', () => ({
@@ -13,12 +14,9 @@ describe('WebSocket服务', () => {
   }))
 
   beforeEach(() => {
-    // 创建新的服务实例
-    service = new MessageWebSocketService()
-
-    // 创建完整的 WebSocket mock，初始状态为 CONNECTING（未连接）
+    // 设置全局 WebSocket mock - 在创建服务实例之前
     mockWs = {
-      readyState: WebSocket.CONNECTING,
+      readyState: WebSocket.CLOSED,
       send: vi.fn(),
       close: vi.fn(),
       onopen: null as any,
@@ -28,7 +26,11 @@ describe('WebSocket服务', () => {
     }
 
     // 设置全局 WebSocket mock
-    global.WebSocket = vi.fn(() => mockWs) as any
+    wsMockFn = vi.fn(() => mockWs)
+    global.WebSocket = wsMockFn as any
+
+    // 创建新的服务实例
+    service = new MessageWebSocketService()
   })
 
   afterEach(() => {
@@ -37,14 +39,28 @@ describe('WebSocket服务', () => {
   })
 
   it('应该成功连接WebSocket', () => {
-    // CONNECTING 状态会触发新连接
+    // 先重置 mock 调用计数
+    wsMockFn.mockClear()
+
+    // 打印调试信息
+    console.log('DEBUG: global.WebSocket:', global.WebSocket)
+    console.log('DEBUG: wsMockFn:', wsMockFn)
+    console.log('DEBUG: global.WebSocket === wsMockFn:', global.WebSocket === wsMockFn)
+
+    // 调用连接
     service.connect('test-token')
 
-    expect(global.WebSocket).toHaveBeenCalled()
-    expect(mockWs.onopen).toBeDefined()
-    expect(mockWs.onmessage).toBeDefined()
-    expect(mockWs.onerror).toBeDefined()
-    expect(mockWs.onclose).toBeDefined()
+    console.log('DEBUG: wsMockFn.mock.calls:', wsMockFn.mock.calls)
+    console.log('DEBUG: service.ws:', (service as any).ws)
+    console.log('DEBUG: mockWs.onopen:', mockWs.onopen)
+
+    // 验证 WebSocket 构造函数被调用
+    expect(wsMockFn).toHaveBeenCalled()
+    // 检查事件处理器已被分配（非null）
+    expect(mockWs.onopen).not.toBeNull()
+    expect(mockWs.onmessage).not.toBeNull()
+    expect(mockWs.onerror).not.toBeNull()
+    expect(mockWs.onclose).not.toBeNull()
   })
 
   it('应该在断开后自动重连', async () => {

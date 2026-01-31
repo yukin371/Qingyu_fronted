@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { createRouter, createWebHistory } from 'vue-router'
+import { describe, it, expect, vi } from 'vitest'
+import { createRouter, createMemoryHistory } from 'vue-router'
 
 // Mock the MainLayout component
 vi.mock('@/shared/components/layout/MainLayout.vue', () => ({
@@ -10,25 +10,25 @@ vi.mock('@/shared/components/layout/MainLayout.vue', () => ({
 }))
 
 // Import after mocking
-import bookstoreRoutes from '@/modules/bookstore/routes'
+import bookstoreRoutes from '@/modules/bookstore/routes.ts'
 
 describe('Bookstore Routes - Browse Integration', () => {
   it('should have browse route', () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: bookstoreRoutes
     })
-    
+
     const route = router.resolve('/bookstore/browse')
     expect(route.name).toBe('browse')
   })
 
   it('should redirect search to browse with query', async () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: bookstoreRoutes
     })
-    
+
     await router.push('/bookstore/search?q=测试')
     expect(router.currentRoute.value.path).toBe('/bookstore/browse')
     expect(router.currentRoute.value.query.q).toBe('测试')
@@ -36,20 +36,20 @@ describe('Bookstore Routes - Browse Integration', () => {
 
   it('should redirect books to browse', async () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: bookstoreRoutes
     })
-    
+
     await router.push('/bookstore/books')
     expect(router.currentRoute.value.path).toBe('/bookstore/browse')
   })
 
   it('should redirect categories with id to browse with categoryId', async () => {
     const router = createRouter({
-      history: createWebHistory(),
+      history: createMemoryHistory(),
       routes: bookstoreRoutes
     })
-    
+
     await router.push('/bookstore/categories?id=123')
     expect(router.currentRoute.value.path).toBe('/bookstore/browse')
     expect(router.currentRoute.value.query.categoryId).toBe('123')
