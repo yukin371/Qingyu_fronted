@@ -103,8 +103,13 @@ export const useBookstoreStore = defineStore('bookstore', {
         this.homepageData = data
 
         // Update state with safe access
-        if (data.rankings && Array.isArray(data.rankings)) {
-          this.rankings = data.rankings
+        if (data.rankings && typeof data.rankings === 'object') {
+          this.rankings = {
+            realtime: Array.isArray(data.rankings.realtime) ? data.rankings.realtime : [],
+            weekly: Array.isArray(data.rankings.weekly) ? data.rankings.weekly : [],
+            monthly: Array.isArray(data.rankings.monthly) ? data.rankings.monthly : [],
+            newbie: Array.isArray(data.rankings.newbie) ? data.rankings.newbie : []
+          }
         }
         if (data.banners && Array.isArray(data.banners)) {
           this.banners = data.banners

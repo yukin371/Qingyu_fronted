@@ -76,6 +76,7 @@ const writerRoutes: RouteRecordRaw[] = [
     meta: {
       title: '编辑器',
       requiresAuth: true,
+      roles: ['author', 'admin'], // 编辑器需要作者或管理员权限
       layout: 'blank', // 标记为无布局
     },
     props: true,

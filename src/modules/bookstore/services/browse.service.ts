@@ -4,10 +4,18 @@ import type { BrowseFilters } from '@/types/models'
 
 interface GetBooksResponse {
   code: number
-  data: {
-    books: BookBrief[]
+  message: string
+  data: BookBrief[]
+  pagination: {
     total: number
+    page: number
+    page_size: number
+    total_pages: number
+    has_next: boolean
+    has_previous: boolean
   }
+  timestamp: number
+  request_id?: string
 }
 
 export const browseService = {

@@ -249,6 +249,7 @@ import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
+import { sanitizeHtml } from '@/utils/sanitize'
 import { ElMessage } from 'element-plus'
 import {
   ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,

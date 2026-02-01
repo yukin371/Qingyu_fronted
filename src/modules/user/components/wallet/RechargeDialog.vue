@@ -71,18 +71,31 @@
 
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleConfirm">
+      <el-button type="primary" :loading="loading" @click="handleSubmit">
         确认充值
       </el-button>
     </template>
   </el-dialog>
+
+  <!-- 二次确认对话框 -->
+  <QyConfirmDialog
+    v-model:visible="confirmDialogVisible"
+    title="确认充值"
+    message="请确认充值信息"
+    type="warning"
+    :details="confirmDetails"
+    :loading="loading"
+    @confirm="handleConfirm"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { RechargeParams } from '@/types/shared'
 import { yuanToCents } from '@/utils/currency'
+import { QyConfirmDialog } from '@/design-system/components'
+import type { ConfirmDetail } from '@/design-system/components'
 
 interface Props {
   modelValue: boolean
@@ -102,6 +115,7 @@ const emit = defineEmits<Emits>()
 
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
+const confirmDialogVisible = ref(false)
 
 // 快速充值金额
 const quickAmounts = [10, 50, 100, 200, 500, 1000]
@@ -141,20 +155,45 @@ const selectAmount = (amount: number) => {
   form.value.amount = amount
 }
 
-// 确认充值
-const handleConfirm = async () => {
+// 支付方式名称映射
+const paymentMethodMap: Record<string, string> = {
+  alipay: '支付宝',
+  wechat: '微信支付',
+  bank: '银行卡'
+}
+
+// 确认详情
+const confirmDetails = computed<ConfirmDetail[]>(() => [
+  {
+    label: '充值金额',
+    value: `¥${form.value.amount.toFixed(2)}`
+  },
+  {
+    label: '支付方式',
+    value: paymentMethodMap[form.value.method] || form.value.method
+  }
+])
+
+// 提交充值（显示二次确认）
+const handleSubmit = async () => {
   if (!formRef.value) return
 
   await formRef.value.validate((valid) => {
     if (valid) {
-      // 将元转换为分后再提交
-      const data: RechargeParams = {
-        amount: yuanToCents(form.value.amount),
-        method: form.value.method
-      }
-      emit('confirm', data)
+      confirmDialogVisible.value = true
     }
   })
+}
+
+// 确认充值（二次确认后）
+const handleConfirm = () => {
+  // 将元转换为分后再提交
+  const data: RechargeParams = {
+    amount: yuanToCents(form.value.amount),
+    method: form.value.method
+  }
+  emit('confirm', data)
+  confirmDialogVisible.value = false
 }
 
 // 关闭对话框

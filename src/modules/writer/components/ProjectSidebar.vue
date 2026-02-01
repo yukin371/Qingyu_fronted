@@ -101,6 +101,7 @@
 import { ref, computed, watch } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
+import { sanitizeText } from '@/utils/sanitize'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -215,9 +216,12 @@ const formatCount = (n: number) => {
 const fromNow = (date: string) => dayjs(date).fromNow()
 
 const highlightText = (text: string, keyword: string) => {
-  if (!keyword) return text
-  const reg = new RegExp(`(${keyword})`, 'gi')
-  return text.replace(reg, '<span class="text-highlight">$1</span>')
+  if (!keyword) return sanitizeText(text)
+  // 先转义HTML特殊字符，防止XSS攻击
+  const escapedText = sanitizeText(text)
+  const escapedKeyword = sanitizeText(keyword)
+  const reg = new RegExp(`(${escapedKeyword})`, 'gi')
+  return escapedText.replace(reg, '<span class="text-highlight">$1</span>')
 }
 
 // 自动选择第一个项目

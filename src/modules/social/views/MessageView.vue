@@ -241,6 +241,7 @@ import {
 import { messageWebSocket } from '@/services/websocket'
 import { eventBus } from '@/utils/eventBus'
 import { pollingService } from '@/services/polling'
+import { validateMessage } from '@/utils/validation'
 
 const currentUserId = ref('') // 从用户状态获取
 const currentUserAvatar = ref('')
@@ -336,12 +337,19 @@ const loadMessages = async (loadMore = false) => {
 
 // 发送消息
 const sendMessage = async () => {
-  if (!selectedConversation.value || !messageInput.value.trim()) return
+  if (!selectedConversation.value) return
+
+  // 使用验证工具验证消息
+  const result = validateMessage(messageInput.value)
+  if (!result.valid) {
+    message.warning(result.error || '消息内容无效')
+    return
+  }
 
   sending.value = true
   try {
     const msg = await sendTextMessage(selectedConversation.value.id, {
-      content: messageInput.value.trim()
+      content: result.sanitized!
     })
     messages.value.push(msg)
     messageInput.value = ''

@@ -89,8 +89,8 @@ export const useBrowseStore = defineStore('browse', () => {
     try {
       const response = await browseService.getBooks(filters)
 
-      books.value = response.data.books
-      pagination.total = response.data.total
+      books.value = response.data
+      pagination.total = response.pagination?.total ?? 0
       pagination.hasMore = pagination.total > filters.page * filters.pageSize
 
       // 清除之前的错误

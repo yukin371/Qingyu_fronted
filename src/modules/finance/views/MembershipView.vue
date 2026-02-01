@@ -179,18 +179,41 @@
 
       <template #footer>
         <el-button @click="subscribeDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmSubscribe">
+        <el-button type="primary" @click="handleShowSubscribeConfirm">
           确认支付
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 订阅二次确认对话框 -->
+    <QyConfirmDialog
+      v-model:visible="subscribeConfirmDialogVisible"
+      title="确认订阅"
+      message="请确认订阅信息"
+      type="warning"
+      :details="subscribeConfirmDetails"
+      :loading="subscribeLoading"
+      @confirm="handleConfirmSubscribe"
+    />
+
+    <!-- 取消会员确认对话框 -->
+    <QyConfirmDialog
+      v-model:visible="cancelConfirmDialogVisible"
+      title="取消会员"
+      message="确定要取消会员吗？取消后将无法享受会员权益"
+      type="danger"
+      confirm-text="确定取消"
+      :loading="cancelLoading"
+      @confirm="handleConfirmCancel"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { ref, computed, onMounted } from 'vue'
+import { message } from '@/design-system/services'
+import { QyIcon, QyConfirmDialog } from '@/design-system/components'
+import type { ConfirmDetail } from '@/design-system/components'
 import {
   getMembershipPlans,
   getUserMembership,
@@ -203,6 +226,7 @@ import {
   type UserMembership,
   type MembershipUsage
 } from '@/modules/finance/api'
+import { validateAmount } from '@/utils/validation'
 
 const membershipPlans = ref<MembershipPlan[]>([])
 const userMembership = ref<UserMembership | null>(null)
@@ -210,7 +234,11 @@ const benefitsUsage = ref<MembershipUsage[]>([])
 const benefitsMap = ref<Record<string, string>>({})
 
 const subscribeDialogVisible = ref(false)
+const subscribeConfirmDialogVisible = ref(false)
+const cancelConfirmDialogVisible = ref(false)
 const selectedPlan = ref<MembershipPlan | null>(null)
+const subscribeLoading = ref(false)
+const cancelLoading = ref(false)
 
 const cardForm = ref({
   code: ''
@@ -219,6 +247,29 @@ const cardForm = ref({
 const subscribeForm = ref({
   payment_method: 'alipay'
 })
+
+// 支付方式名称映射
+const paymentMethodMap: Record<string, string> = {
+  alipay: '支付宝',
+  wechat: '微信支付',
+  balance: '余额支付'
+}
+
+// 订阅确认详情
+const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
+  {
+    label: '套餐名称',
+    value: selectedPlan.value?.name || ''
+  },
+  {
+    label: '价格',
+    value: `¥${selectedPlan.value?.price} / ${selectedPlan.value?.duration_unit}`
+  },
+  {
+    label: '支付方式',
+    value: paymentMethodMap[subscribeForm.value.payment_method] || subscribeForm.value.payment_method
+  }
+])
 
 // 获取会员套餐列表
 const loadMembershipPlans = async () => {
@@ -263,8 +314,19 @@ const loadMembershipBenefits = async () => {
 
 // 订阅会员
 const handleSubscribe = (plan: MembershipPlan) => {
+  // 验证价格
+  if (!validateAmount(plan.price.toString())) {
+    message.error('套餐价格无效')
+    return
+  }
   selectedPlan.value = plan
   subscribeDialogVisible.value = true
+}
+
+// 显示订阅二次确认
+const handleShowSubscribeConfirm = () => {
+  if (!selectedPlan.value) return
+  subscribeConfirmDialogVisible.value = true
 }
 
 // 确认订阅
@@ -272,36 +334,41 @@ const handleConfirmSubscribe = async () => {
   if (!selectedPlan.value) return
 
   try {
+    subscribeLoading.value = true
     await subscribeMembership({
       plan_id: selectedPlan.value.id,
       payment_method: subscribeForm.value.payment_method
     })
     message.success('订阅成功')
     subscribeDialogVisible.value = false
+    subscribeConfirmDialogVisible.value = false
     loadUserMembership()
     loadMembershipBenefits()
   } catch (error: any) {
     message.error(error.response?.data?.message || '订阅失败')
+  } finally {
+    subscribeLoading.value = false
   }
 }
 
-// 取消会员
-const handleCancelMembership = async () => {
-  try {
-    await messageBox.confirm('确定要取消会员吗？取消后将无法享受会员权益', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+// 显示取消会员确认
+const handleCancelMembership = () => {
+  cancelConfirmDialogVisible.value = true
+}
 
+// 确认取消会员
+const handleConfirmCancel = async () => {
+  try {
+    cancelLoading.value = true
     await cancelMembership()
     message.success('已取消会员')
+    cancelConfirmDialogVisible.value = false
     loadUserMembership()
     loadMembershipBenefits()
   } catch (error: any) {
-    if (error !== 'cancel') {
-      message.error(error.response?.data?.message || '取消失败')
-    }
+    message.error(error.response?.data?.message || '取消失败')
+  } finally {
+    cancelLoading.value = false
   }
 }
 

@@ -29,8 +29,11 @@ const api = getApi()
 
 /**
  * 获取轮播图列表
+ * 适配器函数：将limit参数转换为对象参数
  */
-export const getBanners = api.getApiV1BookstoreBanners
+export async function getBanners(limit: number = 5) {
+  return api.getApiV1BookstoreBanners({ limit })
+}
 
 /**
  * 增加轮播图点击次数
@@ -94,28 +97,43 @@ export const getBooksByTags = api.getApiV1BookstoreBooksTags
 
 /**
  * 获取推荐书籍
+ * 适配器函数：将独立参数转换为对象参数以匹配Orval生成的API
  */
-export const getRecommendedBooks = api.getApiV1BookstoreBooksRecommended
+export async function getRecommendedBooks(page: number = 1, size: number = 20) {
+  return api.getApiV1BookstoreBooksRecommended({ page, size })
+}
 
 /**
  * 获取精选书籍
+ * 适配器函数：将独立参数转换为对象参数以匹配Orval生成的API
  */
-export const getFeaturedBooks = api.getApiV1BookstoreBooksFeatured
+export async function getFeaturedBooks(page: number = 1, size: number = 20) {
+  return api.getApiV1BookstoreBooksFeatured({ page, size })
+}
 
 /**
  * 获取热门书籍
+ * 适配器函数：将limit参数转换为对象参数
  */
-export const getPopularBooks = api.getApiV1BookstoreBooksPopular
+export async function getPopularBooks(limit: number = 10) {
+  return api.getApiV1BookstoreBooksPopular({ limit })
+}
 
 /**
  * 获取最新书籍
+ * 适配器函数：将limit参数转换为对象参数
  */
-export const getLatestBooks = api.getApiV1BookstoreBooksLatest
+export async function getLatestBooks(limit: number = 10) {
+  return api.getApiV1BookstoreBooksLatest({ limit })
+}
 
 /**
  * 获取相似书籍
+ * 适配器函数：将独立参数转换为对象参数以匹配Orval生成的API
  */
-export const getSimilarBooks = api.getApiV1BookstoreBooksIdSimilar
+export async function getSimilarBooks(bookId: string, limit: number = 10) {
+  return api.getApiV1BookstoreBooksIdSimilar(bookId, { limit })
+}
 
 /**
  * 增加书籍浏览次数
@@ -309,28 +327,47 @@ export const getHomepage = api.getApiV1BookstoreHomepage
 
 /**
  * 获取实时榜单
+ * 适配器函数：将limit参数转换为对象参数
  */
-export const getRealtimeRanking = api.getApiV1BookstoreRankingsRealtime
+export async function getRealtimeRanking(limit?: number) {
+  return api.getApiV1BookstoreRankingsRealtime({ limit })
+}
 
 /**
  * 获取周榜
+ * 适配器函数：将period参数转换为对象参数
  */
-export const getWeeklyRanking = api.getApiV1BookstoreRankingsWeekly
+export async function getWeeklyRanking(period?: string, limit?: number) {
+  return api.getApiV1BookstoreRankingsWeekly({ period, limit })
+}
 
 /**
  * 获取月榜
+ * 适配器函数：将period和limit参数转换为对象参数
  */
-export const getMonthlyRanking = api.getApiV1BookstoreRankingsMonthly
+export async function getMonthlyRanking(period?: string, limit?: number) {
+  return api.getApiV1BookstoreRankingsMonthly({ period, limit })
+}
 
 /**
  * 获取新人榜
+ * 适配器函数：将limit参数转换为对象参数
  */
-export const getNewbieRanking = api.getApiV1BookstoreRankingsNewbie
+export async function getNewbieRanking(limit?: number) {
+  return api.getApiV1BookstoreRankingsNewbie({ limit })
+}
 
 /**
  * 按类型获取榜单
+ * 适配器函数：将period和limit参数转换为对象参数
  */
-export const getRankingByType = api.getApiV1BookstoreRankingsType
+export async function getRankingByType(
+  type: 'realtime' | 'weekly' | 'monthly' | 'newbie',
+  period?: string,
+  limit?: number
+) {
+  return api.getApiV1BookstoreRankingsType(type, { period, limit })
+}
 
 // ==================== 其他便捷方法 ====================
 

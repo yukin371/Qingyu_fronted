@@ -9,7 +9,8 @@ export interface AIProvider {
   name: string
   displayName: string
   status: 'active' | 'inactive' | 'error'
-  apiKey?: string
+  apiKeyMask?: string  // 只存储掩码 "sk-****...****"
+  hasApiKey: boolean   // 是否已配置密钥
   endpoint?: string
   modelCount: number
   createdAt: string
@@ -98,15 +99,20 @@ export interface AIModelsResponse {
 export interface CreateProviderRequest {
   name: string
   displayName: string
-  apiKey: string
+  apiKey: string  // 仅在创建时传输
   endpoint?: string
 }
 
 export interface UpdateProviderRequest {
   displayName?: string
-  apiKey?: string
+  apiKey?: string  // 仅在更新时传输
   endpoint?: string
   status?: 'active' | 'inactive'
+}
+
+export interface AIProviderUpdateRequest {
+  providerId: string
+  apiKey?: string  // 仅在更新时传输
 }
 
 export interface TestProviderRequest {

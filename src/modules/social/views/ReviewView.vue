@@ -194,6 +194,7 @@ import {
   type ReviewComment,
   type ReviewType
 } from '@/modules/social/api'
+import { validateComment, validateMessage } from '@/utils/validation'
 
 const loading = ref(false)
 const reviews = ref<Review[]>([])
@@ -331,15 +332,19 @@ const loadComments = async () => {
 
 // 提交评论
 const submitComment = async () => {
-  if (!currentReview.value || !newComment.value.trim()) {
-    message.warning('请输入评论内容')
+  if (!currentReview.value) return
+
+  // 使用验证工具验证评论
+  const result = validateComment(newComment.value)
+  if (!result.valid) {
+    message.warning(result.error || '评论内容无效')
     return
   }
 
   submittingComment.value = true
   try {
     await addReviewComment(currentReview.value.id, {
-      content: newComment.value.trim()
+      content: result.sanitized!
     })
     message.success('评论成功')
     newComment.value = ''

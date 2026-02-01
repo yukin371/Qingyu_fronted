@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Book, BookDetail, Category, Banner, HomepageData } from '@/modules/bookstore/types'
 import { getHomepage } from '@/modules/bookstore/api/homepage'
-import { getBookDetail, searchBooks as searchBooksAPI } from '@/modules/bookstore/api/books'
+import { getBookDetail, searchBooks as searchBooksAPI } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api/categories'
 import { getBanners } from '@/modules/bookstore/api/banners'
 

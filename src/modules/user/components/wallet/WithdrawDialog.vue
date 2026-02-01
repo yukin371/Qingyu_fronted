@@ -73,11 +73,22 @@
 
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleConfirm">
+      <el-button type="primary" :loading="loading" @click="handleSubmit">
         确认提现
       </el-button>
     </template>
   </el-dialog>
+
+  <!-- 二次确认对话框 -->
+  <QyConfirmDialog
+    v-model:visible="confirmDialogVisible"
+    title="确认提现"
+    message="请确认提现信息"
+    type="warning"
+    :details="confirmDetails"
+    :loading="loading"
+    @confirm="handleConfirm"
+  />
 </template>
 
 <script setup lang="ts">
@@ -85,6 +96,8 @@ import { ref, computed, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { WithdrawParams } from '@/types/shared'
 import { yuanToCents, centsToYuan } from '@/utils/currency'
+import { QyConfirmDialog } from '@/design-system/components'
+import type { ConfirmDetail } from '@/design-system/components'
 
 interface Props {
   modelValue: boolean
@@ -106,6 +119,7 @@ const emit = defineEmits<Emits>()
 
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
+const confirmDialogVisible = ref(false)
 
 // 表单数据（用户输入，单位：元）
 const form = ref<WithdrawParams>({
@@ -178,21 +192,47 @@ const withdrawAll = () => {
   form.value.amount = availableAmountDisplay.value
 }
 
-// 确认提现
-const handleConfirm = async () => {
+// 确认详情
+const confirmDetails = computed<ConfirmDetail[]>(() => [
+  {
+    label: '提现金额',
+    value: `¥${form.value.amount.toFixed(2)}`
+  },
+  {
+    label: '手续费',
+    value: `¥${fee.value.toFixed(2)}`
+  },
+  {
+    label: '实际到账',
+    value: `¥${actualAmount.value.toFixed(2)}`
+  },
+  {
+    label: '提现账户',
+    value: form.value.account
+  }
+])
+
+// 提交提现（显示二次确认）
+const handleSubmit = async () => {
   if (!formRef.value) return
 
   await formRef.value.validate((valid) => {
     if (valid) {
-      // 将元转换为分后再提交
-      const data: WithdrawParams = {
-        amount: yuanToCents(form.value.amount),
-        account: form.value.account,
-        accountType: form.value.accountType
-      }
-      emit('confirm', data)
+      confirmDialogVisible.value = true
     }
   })
+}
+
+// 确认提现（二次确认后）
+const handleConfirm = () => {
+  // 将元转换为分后再提交
+  const data: WithdrawParams = {
+    amount: yuanToCents(form.value.amount),
+    account: form.value.account,
+    accountType: form.value.accountType
+  }
+  emit('confirm', data)
+  confirmDialogVisible.value = false
 }
 
 // 关闭对话框

@@ -48,7 +48,7 @@
           <!-- 评分角标 (可选) -->
           <div class="rating-badge" v-if="book.score || book.rating">
             <QyIcon name="StarFilled"  />
-            <span>{{ book.score || book.rating }}</span>
+            <span>{{ formatRating(book.score || book.rating) }}</span>
           </div>
 
           <!-- 悬浮遮罩 -->
@@ -155,6 +155,12 @@ const gridStyle = computed(() => {
 
 const handleBookClick = (book) => {
   emit('book-click', book)
+}
+
+// 格式化评分，保留小数点后1位
+const formatRating = (rating) => {
+  if (!rating || typeof rating !== 'number') return '0.0'
+  return rating.toFixed(1)
 }
 
 const formatNumber = (num) => {

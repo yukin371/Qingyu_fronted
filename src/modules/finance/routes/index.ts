@@ -27,7 +27,7 @@ const routes: RouteRecordRaw[] = [
       title: '作者收入',
       requiresAuth: true,
       layout: 'main',
-      roles: ['author']
+      roles: ['author', 'admin'] // 作者和管理员都可以访问
     }
   }
 ]

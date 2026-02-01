@@ -27,9 +27,14 @@ interface ExtendedAxiosInstance extends AxiosInstance {
   cancelAllRequests(): void
 }
 
+// ==================== 配置 ====================
+
+// API基础路径
+const API_BASE_PATH = '/api/v1'
+
 // 创建 axios 实例
 const baseClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || API_BASE_PATH,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
@@ -42,10 +47,30 @@ const pendingRequests = new Map<string, CancelTokenSource>()
 // 扩展实例
 const apiClient = baseClient as ExtendedAxiosInstance
 
-// 请求拦截器 - 添加认证令牌
+// ==================== 智能前缀检测 ====================
+
+/**
+ * 检测URL是否已经包含完整路径（包含 /api/v1 前缀）
+ * 用于兼容Orval生成的完整路径和旧的相对路径
+ */
+function hasFullApiPath(url: string | undefined): boolean {
+  if (!url) return false
+  // 检查URL是否已经以 /api/v1 开头
+  return url.startsWith('/api/v1') || url.startsWith('http')
+}
+
+// 请求拦截器 - 添加认证令牌 + 智能前缀检测
 // 注意：storage工具会自动添加 qingyu_ 前缀，所以需要使用 qingyu_token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // 智能前缀检测：如果URL已经包含完整路径，临时覆盖baseURL
+    if (hasFullApiPath(config.url)) {
+      config.baseURL = ''  // 使用空baseURL，避免重复前缀
+      console.log('[Request Interceptor] 检测到完整路径，使用空baseURL:', config.url)
+    } else {
+      console.log('[Request Interceptor] 使用相对路径，baseURL:', config.baseURL)
+    }
+
     // 修复：使用 qingyu_token 前缀，与 authStore 的存储键保持一致
     const token = localStorage.getItem('qingyu_token')
     console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
@@ -82,8 +107,13 @@ apiClient.interceptors.response.use(
     // 统一返回 data 字段
     const res = response.data
 
-    // 如果是标准API响应格式，自动解包 data 字段
+    // 如果是标准API响应格式，检查是否包含分页信息
     if (res && typeof res === 'object' && 'code' in res && 'data' in res) {
+      // 如果包含 pagination 字段，返回完整响应（保留 pagination）
+      if ('pagination' in res) {
+        return res
+      }
+      // 否则只返回 data 字段（保持向后兼容）
       return res.data
     }
 
@@ -234,17 +264,9 @@ const generateRequestKey = (config: InternalAxiosRequestConfig): string => {
 }
 
 // 请求拦截器 - 添加取消令牌支持
+// 注意：认证Token已在第一个拦截器中处理，这里只处理取消令牌
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 修复：使用 qingyu_token 前缀，与 authStore 的存储键保持一致
-    const token = localStorage.getItem('qingyu_token')
-    console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
-    console.log('[Request Interceptor] Token found:', !!token, token?.substring(0, 20) + '...')
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
-      console.log('[Request Interceptor] Authorization header set')
-    }
-
     // 添加取消令牌支持
     const key = generateRequestKey(config)
     const source = axios.CancelToken.source()

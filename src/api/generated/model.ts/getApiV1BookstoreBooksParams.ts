@@ -15,4 +15,8 @@ export type GetApiV1BookstoreBooksParams = {
    * 每页数量
    */
   size?: number
+  /**
+   * 搜索关键词（搜索标题、作者、标签）
+   */
+  q?: string
 }

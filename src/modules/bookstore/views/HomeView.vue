@@ -191,7 +191,7 @@
                 <div class="book-meta-row">
                   <span class="author">{{ book.author }}</span>
                   <span class="rating">
-                    <Icon name="star" size="sm" class="text-yellow-400" /> {{ book.rating || '4.5' }}
+                    <Icon name="star" size="sm" class="text-yellow-400" /> {{ formatRating(book.rating) }}
                   </span>
                 </div>
                 <div class="tags-row" v-if="book.categoryName">
@@ -275,6 +275,11 @@ export default {
     }, { pageSize: 12, initialLoad: true })
 
     // 辅助函数
+    const formatRating = (rating) => {
+      if (!rating || typeof rating !== 'number') return '0.0'
+      return rating.toFixed(1)
+    }
+
     const formatNumber = (num) => {
       if (!num) return '0'
       return num > 9999 ? (num / 10000).toFixed(1) + 'w' : num
@@ -334,7 +339,7 @@ export default {
       loading, loadingMore, hasMoreRecommendations,
       announcements, banners, recommendedBooks, featuredBooks, rankings, stats, recommendedItems,
       loadMoreElRef, activeRankingTab,
-      formatNumber, rankingTabName, handleBookClick, handleBannerClick, handleViewRanking, handleViewBooks, goToReaderDemo
+      formatNumber, formatRating, rankingTabName, handleBookClick, handleBannerClick, handleViewRanking, handleViewBooks, goToReaderDemo
     }
   }
 }

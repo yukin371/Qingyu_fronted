@@ -1,5 +1,17 @@
 /**
- * 书城 - 书籍相关API
+ * ⚠️ DEPRECATED - 此文件已废弃
+ *
+ * 该文件存在API路径问题（缺少 /api/v1 前缀），已被以下文件替代：
+ * - wrapper.ts: 使用Orval生成的正确API
+ *
+ * 请使用以下导入方式获取正确的API：
+ * import { getBookDetail, searchBooks } from '@/modules/bookstore/api'
+ *
+ * 废弃日期: 2026-02-01
+ * 原因: API路径错误，不符合后端API规范
+ *
+ * ========================================
+ * 书城 - 书籍相关API (已废弃)
  */
 
 import { httpService } from '@/core/services/http.service'

@@ -44,6 +44,12 @@
             </template>
           </el-table-column>
 
+          <el-table-column prop="apiKey" label="API密钥" width="150">
+            <template #default="{ row }">
+              <span class="apikey-text">{{ formatApiKeyDisplay(row.apiKeyMask || '') }}</span>
+            </template>
+          </el-table-column>
+
           <el-table-column prop="modelCount" label="模型数量" width="100" align="center">
             <template #default="{ row }">
               <el-button text type="primary" @click="viewModels(row)">
@@ -157,14 +163,21 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, messageBox, FormInstance, FormRules } from '@/design-system/services'
+import { message, messageBox } from '@/design-system/services'
+import type { FormInstance, FormRules } from '@/design-system/form/Form/types'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
+import { formatApiKeyDisplay } from '../utils/apikey'
 import type { AIProvider } from '../types/ai-admin.types'
+import { Refresh, Plus } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const aiStore = useAIAdminStore()
+
+// 图标
+const Refresh = Refresh as any
+const Plus = Plus as any
 
 // 状态
 const pageLoading = ref(false)
@@ -408,6 +421,12 @@ onMounted(async () => {
 }
 
 .endpoint-text {
+  font-size: 0.875rem;
+  color: #616161;
+  font-family: monospace;
+}
+
+.apikey-text {
   font-size: 0.875rem;
   color: #616161;
   font-family: monospace;
