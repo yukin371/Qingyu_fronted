@@ -3,12 +3,12 @@
  * API响应验证和数据一致性检查工具
  */
 
-import { APIResponse, expect } from '@playwright/test'
+import { expect } from '@playwright/test'
 
 /**
  * 标准API响应格式
  */
-export interface StandardAPIResponse<T = any> {
+export interface StandardAPIResponse<T = unknown> {
   code: number
   message: string
   data?: T
@@ -63,8 +63,8 @@ export class APIValidators {
   /**
    * 获取请求头
    */
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
 
@@ -134,7 +134,7 @@ export class APIValidators {
   /**
    * 验证对象Schema
    */
-  private assertSchema(obj: any, schema: object): void {
+  private assertSchema(obj: Record<string, unknown>, schema: object): void {
     for (const [key, expectedType] of Object.entries(schema)) {
       expect(obj).toHaveProperty(key)
 
@@ -161,7 +161,7 @@ export class APIValidators {
    * 验证前后端数据一致性
    */
   async assertDataConsistency(
-    frontendData: any,
+    frontendData: Record<string, unknown>,
     backendAPI: string,
     config: DataComparisonConfig = {}
   ): Promise<void> {
@@ -177,7 +177,7 @@ export class APIValidators {
   /**
    * 从后端API获取数据
    */
-  async fetchBackendData(endpoint: string): Promise<any> {
+  async fetchBackendData(endpoint: string): Promise<unknown> {
     const url = `${this.baseURL}${endpoint}`
     const response = await fetch(url, {
       headers: this.getHeaders()
@@ -189,7 +189,8 @@ export class APIValidators {
 
     const result: StandardAPIResponse = await response.json()
 
-    if (result.code !== 200) {
+    // 后端返回 code: 0 表示成功，兼容 code: 200
+    if (result.code !== 0 && result.code !== 200) {
       throw new Error(`后端返回错误: ${result.message}`)
     }
 
@@ -200,8 +201,8 @@ export class APIValidators {
    * 对比两个数据对象
    */
   compareData(
-    frontendData: any,
-    backendData: any,
+    frontendData: Record<string, unknown>,
+    backendData: Record<string, unknown>,
     config: DataComparisonConfig = {}
   ): void {
     const { ignoreFields = [], allowExtraFields = true } = config
@@ -214,8 +215,8 @@ export class APIValidators {
    * 内部数据对比逻辑
    */
   private _compareData(
-    frontend: any,
-    backend: any,
+    frontend: unknown,
+    backend: unknown,
     path: string,
     config: DataComparisonConfig
   ): void {
@@ -348,8 +349,8 @@ export class APIValidators {
   async assertCollectionExists(userID: string, bookID: string): Promise<void> {
     const collections = await this.fetchBackendData(`/api/v1/reader/collections/${userID}`)
 
-    const hasBook = collections.some((collection: any) =>
-      collection.book_id === bookID || collection.books?.some((b: any) => b.id === bookID)
+    const hasBook = collections.some((collection: Record<string, unknown>) =>
+      collection.book_id === bookID || (Array.isArray(collection.books) && collection.books.some((b: Record<string, unknown>) => b.id === bookID))
     )
 
     expect(hasBook).toBe(true)

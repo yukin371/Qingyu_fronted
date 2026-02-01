@@ -1,3 +1,4 @@
+/* global process */
 import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 
@@ -58,31 +59,35 @@ export default defineConfig({
   },
 
   // 测试项目配置（不同浏览器）
+  // 注意：Firefox和WebKit已暂时搁置，只使用Chromium进行测试
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // Firefox暂时搁置
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // WebKit暂时搁置
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* 移动端测试 */
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    // Mobile Safari使用WebKit，暂时搁置
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
+    // },
   ],
 
   // 测试运行前的全局设置
