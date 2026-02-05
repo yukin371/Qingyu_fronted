@@ -3,6 +3,7 @@
  * 当 WebSocket 不可用时使用轮询方式获取消息
  */
 import type { AxiosInstance } from 'axios'
+import { useWebSocketStore } from '@/stores/websocket.store'
 
 export interface PollingConfig {
   axios: AxiosInstance
@@ -22,6 +23,7 @@ export class PollingService {
   private isActive = false
   private lastMessageCount = 0
   private emptyPollCount = 0
+  private websocketStore = useWebSocketStore()
 
   constructor(config: PollingConfig) {
     this.currentInterval = config.interval ?? 30000
@@ -42,6 +44,12 @@ export class PollingService {
    * 启动轮询
    */
   start(): void {
+    // 如果WebSocket已连接或正在连接，跳过轮询启动
+    if (this.websocketStore.isConnected || !this.shouldUsePolling()) {
+      console.log('[Polling] WebSocket已连接或正在连接，跳过轮询启动')
+      return
+    }
+
     if (this.isActive) {
       console.log('[Polling] 轮询已在运行')
       return
@@ -92,6 +100,14 @@ export class PollingService {
    */
   isRunning(): boolean {
     return this.isActive
+  }
+
+  /**
+   * 是否应该使用轮询
+   * 当WebSocket未连接且未正在连接时返回true
+   */
+  shouldUsePolling(): boolean {
+    return !this.websocketStore.isConnected
   }
 
   /**
