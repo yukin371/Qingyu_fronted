@@ -133,6 +133,27 @@ export class UnifiedWebSocketService {
   }
 
   /**
+   * 启用轮询降级
+   */
+  enablePollingFallback(): void {
+    this.fallbackState = {
+      isActive: true,
+      type: 'polling',
+      pollingInterval: this.config.pollingInterval,
+    }
+  }
+
+  /**
+   * 禁用降级
+   */
+  disableFallback(): void {
+    this.fallbackState = {
+      isActive: false,
+      type: 'none',
+    }
+  }
+
+  /**
    * 设置WebSocket事件处理器
    */
   private setupEventHandlers(): void {
