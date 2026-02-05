@@ -3,8 +3,33 @@
     <div class="container">
       <!-- 搜索框 -->
       <div class="search-header">
-        <Input v-model="searchKeyword" placeholder="搜索书名、作者、标签..." size="lg" clearable
-          @keyup.enter="handleSearch">
+        <!-- 搜索类型切换 -->
+        <div class="search-type-tabs">
+          <Button
+            :variant="searchType === 'book' ? 'primary' : 'ghost'"
+            @click="setSearchType('book')"
+            class="type-tab"
+          >
+            <Icon name="book-open" size="sm" />
+            书籍
+          </Button>
+          <Button
+            :variant="searchType === 'author' ? 'primary' : 'ghost'"
+            @click="setSearchType('author')"
+            class="type-tab"
+          >
+            <Icon name="user" size="sm" />
+            作者
+          </Button>
+        </div>
+
+        <Input
+          v-model="searchKeyword"
+          :placeholder="searchType === 'book' ? '搜索书名、作者、标签...' : '搜索作者名称...'"
+          size="lg"
+          clearable
+          @keyup.enter="handleSearch"
+        >
           <template #prepend>
             <Icon name="magnifying-glass" size="md" />
           </template>
@@ -55,8 +80,8 @@
 
       <!-- 搜索结果 -->
       <div v-if="hasSearched" class="search-results">
-        <!-- 筛选栏 -->
-        <div class="filter-bar">
+        <!-- 书籍筛选栏 -->
+        <div v-if="searchType === 'book'" class="filter-bar">
           <Row :gutter="16">
             <Col :xs="24" :sm="8" :md="6">
               <Select v-model="filters.categoryId" placeholder="分类" clearable @change="handleSearch">
@@ -86,13 +111,17 @@
 
         <!-- 结果统计 -->
         <div class="result-info">
-          <span>找到 <strong>{{ totalResults }}</strong> 个结果</span>
+          <span v-if="searchType === 'book'">找到 <strong>{{ totalResults }}</strong> 个结果</span>
+          <span v-else>找到 <strong>{{ authorsCount }}</strong> 位作者</span>
           <span v-if="searchKeyword" class="keyword-highlight">"{{ searchKeyword }}"</span>
         </div>
 
         <!-- 结果列表 -->
         <div class="results-list">
           <Spinner v-if="loading" :size="48" class="loading-spinner" />
+
+          <!-- 书籍搜索结果 -->
+          <template v-else-if="searchType === 'book'">
 
           <template v-else>
             <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
@@ -146,6 +175,20 @@
               <Button @click="clearSearch">清空搜索</Button>
             </Empty>
           </template>
+
+          <!-- 作者搜索结果 -->
+          <template v-else>
+            <AuthorList
+              v-if="!authorsLoading"
+              :authors="displayedAuthors"
+              :is-loading="authorsLoading"
+              :has-more="authorsHasMore"
+              @author-click="handleAuthorClick"
+            />
+            <Empty v-else-if="displayedAuthors.length === 0" title="没有找到相关作者">
+              <Button @click="clearSearch">清空搜索</Button>
+            </Empty>
+          </template>
         </div>
 
         <!-- 分页 -->
@@ -170,10 +213,15 @@ import { Button, Select, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input
 import { Icon } from '@/design-system'
 import type { BookBrief, Category, SearchFilter } from '@/types/models'
 import { useBookstoreStore } from '../stores/bookstore.store'
+import { useAuthorsResultStore } from '../stores/authors-result.store'
+import AuthorList from '../components/AuthorList.vue'
+import type { AuthorCard } from '../types/search.types'
+import type { SearchType } from '../types/search.types'
 
 const router = useRouter()
 const route = useRoute()
 const bookstoreStore = useBookstoreStore()
+const authorsResultStore = useAuthorsResultStore()
 
 const searchKeyword = ref('')
 const loading = ref(false)
@@ -183,6 +231,9 @@ const totalResults = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const categories = ref<Category[]>([])
+
+// 搜索类型
+const searchType = ref<SearchType>('book')
 
 // 搜索历史（从localStorage读取）
 const searchHistory = ref<string[]>([])
@@ -205,6 +256,12 @@ const filters = reactive<Partial<SearchFilter>>({
   sortBy: 'relevance' as any
 })
 
+// 作者相关状态
+const displayedAuthors = computed<AuthorCard[]>(() => authorsResultStore.authors)
+const authorsLoading = computed(() => authorsResultStore.isLoading)
+const authorsHasMore = computed(() => authorsResultStore.hasMore)
+const authorsCount = computed(() => authorsResultStore.authorsCount)
+
 // 格式化数字
 const formatNumber = (num: number): string => {
   if (num >= 10000) {
@@ -218,6 +275,27 @@ const highlightKeyword = (text: string): string => {
   if (!searchKeyword.value) return text
   const regex = new RegExp(`(${searchKeyword.value})`, 'gi')
   return text.replace(regex, '<span class="highlight">$1</span>')
+}
+
+// 设置搜索类型
+const setSearchType = (type: SearchType) => {
+  searchType.value = type
+  // 切换类型时清空搜索结果
+  if (hasSearched.value) {
+    if (type === 'book') {
+      authorsResultStore.clearResults()
+    } else {
+      searchResults.value = []
+      totalResults.value = 0
+    }
+  }
+}
+
+// 处理作者点击 - 切换到书籍搜索并搜索该作者的书
+const handleAuthorClick = async (author: AuthorCard) => {
+  searchType.value = 'book'
+  searchKeyword.value = author.name
+  await handleSearch()
 }
 
 // 加载分类
@@ -298,29 +376,40 @@ const handleSearch = async () => {
     // 保存搜索历史
     saveSearchHistory(keyword)
 
-    // 更新URL查询参数（支持分享链接）
-    const query: any = { q: keyword }
-    if (filters.categoryId) query.category = filters.categoryId
-    if (filters.status) query.status = filters.status
-    if (filters.sortBy) query.sort = filters.sortBy
-    query.page = currentPage.value
+    // 根据搜索类型执行不同的搜索
+    if (searchType.value === 'author') {
+      // 搜索作者
+      await authorsResultStore.search(keyword)
+      console.log('[SearchView] Author search completed:', {
+        keyword,
+        count: authorsResultStore.authorsCount
+      })
+    } else {
+      // 搜索书籍
+      // 更新URL查询参数（支持分享链接）
+      const query: any = { q: keyword }
+      if (filters.categoryId) query.category = filters.categoryId
+      if (filters.status) query.status = filters.status
+      if (filters.sortBy) query.sort = filters.sortBy
+      query.page = currentPage.value
 
-    router.push({ path: '/bookstore/search', query })
+      router.push({ path: '/bookstore/search', query })
 
-    const params: any = {
-      keyword,
-      ...filters,
-      page: currentPage.value,
-      size: pageSize.value
+      const params: any = {
+        keyword,
+        ...filters,
+        page: currentPage.value,
+        size: pageSize.value
+      }
+
+      // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
+      await bookstoreStore.searchBooks(keyword, filters)
+
+      // 使用 store 中的搜索结果
+      const resultList = bookstoreStore.books.searchResults || []
+      searchResults.value = Array.isArray(resultList) ? resultList : []
+      totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
     }
-
-    // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
-    await bookstoreStore.searchBooks(keyword, filters)
-
-    // 使用 store 中的搜索结果
-    const resultList = bookstoreStore.books.searchResults || []
-    searchResults.value = Array.isArray(resultList) ? resultList : []
-    totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
   } catch (error) {
     console.error('搜索失败:', error)
     message.error('搜索失败')
@@ -339,6 +428,8 @@ const clearSearch = () => {
   filters.categoryId = ''
   filters.status = '' as any
   filters.sortBy = 'relevance' as any
+  // 清空作者搜索结果
+  authorsResultStore.clearResults()
 }
 
 // 跳转到详情
@@ -412,6 +503,20 @@ onMounted(() => {
   border-radius: 8px;
   margin-bottom: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+
+  .search-type-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    .type-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 100px;
+      justify-content: center;
+    }
+  }
 }
 
 .search-suggestions {
