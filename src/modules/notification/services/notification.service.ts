@@ -1,21 +1,24 @@
 /**
  * 通知服务
- * 整合 WebSocket 和轮询降级方案
+ * 使用统一的 WebSocket Store 和轮询降级方案
  */
-import { WebSocketService, createWebSocketService } from '@/core/services/websocket.service'
-import { PollingService, createPollingService } from '@/core/services/polling.service'
+import type { PollingService } from '@/core/services/polling.service'
+import { createPollingService } from '@/core/services/polling.service'
 import { httpService } from '@/core/services/http.service'
 import { getWebSocketEndpoint } from '../api'
 import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
 import { API_PATHS } from '@/config/apiPaths'
+import { useWebSocketStore } from '@/stores/websocket.store'
+import { WebSocketMessageType } from '@/core/types/websocket.types'
 
 export type ConnectionMode = 'websocket' | 'polling'
 
 export class NotificationService {
-  private wsService: WebSocketService | null = null
   private pollingService: PollingService | null = null
   private currentMode: ConnectionMode = 'websocket'
+  // eslint-disable-next-line no-unused-vars
   private messageHandlers: Set<(message: NotificationMessage) => void> = new Set()
+  private unsubscribeHandler: (() => void) | null = null
 
   /**
    * 初始化通知系统
@@ -25,7 +28,7 @@ export class NotificationService {
     try {
       await this.initializeWebSocket()
       console.log('[NotificationService] WebSocket 模式初始化成功')
-    } catch (error) {
+    } catch {
       console.warn('[NotificationService] WebSocket 初始化失败，切换到轮询模式')
       this.initializePolling()
     }
@@ -33,22 +36,26 @@ export class NotificationService {
 
   /**
    * 初始化 WebSocket
+   * 使用统一的 WebSocket Store 进行连接管理
    */
   private async initializeWebSocket(): Promise<void> {
+    const websocketStore = useWebSocketStore()
+
     let url = ''
 
     try {
       // 尝试从后端获取WebSocket端点
-      const response = await getWebSocketEndpoint() as any
+      const response = await getWebSocketEndpoint() as unknown
       // 处理可能的响应格式
       if (typeof response === 'string') {
         url = response
       } else if (response && typeof response === 'object') {
         // 检查是否是axios响应格式
         if ('data' in response && response.data) {
-          url = response.data.url || ''
+          const responseData = response.data as { url?: string }
+          url = responseData.url || ''
         } else if ('url' in response) {
-          url = response.url || ''
+          url = (response as { url: string }).url || ''
         }
       }
 
@@ -64,28 +71,25 @@ export class NotificationService {
       throw new Error('WebSocket endpoint unavailable')
     }
 
-    this.wsService = createWebSocketService({
-      url: url,
-      heartbeatInterval: 30000,
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 10,
-      onMessage: (data) => {
-        this.handleMessage(data)
-      },
-      onConnect: () => {
-        console.log('[NotificationService] WebSocket 已连接')
-        this.currentMode = 'websocket'
-      },
-      onDisconnect: () => {
-        console.log('[NotificationService] WebSocket 断开，尝试切换到轮询')
-        this.fallbackToPolling()
-      },
-      onError: (error) => {
-        console.error('[NotificationService] WebSocket 错误:', error)
-      }
-    })
+    // 使用统一的 WebSocket Store 连接
+    await websocketStore.connect(undefined, { url })
 
-    await this.wsService.connect()
+    // 注册通知消息处理器
+    const messageHandler = (wsMessage: { type: string; data: unknown }) => {
+      if (wsMessage.type === WebSocketMessageType.NOTIFICATION) {
+        this.handleMessage(wsMessage.data)
+      }
+    }
+
+    websocketStore.onMessage(messageHandler)
+
+    // 保存取消订阅函数
+    this.unsubscribeHandler = () => {
+      websocketStore.offMessage(messageHandler)
+    }
+
+    this.currentMode = 'websocket'
+    console.log('[NotificationService] WebSocket 模式初始化成功')
   }
 
   /**
@@ -107,8 +111,8 @@ export class NotificationService {
       onMessage: (messages: NotificationMessage[]) => {
         messages.forEach(msg => this.notifyHandlers(msg))
       },
-      onError: (error) => {
-        console.error('[NotificationService] 轮询错误:', error)
+      onError: () => {
+        console.error('[NotificationService] 轮询错误')
       }
     })
 
@@ -123,9 +127,10 @@ export class NotificationService {
     if (this.currentMode === 'websocket') {
       this.currentMode = 'polling'
 
-      // 关闭 WebSocket
-      if (this.wsService) {
-        this.wsService.disconnect()
+      // 取消 WebSocket 消息订阅
+      if (this.unsubscribeHandler) {
+        this.unsubscribeHandler()
+        this.unsubscribeHandler = null
       }
 
       // 启动轮询
@@ -136,10 +141,12 @@ export class NotificationService {
   /**
    * 处理接收到的消息
    */
-  private handleMessage(data: any): void {
-    if (data.type === 'notification' && data.data) {
-      const message: NotificationMessage = data.data
-      this.notifyHandlers(message)
+  private handleMessage(data: unknown): void {
+    if (typeof data === 'object' && data !== null && 'type' in data && 'data' in data) {
+      const messageData = data as { type: string; data: NotificationMessage }
+      if (messageData.type === 'notification' && messageData.data) {
+        this.notifyHandlers(messageData.data)
+      }
     }
   }
 
@@ -159,7 +166,8 @@ export class NotificationService {
   /**
    * 订阅消息
    */
-  onMessage(handler: (message: NotificationMessage) => void): () => void {
+  // eslint-disable-next-line no-unused-vars
+  onMessage(handler: (msg: NotificationMessage) => void): () => void {
     this.messageHandlers.add(handler)
 
     // 返回取消订阅函数
@@ -255,7 +263,8 @@ export class NotificationService {
    */
   isConnected(): boolean {
     if (this.currentMode === 'websocket') {
-      return this.wsService?.isConnected() ?? false
+      const websocketStore = useWebSocketStore()
+      return websocketStore.isConnected
     }
     return this.pollingService?.isRunning() ?? false
   }
@@ -264,14 +273,18 @@ export class NotificationService {
    * 断开连接
    */
   disconnect(): void {
-    if (this.wsService) {
-      this.wsService.disconnect()
+    // 取消 WebSocket 消息订阅
+    if (this.unsubscribeHandler) {
+      this.unsubscribeHandler()
+      this.unsubscribeHandler = null
     }
 
+    // 停止轮询服务
     if (this.pollingService) {
       this.pollingService.stop()
     }
 
+    // 清理消息处理器
     this.messageHandlers.clear()
     this.currentMode = 'websocket'
   }
