@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -235,11 +235,9 @@ import {
   searchConversations,
   getConversationStats,
   type Conversation,
-  type Message,
-  type MessageType
+  type Message
 } from '@/modules/social/api'
-import { messageWebSocket } from '@/services/websocket'
-import { eventBus } from '@/utils/eventBus'
+import { useWebSocketStore } from '@/stores/websocket.store'
 import { pollingService } from '@/services/polling'
 import { validateMessage } from '@/utils/validation'
 
@@ -292,7 +290,7 @@ const loadStats = async () => {
     const res = await getConversationStats()
     totalUnread.value = res.total_unread
   } catch (error: any) {
-    ElMessage.error(error.message || '加载统计失败')
+    message.error(error.message || '加载统计失败')
   }
 }
 
@@ -558,8 +556,11 @@ const formatFileSize = (bytes?: number) => {
   return `${size.toFixed(1)} ${units[unitIndex]}`
 }
 
-// WebSocket连接
-const wsConnected = ref(false)
+// WebSocket Store
+const websocketStore = useWebSocketStore()
+
+// WebSocket连接状态
+const wsConnected = computed(() => websocketStore.isConnected)
 
 // 处理WebSocket接收的新消息
 const handleNewMessage = (msg: any) => {
@@ -588,52 +589,42 @@ onMounted(() => {
   // 连接WebSocket
   const token = localStorage.getItem('token') || ''
   if (token) {
-    messageWebSocket.connect(token)
-    wsConnected.value = messageWebSocket.getConnectionState()
+    websocketStore.connect(token)
   }
 
-  // 监听WebSocket连接状态
-  eventBus.on('websocket:connected', () => {
-    console.log('[MessageView] WebSocket已连接')
-    wsConnected.value = true
-  })
-
-  eventBus.on('websocket:disconnected', () => {
-    console.log('[MessageView] WebSocket已断开')
-    wsConnected.value = false
-  })
-
   // 监听新消息
-  eventBus.on('websocket:message', handleNewMessage)
+  websocketStore.onMessage(handleNewMessage)
 
-  // 监听WebSocket最大重连次数到达，启动轮询降级
-  eventBus.on('websocket:max-reconnect-reached', () => {
-    console.log('[MessageView] WebSocket连接失败，启动轮询降级')
-    pollingService.start(() => {
-      // 重新加载当前对话的消息
-      if (selectedConversation.value) {
-        loadMessages()
-      }
-      // 重新加载对话列表
-      loadConversations()
-      // 重新加载未读统计
-      loadStats()
-    }, 5000)
+  // 监听WebSocket降级状态变化，启动轮询降级
+  watch(() => websocketStore.fallbackActive, (isActive) => {
+    if (isActive) {
+      console.log('[MessageView] WebSocket连接失败，启动轮询降级')
+      pollingService.start(() => {
+        // 重新加载当前对话的消息
+        if (selectedConversation.value) {
+          loadMessages()
+        }
+        // 重新加载对话列表
+        loadConversations()
+        // 重新加载未读统计
+        loadStats()
+      }, 5000)
+    } else {
+      console.log('[MessageView] WebSocket连接恢复，停止轮询降级')
+      pollingService.stop()
+    }
   })
 })
 
 onUnmounted(() => {
   // 断开WebSocket
-  messageWebSocket.disconnect()
+  websocketStore.disconnect()
 
   // 停止轮询
   pollingService.stop()
 
-  // 移除事件监听
-  eventBus.off('websocket:message', handleNewMessage)
-  eventBus.off('websocket:connected')
-  eventBus.off('websocket:disconnected')
-  eventBus.off('websocket:max-reconnect-reached')
+  // 移除消息监听
+  websocketStore.offMessage(handleNewMessage)
 })
 </script>
 
