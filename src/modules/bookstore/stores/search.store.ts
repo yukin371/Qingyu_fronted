@@ -5,6 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { SEARCH_CONFIG } from '../config/search.config'
 
 export const useSearchStore = defineStore('search', () => {
   // State
@@ -104,7 +105,7 @@ export const useSearchStore = defineStore('search', () => {
     selectedTags.value = []
   }
 
-  // 监听状态变化，自动同步到URL（使用防抖）
+  // 监听状态变化，自动同步到URL（使用配置的防抖延迟）
   let syncTimeout: ReturnType<typeof setTimeout> | null = null
   watch([keyword, selectedTags], () => {
     if (syncTimeout) {
@@ -112,7 +113,7 @@ export const useSearchStore = defineStore('search', () => {
     }
     syncTimeout = setTimeout(() => {
       syncToURL()
-    }, 300)
+    }, SEARCH_CONFIG.URL_DEBOUNCE_MS)
   }, { deep: true })
 
   return {

@@ -5,6 +5,7 @@ import type { BookBrief } from '@/types/models'
 import type { BrowseFilters } from '@/types/models'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 import { browseService } from '../services/browse.service'
+import { SEARCH_CONFIG } from '../config/search.config'
 
 export const useBrowseStore = defineStore('browse', () => {
   const router = useRouter()
@@ -17,9 +18,9 @@ export const useBrowseStore = defineStore('browse', () => {
     year: '',
     status: '',
     tags: [],
-    sortBy: 'updateTime',
+    sortBy: SEARCH_CONFIG.DEFAULT_SORT_BY,
     page: 1,
-    pageSize: 24,
+    pageSize: SEARCH_CONFIG.DISPLAY_STEP + 4, // 24
     tagMode: 'and'
   })
   
