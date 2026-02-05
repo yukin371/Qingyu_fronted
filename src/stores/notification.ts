@@ -39,6 +39,7 @@ export const useNotificationStore = defineStore('notification', () => {
   // 服务实例
   let service: ReturnType<typeof getNotificationService> | null = null
   let unsubscribeHandler: (() => void) | null = null
+  let isInitializing = false
 
   // Getters
   const unreadCount = computed(() => stats.value.unread)
@@ -65,6 +66,9 @@ export const useNotificationStore = defineStore('notification', () => {
   // Actions
   async function initialize() {
     if (service) return
+    if (isInitializing) return
+
+    isInitializing = true
 
     try {
       service = getNotificationService()
@@ -91,6 +95,8 @@ export const useNotificationStore = defineStore('notification', () => {
     } catch (error) {
       console.error('[NotificationStore] 初始化失败:', error)
       isConnected.value = false
+    } finally {
+      isInitializing = false
     }
   }
 
