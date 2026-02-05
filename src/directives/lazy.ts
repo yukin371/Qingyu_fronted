@@ -24,6 +24,9 @@ const DEFAULT_LOADING = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000
 // 存储观察器实例
 const observerMap = new WeakMap<HTMLElement, IntersectionObserver>()
 
+// 已加载图片缓存
+const loadedImages = new Set<string>()
+
 /**
  * 加载图片
  */
@@ -33,12 +36,23 @@ const loadImage = (
   errorSrc?: string
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
+    // 检查缓存，如果已加载则直接设置
+    if (loadedImages.has(src)) {
+      el.src = src
+      el.classList.remove('lazy-loading')
+      el.classList.add('lazy-loaded')
+      resolve()
+      return
+    }
+
     const img = new Image()
 
     img.onload = () => {
       el.src = src
       el.classList.remove('lazy-loading')
       el.classList.add('lazy-loaded')
+      // 添加到缓存
+      loadedImages.add(src)
       resolve()
     }
 
@@ -192,4 +206,20 @@ export const vLazy = {
  * 默认导出（用于全局注册）
  */
 export default vLazy
+
+/**
+ * 清除已加载图片缓存
+ * 用于需要重新加载图片的场景（如刷新、更新等）
+ */
+export function clearLoadedImagesCache(): void {
+  loadedImages.clear()
+}
+
+/**
+ * 获取已加载图片列表
+ * 用于调试和监控
+ */
+export function getLoadedImages(): string[] {
+  return Array.from(loadedImages)
+}
 
