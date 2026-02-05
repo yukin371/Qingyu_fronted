@@ -38,3 +38,6 @@ export type {
   SearchParams,
   SearchResult
 } from './bookstore.types'
+
+// Search (搜索相关类型)
+export * from './search.types'
