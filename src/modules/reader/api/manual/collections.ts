@@ -134,11 +134,11 @@ export const collectionsAPI = {
    * @category reader
    * @tags 收藏管理
    * @param {string} bookId - 书籍ID
-   * @response {APIResponse<{collected: boolean}>} 200 - 成功返回收藏状态
+   * @response {APIResponse<{is_collected: boolean}>} 200 - 成功返回收藏状态
    * @security BearerAuth
    */
-  async checkCollected(bookId: string): Promise<APIResponse<{ collected: boolean }>> {
-    return httpService.get<APIResponse<{ collected: boolean }>>(
+  async checkCollected(bookId: string): Promise<APIResponse<{ is_collected: boolean }>> {
+    return httpService.get<APIResponse<{ is_collected: boolean }>>(
       `/social/collections/check`,
       { params: { book_id: bookId } }
     )

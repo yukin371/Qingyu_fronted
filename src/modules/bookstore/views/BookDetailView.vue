@@ -381,6 +381,7 @@ const toggleFavorite = async () => {
       // 取消收藏
       if (collectionId.value) {
         await collectionsAPI.deleteCollection(collectionId.value)
+        // 立即更新状态
         isFavorited.value = false
         collectionId.value = null
         message.success('取消收藏')
@@ -389,8 +390,10 @@ const toggleFavorite = async () => {
       // 添加收藏
       const response = await collectionsAPI.addCollection(bookId)
       if (response.data) {
+        // 立即更新状态 - 使用返回的数据
         isFavorited.value = true
-        collectionId.value = response.data.id || response.data._id
+        // response.data 应该包含收藏记录的完整信息，包括 id
+        collectionId.value = response.data.id || response.data._id || (response.data as any).collection_id
         message.success('收藏成功')
       }
     }
@@ -400,8 +403,11 @@ const toggleFavorite = async () => {
     // 如果是"已经收藏"的错误，视为成功
     if (errorMsg.includes('已经收藏') || errorMsg.includes('already')) {
       if (!isFavorited.value) {
-        // 重新获取收藏状态
-        await checkFavoriteStatus()
+        // 立即更新状态，避免等待API调用
+        isFavorited.value = true
+        message.success('已收藏')
+        // 异步获取收藏ID
+        checkFavoriteStatus().catch(err => console.error('获取收藏状态失败:', err))
       }
     } else {
       message.error(errorMsg)
@@ -422,14 +428,16 @@ const checkFavoriteStatus = async () => {
     const response = await collectionsAPI.checkCollected(bookId)
     if (response.data?.is_collected) {
       isFavorited.value = true
-      // 获取收藏列表以找到收藏ID
-      const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
-      if (collections.data?.list) {
-        const currentBookCollection = collections.data.list.find(
-          (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
-        )
-        if (currentBookCollection) {
-          collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id
+      // 如果还没有 collectionId，获取收藏列表以找到收藏ID
+      if (!collectionId.value) {
+        const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
+        if (collections.data?.list) {
+          const currentBookCollection = collections.data.list.find(
+            (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
+          )
+          if (currentBookCollection) {
+            collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id
+          }
         }
       }
     } else {
