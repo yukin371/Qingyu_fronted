@@ -92,7 +92,11 @@
                       <Icon name="folder-plus" size="md" class="mr-1" />
                       加入书架
                     </Button>
-                    <Button size="lg" @click="toggleFavorite">
+                    <Button
+                      size="lg"
+                      @click="toggleFavorite"
+                      :loading="checkingFavorite"
+                      :data-testid="isFavorited ? 'unfavorite-button' : 'favorite-button'">
                       <Icon name="star" size="md" class="mr-1" />
                       {{ isFavorited ? '已收藏' : '收藏' }}
                     </Button>
@@ -228,6 +232,7 @@ import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/modules/reader/api'
 import { addToBookshelf } from '@/modules/reader/api'
+import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
 import type { ChapterListItem, BookBrief } from '@/types/models'
 
 // Proper TypeScript interfaces
@@ -270,6 +275,8 @@ const loading = ref(false)
 const activeTab = ref('intro')
 const isReversed = ref(false)
 const isFavorited = ref(false)
+const collectionId = ref<string | null>(null) // 收藏记录ID，用于删除收藏
+const checkingFavorite = ref(false) // 检查收藏状态loading
 const chapters = ref<ChapterListItem[]>([])
 const recommendedBooks = ref<BookBrief[]>([])
 
@@ -333,7 +340,7 @@ const startReading = async () => {
     } else {
       message.warning('暂无章节')
     }
-  } catch (error) {
+  } catch {
     message.error('加载阅读失败')
   }
 }
@@ -355,22 +362,87 @@ const addToShelf = async () => {
 
   try {
     await addToBookshelf(bookId)
-    ElMessage.success('已加入书架')
-  } catch (error) {
-    ElMessage.error('添加失败')
+    message.success('已加入书架')
+  } catch {
+    message.error('添加失败')
   }
 }
 
 // 切换收藏
-const toggleFavorite = () => {
+const toggleFavorite = async () => {
   if (!authStore.isLoggedIn) {
     message.warning('请先登录')
     router.push({ path: '/auth', query: { redirect: route.fullPath } })
     return
   }
 
-  isFavorited.value = !isFavorited.value
-  message.success(isFavorited.value ? '收藏成功' : '取消收藏')
+  try {
+    if (isFavorited.value) {
+      // 取消收藏
+      if (collectionId.value) {
+        await collectionsAPI.deleteCollection(collectionId.value)
+        isFavorited.value = false
+        collectionId.value = null
+        message.success('取消收藏')
+      }
+    } else {
+      // 添加收藏
+      const response = await collectionsAPI.addCollection(bookId)
+      if (response.data) {
+        isFavorited.value = true
+        collectionId.value = response.data.id || response.data._id
+        message.success('收藏成功')
+      }
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    const errorMsg = (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (error as Error).message || '操作失败'
+    // 如果是"已经收藏"的错误，视为成功
+    if (errorMsg.includes('已经收藏') || errorMsg.includes('already')) {
+      if (!isFavorited.value) {
+        // 重新获取收藏状态
+        await checkFavoriteStatus()
+      }
+    } else {
+      message.error(errorMsg)
+    }
+  }
+}
+
+// 检查收藏状态
+const checkFavoriteStatus = async () => {
+  if (!authStore.isLoggedIn) {
+    isFavorited.value = false
+    collectionId.value = null
+    return
+  }
+
+  try {
+    checkingFavorite.value = true
+    const response = await collectionsAPI.checkCollected(bookId)
+    if (response.data?.is_collected) {
+      isFavorited.value = true
+      // 获取收藏列表以找到收藏ID
+      const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
+      if (collections.data?.list) {
+        const currentBookCollection = collections.data.list.find(
+          (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
+        )
+        if (currentBookCollection) {
+          collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id
+        }
+      }
+    } else {
+      isFavorited.value = false
+      collectionId.value = null
+    }
+  } catch (error) {
+    console.error('检查收藏状态失败:', error)
+    isFavorited.value = false
+    collectionId.value = null
+  } finally {
+    checkingFavorite.value = false
+  }
 }
 
 // 加载评论
@@ -398,8 +470,8 @@ const loadComments = async (reset = false) => {
       const totalData = data as { total?: number }
       commentTotal.value = totalData.total || 0
     }
-  } catch (error) {
-    ElMessage.error('加载评论失败')
+  } catch {
+    message.error('加载评论失败')
   } finally {
     commentsLoading.value = false
   }
@@ -433,8 +505,8 @@ const submitComment = async () => {
     newComment.value = ''
     // 重新加载评论列表
     await loadComments(true)
-  } catch (error) {
-    ElMessage.error('发表失败')
+  } catch {
+    message.error('发表失败')
   } finally {
     submittingComment.value = false
   }
@@ -454,7 +526,7 @@ const handleDeleteComment = async (commentId: string) => {
     await loadComments(true)
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      message.error('删除失败')
     }
   }
 }
@@ -486,8 +558,8 @@ const loadBookDetail = async () => {
 
     // 加载阅读进度
     // 调整：当前 readerStore 未提供对应方法
-  } catch (error) {
-    ElMessage.error('加载失败')
+  } catch {
+    message.error('加载失败')
   } finally {
     loading.value = false
   }
@@ -504,8 +576,8 @@ const loadChapters = async () => {
     } else {
       chapters.value = []
     }
-  } catch (error) {
-    ElMessage.error('加载章节失败')
+  } catch {
+    message.error('加载章节失败')
   }
 }
 
@@ -515,7 +587,7 @@ const loadRecommendations = async () => {
     const { getSimilarBooks } = await import('@/modules/bookstore/api')
     const response = await getSimilarBooks(bookId, 6)
     recommendedBooks.value = Array.isArray(response) ? response : []
-  } catch (error) {
+  } catch {
     recommendedBooks.value = []
   }
 }
@@ -523,6 +595,7 @@ const loadRecommendations = async () => {
 onMounted(() => {
   loadBookDetail()
   loadComments(true)
+  checkFavoriteStatus()
 })
 </script>
 

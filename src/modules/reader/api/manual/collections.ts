@@ -130,7 +130,7 @@ export const collectionsAPI = {
   /**
    * 检查是否已收藏
    * @description 检查指定书籍是否已被收藏
-   * @endpoint GET /api/v1/social/collections/check/:book_id
+   * @endpoint GET /api/v1/social/collections/check?book_id=xxx
    * @category reader
    * @tags 收藏管理
    * @param {string} bookId - 书籍ID
@@ -139,7 +139,8 @@ export const collectionsAPI = {
    */
   async checkCollected(bookId: string): Promise<APIResponse<{ collected: boolean }>> {
     return httpService.get<APIResponse<{ collected: boolean }>>(
-      `/social/collections/check/${bookId}`
+      `/social/collections/check`,
+      { params: { book_id: bookId } }
     )
   },
 
@@ -271,10 +272,10 @@ export const collectionsAPI = {
 }
 
 // 向后兼容：导出旧的函数名
-export const addCollection = (bookId: string, data?: any) =>
+export const addCollection = (bookId: string, data?: { title?: string; description?: string; tags?: string[] }) =>
   collectionsAPI.addCollection(bookId, data)
-export const getCollections = (params?: any) => collectionsAPI.getCollections(params)
-export const updateCollection = (id: string, data: any) =>
+export const getCollections = (params?: { page?: number; pageSize?: number }) => collectionsAPI.getCollections(params)
+export const updateCollection = (id: string, data: Partial<Collection>) =>
   collectionsAPI.updateCollection(id, data)
 export const deleteCollection = (id: string) => collectionsAPI.deleteCollection(id)
 export const checkCollected = (bookId: string) => collectionsAPI.checkCollected(bookId)
@@ -285,7 +286,7 @@ export const unshareCollection = (id: string) => collectionsAPI.unshareCollectio
 export const createFolder = (name: string, description?: string) =>
   collectionsAPI.createFolder(name, description)
 export const getFolders = () => collectionsAPI.getFolders()
-export const updateFolder = (id: string, data: any) => collectionsAPI.updateFolder(id, data)
+export const updateFolder = (id: string, data: Partial<CollectionFolder>) => collectionsAPI.updateFolder(id, data)
 export const deleteFolder = (id: string) => collectionsAPI.deleteFolder(id)
 
 export default collectionsAPI
