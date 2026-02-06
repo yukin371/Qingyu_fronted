@@ -18,13 +18,22 @@
           <p class="auth-subtitle">{{ pageSubtitle }}</p>
         </div>
 
-        <el-tabs v-model="activeMode" class="premium-tabs" @tab-change="handleTabChange">
+        <el-tabs v-model="activeMode" class="premium-tabs" data-testid="auth-tabs" @tab-change="handleTabChange">
           <!-- 登录 -->
           <el-tab-pane label="登录" name="login">
+            <template #label>
+              <span data-testid="tab-login">登录</span>
+            </template>
             <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" class="auth-form"
               @submit.prevent="handleLogin">
-              <el-form-item prop="username">
-                <el-input v-model="loginForm.username" placeholder="用户名或邮箱" size="large" class="premium-input">
+              <el-form-item prop="username" data-testid="login-username">
+                <el-input
+                  v-model="loginForm.username"
+                  placeholder="用户名或邮箱"
+                  size="large"
+                  class="premium-input"
+                  :input-attrs="{ 'data-testid': 'login-username-input' }"
+                >
                   <template #prefix>
                     <el-icon class="input-icon">
                       <QyIcon name="User"  />
@@ -33,9 +42,17 @@
                 </el-input>
               </el-form-item>
 
-              <el-form-item prop="password">
-                <el-input v-model="loginForm.password" type="password" placeholder="密码" size="large" show-password
-                  @keyup.enter="handleLogin" class="premium-input">
+              <el-form-item prop="password" data-testid="login-password">
+                <el-input
+                  v-model="loginForm.password"
+                  type="password"
+                  placeholder="密码"
+                  size="large"
+                  show-password
+                  @keyup.enter="handleLogin"
+                  class="premium-input"
+                  :input-attrs="{ 'data-testid': 'login-password-input' }"
+                >
                   <template #prefix>
                     <el-icon class="input-icon">
                       <QyIcon name="Lock"  />
@@ -46,12 +63,19 @@
 
               <div class="form-options">
                 <el-checkbox v-model="rememberMe">记住我</el-checkbox>
-                <el-link type="primary" :underline="false" @click="activeMode = 'reset'">
+                <el-link type="primary" :underline="'never'" @click="activeMode = 'reset'">
                   忘记密码？
                 </el-link>
               </div>
 
-              <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleLogin">
+              <el-button
+                type="primary"
+                size="large"
+                class="submit-btn"
+                :loading="loading"
+                @click="handleLogin"
+                data-testid="login-submit"
+              >
                 立即登录
               </el-button>
             </el-form>
@@ -59,28 +83,48 @@
 
           <!-- 注册 -->
           <el-tab-pane label="注册" name="register">
+            <template #label>
+              <span data-testid="tab-register">注册</span>
+            </template>
             <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" class="auth-form"
               @submit.prevent="handleRegister">
-              <el-form-item prop="username">
-                <el-input v-model="registerForm.username" placeholder="设置用户名 (3-20字符)" size="large"
-                  class="premium-input">
+              <el-form-item prop="username" data-testid="register-username">
+                <el-input
+                  v-model="registerForm.username"
+                  placeholder="设置用户名 (3-20字符)"
+                  size="large"
+                  class="premium-input"
+                  :input-attrs="{ 'data-testid': 'register-username-input' }"
+                >
                   <template #prefix><el-icon class="input-icon">
                       <QyIcon name="User"  />
                     </el-icon></template>
                 </el-input>
               </el-form-item>
 
-              <el-form-item prop="email">
-                <el-input v-model="registerForm.email" placeholder="电子邮箱" size="large" class="premium-input">
+              <el-form-item prop="email" data-testid="register-email">
+                <el-input
+                  v-model="registerForm.email"
+                  placeholder="电子邮箱"
+                  size="large"
+                  class="premium-input"
+                  :input-attrs="{ 'data-testid': 'register-email-input' }"
+                >
                   <template #prefix><el-icon class="input-icon">
                       <Message />
                     </el-icon></template>
                 </el-input>
               </el-form-item>
 
-              <el-form-item prop="emailCode">
+              <el-form-item prop="emailCode" data-testid="register-email-code">
                 <div class="code-input-group">
-                  <el-input v-model="registerForm.emailCode" placeholder="6位验证码" size="large" class="premium-input">
+                  <el-input
+                    v-model="registerForm.emailCode"
+                    placeholder="6位验证码"
+                    size="large"
+                    class="premium-input"
+                    :input-attrs="{ 'data-testid': 'register-email-code-input' }"
+                  >
                     <template #prefix><el-icon class="input-icon">
                         <Key />
                       </el-icon></template>
@@ -92,9 +136,16 @@
                 </div>
               </el-form-item>
 
-              <el-form-item prop="password">
-                <el-input v-model="registerForm.password" type="password" placeholder="设置密码" size="large" show-password
-                  class="premium-input">
+              <el-form-item prop="password" data-testid="register-password">
+                <el-input
+                  v-model="registerForm.password"
+                  type="password"
+                  placeholder="设置密码"
+                  size="large"
+                  show-password
+                  class="premium-input"
+                  :input-attrs="{ 'data-testid': 'register-password-input' }"
+                >
                   <template #prefix><el-icon class="input-icon">
                       <QyIcon name="Lock"  />
                     </el-icon></template>
@@ -110,22 +161,37 @@
                 </div>
               </el-form-item>
 
-              <el-form-item prop="confirmPassword">
-                <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" size="large"
-                  show-password class="premium-input" @keyup.enter="handleRegister">
+              <el-form-item prop="confirmPassword" data-testid="register-confirm-password">
+                <el-input
+                  v-model="registerForm.confirmPassword"
+                  type="password"
+                  placeholder="确认密码"
+                  size="large"
+                  show-password
+                  class="premium-input"
+                  @keyup.enter="handleRegister"
+                  :input-attrs="{ 'data-testid': 'register-confirm-password-input' }"
+                >
                   <template #prefix><el-icon class="input-icon">
                       <QyIcon name="Lock"  />
                     </el-icon></template>
                 </el-input>
               </el-form-item>
 
-              <el-form-item prop="agreement">
-                <el-checkbox v-model="registerForm.agreement">
+              <el-form-item prop="agreement" data-testid="register-agreement">
+                <el-checkbox v-model="registerForm.agreement" data-testid="register-agreement-checkbox">
                   我已阅读并同意 <span class="highlight">用户协议</span> 与 <span class="highlight">隐私政策</span>
                 </el-checkbox>
               </el-form-item>
 
-              <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleRegister">
+              <el-button
+                type="primary"
+                size="large"
+                class="submit-btn"
+                :loading="loading"
+                @click="handleRegister"
+                data-testid="register-submit"
+              >
                 注册账号
               </el-button>
             </el-form>
@@ -133,6 +199,9 @@
 
           <!-- 找回密码 -->
           <el-tab-pane label="找回密码" name="reset" v-if="activeMode === 'reset'">
+            <template #label>
+              <span data-testid="tab-reset">找回密码</span>
+            </template>
             <!-- 保持原有逻辑，仅添加样式类 -->
             <el-form ref="resetFormRef" :model="resetForm" :rules="resetRules" class="auth-form"
               @submit.prevent="handleReset">
@@ -234,6 +303,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import { Message, Key } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
 import {
