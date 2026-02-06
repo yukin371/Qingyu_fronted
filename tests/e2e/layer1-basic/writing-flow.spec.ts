@@ -11,30 +11,28 @@
  * @version 1.0.0
  */
 
+/* eslint-disable no-undef */
+
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
-import { TestDataGenerator } from '../../helpers/test-data'
+import { testUsers } from '../../helpers/test-data'
 
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
-const getBaseURL = () => process.env.BASE_URL || 'http://localhost:5173'
+const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 写作流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
-  let testUserData: any
+  let testUserData: typeof testUsers.author
   let token: string
-  let userID: string
 
   test.beforeAll(async () => {
     console.log('\n=== Layer 1: 写作流程测试 ===')
     const backendURL = getBackendURL()
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
-  })
 
-  test.beforeEach(async () => {
-    testUserData = TestDataGenerator.createUserCredentials()
+    testUserData = { ...testUsers.author }
     const result = await apiValidators.createTestUser(testUserData)
-    userID = result.userID
     token = result.token
     apiValidators.setAuthToken(token)
   })
@@ -45,10 +43,18 @@ test.describe('Layer 1: 写作流程', () => {
   test('步骤1-3: 创建写作项目并验证', async ({ page }) => {
     console.log('\n--- 步骤1: 登录作者账号 ---')
 
-    await page.goto(`${getBaseURL()}/login`)
-    await page.fill('input[placeholder*="用户名"]', testUserData.username)
-    await page.fill('input[type="password"]', testUserData.password)
-    await page.click('button:has-text("登录")')
+    await page.goto(`${getBaseURL()}/auth?mode=login`)
+    await page.locator('[data-testid="login-username"] input').first()
+      .or(page.locator('[data-testid="login-username-input"]').first())
+      .or(page.locator('input[placeholder*="用户名"]')).first()
+      .fill(testUserData.username)
+    await page.locator('[data-testid="login-password"] input').first()
+      .or(page.locator('[data-testid="login-password-input"]').first())
+      .or(page.locator('input[type="password"]')).first()
+      .fill(testUserData.password)
+    await page.locator('[data-testid="login-submit"]').first()
+      .or(page.locator('button:has-text("登录")')).first()
+      .click()
     await page.waitForLoadState('networkidle')
 
     console.log('  ✓ 登录成功')
@@ -110,7 +116,7 @@ test.describe('Layer 1: 写作流程', () => {
           if (createResponse && (createResponse as Response).status === 200) {
             console.log('  ✓ 项目创建API调用成功')
           }
-        } catch (e) {
+        } catch {
           console.log('  ⚠ 项目创建可能需要手动操作')
         }
       }

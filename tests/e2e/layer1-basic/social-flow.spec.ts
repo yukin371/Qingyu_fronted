@@ -14,16 +14,18 @@
  * @version 1.0.0
  */
 
+/* eslint-disable no-undef */
+
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
-import { TestDataGenerator } from '../../helpers/test-data'
+import { testUsers } from '../../helpers/test-data'
 
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
-const getBaseURL = () => process.env.BASE_URL || 'http://localhost:5173'
+const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 社交流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
-  let testUserData: any
+  let testUserData: typeof testUsers.reader
   let token: string
   let bookID: string
 
@@ -32,10 +34,7 @@ test.describe('Layer 1: 社交流程', () => {
     const backendURL = getBackendURL()
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
-  })
-
-  test.beforeEach(async () => {
-    testUserData = TestDataGenerator.createUserCredentials()
+    testUserData = { ...testUsers.reader }
     const result = await apiValidators.createTestUser(testUserData)
     token = result.token
     apiValidators.setAuthToken(token)
@@ -56,7 +55,10 @@ test.describe('Layer 1: 社交流程', () => {
 
     // 登录
     await page.goto(`${getBaseURL()}`)
-    await page.evaluate((t) => localStorage.setItem('token', t), token)
+    await page.evaluate((t) => {
+      localStorage.setItem('token', t)
+      localStorage.setItem('qingyu_token', JSON.stringify(t))
+    }, token)
     await page.reload()
 
     // 进入书籍详情
@@ -99,7 +101,10 @@ test.describe('Layer 1: 社交流程', () => {
     console.log('\n--- 步骤4: 收藏书籍 ---')
 
     await page.goto(`${getBaseURL()}`)
-    await page.evaluate((t) => localStorage.setItem('token', t), token)
+    await page.evaluate((t) => {
+      localStorage.setItem('token', t)
+      localStorage.setItem('qingyu_token', JSON.stringify(t))
+    }, token)
     await page.reload()
 
     await page.goto(`${getBaseURL()}/bookstore/books/${bookID}`)
@@ -129,7 +134,10 @@ test.describe('Layer 1: 社交流程', () => {
     console.log('\n--- 步骤5: 点赞书籍 ---')
 
     await page.goto(`${getBaseURL()}`)
-    await page.evaluate((t) => localStorage.setItem('token', t), token)
+    await page.evaluate((t) => {
+      localStorage.setItem('token', t)
+      localStorage.setItem('qingyu_token', JSON.stringify(t))
+    }, token)
     await page.reload()
 
     await page.goto(`${getBaseURL()}/bookstore/books/${bookID}`)

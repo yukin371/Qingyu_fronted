@@ -12,14 +12,17 @@
  * @version 1.0.0
  */
 
+/* eslint-disable no-undef */
+
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
-import { TestDataGenerator } from '../../helpers/test-data'
+import { TestDataGenerator, testUsers } from '../../helpers/test-data'
 
 /**
  * 测试配置
  */
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 认证流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
@@ -28,6 +31,9 @@ test.describe('Layer 1: 认证流程', () => {
     email: string
     password: string
   }
+  let sharedUserData: typeof testUsers.reader
+  let sharedUserID: string
+  let sharedToken: string
 
   // 在所有测试前初始化API验证器
   test.beforeAll(async () => {
@@ -35,6 +41,11 @@ test.describe('Layer 1: 认证流程', () => {
     const backendURL = getBackendURL()
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
+
+    sharedUserData = { ...testUsers.reader }
+    const sharedResult = await apiValidators.createTestUser(sharedUserData)
+    sharedUserID = sharedResult.userID
+    sharedToken = sharedResult.token
   })
 
   // 在每个测试前生成测试数据
@@ -51,18 +62,20 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤1.1: 访问登录页面
     await test.step('1.1 访问登录页面', async () => {
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
+      await page.goto(`${getBaseURL()}/auth?mode=register`)
       await page.waitForLoadState('networkidle')
 
       // 验证URL
-      await expect(page).toHaveURL(/\/login/)
+      await expect(page).toHaveURL(/\/auth/)
 
       console.log(`  ✓ 访问登录页面: ${page.url()}`)
     })
 
     // 步骤1.2: 切换到注册Tab
     await test.step('1.2 切换到注册Tab', async () => {
-      const registerTab = page.locator('text=注册').or(page.locator('[role="tab"]:has-text("注册")'))
+      const registerTab = page.getByTestId('tab-register')
+        .or(page.locator('text=注册'))
+        .or(page.locator('[role="tab"]:has-text("注册")'))
       await expect(registerTab.first()).toBeVisible()
       await registerTab.first().click()
 
@@ -75,31 +88,38 @@ test.describe('Layer 1: 认证流程', () => {
     // 步骤1.3: 填写注册表单
     await test.step('1.3 填写注册表单', async () => {
       // 填写用户名 - 使用注册页面的精确placeholder
-      const usernameInput = page.locator('input[placeholder*="设置用户名"], [data-testid="username-input"]')
-        .first()
+      const usernameInput = page.locator('[data-testid="register-username"] input').first()
+        .or(page.locator('[data-testid="register-username-input"]').first())
+        .or(page.locator('input[placeholder*="设置用户名"]')).first()
       await usernameInput.fill(testUserData.username)
       console.log(`  ✓ 填写用户名: ${testUserData.username}`)
 
       // 填写邮箱 - 使用电子邮箱的精确placeholder
-      const emailInput = page.locator('input[placeholder*="电子邮箱"], input[placeholder*="邮箱地址"], [data-testid="email-input"]')
-        .first()
+      const emailInput = page.locator('[data-testid="register-email"] input').first()
+        .or(page.locator('[data-testid="register-email-input"]').first())
+        .or(page.locator('input[placeholder*="电子邮箱"], input[placeholder*="邮箱地址"]')).first()
       await emailInput.fill(testUserData.email)
       console.log(`  ✓ 填写邮箱: ${testUserData.email}`)
 
       // 填写密码 - 注册表单的密码输入框 (精确匹配"设置密码")
-      const passwordInput = page.locator('input[placeholder*="设置密码"]').first()
+      const passwordInput = page.locator('[data-testid="register-password"] input').first()
+        .or(page.locator('[data-testid="register-password-input"]').first())
+        .or(page.locator('input[placeholder*="设置密码"]')).first()
       await passwordInput.fill(testUserData.password)
       console.log('  ✓ 填写密码')
 
       // 填写确认密码
-      const confirmPasswordInput = page.locator('input[placeholder*="确认密码"]').first()
+      const confirmPasswordInput = page.locator('[data-testid="register-confirm-password"] input').first()
+        .or(page.locator('[data-testid="register-confirm-password-input"]').first())
+        .or(page.locator('input[placeholder*="确认密码"]')).first()
       await confirmPasswordInput.fill(testUserData.password)
       console.log('  ✓ 填写确认密码')
 
       // 注意：后端注册API不需要验证码，前端如果有验证码输入框可以忽略
       // 前端表单可能包含验证码字段，但后端会忽略此字段
-      const codeInput = page.locator('input[placeholder*="验证码"], [data-testid="email-code-input"]')
-        .first()
+      const codeInput = page.locator('[data-testid="register-email-code"] input').first()
+        .or(page.locator('[data-testid="register-email-code-input"]').first())
+        .or(page.locator('input[placeholder*="验证码"]')).first()
       const codeInputCount = await codeInput.count()
 
       if (codeInputCount > 0) {
@@ -109,7 +129,9 @@ test.describe('Layer 1: 认证流程', () => {
       }
 
       // 勾选用户协议 - 点击协议文本的父元素
-      const agreementText = page.locator('text=我已阅读并同意').or(page.locator('text=同意协议'))
+      const agreementText = page.locator('[data-testid="register-agreement-checkbox"]')
+        .or(page.locator('text=我已阅读并同意'))
+        .or(page.locator('text=同意协议'))
       const agreementCount = await agreementText.count()
 
       if (agreementCount > 0) {
@@ -130,8 +152,8 @@ test.describe('Layer 1: 认证流程', () => {
       )
 
       // 点击注册按钮
-      const registerButton = page.locator('button:has-text("立即注册"), button:has-text("注册")')
-        .or(page.locator('[data-testid="register-btn"]'))
+      const registerButton = page.locator('[data-testid="register-submit"]')
+        .or(page.locator('button:has-text("注册账号"), button:has-text("立即注册"), button:has-text("注册")'))
       await registerButton.click()
 
       // 等待API响应
@@ -203,35 +225,37 @@ test.describe('Layer 1: 认证流程', () => {
     console.log('\n--- 步骤2: 用户登录 ---')
 
     // 保存当前测试数据，确保整个测试使用相同的凭证
-    const currentTestData = { ...testUserData }
+    const currentTestData = { ...sharedUserData }
     console.log(`  测试用户: ${currentTestData.username}`)
 
     // 首先注册一个用户（步骤1的简化版）
     await test.step('2.1 准备测试用户', async () => {
-      // 使用后端API直接创建测试用户
-      const { userID, token } = await apiValidators.createTestUser(currentTestData)
-      console.log(`  ✓ 创建测试用户: ${currentTestData.username} (ID: ${userID})`)
-      apiValidators.setAuthToken(token)
+      // 使用共享测试用户（已在 beforeAll 创建）
+      console.log(`  ✓ 使用共享测试用户: ${currentTestData.username} (ID: ${sharedUserID})`)
     })
 
     // 步骤2.2: 访问登录页面并登录
     await test.step('2.2 访问登录页面', async () => {
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
+      await page.goto(`${getBaseURL()}/auth?mode=login`)
       await page.waitForLoadState('networkidle')
 
-      await expect(page).toHaveURL(/\/login/)
+      await expect(page).toHaveURL(/\/auth/)
       console.log('  ✓ 访问登录页面')
     })
 
     // 步骤2.3: 填写登录表单
     await test.step('2.3 填写登录表单', async () => {
       // 填写用户名 - 登录页面使用第一个输入框
-      const usernameInput = page.locator('input[placeholder*="用户名或邮箱"], input[placeholder*="用户名"]').first()
+      const usernameInput = page.locator('[data-testid="login-username"] input').first()
+        .or(page.locator('[data-testid="login-username-input"]').first())
+        .or(page.locator('input[placeholder*="用户名或邮箱"], input[placeholder*="用户名"]')).first()
       await usernameInput.fill(currentTestData.username)
       console.log(`  ✓ 填写用户名: ${currentTestData.username}`)
 
       // 填写密码 - 登录页面使用第一个密码输入框
-      const passwordInput = page.locator('input[type="password"]').first()
+      const passwordInput = page.locator('[data-testid="login-password"] input').first()
+        .or(page.locator('[data-testid="login-password-input"]').first())
+        .or(page.locator('input[type="password"]')).first()
       await passwordInput.fill(currentTestData.password)
       console.log('  ✓ 填写密码')
     })
@@ -246,8 +270,8 @@ test.describe('Layer 1: 认证流程', () => {
       )
 
       // 点击登录按钮
-      const loginButton = page.locator('button:has-text("登录"), button:has-text("立即登录")')
-        .or(page.locator('[data-testid="login-btn"]'))
+      const loginButton = page.locator('[data-testid="login-submit"]')
+        .or(page.locator('button:has-text("登录"), button:has-text("立即登录")'))
       await loginButton.click()
 
       // 等待API响应
@@ -320,29 +344,31 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 准备已登录用户
     await test.step('3.1 创建并登录测试用户', async () => {
-      const result = await apiValidators.createTestUser(testUserData)
-      userID = result.userID
-      token = result.token
-
-      console.log(`  ✓ 创建测试用户: ${testUserData.username} (ID: ${userID})`)
+      userID = sharedUserID
+      token = sharedToken
+      console.log(`  ✓ 使用共享测试用户: ${sharedUserData.username} (ID: ${userID})`)
     })
 
     // 步骤3.2: 前端验证用户信息显示
     await test.step('3.2 前端验证用户信息', async () => {
       // 访问登录页面
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
+      await page.goto(`${getBaseURL()}/auth?mode=login`)
       await page.waitForLoadState('networkidle')
 
       // 填写登录表单（与步骤2相同的流程）
-      const usernameInput = page.locator('input[placeholder*="用户名或邮箱"], input[placeholder*="用户名"]').first()
-      await usernameInput.fill(testUserData.username)
+      const usernameInput = page.locator('[data-testid="login-username"] input').first()
+        .or(page.locator('[data-testid="login-username-input"]').first())
+        .or(page.locator('input[placeholder*="用户名或邮箱"], input[placeholder*="用户名"]')).first()
+      await usernameInput.fill(sharedUserData.username)
 
-      const passwordInput = page.locator('input[type="password"]').first()
-      await passwordInput.fill(testUserData.password)
+      const passwordInput = page.locator('[data-testid="login-password"] input').first()
+        .or(page.locator('[data-testid="login-password-input"]').first())
+        .or(page.locator('input[type="password"]')).first()
+      await passwordInput.fill(sharedUserData.password)
 
       // 点击登录按钮
-      const loginButton = page.locator('button:has-text("登录"), button:has-text("立即登录")')
-        .or(page.locator('[data-testid="login-btn"]'))
+      const loginButton = page.locator('[data-testid="login-submit"]')
+        .or(page.locator('button:has-text("登录"), button:has-text("立即登录")'))
       await loginButton.click()
 
       // 等待登录完成（跳转到首页）
@@ -368,8 +394,8 @@ test.describe('Layer 1: 认证流程', () => {
       const userData = await apiValidators.fetchBackendData('/api/v1/user/profile')
 
       expect(userData).toHaveProperty('id', userID)
-      expect(userData).toHaveProperty('username', testUserData.username)
-      expect(userData).toHaveProperty('email', testUserData.email)
+      expect(userData).toHaveProperty('username', sharedUserData.username)
+      expect(userData).toHaveProperty('email', sharedUserData.email)
 
       console.log(`  ✓ 后端验证用户存在: ID=${userID}, Username=${userData.username}`)
     })
@@ -378,7 +404,7 @@ test.describe('Layer 1: 认证流程', () => {
     await test.step('3.4 前后端数据一致性验证', async () => {
       // 前端显示的用户名
       const frontendUsername = await page.locator('[data-testid="user-username"]').textContent()
-        .catch(() => null) || testUserData.username
+        .catch(() => null) || sharedUserData.username
 
       // 后端API返回的用户名（使用profile API）
       apiValidators.setAuthToken(token)
@@ -404,25 +430,24 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 准备已登录用户
     await test.step('4.1 创建并登录测试用户', async () => {
-      const result = await apiValidators.createTestUser(testUserData)
-      userID = result.userID
-      token = result.token
-
-      console.log(`  ✓ 测试用户: ${testUserData.username} (ID: ${userID})`)
+      userID = sharedUserID
+      token = sharedToken
+      console.log(`  ✓ 使用共享测试用户: ${sharedUserData.username} (ID: ${userID})`)
     })
 
     // 步骤4.2: 前端获取用户详情
     await test.step('4.2 前端获取用户详情', async () => {
       // 设置token
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}`)
+      await page.goto(`${getBaseURL()}`)
       await page.evaluate((t) => {
         localStorage.setItem('token', t)
+        localStorage.setItem('qingyu_token', JSON.stringify(t))
       }, token)
       await page.reload()
       await page.waitForLoadState('networkidle')
 
       // 访问个人中心
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/account/profile`)
+      await page.goto(`${getBaseURL()}/account/profile`)
       await page.waitForLoadState('networkidle')
 
       // 验证用户详细信息显示
@@ -468,8 +493,8 @@ test.describe('Layer 1: 认证流程', () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          username: testUserData.username,
-          password: testUserData.password
+          username: sharedUserData.username,
+          password: sharedUserData.password
         })
       })
 
@@ -514,8 +539,8 @@ test.describe('Layer 1: 认证流程', () => {
 
       // 前端数据（测试时的输入数据）
       const frontendData = {
-        username: testUserData.username,
-        email: testUserData.email,
+        username: sharedUserData.username,
+        email: sharedUserData.email,
         vipLevel: 0,
         status: 'active'
       }

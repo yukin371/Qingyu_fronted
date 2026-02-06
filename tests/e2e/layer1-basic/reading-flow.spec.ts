@@ -15,24 +15,24 @@
  * @version 1.0.0
  */
 
+/* eslint-disable no-undef */
+
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
-import { TestDataGenerator } from '../../helpers/test-data'
+import { testUsers } from '../../helpers/test-data'
 
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
-const getBaseURL = () => process.env.BASE_URL || 'http://localhost:5173'
+const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 阅读流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
-  let testUserData: {
-    username: string
-    email: string
-    password: string
-  }
+  let testUserData: typeof testUsers.reader
   let userID: string
   let token: string
   let bookID: string
   let chapterID: string
+  let authorUserData: typeof testUsers.author
+  let authorToken: string
 
   // 启动后端服务
   test.beforeAll(async () => {
@@ -40,10 +40,15 @@ test.describe('Layer 1: 阅读流程', () => {
     const backendURL = getBackendURL()
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
-  })
 
-  test.beforeEach(async () => {
-    testUserData = TestDataGenerator.createUserCredentials()
+    testUserData = { ...testUsers.reader }
+    const userResult = await apiValidators.createTestUser(testUserData)
+    userID = userResult.userID
+    token = userResult.token
+
+    authorUserData = { ...testUsers.author }
+    const authorResult = await apiValidators.createTestUser(authorUserData)
+    authorToken = authorResult.token
   })
 
   /**
@@ -54,18 +59,21 @@ test.describe('Layer 1: 阅读流程', () => {
 
     // 创建并登录用户
     await test.step('1.1 创建测试用户', async () => {
-      const result = await apiValidators.createTestUser(testUserData)
-      userID = result.userID
-      token = result.token
       console.log(`  ✓ 创建用户: ${testUserData.username} (ID: ${userID})`)
     })
 
     await test.step('1.2 前端登录', async () => {
-      await page.goto(`${getBaseURL()}/login`)
+      await page.goto(`${getBaseURL()}/auth?mode=login`)
 
       // 填写登录表单
-      await page.fill('input[placeholder*="用户名"], input[name="username"]', testUserData.username)
-      await page.fill('input[type="password"]', testUserData.password)
+      await page.locator('[data-testid="login-username"] input').first()
+        .or(page.locator('[data-testid="login-username-input"]').first())
+        .or(page.locator('input[placeholder*="用户名"], input[name="username"]')).first()
+        .fill(testUserData.username)
+      await page.locator('[data-testid="login-password"] input').first()
+        .or(page.locator('[data-testid="login-password-input"]').first())
+        .or(page.locator('input[type="password"]')).first()
+        .fill(testUserData.password)
 
       // 拦截登录API
       const loginPromise = page.waitForResponse(
@@ -75,7 +83,9 @@ test.describe('Layer 1: 阅读流程', () => {
       )
 
       // 点击登录
-      await page.click('button:has-text("登录"), button:has-text("立即登录")')
+      await page.locator('[data-testid="login-submit"]').first()
+        .or(page.locator('button:has-text("登录"), button:has-text("立即登录")')).first()
+        .click()
 
       const loginResponse = await loginPromise
       expect(loginResponse.status()).toBe(200)
@@ -92,14 +102,6 @@ test.describe('Layer 1: 阅读流程', () => {
       apiValidators.setAuthToken(token)
 
       // 创建作者用户
-      const authorResult = await apiValidators.createTestUser({
-        username: `author_${Date.now()}`,
-        email: `author_${Date.now()}@test.com`,
-        password: 'Test1234'
-      })
-
-      const authorToken = authorResult.token
-
       // 使用作者权限创建书籍
       const bookData = {
         title: `测试书籍_${Date.now()}`,
@@ -152,7 +154,7 @@ test.describe('Layer 1: 阅读流程', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${authorToken}`
           },
           body: JSON.stringify(chapterData)
         }
@@ -437,7 +439,7 @@ test.describe('Layer 1: 阅读流程', () => {
           expect((progressResponse as Response).status()).toBe(200)
           console.log('  ✓ 阅读进度保存API调用成功')
         }
-      } catch (e) {
+      } catch {
         console.log('  ⚠ 阅读进度保存可能未触发（正常，取决于实现）')
       }
     })
@@ -457,9 +459,6 @@ test.describe('Layer 1: 阅读流程', () => {
     })
 
     await test.step('7.4 刷新页面验证进度恢复', async () => {
-      // 记录当前滚动位置
-      const scrollPositionBefore = await page.evaluate(() => window.scrollY)
-
       // 刷新页面
       await page.reload()
       await page.waitForLoadState('networkidle')

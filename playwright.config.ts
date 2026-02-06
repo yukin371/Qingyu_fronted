@@ -33,7 +33,7 @@ export default defineConfig({
   // 全局设置
   use: {
     // 基础URL
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`,
 
     // 截图设置（失败时截图）
     screenshot: 'only-on-failure',
@@ -60,11 +60,18 @@ export default defineConfig({
 
   // 测试项目配置（不同浏览器）
   // 注意：Firefox和WebKit已暂时搁置，只使用Chromium进行测试
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
+  projects: process.env.E2E_CORE === 'true'
+    ? [
+      {
+        name: 'chromium',
+        use: { ...devices['Desktop Chrome'] },
+      },
+    ]
+    : [
+      {
+        name: 'chromium',
+        use: { ...devices['Desktop Chrome'] },
+      },
 
     // Firefox暂时搁置
     // {
@@ -78,11 +85,11 @@ export default defineConfig({
     //   use: { ...devices['Desktop Safari'] },
     // },
 
-    /* 移动端测试 */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
+      /* 移动端测试 */
+      {
+        name: 'Mobile Chrome',
+        use: { ...devices['Pixel 5'] },
+      },
     // Mobile Safari使用WebKit，暂时搁置
     // {
     //   name: 'Mobile Safari',
@@ -98,9 +105,9 @@ export default defineConfig({
 
   // Web Server配置（测试时自动启动开发服务器）
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: `npm run dev -- --port ${process.env.PLAYWRIGHT_PORT || 5174}`,
+    url: `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`,
+    reuseExistingServer: process.env.PLAYWRIGHT_FORCE_SERVER === 'true' ? false : !process.env.CI,
     timeout: 120000,
     stdout: 'pipe',
     stderr: 'pipe'

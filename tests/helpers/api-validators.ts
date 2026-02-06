@@ -387,45 +387,77 @@ export class APIValidators {
     email: string
     password: string
   }): Promise<{ userID: string; token: string }> {
-    const response = await fetch(`${this.baseURL}/api/v1/shared/auth/register`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        username: userData.username,
-        email: userData.email,
-        password: userData.password
-        // 注意：后端注册API不需要验证码字段
+    // 优先尝试登录，避免重复注册触发限流或用户名冲突
+    try {
+      return await this.loginUser(userData.username, userData.password)
+    } catch {
+      // 忽略登录失败，继续注册流程
+    }
+
+    const maxRetries = 3
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const response = await fetch(`${this.baseURL}/api/v1/shared/auth/register`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password
+          // 注意：后端注册API不需要验证码字段
+        })
       })
-    })
 
-    const result: StandardAPIResponse = await response.json()
+      const result: StandardAPIResponse = await response.json()
 
-    // 添加调试日志
-    console.log(`[createTestUser] Response status: ${response.status}`)
-    console.log(`[createTestUser] Response code: ${result.code}`)
-    console.log(`[createTestUser] Response message: ${result.message}`)
-    console.log(`[createTestUser] Response data:`, JSON.stringify(result.data))
+      // 添加调试日志
+      console.log(`[createTestUser] Response status: ${response.status}`)
+      console.log(`[createTestUser] Response code: ${result.code}`)
+      console.log(`[createTestUser] Response message: ${result.message}`)
+      console.log(`[createTestUser] Response data:`, JSON.stringify(result.data))
 
-    // 后端返回 code: 0 表示成功
-    if (result.code !== 0) {
+      // 后端返回 code: 0 表示成功
+      if (result.code === 0) {
+        const token = result.data.token
+        const userID = result.data.user?.id || result.data.user_id
+
+        console.log(`[createTestUser] Extracted token: ${token ? 'exists' : 'MISSING'}`)
+        console.log(`[createTestUser] Extracted userID: ${userID || 'MISSING'}`)
+
+        if (!token || !userID) {
+          throw new Error(`注册响应数据不完整: ${JSON.stringify(result.data)}`)
+        }
+
+        return { userID, token }
+      }
+
+      const serverErrorDetail = typeof (result.data as { error?: string })?.error === 'string'
+        ? (result.data as { error: string }).error
+        : ''
+      const message = `${result.message || ''} ${serverErrorDetail}`.trim()
+      const isRateLimited = response.status === 429 || result.code === 42901
+      const isAlreadyExists = /已存在|已被注册|exist/i.test(message)
+
+      if (isAlreadyExists) {
+        console.log('[createTestUser] 用户已存在，尝试登录复用')
+        return await this.loginUser(userData.username, userData.password)
+      }
+
+      if (isRateLimited) {
+        console.log(`[createTestUser] 触发限流，尝试登录复用 (attempt ${attempt}/${maxRetries})`)
+        try {
+          return await this.loginUser(userData.username, userData.password)
+        } catch {
+          const backoffMs = 1500 * attempt
+          await this.sleep(backoffMs)
+          continue
+        }
+      }
+
       throw new Error(`创建测试用户失败: ${result.message}`)
     }
 
-    // shared/auth/register 返回的数据结构是 data.user.id 和 data.token
-    const token = result.data.token
-    const userID = result.data.user?.id || result.data.user_id
-
-    console.log(`[createTestUser] Extracted token: ${token ? 'exists' : 'MISSING'}`)
-    console.log(`[createTestUser] Extracted userID: ${userID || 'MISSING'}`)
-
-    if (!token || !userID) {
-      throw new Error(`注册响应数据不完整: ${JSON.stringify(result.data)}`)
-    }
-
-    return {
-      userID,
-      token
-    }
+    throw new Error('创建测试用户失败: 超过最大重试次数')
   }
 
   /**
@@ -443,7 +475,7 @@ export class APIValidators {
 
     const result: StandardAPIResponse = await response.json()
 
-    if (result.code !== 200 && result.code !== 201) {
+    if (result.code !== 0 && result.code !== 200 && result.code !== 201) {
       throw new Error(`登录失败: ${result.message}`)
     }
 
@@ -451,6 +483,10 @@ export class APIValidators {
       userID: result.data.user?.id || result.data.user_id,
       token: result.data.token
     }
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   /**
