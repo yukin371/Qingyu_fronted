@@ -499,7 +499,7 @@ const loadChapters = async () => {
     // 使用公开的bookstore API（不需要认证）
     const response = await fetch(`http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`)
     const data = await response.json()
-    if (data.code === 200 && Array.isArray(data.data)) {
+    if (data.code === 0 && Array.isArray(data.data)) {
       chapters.value = data.data
     } else {
       chapters.value = []
