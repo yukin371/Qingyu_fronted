@@ -45,4 +45,5 @@ tests/e2e/screenshots/
 
 # Test output files
 test-output.txt
+type-check-output.txt
 *.txt.bak
