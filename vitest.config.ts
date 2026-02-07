@@ -57,9 +57,15 @@ export default mergeConfig(
       hookTimeout: 10000,
 
       // 并发配置
-      threads: true,
-      maxThreads: 4,
-      minThreads: 1,
+      pool: 'threads',
+      poolOptions: {
+        threads: {
+          singleThread: false,
+          minThreads: 1,
+          maxThreads: 4,
+          useAtomics: true
+        }
+      },
 
       // 报告器配置
       reporter: ['verbose', 'html']
