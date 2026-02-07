@@ -295,12 +295,12 @@ const parsedParagraphs = computed(() => {
     .filter(p => p.length > 0)
 })
 
-// 主题配置
+// 主题配置（与reader-variables.scss中的CSS变量保持一致）
 const themes = [
-  { label: '默认', value: 'light', bg: '#ffffff', color: '#303133' },
-  { label: '护眼', value: 'sepia', bg: '#f4ecd8', color: '#5c4a2f' },
-  { label: '夜间', value: 'night', bg: '#1e1e1e', color: '#c9c9c9' },
-  { label: '暗黑', value: 'dark', bg: '#000000', color: '#888888' }
+  { label: '默认', value: 'light', bg: '#ffffff', color: '#2c3e50' },  // --reader-light-text
+  { label: '护眼', value: 'sepia', bg: '#f4ecd8', color: '#5c4a2f' },  // --reader-sepia-*
+  { label: '夜间', value: 'night', bg: '#1a1a1a', color: '#c9c9c9' }, // --reader-night-*
+  { label: '暗黑', value: 'dark', bg: '#121212', color: '#e0e0e0' }   // --reader-dark-*
 ]
 
 // 计算属性
@@ -780,23 +780,27 @@ watch(() => route.params.chapterId, (newId) => {
   transition: background-color 0.3s, color 0.3s;
 
   &.theme-light {
-    background-color: #ffffff;
-    color: #303133;
+    // ✅ TDD Phase 2: 统一使用CSS变量
+    background-color: var(--reader-light-bg, #ffffff);
+    color: var(--reader-light-text, #303133);
   }
 
   &.theme-sepia {
-    background-color: #f4ecd8;
-    color: #5c4a2f;
+    // ✅ TDD Phase 2: 统一使用CSS变量
+    background-color: var(--reader-sepia-bg, #f4ecd8);
+    color: var(--reader-sepia-text, #5c4a2f);
   }
 
   &.theme-night {
-    background-color: #1e1e1e;
-    color: #c9c9c9;
+    // ✅ TDD Phase 2 P0修复：使用CSS变量而非硬编码，避免纯黑
+    background-color: var(--reader-night-bg, #1a1a1a);
+    color: var(--reader-night-text, #c9c9c9);
   }
 
   &.theme-dark {
-    background-color: #000000;
-    color: #888888;
+    // ✅ TDD Phase 2 P0修复：使用CSS变量，Material Design推荐#121212
+    background-color: var(--reader-dark-bg, #121212);
+    color: var(--reader-dark-text, #e0e0e0);
   }
 }
 
