@@ -1,4 +1,7 @@
 /**
- * QyTag component entry point
+ * QyTag component export
  */
-export { default } from './QyTag.vue'
+import QyTag from './QyTag.vue'
+
+export { QyTag }
+export default QyTag

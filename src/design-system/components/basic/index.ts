@@ -9,6 +9,7 @@ export { QyScrollbar } from './QyScrollbar'
 export { QySelect } from './QySelect'
 export { QyTextarea } from './QyTextarea'
 export { QyIcon } from './QyIcon'
+export { QyTag } from './QyTag'
 
 // 导出类型
 export type * from './QyAvatar/types'
@@ -21,3 +22,4 @@ export type * from './QyScrollbar/types'
 export type * from './QySelect/types'
 export type * from './QyTextarea/types'
 export type * from './QyIcon/types'
+export type * from './QyTag/types'

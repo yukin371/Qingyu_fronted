@@ -10,7 +10,7 @@ export { default as QyInput } from './basic/QyInput'
 export { default as QyBadge } from './basic/QyBadge'
 export { default as QyAvatar } from './basic/QyAvatar'
 export { default as QyIcon } from './basic/QyIcon'
-export { QyTag } from './basic/QyTag'
+export { default as QyTag } from './basic/QyTag'
 
 // Navigation Components
 export { default as QyTopNav } from './navigation/QyTopNav'
