@@ -96,6 +96,15 @@ const routes: RouteRecordRaw[] = [
       layout: 'blank'
     }
   },
+  {
+    path: '/demo/typescript-fixes',
+    name: 'TypeScriptFixesDemo',
+    component: () => import('@/views/demo/TypeScriptFixDemo.vue'),
+    meta: {
+      title: 'TypeScript修复验证Demo',
+      layout: 'blank'
+    }
+  },
 
   // 404 处理 (必须放在最后)
   ...errorRoutes,

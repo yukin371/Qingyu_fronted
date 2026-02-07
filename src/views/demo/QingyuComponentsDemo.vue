@@ -324,15 +324,15 @@
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Image Avatars</h3>
               <div class="flex flex-wrap items-center gap-4">
                 <div class="text-center">
-                  <QyAvatar type="image" src="https://i.pravatar.cc/150?img=1" alt="User 1" size="sm" />
+                  <QyAvatar type="text" label="U1" alt="User 1" size="sm" />
                   <p class="text-xs text-slate-500 mt-1">Small</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="image" src="https://i.pravatar.cc/150?img=2" alt="User 2" size="md" />
+                  <QyAvatar type="text" label="U2" alt="User 2" size="md" />
                   <p class="text-xs text-slate-500 mt-1">Medium</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="image" src="https://i.pravatar.cc/150?img=3" alt="User 3" size="lg" />
+                  <QyAvatar type="text" label="U3" alt="User 3" size="lg" />
                   <p class="text-xs text-slate-500 mt-1">Large</p>
                 </div>
                 <div class="text-center">
@@ -386,9 +386,9 @@
                     type="group"
                     size="md"
                     :avatars="[
-                      { src: 'https://i.pravatar.cc/150?img=4', alt: 'User 1' },
-                      { src: 'https://i.pravatar.cc/150?img=5', alt: 'User 2' },
-                      { src: 'https://i.pravatar.cc/150?img=6', alt: 'User 3' }
+                      { src: 'https://ui-avatars.com/api/?name=User1&background=random', alt: 'User 1' },
+                      { src: 'https://ui-avatars.com/api/?name=User2&background=random', alt: 'User 2' },
+                      { src: 'https://ui-avatars.com/api/?name=User3&background=random', alt: 'User 3' }
                     ]"
                   />
                   <p class="text-xs text-slate-500 mt-1">3 avatars</p>
@@ -398,11 +398,11 @@
                     type="group"
                     size="md"
                     :avatars="[
-                      { src: 'https://i.pravatar.cc/150?img=7', alt: 'User 1' },
-                      { src: 'https://i.pravatar.cc/150?img=8', alt: 'User 2' },
-                      { src: 'https://i.pravatar.cc/150?img=9', alt: 'User 3' },
-                      { src: 'https://i.pravatar.cc/150?img=10', alt: 'User 4' },
-                      { src: 'https://i.pravatar.cc/150?img=11', alt: 'User 5' }
+                      { src: 'https://ui-avatars.com/api/?name=User4&background=random', alt: 'User 1' },
+                      { src: 'https://ui-avatars.com/api/?name=User5&background=random', alt: 'User 2' },
+                      { src: 'https://ui-avatars.com/api/?name=User6&background=random', alt: 'User 3' },
+                      { src: 'https://ui-avatars.com/api/?name=User7&background=random', alt: 'User 4' },
+                      { src: 'https://ui-avatars.com/api/?name=User8&background=random', alt: 'User 5' }
                     ]"
                   />
                   <p class="text-xs text-slate-500 mt-1">5 avatars (shows +2)</p>
@@ -448,7 +448,7 @@
               <div class="flex items-center gap-4">
                 <QyAvatar
                   type="image"
-                  src="https://i.pravatar.cc/150?img=12"
+                  src="https://ui-avatars.com/api/?name=User12&background=random"
                   alt="Clickable Avatar"
                   size="lg"
                   @click="handleAvatarClick"
@@ -473,7 +473,7 @@
               <div class="flex items-center gap-4">
                 <QyAvatar
                   type="image"
-                  src="https://i.pravatar.cc/150?img=20"
+                  src="https://ui-avatars.com/api/?name=User20&background=random"
                   alt="User"
                   size="lg"
                 />

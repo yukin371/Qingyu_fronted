@@ -66,6 +66,11 @@ const colorClasses = computed(() => {
       bg: 'bg-yellow-500',
       text: 'text-white',
       dot: 'bg-yellow-500'
+    },
+    purple: {
+      bg: 'bg-purple-500',
+      text: 'text-white',
+      dot: 'bg-purple-500'
     }
   }
   return colors[props.color]
