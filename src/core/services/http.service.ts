@@ -10,6 +10,7 @@ import { errorReporter } from './error-reporter'
 /**
  * Promise回调对
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PromiseCallbacks {
   resolve: (_value?: unknown) => void
   reject: (_reason?: unknown) => void
@@ -18,6 +19,7 @@ interface PromiseCallbacks {
 /**
  * 扩展AxiosInstance接口，添加自定义方法
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ExtendedAxiosInstance extends AxiosInstance {
   /** 设置认证Token */
   setAuthToken(token: string): void
@@ -136,6 +138,13 @@ apiClient.interceptors.response.use(
 
     // 上报错误到监控系统
     errorReporter.report(response.data)
+
+    // 处理HTTP 401状态码（认证失败）
+    if (response.status === 401) {
+      handleAuthError()
+      return Promise.reject(error)
+    }
+
     if (code === 1102 && config) {
       // TOKEN_EXPIRED (1102)
       if (isRefreshing) {
@@ -224,15 +233,8 @@ function handleAuthError() {
     return
   }
 
+  // 只显示提示消息，不自动清除token或跳转
   ElMessage.warning('登录已过期，请重新登录')
-  // 修复：使用 qingyu_ 前缀
-  localStorage.removeItem('qingyu_token')
-  localStorage.removeItem('qingyu_refreshToken')
-
-  // 延迟跳转，避免路由拦截器问题
-  setTimeout(() => {
-    window.location.href = '/login'
-  }, 1000)
 }
 
 // ==================== 自定义方法 ====================
