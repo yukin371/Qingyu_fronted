@@ -218,6 +218,12 @@ apiClient.interceptors.response.use(
 
 // 处理认证错误
 function handleAuthError() {
+  // E2E场景下避免自动登出和跳转，防止测试过程被401中断
+  if (typeof navigator !== 'undefined' && navigator.webdriver) {
+    console.warn('[Auth] Skip auto logout in E2E mode')
+    return
+  }
+
   ElMessage.warning('登录已过期，请重新登录')
   // 修复：使用 qingyu_ 前缀
   localStorage.removeItem('qingyu_token')

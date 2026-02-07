@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-container" :class="{ 'collapsed': isCollapsed }">
+  <div class="sidebar-container chapter-list" data-testid="chapter-list" :class="{ 'collapsed': isCollapsed }">
     <!-- 1. 顶部区域：项目选择与统计 -->
     <div class="sidebar-header" v-if="!isCollapsed">
       <div class="project-selector">
@@ -37,7 +37,7 @@
       </el-input>
 
       <el-tooltip content="新建章节">
-        <el-button size="small" :icon="Plus" @click="$emit('add-chapter')" />
+        <el-button size="small" :icon="Plus" data-testid="add-document-button" @click="$emit('add-chapter')" />
       </el-tooltip>
     </div>
 

@@ -24,7 +24,7 @@
             <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" class="auth-form"
               @submit.prevent="handleLogin">
               <el-form-item prop="username">
-                <el-input v-model="loginForm.username" placeholder="用户名或邮箱" size="large" class="premium-input">
+                <el-input v-model="loginForm.username" data-testid="login-username-input" placeholder="用户名或邮箱" size="large" class="premium-input">
                   <template #prefix>
                     <el-icon class="input-icon">
                       <QyIcon name="User"  />
@@ -34,7 +34,7 @@
               </el-form-item>
 
               <el-form-item prop="password">
-                <el-input v-model="loginForm.password" type="password" placeholder="密码" size="large" show-password
+                <el-input v-model="loginForm.password" data-testid="login-password-input" type="password" placeholder="密码" size="large" show-password
                   @keyup.enter="handleLogin" class="premium-input">
                   <template #prefix>
                     <el-icon class="input-icon">
@@ -51,7 +51,7 @@
                 </el-link>
               </div>
 
-              <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleLogin">
+              <el-button type="primary" size="large" data-testid="login-submit" class="submit-btn" :loading="loading" @click="handleLogin">
                 立即登录
               </el-button>
             </el-form>

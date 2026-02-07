@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-view" :class="{ 'focus-mode': isFocusMode }">
+  <div class="editor-view editor" data-testid="editor" :class="{ 'focus-mode': isFocusMode }">
 
     <!-- 1. 左侧：项目导航 -->
     <ProjectSidebar v-show="!isFocusMode" v-model:projectId="currentProjectId" v-model:chapterId="currentChapterId"
@@ -73,7 +73,7 @@
 
           <!-- 编辑框 -->
           <div class="editor-pane">
-            <textarea ref="editorTextarea" v-model="fileContent" class="native-textarea" placeholder="开始你的创作..."
+            <textarea ref="editorTextarea" v-model="fileContent" class="native-textarea" name="content" placeholder="开始你的创作..."
               @input="handleInput" @keydown="handleKeydown" @contextmenu="handleContextMenu"
               @scroll="handleScrollSync"></textarea>
           </div>
@@ -145,6 +145,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { CircleCheck, Warning, Loading } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import { message } from '@/design-system/services'
 // Stores

@@ -538,6 +538,23 @@ function initChaptersChart(): void {
   chaptersChart.setOption(option)
 }
 
+function updateChaptersChart(chapters: string[], views: number[]): void {
+  if (!chaptersChart) return
+  chaptersChart.setOption({
+    yAxis: {
+      type: 'category',
+      data: [...chapters].reverse()
+    },
+    series: [
+      {
+        name: '阅读量',
+        type: 'bar',
+        data: [...views].reverse()
+      }
+    ]
+  })
+}
+
 // 读者活跃度图
 function initReaderActivityChart(): void {
   if (!readerActivityChartRef.value) return
@@ -573,6 +590,19 @@ function initReaderActivityChart(): void {
   }
 
   readerActivityChart.setOption(option)
+}
+
+function updateReaderActivityChart(data: Array<{ value: number; name: string }>): void {
+  if (!readerActivityChart) return
+  readerActivityChart.setOption({
+    series: [
+      {
+        name: '读者活跃度',
+        type: 'pie',
+        data
+      }
+    ]
+  })
 }
 
 // 阅读热力图
@@ -642,6 +672,19 @@ function initHeatmapChart(): void {
   }
 
   heatmapChart.setOption(option)
+}
+
+function updateHeatmapChart(data: number[][]): void {
+  if (!heatmapChart) return
+  heatmapChart.setOption({
+    series: [
+      {
+        name: '阅读量',
+        type: 'heatmap',
+        data
+      }
+    ]
+  })
 }
 
 // 响应式处理
@@ -779,4 +822,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

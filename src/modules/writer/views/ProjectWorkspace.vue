@@ -1,5 +1,5 @@
 <template>
-  <div class="project-workspace" :class="{ 'focus-mode': isFocusMode }">
+  <div class="project-workspace workspace" data-testid="workspace" :class="{ 'focus-mode': isFocusMode }">
     <!-- 1. 左侧：项目与文档导航 (使用封装好的组件) -->
     <ProjectSidebar v-show="!isFocusMode" v-model:projectId="currentProjectId" v-model:chapterId="currentChapterId"
       :projects="projects" :chapters="flatChapters" @add-chapter="showCreateDocDialog = true"
@@ -11,6 +11,7 @@
       <!-- 2.1 顶部导航与工具 -->
       <div class="workspace-header" v-show="!isFocusMode">
         <div class="header-left">
+          <span class="workspace-title">项目工作区</span>
           <!-- 标题编辑 -->
           <el-input v-model="documentTitle" class="title-input" placeholder="文档标题" @change="handleTitleSave" />
         </div>
@@ -25,6 +26,7 @@
               <QyIcon name="FullScreen"  />
             </el-button>
           </el-tooltip>
+          <el-button link data-testid="settings">项目设置</el-button>
           <el-button type="primary" link @click="handleManualSave">
             <QyIcon name="Select"  /> 保存
           </el-button>
@@ -415,6 +417,12 @@ const handleKeydown = (e: KeyboardEvent) => {
       font-weight: bold;
       padding-left: 0;
     }
+  }
+
+  .workspace-title {
+    font-size: 14px;
+    color: var(--el-text-color-secondary);
+    margin-right: 12px;
   }
 
   .header-right {

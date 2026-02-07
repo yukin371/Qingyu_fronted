@@ -28,6 +28,24 @@ export interface AuthState {
   roles: string[]
 }
 
+type RoleSource = {
+  roles?: string[]
+  role?: string
+}
+
+function normalizeRoles(user?: RoleSource | null, responseRoles?: string[] | null): string[] {
+  if (Array.isArray(user?.roles) && user.roles.length > 0) {
+    return user.roles
+  }
+  if (Array.isArray(responseRoles) && responseRoles.length > 0) {
+    return responseRoles
+  }
+  if (typeof user?.role === 'string' && user.role.length > 0) {
+    return [user.role]
+  }
+  return []
+}
+
 /**
  * 密码修改数据
  */
@@ -60,6 +78,7 @@ export const useAuthStore = defineStore('auth', {
     const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
     const savedUser = storage.get<User>(STORAGE_KEYS.USER)
     const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+    const fallbackRoles = normalizeRoles(savedUser as unknown as RoleSource, null)
 
     // 调试输出
     console.log('[authStore] STORAGE_KEYS.ROLES:', STORAGE_KEYS.ROLES)
@@ -86,7 +105,7 @@ export const useAuthStore = defineStore('auth', {
       permissions: [],
 
       // 角色列表 - 从storage恢复或使用user.roles
-      roles: savedRoles || savedUser?.roles || []
+      roles: savedRoles || fallbackRoles
     }
   },
 
@@ -164,6 +183,12 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
+        // 本地已有完整认证信息时，避免额外请求导致401中断路由流程
+        if (this.user && this.roles && this.roles.length > 0) {
+          this.isLoggedIn = true
+          return
+        }
+
         // 生产模式：调用API获取用户信息
         try {
           console.log('[initAuth] 开始调用getUserInfo获取用户信息...')
@@ -210,11 +235,11 @@ export const useAuthStore = defineStore('auth', {
         // 保存认证信息
         this.token = data.token
         this.refreshToken = data.refreshToken
-        // 确保user对象包含roles字段
-        this.user = data.user ? { ...data.user, roles: data.user?.roles || [] } : null
+        const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
+        // 确保user对象包含roles字段，兼容后端 role(字符串) 与 roles(数组)
+        this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
         this.permissions = data.permissions || []
-        // 后端返回roles在user.roles中
-        this.roles = this.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
+        this.roles = normalizedRoles
         this.isLoggedIn = true
 
         // 存储到本地
@@ -244,12 +269,12 @@ export const useAuthStore = defineStore('auth', {
 
         // 注册成功后自动登录
         if (data.token) {
+          const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
           this.token = data.token
           this.refreshToken = data.refreshToken
-          this.user = data.user
+          this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
           this.permissions = data.permissions || []
-          // 后端返回roles在user.roles中
-          this.roles = data.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
+          this.roles = normalizedRoles
           this.isLoggedIn = true
 
           // 存储到本地
@@ -294,9 +319,12 @@ export const useAuthStore = defineStore('auth', {
         const data = response as { user: User; permissions?: string[]; roles?: string[] }
         this.user = data.user || data
         this.permissions = data.permissions || []
-        // 后端返回roles在user.roles中
         const userData = data.user || data
-        this.roles = (userData as User)?.roles || data.roles || []
+        const normalizedRoles = normalizeRoles(userData as RoleSource, data.roles)
+        this.roles = normalizedRoles
+        if (this.user) {
+          this.user = { ...this.user, roles: normalizedRoles }
+        }
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
@@ -483,4 +511,3 @@ export const useAuthStore = defineStore('auth', {
     }
   }
 })
-

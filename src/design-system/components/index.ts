@@ -21,7 +21,7 @@ export { default as QyModal } from './advanced/QyModal'
 export { default as QyLoading } from './advanced/QyLoading'
 export { default as QyEmpty } from './advanced/QyEmpty'
 export { QyForm, QyFormItem } from './advanced/QyForm'
-export { default as QyConfirmDialog } from './advanced/QyConfirmDialog'
+export { QyConfirmDialog } from './advanced/QyConfirmDialog'
 
 // Business Components
 export { default as QyBookCard } from './business/QyBookCard'

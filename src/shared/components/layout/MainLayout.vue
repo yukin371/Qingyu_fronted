@@ -140,6 +140,10 @@
           <QyIcon name="TrendCharts"  />
           <span>榜单</span>
         </el-menu-item>
+        <el-menu-item index="/discovery">
+          <QyIcon name="ChatDotRound"  />
+          <span>广场</span>
+        </el-menu-item>
         <el-menu-item v-if="isLoggedIn" index="/profile">
           <QyIcon name="User"  />
           <span>个人中心</span>
@@ -216,6 +220,7 @@ const menuItems = [
   { name: '首页', path: '/bookstore' },
   { name: '书库', path: '/bookstore/browse' },
   { name: '榜单', path: '/bookstore/rankings' },
+  { name: '广场', path: '/discovery' },
 ]
 
 // 快捷登录相关
@@ -249,6 +254,7 @@ const activeMenu = computed(() => {
   if (path === '/' || path === '/bookstore') return '/bookstore'
   if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse')) return '/bookstore/browse'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
+  if (path.startsWith('/discovery')) return '/discovery'
   return '/bookstore'
 })
 

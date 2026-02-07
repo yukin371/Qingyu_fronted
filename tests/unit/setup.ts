@@ -235,6 +235,12 @@ config.global.stubs = {
   'ArrowRight': createIconStub('ArrowRight'),
   'ArrowUp': createIconStub('ArrowUp'),
   'ArrowDown': createIconStub('ArrowDown'),
+  'ChevronLeft': createIconStub('ChevronLeft'),
+  'ChevronRight': createIconStub('ChevronRight'),
+
+  // 列表与文档图标
+  'List': createIconStub('List'),
+  'LocationInformation': createIconStub('LocationInformation'),
 
   // 通用功能图标
   'Search': createIconStub('Search'),

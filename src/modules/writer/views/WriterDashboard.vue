@@ -163,6 +163,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import type { Project } from '@/modules/writer/types/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
