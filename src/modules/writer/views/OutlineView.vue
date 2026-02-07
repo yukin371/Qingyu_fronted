@@ -203,6 +203,7 @@ import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEdge, DrawEngineConfig } from '@/core/draw-engine/types'
 import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
+import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
 const viewMode = ref<'tree' | 'mindmap'>('tree')
 const selectedNode = ref<OutlineNode | null>(null)

@@ -27,6 +27,10 @@ export type { ReaderGestureCallbacks, ReaderGestureOptions } from './useReaderGe
 export { useTouchGestures } from './useTouchGestures'
 export type { TouchGestureCallbacks, TouchGestureOptions, TouchGestureConfig } from './useTouchGestures'
 
+// TDD Phase 7: 性能优化
+export { useLazyLoadImage } from './useLazyLoadImage'
+export type { LazyLoadImageOptions } from './useLazyLoadImage'
+
 // 从已有的组合函数导出
 export { useLazyLoad } from './useLazyLoad'
 export { useResponsive } from './useResponsive'

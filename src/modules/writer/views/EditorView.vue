@@ -148,6 +148,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { CircleCheck, Warning, Loading } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import { message } from '@/design-system/services'
+import { ElMessage } from 'element-plus'
 // Stores
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
