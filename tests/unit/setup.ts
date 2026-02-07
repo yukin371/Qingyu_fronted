@@ -8,6 +8,9 @@ import { config } from '@vue/test-utils'
 import { h, defineComponent } from 'vue'
 import '@testing-library/jest-dom'
 
+// ✅ TDD Phase 2: 导入设计系统变量（确保CSS变量在测试中可用）
+import '@/styles/reader-variables.scss'
+
 // ============================================
 // 工具函数
 // ============================================

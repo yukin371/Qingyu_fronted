@@ -18,6 +18,7 @@ initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则�
 // 全局样式
 import './style.css'  // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
+import '@/styles/reader-variables.scss'  // TDD Phase 2: 阅读器设计系统变量
 import '@/styles/common.scss'
 
 // 全局指令
