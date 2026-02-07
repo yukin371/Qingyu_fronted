@@ -42,7 +42,7 @@ import { ref, computed } from 'vue'
 import CommentDrawerHeader from './CommentDrawerHeader.vue'
 import CommentList from './CommentList.vue'
 import CommentInput from './CommentInput.vue'
-import type { ParagraphComment } from '@/types/reader'
+import type { ParagraphComment } from '@/types/reader/index'
 
 interface Props {
   modelValue: boolean

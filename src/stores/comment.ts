@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ParagraphComment, ParagraphCommentSummary } from '@/types/reader'
+import type { ParagraphComment, ParagraphCommentSummary } from '@/types/reader/index'
 import { useAuthStore } from './auth'
 
 export const useCommentStore = defineStore('comment', () => {

@@ -82,7 +82,7 @@ import { QyIcon } from '@/design-system/components'
 import { formatDate } from '@/utils/format'
 import { message } from '@/design-system/services'
 import { commentAPI } from '@/modules/reader/api'
-import type { Comment } from '@/types/reader'
+import type { Comment } from '@/types/reader/index'
 
 /**
  * 评论组件 Props (v1.3)

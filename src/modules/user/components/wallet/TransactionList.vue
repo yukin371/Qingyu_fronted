@@ -62,7 +62,7 @@
 import { ref } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import type { Transaction } from '@/types/shared'
-import { formatRelativeTime } from '@/utils/format'
+import { formatRelativeTime } from '@/utils/format.ts'
 import { formatTransactionAmount } from '@/utils/currency'
 
 interface Props {
