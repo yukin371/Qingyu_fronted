@@ -14,6 +14,24 @@ const STORAGE_KEYS = {
   ROLES: 'roles'
 }
 
+// 检查是否启用测试模式（URL参数：?test=true 或 #test）
+function isTestMode(): boolean {
+  if (typeof window === 'undefined') return false
+
+  // 检查URL查询参数 ?test=true
+  const urlParams = new URLSearchParams(window.location.search)
+  const queryTest = urlParams.get('test') === 'true'
+
+  // 检查URL hash #test
+  const hashTest = window.location.hash.includes('#test') || window.location.hash.includes('?test')
+
+  const isTestMode = queryTest || hashTest
+  if (isTestMode) {
+    console.log('[测试模式] URL检测到测试模式标识')
+  }
+  return isTestMode
+}
+
 /**
  * 认证状态接口
  */
@@ -153,7 +171,17 @@ export const useAuthStore = defineStore('auth', {
         // 检查是否是测试模式的mock token
         const isMockToken = this.token?.toString().startsWith('mock-') || this.token?.toString().includes('mock')
 
-        if (isMockToken) {
+        // 只有在URL明确标记为测试模式时，才允许使用mock token
+        const isTestModeEnabled = isTestMode()
+
+        if (isMockToken && !isTestModeEnabled) {
+          // 发现mock token但URL没有测试模式标识，清空并要求真实登录
+          console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
+          this.clearAuth()
+          return
+        }
+
+        if (isMockToken && isTestModeEnabled) {
           // 测试模式：直接使用localStorage中的用户数据，不调用API
           console.log('[测试模式] 使用模拟登录状态')
           this.isLoggedIn = true
