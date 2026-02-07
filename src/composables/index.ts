@@ -13,6 +13,16 @@ export type { AIStreamOptions, UseAIStreamReturn } from './useAIStream'
 export { useAutoSave } from './useAutoSave'
 export type { AutoSaveOptions, UseAutoSaveReturn } from './useAutoSave'
 
+export { useDebounce } from './useDebounce'
+export { useStorage } from './useStorage'
+
+// TDD Phase 3: 阅读器核心功能
+export { useReadingProgress } from './useReadingProgress'
+export type { ReadingProgressData, ReadingProgressOptions } from './useReadingProgress'
+
+export { useReaderGestures } from './useReaderGestures'
+export type { ReaderGestureCallbacks, ReaderGestureOptions } from './useReaderGestures'
+
 // 从已有的组合函数导出
 export { useLazyLoad } from './useLazyLoad'
 export { useResponsive } from './useResponsive'
