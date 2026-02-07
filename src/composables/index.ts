@@ -23,6 +23,10 @@ export type { ReadingProgressData, ReadingProgressOptions } from './useReadingPr
 export { useReaderGestures } from './useReaderGestures'
 export type { ReaderGestureCallbacks, ReaderGestureOptions } from './useReaderGestures'
 
+// TDD Phase 6: 交互与动画
+export { useTouchGestures } from './useTouchGestures'
+export type { TouchGestureCallbacks, TouchGestureOptions, TouchGestureConfig } from './useTouchGestures'
+
 // 从已有的组合函数导出
 export { useLazyLoad } from './useLazyLoad'
 export { useResponsive } from './useResponsive'
