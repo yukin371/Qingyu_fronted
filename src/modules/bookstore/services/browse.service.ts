@@ -1,6 +1,6 @@
 import { httpService } from '@/core/services/http.service'
 import type { BookBrief } from '@/types/models'
-import type { BrowseFilters } from '@/types/models'
+import type { BrowseFilters } from '@/types/models/browse'
 
 interface GetBooksResponse {
   code: number

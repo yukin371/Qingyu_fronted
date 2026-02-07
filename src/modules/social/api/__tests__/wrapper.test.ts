@@ -3,7 +3,7 @@
  * 测试wrapper层是否可以正常工作
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({

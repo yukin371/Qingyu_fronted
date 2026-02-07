@@ -10,7 +10,7 @@
  * - 预览功能
  */
 
-import { describe, it, expect, vi } from 'vitest'
+
 import { render, fireEvent, waitFor } from '@testing-library/vue'
 import { BaseImage } from './index'
 

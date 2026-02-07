@@ -3,7 +3,7 @@
  * @module core/services/__tests__/api-adapter.service.test
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import apiAdapterService, { ApiAdapterService } from '../api-adapter.service'
 
 describe('ApiAdapterService', () => {

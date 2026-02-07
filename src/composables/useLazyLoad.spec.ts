@@ -5,7 +5,7 @@
  * 用于验证测试环境配置正确
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 describe('useLazyLoad - TDD Phase 0 示例测试', () => {
   beforeEach(() => {

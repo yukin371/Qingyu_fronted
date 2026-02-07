@@ -2,7 +2,7 @@
  * Carousel 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import { mount } from '@vue/test-utils'
 import Carousel from '../Carousel.vue'
 

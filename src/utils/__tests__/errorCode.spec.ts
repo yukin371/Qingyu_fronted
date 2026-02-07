@@ -2,7 +2,7 @@
  * 错误码映射模块单元测试
  * 使用TDD（测试驱动开发）方式验证错误码映射关系
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import {
   BackendErrorCode,
   FrontendErrorCode,

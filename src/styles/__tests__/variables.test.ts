@@ -3,7 +3,7 @@
  * 测试CSS变量的正确定义
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+
 
 describe('设计系统变量测试', () => {
   let root: HTMLElement

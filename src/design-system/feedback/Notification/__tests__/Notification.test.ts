@@ -2,7 +2,7 @@
  * Notification 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
 import { h } from 'vue'
 import Notification from '../Notification.vue'

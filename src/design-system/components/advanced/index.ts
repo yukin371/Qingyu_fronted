@@ -9,11 +9,10 @@
  * - QyForm, QyFormItem: Form components with validation
  */
 
-export { default as QyModal } from './QyModal'
-export { default as QyDialog } from './QyDialog'
-export { QyDialogFooter } from './QyDialog'
-export { default as QyLoading } from './QyLoading'
-export { default as QyEmpty } from './QyEmpty'
+export { QyModal } from './QyModal'
+export { QyDialog, QyDialogFooter } from './QyDialog'
+export { QyLoading } from './QyLoading'
+export { QyEmpty } from './QyEmpty'
 export { QyForm, QyFormItem } from './QyForm'
 
 // Re-export types

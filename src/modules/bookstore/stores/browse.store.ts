@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { BookBrief } from '@/types/models'
-import type { BrowseFilters } from '@/types/models'
+import type { BrowseFilters } from '@/types/models/browse'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 import { browseService } from '../services/browse.service'
 

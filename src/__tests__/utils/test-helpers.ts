@@ -8,7 +8,6 @@
 import { mount, VueWrapper } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { ComponentPublicInstance } from 'vue'
-import { vi } from 'vitest'
 
 /**
  * 创建带有Pinia的测试包装器

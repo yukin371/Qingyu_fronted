@@ -2,7 +2,7 @@
  * Progress 组件单元测试
  */
 
-import { describe, it, expect, vi } from 'vitest'
+
 import { render, screen } from '@testing-library/vue'
 import { h } from 'vue'
 import Progress from '../Progress.vue'

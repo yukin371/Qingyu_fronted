@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useDebounce } from './useDebounce'
 
 describe('useDebounce - P0 Fix: this上下文保存', () => {

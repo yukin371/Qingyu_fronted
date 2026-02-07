@@ -18,5 +18,8 @@ export type { MessageOptions, MessageType, MessageHandler } from '../feedback/Me
 export type { MessageBoxOptions, MessageBoxType, MessageBoxAction, MessageBoxResult } from '../feedback/MessageBox/types'
 export type { NotificationOptions, NotificationType, NotificationPosition, NotificationHandler } from '../feedback/Notification/types'
 
+// Form 类型（从 element-plus 重新导出）
+export type { FormInstance, FormRules, FormItemProp } from 'element-plus'
+
 // 兼容 Element Plus 的别名导出
 export { message as ElMessage, messageBox as ElMessageBox, notification as ElNotification }

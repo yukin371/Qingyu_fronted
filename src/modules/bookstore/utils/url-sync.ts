@@ -1,4 +1,4 @@
-import type { BrowseFilters } from '@/types/models'
+import type { BrowseFilters } from '@/types/models/browse'
 
 /**
  * 将filters对象转换为URL query对象

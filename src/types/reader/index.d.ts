@@ -1,9 +1,3 @@
-export interface Chapter {
-  id: string;
-  title: string;
-  chapterNumber: number;
-  bookId: string;
-  wordCount?: number;
-  content?: string;
-}
+// 重新导出 reader.ts 中的所有类型
+export * from '../reader'
 

@@ -5,8 +5,6 @@
  */
 
 /* eslint-disable no-undef */
-import { vi } from 'vitest'
-
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -38,7 +36,7 @@ Object.defineProperty(window, 'sessionStorage', {
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query: MediaQueryList | string) => ({
     matches: false,
     media: query,
     onchange: null,

@@ -4,7 +4,7 @@ import storage from '@/utils/storage'
 // 移除对router的直接导入以避免循环依赖
 // import router from '@/router'
 import type { User } from '@/types/models'
-import type { LoginCredentials, RegisterData } from '@/types/user'
+import type { LoginCredentials, RegisterData } from '@/types/auth'
 
 // Storage keys
 const STORAGE_KEYS = {

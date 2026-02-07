@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useStorage } from './useStorage'
 
 describe('useStorage - P0 Fix: LocalStorage异常处理', () => {

@@ -3,7 +3,7 @@
  * 提供API测试的mock辅助函数
  */
 
-import { vi } from 'vitest'
+
 
 /**
  * API响应结构

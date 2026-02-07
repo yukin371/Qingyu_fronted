@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { getRatingStats, getUserRating, submitRating } from '../rating'
 
 // Mock request模块 - vi.mock 会被提升到文件顶部，所以不能使用外部变量
