@@ -56,16 +56,8 @@ export default mergeConfig(
       testTimeout: 10000,
       hookTimeout: 10000,
 
-      // 并发配置
+      // 并发配置（Vitest 4+使用扁平化配置）
       pool: 'threads',
-      poolOptions: {
-        threads: {
-          singleThread: false,
-          minThreads: 1,
-          maxThreads: 4,
-          useAtomics: true
-        }
-      },
 
       // 报告器配置
       reporter: ['verbose', 'html']
