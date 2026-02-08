@@ -9,7 +9,6 @@ import router from './router'
 
 // Qingyu 全局服务
 import { message, messageBox, notification } from '@/design-system/services'
-import type { App as AppType } from 'vue'
 
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
@@ -19,6 +18,7 @@ initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则�
 import './style.css'  // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
 import '@/styles/reader-variables.scss'  // TDD Phase 2: 阅读器设计系统变量
+import '@/design-system/themes/vscode-dark.scss'  // VSCode 深色主题
 import '@/styles/common.scss'
 
 // 全局指令
