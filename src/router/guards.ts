@@ -79,33 +79,20 @@ function createAuthGuard(router: Router) {
     }
 
     // 3.3 角色/权限检查
-    // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['author', 'admin'] }
-    if (to.meta.roles && Array.isArray(to.meta.roles)) {
-      const requiredRoles = to.meta.roles
-      const hasRole = authStore.roles?.some((role) => requiredRoles.includes(role))
-
-      if (!hasRole) {
-        // 如果是去作家后台，但没权限，可能是普通读者，跳转到引导页
-        if (to.path.startsWith('/writer') && to.path !== '/writer/become-author') {
-          // 检查用户是否有reader角色，如果有则跳转到引导页
-          const isReader = authStore.user?.roles?.includes('reader')
-          if (isReader) {
-            next({ name: 'become-author' })
-          } else {
-            next({ path: '/bookstore', query: { error: 'permission_denied' }})
-          }
-        } else {
-          next({ path: '/403', replace: true })
-        }
-        return
-      }
+    // writer 模块当前策略：登录即可访问，不再走角色门禁
+    if (to.path.startsWith('/writer')) {
+      next()
+      return
     }
 
-    // 特殊处理：读者访问/writer根路径时跳转到引导页
-    if (to.path === '/writer' || to.path === '/writer/') {
-      const hasAuthorRole = authStore.user?.roles?.includes('author') || authStore.user?.roles?.includes('admin')
-      if (!hasAuthorRole) {
-        next({ name: 'become-author' })
+    // 其他模块仍按路由 meta.roles 做权限控制
+    if (to.meta.roles && Array.isArray(to.meta.roles)) {
+      const requiredRoles = to.meta.roles
+      const userRoles = authStore.roles?.length ? authStore.roles : authStore.user?.roles || []
+      const hasRole = userRoles.some((role) => requiredRoles.includes(role))
+
+      if (!hasRole) {
+        next({ path: '/403', replace: true })
         return
       }
     }

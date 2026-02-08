@@ -575,6 +575,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { message } from '@/design-system/services'
+import { useAuthStore } from '@/stores/auth'
 import { Download, Setting, Refresh } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import * as echarts from 'echarts'
@@ -609,6 +610,7 @@ import {
 
 // 假设从路由参数获取书籍ID
 const bookId = ref('')
+const authStore = useAuthStore()
 
 const loadingStats = ref(false)
 const loadingRecords = ref(false)
@@ -828,6 +830,8 @@ const resumePlan = async () => {
 const publishChapter = async (record: PublishRecord) => {
   try {
     await apiPublishChapter(record.chapter_id, {})
+    // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
+    await authStore.getUserInfo().catch(() => undefined)
     message.success('发布成功')
     loadPublishRecords()
     loadStats()

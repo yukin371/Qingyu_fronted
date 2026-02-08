@@ -18,7 +18,7 @@ const writerRoutes: RouteRecordRaw[] = [
   {
     path: '/writer',
     component: WriterLayout,
-    meta: { requiresAuth: true, roles: ['author', 'admin'] }, // 在父级统一添加权限控制
+    meta: { requiresAuth: true }, // 登录即可访问作者模块
     children: [
       {
         path: '',
@@ -74,7 +74,6 @@ const writerRoutes: RouteRecordRaw[] = [
     meta: {
       title: '编辑器',
       requiresAuth: true,
-      roles: ['author', 'admin'], // 编辑器需要作者或管理员权限
       layout: 'blank', // 标记为无布局
     },
     props: true,
