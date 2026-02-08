@@ -419,3 +419,68 @@ export function measureWebVitals(): Promise<WebVitals> {
   })
 }
 
+/**
+ * 防抖函数（支持flush和保留this上下文）
+ * P0修复：flush时必须保留this上下文
+ *
+ * @param fn 要防抖的函数
+ * @param delay 延迟时间（毫秒）
+ * @returns 防抖后的函数，带有flush方法
+ */
+export function debounce<T extends (...args: any[]) => any>(
+  fn: T,
+  delay: number
+): ((this: any, ...args: Parameters<T>) => void) & { flush: (this: any) => void } {
+  let timer: number | null = null
+  let lastArgs: Parameters<T> | null = null
+  let lastThis: any = null
+
+  const debounced = function (this: any, ...args: Parameters<T>) {
+    lastArgs = args
+    lastThis = this
+    if (timer) clearTimeout(timer)
+    timer = window.setTimeout(() => {
+      fn.apply(this, args)
+      timer = null
+      lastArgs = null
+      lastThis = null
+    }, delay)
+  } as any
+
+  // P0修复：flush时保留正确的this上下文
+  debounced.flush = function(this: any) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+    if (lastArgs) {
+      fn.apply(this || lastThis, lastArgs)
+      timer = null
+      lastArgs = null
+      lastThis = null
+    }
+  }
+
+  return debounced
+}
+
+/**
+ * 节流函数
+ *
+ * @param fn 要节流的函数
+ * @param delay 延迟时间（毫秒）
+ * @returns 节流后的函数
+ */
+export function throttle<T extends (...args: any[]) => any>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0
+  return function(this: any, ...args: Parameters<T>) {
+    const now = Date.now()
+    if (now - lastCall >= delay) {
+      lastCall = now
+      fn.apply(this, args)
+    }
+  }
+}
+

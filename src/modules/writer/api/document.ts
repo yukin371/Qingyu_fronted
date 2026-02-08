@@ -32,7 +32,7 @@ export interface DuplicateDocumentResponse {
   stableRef: string
 }
 
-const BASE_PROJECT_URL = '/projects'
+const BASE_PROJECT_URL = '/writer/projects'
 const BASE_DOC_URL = '/documents'
 
 export const documentApi = {

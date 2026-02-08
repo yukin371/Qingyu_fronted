@@ -647,5 +647,4 @@ const adminAPIExport = {
   getApi,
 }
 
-export default adminAPIExport
 export const adminAPI = adminAPIExport

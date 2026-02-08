@@ -1,5 +1,5 @@
 <template>
-  <div class="search-bar">
+  <div class="search-bar" data-testid="search-bar">
     <div class="input-wrapper">
       <Icon name="magnifying-glass" class="search-icon" />
       <input

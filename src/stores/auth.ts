@@ -330,12 +330,10 @@ export const useAuthStore = defineStore('auth', {
         }
       } catch (error) {
         console.error('登出接口调用失败:', error)
+        throw error
       } finally {
         // 清除本地状态
         this.clearAuth()
-
-        // 跳转到登录页 - 使用window.location避免循环依赖
-        window.location.href = '/login'
       }
     },
 

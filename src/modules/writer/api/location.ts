@@ -6,7 +6,7 @@ import type {
   SaveLocationRelationRequest,
 } from '../types/location'
 
-const BASE_PROJECT_URL = '/projects'
+const BASE_PROJECT_URL = '/writer/projects'
 const BASE_LOCATION_URL = '/locations'
 
 export const locationApi = {

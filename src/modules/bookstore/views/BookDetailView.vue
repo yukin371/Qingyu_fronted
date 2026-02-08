@@ -2,7 +2,7 @@
   <div class="book-detail-view">
     <div class="detail-container">
       <!-- 加载状态 -->
-      <Spinner v-if="loading" :size="48" class="loading-spinner" />
+      <Spinner v-if="loading" :size="48" class="loading-spinner" data-testid="book-detail-loading" />
 
       <template v-else>
         <!-- 返回按钮 -->
@@ -38,10 +38,10 @@
                   <div class="book-meta">
                     <span class="author">
                       <Icon name="user" size="sm" />
-                      <span v-if="book.author" class="author-name">
+                      <span v-if="book.author" class="author-name" data-testid="book-author">
                         {{ book.author }}
                       </span>
-                      <span v-else class="author-name">
+                      <span v-else class="author-name" data-testid="book-author">
                         未知作者
                       </span>
                     </span>
@@ -79,20 +79,20 @@
                   </div>
 
                   <!-- 操作按钮 -->
-                  <div class="book-actions">
+                  <div class="book-actions" data-testid="book-actions">
                     <Button
                       variant="primary"
                       size="lg"
-                      :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
+                      :data-testid="hasProgress ? 'continue-reading-btn' : 'start-reading-btn'"
                       @click="startReading">
                       <Icon name="book-open" size="md" class="mr-1" />
                       {{ hasProgress ? '继续阅读' : '开始阅读' }}
                     </Button>
-                    <Button size="lg" @click="addToShelf">
+                    <Button size="lg" @click="addToShelf" data-testid="add-to-shelf-btn">
                       <Icon name="folder-plus" size="md" class="mr-1" />
                       加入书架
                     </Button>
-                    <Button size="lg" @click="toggleFavorite">
+                    <Button size="lg" @click="toggleFavorite" data-testid="favorite-btn">
                       <Icon name="star" size="md" class="mr-1" />
                       {{ isFavorited ? '已收藏' : '收藏' }}
                     </Button>
@@ -117,18 +117,18 @@
 
             <!-- 章节列表 -->
             <TabPane label="目录" name="chapters">
-              <div class="chapter-list">
+              <div class="chapter-list" data-testid="chapter-list">
                 <div class="chapter-header">
                   <span>共 {{ book.chapterCount }} 章</span>
-                  <Button variant="text" @click="reverseChapterOrder">
+                  <Button variant="text" @click="reverseChapterOrder" data-testid="chapter-order-toggle">
                     {{ isReversed ? '正序' : '倒序' }}
                   </Button>
                 </div>
 
-                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto;">
+                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto;" data-testid="chapter-scroll-area">
                   <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item"
-                    :class="{ 'is-read': chapter.isRead }" @click="readChapter(chapter.id)">
-                    <span class="chapter-title">{{ chapter.title }}</span>
+                    :class="{ 'is-read': chapter.isRead }" :data-testid="`chapter-item-${chapter.id}`" @click="readChapter(chapter.id)">
+                    <span class="chapter-title" :data-testid="`chapter-title-${chapter.id}`">{{ chapter.title }}</span>
                     <span class="chapter-info">
                       <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
                       {{ chapter.wordCount }}字

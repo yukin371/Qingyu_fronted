@@ -63,6 +63,12 @@ export type IconName =
   // Editor
   | 'EditPen' | 'DocumentCopy'
 
+  // Layout
+  | 'Expand' | 'Fold'
+
+  // Auth
+  | 'SwitchButton'
+
 /**
  * QyIcon component props
  */

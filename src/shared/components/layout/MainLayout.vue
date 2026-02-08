@@ -206,6 +206,7 @@ import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
+import { Menu } from '@element-plus/icons-vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -342,9 +343,14 @@ const handleUserCommand = async (command: string) => {
         })
         await authStore.logout()
         message.success('已退出登录')
-        router.push('/bookstore')
+        // 跳转到登录页
+        router.push('/login')
       } catch (error) {
-        // 用户取消
+        // 用户取消或登出失败
+        if (error !== 'cancel') {
+          console.error('退出登录失败:', error)
+          message.error('退出登录失败，请稍后重试')
+        }
       }
       break
   }

@@ -9,7 +9,7 @@ import type {
 } from '../types/character'
 
 // 基础路径定义 (用于复用)
-const BASE_PROJECT_URL = '/projects'
+const BASE_PROJECT_URL = '/writer/projects'
 const BASE_CHAR_URL = '/characters'
 
 export const characterApi = {

@@ -15,7 +15,7 @@ import { createBackendService } from '../helpers/backend-service'
 // 后端服务配置
 const BACKEND_CONFIG = {
   backendPath: process.env.BACKEND_PATH || '../Qingyu_backend',
-  port: parseInt(process.env.BACKEND_PORT || '8080'),
+  port: parseInt(process.env.BACKEND_PORT || '9090'),
   startupTimeout: parseInt(process.env.BACKEND_STARTUP_TIMEOUT || '90000'), // 90秒
   healthCheckPath: '/api/v1/system/health'
 }

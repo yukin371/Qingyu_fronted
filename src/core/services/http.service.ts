@@ -74,7 +74,21 @@ apiClient.interceptors.request.use(
     }
 
     // 修复：使用 qingyu_token 前缀，与 authStore 的存储键保持一致
-    const token = localStorage.getItem('qingyu_token')
+    // 由于authStore使用storage.set()存储（会JSON.stringify），需要解析JSON
+    const rawToken = localStorage.getItem('qingyu_token')
+    let token = rawToken
+    if (rawToken) {
+      try {
+        // 尝试解析JSON（storage.set会JSON.stringify）
+        const parsed = JSON.parse(rawToken)
+        // 如果解析结果是字符串，使用解析后的值；否则使用原始值
+        token = typeof parsed === 'string' ? parsed : rawToken
+      } catch {
+        // 如果解析失败，使用原始值
+        token = rawToken
+      }
+    }
+
     console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
     console.log('[Request Interceptor] Token found:', !!token, token?.substring(0, 20) + '...')
     if (token && config.headers) {
@@ -162,14 +176,24 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // 修复：使用 qingyu_refreshToken 前缀
-        const refreshToken = localStorage.getItem('qingyu_refreshToken')
+        // 修复：使用 qingyu_refreshToken 前缀，并解析JSON（storage.set会JSON.stringify）
+        const rawRefreshToken = localStorage.getItem('qingyu_refreshToken')
+        let refreshToken = rawRefreshToken
+        if (rawRefreshToken) {
+          try {
+            const parsed = JSON.parse(rawRefreshToken)
+            refreshToken = typeof parsed === 'string' ? parsed : rawRefreshToken
+          } catch {
+            refreshToken = rawRefreshToken
+          }
+        }
+
         // 修复：使用正确的刷新 API 路径
         const res = await axios.post('/api/v1/shared/auth/refresh', { token: refreshToken })
 
         const { token: newToken } = res.data.data
-        // 修复：使用 qingyu_token 前缀
-        localStorage.setItem('qingyu_token', newToken)
+        // 修复：使用 qingyu_token 前缀，并使用storage.set()保持一致性（会JSON.stringify）
+        localStorage.setItem('qingyu_token', JSON.stringify(newToken))
 
         processQueue(null, newToken)
 

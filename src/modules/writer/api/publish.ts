@@ -5,7 +5,7 @@
  * @category writer
  * @tags 发布管理
  */
-import request from '@/utils/request-adapter'
+import { request } from '@/utils/request-adapter'
 
 // 发布状态
 export type PublishStatus = 'draft' | 'pending_review' | 'scheduled' | 'published' | 'rejected' | 'unpublished'

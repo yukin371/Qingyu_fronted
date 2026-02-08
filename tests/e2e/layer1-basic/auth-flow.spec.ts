@@ -15,6 +15,7 @@
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
 import { TestDataGenerator } from '../../helpers/test-data'
+import { WaitStrategies } from '../../helpers/wait-strategies'
 
 /**
  * 测试配置
@@ -51,8 +52,9 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤1.1: 访问登录页面
     await test.step('1.1 访问登录页面', async () => {
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`, { timeout: 60000 })
+      // 使用智能等待策略替代 networkidle
+      await WaitStrategies.waitForNavigation(page, { timeout: 30000 })
 
       // 验证URL
       await expect(page).toHaveURL(/\/login/)
@@ -62,12 +64,15 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤1.2: 切换到注册Tab
     await test.step('1.2 切换到注册Tab', async () => {
-      const registerTab = page.locator('text=注册').or(page.locator('[role="tab"]:has-text("注册")'))
-      await expect(registerTab.first()).toBeVisible()
-      await registerTab.first().click()
+      // 使用标准ARIA属性定位Tab标签元素，而不是Tab内容区域
+      // Element Plus的el-tabs组件将Tab标签渲染为role="tab"的元素
+      const registerTab = page.locator('[role="tab"]:has-text("注册")')
 
-      // 等待表单切换
-      await page.waitForTimeout(500)
+      await expect(registerTab).toBeVisible()
+      await registerTab.click()
+
+      // 等待表单切换 - 等待注册表单的input元素可见
+      await page.waitForSelector('[data-testid="register-username-input"]', { timeout: 2000 })
 
       console.log('  ✓ 切换到注册Tab')
     })
@@ -122,29 +127,35 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤1.4: 提交注册并验证
     await test.step('1.4 提交注册并验证API响应', async () => {
-      // 拦截注册API
+      // 拦截注册API - 使用更宽松的URL匹配
       const registerPromise = page.waitForResponse(
-        response =>
-          response.url().includes('/api/v1/shared/auth/register') &&
-          response.request().method() === 'POST'
+        response => {
+          const url = response.url()
+          const isRegisterAPI = url.includes('/api/v1/') && url.includes('/register')
+          const isPOST = response.request().method() === 'POST'
+          return isRegisterAPI && isPOST
+        },
+        { timeout: 10000 }
       )
 
       // 点击注册按钮
-      const registerButton = page.locator('button:has-text("立即注册"), button:has-text("注册")')
-        .or(page.locator('[data-testid="register-btn"]'))
-      await registerButton.click()
+      const registerButton = page.locator('[data-testid="register-btn"]')
+        .or(page.locator('button:has-text("立即注册")'))
+        .or(page.locator('button:has-text("注册")'))
+      await registerButton.first().click()
 
       // 等待API响应
       const registerResponse = await registerPromise
       console.log(`  注册API状态: ${registerResponse.status()}`)
 
-      // 验证API返回200
-      expect(registerResponse.status()).toBe(200)
+      // 验证API返回2xx成功状态码（201 Created表示资源创建成功）
+      expect(registerResponse.status()).toBeGreaterThanOrEqual(200)
+      expect(registerResponse.status()).toBeLessThan(300)
 
-      // 解析响应
+      // 解析响应 - 后端返回格式：{ code: 201, message: "注册成功", data: {...} }
       const registerData = await registerResponse.json()
-      // 后端返回 code: 0 表示成功
-      expect(registerData.code).toBe(0)
+      // 后端使用HTTP状态码作为code，201表示创建成功
+      expect(registerData.code).toBe(201)
       expect(registerData.message).toBeTruthy()
 
       console.log(`  ✓ 注册成功: ${registerData.message}`)
@@ -176,7 +187,12 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤1.5: 验证注册后跳转或显示成功消息
     await test.step('1.5 验证注册后状态', async () => {
-      await page.waitForTimeout(2000)
+      // 使用更智能的等待策略
+      await Promise.race([
+        page.waitForURL(/\/(bookstore|home|index)/, { timeout: 5000 }),
+        page.waitForSelector('[data-testid="success-message"], .el-message--success', { timeout: 5000 }),
+        page.waitForTimeout(3000)
+      ])
 
       const url = page.url()
       const isRedirected = url.includes('/bookstore') || url.includes('/home') || url.includes('/index')
@@ -184,8 +200,11 @@ test.describe('Layer 1: 认证流程', () => {
       if (isRedirected) {
         console.log(`  ✓ 注册后自动跳转到: ${url}`)
       } else {
-        // 检查是否有成功消息
-        const successMessage = page.locator('text=注册成功, text=欢迎')
+        // 检查是否有成功消息 - 使用data-testid优先
+        const successMessage = page.locator('[data-testid="success-message"]')
+          .or(page.locator('.el-message--success'))
+          .or(page.locator('text=注册成功'))
+          .or(page.locator('text=欢迎'))
         const hasSuccessMessage = await successMessage.count() > 0
 
         if (hasSuccessMessage) {
@@ -216,8 +235,9 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤2.2: 访问登录页面并登录
     await test.step('2.2 访问登录页面', async () => {
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`, { timeout: 60000 })
+      // 使用智能等待策略替代 networkidle
+      await WaitStrategies.waitForNavigation(page, { timeout: 30000 })
 
       await expect(page).toHaveURL(/\/login/)
       console.log('  ✓ 访问登录页面')
@@ -238,17 +258,22 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤2.4: 提交登录并验证
     await test.step('2.4 提交登录并验证', async () => {
-      // 拦截登录API
+      // 拦截登录API - 使用更宽松的URL匹配
       const loginPromise = page.waitForResponse(
-        response =>
-          response.url().includes('/api/v1/shared/auth/login') &&
-          response.request().method() === 'POST'
+        response => {
+          const url = response.url()
+          const isLoginAPI = url.includes('/api/v1/') && url.includes('/login')
+          const isPOST = response.request().method() === 'POST'
+          return isLoginAPI && isPOST
+        },
+        { timeout: 10000 }
       )
 
       // 点击登录按钮
-      const loginButton = page.locator('button:has-text("登录"), button:has-text("立即登录")')
-        .or(page.locator('[data-testid="login-btn"]'))
-      await loginButton.click()
+      const loginButton = page.locator('[data-testid="login-btn"]')
+        .or(page.locator('button:has-text("立即登录")'))
+        .or(page.locator('button:has-text("登录")'))
+      await loginButton.first().click()
 
       // 等待API响应
       const loginResponse = await loginPromise
@@ -263,9 +288,10 @@ test.describe('Layer 1: 认证流程', () => {
       // 验证API返回200
       expect(loginResponse.status()).toBe(200)
 
-      // 解析响应
+      // 解析响应 - 后端返回格式：{ code: 200, message: "登录成功", data: {...} }
       const loginData = await loginResponse.json()
-      expect(loginData.code).toBe(0)
+      // 后端使用HTTP状态码作为code，200表示成功
+      expect(loginData.code).toBe(200)
       expect(loginData.data).toHaveProperty('token')
 
       const token = loginData.data.token
@@ -298,7 +324,12 @@ test.describe('Layer 1: 认证流程', () => {
 
     // 步骤2.5: 验证登录后跳转
     await test.step('2.5 验证登录后跳转', async () => {
-      await page.waitForTimeout(2000)
+      // 使用更智能的等待策略
+      await Promise.race([
+        page.waitForURL(/\/(bookstore|home|index)/, { timeout: 5000 }),
+        page.waitForSelector('[data-testid="user-menu"], .user-menu', { timeout: 5000 }),
+        page.waitForTimeout(3000)
+      ])
 
       const url = page.url()
       const isLoggedIn = !url.includes('/login') && !url.includes('/register')
@@ -330,8 +361,8 @@ test.describe('Layer 1: 认证流程', () => {
     // 步骤3.2: 前端验证用户信息显示
     await test.step('3.2 前端验证用户信息', async () => {
       // 访问登录页面
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/login`, { timeout: 60000 })
+      await WaitStrategies.waitForNavigation(page, { timeout: 30000 })
 
       // 填写登录表单（与步骤2相同的流程）
       const usernameInput = page.locator('input[placeholder*="用户名或邮箱"], input[placeholder*="用户名"]').first()
@@ -350,8 +381,8 @@ test.describe('Layer 1: 认证流程', () => {
       await page.waitForTimeout(1000) // 等待前端状态更新
 
       // 导航到个人中心
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/account/profile`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/account/profile`, { timeout: 60000 })
+      await WaitStrategies.waitForPageStable(page, ['h3:has-text("个人中心")'], { timeout: 30000 })
 
       // 验证页面标题（简化验证，只确认能访问到个人中心页面）
       await expect(page.locator('h3:has-text("个人中心")')).toBeVisible({ timeout: 5000 })
@@ -414,16 +445,16 @@ test.describe('Layer 1: 认证流程', () => {
     // 步骤4.2: 前端获取用户详情
     await test.step('4.2 前端获取用户详情', async () => {
       // 设置token
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}`)
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}`, { timeout: 60000 })
       await page.evaluate((t) => {
         localStorage.setItem('token', t)
       }, token)
       await page.reload()
-      await page.waitForLoadState('networkidle')
+      await WaitStrategies.waitForNavigation(page, { timeout: 30000 })
 
       // 访问个人中心
-      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/account/profile`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/account/profile`, { timeout: 60000 })
+      await WaitStrategies.waitForPageStable(page, ['[data-testid="user-username"]', '.user-name'], { timeout: 30000 })
 
       // 验证用户详细信息显示
       const usernameElement = page.locator('[data-testid="user-username"], .user-name')
@@ -462,7 +493,8 @@ test.describe('Layer 1: 认证流程', () => {
       // 让我们通过登录API获取有效token
       console.log(`  [DEBUG] 尝试通过登录获取有效token...`)
 
-      const loginResponse = await fetch(`${process.env.BACKEND_URL || 'http://localhost:8080'}/api/v1/shared/auth/login`, {
+      // 使用新端点 /api/v1/user/auth/login，返回 HTTP 状态码格式的 code
+      const loginResponse = await fetch(`${process.env.BACKEND_URL || 'http://localhost:8080'}/api/v1/user/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -476,7 +508,8 @@ test.describe('Layer 1: 认证流程', () => {
       const loginResult = await loginResponse.json()
       console.log(`  [DEBUG] 登录响应: ${JSON.stringify(loginResult)}`)
 
-      if (loginResult.code !== 0) {
+      // 新端点使用HTTP状态码作为code，200表示成功
+      if (loginResult.code !== 200) {
         throw new Error(`登录失败: ${loginResult.message}`)
       }
 

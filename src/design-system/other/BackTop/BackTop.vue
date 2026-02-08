@@ -7,7 +7,7 @@
  */
 
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { BackTopProps, BackTopEmits, EasingFunction } from './types'
 import { easings } from './types'

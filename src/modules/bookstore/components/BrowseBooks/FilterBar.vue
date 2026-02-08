@@ -1,5 +1,5 @@
 <template>
-  <div class="filter-bar">
+  <div class="filter-bar" data-testid="filter-bar">
     <div class="filter-scroll-wrapper">
       <!-- 分类筛选 -->
       <Select

@@ -28,10 +28,6 @@ import { vLazy } from '@/directives/lazy'
 import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/errorHandler'
 
 // 性能监控
-import { performanceMonitor, measureFirstScreenTime } from './utils/performance'
-
-// API健康检查
-import { initApiHealthCheck } from './utils/api-health'
 
 const app = createApp(App)
 
@@ -47,21 +43,23 @@ window.addEventListener('unhandledrejection', createPromiseRejectionHandler())
 // 性能监控
 const isDev = (import.meta as any).env?.DEV
 if (isDev) {
-  // 开发环境监控性能
-  measureFirstScreenTime((time) => {
-    console.log(`[Performance] 首屏渲染时间: ${time}ms`)
+  // 仅在开发环境按需加载调试能力，避免进入生产首屏主包
+  void import('./utils/performance').then(({ performanceMonitor, measureFirstScreenTime }) => {
+    measureFirstScreenTime((time) => {
+      console.log(`[Performance] 首屏渲染时间: ${time}ms`)
+    })
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const metrics = performanceMonitor.collectPageMetrics()
+        console.log('[Performance] 页面性能指标:', metrics)
+      }, 1000)
+    })
   })
 
-  // 页面加载完成后输出性能报告
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const metrics = performanceMonitor.collectPageMetrics()
-      console.log('[Performance] 页面性能指标:', metrics)
-    }, 1000)
+  void import('./utils/api-health').then(({ initApiHealthCheck }) => {
+    initApiHealthCheck()
   })
-
-  // API健康检查
-  initApiHealthCheck()
 }
 
 // 先注册 Pinia，确保 store 可用
@@ -86,4 +84,3 @@ declare module '@vue/runtime-core' {
 }
 
 app.mount('#app')
-

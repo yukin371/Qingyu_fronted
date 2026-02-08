@@ -114,7 +114,7 @@ export interface ProjectListParams {
 // API 定义
 // ==========================================
 
-const BASE_URL = '/projects'
+const BASE_URL = '/writer/projects'
 
 /**
  * 写作项目 API

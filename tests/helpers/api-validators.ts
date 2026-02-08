@@ -189,8 +189,10 @@ export class APIValidators {
 
     const result: StandardAPIResponse = await response.json()
 
-    // 后端返回 code: 0 表示成功，兼容 code: 200
-    if (result.code !== 0 && result.code !== 200) {
+    // 兼容两种响应格式：
+    // 1. 旧格式（shared/* 端点）：code: 0 表示成功
+    // 2. 新格式（user/* 端点）：code: 200/201 表示成功（HTTP状态码）
+    if (result.code !== 0 && result.code !== 200 && result.code !== 201) {
       throw new Error(`后端返回错误: ${result.message}`)
     }
 
@@ -387,6 +389,9 @@ export class APIValidators {
     email: string
     password: string
   }): Promise<{ userID: string; token: string }> {
+    // 注意：这里使用 /api/v1/shared/auth/register 端点
+    // 该端点使用旧的业务码格式：code: 0 表示成功
+    // 新端点 /api/v1/user/auth/register 使用HTTP状态码格式：code: 201 表示成功
     const response = await fetch(`${this.baseURL}/api/v1/shared/auth/register`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -406,8 +411,9 @@ export class APIValidators {
     console.log(`[createTestUser] Response message: ${result.message}`)
     console.log(`[createTestUser] Response data:`, JSON.stringify(result.data))
 
-    // 后端返回 code: 0 表示成功
-    if (result.code !== 0) {
+    // shared/auth/register 使用旧的 business code 格式：0 表示成功
+    // 兼容处理：同时支持 code: 0 和 code: 201
+    if (result.code !== 0 && result.code !== 201) {
       throw new Error(`创建测试用户失败: ${result.message}`)
     }
 
@@ -432,6 +438,9 @@ export class APIValidators {
    * 登录获取 token
    */
   async loginUser(username: string, password: string): Promise<{ userID: string; token: string }> {
+    // 注意：这里使用 /api/v1/shared/auth/login 端点
+    // 该端点使用旧的业务码格式：code: 0 表示成功
+    // 新端点 /api/v1/user/auth/login 使用HTTP状态码格式：code: 200 表示成功
     const response = await fetch(`${this.baseURL}/api/v1/shared/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -443,7 +452,9 @@ export class APIValidators {
 
     const result: StandardAPIResponse = await response.json()
 
-    if (result.code !== 200 && result.code !== 201) {
+    // shared/auth/login 使用旧的 business code 格式：0 表示成功
+    // 兼容处理：同时支持 code: 0 和 code: 200
+    if (result.code !== 0 && result.code !== 200) {
       throw new Error(`登录失败: ${result.message}`)
     }
 

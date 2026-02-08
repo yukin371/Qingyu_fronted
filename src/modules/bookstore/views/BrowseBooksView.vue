@@ -1,5 +1,5 @@
 <template>
-  <div class="browse-books-view">
+  <div class="browse-books-view" data-testid="browse-books-view">
     <div class="container">
       <!-- 页面标题 -->
       <div class="page-header">

@@ -16,8 +16,8 @@
     </div>
 
     <!-- 加载中：骨架屏 -->
-    <div v-if="loading" class="books-layout skeleton-layout">
-      <div v-for="n in (limit > 0 ? limit : gridCols * 2)" :key="n" class="skeleton-card">
+    <div v-if="loading" class="books-layout skeleton-layout" data-testid="book-grid-loading">
+      <div v-for="n in (limit > 0 ? limit : gridCols * 2)" :key="n" class="skeleton-card" data-testid="book-skeleton">
         <el-skeleton animated>
           <template #template>
             <el-skeleton-item variant="image" class="skeleton-cover" />
@@ -31,9 +31,9 @@
     </div>
 
     <!-- 真实数据列表 -->
-    <div v-else class="books-layout" :style="gridStyle">
+    <div v-else class="books-layout" :style="gridStyle" data-testid="book-grid">
       <div v-for="book in displayBooks" :key="book.id || book._id" class="book-card" :class="[`style-${cardStyle}`]"
-        data-testid="book-item"
+        :data-testid="`book-card-${book.id || book._id}`"
         @click="handleBookClick(book)">
         <!-- 封面区域 -->
         <div class="cover-wrapper">
@@ -53,7 +53,7 @@
 
           <!-- 悬浮遮罩 -->
           <div class="hover-overlay">
-            <el-button type="primary" round class="read-btn" data-testid="read-now">
+            <el-button type="primary" round class="read-btn" :data-testid="`read-now-btn-${book.id || book._id}`">
               立即阅读
             </el-button>
           </div>
@@ -61,7 +61,7 @@
 
         <!-- 信息区域 -->
         <div class="info-wrapper">
-          <h3 class="book-title" :title="book.title">{{ book.title }}</h3>
+          <h3 class="book-title" :title="book.title" :data-testid="`book-title-${book.id || book._id}`">{{ book.title }}</h3>
           <div class="book-author">{{ book.author }}</div>
 
           <!-- 底部元数据：价格/标签/浏览量 -->
@@ -83,7 +83,7 @@
     </div>
 
     <!-- 空状态 -->
-    <div v-if="!loading && displayBooks.length === 0" class="empty-state">
+    <div v-if="!loading && displayBooks.length === 0" class="empty-state" data-testid="book-grid-empty">
       <el-empty :image-size="80" :description="emptyText" />
     </div>
   </div>

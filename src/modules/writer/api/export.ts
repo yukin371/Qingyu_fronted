@@ -11,7 +11,7 @@
  * - DELETE /api/v1/writer/exports/:id - 删除导出任务
  * - POST /api/v1/writer/exports/:id/cancel - 取消导出任务
  */
-import request from '@/utils/request-adapter'
+import { request } from '@/utils/request-adapter'
 import type {
   ExportDocumentRequest,
   ExportProjectRequest,

@@ -326,9 +326,10 @@ const handleChangePassword = async () => {
         message.success('密码修改成功，请重新登录')
         resetPasswordForm()
 
-        // 退出登录
-        setTimeout(() => {
-            authStore.logout()
+        // 退出登录并跳转到登录页
+        setTimeout(async () => {
+            await authStore.logout()
+            router.push('/login')
         }, 1500)
     } catch (error: any) {
         if (error !== 'cancel') {
@@ -547,7 +548,8 @@ const handleDeleteAccount = async () => {
         })
 
         message.success('账号已注销')
-        authStore.logout()
+        await authStore.logout()
+        router.push('/login')
     } catch (error: any) {
         if (error !== 'cancel') {
             message.error('操作失败')

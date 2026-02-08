@@ -265,14 +265,16 @@ export default {
       items: recommendedItems,
       loading: loadingMore,
       hasMore: hasMoreRecommendations,
+      currentPage: recommendationPage,
+      total: recommendationTotal,
       setupScrollObserver
     } = usePagination(async (page, pageSize) => {
       try {
         await bookstoreStore.fetchRecommendedBooks(page, pageSize)
         const items = bookstoreStore.books.recommended || []
-        return { items, total: items.length + 100 } // 模拟总数
+        return { items, total: items.length + pageSize }
       } catch (e) { return { items: [], total: 0 } }
-    }, { pageSize: 12, initialLoad: true })
+    }, { pageSize: 12, initialLoad: false, autoLoadOnScroll: true })
 
     // 辅助函数
     const formatRating = (rating) => {
@@ -317,8 +319,15 @@ export default {
     // Fix memory leak: store observer reference for cleanup
     let scrollObserver = null
 
-    onMounted(() => {
-      loadHomepageData()
+    onMounted(async () => {
+      await loadHomepageData()
+
+      if (Array.isArray(recommendedBooks.value) && recommendedBooks.value.length > 0) {
+        recommendedItems.value = [...recommendedBooks.value]
+        recommendationPage.value = 2
+        recommendationTotal.value = recommendedItems.value.length + 12
+      }
+
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
       // 添加简单的滚动显现动画观察器

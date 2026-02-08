@@ -5,6 +5,7 @@
 
 import { Page, expect } from '@playwright/test'
 import { Actor } from './actor-factory'
+import { WaitStrategies } from './wait-strategies'
 
 /**
  * 测试步骤接口
@@ -32,11 +33,12 @@ export class StepBuilder {
   /**
    * 添加导航步骤
    */
-  addNavigationStep(url: string, page: Page): StepBuilder {
+  addNavigationStep(url: string, page: Page, timeout?: number): StepBuilder {
     this.steps.push({
       execute: async () => {
-        await page.goto(url)
-        await page.waitForLoadState('load')
+        await page.goto(url, { timeout: timeout || 60000 })
+        // 使用智能等待策略替代 networkidle
+        await WaitStrategies.waitForNavigation(page, { timeout: timeout || 30000 })
       },
       describe: () => `Navigate to ${url}`
     })
@@ -70,12 +72,12 @@ export class StepBuilder {
   }
 
   /**
-   * 添加等待步骤
+   * 添加等待步骤 - 使用智能等待策略
    */
-  addWaitStep(selector: string, page: Page, description?: string): StepBuilder {
+  addWaitStep(selector: string, page: Page, description?: string, timeout?: number): StepBuilder {
     this.steps.push({
       execute: async () => {
-        await page.waitForSelector(selector)
+        await WaitStrategies.waitForElement(page, selector, { timeout })
       },
       describe: () => description || `Wait for ${selector}`
     })

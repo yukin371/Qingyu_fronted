@@ -42,14 +42,14 @@ export default defineConfig({
     proxy: {
       // API代理到后端
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path
       },
       // WebSocket代理（实时通知、评论等）
       '/ws': {
-        target: 'ws://localhost:8080',
+        target: 'ws://localhost:9090',
         ws: true,
         changeOrigin: true
       }
