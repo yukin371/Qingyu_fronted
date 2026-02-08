@@ -61,8 +61,9 @@ export function useErrorHandler() {
     if (!error) return null
 
     // Axios 错误
-    if ('response' in error && 'data' in (error as { response: { data: unknown } })) {
-      const errorResponse = (error as { response: { data: ErrorResponse } }).response.data
+    const axiosError = error as { response?: { data?: ErrorResponse } }
+    if (axiosError.response?.data) {
+      const errorResponse = axiosError.response.data
       showError(errorResponse)
       return errorResponse
     }

@@ -6,7 +6,6 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOnboarding as useOnboardingStore } from '@/stores/onboarding'
-import type { TourConfig } from '@/stores/onboarding'
 
 export function useOnboarding() {
   const onboarding = useOnboardingStore()

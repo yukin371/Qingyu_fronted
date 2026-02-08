@@ -2,7 +2,6 @@
  * WebSocket 核心服务
  * 提供实时消息推送功能，支持自动重连、心跳保活、消息队列
  */
-import { notification } from '@/design-system/services'
 import { ElNotification } from 'element-plus'
 export interface WebSocketConfig {
   url: string

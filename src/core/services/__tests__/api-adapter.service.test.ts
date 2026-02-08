@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import apiAdapterService, { ApiAdapterService } from '../api-adapter.service'
+import apiAdapterService from '../api-adapter.service'
 
 describe('ApiAdapterService', () => {
   beforeEach(() => {

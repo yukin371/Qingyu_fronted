@@ -18,7 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
 
 interface Props {
