@@ -200,15 +200,15 @@ function handleContentTouchStart(event: TouchEvent) {
   touchStartY.value = touch.clientY
 }
 
-function handleContentTouchMove(_event: TouchEvent) {
+function handleContentTouchMove() {
   // 仅在移动端处理
   if (layout.value.mode !== 'mobile') return
 }
 
-function handleContentTouchEnd(_event: TouchEvent) {
+function handleContentTouchEnd(event: TouchEvent) {
   if (layout.value.mode !== 'mobile') return
 
-  const touch = _event.changedTouches[0]
+  const touch = event.changedTouches[0]
   const deltaX = touch.clientX - touchStartX.value
   const deltaY = touch.clientY - touchStartY.value
 
@@ -263,8 +263,8 @@ onMounted(() => {
 
   .mobile-tabs {
     display: flex;
-    background: var(--qy-editor-bg-secondary);
-    border-bottom: 1px solid var(--qy-editor-border-color);
+    background: var(--vscode-toolbar-background);
+    border-bottom: 1px solid var(--vscode-border);
     padding: 0 8px;
 
     .mobile-tab {
@@ -276,17 +276,17 @@ onMounted(() => {
       padding: 12px 8px;
       background: transparent;
       border: none;
-      color: var(--qy-editor-text-secondary);
+      color: var(--vscode-editor-foreground);
       cursor: pointer;
-      transition: all 0.2s var(--qy-editor-ease-standard);
+      transition: all 0.2s var(--transition-ease-out);
 
       &.active {
-        color: var(--qy-editor-primary);
-        border-bottom: 2px solid var(--qy-editor-primary);
+        color: var(--vscode-statusbar-background);
+        border-bottom: 2px solid var(--vscode-statusbar-background);
       }
 
       &:hover:not(.active) {
-        background: var(--qy-editor-hover-bg);
+        background: var(--editor-button-hover);
       }
     }
   }
@@ -299,9 +299,9 @@ onMounted(() => {
     right: 0;
     bottom: 0;
     z-index: 10;
-    background: var(--qy-editor-bg-primary);
+    background: var(--vscode-editor-background);
     transform: translateX(100%);
-    transition: transform 0.3s var(--qy-editor-ease-decelerate);
+    transition: transform 0.3s var(--transition-ease-out-quart);
 
     &.panel-visible {
       transform: translateX(0);
@@ -328,7 +328,7 @@ onMounted(() => {
 .layout-mode-tablet {
   .left-panel,
   .right-panel {
-    transition: width 0.3s var(--qy-editor-ease-standard);
+    transition: width 0.3s var(--transition-ease-out);
   }
 
   .panel-collapsed {

@@ -32,10 +32,10 @@
 
     <!-- 右侧AI面板插槽 -->
     <template #right-panel>
-      <AIAssistantSidebar
-        v-model:visible="aiSidebarVisible"
-        :project-id="currentProjectId"
-        @insert="handleInsertText"
+      <AIPanel
+        v-model:collapsed="aiSidebarVisible"
+        :session-id="currentProjectId"
+        @send="handleAISend"
       />
     </template>
   </EditorLayout>
@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive, nextTick } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 // 引入新的 Store 体系
@@ -87,7 +87,7 @@ import { useWriterStore } from '@/modules/writer/stores/writerStore' // 假如�
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
 import EditorPanel from '@/modules/writer/components/editor/EditorPanel.vue'
 import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
-import AIAssistantSidebar from '@/modules/writer/components/ai/AIAssistantSidebar.vue'
+import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import AIContextMenu from '@/modules/writer/components/ai/AIContextMenu.vue'
 
 // 工具
@@ -208,7 +208,7 @@ const handleCreateDoc = async () => {
 
     showCreateDocDialog.value = false
     newDocForm.value.title = ''
-  } catch (_error) {
+  } catch {
     message.error('创建失败')
   }
 }
@@ -259,38 +259,10 @@ const handleAIAction = (action: string, text?: string) => {
   if (text) writerStore.setSelectedText(text)
 }
 
-const handleInsertText = (text: string) => {
-  // 插入文本到编辑器
-  const editorElement = document.querySelector('.editor-content') as HTMLDivElement
-  if (!editorElement) return
-
-  // 获取当前选区
-  const selection = window.getSelection()
-  if (!selection || !selection.rangeCount) return
-
-  const range = selection.getRangeAt(0)
-  const textNode = document.createTextNode(text)
-  range.insertNode(textNode)
-
-  // 移动光标到插入文本之后
-  range.setStartAfter(textNode)
-  range.collapse(true)
-  selection.removeAllRanges()
-  selection.addRange(range)
-
-  // 触发内容更新
-  const newContent = editorElement.textContent || ''
-  editorStore.setContent(newContent)
-
-  nextTick(() => {
-    editorElement.focus()
-  })
-}
-
-// 专注模式处理
-const handleFocusMode = () => {
-  // 专注模式由EditorPanel内部处理
-  // 这里可以添加额外的逻辑，如隐藏其他UI元素
+const handleAISend = (message: string) => {
+  // 处理AI发送消息事件
+  console.log('[ProjectWorkspace] AI send message:', message)
+  // TODO: 集成到writerStore的AI功能
 }
 </script>
 
