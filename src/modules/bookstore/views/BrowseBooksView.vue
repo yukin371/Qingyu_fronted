@@ -76,35 +76,22 @@
         <div v-else-if="browseStore.books.length > 0">
           <BookGrid :books="browseStore.books" />
 
-          <!-- 桌面端分页 -->
-          <div v-if="!browseStore.isMobile" class="pagination-section">
-            <Pagination
-              :current-page="browseStore.filters.page"
-              :page-size="browseStore.filters.pageSize"
-              :total="browseStore.pagination.total"
-              :page-sizes="[12, 24, 36, 48]"
-              layout="total, sizes, prev, pager, next"
-              @update:current-page="handlePageChange"
-              @update:page-size="handleSizeChange"
-            />
-          </div>
-
-          <!-- 移动端加载更多 -->
-          <div v-else class="load-more-section">
+          <!-- 统一使用无限滚动加载 -->
+          <div class="load-more-section">
             <div ref="loadMoreTrigger" class="load-trigger"></div>
-            <Button
-              v-if="browseStore.pagination.hasMore && !browseStore.loading"
-              @click="loadMore"
-              class="w-full"
-            >
-              加载更多
-            </Button>
-            <div v-else-if="!browseStore.pagination.hasMore" class="no-more">
-              没有更多了
+
+            <!-- 加载中的状态 -->
+            <div v-if="browseStore.loading" class="loading-state">
+              <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
-            <!-- 加载更多时的骨架屏 -->
-            <div v-if="browseStore.loading" class="loading-more">
-              <BookGridSkeleton :count="4" />
+
+            <!-- 没有更多了 -->
+            <div v-else-if="!browseStore.pagination.hasMore" class="no-more">
+              - 没有更多了 -
             </div>
           </div>
         </div>
@@ -141,7 +128,6 @@ import BookGridSkeleton from '../components/BrowseBooks/BookGridSkeleton.vue'
 import { Button } from '@/design-system/base/Button'
 import { Icon } from '@/design-system/base/Icon'
 import { Empty } from '@/design-system/base/Empty'
-import { Pagination } from '@/design-system/data'
 
 const browseStore = useBrowseStore()
 const metaStore = useMetaStore()
@@ -155,7 +141,9 @@ const statuses = ref([
 // 可用标签（从 metaStore 获取，或使用默认值）
 const availableTags = computed(() => {
   if (metaStore.tags.length > 0) {
-    return metaStore.tags.map((t: any) => typeof t === 'string' ? t : t.name)
+    return metaStore.tags.map((t: string | { name: string }) =>
+      typeof t === 'string' ? t : t.name
+    )
   }
   return ['热血', '穿越', '系统', '爽文']
 })
@@ -213,21 +201,7 @@ const handleResetFilters = () => {
   fetchBooks()
 }
 
-// 分页处理
-const handlePageChange = (page: number) => {
-  browseStore.filters.page = page
-  browseStore.syncFiltersToURL()
-  fetchBooks()
-}
-
-const handleSizeChange = (size: number) => {
-  browseStore.filters.pageSize = size
-  browseStore.filters.page = 1
-  browseStore.syncFiltersToURL()
-  fetchBooks()
-}
-
-// 移动端加载更多
+// 无限滚动加载更多
 const loadMore = async () => {
   if (browseStore.loading || !browseStore.pagination.hasMore) return
   browseStore.filters.page++
@@ -235,14 +209,13 @@ const loadMore = async () => {
   browseStore.syncFiltersToURL()
 }
 
-// 移动端无限滚动触发器
+// 无限滚动触发器（所有设备）
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 useIntersectionObserver(
   loadMoreTrigger,
   ([{ isIntersecting }]) => {
     if (isIntersecting &&
-        browseStore.isMobile &&
         !browseStore.loading &&
         browseStore.pagination.hasMore &&
         browseStore.books.length > 0) {
@@ -337,21 +310,51 @@ onMounted(async () => {
   padding: 60px 20px;
 }
 
-.pagination-section {
-  display: flex;
-  justify-content: center;
-  margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e8e8e8;
-}
-
+/* 无限滚动区域 */
 .load-more-section {
-  margin-top: 24px;
+  margin-top: 32px;
   text-align: center;
+  padding: 20px 0;
 }
 
 .load-trigger {
   height: 1px;
+}
+
+/* 加载动画 */
+.loading-state {
+  padding: 20px 0;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+
+  span {
+    width: 8px;
+    height: 8px;
+    background: #409eff;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+
+    &:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+  }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
 
 .no-more {
@@ -359,14 +362,7 @@ onMounted(async () => {
   padding: 20px;
   color: #999;
   font-size: 14px;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.loading-more {
-  margin-top: 16px;
+  letter-spacing: 1px;
 }
 
 @media (max-width: 640px) {
@@ -401,9 +397,8 @@ onMounted(async () => {
     margin-top: 8px;
   }
 
-  .pagination-section {
+  .load-more-section {
     margin-top: 24px;
-    padding-top: 16px;
   }
 }
 </style>

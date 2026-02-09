@@ -40,7 +40,7 @@
           <el-image :src="book.cover || book.coverUrl" :alt="book.title" class="book-cover" fit="cover" loading="lazy">
             <template #error>
               <div class="image-slot">
-                <QyIcon name="Picture"  />
+                <!-- 图片加载失败时的简洁占位 -->
               </div>
             </template>
           </el-image>
@@ -161,11 +161,6 @@ const handleBookClick = (book) => {
 const formatRating = (rating) => {
   if (!rating || typeof rating !== 'number') return '0.0'
   return rating.toFixed(1)
-}
-
-const formatNumber = (num) => {
-  if (!num) return '0'
-  return num > 9999 ? (num / 10000).toFixed(1) + 'w' : num
 }
 </script>
 
