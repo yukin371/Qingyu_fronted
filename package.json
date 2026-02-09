@@ -10,6 +10,8 @@
     "build:prod": "vite build --mode production",
     "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "deploy:vercel": "node scripts/deploy.js vercel",
     "deploy:cloudbase": "node scripts/deploy.js cloudbase",
     "deploy:server": "node scripts/deploy.js server",
