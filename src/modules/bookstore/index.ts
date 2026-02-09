@@ -7,7 +7,7 @@ export { bookstoreService } from './services/bookstore.service'
 export { searchService } from './services/search.service'
 
 // API
-export { bookstoreAPI } from './api/bookstore.api'
+export { bookstoreAPI } from './api/bookstore'
 
 // Store
 export { useBookstoreStore } from './stores/bookstore.store'
