@@ -1,8 +1,55 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-// Element Plus - 保留类型导入和部分组件
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
+import {
+  ElAvatar,
+  ElBacktop,
+  ElButton,
+  ElCarousel,
+  ElCarouselItem,
+  ElCheckbox,
+  ElDialog,
+  ElDrawer,
+  ElDropdown,
+  ElDropdownItem,
+  ElDropdownMenu,
+  ElEmpty,
+  ElFooter,
+  ElForm,
+  ElFormItem,
+  ElHeader,
+  ElIcon,
+  ElInput,
+  ElLink,
+  ElMain,
+  ElMenu,
+  ElMenuItem,
+  ElSkeleton,
+  ElSkeletonItem
+} from 'element-plus'
+import 'element-plus/es/components/avatar/style/css'
+import 'element-plus/es/components/backtop/style/css'
+import 'element-plus/es/components/button/style/css'
+import 'element-plus/es/components/carousel/style/css'
+import 'element-plus/es/components/carousel-item/style/css'
+import 'element-plus/es/components/checkbox/style/css'
+import 'element-plus/es/components/dialog/style/css'
+import 'element-plus/es/components/drawer/style/css'
+import 'element-plus/es/components/dropdown/style/css'
+import 'element-plus/es/components/dropdown-item/style/css'
+import 'element-plus/es/components/dropdown-menu/style/css'
+import 'element-plus/es/components/empty/style/css'
+import 'element-plus/es/components/footer/style/css'
+import 'element-plus/es/components/form/style/css'
+import 'element-plus/es/components/form-item/style/css'
+import 'element-plus/es/components/header/style/css'
+import 'element-plus/es/components/icon/style/css'
+import 'element-plus/es/components/input/style/css'
+import 'element-plus/es/components/link/style/css'
+import 'element-plus/es/components/main/style/css'
+import 'element-plus/es/components/menu/style/css'
+import 'element-plus/es/components/menu-item/style/css'
+import 'element-plus/es/components/skeleton/style/css'
+import 'element-plus/es/components/skeleton-item/style/css'
 
 import App from './App.vue'
 import router from './router'
@@ -66,9 +113,32 @@ if (isDev) {
 app.use(createPinia())
 // 再注册 Router，路由守卫需要访问 store
 app.use(router)
-// Element Plus - 仅保留部分组件（如 ElTree）
-app.use(ElementPlus)
 
+// 首屏仅注册必须的 Element Plus 组件，降低启动解析压力
+app.component(ElAvatar.name, ElAvatar)
+app.component(ElBacktop.name, ElBacktop)
+app.component(ElButton.name, ElButton)
+app.component(ElCarousel.name, ElCarousel)
+app.component(ElCarouselItem.name, ElCarouselItem)
+app.component(ElCheckbox.name, ElCheckbox)
+app.component(ElDialog.name, ElDialog)
+app.component(ElDrawer.name, ElDrawer)
+app.component(ElDropdown.name, ElDropdown)
+app.component(ElDropdownItem.name, ElDropdownItem)
+app.component(ElDropdownMenu.name, ElDropdownMenu)
+app.component(ElEmpty.name, ElEmpty)
+app.component(ElFooter.name, ElFooter)
+app.component(ElForm.name, ElForm)
+app.component(ElFormItem.name, ElFormItem)
+app.component(ElHeader.name, ElHeader)
+app.component(ElIcon.name, ElIcon)
+app.component(ElInput.name, ElInput)
+app.component(ElLink.name, ElLink)
+app.component(ElMain.name, ElMain)
+app.component(ElMenu.name, ElMenu)
+app.component(ElMenuItem.name, ElMenuItem)
+app.component(ElSkeleton.name, ElSkeleton)
+app.component(ElSkeletonItem.name, ElSkeletonItem)
 // 注册 Qingyu 全局服务（兼容 Element Plus API）
 app.config.globalProperties.$message = message
 app.config.globalProperties.$MessageBox = messageBox
@@ -83,4 +153,38 @@ declare module '@vue/runtime-core' {
   }
 }
 
-app.mount('#app')
+// 空闲时补齐全量组件注册，避免后续页面因未注册组件报错
+const runWhenIdle = (task: () => void) => {
+  const requestIdle = (window as Window & {
+    requestIdleCallback?: (cb: () => void) => number
+  }).requestIdleCallback
+
+  if (requestIdle) {
+    requestIdle(task)
+    return
+  }
+  window.setTimeout(task, 800)
+}
+
+const bootstrap = async () => {
+  const path = window.location.pathname || '/'
+  const isBookstoreFirstScreen = path === '/' || path.startsWith('/bookstore')
+
+  if (!isBookstoreFirstScreen) {
+    // 非书城首屏优先保证完整组件可用，避免直达后台页面缺组件
+    const { default: ElementPlus } = await import('element-plus')
+    app.use(ElementPlus)
+    app.mount('#app')
+    return
+  }
+
+  app.mount('#app')
+
+  runWhenIdle(() => {
+    void import('element-plus').then(({ default: ElementPlus }) => {
+      app.use(ElementPlus)
+    })
+  })
+}
+
+void bootstrap()

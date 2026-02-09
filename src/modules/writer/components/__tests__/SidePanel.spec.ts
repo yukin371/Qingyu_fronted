@@ -462,6 +462,61 @@ describe('SidePanel', () => {
       const collapseButton = wrapper.find('.collapse-button')
       expect(collapseButton.attributes('aria-label')).toBeDefined()
     })
+
+    it('应该在aria-label中包含快捷键提示', () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const sidePanel = wrapper.find('.side-panel')
+      expect(sidePanel.attributes('aria-label')).toContain('Ctrl+')
+    })
+
+    it('应该在状态变化时通知屏幕阅读器', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const collapseButton = wrapper.find('.collapse-button')
+      await collapseButton.trigger('click')
+      await nextTick()
+      
+      const statusRegion = wrapper.find('[role="status"]')
+      expect(statusRegion.exists()).toBe(true)
+      expect(statusRegion.text()).toContain('折叠')
+    })
+
+    it('折叠按钮应该有正确的快捷键提示', () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const collapseButton = wrapper.find('.collapse-button')
+      expect(collapseButton.attributes('title')).toContain('Ctrl+')
+    })
+
+    it('应该有ARIA live region用于状态变化通知', () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const statusRegion = wrapper.find('[role="status"]')
+      expect(statusRegion.exists()).toBe(true)
+      expect(statusRegion.attributes('aria-live')).toBe('polite')
+      expect(statusRegion.attributes('aria-atomic')).toBe('true')
+    })
   })
 
   describe('边界情况', () => {
@@ -536,6 +591,135 @@ describe('SidePanel', () => {
       
       // 验证过渡类被应用
       expect(wrapper.find('.side-panel').classes()).toContain('transition-all')
+    })
+  })
+
+  describe('键盘快捷键', () => {
+    it('应该在按下Ctrl+[时折叠左侧面板', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const event = new KeyboardEvent('keydown', {
+        key: '[',
+        ctrlKey: true,
+        bubbles: true
+      })
+      document.dispatchEvent(event)
+      await nextTick()
+      
+      expect(wrapper.vm.isCollapsed).toBe(true)
+    })
+
+    it('应该在按下Ctrl+]时展开左侧面板', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      // 先折叠面板
+      wrapper.vm.isCollapsed = true
+      await nextTick()
+      
+      const event = new KeyboardEvent('keydown', {
+        key: ']',
+        ctrlKey: true,
+        bubbles: true
+      })
+      document.dispatchEvent(event)
+      await nextTick()
+      
+      expect(wrapper.vm.isCollapsed).toBe(false)
+    })
+
+    it('应该阻止Ctrl+[和Ctrl+]的默认行为', () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      const preventDefault = vi.fn()
+      const event = new KeyboardEvent('keydown', {
+        key: '[',
+        ctrlKey: true,
+        bubbles: true
+      })
+      Object.defineProperty(event, 'preventDefault', {
+        value: preventDefault,
+        writable: false
+      })
+      
+      document.dispatchEvent(event)
+      
+      expect(preventDefault).toHaveBeenCalled()
+    })
+
+    it('非左侧面板不应该响应快捷键', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'right',
+          collapsible: true
+        }
+      })
+      
+      const event = new KeyboardEvent('keydown', {
+        key: '[',
+        ctrlKey: true,
+        bubbles: true
+      })
+      document.dispatchEvent(event)
+      await nextTick()
+      
+      // 右侧面板不应该响应
+      expect(wrapper.vm.isCollapsed).toBe(false)
+    })
+
+    it('非collapsible面板不应该响应快捷键', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: false
+        }
+      })
+      
+      const event = new KeyboardEvent('keydown', {
+        key: '[',
+        ctrlKey: true,
+        bubbles: true
+      })
+      document.dispatchEvent(event)
+      await nextTick()
+      
+      // 非collapsible面板不应该响应
+      expect(wrapper.vm.isCollapsed).toBe(false)
+    })
+
+    it('应该只处理Ctrl键组合，不处理其他修饰键', async () => {
+      const wrapper = mount(SidePanel, {
+        props: {
+          position: 'left',
+          collapsible: true
+        }
+      })
+      
+      // Ctrl+Shift+[ 不应该触发
+      const event1 = new KeyboardEvent('keydown', {
+        key: '[',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true
+      })
+      document.dispatchEvent(event1)
+      await nextTick()
+      
+      expect(wrapper.vm.isCollapsed).toBe(false)
     })
   })
 

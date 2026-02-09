@@ -9,15 +9,35 @@
     :style="panelStyle"
     :data-testid="`side-panel-${position}`"
     role="complementary"
-    :aria-label="`${position} panel`"
+    :aria-label="`${position} panel${collapsible ? ' (Ctrl+[ 折叠, Ctrl+] 展开)' : ''}`"
+    :aria-describedby="collapsible ? `${position}-panel-shortcuts` : undefined"
   >
+    <!-- 快捷键提示（仅屏幕阅读器可见） -->
+    <div
+      v-if="collapsible"
+      :id="`${position}-panel-shortcuts`"
+      class="sr-only"
+    >
+      使用 Ctrl+[ 折叠左侧面板，Ctrl+] 展开左侧面板
+    </div>
+
+    <!-- ARIA Live Region - 状态变化通知 -->
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="sr-only"
+    >
+      {{ statusMessage }}
+    </div>
     <!-- 折叠按钮 (仅在collapsible为true时显示) -->
     <button
       v-if="collapsible"
       class="collapse-button"
       :class="{ 'collapsed': isCollapsed }"
-      :aria-label="isCollapsed ? `展开${position}面板` : `折叠${position}面板`"
+      :aria-label="isCollapsed ? `展开${position}面板 (Ctrl+])` : `折叠${position}面板 (Ctrl+[)`"
       :aria-expanded="!isCollapsed"
+      :title="isCollapsed ? `展开 (Ctrl+])` : `折叠 (Ctrl+[)`"
       @click="handleCollapseToggle"
     >
       <span class="collapse-icon">{{ isCollapsed ? '»' : '«' }}</span>
@@ -62,10 +82,19 @@
  * - 无障碍支持
  */
 
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import DragHandle from './DragHandle.vue'
 import { usePanelStore } from '../stores/panelStore'
+
+// ============================================
+// 键盘快捷键常量
+// ============================================
+
+const KEYBOARD_SHORTCUTS = {
+  COLLAPSE: '[',
+  EXPAND: ']'
+} as const
 
 // ============================================
 // Props 定义
@@ -118,6 +147,7 @@ const panelStore = usePanelStore()
 
 const panelRef = ref<HTMLElement | null>(null)
 const isCollapsed = ref(false)
+const statusMessage = ref('')
 
 // ============================================
 // 计算属性
@@ -182,7 +212,19 @@ const dragHandlePosition = computed(() => {
  * 切换折叠状态
  */
 const handleCollapseToggle = () => {
-  isCollapsed.value = !isCollapsed.value
+  if (isCollapsed.value) {
+    expand()
+  } else {
+    collapse()
+  }
+}
+
+/**
+ * 折叠面板
+ */
+const collapse = () => {
+  isCollapsed.value = true
+  statusMessage.value = `${props.position === 'left' ? '左侧' : '右侧'}面板已折叠`
 
   // 如果是右侧面板，同步更新store
   if (props.position === 'right') {
@@ -190,11 +232,23 @@ const handleCollapseToggle = () => {
   }
 
   // 触发事件
-  if (isCollapsed.value) {
-    emit('collapse')
-  } else {
-    emit('expand')
+  emit('collapse')
+}
+
+/**
+ * 展开面板
+ */
+const expand = () => {
+  isCollapsed.value = false
+  statusMessage.value = `${props.position === 'left' ? '左侧' : '右侧'}面板已展开`
+
+  // 如果是右侧面板，同步更新store
+  if (props.position === 'right') {
+    panelStore.toggleRightCollapsed()
   }
+
+  // 触发事件
+  emit('expand')
 }
 
 /**
@@ -237,11 +291,39 @@ if (props.position === 'right') {
 // 生命周期
 // ============================================
 
+/**
+ * 处理键盘快捷键
+ * 只处理左侧面板的Ctrl+[和Ctrl+]快捷键
+ */
+const handleKeyboardShortcut = (event: KeyboardEvent) => {
+  // 只处理左侧面板和可折叠的面板
+  if (props.position !== 'left' || !props.collapsible) return
+
+  // 检查Ctrl键和对应的按键
+  if (event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
+    if (event.key === KEYBOARD_SHORTCUTS.COLLAPSE) {
+      event.preventDefault()
+      collapse()
+    } else if (event.key === KEYBOARD_SHORTCUTS.EXPAND) {
+      event.preventDefault()
+      expand()
+    }
+  }
+}
+
 onMounted(() => {
   // 初始化折叠状态
   if (props.position === 'right') {
     isCollapsed.value = panelStore.rightCollapsed
   }
+
+  // 添加键盘事件监听器
+  document.addEventListener('keydown', handleKeyboardShortcut)
+})
+
+onUnmounted(() => {
+  // 移除键盘事件监听器
+  document.removeEventListener('keydown', handleKeyboardShortcut)
 })
 
 // ============================================
@@ -272,6 +354,30 @@ defineExpose({
  * 使用 VSCode 主题 CSS 变量
  * 参见: src/design-system/themes/vscode-dark.scss
  */
+
+/* 屏幕阅读器专用样式 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
 
 .side-panel {
   /* 基础样式 */

@@ -21,6 +21,14 @@ export interface DragStartEvent {
   position: 'left' | 'right'
   startX: number
   startY: number
+  source?: 'mouse' | 'touch'
+}
+
+export interface TouchGestureOptions {
+  /** 边缘阈值（避免与系统手势冲突） */
+  edgeThreshold?: number
+  /** 是否阻止默认行为 */
+  preventDefault?: boolean
 }
 
 export interface UsePanelResizeOptions {
@@ -36,7 +44,7 @@ export interface UsePanelResizeOptions {
   collapsible?: boolean
 }
 
-export function usePanelResize(options: UsePanelResizeOptions) {
+export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: TouchGestureOptions) {
   // 检查是否在组件上下文中
   const isInComponent = !!getCurrentInstance()
   const {
@@ -46,6 +54,12 @@ export function usePanelResize(options: UsePanelResizeOptions) {
     maxWidth = 600,
     collapsible = false
   } = options
+
+  // 触摸手势配置
+  const {
+    edgeThreshold = 20,
+    preventDefault = true
+  } = touchOptions || {}
 
   // panelStore集成
   const panelStore = usePanelStore()
@@ -101,18 +115,36 @@ export function usePanelResize(options: UsePanelResizeOptions) {
   const isDragging = ref(false)
   const dragStartX = ref(0)
   const dragStartWidth = ref(0)
+  const dragSource = ref<'mouse' | 'touch'>('mouse')
+  const currentTouchId = ref<number | null>(null)
 
   /**
    * 开始拖拽
    */
   const startDrag = (event: DragStartEvent) => {
+    // 检查是否在边缘区域（触摸手势）
+    if (event.source === 'touch') {
+      const isInEdgeArea = event.startX < edgeThreshold || event.startX > window.innerWidth - edgeThreshold
+      if (isInEdgeArea) {
+        // 边缘区域降低灵敏度，避免与系统手势冲突
+        return
+      }
+    }
+
     isDragging.value = true
     dragStartX.value = event.startX
     dragStartWidth.value = currentWidth.value
+    dragSource.value = event.source || 'mouse'
 
-    // 添加全局事件监听器
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
+    // 添加全局事件监听器（根据来源选择事件类型）
+    if (event.source === 'touch') {
+      window.addEventListener('touchmove', handleTouchMove, { passive: !preventDefault })
+      window.addEventListener('touchend', handleTouchEnd)
+      window.addEventListener('touchcancel', handleTouchEnd)
+    } else {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+    }
   }
 
   /**
@@ -142,6 +174,48 @@ export function usePanelResize(options: UsePanelResizeOptions) {
   }
 
   /**
+   * 处理触摸移动
+   */
+  const handleTouchMove = (event: TouchEvent) => {
+    if (!isDragging.value || currentTouchId.value === null) return
+
+    const touch = event.touches[0]
+    if (!touch) return
+
+    // 计算触摸移动距离
+    const deltaX = touch.clientX - dragStartX.value
+
+    // 根据面板位置计算新宽度
+    let newWidth: number
+    if (panelId === 'left') {
+      // 左侧面板：向右拖拽增加宽度
+      newWidth = dragStartWidth.value + deltaX
+    } else {
+      // 右侧面板：向左拖拽增加宽度
+      newWidth = dragStartWidth.value - deltaX
+    }
+
+    // 应用宽度约束
+    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
+
+    // 更新本地宽度（拖拽过程中不更新store，避免频繁保存localStorage）
+    localWidth.value = newWidth
+
+    // 阻止默认行为（如滚动）
+    if (preventDefault) {
+      event.preventDefault()
+    }
+  }
+
+  /**
+   * 处理触摸结束
+   */
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (!isDragging.value) return
+    stopDrag()
+  }
+
+  /**
    * 处理鼠标松开
    */
   const handleMouseUp = () => {
@@ -164,10 +238,17 @@ export function usePanelResize(options: UsePanelResizeOptions) {
     }
 
     isDragging.value = false
+    currentTouchId.value = null
 
-    // 移除事件监听器
-    window.removeEventListener('mousemove', handleMouseMove)
-    window.removeEventListener('mouseup', handleMouseUp)
+    // 移除事件监听器（根据来源移除）
+    if (dragSource.value === 'touch') {
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('touchcancel', handleTouchEnd)
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
   }
 
   /**
@@ -195,6 +276,9 @@ export function usePanelResize(options: UsePanelResizeOptions) {
     }
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
+    window.removeEventListener('touchmove', handleTouchMove)
+    window.removeEventListener('touchend', handleTouchEnd)
+    window.removeEventListener('touchcancel', handleTouchEnd)
   }
 
   // 组件卸载时清理（仅在组件上下文中）
@@ -215,6 +299,21 @@ export function usePanelResize(options: UsePanelResizeOptions) {
     onDrag,
     stopDrag,
     toggleCollapse,
-    cleanup
+    cleanup,
+
+    // 触摸支持
+    handleTouchStart: (event: TouchEvent) => {
+      const touch = event.touches[0]
+      if (!touch) return
+
+      currentTouchId.value = event.changedTouches[0].identifier
+
+      startDrag({
+        position: panelId,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        source: 'touch',
+      })
+    },
   }
 }

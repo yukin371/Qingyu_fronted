@@ -212,8 +212,8 @@ defineExpose({
   flex-shrink: 0;
   height: 100%;
 
-  /* 过渡动画 */
-  transition: width var(--transition-normal, 200ms) cubic-bezier(0.4, 0, 0.2, 1);
+  /* 过渡动画 - 使用统一变量 */
+  transition: width var(--transition-base) var(--transition-ease-in-out);
 
   /* VSCode 主题变量 */
   background-color: var(--color-sideBar-background, #252526);
@@ -274,9 +274,9 @@ defineExpose({
   border-radius: 4px;
   color: var(--color-button-secondaryForeground, #cccccc);
 
-  /* 交互样式 */
+  /* 交互样式 - 使用快速过渡 */
   cursor: pointer;
-  transition: all var(--transition-fast, 100ms) ease-out;
+  transition: all var(--transition-fast) var(--transition-ease-out);
 
   /* 无障碍 */
   outline: none;
@@ -325,8 +325,8 @@ defineExpose({
   overflow: auto;
   height: 100%;
 
-  /* 过渡动画 */
-  transition: opacity var(--transition-normal, 200ms) ease-out;
+  /* 过渡动画 - 使用统一变量 */
+  transition: opacity var(--transition-base) var(--transition-ease-out);
 
   /* 隐藏滚动条但保留滚动功能 */
   scrollbar-width: thin;

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import tailwindcss from '@tailwindcss/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -8,7 +9,7 @@ import { fileURLToPath, URL } from 'node:url'
 // Vitest 和 Storybook 环境下禁用，避免兼容性问题
 const isTest = process.env.VITEST || process.env.NODE_ENV === 'test'
 const isStorybook = process.env.STORYBOOK === 'true' || process.env.npm_lifecycle_event === 'storybook'
-const plugins = [vue({
+const plugins = [tailwindcss(), vue({
   // 启用 JSX 支持
   script: {
     defineModel: true,
@@ -64,8 +65,6 @@ export default defineConfig({
         manualChunks: {
           // Vue核心库
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // Element Plus UI库
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
           // 图表库
           'echarts': ['echarts'],
           // 工具库
