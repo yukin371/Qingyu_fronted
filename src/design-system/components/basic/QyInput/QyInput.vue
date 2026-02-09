@@ -49,14 +49,15 @@ const baseInputClasses = computed(() => {
   return [
     'w-full',
     'px-4 py-3',
-    'rounded-xl',
-    'bg-white/80',
-    'border border-white/50',
-    'text-slate-800',
-    'placeholder:text-slate-400',
-    'transition-all',
-    'focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500',
-    'disabled:opacity-50 disabled:cursor-not-allowed'
+    'rounded-2xl',
+    'bg-white/72 backdrop-blur-md',
+    'border border-white/80',
+    'text-slate-800 shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]',
+    'placeholder:text-slate-400/95',
+    'transition-all duration-300',
+    'focus:outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-500/15 focus:bg-white',
+    'hover:border-blue-100',
+    'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100/80 disabled:border-slate-200'
   ].join(' ')
 })
 

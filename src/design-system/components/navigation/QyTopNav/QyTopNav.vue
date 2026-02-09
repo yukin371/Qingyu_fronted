@@ -148,6 +148,8 @@ const handleAvatarClick = () => {
 </script>
 
 <style scoped>
+@reference "@/style.css";
+
 .nav-btn {
   @apply p-2.5 rounded-xl bg-white/50 border border-white/50 shadow-sm;
   @apply hover:bg-white transition-all duration-300 active:scale-95;

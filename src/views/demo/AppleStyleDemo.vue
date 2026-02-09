@@ -443,6 +443,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@reference "@/style.css";
+
 /* ========================================
   1. 核心工具类
   ======================================== */
@@ -463,11 +465,17 @@ onBeforeUnmount(() => {
   3. 底部导航按钮样式 (使用您提供的简洁优雅样式)
   ======================================== */
 .dock-btn {
-  @apply flex flex-col md:flex-row items-center justify-center;
+  @apply flex flex-col items-center justify-center;
   @apply p-3 rounded-2xl transition-all duration-300;
   @apply hover:scale-105;
   position: relative;
   transform: translateY(-8px);  /* 让图标略微上浮在胶囊上方 */
+}
+
+@media (min-width: 768px) {
+  .dock-btn {
+    flex-direction: row;
+  }
 }
 
 /* 普通按钮悬停 - 上浮效果 */

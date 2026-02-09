@@ -103,6 +103,8 @@ const handleTabClick = (tab: QyTabBarTab, index: number) => {
 </script>
 
 <style scoped>
+@reference "@/style.css";
+
 /* ========================================
    Tab Bar Container
    ======================================== */
@@ -110,7 +112,7 @@ const handleTabClick = (tab: QyTabBarTab, index: number) => {
   @apply flex items-center justify-around;
   @apply bg-white/80 backdrop-blur-2xl;
   @apply border-t border-white/50;
-  @apply safe-area-bottom;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* Position: Top */

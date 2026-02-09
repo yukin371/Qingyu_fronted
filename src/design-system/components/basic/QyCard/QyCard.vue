@@ -3,16 +3,20 @@
     :class="cardClasses"
     @click="handleClick"
   >
+    <div class="qy-card__aurora" aria-hidden="true"></div>
+
     <!-- Title Slot -->
-    <div v-if="$slots.title" class="mb-4">
+    <div v-if="$slots.title" class="mb-4 relative z-[1]">
       <slot name="title" />
     </div>
 
     <!-- Default Slot -->
-    <slot />
+    <div class="relative z-[1]">
+      <slot />
+    </div>
 
     <!-- Footer Slot -->
-    <div v-if="$slots.footer" class="mt-4 pt-4 border-t border-white/30">
+    <div v-if="$slots.footer" class="mt-4 pt-4 border-t border-white/50 relative z-[1]">
       <slot name="footer" />
     </div>
   </div>
@@ -38,13 +42,13 @@ defineSlots<{ default?: () => any; title?: () => any; footer?: () => any }>()
 const cardClasses = computed(() => {
   const classes = [
     // Base styles
-    'bg-white/60 backdrop-blur-xl border border-white/50 rounded-3xl p-6',
+    'qy-card relative overflow-hidden bg-white/72 backdrop-blur-xl border border-white/85 rounded-[1.7rem] p-6',
     // Transition
-    'transition-all duration-500',
+    'transition-all duration-500 ease-out',
     // Shadow
-    props.shadow && 'shadow-sm',
+    props.shadow && 'shadow-[0_18px_44px_-26px_rgba(15,23,42,0.48)]',
     // Hoverable styles
-    props.hoverable && 'cursor-pointer hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1'
+    props.hoverable && 'cursor-pointer hover:shadow-[0_26px_60px_-28px_rgba(37,99,235,0.35)] hover:-translate-y-1'
   ]
 
   return classes.filter(Boolean).join(' ')
@@ -57,3 +61,14 @@ const handleClick = (event: MouseEvent) => {
   }
 }
 </script>
+
+<style scoped>
+.qy-card__aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.12), transparent 36%),
+    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.1), transparent 34%);
+}
+</style>

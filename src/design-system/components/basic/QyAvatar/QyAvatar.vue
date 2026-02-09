@@ -100,16 +100,15 @@ const avatarWrapperClasses = computed(() => {
     'relative',
     'overflow-hidden',
     'rounded-full',
-    'bg-white/60',
-    'backdrop-blur-sm',
-    'border-2',
-    'border-white/50',
-    'shadow-sm',
+    'bg-white/70',
+    'backdrop-blur-md',
+    'border-2 border-white/85',
+    'shadow-[0_10px_24px_-16px_rgba(15,23,42,0.5)]',
     'cursor-pointer',
     'transition-all',
-    'duration-300',
-    'hover:shadow-md',
-    'hover:scale-105',
+    'duration-300 ease-out',
+    'hover:shadow-[0_14px_30px_-16px_rgba(37,99,235,0.45)]',
+    'hover:scale-105 hover:-translate-y-0.5',
     sizeClasses.value
   ].join(' ')
 })
@@ -119,7 +118,7 @@ const avatarImageClasses = computed(() => {
   return [
     'w-full',
     'h-full',
-    'object-cover'
+    'object-cover saturate-[1.05]'
   ].join(' ')
 })
 
@@ -131,8 +130,8 @@ const avatarPlaceholderClasses = computed(() => {
     'flex',
     'items-center',
     'justify-center',
-    'bg-slate-100',
-    'text-slate-400'
+    'bg-gradient-to-br from-slate-100 to-slate-200',
+    'text-slate-500'
   ].join(' ')
 })
 
@@ -189,9 +188,8 @@ const groupAvatarClasses = computed(() => {
     'relative',
     'overflow-hidden',
     'rounded-full',
-    'border-2',
-    'border-white',
-    'shadow-sm',
+    'border-2 border-white/90',
+    'shadow-[0_8px_20px_-14px_rgba(15,23,42,0.45)]',
     sizeClasses.value
   ].join(' ')
 })

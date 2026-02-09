@@ -43,6 +43,8 @@ function handleThemeChange(themeName: ThemeName) {
 </template>
 
 <style scoped>
+@reference "@/style.css";
+
 .theme-switcher {
   @apply flex items-center;
 }

@@ -43,32 +43,32 @@ defineSlots<{ default?: () => any }>()
 const colorClasses = computed(() => {
   const colors = {
     cyan: {
-      bg: 'bg-primary-500',
+      bg: 'bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_100%)]',
       text: 'text-white',
-      dot: 'bg-primary-500'
+      dot: 'bg-blue-500'
     },
     blue: {
-      bg: 'bg-secondary-500',
+      bg: 'bg-[linear-gradient(135deg,#3b82f6_0%,#6366f1_100%)]',
       text: 'text-white',
-      dot: 'bg-secondary-500'
+      dot: 'bg-indigo-500'
     },
     green: {
-      bg: 'bg-green-500',
+      bg: 'bg-[linear-gradient(135deg,#22c55e_0%,#16a34a_100%)]',
       text: 'text-white',
       dot: 'bg-green-500'
     },
     red: {
-      bg: 'bg-red-500',
+      bg: 'bg-[linear-gradient(135deg,#ef4444_0%,#dc2626_100%)]',
       text: 'text-white',
       dot: 'bg-red-500'
     },
     yellow: {
-      bg: 'bg-yellow-500',
+      bg: 'bg-[linear-gradient(135deg,#f59e0b_0%,#d97706_100%)]',
       text: 'text-white',
       dot: 'bg-yellow-500'
     },
     purple: {
-      bg: 'bg-purple-500',
+      bg: 'bg-[linear-gradient(135deg,#8b5cf6_0%,#7c3aed_100%)]',
       text: 'text-white',
       dot: 'bg-purple-500'
     }
@@ -90,8 +90,9 @@ const countBadgeClasses = computed(() => {
     'inline-flex items-center justify-center',
     'px-2 py-0.5',
     'rounded-full',
-    'text-xs font-medium',
+    'text-xs font-semibold',
     'min-w-[20px] h-5',
+    'border border-white/40 shadow-[0_8px_16px_-10px_rgba(15,23,42,0.45)]',
     colorClasses.value.bg,
     colorClasses.value.text
   ].join(' ')
@@ -103,7 +104,8 @@ const statusBadgeClasses = computed(() => {
     'inline-flex items-center',
     'px-3 py-1',
     'rounded-full',
-    'text-sm font-medium',
+    'text-sm font-semibold',
+    'border border-white/45 shadow-[0_10px_22px_-14px_rgba(15,23,42,0.4)]',
     colorClasses.value.bg,
     colorClasses.value.text
   ].join(' ')
@@ -124,6 +126,7 @@ const dotBadgeClasses = computed(() => {
   return [
     'inline-block',
     'rounded-full',
+    'ring-2 ring-white shadow-[0_0_0_1px_rgba(15,23,42,0.08)]',
     dotSizeClasses.value,
     colorClasses.value.dot
   ].join(' ')

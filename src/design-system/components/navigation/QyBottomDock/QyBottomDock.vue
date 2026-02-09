@@ -108,6 +108,8 @@ const handleItemClick = (item: QyBottomDockItem, index: number) => {
 </script>
 
 <style scoped>
+@reference "@/style.css";
+
 /* ========================================
    Dock Container
    ======================================== */
@@ -119,11 +121,17 @@ const handleItemClick = (item: QyBottomDockItem, index: number) => {
    Dock Button Styles
    ======================================== */
 .dock-btn {
-  @apply flex flex-col md:flex-row items-center justify-center;
+  @apply flex flex-col items-center justify-center;
   @apply p-3 rounded-2xl transition-all duration-300;
   @apply hover:scale-105;
   position: relative;
   transform: translateY(-8px); /* 让图标略微上浮在胶囊上方 */
+}
+
+@media (min-width: 768px) {
+  .dock-btn {
+    flex-direction: row;
+  }
 }
 
 /* 普通按钮悬停 - 上浮效果 */
