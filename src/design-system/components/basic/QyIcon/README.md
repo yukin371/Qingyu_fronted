@@ -4,7 +4,7 @@ A flexible icon component for rendering SVG icons with full customization.
 
 ## Features
 
-- 🎨 **90+ Built-in Icons** - Common icons ready to use
+- 🎨 **93+ Built-in Icons** - Common icons ready to use
 - 🎯 **Type-Safe** - Full TypeScript support with icon name autocomplete
 - 🎛️ **Customizable** - Size, color, rotation, and flip transformations
 - ⚡ **Performance** - Inline SVG rendering with no external dependencies
@@ -113,6 +113,9 @@ import { QyIcon } from '@/design-system/components'
 
 ### AI Feature
 - `Sparkles`, `Robot`, `Bot`, `Microphone`, `VoiceInput`, `Lightbulb`, `Idea`, `Brain`, `NeuralNetwork`
+
+### Interaction
+- `cursor-click`, `hand-pointer`, `heart`
 
 ## Props
 

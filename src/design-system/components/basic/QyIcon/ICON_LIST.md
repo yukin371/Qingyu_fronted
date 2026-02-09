@@ -4,7 +4,7 @@
 
 ## 图标分类统计
 
-- **总图标数量**: 90+
+- **总图标数量**: 93+
 - **来源**: Heroicons (MIT License), Tabler Icons (MIT License)
 
 ## 完整图标列表
@@ -219,6 +219,15 @@
 | `Idea` | 创意、灵感 |
 | `Brain` | AI大脑、智能 |
 | `NeuralNetwork` | 神经网络 |
+
+### 交互图标 (Interaction)
+用于鼠标交互、点击等场景。
+
+| 图标名称 | 用途说明 |
+|---------|---------|
+| `cursor-click` | 鼠标点击、可点击 |
+| `hand-pointer` | 手型指针、悬停 |
+| `heart` | 收藏、喜欢、心形 |
 
 ## 使用建议
 
