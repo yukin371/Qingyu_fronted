@@ -86,9 +86,11 @@
   --spacing-lg: 24px;
 
   // ==================== 过渡动画 ====================
-  --transition-fast: 100ms;
-  --transition-normal: 200ms;
-  --transition-slow: 300ms;
+  // 引用全局CSS变量（如果需要主题特定值，可以覆盖）
+  --transition-fast: var(--transition-duration-fast) var(--transition-ease-out);
+  --transition-base: var(--transition-duration-base) var(--transition-ease-out);
+  --transition-normal: var(--transition-duration-normal) var(--transition-ease-in-out);
+  --transition-slow: var(--transition-duration-slow) var(--transition-ease-out-quart);
 
   // ==================== 字体 ====================
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

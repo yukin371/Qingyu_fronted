@@ -82,16 +82,12 @@ setTheme('qingyu')
 ### 获取 Tailwind 配置
 
 ```typescript
-import { getTailwindColors } from '@/design-system/tokens'
+import { tailwindThemeExtension } from '@/design-system/tokens'
 
 // 在 tailwind.config.js 中使用
-const colors = getTailwindColors()
-
-module.exports = {
+export default {
   theme: {
-    extend: {
-      colors,
-    }
+    extend: tailwindThemeExtension,
   }
 }
 ```
@@ -229,28 +225,23 @@ module.exports = {
 
 ## Tailwind 集成
 
-所有令牌都已集成到 Tailwind CSS 配置中：
+所有令牌通过 `tailwind.ts` 聚合后集成到 Tailwind CSS 配置中，`tailwind.config.js` 不再维护分散硬编码值。
 
 ```javascript
 // tailwind.config.js
-const { qingyuTheme, getTailwindColors } = require('./src/design-system/tokens/theme')
+import { tailwindThemeExtension } from './src/design-system/tokens/tailwind'
 
-module.exports = {
+export default {
   theme: {
-    extend: {
-      colors: {
-        primary: qingyuTheme.primary,
-        secondary: qingyuTheme.secondary,
-        gradient: qingyuTheme.gradient,
-        success: qingyuTheme.success,
-        warning: qingyuTheme.warning,
-        danger: qingyuTheme.danger,
-        info: qingyuTheme.info,
-      }
-    }
-  }
+    extend: tailwindThemeExtension
+  },
 }
 ```
+
+`tailwindThemeExtension` 当前统一输出：
+- 颜色（primary/secondary/success/warning/danger/info/slate/semantic）
+- 间距、圆角、字体、字重、行高、字距
+- 阴影、背景渐变、动画、过渡时序
 
 ### 使用示例
 
@@ -332,4 +323,4 @@ npx tsc --noEmit --skipLibCheck
 
 ---
 
-**最后更新**: 2026-01-27
+**最后更新**: 2026-02-08

@@ -1,14 +1,11 @@
 /* 主题过渡动画 */
 @import './styles/theme-transition.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../tailwind.config.js";
+@import "tailwindcss";
 
 /* 全局样式 */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -66,8 +63,6 @@ body {
     padding: 0 2rem;
   }
 }
-
-
 
 
 
