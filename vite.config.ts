@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-undef */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
@@ -26,6 +27,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@/design-system': fileURLToPath(new URL('./src/design-system', import.meta.url)),
       '@/tests': fileURLToPath(new URL('./tests', import.meta.url)),
       '@bookstore': fileURLToPath(new URL('./src/modules/bookstore', import.meta.url)),
       '@reader': fileURLToPath(new URL('./src/modules/reader', import.meta.url)),
@@ -82,5 +84,12 @@ export default defineConfig({
     esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
     }
+  },
+  // 定义全局变量
+  define: {
+    'process.env.VITEST': JSON.stringify(process.env.VITEST),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.STORYBOOK': JSON.stringify(process.env.STORYBOOK),
+    'process.env.npm_lifecycle_event': JSON.stringify(process.env.npm_lifecycle_event)
   }
 })

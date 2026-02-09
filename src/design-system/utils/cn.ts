@@ -5,7 +5,7 @@
  * 避免样式冲突和重复
  */
 
-import { clsx, type ClassValue } from 'clsx'
+import { clsx, type ClassValue as ClsxClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 /**
@@ -18,11 +18,11 @@ import { twMerge } from 'tailwind-merge'
  * cn('px-2', 'py-1', { 'bg-blue-500': true }, ['text-white'])
  * // => 'px-2 py-1 bg-blue-500 text-white'
  */
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClsxClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 /**
  * 导出类型供组件使用
  */
-export type ClassValue = ClassValue
+export type ClassValue = ClsxClassValue

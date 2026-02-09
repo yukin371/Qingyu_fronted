@@ -3,6 +3,8 @@
  *
  * 自定义滚动条样式，与 Qingyu 设计风格一致
  */
+import QyScrollbar from './QyScrollbar.vue'
 
-export { default as QyScrollbar } from './QyScrollbar.vue'
+export { QyScrollbar }
+export default QyScrollbar
 export * from './types'

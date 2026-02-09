@@ -6,8 +6,9 @@
  * 与 Element Plus Select API 兼容
  */
 
-import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { cn } from '../../../utils/cn'
+import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { cn } from '@/design-system/utils/cn'
+import { selectVariants } from './variants'
 import type { QySelectProps, QySelectEmits, QySelectSlots, QySelectOption } from './types'
 
 // 组件 Props
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<QySelectProps>(), {
   multiple: false,
   filterable: false,
   size: 'md',
+  state: 'default',
   loading: false,
   remote: false,
   popperMaxHeight: 200,
@@ -86,19 +88,11 @@ const showClear = computed(() => {
 
 // 计算样式类名
 const selectClasses = computed(() => {
-  const sizeClasses = {
-    sm: 'h-8 px-2 py-1 text-xs',
-    md: 'h-10 px-3 py-2 text-sm',
-    lg: 'h-12 px-4 py-3 text-base',
-  }
-  
   return cn(
-    'relative flex items-center justify-between w-full rounded-lg border',
-    'bg-white text-slate-700 transition-all duration-200',
-    'focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20',
-    'disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
-    sizeClasses[props.size || 'md'],
-    props.disabled ? 'border-slate-300' : 'border-slate-300 hover:border-primary-400',
+    selectVariants({
+      size: props.size,
+      state: props.state
+    }),
     props.class
   )
 })

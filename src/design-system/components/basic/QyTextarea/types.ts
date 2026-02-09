@@ -2,14 +2,16 @@
  * QyTextarea 多行文本框组件类型定义
  */
 
-// QyTextarea 尺寸
-export type QyTextareaSize = 'sm' | 'md' | 'lg'
+import type { TextareaVariants } from './variants'
 
-// QyTextarea 状态
-export type QyTextareaState = 'default' | 'error' | 'success' | 'warning'
+// QyTextarea 尺寸（从 CVA 推导）
+export type QyTextareaSize = TextareaVariants['size']
 
-// QyTextarea 调整大小选项
-export type QyTextareaResize = 'none' | 'both' | 'horizontal' | 'vertical'
+// QyTextarea 状态（从 CVA 推导）
+export type QyTextareaState = TextareaVariants['state']
+
+// QyTextarea 调整大小选项（从 CVA 推导）
+export type QyTextareaResize = TextareaVariants['resize']
 
 // QyTextarea Props 接口
 export interface QyTextareaProps {

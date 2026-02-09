@@ -2,8 +2,13 @@
  * QySelect 选择器组件类型定义
  */
 
-// QySelect 尺寸
-export type QySelectSize = 'sm' | 'md' | 'lg'
+import type { SelectVariants } from './variants'
+
+// QySelect 尺寸（从 CVA 推导）
+export type QySelectSize = SelectVariants['size']
+
+// QySelect 状态（从 CVA 推导）
+export type QySelectState = SelectVariants['state']
 
 // QySelect 选项接口
 export interface QySelectOption {
@@ -76,6 +81,12 @@ export interface QySelectProps {
    * @default 'md'
    */
   size?: QySelectSize
+
+  /**
+   * 状态
+   * @default 'default'
+   */
+  state?: QySelectState
   
   /**
    * 加载状态
@@ -92,7 +103,7 @@ export interface QySelectProps {
   /**
    * 远程搜索方法
    */
-  remoteMethod?: (query: string) => void
+  remoteMethod?: (_query: string) => void
   
   /**
    * 下拉菜单的最大高度（px）
@@ -144,7 +155,7 @@ export interface QySelectSlots {
   /**
    * 默认插槽 - 自定义选项
    */
-  default?: (props: { option: QySelectOption; index: number }) => any
+  default?: (_props: { option: QySelectOption; index: number }) => any
   
   /**
    * 前缀插槽
@@ -164,7 +175,7 @@ export interface QySelectSlots {
   /**
    * 标签插槽（多选时）
    */
-  tag?: (props: { option: QySelectOption; index: number; handleClose: () => void }) => any
+  tag?: (_props: { option: QySelectOption; index: number; handleClose: () => void }) => any
 }
 
 // QySelect 组件默认属性

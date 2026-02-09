@@ -85,6 +85,15 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/demo/tailwind-v4-design-system',
+    name: 'demo-tailwind-v4-design-system',
+    component: () => import('@/views/demo/TailwindV4DesignSystem.vue'),
+    meta: {
+      title: 'Tailwind v4 组件库',
+      layout: 'blank'
+    }
+  },
+  {
     path: '/demo/qingyu-components',
     name: 'QingyuComponentsDemo',
     component: () => import('@/views/demo/QingyuComponentsDemo.vue'),
@@ -117,6 +126,15 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/TypeScriptFixDemo.vue'),
     meta: {
       title: 'TypeScript修复验证Demo',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/qy-badge',
+    name: 'QyBadgeDemo',
+    component: () => import('@/views/demo/QyBadgeDemo.vue'),
+    meta: {
+      title: 'QyBadge组件演示',
       layout: 'blank'
     }
   },

@@ -300,6 +300,18 @@ const demoPages = ref<DemoPage[]>([
 
   // ===== 风格展示 Demo =====
   {
+    key: 'tailwind-v4-design-system',
+    title: 'Tailwind v4 组件库',
+    description: '基于 Tailwind v4 CSS-First 配置的新一代组件库，包含完整的设计令牌系统和 CVA 变体管理。',
+    icon: 'sparkles',
+    color: 'linear-gradient(135deg, #06b6d4 0%, #2563eb 100%)',
+    category: 'style',
+    componentCount: 20,
+    lastUpdated: '2026-02-09',
+    route: '/demo/tailwind-v4-design-system',
+    new: true
+  },
+  {
     key: 'apple-style',
     title: 'Apple 风格组件',
     description: '展示 Apple 设计风格的组件，包括毛玻璃效果、平滑动画等 iOS 风格元素。',

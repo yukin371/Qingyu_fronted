@@ -319,20 +319,62 @@
         <h2 class="text-2xl font-bold text-slate-800 mb-6">QyAvatar</h2>
         <QyCard>
           <div class="space-y-8">
+            <!-- Sizes -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Sizes</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <div class="text-center">
+                  <QyAvatar type="text" text="XS" size="xs" />
+                  <p class="text-xs text-slate-500 mt-1">XS (24px)</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="SM" size="sm" />
+                  <p class="text-xs text-slate-500 mt-1">SM (32px)</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="MD" size="md" />
+                  <p class="text-xs text-slate-500 mt-1">MD (48px)</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="LG" size="lg" />
+                  <p class="text-xs text-slate-500 mt-1">LG (64px)</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="XL" size="xl" />
+                  <p class="text-xs text-slate-500 mt-1">XL (80px)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shapes -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Shapes</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <div class="text-center">
+                  <QyAvatar type="text" text="圆" shape="circle" size="md" />
+                  <p class="text-xs text-slate-500 mt-1">Circle</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="方" shape="square" size="md" />
+                  <p class="text-xs text-slate-500 mt-1">Square</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Image Avatars -->
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Image Avatars</h3>
               <div class="flex flex-wrap items-center gap-4">
                 <div class="text-center">
-                  <QyAvatar type="text" label="U1" alt="User 1" size="sm" />
+                  <QyAvatar type="image" src="https://ui-avatars.com/api/?name=User1&background=random" size="sm" />
                   <p class="text-xs text-slate-500 mt-1">Small</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="text" label="U2" alt="User 2" size="md" />
+                  <QyAvatar type="image" src="https://ui-avatars.com/api/?name=User2&background=random" size="md" />
                   <p class="text-xs text-slate-500 mt-1">Medium</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="text" label="U3" alt="User 3" size="lg" />
+                  <QyAvatar type="image" src="https://ui-avatars.com/api/?name=User3&background=random" size="lg" />
                   <p class="text-xs text-slate-500 mt-1">Large</p>
                 </div>
                 <div class="text-center">
@@ -423,21 +465,25 @@
               </div>
             </div>
 
-            <!-- Avatar Sizes -->
+            <!-- Shape + Size Combinations -->
             <div>
-              <h3 class="text-lg font-semibold text-slate-700 mb-4">Size Comparison</h3>
-              <div class="flex items-end gap-6">
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Shape + Size Combinations</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="text-center">
-                  <QyAvatar type="text" text="SM" color="cyan" size="sm" />
-                  <p class="text-xs text-slate-500 mt-1">Small (32px)</p>
+                  <QyAvatar type="text" text="圆小" shape="circle" size="sm" color="cyan" />
+                  <p class="text-xs text-slate-500 mt-1">Circle + Small</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="text" text="MD" color="cyan" size="md" />
-                  <p class="text-xs text-slate-500 mt-1">Medium (48px)</p>
+                  <QyAvatar type="text" text="圆中" shape="circle" size="md" color="blue" />
+                  <p class="text-xs text-slate-500 mt-1">Circle + Medium</p>
                 </div>
                 <div class="text-center">
-                  <QyAvatar type="text" text="LG" color="cyan" size="lg" />
-                  <p class="text-xs text-slate-500 mt-1">Large (64px)</p>
+                  <QyAvatar type="text" text="方小" shape="square" size="sm" color="green" />
+                  <p class="text-xs text-slate-500 mt-1">Square + Small</p>
+                </div>
+                <div class="text-center">
+                  <QyAvatar type="text" text="方中" shape="square" size="md" color="purple" />
+                  <p class="text-xs text-slate-500 mt-1">Square + Medium</p>
                 </div>
               </div>
             </div>
@@ -451,12 +497,239 @@
                   src="https://ui-avatars.com/api/?name=User12&background=random"
                   alt="Clickable Avatar"
                   size="lg"
+                  :clickable="true"
                   @click="handleAvatarClick"
                 />
                 <div>
                   <p class="font-semibold text-slate-800">Click the avatar!</p>
                   <p class="text-sm text-slate-500">Click count: {{ avatarClickCount }}</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyImage Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyImage</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <!-- Basic Images -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Basic Images</h3>
+              <div class="flex flex-wrap gap-4">
+                <QyImage
+                  src="https://picsum.photos/200/200?random=1"
+                  alt="Image 1"
+                  :width="200"
+                  :height="200"
+                  rounded="md"
+                />
+                <QyImage
+                  src="https://picsum.photos/200/200?random=2"
+                  alt="Image 2"
+                  :width="200"
+                  :height="200"
+                  rounded="lg"
+                />
+                <QyImage
+                  src="https://picsum.photos/200/200?random=3"
+                  alt="Image 3"
+                  :width="200"
+                  :height="200"
+                  rounded="full"
+                />
+              </div>
+            </div>
+
+            <!-- Fit Modes -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Fit Modes</h3>
+              <div class="flex flex-wrap gap-4">
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/300/200?random=4"
+                    alt="Cover"
+                    :width="150"
+                    :height="150"
+                    fit="cover"
+                    rounded="md"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">cover</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/300/200?random=5"
+                    alt="Contain"
+                    :width="150"
+                    :height="150"
+                    fit="contain"
+                    rounded="md"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">contain</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/300/200?random=6"
+                    alt="Fill"
+                    :width="150"
+                    :height="150"
+                    fit="fill"
+                    rounded="md"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">fill</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/300/200?random=7"
+                    alt="Scale-down"
+                    :width="150"
+                    :height="150"
+                    fit="scale-down"
+                    rounded="md"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">scale-down</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shadow Effects -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Shadow Effects</h3>
+              <div class="flex flex-wrap gap-4">
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/200/200?random=8"
+                    alt="No Shadow"
+                    :width="150"
+                    :height="150"
+                    shadow="none"
+                    rounded="lg"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">none</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/200/200?random=9"
+                    alt="Small Shadow"
+                    :width="150"
+                    :height="150"
+                    shadow="sm"
+                    rounded="lg"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">sm</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/200/200?random=10"
+                    alt="Medium Shadow"
+                    :width="150"
+                    :height="150"
+                    shadow="md"
+                    rounded="lg"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">md</p>
+                </div>
+                <div class="text-center">
+                  <QyImage
+                    src="https://picsum.photos/200/200?random=11"
+                    alt="Large Shadow"
+                    :width="150"
+                    :height="150"
+                    shadow="lg"
+                    rounded="lg"
+                  />
+                  <p class="text-xs text-slate-500 mt-1">lg</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Mode -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Preview Mode (Click to zoom)</h3>
+              <div class="flex flex-wrap gap-4">
+                <QyImage
+                  src="https://picsum.photos/400/300?random=12"
+                  alt="Preview Image 1"
+                  :width="200"
+                  :height="150"
+                  rounded="lg"
+                  :preview="true"
+                />
+                <QyImage
+                  src="https://picsum.photos/400/300?random=13"
+                  alt="Preview Image 2"
+                  :width="200"
+                  :height="150"
+                  rounded="lg"
+                  :preview="true"
+                />
+                <QyImage
+                  src="https://picsum.photos/400/300?random=14"
+                  alt="Preview Image 3"
+                  :width="200"
+                  :height="150"
+                  rounded="lg"
+                  :preview="true"
+                />
+              </div>
+            </div>
+
+            <!-- Preview List -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Preview with List Navigation</h3>
+              <div class="flex flex-wrap gap-4">
+                <QyImage
+                  src="https://picsum.photos/400/300?random=15"
+                  alt="Gallery Image 1"
+                  :width="200"
+                  :height="150"
+                  rounded="lg"
+                  :preview="true"
+                  :preview-src-list="[
+                    'https://picsum.photos/800/600?random=15',
+                    'https://picsum.photos/800/600?random=16',
+                    'https://picsum.photos/800/600?random=17',
+                    'https://picsum.photos/800/600?random=18'
+                  ]"
+                />
+                <p class="text-sm text-slate-600">Click image to navigate through preview list</p>
+              </div>
+            </div>
+
+            <!-- Different Sizes -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">Different Sizes</h3>
+              <div class="flex flex-wrap items-end gap-4">
+                <QyImage
+                  src="https://picsum.photos/100/100?random=19"
+                  alt="Small"
+                  :width="100"
+                  :height="100"
+                  rounded="md"
+                />
+                <QyImage
+                  src="https://picsum.photos/150/150?random=20"
+                  alt="Medium"
+                  :width="150"
+                  :height="150"
+                  rounded="md"
+                />
+                <QyImage
+                  src="https://picsum.photos/200/200?random=21"
+                  alt="Large"
+                  :width="200"
+                  :height="200"
+                  rounded="md"
+                />
+                <QyImage
+                  src="https://picsum.photos/250/250?random=22"
+                  alt="Extra Large"
+                  :width="250"
+                  :height="250"
+                  rounded="md"
+                />
               </div>
             </div>
           </div>
@@ -554,7 +827,8 @@ import {
   QyCard,
   QyInput,
   QyBadge,
-  QyAvatar
+  QyAvatar,
+  QyImage
 } from '@/design-system/components'
 import ThemeSwitcher from '@/design-system/other/ThemeSwitcher.vue'
 

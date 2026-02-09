@@ -69,6 +69,18 @@ export type IconName =
   // Auth
   | 'SwitchButton'
 
+  // Book & Library
+  | 'BookOpen' | 'BookClosed' | 'Bookmark' | 'BookmarkFilled'
+  | 'Library' | 'Bookshelf'
+
+  // Empty State
+  | 'BookNotFound' | 'Empty' | 'EmptyFolder' | 'NoData'
+  | 'FileSearch' | 'IllustrationPlaceholder'
+
+  // AI Feature
+  | 'Sparkles' | 'Robot' | 'Bot' | 'Microphone' | 'VoiceInput'
+  | 'Lightbulb' | 'Idea' | 'Brain' | 'NeuralNetwork'
+
 /**
  * QyIcon component props
  */

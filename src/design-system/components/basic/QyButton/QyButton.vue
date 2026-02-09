@@ -2,22 +2,24 @@
   <button
     :class="buttonClasses"
     :disabled="disabled || loading"
+    :type="nativeType"
     :aria-busy="loading || undefined"
     @click="handleClick"
   >
+    <!-- 光晕效果 -->
     <span class="qy-button__glow" aria-hidden="true"></span>
 
-    <!-- Left Icon -->
+    <!-- 左侧图标 -->
     <span
       v-if="icon && iconPosition === 'left' && !loading"
       class="qy-button__icon qy-button__icon--left"
       v-html="icon"
     ></span>
 
-    <!-- Loading Spinner -->
+    <!-- 加载动画 -->
     <svg
       v-if="loading"
-      class="animate-spin mr-2"
+      class="animate-spin qy-button__spinner"
       :class="spinnerSize"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -38,10 +40,10 @@
       ></path>
     </svg>
 
-    <!-- Button Content -->
+    <!-- 按钮内容 -->
     <slot />
 
-    <!-- Right Icon -->
+    <!-- 右侧图标 -->
     <span
       v-if="icon && iconPosition === 'right' && !loading"
       class="qy-button__icon qy-button__icon--right"
@@ -52,70 +54,49 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { cn } from '@/design-system/utils/cn'
+import { buttonVariants } from './variants'
 import type { QyButtonProps, QyButtonEmits } from './types'
 
 // Props
 const props = withDefaults(defineProps<QyButtonProps>(), {
   variant: 'primary',
   size: 'md',
+  stateLayer: 'none',
   disabled: false,
   loading: false,
-  iconPosition: 'left'
+  iconPosition: 'left',
+  nativeType: 'button'
 })
 
 // Emits
 const emit = defineEmits<QyButtonEmits>()
 
-// Compute variant classes
-const variantClasses = computed(() => {
-  const variants = {
-    primary: 'text-white bg-[linear-gradient(120deg,#2563eb_0%,#3b82f6_35%,#6366f1_100%)] shadow-[0_10px_28px_-12px_rgba(37,99,235,0.65)] border border-blue-400/30 hover:shadow-[0_16px_36px_-14px_rgba(59,130,246,0.75)]',
-    secondary: 'text-slate-700 bg-white/78 backdrop-blur-xl border border-white/80 shadow-[0_8px_22px_-14px_rgba(15,23,42,0.35)] hover:bg-white hover:border-blue-100',
-    danger: 'text-white bg-[linear-gradient(135deg,#ef4444_0%,#dc2626_100%)] border border-red-400/35 shadow-[0_10px_24px_-12px_rgba(220,38,38,0.7)] hover:shadow-[0_16px_32px_-14px_rgba(220,38,38,0.8)]',
-    ghost: 'text-slate-700 bg-white/0 border border-transparent hover:bg-slate-100/80 hover:text-slate-900'
-  }
-  return variants[props.variant]
+// 计算按钮类名
+const buttonClasses = computed(() => {
+  return cn(
+    buttonVariants({
+      variant: props.variant,
+      size: props.size,
+      stateLayer: props.stateLayer
+    }),
+    props.class
+  )
 })
 
-// Compute size classes
-const sizeClasses = computed(() => {
-  const sizes = {
-    sm: 'px-3.5 py-2 text-sm rounded-xl',
-    md: 'px-6 py-3 text-base rounded-2xl',
-    lg: 'px-8 py-4 text-lg rounded-[1.1rem]'
-  }
-  return sizes[props.size]
-})
-
-// Compute spinner size
+// 计算加载动画尺寸
 const spinnerSize = computed(() => {
-  const sizes = {
+  const sizeMap = {
+    xs: 'w-3 h-3',
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
-    lg: 'w-6 h-6'
+    lg: 'w-6 h-6',
+    xl: 'w-7 h-7'
   }
-  return sizes[props.size]
+  return sizeMap[props.size]
 })
 
-// Compute all button classes
-const buttonClasses = computed(() => {
-  const classes = [
-    // Base styles
-    'qy-button relative overflow-hidden font-semibold tracking-[0.01em] inline-flex items-center justify-center gap-1.5 transition-all duration-300 select-none',
-    // Disabled state
-    (props.disabled || props.loading) && 'opacity-60 cursor-not-allowed saturate-75',
-    // Active state (not disabled)
-    !(props.disabled || props.loading) && 'hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
-    // Variant styles
-    variantClasses.value,
-    // Size styles
-    sizeClasses.value
-  ]
-
-  return classes.filter(Boolean).join(' ')
-})
-
-// Handle click event
+// 处理点击事件
 const handleClick = (event: MouseEvent) => {
   if (!props.disabled && !props.loading) {
     emit('click', event)
@@ -133,16 +114,20 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .qy-button__icon--left {
-  margin-right: 0.5em;
+  margin-right: 0.375em;
 }
 
 .qy-button__icon--right {
-  margin-left: 0.5em;
+  margin-left: 0.375em;
 }
 
 .qy-button__icon :deep(svg) {
   width: 100%;
   height: 100%;
+}
+
+.qy-button__spinner {
+  margin-right: 0.5rem;
 }
 
 .qy-button__glow {

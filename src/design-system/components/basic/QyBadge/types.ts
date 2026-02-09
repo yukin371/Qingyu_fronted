@@ -1,42 +1,99 @@
 /**
  * QyBadge component type definitions
+ *
+ * 与 Element Plus El-Badge API 兼容
  */
 
-export type QyBadgeType = 'count' | 'status' | 'dot'
-export type QyBadgeColor = 'cyan' | 'blue' | 'green' | 'red' | 'yellow'
+import type { BadgeVariants } from './variants'
 
+/**
+ * 徽章类型（从 CVA 推导）
+ */
+export type QyBadgeType = BadgeVariants['type']
+/**
+ * 徽章颜色（从 CVA 推导）
+ */
+export type QyBadgeColor = BadgeVariants['color']
+/**
+ * 徽章尺寸（从 CVA 推导）
+ */
+export type QyBadgeSize = BadgeVariants['size']
+
+/**
+ * QyBadge Props 接口
+ */
 export interface QyBadgeProps {
   /**
-   * Badge type
-   * @default 'count'
+   * 徽章类型
+   * - dot: 只显示小圆点
+   * - text: 文本徽章
+   * - number: 数字徽章
+   * @default 'number'
    */
   type?: QyBadgeType
 
   /**
-   * Badge color
-   * @default 'cyan'
+   * 徽章颜色
+   * @default 'primary'
    */
   color?: QyBadgeColor
 
   /**
-   * Badge value (for count type)
+   * 徽章尺寸
+   * @default 'md'
    */
-  value?: number
+  size?: QyBadgeSize
 
   /**
-   * Maximum value to display (shows 99+ for larger values)
+   * 数字徽章的值
+   * 当 type 为 'number' 时使用
+   */
+  value?: number | string
+
+  /**
+   * 最大值，超过时显示为 'max+'
+   * 例如 max=99 时，value=100 显示为 '99+'
    * @default 99
    */
   max?: number
 
   /**
-   * Badge text (for status type)
+   * 是否显示0值
+   * 为 false 时，value 为 0 不显示徽章
+   * @default true
    */
-  text?: string
+  showZero?: boolean
 
   /**
-   * Dot size (for dot type)
-   * @default 'md'
+   * 是否只显示小圆点
+   * 设置为 true 时等同于 type='dot'
+   * @default false
    */
-  dotSize?: 'sm' | 'md' | 'lg'
+  isDot?: boolean
+
+  /**
+   * 自定义类名
+   */
+  class?: string
+}
+
+/**
+ * QyBadge Slots 接口
+ */
+export interface QyBadgeSlots {
+  /**
+   * 默认插槽，用于自定义内容
+   * 当 type 为 'text' 时可以使用
+   */
+  default?: () => any
+}
+
+/**
+ * 徽章组件实例暴露的方法
+ */
+export interface QyBadgeInstance {
+  /**
+   * 获取当前显示的值
+   */
+  getDisplayValue: () => string
 }
