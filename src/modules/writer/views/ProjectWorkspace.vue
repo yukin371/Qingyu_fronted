@@ -7,7 +7,8 @@
         v-model:chapterId="currentChapterId"
         :projects="projects"
         :chapters="flatChapters"
-        @add-chapter="showCreateDocDialog = true"
+        @add-chapter="handleAddChapterQuick"
+        @add-volume="handleAddVolumeQuick"
         @delete-chapter="handleDeleteChapter"
       />
     </template>
@@ -191,6 +192,16 @@ const handleContentUpdate = (newContent: string) => {
   editorStore.setContent(newContent)
 }
 
+const handleAddChapterQuick = () => {
+  newDocForm.value.type = 'chapter'
+  showCreateDocDialog.value = true
+}
+
+const handleAddVolumeQuick = () => {
+  newDocForm.value.type = 'volume'
+  showCreateDocDialog.value = true
+}
+
 // 手动保存内容
 const handleManualSave = async () => {
   await editorStore.save()
@@ -209,6 +220,7 @@ const handleCreateDoc = async () => {
 
     showCreateDocDialog.value = false
     newDocForm.value.title = ''
+    newDocForm.value.type = 'chapter'
   } catch {
     message.error('创建失败')
   }

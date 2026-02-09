@@ -255,22 +255,58 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
 
+  // 确保导航栏横向排列为一行
   :deep(.el-tabs__header) {
     margin-bottom: 24px;
+    border-bottom: 1px solid #e4e7ed;
   }
 
-  :deep(.el-tabs__nav-wrap::after) {
-    background-color: transparent;
+  :deep(.el-tabs__nav-wrap) {
+    display: flex;
+    &::after {
+      display: none;
+    }
+  }
+
+  :deep(.el-tabs__nav-scroll) {
+    display: flex;
+  }
+
+  :deep(.el-tabs__nav) {
+    display: flex;
+    border: none;
   }
 
   :deep(.el-tabs__item) {
     font-size: 16px;
     font-weight: 500;
     padding: 0 24px;
+    height: 44px;
+    line-height: 44px;
+    white-space: nowrap;
+    border: none;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #409eff;
+      background: #ecf5ff;
+      border-radius: 8px;
+    }
+
+    &.is-active {
+      color: #409eff;
+      font-weight: 600;
+      background: #ecf5ff;
+      border-radius: 8px;
+    }
   }
 
-  :deep(.el-tabs__item.is-active) {
-    color: #409eff;
+  :deep(.el-tabs__active-bar) {
+    display: none;
+  }
+
+  :deep(.el-tabs__content) {
+    overflow: visible;
   }
 }
 
