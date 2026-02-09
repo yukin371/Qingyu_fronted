@@ -51,6 +51,27 @@ type RoleSource = {
   role?: string
 }
 
+function isUnauthorizedAuthError(error: unknown): boolean {
+  const err = error as {
+    response?: { status?: number; data?: { code?: string | number } }
+    code?: string | number
+  }
+
+  const status = err?.response?.status
+  const responseCode = err?.response?.data?.code
+  const code = err?.code
+
+  if (status === 401) return true
+
+  const authErrorCodes = new Set<string | number>([
+    1002, 1102, 1103, 2007, 2008, 2009, 2010, 2016,
+    '1002', '1102', '1103', '2007', '2008', '2009', '2010', '2016',
+    'UNAUTHORIZED'
+  ])
+
+  return authErrorCodes.has(responseCode as string | number) || authErrorCodes.has(code as string | number)
+}
+
 function normalizeRoles(user?: RoleSource | null, responseRoles?: string[] | null): string[] {
   if (Array.isArray(user?.roles) && user.roles.length > 0) {
     return user.roles
@@ -225,8 +246,14 @@ export const useAuthStore = defineStore('auth', {
           console.log('[initAuth] getUserInfo成功，用户已登录')
         } catch (error) {
           console.error('[initAuth] getUserInfo失败:', error)
-          // 修复：不完全清空状态，而是尝试从 localStorage 恢复
-          // 如果 localStorage 中有 token 和 roles，保持登录状态
+          // 认证错误（401/token失效）必须清空状态，避免“看起来已登录但接口一直401”
+          if (isUnauthorizedAuthError(error)) {
+            console.warn('[initAuth] 检测到认证失效，清空本地登录态')
+            this.clearAuth()
+            return
+          }
+
+          // 非认证错误（如短时网络问题）允许从本地恢复，减少误登出
           const hasTokenInStorage = storage.has(STORAGE_KEYS.TOKEN)
           const hasRolesInStorage = storage.has(STORAGE_KEYS.ROLES)
 
@@ -275,6 +302,7 @@ export const useAuthStore = defineStore('auth', {
         storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
         storage.set(STORAGE_KEYS.USER, this.user)
         storage.set(STORAGE_KEYS.ROLES, this.roles)
+        localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
 
         return response
       } catch (error: unknown) {
@@ -310,6 +338,7 @@ export const useAuthStore = defineStore('auth', {
           storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           storage.set(STORAGE_KEYS.USER, this.user)
           storage.set(STORAGE_KEYS.ROLES, this.roles)
+          localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
         }
 
         return response
@@ -422,6 +451,7 @@ export const useAuthStore = defineStore('auth', {
           // 更新本地存储
           storage.set(STORAGE_KEYS.TOKEN, this.token)
           storage.set(STORAGE_KEYS.ROLES, this.roles)
+          localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
           if ('refreshToken' in data && data.refreshToken) {
             storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           }
@@ -529,6 +559,7 @@ export const useAuthStore = defineStore('auth', {
       storage.remove(STORAGE_KEYS.REFRESH_TOKEN)
       storage.remove(STORAGE_KEYS.USER)
       storage.remove(STORAGE_KEYS.ROLES)
+      localStorage.removeItem(STORAGE_KEYS.TOKEN)
     },
 
     // 清除错误信息

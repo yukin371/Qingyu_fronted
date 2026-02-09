@@ -59,7 +59,22 @@ const routes: RouteRecordRaw[] = [
   ...discoveryRoutes,
   ...readingStatsRoutes,
 
-  // 演示页面
+  // Demo Hub - 统一入口
+  {
+    path: '/demo',
+    name: 'demo-hub',
+    component: () => import('@/views/demo/DemoHub.vue'),
+    meta: {
+      title: '青羽 Demo 中心',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/index',
+    redirect: '/demo'
+  },
+
+  // 演示页面（支持 ?test=true 自动启用 Mock 数据）
   {
     path: '/demo/apple-style',
     name: 'demo-apple-style',
