@@ -2,19 +2,24 @@
   <button
     :class="buttonClasses"
     :disabled="disabled || loading"
+    :type="nativeType"
+    :aria-busy="loading || undefined"
     @click="handleClick"
   >
-    <!-- Left Icon -->
+    <!-- 光晕效果 -->
+    <span class="qy-button__glow" aria-hidden="true"></span>
+
+    <!-- 左侧图标 -->
     <span
       v-if="icon && iconPosition === 'left' && !loading"
       class="qy-button__icon qy-button__icon--left"
       v-html="icon"
     ></span>
 
-    <!-- Loading Spinner -->
+    <!-- 加载动画 -->
     <svg
       v-if="loading"
-      class="animate-spin mr-2"
+      class="animate-spin qy-button__spinner"
       :class="spinnerSize"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -35,10 +40,10 @@
       ></path>
     </svg>
 
-    <!-- Button Content -->
+    <!-- 按钮内容 -->
     <slot />
 
-    <!-- Right Icon -->
+    <!-- 右侧图标 -->
     <span
       v-if="icon && iconPosition === 'right' && !loading"
       class="qy-button__icon qy-button__icon--right"
@@ -49,70 +54,49 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { cn } from '@/design-system/utils/cn'
+import { buttonVariants } from './variants'
 import type { QyButtonProps, QyButtonEmits } from './types'
 
 // Props
 const props = withDefaults(defineProps<QyButtonProps>(), {
   variant: 'primary',
   size: 'md',
+  stateLayer: 'none',
   disabled: false,
   loading: false,
-  iconPosition: 'left'
+  iconPosition: 'left',
+  nativeType: 'button'
 })
 
 // Emits
 const emit = defineEmits<QyButtonEmits>()
 
-// Compute variant classes
-const variantClasses = computed(() => {
-  const variants = {
-    primary: 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:shadow-lg hover:shadow-primary-500/30',
-    secondary: 'bg-white/60 backdrop-blur-xl border border-white/50 text-slate-700 hover:bg-white',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
-    ghost: 'text-primary-600 hover:bg-primary-50'
-  }
-  return variants[props.variant]
+// 计算按钮类名
+const buttonClasses = computed(() => {
+  return cn(
+    buttonVariants({
+      variant: props.variant,
+      size: props.size,
+      stateLayer: props.stateLayer
+    }),
+    props.class
+  )
 })
 
-// Compute size classes
-const sizeClasses = computed(() => {
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-lg',
-    md: 'px-6 py-3 text-base rounded-xl',
-    lg: 'px-8 py-4 text-lg rounded-2xl'
-  }
-  return sizes[props.size]
-})
-
-// Compute spinner size
+// 计算加载动画尺寸
 const spinnerSize = computed(() => {
-  const sizes = {
+  const sizeMap = {
+    xs: 'w-3 h-3',
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
-    lg: 'w-6 h-6'
+    lg: 'w-6 h-6',
+    xl: 'w-7 h-7'
   }
-  return sizes[props.size]
+  return sizeMap[props.size]
 })
 
-// Compute all button classes
-const buttonClasses = computed(() => {
-  const classes = [
-    // Base styles
-    'font-medium inline-flex items-center justify-center transition-all duration-300',
-    // Disabled state
-    (props.disabled || props.loading) && 'opacity-50 cursor-not-allowed',
-    // Active state (not disabled)
-    !(props.disabled || props.loading) && 'hover:-translate-y-1 active:translate-y-0',
-    // Variant styles
-    variantClasses.value,
-    // Size styles
-    sizeClasses.value
-  ]
-
-  return classes.filter(Boolean).join(' ')
-})
-
-// Handle click event
+// 处理点击事件
 const handleClick = (event: MouseEvent) => {
   if (!props.disabled && !props.loading) {
     emit('click', event)
@@ -130,15 +114,32 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .qy-button__icon--left {
-  margin-right: 0.5em;
+  margin-right: 0.375em;
 }
 
 .qy-button__icon--right {
-  margin-left: 0.5em;
+  margin-left: 0.375em;
 }
 
 .qy-button__icon :deep(svg) {
   width: 100%;
   height: 100%;
+}
+
+.qy-button__spinner {
+  margin-right: 0.5rem;
+}
+
+.qy-button__glow {
+  position: absolute;
+  inset: -35%;
+  background: radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.28), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.qy-button:hover .qy-button__glow {
+  opacity: 1;
 }
 </style>

@@ -44,57 +44,55 @@ const sectionClasses = computed(() => {
 </script>
 
 <style scoped lang="scss">
-.qy-section {
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
+.qy-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
 
-  &__title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #212121;
-    margin: 0;
-  }
+.qy-section__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #212121;
+  margin: 0;
+}
 
-  &__extra {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+.qy-section__extra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-  &__content {
-    position: relative;
-  }
+.qy-section__content {
+  position: relative;
+}
 
-  // 间距变体
-  &--spacing-sm {
-    padding: 1rem 0;
-  }
+// 间距变体
+.qy-section--spacing-sm {
+  padding: 1rem 0;
+}
 
-  &--spacing-md {
-    padding: 1.5rem 0;
-  }
+.qy-section--spacing-md {
+  padding: 1.5rem 0;
+}
 
-  &--spacing-lg {
-    padding: 2rem 0;
-  }
+.qy-section--spacing-lg {
+  padding: 2rem 0;
+}
 
-  // 边框变体
-  &--bordered {
-    border: 1px solid #E0E0E0;
-    border-radius: 8px;
-    padding: 1.5rem;
-  }
+// 边框变体
+.qy-section--bordered {
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
 
-  // 背景变体
-  &--background {
-    background-color: #FAFAFA;
-    border-radius: 8px;
-    padding: 1.5rem;
-  }
+// 背景变体
+.qy-section--background {
+  background-color: #FAFAFA;
+  border-radius: 8px;
+  padding: 1.5rem;
 }
 </style>
 

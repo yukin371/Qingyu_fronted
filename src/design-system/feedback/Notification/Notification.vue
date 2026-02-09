@@ -6,7 +6,7 @@
  */
 
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { NotificationProps, NotificationType, NotificationPosition } from './types'
 
@@ -231,14 +231,12 @@ watch(visible, (val) => {
 </template>
 
 <style scoped>
-.qy-notification {
-  &__close {
-    opacity: 0.6;
-  }
+.qy-notification__close {
+  opacity: 0.6;
+}
 
-  &__close:hover {
-    opacity: 1;
-  }
+.qy-notification__close:hover {
+  opacity: 1;
 }
 
 /* Transition 动画 */

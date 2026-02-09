@@ -114,7 +114,7 @@ export interface ProjectListParams {
 // API 定义
 // ==========================================
 
-const BASE_URL = '/projects'
+const BASE_URL = '/writer/projects'
 
 /**
  * 写作项目 API
@@ -149,8 +149,8 @@ export const projectApi = {
    * @security BearerAuth
    */
   list(params?: ProjectListParams) {
-    return httpService.get<ProjectListResponse>(BASE_URL, params, {
-      deduplicate: true,
+    return httpService.get<ProjectListResponse>(BASE_URL, {
+      params
     })
   },
 

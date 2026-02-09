@@ -49,6 +49,98 @@
   --border-radius-lg: 16px; // 卡片标准圆角
   --border-radius-xl: 24px; // 容器/Banner标准圆角
   --border-radius-pill: 50px; // 胶囊按钮
+
+  // ==================== 编辑器CSS变量 (Editor CSS Variables - --qy-editor- prefix) ====================
+  // --- 编辑器核心颜色 (Editor Core Colors) ---
+  --qy-editor-bg: #1e1e1e;
+  --qy-editor-fg: #d4d4d4;
+  --qy-editor-toolbar-bg: #252526;
+  --qy-editor-statusbar-bg: #007acc;
+  --qy-editor-statusbar-fg: #ffffff;
+  --qy-editor-statusbar-border: #007acc;
+  --qy-editor-selection-bg: #264f78;
+  --qy-editor-cursor: #aeafad;
+  --qy-editor-whitespace: #404040;
+  --qy-editor-line-number: #858585;
+  --qy-editor-active-line-number: #c6c6c6;
+  --qy-editor-border: #3c3c3c;
+
+  // --- 编辑器侧边栏 (Editor Sidebar) ---
+  --qy-editor-sidebar-bg: #252526;
+  --qy-editor-sidebar-fg: #cccccc;
+  --qy-editor-sidebar-hover: #2a2d2e;
+
+  // --- 编辑器树形列表 (Editor Tree List) ---
+  --qy-editor-tree-bg: var(--qy-editor-sidebar-bg);
+  --qy-editor-tree-fg: var(--qy-editor-sidebar-fg);
+  --qy-editor-tree-hover: #2a2d2e;
+  --qy-editor-tree-selected: #094771;
+  --qy-editor-tree-selected-fg: #ffffff;
+
+  // --- 编辑器通用元素 (Editor Common Elements) ---
+  --qy-editor-focus-border: #007acc;
+  --qy-editor-link-fg: #3794ff;
+  --qy-editor-link-active-fg: #3794ff;
+  --qy-editor-scrollbar-thumb: #424242;
+  --qy-editor-scrollbar-thumb-hover: #4f4f4f;
+
+  // --- 编辑器状态颜色 (Editor Status Colors) ---
+  --qy-editor-status-saving: #ffd700;
+  --qy-editor-status-unsaved: #ff6b6b;
+
+  // --- 编辑器交互颜色 (Editor Interaction Colors) ---
+  --qy-editor-btn-hover: rgba(255, 255, 255, 0.1);
+  --qy-editor-btn-active: rgba(255, 255, 255, 0.15);
+
+  // ==================== 过渡动画时长 (Transition Durations) ====================
+  --transition-duration-instant: 50ms;   // 即时响应（如hover）
+  --transition-duration-fast: 100ms;     // 快速动画（如按钮）
+  --transition-duration-base: 200ms;     // 基础动画（如面板）
+  --transition-duration-normal: 300ms;   // 正常动画（如淡入淡出）
+  --transition-duration-slow: 400ms;     // 慢速动画（如复杂变换）
+  --transition-duration-slower: 600ms;   // 更慢动画（如页面切换）
+
+  // ==================== 缓动函数 (Easing Functions) ====================
+  --transition-ease-linear: linear;
+  --transition-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --transition-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  // ==================== 组合过渡 (Combined Transitions) ====================
+  --transition-fast: var(--transition-duration-fast) var(--transition-ease-out);
+  --transition-base: var(--transition-duration-base) var(--transition-ease-out);
+  --transition-normal: var(--transition-duration-normal) var(--transition-ease-in-out);
+  --transition-slow: var(--transition-duration-slow) var(--transition-ease-out-quart);
+
+  // --- 向后兼容：VSCode变量别名 (Backward Compatibility: VSCode Aliases) ---
+  --vscode-editor-background: var(--qy-editor-bg);
+  --vscode-editor-foreground: var(--qy-editor-fg);
+  --vscode-toolbar-background: var(--qy-editor-toolbar-bg);
+  --vscode-statusbar-background: var(--qy-editor-statusbar-bg);
+  --vscode-statusbar-foreground: var(--qy-editor-statusbar-fg);
+  --vscode-statusbar-border: var(--qy-editor-statusbar-border);
+  --vscode-selection-background: var(--qy-editor-selection-bg);
+  --vscode-cursor-color: var(--qy-editor-cursor);
+  --vscode-whitespace: var(--qy-editor-whitespace);
+  --vscode-line-number: var(--qy-editor-line-number);
+  --vscode-active-line-number: var(--qy-editor-active-line-number);
+  --vscode-border: var(--qy-editor-border);
+  --vscode-sideBar-background: var(--qy-editor-sidebar-bg);
+  --vscode-sideBar-foreground: var(--qy-editor-sidebar-fg);
+  --vscode-toolbar-hoverBackground: var(--qy-editor-tree-hover);
+  --vscode-inactiveSelectionBackground: var(--qy-editor-tree-selected);
+  --vscode-inactiveSelectionForeground: var(--qy-editor-tree-selected-fg);
+  --vscode-focusBorder: var(--qy-editor-focus-border);
+  --vscode-textLink-foreground: var(--qy-editor-link-fg);
+  --vscode-textLink-activeForeground: var(--qy-editor-link-active-fg);
+  --vscode-scrollbarSlider-background: var(--qy-editor-scrollbar-thumb);
+  --vscode-scrollbarSlider-hoverBackground: var(--qy-editor-scrollbar-thumb-hover);
+  --editor-status-saving: var(--qy-editor-status-saving);
+  --editor-status-unsaved: var(--qy-editor-status-unsaved);
+  --editor-button-hover: var(--qy-editor-btn-hover);
+  --editor-button-active: var(--qy-editor-btn-active);
+
 }
 
 /*
@@ -107,11 +199,25 @@ $bp-mobile: 768px;
 $bp-tablet: 1024px;
 $bp-desktop: 1280px;
 
-// ==================== 动画 (Animation) ====================
-$ease-out-quart: cubic-bezier(0.25, 0.8, 0.25, 1); // 丝滑的缓动曲线
-$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-$duration-base: 0.3s;
-$duration-fast: 0.2s;
+// ==================== 动画时长 (Animation Durations) ====================
+$duration-instant: var(--transition-duration-instant);
+$duration-fast: var(--transition-duration-fast);
+$duration-base: var(--transition-duration-base);
+$duration-normal: var(--transition-duration-normal);
+$duration-slow: var(--transition-duration-slow);
+$duration-slower: var(--transition-duration-slower);
+
+// ==================== 缓动函数 (Easing Functions) ====================
+$ease-linear: var(--transition-ease-linear);
+$ease-in: var(--transition-ease-in);
+$ease-out: var(--transition-ease-out);
+$ease-in-out: var(--transition-ease-in-out);
+$ease-out-quart: var(--transition-ease-out-quart);
+
+// ==================== 向后兼容 (Backward Compatibility) ====================
+// 保留旧的变量名，指向新的变量
+$duration-old-base: 0.3s;
+$duration-old-fast: 0.2s;
 
 // ==================== Z-Index ====================
 $z-bg: 0;

@@ -14,8 +14,8 @@ test.describe('书籍封面图片加载测试（简化版）', () => {
     // 等待书籍列表加载
     await page.waitForSelector('.book-card', { timeout: 10000 })
 
-    // 验证页面标题
-    await expect(page.locator('h1')).toContainText('书籍列表')
+    // 验证页面标题 - 更新为实际的页面标题"探索书库"
+    await expect(page.locator('h1')).toContainText('探索书库')
 
     // 验证至少有一本书
     const bookCards = page.locator('.book-card')

@@ -1,5 +1,5 @@
 <template>
-  <div class="tag-filter">
+  <div class="tag-filter" data-testid="tag-filter">
     <div class="tag-scroll-wrapper">
       <!-- 已选标签 -->
       <TransitionGroup name="tag-list">

@@ -207,6 +207,7 @@ import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
+import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
 const graphCanvasRef = ref()
 const selectedCharacter = ref<Character | null>(null)

@@ -15,6 +15,7 @@ dist-ssr
 .npm-cache
 
 # Editor directories and files
+.claude/
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -45,4 +46,5 @@ tests/e2e/screenshots/
 
 # Test output files
 test-output.txt
+type-check-output.txt
 *.txt.bak

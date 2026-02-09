@@ -12,9 +12,22 @@
       :class="avatarImageClasses"
     />
     <div v-else :class="avatarPlaceholderClasses">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-1/2 h-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      <svg
+        v-if="!icon"
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-1/2 h-1/2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        />
       </svg>
+      <span v-else v-html="icon" :class="avatarIconClasses"></span>
     </div>
   </div>
 
@@ -32,31 +45,36 @@
   <!-- Group Avatar -->
   <div v-else-if="type === 'group'" :class="groupClasses">
     <div
-      v-for="(avatar, index) in displayedAvatars"
+      v-for="(avatarItem, index) in displayedAvatars"
       :key="index"
-      :class="[groupAvatarClasses, { 'ml-[-8px]': index > 0 }]"
+      :class="[groupAvatarItemClasses, { 'ml-[-8px]': index > 0 }]"
       :style="{ zIndex: avatars!.length - index }"
     >
       <img
-        v-if="avatar.src"
-        :src="avatar.src"
-        :alt="avatar.alt || 'Avatar'"
+        v-if="avatarItem.src"
+        :src="avatarItem.src"
+        :alt="avatarItem.alt || 'Avatar'"
         :class="avatarImageClasses"
       />
-      <div v-else :class="[avatarPlaceholderClasses, avatarTextBgClasses]">
+      <div
+        v-else
+        :class="[avatarPlaceholderClasses, avatarTextBgClasses]"
+      >
         <span :class="avatarTextClasses">
-          {{ getAvatarText(avatar.text) }}
+          {{ getAvatarText(avatarItem.text) }}
         </span>
       </div>
     </div>
     <div
-      v-if="avatars && avatars.length > maxVisible"
-      :class="[groupAvatarClasses, 'ml-[-8px]']"
+      v-if="avatars && avatars.length > actualMaxVisible"
+      :class="[groupAvatarItemClasses, 'ml-[-8px]']"
       :style="{ zIndex: 0 }"
     >
-      <div :class="[avatarTextBgClasses, 'flex items-center justify-center w-full h-full']">
+      <div
+        :class="[avatarTextBgClasses, 'flex items-center justify-center w-full h-full']"
+      >
         <span :class="avatarTextClasses">
-          +{{ avatars.length - maxVisible }}
+          +{{ avatars.length - actualMaxVisible }}
         </span>
       </div>
     </div>
@@ -65,6 +83,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { cn } from '@/design-system/utils/cn'
+import {
+  avatarVariants,
+  avatarImageVariants,
+  avatarPlaceholderVariants,
+  avatarTextBgVariants,
+  avatarTextVariants,
+  avatarGroupVariants,
+  avatarGroupItemVariants
+} from './variants'
 import type { QyAvatarProps, QyAvatarEmits } from './types'
 
 // Props
@@ -74,136 +102,131 @@ const props = withDefaults(defineProps<QyAvatarProps>(), {
   text: '',
   size: 'md',
   alt: 'Avatar',
+  shape: 'circle',
+  fit: 'cover',
   color: 'cyan',
-  avatars: () => []
+  avatars: () => [],
+  maxVisible: 3,
+  icon: '',
+  clickable: false
 })
 
 // Emits
 const emit = defineEmits<QyAvatarEmits>()
 
-// Maximum visible avatars in group
-const maxVisible = 3
+// 计算实际的最大显示数量
+const actualMaxVisible = computed(() => props.maxVisible || 3)
 
-// Size classes
-const sizeClasses = computed(() => {
-  const sizes = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16'
-  }
-  return sizes[props.size]
-})
-
-// Avatar wrapper classes
+// 计算容器类名
 const avatarWrapperClasses = computed(() => {
-  return [
-    'relative',
-    'overflow-hidden',
-    'rounded-full',
-    'bg-white/60',
-    'backdrop-blur-sm',
-    'border-2',
-    'border-white/50',
-    'shadow-sm',
-    'cursor-pointer',
-    'transition-all',
-    'duration-300',
-    'hover:shadow-md',
-    'hover:scale-105',
-    sizeClasses.value
-  ].join(' ')
+  return cn(
+    avatarVariants({
+      size: props.size,
+      shape: props.shape
+    }),
+    {
+      'cursor-pointer': props.clickable
+    },
+    props.class
+  )
 })
 
-// Avatar image classes
+// 计算图片类名
 const avatarImageClasses = computed(() => {
-  return [
-    'w-full',
-    'h-full',
-    'object-cover'
-  ].join(' ')
+  return cn(
+    avatarImageVariants({
+      fit: props.fit
+    })
+  )
 })
 
-// Avatar placeholder classes
+// 计算占位符类名
 const avatarPlaceholderClasses = computed(() => {
-  return [
-    'w-full',
-    'h-full',
-    'flex',
-    'items-center',
-    'justify-center',
-    'bg-slate-100',
-    'text-slate-400'
-  ].join(' ')
+  return cn(
+    avatarPlaceholderVariants({
+      size: props.size
+    })
+  )
 })
 
-// Color background classes for text avatar
+// 计算图标类名
+const avatarIconClasses = computed(() => {
+  const sizeMap: Record<string, string> = {
+    xs: 'w-3 h-3',
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+    xl: 'w-10 h-10'
+  }
+  return cn(sizeMap[props.size || 'md'], 'text-slate-500')
+})
+
+// 计算文本背景类名
 const avatarTextBgClasses = computed(() => {
-  const colors = {
-    cyan: 'bg-gradient-to-br from-primary-400 to-primary-600',
-    blue: 'bg-gradient-to-br from-secondary-400 to-secondary-600',
-    green: 'bg-gradient-to-br from-green-400 to-green-600',
-    red: 'bg-gradient-to-br from-red-400 to-red-600',
-    yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
-    purple: 'bg-gradient-to-br from-purple-400 to-purple-600',
-    pink: 'bg-gradient-to-br from-pink-400 to-pink-600'
-  }
-  return colors[props.color]
+  return cn(
+    avatarTextBgVariants({
+      color: props.color
+    })
+  )
 })
 
-// Text classes for avatar
+// 计算文本类名
 const avatarTextClasses = computed(() => {
-  const sizes = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base'
-  }
-  return [
-    'font-semibold',
-    'text-white',
-    sizes[props.size]
-  ].join(' ')
+  return cn(
+    avatarTextVariants({
+      size: props.size
+    })
+  )
 })
 
-// Display text for text avatar
+// 计算显示的文本
 const displayText = computed(() => {
   return getAvatarText(props.text)
 })
 
-// Get avatar text (first 2 characters, uppercase)
+// 获取头像文本（前2个字符，大写）
 const getAvatarText = (text?: string) => {
   if (!text) return ''
   return text.substring(0, 2).toUpperCase()
 }
 
-// Group classes
+// 计算组容器类名
 const groupClasses = computed(() => {
-  return [
-    'flex',
-    'items-center'
-  ].join(' ')
+  return cn(
+    avatarGroupVariants()
+  )
 })
 
-// Group avatar classes
-const groupAvatarClasses = computed(() => {
-  return [
-    'relative',
-    'overflow-hidden',
-    'rounded-full',
-    'border-2',
-    'border-white',
-    'shadow-sm',
-    sizeClasses.value
-  ].join(' ')
+// 计算组头像项类名
+const groupAvatarItemClasses = computed(() => {
+  return cn(
+    avatarGroupItemVariants({
+      size: props.size,
+      shape: props.shape
+    })
+  )
 })
 
-// Displayed avatars (limited to maxVisible)
+// 计算显示的头像列表
 const displayedAvatars = computed(() => {
   if (!props.avatars) return []
-  return props.avatars.slice(0, maxVisible)
+  return props.avatars.slice(0, actualMaxVisible.value)
 })
 
-// Handle click event
+// 处理点击事件
 const handleClick = (event: MouseEvent) => {
-  emit('click', event)
+  if (props.clickable) {
+    emit('click', event)
+  }
 }
+
+// 暴露方法给父组件
+defineExpose({
+  focus: () => {
+    // 可以添加聚焦逻辑
+  },
+  blur: () => {
+    // 可以添加失焦逻辑
+  }
+})
 </script>

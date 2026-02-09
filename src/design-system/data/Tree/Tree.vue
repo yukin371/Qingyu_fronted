@@ -8,7 +8,7 @@
  */
 
 import { computed, provide, reactive, ref, useSlots, watch, type Ref } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
 import TreeNodeItem from './TreeNodeItem.vue'

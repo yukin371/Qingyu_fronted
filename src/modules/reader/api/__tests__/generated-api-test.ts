@@ -3,7 +3,7 @@
  * 测试orval生成的API是否可以正常工作
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { getApi } from '../generated/reader'
 
 // Mock orval mutator

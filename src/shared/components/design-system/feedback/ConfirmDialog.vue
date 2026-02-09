@@ -112,55 +112,53 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-.qy-confirm-dialog {
-  &__content {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem 0;
-  }
+.qy-confirm-dialog__content {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+}
 
-  &__icon {
-    flex-shrink: 0;
+.qy-confirm-dialog__icon {
+  flex-shrink: 0;
+}
 
-    &--warning {
-      color: #FF9800;
-    }
+.qy-confirm-dialog__icon--warning {
+  color: #FF9800;
+}
 
-    &--info {
-      color: #03A9F4;
-    }
+.qy-confirm-dialog__icon--info {
+  color: #03A9F4;
+}
 
-    &--success {
-      color: #4CAF50;
-    }
+.qy-confirm-dialog__icon--success {
+  color: #4CAF50;
+}
 
-    &--danger {
-      color: #F44336;
-    }
-  }
+.qy-confirm-dialog__icon--danger {
+  color: #F44336;
+}
 
-  &__message {
-    flex: 1;
-  }
+.qy-confirm-dialog__message {
+  flex: 1;
+}
 
-  &__text {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #212121;
-    margin: 0 0 0.5rem 0;
-  }
+.qy-confirm-dialog__text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #212121;
+  margin: 0 0 0.5rem 0;
+}
 
-  &__description {
-    font-size: 0.875rem;
-    color: #757575;
-    margin: 0;
-  }
+.qy-confirm-dialog__description {
+  font-size: 0.875rem;
+  color: #757575;
+  margin: 0;
+}
 
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-  }
+.qy-confirm-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 </style>
 

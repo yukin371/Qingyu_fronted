@@ -8,17 +8,17 @@
       </div>
 
       <!-- 筛选栏 -->
-      <div class="filter-bar">
+      <div class="filter-bar" data-testid="bookstore-filter-bar">
         <Row :gutter="16">
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange">
+            <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange" data-testid="category-filter">
               <option value="">全部分类</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </Select>
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
+            <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange" data-testid="status-filter">
               <option value="">全部状态</option>
               <option value="serializing">连载中</option>
               <option value="completed">已完结</option>
@@ -26,7 +26,7 @@
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
+            <Select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange" data-testid="sort-filter">
               <option value="updateTime">最新更新</option>
               <option value="rating">最高评分</option>
               <option value="viewCount">最多阅读</option>
@@ -48,13 +48,13 @@
       </div>
 
       <!-- 书籍列表 -->
-      <div class="books-container">
+      <div class="books-container" data-testid="books-list">
         <Spinner v-if="loading" :size="48" class="loading-spinner" />
 
         <!-- 网格视图 -->
         <Row v-else-if="viewMode === 'grid'" :gutter="20">
           <Col v-for="book in books" :key="book.id" :xs="12" :sm="8" :md="6" :lg="4">
-            <div class="book-card" @click="goToDetail(book.id)">
+            <div class="book-card" @click="goToDetail(book.id)" data-testid="book-card">
               <div class="book-cover">
                 <Image :src="book.cover" fit="cover">
                   <template #error>
@@ -84,7 +84,7 @@
 
         <!-- 列表视图 -->
         <div v-else class="books-list">
-          <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)">
+          <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)" data-testid="book-card">
             <div class="item-cover">
               <Image :src="book.cover" fit="cover">
                 <template #error>

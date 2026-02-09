@@ -76,7 +76,6 @@
 import { useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
 import type { Book } from '@/types/bookstore'
-import { formatCurrency } from '@/utils/currency'
 
 interface Props {
   book: Book

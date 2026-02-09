@@ -2,7 +2,7 @@
  * BookListDetailView视图测试
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'

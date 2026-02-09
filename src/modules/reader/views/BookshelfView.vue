@@ -202,7 +202,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
-import { formatDate, formatReadingTime } from '@/utils/format'
+import { formatDate, formatReadingTime } from '@/utils/format.ts'
 import { message, messageBox } from '@/design-system/services'
 import {
     getBookshelf,

@@ -13,6 +13,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
     /* Linting */
     "strict": true,
@@ -25,6 +27,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@/types/*": ["src/types/*"],
+      "@/stores/*": ["src/modules/*/stores"],
+      "@/design-system/*": ["src/design-system/*"],
       "@bookstore/*": ["src/modules/bookstore/*"],
       "@reader/*": ["src/modules/reader/*"],
       "@user/*": ["src/modules/user/*"],

@@ -19,7 +19,7 @@ import type {
 // DELETE /api/v1/events/:eventId?projectId=...
 // GET    /api/v1/timelines/:timelineId/visualization
 
-const BASE_PROJECT_URL = '/projects'
+const BASE_PROJECT_URL = '/writer/projects'
 const BASE_TIMELINE_URL = '/timelines'
 const BASE_EVENT_URL = '/events' // 假设独立事件操作在根 /events 路由下
 

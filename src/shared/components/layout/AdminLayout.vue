@@ -160,7 +160,7 @@ const showNotifications = () => {
   message.info('通知功能开发中')
 }
 
-const handleUserCommand = (command: string) => {
+const handleUserCommand = async (command: string) => {
   switch (command) {
     case 'profile':
       router.push('/account/profile')
@@ -169,7 +169,12 @@ const handleUserCommand = (command: string) => {
       message.info('设置功能开发中')
       break
     case 'logout':
-      authStore.logout()
+      try {
+        await authStore.logout()
+        router.push('/login')
+      } catch (error) {
+        console.error('退出登录失败:', error)
+      }
       break
   }
 }

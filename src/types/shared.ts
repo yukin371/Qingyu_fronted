@@ -159,6 +159,17 @@ export interface UploadResponse {
 }
 
 /**
+ * 上传进度
+ */
+export interface UploadProgress {
+  loaded: number
+  total: number
+  percentage: number
+  status: 'uploading' | 'done' | 'error'
+}
+
+
+/**
  * 文件上传参数
  */
 export interface UploadParams {

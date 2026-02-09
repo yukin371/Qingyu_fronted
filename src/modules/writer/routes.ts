@@ -2,9 +2,7 @@ import type { RouteRecordRaw } from 'vue-router'
 
 // 使用懒加载引入组件
 // 如果有特定的 Layout 给作者后台使用，建议替换 MainLayout
-// const WriterLayout = () => import('@/modules/writer/layouts/WriterLayout.vue')
-// 或者暂时复用 MainLayout，但通常编辑器需要独立布局
-const MainLayout = () => import('@/shared/components/layout/MainLayout.vue')
+const WriterLayout = () => import('@/modules/writer/layouts/WriterLayout.vue')
 
 const writerRoutes: RouteRecordRaw[] = [
   {
@@ -19,8 +17,8 @@ const writerRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/writer',
-    component: MainLayout, // 建议改为 WriterLayout 以获得更好的后台体验
-    meta: { requiresAuth: true, roles: ['author', 'admin'] }, // 在父级统一添加权限控制
+    component: WriterLayout,
+    meta: { requiresAuth: true }, // 登录即可访问作者模块
     children: [
       {
         path: '',
@@ -76,7 +74,6 @@ const writerRoutes: RouteRecordRaw[] = [
     meta: {
       title: '编辑器',
       requiresAuth: true,
-      roles: ['author', 'admin'], // 编辑器需要作者或管理员权限
       layout: 'blank', // 标记为无布局
     },
     props: true,

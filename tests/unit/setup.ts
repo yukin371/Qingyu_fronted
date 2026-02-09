@@ -8,6 +8,9 @@ import { config } from '@vue/test-utils'
 import { h, defineComponent } from 'vue'
 import '@testing-library/jest-dom'
 
+// ✅ TDD Phase 2: 导入设计系统变量（确保CSS变量在测试中可用）
+import '@/styles/reader-variables.scss'
+
 // ============================================
 // 工具函数
 // ============================================
@@ -40,7 +43,9 @@ const createButtonStub = (name: string, defaultTag: string = 'button') =>
       return () => h(defaultTag, {
         class: [name.toLowerCase(), `${name.toLowerCase()}--${props.type || 'default'}`, `${name.toLowerCase()}--${props.size || 'default'}`],
         disabled: props.disabled,
-        onClick: (e) => emit('click', e),
+        onClick: (e) => {
+          emit('click', e)
+        },
       }, slots.default ? slots.default() : [])
     },
   })
@@ -68,6 +73,39 @@ config.global.stubs = {
   // ============================================
   // 表单组件
   // ============================================
+  'el-drawer': defineComponent({
+    name: 'ElDrawer',
+    props: ['modelValue', 'direction', 'size', 'modalClass', 'title', 'closeOnClickModal'],
+    emits: ['update:modelValue', 'open', 'opened', 'close', 'closed'],
+    setup(props, { emit, slots }) {
+      if (!props.modelValue) return () => null
+      return () => h('div', {
+        class: ['el-drawer', `el-drawer--${props.direction}`],
+        'data-direction': props.direction,
+        'data-size': props.size,
+      }, [
+        slots.header ? slots.header() : null,
+        slots.default ? slots.default() : [],
+      ])
+    },
+  }),
+  'el-slider': defineComponent({
+    name: 'ElSlider',
+    props: ['modelValue', 'min', 'max', 'step', 'showTooltip', 'formatTooltip'],
+    emits: ['update:modelValue', 'change'],
+    setup(props, { emit }) {
+      return () => h('input', {
+        type: 'range',
+        class: 'el-slider',
+        min: props.min,
+        max: props.max,
+        step: props.step,
+        value: props.modelValue,
+        onInput: (e: any) => emit('update:modelValue', Number(e.target.value)),
+        onChange: (e: any) => emit('change', Number(e.target.value)),
+      })
+    },
+  }),
   'el-radio-group': defineComponent({
     name: 'ElRadioGroup',
     props: ['modelValue', 'size', 'disabled', 'textColor', 'fill'],
@@ -77,6 +115,24 @@ config.global.stubs = {
         class: 'el-radio-group',
         role: 'radiogroup',
       }, slots.default ? slots.default() : [])
+    },
+  }),
+  'el-radio': defineComponent({
+    name: 'ElRadio',
+    props: ['label', 'value', 'disabled', 'name'],
+    emits: ['change'],
+    setup(props, { emit, slots }) {
+      return () => h('label', {
+        class: ['el-radio', { 'is-disabled': props.disabled }],
+      }, [
+        h('input', {
+          type: 'radio',
+          value: props.label,
+          checked: props.value === props.label,
+          onChange: () => emit('change', props.label),
+        }),
+        slots.default ? slots.default() : props.label,
+      ])
     },
   }),
   'el-radio-button': defineComponent({
@@ -148,6 +204,20 @@ config.global.stubs = {
   }),
 
   // ============================================
+  // Qingyu Design System 组件
+  // ============================================
+  'QyIcon': defineComponent({
+    name: 'QyIcon',
+    props: ['name', 'size', 'color'],
+    setup(props) {
+      return () => h('span', {
+        class: `qy-icon qy-icon--${props.name}`,
+        style: { fontSize: props.size ? `${props.size}px` : undefined, color: props.color },
+      }, props.name)
+    },
+  }),
+
+  // ============================================
   // Element Plus 图标组件
   // ============================================
   // 编辑操作图标
@@ -165,6 +235,12 @@ config.global.stubs = {
   'ArrowRight': createIconStub('ArrowRight'),
   'ArrowUp': createIconStub('ArrowUp'),
   'ArrowDown': createIconStub('ArrowDown'),
+  'ChevronLeft': createIconStub('ChevronLeft'),
+  'ChevronRight': createIconStub('ChevronRight'),
+
+  // 列表与文档图标
+  'List': createIconStub('List'),
+  'LocationInformation': createIconStub('LocationInformation'),
 
   // 通用功能图标
   'Search': createIconStub('Search'),

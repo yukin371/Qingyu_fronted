@@ -1,3 +1,18 @@
+<!--
+  ⚠️ 备用版本 - 已弃用
+
+  此文件是 WriterLayout 的旧版本（使用 Tailwind 样式），目前未被项目引用。
+
+  📍 当前使用版本：
+  src/modules/writer/layouts/WriterLayout.vue
+
+  📌 引用位置：
+  src/modules/writer/routes.ts
+
+  🔄 版本差异：
+  - 此版本：Tailwind 样式，导航简单
+  - 当前版本：CSS 变量样式，完整导航（创作工作台、发布管理、稿费收入）
+-->
 <template>
   <div class="writer-layout min-h-screen bg-gray-100">
     <!-- 顶部导航 -->
@@ -62,6 +77,3 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 </script>
-
-
-

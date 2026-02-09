@@ -2,7 +2,7 @@
  * Dropdown 下拉菜单组件测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/vue'
 import { computed, ref } from 'vue'
 import Dropdown from './Dropdown.vue'

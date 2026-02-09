@@ -1,7 +1,7 @@
 /**
  * Discovery API测试
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import * as discoveryApi from '../index'
 import { http } from '@/core/http'
 

@@ -98,6 +98,24 @@ export interface RolesResponse {
 // ==================== 用户信息 ====================
 
 /**
+ * 用户信息
+ */
+export interface UserInfo {
+  id: string
+  username: string
+  email: string
+  nickname?: string
+  avatar?: string
+  role?: string
+  bio?: string
+  phone?: string
+  gender?: 'male' | 'female' | 'unknown'
+  birthday?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
  * 用户更新数据
  */
 export interface UserUpdateData {

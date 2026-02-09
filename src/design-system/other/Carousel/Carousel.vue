@@ -6,7 +6,7 @@
  */
 
 import { computed, provide, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import CarouselItem from './CarouselItem.vue'
 import type { CarouselProps, CarouselEmits } from './types'

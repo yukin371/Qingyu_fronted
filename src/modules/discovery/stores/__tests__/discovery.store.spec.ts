@@ -1,7 +1,7 @@
 /**
  * Discovery Store测试
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { createPinia, setActivePinia } from 'pinia'
 import { useDiscoveryStore } from '../../stores/discovery.store'
 import * as discoveryApi from '../../api'

@@ -6,7 +6,7 @@
  */
 
 import { computed, watch, nextTick, ref, onMounted, onUnmounted } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { DrawerProps, DrawerEmits, DrawerDirection } from './types'
 import { Icon } from '../../base/Icon'

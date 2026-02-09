@@ -609,3 +609,42 @@ export default {
   // 工具函数
   getApi,
 }
+
+// 导出为默认对象，以支持 import { adminAPI } from './api'
+const adminAPIExport = {
+  getDashboardStats,
+  getStats,
+  getPendingAudits,
+  getReviewList,
+  getPendingReviews,
+  approveAudit,
+  rejectAudit,
+  getUserManagementList,
+  banUser,
+  unbanUser,
+  getOperationLogs,
+  batchUpdateUserStatus,
+  batchDeleteUsers,
+  updateConfig,
+  batchUpdateConfig,
+  getSystemConfig,
+  validateConfig,
+  getReviewStats,
+  batchUpdateBannerStatus,
+  getRoles,
+  createRole,
+  getRole,
+  updateRole,
+  deleteRole,
+  getRolePermissions,
+  getPermissions,
+  createPermission,
+  getPermission,
+  updatePermission,
+  deletePermission,
+  batchUpdateStatus,
+  batchDelete,
+  getApi,
+}
+
+export const adminAPI = adminAPIExport

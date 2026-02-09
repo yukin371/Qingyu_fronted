@@ -3,6 +3,7 @@
  * 管理后端服务的启动、停止和健康检查
  */
 
+/* eslint-disable no-undef -- Node.js globals (process) are used in this file */
 import { ChildProcess, spawn } from 'child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -38,7 +39,7 @@ export class BackendService {
   constructor(config: BackendServiceConfig) {
     this.config = {
       startupTimeout: 60000, // 默认60秒启动超时
-      healthCheckPath: '/api/v1/health',
+      healthCheckPath: '/api/v1/system/health',
       ...config
     }
   }
@@ -283,7 +284,7 @@ export async function createBackendService(
     backendPath: 'Qingyu_backend',
     port: 8080,
     startupTimeout: 60000,
-    healthCheckPath: '/api/v1/health',
+    healthCheckPath: '/api/v1/system/health',
     env: {
       // 测试环境配置
       GO_ENV: 'test',

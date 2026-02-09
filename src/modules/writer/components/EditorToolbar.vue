@@ -166,8 +166,9 @@ const emitTogglePreview = () => {
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  background-color: var(--el-bg-color); // 适配暗黑模式
-  border-bottom: 1px solid var(--el-border-color-light);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   gap: 4px;
   flex-wrap: wrap;
   transition: background-color 0.3s;
@@ -190,18 +191,18 @@ const emitTogglePreview = () => {
     padding: 6px;
     height: 32px;
     width: 32px;
-    border-radius: 4px;
-    color: var(--el-text-color-regular);
+    border-radius: 8px;
+    color: #475569;
     transition: all 0.2s;
 
     &:hover {
-      background-color: var(--el-fill-color);
-      color: var(--el-color-primary);
+      background-color: #eff6ff;
+      color: #1d4ed8;
     }
 
     &.is-active {
-      background-color: var(--el-color-primary-light-9);
-      color: var(--el-color-primary);
+      background-color: #dbeafe;
+      color: #1d4ed8;
     }
 
     :deep(.el-icon) {
@@ -231,7 +232,7 @@ const emitTogglePreview = () => {
   .el-divider--vertical {
     height: 18px;
     margin: 0 4px;
-    border-color: var(--el-border-color-lighter);
+    border-color: #dbe3ef;
   }
 }
 
@@ -249,7 +250,7 @@ const emitTogglePreview = () => {
 
     .right-group {
       margin-left: 0; // 移动端不需要顶到右边，跟随流布局
-      border-left: 1px solid var(--el-border-color-lighter);
+      border-left: 1px solid #dbe3ef;
       padding-left: 4px;
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-container" :class="{ 'collapsed': isCollapsed }">
+  <div class="sidebar-container chapter-list" data-testid="chapter-list" :class="{ 'collapsed': isCollapsed }">
     <!-- 1. 顶部区域：项目选择与统计 -->
     <div class="sidebar-header" v-if="!isCollapsed">
       <div class="project-selector">
@@ -35,13 +35,30 @@
       <el-input v-model="searchKeyword" placeholder="搜索章节..." size="small" clearable class="search-input">
         <template #prefix><QyIcon name="Search"  /></template>
       </el-input>
+    </div>
 
-      <el-tooltip content="新建章节">
-        <el-button size="small" :icon="Plus" @click="$emit('add-chapter')" />
-      </el-tooltip>
+    <div class="quick-create-row" v-if="!isCollapsed">
+      <button
+        class="quick-create-btn"
+        data-testid="add-document-button"
+        @click="$emit('add-chapter')"
+      >
+        + 章节
+      </button>
+      <button
+        class="quick-create-btn quick-create-btn--secondary"
+        @click="$emit('add-volume')"
+      >
+        + 目录
+      </button>
     </div>
 
     <!-- 3. 章节列表区域 -->
+    <div class="sidebar-section-header" v-if="!isCollapsed">
+      <span>章节列表</span>
+      <span class="section-count">{{ displayChapters.length }}</span>
+    </div>
+
     <div class="sidebar-list" v-if="!isCollapsed">
       <div v-for="chapter in displayChapters" :key="chapter.id" class="chapter-item" :class="{
         'is-active': chapter.id === modelChapterId,
@@ -92,7 +109,7 @@
 
     <!-- 4. 折叠/展开 触发条 -->
     <div class="collapse-trigger" @click="isCollapsed = !isCollapsed">
-      <QyIcon name="component" :is="isCollapsed ? 'Expand' : 'Fold'"  />
+      <QyIcon :name="isCollapsed ? 'Expand' : 'Fold'" />
     </div>
   </div>
 </template>
@@ -145,6 +162,7 @@ const emit = defineEmits<{
   'update:projectId': [id: string]
   'update:chapterId': [id: string]
   'add-chapter': []
+  'add-volume': []
   'edit-chapter': [chapter: ChapterSummary]
   'delete-chapter': [id: string]
 }>()
@@ -203,7 +221,9 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
         { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }
       )
       emit('delete-chapter', chapter.id)
-    } catch { }
+    } catch {
+      // 用户取消删除操作，无需处理
+    }
   }
 }
 
@@ -236,22 +256,24 @@ watch(() => props.projects, (newVal) => {
 .sidebar-container {
   width: 260px;
   height: 100%;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--el-bg-color); // 适配暗黑
-  border-right: 1px solid var(--el-border-color-lighter);
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
   transition: width 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
   position: relative;
 
   &.collapsed {
-    width: 0; // 完全折叠，靠外部按钮或边缘触发打开
+    width: 0;
     border-right: none;
     overflow: hidden;
 
     .collapse-trigger {
       right: -24px;
       opacity: 0.8;
-      background: var(--el-border-color);
+      background: #cbd5e1;
 
       &:hover {
         right: -32px;
@@ -264,7 +286,8 @@ watch(() => props.projects, (newVal) => {
 // 1. 头部
 .sidebar-header {
   padding: 12px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
 
   .full-width {
     width: 100%;
@@ -279,7 +302,7 @@ watch(() => props.projects, (newVal) => {
 
   .option-meta {
     float: right;
-    color: var(--el-text-color-secondary);
+    color: #64748b;
     font-size: 12px;
   }
 
@@ -288,20 +311,21 @@ watch(() => props.projects, (newVal) => {
     align-items: center;
     justify-content: space-around;
     margin-top: 10px;
-    padding: 6px 0;
-    background-color: var(--el-fill-color-light);
-    border-radius: 4px;
+    padding: 8px 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
 
     .stat-item {
       display: flex;
       align-items: center;
       gap: 4px;
       font-size: 12px;
-      color: var(--el-text-color-secondary);
+      color: #64748b;
       cursor: help;
 
       &.highlight {
-        color: var(--el-color-primary);
+        color: #2563eb;
       }
     }
   }
@@ -309,13 +333,51 @@ watch(() => props.projects, (newVal) => {
 
 // 2. 工具栏
 .sidebar-toolbar {
-  padding: 8px 12px;
+  padding: 10px 12px;
   display: flex;
   gap: 8px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
 
   .search-input {
     flex: 1;
+  }
+}
+
+.quick-create-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.quick-create-btn {
+  height: 30px;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+
+  &:hover {
+    background: #dbeafe;
+    border-color: #60a5fa;
+  }
+}
+
+.quick-create-btn--secondary {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+
+  &:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
   }
 }
 
@@ -323,29 +385,37 @@ watch(() => props.projects, (newVal) => {
 .sidebar-list {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 8px 8px 10px;
+  background: #f8fafc;
 
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--el-border-color-lighter);
-    border-radius: 2px;
+    background: #cbd5e1;
+    border-radius: 999px;
   }
 
   .chapter-item {
     position: relative;
-    padding: 10px 12px 10px 16px;
+    padding: 10px 10px 10px 16px;
+    margin-bottom: 6px;
     cursor: pointer;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
+    transition: all 0.16s ease;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    box-shadow: none;
 
     &:hover {
-      background-color: var(--el-fill-color-light);
+      border-color: #93c5fd;
+      border-left-color: #60a5fa;
+      background: #f8fbff;
 
       .item-actions {
         opacity: 1;
@@ -353,12 +423,14 @@ watch(() => props.projects, (newVal) => {
     }
 
     &.is-active {
-      background-color: var(--el-color-primary-light-9);
-      border-left-color: var(--el-color-primary);
+      background: #eff6ff;
+      border-color: #93c5fd;
+      border-left-color: #2563eb;
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
 
       .item-title {
-        color: var(--el-color-primary);
-        font-weight: 500;
+        color: #1d4ed8;
+        font-weight: 600;
       }
     }
 
@@ -367,16 +439,16 @@ watch(() => props.projects, (newVal) => {
       position: absolute;
       left: 6px;
       top: 16px;
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
 
       &.published {
-        background-color: var(--el-color-success);
+        background-color: #22c55e;
       }
 
       &.draft {
-        background-color: var(--el-text-color-placeholder);
+        background-color: #94a3b8;
       }
     }
 
@@ -386,8 +458,8 @@ watch(() => props.projects, (newVal) => {
     }
 
     .item-title {
-      font-size: 14px;
-      color: var(--el-text-color-primary);
+      font-size: 13px;
+      color: #0f172a;
       margin-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
@@ -395,13 +467,14 @@ watch(() => props.projects, (newVal) => {
 
       .chapter-index {
         margin-right: 4px;
-        font-family: var(--el-font-family-monospace);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #64748b;
       }
     }
 
     .item-meta {
-      font-size: 12px;
-      color: var(--el-text-color-placeholder);
+      font-size: 11px;
+      color: #64748b;
       display: flex;
       align-items: center;
 
@@ -412,21 +485,48 @@ watch(() => props.projects, (newVal) => {
 
     // 操作菜单
     .item-actions {
-      opacity: 0; // 默认隐藏，hover显示
+      opacity: 0;
       transition: opacity 0.2s;
       margin-left: 8px;
 
       .action-btn {
         padding: 4px;
-        border-radius: 4px;
-        color: var(--el-text-color-secondary);
+        border-radius: 8px;
+        color: #64748b;
 
         &:hover {
-          background-color: var(--el-fill-color-darker);
-          color: var(--el-color-primary);
+          background-color: #dbeafe;
+          color: #1d4ed8;
         }
       }
     }
+  }
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+
+  .section-count {
+    min-width: 24px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -438,8 +538,8 @@ watch(() => props.projects, (newVal) => {
   width: 16px;
   height: 40px;
   transform: translateY(-50%);
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
   border-right: none;
   border-radius: 4px 0 0 4px;
   display: flex;
@@ -447,25 +547,25 @@ watch(() => props.projects, (newVal) => {
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  color: var(--el-text-color-secondary);
+  color: #64748b;
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
 
   &:hover {
     width: 20px;
-    background-color: var(--el-color-primary-light-9);
-    color: var(--el-color-primary);
+    background-color: #eff6ff;
+    color: #2563eb;
   }
 }
 
 // 搜索高亮样式 (通过 v-html 插入)
 :deep(.text-highlight) {
-  color: var(--el-color-primary);
+  color: #1d4ed8;
   font-weight: bold;
-  background-color: var(--el-color-warning-light-9);
+  background-color: #fef3c7;
 }
 
 .danger-item {
-  color: var(--el-color-danger);
+  color: #dc2626;
 }
 </style>

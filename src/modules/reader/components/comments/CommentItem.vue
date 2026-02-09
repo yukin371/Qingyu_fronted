@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { Star, StarFilled } from '@element-plus/icons-vue'
-import type { ParagraphComment } from '@/types/reader'
+import type { ParagraphComment } from '@/types/reader/index'
 
 interface Props {
   comment: ParagraphComment

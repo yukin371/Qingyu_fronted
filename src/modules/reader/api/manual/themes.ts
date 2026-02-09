@@ -1,7 +1,7 @@
 /**
  * 阅读器主题管理 API
  */
-import request from '@/utils/request-adapter'
+import { request } from '@/utils/request-adapter'
 
 // 主题类型
 export type ThemeType = 'light' | 'dark' | 'sepia' | 'eye-care' | 'night' | 'custom'

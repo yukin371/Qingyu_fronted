@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import CommentItem from './CommentItem.vue'
-import type { ParagraphComment } from '@/types/reader'
+import type { ParagraphComment } from '@/types/reader/index'
 
 interface Props {
   comments: ParagraphComment[]

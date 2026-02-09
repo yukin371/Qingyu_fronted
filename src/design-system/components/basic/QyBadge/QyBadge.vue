@@ -1,126 +1,122 @@
 <template>
-  <!-- Count Badge -->
+  <!-- Dot Badge / isDot 模式 -->
   <span
-    v-if="type === 'count'"
-    :class="countBadgeClasses"
+    v-if="actualType === 'dot'"
+    :class="badgeClasses"
+    aria-hidden="true"
+  />
+
+  <!-- Number Badge -->
+  <span
+    v-else-if="actualType === 'number'"
+    :class="badgeClasses"
   >
     {{ displayValue }}
   </span>
 
-  <!-- Status Badge -->
+  <!-- Text Badge -->
   <span
-    v-else-if="type === 'status'"
-    :class="statusBadgeClasses"
+    v-else
+    :class="badgeClasses"
   >
-    <slot>{{ text }}</slot>
+    <slot>{{ displayValue }}</slot>
   </span>
-
-  <!-- Dot Badge -->
-  <span
-    v-else-if="type === 'dot'"
-    :class="dotBadgeClasses"
-  />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { QyBadgeProps } from './types'
+import { cn } from '@/design-system/utils/cn'
+import { badgeVariants } from './variants'
+import type { QyBadgeProps, QyBadgeSlots, QyBadgeInstance } from './types'
 
 // Props
 const props = withDefaults(defineProps<QyBadgeProps>(), {
-  type: 'count',
-  color: 'cyan',
+  type: 'number',
+  color: 'primary',
+  size: 'md',
   value: 0,
   max: 99,
-  text: '',
-  dotSize: 'md'
+  showZero: true,
+  isDot: false
 })
 
-// Define slots
-defineSlots<{ default?: () => any }>()
+// Slots
+defineSlots<QyBadgeSlots>()
 
-// Color mapping
-const colorClasses = computed(() => {
-  const colors = {
-    cyan: {
-      bg: 'bg-primary-500',
-      text: 'text-white',
-      dot: 'bg-primary-500'
-    },
-    blue: {
-      bg: 'bg-secondary-500',
-      text: 'text-white',
-      dot: 'bg-secondary-500'
-    },
-    green: {
-      bg: 'bg-green-500',
-      text: 'text-white',
-      dot: 'bg-green-500'
-    },
-    red: {
-      bg: 'bg-red-500',
-      text: 'text-white',
-      dot: 'bg-red-500'
-    },
-    yellow: {
-      bg: 'bg-yellow-500',
-      text: 'text-white',
-      dot: 'bg-yellow-500'
-    }
-  }
-  return colors[props.color]
+// 计算实际的类型（isDot 优先级更高）
+const actualType = computed(() => {
+  return props.isDot ? 'dot' : props.type
 })
 
-// Display value for count badge
+// 计算显示的值
 const displayValue = computed(() => {
-  if (props.value > props.max) {
-    return `${props.max}+`
+  // dot 类型没有值
+  if (actualType.value === 'dot') {
+    return ''
   }
-  return props.value.toString()
-})
 
-// Count badge classes
-const countBadgeClasses = computed(() => {
-  return [
-    'inline-flex items-center justify-center',
-    'px-2 py-0.5',
-    'rounded-full',
-    'text-xs font-medium',
-    'min-w-[20px] h-5',
-    colorClasses.value.bg,
-    colorClasses.value.text
-  ].join(' ')
-})
+  // number 类型处理数字
+  if (actualType.value === 'number') {
+    const numValue = typeof props.value === 'string'
+      ? parseInt(props.value, 10)
+      : props.value
 
-// Status badge classes
-const statusBadgeClasses = computed(() => {
-  return [
-    'inline-flex items-center',
-    'px-3 py-1',
-    'rounded-full',
-    'text-sm font-medium',
-    colorClasses.value.bg,
-    colorClasses.value.text
-  ].join(' ')
-})
+    if (isNaN(numValue)) {
+      return '0'
+    }
 
-// Dot size classes
-const dotSizeClasses = computed(() => {
-  const sizes = {
-    sm: 'w-2 h-2',
-    md: 'w-3 h-3',
-    lg: 'w-4 h-4'
+    // 检查是否显示0
+    if (numValue === 0 && !props.showZero) {
+      return ''
+    }
+
+    // 超过最大值
+    if (numValue > props.max) {
+      return `${props.max}+`
+    }
+
+    return numValue.toString()
   }
-  return sizes[props.dotSize]
+
+  // text 类型直接返回 value 或使用 slot
+  return props.value?.toString() || ''
 })
 
-// Dot badge classes
-const dotBadgeClasses = computed(() => {
-  return [
-    'inline-block',
-    'rounded-full',
-    dotSizeClasses.value,
-    colorClasses.value.dot
-  ].join(' ')
+// 计算是否应该渲染
+const shouldRender = computed(() => {
+  // dot 类型始终渲染
+  if (actualType.value === 'dot') {
+    return true
+  }
+
+  // 如果没有内容且不显示0，则不渲染
+  if (!displayValue.value) {
+    return false
+  }
+
+  return true
+})
+
+// 计算徽章类名
+const badgeClasses = computed(() => {
+  return cn(
+    badgeVariants({
+      type: actualType.value,
+      color: props.color,
+      size: props.size
+    }),
+    {
+      'hidden': !shouldRender.value
+    },
+    props.class
+  )
+})
+
+// 获取显示值的方法
+const getDisplayValue = () => displayValue.value
+
+// 暴露给父组件的方法
+defineExpose<QyBadgeInstance>({
+  getDisplayValue
 })
 </script>

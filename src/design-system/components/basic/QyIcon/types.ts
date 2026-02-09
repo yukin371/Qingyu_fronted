@@ -2,8 +2,6 @@
  * Qingyu Design System - QyIcon Component Types
  */
 
-import type { PropType } from 'vue'
-
 /**
  * Available icon names
  * This is a union type of all available icons
@@ -62,6 +60,27 @@ export type IconName =
   
   // Editor
   | 'EditPen' | 'DocumentCopy'
+
+  // Layout
+  | 'Expand' | 'Fold'
+
+  // Auth
+  | 'SwitchButton'
+
+  // Book & Library
+  | 'BookOpen' | 'BookClosed' | 'Bookmark' | 'BookmarkFilled'
+  | 'Library' | 'Bookshelf'
+
+  // Empty State
+  | 'BookNotFound' | 'Empty' | 'EmptyFolder' | 'NoData'
+  | 'FileSearch' | 'IllustrationPlaceholder'
+
+  // AI Feature
+  | 'Sparkles' | 'Robot' | 'Bot' | 'Microphone' | 'VoiceInput'
+  | 'Lightbulb' | 'Idea' | 'Brain' | 'NeuralNetwork'
+
+  // Interaction
+  | 'cursor-click' | 'hand-pointer' | 'heart'
 
 /**
  * QyIcon component props

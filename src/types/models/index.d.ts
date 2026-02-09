@@ -18,3 +18,9 @@ export interface BookBrief extends BaseModel {
   cover: string;
   rating?: number;
 }
+
+// Re-export browse types using reference
+export type { BrowseFilters } from './browse'
+
+
+

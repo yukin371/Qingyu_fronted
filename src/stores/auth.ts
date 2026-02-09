@@ -4,7 +4,7 @@ import storage from '@/utils/storage'
 // 移除对router的直接导入以避免循环依赖
 // import router from '@/router'
 import type { User } from '@/types/models'
-import type { LoginCredentials, RegisterData } from '@/types/user'
+import type { LoginCredentials, RegisterData } from '@/types/auth'
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -12,6 +12,24 @@ const STORAGE_KEYS = {
   REFRESH_TOKEN: 'refreshToken',
   USER: 'user',
   ROLES: 'roles'
+}
+
+// 检查是否启用测试模式（URL参数：?test=true 或 #test）
+function isTestMode(): boolean {
+  if (typeof window === 'undefined') return false
+
+  // 检查URL查询参数 ?test=true
+  const urlParams = new URLSearchParams(window.location.search)
+  const queryTest = urlParams.get('test') === 'true'
+
+  // 检查URL hash #test
+  const hashTest = window.location.hash.includes('#test') || window.location.hash.includes('?test')
+
+  const isTestMode = queryTest || hashTest
+  if (isTestMode) {
+    console.log('[测试模式] URL检测到测试模式标识')
+  }
+  return isTestMode
 }
 
 /**
@@ -26,6 +44,45 @@ export interface AuthState {
   error: string | null
   permissions: string[]
   roles: string[]
+}
+
+type RoleSource = {
+  roles?: string[]
+  role?: string
+}
+
+function isUnauthorizedAuthError(error: unknown): boolean {
+  const err = error as {
+    response?: { status?: number; data?: { code?: string | number } }
+    code?: string | number
+  }
+
+  const status = err?.response?.status
+  const responseCode = err?.response?.data?.code
+  const code = err?.code
+
+  if (status === 401) return true
+
+  const authErrorCodes = new Set<string | number>([
+    1002, 1102, 1103, 2007, 2008, 2009, 2010, 2016,
+    '1002', '1102', '1103', '2007', '2008', '2009', '2010', '2016',
+    'UNAUTHORIZED'
+  ])
+
+  return authErrorCodes.has(responseCode as string | number) || authErrorCodes.has(code as string | number)
+}
+
+function normalizeRoles(user?: RoleSource | null, responseRoles?: string[] | null): string[] {
+  if (Array.isArray(user?.roles) && user.roles.length > 0) {
+    return user.roles
+  }
+  if (Array.isArray(responseRoles) && responseRoles.length > 0) {
+    return responseRoles
+  }
+  if (typeof user?.role === 'string' && user.role.length > 0) {
+    return [user.role]
+  }
+  return []
 }
 
 /**
@@ -60,6 +117,7 @@ export const useAuthStore = defineStore('auth', {
     const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
     const savedUser = storage.get<User>(STORAGE_KEYS.USER)
     const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+    const fallbackRoles = normalizeRoles(savedUser as unknown as RoleSource, null)
 
     // 调试输出
     console.log('[authStore] STORAGE_KEYS.ROLES:', STORAGE_KEYS.ROLES)
@@ -86,7 +144,7 @@ export const useAuthStore = defineStore('auth', {
       permissions: [],
 
       // 角色列表 - 从storage恢复或使用user.roles
-      roles: savedRoles || savedUser?.roles || []
+      roles: savedRoles || fallbackRoles
     }
   },
 
@@ -134,7 +192,17 @@ export const useAuthStore = defineStore('auth', {
         // 检查是否是测试模式的mock token
         const isMockToken = this.token?.toString().startsWith('mock-') || this.token?.toString().includes('mock')
 
-        if (isMockToken) {
+        // 只有在URL明确标记为测试模式时，才允许使用mock token
+        const isTestModeEnabled = isTestMode()
+
+        if (isMockToken && !isTestModeEnabled) {
+          // 发现mock token但URL没有测试模式标识，清空并要求真实登录
+          console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
+          this.clearAuth()
+          return
+        }
+
+        if (isMockToken && isTestModeEnabled) {
           // 测试模式：直接使用localStorage中的用户数据，不调用API
           console.log('[测试模式] 使用模拟登录状态')
           this.isLoggedIn = true
@@ -164,6 +232,12 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
+        // 本地已有完整认证信息时，避免额外请求导致401中断路由流程
+        if (this.user && this.roles && this.roles.length > 0) {
+          this.isLoggedIn = true
+          return
+        }
+
         // 生产模式：调用API获取用户信息
         try {
           console.log('[initAuth] 开始调用getUserInfo获取用户信息...')
@@ -172,8 +246,14 @@ export const useAuthStore = defineStore('auth', {
           console.log('[initAuth] getUserInfo成功，用户已登录')
         } catch (error) {
           console.error('[initAuth] getUserInfo失败:', error)
-          // 修复：不完全清空状态，而是尝试从 localStorage 恢复
-          // 如果 localStorage 中有 token 和 roles，保持登录状态
+          // 认证错误（401/token失效）必须清空状态，避免“看起来已登录但接口一直401”
+          if (isUnauthorizedAuthError(error)) {
+            console.warn('[initAuth] 检测到认证失效，清空本地登录态')
+            this.clearAuth()
+            return
+          }
+
+          // 非认证错误（如短时网络问题）允许从本地恢复，减少误登出
           const hasTokenInStorage = storage.has(STORAGE_KEYS.TOKEN)
           const hasRolesInStorage = storage.has(STORAGE_KEYS.ROLES)
 
@@ -210,11 +290,11 @@ export const useAuthStore = defineStore('auth', {
         // 保存认证信息
         this.token = data.token
         this.refreshToken = data.refreshToken
-        // 确保user对象包含roles字段
-        this.user = data.user ? { ...data.user, roles: data.user?.roles || [] } : null
+        const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
+        // 确保user对象包含roles字段，兼容后端 role(字符串) 与 roles(数组)
+        this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
         this.permissions = data.permissions || []
-        // 后端返回roles在user.roles中
-        this.roles = this.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
+        this.roles = normalizedRoles
         this.isLoggedIn = true
 
         // 存储到本地
@@ -222,6 +302,7 @@ export const useAuthStore = defineStore('auth', {
         storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
         storage.set(STORAGE_KEYS.USER, this.user)
         storage.set(STORAGE_KEYS.ROLES, this.roles)
+        localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
 
         return response
       } catch (error: unknown) {
@@ -244,12 +325,12 @@ export const useAuthStore = defineStore('auth', {
 
         // 注册成功后自动登录
         if (data.token) {
+          const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
           this.token = data.token
           this.refreshToken = data.refreshToken
-          this.user = data.user
+          this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
           this.permissions = data.permissions || []
-          // 后端返回roles在user.roles中
-          this.roles = data.user?.roles || data.roles || (data.user?.role ? [data.user.role] : [])
+          this.roles = normalizedRoles
           this.isLoggedIn = true
 
           // 存储到本地
@@ -257,6 +338,7 @@ export const useAuthStore = defineStore('auth', {
           storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           storage.set(STORAGE_KEYS.USER, this.user)
           storage.set(STORAGE_KEYS.ROLES, this.roles)
+          localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
         }
 
         return response
@@ -277,12 +359,10 @@ export const useAuthStore = defineStore('auth', {
         }
       } catch (error) {
         console.error('登出接口调用失败:', error)
+        throw error
       } finally {
         // 清除本地状态
         this.clearAuth()
-
-        // 跳转到登录页 - 使用window.location避免循环依赖
-        window.location.href = '/login'
       }
     },
 
@@ -294,9 +374,12 @@ export const useAuthStore = defineStore('auth', {
         const data = response as { user: User; permissions?: string[]; roles?: string[] }
         this.user = data.user || data
         this.permissions = data.permissions || []
-        // 后端返回roles在user.roles中
         const userData = data.user || data
-        this.roles = (userData as User)?.roles || data.roles || []
+        const normalizedRoles = normalizeRoles(userData as RoleSource, data.roles)
+        this.roles = normalizedRoles
+        if (this.user) {
+          this.user = { ...this.user, roles: normalizedRoles }
+        }
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
@@ -368,6 +451,7 @@ export const useAuthStore = defineStore('auth', {
           // 更新本地存储
           storage.set(STORAGE_KEYS.TOKEN, this.token)
           storage.set(STORAGE_KEYS.ROLES, this.roles)
+          localStorage.setItem(STORAGE_KEYS.TOKEN, this.token || '')
           if ('refreshToken' in data && data.refreshToken) {
             storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
           }
@@ -475,6 +559,7 @@ export const useAuthStore = defineStore('auth', {
       storage.remove(STORAGE_KEYS.REFRESH_TOKEN)
       storage.remove(STORAGE_KEYS.USER)
       storage.remove(STORAGE_KEYS.ROLES)
+      localStorage.removeItem(STORAGE_KEYS.TOKEN)
     },
 
     // 清除错误信息
@@ -483,4 +568,3 @@ export const useAuthStore = defineStore('auth', {
     }
   }
 })
-

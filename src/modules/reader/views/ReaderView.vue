@@ -2,36 +2,37 @@
   <div class="reader-page">
     <!-- 页面过渡动画 -->
     <transition name="reader-fade" mode="out-in">
-      <div class="reader-view" :class="themeClass" key="reader">
-        <el-container v-loading="loading">
+      <div class="reader-view" :class="themeClass" key="reader" data-testid="reader-view">
+        <el-container v-loading="loading" data-testid="reader-container">
         <!-- 顶部导航栏 -->
-        <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }">
+        <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-header">
           <div class="header-left">
-            <el-button text @click="goBack" :icon="ArrowLeft">返回</el-button>
-            <span class="book-title">{{ bookTitle }}</span>
+            <el-button text @click="goBack" :icon="ArrowLeft" data-testid="reader-back-btn">返回</el-button>
+            <span class="book-title" data-testid="reader-book-title">{{ bookTitle }}</span>
           </div>
           <div class="header-right">
-            <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button">AI助手</el-button>
-            <el-button text @click="toggleCatalog" :icon="List">目录</el-button>
-            <el-button text @click="toggleSettings" :icon="Setting">设置</el-button>
+            <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button" data-testid="reader-ai-assistant-btn">AI助手</el-button>
+            <el-button text @click="toggleCatalog" :icon="List" data-testid="reader-catalog-btn">目录</el-button>
+            <el-button text @click="toggleSettings" :icon="Setting" data-testid="reader-settings-btn">设置</el-button>
           </div>
         </el-header>
 
         <!-- 阅读内容区 -->
-        <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll">
-          <div class="reader-container" :style="containerStyle">
+        <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll" data-testid="reader-main">
+          <div class="reader-container" :style="containerStyle" data-testid="reader-content">
             <!-- 章节标题 -->
-            <h1 v-if="currentChapter" class="chapter-title">
+            <h1 v-if="currentChapter" class="chapter-title" data-testid="chapter-title">
               {{ currentChapter.title }}
             </h1>
 
             <!-- 章节内容 -->
-            <div v-if="currentChapter" class="chapter-content">
+            <div v-if="currentChapter" class="chapter-content" data-testid="chapter-content">
               <div
                 v-for="(paragraph, index) in parsedParagraphs"
                 :key="index"
                 class="paragraph-wrapper"
                 :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
+                :data-testid="`paragraph-${index}`"
                 @click="handleParagraphClick(index)"
               >
                 <p class="paragraph-text">{{ paragraph }}</p>
@@ -44,10 +45,10 @@
             </div>
 
             <!-- 空状态 -->
-            <el-empty v-else description="加载中..." />
+            <el-empty v-else description="加载中..." data-testid="reader-loading-state" />
 
             <!-- 章节结束推荐区 -->
-            <div v-if="showChapterEndRecommendation" class="chapter-end-recommendation">
+            <div v-if="showChapterEndRecommendation" class="chapter-end-recommendation" data-testid="chapter-end-recommendation">
               <el-divider>本章完</el-divider>
 
               <div class="recommendation-card">
@@ -61,6 +62,7 @@
                     type="primary"
                     size="large"
                     @click="nextChapterAndAddToBookshelf"
+                    data-testid="next-chapter-btn"
                   >
                     <el-icon><ArrowRightBold /></el-icon>
                     继续阅读下一章
@@ -71,6 +73,7 @@
                     type="success"
                     size="large"
                     @click="goBackToBookDetail"
+                    data-testid="back-to-book-detail-btn"
                   >
                     <el-icon><FolderOpened /></el-icon>
                     返回作品详情
@@ -115,16 +118,16 @@
         </el-main>
 
         <!-- 底部导航栏 -->
-        <el-footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }">
-          <div class="footer-progress">
+        <el-footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-footer">
+          <div class="footer-progress" data-testid="reader-progress-bar">
             <span class="progress-text">{{ progressText }}</span>
             <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
           </div>
           <div class="footer-nav">
-            <el-button @click="previousChapter" :disabled="!hasPreviousChapter" :icon="ArrowLeftBold">
+            <el-button @click="previousChapter" :disabled="!hasPreviousChapter" :icon="ArrowLeftBold" data-testid="previous-chapter-btn">
               上一章
             </el-button>
-            <el-button @click="nextChapter" :disabled="!hasNextChapter" :icon="ArrowRightBold">
+            <el-button @click="nextChapter" :disabled="!hasNextChapter" :icon="ArrowRightBold" data-testid="next-chapter-nav-btn">
               下一章
             </el-button>
           </div>
@@ -134,10 +137,11 @@
     </transition>
 
     <!-- 目录抽屉 -->
-    <el-drawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">
+    <el-drawer v-model="catalogVisible" title="目录" direction="rtl" size="400px" data-testid="catalog-drawer">
       <el-scrollbar>
         <div v-for="chapter in chapterList" :key="chapter.id" class="catalog-item"
           :class="{ 'is-active': chapter.id === chapterId, 'is-read': chapter.isRead }"
+          :data-testid="`catalog-chapter-${chapter.id}`"
           @click="jumpToChapter(chapter.id)">
           <span class="chapter-num">{{ chapter.chapterNum }}</span>
           <span class="chapter-name">{{ chapter.title }}</span>
@@ -159,46 +163,46 @@
     />
 
     <!-- 设置抽屉 -->
-    <el-drawer v-model="settingsVisible" title="阅读设置" direction="rtl" size="400px">
+    <el-drawer v-model="settingsVisible" title="阅读设置" direction="rtl" size="400px" data-testid="settings-drawer">
       <div class="settings-panel">
         <!-- 字体大小 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="font-size-setting">
           <label>字体大小</label>
           <div class="setting-control">
-            <el-button @click="decreaseFontSize" :icon="Minus" circle />
+            <el-button @click="decreaseFontSize" :icon="Minus" circle data-testid="decrease-font-btn" />
             <span class="font-size-value">{{ settings.fontSize }}px</span>
-            <el-button @click="increaseFontSize" :icon="Plus" circle />
+            <el-button @click="increaseFontSize" :icon="Plus" circle data-testid="increase-font-btn" />
           </div>
         </div>
 
         <!-- 行距 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="line-height-setting">
           <label>行距</label>
           <el-slider v-model="settings.lineHeight" :min="1.5" :max="2.5" :step="0.1" :show-tooltip="true" />
         </div>
 
         <!-- 页面宽度 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="page-width-setting">
           <label>页面宽度</label>
           <el-slider v-model="settings.pageWidth" :min="600" :max="1000" :step="50" :show-tooltip="true" />
         </div>
 
         <!-- 主题选择 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="theme-setting">
           <label>阅读主题</label>
           <div class="theme-selector">
             <div v-for="theme in themes" :key="theme.value" class="theme-option"
               :class="{ 'is-active': settings.theme === theme.value }"
-              :style="{ backgroundColor: theme.bg, color: theme.color }" @click="changeTheme(theme.value)">
+              :style="{ backgroundColor: theme.bg, color: theme.color }" :data-testid="`theme-${theme.value}`" @click="changeTheme(theme.value)">
               {{ theme.label }}
             </div>
           </div>
         </div>
 
         <!-- 字体选择 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="font-family-setting">
           <label>字体</label>
-          <el-select v-model="settings.fontFamily" placeholder="选择字体">
+          <el-select v-model="settings.fontFamily" placeholder="选择字体" data-testid="font-family-select">
             <el-option label="系统默认" value="system-ui, -apple-system, sans-serif" />
             <el-option label="宋体" value="SimSun, serif" />
             <el-option label="黑体" value="SimHei, sans-serif" />
@@ -207,23 +211,23 @@
         </div>
 
         <!-- 翻页模式 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="page-mode-setting">
           <label>翻页模式</label>
           <el-radio-group v-model="settings.pageMode">
-            <el-radio label="scroll">滚动</el-radio>
-            <el-radio label="page">翻页</el-radio>
+            <el-radio label="scroll" data-testid="page-mode-scroll">滚动</el-radio>
+            <el-radio label="page" data-testid="page-mode-page">翻页</el-radio>
           </el-radio-group>
         </div>
 
         <!-- 自动保存 -->
-        <div class="setting-item">
+        <div class="setting-item" data-testid="auto-save-setting">
           <label>自动保存进度</label>
-          <el-switch v-model="settings.autoSave" />
+          <el-switch v-model="settings.autoSave" data-testid="auto-save-switch" />
         </div>
 
         <!-- 重置按钮 -->
         <div class="setting-item">
-          <el-button @click="resetSettings" style="width: 100%">
+          <el-button @click="resetSettings" style="width: 100%" data-testid="reset-settings-btn">
             重置设置
           </el-button>
         </div>
@@ -295,12 +299,12 @@ const parsedParagraphs = computed(() => {
     .filter(p => p.length > 0)
 })
 
-// 主题配置
+// 主题配置（与reader-variables.scss中的CSS变量保持一致）
 const themes = [
-  { label: '默认', value: 'light', bg: '#ffffff', color: '#303133' },
-  { label: '护眼', value: 'sepia', bg: '#f4ecd8', color: '#5c4a2f' },
-  { label: '夜间', value: 'night', bg: '#1e1e1e', color: '#c9c9c9' },
-  { label: '暗黑', value: 'dark', bg: '#000000', color: '#888888' }
+  { label: '默认', value: 'light', bg: '#ffffff', color: '#2c3e50' },  // --reader-light-text
+  { label: '护眼', value: 'sepia', bg: '#f4ecd8', color: '#5c4a2f' },  // --reader-sepia-*
+  { label: '夜间', value: 'night', bg: '#1a1a1a', color: '#c9c9c9' }, // --reader-night-*
+  { label: '暗黑', value: 'dark', bg: '#121212', color: '#e0e0e0' }   // --reader-dark-*
 ]
 
 // 计算属性
@@ -780,23 +784,27 @@ watch(() => route.params.chapterId, (newId) => {
   transition: background-color 0.3s, color 0.3s;
 
   &.theme-light {
-    background-color: #ffffff;
-    color: #303133;
+    // ✅ TDD Phase 2: 统一使用CSS变量
+    background-color: var(--reader-light-bg, #ffffff);
+    color: var(--reader-light-text, #303133);
   }
 
   &.theme-sepia {
-    background-color: #f4ecd8;
-    color: #5c4a2f;
+    // ✅ TDD Phase 2: 统一使用CSS变量
+    background-color: var(--reader-sepia-bg, #f4ecd8);
+    color: var(--reader-sepia-text, #5c4a2f);
   }
 
   &.theme-night {
-    background-color: #1e1e1e;
-    color: #c9c9c9;
+    // ✅ TDD Phase 2 P0修复：使用CSS变量而非硬编码，避免纯黑
+    background-color: var(--reader-night-bg, #1a1a1a);
+    color: var(--reader-night-text, #c9c9c9);
   }
 
   &.theme-dark {
-    background-color: #000000;
-    color: #888888;
+    // ✅ TDD Phase 2 P0修复：使用CSS变量，Material Design推荐#121212
+    background-color: var(--reader-dark-bg, #121212);
+    color: var(--reader-dark-text, #e0e0e0);
   }
 }
 

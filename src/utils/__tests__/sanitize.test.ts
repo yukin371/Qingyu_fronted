@@ -3,7 +3,7 @@
  * 测试HTML清理功能和XSS防护
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+
 import {
   sanitizeHtml,
   sanitizeMarkdownHtml,

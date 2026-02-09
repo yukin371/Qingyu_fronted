@@ -1,6 +1,6 @@
 import { httpService } from '@/core/services/http.service'
 import type { BookBrief } from '@/types/models'
-import type { BrowseFilters } from '@/types/models'
+import type { BrowseFilters } from '@/types/models/browse'
 
 interface GetBooksResponse {
   code: number
@@ -31,13 +31,14 @@ export const browseService = {
       tags: filters.tags.length > 0 ? filters.tags : undefined,
       tagMode: filters.tagMode,
       page: filters.page,
+      size: filters.pageSize,
       pageSize: filters.pageSize,
       sortBy: filters.sortBy
     }
 
     // 移除undefined值
     const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([_, v]) => v !== undefined)
+      Object.entries(params).filter(([, value]) => value !== undefined)
     )
 
     return httpService.get('/bookstore/books', { params: cleanParams })

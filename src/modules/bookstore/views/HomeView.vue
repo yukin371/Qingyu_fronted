@@ -21,15 +21,15 @@
           <div class="hero-actions">
             <!-- 搜索框嵌入 -->
             <div class="search-wrapper">
-              <Input placeholder="搜索书名、作者..." class="hero-search" size="lg">
+              <QyInput placeholder="搜索书名、作者..." class="hero-search" size="lg">
                 <template #prefix>
                   <Icon name="magnifying-glass" size="sm" />
                 </template>
-              </Input>
+              </QyInput>
             </div>
-            <Button variant="default" rounded class="demo-btn" @click="goToReaderDemo">
+            <QyButton variant="default" rounded class="demo-btn" @click="goToReaderDemo">
               体验阅读器 <Icon name="arrow-right" size="sm" class="ml-1" />
-            </Button>
+            </QyButton>
           </div>
 
           <!-- 统计数据胶囊 -->
@@ -70,9 +70,9 @@
             <!-- 这里可以用简单的轮播或者显示最新一条 -->
             <span>{{ announcements[0].content }}</span>
           </div>
-          <Button variant="text" size="sm" @click="announcements = []">
+          <QyButton variant="text" size="sm" @click="announcements = []">
             <Icon name="x-mark" size="sm" />
-          </Button>
+          </QyButton>
         </div>
       </section>
 
@@ -111,7 +111,7 @@
               <h2 class="section-title">
                 编辑甄选 <span class="title-en">Editors' Choice</span>
               </h2>
-              <Button variant="outline" size="sm" @click="handleViewBooks('recommended')">全部</Button>
+              <QyButton variant="outline" size="sm" @click="handleViewBooks('recommended')">全部</QyButton>
             </div>
             <!-- 强制 Grid 组件响应式 -->
             <div class="responsive-grid-wrapper">
@@ -127,38 +127,19 @@
             <h2 class="section-title">年度精选 <span class="title-en">Featured</span></h2>
           </div>
           <div class="featured-layout" v-if="!loading">
-            <!-- 左侧：主打推荐 -->
-            <div class="featured-highlight" @click="handleBookClick(featuredBooks[0])" v-if="featuredBooks[0]">
-              <div class="image-wrapper">
-                <Image :src="featuredBooks[0].cover || featuredBooks[0].coverUrl" fit="cover">
-                  <template #error>
-                    <div class="image-placeholder">
-                      <Icon name="photo" size="xl" />
-                    </div>
-                  </template>
-                </Image>
-              </div>
-              <div class="highlight-info">
-                <div class="badge">年度推荐</div>
-                <h3 class="highlight-title">{{ featuredBooks[0].title }}</h3>
-                <p class="highlight-author">{{ featuredBooks[0].author }}</p>
-              </div>
-            </div>
-            <!-- 右侧：精选网格 -->
-            <div class="featured-grid">
-              <BookGrid 
-                :books="featuredBooks.slice(1)" 
-                :loading="loading"
-                :max-items="4"
-                :grid-cols="2"
-                @book-click="handleBookClick" 
-              />
-            </div>
+            <!-- 紧凑的网格布局，显示所有精选书籍 -->
+            <BookGrid
+              :books="featuredBooks"
+              :loading="loading"
+              :max-items="6"
+              :grid-cols="3"
+              card-style="premium"
+              @book-click="handleBookClick"
+            />
           </div>
           <!-- 骨架屏 -->
           <div v-else class="featured-skeleton">
-            <div class="skeleton-highlight"></div>
-            <div class="skeleton-grid"></div>
+            <BookGrid :books="[]" :loading="true" :max-items="6" />
           </div>
         </section>
 
@@ -172,18 +153,18 @@
           </div>
 
           <div class="masonry-grid">
-            <div v-for="(book, index) in recommendedItems" :key="book.id || book._id" class="premium-card"
+            <div v-for="book in recommendedItems" :key="book.id || book._id" class="premium-card"
               @click="handleBookClick(book)">
               <div class="card-image-box">
-                <Image :src="book.cover" fit="cover" loading="lazy">
+                <QyImage :src="book.cover" fit="cover" loading="lazy">
                   <template #error>
                     <div class="image-placeholder">
                       <Icon name="photo" size="lg" />
                     </div>
                   </template>
-                </Image>
+                </QyImage>
                 <div class="card-overlay">
-                  <Button variant="primary" size="sm" rounded>立即阅读</Button>
+                  <QyButton variant="primary" size="sm" rounded>立即阅读</QyButton>
                 </div>
               </div>
               <div class="card-info">
@@ -220,14 +201,13 @@
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message } from '@/design-system/services'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { Button, Divider, Image } from '@/design-system'
+import { Button as QyButton, Divider, Image as QyImage } from '@/design-system'
 import { Icon } from '@/design-system'
-import { Input } from '@/design-system'
+import { Input as QyInput } from '@/design-system'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
@@ -236,10 +216,10 @@ export default {
     BannerCarousel,
     RankingList,
     BookGrid,
-    Button,
-    Input,
+    QyButton,
+    QyInput,
     Divider,
-    Image,
+    QyImage,
     Icon
   },
   setup() {
@@ -249,11 +229,8 @@ export default {
     const loadMoreElRef = ref(null)
     const activeRankingTab = ref('realtime')
 
-    // ... [保留原有的数据逻辑，此处省略重复代码以节省篇幅] ...
-    // 注意：确保原有的 usePagination, announcements, banners 等逻辑保持不变
-
-    // 模拟复用原有逻辑
-    const announcements = ref([{ id: 1, content: '青羽书城全新升级，欢迎体验沉浸式阅读！', type: 'info' }])
+    // 数据从 store 获取，支持测试模式和真实 API 模式
+    const announcements = ref([])
     const banners = computed(() => bookstoreStore.banners)
     const recommendedBooks = computed(() => bookstoreStore.books.recommended)
     const featuredBooks = computed(() => bookstoreStore.books.featured)
@@ -265,14 +242,18 @@ export default {
       items: recommendedItems,
       loading: loadingMore,
       hasMore: hasMoreRecommendations,
+      currentPage: recommendationPage,
+      total: recommendationTotal,
       setupScrollObserver
     } = usePagination(async (page, pageSize) => {
       try {
         await bookstoreStore.fetchRecommendedBooks(page, pageSize)
         const items = bookstoreStore.books.recommended || []
-        return { items, total: items.length + 100 } // 模拟总数
-      } catch (e) { return { items: [], total: 0 } }
-    }, { pageSize: 12, initialLoad: true })
+        return { items, total: items.length + pageSize }
+      } catch {
+        return { items: [], total: 0 }
+      }
+    }, { pageSize: 12, initialLoad: false, autoLoadOnScroll: true })
 
     // 辅助函数
     const formatRating = (rating) => {
@@ -291,16 +272,16 @@ export default {
     }
 
     // Action Handlers 保持不变
-    const handleBannerClick = (item) => {
+    const handleBannerClick = () => {
       // TODO: Implement banner click handler
     }
     const handleBookClick = (book) => {
       router.push({ name: 'book-detail', params: { id: book.id || book._id } })
     }
-    const handleViewRanking = (type) => {
+    const handleViewRanking = () => {
       // TODO: Implement ranking view handler
     }
-    const handleViewBooks = (type) => {
+    const handleViewBooks = () => {
       // TODO: Implement books view handler
     }
     const goToReaderDemo = () => router.push('/bookstore/reader-demo')
@@ -317,8 +298,15 @@ export default {
     // Fix memory leak: store observer reference for cleanup
     let scrollObserver = null
 
-    onMounted(() => {
-      loadHomepageData()
+    onMounted(async () => {
+      await loadHomepageData()
+
+      if (Array.isArray(recommendedBooks.value) && recommendedBooks.value.length > 0) {
+        recommendedItems.value = [...recommendedBooks.value]
+        recommendationPage.value = 2
+        recommendationTotal.value = recommendedItems.value.length + 12
+      }
+
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
       // 添加简单的滚动显现动画观察器
@@ -750,120 +738,48 @@ export default {
   }
 }
 
-/* Featured 精选区域 */
+/* Featured 精选区域 - 简洁布局 */
 .featured-layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 30px;
-  height: 400px;
+  /* 使用 BookGrid 自身的响应式布局 */
+  width: 100%;
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    height: auto;
+  /* 为年度精选添加特殊的网格样式 */
+  :deep(.books-layout) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
   }
 
-  .featured-highlight {
-    position: relative;
-    height: 100%;
+  /* 增强卡片视觉效果 */
+  :deep(.book-card) {
     border-radius: 20px;
     overflow: hidden;
-    cursor: pointer;
     box-shadow: var(--shadow-soft);
+    transition: all 0.3s ease;
 
-    @media (max-width: 900px) {
-      /* 手机端大图高度限制 */
-      height: 220px;
-    }
-
-    .image-wrapper {
-      width: 100%;
-      height: 100%;
-      transition: transform 0.5s;
-    }
-
-    .highlight-info {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 30px 20px 20px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-      color: #fff;
-
-      .badge {
-        background: #f56c6c;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        display: inline-block;
-        margin-bottom: 8px;
-      }
-
-      h3 {
-        margin: 0 0 4px;
-        font-size: 20px;
-      }
-
-      p {
-        margin: 0;
-        opacity: 0.8;
-        font-size: 14px;
-      }
-    }
-
-    &:hover .image-wrapper {
-      transform: scale(1.05);
-    }
-  }
-
-  .featured-grid {
-
-    /* 强制控制子组件 BookGrid 的布局表现 */
-    /* 注意：这里假设 BookGrid 内部使用 grid 布局，我们需要穿透或者包裹控制 */
-    :deep(.book-grid) {
-      grid-template-columns: repeat(2, 1fr) !important;
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
     }
   }
 }
 
-/* 年度精选骨架屏 */
+/* 年度精选骨架屏 - 简化版 */
 .featured-skeleton {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 30px;
-  height: 400px;
+  width: 100%;
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+  /* 骨架屏使用 BookGrid 自带的骨架屏样式 */
+  :deep(.skeleton-layout) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
 
-  .skeleton-highlight {
-    height: 400px;
-    border-radius: 20px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-
-    @media (max-width: 900px) {
-      height: 220px;
-    }
-  }
-
-  .skeleton-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-
-    &::before,
-    &::after {
-      content: '';
-      aspect-ratio: 2 / 3;
-      border-radius: 16px;
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
   }
 }

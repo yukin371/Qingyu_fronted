@@ -140,6 +140,10 @@
           <QyIcon name="TrendCharts"  />
           <span>榜单</span>
         </el-menu-item>
+        <el-menu-item index="/discovery">
+          <QyIcon name="ChatDotRound"  />
+          <span>广场</span>
+        </el-menu-item>
         <el-menu-item v-if="isLoggedIn" index="/profile">
           <QyIcon name="User"  />
           <span>个人中心</span>
@@ -202,6 +206,7 @@ import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
+import { Menu } from '@element-plus/icons-vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -216,6 +221,7 @@ const menuItems = [
   { name: '首页', path: '/bookstore' },
   { name: '书库', path: '/bookstore/browse' },
   { name: '榜单', path: '/bookstore/rankings' },
+  { name: '广场', path: '/discovery' },
 ]
 
 // 快捷登录相关
@@ -249,6 +255,7 @@ const activeMenu = computed(() => {
   if (path === '/' || path === '/bookstore') return '/bookstore'
   if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse')) return '/bookstore/browse'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
+  if (path.startsWith('/discovery')) return '/discovery'
   return '/bookstore'
 })
 
@@ -336,9 +343,14 @@ const handleUserCommand = async (command: string) => {
         })
         await authStore.logout()
         message.success('已退出登录')
-        router.push('/bookstore')
+        // 跳转到登录页
+        router.push('/login')
       } catch (error) {
-        // 用户取消
+        // 用户取消或登出失败
+        if (error !== 'cancel') {
+          console.error('退出登录失败:', error)
+          message.error('退出登录失败，请稍后重试')
+        }
       }
       break
   }

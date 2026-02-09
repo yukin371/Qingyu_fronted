@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { BookBrief } from '@/types/models'
-import type { BrowseFilters } from '@/types/models'
+import type { BrowseFilters } from '@/types/models/browse'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 import { browseService } from '../services/browse.service'
 import { SEARCH_CONFIG } from '../config/search.config'
@@ -83,16 +83,34 @@ export const useBrowseStore = defineStore('browse', () => {
   }
 
   // Data fetching
-  const fetchBooks = async () => {
+  const fetchBooks = async (append = false) => {
     loading.value = true
     error.value = null
 
     try {
       const response = await browseService.getBooks(filters)
+      const payload = response as unknown as {
+        data?: unknown
+        pagination?: { total?: number; has_next?: boolean; hasMore?: boolean }
+      }
+      const rawData = payload?.data
+      const nextBooks = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray((rawData as { items?: unknown[] } | undefined)?.items)
+          ? ((rawData as { items?: unknown[] }).items as BookBrief[])
+          : Array.isArray((rawData as { books?: unknown[] } | undefined)?.books)
+            ? ((rawData as { books?: unknown[] }).books as BookBrief[])
+          : []
 
-      books.value = response.data
-      pagination.total = response.pagination?.total ?? 0
-      pagination.hasMore = pagination.total > filters.page * filters.pageSize
+      books.value = append ? [...books.value, ...nextBooks] : nextBooks
+
+      const total = payload?.pagination?.total ?? 0
+      pagination.total = typeof total === 'number' ? total : 0
+      pagination.hasMore = Boolean(
+        payload?.pagination?.has_next ??
+        payload?.pagination?.hasMore ??
+        (pagination.total > filters.page * filters.pageSize)
+      )
 
       // 清除之前的错误
       error.value = null

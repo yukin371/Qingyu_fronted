@@ -8,6 +8,7 @@
 // 颜色令牌
 export * from './colors'
 export * from './theme'
+export * from './tailwind'
 
 // 间距令牌
 export * from './spacing'

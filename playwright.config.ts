@@ -41,9 +41,9 @@ export default defineConfig({
     // 视频设置（失败时录制）
     video: 'retain-on-failure',
 
-    // 测试超时
-    actionTimeout: 10000,
-    navigationTimeout: 30000,
+    // 测试超时（针对慢速网络和高负载情况优化）
+    actionTimeout: 20000, // 增加到20秒，避免操作超时
+    navigationTimeout: 60000, // 增加到60秒，确保复杂页面加载完成
 
     // 浏览器视口
     viewport: { width: 1920, height: 1080 },

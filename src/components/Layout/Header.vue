@@ -112,9 +112,13 @@ async function handleLogout() {
     })
 
     await authStore.logout()
-    router.push('/bookstore')
+    // 跳转到登录页
+    router.push('/login')
   } catch (error) {
-    // 用户取消
+    // 用户取消或登出失败
+    if (error !== 'cancel') {
+      console.error('退出登录失败:', error)
+    }
   }
 }
 </script>

@@ -48,10 +48,14 @@ const createMessageBox = (
     })
 
     // 创建 Vue 应用实例
+    let messageBoxRef: any = null
     const app = createApp({
       render() {
         return h(MessageBoxComponent, {
           ...state,
+          ref: (el: any) => {
+            if (el) messageBoxRef = el
+          },
           onAction: (action: MessageBoxAction) => {
             // 清理实例
             if (currentInstance) {
@@ -80,6 +84,13 @@ const createMessageBox = (
       container,
       resolve,
     }
+
+    // 等待下一帧后打开对话框
+    setTimeout(() => {
+      if (messageBoxRef && messageBoxRef.open) {
+        messageBoxRef.open()
+      }
+    }, 0)
   })
 }
 

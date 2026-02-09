@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-undef */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import tailwindcss from '@tailwindcss/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -8,7 +10,7 @@ import { fileURLToPath, URL } from 'node:url'
 // Vitest 和 Storybook 环境下禁用，避免兼容性问题
 const isTest = process.env.VITEST || process.env.NODE_ENV === 'test'
 const isStorybook = process.env.STORYBOOK === 'true' || process.env.npm_lifecycle_event === 'storybook'
-const plugins = [vue({
+const plugins = [tailwindcss(), vue({
   // 启用 JSX 支持
   script: {
     defineModel: true,
@@ -25,6 +27,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@/design-system': fileURLToPath(new URL('./src/design-system', import.meta.url)),
       '@/tests': fileURLToPath(new URL('./tests', import.meta.url)),
       '@bookstore': fileURLToPath(new URL('./src/modules/bookstore', import.meta.url)),
       '@reader': fileURLToPath(new URL('./src/modules/reader', import.meta.url)),
@@ -42,14 +45,14 @@ export default defineConfig({
     proxy: {
       // API代理到后端
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:9090',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path
       },
       // WebSocket代理（实时通知、评论等）
       '/ws': {
-        target: 'ws://localhost:8080',
+        target: 'ws://localhost:9090',
         ws: true,
         changeOrigin: true
       }
@@ -64,8 +67,6 @@ export default defineConfig({
         manualChunks: {
           // Vue核心库
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // Element Plus UI库
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
           // 图表库
           'echarts': ['echarts'],
           // 工具库
@@ -83,5 +84,12 @@ export default defineConfig({
     esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
     }
+  },
+  // 定义全局变量
+  define: {
+    'process.env.VITEST': JSON.stringify(process.env.VITEST),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.STORYBOOK': JSON.stringify(process.env.STORYBOOK),
+    'process.env.npm_lifecycle_event': JSON.stringify(process.env.npm_lifecycle_event)
   }
 })

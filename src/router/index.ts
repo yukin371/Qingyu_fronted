@@ -59,13 +59,37 @@ const routes: RouteRecordRaw[] = [
   ...discoveryRoutes,
   ...readingStatsRoutes,
 
-  // 演示页面
+  // Demo Hub - 统一入口
+  {
+    path: '/demo',
+    name: 'demo-hub',
+    component: () => import('@/views/demo/DemoHub.vue'),
+    meta: {
+      title: '青羽 Demo 中心',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/index',
+    redirect: '/demo'
+  },
+
+  // 演示页面（支持 ?test=true 自动启用 Mock 数据）
   {
     path: '/demo/apple-style',
     name: 'demo-apple-style',
     component: () => import('@/views/demo/AppleStyleDemo.vue'),
     meta: {
       title: 'Apple 风格组件演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/tailwind-v4-design-system',
+    name: 'demo-tailwind-v4-design-system',
+    component: () => import('@/views/demo/TailwindV4DesignSystem.vue'),
+    meta: {
+      title: 'Tailwind v4 组件库',
       layout: 'blank'
     }
   },
@@ -93,6 +117,24 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/AdvancedComponentsDemo.vue'),
     meta: {
       title: '青羽高级组件演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/typescript-fixes',
+    name: 'TypeScriptFixesDemo',
+    component: () => import('@/views/demo/TypeScriptFixDemo.vue'),
+    meta: {
+      title: 'TypeScript修复验证Demo',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/qy-badge',
+    name: 'QyBadgeDemo',
+    component: () => import('@/views/demo/QyBadgeDemo.vue'),
+    meta: {
+      title: 'QyBadge组件演示',
       layout: 'blank'
     }
   },

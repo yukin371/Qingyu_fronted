@@ -6,7 +6,9 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: 'jsdom',
+      // TDD Phase 0: 使用 happy-dom 作为测试环境（更轻量快速）
+      environment: 'happy-dom',
+
       exclude: [...configDefaults.exclude, 'e2e/**', 'tests/e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
 
@@ -14,13 +16,15 @@ export default mergeConfig(
       include: [
         'tests/unit/**/*.{test,spec}.{js,ts,jsx,tsx}',
         'src/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}',
+        'src/**/*.{test,spec}.{js,ts,jsx,tsx}',
         'src/modules/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}'
       ],
 
-      // 覆盖率配置
+      // 覆盖率配置（TDD要求：≥90%）
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],
+        include: ['src/**/*.{js,ts,vue}'],
         exclude: [
           'node_modules/',
           'tests/',
@@ -28,14 +32,19 @@ export default mergeConfig(
           '**/*.config.{js,ts}',
           '**/mockData/**',
           'dist/',
-          'build/'
+          'build/',
+          'src/main.ts',
+          'src/**/*.spec.ts',
+          'src/**/*.test.ts',
+          'src/**/*.test.tsx',
+          'src/**/__tests__/**'
         ],
-        // 覆盖率阈值
+        // TDD要求：≥90%覆盖率
         thresholds: {
-          statements: 60,
-          branches: 60,
-          functions: 60,
-          lines: 60
+          statements: 90,
+          branches: 90,
+          functions: 90,
+          lines: 90
         }
       },
 
@@ -47,13 +56,11 @@ export default mergeConfig(
       testTimeout: 10000,
       hookTimeout: 10000,
 
-      // 并发配置
-      threads: true,
-      maxThreads: 4,
-      minThreads: 1,
+      // 并发配置（Vitest 4+使用扁平化配置）
+      pool: 'threads',
 
-      // 报告器（移除 html 避免 @vitest/ui 依赖问题）
-      reporter: ['verbose']
+      // 报告器配置
+      reporter: ['verbose', 'html']
     },
   }),
 )

@@ -4,7 +4,7 @@ A flexible icon component for rendering SVG icons with full customization.
 
 ## Features
 
-- 🎨 **50+ Built-in Icons** - Common icons ready to use
+- 🎨 **93+ Built-in Icons** - Common icons ready to use
 - 🎯 **Type-Safe** - Full TypeScript support with icon name autocomplete
 - 🎛️ **Customizable** - Size, color, rotation, and flip transformations
 - ⚡ **Performance** - Inline SVG rendering with no external dependencies
@@ -103,7 +103,19 @@ import { QyIcon } from '@/design-system/components'
 - `Grid`, `HomeFilled`, `Menu`
 
 ### Additional
-- `Location`, `Reading`, `MoreFilled`, `Wallet`, `QuestionFilled`, `CircleCloseFilled`, `CircleCheckFilled`, `EditPen`, `DocumentCopy`
+- `Location`, `Reading`, `MoreFilled`, `Wallet`, `QuestionFilled`, `CircleCloseFilled`, `CircleCheckFilled`, `EditPen`, `DocumentCopy`, `Expand`, `Fold`, `SwitchButton`
+
+### Book & Library
+- `BookOpen`, `BookClosed`, `Bookmark`, `BookmarkFilled`, `Library`, `Bookshelf`
+
+### Empty State
+- `BookNotFound`, `Empty`, `EmptyFolder`, `NoData`, `FileSearch`, `IllustrationPlaceholder`
+
+### AI Feature
+- `Sparkles`, `Robot`, `Bot`, `Microphone`, `VoiceInput`, `Lightbulb`, `Idea`, `Brain`, `NeuralNetwork`
+
+### Interaction
+- `cursor-click`, `hand-pointer`, `heart`
 
 ## Props
 

@@ -2,8 +2,8 @@
  * Drawer 组件单元测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, VueWrapper } from '@testing-library/vue'
+
+import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import Drawer from './Drawer.vue'
 import { Teleport } from 'vue'

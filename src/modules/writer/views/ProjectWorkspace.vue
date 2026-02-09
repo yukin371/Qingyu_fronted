@@ -1,113 +1,84 @@
 <template>
-  <div class="project-workspace" :class="{ 'focus-mode': isFocusMode }">
-    <!-- 1. 左侧：项目与文档导航 (使用封装好的组件) -->
-    <ProjectSidebar v-show="!isFocusMode" v-model:projectId="currentProjectId" v-model:chapterId="currentChapterId"
-      :projects="projects" :chapters="flatChapters" @add-chapter="showCreateDocDialog = true"
-      @delete-chapter="handleDeleteChapter" class="workspace-sidebar" />
+  <EditorLayout>
+    <!-- 左侧面板插槽 -->
+    <template #left-panel>
+      <ProjectSidebar
+        v-model:projectId="currentProjectId"
+        v-model:chapterId="currentChapterId"
+        :projects="projects"
+        :chapters="flatChapters"
+        @add-chapter="handleAddChapterQuick"
+        @add-volume="handleAddVolumeQuick"
+        @delete-chapter="handleDeleteChapter"
+      />
+    </template>
 
-    <!-- 2. 右侧：主工作区 -->
-    <div class="workspace-main">
+    <!-- 主编辑器插槽 -->
+    <template #editor="{ activeTool }">
+      <EditorPanel
+        :content="fileContent"
+        :project-name="currentProject?.title"
+        :chapter-title="documentTitle"
+        :active-tool="activeTool"
+        :show-preview="showPreview"
+        :show-timeline="showTimeline"
+        :timeline-id="currentTimelineId"
+        @update:content="handleContentUpdate"
+        @save="handleManualSave"
+        @togglePreview="showPreview = !showPreview"
+        @formatCommand="handleToolbarCommand"
+        @aiAssistant="toggleAISidebar"
+        @contextmenu="handleContextMenu"
+      />
+    </template>
 
-      <!-- 2.1 顶部导航与工具 -->
-      <div class="workspace-header" v-show="!isFocusMode">
-        <div class="header-left">
-          <!-- 标题编辑 -->
-          <el-input v-model="documentTitle" class="title-input" placeholder="文档标题" @change="handleTitleSave" />
-        </div>
+    <!-- 右侧AI面板插槽 -->
+    <template #right-panel>
+      <AIPanel
+        v-model:collapsed="aiSidebarVisible"
+        :session-id="currentProjectId"
+        @send="handleAISend"
+      />
+    </template>
+  </EditorLayout>
 
-        <div class="header-right">
-          <el-button link @click="toggleAISidebar">
-            <QyIcon name="MagicStick"  /> AI助手
-          </el-button>
-          <el-divider direction="vertical" />
-          <el-tooltip content="专注模式">
-            <el-button link @click="isFocusMode = !isFocusMode">
-              <QyIcon name="FullScreen"  />
-            </el-button>
-          </el-tooltip>
-          <el-button type="primary" link @click="handleManualSave">
-            <QyIcon name="Select"  /> 保存
-          </el-button>
-        </div>
-      </div>
+  <!-- 辅助组件 -->
 
-      <!-- 2.2 编辑器工具栏 -->
-      <EditorToolbar v-show="!isFocusMode" :show-preview="showPreview" @command="handleToolbarCommand"
-        @togglePreview="showPreview = !showPreview" />
+  <!-- AI 右键菜单 -->
+  <AIContextMenu
+    v-if="contextMenu.visible"
+    :visible="contextMenu.visible"
+    :x="contextMenu.x"
+    :y="contextMenu.y"
+    :selected-text="contextMenu.selectedText"
+    @action="handleAIAction"
+    @update:visible="val => contextMenu.visible = val"
+  />
 
-      <!-- 2.3 编辑核心区域 -->
-      <div class="editor-wrapper">
-        <div class="editor-scroll-container" :class="{ 'dual-view': showPreview }">
-          <!-- 输入框 -->
-          <div class="edit-pane">
-            <textarea ref="editorTextarea" v-model="fileContent" class="native-textarea" placeholder="开始创作..."
-              @keydown="handleKeydown" @contextmenu="handleContextMenu" @scroll="handleScrollSync"></textarea>
-          </div>
-
-          <!-- Markdown 预览 -->
-          <div v-if="showPreview" class="preview-pane markdown-body" ref="previewPane">
-            <div v-html="renderedContent"></div>
-          </div>
-        </div>
-
-        <!-- 底部时间线 (可选) -->
-        <div class="timeline-panel" v-if="showTimeline && !isFocusMode">
-          <TimelineBar :timeline-id="currentTimelineId" />
-        </div>
-      </div>
-
-      <!-- 2.4 底部状态栏 -->
-      <div class="workspace-footer" v-show="!isFocusMode">
-        <div class="footer-left">
-          <span class="status-item">字数: {{ wordCount }}</span>
-          <span class="status-item save-state" :class="saveStatusClass">
-            {{ saveStatusText }}
-          </span>
-        </div>
-        <div class="footer-right">
-          <el-button link size="small" @click="showTimeline = !showTimeline">
-            <QyIcon name="Clock"  /> {{ showTimeline ? '隐藏时间线' : '时间线' }}
-          </el-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. 辅助组件 -->
-
-    <!-- AI 侧边栏 -->
-    <AIAssistantSidebar v-model:visible="aiSidebarVisible" :project-id="currentProjectId" @insert="handleInsertText" />
-
-    <!-- AI 右键菜单 -->
-    <AIContextMenu v-if="contextMenu.visible" :visible="contextMenu.visible" :x="contextMenu.x" :y="contextMenu.y"
-      :selected-text="contextMenu.selectedText" @action="handleAIAction"
-      @update:visible="val => contextMenu.visible = val" />
-
-    <!-- 新建文档对话框 -->
-    <el-dialog v-model="showCreateDocDialog" title="新建文档" width="400px">
-      <el-form :model="newDocForm">
-        <el-form-item label="标题">
-          <el-input v-model="newDocForm.title" placeholder="请输入文档标题" />
-        </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="newDocForm.type">
-            <el-option label="章节" value="chapter" />
-            <el-option label="卷/分卷" value="volume" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showCreateDocDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateDoc">创建</el-button>
-      </template>
-    </el-dialog>
-  </div>
+  <!-- 新建文档对话框 -->
+  <el-dialog v-model="showCreateDocDialog" title="新建文档" width="400px">
+    <el-form :model="newDocForm">
+      <el-form-item label="标题">
+        <el-input v-model="newDocForm.title" placeholder="请输入文档标题" />
+      </el-form-item>
+      <el-form-item label="类型">
+        <el-select v-model="newDocForm.type">
+          <el-option label="章节" value="chapter" />
+          <el-option label="卷/分卷" value="volume" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showCreateDocDialog = false">取消</el-button>
+      <el-button type="primary" @click="handleCreateDoc">创建</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive, nextTick } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
@@ -115,15 +86,14 @@ import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore' // 假如还需要读取 timeline 等
 
 // 引入组件
+import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
+import EditorPanel from '@/modules/writer/components/editor/EditorPanel.vue'
 import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
-import EditorToolbar from '@/modules/writer/components/EditorToolbar.vue'
-import TimelineBar from '@/modules/writer/components/TimelineBar.vue'
-import AIAssistantSidebar from '@/modules/writer/components/ai/AIAssistantSidebar.vue'
+import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import AIContextMenu from '@/modules/writer/components/ai/AIContextMenu.vue'
 
 // 工具
-import { renderMarkdown } from '@/modules/writer/utils/markdown'
-import { formatMarkdown, calculateWordCount } from '@/modules/writer/utils/editor'
+import { formatMarkdown } from '@/modules/writer/utils/editor'
 
 // =======================
 // 状态初始化
@@ -135,15 +105,10 @@ const editorStore = useEditorStore()
 const writerStore = useWriterStore() // 用于 Timeline 数据
 
 // UI Flags
-const isFocusMode = ref(false)
 const showPreview = ref(false)
 const showTimeline = ref(false)
 const showCreateDocDialog = ref(false)
 const aiSidebarVisible = ref(false)
-
-// DOM Refs
-const editorTextarea = ref<HTMLTextAreaElement>()
-const previewPane = ref<HTMLDivElement>()
 
 // Forms
 const newDocForm = ref({ title: '', type: 'chapter' })
@@ -196,20 +161,10 @@ const documentTitle = computed({
   }
 })
 
-const wordCount = computed(() => calculateWordCount(fileContent.value))
-const renderedContent = computed(() => renderMarkdown(fileContent.value))
-const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.id)
+// 当前项目信息
+const currentProject = computed(() => projectStore.currentProject)
 
-// 保存状态显示
-const saveStatusText = computed(() => {
-  if (editorStore.isSaving) return '保存中...'
-  if (editorStore.isDirty) return '未保存'
-  return '已保存'
-})
-const saveStatusClass = computed(() => ({
-  'saving': editorStore.isSaving,
-  'dirty': editorStore.isDirty
-}))
+const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.id)
 
 // =======================
 // 业务逻辑方法
@@ -232,16 +187,19 @@ onMounted(async () => {
   }
 })
 
-// 保存标题 (API)
-const handleTitleSave = async () => {
-  if (!documentStore.currentDocMeta) return
-  try {
-    await documentStore.update(documentStore.currentDocMeta.id, { title: documentTitle.value })
-    // 刷新左侧树
-    await documentStore.loadTree(currentProjectId.value)
-  } catch (e) {
-    message.error('标题更新失败')
-  }
+// 内容更新处理
+const handleContentUpdate = (newContent: string) => {
+  editorStore.setContent(newContent)
+}
+
+const handleAddChapterQuick = () => {
+  newDocForm.value.type = 'chapter'
+  showCreateDocDialog.value = true
+}
+
+const handleAddVolumeQuick = () => {
+  newDocForm.value.type = 'volume'
+  showCreateDocDialog.value = true
 }
 
 // 手动保存内容
@@ -254,20 +212,16 @@ const handleManualSave = async () => {
 const handleCreateDoc = async () => {
   if (!newDocForm.value.title) return
   try {
-    const newDoc = await documentStore.create(currentProjectId.value, {
+    await documentStore.create(currentProjectId.value, {
       title: newDocForm.value.title,
-      type: newDocForm.value.type as any,
+      type: newDocForm.value.type as 'chapter' | 'volume',
       projectId: currentProjectId.value
     })
 
     showCreateDocDialog.value = false
     newDocForm.value.title = ''
-
-    // 自动跳转到新文档
-    if (newDoc) {
-      currentChapterId.value = newDoc.id
-    }
-  } catch (e) {
+    newDocForm.value.type = 'chapter'
+  } catch {
     message.error('创建失败')
   }
 }
@@ -288,33 +242,24 @@ const handleDeleteChapter = async (docId: string) => {
 
 // 工具栏命令
 const handleToolbarCommand = (cmd: string) => {
-  if (!editorTextarea.value) return
-  formatMarkdown(cmd, editorTextarea.value)
-  editorStore.setContent(editorTextarea.value.value) // 触发 v-model 更新
-}
-
-// 滚动同步
-const handleScrollSync = (e: Event) => {
-  if (!showPreview.value || !previewPane.value) return
-  const target = e.target as HTMLTextAreaElement
-  const percentage = target.scrollTop / (target.scrollHeight - target.clientHeight)
-  const preview = previewPane.value
-  preview.scrollTop = percentage * (preview.scrollHeight - preview.clientHeight)
+  // 由于EditorPanel使用contenteditable，需要特殊处理
+  // 这里暂时简单处理，直接在editorStore上操作
+  // 实际可能需要通过emit传递DOM引用
+  const editorElement = document.querySelector('.editor-content') as HTMLDivElement
+  if (editorElement) {
+    formatMarkdown(cmd, editorElement)
+    editorStore.setContent(editorElement.textContent || '')
+  }
 }
 
 // AI 相关
 const toggleAISidebar = () => aiSidebarVisible.value = !aiSidebarVisible.value
 
-const handleContextMenu = (e: MouseEvent) => {
-  const ta = editorTextarea.value
-  if (!ta) return
-
-  const text = ta.value.substring(ta.selectionStart, ta.selectionEnd)
-  if (text) {
-    e.preventDefault()
-    contextMenu.x = e.clientX
-    contextMenu.y = e.clientY
-    contextMenu.selectedText = text
+const handleContextMenu = (event: MouseEvent, selectedText: string) => {
+  if (selectedText) {
+    contextMenu.x = event.clientX
+    contextMenu.y = event.clientY
+    contextMenu.selectedText = selectedText
     contextMenu.visible = true
   }
 }
@@ -323,201 +268,18 @@ const handleAIAction = (action: string, text?: string) => {
   contextMenu.visible = false
   aiSidebarVisible.value = true
   // 这里可以调用 AI Store 设置当前模式和文本
-  writerStore.setAITool(action as any)
+  writerStore.setAITool(action as 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'agent')
   if (text) writerStore.setSelectedText(text)
 }
 
-const handleInsertText = (text: string) => {
-  if (!editorTextarea.value) return
-  const ta = editorTextarea.value
-  const start = ta.selectionStart
-  const end = ta.selectionEnd
-
-  const newVal = ta.value.substring(0, start) + text + ta.value.substring(end)
-  editorStore.setContent(newVal)
-
-  nextTick(() => {
-    ta.focus()
-    ta.selectionStart = ta.selectionEnd = start + text.length
-  })
-}
-
-// 快捷键
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.ctrlKey && e.key === 's') {
-    e.preventDefault()
-    handleManualSave()
-  }
-  if (e.key === 'Tab') {
-    e.preventDefault()
-    handleInsertText('  ')
-  }
+const handleAISend = (message: string) => {
+  // 处理AI发送消息事件
+  console.log('[ProjectWorkspace] AI send message:', message)
+  // TODO: 集成到writerStore的AI功能
 }
 </script>
 
 <style scoped lang="scss">
-.project-workspace {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  background-color: var(--el-bg-color);
-  overflow: hidden;
-
-  // 专注模式
-  &.focus-mode {
-
-    .workspace-sidebar,
-    .workspace-header,
-    .workspace-footer {
-      display: none;
-    }
-
-    .workspace-main {
-      width: 100%;
-    }
-
-    .editor-scroll-container {
-      padding: 0 20%; // 类似 Typora 的阅读模式
-    }
-
-    .native-textarea {
-      font-size: 18px;
-      line-height: 2;
-      padding-top: 40px;
-    }
-  }
-}
-
-// 右侧主区域
-.workspace-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-// 头部
-.workspace-header {
-  height: 50px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  background-color: var(--el-bg-color-overlay);
-
-  .title-input {
-    width: 300px;
-
-    :deep(.el-input__wrapper) {
-      box-shadow: none;
-      font-size: 16px;
-      font-weight: bold;
-      padding-left: 0;
-    }
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-}
-
-// 编辑器包裹层
-.editor-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-.editor-scroll-container {
-  flex: 1;
-  display: flex;
-  height: 100%;
-
-  &.dual-view {
-    .edit-pane {
-      width: 50%;
-      border-right: 1px solid var(--el-border-color-light);
-    }
-
-    .preview-pane {
-      display: block;
-      width: 50%;
-    }
-  }
-}
-
-.edit-pane {
-  flex: 1;
-  height: 100%;
-  background-color: var(--el-bg-color);
-}
-
-.native-textarea {
-  width: 100%;
-  height: 100%;
-  border: none;
-  resize: none;
-  outline: none;
-  padding: 20px 30px;
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--el-text-color-primary);
-  background-color: transparent;
-  font-family: 'PingFang SC', 'Microsoft YaHei', monospace;
-
-  &::placeholder {
-    color: var(--el-text-color-placeholder);
-  }
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--el-border-color-lighter);
-    border-radius: 3px;
-  }
-}
-
-.preview-pane {
-  display: none;
-  overflow-y: auto;
-  padding: 20px 30px;
-  background-color: var(--el-fill-color-light);
-}
-
-// 时间线面板
-.timeline-panel {
-  border-top: 1px solid var(--el-border-color-light);
-}
-
-// 底部状态栏
-.workspace-footer {
-  height: 30px;
-  border-top: 1px solid var(--el-border-color-light);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  background-color: var(--el-bg-color);
-
-  .save-state {
-    margin-left: 10px;
-
-    &.saving {
-      color: var(--el-color-warning);
-    }
-
-    &.dirty {
-      color: var(--el-color-info);
-    }
-  }
-}
+// ProjectWorkspace现在使用EditorLayout，不需要额外的样式
+// 所有布局相关样式由EditorLayout及其子组件处理
 </style>

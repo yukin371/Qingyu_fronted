@@ -9,7 +9,7 @@
 
     <!-- 安全响应头配置 -->
     <!-- 内容安全策略 (CSP) - 开发环境配置，允许Vite HMR和开发工具 -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ws: http:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; font-src 'self' data:; connect-src 'self' ws://localhost:* http://localhost:* https:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ws: http:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; font-src 'self' data:; connect-src 'self' ws://localhost:* http://localhost:* https:; frame-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';">
 
     <!-- 防止点击劫持攻击 -->
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">

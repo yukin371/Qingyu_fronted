@@ -199,11 +199,9 @@ defineExpose({
 </template>
 
 <style scoped>
-.qy-message-box {
-  &__input:focus {
-    outline: none;
-    border-color: rgb(var(--color-secondary-500-rgb));
-    box-shadow: 0 0 0 2px rgba(var(--color-secondary-500-rgb), 0.2);
-  }
+.qy-message-box__input:focus {
+  outline: none;
+  border-color: rgb(var(--color-secondary-500-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--color-secondary-500-rgb), 0.2);
 }
 </style>

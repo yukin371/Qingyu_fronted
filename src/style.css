@@ -1,14 +1,21 @@
+/* ============================================
+   Qingyu 前端主样式文件
+   ============================================ */
+
 /* 主题过渡动画 */
 @import './styles/theme-transition.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 导入 Tailwind v4 */
+@import "tailwindcss";
 
-/* 全局样式 */
+/* 导入设计令牌（Tailwind v4 CSS-First 配置） */
+@import './design-system/tokens/theme.css';
+
+/* ============================================
+   全局基础样式
+   ============================================ */
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -16,30 +23,80 @@ html,
 body {
   width: 100%;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    'Noto Sans', sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* 应用背景 */
+#app {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--color-slate-50);
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+/* ============================================
+   工具类
+   ============================================ */
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+/* 响应式容器内边距 */
+@media (min-width: 640px) {
+  .container {
+    padding: 0 var(--spacing-6);
+  }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 var(--spacing-8);
+  }
 }
+
+/* ============================================
+   Element Plus 样式调整（过渡期使用）
+   ============================================ */
+
+/* TODO: 逐步替换为 Qy 组件后移除这些样式 */
+
+.el-button {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Element Plus 图标尺寸兜底，防止异常放大 */
+.el-alert__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.el-alert__icon .el-icon,
+.el-alert__icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Element Plus 空状态图像兜底，防止异常放大 */
+.el-empty__image {
+  max-width: 160px;
+}
+
+.el-empty__image img,
+.el-empty__image svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ============================================
+   自定义组件样式
+   ============================================ */
+
+/* 可以在这里添加项目特定的全局样式 */
 
 /* Element Plus 样式调整 */
 .el-button {
@@ -66,8 +123,6 @@ body {
     padding: 0 2rem;
   }
 }
-
-
 
 
 

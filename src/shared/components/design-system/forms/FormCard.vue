@@ -75,39 +75,39 @@ const handleCancel = () => {
 <style scoped lang="scss">
 .qy-form-card {
   margin-bottom: 1.5rem;
+}
 
-  &--bordered {
-    border: 1px solid #E0E0E0;
-  }
+.qy-form-card--bordered {
+  border: 1px solid #E0E0E0;
+}
 
-  &__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.qy-form-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  &__title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #212121;
-    margin: 0;
-  }
+.qy-form-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #212121;
+  margin: 0;
+}
 
-  &__description {
-    font-size: 0.875rem;
-    color: #757575;
-    margin: 0;
-  }
+.qy-form-card__description {
+  font-size: 0.875rem;
+  color: #757575;
+  margin: 0;
+}
 
-  &__content {
-    padding: 0.5rem 0;
-  }
+.qy-form-card__content {
+  padding: 0.5rem 0;
+}
 
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-  }
+.qy-form-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 :deep(.el-card__header) {

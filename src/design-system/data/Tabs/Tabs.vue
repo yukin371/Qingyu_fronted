@@ -6,7 +6,7 @@
  */
 
 import { provide, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { TabsProps, TabsEmits, TabsContext, TabPaneInstance } from './types'
 

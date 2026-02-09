@@ -34,7 +34,7 @@
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import type { PendingReview } from '@/types/shared'
-import { formatRelativeTime } from '@/utils/format'
+import { formatRelativeTime } from '@/utils/format.ts'
 
 interface Props {
   item: PendingReview

@@ -338,3 +338,88 @@ export function getRevenueOverview() {
     method: 'get'
   })
 }
+
+/**
+ * 获取每日收入
+ * @description 获取作者每日收入统计
+ * @endpoint GET /api/v1/finance/author/daily-earnings
+ * @category finance
+ * @tags 财务管理
+ * @param {string} start_date - 开始日期（可选）
+ * @param {string} end_date - 结束日期（可选）
+ * @param {number} limit - 返回数量限制（可选）
+ * @response {Object[]} 200 - 成功返回每日收入列表
+ * @security BearerAuth
+ */
+export function getDailyEarnings(params: {
+  start_date?: string
+  end_date?: string
+  limit?: number
+}) {
+  return request<Array<{
+    date: string
+    amount: number
+    orders: number
+  }>>({
+    url: '/api/v1/finance/author/daily-earnings',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取月度收入
+ * @description 获取作者月度收入统计
+ * @endpoint GET /api/v1/finance/author/monthly-earnings
+ * @category finance
+ * @tags 财务管理
+ * @param {number} year - 年份（可选）
+ * @param {number} limit - 返回数量限制（可选）
+ * @response {Object[]} 200 - 成功返回月度收入列表
+ * @security BearerAuth
+ */
+export function getMonthlyEarnings(params: {
+  year?: number
+  limit?: number
+}) {
+  return request<Array<{
+    month: string
+    amount: number
+    orders: number
+  }>>({
+    url: '/api/v1/finance/author/monthly-earnings',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 提现收入
+ * @description 创建提现申请的别名函数
+ * @endpoint POST /api/v1/finance/author/withdraw
+ * @category finance
+ * @tags 财务管理
+ * @param {Object} data - 提现申请数据
+ * @param {number} data.amount - 提现金额
+ * @param {string} data.method - 提现方式
+ * @param {string} data.account_info - 账户信息
+ * @response {WithdrawalRequest} 201 - 创建成功返回提现申请详情
+ * @security BearerAuth
+ */
+export const withdrawEarnings = createWithdrawal
+
+/**
+ * 获取提现历史
+ * @description 获取提现申请记录的别名函数
+ * @endpoint GET /api/v1/finance/author/withdrawals
+ * @category finance
+ * @tags 财务管理
+ * @param {number} page - 页码（默认1）
+ * @param {number} page_size - 每页数量（默认10）
+ * @param {string} status - 状态筛选（可选）
+ * @response {Object} 200 - 成功返回提现申请列表
+ * @response {WithdrawalRequest[]} items - 提现申请列表
+ * @response {number} total - 总数量
+ * @security BearerAuth
+ */
+export const getWithdrawalHistory = getWithdrawalRequests

@@ -63,28 +63,28 @@ const handleClick = () => {
   justify-content: center;
   background-color: v-bind(background);
   z-index: 1000;
+}
 
-  &--fullscreen {
-    position: fixed;
-  }
+.qy-loading-overlay--fullscreen {
+  position: fixed;
+}
 
-  &__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
+.qy-loading-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
 
-  &__icon {
-    color: #2196F3;
-    animation: rotate 1s linear infinite;
-  }
+.qy-loading-overlay__icon {
+  color: #2196F3;
+  animation: rotate 1s linear infinite;
+}
 
-  &__text {
-    font-size: 0.875rem;
-    color: #757575;
-    margin: 0;
-  }
+.qy-loading-overlay__text {
+  font-size: 0.875rem;
+  color: #757575;
+  margin: 0;
 }
 
 @keyframes rotate {

@@ -10,7 +10,7 @@
  * - 可访问性
  */
 
-import { describe, it, expect, vi } from 'vitest'
+
 import { render, fireEvent, waitFor } from '@testing-library/vue'
 import { BaseButton } from './index'
 
