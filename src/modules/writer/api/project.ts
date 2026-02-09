@@ -149,8 +149,8 @@ export const projectApi = {
    * @security BearerAuth
    */
   list(params?: ProjectListParams) {
-    return httpService.get<ProjectListResponse>(BASE_URL, params, {
-      deduplicate: true,
+    return httpService.get<ProjectListResponse>(BASE_URL, {
+      params
     })
   },
 

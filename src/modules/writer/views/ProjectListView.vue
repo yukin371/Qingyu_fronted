@@ -1,36 +1,45 @@
 <template>
-  <div class="project-list-view">
-    <div class="page-header">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <h1>我的项目</h1>
-        <!-- 存储模式指示器 -->
-        <el-tag
-          :type="writerStore.storageMode === 'offline' ? 'warning' : 'success'"
-          size="large"
-          effect="dark"
-        >
-          {{ writerStore.storageMode === 'offline' ? '📦 离线模式' : '🌐 在线模式' }}
-        </el-tag>
-      </div>
-      <div style="display: flex; gap: 8px;">
-        <!-- 切换存储模式按钮 -->
-        <el-tooltip
-          :content="writerStore.storageMode === 'offline' ? '切换到在线模式（需要后端支持）' : '切换到离线模式（使用本地存储）'"
-          placement="bottom"
-        >
-          <el-button
-            @click="handleToggleMode"
-          >
-            <QyIcon name="component" :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
-            {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
-          </el-button>
-        </el-tooltip>
-        <el-button type="primary" @click="showCreateDialog = true">
-          <QyIcon name="Plus"  />
-          新建项目
-        </el-button>
-      </div>
-    </div>
+  <WriterPageShell>
+    <div class="project-list-view">
+      <WriterSurfaceCard class="mb-5">
+        <div class="page-header" style="margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <h1>我的项目</h1>
+            <!-- 存储模式指示器 -->
+            <span
+              class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+              :class="writerStore.storageMode === 'offline' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'"
+            >
+              {{ writerStore.storageMode === 'offline' ? '📦 离线模式' : '🌐 在线模式' }}
+            </span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <!-- 切换存储模式按钮 -->
+            <el-tooltip
+              :content="writerStore.storageMode === 'offline' ? '切换到在线模式（需要后端支持）' : '切换到离线模式（使用本地存储）'"
+              placement="bottom"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                @click="handleToggleMode"
+              >
+                <QyIcon name="component" :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
+                {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
+              </button>
+            </el-tooltip>
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              @click="showCreateDialog = true"
+            >
+              <QyIcon name="Plus"  />
+              新建项目
+            </button>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-slate-500">统一管理作品与章节，支持快速新建、编辑与发布。</p>
+      </WriterSurfaceCard>
 
     <div v-loading="loading" class="projects-container">
       <div v-if="!loading && projectList.length === 0" class="empty-container">
@@ -43,27 +52,27 @@
       </div>
 
       <div v-else class="project-grid">
-        <el-card
+        <WriterSurfaceCard
           v-for="project in projectList"
           :key="project.projectId"
+          tag="article"
+          centered
+          interactive
           class="project-card"
-          shadow="hover"
           @click="openProject(project.projectId)"
         >
-          <template #header>
-            <div class="card-header">
-              <span class="project-name">{{ project.title }}</span>
-              <el-dropdown @command="handleCommand($event, project)" @click.stop>
-                <el-icon class="more-icon"><QyIcon name="MoreFilled"  /></el-icon>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
+          <div class="card-header">
+            <span class="project-name">{{ project.title }}</span>
+            <el-dropdown class="project-actions" @command="handleCommand($event, project)" @click.stop>
+              <el-icon class="more-icon"><QyIcon name="MoreFilled"  /></el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
 
           <div class="project-description">
             {{ project.description || '暂无描述' }}
@@ -81,12 +90,17 @@
           </div>
 
           <div class="project-meta">
-            <el-tag size="small" :type="getStatusType(project.status)">
+            <span class="status-badge" :class="getStatusClass(project.status)">
               {{ getStatusText(project.status) }}
-            </el-tag>
+            </span>
             <span class="meta-date">{{ formatDate(project.updatedAt) }}</span>
           </div>
-        </el-card>
+
+          <div class="project-entry-hint">
+            <span>点击进入项目</span>
+            <QyIcon name="ArrowRight" />
+          </div>
+        </WriterSurfaceCard>
       </div>
     </div>
 
@@ -121,7 +135,8 @@
         <el-button type="primary" @click="handleCreate">创建</el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+  </WriterPageShell>
 </template>
 
 <script setup lang="ts">
@@ -131,6 +146,8 @@ import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useWriterStore } from '@/stores/writer'
 import { ElMessage } from 'element-plus'
+import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
+import WriterSurfaceCard from '@/modules/writer/components/WriterSurfaceCard.vue'
 
 const router = useRouter()
 const writerStore = useWriterStore()
@@ -221,17 +238,6 @@ const handleCommand = async (command: string, project: any) => {
   }
 }
 
-// 获取状态类型
-const getStatusType = (status: string) => {
-  const typeMap: Record<string, any> = {
-    draft: 'info',
-    writing: 'warning',
-    completed: 'success',
-    published: 'success'
-  }
-  return typeMap[status] || 'info'
-}
-
 // 获取状态文本
 const getStatusText = (status: string) => {
   const textMap: Record<string, string> = {
@@ -242,6 +248,8 @@ const getStatusText = (status: string) => {
   }
   return textMap[status] || status
 }
+
+const getStatusClass = (status: string) => `status-${status || 'draft'}`
 
 // 切换存储模式
 async function handleToggleMode() {
@@ -266,9 +274,9 @@ onMounted(async () => {
 
 <style scoped>
 .project-list-view {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: none;
+  margin: 0;
 }
 
 .page-header {
@@ -295,27 +303,43 @@ onMounted(async () => {
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 28px;
+  padding: 10px 4px;
 }
 
 .project-card {
-  cursor: pointer;
-  transition: transform 0.2s;
+  border: 1px solid #dbe6f6 !important;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .project-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
+  border-color: #93c5fd !important;
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.18);
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  margin-bottom: 10px;
+  min-height: 24px;
+  text-align: center;
+}
+
+.project-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .project-name {
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-block;
+  max-width: calc(100% - 28px);
 }
 
 .more-icon {
@@ -332,11 +356,51 @@ onMounted(async () => {
   color: #606266;
   min-height: 60px;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .project-meta {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.status-draft {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.status-badge.status-writing {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.status-badge.status-completed,
+.status-badge.status-published {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.project-entry-hint {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #dbe6f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 8px;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>
-

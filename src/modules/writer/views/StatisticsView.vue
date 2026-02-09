@@ -1,21 +1,27 @@
 <template>
-  <div class="statistics-view">
-    <div class="page-header">
-      <h1>作品数据统计</h1>
-      <el-select
-        v-model="selectedBookId"
-        placeholder="选择作品"
-        style="width: 240px"
-        @change="loadStatistics"
-      >
-        <el-option
-          v-for="book in books"
-          :key="book.id"
-          :label="book.title"
-          :value="book.id"
-        />
-      </el-select>
-    </div>
+  <WriterPageShell>
+    <div class="statistics-view">
+      <div class="mb-5 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6">
+        <div class="page-header" style="margin-bottom: 0;">
+          <h1>作品数据统计</h1>
+          <el-select
+            v-model="selectedBookId"
+            class="header-book-select"
+            popper-class="writer-book-select-popper"
+            placeholder="选择作品"
+            style="width: 240px"
+            @change="loadStatistics"
+          >
+            <el-option
+              v-for="book in books"
+              :key="book.id"
+              :label="book.title"
+              :value="book.id"
+            />
+          </el-select>
+        </div>
+        <p class="mt-2 text-sm text-slate-500">跟踪阅读、订阅、收藏与评论趋势，辅助内容迭代。</p>
+      </div>
 
     <el-skeleton v-if="loading" :rows="8" animated />
 
@@ -133,13 +139,16 @@
         <div ref="heatmapChartRef" class="heatmap-container"></div>
       </el-card>
     </div>
-  </div>
+    </div>
+  </WriterPageShell>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
+import { useWriterStore } from '@/stores/writer'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 import {
@@ -158,25 +167,70 @@ import { getWriterBooks } from '@/modules/writer/api/revenue'
 const loading = ref(false)
 const selectedBookId = ref('')
 const viewsTrendRange = ref('30')
+const writerStore = useWriterStore()
 
 // 作品列表
 const books = ref<Array<{ id: string; title: string }>>([])
 
 // 加载作品列表
 async function loadBooks(): Promise<void> {
+  // 优先复用“我的项目”数据源，确保离线/mock 项目可用
+  try {
+    await writerStore.fetchProjects()
+    const localBooks = (writerStore.projectList || [])
+      .map((p: any) => ({
+        id: p.projectId || p.id || '',
+        title: p.title || p.name || '未命名作品'
+      }))
+      .filter((b: any) => !!b.id)
+
+    if (localBooks.length > 0) {
+      books.value = localBooks
+      if (!selectedBookId.value) {
+        selectedBookId.value = books.value[0].id
+      }
+      loadStatistics()
+      return
+    }
+  } catch (error) {
+    console.warn('从 writerStore 加载作品失败，回退远端接口:', error)
+  }
+
   try {
     const response: any = await getWriterBooks({ page: 1, size: 100 })
-    if (response.data?.list) {
-      books.value = response.data.list
-      // 自动选择第一本书
-      if (books.value.length > 0 && !selectedBookId.value) {
-        selectedBookId.value = books.value[0].id
-        loadStatistics()
-      }
+    const remoteList =
+      response?.data?.list ||
+      response?.list ||
+      response?.data?.items ||
+      response?.items ||
+      []
+    if (Array.isArray(remoteList) && remoteList.length > 0) {
+      books.value = remoteList
+        .map((b: any) => ({
+          id: b.id || b.projectId || b.bookId || '',
+          title: b.title || b.name || '未命名作品'
+        }))
+        .filter((b: any) => !!b.id)
+    }
+    if (books.value.length > 0 && !selectedBookId.value) {
+      selectedBookId.value = books.value[0].id
+      loadStatistics()
+      return
     }
   } catch (error) {
     console.warn('加载作品列表失败，使用模拟数据:', error)
     // 使用模拟数据
+    books.value = [
+      { id: '1', title: '示例作品1' },
+      { id: '2', title: '示例作品2' }
+    ]
+    selectedBookId.value = books.value[0].id
+    loadStatistics()
+    return
+  }
+
+  // 远端无可用数据时兜底 mock，避免页面不可用
+  if (books.value.length === 0) {
     books.value = [
       { id: '1', title: '示例作品1' },
       { id: '2', title: '示例作品2' }
@@ -238,18 +292,20 @@ async function loadStatistics(): Promise<void> {
       }
     }
 
-    await nextTick()
-    initCharts()
-    loadDailyStats()
-    loadChaptersStats()
-    loadReaderActivity()
-    loadReadingHeatmap()
   } catch (error: any) {
     console.error('加载统计数据失败:', error)
     message.error(error.message || '加载统计数据失败')
   } finally {
     loading.value = false
   }
+
+  // skeleton 隐藏后再初始化图表，避免容器尚未挂载导致图表为空
+  await nextTick()
+  initCharts()
+  loadDailyStats()
+  loadChaptersStats()
+  loadReaderActivity()
+  loadReadingHeatmap()
 }
 
 // 加载每日统计
@@ -403,7 +459,7 @@ function initCharts(): void {
 // 阅读量趋势图
 function initViewsChart(): void {
   if (!viewsChartRef.value) return
-  viewsChart = echarts.init(viewsChartRef.value)
+  viewsChart = echarts.getInstanceByDom(viewsChartRef.value) || echarts.init(viewsChartRef.value)
 }
 
 function updateViewsChart(dates: string[], views: number[]): void {
@@ -452,7 +508,8 @@ function updateViewsChart(dates: string[], views: number[]): void {
 // 订阅增长图
 function initSubscribersChart(): void {
   if (!subscribersChartRef.value) return
-  subscribersChart = echarts.init(subscribersChartRef.value)
+  subscribersChart =
+    echarts.getInstanceByDom(subscribersChartRef.value) || echarts.init(subscribersChartRef.value)
 }
 
 function updateSubscribersChart(dates: string[], subscribers: number[]): void {
@@ -494,7 +551,7 @@ function updateSubscribersChart(dates: string[], subscribers: number[]): void {
 // 章节热度图
 function initChaptersChart(): void {
   if (!chaptersChartRef.value) return
-  chaptersChart = echarts.init(chaptersChartRef.value)
+  chaptersChart = echarts.getInstanceByDom(chaptersChartRef.value) || echarts.init(chaptersChartRef.value)
 
   // 模拟数据
   const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
@@ -558,7 +615,8 @@ function updateChaptersChart(chapters: string[], views: number[]): void {
 // 读者活跃度图
 function initReaderActivityChart(): void {
   if (!readerActivityChartRef.value) return
-  readerActivityChart = echarts.init(readerActivityChartRef.value)
+  readerActivityChart =
+    echarts.getInstanceByDom(readerActivityChartRef.value) || echarts.init(readerActivityChartRef.value)
 
   const option: echarts.EChartsOption = {
     tooltip: {
@@ -608,7 +666,7 @@ function updateReaderActivityChart(data: Array<{ value: number; name: string }>)
 // 阅读热力图
 function initHeatmapChart(): void {
   if (!heatmapChartRef.value) return
-  heatmapChart = echarts.init(heatmapChartRef.value)
+  heatmapChart = echarts.getInstanceByDom(heatmapChartRef.value) || echarts.init(heatmapChartRef.value)
 
   const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
@@ -713,7 +771,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .statistics-view {
-  padding: 24px;
+  padding: 0;
 
   .page-header {
     display: flex;
@@ -729,18 +787,138 @@ onUnmounted(() => {
     }
   }
 
+  .header-book-select {
+    :deep(.el-select__wrapper) {
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid #dbe6f6;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    :deep(.el-select__wrapper:hover) {
+      border-color: #bfdbfe;
+    }
+
+    :deep(.el-select__wrapper.is-focused) {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
+    }
+
+    :deep(.el-select__placeholder),
+    :deep(.el-select__selected-item) {
+      font-size: 14px;
+      color: #334155;
+    }
+
+    :deep(.el-select__caret) {
+      color: #64748b;
+    }
+
+    :deep(.el-select__input),
+    :deep(.el-select__input:focus),
+    :deep(.el-select__input:focus-visible) {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+  }
+
+  :global(.writer-book-select-popper.el-popper) {
+    border: 1px solid #dbe6f6;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 6px;
+    outline: none;
+  }
+
+  :global(.writer-book-select-popper.el-popper:focus),
+  :global(.writer-book-select-popper.el-popper:focus-visible) {
+    outline: none;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+  }
+
+  :global(.writer-book-select-popper .el-popper__arrow::before) {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #dbe6f6;
+    box-shadow: none;
+  }
+
+  :global(.writer-book-select-popper .el-scrollbar__view) {
+    padding: 2px;
+  }
+
+  :global(.writer-book-select-popper .el-select-dropdown__item) {
+    height: 40px;
+    line-height: 40px;
+    border-radius: 10px;
+    margin: 2px 0;
+    padding-left: 14px;
+    padding-right: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    transition: background-color 0.18s ease, color 0.18s ease;
+    outline: none;
+  }
+
+  :global(.writer-book-select-popper .el-select-dropdown__item:focus),
+  :global(.writer-book-select-popper .el-select-dropdown__item:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  :global(.writer-book-select-popper .el-select-dropdown__item.hover),
+  :global(.writer-book-select-popper .el-select-dropdown__item:hover) {
+    background: #eff6ff;
+    color: #1e40af;
+  }
+
+  :global(.writer-book-select-popper .el-select-dropdown__item.is-selected) {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+
+  :global(.writer-book-select-popper .el-select-dropdown__item.is-disabled) {
+    opacity: 0.45;
+  }
+
+  :global(.writer-book-select-popper .el-scrollbar__bar.is-vertical > div) {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+
   .empty-state {
     padding: 60px 0;
   }
 
   .statistics-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    > * {
+      margin-bottom: 0 !important;
+    }
+
+    > * + * {
+      border-top: 2px solid #e2e8f0;
+      padding-top: 18px;
+    }
+
     .stats-overview {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
-      margin-bottom: 24px;
 
       .stat-card {
+        :deep(.el-card__body) {
+          padding: 18px;
+        }
+
         .stat-item {
           display: flex;
           align-items: center;
@@ -793,7 +971,35 @@ onUnmounted(() => {
     }
 
     .chart-card {
-      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+
+      :deep(.el-card__header) {
+        border-bottom: 2px solid #e2e8f0;
+        padding: 14px 18px 12px;
+      }
+
+      :deep(.el-card__header span) {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding-left: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      :deep(.el-card__header span::before) {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 4px;
+        height: 16px;
+        transform: translateY(-50%);
+        border-radius: 999px;
+        background: #3b82f6;
+      }
 
       .card-header {
         display: flex;
@@ -814,7 +1020,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .statistics-view {
-    padding: 16px;
+    padding: 0;
 
     .stats-overview {
       grid-template-columns: 1fr;

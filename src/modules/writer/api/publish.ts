@@ -6,9 +6,10 @@
  * @tags 发布管理
  */
 import { request } from '@/utils/request-adapter'
+import httpService from '@/core/services/http.service'
 
 // 发布状态
-export type PublishStatus = 'draft' | 'pending_review' | 'scheduled' | 'published' | 'rejected' | 'unpublished'
+export type PublishStatus = 'draft' | 'pending_review' | 'scheduled' | 'published' | 'rejected' | 'unpublished' | 'active' | 'paused'
 
 // 发布类型
 export type PublishType = 'free' | 'paid' | 'vip' | 'limited'
@@ -83,10 +84,21 @@ export interface PublishStats {
  * @security BearerAuth
  */
 export function getPublishPlan(bookId: string) {
-  return request<PublishPlan>({
-    url: `/api/v1/writer/publish/books/${bookId}/plan`,
-    method: 'get'
-  })
+  return httpService
+    .get<any>(`/api/v1/writer/projects/${bookId}/publication-status`)
+    .then((status: any) => ({
+      id: status?.projectId || bookId,
+      book_id: status?.projectId || bookId,
+      name: `${status?.projectTitle || '项目'}发布计划`,
+      description: '',
+      type: 'free' as PublishType,
+      status: status?.isPublished ? ('active' as PublishStatus) : ('paused' as PublishStatus),
+      platforms: ['all' as PublishPlatform],
+      schedule: { type: 'manual' as const },
+      pricing: { is_free: true },
+      created_at: status?.publishedAt || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }))
 }
 
 /**
@@ -114,11 +126,20 @@ export function createPublishPlan(bookId: string, data: {
   schedule: PublishPlan['schedule']
   pricing: PublishPlan['pricing']
 }) {
-  return request<PublishPlan>({
-    url: `/api/v1/writer/publish/books/${bookId}/plan`,
-    method: 'post',
-    data
-  })
+  return httpService
+    .post(`/api/v1/writer/projects/${bookId}/publish`, {
+      bookstoreId: 'default-bookstore',
+      categoryId: 'general',
+      tags: [],
+      description: data.description || '',
+      coverImage: '',
+      publishType: 'serial',
+      freeChapters: data.pricing?.is_free ? 99999 : 0,
+      authorNote: data.name || '发布计划',
+      enableComment: true,
+      enableShare: true
+    })
+    .then(() => getPublishPlan(bookId))
 }
 
 /**
@@ -133,10 +154,13 @@ export function createPublishPlan(bookId: string, data: {
  * @security BearerAuth
  */
 export function updatePublishPlan(planId: string, data: Partial<PublishPlan>) {
-  return request<PublishPlan>({
-    url: `/api/v1/writer/publish/plans/${planId}`,
-    method: 'put',
-    data
+  return createPublishPlan(planId, {
+    name: data.name || '发布计划',
+    description: data.description,
+    type: (data.type || 'free') as PublishType,
+    platforms: (data.platforms || ['all']) as PublishPlatform[],
+    schedule: data.schedule || { type: 'manual' },
+    pricing: data.pricing || { is_free: true }
   })
 }
 
@@ -151,10 +175,7 @@ export function updatePublishPlan(planId: string, data: Partial<PublishPlan>) {
  * @security BearerAuth
  */
 export function deletePublishPlan(planId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/publish/plans/${planId}`,
-    method: 'delete'
-  })
+  return httpService.post(`/api/v1/writer/projects/${planId}/unpublish`).then(() => ({ success: true }))
 }
 
 /**
@@ -169,10 +190,17 @@ export function deletePublishPlan(planId: string) {
  * @security BearerAuth
  */
 export function publishChapter(chapterId: string, config: ChapterPublishConfig) {
+  const projectId = (config as any).project_id || (config as any).projectId || ''
   return request<PublishRecord>({
-    url: `/api/v1/writer/publish/chapters/${chapterId}`,
+    url: `/api/v1/writer/documents/${chapterId}/publish`,
     method: 'post',
-    data: config
+    params: projectId ? { projectId } : undefined,
+    data: {
+      chapterTitle: (config as any).chapter_title || '未命名章节',
+      chapterNumber: (config as any).chapter_number || 1,
+      isFree: config.is_free ?? true,
+      authorNote: ''
+    }
   })
 }
 
@@ -210,10 +238,7 @@ export function batchPublishChapters(data: {
  * @security BearerAuth
  */
 export function unpublishChapter(chapterId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/publish/chapters/${chapterId}`,
-    method: 'delete'
-  })
+  return Promise.reject(new Error('后端暂未提供章节下架接口，请使用项目下架或管理端操作'))
 }
 
 /**
@@ -228,11 +253,7 @@ export function unpublishChapter(chapterId: string) {
  * @security BearerAuth
  */
 export function scheduleChapter(chapterId: string, publishAt: string) {
-  return request<PublishRecord>({
-    url: `/api/v1/writer/publish/chapters/${chapterId}/schedule`,
-    method: 'post',
-    data: { publish_at: publishAt }
-  })
+  return Promise.reject(new Error('后端暂未提供独立定时发布接口'))
 }
 
 /**
@@ -254,14 +275,50 @@ export function getPublishRecords(bookId: string, params?: {
   page_size?: number
   status?: PublishStatus
 }) {
-  return request<{
-    items: PublishRecord[]
-    total: number
-  }>({
-    url: `/api/v1/writer/publish/books/${bookId}/records`,
-    method: 'get',
-    params
-  })
+  return httpService
+    .get<any>(`/api/v1/writer/projects/${bookId}/publications`, {
+      params: {
+        page: params?.page || 1,
+        pageSize: params?.page_size || 20
+      }
+    })
+    .then((res: any) => {
+      const rawItems = Array.isArray(res?.data) ? res.data : []
+      const mappedItems: PublishRecord[] = rawItems.map((item: any) => {
+        const backendStatus = item?.status as string
+        const mappedStatus: PublishStatus =
+          backendStatus === 'published'
+            ? 'published'
+            : backendStatus === 'pending'
+              ? 'pending_review'
+              : backendStatus === 'failed'
+                ? 'rejected'
+                : backendStatus === 'unpublished'
+                  ? 'draft'
+                  : 'draft'
+
+        return {
+          id: item?.id || '',
+          book_id: bookId,
+          chapter_id: item?.resourceId || '',
+          chapter_title: item?.metadata?.chapterTitle || item?.resourceTitle || '未命名',
+          chapter_number: item?.metadata?.chapterNumber || 0,
+          status: mappedStatus,
+          published_at: item?.publishTime,
+          created_at: item?.createdAt || ''
+        }
+      })
+
+      const filtered =
+        params?.status && params.status.length > 0
+          ? mappedItems.filter(item => item.status === params.status)
+          : mappedItems
+
+      return {
+        items: filtered,
+        total: Number(res?.pagination?.total || filtered.length)
+      }
+    })
 }
 
 /**
@@ -275,10 +332,20 @@ export function getPublishRecords(bookId: string, params?: {
  * @security BearerAuth
  */
 export function getPublishStats(bookId: string) {
-  return request<PublishStats>({
-    url: `/api/v1/writer/publish/books/${bookId}/stats`,
-    method: 'get'
-  })
+  return httpService.get<any>(`/api/v1/writer/projects/${bookId}/publication-status`).then((status: any) => ({
+    total_chapters: Number(status?.totalChapters || 0),
+    published_chapters: Number(status?.publishedChapters || 0),
+    draft_chapters: Math.max(
+      0,
+      Number(status?.totalChapters || 0) -
+        Number(status?.publishedChapters || 0) -
+        Number(status?.pendingChapters || 0)
+    ),
+    pending_review_chapters: Number(status?.pendingChapters || 0),
+    scheduled_chapters: 0,
+    total_words: 0,
+    published_words: 0
+  }))
 }
 
 /**
@@ -292,10 +359,7 @@ export function getPublishStats(bookId: string) {
  * @security BearerAuth
  */
 export function submitForReview(bookId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/publish/books/${bookId}/review`,
-    method: 'post'
-  })
+  return Promise.reject(new Error('后端暂未提供提交审核接口'))
 }
 
 /**
@@ -399,10 +463,7 @@ export function updatePublishPlatforms(planId: string, platforms: PublishPlatfor
  * @security BearerAuth
  */
 export function pausePublishPlan(planId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/publish/plans/${planId}/pause`,
-    method: 'post'
-  })
+  return httpService.post(`/api/v1/writer/projects/${planId}/unpublish`).then(() => ({ success: true }))
 }
 
 /**
@@ -416,10 +477,20 @@ export function pausePublishPlan(planId: string) {
  * @security BearerAuth
  */
 export function resumePublishPlan(planId: string) {
-  return request<{ success: boolean }>({
-    url: `/api/v1/writer/publish/plans/${planId}/resume`,
-    method: 'post'
-  })
+  return httpService
+    .post(`/api/v1/writer/projects/${planId}/publish`, {
+      bookstoreId: 'default-bookstore',
+      categoryId: 'general',
+      tags: [],
+      description: '',
+      coverImage: '',
+      publishType: 'serial',
+      freeChapters: 99999,
+      authorNote: '恢复发布',
+      enableComment: true,
+      enableShare: true
+    })
+    .then(() => ({ success: true }))
 }
 
 // 发布类型选项

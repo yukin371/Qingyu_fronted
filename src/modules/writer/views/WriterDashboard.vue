@@ -10,10 +10,9 @@
         <!-- 可选：放置日期筛选或设置按钮 -->
       </div>
     </div>
-
     <!-- 2. 核心数据概览 (Stats) -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :xs="12" :sm="6" :md="6" v-for="(item, index) in statCards" :key="index">
+    <div class="stats-grid">
+      <div v-for="(item, index) in statCards" :key="index" class="stats-grid-item">
         <el-card class="stat-card" shadow="hover">
           <div class="stat-icon" :style="{ backgroundColor: item.bgColor }">
             <el-icon :size="24" :color="item.iconColor">
@@ -25,12 +24,12 @@
             <div class="stat-label">{{ item.label }}</div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
 
-    <el-row :gutter="20" class="main-content-row">
+    <div class="main-content-grid">
       <!-- 左侧主要区域 -->
-      <el-col :xs="24" :lg="16">
+      <div class="left-pane">
         <!-- 3. 快捷操作 -->
         <el-card class="section-card quick-actions" shadow="hover">
           <template #header>
@@ -105,10 +104,10 @@
             </div>
           </div>
         </el-card>
-      </el-col>
+      </div>
 
       <!-- 右侧辅助区域 -->
-      <el-col :xs="24" :lg="8">
+      <div class="right-pane">
         <!-- 5. 今日目标 -->
         <el-card class="section-card writing-goal" shadow="hover">
           <template #header>
@@ -155,8 +154,8 @@
             <p class="quote-author">—— 佚名</p>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -253,6 +252,8 @@ onMounted(async () => {
     stats.value.pending = projects.filter((p: Project) => p.status === 'serializing').length
     stats.value.todayWords = 1200 // Mock Data
 
+  } catch (error) {
+    console.error('[WriterDashboard] 加载项目列表失败:', error)
   } finally {
     loadingProjects.value = false
   }
@@ -307,15 +308,19 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 <style scoped lang="scss">
 .writer-dashboard {
-  padding: 24px;
-  max-width: 1600px;
+  --card-radius: 14px;
+  padding: clamp(16px, 2vw, 24px);
+  max-width: 1320px;
   margin: 0 auto;
-  min-height: 100vh;
   background-color: var(--el-bg-color-page);
 }
 
 // 1. 头部
 .dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 24px;
 
   .title {
@@ -335,16 +340,21 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 }
 
 // 2. 统计卡片
-.stats-row {
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
   margin-bottom: 24px;
 
   .stat-card {
-    border: none;
-    // box-shadow: var(--el-box-shadow-light);
-    transition: transform 0.3s;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: var(--card-radius);
+    background: linear-gradient(160deg, var(--el-bg-color) 0%, var(--el-fill-color-extra-light) 100%);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 
     &:hover {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
     }
 
     :deep(.el-card__body) {
@@ -380,8 +390,24 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 // 通用卡片样式
 .section-card {
-  margin-bottom: 24px;
-  border: none;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--card-radius);
+  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(16, 24, 40, 0.08);
+  }
+
+  :deep(.el-card__header) {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  :deep(.el-card__body) {
+    padding: 18px 20px;
+  }
 
   .card-header {
     display: flex;
@@ -398,13 +424,26 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
   }
 }
 
+.main-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.left-pane,
+.right-pane {
+  display: grid;
+  gap: 20px;
+}
+
 // 3. 快捷操作
 .quick-actions {
   .action-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 16px;
-    padding: 10px 0;
+    padding: 4px 0;
   }
 
   .action-item {
@@ -413,11 +452,14 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
     align-items: center;
     cursor: pointer;
     padding: 16px;
-    border-radius: 8px;
-    transition: background 0.2s;
+    border-radius: 10px;
+    background: var(--el-fill-color-extra-light);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 
     &:hover {
-      background-color: var(--el-fill-color-light);
+      border-color: var(--el-border-color);
+      transform: translateY(-2px);
     }
 
     .icon-box {
@@ -460,21 +502,21 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 // 4. 最近项目列表
 .project-list {
+  display: grid;
+  gap: 10px;
+
   .project-list-item {
     display: flex;
     align-items: center;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
-    border-bottom: 1px solid var(--el-border-color-lighter);
-
-    &:last-child {
-      border-bottom: none;
-    }
+    border: 1px solid var(--el-border-color-lighter);
 
     &:hover {
-      background-color: var(--el-fill-color-light);
+      background-color: var(--el-fill-color-extra-light);
+      border-color: var(--el-border-color);
     }
 
     .item-cover {
@@ -534,6 +576,10 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 // 5. 今日目标
 .writing-goal {
+  :deep(.el-card__body) {
+    padding-top: 16px;
+  }
+
   .goal-content {
     display: flex;
     flex-direction: column;
@@ -590,7 +636,7 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 // 6. 每日灵感
 .daily-quote {
-  background: linear-gradient(135deg, var(--el-color-primary-light-9) 0%, var(--el-bg-color) 100%);
+  background: linear-gradient(140deg, var(--el-color-primary-light-9) 0%, var(--el-bg-color) 58%, var(--el-color-info-light-9) 100%);
 
   .quote-content {
     position: relative;
@@ -624,13 +670,25 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 }
 
 // 响应式调整
+@media (max-width: 1200px) {
+  .main-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .stats-row .el-col {
-    margin-bottom: 16px;
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .quick-actions .action-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .writer-dashboard {
+    padding: 14px;
+  }
+
 }
 </style>

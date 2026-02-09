@@ -1,39 +1,55 @@
 <template>
-  <div class="publish-management-view">
-    <el-row :gutter="20">
+  <WriterPageShell>
+    <div class="publish-management-view">
+      <el-row :gutter="20" class="content-grid">
+        <el-col :span="24">
+          <div class="publish-hero mb-4 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm md:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h1 class="m-0 text-2xl font-semibold text-slate-800">发布管理</h1>
+                <p class="mt-2 text-sm text-slate-500">统一处理发布计划、章节发布进度和导出任务。</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">总章节 {{ stats.total_chapters }}</span>
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">已发布 {{ stats.published_chapters }}</span>
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">审核中 {{ stats.pending_review_chapters }}</span>
+              </div>
+            </div>
+          </div>
+        </el-col>
+
       <!-- 左侧：发布统计 -->
-      <el-col :span="6">
-        <el-card shadow="never" class="stats-card">
+        <el-col :span="5">
+          <el-card shadow="never" class="stats-card">
           <template #header>
             <h3>发布统计</h3>
           </template>
-          <div v-loading="loadingStats" class="stats-list">
-            <div class="stat-item">
-              <span class="label">总章节数</span>
+          <div v-loading="loadingStats" class="stats-grid">
+            <div class="stat-tile">
+              <span class="label">总章节</span>
               <span class="value">{{ stats.total_chapters }}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">已发布</span>
               <span class="value success">{{ stats.published_chapters }}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">草稿</span>
               <span class="value info">{{ stats.draft_chapters }}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">审核中</span>
               <span class="value warning">{{ stats.pending_review_chapters }}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">定时发布</span>
               <span class="value info">{{ stats.scheduled_chapters }}</span>
             </div>
-            <el-divider />
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">总字数</span>
               <span class="value">{{ formatNumber(stats.total_words) }}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-tile">
               <span class="label">已发布字数</span>
               <span class="value success">{{ formatNumber(stats.published_words) }}</span>
             </div>
@@ -42,8 +58,8 @@
       </el-col>
 
       <!-- 右侧：发布管理 -->
-      <el-col :span="18">
-        <el-card shadow="never">
+        <el-col :span="19">
+          <el-card shadow="never" class="main-card">
           <template #header>
             <div class="card-header">
               <h3>发布管理</h3>
@@ -60,7 +76,21 @@
             </div>
           </template>
 
-          <el-tabs v-model="activeTab">
+          <div class="internal-tab-nav">
+            <button
+              v-for="item in internalNavItems"
+              :key="item.key"
+              type="button"
+              class="internal-nav-item"
+              :class="{ 'is-active': activeTab === item.key }"
+              @click="activeTab = item.key"
+            >
+              <span class="nav-title">{{ item.label }}</span>
+              <span class="nav-meta">{{ item.meta }}</span>
+            </button>
+          </div>
+
+          <el-tabs v-model="activeTab" class="publish-tabs">
             <!-- 发布计划 -->
             <el-tab-pane label="发布计划" name="plan">
               <div v-if="!publishPlan" class="empty-plan">
@@ -412,7 +442,7 @@
           </el-tabs>
         </el-card>
       </el-col>
-    </el-row>
+      </el-row>
 
     <!-- 发布计划对话框 -->
     <el-dialog v-model="showPublishPlanDialog" title="发布计划" width="600px">
@@ -568,16 +598,20 @@
         </el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+  </WriterPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth'
+import { useWriterStore } from '@/stores/writer'
 import { Download, Setting, Refresh } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
+import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import * as echarts from 'echarts'
 import {
   getPublishPlan,
@@ -597,6 +631,7 @@ import {
   publishTypeOptions,
   publishPlatformOptions
 } from '@/modules/writer/api'
+import { request as apiRequest } from '@/utils/request-adapter'
 import {
   createExportTask,
   getExportHistory,
@@ -610,7 +645,9 @@ import {
 
 // 假设从路由参数获取书籍ID
 const bookId = ref('')
+const route = useRoute()
 const authStore = useAuthStore()
+const writerStore = useWriterStore()
 
 const loadingStats = ref(false)
 const loadingRecords = ref(false)
@@ -638,6 +675,28 @@ const exportHistory = ref<ExportTask[]>([])
 const exportPage = ref(1)
 const exportPageSize = ref(20)
 const exportTotal = ref(0)
+const internalNavItems = computed(() => [
+  {
+    key: 'plan',
+    label: '发布计划',
+    meta: publishPlan.value ? `状态：${publishPlan.value.status === 'active' ? '进行中' : '已暂停'}` : '待创建'
+  },
+  {
+    key: 'chapters',
+    label: '章节发布',
+    meta: `${recordTotal.value || stats.total_chapters} 章`
+  },
+  {
+    key: 'export',
+    label: '导出历史',
+    meta: `${exportTotal.value} 条`
+  },
+  {
+    key: 'review',
+    label: '审核历史',
+    meta: `待审 ${reviewStats.pending || stats.pending_review_chapters}`
+  }
+])
 
 const showPublishPlanDialog = ref(false)
 const showExportDialog = ref(false)
@@ -683,10 +742,89 @@ const reviewStats = reactive({
   pending: 0
 })
 
+const mockPlanMap = reactive<Record<string, PublishPlan>>({})
+const mockRecordMap = reactive<Record<string, PublishRecord[]>>({})
+const mockExportMap = reactive<Record<string, any[]>>({})
+
+const currentLocalProject = computed(() =>
+  (writerStore.projectList || []).find((p: any) => (p.projectId || p.id) === bookId.value)
+)
+
+const isMockProjectContext = computed(() => {
+  if (writerStore.storageMode === 'offline') return true
+  return !!currentLocalProject.value
+})
+
+const ensureMockRecords = (projectId: string) => {
+  if (mockRecordMap[projectId]?.length) return mockRecordMap[projectId]
+  const chapterCount = Math.max(Number(currentLocalProject.value?.chapterCount || 0), 8)
+  const now = Date.now()
+  const records: PublishRecord[] = Array.from({ length: chapterCount }, (_, idx) => {
+    const chapterNo = idx + 1
+    const status: PublishStatus = chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
+    return {
+      id: `${projectId}-record-${chapterNo}`,
+      book_id: projectId,
+      chapter_id: `${projectId}-chapter-${chapterNo}`,
+      chapter_title: `第${chapterNo}章`,
+      chapter_number: chapterNo,
+      status,
+      published_at: status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
+      created_at: new Date(now - chapterNo * 3600000).toISOString()
+    }
+  })
+  mockRecordMap[projectId] = records
+  return records
+}
+
+const ensureMockPlan = (projectId: string) => {
+  if (mockPlanMap[projectId]) return mockPlanMap[projectId]
+  const plan: PublishPlan = {
+    id: projectId,
+    book_id: projectId,
+    name: `${currentLocalProject.value?.title || '作品'}发布计划`,
+    description: '',
+    type: 'free',
+    status: 'active',
+    platforms: ['all'],
+    schedule: { type: 'manual', interval_days: 1, chapters_per_release: 1 },
+    pricing: { is_free: true, price: 0, vip_discount: 100 },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+  mockPlanMap[projectId] = plan
+  return plan
+}
+
+const computeMockStats = (projectId: string): PublishStats => {
+  const records = ensureMockRecords(projectId)
+  const total = records.length
+  const published = records.filter(r => r.status === 'published').length
+  const pending = records.filter(r => r.status === 'pending_review').length
+  const scheduled = records.filter(r => r.status === 'scheduled').length
+  const draft = total - published - pending - scheduled
+  const totalWords = Number(currentLocalProject.value?.wordCount || total * 1800)
+  const publishedWords = Math.floor(totalWords * (published / Math.max(total, 1)))
+  return {
+    total_chapters: total,
+    published_chapters: published,
+    draft_chapters: Math.max(0, draft),
+    pending_review_chapters: pending,
+    scheduled_chapters: scheduled,
+    total_words: totalWords,
+    published_words: publishedWords
+  }
+}
+
 // 加载发布统计
 const loadStats = async () => {
+  if (!bookId.value) return
   loadingStats.value = true
   try {
+    if (isMockProjectContext.value) {
+      Object.assign(stats, computeMockStats(bookId.value))
+      return
+    }
     const res = await getPublishStats(bookId.value)
     Object.assign(stats, res)
   } catch (error: any) {
@@ -698,7 +836,12 @@ const loadStats = async () => {
 
 // 加载发布计划
 const loadPublishPlan = async () => {
+  if (!bookId.value) return
   try {
+    if (isMockProjectContext.value) {
+      publishPlan.value = { ...ensureMockPlan(bookId.value) }
+      return
+    }
     publishPlan.value = await getPublishPlan(bookId.value)
   } catch (error: any) {
     console.error('加载发布计划失败', error)
@@ -707,8 +850,20 @@ const loadPublishPlan = async () => {
 
 // 加载发布记录
 const loadPublishRecords = async () => {
+  if (!bookId.value) return
   loadingRecords.value = true
   try {
+    if (isMockProjectContext.value) {
+      const allRecords = ensureMockRecords(bookId.value)
+      const filtered = chapterFilter.status
+        ? allRecords.filter(r => r.status === chapterFilter.status)
+        : allRecords
+      const start = (recordPage.value - 1) * recordPageSize.value
+      const end = start + recordPageSize.value
+      publishRecords.value = filtered.slice(start, end)
+      recordTotal.value = filtered.length
+      return
+    }
     const res = await getPublishRecords(bookId.value, {
       page: recordPage.value,
       page_size: recordPageSize.value,
@@ -725,8 +880,19 @@ const loadPublishRecords = async () => {
 
 // 加载导出历史
 const loadExportHistory = async () => {
+  if (!bookId.value) return
   loadingExport.value = true
   try {
+    if (isMockProjectContext.value) {
+      const all = (mockExportMap[bookId.value] || []).slice().sort((a, b) => {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
+      const start = (exportPage.value - 1) * exportPageSize.value
+      const end = start + exportPageSize.value
+      exportHistory.value = all.slice(start, end) as any
+      exportTotal.value = all.length
+      return
+    }
     const res = await getExportHistory(bookId.value, {
       page: exportPage.value,
       page_size: exportPageSize.value
@@ -743,6 +909,36 @@ const loadExportHistory = async () => {
 // 保存发布计划
 const savePublishPlan = async () => {
   try {
+    if (isMockProjectContext.value) {
+      const existed = !!publishPlan.value
+      const plan: PublishPlan = {
+        id: publishPlan.value?.id || bookId.value,
+        book_id: bookId.value,
+        name: planForm.name,
+        description: '',
+        type: planForm.type,
+        status: publishPlan.value?.status || 'active',
+        platforms: [...planForm.platforms] as any,
+        schedule: {
+          type: planForm.scheduleType,
+          interval_days: planForm.intervalDays,
+          chapters_per_release: planForm.chaptersPerRelease
+        },
+        pricing: {
+          is_free: planForm.isFree,
+          price: planForm.price,
+          vip_discount: planForm.vipDiscount
+        },
+        created_at: publishPlan.value?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      mockPlanMap[bookId.value] = plan
+      publishPlan.value = { ...plan }
+      message.success(existed ? '更新成功' : '创建成功')
+      showPublishPlanDialog.value = false
+      return
+    }
+
     if (publishPlan.value) {
       await updatePublishPlan(publishPlan.value.id, {
         name: planForm.name,
@@ -806,6 +1002,13 @@ const editPublishPlan = () => {
 const pausePlan = async () => {
   if (!publishPlan.value) return
   try {
+    if (isMockProjectContext.value) {
+      publishPlan.value.status = 'paused'
+      publishPlan.value.updated_at = new Date().toISOString()
+      mockPlanMap[bookId.value] = { ...publishPlan.value }
+      message.success('已暂停')
+      return
+    }
     await pausePublishPlan(publishPlan.value.id)
     message.success('已暂停')
     loadPublishPlan()
@@ -818,6 +1021,13 @@ const pausePlan = async () => {
 const resumePlan = async () => {
   if (!publishPlan.value) return
   try {
+    if (isMockProjectContext.value) {
+      publishPlan.value.status = 'active'
+      publishPlan.value.updated_at = new Date().toISOString()
+      mockPlanMap[bookId.value] = { ...publishPlan.value }
+      message.success('已恢复')
+      return
+    }
     await resumePublishPlan(publishPlan.value.id)
     message.success('已恢复')
     loadPublishPlan()
@@ -829,7 +1039,23 @@ const resumePlan = async () => {
 // 发布章节
 const publishChapter = async (record: PublishRecord) => {
   try {
-    await apiPublishChapter(record.chapter_id, {})
+    if (isMockProjectContext.value) {
+      const records = ensureMockRecords(bookId.value)
+      const target = records.find(r => r.chapter_id === record.chapter_id)
+      if (target) {
+        target.status = 'published'
+        target.published_at = new Date().toISOString()
+      }
+      message.success('发布成功（Mock）')
+      loadPublishRecords()
+      loadStats()
+      return
+    }
+    await apiPublishChapter(record.chapter_id, {
+      chapter_id: record.chapter_id,
+      chapter_number: record.chapter_number,
+      project_id: bookId.value
+    } as any)
     // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
     await authStore.getUserInfo().catch(() => undefined)
     message.success('发布成功')
@@ -843,6 +1069,18 @@ const publishChapter = async (record: PublishRecord) => {
 // 下架章节
 const unpublishChapter = async (record: PublishRecord) => {
   try {
+    if (isMockProjectContext.value) {
+      const records = ensureMockRecords(bookId.value)
+      const target = records.find(r => r.chapter_id === record.chapter_id)
+      if (target) {
+        target.status = 'draft'
+        target.published_at = undefined
+      }
+      message.success('下架成功（Mock）')
+      loadPublishRecords()
+      loadStats()
+      return
+    }
     await apiUnpublishChapter(record.chapter_id)
     message.success('下架成功')
     loadPublishRecords()
@@ -854,6 +1092,18 @@ const unpublishChapter = async (record: PublishRecord) => {
 
 // 定时发布
 const scheduleChapter = (record: PublishRecord) => {
+  if (isMockProjectContext.value) {
+    const records = ensureMockRecords(bookId.value)
+    const target = records.find(r => r.chapter_id === record.chapter_id)
+    if (target) {
+      target.status = 'scheduled'
+      target.published_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+    }
+    message.success('已设为定时发布（Mock）')
+    loadPublishRecords()
+    loadStats()
+    return
+  }
   message.info('定时发布功能开发中')
 }
 
@@ -865,6 +1115,17 @@ const viewReview = (record: PublishRecord) => {
 // 提交审核
 const submitReview = async () => {
   try {
+    if (isMockProjectContext.value) {
+      const records = ensureMockRecords(bookId.value)
+      const draft = records.filter(r => r.status === 'draft')
+      draft.slice(0, 2).forEach(r => {
+        r.status = 'pending_review'
+      })
+      message.success('已提交审核（Mock）')
+      loadPublishRecords()
+      loadStats()
+      return
+    }
     await submitForReview(bookId.value)
     message.success('已提交审核')
   } catch (error: any) {
@@ -875,6 +1136,33 @@ const submitReview = async () => {
 // 开始导出
 const startExport = async () => {
   try {
+    if (isMockProjectContext.value) {
+      const now = new Date().toISOString()
+      const taskId = `mock-export-${Date.now()}`
+      const task: any = {
+        id: taskId,
+        format: exportForm.format,
+        scope: exportForm.scope,
+        status: 'processing',
+        progress: 25,
+        created_at: now
+      }
+      if (!mockExportMap[bookId.value]) mockExportMap[bookId.value] = []
+      mockExportMap[bookId.value].unshift(task)
+      setTimeout(() => {
+        const list = mockExportMap[bookId.value] || []
+        const target = list.find((t: any) => t.id === taskId)
+        if (target && target.status === 'processing') {
+          target.status = 'completed'
+          target.progress = 100
+        }
+      }, 1200)
+      message.success('导出任务已创建（Mock）')
+      showExportDialog.value = false
+      activeTab.value = 'export'
+      loadExportHistory()
+      return
+    }
     await createExportTask(bookId.value, {
       format: exportForm.format,
       scope: exportForm.scope,
@@ -895,6 +1183,18 @@ const startExport = async () => {
 // 下载导出
 const downloadExport = async (task: ExportTask) => {
   try {
+    if (isMockProjectContext.value) {
+      const content = `Mock 导出内容\n项目ID: ${bookId.value}\n任务ID: ${task.id}\n时间: ${new Date().toLocaleString('zh-CN')}\n`
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `export_${task.id}.${(task as any).format || 'txt'}`
+      a.click()
+      URL.revokeObjectURL(url)
+      message.success('下载成功（Mock）')
+      return
+    }
     const blob = await downloadExportFile(task.id)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -911,6 +1211,17 @@ const downloadExport = async (task: ExportTask) => {
 // 取消导出
 const cancelExport = async (task: ExportTask) => {
   try {
+    if (isMockProjectContext.value) {
+      const list = mockExportMap[bookId.value] || []
+      const target = list.find((t: any) => t.id === task.id)
+      if (target) {
+        target.status = 'cancelled'
+        target.progress = 0
+      }
+      message.success('已取消（Mock）')
+      loadExportHistory()
+      return
+    }
     await cancelExportTask(task.id)
     message.success('已取消')
     loadExportHistory()
@@ -922,6 +1233,13 @@ const cancelExport = async (task: ExportTask) => {
 // 删除导出
 const deleteExport = async (task: ExportTask) => {
   try {
+    if (isMockProjectContext.value) {
+      const list = mockExportMap[bookId.value] || []
+      mockExportMap[bookId.value] = list.filter((t: any) => t.id !== task.id)
+      message.success('删除成功（Mock）')
+      loadExportHistory()
+      return
+    }
     await apiDeleteExportTask(task.id)
     message.success('删除成功')
     loadExportHistory()
@@ -1206,46 +1524,162 @@ const getExportStatusLabel = (status: string) => {
 }
 
 onMounted(() => {
-  // 这里应该从路由参数获取书籍ID
-  bookId.value = 'demo-book-id'
-  loadStats()
-  loadPublishPlan()
-  loadPublishRecords()
-  loadExportHistory()
+  ;(async () => {
+    const routeProjectId =
+      (route.params.projectId as string) ||
+      (route.params.id as string) ||
+      (route.query.projectId as string) ||
+      ''
+
+    if (routeProjectId) {
+      bookId.value = routeProjectId
+    } else {
+      // 优先使用 writerStore（离线/mock 项目与“我的项目”保持一致）
+      try {
+        await writerStore.fetchProjects()
+        const firstLocalProject: any = writerStore.projectList?.[0]
+        bookId.value = firstLocalProject?.projectId || firstLocalProject?.id || ''
+      } catch {
+        bookId.value = ''
+      }
+
+      // 本地无项目时再回退远端
+      if (!bookId.value) {
+        try {
+          const result: any = await apiRequest({
+            url: '/api/v1/writer/projects',
+            method: 'get',
+            params: { page: 1, pageSize: 1 }
+          })
+          bookId.value =
+            result?.projects?.[0]?.id ||
+            result?.projects?.[0]?.projectId ||
+            result?.list?.[0]?.id ||
+            result?.list?.[0]?.projectId ||
+            ''
+        } catch {
+          bookId.value = ''
+        }
+      }
+    }
+
+    if (!bookId.value) {
+      message.warning('未找到可用项目，请先在“我的项目”中创建项目')
+      return
+    }
+
+    loadStats()
+    loadPublishPlan()
+    loadPublishRecords()
+    loadExportHistory()
+  })()
 })
 </script>
 
 <style scoped lang="scss">
 .publish-management-view {
-  padding: 20px;
+  padding: 0;
+}
+
+.content-grid {
+  padding: 0 10px;
 }
 
 .stats-card {
+  border: 1px solid #dbe6f6;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+
   h3 {
     margin: 0;
     font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
   }
 }
 
-.stats-list {
-  .stat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--el-border-color-lighter);
+.main-card {
+  border: 1px solid #dbe6f6;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
 
-    &:last-child {
-      border-bottom: none;
+.internal-tab-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.internal-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #dbe6f6;
+  border-radius: 12px;
+  background: #f8fbff;
+  color: #334155;
+  transition: all 0.18s ease;
+  text-align: left;
+
+  .nav-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .nav-meta {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.2;
+  }
+
+  &:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+
+  &.is-active {
+    border-color: #60a5fa;
+    background: #eff6ff;
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.25);
+
+    .nav-title,
+    .nav-meta {
+      color: #1d4ed8;
     }
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+
+  .stat-tile {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: 1px solid #dbe6f6;
+    background: #fff;
+    min-height: 72px;
 
     .label {
-      font-size: 14px;
-      color: var(--el-text-color-secondary);
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.2;
     }
 
     .value {
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      color: #0f172a;
 
       &.success {
         color: var(--el-color-success);
@@ -1259,6 +1693,17 @@ onMounted(() => {
         color: var(--el-color-warning);
       }
     }
+  }
+
+  // 末行仅 1 项：占整行
+  > .stat-tile:last-child:nth-child(3n + 1) {
+    grid-column: 1 / -1;
+  }
+
+  // 末行仅 2 项：各占半行
+  > .stat-tile:nth-last-child(2):nth-child(3n + 1),
+  > .stat-tile:last-child:nth-child(3n + 2) {
+    grid-column: span 3;
   }
 }
 
@@ -1284,6 +1729,8 @@ onMounted(() => {
 .plan-detail {
   .plan-actions {
     margin-top: 20px;
+    padding-top: 16px;
+    border-top: 2px solid #e2e8f0;
     display: flex;
     gap: 12px;
   }
@@ -1292,7 +1739,9 @@ onMounted(() => {
 .filter-bar {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .chapter-publish,
@@ -1334,4 +1783,25 @@ onMounted(() => {
     display: flex;
   }
 }
+
+:deep(.stats-card .el-card__header),
+:deep(.main-card .el-card__header) {
+  padding: 14px 22px;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+:deep(.stats-card .el-card__body),
+:deep(.main-card .el-card__body) {
+  padding: 18px 22px;
+}
+
+:deep(.publish-tabs .el-tabs__header) {
+  display: none;
+}
+
+:deep(.publish-tabs .el-tabs__content) {
+  padding: 4px 8px 8px;
+}
+
 </style>
