@@ -76,7 +76,11 @@
             <el-skeleton :rows="3" animated />
           </div>
 
-          <el-empty v-else-if="recentProjects.length === 0" description="暂无最近编辑的项目" />
+          <el-empty
+            v-else-if="recentProjects.length === 0"
+            description="暂无最近编辑的项目"
+            :image-size="80"
+          />
 
           <div v-else class="project-list">
             <div v-for="project in recentProjects" :key="project.id" class="project-list-item"

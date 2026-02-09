@@ -51,35 +51,55 @@ const activeTab = ref('discussion')
 }
 
 .discovery-tabs {
+  // 确保导航栏横向排列为一行
   :deep(.el-tabs__header) {
     margin: 0 0 20px 0;
+    border-bottom: 1px solid #e4e7ed;
   }
 
-  :deep(.el-tabs__nav-wrap::after) {
-    display: none;
+  :deep(.el-tabs__nav-wrap) {
+    display: flex;
+    &::after {
+      display: none;
+    }
+  }
+
+  :deep(.el-tabs__nav-scroll) {
+    display: flex;
+  }
+
+  :deep(.el-tabs__nav) {
+    display: flex;
+    border: none;
   }
 
   :deep(.el-tabs__item) {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
-    color: #666;
+    color: #606266;
     padding: 0 24px;
-    height: 48px;
-    line-height: 48px;
+    height: 44px;
+    line-height: 44px;
+    white-space: nowrap;
+    border: none;
+    transition: all 0.2s ease;
 
     &:hover {
       color: #409eff;
+      background: #ecf5ff;
+      border-radius: 8px;
     }
 
     &.is-active {
       color: #409eff;
       font-weight: 600;
+      background: #ecf5ff;
+      border-radius: 8px;
     }
   }
 
   :deep(.el-tabs__active-bar) {
-    height: 3px;
-    border-radius: 3px;
+    display: none;
   }
 
   :deep(.el-tabs__content) {

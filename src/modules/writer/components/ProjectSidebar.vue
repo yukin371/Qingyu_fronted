@@ -35,10 +35,22 @@
       <el-input v-model="searchKeyword" placeholder="搜索章节..." size="small" clearable class="search-input">
         <template #prefix><QyIcon name="Search"  /></template>
       </el-input>
+    </div>
 
-      <el-tooltip content="新建章节">
-        <el-button size="small" :icon="Plus" data-testid="add-document-button" @click="$emit('add-chapter')" />
-      </el-tooltip>
+    <div class="quick-create-row" v-if="!isCollapsed">
+      <button
+        class="quick-create-btn"
+        data-testid="add-document-button"
+        @click="$emit('add-chapter')"
+      >
+        + 章节
+      </button>
+      <button
+        class="quick-create-btn quick-create-btn--secondary"
+        @click="$emit('add-volume')"
+      >
+        + 目录
+      </button>
     </div>
 
     <!-- 3. 章节列表区域 -->
@@ -150,6 +162,7 @@ const emit = defineEmits<{
   'update:projectId': [id: string]
   'update:chapterId': [id: string]
   'add-chapter': []
+  'add-volume': []
   'edit-chapter': [chapter: ChapterSummary]
   'delete-chapter': [id: string]
 }>()
@@ -243,6 +256,8 @@ watch(() => props.projects, (newVal) => {
 .sidebar-container {
   width: 260px;
   height: 100%;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: #f8fafc;
@@ -326,6 +341,43 @@ watch(() => props.projects, (newVal) => {
 
   .search-input {
     flex: 1;
+  }
+}
+
+.quick-create-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.quick-create-btn {
+  height: 30px;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+
+  &:hover {
+    background: #dbeafe;
+    border-color: #60a5fa;
+  }
+}
+
+.quick-create-btn--secondary {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+
+  &:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
   }
 }
 

@@ -45,6 +45,14 @@ withDefaults(defineProps<Props>(), {
   background: #fff;
 }
 
+:deep(.sidebar-container),
+:deep(.chapter-list) {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 :deep(.ai-panel) {
   width: 100%;
   border-left: none;

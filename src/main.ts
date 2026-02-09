@@ -83,7 +83,7 @@ declare module '@vue/runtime-core' {
 // 空闲时补齐全量组件注册，避免后续页面因未注册组件报错
 const runWhenIdle = (task: () => void) => {
   const requestIdle = (window as Window & {
-    requestIdleCallback?: (() => void) => number
+    requestIdleCallback?: (cb: () => void) => number
   }).requestIdleCallback
 
   if (requestIdle) {
