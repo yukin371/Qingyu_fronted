@@ -104,7 +104,7 @@
 
         <div class="footer-center">
           <span class="save-status" :class="saveStatusClass">
-            <QyIcon name="component" :is="saveStatusIcon"  />
+            <QyIcon :name="saveStatusIcon"  />
             {{ saveStatusText }}
           </span>
         </div>
@@ -143,8 +143,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, reactive, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted, nextTick, reactive } from 'vue'
+import { useRoute } from 'vue-router'
 import { CircleCheck, Warning, Loading } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import { message } from '@/design-system/services'
@@ -174,7 +174,6 @@ import { calculateWordCount, formatMarkdown } from '../utils/editor'
 // State
 // =======================
 
-const router = useRouter()
 const route = useRoute()
 
 // Store Instances

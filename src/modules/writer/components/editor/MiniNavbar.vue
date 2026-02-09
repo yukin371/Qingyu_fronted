@@ -99,9 +99,9 @@ interface Props {
  */
 interface Emits {
   /** 更新激活工具（v-model） */
-  (e: 'update:modelValue', value: string): void
+  (e: 'update:modelValue', _value: string): void
   /** 工具切换事件 */
-  (e: 'toolChange', toolId: string): void
+  (e: 'toolChange', _toolId: string): void
 }
 
 // Props定义
@@ -269,14 +269,14 @@ const goBackToCenter = () => {
 <style scoped lang="scss">
 .mini-navbar {
   height: 52px;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 10px;
   overflow-x: auto;
   scrollbar-width: thin;
-  gap: 10px;
+  gap: 8px;
 }
 
 .mini-navbar__back {
@@ -312,10 +312,10 @@ const goBackToCenter = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border: 1px solid #dbe3ef;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.16s ease;
   color: #475569;

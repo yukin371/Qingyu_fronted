@@ -109,7 +109,7 @@
               <p class="card-description">{{ demo.description }}</p>
               <div class="card-meta">
                 <span class="meta-item">
-                  <QyIcon name="component" size="xs" />
+                  <QyIcon name="Grid" size="xs" />
                   {{ demo.componentCount }} 个组件
                 </span>
                 <span class="meta-item">
@@ -231,7 +231,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { QyButton, QyIcon, QyInput, QyBadge, QyAvatar } from '@/design-system/components'
+import { QyButton, QyIcon, QyInput, QyBadge } from '@/design-system/components'
 
 // Router
 const router = useRouter()

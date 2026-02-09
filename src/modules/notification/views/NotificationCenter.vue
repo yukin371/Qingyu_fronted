@@ -6,7 +6,7 @@
         <h1>消息中心</h1>
         <div class="header-actions">
           <div class="connection-status" :class="connectionStatusClass">
-            <QyIcon name="component" :is="connectionStatusIcon"  />
+            <QyIcon :name="connectionStatusIcon"  />
             <span>{{ connectionStatusText }}</span>
           </div>
         </div>
@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
+import { Warning, CircleCheck, Loading } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import NotificationList from '../components/NotificationList.vue'
 import { useNotificationStore } from '@/stores/notification'

@@ -211,6 +211,7 @@ defineExpose({
   flex-direction: column;
   flex-shrink: 0;
   height: 100%;
+  min-height: 0;
 
   /* 过渡动画 - 使用统一变量 */
   transition: width 0.2s ease;
@@ -223,13 +224,13 @@ defineExpose({
 
 /* 左侧面板 */
 .resizable-panel--left {
-  order: 1;
+  order: 0;
   border: none;
 }
 
 /* 右侧面板 */
 .resizable-panel--right {
-  order: 3;
+  order: 2;
   border: none;
 }
 
@@ -319,6 +320,7 @@ defineExpose({
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   overflow: auto;
   height: 100%;
 

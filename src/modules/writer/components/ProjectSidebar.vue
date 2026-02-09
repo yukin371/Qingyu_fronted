@@ -208,7 +208,9 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
         { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }
       )
       emit('delete-chapter', chapter.id)
-    } catch { }
+    } catch {
+      // 用户取消删除操作，无需处理
+    }
   }
 }
 
@@ -331,7 +333,7 @@ watch(() => props.projects, (newVal) => {
 .sidebar-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 10px 12px;
+  padding: 8px 8px 10px;
   background: #f8fafc;
 
   &::-webkit-scrollbar {
@@ -345,24 +347,23 @@ watch(() => props.projects, (newVal) => {
 
   .chapter-item {
     position: relative;
-    padding: 12px 12px 12px 18px;
-    margin-bottom: 10px;
+    padding: 10px 10px 10px 16px;
+    margin-bottom: 6px;
     cursor: pointer;
     transition: all 0.16s ease;
-    border: 1px solid #dbe3ef;
+    border: 1px solid #e2e8f0;
     border-left: 3px solid #cbd5e1;
-    border-radius: 12px;
+    border-radius: 10px;
     background: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    box-shadow: none;
 
     &:hover {
       border-color: #93c5fd;
       border-left-color: #60a5fa;
       background: #f8fbff;
-      transform: translateY(-1px);
 
       .item-actions {
         opacity: 1;
@@ -373,7 +374,7 @@ watch(() => props.projects, (newVal) => {
       background: #eff6ff;
       border-color: #93c5fd;
       border-left-color: #2563eb;
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
 
       .item-title {
         color: #1d4ed8;
@@ -386,8 +387,8 @@ watch(() => props.projects, (newVal) => {
       position: absolute;
       left: 6px;
       top: 16px;
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
 
       &.published {
@@ -405,9 +406,9 @@ watch(() => props.projects, (newVal) => {
     }
 
     .item-title {
-      font-size: 14px;
+      font-size: 13px;
       color: #0f172a;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -420,7 +421,7 @@ watch(() => props.projects, (newVal) => {
     }
 
     .item-meta {
-      font-size: 12px;
+      font-size: 11px;
       color: #64748b;
       display: flex;
       align-items: center;

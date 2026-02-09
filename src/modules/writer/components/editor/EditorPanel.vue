@@ -202,14 +202,14 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:content', value: string): void
+  (e: 'update:content', _value: string): void
   (e: 'save'): void
   (e: 'undo'): void
   (e: 'redo'): void
   (e: 'aiAssistant'): void
   (e: 'togglePreview'): void
-  (e: 'formatCommand', command: string): void
-  (e: 'contextmenu', event: MouseEvent, selectedText: string): void
+  (e: 'formatCommand', _command: string): void
+  (e: 'contextmenu', _event: MouseEvent, _selectedText: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -313,12 +313,11 @@ const saveStatusClass = computed(() => {
   return `save-status--${saveStatus.value}`
 })
 
-const editorStyle = computed(() => {
-  return {
-    minWidth: '400px',
-    minHeight: props.showTimeline ? 'calc(100vh - 80px - 22px - 180px)' : 'calc(100vh - 80px - 22px)'
-  }
-})
+const editorStyle = computed(() => ({
+  minWidth: '400px',
+  minHeight: 0,
+  height: '100%'
+}))
 
 const debouncedUpdate = debounce((newContent: string) => {
   emit('update:content', newContent)
@@ -523,7 +522,8 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 }
 
 .editor-toolbar {
-  height: 56px;
+  height: 52px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -584,19 +584,22 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 .editor-main {
   position: relative;
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   padding: 14px;
 }
 
 .chapter-header-card {
+  flex-shrink: 0;
   border: 1px solid #dbe3ef;
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
   padding: 12px 14px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 
   .chapter-title-row {
     display: flex;
@@ -637,7 +640,8 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 12px;
-  min-height: calc(100% - 8px);
+  flex: 1;
+  min-height: 0;
 }
 
 .editor-workspace--focus {
@@ -645,6 +649,9 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 }
 
 .story-board {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   border: 1px solid #dbe3ef;
   border-radius: 14px;
   background: #ffffff;
@@ -728,7 +735,8 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 }
 
 .editor-writing-card {
-  min-height: calc(100vh - 280px);
+  min-height: 0;
+  height: 100%;
   background: #ffffff;
   border: 1px solid #dbe3ef;
   border-radius: 14px;
@@ -753,15 +761,16 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 }
 
 .editor-content {
-  min-height: calc(100vh - 340px);
+  min-height: 0;
+  height: 100%;
   font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
-  font-size: 18px;
-  line-height: 1.95;
+  font-size: 17px;
+  line-height: 1.9;
   color: #0f172a;
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
-  padding: 26px 36px;
+  padding: 24px 32px;
   caret-color: #2563eb;
   overflow: auto;
 
@@ -777,6 +786,7 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 }
 
 .preview-pane {
+  min-height: 0;
   border-left: 1px solid #e2e8f0;
   overflow: auto;
   background: #fcfdff;
@@ -789,7 +799,11 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 .editor-inspector {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  max-width: 240px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .inspector-card {
@@ -863,6 +877,7 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 
 .editor-statusbar {
   height: 28px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -924,7 +939,7 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   }
 
   .editor-content {
-    min-height: calc(100vh - 320px);
+    min-height: 0;
     padding: 18px 20px;
   }
 

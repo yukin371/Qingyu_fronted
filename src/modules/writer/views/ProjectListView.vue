@@ -24,7 +24,7 @@
                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                 @click="handleToggleMode"
               >
-                <QyIcon name="component" :is="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
+                <QyIcon :name="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
                 {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
               </button>
             </el-tooltip>

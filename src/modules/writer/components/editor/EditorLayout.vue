@@ -78,6 +78,7 @@
 
       <!-- 右侧AI助手 -->
       <ResizablePanel
+        v-if="showRightPanel"
         panel-id="right"
         :default-width="layout.rightPanel.width"
         :min-width="layout.rightPanel.minWidth"
@@ -141,11 +142,20 @@ const {
 } = useResponsiveLayout()
 
 // 移动端tab配置
-const mobileTabs = [
-  { key: 'left' as const, label: '目录', icon: 'List' },
-  { key: 'editor' as const, label: '编辑', icon: 'Edit' },
-  { key: 'right' as const, label: 'AI', icon: 'MagicStick' },
-]
+const showRightPanel = computed(() =>
+  ['ai-assistant', 'chat', 'materials'].includes(activeTool.value)
+)
+
+const mobileTabs = computed(() => {
+  const base = [
+    { key: 'left' as const, label: '目录', icon: 'List' },
+    { key: 'editor' as const, label: '编辑', icon: 'Edit' },
+  ]
+  if (showRightPanel.value) {
+    base.push({ key: 'right' as const, label: 'AI', icon: 'MagicStick' })
+  }
+  return base
+})
 
 // 计算属性：布局类名
 const layoutClasses = computed(() => ({
@@ -173,7 +183,9 @@ const rightPanelClasses = computed(() => ({
 }))
 
 const leftPanelStyle = computed(() => ({
-  width: layout.value.leftPanel.state === 'collapsed' ? '0px' : undefined,
+  width: layout.value.mode === 'desktop'
+    ? `${layout.value.leftPanel.width}px`
+    : (layout.value.leftPanel.state === 'collapsed' ? '0px' : undefined),
 }))
 
 const rightPanelStyle = computed(() => ({
@@ -236,6 +248,9 @@ function handleContentTouchEnd(event: TouchEvent) {
 
 function handleToolChange(toolId: string) {
   activeTool.value = toolId
+  if (!showRightPanel.value && layout.value.activeTab === 'right') {
+    switchTab('editor')
+  }
   ariaAnnouncement.value = `已切换到${toolId}`
   setTimeout(() => {
     ariaAnnouncement.value = ''
@@ -253,10 +268,11 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .editor-layout {
+  --editor-navbar-height: 52px;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   background: #f1f5f9;
   color: #0f172a;
   overflow: hidden;
@@ -265,6 +281,8 @@ onMounted(() => {
 .editor-layout__content {
   display: flex;
   flex: 1;
+  height: calc(100dvh - var(--editor-navbar-height));
+  min-height: 0;
   overflow: hidden;
   position: relative;
   gap: 10px;
@@ -273,8 +291,10 @@ onMounted(() => {
 }
 
 .editor-layout__main {
+  order: 1;
   flex: 1;
   min-width: 0;
+  min-height: 0;
   border: 1px solid #dbe3ef;
   border-radius: 14px;
   background: #ffffff;
@@ -283,7 +303,10 @@ onMounted(() => {
 }
 
 .layout-mode-mobile {
-  .editor-layout__content { flex-direction: column; }
+  .editor-layout__content {
+    flex-direction: column;
+    height: auto;
+  }
 
   .mobile-tabs {
     display: flex;

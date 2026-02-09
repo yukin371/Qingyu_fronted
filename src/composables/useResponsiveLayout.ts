@@ -10,7 +10,7 @@
  * 5. 触摸手势支持
  */
 
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useBreakpoints } from '@/composables/useBreakpoints'
 
 // ==================== 类型定义 ====================
@@ -118,7 +118,7 @@ export function useResponsiveLayout() {
   // 右侧面板配置
   const rightPanel = computed<PanelConfig>(() => {
     const baseWidth = storedSettings.value.rightPanelWidth || DEFAULT_PANEL_WIDTHS.right
-    const collapsed = storedSettings.value.rightPanelCollapsed ?? false
+    const collapsed = storedSettings.value.rightPanelCollapsed ?? true
     
     return {
       position: 'right',

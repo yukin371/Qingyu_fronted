@@ -33,7 +33,7 @@
                 :class="{ 'is-active': isItemActive(item.action) }" @click="handleMenuClick(item.action)"
                 @mouseenter="hoverIndex = getItemGlobalIndex(gIndex, iIndex)">
                 <div class="item-left">
-                  <QyIcon name="component" :is="item.icon"  />
+                  <QyIcon :name="item.icon"  />
                   <span class="item-label">{{ item.label }}</span>
                 </div>
                 <span class="shortcut" v-if="item.shortcut">{{ item.shortcut }}</span>
@@ -55,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { Loading, MagicStick, Brush, Plus, RefreshRight, Edit, ChatLineSquare } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 interface Props {
   visible: boolean
@@ -65,8 +66,8 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:visible', visible: boolean): void
-  (e: 'action', action: string, text?: string): void // action: 'chat' | 'polish' | 'custom' ...
+  (e: 'update:visible', _visible: boolean): void
+  (e: 'action', _action: string, _text?: string): void // action: 'chat' | 'polish' | 'custom' ...
   (e: 'close'): void
 }
 

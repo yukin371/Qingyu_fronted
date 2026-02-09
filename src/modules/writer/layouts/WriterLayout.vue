@@ -1,5 +1,5 @@
 <template>
-  <div class="writer-layout">
+  <div class="writer-layout" :class="{ 'writer-layout--project': hideWriterHeader }">
     <header v-if="!hideWriterHeader" class="writer-header">
       <div class="writer-header-inner">
         <router-link to="/bookstore" class="brand">青羽创作中心</router-link>
@@ -52,7 +52,7 @@
         </div>
       </div>
     </header>
-    <div class="writer-layout-content">
+    <div class="writer-layout-content" :class="{ 'writer-layout-content--project': hideWriterHeader }">
       <div class="writer-content-backdrop"></div>
       <router-view v-slot="{ Component }">
         <component :is="Component" />
@@ -202,6 +202,16 @@ const handleUserCommand = async (command: string) => {
   flex: 1;
   position: relative;
   isolation: isolate;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.writer-layout-content--project {
+  height: 100dvh;
+}
+
+.writer-layout-content--project :deep(.editor-layout) {
+  height: 100%;
 }
 
 .writer-content-backdrop {
