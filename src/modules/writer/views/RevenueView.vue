@@ -939,22 +939,10 @@ onUnmounted(() => {
         position: relative;
         display: inline-flex;
         align-items: center;
-        padding-left: 10px;
+        padding-left: 0;
         font-size: 15px;
         font-weight: 700;
         color: #1e293b;
-      }
-
-      :deep(.el-card__header span::before) {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        width: 4px;
-        height: 16px;
-        transform: translateY(-50%);
-        border-radius: 999px;
-        background: #10b981;
       }
 
       .card-header {

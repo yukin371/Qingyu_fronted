@@ -199,45 +199,43 @@ watch(visible, (val) => {
 </template>
 
 <style scoped>
-.qy-message {
-  &__content {
-    flex: 1;
-    line-height: 1.5;
-    word-break: break-word;
-  }
+.qy-message__content {
+  flex: 1;
+  line-height: 1.5;
+  word-break: break-word;
+}
 
-  &__content--center {
-    text-align: center;
-  }
+.qy-message__content--center {
+  text-align: center;
+}
 
-  &__text {
-    margin: 0;
-    font-size: 0.875rem;
-  }
+.qy-message__text {
+  margin: 0;
+  font-size: 0.875rem;
+}
 
-  &__icon {
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-  }
+.qy-message__icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
 
-  &__close {
-    flex-shrink: 0;
-    margin-left: auto;
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.qy-message__close {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  &__close:hover {
-    opacity: 1;
-  }
+.qy-message__close:hover {
+  opacity: 1;
 }
 
 /* Transition 动画 */

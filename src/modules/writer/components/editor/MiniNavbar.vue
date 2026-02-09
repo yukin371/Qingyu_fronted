@@ -4,6 +4,16 @@
     role="navigation"
     aria-label="编辑器工具栏"
   >
+    <button
+      class="mini-navbar__back"
+      aria-label="返回创作中心"
+      title="返回创作中心"
+      @click="goBackToCenter"
+    >
+      <QyIcon name="ArrowLeft" />
+      <span>返回创作中心</span>
+    </button>
+
     <div class="mini-navbar__tools" role="tablist" aria-label="工具列表">
       <button
         v-for="tool in tools"
@@ -55,6 +65,7 @@
  */
 
 import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 
 /**
@@ -101,6 +112,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Emits定义
 const emit = defineEmits<Emits>()
+const router = useRouter()
 
 // ==================== 插槽类型定义 ====================
 defineSlots<{
@@ -111,11 +123,14 @@ defineSlots<{
  * 默认工具列表
  */
 const defaultTools: EditorTool[] = [
-  { id: 'outline', label: '大纲', icon: 'Menu', shortcut: 'Ctrl+Shift+O' },
-  { id: 'search', label: '搜索', icon: 'Search', shortcut: 'Ctrl+Shift+F' },
-  { id: 'replace', label: '替换', icon: 'Refresh', shortcut: 'Ctrl+H' },
-  { id: 'ai-assistant', label: 'AI助手', icon: 'MagicStick', shortcut: 'Ctrl+Shift+A' },
-  { id: 'settings', label: '设置', icon: 'Setting', shortcut: 'Ctrl+,' }
+  { id: 'outline', label: '大纲', icon: 'Menu', shortcut: 'Alt+1' },
+  { id: 'writing', label: '写作', icon: 'Edit', shortcut: 'Alt+2' },
+  { id: 'immersive', label: '沉浸模式', icon: 'FullScreen', shortcut: 'Alt+3' },
+  { id: 'book', label: '章节', icon: 'Document', shortcut: 'Alt+4' },
+  { id: 'settings', label: '设置', icon: 'Setting', shortcut: 'Alt+5' },
+  { id: 'ai-assistant', label: 'AI辅助', icon: 'MagicStick', shortcut: 'Alt+6' },
+  { id: 'materials', label: '创作推演', icon: 'DataAnalysis', shortcut: 'Alt+7' },
+  { id: 'chat', label: '聊天', icon: 'ChatDotRound', shortcut: 'Alt+8' }
 ]
 
 /**
@@ -245,93 +260,133 @@ watch(() => props.modelValue, (newValue) => {
     ref?.focus()
   }
 })
+
+const goBackToCenter = () => {
+  router.push('/writer/dashboard')
+}
 </script>
 
 <style scoped lang="scss">
 .mini-navbar {
-  height: var(--navbar-height);
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
+  height: 52px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-
-  &__tools {
-    display: flex;
-    gap: 4px;
-  }
-
-  &__tool {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--color-text-secondary);
-    font-size: 13px;
-    font-family: inherit;
-    white-space: nowrap;
-
-    &:hover:not(.is-disabled) {
-      background: var(--color-hover);
-      color: var(--color-text-primary);
-    }
-
-    &.is-active {
-      background: var(--color-selected);
-      color: var(--color-accent-blue);
-      border-bottom: 2px solid var(--color-accent-blue);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-border-focus);
-      outline-offset: 2px;
-    }
-
-    &.is-disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-
-      &:hover {
-        background: transparent;
-        color: var(--color-text-secondary);
-      }
-    }
-
-    .tool-label {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .tool-shortcut {
-      font-size: 11px;
-      opacity: 0.6;
-      margin-left: auto;
-    }
-  }
+  padding: 0 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  gap: 10px;
 }
 
-// 响应式设计
+.mini-navbar__back {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 10px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.mini-navbar__back:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.mini-navbar__tools {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.mini-navbar__tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  color: #475569;
+  font-size: 12px;
+  font-family: inherit;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.mini-navbar__tool:hover:not(.is-disabled) {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.mini-navbar__tool.is-active {
+  border-color: #60a5fa;
+  background: #e0ecff;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.16);
+}
+
+.mini-navbar__tool:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.mini-navbar__tool.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mini-navbar__tool.is-disabled:hover {
+  background: #fff;
+  color: #475569;
+}
+
+.mini-navbar__tool .tool-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mini-navbar__tool .tool-shortcut {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .mini-navbar {
     padding: 0 8px;
+    gap: 8px;
+  }
 
-    &__tool {
-      padding: 6px 8px;
-      gap: 4px;
+  .mini-navbar__back {
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
 
-      .tool-label {
-        display: none; // 移动端隐藏标签，只显示图标
-      }
+  .mini-navbar__tool {
+    padding: 6px 8px;
+    gap: 4px;
+    border-radius: 8px;
+  }
 
-      .tool-shortcut {
-        display: none; // 移动端隐藏快捷键
-      }
-    }
+  .mini-navbar__tool .tool-label {
+    display: none;
+  }
+
+  .mini-navbar__tool .tool-shortcut {
+    display: none;
   }
 }
 </style>

@@ -190,26 +190,10 @@ const quickActions = computed(() => [
   { id: 'suggestion', ...QUICK_ACTION_PROMPTS.suggestion }
 ])
 
-// ==================== VSCode主题颜色 ====================
-const vscodeColors = {
-  editorBackground: '#1e1e1e',
-  editorForeground: '#d4d4d4',
-  toolbarBackground: '#252526',
-  statusBarBackground: '#007acc',
-  statusBarForeground: '#ffffff',
-  selectionBackground: '#264f78',
-  cursorColor: '#aeafad'
-}
-
 // ==================== 计算属性 ====================
 const panelStyle = computed(() => {
   return {
-    '--ai-panel-width': `${props.width}px`,
-    '--vscode-editor-background': vscodeColors.editorBackground,
-    '--vscode-editor-foreground': vscodeColors.editorForeground,
-    '--vscode-toolbar-background': vscodeColors.toolbarBackground,
-    '--vscode-statusbar-background': vscodeColors.statusBarBackground,
-    '--vscode-statusbar-foreground': vscodeColors.statusBarForeground
+    '--ai-panel-width': `${props.width}px`
   }
 })
 
@@ -378,24 +362,27 @@ watch(() => messages.value, () => {
 </script>
 
 <style scoped lang="scss">
-// ==================== AI面板容器 ====================
 .ai-panel {
   --ai-panel-width: 320px;
-  --vscode-editor-background: #1e1e1e;
-  --vscode-editor-foreground: #d4d4d4;
-  --vscode-toolbar-background: #252526;
-  --vscode-statusbar-background: #007acc;
-  --vscode-statusbar-foreground: #ffffff;
-  --ai-message-user-bg: #007acc;
-  --ai-message-ai-bg: rgba(255, 255, 255, 0.1);
+  --ai-bg: #ffffff;
+  --ai-bg-soft: #f8fafc;
+  --ai-border: #e2e8f0;
+  --ai-border-strong: #cbd5e1;
+  --ai-text: #0f172a;
+  --ai-text-muted: #64748b;
+  --ai-user-bg: #2563eb;
+  --ai-user-bg-hover: #1d4ed8;
+  --ai-assistant-bg: #f1f5f9;
+  --ai-accent-soft: #dbeafe;
 
   width: var(--ai-panel-width);
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
-  border-left: 1px solid #3c3c3c;
+  background: var(--ai-bg);
+  color: var(--ai-text);
+  border-left: 1px solid var(--ai-border);
+  border-radius: 12px;
   transition: all 0.3s ease;
   overflow: hidden;
 
@@ -417,7 +404,8 @@ watch(() => messages.value, () => {
   &.is-mobile {
     width: 100%;
     border-left: none;
-    border-top: 1px solid #3c3c3c;
+    border-top: 1px solid var(--ai-border);
+    border-radius: 12px 12px 0 0;
   }
 
   &.is-tablet {
@@ -425,15 +413,14 @@ watch(() => messages.value, () => {
   }
 }
 
-// ==================== 面板头部 ====================
 .ai-header {
-  height: 48px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: var(--vscode-toolbar-background);
-  border-bottom: 1px solid #3c3c3c;
+  background: var(--ai-bg-soft);
+  border-bottom: 1px solid var(--ai-border);
 
   .header-left {
     display: flex;
@@ -442,13 +429,14 @@ watch(() => messages.value, () => {
 
     .ai-icon {
       font-size: 18px;
-      color: #409eff;
+      color: #2563eb;
     }
 
     .header-title {
       margin: 0;
       font-size: 14px;
       font-weight: 600;
+      color: var(--ai-text);
     }
   }
 
@@ -462,52 +450,51 @@ watch(() => messages.value, () => {
       padding: 0;
       border: none;
       background: transparent;
-      color: var(--vscode-editor-foreground);
+      color: var(--ai-text-muted);
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background-color 0.2s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--ai-accent-soft);
+        color: #1d4ed8;
       }
 
       &:active {
-        background: rgba(255, 255, 255, 0.15);
+        background: #bfdbfe;
       }
     }
   }
 }
 
-// ==================== 折叠状态的展开按钮 ====================
 .ai-expand-button {
   display: none;
   width: 100%;
   height: 48px;
   padding: 0;
   border: none;
-  background: var(--vscode-toolbar-background);
-  color: #409eff;
+  background: var(--ai-bg-soft);
+  color: #2563eb;
   cursor: pointer;
-  border-bottom: 1px solid #3c3c3c;
+  border-bottom: 1px solid var(--ai-border);
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(64, 158, 255, 0.1);
+    background: #eff6ff;
   }
 }
 
-// ==================== 面板内容 ====================
 .ai-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #fcfdff;
 }
 
-// ==================== 消息列表区域 ====================
 .ai-messages {
   flex: 1;
   overflow-y: auto;
@@ -526,16 +513,15 @@ watch(() => messages.value, () => {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: #cbd5e1;
     border-radius: 4px;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: #94a3b8;
     }
   }
 }
 
-// 空状态
 .empty-state {
   flex: 1;
   display: flex;
@@ -543,7 +529,7 @@ watch(() => messages.value, () => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: #94a3b8;
 
   .empty-icon {
     font-size: 48px;
@@ -556,7 +542,6 @@ watch(() => messages.value, () => {
   }
 }
 
-// 消息项
 .message-item {
   display: flex;
   flex-direction: column;
@@ -570,23 +555,21 @@ watch(() => messages.value, () => {
   }
 }
 
-// 消息气泡
 .message-bubble {
   max-width: 85%;
   padding: 10px 14px;
-  border-radius: 16px;
+  border-radius: 14px;
   word-wrap: break-word;
 
   &.message-user {
-    background: var(--ai-message-user-bg);
+    background: var(--ai-user-bg);
     color: white;
     border-bottom-right-radius: 4px;
   }
 
   &.message-ai {
-    background: var(--ai-message-ai-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--ai-assistant-bg);
+    border: 1px solid var(--ai-border);
     border-bottom-left-radius: 4px;
     display: flex;
     gap: 8px;
@@ -595,7 +578,7 @@ watch(() => messages.value, () => {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #409eff;
+      background: #3b82f6;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -617,11 +600,10 @@ watch(() => messages.value, () => {
   .message-time {
     margin-top: 4px;
     font-size: 11px;
-    opacity: 0.6;
+    color: var(--ai-text-muted);
   }
 }
 
-// 打字指示器
 .typing-indicator {
   display: flex;
   gap: 4px;
@@ -631,7 +613,7 @@ watch(() => messages.value, () => {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.6);
+    background: #94a3b8;
     animation: typing 1.4s infinite ease-in-out both;
 
     &:nth-child(1) {
@@ -653,7 +635,6 @@ watch(() => messages.value, () => {
   }
 }
 
-// ==================== 快捷操作卡片 ====================
 .ai-quick-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -661,8 +642,8 @@ watch(() => messages.value, () => {
   padding: 0 16px 16px;
 
   .quick-action-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid var(--ai-border);
     border-radius: 12px;
     padding: 12px;
     cursor: pointer;
@@ -674,8 +655,8 @@ watch(() => messages.value, () => {
     text-align: center;
 
     &:hover {
-      background: rgba(64, 158, 255, 0.1);
-      border-color: #409eff;
+      background: #eff6ff;
+      border-color: #93c5fd;
       transform: translateY(-2px);
     }
 
@@ -685,34 +666,34 @@ watch(() => messages.value, () => {
 
     .quick-action-icon {
       font-size: 20px;
-      color: #409eff;
+      color: #2563eb;
     }
 
     .quick-action-label {
       font-size: 12px;
-      color: var(--vscode-editor-foreground);
+      color: var(--ai-text);
     }
   }
 }
 
-// ==================== 输入框区域 ====================
 .ai-input-area {
   padding: 12px 16px;
-  background: var(--vscode-toolbar-background);
-  border-top: 1px solid #3c3c3c;
+  background: var(--ai-bg-soft);
+  border-top: 1px solid var(--ai-border);
 
   .input-wrapper {
     display: flex;
     gap: 8px;
     align-items: flex-end;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid var(--ai-border-strong);
     border-radius: 12px;
     padding: 8px;
     transition: border-color 0.2s ease;
 
     &:focus-within {
-      border-color: #409eff;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
     }
 
     .message-input {
@@ -722,14 +703,14 @@ watch(() => messages.value, () => {
       padding: 0;
       border: none;
       background: transparent;
-      color: var(--vscode-editor-foreground);
+      color: var(--ai-text);
       font-size: 14px;
       line-height: 1.6;
       resize: none;
       outline: none;
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: #94a3b8;
       }
 
       &:disabled {
@@ -743,7 +724,7 @@ watch(() => messages.value, () => {
       height: 32px;
       padding: 0;
       border: none;
-      background: #409eff;
+      background: var(--ai-user-bg);
       color: white;
       border-radius: 8px;
       cursor: pointer;
@@ -754,16 +735,16 @@ watch(() => messages.value, () => {
       flex-shrink: 0;
 
       &:hover:not(:disabled) {
-        background: #66b1ff;
+        background: var(--ai-user-bg-hover);
       }
 
       &:active:not(:disabled) {
-        background: #3a8ee6;
+        background: #1e40af;
       }
 
       &:disabled {
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.3);
+        background: #cbd5e1;
+        color: #94a3b8;
         cursor: not-allowed;
       }
     }
@@ -775,12 +756,11 @@ watch(() => messages.value, () => {
 
     span {
       font-size: 11px;
-      color: rgba(255, 255, 255, 0.3);
+      color: #94a3b8;
     }
   }
 }
 
-// ==================== 响应式布局 ====================
 @media (max-width: 768px) {
   .ai-panel {
     .ai-quick-actions {
@@ -802,7 +782,6 @@ watch(() => messages.value, () => {
   }
 }
 
-// ==================== 无障碍支持 ====================
 @media (prefers-reduced-motion: reduce) {
   .ai-panel,
   .quick-action-card,

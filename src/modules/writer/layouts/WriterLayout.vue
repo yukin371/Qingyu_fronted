@@ -1,6 +1,6 @@
 <template>
   <div class="writer-layout">
-    <header class="writer-header">
+    <header v-if="!hideWriterHeader" class="writer-header">
       <div class="writer-header-inner">
         <router-link to="/bookstore" class="brand">青羽创作中心</router-link>
         <nav class="writer-nav">
@@ -63,11 +63,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { QyAvatar, QyButton, QyIcon } from '@/design-system/components'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const userName = computed(() => authStore.user?.nickname || authStore.user?.username || '用户')
@@ -79,6 +80,8 @@ const navItems = [
   { label: '数据统计', path: '/writer/statistics', icon: 'DataAnalysis' },
   { label: '稿费收入', path: '/writer/revenue', icon: 'Wallet' }
 ]
+
+const hideWriterHeader = computed(() => route.name === 'writer-project')
 
 const goBookstore = () => router.push('/bookstore')
 const goProfile = () => router.push('/account/profile')

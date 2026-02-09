@@ -6,7 +6,10 @@
     :aria-label="`编辑器，${layoutModeLabel}`"
   >
     <!-- 顶部导航栏 -->
-    <MiniNavbar />
+    <MiniNavbar
+      v-model="activeTool"
+      @toolChange="handleToolChange"
+    />
 
     <!-- 移动端tab导航 -->
     <div v-if="layout.mode === 'mobile'" class="mobile-tabs" role="tablist">
@@ -67,9 +70,9 @@
         class="editor-layout__main"
         :class="{ 'panel-visible': layout.activeTab === 'editor' }"
       >
-        <slot name="editor">
+        <slot name="editor" :active-tool="activeTool">
           <!-- 默认内容 -->
-          <EditorPanel />
+          <EditorPanel :active-tool="activeTool" />
         </slot>
       </div>
 
@@ -188,6 +191,7 @@ const layoutModeLabel = computed(() => {
 
 // AR通知
 const ariaAnnouncement = ref('')
+const activeTool = ref('writing')
 
 // 触摸手势处理
 const touchStartX = ref(0)
@@ -230,6 +234,14 @@ function handleContentTouchEnd(event: TouchEvent) {
   }
 }
 
+function handleToolChange(toolId: string) {
+  activeTool.value = toolId
+  ariaAnnouncement.value = `已切换到${toolId}`
+  setTimeout(() => {
+    ariaAnnouncement.value = ''
+  }, 1000)
+}
+
 onMounted(() => {
   console.log('[EditorLayout] Mounted', {
     mode: layout.value.mode,
@@ -243,29 +255,42 @@ onMounted(() => {
 .editor-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-
-  &__content {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
+  height: 100%;
+  min-height: 100vh;
+  background: #f1f5f9;
+  color: #0f172a;
+  overflow: hidden;
 }
 
-// ==================== 移动端布局 ====================
+.editor-layout__content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  gap: 10px;
+  padding: 10px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.editor-layout__main {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
 .layout-mode-mobile {
-  .editor-layout__content {
-    flex-direction: column;
-  }
+  .editor-layout__content { flex-direction: column; }
 
   .mobile-tabs {
     display: flex;
-    background: var(--vscode-toolbar-background);
-    border-bottom: 1px solid var(--vscode-border);
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     padding: 0 8px;
+    gap: 6px;
 
     .mobile-tab {
       flex: 1;
@@ -273,25 +298,26 @@ onMounted(() => {
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      padding: 12px 8px;
-      background: transparent;
-      border: none;
-      color: var(--vscode-editor-foreground);
+      padding: 10px 8px;
+      background: #f8fafc;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      color: #475569;
       cursor: pointer;
-      transition: all 0.2s var(--transition-ease-out);
+      transition: all 0.2s ease;
 
       &.active {
-        color: var(--vscode-statusbar-background);
-        border-bottom: 2px solid var(--vscode-statusbar-background);
+        color: #1d4ed8;
+        border-color: #60a5fa;
+        background: #eff6ff;
       }
 
       &:hover:not(.active) {
-        background: var(--editor-button-hover);
+        background: #eef2ff;
       }
     }
   }
 
-  // 面板覆盖模式
   .panel-overlay {
     position: absolute;
     top: 0;
@@ -299,16 +325,15 @@ onMounted(() => {
     right: 0;
     bottom: 0;
     z-index: 10;
-    background: var(--vscode-editor-background);
+    background: #f8fafc;
     transform: translateX(100%);
-    transition: transform 0.3s var(--transition-ease-out-quart);
+    transition: transform 0.3s ease;
 
     &.panel-visible {
       transform: translateX(0);
     }
   }
 
-  // 只显示激活的面板
   .left-panel,
   .right-panel,
   .editor-layout__main {
@@ -324,11 +349,10 @@ onMounted(() => {
   }
 }
 
-// ==================== 平板端布局 ====================
 .layout-mode-tablet {
   .left-panel,
   .right-panel {
-    transition: width 0.3s var(--transition-ease-out);
+    transition: width 0.3s ease;
   }
 
   .panel-collapsed {
@@ -347,27 +371,8 @@ onMounted(() => {
   }
 }
 
-// ==================== 桌面端布局 ====================
-.layout-mode-desktop {
-  .editor-layout__content {
-    // 完整3栏布局
-  }
-}
+.layout-mode-desktop {}
 
-// ==================== 面板状态 ====================
-.panel-overlay {
-  // 移动端覆盖模式
-}
-
-.panel-collapsed {
-  // 折叠状态
-}
-
-.panel-expanded {
-  // 展开状态
-}
-
-// ==================== 屏幕阅读器专用 ====================
 .sr-only {
   position: absolute;
   width: 1px;

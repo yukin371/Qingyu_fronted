@@ -49,60 +49,60 @@ const sectionClasses = computed(() => {
 <style scoped lang="scss">
 .qy-form-section {
   margin-bottom: 1.5rem;
+}
 
-  &__label {
-    margin-bottom: 0.5rem;
-  }
+.qy-form-section__label {
+  margin-bottom: 0.5rem;
+}
 
-  &__label-text {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #212121;
-    margin-bottom: 0.25rem;
-  }
+.qy-form-section__label-text {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #212121;
+  margin-bottom: 0.25rem;
+}
 
-  &__required {
-    color: #F44336;
-    margin-left: 0.125rem;
-  }
+.qy-form-section__required {
+  color: #F44336;
+  margin-left: 0.125rem;
+}
 
-  &__description {
-    display: block;
-    font-size: 0.75rem;
-    color: #757575;
-    margin-top: 0.25rem;
-  }
+.qy-form-section__description {
+  display: block;
+  font-size: 0.75rem;
+  color: #757575;
+  margin-top: 0.25rem;
+}
 
-  &__content {
-    position: relative;
-  }
+.qy-form-section__content {
+  position: relative;
+}
 
-  &__hint {
-    margin-top: 0.5rem;
-  }
+.qy-form-section__hint {
+  margin-top: 0.5rem;
+}
 
-  &__hint-text {
-    font-size: 0.75rem;
-    color: #9E9E9E;
-  }
+.qy-form-section__hint-text {
+  font-size: 0.75rem;
+  color: #9E9E9E;
+}
 
-  // 水平布局
-  &--horizontal {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+// 水平布局
+.qy-form-section--horizontal {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
 
-    .qy-form-section__label {
-      flex: 0 0 150px;
-      margin-bottom: 0;
-      padding-top: 0.5rem;
-    }
+.qy-form-section--horizontal .qy-form-section__label {
+  flex: 0 0 150px;
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+}
 
-    .qy-form-section__content {
-      flex: 1;
-    }
-  }
+.qy-form-section--horizontal .qy-form-section__content {
+  flex: 1;
 }
 </style>
 

@@ -231,14 +231,12 @@ watch(visible, (val) => {
 </template>
 
 <style scoped>
-.qy-notification {
-  &__close {
-    opacity: 0.6;
-  }
+.qy-notification__close {
+  opacity: 0.6;
+}
 
-  &__close:hover {
-    opacity: 1;
-  }
+.qy-notification__close:hover {
+  opacity: 1;
 }
 
 /* Transition 动画 */

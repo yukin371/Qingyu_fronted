@@ -308,37 +308,38 @@ $sizes: (
 
   // 调用高级悬浮 Mixin
   @include premium-card-hover;
+}
 
-  &__header {
-    padding: $spacing-md $spacing-lg;
-    border-bottom: 1px solid var(--border-color);
-    font-size: $font-size-md;
-    font-weight: $font-weight-bold;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+.card__header {
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid var(--border-color);
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  &__body {
-    padding: $spacing-lg;
-  }
+.card__body {
+  padding: $spacing-lg;
+}
 
-  &__footer {
-    padding: $spacing-md $spacing-lg;
-    border-top: 1px solid var(--border-color);
-    background: #fafafa; // 稍微深一点的底色区分 footer
-  }
+.card__footer {
+  padding: $spacing-md $spacing-lg;
+  border-top: 1px solid var(--border-color);
+  background: #fafafa; // 稍微深一点的底色区分 footer
+}
 
-  // 无边框模式
-  &--borderless {
-    box-shadow: none;
-    border: 1px solid var(--border-color);
-    &:hover {
-      box-shadow: var(--shadow-hover);
-      border-color: transparent;
-    }
-  }
+// 无边框模式
+.card--borderless {
+  box-shadow: none;
+  border: 1px solid var(--border-color);
+}
+
+.card--borderless:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: transparent;
 }
 
 // ==================== 滚动条美化 (Scrollbar) ====================

@@ -213,11 +213,9 @@ defineExpose({
   height: 100%;
 
   /* 过渡动画 - 使用统一变量 */
-  transition: width var(--transition-base) var(--transition-ease-in-out);
-
-  /* VSCode 主题变量 */
-  background-color: var(--color-sideBar-background, #252526);
-  border-right: 1px solid var(--color-sideBar-border, #3c3c3c);
+  transition: width 0.2s ease;
+  background: transparent;
+  border: none;
 
   /* 防止内容溢出 */
   overflow: hidden;
@@ -226,15 +224,13 @@ defineExpose({
 /* 左侧面板 */
 .resizable-panel--left {
   order: 1;
-  border-right: 1px solid var(--color-border, #3c3c3c);
-  border-left: none;
+  border: none;
 }
 
 /* 右侧面板 */
 .resizable-panel--right {
   order: 3;
-  border-left: 1px solid var(--color-border, #3c3c3c);
-  border-right: none;
+  border: none;
 }
 
 /* 折叠状态 */
@@ -251,7 +247,7 @@ defineExpose({
   transition: none;
 
   /* 视觉反馈 */
-  box-shadow: 0 0 0 1px var(--drag-handle-hover-bg, #007fd4);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
 }
 
 /* 折叠按钮 */
@@ -269,29 +265,30 @@ defineExpose({
   padding: 0;
 
   /* VSCode 主题变量 */
-  background-color: var(--color-button-secondaryBackground, #3c3c3c);
-  border: 1px solid var(--color-button-border, #3c3c3c);
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
-  color: var(--color-button-secondaryForeground, #cccccc);
+  color: #64748b;
 
   /* 交互样式 - 使用快速过渡 */
   cursor: pointer;
-  transition: all var(--transition-fast) var(--transition-ease-out);
+  transition: all 0.2s ease;
 
   /* 无障碍 */
   outline: none;
 
   &:hover {
-    background-color: var(--color-button-secondaryHoverBackground, #505050);
-    border-color: var(--color-button-hoverBorder, #505050);
+    background-color: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
   }
 
   &:active {
-    background-color: var(--color-button-secondaryBackground, #3c3c3c);
+    background-color: #e2e8f0;
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 2px var(--color-border-focus, #007fd4);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.28);
   }
 
   /* 左侧面板折叠按钮位置 */
@@ -326,12 +323,11 @@ defineExpose({
   height: 100%;
 
   /* 过渡动画 - 使用统一变量 */
-  transition: opacity var(--transition-base) var(--transition-ease-out);
+  transition: opacity 0.2s ease;
 
   /* 隐藏滚动条但保留滚动功能 */
   scrollbar-width: thin;
-  scrollbar-color: var(--color-scrollbarSlider-background, #6e6e6e)
-              var(--color-scrollbarSlider-background-hover, #4e4e4e);
+  scrollbar-color: #cbd5e1 #f1f5f9;
 
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
@@ -340,16 +336,16 @@ defineExpose({
   }
 
   &::-webkit-scrollbar-track {
-    background: var(--color-scrollbarSlider-background, #2a2a2a);
+    background: #f1f5f9;
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: var(--color-scrollbarSlider-hoverBackground, #6e6e6e);
+    background-color: #cbd5e1;
     border-radius: 5px;
-    border: 2px solid var(--color-scrollbarSlider-background, #2a2a2a);
+    border: 2px solid #f1f5f9;
 
     &:hover {
-      background-color: var(--color-scrollbarSlider-activeBackground, #8e8e8e);
+      background-color: #94a3b8;
     }
   }
 }

@@ -121,64 +121,62 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-.qy-confirm-dialog {
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+.qy-confirm-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-  &__icon {
-    font-size: 24px;
-    flex-shrink: 0;
+.qy-confirm-dialog__icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
 
-    &--warning {
-      color: #e6a23c;
-    }
+.qy-confirm-dialog__icon--warning {
+  color: #e6a23c;
+}
 
-    &--danger {
-      color: #f56c6c;
-    }
+.qy-confirm-dialog__icon--danger {
+  color: #f56c6c;
+}
 
-    &--info {
-      color: #409eff;
-    }
+.qy-confirm-dialog__icon--info {
+  color: #409eff;
+}
 
-    &--success {
-      color: #67c23a;
-    }
-  }
+.qy-confirm-dialog__icon--success {
+  color: #67c23a;
+}
 
-  &__title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #303133;
-  }
+.qy-confirm-dialog__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
 
-  &__content {
-    padding: 12px 0;
-  }
+.qy-confirm-dialog__content {
+  padding: 12px 0;
+}
 
-  &__message {
-    margin: 0 0 16px 0;
-    font-size: 14px;
-    color: #606266;
-    line-height: 1.6;
-  }
+.qy-confirm-dialog__message {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+}
 
-  &__details {
-    background: #f5f7fa;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
-  }
+.qy-confirm-dialog__details {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 12px;
+}
 
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-  }
+.qy-confirm-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .detail-item {

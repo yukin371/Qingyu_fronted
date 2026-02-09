@@ -13,11 +13,12 @@
     </template>
 
     <!-- 主编辑器插槽 -->
-    <template #editor>
+    <template #editor="{ activeTool }">
       <EditorPanel
         :content="fileContent"
         :project-name="currentProject?.title"
         :chapter-title="documentTitle"
+        :active-tool="activeTool"
         :show-preview="showPreview"
         :show-timeline="showTimeline"
         :timeline-id="currentTimelineId"
