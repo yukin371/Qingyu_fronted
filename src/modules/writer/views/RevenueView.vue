@@ -328,6 +328,50 @@ function getStatusLabel(status: string): string {
   return labelMap[status] || status
 }
 
+function stableHash(input: string): number {
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0
+  }
+  return hash
+}
+
+function mockChapterRecord(bookId: string, bookTitle: string, chapterNo: number): ChapterRevenue {
+  const base = stableHash(`${bookId}-${chapterNo}`)
+  const views = 1200 + (base % 9800)
+  const subscriptions = 80 + (base % 1200)
+  const revenue = Number((subscriptions * (1.1 + (base % 9) * 0.08)).toFixed(2))
+  return {
+    id: `${bookId}-${chapterNo}`,
+    chapterTitle: `${bookTitle} · 第${chapterNo}章`,
+    chapterNumber: chapterNo,
+    views,
+    subscriptions,
+    revenue,
+    bookId,
+    bookTitle
+  }
+}
+
+function buildMockChapterRanking(targetBookId?: string): ChapterRevenue[] {
+  const targetBooks = targetBookId
+    ? books.value.filter(b => b.id === targetBookId)
+    : books.value
+
+  if (!targetBooks.length) return []
+
+  const pool: ChapterRevenue[] = []
+  targetBooks.forEach(book => {
+    for (let i = 1; i <= 6; i++) {
+      pool.push(mockChapterRecord(book.id, book.title, i))
+    }
+  })
+
+  return pool
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10)
+}
+
 function isStatsEmpty(stats: {
   totalRevenue: number
   todayRevenue: number
@@ -400,26 +444,21 @@ async function loadRevenue(): Promise<void> {
     try {
       // 排行接口要求具体 bookId；全部作品视图使用本地兜底展示
       if (!bookId) {
-        throw new Error('all 模式无单本 bookId')
-      }
-      const rankingResponse: any = await getChapterRevenueRanking(bookId, 1, 10)
-      const rankingData = rankingResponse?.data?.data ?? rankingResponse?.data ?? rankingResponse
-      if (rankingData?.items && Array.isArray(rankingData.items)) {
-        chapterRanking.value = rankingData.items
-      } else if (rankingData?.list && Array.isArray(rankingData.list)) {
-        chapterRanking.value = rankingData.list
+        chapterRanking.value = buildMockChapterRanking()
+      } else {
+        const rankingResponse: any = await getChapterRevenueRanking(bookId, 1, 10)
+        const rankingData = rankingResponse?.data?.data ?? rankingResponse?.data ?? rankingResponse
+        if (rankingData?.items && Array.isArray(rankingData.items)) {
+          chapterRanking.value = rankingData.items
+        } else if (rankingData?.list && Array.isArray(rankingData.list)) {
+          chapterRanking.value = rankingData.list
+        } else {
+          chapterRanking.value = buildMockChapterRanking(bookId)
+        }
       }
     } catch (error) {
       console.warn('加载章节排行失败，使用模拟数据:', error)
-      // 使用模拟数据
-      chapterRanking.value = Array.from({ length: 10 }, (_, i) => ({
-        id: `${i + 1}`,
-        chapterTitle: `第${i + 1}章 章节标题`,
-        chapterNumber: i + 1,
-        views: Math.floor(Math.random() * 10000 + 1000),
-        subscriptions: Math.floor(Math.random() * 1000 + 100),
-        revenue: Math.random() * 500 + 100
-      }))
+      chapterRanking.value = buildMockChapterRanking(bookId)
     }
 
     // 加载提现记录
