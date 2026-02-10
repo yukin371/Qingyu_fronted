@@ -10,44 +10,46 @@ export * from './tokens'
 export * from './components'
 
 // === 向后兼容：导出原有组件 (排除与Qy组件冲突的) ===
+// 注意：所有组件都直接从 .vue 文件导入，避免 index.ts 的默认导出问题
 
 // Base Components - 只导出Qy组件库中没有的
-export * from './base/Empty'      // QyEmpty已存在但可能不同
-export * from './base/Divider'   // Qy组件库中没有Divider
-export * from './base/Skeleton'  // Qy组件库中没有Skeleton
+export { default as Empty } from './base/Empty/Empty.vue'      // QyEmpty已存在但可能不同
+export { default as Divider } from './base/Divider/Divider.vue'   // Qy组件库中没有Divider
+export { default as Skeleton } from './base/Skeleton/Skeleton.vue'  // Qy组件库中没有Skeleton
 
-// Form Components - 只导出Qy组件库中没有的
-export * from './form/DatePicker'   // Qy组件库中没有DatePicker
-export * from './form/Upload'       // Qy组件库中没有Upload
+// Form Components - 只导出Qy组件库中没有的（直接从.vue文件导入）
+export { default as DatePicker } from './form/DatePicker/DatePicker.vue'   // Qy组件库中没有DatePicker
+export { default as Upload } from './form/Upload/Upload.vue'       // Qy组件库中没有Upload
 
-// Layout Components
-export * from './layout'
+// Layout Components - 使用显式导出避免冲突
+export { Container, Row, Col } from './layout'
+export type { ContainerProps, ContainerSize, ColProps, RowProps } from './layout'
 
-// Navigation Components - 只导出Qy组件库中没有的
-export * from './navigation/Breadcrumb'  // Qy组件库中没有Breadcrumb
+// Navigation Components - 只导出Qy组件库中没有的（直接从.vue文件导入）
+export { default as Breadcrumb } from './navigation/Breadcrumb/Breadcrumb.vue'  // Qy组件库中没有Breadcrumb
 
-// Feedback Components - 只导出Qy组件库中没有的
-export * from './feedback/Alert'        // Qy组件库中没有Alert
-export * from './feedback/Dialog'      // Qy组件库中没有Dialog/Modal
-export * from './feedback/Message'     // Qy组件库中没有Message
-export * from './feedback/Notification' // Qy组件库中没有Notification
-export * from './feedback/Popover'     // Qy组件库中没有Popover
-export * from './feedback/Progress'    // Qy组件库中没有Progress
-export * from './feedback/Spinner'     // Qy组件库中没有Spinner
-export * from './feedback/Tooltip'     // Qy组件库中没有Tooltip
+// Feedback Components - 只导出Qy组件库中没有的（直接从.vue文件导入以避免index.ts问题）
+export { default as Alert } from './feedback/Alert/Alert.vue'        // Qy组件库中没有Alert
+export { default as Dialog } from './feedback/Dialog/Dialog.vue'      // Qy组件库中没有Dialog/Modal
+export * from './feedback/Message'     // Message 有特殊的 useMessage 导出
+export { default as Notification } from './feedback/Notification/Notification.vue' // Qy组件库中没有Notification
+export { default as Popover } from './feedback/Popover/Popover.vue'     // Qy组件库中没有Popover
+export { default as Progress } from './feedback/Progress/Progress.vue'    // Qy组件库中没有Progress
+export { default as Spinner } from './feedback/Spinner/Spinner.vue'     // Qy组件库中没有Spinner
+export { default as Tooltip } from './feedback/Tooltip/Tooltip.vue'     // Qy组件库中没有Tooltip
 
-// Data Display Components - 只导出Qy组件库中没有的
-export * from './data/Collapse'   // Qy组件库中没有Collapse
-export * from './data/Tabs'       // Qy组件库中没有Tabs
-export * from './data/Table'      // Qy组件库中没有Table
-export * from './data/Tree'       // Qy组件库中没有Tree
-export * from './data/Pagination' // Qy组件库中没有Pagination
-export * from './data/List'       // Qy组件库中没有List
+// Data Display Components - 只导出Qy组件库中没有的（直接从.vue文件导入）
+export { default as Collapse } from './data/Collapse/Collapse.vue'   // Qy组件库中没有Collapse
+export { default as Tabs } from './data/Tabs/Tabs.vue'       // Qy组件库中没有Tabs
+export { default as Table } from './data/Table/Table.vue'      // Qy组件库中没有Table
+export { default as Tree } from './data/Tree/Tree.vue'       // Qy组件库中没有Tree
+export { default as Pagination } from './data/Pagination/Pagination.vue' // Qy组件库中没有Pagination
+export { default as List } from './data/List/List.vue'       // Qy组件库中没有List
 
-// Other Components
-export * from './other/Drawer'
+// Other Components（直接从.vue文件导入）
+export { default as Drawer } from './other/Drawer/Drawer.vue'
 export * from './other/ConfigProvider'
 export { default as ThemeSwitcher } from './other/ThemeSwitcher.vue'
 
-// Services
+// Services - 保持通配符导出，因为服务不涉及命名空间冲突
 export * from './services'
