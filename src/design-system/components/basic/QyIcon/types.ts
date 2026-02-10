@@ -82,6 +82,9 @@ export type IconName =
   // Interaction
   | 'cursor-click' | 'hand-pointer' | 'heart'
 
+  // 小写别名 (向后兼容)
+  | 'arrow-right' | 'arrow-left' | 'book-open' | 'photo'
+
 /**
  * QyIcon component props
  */
