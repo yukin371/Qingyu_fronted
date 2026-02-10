@@ -97,20 +97,21 @@ const bootstrap = async () => {
   const path = window.location.pathname || '/'
   const isBookstoreFirstScreen = path === '/' || path.startsWith('/bookstore')
 
+  // 立即加载 Element Plus，因为快速登录对话框需要用到 el-dialog 等组件
+  const { default: ElementPlus } = await import('element-plus')
+  app.use(ElementPlus)
+
   if (!isBookstoreFirstScreen) {
-    // 非书城首屏优先保证完整组件可用，避免直达后台页面缺组件
-    const { default: ElementPlus } = await import('element-plus')
-    app.use(ElementPlus)
+    // 非书城首屏需要立即挂载
     app.mount('#app')
     return
   }
 
   app.mount('#app')
 
+  // 空闲时可以加载其他资源
   runWhenIdle(() => {
-    void import('element-plus').then(({ default: ElementPlus }) => {
-      app.use(ElementPlus)
-    })
+    // 可以在这里加载其他非关键资源
   })
 }
 
