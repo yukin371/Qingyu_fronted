@@ -4,21 +4,19 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1>社区动态</h1>
-        <el-button type="primary" @click="goToCreatePost">
-          <QyIcon name="Plus"  />
+        <QyButton variant="primary" @click="goToCreatePost">
+          <QyIcon name="Plus" />
           发布动态
-        </el-button>
+        </QyButton>
       </div>
 
       <!-- 动态列表占位 -->
       <div class="feed-placeholder">
-        <el-empty description="社区功能开发中，敬请期待...">
+        <QyEmpty description="社区功能开发中，敬请期待...">
           <template #image>
-            <el-icon :size="120" color="#ddd">
-              <QyIcon name="ChatDotRound"  />
-            </el-icon>
+            <QyIcon name="ChatDotRound" :size="120" color="#ddd" />
           </template>
-        </el-empty>
+        </QyEmpty>
       </div>
     </div>
   </div>
@@ -26,7 +24,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyButton, QyEmpty } from '@/design-system/components'
 const router = useRouter()
 
 const goToCreatePost = () => {

@@ -69,18 +69,19 @@
           ]"
           @click="handleNotificationClick(notification)"
         >
-          <!-- TODO: 替换为Qingyu组件 qy-checkbox -->
-          <el-checkbox
+          <!-- 多选框 -->
+          <QyCheckbox
             :model-value="selectedIds.includes(notification.id)"
             @change="handleSelectChange(notification.id, $event)"
             @click.stop
           />
 
           <div class="notification-icon">
-            <!-- el-icon用于动态组件，保留 -->
-            <el-icon :size="20" :color="getNotificationColor(notification.type)">
-              <component :is="getNotificationIcon(notification.type)" />
-            </el-icon>
+            <QyIcon
+              :name="getNotificationIcon(notification.type)"
+              :size="20"
+              :color="getNotificationColor(notification.type)"
+            />
           </div>
 
           <div class="notification-content">
@@ -142,13 +143,13 @@
         </QyEmpty>
       </div>
 
-      <!-- TODO: 替换为Qingyu组件 qy-pagination -->
-      <el-pagination
+      <!-- 分页器 -->
+      <QyPagination
         v-if="total > 0"
         v-model:current-page="currentPage"
         :page-size="pageSize"
         :total="total"
-        layout="total, prev, pager, next, jumper"
+        :layout="['total', 'prev', 'pager', 'next', 'jumper']"
         @current-change="loadNotifications"
         class="pagination"
       />
@@ -160,62 +161,64 @@
       title="通知设置"
       width="500px"
     >
-      <!-- TODO: 替换为Qingyu组件 qy-form, qy-form-item, qy-switch, qy-divider, qy-time-picker -->
-      <el-form :model="preferences" label-width="100px">
+      <!-- 通知设置表单 -->
+      <QyForm :model="preferences" label-width="100px">
         <h4>通知渠道</h4>
-        <el-form-item label="站内通知">
-          <el-switch v-model="preferences.channel_enabled.in_app" />
-        </el-form-item>
-        <el-form-item label="邮件通知">
-          <el-switch v-model="preferences.channel_enabled.email" />
-        </el-form-item>
-        <el-form-item label="短信通知">
-          <el-switch v-model="preferences.channel_enabled.sms" />
-        </el-form-item>
-        <el-form-item label="推送通知">
-          <el-switch v-model="preferences.channel_enabled.push" />
-        </el-form-item>
+        <QyFormItem label="站内通知">
+          <QySwitch v-model="preferences.channel_enabled.in_app" />
+        </QyFormItem>
+        <QyFormItem label="邮件通知">
+          <QySwitch v-model="preferences.channel_enabled.email" />
+        </QyFormItem>
+        <QyFormItem label="短信通知">
+          <QySwitch v-model="preferences.channel_enabled.sms" />
+        </QyFormItem>
+        <QyFormItem label="推送通知">
+          <QySwitch v-model="preferences.channel_enabled.push" />
+        </QyFormItem>
 
-        <el-divider />
+        <QyDivider />
 
         <h4>通知类型</h4>
-        <el-form-item label="系统通知">
-          <el-switch v-model="preferences.type_enabled.system" />
-        </el-form-item>
-        <el-form-item label="评论通知">
-          <el-switch v-model="preferences.type_enabled.comment" />
-        </el-form-item>
-        <el-form-item label="点赞通知">
-          <el-switch v-model="preferences.type_enabled.like" />
-        </el-form-item>
-        <el-form-item label="关注通知">
-          <el-switch v-model="preferences.type_enabled.follow" />
-        </el-form-item>
-        <el-form-item label="私信通知">
-          <el-switch v-model="preferences.type_enabled.message" />
-        </el-form-item>
+        <QyFormItem label="系统通知">
+          <QySwitch v-model="preferences.type_enabled.system" />
+        </QyFormItem>
+        <QyFormItem label="评论通知">
+          <QySwitch v-model="preferences.type_enabled.comment" />
+        </QyFormItem>
+        <QyFormItem label="点赞通知">
+          <QySwitch v-model="preferences.type_enabled.like" />
+        </QyFormItem>
+        <QyFormItem label="关注通知">
+          <QySwitch v-model="preferences.type_enabled.follow" />
+        </QyFormItem>
+        <QyFormItem label="私信通知">
+          <QySwitch v-model="preferences.type_enabled.message" />
+        </QyFormItem>
 
-        <el-divider />
+        <QyDivider />
 
         <h4>免打扰时段</h4>
-        <el-form-item label="启用免打扰">
-          <el-switch v-model="quietHoursEnabled" />
-        </el-form-item>
-        <el-form-item label="开始时间" v-if="quietHoursEnabled">
+        <QyFormItem label="启用免打扰">
+          <QySwitch v-model="quietHoursEnabled" />
+        </QyFormItem>
+        <QyFormItem label="开始时间" v-if="quietHoursEnabled">
+          <!-- TODO: 替换为Qingyu组件 qy-time-picker -->
           <el-time-picker
             v-model="quietHoursStart"
             format="HH:mm"
             value-format="HH:mm"
           />
-        </el-form-item>
-        <el-form-item label="结束时间" v-if="quietHoursEnabled">
+        </QyFormItem>
+        <QyFormItem label="结束时间" v-if="quietHoursEnabled">
+          <!-- TODO: 替换为Qingyu组件 qy-time-picker -->
           <el-time-picker
             v-model="quietHoursEnd"
             format="HH:mm"
             value-format="HH:mm"
           />
-        </el-form-item>
-      </el-form>
+        </QyFormItem>
+      </QyForm>
 
       <template #footer>
         <QyButton @click="showSettingsDialog = false">取消</QyButton>
@@ -230,7 +233,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyCard, QyButton, QyTag, QyEmpty, QyModal } from '@/design-system/components'
+import {
+  QyIcon,
+  QyCard,
+  QyButton,
+  QyTag,
+  QyEmpty,
+  QyModal,
+  QyPagination,
+  QyCheckbox,
+  QySwitch,
+  QyDivider,
+  QyForm,
+  QyFormItem
+} from '@/design-system/components'
 import {
   getNotifications,
   getUnreadCount,
@@ -514,15 +530,15 @@ const handleSelectChange = (id: string, checked: boolean) => {
 
 // 获取通知图标
 const getNotificationIcon = (type: NotificationType) => {
-  const map: Record<string, any> = {
-    system: Bell,
-    comment: ChatDotRound,
-    like: Star,
-    follow: User,
-    message: Message,
-    achievement: Trophy
+  const map: Record<string, string> = {
+    system: 'Bell',
+    comment: 'ChatDotRound',
+    like: 'Star',
+    follow: 'User',
+    message: 'ChatDotRound',
+    achievement: 'Trophy'
   }
-  return map[type] || Bell
+  return map[type] || 'Bell'
 }
 
 // 获取通知颜色
@@ -684,7 +700,7 @@ onMounted(() => {
       background: var(--el-color-primary-light-9);
     }
 
-    .el-checkbox {
+    .qy-checkbox {
       margin-right: 12px;
     }
 
@@ -751,7 +767,7 @@ h4 {
   font-weight: 600;
 }
 
-.el-divider {
+.qy-divider {
   margin: 16px 0;
 }
 </style>
