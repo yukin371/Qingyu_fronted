@@ -59,7 +59,7 @@
                 <Image :src="book.cover" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <Icon name="photo" size="lg" />
+                      <Icon name="photo" size="md" />
                     </div>
                   </template>
                 </Image>

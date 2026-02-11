@@ -159,7 +159,7 @@
                 <QyImage :src="book.cover" fit="cover" loading="lazy">
                   <template #error>
                     <div class="image-placeholder">
-                      <Icon name="photo" size="lg" />
+                      <Icon name="photo" size="md" />
                     </div>
                   </template>
                 </QyImage>
