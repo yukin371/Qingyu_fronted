@@ -152,7 +152,7 @@
     </el-drawer>
 
     <!-- 回到顶部 -->
-    <el-backtop :right="40" :bottom="40" />
+    <el-backtop :right="20" :bottom="20" />
 
     <!-- 快捷登录对话框 -->
     <el-dialog v-model="showQuickLogin" title="欢迎回来" width="400px" class="premium-dialog" :close-on-click-modal="false">
