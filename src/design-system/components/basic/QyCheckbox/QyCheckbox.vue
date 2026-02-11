@@ -57,159 +57,20 @@
 
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/design-system/utils/cn'
 import type { QyCheckboxProps, QyCheckboxEmits } from './types'
-
-/**
- * QyCheckbox CVA variants configuration
- */
-const checkboxVariants = cva(
-  [
-    'inline-flex items-center gap-2 cursor-pointer',
-    'transition-all duration-200',
-    'select-none'
-  ],
-  {
-    variants: {
-      size: {
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-lg'
-      },
-      disabled: {
-        true: 'opacity-50 cursor-not-allowed pointer-events-none',
-        false: ''
-      },
-      variant: {
-        default: '',
-        button: '',
-        border: ''
-      }
-    },
-    defaultVariants: {
-      size: 'md',
-      disabled: false,
-      variant: 'default'
-    }
-  }
-)
-
-/**
- * 复选框输入框样式变体
- */
-const checkboxInputVariants = cva(
-  [
-    'relative flex-shrink-0 rounded-md border-2',
-    'transition-all duration-200',
-    'appearance-none cursor-pointer',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-    'checked:bg-current'
-  ],
-  {
-    variants: {
-      size: {
-        sm: 'w-4 h-4',
-        md: 'w-5 h-5',
-        lg: 'w-6 h-6'
-      },
-      color: {
-        primary: 'border-slate-300 focus-visible:ring-primary-500 checked:border-primary-500 checked:bg-primary-500 dark:border-slate-600',
-        success: 'border-slate-300 focus-visible:ring-success-500 checked:border-success-500 checked:bg-success-500 dark:border-slate-600',
-        warning: 'border-slate-300 focus-visible:ring-warning-500 checked:border-warning-500 checked:bg-warning-500 dark:border-slate-600',
-        danger: 'border-slate-300 focus-visible:ring-danger-500 checked:border-danger-500 checked:bg-danger-500 dark:border-slate-600'
-      },
-      disabled: {
-        true: 'cursor-not-allowed opacity-50',
-        false: ''
-      },
-      variant: {
-        default: '',
-        button: 'rounded-md',
-        border: 'rounded-md'
-      }
-    },
-    defaultVariants: {
-      size: 'md',
-      color: 'primary',
-      disabled: false,
-      variant: 'default'
-    }
-  }
-)
-
-/**
- * 图标容器样式
- */
-const iconContainerVariants = cva(
-  [
-    'absolute inset-0',
-    'flex items-center justify-center',
-    'pointer-events-none',
-    'text-white'
-  ],
-  {
-    variants: {
-      size: {
-        sm: 'text-[10px]',
-        md: 'text-xs',
-        lg: 'text-sm'
-      }
-    },
-    defaultVariants: {
-      size: 'md'
-    }
-  }
-)
-
-/**
- * 图标样式
- */
-const iconVariants = cva(
-  'w-full h-full',
-  {
-    variants: {
-      size: {
-        sm: 'w-3 h-3',
-        md: 'w-3.5 h-3.5',
-        lg: 'w-4 h-4'
-      }
-    },
-    defaultVariants: {
-      size: 'md'
-    }
-  }
-)
-
-/**
- * Label 样式变体
- */
-const labelVariants = cva(
-  [
-    'select-none'
-  ],
-  {
-    variants: {
-      size: {
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-lg'
-      },
-      disabled: {
-        true: 'opacity-50',
-        false: ''
-      }
-    },
-    defaultVariants: {
-      size: 'md',
-      disabled: false
-    }
-  }
-)
-
-// 类型导出
-export type CheckboxVariants = VariantProps<typeof checkboxVariants>
-export type CheckboxInputVariants = VariantProps<typeof checkboxInputVariants>
+import {
+  checkboxVariants,
+  checkboxInputVariants,
+  iconContainerVariants,
+  iconVariants,
+  labelVariants,
+  type CheckboxVariants,
+  type CheckboxInputVariants,
+  type IconContainerVariants,
+  type IconVariants,
+  type LabelVariants
+} from './variants'
 
 // Props
 const props = withDefaults(defineProps<QyCheckboxProps>(), {

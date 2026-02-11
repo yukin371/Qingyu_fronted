@@ -27,6 +27,8 @@ export type { ContainerProps, ContainerSize, ColProps, RowProps } from './layout
 
 // Navigation Components - 只导出Qy组件库中没有的（直接从.vue文件导入）
 export { default as Breadcrumb } from './navigation/Breadcrumb/Breadcrumb.vue'  // Qy组件库中没有Breadcrumb
+export { default as Steps } from './navigation/Steps/Steps.vue'     // Qy组件库中没有Steps
+export { default as Step } from './navigation/Steps/Step.vue'      // Step 子组件
 
 // Feedback Components - 只导出Qy组件库中没有的（直接从.vue文件导入以避免index.ts问题）
 export { default as Alert } from './feedback/Alert/Alert.vue'        // Qy组件库中没有Alert
@@ -41,6 +43,7 @@ export { default as Tooltip } from './feedback/Tooltip/Tooltip.vue'     // Qy组
 // Data Display Components - 只导出Qy组件库中没有的（直接从.vue文件导入）
 export { default as Collapse } from './data/Collapse/Collapse.vue'   // Qy组件库中没有Collapse
 export { default as Tabs } from './data/Tabs/Tabs.vue'       // Qy组件库中没有Tabs
+export { default as TabPane } from './data/Tabs/TabPane.vue'   // TabPane 子组件
 export { default as Table } from './data/Table/Table.vue'      // Qy组件库中没有Table
 export { default as Tree } from './data/Tree/Tree.vue'       // Qy组件库中没有Tree
 export { default as Pagination } from './data/Pagination/Pagination.vue' // Qy组件库中没有Pagination
