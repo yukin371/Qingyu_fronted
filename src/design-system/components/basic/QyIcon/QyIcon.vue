@@ -11,6 +11,7 @@
 import { computed } from 'vue'
 import { getIconSVG } from '../../../utils/icon-mapper'
 import type { QyIconProps } from './types'
+import { iconSizePresets } from './types'
 
 /**
  * QyIcon - Qingyu Design System Icon Component
@@ -54,14 +55,30 @@ const iconClasses = computed(() => {
   return classes.join(' ')
 })
 
+// Compute icon size with proper preset handling
+const computedSize = computed(() => {
+  // 如果是数字，直接使用
+  if (typeof props.size === 'number') {
+    return props.size
+  }
+
+  // 如果是字符串，从预设映射表获取
+  const sizeStr = props.size as keyof typeof iconSizePresets
+  if (props.size && iconSizePresets[sizeStr]) {
+    return iconSizePresets[sizeStr]
+  }
+
+  // 默认值
+  return 16
+})
+
 // Compute icon style
 const iconStyle = computed(() => {
   const style: Record<string, string> = {}
-  
+
   // Size
-  const size = typeof props.size === 'number' ? props.size : parseInt(props.size) || 16
-  style.width = `${size}px`
-  style.height = `${size}px`
+  style.width = `${computedSize.value}px`
+  style.height = `${computedSize.value}px`
   
   // Color
   style.color = props.color
