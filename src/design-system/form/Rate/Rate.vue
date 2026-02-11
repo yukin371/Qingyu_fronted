@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/multi-word-component-names */
 /**
  * Rate 组件
  *
@@ -7,8 +8,8 @@
 
 import { computed, ref, h } from 'vue'
 import { cn } from '../../utils/cn'
-import type { RateProps, RateEmits, RateValue } from './types'
-import { rateVariants, starSizeVariants, type RateVariants, type StarSize } from './variants'
+import type { RateProps, RateEmits } from './types'
+import { rateVariants, starSizeVariants } from './variants'
 
 // Heroicons Star 图标组件
 const StarIcon = {

@@ -132,7 +132,7 @@ watch(currentPage, (val) => {
 })
 
 // 标准化每页数量选项
-const normalizedPageSizes = computed(() => {
+const normalizedPageSizes = computed((): PageSizeOption[] => {
   return props.pageSizes.map(size =>
     typeof size === 'number' ? { label: `${size} 条/页`, value: size } : size
   )
@@ -227,9 +227,11 @@ const handleNext = () => {
 }
 
 // 处理页码点击
-const handlePageClick = (page: number) => {
-  currentPage.value = page
-  emit('change', page, props.pageSize)
+const handlePageClick = (page: number | string) => {
+  if (typeof page === 'number') {
+    currentPage.value = page
+    emit('change', page, props.pageSize)
+  }
 }
 
 // 处理每页数量变化

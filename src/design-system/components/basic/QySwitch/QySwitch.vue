@@ -96,12 +96,7 @@ import {
   trackVariants,
   thumbVariants,
   activeTextVariants,
-  inactiveTextVariants,
-  type SwitchVariants,
-  type TrackVariants,
-  type ThumbVariants,
-  type ActiveTextVariants,
-  type InactiveTextVariants
+  inactiveTextVariants
 } from './variants'
 
 // Props

@@ -108,12 +108,7 @@ import {
   trackVariants,
   fillVariants,
   thumbVariants,
-  tooltipVariants,
-  type SliderVariants,
-  type TrackVariants,
-  type FillVariants,
-  type ThumbVariants,
-  type TooltipVariants
+  tooltipVariants
 } from './variants'
 
 // Props

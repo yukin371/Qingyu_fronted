@@ -2,7 +2,7 @@
   <div class="reader-page">
     <!-- 页面过渡动画 -->
     <transition name="reader-fade" mode="out-in">
-      <div class="reader-view" :class="themeClass" key="reader" data-testid="reader-view">
+      <div v-show="true" class="reader-view" :class="themeClass" key="reader" data-testid="reader-view">
         <el-container v-loading="loading" data-testid="reader-container">
         <!-- 顶部导航栏 -->
         <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-header">
@@ -18,8 +18,8 @@
         </el-header>
 
         <!-- 阅读内容区 -->
-        <el-main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll" data-testid="reader-main">
-          <div class="reader-container" :style="containerStyle" data-testid="reader-content">
+        <main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll" data-testid="reader-main">
+          <QyCard class="reader-container" variant="glass" shadow="always" padding="lg" :style="containerStyle" data-testid="reader-content">
             <!-- 章节标题 -->
             <h1 v-if="currentChapter" class="chapter-title" data-testid="chapter-title">
               {{ currentChapter.title }}
@@ -27,7 +27,7 @@
 
             <!-- 章节内容 -->
             <div v-if="currentChapter" class="chapter-content" data-testid="chapter-content">
-              <div
+              <article
                 v-for="(paragraph, index) in parsedParagraphs"
                 :key="index"
                 class="paragraph-wrapper"
@@ -41,7 +41,7 @@
                   :comment-count="getParagraphCommentCount(index)"
                   @click.stop="handleParagraphClick(index)"
                 />
-              </div>
+              </article>
             </div>
 
             <!-- 空状态 -->
@@ -57,27 +57,27 @@
 
                 <!-- 操作按钮 -->
                 <div class="action-buttons">
-                  <el-button
+                  <QyButton
                     v-if="hasNextChapter"
-                    type="primary"
-                    size="large"
+                    variant="primary"
+                    size="lg"
+                    class="action-btn"
                     @click="nextChapterAndAddToBookshelf"
                     data-testid="next-chapter-btn"
                   >
-                    <el-icon><ArrowRightBold /></el-icon>
                     继续阅读下一章
-                  </el-button>
+                  </QyButton>
 
-                  <el-button
+                  <QyButton
                     v-else
-                    type="success"
-                    size="large"
+                    variant="success"
+                    size="lg"
+                    class="action-btn"
                     @click="goBackToBookDetail"
                     data-testid="back-to-book-detail-btn"
                   >
-                    <el-icon><FolderOpened /></el-icon>
                     返回作品详情
-                  </el-button>
+                  </QyButton>
                 </div>
 
                 <!-- 自动加入书架提示 -->
@@ -114,24 +114,24 @@
                 </div>
               </div>
             </div>
-          </div>
-        </el-main>
+          </QyCard>
+        </main>
 
         <!-- 底部导航栏 -->
-        <el-footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-footer">
+        <footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-footer">
           <div class="footer-progress" data-testid="reader-progress-bar">
             <span class="progress-text">{{ progressText }}</span>
-            <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
+            <QySlider v-model="readProgress" :show-tooltip="false" size="sm" @change="handleProgressChange" />
           </div>
           <div class="footer-nav">
-            <el-button @click="previousChapter" :disabled="!hasPreviousChapter" :icon="ArrowLeftBold" data-testid="previous-chapter-btn">
+            <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasPreviousChapter" @click="previousChapter" data-testid="previous-chapter-btn">
               上一章
-            </el-button>
-            <el-button @click="nextChapter" :disabled="!hasNextChapter" :icon="ArrowRightBold" data-testid="next-chapter-nav-btn">
+            </QyButton>
+            <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasNextChapter" @click="nextChapter" data-testid="next-chapter-nav-btn">
               下一章
-            </el-button>
+            </QyButton>
           </div>
-        </el-footer>
+        </footer>
         </el-container>
       </div>
     </transition>
@@ -253,12 +253,12 @@ import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
-import { sanitizeHtml } from '@/utils/sanitize'
 import { ElMessage } from 'element-plus'
 import {
-  ArrowLeft, ArrowLeftBold, ArrowRightBold, List, Setting,
-  Minus, Plus, Lock, MagicStick, FolderOpened
+  ArrowLeft, List, Setting,
+  Minus, Plus, MagicStick
 } from '@element-plus/icons-vue'
+import { QyButton, QyCard, QySlider } from '@/design-system/components'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
 import CommentBadge from '../components/comments/CommentBadge.vue'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
@@ -340,19 +340,6 @@ const containerStyle = computed(() => {
     maxWidth: `${settings.value.pageWidth}px`,
     fontFamily: settings.value.fontFamily
   }
-})
-
-const formattedContent = computed(() => {
-  if (!currentChapter.value?.content) return ''
-  // 将内容按段落分割并格式化
-  const formatted = currentChapter.value.content
-    .split('\n')
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
-    .map(p => `<p>${p}</p>`)
-    .join('')
-  // 使用DOMPurify清理HTML，防止XSS攻击
-  return sanitizeHtml(formatted)
 })
 
 // 阅读时长格式化
@@ -463,8 +450,8 @@ const addToBookshelf = async () => {
       duration: 2000,
       showClose: false
     })
-  } catch (error) {
-    console.error('添加到书架失败:', error)
+  } catch {
+    console.error('添加到书架失败')
   }
 }
 
@@ -479,8 +466,8 @@ const checkBookshelfStatus = async () => {
 
     // 模拟：不在书架中
     isInBookshelf.value = false
-  } catch (error) {
-    console.error('检查书架状态失败:', error)
+  } catch {
+    console.error('检查书架状态失败')
   }
 }
 
@@ -512,8 +499,8 @@ const loadRecommendedBooks = async () => {
         cover: 'https://picsum.photos/seed/rec3/80/120'
       }
     ]
-  } catch (error) {
-    console.error('加载推荐书籍失败:', error)
+  } catch {
+    console.error('加载推荐书籍失败')
   }
 }
 
@@ -558,13 +545,6 @@ const openCommentDrawer = async (paragraphIndex: number) => {
   commentDrawerVisible.value = true
 }
 
-// 关闭评论抽屉
-const closeCommentDrawer = () => {
-  commentDrawerVisible.value = false
-  commentStore.clearSelection()
-  highlightedParagraphIndex.value = null
-}
-
 // 处理评论提交
 const handleCommentSubmit = async (data: { content: string; emoji?: string }) => {
   if (highlightedParagraphIndex.value === null || !currentChapter.value) return
@@ -606,7 +586,7 @@ const changeTheme = (theme: string) => {
 
 const resetSettings = () => {
   readerStore.resetSettings()
-  message.success('设置已重置')
+  ElMessage.success('设置已重置')
 }
 
 const handleProgressChange = (value: number) => {
@@ -661,18 +641,8 @@ const saveCurrentProgress = async () => {
     if (duration > 0) {
       await readerStore.updateReadingTime(currentChapter.value.bookId, duration)
     }
-  } catch (error) {
+  } catch {
     // 静默失败，避免影响阅读体验
-  }
-}
-
-// 监听滚动更新进度
-const handleScroll = () => {
-  const scrollTop = window.scrollY
-  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-
-  if (scrollHeight > 0) {
-    readProgress.value = Math.round((scrollTop / scrollHeight) * 100)
   }
 }
 
@@ -1079,7 +1049,7 @@ watch(() => route.params.chapterId, (newId) => {
   .footer-nav {
     flex-direction: column;
 
-    .el-button {
+    .footer-nav-btn {
       width: 100%;
     }
   }
@@ -1131,11 +1101,10 @@ watch(() => route.params.chapterId, (newId) => {
       gap: 16px;
       margin-bottom: 32px;
 
-      .el-button {
+      .action-btn {
         min-width: 200px;
         height: 50px;
         font-size: 18px;
-        border-radius: 25px;
         transition: all 0.3s ease;
 
         &:hover {

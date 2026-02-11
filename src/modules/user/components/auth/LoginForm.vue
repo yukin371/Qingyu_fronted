@@ -2,7 +2,7 @@
   <div class="login-form">
     <qy-form
       ref="loginFormRef"
-      :model="loginForm"
+      :model-value="loginForm"
       :rules="loginRules"
       label-width="0"
       @submit.prevent="handleLogin"
@@ -47,7 +47,7 @@
 
       <qy-form-item>
         <qy-button
-          type="primary"
+          variant="primary"
           size="lg"
           :loading="loading"
           :disabled="!isFormValid"
@@ -77,7 +77,7 @@ import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
 import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
 import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
-import QyCheckbox from '@/design-system/base/Checkbox/Checkbox.vue'
+import QyCheckbox from '@/design-system/components/basic/QyCheckbox/QyCheckbox.vue'
 import { message } from '@/design-system/services'
 
 export default {

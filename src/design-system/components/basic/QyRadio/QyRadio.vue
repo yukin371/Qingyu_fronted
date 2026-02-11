@@ -40,11 +40,7 @@ import {
   radioVariants,
   radioInputVariants,
   dotContainerVariants,
-  labelVariants,
-  type RadioVariants,
-  type RadioInputVariants,
-  type DotContainerVariants,
-  type RadioLabelVariants
+  labelVariants
 } from './variants'
 
 // Props

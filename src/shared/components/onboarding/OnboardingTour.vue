@@ -355,7 +355,7 @@ function endTour() {
 
 .highlight-target {
   position: absolute;
-  pointer-events: none;
+  pointer-events: auto;
   transition: all 0.3s ease;
 
   &::before {
@@ -369,6 +369,7 @@ function endTour() {
     border-radius: 8px;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
     animation: pulse 2s ease-in-out infinite;
+    pointer-events: none;
   }
 }
 

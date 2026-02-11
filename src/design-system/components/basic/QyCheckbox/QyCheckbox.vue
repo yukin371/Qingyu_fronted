@@ -64,12 +64,7 @@ import {
   checkboxInputVariants,
   iconContainerVariants,
   iconVariants,
-  labelVariants,
-  type CheckboxVariants,
-  type CheckboxInputVariants,
-  type IconContainerVariants,
-  type IconVariants,
-  type LabelVariants
+  labelVariants
 } from './variants'
 
 // Props

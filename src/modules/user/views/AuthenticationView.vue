@@ -18,138 +18,116 @@
           <p class="auth-subtitle">{{ pageSubtitle }}</p>
         </div>
 
-        <el-tabs v-model="activeMode" class="premium-tabs" data-testid="auth-tabs" @tab-change="handleTabChange">
+        <Tabs v-model="activeMode" class="premium-tabs" data-testid="auth-tabs" @tab-change="(name: string | number) => handleTabChange(String(name))">
           <!-- 登录 -->
-          <el-tab-pane label="登录" name="login">
+          <TabPane label="登录" name="login">
             <template #label>
               <span data-testid="tab-login">登录</span>
             </template>
-            <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" class="auth-form"
+            <QyForm ref="loginFormRef" v-model="loginForm" :rules="(loginRules as any)" class="auth-form"
               @submit.prevent="handleLogin">
-              <el-form-item prop="username" data-testid="login-username">
-                <el-input
+              <QyFormItem prop="username" data-testid="login-username">
+                <QyInput
                   v-model="loginForm.username"
                   placeholder="用户名或邮箱"
-                  size="large"
+                  size="lg"
                   class="premium-input"
                   :input-attrs="{ 'data-testid': 'login-username-input' }"
-                >
-                  <template #prefix>
-                    <el-icon class="input-icon">
-                      <QyIcon name="User"  />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </el-form-item>
+                  :prefix-icon="userIcon"
+                />
+              </QyFormItem>
 
-              <el-form-item prop="password" data-testid="login-password">
-                <el-input
+              <QyFormItem prop="password" data-testid="login-password">
+                <QyInput
                   v-model="loginForm.password"
                   type="password"
                   placeholder="密码"
-                  size="large"
-                  show-password
+                  size="lg"
+                  :show-password="true"
                   @keyup.enter="handleLogin"
                   class="premium-input"
                   :input-attrs="{ 'data-testid': 'login-password-input' }"
-                >
-                  <template #prefix>
-                    <el-icon class="input-icon">
-                      <QyIcon name="Lock"  />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </el-form-item>
+                  :prefix-icon="lockIcon"
+                />
+              </QyFormItem>
 
               <div class="form-options">
-                <el-checkbox v-model="rememberMe">记住我</el-checkbox>
-                <el-link type="primary" :underline="'never'" @click="activeMode = 'reset'">
+                <QyCheckbox v-model="rememberMe">记住我</QyCheckbox>
+                <span class="link-text" @click="activeMode = 'reset'">
                   忘记密码？
-                </el-link>
+                </span>
               </div>
 
-              <el-button
-                type="primary"
-                size="large"
+              <QyButton
+                variant="primary"
+                size="lg"
                 class="submit-btn"
                 :loading="loading"
                 @click="handleLogin"
                 data-testid="login-submit"
               >
                 立即登录
-              </el-button>
-            </el-form>
-          </el-tab-pane>
+              </QyButton>
+            </QyForm>
+          </TabPane>
 
           <!-- 注册 -->
-          <el-tab-pane label="注册" name="register">
+          <TabPane label="注册" name="register">
             <template #label>
               <span data-testid="tab-register">注册</span>
             </template>
-            <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" class="auth-form"
+            <QyForm ref="registerFormRef" v-model="registerForm" :rules="(registerRules as any)" class="auth-form"
               @submit.prevent="handleRegister">
-              <el-form-item prop="username" data-testid="register-username">
-                <el-input
+              <QyFormItem prop="username" data-testid="register-username">
+                <QyInput
                   v-model="registerForm.username"
                   placeholder="设置用户名 (3-20字符)"
-                  size="large"
+                  size="lg"
                   class="premium-input"
                   :input-attrs="{ 'data-testid': 'register-username-input' }"
-                >
-                  <template #prefix><el-icon class="input-icon">
-                      <QyIcon name="User"  />
-                    </el-icon></template>
-                </el-input>
-              </el-form-item>
+                  :prefix-icon="userIcon"
+                />
+              </QyFormItem>
 
-              <el-form-item prop="email" data-testid="register-email">
-                <el-input
+              <QyFormItem prop="email" data-testid="register-email">
+                <QyInput
                   v-model="registerForm.email"
                   placeholder="电子邮箱"
-                  size="large"
+                  size="lg"
                   class="premium-input"
                   :input-attrs="{ 'data-testid': 'register-email-input' }"
-                >
-                  <template #prefix><el-icon class="input-icon">
-                      <Message />
-                    </el-icon></template>
-                </el-input>
-              </el-form-item>
+                  :prefix-icon="messageIcon"
+                />
+              </QyFormItem>
 
-              <el-form-item prop="emailCode" data-testid="register-email-code">
+              <QyFormItem prop="emailCode" data-testid="register-email-code">
                 <div class="code-input-group">
-                  <el-input
+                  <QyInput
                     v-model="registerForm.emailCode"
                     placeholder="6位验证码"
-                    size="large"
+                    size="lg"
                     class="premium-input"
                     :input-attrs="{ 'data-testid': 'register-email-code-input' }"
-                  >
-                    <template #prefix><el-icon class="input-icon">
-                        <Key />
-                      </el-icon></template>
-                  </el-input>
-                  <el-button size="large" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail"
+                    :prefix-icon="lockIcon"
+                  />
+                  <QyButton size="lg" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail"
                     @click="sendEmailCode">
                     {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
-                  </el-button>
+                  </QyButton>
                 </div>
-              </el-form-item>
+              </QyFormItem>
 
-              <el-form-item prop="password" data-testid="register-password">
-                <el-input
+              <QyFormItem prop="password" data-testid="register-password">
+                <QyInput
                   v-model="registerForm.password"
                   type="password"
                   placeholder="设置密码"
-                  size="large"
-                  show-password
+                  size="lg"
+                  :show-password="true"
                   class="premium-input"
                   :input-attrs="{ 'data-testid': 'register-password-input' }"
-                >
-                  <template #prefix><el-icon class="input-icon">
-                      <QyIcon name="Lock"  />
-                    </el-icon></template>
-                </el-input>
+                  :prefix-icon="lockIcon"
+                />
                 <!-- 密码强度 -->
                 <div v-if="registerForm.password" class="password-strength">
                   <div class="strength-bar">
@@ -159,125 +137,104 @@
                   </div>
                   <span class="strength-text">{{ passwordStrengthText }}</span>
                 </div>
-              </el-form-item>
+              </QyFormItem>
 
-              <el-form-item prop="confirmPassword" data-testid="register-confirm-password">
-                <el-input
+              <QyFormItem prop="confirmPassword" data-testid="register-confirm-password">
+                <QyInput
                   v-model="registerForm.confirmPassword"
                   type="password"
                   placeholder="确认密码"
-                  size="large"
-                  show-password
+                  size="lg"
+                  :show-password="true"
                   class="premium-input"
                   @keyup.enter="handleRegister"
                   :input-attrs="{ 'data-testid': 'register-confirm-password-input' }"
-                >
-                  <template #prefix><el-icon class="input-icon">
-                      <QyIcon name="Lock"  />
-                    </el-icon></template>
-                </el-input>
-              </el-form-item>
+                  :prefix-icon="lockIcon"
+                />
+              </QyFormItem>
 
-              <el-form-item prop="agreement" data-testid="register-agreement">
-                <el-checkbox v-model="registerForm.agreement" data-testid="register-agreement-checkbox">
+              <QyFormItem prop="agreement" data-testid="register-agreement">
+                <QyCheckbox v-model="registerForm.agreement" data-testid="register-agreement-checkbox">
                   我已阅读并同意 <span class="highlight">用户协议</span> 与 <span class="highlight">隐私政策</span>
-                </el-checkbox>
-              </el-form-item>
+                </QyCheckbox>
+              </QyFormItem>
 
-              <el-button
-                type="primary"
-                size="large"
+              <QyButton
+                variant="primary"
+                size="lg"
                 class="submit-btn"
                 :loading="loading"
                 @click="handleRegister"
                 data-testid="register-submit"
               >
                 注册账号
-              </el-button>
-            </el-form>
-          </el-tab-pane>
+              </QyButton>
+            </QyForm>
+          </TabPane>
 
           <!-- 找回密码 -->
-          <el-tab-pane label="找回密码" name="reset" v-if="activeMode === 'reset'">
+          <TabPane label="找回密码" name="reset" v-if="activeMode === 'reset'">
             <template #label>
               <span data-testid="tab-reset">找回密码</span>
             </template>
             <!-- 保持原有逻辑，仅添加样式类 -->
-            <el-form ref="resetFormRef" :model="resetForm" :rules="resetRules" class="auth-form"
+            <QyForm ref="resetFormRef" v-model="resetForm" :rules="(resetRules as any)" class="auth-form"
               @submit.prevent="handleReset">
-              <el-steps :active="resetStep" finish-status="success" class="premium-steps" align-center>
-                <el-step title="验证"></el-step>
-                <el-step title="重置"></el-step>
-                <el-step title="完成"></el-step>
-              </el-steps>
+              <Steps :active="resetStep" finish-status="success" class="premium-steps" align-center>
+                <Step title="验证"></Step>
+                <Step title="重置"></Step>
+                <Step title="完成"></Step>
+              </Steps>
 
               <!-- 步骤内容容器 -->
               <div class="step-content">
                 <template v-if="resetStep === 0">
-                  <el-form-item prop="email">
-                    <el-input v-model="resetForm.email" placeholder="注册邮箱" size="large" class="premium-input">
-                      <template #prefix><el-icon class="input-icon">
-                          <Message />
-                        </el-icon></template>
-                    </el-input>
-                  </el-form-item>
-                  <el-form-item prop="code">
+                  <QyFormItem prop="email">
+                    <QyInput v-model="resetForm.email" placeholder="注册邮箱" size="lg" class="premium-input"
+                      :prefix-icon="messageIcon" />
+                  </QyFormItem>
+                  <QyFormItem prop="code">
                     <div class="code-input-group">
-                      <el-input v-model="resetForm.code" placeholder="验证码" size="large" class="premium-input">
-                        <template #prefix><el-icon class="input-icon">
-                            <Key />
-                          </el-icon></template>
-                      </el-input>
-                      <el-button size="large" class="code-btn" :disabled="resetCountdown > 0" :loading="sendingReset"
+                      <QyInput v-model="resetForm.code" placeholder="验证码" size="lg" class="premium-input"
+                        :prefix-icon="lockIcon" />
+                      <QyButton size="lg" class="code-btn" :disabled="resetCountdown > 0" :loading="sendingReset"
                         @click="sendResetCode">
                         {{ resetCountdown > 0 ? `${resetCountdown}s` : '发送' }}
-                      </el-button>
+                      </QyButton>
                     </div>
-                  </el-form-item>
-                  <el-button type="primary" size="large" class="submit-btn" :loading="loading"
-                    @click="verifyResetCode">下一步</el-button>
+                  </QyFormItem>
+                  <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading"
+                    @click="verifyResetCode">下一步</QyButton>
                 </template>
 
                 <template v-if="resetStep === 1">
-                  <el-form-item prop="newPassword">
-                    <el-input v-model="resetForm.newPassword" type="password" placeholder="新密码" size="large"
-                      show-password class="premium-input">
-                      <template #prefix><el-icon class="input-icon">
-                          <QyIcon name="Lock"  />
-                        </el-icon></template>
-                    </el-input>
-                  </el-form-item>
-                  <el-form-item prop="confirmNewPassword">
-                    <el-input v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="large"
-                      show-password class="premium-input">
-                      <template #prefix><el-icon class="input-icon">
-                          <QyIcon name="Lock"  />
-                        </el-icon></template>
-                    </el-input>
-                  </el-form-item>
-                  <el-button type="primary" size="large" class="submit-btn" :loading="loading"
-                    @click="handleReset">提交修改</el-button>
+                  <QyFormItem prop="newPassword">
+                    <QyInput v-model="resetForm.newPassword" type="password" placeholder="新密码" size="lg"
+                      :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
+                  </QyFormItem>
+                  <QyFormItem prop="confirmNewPassword">
+                    <QyInput v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="lg"
+                      :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
+                  </QyFormItem>
+                  <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading"
+                    @click="handleReset">提交修改</QyButton>
                 </template>
 
                 <template v-if="resetStep === 2">
                   <div class="success-result">
-                    <el-icon class="success-icon">
-                      <QyIcon name="CircleCheckFilled"  />
-                    </el-icon>
+                    <QyIcon name="CircleCheckFilled" :size="64" class="success-icon" />
                     <h3>密码重置成功</h3>
-                    <el-button type="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</el-button>
+                    <QyButton variant="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</QyButton>
                   </div>
                 </template>
               </div>
-            </el-form>
-          </el-tab-pane>
-        </el-tabs>
+            </QyForm>
+          </TabPane>
+        </Tabs>
 
         <!-- 社交登录 -->
         <div class="social-login" v-if="activeMode !== 'reset'">
-          <div class="divider">
-            <span>第三方登录</span>
-          </div>
+          <QyDivider content="第三方登录" content-position="center" />
           <div class="social-buttons">
             <button class="social-btn wechat" title="微信登录">
               <i class="iconfont icon-wechat"></i> W
@@ -298,12 +255,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
-import { Message, Key } from '@element-plus/icons-vue'
+import { QyIcon, QyForm, QyFormItem, QyInput, QyButton, QyCheckbox, QyDivider } from '@/design-system/components'
+import { Tabs, TabPane, Steps, Step } from '@/design-system'
+import { getIconSVG } from '@/design-system/utils/icon-mapper'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
 import {
@@ -312,6 +270,12 @@ import {
   verifyResetCode as verifyResetCodeAPI,
   resetPassword as resetPasswordAPI
 } from '@/modules/user/api'
+import { ElMessage } from 'element-plus'
+
+// 图标 SVG 计算属性
+const userIcon = computed(() => getIconSVG('User') || '')
+const lockIcon = computed(() => getIconSVG('Lock') || '')
+const messageIcon = computed(() => getIconSVG('ChatDotRound') || '')
 
 // ... (脚本逻辑部分不需要大幅修改，保持原有的业务逻辑即可)
 // 为了节省篇幅，这里保留原有的 script 内容
@@ -334,8 +298,7 @@ const emailCountdown = ref(0)
 const sendingEmail = ref(false)
 const resetCountdown = ref(0)
 const sendingReset = ref(false)
-// 表单 Ref
-
+// 表单 Ref - 使用 Element Plus 的 FormInstance 因为 validate 方法签名兼容
 const loginFormRef = ref<FormInstance>()
 const registerFormRef = ref<FormInstance>()
 const resetFormRef = ref<FormInstance>()
@@ -360,7 +323,7 @@ const passwordStrength = computed(() => {
 const passwordStrengthPercent = computed(() => ['0%', '33%', '66%', '100%'][passwordStrength.value])
 const passwordStrengthText = computed(() => ['弱', '弱', '中', '强'][passwordStrength.value])
 
-// 验证规则
+// 验证规则 - 使用 Element Plus 的 FormRules 类型
 const loginRules: FormRules = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
@@ -374,17 +337,17 @@ const registerRules: FormRules = {
   emailCode: [],  // 移除required，改为可选
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 6, message: '至少6位', trigger: 'blur' }],
   confirmPassword: [{
-    validator: (r, v, c) => v !== registerForm.value.password ? c(new Error('密码不一致')) : c(),
+    validator: (_rule, value, callback) => value !== registerForm.value.password ? callback(new Error('密码不一致')) : callback(),
     trigger: 'blur'
   }],
-  agreement: [{ validator: (r, v, c) => !v ? c(new Error('请同意协议')) : c(), trigger: 'change' }]
+  agreement: [{ validator: (_rule, value, callback) => !value ? callback(new Error('请同意协议')) : callback(), trigger: 'change' }]
 }
 const resetRules: FormRules = {
   email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { type: 'email', message: '格式不正确', trigger: 'blur' }],
   code: [{ required: true, message: '验证码必填', trigger: 'blur' }],
   newPassword: [{ required: true, message: '新密码必填', trigger: 'blur' }],
   confirmNewPassword: [{
-    validator: (r, v, c) => v !== resetForm.value.newPassword ? c(new Error('密码不一致')) : c(),
+    validator: (_rule, value, callback) => value !== resetForm.value.newPassword ? callback(new Error('密码不一致')) : callback(),
     trigger: 'blur'
   }]
 }
@@ -750,6 +713,17 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin: 12px 0 20px;
+
+  .link-text {
+    font-size: 14px;
+    color: var(--primary-color, #409eff);
+    cursor: pointer;
+    transition: color 0.3s;
+
+    &:hover {
+      color: rgb(59, 130, 246);
+    }
+  }
 }
 
 // 密码强度条优化
