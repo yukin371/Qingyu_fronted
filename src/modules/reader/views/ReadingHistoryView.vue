@@ -60,8 +60,8 @@
                       :stroke-width="4"
                     />
                     <span class="progress-text">{{ item.progress }}%</span>
-                    <span class="read-time">阅读 {{ formatDuration(item.duration) }}</span>
-                    <span class="timestamp">{{ formatTime(item.readAt) }}</span>
+                    <span class="read-time">阅读 {{ formatDuration(item.duration || 0) }}</span>
+                    <span class="timestamp">{{ formatTime(item.readAt || item.readTime || '') }}</span>
                   </div>
                 </div>
 
@@ -102,6 +102,7 @@ import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/models'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 
@@ -116,7 +117,8 @@ const groupedHistories = computed(() => {
   const groups: Record<string, ReadingHistory[]> = {}
 
   histories.value.forEach(item => {
-    const date = new Date(item.readAt).toLocaleDateString('zh-CN')
+    const dateStr = item.readAt || item.readTime || new Date().toISOString()
+    const date = new Date(dateStr).toLocaleDateString('zh-CN')
     if (!groups[date]) {
       groups[date] = []
     }
@@ -169,14 +171,12 @@ function formatDuration(seconds: number): string {
 async function loadHistory(): Promise<void> {
   loading.value = true
   try {
-    const response = await getReadingHistory({
-      page: currentPage.value,
-      size: pageSize.value
-    })
+    const response = await getReadingHistory(currentPage.value, pageSize.value)
 
-    const data = response.data || response
-    histories.value = Array.isArray(data) ? data : (data.data || [])
-    total.value = data.total || (response as any).total || 0
+    // PaginatedResponse结构: { code, message, data: T[], pagination: { total, ... }, timestamp }
+    // 使用类型断言处理API返回数据与类型定义不匹配的问题
+    histories.value = (response.data || []) as unknown as ReadingHistory[]
+    total.value = response.pagination?.total || 0
   } catch (error: any) {
     ElMessage.error(error.message || '加载历史记录失败')
   } finally {
@@ -199,8 +199,7 @@ async function removeHistory(id: string): Promise<void> {
   try {
     await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
     await deleteHistory(id)
@@ -222,8 +221,7 @@ async function clearAll(): Promise<void> {
       '警告',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
 

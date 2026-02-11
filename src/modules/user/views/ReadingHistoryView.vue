@@ -8,34 +8,39 @@
           阅读历史
         </h1>
         <div class="header-actions">
-          <el-button @click="clearAllHistory" :icon="Delete" type="danger" plain>
+          <QyButton @click="clearAllHistory" variant="danger">
+            <template #icon>
+              <QyIcon name="Delete" />
+            </template>
             清空历史
-          </el-button>
+          </QyButton>
         </div>
       </div>
 
       <!-- 筛选和排序 -->
-      <el-card shadow="hover" class="filter-card">
+      <QyCard shadow="hover" class="filter-card">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="8">
-            <el-select v-model="filter.sortBy" placeholder="排序方式" @change="loadHistory">
-              <el-option label="最近阅读" value="recent" />
-              <el-option label="阅读时长" value="duration" />
-              <el-option label="阅读进度" value="progress" />
-            </el-select>
+            <QySelect
+              v-model="filter.sortBy"
+              placeholder="排序方式"
+              :options="sortByOptions"
+              @change="loadHistory"
+            />
           </el-col>
 
           <el-col :xs="24" :sm="8">
-            <el-select v-model="filter.period" placeholder="时间范围" clearable @change="loadHistory">
-              <el-option label="全部" value="" />
-              <el-option label="最近7天" value="7d" />
-              <el-option label="最近30天" value="30d" />
-              <el-option label="最近3个月" value="3m" />
-            </el-select>
+            <QySelect
+              v-model="filter.period"
+              placeholder="时间范围"
+              :options="periodOptions"
+              clearable
+              @change="loadHistory"
+            />
           </el-col>
 
           <el-col :xs="24" :sm="8">
-            <el-input
+            <QyInput
               v-model="filter.keyword"
               placeholder="搜索书名或作者"
               clearable
@@ -44,15 +49,15 @@
               <template #prefix>
                 <QyIcon name="Search"  />
               </template>
-            </el-input>
+            </QyInput>
           </el-col>
         </el-row>
-      </el-card>
+      </QyCard>
 
       <!-- 历史记录列表 -->
-      <div v-loading="loading" class="history-list">
+      <QyLoading :loading="loading" class="history-list">
         <template v-if="!loading && historyList.length > 0">
-          <el-card
+          <QyCard
             v-for="item in historyList"
             :key="item.id"
             shadow="hover"
@@ -61,17 +66,17 @@
             <div class="item-content" @click="continueReading(item)">
               <!-- 书籍封面 -->
               <div class="item-cover">
-                <el-image :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
+                <QyImage :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
                   <template #error>
                     <div class="image-slot">
                       <QyIcon name="Picture"  />
                     </div>
                   </template>
-                </el-image>
+                </QyImage>
 
                 <!-- 阅读进度标签 -->
                 <div class="progress-badge">
-                  {{ item.progress }}%
+                  已读
                 </div>
               </div>
 
@@ -84,17 +89,17 @@
                 </p>
 
                 <div class="reading-info">
-                  <el-tag size="small">
-                    阅读到：{{ item.chapterTitle || `第${item.chapterNumber}章` }}
-                  </el-tag>
+                  <QyTag size="sm">
+                    阅读到：{{ item.chapter?.title || '未知章节' }}
+                  </QyTag>
                   <span class="reading-time">
                     <QyIcon name="Timer"  />
-                    阅读时长：{{ formatDuration(item.readingDuration || 0) }}
+                    阅读时长：{{ formatDuration(item.readDuration || 0) }}
                   </span>
                 </div>
 
                 <!-- 阅读进度条 -->
-                <el-progress
+                <QyProgress
                   :percentage="item.progress || 0"
                   :stroke-width="8"
                   :show-text="false"
@@ -109,32 +114,33 @@
 
               <!-- 操作按钮 -->
               <div class="item-actions">
-                <el-button type="primary" @click.stop="continueReading(item)">
+                <QyButton variant="primary" @click.stop="continueReading(item)">
                   继续阅读
-                </el-button>
-                <el-button @click.stop="goToBookDetail(item.bookId)">
+                </QyButton>
+                <QyButton @click.stop="goToBookDetail(item.bookId)">
                   查看详情
-                </el-button>
-                <el-button
-                  type="danger"
+                </QyButton>
+                <QyButton
+                  variant="danger"
                   text
-                  :icon="Delete"
                   @click.stop="removeHistory(item.id)"
                 >
+                  <template #icon>
+                    <QyIcon name="Delete" />
+                  </template>
                   删除
-                </el-button>
+                </QyButton>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
           <!-- 分页 -->
           <div class="pagination">
-            <el-pagination
+            <QyPagination
               v-model:current-page="currentPage"
               v-model:page-size="pageSize"
               :page-sizes="[10, 20, 50]"
               :total="total"
-              layout="total, sizes, prev, pager, next, jumper"
               @size-change="handleSizeChange"
               @current-change="handlePageChange"
             />
@@ -142,10 +148,10 @@
         </template>
 
         <!-- 空状态 -->
-        <el-empty v-else-if="!loading" description="暂无阅读历史">
-          <el-button type="primary" @click="goToBookstore">去书城看看</el-button>
-        </el-empty>
-      </div>
+        <QyEmpty v-else-if="!loading" description="暂无阅读历史">
+          <QyButton variant="primary" @click="goToBookstore">去书城看看</QyButton>
+        </QyEmpty>
+      </QyLoading>
     </div>
   </div>
 </template>
@@ -154,9 +160,24 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
-import { historyAPI } from '@/modules/reader/api'
+import { QyIcon, QyButton, QyCard, QyInput, QySelect, QyTag, QyImage, QyProgress, QyPagination, QyEmpty, QyLoading } from '@/design-system/components'
+import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
+
+// 排序选项
+const sortByOptions = [
+  { label: '最近阅读', value: 'recent' },
+  { label: '阅读时长', value: 'duration' },
+  { label: '阅读进度', value: 'progress' }
+]
+
+// 时间范围选项
+const periodOptions = [
+  { label: '全部', value: '' },
+  { label: '最近7天', value: '7d' },
+  { label: '最近30天', value: '30d' },
+  { label: '最近3个月', value: '3m' }
+]
 
 const router = useRouter()
 
@@ -178,7 +199,7 @@ const filter = reactive({
 const formatTime = (time: string | Date) => {
   if (!time) return '-'
 
-  const date = new Date(time)
+  const date = typeof time === 'string' ? new Date(time) : time
   const now = new Date()
   const diff = now.getTime() - date.getTime()
 
@@ -217,18 +238,13 @@ const formatDuration = (seconds: number) => {
 const loadHistory = async () => {
   loading.value = true
   try {
-    const response = await historyAPI.getReadingHistory({
-      page: currentPage.value,
-      size: pageSize.value,
-      sortBy: filter.sortBy,
-      period: filter.period || undefined,
-      keyword: filter.keyword || undefined
-    })
+    // getReadingHistory接受page和size参数
+    const response = await getReadingHistory(currentPage.value, pageSize.value)
 
-    if (response.code === 200) {
-      historyList.value = response.data?.items || response.data || []
-      total.value = response.data?.total || 0
-    }
+    // PaginatedResponse结构: { code, message, data: T[], pagination: { total, ... }, timestamp }
+    // 使用类型断言处理API返回数据与类型定义不匹配的问题
+    historyList.value = (response.data || []) as unknown as ReadingHistory[]
+    total.value = response.pagination?.total || 0
   } catch (error: any) {
     console.error('加载阅读历史失败:', error)
     message.error(error.message || '加载阅读历史失败')
@@ -256,16 +272,12 @@ const removeHistory = async (historyId: string) => {
   try {
     await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
-    const response = await historyAPI.deleteHistory(historyId)
-
-    if (response.code === 200) {
-      message.success('删除成功')
-      await loadHistory()
-    }
+    await deleteHistory(historyId)
+    message.success('删除成功')
+    await loadHistory()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除历史失败:', error)
@@ -282,19 +294,14 @@ const clearAllHistory = async () => {
       '警告',
       {
         confirmButtonText: '确定清空',
-        cancelButtonText: '取消',
-        type: 'warning',
-        confirmButtonClass: 'el-button--danger'
+        cancelButtonText: '取消'
       }
     )
 
-    const response = await historyAPI.clearAllHistory()
-
-    if (response.code === 200) {
-      message.success('已清空所有历史')
-      historyList.value = []
-      total.value = 0
-    }
+    await clearHistory()
+    message.success('已清空所有历史')
+    historyList.value = []
+    total.value = 0
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('清空历史失败:', error)
@@ -369,8 +376,8 @@ onMounted(() => {
 .filter-card {
   margin-bottom: 24px;
 
-  :deep(.el-select),
-  :deep(.el-input) {
+  :deep(.qy-select),
+  :deep(.qy-input) {
     width: 100%;
   }
 }
@@ -402,7 +409,7 @@ onMounted(() => {
     border-radius: 8px;
     overflow: hidden;
 
-    .el-image {
+    :deep(.qy-image) {
       width: 100%;
       height: 100%;
     }
@@ -458,7 +465,7 @@ onMounted(() => {
       }
     }
 
-    .el-progress {
+    :deep(.qy-progress) {
       margin-bottom: 12px;
     }
 
@@ -483,7 +490,7 @@ onMounted(() => {
     gap: 8px;
     justify-content: center;
 
-    .el-button {
+    :deep(.qy-button) {
       min-width: 100px;
     }
   }
@@ -517,7 +524,7 @@ onMounted(() => {
     .header-actions {
       width: 100%;
 
-      .el-button {
+      :deep(.qy-button) {
         flex: 1;
       }
     }
@@ -544,7 +551,7 @@ onMounted(() => {
       flex-direction: row;
       flex-wrap: wrap;
 
-      .el-button {
+      :deep(.qy-button) {
         flex: 1;
         min-width: auto;
       }
