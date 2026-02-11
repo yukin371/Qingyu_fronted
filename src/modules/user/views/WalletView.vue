@@ -3,62 +3,62 @@
     <Section title="我的钱包" spacing="lg">
       <template #extra>
         <div class="header-actions">
-          <el-button type="primary" @click="showRechargeDialog = true">
+          <QyButton variant="primary" @click="showRechargeDialog = true">
             <QyIcon name="Plus"  />
             充值
-          </el-button>
-          <el-button @click="goToTransfer">
+          </QyButton>
+          <QyButton @click="goToTransfer">
             <QyIcon name="Sort"  />
             转账
-          </el-button>
-          <el-button @click="showWithdrawDialog = true">
+          </QyButton>
+          <QyButton @click="showWithdrawDialog = true">
             <QyIcon name="Minus"  />
             提现
-          </el-button>
+          </QyButton>
         </div>
       </template>
 
       <!-- 钱包余额 -->
       <Grid :cols="{ md: 3, sm: 1 }" gap="lg" class="wallet-stats">
-        <el-card shadow="hover" class="stat-card balance-card">
+        <QyCard shadow="hover" class="stat-card balance-card">
           <div class="stat-content">
             <div class="stat-icon balance-icon">
-              <el-icon :size="32"><Wallet /></el-icon>
+              <QyIcon name="Wallet" :size="32" />
             </div>
             <div class="stat-info">
               <div class="stat-label">账户余额</div>
               <div class="stat-value primary">¥{{ formatAmount(walletInfo.balance) }}</div>
             </div>
           </div>
-        </el-card>
+        </QyCard>
 
-        <el-card shadow="hover" class="stat-card">
+        <QyCard shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon income-icon">
-              <el-icon :size="32"><TrendCharts /></el-icon>
+              <QyIcon name="TrendCharts" :size="32" />
             </div>
             <div class="stat-info">
               <div class="stat-label">累计收入</div>
               <div class="stat-value success">¥{{ formatAmount(walletInfo.totalIncome || 0) }}</div>
             </div>
           </div>
-        </el-card>
+        </QyCard>
 
-        <el-card shadow="hover" class="stat-card">
+        <QyCard shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon expense-icon">
-              <el-icon :size="32"><ShoppingCart /></el-icon>
+              <QyIcon name="ShoppingCart" :size="32" />
             </div>
             <div class="stat-info">
               <div class="stat-label">累计消费</div>
               <div class="stat-value danger">¥{{ formatAmount(walletInfo.totalExpense || 0) }}</div>
             </div>
           </div>
-        </el-card>
+        </QyCard>
       </Grid>
 
       <!-- 交易记录 -->
-      <el-card shadow="hover" class="transaction-card">
+      <QyCard shadow="hover" class="transaction-card">
         <template #header>
           <div class="card-header">
             <span class="card-title">交易记录</span>
@@ -90,9 +90,9 @@
           </el-table-column>
           <el-table-column prop="type" label="类型" width="100">
             <template #default="{ row }">
-              <el-tag :type="getTypeColor(row.type)">
+              <QyTag :type="getTypeColor(row.type) as 'primary' | 'success' | 'warning' | 'info' | 'danger'">
                 {{ getTypeLabel(row.type) }}
-              </el-tag>
+              </QyTag>
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明" min-width="200" />
@@ -111,25 +111,24 @@
         </el-table>
 
         <div class="pagination">
-          <el-pagination
-            v-model:current-page="currentPage"
+          <QyPagination
+            v-model="currentPage"
             v-model:page-size="pageSize"
             :total="total"
             :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            @current-change="loadTransactions"
-            @size-change="loadTransactions"
+            :layout="['total', 'sizes', 'prev', 'pager', 'next', 'jumper']"
+            @change="loadTransactions"
           />
         </div>
-      </el-card>
+      </QyCard>
     </Section>
 
     <!-- 充值对话框 -->
-    <el-dialog
-      v-model="showRechargeDialog"
+    <QyModal
+      v-model:visible="showRechargeDialog"
       title="账户充值"
       width="520px"
-      :close-on-click-modal="false"
+      :mask-closable="false"
     >
       <FormSection label="选择金额" required>
         <div class="amount-grid">
@@ -149,93 +148,79 @@
         label="自定义金额"
         hint="最低充值金额为10元"
       >
-        <el-input
-          v-model.number="customAmount"
+        <QyInput
+          v-model="customAmount"
           placeholder="请输入充值金额"
           type="number"
-          :min="10"
-          @input="rechargeAmount = 0"
         >
           <template #prefix>¥</template>
-        </el-input>
+        </QyInput>
       </FormSection>
 
       <FormSection label="支付方式" required>
-        <el-radio-group v-model="paymentMethod" class="payment-methods">
-          <el-radio label="alipay" border>
+        <QyRadioGroup v-model="paymentMethod" class="payment-methods">
+          <QyRadio value="alipay" variant="border">
             <div class="payment-option">
-              <el-icon :size="20"><CreditCard /></el-icon>
+              <QyIcon name="CreditCard" :size="20" />
               <span>支付宝</span>
             </div>
-          </el-radio>
-          <el-radio label="wechat" border>
+          </QyRadio>
+          <QyRadio value="wechat" variant="border">
             <div class="payment-option">
-              <el-icon :size="20"><ChatDotSquare /></el-icon>
+              <QyIcon name="ChatDotSquare" :size="20" />
               <span>微信支付</span>
             </div>
-          </el-radio>
-        </el-radio-group>
+          </QyRadio>
+        </QyRadioGroup>
       </FormSection>
 
       <template #footer>
-        <el-button @click="showRechargeDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitRecharge" :loading="recharging">
+        <QyButton @click="showRechargeDialog = false">取消</QyButton>
+        <QyButton variant="primary" @click="submitRecharge" :loading="recharging">
           确认充值
-        </el-button>
+        </QyButton>
       </template>
-    </el-dialog>
+    </QyModal>
 
     <!-- 提现对话框 -->
-    <el-dialog
-      v-model="showWithdrawDialog"
+    <QyModal
+      v-model:visible="showWithdrawDialog"
       title="申请提现"
       width="520px"
-      :close-on-click-modal="false"
+      :mask-closable="false"
     >
-      <el-form :model="withdrawForm" :rules="withdrawRules" ref="withdrawFormRef">
+      <QyForm v-model="withdrawForm" :rules="withdrawRules" ref="withdrawFormRef">
         <FormSection label="可提现余额">
           <div class="available-balance">¥{{ formatAmount(walletInfo.balance) }}</div>
         </FormSection>
 
-        <FormSection
-          label="提现金额"
-          required
-          hint="单笔提现最低10元，最高10000元"
-        >
-          <el-form-item prop="amount">
-            <el-input
-              v-model.number="withdrawForm.amount"
-              placeholder="请输入提现金额"
-              type="number"
-              :min="10"
-              :max="10000"
-            >
-              <template #prefix>¥</template>
-            </el-input>
-          </el-form-item>
-        </FormSection>
+        <QyFormItem prop="amount" label="提现金额" required>
+          <div class="form-hint">单笔提现最低10元，最高10000元</div>
+          <QyInput
+            v-model="withdrawForm.amount"
+            placeholder="请输入提现金额"
+            type="number"
+          >
+            <template #prefix>¥</template>
+          </QyInput>
+        </QyFormItem>
 
-        <FormSection
-          label="提现账号"
-          required
-          hint="请填写您的支付宝账号或银行卡号"
-        >
-          <el-form-item prop="account">
-            <el-input
-              v-model="withdrawForm.account"
-              placeholder="请输入提现账号"
-            />
-          </el-form-item>
-        </FormSection>
-      </el-form>
+        <QyFormItem prop="account" label="提现账号" required>
+          <div class="form-hint">请填写您的支付宝账号或银行卡号</div>
+          <QyInput
+            v-model="withdrawForm.account"
+            placeholder="请输入提现账号"
+          />
+        </QyFormItem>
+      </QyForm>
 
       <template #footer>
-        <el-button @click="showWithdrawDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitWithdraw" :loading="withdrawing">
+        <QyButton @click="showWithdrawDialog = false">取消</QyButton>
+        <QyButton variant="primary" @click="submitWithdraw" :loading="withdrawing">
           确认提现
-        </el-button>
+        </QyButton>
       </template>
-    </el-dialog>
+    </QyModal>
 
     <LoadingOverlay :visible="pageLoading" text="加载中..." />
   </Container>
@@ -244,8 +229,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, FormInstance, FormRules } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import type { FormInstance } from '@/design-system/services';
+import type { FormRules } from '@/design-system/form/Form/types';
+import { message } from '@/design-system/services'
+import { QyIcon, QyButton, QyCard, QyTag, QyPagination, QyModal, QyInput, QyForm, QyFormItem, QyRadioGroup, QyRadio } from '@/design-system/components'
 import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
@@ -264,15 +251,8 @@ const showWithdrawDialog = ref(false)
 
 // 钱包信息
 const walletInfo = ref<WalletInfo>({
-  user_id: '',
+  userId: '',
   balance: 0,
-  total_recharge: 0,
-  total_consume: 0,
-  total_income: 0,
-  total_withdraw: 0,
-  status: 'active',
-  created_at: '',
-  updated_at: '',
   totalIncome: 0,
   totalExpense: 0
 })
@@ -301,11 +281,14 @@ const withdrawRules: FormRules = {
   amount: [
     { required: true, message: '请输入提现金额', trigger: 'blur' },
     {
-      type: 'number',
       min: 10,
       max: 10000,
       message: '提现金额应在10-10000元之间',
-      trigger: 'blur'
+      trigger: 'blur',
+      validator: (_rule, value) => {
+        if (typeof value !== 'number') return false
+        return value >= 10 && value <= 10000
+      }
     }
   ],
   account: [
@@ -369,13 +352,19 @@ async function loadWalletInfo(): Promise<void> {
     const response = await walletAPI.getWallet()
     if (response.code === 200 && response.data) {
       walletInfo.value = {
-        ...response.data,
-        totalIncome: response.data.total_income || 0,
-        totalExpense: response.data.total_consume || 0
+        userId: response.data.userId || '',
+        balance: response.data.balance || 0,
+        totalIncome: response.data.totalIncome || 0,
+        totalExpense: response.data.totalExpense || 0,
+        frozenBalance: response.data.frozenBalance,
+        frozenAmount: response.data.frozenAmount,
+        availableAmount: response.data.availableAmount,
+        currency: response.data.currency,
+        updatedAt: response.data.updatedAt
       }
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '加载钱包信息失败')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '加载钱包信息失败')
   }
 }
 
@@ -392,11 +381,11 @@ async function loadTransactions(): Promise<void> {
     const response = await walletAPI.getTransactions(params)
 
     if (response.code === 200) {
-      transactions.value = response.data || []
-      total.value = response.total || 0
+      transactions.value = response.data?.data || []
+      total.value = response.data?.pagination?.total || 0
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '加载交易记录失败')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '加载交易记录失败')
   } finally {
     loading.value = false
   }
@@ -441,8 +430,8 @@ async function submitRecharge(): Promise<void> {
       await loadWalletInfo()
       await loadTransactions()
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '充值失败，请稍后重试')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '充值失败，请稍后重试')
   } finally {
     recharging.value = false
   }
@@ -465,9 +454,10 @@ async function submitWithdraw(): Promise<void> {
 
   withdrawing.value = true
   try {
-    const response = await walletAPI.requestWithdraw({
+    const response = await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
-      account: withdrawForm.account
+      account: withdrawForm.account,
+      accountType: 'bank'
     })
 
     if (response.code === 200) {
@@ -483,8 +473,8 @@ async function submitWithdraw(): Promise<void> {
       await loadWalletInfo()
       await loadTransactions()
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '提现申请失败，请稍后重试')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '提现申请失败，请稍后重试')
   } finally {
     withdrawing.value = false
   }

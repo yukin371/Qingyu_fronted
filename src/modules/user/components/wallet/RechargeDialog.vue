@@ -1,13 +1,13 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
+  <QyModal
+    v-model:visible="dialogVisible"
     title="充值"
     width="500px"
-    :close-on-click-modal="false"
+    :mask-closable="false"
     @close="handleClose"
   >
-    <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
-      <el-form-item label="充值金额" prop="amount">
+    <QyForm v-model="form" :rules="rules" ref="formRef" label-width="80px">
+      <QyFormItem label="充值金额" prop="amount">
         <el-input-number
           v-model="form.amount"
           :min="1"
@@ -17,42 +17,42 @@
           style="width: 100%"
         />
         <div class="amount-tips">
-          <el-tag
+          <QyTag
             v-for="item in quickAmounts"
             :key="item"
-            size="small"
+            size="sm"
             @click="selectAmount(item)"
             style="cursor: pointer; margin-right: 8px; margin-top: 8px"
           >
             ¥{{ item }}
-          </el-tag>
+          </QyTag>
         </div>
-      </el-form-item>
+      </QyFormItem>
 
-      <el-form-item label="支付方式" prop="method">
-        <el-radio-group v-model="form.method">
-          <el-radio value="alipay">
+      <QyFormItem label="支付方式" prop="method">
+        <QyRadioGroup v-model="form.method">
+          <QyRadio value="alipay">
             <span class="payment-option">
               <i class="el-icon-money"></i>
               支付宝
             </span>
-          </el-radio>
-          <el-radio value="wechat">
+          </QyRadio>
+          <QyRadio value="wechat">
             <span class="payment-option">
               <i class="el-icon-chat-dot-round"></i>
               微信支付
             </span>
-          </el-radio>
-          <el-radio value="bank">
+          </QyRadio>
+          <QyRadio value="bank">
             <span class="payment-option">
               <i class="el-icon-bank-card"></i>
               银行卡
             </span>
-          </el-radio>
-        </el-radio-group>
-      </el-form-item>
+          </QyRadio>
+        </QyRadioGroup>
+      </QyFormItem>
 
-      <el-alert
+      <QyAlert
         title="充值说明"
         type="info"
         :closable="false"
@@ -66,16 +66,16 @@
             <li>充值金额不支持退款</li>
           </ul>
         </template>
-      </el-alert>
-    </el-form>
+      </QyAlert>
+    </QyForm>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
+      <QyButton @click="handleClose">取消</QyButton>
+      <QyButton variant="primary" :loading="loading" @click="handleSubmit">
         确认充值
-      </el-button>
+      </QyButton>
     </template>
-  </el-dialog>
+  </QyModal>
 
   <!-- 二次确认对话框 -->
   <QyConfirmDialog
@@ -91,10 +91,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormInstance } from 'element-plus'
+import type { FormRules } from '@/design-system/form/Form/types'
 import type { RechargeParams } from '@/types/shared'
 import { yuanToCents } from '@/utils/currency'
-import { QyConfirmDialog } from '@/design-system/components'
+import { QyConfirmDialog, QyModal, QyForm, QyFormItem, QyTag, QyRadioGroup, QyRadio, QyAlert, QyButton } from '@/design-system/components'
 import type { ConfirmDetail } from '@/design-system/components'
 
 interface Props {
@@ -103,15 +104,16 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'confirm', data: RechargeParams): void
+  (_e: 'update:modelValue', value: boolean): void
+  (_e: 'confirm', data: RechargeParams): void
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const emit = defineEmits<Emits>()
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false
 })
-
-const emit = defineEmits<Emits>()
 
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
@@ -131,11 +133,14 @@ const rules: FormRules = {
   amount: [
     { required: true, message: '请输入充值金额', trigger: 'blur' },
     {
-      type: 'number',
       min: 1,
       max: 10000,
       message: '充值金额必须在1-10000之间',
-      trigger: 'blur'
+      trigger: 'blur',
+      validator: (_rule, value) => {
+        if (typeof value !== 'number') return false
+        return value >= 1 && value <= 10000
+      }
     }
   ],
   method: [{ required: true, message: '请选择支付方式', trigger: 'change' }]

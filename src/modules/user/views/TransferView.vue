@@ -2,33 +2,33 @@
   <Container maxWidth="md" padding>
     <Section title="转账" spacing="lg">
       <!-- 转账表单 -->
-      <el-card shadow="hover" class="transfer-card">
+      <QyCard shadow="hover" class="transfer-card">
         <template #header>
           <div class="card-header">
             <span class="card-title">向其他用户转账</span>
-            <el-button text type="primary" @click="showHistory = !showHistory">
+            <QyButton variant="text" @click="showHistory = !showHistory">
               {{ showHistory ? '隐藏' : '查看' }}转账记录
-            </el-button>
+            </QyButton>
           </div>
         </template>
 
-        <el-form
+        <QyForm
           ref="transferFormRef"
-          :model="transferForm"
+          v-model="transferForm"
           :rules="transferRules"
           label-width="120px"
           @submit.prevent="handleTransfer"
         >
           <!-- 可用余额 -->
-          <el-form-item label="可用余额">
+          <QyFormItem label="可用余额">
             <div class="balance-display">
               <span class="balance-amount">¥{{ formatAmount(walletInfo.balance) }}</span>
-              <el-button text type="primary" @click="loadWalletInfo">刷新</el-button>
+              <QyButton variant="text" @click="loadWalletInfo">刷新</QyButton>
             </div>
-          </el-form-item>
+          </QyFormItem>
 
           <!-- 收款人 -->
-          <el-form-item label="收款人" prop="targetUser">
+          <QyFormItem label="收款人" prop="targetUser">
             <el-autocomplete
               v-model="transferForm.targetUser"
               :fetch-suggestions="searchUsers"
@@ -45,64 +45,61 @@
               </template>
             </el-autocomplete>
             <div class="form-hint">支持输入用户名或用户ID</div>
-          </el-form-item>
+          </QyFormItem>
 
           <!-- 转账金额 -->
-          <el-form-item label="转账金额" prop="amount">
-            <el-input
-              v-model.number="transferForm.amount"
+          <QyFormItem label="转账金额" prop="amount">
+            <QyInput
+              v-model="transferForm.amount"
               type="number"
               placeholder="请输入转账金额"
-              :min="0.01"
-              :step="0.01"
             >
               <template #prefix>¥</template>
-            </el-input>
+            </QyInput>
             <div class="quick-amounts">
-              <el-button
+              <QyButton
                 v-for="amount in quickAmounts"
                 :key="amount"
-                size="small"
+                size="sm"
                 @click="setAmount(amount)"
               >
                 ¥{{ amount }}
-              </el-button>
+              </QyButton>
             </div>
-          </el-form-item>
+          </QyFormItem>
 
           <!-- 转账备注 -->
-          <el-form-item label="转账备注" prop="reason">
-            <el-input
+          <QyFormItem label="转账备注" prop="reason">
+            <QyTextarea
               v-model="transferForm.reason"
-              type="textarea"
               :rows="3"
               placeholder="请输入转账备注（可选）"
-              maxlength="200"
+              :maxlength="200"
               show-word-limit
             />
-          </el-form-item>
+          </QyFormItem>
 
           <!-- 转账按钮 -->
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
+          <QyFormItem>
+            <QyButton
+              variant="primary"
+              size="lg"
               :loading="transferring"
               @click="handleTransfer"
               style="width: 100%"
             >
               确认转账
-            </el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
+            </QyButton>
+          </QyFormItem>
+        </QyForm>
+      </QyCard>
 
       <!-- 转账记录 -->
-      <el-card v-if="showHistory" shadow="hover" class="history-card">
+      <QyCard v-if="showHistory" shadow="hover" class="history-card">
         <template #header>
           <div class="card-header">
             <span class="card-title">转账记录</span>
-            <el-button text type="primary" @click="loadTransferHistory">刷新</el-button>
+            <QyButton variant="text" @click="loadTransferHistory">刷新</QyButton>
           </div>
         </template>
 
@@ -134,35 +131,36 @@
 
           <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
-              <el-tag :type="getStatusType(row.status)">
+              <QyTag :type="getStatusType(row.status) as 'primary' | 'success' | 'warning' | 'info' | 'danger'">
                 {{ getStatusText(row.status) }}
-              </el-tag>
+              </QyTag>
             </template>
           </el-table-column>
         </el-table>
 
         <div class="pagination">
-          <el-pagination
-            v-model:current-page="currentPage"
+          <QyPagination
+            v-model="currentPage"
             v-model:page-size="pageSize"
             :total="total"
             :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next"
-            @current-change="loadTransferHistory"
-            @size-change="loadTransferHistory"
+            :layout="['total', 'sizes', 'prev', 'pager', 'next']"
+            @change="loadTransferHistory"
           />
         </div>
-      </el-card>
+      </QyCard>
 
       <!-- 转账确认对话框 -->
-      <el-dialog
-        v-model="showConfirmDialog"
+      <QyModal
+        v-model:visible="showConfirmDialog"
         title="确认转账"
         width="480px"
-        :close-on-click-modal="false"
+        :mask-closable="false"
       >
         <div class="confirm-content">
-          <el-icon class="confirm-icon" :size="48" color="#409eff"><QyIcon name="WarningFilled"  /></el-icon>
+          <div class="confirm-icon">
+            <QyIcon name="Warning" :size="48" />
+          </div>
           <div class="confirm-details">
             <div class="confirm-item">
               <span class="confirm-label">收款人：</span>
@@ -177,23 +175,23 @@
               <span class="confirm-value">{{ transferForm.reason }}</span>
             </div>
             <div class="confirm-warning">
-              <el-icon color="#faad14"><Warning /></el-icon>
+              <QyIcon name="Warning" />
               <span>转账操作不可撤销，请确认收款人信息正确</span>
             </div>
           </div>
         </div>
 
         <template #footer>
-          <el-button @click="showConfirmDialog = false">取消</el-button>
-          <el-button type="primary" @click="confirmTransfer" :loading="transferring">
+          <QyButton @click="showConfirmDialog = false">取消</QyButton>
+          <QyButton variant="primary" @click="confirmTransfer" :loading="transferring">
             确认转账
-          </el-button>
+          </QyButton>
         </template>
-      </el-dialog>
+      </QyModal>
 
       <!-- 转账结果对话框 -->
-      <el-dialog
-        v-model="showResultDialog"
+      <QyModal
+        v-model:visible="showResultDialog"
         :title="transferResult.success ? '转账成功' : '转账失败'"
         width="420px"
       >
@@ -210,9 +208,9 @@
         </el-result>
 
         <template #footer>
-          <el-button type="primary" @click="showResultDialog = false">关闭</el-button>
+          <QyButton variant="primary" @click="showResultDialog = false">关闭</QyButton>
         </template>
-      </el-dialog>
+      </QyModal>
     </Section>
 
     <LoadingOverlay :visible="pageLoading" text="加载中..." />
@@ -221,8 +219,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { message, FormInstance, FormRules } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import type { FormInstance } from '@/design-system/services'
+import type { FormRules } from '@/design-system/form/Form/types'
+import { QyIcon, QyButton, QyCard, QyTag, QyPagination, QyModal, QyInput, QyTextarea, QyForm, QyFormItem } from '@/design-system/components'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
@@ -234,15 +233,10 @@ const loadingHistory = ref(false)
 
 // 钱包信息
 const walletInfo = ref<WalletInfo>({
-  user_id: '',
+  userId: '',
   balance: 0,
-  total_recharge: 0,
-  total_consume: 0,
-  total_income: 0,
-  total_withdraw: 0,
-  status: 'active',
-  created_at: '',
-  updated_at: ''
+  totalIncome: 0,
+  totalExpense: 0
 })
 
 // 转账表单
@@ -261,20 +255,23 @@ const transferRules: FormRules = {
   amount: [
     { required: true, message: '请输入转账金额', trigger: 'blur' },
     {
-      type: 'number',
-      min: 0.01,
+      validator: (_rule, value) => {
+        if (typeof value !== 'number' || value < 0.01) {
+          return false
+        }
+        return true
+      },
       message: '转账金额不能小于0.01元',
       trigger: 'blur'
     },
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value) => {
         if (value > walletInfo.value.balance) {
-          callback(new Error('转账金额不能超过可用余额'))
+          return '转账金额不能超过可用余额'
         } else if (value > 10000) {
-          callback(new Error('单笔转账金额不能超过10000元'))
-        } else {
-          callback()
+          return '单笔转账金额不能超过10000元'
         }
+        return true
       },
       trigger: 'blur'
     }
@@ -335,19 +332,18 @@ function setAmount(amount: number) {
 }
 
 // 搜索用户（模拟）
-async function searchUsers(queryString: string, cb: any) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function searchUsers(queryString: string, cb: (results: Array<{ value: string; nickname: string }>) => void) {
   // 这里应该调用API搜索用户
   // 暂时返回模拟数据
-  const results = queryString
-    ? [
-        { value: queryString, nickname: '' }
-      ]
+  cb(queryString
+    ? [{ value: queryString, nickname: '' }]
     : []
-  cb(results)
+  )
 }
 
 // 选择用户
-function handleUserSelect(item: any) {
+function handleUserSelect(item: { value: string; nickname: string }) {
   transferForm.targetUser = item.value
 }
 
@@ -356,9 +352,19 @@ async function loadWalletInfo() {
   try {
     const response = await walletAPI.getWallet()
     if (response.code === 200 && response.data) {
-      walletInfo.value = response.data
+      walletInfo.value = {
+        userId: response.data.userId || '',
+        balance: response.data.balance || 0,
+        totalIncome: response.data.totalIncome || 0,
+        totalExpense: response.data.totalExpense || 0,
+        frozenBalance: response.data.frozenBalance,
+        frozenAmount: response.data.frozenAmount,
+        availableAmount: response.data.availableAmount,
+        currency: response.data.currency,
+        updatedAt: response.data.updatedAt
+      }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('加载钱包信息失败:', error)
   }
 }
@@ -375,9 +381,9 @@ async function loadTransferHistory() {
 
     if (response.code === 200) {
       transferHistory.value = response.data?.data || []
-      total.value = response.data?.total || 0
+      total.value = response.data?.pagination?.total || 0
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('加载转账记录失败:', error)
   } finally {
     loadingHistory.value = false
@@ -402,7 +408,7 @@ async function confirmTransfer() {
   transferring.value = true
   try {
     const response = await walletAPI.transfer({
-      targetUserId: transferForm.targetUser,
+      toUserId: transferForm.targetUser,
       amount: transferForm.amount,
       reason: transferForm.reason || '用户转账'
     })
@@ -425,13 +431,15 @@ async function confirmTransfer() {
     } else {
       transferResult.value = {
         success: false,
-        message: response.message || '转账失败'
+        message: response.message || '转账失败',
+        transactionId: ''
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     transferResult.value = {
       success: false,
-      message: error.message || '转账失败，请稍后重试'
+      message: error instanceof Error ? error.message : '转账失败，请稍后重试',
+      transactionId: ''
     }
   } finally {
     transferring.value = false
