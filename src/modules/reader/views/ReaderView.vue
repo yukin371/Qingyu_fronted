@@ -7,13 +7,13 @@
         <!-- 顶部导航栏 -->
         <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-header">
           <div class="header-left">
-            <el-button text @click="goBack" :icon="ArrowLeft" data-testid="reader-back-btn">返回</el-button>
+            <QyButton variant="text" @click="goBack" :icon="ArrowLeft" data-testid="reader-back-btn">返回</QyButton>
             <span class="book-title" data-testid="reader-book-title">{{ bookTitle }}</span>
           </div>
           <div class="header-right">
-            <el-button text @click="toggleAIAssistant" :icon="MagicStick" class="ai-button" data-testid="reader-ai-assistant-btn">AI助手</el-button>
-            <el-button text @click="toggleCatalog" :icon="List" data-testid="reader-catalog-btn">目录</el-button>
-            <el-button text @click="toggleSettings" :icon="Setting" data-testid="reader-settings-btn">设置</el-button>
+            <QyButton variant="text" @click="toggleAIAssistant" :icon="MagicStick" class="ai-button" data-testid="reader-ai-assistant-btn">AI助手</QyButton>
+            <QyButton variant="text" @click="toggleCatalog" :icon="List" data-testid="reader-catalog-btn">目录</QyButton>
+            <QyButton variant="text" @click="toggleSettings" :icon="Setting" data-testid="reader-settings-btn">设置</QyButton>
           </div>
         </el-header>
 
@@ -45,11 +45,11 @@
             </div>
 
             <!-- 空状态 -->
-            <el-empty v-else description="加载中..." data-testid="reader-loading-state" />
+            <QyEmpty v-else description="加载中..." data-testid="reader-loading-state" />
 
             <!-- 章节结束推荐区 -->
             <div v-if="showChapterEndRecommendation" class="chapter-end-recommendation" data-testid="chapter-end-recommendation">
-              <el-divider>本章完</el-divider>
+              <QyDivider>本章完</QyDivider>
 
               <div class="recommendation-card">
                 <h3>📚 阅读完成！</h3>
@@ -82,7 +82,7 @@
 
                 <!-- 自动加入书架提示 -->
                 <div v-if="!isInBookshelf" class="add-to-bookshelf-tip">
-                  <el-alert
+                  <QyAlert
                     title="已自动添加到书架"
                     type="success"
                     :closable="false"
@@ -91,7 +91,7 @@
                     <template #default>
                       <p>本书已添加到您的书架，方便继续阅读</p>
                     </template>
-                  </el-alert>
+                  </QyAlert>
                 </div>
 
                 <!-- 相关推荐 -->
@@ -137,8 +137,8 @@
     </transition>
 
     <!-- 目录抽屉 -->
-    <el-drawer v-model="catalogVisible" title="目录" direction="rtl" size="400px" data-testid="catalog-drawer">
-      <el-scrollbar>
+    <QyDrawer v-model:visible="catalogVisible" title="目录" direction="rtl" size="400px" data-testid="catalog-drawer">
+      <QyScrollbar>
         <div v-for="chapter in chapterList" :key="chapter.id" class="catalog-item"
           :class="{ 'is-active': chapter.id === chapterId, 'is-read': chapter.isRead }"
           :data-testid="`catalog-chapter-${chapter.id}`"
@@ -149,8 +149,8 @@
             <QyIcon name="Lock"  />
           </el-icon>
         </div>
-      </el-scrollbar>
-    </el-drawer>
+      </QyScrollbar>
+    </QyDrawer>
 
     <!-- AI助手 -->
     <AIReadingAssistant
@@ -163,28 +163,28 @@
     />
 
     <!-- 设置抽屉 -->
-    <el-drawer v-model="settingsVisible" title="阅读设置" direction="rtl" size="400px" data-testid="settings-drawer">
+    <QyDrawer v-model:visible="settingsVisible" title="阅读设置" direction="rtl" size="400px" data-testid="settings-drawer">
       <div class="settings-panel">
         <!-- 字体大小 -->
         <div class="setting-item" data-testid="font-size-setting">
           <label>字体大小</label>
           <div class="setting-control">
-            <el-button @click="decreaseFontSize" :icon="Minus" circle data-testid="decrease-font-btn" />
+            <QyButton @click="decreaseFontSize" :icon="Minus" circle data-testid="decrease-font-btn" />
             <span class="font-size-value">{{ settings.fontSize }}px</span>
-            <el-button @click="increaseFontSize" :icon="Plus" circle data-testid="increase-font-btn" />
+            <QyButton @click="increaseFontSize" :icon="Plus" circle data-testid="increase-font-btn" />
           </div>
         </div>
 
         <!-- 行距 -->
         <div class="setting-item" data-testid="line-height-setting">
           <label>行距</label>
-          <el-slider v-model="settings.lineHeight" :min="1.5" :max="2.5" :step="0.1" :show-tooltip="true" />
+          <QySlider v-model="settings.lineHeight" :min="1.5" :max="2.5" :step="0.1" :show-tooltip="true" />
         </div>
 
         <!-- 页面宽度 -->
         <div class="setting-item" data-testid="page-width-setting">
           <label>页面宽度</label>
-          <el-slider v-model="settings.pageWidth" :min="600" :max="1000" :step="50" :show-tooltip="true" />
+          <QySlider v-model="settings.pageWidth" :min="600" :max="1000" :step="50" :show-tooltip="true" />
         </div>
 
         <!-- 主题选择 -->
@@ -202,37 +202,35 @@
         <!-- 字体选择 -->
         <div class="setting-item" data-testid="font-family-setting">
           <label>字体</label>
-          <el-select v-model="settings.fontFamily" placeholder="选择字体" data-testid="font-family-select">
+          <QySelect v-model="settings.fontFamily" placeholder="选择字体" data-testid="font-family-select">
             <el-option label="系统默认" value="system-ui, -apple-system, sans-serif" />
             <el-option label="宋体" value="SimSun, serif" />
             <el-option label="黑体" value="SimHei, sans-serif" />
             <el-option label="楷体" value="KaiTi, serif" />
-          </el-select>
+          </QySelect>
         </div>
 
         <!-- 翻页模式 -->
         <div class="setting-item" data-testid="page-mode-setting">
           <label>翻页模式</label>
-          <el-radio-group v-model="settings.pageMode">
-            <el-radio label="scroll" data-testid="page-mode-scroll">滚动</el-radio>
-            <el-radio label="page" data-testid="page-mode-page">翻页</el-radio>
-          </el-radio-group>
+          <QyRadio v-model="settings.pageMode" value="scroll" data-testid="page-mode-scroll">滚动</QyRadio>
+          <QyRadio v-model="settings.pageMode" value="page" data-testid="page-mode-page">翻页</QyRadio>
         </div>
 
         <!-- 自动保存 -->
         <div class="setting-item" data-testid="auto-save-setting">
           <label>自动保存进度</label>
-          <el-switch v-model="settings.autoSave" data-testid="auto-save-switch" />
+          <QySwitch v-model="settings.autoSave" data-testid="auto-save-switch" />
         </div>
 
         <!-- 重置按钮 -->
         <div class="setting-item">
-          <el-button @click="resetSettings" style="width: 100%" data-testid="reset-settings-btn">
+          <QyButton @click="resetSettings" style="width: 100%" data-testid="reset-settings-btn">
             重置设置
-          </el-button>
+          </QyButton>
         </div>
       </div>
-    </el-drawer>
+    </QyDrawer>
 
     <!-- 段落评论抽屉 -->
     <CommentDrawer
@@ -253,12 +251,12 @@ import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
-import { ElMessage } from 'element-plus'
+import { message } from '@/design-system/services'
 import {
   ArrowLeft, List, Setting,
   Minus, Plus, MagicStick
 } from '@element-plus/icons-vue'
-import { QyButton, QyCard, QySlider } from '@/design-system/components'
+import { QyButton, QyCard, QySlider, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio, QySwitch } from '@/design-system/components'
 import AIReadingAssistant from '../components/AIReadingAssistant.vue'
 import CommentBadge from '../components/comments/CommentBadge.vue'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
@@ -445,7 +443,7 @@ const addToBookshelf = async () => {
     isInBookshelf.value = true
 
     // 显示轻提示
-    ElMessage.success({
+    message.success({
       message: '已添加到书架',
       duration: 2000,
       showClose: false
@@ -586,7 +584,7 @@ const changeTheme = (theme: string) => {
 
 const resetSettings = () => {
   readerStore.resetSettings()
-  ElMessage.success('设置已重置')
+  message.success('设置已重置')
 }
 
 const handleProgressChange = (value: number) => {
@@ -614,7 +612,7 @@ const loadChapter = async () => {
       await readerStore.loadChapterList(currentChapter.value.bookId)
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '加载章节失败')
+    message.error(error.message || '加载章节失败')
   } finally {
     loading.value = false
   }
@@ -1117,15 +1115,15 @@ watch(() => route.params.chapterId, (newId) => {
     .add-to-bookshelf-tip {
       margin-bottom: 32px;
 
-      :deep(.el-alert) {
+      :deep(.qy-alert) {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.3);
 
-        .el-alert__title {
+        .qy-alert__title {
           color: white;
         }
 
-        .el-alert__description {
+        .qy-alert__description {
           color: rgba(255, 255, 255, 0.9);
         }
       }

@@ -12,13 +12,13 @@
 
       <!-- 分类树状导航 -->
       <div class="category-tree-section" v-loading="treeLoading">
-        <el-card shadow="hover">
+        <QyCard shadow="hover">
           <template #header>
             <div class="card-header">
               <span>分类导航</span>
-              <el-button text @click="expandAll = !expandAll">
+              <QyButton variant="text" @click="expandAll = !expandAll">
                 {{ expandAll ? '收起全部' : '展开全部' }}
-              </el-button>
+              </QyButton>
             </div>
           </template>
 
@@ -28,7 +28,7 @@
             :expand-all="expandAll"
             @select="handleCategorySelect"
           />
-        </el-card>
+        </QyCard>
       </div>
 
       <!-- 当前分类信息 -->
@@ -42,46 +42,46 @@
           <h2>{{ currentCategory.name }}</h2>
           <p v-if="currentCategory.description">{{ currentCategory.description }}</p>
           <div class="category-stats">
-            <el-tag>{{ bookTotal }} 本书籍</el-tag>
+            <QyTag type="info">{{ bookTotal }} 本书籍</QyTag>
           </div>
         </div>
       </div>
 
       <!-- 筛选栏 -->
-      <el-card shadow="hover" class="filter-card">
+      <QyCard shadow="hover" class="filter-card">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
+            <QySelect v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
               <el-option label="全部" value="" />
               <el-option label="连载中" value="serializing" />
               <el-option label="已完结" value="completed" />
-            </el-select>
+            </QySelect>
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
+            <QySelect v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
               <el-option label="最新更新" value="updateTime" />
               <el-option label="最高评分" value="rating" />
               <el-option label="最多阅读" value="viewCount" />
               <el-option label="最多收藏" value="favoriteCount" />
-            </el-select>
+            </QySelect>
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
-            <el-select v-model="filters.wordCountRange" placeholder="字数范围" clearable @change="handleFilterChange">
+            <QySelect v-model="filters.wordCountRange" placeholder="字数范围" clearable @change="handleFilterChange">
               <el-option label="全部" value="" />
               <el-option label="10万以下" value="0-100000" />
               <el-option label="10-50万" value="100000-500000" />
               <el-option label="50-100万" value="500000-1000000" />
               <el-option label="100万以上" value="1000000-" />
-            </el-select>
+            </QySelect>
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
-            <el-button type="primary" @click="resetFilters">重置筛选</el-button>
+            <QyButton variant="primary" @click="resetFilters">重置筛选</QyButton>
           </el-col>
         </el-row>
-      </el-card>
+      </QyCard>
 
       <!-- 书籍列表 -->
       <div class="books-section" v-loading="booksLoading">
@@ -94,21 +94,21 @@
 
           <!-- 分页 -->
           <div class="pagination">
-            <el-pagination
+            <QyPagination
               v-model:current-page="currentPage"
               v-model:page-size="pageSize"
               :page-sizes="[12, 24, 36, 48]"
               :total="bookTotal"
-              layout="total, sizes, prev, pager, next, jumper"
+              :layout="['total', 'sizes', 'prev', 'pager', 'next', 'jumper']"
               @size-change="handleSizeChange"
               @current-change="handlePageChange"
             />
           </div>
         </template>
 
-        <el-empty v-else-if="!booksLoading" description="暂无相关书籍">
-          <el-button type="primary" @click="resetFilters">重置筛选</el-button>
-        </el-empty>
+        <QyEmpty v-else-if="!booksLoading" description="暂无相关书籍">
+          <QyButton variant="primary" @click="resetFilters">重置筛选</QyButton>
+        </QyEmpty>
       </div>
     </div>
   </div>
@@ -118,7 +118,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyCard, QyButton, QySelect, QyPagination, QyTag, QyEmpty } from '@/design-system/components'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getBooksByCategory } from '@/modules/bookstore/api'
 import BookGrid from '@bookstore/components/BookGrid.vue'
@@ -365,7 +365,7 @@ onMounted(async () => {
 .category-tree-section {
   margin-bottom: 24px;
 
-  :deep(.el-card) {
+  :deep(.qy-card) {
     border-radius: 20px;
     border: none;
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
@@ -375,12 +375,12 @@ onMounted(async () => {
       box-shadow: 0 15px 45px -10px rgba(0, 0, 0, 0.08);
     }
 
-    .el-card__header {
+    .qy-card__header {
       padding: 20px 24px;
       border-bottom: 1px solid #f0f0f0;
     }
 
-    .el-card__body {
+    .qy-card__body {
       padding: 24px;
     }
   }
@@ -434,7 +434,7 @@ onMounted(async () => {
       display: flex;
       gap: 12px;
 
-      :deep(.el-tag) {
+      :deep(.qy-tag) {
         background: linear-gradient(135deg, rgba(64, 158, 255, 0.1) 0%, rgba(102, 177, 255, 0.1) 100%);
         border: 1px solid rgba(64, 158, 255, 0.2);
         color: #409eff;
@@ -459,10 +459,10 @@ onMounted(async () => {
     }
   }
 
-  :deep(.el-select) {
+  :deep(.qy-select) {
     width: 100%;
 
-    .el-input__wrapper {
+    .qy-input__wrapper {
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: all 0.3s ease;
@@ -473,7 +473,7 @@ onMounted(async () => {
     }
   }
 
-  :deep(.el-button--primary) {
+  :deep(.qy-button--primary) {
     border-radius: 12px;
     padding: 12px 24px;
     font-weight: 600;
@@ -497,8 +497,8 @@ onMounted(async () => {
   padding-top: 24px;
   border-top: 1px solid #e8e8e8;
 
-  :deep(.el-pagination) {
-    .el-pager li {
+  :deep(.qy-pagination) {
+    .qy-pager li {
       border-radius: 8px;
       font-weight: 600;
 
@@ -536,7 +536,7 @@ onMounted(async () => {
   .category-tree-section,
   .current-category,
   .filter-card {
-    :deep(.el-card) {
+    :deep(.qy-card) {
       border-radius: 16px;
     }
   }
@@ -556,7 +556,7 @@ onMounted(async () => {
   }
 
   .filter-card {
-    :deep(.el-card__body) {
+    :deep(.qy-card__body) {
       padding: 16px;
     }
 

@@ -24,13 +24,13 @@
 
             <!-- 加载更多 -->
             <div v-if="hasMore.realtime" class="load-more">
-              <el-button
+              <QyButton
                 @click="loadMore('realtime')"
                 :loading="loadingMore.realtime"
-                size="large"
+                size="lg"
               >
                 加载更多
-              </el-button>
+              </QyButton>
             </div>
           </div>
         </el-tab-pane>
@@ -46,13 +46,13 @@
             />
 
             <div v-if="hasMore.weekly" class="load-more">
-              <el-button
+              <QyButton
                 @click="loadMore('weekly')"
                 :loading="loadingMore.weekly"
-                size="large"
+                size="lg"
               >
                 加载更多
-              </el-button>
+              </QyButton>
             </div>
           </div>
         </el-tab-pane>
@@ -68,13 +68,13 @@
             />
 
             <div v-if="hasMore.monthly" class="load-more">
-              <el-button
+              <QyButton
                 @click="loadMore('monthly')"
                 :loading="loadingMore.monthly"
-                size="large"
+                size="lg"
               >
                 加载更多
-              </el-button>
+              </QyButton>
             </div>
           </div>
         </el-tab-pane>
@@ -90,13 +90,13 @@
             />
 
             <div v-if="hasMore.newbie" class="load-more">
-              <el-button
+              <QyButton
                 @click="loadMore('newbie')"
                 :loading="loadingMore.newbie"
-                size="large"
+                size="lg"
               >
                 加载更多
-              </el-button>
+              </QyButton>
             </div>
           </div>
         </el-tab-pane>
@@ -104,7 +104,7 @@
 
       <!-- 榜单说明 -->
       <div class="ranking-info">
-        <el-alert
+        <QyAlert
           :title="getRankingDescription()"
           type="info"
           :closable="false"
@@ -120,7 +120,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import RankingList from '../components/RankingList.vue'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyButton, QyAlert } from '@/design-system/components'
 import { message } from '@/design-system/services'
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
@@ -323,7 +323,7 @@ onMounted(() => {
 .ranking-info {
   margin-top: 20px;
 
-  :deep(.el-alert) {
+  :deep(.qy-alert) {
     border-radius: 8px;
   }
 }
