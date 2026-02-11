@@ -57,6 +57,16 @@ export { default as QyBookCover } from './business/QyBookCover'
 export { default as QyUserCard } from './business/QyUserCard'
 export { default as QyCommentItem } from './business/QyCommentItem'
 
+// Feedback Components
+export { default as QyTooltip } from './feedback/QyTooltip'
+export { default as QyAlert } from './feedback/QyAlert'
+export { default as QyDrawer } from './feedback/QyDrawer'
+
+// Data Display Components
+export { default as QyDivider } from './data/QyDivider'
+export { default as QyProgress } from './data/QyProgress'
+export { default as QyPagination } from './data/QyPagination'
+
 // Re-export types
 export type * from './basic/QyButton/types'
 export type * from './basic/QyCard/types'
@@ -85,6 +95,12 @@ export type * from './business/QyBookCard/types'
 export type * from './business/QyBookCover/types'
 export type * from './business/QyUserCard/types'
 export type * from './business/QyCommentItem/types'
+export type * from './feedback/QyTooltip/types'
+export type * from './feedback/QyAlert/types'
+export type * from './feedback/QyDrawer/types'
+export type * from './data/QyDivider/types'
+export type * from './data/QyProgress/types'
+export type * from './data/QyPagination/types'
 
 // Backward compatibility type aliases
 import type { QyButtonProps } from './basic/QyButton/types'
