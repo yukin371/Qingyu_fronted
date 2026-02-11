@@ -1,11 +1,11 @@
 <template>
   <div class="author-profile">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="10" animated />
+      <QyLoading />
     </div>
 
     <div v-else-if="!userProfile" class="error-container">
-      <el-empty description="用户不存在" />
+      <QyEmpty description="用户不存在" />
     </div>
 
     <div v-else class="profile-container">
@@ -21,15 +21,15 @@
       />
 
       <!-- 标签页 -->
-      <el-card class="content-card" shadow="never">
+      <QyCard class="content-card">
         <el-tabs v-model="activeTab">
           <el-tab-pane label="作品" name="books">
             <div v-if="loadingBooks" class="tab-loading">
-              <el-skeleton :rows="5" animated />
+              <QyLoading />
             </div>
 
             <div v-else-if="bookList.length === 0" class="empty-content">
-              <el-empty description="暂无作品" />
+              <QyEmpty description="暂无作品" />
             </div>
 
             <div v-else class="books-grid">
@@ -39,7 +39,7 @@
                 class="book-card"
                 @click="goToBook(book.book_id)"
               >
-                <el-image
+                <QyImage
                   :src="book.cover || '/default-book-cover.jpg'"
                   fit="cover"
                   class="book-cover"
@@ -50,12 +50,12 @@
                       <QyIcon name="Picture"  />
                     </div>
                   </template>
-                </el-image>
+                </QyImage>
                 <div class="book-info">
                   <h4 class="book-title">{{ book.title }}</h4>
                   <p class="book-description">{{ book.description }}</p>
                   <div class="book-meta">
-                    <el-tag size="small">{{ book.category }}</el-tag>
+                    <QyTag size="sm" :type="getTagType(book.category)">{{ book.category }}</QyTag>
                     <span class="word-count">{{ formatNumber(book.word_count) }} 字</span>
                   </div>
                   <div class="book-stats">
@@ -68,12 +68,12 @@
 
             <!-- 分页 -->
             <div v-if="bookList.length > 0" class="pagination">
-              <el-pagination
-                v-model:current-page="pagination.page"
-                v-model:page-size="pagination.size"
+              <QyPagination
+                v-model="pagination.page"
+                :page-size="pagination.size"
                 :total="pagination.total"
-                layout="prev, pager, next"
-                @current-change="loadBooks"
+                :layout="['prev', 'pager', 'next']"
+                @change="loadBooks"
               />
             </div>
           </el-tab-pane>
@@ -93,7 +93,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyImage, QyTag, QyEmpty, QyLoading, QyPagination, QyCard } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
@@ -215,6 +215,18 @@ const formatNumber = (num: number): string => {
     return (num / 10000).toFixed(1) + 'w'
   }
   return num.toString()
+}
+
+// 获取标签类型
+const getTagType = (category: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const typeMap: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    '玄幻': 'primary',
+    '都市': 'success',
+    '科幻': 'info',
+    '历史': 'warning',
+    '仙侠': 'danger'
+  }
+  return typeMap[category] || 'info'
 }
 
 // 初始化

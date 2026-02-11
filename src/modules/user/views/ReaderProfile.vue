@@ -1,11 +1,11 @@
 <template>
   <div class="reader-profile">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="10" animated />
+      <QyLoading />
     </div>
 
     <div v-else-if="!userProfile" class="error-container">
-      <el-empty description="用户不存在" />
+      <QyEmpty description="用户不存在" />
     </div>
 
     <div v-else class="profile-container">
@@ -22,56 +22,56 @@
       />
 
       <!-- 标签页 -->
-      <el-card class="content-card" shadow="never">
-        <el-tabs v-model="activeTab">
+      <QyCard class="content-card">
+        <el-tabs v-model="activeTab" class="qy-tabs">
           <!-- 书架 -->
           <el-tab-pane label="书架" name="bookshelf">
             <div v-if="loadingBookshelf" class="tab-loading">
-              <el-skeleton :rows="5" animated />
+              <QyLoading />
             </div>
 
             <div v-else-if="bookshelfList.length === 0" class="empty-content">
-              <el-empty description="书架空空如也" />
+              <QyEmpty description="书架空空如也" />
             </div>
 
             <div v-else>
               <!-- 批量操作工具栏 -->
               <div class="bookshelf-toolbar">
                 <div class="toolbar-left">
-                  <el-checkbox
+                  <QyCheckbox
                     v-model="selectAll"
                     :indeterminate="isIndeterminate"
-                    @change="handleSelectAll"
+                    @change="(val: boolean | string[]) => handleSelectAll(val as boolean)"
                   >
                     全选
-                  </el-checkbox>
+                  </QyCheckbox>
                   <span class="selected-count">
                     已选择 {{ selectedBooks.length }} 本
                   </span>
                 </div>
                 <div class="toolbar-right">
-                  <el-button
+                  <QyButton
                     :disabled="selectedBooks.length === 0"
                     @click="openMoveDialog"
                   >
-                    <el-icon><FolderOpened /></el-icon>
+                    <QyIcon name="FolderOpened" slot="icon" />
                     移动分类
-                  </el-button>
-                  <el-button
+                  </QyButton>
+                  <QyButton
                     :disabled="selectedBooks.length === 0"
                     @click="openExportDialog"
                   >
-                    <el-icon><Download /></el-icon>
+                    <QyIcon name="Download" slot="icon" />
                     导出书单
-                  </el-button>
-                  <el-button
-                    type="danger"
+                  </QyButton>
+                  <QyButton
+                    variant="danger"
                     :disabled="selectedBooks.length === 0"
                     @click="handleBatchRemove"
                   >
-                    <el-icon><Delete /></el-icon>
+                    <QyIcon name="Delete" slot="icon" />
                     移出书架
-                  </el-button>
+                  </QyButton>
                 </div>
               </div>
 
@@ -85,13 +85,13 @@
                   @click="handleBookClick(item)"
                 >
                   <div class="book-checkbox">
-                    <el-checkbox
+                    <QyCheckbox
                       :model-value="selectedBooks.includes(item.book_id)"
-                      @change="(val: boolean) => handleSelectBook(item.book_id, val)"
+                      @change="(val: boolean | string[]) => handleSelectBook(item.book_id, val as boolean)"
                       @click.stop
                     />
                   </div>
-                  <el-image
+                  <QyImage
                     :src="item.book?.cover || '/default-book-cover.jpg'"
                     fit="cover"
                     class="book-cover"
@@ -99,16 +99,16 @@
                   >
                     <template #error>
                       <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
+                        <QyIcon name="Picture" />
                       </div>
                     </template>
-                  </el-image>
+                  </QyImage>
                   <div class="book-info">
                     <h4 class="book-title">{{ item.book?.title || '未知书籍' }}</h4>
                     <div class="reading-progress">
-                      <el-progress
+                      <QyProgress
                         :percentage="calculateProgress(item)"
-                        :stroke-width="6"
+                        :strokeWidth="6"
                         :show-text="false"
                       />
                       <span class="progress-text">
@@ -117,7 +117,7 @@
                     </div>
                     <div class="book-meta">
                       <span class="last-read">
-                        <el-icon><Clock /></el-icon>
+                        <QyIcon name="Clock" />
                         {{ formatTime(item.last_read_at) }}
                       </span>
                     </div>
@@ -128,11 +128,11 @@
 
             <!-- 分页 -->
             <div v-if="bookshelfList.length > 0" class="pagination">
-              <el-pagination
-                v-model:current-page="bookshelfPagination.page"
+              <QyPagination
+                v-model="bookshelfPagination.page"
                 v-model:page-size="bookshelfPagination.size"
                 :total="bookshelfPagination.total"
-                layout="prev, pager, next"
+                :layout="['prev', 'pager', 'next']"
                 @current-change="loadBookshelf"
               />
             </div>
@@ -143,64 +143,64 @@
             <div class="stats-content">
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <el-card class="stat-card">
+                  <QyCard class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #409eff20;">
-                        <el-icon :size="32" color="#409eff"><Reading /></el-icon>
+                        <QyIcon name="Reading" :size="32" color="#409eff" />
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalBooks || 0 }}</div>
                         <div class="stat-label">收藏书籍</div>
                       </div>
                     </div>
-                  </el-card>
+                  </QyCard>
                 </el-col>
 
                 <el-col :span="12">
-                  <el-card class="stat-card">
+                  <QyCard class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #67c23a20;">
-                        <el-icon :size="32" color="#67c23a"><QyIcon name="Clock"  /></el-icon>
+                        <QyIcon name="Clock" :size="32" color="#67c23a" />
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalReadingTime || 0 }}h</div>
                         <div class="stat-label">阅读时长</div>
                       </div>
                     </div>
-                  </el-card>
+                  </QyCard>
                 </el-col>
 
                 <el-col :span="12">
-                  <el-card class="stat-card">
+                  <QyCard class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #e6a23c20;">
-                        <el-icon :size="32" color="#e6a23c"><QyIcon name="Document"  /></el-icon>
+                        <QyIcon name="Document" :size="32" color="#e6a23c" />
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalChapters || 0 }}</div>
                         <div class="stat-label">已读章节</div>
                       </div>
                     </div>
-                  </el-card>
+                  </QyCard>
                 </el-col>
 
                 <el-col :span="12">
-                  <el-card class="stat-card">
+                  <QyCard class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #f5622120;">
-                        <el-icon :size="32" color="#f56221"><QyIcon name="Star"  /></el-icon>
+                        <QyIcon name="Star" :size="32" color="#f56221" />
                       </div>
                       <div class="stat-info">
                         <div class="stat-value">{{ readingStats.totalComments || 0 }}</div>
                         <div class="stat-label">发表评论</div>
                       </div>
                     </div>
-                  </el-card>
+                  </QyCard>
                 </el-col>
               </el-row>
 
               <!-- 最近阅读 -->
-              <el-card class="recent-reading-card" style="margin-top: 20px;">
+              <QyCard class="recent-reading-card" style="margin-top: 20px;">
                 <template #header>
                   <div class="card-header">
                     <h3>最近阅读</h3>
@@ -208,7 +208,7 @@
                 </template>
 
                 <div v-if="recentReadings.length === 0" class="empty-content">
-                  <el-empty description="暂无阅读记录" :image-size="80" />
+                  <QyEmpty description="暂无阅读记录" :image-size="80" />
                 </div>
 
                 <div v-else class="recent-list">
@@ -218,17 +218,17 @@
                     class="recent-item"
                     @click="goToReader(item.book_id, item.chapter_id)"
                   >
-                    <el-image
+                    <QyImage
                       :src="item.book?.cover"
                       fit="cover"
                       class="recent-cover"
                     >
                       <template #error>
                         <div class="image-slot-small">
-                          <QyIcon name="Picture"  />
+                          <QyIcon name="Picture" />
                         </div>
                       </template>
-                    </el-image>
+                    </QyImage>
                     <div class="recent-info">
                       <div class="recent-title">{{ item.book?.title }}</div>
                       <div class="recent-chapter">读到：{{ item.chapter?.title }}</div>
@@ -236,27 +236,27 @@
                     </div>
                   </div>
                 </div>
-              </el-card>
+              </QyCard>
             </div>
           </el-tab-pane>
 
           <!-- 动态 -->
           <el-tab-pane label="动态" name="activities">
             <div class="empty-content">
-              <el-empty description="暂无动态" />
+              <QyEmpty description="暂无动态" />
             </div>
           </el-tab-pane>
         </el-tabs>
-      </el-card>
+      </QyCard>
 
       <!-- 批量移动分类对话框 -->
-      <el-dialog
-        v-model="moveDialogVisible"
+      <QyModal
+        v-model:visible="moveDialogVisible"
         title="移动到分类"
         width="400px"
       >
-        <el-form>
-          <el-form-item label="选择分类">
+        <QyForm :modelValue="{ selectedCategory }">
+          <QyFormItem label="选择分类">
             <el-select
               v-model="selectedCategory"
               placeholder="请选择分类"
@@ -269,52 +269,52 @@
                 :value="cat.value"
               />
             </el-select>
-          </el-form-item>
-          <el-alert
+          </QyFormItem>
+          <QyAlert
             :title="`将移动 ${selectedBooks.length} 本书籍`"
             type="info"
             :closable="false"
             style="margin-top: 12px"
           />
-        </el-form>
+        </QyForm>
         <template #footer>
-          <el-button @click="moveDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleBatchMove">确定</el-button>
+          <QyButton @click="moveDialogVisible = false">取消</QyButton>
+          <QyButton variant="primary" @click="handleBatchMove">确定</QyButton>
         </template>
-      </el-dialog>
+      </QyModal>
 
       <!-- 导出书单对话框 -->
-      <el-dialog
-        v-model="exportDialogVisible"
+      <QyModal
+        v-model:visible="exportDialogVisible"
         title="导出书单"
         width="400px"
       >
-        <el-alert
+        <QyAlert
           :title="`将导出 ${selectedBooks.length} 本书籍的信息`"
           type="info"
           :closable="false"
           style="margin-bottom: 20px"
         />
         <el-space direction="vertical" style="width: 100%">
-          <el-button
+          <QyButton
             style="width: 100%"
             @click="handleExport('json')"
           >
-            <el-icon><Document /></el-icon>
+            <QyIcon name="Document" slot="icon" />
             导出为 JSON
-          </el-button>
-          <el-button
+          </QyButton>
+          <QyButton
             style="width: 100%"
             @click="handleExport('csv')"
           >
-            <el-icon><Document /></el-icon>
+            <QyIcon name="Document" slot="icon" />
             导出为 CSV
-          </el-button>
+          </QyButton>
         </el-space>
         <template #footer>
-          <el-button @click="exportDialogVisible = false">取消</el-button>
+          <QyButton @click="exportDialogVisible = false">取消</QyButton>
         </template>
-      </el-dialog>
+      </QyModal>
     </div>
   </div>
 </template>
@@ -322,13 +322,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture, Clock, Reading, Document, Star, Delete, Download, FolderOpened } from '@element-plus/icons-vue'
+import { message, messageBox } from '@/design-system/services'
+import { QyIcon, QyImage, QyEmpty, QyLoading, QyProgress, QyPagination, QyButton, QyCheckbox, QyCard, QyForm, QyFormItem, QyModal, QyAlert } from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
 import * as bookshelfAPI from '@/modules/reader/api'
-import { followAPI } from '@/modules/user/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -434,11 +433,10 @@ const loadBookshelf = async () => {
   try {
     if (isCurrentUser.value) {
       // 查看自己的书架：使用reader API
-      const response = await bookshelfAPI.getBookshelf({
-        page: bookshelfPagination.value.page,
-        pageSize: bookshelfPagination.value.size
-      })
       // TODO: 处理真实API响应
+      // const response = await bookshelfAPI.getBookshelf({
+      //   pageSize: bookshelfPagination.value.size
+      // })
     }
 
     // 模拟数据 - 用于测试批量操作功能
@@ -598,7 +596,7 @@ const handleFollow = async () => {
       console.log('[测试模式] 关注操作')
       await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
       isFollowing.value = true
-      ElMessage.success('关注成功')
+      message.success('关注成功')
       if (userStats.value) {
         userStats.value.followerCount++
       }
@@ -606,7 +604,7 @@ const handleFollow = async () => {
       // 生产模式：调用真实API
       await httpService.post(`/users/${userId.value}/follow`)
       isFollowing.value = true
-      ElMessage.success('关注成功')
+      message.success('关注成功')
       if (userStats.value) {
         userStats.value.followerCount++
       }
@@ -628,7 +626,7 @@ const handleUnfollow = async () => {
       console.log('[测试模式] 取消关注操作')
       await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
       isFollowing.value = false
-      ElMessage.success('已取消关注')
+      message.success('已取消关注')
       if (userStats.value && userStats.value.followerCount > 0) {
         userStats.value.followerCount--
       }
@@ -636,7 +634,7 @@ const handleUnfollow = async () => {
       // 生产模式：调用真实API
       await httpService.delete(`/users/${userId.value}/follow`)
       isFollowing.value = false
-      ElMessage.success('已取消关注')
+      message.success('已取消关注')
       if (userStats.value && userStats.value.followerCount > 0) {
         userStats.value.followerCount--
       }
@@ -688,7 +686,7 @@ const handleBookClick = (item: any) => {
 // 打开移动分类对话框
 const openMoveDialog = () => {
   if (selectedBooks.value.length === 0) {
-    ElMessage.warning('请先选择要移动的书籍')
+    message.warning('请先选择要移动的书籍')
     return
   }
   selectedCategory.value = ''
@@ -698,18 +696,17 @@ const openMoveDialog = () => {
 // 批量移动分类
 const handleBatchMove = async () => {
   if (!selectedCategory.value) {
-    ElMessage.warning('请选择分类')
+    message.warning('请选择分类')
     return
   }
 
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要将选中的 ${selectedBooks.value.length} 本书籍移动到"${bookCategories.value.find(c => c.value === selectedCategory.value)?.label}"吗？`,
       '移动确认',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
+        cancelButtonText: '取消'
       }
     )
 
@@ -719,7 +716,7 @@ const handleBatchMove = async () => {
     //   category: selectedCategory.value
     // })
 
-    ElMessage.success('移动成功')
+    message.success('移动成功')
     moveDialogVisible.value = false
     selectedBooks.value = []
     selectAll.value = false
@@ -727,7 +724,7 @@ const handleBatchMove = async () => {
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('批量移动失败:', error)
-      ElMessage.error('移动失败')
+      message.error('移动失败')
     }
   }
 }
@@ -735,13 +732,12 @@ const handleBatchMove = async () => {
 // 批量移出书架
 const handleBatchRemove = async () => {
   try {
-    await ElMessageBox.confirm(
+    await messageBox.confirm(
       `确定要将选中的 ${selectedBooks.value.length} 本书籍移出书架吗？`,
       '移出确认',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
 
@@ -750,14 +746,14 @@ const handleBatchRemove = async () => {
     //   data: { book_ids: selectedBooks.value }
     // })
 
-    ElMessage.success('已移出书架')
+    message.success('已移出书架')
     selectedBooks.value = []
     selectAll.value = false
     loadBookshelf()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('批量删除失败:', error)
-      ElMessage.error('移出失败')
+      message.error('移出失败')
     }
   }
 }
@@ -765,7 +761,7 @@ const handleBatchRemove = async () => {
 // 打开导出对话框
 const openExportDialog = () => {
   if (selectedBooks.value.length === 0) {
-    ElMessage.warning('请先选择要导出的书籍')
+    message.warning('请先选择要导出的书籍')
     return
   }
   exportDialogVisible.value = true
@@ -823,13 +819,13 @@ const handleExport = async (format: string) => {
     a.click()
     URL.revokeObjectURL(url)
 
-    ElMessage.success(`已导出 ${selectedBooks.value.length} 本书籍`)
+    message.success(`已导出 ${selectedBooks.value.length} 本书籍`)
     exportDialogVisible.value = false
     selectedBooks.value = []
     selectAll.value = false
   } catch (error: any) {
     console.error('导出失败:', error)
-    ElMessage.error('导出失败')
+    message.error('导出失败')
   }
 }
 
