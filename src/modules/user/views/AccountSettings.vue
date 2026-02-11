@@ -7,7 +7,7 @@
         </el-page-header>
 
         <!-- 角色信息卡片 -->
-        <el-card class="settings-card role-card">
+        <QyCard class="settings-card role-card">
             <template #header>
                 <div class="card-header">
                     <span class="card-title">当前角色</span>
@@ -15,7 +15,7 @@
             </template>
             <div class="role-info">
                 <div class="current-roles">
-                    <el-tag
+                    <QyTag
                         v-for="role in userRoles"
                         :key="role"
                         :type="getRoleTagType(role)"
@@ -23,110 +23,109 @@
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
-                    </el-tag>
+                    </QyTag>
                 </div>
                 <!-- 降级按钮 - 仅作者可见 -->
-                <el-button
+                <QyButton
                     v-if="canDowngrade"
-                    type="danger"
-                    plain
+                    variant="danger"
                     :icon="ArrowDown"
                     @click="showDowngradeDialog"
                 >
                     降级为读者
-                </el-button>
+                </QyButton>
             </div>
-        </el-card>
+        </QyCard>
 
-        <el-card class="settings-card">
-            <qy-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="settings-form">
+        <QyCard class="settings-card">
+            <QyForm ref="formRef" :model="form" :rules="rules" label-width="120px" class="settings-form">
                 <!-- 头像设置 -->
-                <qy-form-item label="头像">
+                <QyFormItem label="头像">
                     <div class="avatar-upload-container">
-                        <qy-avatar :size="100" :src="form.avatar || userStore.avatar">
+                        <QyAvatar :size="100" :src="form.avatar || userStore.avatar">
                             {{ userStore.displayName.charAt(0) }}
-                        </qy-avatar>
+                        </QyAvatar>
                         <div class="avatar-actions">
                             <qy-upload :action="uploadUrl" :headers="uploadHeaders" :show-file-list="false"
                                 :before-upload="beforeAvatarUpload" :on-success="handleAvatarSuccess"
                                 :on-error="handleUploadError">
-                                <qy-button type="primary" :icon="Upload" :loading="uploading">
+                                <QyButton type="primary" :icon="Upload" :loading="uploading">
                                     上传头像
-                                </qy-button>
+                                </QyButton>
                             </qy-upload>
                             <p class="upload-tip">支持 JPG、PNG 格式，大小不超过 2MB</p>
                         </div>
                     </div>
-                </qy-form-item>
+                </QyFormItem>
 
                 <!-- 昵称 -->
-                <qy-form-item label="昵称" prop="nickname">
-                    <qy-input v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
-                </qy-form-item>
+                <QyFormItem label="昵称" prop="nickname">
+                    <QyInput v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
+                </QyFormItem>
 
                 <!-- 个人简介 -->
-                <qy-form-item label="个人简介" prop="bio">
-                    <qy-input v-model="form.bio" type="textarea" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
+                <QyFormItem label="个人简介" prop="bio">
+                    <QyTextarea v-model="form.bio" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
                         show-word-limit />
-                </qy-form-item>
+                </QyFormItem>
 
                 <!-- 性别 -->
-                <qy-form-item label="性别" prop="gender">
-                    <el-radio-group v-model="form.gender">
-                        <el-radio label="male">男</el-radio>
-                        <el-radio label="female">女</el-radio>
-                        <el-radio label="other">保密</el-radio>
-                    </el-radio-group>
-                </qy-form-item>
+                <QyFormItem label="性别" prop="gender">
+                    <QyRadioGroup v-model="form.gender">
+                        <QyRadio label="male">男</QyRadio>
+                        <QyRadio label="female">女</QyRadio>
+                        <QyRadio label="other">保密</QyRadio>
+                    </QyRadioGroup>
+                </QyFormItem>
 
                 <!-- 生日 -->
-                <qy-form-item label="生日" prop="birthday">
+                <QyFormItem label="生日" prop="birthday">
                     <el-date-picker v-model="form.birthday" type="date" placeholder="选择生日" :disabled-date="disabledDate"
                         value-format="YYYY-MM-DD" />
-                </qy-form-item>
+                </QyFormItem>
 
                 <!-- 所在地 -->
-                <qy-form-item label="所在地" prop="location">
-                    <qy-input v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
-                </qy-form-item>
+                <QyFormItem label="所在地" prop="location">
+                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
+                </QyFormItem>
 
                 <!-- 个人网站 -->
-                <qy-form-item label="个人网站" prop="website">
-                    <qy-input v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
-                </qy-form-item>
+                <QyFormItem label="个人网站" prop="website">
+                    <QyInput v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
+                </QyFormItem>
 
                 <!-- 社交账号 -->
-                <qy-form-item label="微博">
-                    <qy-input v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
-                </qy-form-item>
+                <QyFormItem label="微博">
+                    <QyInput v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
+                </QyFormItem>
 
-                <qy-form-item label="微信">
-                    <qy-input v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
-                </qy-form-item>
+                <QyFormItem label="微信">
+                    <QyInput v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
+                </QyFormItem>
 
-                <qy-form-item label="QQ">
-                    <qy-input v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
-                </qy-form-item>
+                <QyFormItem label="QQ">
+                    <QyInput v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
+                </QyFormItem>
 
                 <!-- 提交按钮 -->
-                <qy-form-item>
-                    <qy-button type="primary" :loading="saving" @click="handleSave">
+                <QyFormItem>
+                    <QyButton type="primary" :loading="saving" @click="handleSave">
                         保存设置
-                    </qy-button>
-                    <qy-button @click="handleReset">重置</qy-button>
-                </qy-form-item>
-            </qy-form>
-        </el-card>
+                    </QyButton>
+                    <QyButton @click="handleReset">重置</QyButton>
+                </QyFormItem>
+            </QyForm>
+        </QyCard>
 
         <!-- 降级确认对话框 -->
-        <el-dialog
-            v-model="downgradeDialogVisible"
+        <QyModal
+            v-model:visible="downgradeDialogVisible"
             title="降级确认"
             width="400px"
-            :before-close="handleDowngradeClose"
+            @close="handleDowngradeClose"
         >
             <div class="downgrade-warning">
-                <el-icon class="warning-icon"><WarningFilled /></el-icon>
+                <QyIcon name="WarningFilled" class="warning-icon" />
                 <p>您确定要降级为读者吗？</p>
                 <ul class="downgrade-consequences">
                     <li>将无法访问作者工作台</li>
@@ -136,20 +135,22 @@
                 </ul>
             </div>
             <template #footer>
-                <el-button @click="handleDowngradeClose">取消</el-button>
-                <el-button type="danger" :loading="downgrading" @click="confirmDowngrade">
+                <QyButton @click="handleDowngradeClose">取消</QyButton>
+                <QyButton variant="danger" :loading="downgrading" @click="confirmDowngrade">
                     确认降级
-                </el-button>
+                </QyButton>
             </template>
-        </el-dialog>
+        </QyModal>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, type FormInstance, type UploadProps } from 'element-plus'
+import { message } from '@/design-system/services'
+import type { FormInstance, UploadProps } from 'element-plus'
 import { Upload, ArrowDown, WarningFilled } from '@element-plus/icons-vue'
+import { QyCard, QyButton, QyTag, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
 import storage from '@/utils/storage'
@@ -306,7 +307,7 @@ const confirmDowngrade = async () => {
             console.log('[降级] result.data:', result.data)
             console.log('[降级] result.data.current_roles:', result.data?.current_roles)
 
-            ElMessage.success('降级成功')
+            message.success('降级成功')
             downgradeDialogVisible.value = false
 
             // 更新 authStore 中的 roles（响应式，确保UI立即更新）
@@ -335,11 +336,11 @@ const confirmDowngrade = async () => {
         } else {
             const data = await response.json()
             console.error('[降级] API错误响应:', data)
-            ElMessage.error(data.message || '降级失败')
+            message.error(data.message || '降级失败')
         }
     } catch (error) {
         console.error('降级失败:', error)
-        ElMessage.error('降级失败，请稍后重试')
+        message.error('降级失败，请稍后重试')
     } finally {
         downgrading.value = false
     }
@@ -369,11 +370,11 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (file) => {
     const isLt2M = file.size / 1024 / 1024 < 2
 
     if (!isImage) {
-        ElMessage.error('只能上传 JPG/PNG 格式的图片')
+        message.error('只能上传 JPG/PNG 格式的图片')
         return false
     }
     if (!isLt2M) {
-        ElMessage.error('图片大小不能超过 2MB')
+        message.error('图片大小不能超过 2MB')
         return false
     }
 
@@ -387,16 +388,16 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (response: unknown) => {
     const res = response as { code?: number; data?: { url?: string }; message?: string }
     if (res.code === 200 && res.data?.url) {
         form.avatar = res.data.url
-        ElMessage.success('头像上传成功')
+        message.success('头像上传成功')
     } else {
-        ElMessage.error(res.message || '上传失败')
+        message.error(res.message || '上传失败')
     }
 }
 
 // 上传失败
 const handleUploadError: UploadProps['onError'] = () => {
     uploading.value = false
-    ElMessage.error('上传失败,请重试')
+    message.error('上传失败,请重试')
 }
 
 // 保存设置
@@ -421,9 +422,9 @@ const handleSave = async () => {
         updateData.social = form.social
 
         await userStore.updateProfile(updateData)
-        ElMessage.success('保存成功')
+        message.success('保存成功')
     } catch (error: unknown) {
-        ElMessage.error((error as Error).message || '保存失败')
+        message.error((error as Error).message || '保存失败')
     } finally {
         saving.value = false
     }
@@ -433,7 +434,7 @@ const handleSave = async () => {
 const handleReset = () => {
     initForm()
     formRef.value?.clearValidate()
-    ElMessage.info('已重置')
+    message.info('已重置')
 }
 
 // 返回

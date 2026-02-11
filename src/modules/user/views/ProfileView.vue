@@ -1,12 +1,12 @@
 <template>
   <div class="profile-container">
-    <el-card class="profile-card">
+    <QyCard class="profile-card">
       <template #header>
         <div class="card-header">
           <h3>个人中心</h3>
-          <el-button v-if="!isEditing && activeTab === 'basic'" type="primary" :icon="Edit" @click="startEdit">
+          <QyButton v-if="!isEditing && activeTab === 'basic'" variant="primary" :icon="Edit" @click="startEdit">
             编辑资料
-          </el-button>
+          </QyButton>
         </div>
       </template>
 
@@ -18,9 +18,9 @@
               <!-- 头像区域 -->
               <div class="avatar-section">
                 <div class="avatar-wrapper">
-                  <el-avatar :size="120" :src="userStore.avatar">
+                  <QyAvatar :size="120" :src="userStore.avatar">
                     {{ userStore.displayName.charAt(0) }}
-                  </el-avatar>
+                  </QyAvatar>
                   <el-upload
                     class="avatar-uploader"
                     :action="uploadAction"
@@ -30,40 +30,40 @@
                     :on-error="handleAvatarError"
                     accept="image/*"
                   >
-                    <el-button type="primary" size="small" :icon="Upload" circle class="upload-btn">
-                    </el-button>
+                    <QyButton variant="primary" size="small" :icon="Upload" circle class="upload-btn">
+                    </QyButton>
                   </el-upload>
                 </div>
                 <div class="avatar-hint">点击上传头像（支持JPG、PNG，不超过2MB）</div>
               </div>
 
               <!-- 信息表单 -->
-              <el-form :model="profileForm" label-width="100px" class="profile-form" :disabled="!isEditing">
-                <el-form-item label="用户名">
-                  <el-input v-model="userStore.username" disabled />
-                </el-form-item>
+              <QyForm :model="profileForm" label-width="100px" class="profile-form" :disabled="!isEditing">
+                <QyFormItem label="用户名">
+                  <QyInput v-model="userStore.username" disabled />
+                </QyFormItem>
 
-                <el-form-item label="昵称">
-                  <el-input v-model="profileForm.nickname" placeholder="请输入昵称" maxlength="50" />
-                </el-form-item>
+                <QyFormItem label="昵称">
+                  <QyInput v-model="profileForm.nickname" placeholder="请输入昵称" maxlength="50" />
+                </QyFormItem>
 
-                <el-form-item label="邮箱">
-                  <el-input v-model="userStore.email" disabled />
-                </el-form-item>
+                <QyFormItem label="邮箱">
+                  <QyInput v-model="userStore.email" disabled />
+                </QyFormItem>
 
-                <el-form-item label="简介">
-                  <el-input v-model="profileForm.bio" type="textarea" :rows="3" maxlength="200" show-word-limit />
-                </el-form-item>
+                <QyFormItem label="简介">
+                  <QyTextarea v-model="profileForm.bio" :rows="3" maxlength="200" show-word-limit />
+                </QyFormItem>
 
-                <el-form-item v-if="isEditing">
-                  <el-button type="primary" @click="saveProfile" :loading="loading">保存</el-button>
-                  <el-button @click="cancelEdit">取消</el-button>
-                </el-form-item>
-              </el-form>
+                <QyFormItem v-if="isEditing">
+                  <QyButton variant="primary" @click="saveProfile" :loading="loading">保存</QyButton>
+                  <QyButton @click="cancelEdit">取消</QyButton>
+                </QyFormItem>
+              </QyForm>
             </template>
 
             <!-- 骨架屏 -->
-            <el-skeleton v-else :rows="6" animated />
+            <QyLoading v-else />
           </div>
         </el-tab-pane>
 
@@ -73,13 +73,13 @@
             <template v-if="!shelfLoading && shelfBooks.length > 0">
               <div class="books-grid">
                 <div v-for="book in shelfBooks" :key="book.id" class="book-card" @click="goToBook(book.id)">
-                  <el-image :src="book.coverUrl || '/placeholder-book.png'" fit="cover" class="book-cover">
+                  <QyImage :src="book.coverUrl || '/placeholder-book.png'" fit="cover" class="book-cover">
                     <template #error>
                       <div class="image-slot">
                         <QyIcon name="Picture"  />
                       </div>
                     </template>
-                  </el-image>
+                  </QyImage>
                   <div class="book-info">
                     <h4>{{ book.title }}</h4>
                     <p>{{ book.author }}</p>
@@ -87,8 +87,8 @@
                 </div>
               </div>
             </template>
-            <el-empty v-else-if="!shelfLoading" description="书架是空的" />
-            <el-skeleton v-else :rows="5" animated />
+            <QyEmpty v-else-if="!shelfLoading" description="书架是空的" />
+            <QyLoading v-else />
           </div>
         </el-tab-pane>
 
@@ -98,23 +98,23 @@
             <template v-if="!historyLoading && readingHistory.length > 0">
               <div class="history-list">
                 <div v-for="item in readingHistory" :key="item.id" class="history-item">
-                  <el-image :src="item.book?.coverUrl || '/placeholder-book.png'" fit="cover" class="history-cover">
+                  <QyImage :src="item.book?.coverUrl || '/placeholder-book.png'" fit="cover" class="history-cover">
                     <template #error>
                       <div class="image-slot">
                         <QyIcon name="Picture"  />
                       </div>
                     </template>
-                  </el-image>
+                  </QyImage>
                   <div class="history-info">
                     <h4>{{ item.book?.title }}</h4>
                     <p>阅读到：{{ item.chapterTitle }}</p>
-                    <el-progress :percentage="item.progress || 0" />
+                    <QyProgress :percentage="item.progress || 0" />
                   </div>
                 </div>
               </div>
             </template>
-            <el-empty v-else-if="!historyLoading" description="暂无阅读历史" />
-            <el-skeleton v-else :rows="5" animated />
+            <QyEmpty v-else-if="!historyLoading" description="暂无阅读历史" />
+            <QyLoading v-else />
           </div>
         </el-tab-pane>
 
@@ -124,14 +124,14 @@
             <template v-if="!statsLoading">
               <!-- 快捷入口 -->
               <div class="stats-shortcuts">
-                <el-card shadow="hover" class="stat-card" @click="goToReadingStatistics">
+                <QyCard shadow="hover" class="stat-card" @click="goToReadingStatistics">
                   <div class="stat-card-content">
-                    <el-icon :size="40" color="#409eff"><TrendCharts /></el-icon>
+                    <QyIcon name="TrendCharts" :size="40" color="#409eff" />
                     <h4>阅读统计</h4>
                     <p>查看详细阅读数据</p>
-                    <el-button type="primary" link data-testid="reading-statistics">查看详情</el-button>
+                    <QyButton variant="primary" link data-testid="reading-statistics">查看详情</QyButton>
                   </div>
-                </el-card>
+                </QyCard>
               </div>
 
               <!-- 简要统计 -->
@@ -164,11 +164,11 @@
                 </el-row>
               </div>
             </template>
-            <el-skeleton v-else :rows="6" animated />
+            <QyLoading v-else />
           </div>
         </el-tab-pane>
       </el-tabs>
-    </el-card>
+    </QyCard>
   </div>
 </template>
 
@@ -176,7 +176,20 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import {
+  QyCard,
+  QyButton,
+  QyAvatar,
+  QyInput,
+  QyTextarea,
+  QyForm,
+  QyFormItem,
+  QyImage,
+  QyIcon,
+  QyEmpty,
+  QyProgress,
+  QyLoading
+} from '@/design-system/components'
 import type { UploadProps } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { userAPI } from '@/modules/user/api'
@@ -267,7 +280,7 @@ const handleAvatarUpload = async (file: File) => {
       message.success('头像上传成功')
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '上传头像失败')
+    message.error(error.message || '上传头像失败')
   } finally {
     loading.value = false
   }
@@ -307,7 +320,7 @@ const loadProfile = async () => {
     profileForm.nickname = userStore.profile?.nickname || ''
     profileForm.bio = userStore.profile?.bio || ''
   } catch (error: any) {
-    ElMessage.error(error.message || '加载用户信息失败')
+    message.error(error.message || '加载用户信息失败')
   } finally {
     loading.value = false
   }
