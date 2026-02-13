@@ -3,6 +3,7 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { useAuthStore } from '@/stores/auth'
 import { setupWebSocketGuard } from './guards/websocket.guard'
+import { setupTestModeGuard } from './test-mode-guard'
 
 // 配置 NProgress
 NProgress.configure({ showSpinner: false })
@@ -14,6 +15,7 @@ export function setupRouterGuards(router: Router) {
   createProgressGuard(router)
   createTitleGuard(router)
   createAuthGuard(router)
+  setupTestModeGuard(router)
   setupWebSocketGuard(router)
 }
 
