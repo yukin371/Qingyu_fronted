@@ -19,7 +19,7 @@
     </div>
 
     <!-- 真实数据列表 -->
-    <ul v-else class="ranking-list">
+    <ul v-else :class="['ranking-list', { 'ranking-list--two-cols': columns === 2 }]">
       <li v-for="(item, index) in displayItems" :key="item.id || index" class="ranking-item"
         @click="handleItemClick(item)">
         <!-- 排名序号 (前三名特殊样式) -->
@@ -111,6 +111,10 @@ const props = defineProps({
   maxItems: {
     type: Number,
     default: 10
+  },
+  columns: {
+    type: Number,
+    default: 1
   }
 })
 
@@ -120,8 +124,11 @@ const emit = defineEmits(['view-more', 'item-click'])
 const bookstoreStore = useBookstoreStore()
 
 const displayItems = computed(() => {
-  return props.items.slice(0, props.maxItems)
+  const safeItems = Array.isArray(props.items) ? props.items : []
+  return safeItems.slice(0, props.maxItems)
 })
+
+const columns = computed(() => (props.columns === 2 ? 2 : 1))
 
 const getRankClass = (rank: number) => {
   if (rank === 1) return 'rank-1'
@@ -178,6 +185,20 @@ $bronze: #cd7f32;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.ranking-list--two-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px;
+
+  .ranking-item {
+    border-bottom: 1px solid #f2f4f7;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ranking-item {

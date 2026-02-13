@@ -128,10 +128,11 @@ const nextSlide = () => {
 }
 
 const handleImageError = (event) => {
-  // 建议替换为透明的 SVG 或优雅的默认图
-  event.target.src = '/default-banner-bg.png'
-  event.target.style.objectFit = 'contain'
-  event.target.style.backgroundColor = '#f5f7fa'
+  // 兜底到本地 banner，保持 cover，避免黑边与留白
+  event.target.src = '/images/banners/banner-1.svg'
+  event.target.style.objectFit = 'cover'
+  event.target.style.objectPosition = 'center center'
+  event.target.style.backgroundColor = '#0f172a'
 }
 
 // Watchers (Optional: Reset index if banners change)
@@ -165,6 +166,14 @@ watch(() => props.banners, () => {
   height: 100%;
 }
 
+:deep(.el-carousel__container) {
+  height: 100% !important;
+}
+
+:deep(.el-carousel__item) {
+  height: 100%;
+}
+
 .banner-slide {
   position: relative;
   width: 100%;
@@ -188,9 +197,11 @@ watch(() => props.banners, () => {
 }
 
 .slide-image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 

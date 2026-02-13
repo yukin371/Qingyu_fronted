@@ -11,7 +11,8 @@
       <section class="hero-section">
         <div class="hero-content animate-up">
           <div class="brand-tag">
-            <Icon name="book-open" size="sm" /> 沉浸式阅读体验
+            <el-icon class="hero-inline-icon"><Reading /></el-icon>
+            沉浸式阅读体验
           </div>
           <h1 class="hero-title">青羽书城<span class="highlight">.</span></h1>
           <p class="hero-subtitle">
@@ -23,12 +24,13 @@
             <div class="search-wrapper">
               <QyInput placeholder="搜索书名、作者..." class="hero-search" size="lg">
                 <template #prefix>
-                  <Icon name="magnifying-glass" size="sm" />
+                  <el-icon class="hero-inline-icon"><Search /></el-icon>
                 </template>
               </QyInput>
             </div>
             <QyButton variant="default" rounded class="demo-btn" @click="goToReaderDemo">
-              体验阅读器 <Icon name="arrow-right" size="sm" class="ml-1" />
+              体验阅读器
+              <el-icon class="icon-inline-spacer"><ArrowRight /></el-icon>
             </QyButton>
           </div>
 
@@ -48,14 +50,28 @@
 
         <div class="hero-banner animate-up delay-1">
           <!-- Loading state -->
-          <div v-if="loading" class="banner-skeleton"
-               style="width: 100%; height: 400px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
-          </div>
+          <div
+            v-if="loading"
+            class="banner-skeleton"
+            style="
+              width: 100%;
+              height: 320px;
+              background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+              background-size: 200% 100%;
+              animation: shimmer 1.5s infinite;
+              border-radius: 24px;
+            "
+          ></div>
 
           <!-- Content -->
           <div v-else class="banner-wrapper">
-            <BannerCarousel :banners="banners" height="420px" indicator-position="none"
-              @banner-click="handleBannerClick" class="premium-carousel" />
+            <BannerCarousel
+              :banners="banners"
+              height="320px"
+              indicator-position="none"
+              @banner-click="handleBannerClick"
+              class="premium-carousel"
+            />
             <!-- 装饰性光晕 -->
             <div class="glow-effect"></div>
           </div>
@@ -65,20 +81,19 @@
       <!-- 公告栏 (悬浮式) -->
       <section v-if="announcements.length > 0" class="floating-notice animate-up delay-2">
         <div class="notice-glass">
-          <Icon name="bell" class="notice-icon" size="md" />
+          <el-icon class="notice-icon"><Bell /></el-icon>
           <div class="notice-swiper">
             <!-- 这里可以用简单的轮播或者显示最新一条 -->
             <span>{{ announcements[0].content }}</span>
           </div>
           <QyButton variant="text" size="sm" @click="announcements = []">
-            <Icon name="x-mark" size="sm" />
+            <el-icon><Close /></el-icon>
           </QyButton>
         </div>
       </section>
 
       <!-- 主要内容区域 -->
       <div class="content-wrapper">
-
         <!-- 榜单区域 -->
         <section class="section-block rankings-section animate-on-scroll">
           <!-- 将内容包裹在 card-container 中 -->
@@ -88,8 +103,12 @@
               <!-- 移动端优化：Tabs 容器 -->
               <div class="section-tabs-wrapper">
                 <div class="section-tabs">
-                  <span v-for="tab in ['realtime', 'weekly', 'monthly', 'newbie']" :key="tab"
-                    :class="{ active: activeRankingTab === tab }" @click="activeRankingTab = tab">
+                  <span
+                    v-for="tab in ['realtime', 'weekly', 'monthly', 'newbie']"
+                    :key="tab"
+                    :class="{ active: activeRankingTab === tab }"
+                    @click="activeRankingTab = tab"
+                  >
                     {{ rankingTabName(tab) }}
                   </span>
                 </div>
@@ -97,9 +116,16 @@
             </div>
 
             <div class="ranking-content">
-              <RankingList :type="activeRankingTab" :items="rankings[activeRankingTab] || []" :loading="loading"
-                :max-items="5" layout="premium" @view-more="handleViewRanking(activeRankingTab)"
-                @item-click="handleBookClick" />
+              <RankingList
+                :type="activeRankingTab"
+                :items="rankings[activeRankingTab] || []"
+                :loading="loading"
+                :max-items="6"
+                :columns="2"
+                layout="premium"
+                @view-more="handleViewRanking(activeRankingTab)"
+                @item-click="handleBookClick"
+              />
             </div>
           </div>
         </section>
@@ -108,15 +134,20 @@
         <section class="section-block recommended-section animate-on-scroll">
           <div class="card-container">
             <div class="section-header flex-between">
-              <h2 class="section-title">
-                编辑甄选 <span class="title-en">Editors' Choice</span>
-              </h2>
-              <QyButton variant="outline" size="sm" @click="handleViewBooks('recommended')">全部</QyButton>
+              <h2 class="section-title">编辑甄选 <span class="title-en">Editors' Choice</span></h2>
+              <QyButton variant="outline" size="sm" @click="handleViewBooks('recommended')"
+                >全部</QyButton
+              >
             </div>
             <!-- 强制 Grid 组件响应式 -->
             <div class="responsive-grid-wrapper">
-              <BookGrid :books="recommendedBooks" :loading="loading" :max-items="8" card-style="premium"
-                @book-click="handleBookClick" />
+              <BookGrid
+                :books="recommendedBooks"
+                :loading="loading"
+                :max-items="8"
+                card-style="premium"
+                @book-click="handleBookClick"
+              />
             </div>
           </div>
         </section>
@@ -147,19 +178,24 @@
         <section class="section-block infinite-recommendations">
           <div class="section-header center-align">
             <h2 class="section-title">
-              <Icon name="star" solid size="md" /> 猜你喜欢
+              <el-icon class="section-title-icon"><Star /></el-icon>
+              个人喜好推荐
             </h2>
             <p class="section-desc">基于你的阅读偏好推荐</p>
           </div>
 
           <div class="masonry-grid">
-            <div v-for="book in recommendedItems" :key="book.id || book._id" class="premium-card"
-              @click="handleBookClick(book)">
+            <div
+              v-for="book in displayRecommendations"
+              :key="book.id || book._id"
+              class="premium-card"
+              @click="handleBookClick(book)"
+            >
               <div class="card-image-box">
                 <QyImage :src="book.cover" fit="cover" loading="lazy">
                   <template #error>
                     <div class="image-placeholder">
-                      <Icon name="photo" size="md" />
+                      <el-icon class="image-placeholder-icon"><Picture /></el-icon>
                     </div>
                   </template>
                 </QyImage>
@@ -172,7 +208,8 @@
                 <div class="book-meta-row">
                   <span class="author">{{ book.author }}</span>
                   <span class="rating">
-                    <Icon name="star" size="sm" class="text-yellow-400" /> {{ formatRating(book.rating) }}
+                    <el-icon class="rating-star"><Star /></el-icon>
+                    {{ formatRating(book.rating) }}
                   </span>
                 </div>
                 <div class="tags-row" v-if="book.categoryName">
@@ -181,13 +218,19 @@
               </div>
             </div>
           </div>
+          <div v-if="displayRecommendations.length === 0 && !loading" class="recommend-empty">
+            暂无推荐内容，正在为你生成个性化书单...
+          </div>
 
           <!-- 加载状态 -->
           <div class="scroll-loader">
             <div v-if="loadingMore" class="loader-animation">
               <span></span><span></span><span></span>
             </div>
-            <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more-text">
+            <div
+              v-if="!hasMoreRecommendations && displayRecommendations.length > 0"
+              class="no-more-text"
+            >
               - 到底了，去看看别的吧 -
             </div>
             <div ref="loadMoreElRef" class="load-trigger"></div>
@@ -206,8 +249,9 @@ import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
 import { Button as QyButton, Divider, Image as QyImage } from '@/design-system'
-import { Icon } from '@/design-system'
 import { Input as QyInput } from '@/design-system'
+import { ElIcon } from 'element-plus'
+import { ArrowRight, Bell, Close, Picture, Reading, Search, Star } from '@element-plus/icons-vue'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
@@ -220,7 +264,14 @@ export default {
     QyInput,
     Divider,
     QyImage,
-    Icon
+    ElIcon,
+    Reading,
+    Search,
+    ArrowRight,
+    Bell,
+    Close,
+    Star,
+    Picture,
   },
   setup() {
     const router = useRouter()
@@ -236,6 +287,15 @@ export default {
     const featuredBooks = computed(() => bookstoreStore.books.featured)
     const rankings = computed(() => bookstoreStore.rankings)
     const stats = computed(() => bookstoreStore.homepageData?.stats)
+    const displayRecommendations = computed(() => {
+      if (Array.isArray(recommendedItems.value) && recommendedItems.value.length > 0) {
+        return recommendedItems.value
+      }
+      if (Array.isArray(recommendedBooks.value) && recommendedBooks.value.length > 0) {
+        return recommendedBooks.value.slice(0, 8)
+      }
+      return []
+    })
 
     // 无限滚动逻辑保持不变
     const {
@@ -244,16 +304,19 @@ export default {
       hasMore: hasMoreRecommendations,
       currentPage: recommendationPage,
       total: recommendationTotal,
-      setupScrollObserver
-    } = usePagination(async (page, pageSize) => {
-      try {
-        await bookstoreStore.fetchRecommendedBooks(page, pageSize)
-        const items = bookstoreStore.books.recommended || []
-        return { items, total: items.length + pageSize }
-      } catch {
-        return { items: [], total: 0 }
-      }
-    }, { pageSize: 12, initialLoad: false, autoLoadOnScroll: true })
+      setupScrollObserver,
+    } = usePagination(
+      async (page, pageSize) => {
+        try {
+          await bookstoreStore.fetchRecommendedBooks(page, pageSize)
+          const items = bookstoreStore.books.recommended || []
+          return { items, total: items.length + pageSize }
+        } catch {
+          return { items: [], total: 0 }
+        }
+      },
+      { pageSize: 12, initialLoad: false, autoLoadOnScroll: true },
+    )
 
     // 辅助函数
     const formatRating = (rating) => {
@@ -310,13 +373,16 @@ export default {
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
       // 添加简单的滚动显现动画观察器
-      scrollObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) entry.target.classList.add('visible')
-        })
-      }, { threshold: 0.1 })
+      scrollObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add('visible')
+          })
+        },
+        { threshold: 0.1 },
+      )
 
-      document.querySelectorAll('.animate-on-scroll').forEach(el => scrollObserver?.observe(el))
+      document.querySelectorAll('.animate-on-scroll').forEach((el) => scrollObserver?.observe(el))
     })
 
     onUnmounted(() => {
@@ -324,12 +390,29 @@ export default {
     })
 
     return {
-      loading, loadingMore, hasMoreRecommendations,
-      announcements, banners, recommendedBooks, featuredBooks, rankings, stats, recommendedItems,
-      loadMoreElRef, activeRankingTab,
-      formatNumber, formatRating, rankingTabName, handleBookClick, handleBannerClick, handleViewRanking, handleViewBooks, goToReaderDemo
+      loading,
+      loadingMore,
+      hasMoreRecommendations,
+      announcements,
+      banners,
+      recommendedBooks,
+      featuredBooks,
+      rankings,
+      stats,
+      recommendedItems,
+      displayRecommendations,
+      loadMoreElRef,
+      activeRankingTab,
+      formatNumber,
+      formatRating,
+      rankingTabName,
+      handleBookClick,
+      handleBannerClick,
+      handleViewRanking,
+      handleViewBooks,
+      goToReaderDemo,
     }
-  }
+  },
 }
 </script>
 
@@ -358,7 +441,19 @@ export default {
   /* 柔和的灰白背景 */
   position: relative;
   overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.hero-inline-icon {
+  font-size: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.icon-inline-spacer {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .container {
@@ -380,7 +475,9 @@ export default {
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   /* 移动端调整内边距 */
   @media (max-width: 768px) {
@@ -436,10 +533,10 @@ export default {
 .hero-section {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
-  gap: 40px;
-  padding: 60px 0 40px;
+  gap: 24px;
+  padding: 28px 0 16px;
   align-items: center;
-  min-height: 500px;
+  min-height: 380px;
 
   @media (max-width: 992px) {
     grid-template-columns: 1fr;
@@ -465,17 +562,17 @@ export default {
     color: #666;
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .hero-title {
-    font-size: 56px;
+    font-size: 44px;
     font-weight: 800;
     line-height: 1.1;
     color: #1a1a1a;
-    margin-bottom: 20px;
-    font-family: "Playfair Display", serif;
+    margin-bottom: 12px;
+    font-family: 'Playfair Display', serif;
     /* 推荐引入衬线字体 */
 
     .highlight {
@@ -490,10 +587,10 @@ export default {
   }
 
   .hero-subtitle {
-    font-size: 18px;
+    font-size: 15px;
     color: #666;
     line-height: 1.6;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 
     @media (max-width: 768px) {
       font-size: 15px;
@@ -508,7 +605,7 @@ export default {
   .hero-actions {
     display: flex;
     gap: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 18px;
 
     @media (max-width: 768px) {
       flex-direction: column;
@@ -550,7 +647,7 @@ export default {
   .stats-capsule {
     display: inline-flex;
     background: #fff;
-    padding: 12px 24px;
+    padding: 8px 16px;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 
@@ -560,12 +657,12 @@ export default {
       padding: 0 12px;
 
       strong {
-        font-size: 18px;
+        font-size: 16px;
         color: #333;
       }
 
       span {
-        font-size: 12px;
+        font-size: 11px;
         color: #999;
         margin-top: 2px;
       }
@@ -580,18 +677,17 @@ export default {
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 20px 50px -20px rgba(64, 158, 255, 0.4);
-    transform: perspective(1000px) rotateY(-2deg);
     transition: transform 0.5s ease;
 
     &:hover {
-      transform: perspective(1000px) rotateY(0deg);
+      transform: translateY(-2px);
     }
   }
 
   .skeleton,
   :deep(.carousel__container) {
     @media (max-width: 768px) {
-      height: 240px !important;
+      height: 200px !important;
       /* 手机端减小轮播高度 */
     }
   }
@@ -599,7 +695,7 @@ export default {
 
 /* 悬浮公告 */
 .floating-notice {
-  margin: -20px auto 40px;
+  margin: -8px auto 20px;
   max-width: 600px;
   position: relative;
   z-index: 5;
@@ -634,7 +730,10 @@ export default {
 
 /* 通用区块样式 */
 .section-block {
-  margin-bottom: 80px;
+  margin-bottom: 56px;
+}
+
+.animate-on-scroll {
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
@@ -694,6 +793,10 @@ export default {
       letter-spacing: 1px;
       margin-left: 8px;
     }
+  }
+
+  .section-title-icon {
+    color: #f59e0b;
   }
 
   .section-desc {
@@ -797,6 +900,13 @@ export default {
   }
 }
 
+.recommend-empty {
+  margin-top: 14px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
 .premium-card {
   background: #fff;
   border-radius: 16px;
@@ -863,6 +973,10 @@ export default {
           font-weight: 600;
           color: #333;
         }
+
+        .rating-star {
+          color: #f59e0b;
+        }
       }
 
       .tags-row {
@@ -912,8 +1026,12 @@ export default {
     }
   }
 
-  @keyframes bounce {
+  .image-placeholder-icon {
+    font-size: 28px;
+    color: #9ca3af;
+  }
 
+  @keyframes bounce {
     0%,
     80%,
     100% {
@@ -989,7 +1107,11 @@ export default {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

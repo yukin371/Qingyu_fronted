@@ -1,6 +1,8 @@
-/**
+﻿/**
  * QyPagination 组件类型定义
  */
+
+import type { HTMLAttributes } from 'vue'
 
 /**
  * 每页数量选项
@@ -13,7 +15,7 @@ export type PageSizeOption = {
 /**
  * QyPagination 组件 Props
  */
-export interface QyPaginationProps {
+export interface QyPaginationProps extends /* @vue-ignore */ HTMLAttributes {
   /**
    * 当前页码
    */
@@ -76,16 +78,6 @@ export interface QyPaginationProps {
    * @default false
    */
   small?: boolean
-
-  /**
-   * 自定义类名
-   */
-  class?: string
-
-  /**
-   * 自定义样式
-   */
-  style?: string | Record<string, string | number>
 }
 
 /**
