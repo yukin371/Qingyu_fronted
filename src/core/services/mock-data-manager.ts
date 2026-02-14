@@ -231,6 +231,57 @@ function generateCategories() {
   return JSON.parse(JSON.stringify(MOCK_CATEGORY_TREE))
 }
 
+function filterAndPaginateBooks(
+  source: ReturnType<typeof generateRecommendedBooks>,
+  params: Record<string, any>,
+  parsedUrl: URL
+) {
+  const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
+  const categoryId = String(
+    params.categoryId ||
+    params.category ||
+    parsedUrl.searchParams.get('categoryId') ||
+    parsedUrl.searchParams.get('category') ||
+    ''
+  ).trim()
+  const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
+  const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
+  const tags = Array.isArray(rawTags)
+    ? rawTags.map(String)
+    : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
+  const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
+  const size = Number(
+    params.size ||
+    params.pageSize ||
+    parsedUrl.searchParams.get('size') ||
+    parsedUrl.searchParams.get('pageSize') ||
+    12
+  )
+
+  const filteredBooks = source.filter((book) => {
+    const keywordMatched = !q ||
+      book.title.toLowerCase().includes(q) ||
+      String(book.author || '').toLowerCase().includes(q)
+    const categoryMatched = !categoryId ||
+      book.categoryId === categoryId ||
+      book.categoryId.startsWith(`${categoryId}-`)
+    const statusMatched = !status || book.status === status
+    const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
+    return keywordMatched && categoryMatched && statusMatched && tagsMatched
+  })
+
+  const start = Math.max(0, (page - 1) * size)
+  const list = filteredBooks.slice(start, start + size)
+
+  return {
+    list,
+    total: filteredBooks.length,
+    page,
+    size,
+    hasNext: start + size < filteredBooks.length
+  }
+}
+
 // ==================== 创作中心 Mock 数据 ====================
 
 function getWriterProjects(): MockResponse {
@@ -383,48 +434,42 @@ export async function getMockDataForRequest(
     })
   }
 
+  if (url.includes('/bookstore/books/search')) {
+    const parsedUrl = new URL(url, window.location.origin)
+    const params = options.params || {}
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const result = filterAndPaginateBooks(allBooks, params, parsedUrl)
+
+    return createMockResponse({
+      books: result.list,
+      total: result.total,
+      page: result.page,
+      size: result.size,
+      pagination: {
+        page: result.page,
+        pageSize: result.size,
+        total: result.total,
+        has_next: result.hasNext
+      }
+    })
+  }
+
   if (url.includes('/bookstore/books') && !url.includes('/books/')) {
     const parsedUrl = new URL(url, window.location.origin)
     const params = options.params || {}
-    const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
-    const categoryId = String(params.categoryId || params.category || parsedUrl.searchParams.get('categoryId') || parsedUrl.searchParams.get('category') || '').trim()
-    const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
-    const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
-    const tags = Array.isArray(rawTags)
-      ? rawTags.map(String)
-      : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
-    const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
-    const size = Number(params.size || params.pageSize || parsedUrl.searchParams.get('size') || parsedUrl.searchParams.get('pageSize') || 12)
-
     const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
-    const filteredBooks = allBooks.filter((book) => {
-      const keywordMatched = !q ||
-        book.title.toLowerCase().includes(q) ||
-        String(book.author || '').toLowerCase().includes(q)
-      const categoryMatched = !categoryId ||
-        book.categoryId === categoryId ||
-        book.categoryId.startsWith(`${categoryId}-`)
-      const statusMatched = !status || book.status === status
-      const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
-      return keywordMatched && categoryMatched && statusMatched && tagsMatched
-    })
+    const result = filterAndPaginateBooks(allBooks, params, parsedUrl)
 
-    const start = Math.max(0, (page - 1) * size)
-    const list = filteredBooks.slice(start, start + size)
-
-    return {
-      code: 200,
-      message: 'success',
-      data: list,
-      total: filteredBooks.length,
+    return createMockResponse({
+      list: result.list,
+      total: result.total,
       pagination: {
-        page,
-        pageSize: size,
-        total: filteredBooks.length,
-        has_next: start + size < filteredBooks.length
-      },
-      timestamp: Date.now()
-    }
+        page: result.page,
+        pageSize: result.size,
+        total: result.total,
+        has_next: result.hasNext
+      }
+    })
   }
 
   // 书籍详情
