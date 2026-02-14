@@ -38,7 +38,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
     try {
       const response = await browseService.getCategories()
       categories.value = normalizeCategoryTree(extractList(response))
-      _categoriesLoaded.value = true
+      _categoriesLoaded.value = categories.value.length > 0
       return categories.value
     } catch (error) {
       console.error('获取分类失败:', error)
@@ -55,7 +55,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
     try {
       const response = await browseService.getYears()
       years.value = extractList(response)
-      _yearsLoaded.value = true
+      _yearsLoaded.value = years.value.length > 0
       return years.value
     } catch (error) {
       console.error('获取年份失败:', error)
@@ -73,7 +73,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
     try {
       const response = await browseService.getTags(categoryId)
       tags.value = extractList(response)
-      _tagsLoaded.value = true
+      _tagsLoaded.value = tags.value.length > 0
       return tags.value
     } catch (error) {
       console.error('获取标签失败:', error)

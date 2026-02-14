@@ -233,7 +233,7 @@ onMounted(async () => {
 
   // 加载静态数据（分类、年份、标签）
   await Promise.all([
-    metaStore.getCategories(),
+    metaStore.getCategories(true),
     metaStore.getYears(),
     metaStore.getTags()
   ])
