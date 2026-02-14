@@ -377,7 +377,7 @@ defineExpose({
       <div
         v-if="isDropdownVisible"
         ref="dropdownRef"
-        class="overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md"
+        class="overflow-hidden rounded-md border border-gray-200 bg-white text-gray-800 shadow-md"
         :style="{
           ...dropdownStyle,
           maxHeight: `${popperMaxHeight}px`,
@@ -406,9 +406,9 @@ defineExpose({
           <li
             v-for="(option, index) in filteredOptions"
             :key="option.value"
-            class="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+            class="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none bg-white hover:bg-slate-100 hover:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             :class="{
-              'bg-accent': selectedOptions.some(o => o.value === option.value),
+              'bg-blue-50 text-blue-700': selectedOptions.some(o => o.value === option.value),
               'opacity-50 cursor-not-allowed': option.disabled,
             }"
             @click="handleSelectOption(option)"
