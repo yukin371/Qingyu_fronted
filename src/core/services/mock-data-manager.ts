@@ -19,6 +19,10 @@ export interface MockResponse {
   timestamp?: number
 }
 
+interface MockRequestOptions {
+  params?: Record<string, any>
+}
+
 // ==================== 工具函数 ====================
 
 /**
@@ -50,6 +54,57 @@ function createMockResponse(data: any, code = 200, message = 'success'): MockRes
   }
 }
 
+const MOCK_CATEGORY_TREE = [
+  {
+    _id: 'cat-1',
+    name: '科幻',
+    slug: 'scifi',
+    children: [
+      { _id: 'cat-1-1', name: '星际科幻', slug: 'interstellar' },
+      { _id: 'cat-1-2', name: '时空穿梭', slug: 'time-travel' }
+    ]
+  },
+  {
+    _id: 'cat-2',
+    name: '奇幻',
+    slug: 'fantasy',
+    children: [
+      { _id: 'cat-2-1', name: '东方玄幻', slug: 'eastern' },
+      { _id: 'cat-2-2', name: '西方奇幻', slug: 'western' }
+    ]
+  },
+  {
+    _id: 'cat-3',
+    name: '都市',
+    slug: 'city',
+    children: [
+      { _id: 'cat-3-1', name: '都市生活', slug: 'life' },
+      { _id: 'cat-3-2', name: '都市异能', slug: 'ability' }
+    ]
+  },
+  {
+    _id: 'cat-4',
+    name: '仙侠',
+    slug: 'xianxia',
+    children: [
+      { _id: 'cat-4-1', name: '古典仙侠', slug: 'classic' },
+      { _id: 'cat-4-2', name: '现代修真', slug: 'modern' }
+    ]
+  },
+  {
+    _id: 'cat-5',
+    name: '游戏',
+    slug: 'game',
+    children: [
+      { _id: 'cat-5-1', name: '虚拟网游', slug: 'online' },
+      { _id: 'cat-5-2', name: '游戏异界', slug: 'isekai' }
+    ]
+  }
+] as const
+
+const MOCK_LEAF_CATEGORIES = MOCK_CATEGORY_TREE.flatMap((item) => item.children)
+const MOCK_BOOK_POOL_SIZE = 180
+
 // ==================== 书城模块 Mock 数据 ====================
 
 /**
@@ -68,7 +123,7 @@ function getHomepageData(): MockResponse {
         id: 'banner-1',
         title: '2024年度精选作品',
         subtitle: '发现最好的故事',
-        image: 'https://picsum.photos/seed/banner1/800/400',
+        image: '/images/banners/banner-1.svg',
         link: '/bookstore/browse?featured=true',
         order: 1
       },
@@ -76,7 +131,7 @@ function getHomepageData(): MockResponse {
         id: 'banner-2',
         title: '新人作家扶持计划',
         subtitle: '下一个大神就是你',
-        image: 'https://picsum.photos/seed/banner2/800/400',
+        image: '/images/banners/banner-2.svg',
         link: '/writer',
         order: 2
       },
@@ -84,7 +139,7 @@ function getHomepageData(): MockResponse {
         id: 'banner-3',
         title: '阅读挑战活动',
         subtitle: '完成任务赢好礼',
-        image: 'https://picsum.photos/seed/banner3/800/400',
+        image: '/images/banners/banner-3.svg',
         link: '/reading-stats',
         order: 3
       }
@@ -119,7 +174,6 @@ function getAnnouncements(): MockResponse {
 // ==================== 书籍数据生成器 ====================
 
 function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
-  const categories = ['科幻', '奇幻', '都市', '武侠', '游戏']
   const statuses = ['serializing', 'completed', 'paused']
   const titles = [
     '星河骑士', '青羽物语', '剑道独尊', '甜点日记', '赛博侦探社',
@@ -129,7 +183,7 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
   const tags = ['科幻', '冒险', '热血', '机甲', '奇幻', '治愈', '都市', '甜宠', '武侠', '修炼']
 
   const title = titles[index % titles.length]
-  const category = categories[index % categories.length]
+  const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
 
   return {
     _id: `book-${index + 1}`,
@@ -137,10 +191,10 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     title,
     author: authors[index % authors.length],
     authorId: `author-${index + 1}`,
-    cover: getBookCoverUrl(`book-${index + 1}`, category),
-    coverUrl: getBookCoverUrl(`book-${index + 1}`, category),
-    categoryName: category,
-    categoryId: `cat-${(index % 5) + 1}`,
+    cover: getBookCoverUrl(`book-${index + 1}`, category.name),
+    coverUrl: getBookCoverUrl(`book-${index + 1}`, category.name),
+    categoryName: category.name,
+    categoryId: category._id,
     status: statuses[index % statuses.length],
     rating: 4 + Math.random(),
     ratingCount: Math.floor(Math.random() * 20000) + 1000,
@@ -148,7 +202,7 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     favoriteCount: Math.floor(Math.random() * 10000) + 500,
     wordCount: Math.floor(Math.random() * 1000000) + 50000,
     chapterCount: Math.floor(Math.random() * 300) + 20,
-    description: `这是一本关于${title}的精彩故事，讲述了主人公在${category}世界中的冒险经历...`,
+    description: `这是一本关于${title}的精彩故事，讲述了主人公在${category.name}世界中的冒险经历...`,
     tags: [tags[index % tags.length], tags[(index + 1) % tags.length]],
     createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -174,35 +228,7 @@ function generateRankingBooks(type: string) {
 }
 
 function generateCategories() {
-  return [
-    {
-      _id: 'cat-1',
-      name: '科幻',
-      slug: 'scifi',
-      children: [
-        { _id: 'cat-1-1', name: '星际科幻', slug: 'interstellar' },
-        { _id: 'cat-1-2', name: '时空穿梭', slug: 'time-travel' }
-      ]
-    },
-    {
-      _id: 'cat-2',
-      name: '奇幻',
-      slug: 'fantasy',
-      children: [
-        { _id: 'cat-2-1', name: '东方玄幻', slug: 'eastern' },
-        { _id: 'cat-2-2', name: '西方奇幻', slug: 'western' }
-      ]
-    },
-    {
-      _id: 'cat-3',
-      name: '都市',
-      slug: 'city',
-      children: [
-        { _id: 'cat-3-1', name: '都市生活', slug: 'life' },
-        { _id: 'cat-3-2', name: '都市异能', slug: 'ability' }
-      ]
-    }
-  ]
+  return JSON.parse(JSON.stringify(MOCK_CATEGORY_TREE))
 }
 
 // ==================== 创作中心 Mock 数据 ====================
@@ -245,7 +271,7 @@ function getUserProfile(): MockResponse {
   return createMockResponse({
     _id: 'user-current',
     nickname: '测试用户',
-    avatar: 'https://picsum.photos/seed/user1/200/200',
+    avatar: '/images/avatars/avatar-demo.svg',
     bio: '这是测试模式下的模拟用户',
     stats: {
       bookCount: 2,
@@ -287,7 +313,10 @@ function getCommunityPosts(): MockResponse {
 /**
  * 根据 URL 获取对应的 Mock 数据
  */
-export async function getMockDataForRequest(url: string | undefined): Promise<MockResponse> {
+export async function getMockDataForRequest(
+  url: string | undefined,
+  options: MockRequestOptions = {}
+): Promise<MockResponse> {
   if (!url) return createMockResponse({})
 
   console.log('[MockDataManager] 获取 Mock 数据:', url)
@@ -304,13 +333,98 @@ export async function getMockDataForRequest(url: string | undefined): Promise<Mo
     return getAnnouncements()
   }
 
+  // 榜单
+  if (url.includes('/bookstore/rankings/')) {
+    const rankingType = url.split('/bookstore/rankings/')[1]?.split('?')[0]
+    const normalizedType = ['realtime', 'weekly', 'monthly', 'newbie'].includes(rankingType)
+      ? rankingType
+      : 'realtime'
+    return createMockResponse(generateRankingBooks(normalizedType))
+  }
+
   // 书籍列表
-  if (url.includes('/bookstore/books') && !url.includes('/books/')) {
+  if (url.includes('/bookstore/books/recommended')) {
+    const parsedUrl = new URL(url, window.location.origin)
+    const params = options.params || {}
+    const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
+    const size = Number(params.size || parsedUrl.searchParams.get('size') || 12)
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const start = Math.max(0, (page - 1) * size)
+    const list = allBooks.slice(start, start + size)
     return createMockResponse({
-      list: generateRecommendedBooks(12),
-      total: 12,
-      pagination: { page: 1, pageSize: 12, total: 12 }
+      list,
+      total: allBooks.length,
+      pagination: {
+        page,
+        pageSize: size,
+        total: allBooks.length,
+        has_next: start + size < allBooks.length
+      }
     })
+  }
+
+  if (url.includes('/bookstore/books/featured')) {
+    const parsedUrl = new URL(url, window.location.origin)
+    const params = options.params || {}
+    const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
+    const size = Number(params.size || parsedUrl.searchParams.get('size') || 12)
+    const allBooks = generateFeaturedBooks(80)
+    const start = Math.max(0, (page - 1) * size)
+    const list = allBooks.slice(start, start + size)
+    return createMockResponse({
+      list,
+      total: allBooks.length,
+      pagination: {
+        page,
+        pageSize: size,
+        total: allBooks.length,
+        has_next: start + size < allBooks.length
+      }
+    })
+  }
+
+  if (url.includes('/bookstore/books') && !url.includes('/books/')) {
+    const parsedUrl = new URL(url, window.location.origin)
+    const params = options.params || {}
+    const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
+    const categoryId = String(params.categoryId || params.category || parsedUrl.searchParams.get('categoryId') || parsedUrl.searchParams.get('category') || '').trim()
+    const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
+    const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
+    const tags = Array.isArray(rawTags)
+      ? rawTags.map(String)
+      : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
+    const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
+    const size = Number(params.size || params.pageSize || parsedUrl.searchParams.get('size') || parsedUrl.searchParams.get('pageSize') || 12)
+
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const filteredBooks = allBooks.filter((book) => {
+      const keywordMatched = !q ||
+        book.title.toLowerCase().includes(q) ||
+        String(book.author || '').toLowerCase().includes(q)
+      const categoryMatched = !categoryId ||
+        book.categoryId === categoryId ||
+        book.categoryId.startsWith(`${categoryId}-`)
+      const statusMatched = !status || book.status === status
+      const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
+      return keywordMatched && categoryMatched && statusMatched && tagsMatched
+    })
+
+    const start = Math.max(0, (page - 1) * size)
+    const list = filteredBooks.slice(start, start + size)
+
+    return {
+      code: 200,
+      message: 'success',
+      data: list,
+      total: filteredBooks.length,
+      pagination: {
+        page,
+        pageSize: size,
+        total: filteredBooks.length,
+        has_next: start + size < filteredBooks.length
+      },
+      timestamp: Date.now()
+    }
   }
 
   // 书籍详情
@@ -464,9 +578,9 @@ export async function getMockDataForRequest(url: string | undefined): Promise<Mo
 /**
  * 处理 Mock 数据请求（供 HTTP Service 调用）
  */
-export async function handleMockRequest(url: string | undefined) {
+export async function handleMockRequest(url: string | undefined, options: MockRequestOptions = {}) {
   await mockDelay()
-  return await getMockDataForRequest(url)
+  return await getMockDataForRequest(url, options)
 }
 
 /**
