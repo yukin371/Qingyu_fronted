@@ -148,6 +148,40 @@
             <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="verifyResetCode">下一步</QyButton>
           </template>
 
+          <template v-if="resetStep === 1">
+            <QyFormItem prop="newPassword">
+              <QyInput v-model="resetForm.newPassword" type="password" placeholder="新密码" size="lg" :show-password="true" class="premium-input" />
+            </QyFormItem>
+            <QyFormItem prop="confirmNewPassword">
+              <QyInput v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="lg" :show-password="true" class="premium-input" />
+            </QyFormItem>
+            <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleReset">提交修改</QyButton>
+          </template>
+
+          <template v-if="resetStep === 2">
+            <div class="success-result">
+              <QyIcon name="CircleCheckFilled" :size="52" class="success-icon" />
+              <h3>密码重置成功</h3>
+              <QyButton variant="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</QyButton>
+            </div>
+          </template>
+        </QyForm>
+
+        <div class="social-login" v-if="activeMode !== 'reset'">
+          <QyDivider content="第三方登录" content-position="center" />
+          <div class="social-buttons">
+            <button class="social-btn wechat" title="微信登录">W</button>
+            <button class="social-btn qq" title="QQ登录">Q</button>
+          </div>
+        </div>
+
+        <div class="back-home">
+          <span class="back-text" @click="goHome">返回首页 <QyIcon name="ArrowRight" /></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
