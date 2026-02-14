@@ -7,6 +7,8 @@
 
     <div class="auth-container">
       <div class="auth-card animate-in">
+        <div class="card-orb orb-a"></div>
+        <div class="card-orb orb-b"></div>
         <div class="auth-header">
           <div class="logo" @click="goHome">
             <div class="logo-icon-wrapper">
@@ -570,13 +572,50 @@ onMounted(() => {
   border-radius: 24px;
   padding: 48px 56px; // 增加内部留白，显得更宽敞
   box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.08); // 更柔和、更扩散的阴影
+  position: relative;
+  overflow: hidden;
 
   transition: all 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #22c55e 0%, #3b82f6 55%, #0ea5e9 100%);
+    opacity: 0.9;
+  }
 
   // 动画
   &.animate-in {
     animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
+}
+
+.card-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(28px);
+  opacity: 0.28;
+}
+
+.orb-a {
+  width: 160px;
+  height: 160px;
+  right: -56px;
+  top: -50px;
+  background: #60a5fa;
+}
+
+.orb-b {
+  width: 120px;
+  height: 120px;
+  left: -42px;
+  bottom: -40px;
+  background: #34d399;
 }
 
 .auth-header {
@@ -636,6 +675,44 @@ onMounted(() => {
 
 .auth-form {
   width: 100%;
+}
+
+.premium-tabs {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.premium-tabs :deep(.tabs-container) {
+  display: block;
+}
+
+.premium-tabs :deep([role='tablist']) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+
+.premium-tabs :deep([role='tab']) {
+  border: none !important;
+  border-radius: 8px;
+  min-height: 38px;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  justify-content: center;
+  line-height: 1;
+}
+
+.premium-tabs :deep([role='tab'][aria-selected='true']) {
+  background: #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.16);
 }
 
 // 定制 Element Plus 输入框
@@ -899,7 +976,7 @@ onMounted(() => {
   .auth-view {
     align-items: flex-start; // 移动端顶对齐，避免键盘遮挡
     padding: 0;
-    background: #fff; // 移动端纯白背景，性能更好
+    background: linear-gradient(160deg, #f8fbff 0%, #f2f7ff 100%);
   }
 
   .bg-shape {
@@ -915,18 +992,19 @@ onMounted(() => {
   }
 
   .auth-card {
-    border-radius: 0; // 移除圆角
-    border: none;
-    box-shadow: none;
-    padding: 32px 24px; // 减少内边距
-    background: transparent;
-    backdrop-filter: none;
-    min-height: 100vh; // 占满全屏
+    border-radius: 18px;
+    border: 1px solid #e7eef9;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+    padding: 28px 20px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    min-height: auto;
+    margin: 18px 10px;
 
     // 确保内容在小屏垂直居中
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .auth-header {
@@ -952,6 +1030,11 @@ onMounted(() => {
     height: 52px;
     position: relative;
     // 如果需要底部固定按钮，可以在这里写 fixed
+  }
+
+  .premium-tabs :deep([role='tab']) {
+    min-height: 36px;
+    font-size: 14px;
   }
 }
 </style>
