@@ -561,6 +561,14 @@ onMounted(() => {
   border-radius: 12px;
   background: #f8fbff;
   border: 1px solid #dbe6f3;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.24), 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.premium-input :deep(input:focus) {
+  background: #ffffff;
+  border-color: #93c5fd;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .form-options {
@@ -730,5 +738,4 @@ onMounted(() => {
   }
 }
 </style>
-
 
