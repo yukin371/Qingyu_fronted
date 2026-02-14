@@ -151,7 +151,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     // 获取用户头像
     userAvatar: (state): string => {
-      return state.user?.avatar || '/default-avatar.png'
+      return state.user?.avatar || '/images/avatars/avatar-default.svg'
     },
 
     // 获取用户昵称

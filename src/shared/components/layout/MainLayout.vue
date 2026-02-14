@@ -45,16 +45,19 @@
           </div>
 
           <!-- 创作中心按钮 -->
-          <el-button v-if="isLoggedIn" class="create-btn" round @click="router.push('/writer')">
-            <QyIcon name="EditPen"  /> 创作
+          <el-button v-if="showUserControls" class="create-btn" round @click="router.push('/writer')">
+            <span class="create-icon-chip">
+              <QyIcon name="EditPen" />
+            </span>
+            <span>创作</span>
           </el-button>
 
           <!-- 用户操作区 -->
           <div class="user-actions">
-            <template v-if="isLoggedIn">
+            <template v-if="showUserControls">
               <el-dropdown trigger="click" @command="handleUserCommand">
                 <div class="user-info-premium">
-                  <el-avatar :size="36" :src="userAvatar" class="user-avatar">
+                  <el-avatar :size="20" :src="userAvatar" class="user-avatar">
                     {{ userDisplayName.charAt(0) }}
                   </el-avatar>
                   <!-- 名字只在hover时显示或简化显示 -->
@@ -245,9 +248,19 @@ const quickLoginRules: FormRules = {
 }
 
 // 用户信息
+const isTestMode = computed(() => route.query.test === 'true')
 const isLoggedIn = computed(() => authStore.isLoggedIn)
-const userAvatar = computed(() => authStore.user?.avatar || '')
-const userDisplayName = computed(() => authStore.user?.nickname || authStore.user?.username || '用户')
+const showUserControls = computed(() => isLoggedIn.value || isTestMode.value)
+const userAvatar = computed(() => {
+  if (authStore.user?.avatar) return authStore.user.avatar
+  return isTestMode.value ? '/images/avatars/avatar-demo.svg' : '/images/avatars/avatar-default.svg'
+})
+const userDisplayName = computed(() => {
+  if (authStore.user?.nickname || authStore.user?.username) {
+    return authStore.user?.nickname || authStore.user?.username || '用户'
+  }
+  return isTestMode.value ? '测试用户' : '用户'
+})
 
 // 当前激活的菜单
 const activeMenu = computed(() => {
@@ -335,6 +348,10 @@ const handleUserCommand = async (command: string) => {
       router.push('/reading/history')
       break
     case 'logout':
+      if (!authStore.isLoggedIn && isTestMode.value) {
+        message.success('测试模式下已退出模拟登录')
+        return
+      }
       try {
         await messageBox.confirm('确定要退出登录吗？', '提示', {
           confirmButtonText: '确定',
@@ -645,31 +662,76 @@ const handleUserCommand = async (command: string) => {
 
 /* 创作按钮 */
 .create-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #409eff 0%, #2b7de9 100%);
   border: none;
-  color: white;
-  font-weight: 500;
-  padding: 0 20px;
-  box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
-  transition: transform 0.2s;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 24px;
+  height: 42px;
+  font-size: 15px;
+  border-radius: 999px;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(64, 158, 255, 0.28);
+  transition: all 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+    box-shadow: 0 12px 24px rgba(64, 158, 255, 0.34);
+    filter: saturate(1.05);
   }
+}
+
+.create-icon-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.24);
 }
 
 /* 用户头像区 */
 .user-info-premium {
-  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 2px solid rgba(64, 158, 255, 0.25);
+  box-sizing: border-box;
+  box-shadow: 0 2px 10px rgba(64, 158, 255, 0.18);
   transition: all 0.3s;
   cursor: pointer;
 
   &:hover {
     border-color: var(--primary-color);
+    transform: translateY(-1px);
   }
+}
+
+.user-avatar {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+  line-height: 38px !important;
+}
+
+:deep(.user-avatar img),
+:deep(.user-avatar .el-avatar__inner) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
 }
 
 .auth-btns {

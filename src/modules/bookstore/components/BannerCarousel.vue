@@ -1,12 +1,12 @@
 <template>
-  <div class="banner-wrapper" :class="{ 'is-loading': loading }">
+  <div class="banner-wrapper" :class="{ 'is-loading': loading }" :style="{ '--carousel-height': height }">
     <el-carousel ref="carouselRef" :interval="5000" :height="height" trigger="click" indicator-position="none"
       arrow="never" class="premium-carousel" @change="handleCarouselChange">
       <el-carousel-item v-for="(banner, index) in banners" :key="banner.id || index" @click="handleBannerClick(banner)">
         <div class="banner-slide">
           <!-- 图片层 -->
           <div class="image-container">
-            <img :src="banner.image" :alt="banner.title" class="slide-image" loading="lazy" @error="handleImageError" />
+            <img :src="banner.image" :alt="banner.title" class="slide-image" loading="eager" @error="handleImageError" />
             <!-- 渐变遮罩，保证图片过亮时文字依然可见 -->
             <div class="overlay-gradient"></div>
           </div>
@@ -86,7 +86,7 @@ const props = defineProps({
   },
   height: {
     type: String,
-    default: '400px' // 稍微增加默认高度以适应新布局
+    default: '320px'
   },
   loading: {
     type: Boolean,
@@ -128,10 +128,16 @@ const nextSlide = () => {
 }
 
 const handleImageError = (event) => {
-  // 建议替换为透明的 SVG 或优雅的默认图
-  event.target.src = '/default-banner-bg.png'
-  event.target.style.objectFit = 'contain'
-  event.target.style.backgroundColor = '#f5f7fa'
+  const target = event.target
+  if (!target || target.dataset.fallbackApplied === '1') {
+    return
+  }
+
+  target.dataset.fallbackApplied = '1'
+  target.src = '/images/banners/banner-1.svg'
+  target.style.objectFit = 'cover'
+  target.style.objectPosition = 'center center'
+  target.style.backgroundColor = '#0f172a'
 }
 
 // Watchers (Optional: Reset index if banners change)
@@ -144,6 +150,7 @@ watch(() => props.banners, () => {
 .banner-wrapper {
   position: relative;
   width: 100%;
+  height: var(--carousel-height, 320px);
   border-radius: 24px;
   /* 与首页统一的大圆角 */
   overflow: hidden;
@@ -162,7 +169,18 @@ watch(() => props.banners, () => {
 /* 轮播主体 */
 .premium-carousel {
   width: 100%;
-  height: 100%;
+  height: var(--carousel-height, 320px);
+}
+
+:deep(.el-carousel__container) {
+  height: var(--carousel-height, 320px) !important;
+}
+
+:deep(.el-carousel__item) {
+  position: absolute;
+  inset: 0;
+  height: var(--carousel-height, 320px);
+  overflow: hidden;
 }
 
 .banner-slide {
@@ -170,13 +188,6 @@ watch(() => props.banners, () => {
   width: 100%;
   height: 100%;
   cursor: pointer;
-
-  &:hover {
-    .slide-image {
-      transform: scale(1.03);
-      /* 极细微的放大，保持优雅 */
-    }
-  }
 }
 
 /* 图片容器 */
@@ -185,13 +196,17 @@ watch(() => props.banners, () => {
   height: 100%;
   position: relative;
   overflow: hidden;
+  background: #0f172a;
 }
 
 .slide-image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  object-position: center center;
+  background: transparent;
+  transition: opacity 0.25s ease;
 }
 
 .overlay-gradient {
@@ -209,7 +224,7 @@ watch(() => props.banners, () => {
 .content-card {
   position: absolute;
   left: 40px;
-  bottom: 40px;
+  bottom: 26px;
   max-width: 480px;
   z-index: 10;
 
