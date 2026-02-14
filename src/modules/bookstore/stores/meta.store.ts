@@ -12,6 +12,14 @@ const normalizeCategoryTree = (items: any[] = []): Category[] => {
   }))
 }
 
+const extractList = (response: any): any[] => {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.data)) return response.data
+  if (Array.isArray(response?.list)) return response.list
+  if (Array.isArray(response?.data?.list)) return response.data.list
+  return []
+}
+
 export const useMetaStore = defineStore('bookstoreMeta', () => {
   // State
   const categories = ref<Category[]>([])
@@ -29,7 +37,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getCategories()
-      categories.value = normalizeCategoryTree(response.data || [])
+      categories.value = normalizeCategoryTree(extractList(response))
       _categoriesLoaded.value = true
       return categories.value
     } catch (error) {
@@ -46,7 +54,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getYears()
-      years.value = response.data || []
+      years.value = extractList(response)
       _yearsLoaded.value = true
       return years.value
     } catch (error) {
@@ -64,7 +72,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getTags(categoryId)
-      tags.value = response.data || []
+      tags.value = extractList(response)
       _tagsLoaded.value = true
       return tags.value
     } catch (error) {
