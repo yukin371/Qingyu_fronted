@@ -103,7 +103,23 @@ const MOCK_CATEGORY_TREE = [
 ] as const
 
 const MOCK_LEAF_CATEGORIES = MOCK_CATEGORY_TREE.flatMap((item) => item.children)
-const MOCK_BOOK_POOL_SIZE = 180
+const MOCK_BOOK_POOL_SIZE = 360
+const MOCK_TAG_POOL = [
+  '热血', '玄幻', '修仙', '都市', '科幻', '冒险', '机甲', '悬疑', '言情', '治愈'
+]
+
+const CATEGORY_TAG_MAP: Record<string, string[]> = {
+  'cat-1-1': ['科幻', '机甲', '冒险'],
+  'cat-1-2': ['科幻', '悬疑', '冒险'],
+  'cat-2-1': ['玄幻', '热血', '冒险'],
+  'cat-2-2': ['玄幻', '言情', '冒险'],
+  'cat-3-1': ['都市', '治愈', '言情'],
+  'cat-3-2': ['都市', '热血', '悬疑'],
+  'cat-4-1': ['修仙', '玄幻', '热血'],
+  'cat-4-2': ['修仙', '都市', '悬疑'],
+  'cat-5-1': ['冒险', '热血', '都市'],
+  'cat-5-2': ['冒险', '玄幻', '科幻']
+}
 
 // ==================== 书城模块 Mock 数据 ====================
 
@@ -180,10 +196,12 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     '异界龙骑', '时光信使', '都市仙尊', '网游之神级牧师', '商途无双'
   ]
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
-  const tags = ['科幻', '冒险', '热血', '机甲', '奇幻', '治愈', '都市', '甜宠', '武侠', '修炼']
-
   const title = titles[index % titles.length]
   const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
+  const categoryTags = CATEGORY_TAG_MAP[category._id] || ['冒险', '热血', '科幻']
+  const baseTag = categoryTags[index % categoryTags.length]
+  const secondaryTag = categoryTags[(index + 1) % categoryTags.length]
+  const extraTag = MOCK_TAG_POOL[index % MOCK_TAG_POOL.length]
 
   return {
     _id: `book-${index + 1}`,
@@ -203,7 +221,7 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     wordCount: Math.floor(Math.random() * 1000000) + 50000,
     chapterCount: Math.floor(Math.random() * 300) + 20,
     description: `这是一本关于${title}的精彩故事，讲述了主人公在${category.name}世界中的冒险经历...`,
-    tags: [tags[index % tags.length], tags[(index + 1) % tags.length]],
+    tags: [baseTag, secondaryTag, extraTag].filter((tag, idx, arr) => arr.indexOf(tag) === idx),
     createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
   }
@@ -500,13 +518,24 @@ export async function getMockDataForRequest(
 
   // 标签列表
   if (url.includes('/bookstore/tags') && !url.includes('/books/tags')) {
-    return createMockResponse([
-      { _id: 'tag-1', name: '热血', count: 1234 },
-      { _id: 'tag-2', name: '玄幻', count: 982 },
-      { _id: 'tag-3', name: '修仙', count: 756 },
-      { _id: 'tag-4', name: '都市', count: 654 },
-      { _id: 'tag-5', name: '科幻', count: 543 }
-    ])
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const tagCounter = new Map<string, number>()
+
+    for (const book of allBooks) {
+      for (const tag of book.tags || []) {
+        tagCounter.set(tag, (tagCounter.get(tag) || 0) + 1)
+      }
+    }
+
+    const tagList = Array.from(tagCounter.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count], idx) => ({
+        _id: `tag-${idx + 1}`,
+        name,
+        count
+      }))
+
+    return createMockResponse(tagList)
   }
 
   // 年份列表
