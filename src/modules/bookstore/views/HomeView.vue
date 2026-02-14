@@ -49,12 +49,12 @@
         <div class="hero-banner animate-up delay-1">
           <!-- Loading state -->
           <div v-if="loading" class="banner-skeleton"
-               style="width: 100%; height: 400px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
+               style="width: 100%; height: 320px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
           </div>
 
           <!-- Content -->
           <div v-else class="banner-wrapper">
-            <BannerCarousel :banners="banners" height="420px" indicator-position="none"
+            <BannerCarousel :banners="banners" height="320px" indicator-position="none"
               @banner-click="handleBannerClick" class="premium-carousel" />
             <!-- 装饰性光晕 -->
             <div class="glow-effect"></div>
@@ -98,7 +98,7 @@
 
             <div class="ranking-content">
               <RankingList :type="activeRankingTab" :items="rankings[activeRankingTab] || []" :loading="loading"
-                :max-items="5" layout="premium" @view-more="handleViewRanking(activeRankingTab)"
+                :max-items="6" layout="premium" @view-more="handleViewRanking(activeRankingTab)"
                 @item-click="handleBookClick" />
             </div>
           </div>
@@ -144,53 +144,55 @@
         </section>
 
         <!-- 猜你喜欢 (无限滚动) -->
-        <section class="section-block infinite-recommendations">
-          <div class="section-header center-align">
-            <h2 class="section-title">
-              <Icon name="star" solid size="md" /> 猜你喜欢
-            </h2>
-            <p class="section-desc">基于你的阅读偏好推荐</p>
-          </div>
+        <section class="section-block infinite-recommendations animate-on-scroll">
+          <div class="card-container recommend-container">
+            <div class="section-header center-align">
+              <h2 class="section-title">
+                <Icon name="star" solid size="md" /> 猜你喜欢
+              </h2>
+              <p class="section-desc">基于你的阅读偏好推荐</p>
+            </div>
 
-          <div class="masonry-grid">
-            <div v-for="book in recommendedItems" :key="book.id || book._id" class="premium-card"
-              @click="handleBookClick(book)">
-              <div class="card-image-box">
-                <QyImage :src="book.cover" fit="cover" loading="lazy">
-                  <template #error>
-                    <div class="image-placeholder">
-                      <Icon name="photo" size="md" />
-                    </div>
-                  </template>
-                </QyImage>
-                <div class="card-overlay">
-                  <QyButton variant="primary" size="sm" rounded>立即阅读</QyButton>
+            <div class="masonry-grid">
+              <div v-for="book in recommendedItems" :key="book.id || book._id" class="premium-card"
+                @click="handleBookClick(book)">
+                <div class="card-image-box">
+                  <QyImage :src="book.cover" fit="cover" loading="lazy">
+                    <template #error>
+                      <div class="image-placeholder">
+                        <Icon name="photo" size="md" />
+                      </div>
+                    </template>
+                  </QyImage>
+                  <div class="card-overlay">
+                    <QyButton variant="primary" size="sm" rounded>立即阅读</QyButton>
+                  </div>
+                </div>
+                <div class="card-info">
+                  <h4 class="book-title" :title="book.title">{{ book.title }}</h4>
+                  <div class="book-meta-row">
+                    <span class="author">{{ book.author }}</span>
+                    <span class="rating">
+                      <Icon name="star" size="sm" class="text-yellow-400" /> {{ formatRating(book.rating) }}
+                    </span>
+                  </div>
+                  <div class="tags-row" v-if="book.categoryName">
+                    <span class="tag">{{ book.categoryName }}</span>
+                  </div>
                 </div>
               </div>
-              <div class="card-info">
-                <h4 class="book-title" :title="book.title">{{ book.title }}</h4>
-                <div class="book-meta-row">
-                  <span class="author">{{ book.author }}</span>
-                  <span class="rating">
-                    <Icon name="star" size="sm" class="text-yellow-400" /> {{ formatRating(book.rating) }}
-                  </span>
-                </div>
-                <div class="tags-row" v-if="book.categoryName">
-                  <span class="tag">{{ book.categoryName }}</span>
-                </div>
-              </div>
             </div>
-          </div>
 
-          <!-- 加载状态 -->
-          <div class="scroll-loader">
-            <div v-if="loadingMore" class="loader-animation">
-              <span></span><span></span><span></span>
+            <!-- 加载状态 -->
+            <div class="scroll-loader">
+              <div v-if="loadingMore" class="loader-animation">
+                <span></span><span></span><span></span>
+              </div>
+              <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more-text">
+                - 到底了，去看看别的吧 -
+              </div>
+              <div ref="loadMoreElRef" class="load-trigger"></div>
             </div>
-            <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more-text">
-              - 到底了，去看看别的吧 -
-            </div>
-            <div ref="loadMoreElRef" class="load-trigger"></div>
           </div>
         </section>
       </div>
@@ -247,9 +249,11 @@ export default {
       setupScrollObserver
     } = usePagination(async (page, pageSize) => {
       try {
-        await bookstoreStore.fetchRecommendedBooks(page, pageSize)
-        const items = bookstoreStore.books.recommended || []
-        return { items, total: items.length + pageSize }
+        const result = await bookstoreStore.fetchRecommendedBooks(page, pageSize)
+        return {
+          items: result.items || [],
+          total: typeof result.total === 'number' ? result.total : 0
+        }
       } catch {
         return { items: [], total: 0 }
       }
@@ -304,7 +308,7 @@ export default {
       if (Array.isArray(recommendedBooks.value) && recommendedBooks.value.length > 0) {
         recommendedItems.value = [...recommendedBooks.value]
         recommendationPage.value = 2
-        recommendationTotal.value = recommendedItems.value.length + 12
+        recommendationTotal.value = recommendedItems.value.length
       }
 
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
@@ -437,9 +441,9 @@ export default {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
   gap: 40px;
-  padding: 60px 0 40px;
+  padding: 36px 0 24px;
   align-items: center;
-  min-height: 500px;
+  min-height: 420px;
 
   @media (max-width: 992px) {
     grid-template-columns: 1fr;
@@ -580,11 +584,10 @@ export default {
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 20px 50px -20px rgba(64, 158, 255, 0.4);
-    transform: perspective(1000px) rotateY(-2deg);
-    transition: transform 0.5s ease;
+    transition: transform 0.3s ease;
 
     &:hover {
-      transform: perspective(1000px) rotateY(0deg);
+      transform: translateY(-2px);
     }
   }
 
@@ -634,7 +637,10 @@ export default {
 
 /* 通用区块样式 */
 .section-block {
-  margin-bottom: 80px;
+  margin-bottom: 44px;
+}
+
+.animate-on-scroll {
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
@@ -742,6 +748,7 @@ export default {
 .featured-layout {
   /* 使用 BookGrid 自身的响应式布局 */
   width: 100%;
+  margin-bottom: 0;
 
   /* 为年度精选添加特殊的网格样式 */
   :deep(.books-layout) {
@@ -785,29 +792,33 @@ export default {
 }
 
 /* 猜你喜欢 (Masonry Grid) 适配 */
+.recommend-container {
+  padding: 24px;
+}
+
 .masonry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 
   @media (max-width: 768px) {
-    /* 手机端改为双列，减小间距 */
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
 
 .premium-card {
-  background: #fff;
+  background: #fafbfd;
   border-radius: 16px;
   overflow: hidden;
-  transition: all 0.4s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border: 1px solid #eef2f7;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 
     .card-overlay {
       opacity: 1;
@@ -816,7 +827,7 @@ export default {
 
   .card-image-box {
     position: relative;
-    height: 320px;
+    height: 260px;
     overflow: hidden;
 
     .image-wrapper {
@@ -827,7 +838,7 @@ export default {
     .card-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.3);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -835,156 +846,143 @@ export default {
       transition: opacity 0.3s;
       backdrop-filter: blur(2px);
     }
-
-    .card-info {
-      padding: 16px;
-
-      .book-title {
-        margin: 0 0 8px;
-        font-size: 16px;
-        font-weight: 700;
-        color: #2c3e50;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .book-meta-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        color: #8590a6;
-
-        .rating {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-weight: 600;
-          color: #333;
-        }
-      }
-
-      .tags-row {
-        margin-top: 10px;
-
-        .tag {
-          font-size: 10px;
-          padding: 2px 8px;
-          background: #f2f3f5;
-          border-radius: 6px;
-          color: #666;
-        }
-      }
-    }
-  }
-
-  .scroll-loader {
-    text-align: center;
-    padding: 40px 0;
-
-    .loader-animation {
-      display: inline-block;
-
-      span {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        background: #409eff;
-        border-radius: 50%;
-        margin: 0 4px;
-        animation: bounce 1.4s infinite ease-in-out both;
-
-        &:nth-child(1) {
-          animation-delay: -0.32s;
-        }
-
-        &:nth-child(2) {
-          animation-delay: -0.16s;
-        }
-      }
-    }
-
-    .no-more-text {
-      color: #ccc;
-      font-size: 13px;
-      letter-spacing: 1px;
-    }
-  }
-
-  @keyframes bounce {
-
-    0%,
-    80%,
-    100% {
-      transform: scale(0);
-    }
-
-    40% {
-      transform: scale(1);
-    }
-  }
-
-  /* 入场动画辅助类 */
-  .animate-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  .delay-1 {
-    animation-delay: 0.1s;
-  }
-
-  .delay-2 {
-    animation-delay: 0.2s;
-  }
-
-  @keyframes fadeInUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .card-image-box {
-    height: 320px;
-
-    @media (max-width: 768px) {
-      height: 220px;
-      /* 手机端封面高度减小 */
-    }
-
-    /* 手机端默认不显示 hover 遮罩，或者点击触发 */
-    .card-overlay {
-      display: none;
-      /* 手机端简化交互 */
-    }
   }
 
   .card-info {
-    @media (max-width: 768px) {
-      padding: 10px;
+    padding: 14px;
+  }
+
+  .book-title {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.35;
+    min-height: 40px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+
+    .author {
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .book-title {
-      font-size: 14px;
-      /* 字体缩小 */
-    }
-
-    .book-meta-row {
-      flex-direction: column;
-      /* 作者和评分垂直排列 */
-      align-items: flex-start;
+    .rating {
+      display: inline-flex;
+      align-items: center;
       gap: 4px;
-
-      .author {
-        width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+      font-weight: 600;
+      color: #f59e0b;
     }
+  }
+
+  .tags-row {
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 10px;
+      background: #edf2ff;
+      border-radius: 999px;
+      color: #4f46e5;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-image-box {
+      height: 180px;
+    }
+  }
+}
+
+.scroll-loader {
+  text-align: center;
+  padding: 28px 0 8px;
+
+  .loader-animation {
+    display: inline-block;
+  }
+
+  .loader-animation span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #409eff;
+    border-radius: 50%;
+    margin: 0 4px;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+
+  .loader-animation span:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+
+  .loader-animation span:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+
+  .no-more-text {
+    color: #9ca3af;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+}
+
+.load-trigger {
+  height: 1px;
+}
+
+.image-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background: #eef2f7;
+}
+
+.animate-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

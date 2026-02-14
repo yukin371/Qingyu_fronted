@@ -31,6 +31,21 @@ export const IMAGE_CONFIG = {
   quality: 80
 }
 
+function parseSize(size: string, fallbackW: number, fallbackH: number): { w: number; h: number } {
+  const [wStr, hStr] = size.split('x')
+  const w = Number(wStr)
+  const h = Number(hStr)
+  return {
+    w: Number.isFinite(w) && w > 0 ? w : fallbackW,
+    h: Number.isFinite(h) && h > 0 ? h : fallbackH
+  }
+}
+
+function buildPicsumSeedUrl(seed: string, size: string, fallbackW: number, fallbackH: number): string {
+  const { w, h } = parseSize(size, fallbackW, fallbackH)
+  return `${IMAGE_CONFIG.picsumBaseUrl}/seed/${seed}/${w}/${h}`
+}
+
 // 导出图片尺寸配置
 export const IMAGE_SIZE = {
   default: IMAGE_CONFIG.defaultSize,
@@ -51,9 +66,21 @@ export function getBookCoverUrl(bookId: string, category: string = ''): string {
   // 根据分类选择不同的图片风格
   const categoryStyles: Record<string, string> = {
     '科幻': 'scifi',
+    '星际科幻': 'scifi',
+    '时空穿梭': 'scifi',
     '奇幻': 'fantasy',
+    '东方玄幻': 'fantasy',
+    '西方奇幻': 'fantasy',
+    '仙侠': 'martial',
+    '古典仙侠': 'martial',
+    '现代修真': 'martial',
     '武侠': 'martial',
     '都市': 'city',
+    '都市生活': 'city',
+    '都市异能': 'city',
+    '游戏': 'adventure',
+    '虚拟网游': 'adventure',
+    '游戏异界': 'adventure',
     '冒险': 'adventure',
     '爱情': 'romance',
     '历史': 'history',
@@ -61,10 +88,11 @@ export function getBookCoverUrl(bookId: string, category: string = ''): string {
   }
   
   const style = categoryStyles[category] || 'default'
-  const seed = `${style}-${bookId}`
+  const safeBookId = encodeURIComponent(String(bookId))
+  const seed = `${style}-${safeBookId}`
   
   // 使用 picsum.photos 提供高质量图片
-  return `${IMAGE_CONFIG.picsumBaseUrl}/seed/${seed}/${IMAGE_CONFIG.coverSize}.jpg`
+  return buildPicsumSeedUrl(seed, IMAGE_CONFIG.coverSize, 300, 400)
 }
 
 /**
@@ -160,7 +188,7 @@ export function getBannerUrl(type: 'home' | 'writer' | 'activity' = 'home', inde
   }
   
   const seed = seeds[type][index] || 'banner-default'
-  return `${IMAGE_CONFIG.picsumBaseUrl}/seed/${seed}/${IMAGE_CONFIG.bannerSize}.jpg`
+  return buildPicsumSeedUrl(seed, IMAGE_CONFIG.bannerSize, 800, 400)
 }
 
 /**
@@ -221,7 +249,7 @@ export const CONTENT_IMAGES = {
  */
 export function getRandomImageUrl(width: number = 300, height: number = 400, category: string = ''): string {
   const seed = category ? `${category}-${Date.now()}` : `random-${Date.now()}`
-  return `${IMAGE_CONFIG.picsumBaseUrl}/seed/${seed}/${width}/${height}.jpg`
+  return `${IMAGE_CONFIG.picsumBaseUrl}/seed/${seed}/${width}/${height}`
 }
 
 /**

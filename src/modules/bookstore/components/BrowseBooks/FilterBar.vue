@@ -60,7 +60,7 @@ defineEmits<{
 // 转换分类数据为 Select options
 const categoryOptions = computed<SelectOption[]>(() => [
   { value: '', label: '全部分类' },
-  ...props.categories.map(cat => ({ value: cat._id, label: cat.name }))
+  ...props.categories.map((cat: any) => ({ value: cat.id || cat._id, label: cat.name }))
 ])
 
 // 转换年份数据为 Select options

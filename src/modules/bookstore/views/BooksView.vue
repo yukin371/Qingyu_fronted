@@ -13,7 +13,7 @@
           <Col :xs="24" :sm="8" :md="6">
             <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange" data-testid="category-filter">
               <option value="">全部分类</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+              <option v-for="cat in categories" :key="cat.id || (cat as any)._id" :value="cat.id || (cat as any)._id">{{ cat.name }}</option>
             </Select>
           </Col>
 
@@ -261,6 +261,10 @@ const loadBooks = async () => {
           }
           books.value = response.data
           total.value = (response as any).total || response.data.length
+        } else if (response.data && response.data.list) {
+          // 兼容 { data: { list: [...], total? } }
+          books.value = response.data.list
+          total.value = response.data.total || (response as any).total || response.data.list.length
         } else if (response.data && response.data.items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')
@@ -334,8 +338,11 @@ const loadCategories = async () => {
         // 递归提取所有分类（包括子分类）
         const flattenCategories = (cats: Category[]): Category[] => {
           const result: Category[] = []
-          for (const cat of cats) {
-            result.push(cat)
+          for (const cat of cats as any[]) {
+            result.push({
+              ...cat,
+              id: cat.id || cat._id || ''
+            })
             if (cat.children && cat.children.length > 0) {
               result.push(...flattenCategories(cat.children))
             }

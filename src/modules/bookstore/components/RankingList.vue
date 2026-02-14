@@ -2,7 +2,7 @@
   <div class="ranking-container">
     <!-- 骨架屏加载状态 -->
     <div v-if="loading" class="skeleton-wrapper">
-      <div v-for="n in 5" :key="n" class="skeleton-item">
+      <div v-for="n in 6" :key="n" class="skeleton-item">
         <el-skeleton animated>
           <template #template>
             <div style="display: flex; gap: 16px; align-items: center;">
@@ -91,7 +91,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import { useBookstoreStore } from '@/stores/bookstore' // 假设路径
 
 // Props 定义
 const props = defineProps({
@@ -117,10 +116,9 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['view-more', 'item-click'])
 
-const bookstoreStore = useBookstoreStore()
-
 const displayItems = computed(() => {
-  return props.items.slice(0, props.maxItems)
+  const source = Array.isArray(props.items) ? props.items : []
+  return source.slice(0, props.maxItems)
 })
 
 const getRankClass = (rank: number) => {
@@ -177,13 +175,16 @@ $bronze: #cd7f32;
 .ranking-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 12px 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .ranking-item {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 1px solid transparent;
@@ -192,7 +193,7 @@ $bronze: #cd7f32;
 
   &:hover {
     background-color: #f8f9fb;
-    transform: translateX(4px);
+    transform: translateY(-1px);
 
     .action-arrow {
       opacity: 1;
@@ -263,9 +264,9 @@ $bronze: #cd7f32;
 
 /* 封面样式 */
 .book-cover-wrapper {
-  width: 48px;
-  height: 64px;
-  margin-right: 16px;
+  width: 40px;
+  height: 54px;
+  margin-right: 10px;
   flex-shrink: 0;
   border-radius: 6px;
   overflow: hidden;
@@ -305,7 +306,7 @@ $bronze: #cd7f32;
 
     .book-title {
       margin: 0;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: #2c3e50;
       white-space: nowrap;
@@ -324,7 +325,7 @@ $bronze: #cd7f32;
   .book-meta {
     display: flex;
     align-items: center;
-    font-size: 12px;
+    font-size: 11px;
     color: #8590a6;
 
     .author {
@@ -354,7 +355,7 @@ $bronze: #cd7f32;
       .score-val {
         font-weight: 700;
         color: #e6a23c;
-        font-size: 14px;
+        font-size: 13px;
       }
 
       .score-label {
@@ -365,7 +366,7 @@ $bronze: #cd7f32;
     }
 
     .view-count {
-      font-size: 12px;
+      font-size: 11px;
       color: #999;
       display: flex;
       align-items: center;
@@ -381,6 +382,13 @@ $bronze: #cd7f32;
   transition: all 0.3s ease;
   color: #c0c4cc;
   margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .ranking-list {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
 }
 
 /* 底部查看更多 */

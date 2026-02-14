@@ -25,7 +25,9 @@ export const browseService = {
   async getBooks(filters: BrowseFilters): Promise<GetBooksResponse> {
     const params = {
       q: filters.q || undefined,
+      keyword: filters.q || undefined,
       categoryId: filters.categoryId || undefined,
+      category: filters.categoryId || undefined,
       year: filters.year || undefined,
       status: filters.status || undefined,
       tags: filters.tags.length > 0 ? filters.tags : undefined,

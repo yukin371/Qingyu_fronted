@@ -4,6 +4,14 @@ import { ref } from 'vue'
 import { browseService } from '../services/browse.service'
 import type { Category, Tag } from '@/types/models'
 
+const normalizeCategoryTree = (items: any[] = []): Category[] => {
+  return items.map((item: any) => ({
+    ...item,
+    id: item.id || item._id || '',
+    children: Array.isArray(item.children) ? normalizeCategoryTree(item.children) : []
+  }))
+}
+
 export const useMetaStore = defineStore('bookstoreMeta', () => {
   // State
   const categories = ref<Category[]>([])
@@ -21,7 +29,7 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getCategories()
-      categories.value = response.data || []
+      categories.value = normalizeCategoryTree(response.data || [])
       _categoriesLoaded.value = true
       return categories.value
     } catch (error) {
