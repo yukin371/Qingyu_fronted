@@ -350,6 +350,10 @@ const handleUserCommand = async (command: string) => {
     case 'logout':
       if (!authStore.isLoggedIn && isTestMode.value) {
         message.success('测试模式下已退出模拟登录')
+        router.push({
+          path: '/auth',
+          query: { ...(route.query as Record<string, any>), mode: 'login' }
+        })
         return
       }
       try {
