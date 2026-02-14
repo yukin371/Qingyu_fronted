@@ -20,7 +20,12 @@
           <p class="auth-subtitle">{{ pageSubtitle }}</p>
         </div>
 
-        <Tabs v-model="activeMode" class="premium-tabs" data-testid="auth-tabs" @tab-change="(name: string | number) => handleTabChange(String(name))">
+        <Tabs
+          v-model="activeMode"
+          :class="['premium-tabs', { 'is-reset-mode': activeMode === 'reset' }]"
+          data-testid="auth-tabs"
+          @tab-change="(name: string | number) => handleTabChange(String(name))"
+        >
           <!-- 登录 -->
           <TabPane label="登录" name="login">
             <template #label>
@@ -570,7 +575,7 @@ onMounted(() => {
 
   // 视觉样式
   border-radius: 24px;
-  padding: 48px 56px; // 增加内部留白，显得更宽敞
+  padding: 36px 40px;
   box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.08); // 更柔和、更扩散的阴影
   position: relative;
   overflow: hidden;
@@ -620,7 +625,7 @@ onMounted(() => {
 
 .auth-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 26px;
 
   .logo {
     display: inline-flex;
@@ -678,8 +683,8 @@ onMounted(() => {
 }
 
 .premium-tabs {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: 4px;
+  margin-bottom: 6px;
 }
 
 .premium-tabs :deep(.tabs-container) {
@@ -688,7 +693,7 @@ onMounted(() => {
 
 .premium-tabs :deep([role='tablist']) {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: 6px;
   border: 1px solid #e5e7eb;
@@ -698,21 +703,66 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 
+.premium-tabs.is-reset-mode :deep([role='tablist']) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .premium-tabs :deep([role='tab']) {
   border: none !important;
   border-radius: 8px;
-  min-height: 38px;
+  min-height: 40px;
   white-space: nowrap;
   writing-mode: horizontal-tb;
   text-orientation: mixed;
   justify-content: center;
   line-height: 1;
+  font-size: 14px;
+}
+
+/* Tabs 组件兼容修复：TabPane 内容会混在 tablist 内，这里强制面板独占一行 */
+.premium-tabs :deep([role='tablist'] > [role='tabpanel']) {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 8px;
+  padding: 0 !important;
+}
+
+.premium-tabs :deep([role='tablist'] .tab-pane) {
+  padding: 0 !important;
 }
 
 .premium-tabs :deep([role='tab'][aria-selected='true']) {
   background: #ffffff;
   color: #1d4ed8;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.16);
+}
+
+/* 强制登录表单全宽，修复输入框过短 */
+.auth-form :deep(.tw-form-item) {
+  display: block;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.auth-form :deep(.tw-form-item-content),
+.auth-form :deep(.tw-form-item-content-left),
+.auth-form :deep(.tw-form-item-content-top) {
+  width: 100%;
+  padding-left: 0 !important;
+}
+
+.auth-form :deep(.premium-input) {
+  width: 100% !important;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid #dbe3ef;
+  background: #f8fbff;
+  font-size: 16px;
+}
+
+.auth-form :deep(.premium-input:focus) {
+  border-color: #60a5fa;
+  background: #ffffff;
 }
 
 // 定制 Element Plus 输入框
@@ -752,10 +802,10 @@ onMounted(() => {
 .submit-btn {
   width: 100%;
   border-radius: 12px;
-  height: 50px;
+  min-height: 50px;
   font-size: 16px;
   font-weight: 600;
-  margin-top: 28px;
+  margin-top: 14px;
   background: var(--primary-color);
   border: none;
   box-shadow: 0 10px 20px -5px rgba(64, 158, 255, 0.4);
@@ -778,7 +828,7 @@ onMounted(() => {
   width: 100%;
 
   .code-btn {
-    height: 46px;
+    min-height: 48px;
     border-radius: 12px;
     width: 120px;
     font-weight: 500;
@@ -995,11 +1045,11 @@ onMounted(() => {
     border-radius: 18px;
     border: 1px solid #e7eef9;
     box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-    padding: 28px 20px;
+    padding: 24px 18px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(8px);
     min-height: auto;
-    margin: 18px 10px;
+    margin: 10px 8px;
 
     // 确保内容在小屏垂直居中
     display: flex;
