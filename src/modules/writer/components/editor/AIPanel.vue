@@ -183,11 +183,11 @@ const messagesContainer = ref<HTMLElement>()
 const inputRef = ref<HTMLTextAreaElement>()
 
 // ==================== 快捷操作 ====================
+// 仅保留3个快捷操作：续写、润色、摘要
 const quickActions = computed(() => [
   { id: 'continue', ...QUICK_ACTION_PROMPTS.continue },
   { id: 'polish', ...QUICK_ACTION_PROMPTS.polish },
-  { id: 'summary', ...QUICK_ACTION_PROMPTS.summary },
-  { id: 'suggestion', ...QUICK_ACTION_PROMPTS.suggestion }
+  { id: 'summary', ...QUICK_ACTION_PROMPTS.summary }
 ])
 
 // ==================== 计算属性 ====================
@@ -636,8 +636,8 @@ watch(() => messages.value, () => {
 }
 
 .ai-quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   padding: 0 16px 16px;
 
@@ -645,32 +645,34 @@ watch(() => messages.value, () => {
     background: #ffffff;
     border: 1px solid var(--ai-border);
     border-radius: 12px;
-    padding: 12px;
+    padding: 12px 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    text-align: center;
+    gap: 12px;
+    text-align: left;
 
     &:hover {
       background: #eff6ff;
       border-color: #93c5fd;
-      transform: translateY(-2px);
+      transform: translateX(4px);
     }
 
     &:active {
-      transform: translateY(0);
+      transform: translateX(0);
     }
 
     .quick-action-icon {
       font-size: 20px;
       color: #2563eb;
+      flex-shrink: 0;
     }
 
     .quick-action-label {
-      font-size: 12px;
+      font-size: 13px;
+      font-weight: 500;
       color: var(--ai-text);
     }
   }
@@ -764,18 +766,17 @@ watch(() => messages.value, () => {
 @media (max-width: 768px) {
   .ai-panel {
     .ai-quick-actions {
-      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
 
       .quick-action-card {
-        padding: 8px;
+        padding: 10px 12px;
 
         .quick-action-icon {
-          font-size: 16px;
+          font-size: 18px;
         }
 
         .quick-action-label {
-          font-size: 11px;
+          font-size: 12px;
         }
       }
     }

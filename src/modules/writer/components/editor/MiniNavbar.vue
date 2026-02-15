@@ -46,21 +46,22 @@
  * MiniNavbar 编辑器工具栏导航组件
  *
  * 提供编辑器工具切换功能：
- * - 工具按钮显示和切换
+ * - 工具按钮显示和切换（章节、写作、沉浸、AI助手）
  * - 激活状态高亮
  * - v-model双向绑定
  * - ARIA无障碍支持
  * - 键盘导航
  *
  * @features
- * - 工具切换（大纲、搜索、替换、AI助手、设置）
+ * - 工具切换（章节、写作、沉浸模式、AI助手）
  * - 激活状态高亮
  * - ARIA无障碍支持
  * - 键盘导航（Tab、方向键、Enter/Space、Home/End）
+ * - 快捷键 Alt+1 到 Alt+4
  *
  * @example
  * ```vue
- * <MiniNavbar v-model="activeTool" @tool-change="handleToolChange" />
+ * <MiniNavbar v-model="activeTool" @toolChange="handleToolChange" />
  * ```
  */
 
@@ -120,17 +121,17 @@ defineSlots<{
 }>()
 
 /**
- * 默认工具列表
+ * 默认工具列表（简化版：4个核心工具）
+ * - 章节：显示章节树面板
+ * - 写作：默认写作模式
+ * - 沉浸：全屏沉浸写作
+ * - AI助手：AI辅助面板
  */
 const defaultTools: EditorTool[] = [
-  { id: 'outline', label: '大纲', icon: 'Menu', shortcut: 'Alt+1' },
+  { id: 'chapters', label: '章节', icon: 'Document', shortcut: 'Alt+1' },
   { id: 'writing', label: '写作', icon: 'Edit', shortcut: 'Alt+2' },
-  { id: 'immersive', label: '沉浸模式', icon: 'FullScreen', shortcut: 'Alt+3' },
-  { id: 'book', label: '章节', icon: 'Document', shortcut: 'Alt+4' },
-  { id: 'settings', label: '设置', icon: 'Setting', shortcut: 'Alt+5' },
-  { id: 'ai-assistant', label: 'AI辅助', icon: 'MagicStick', shortcut: 'Alt+6' },
-  { id: 'materials', label: '创作推演', icon: 'DataAnalysis', shortcut: 'Alt+7' },
-  { id: 'chat', label: '聊天', icon: 'ChatDotRound', shortcut: 'Alt+8' }
+  { id: 'immersive', label: '沉浸', icon: 'FullScreen', shortcut: 'Alt+3' },
+  { id: 'ai-assistant', label: 'AI助手', icon: 'MagicStick', shortcut: 'Alt+4' }
 ]
 
 /**
