@@ -134,6 +134,20 @@ import { useChatHistory, type ChatMessage } from '@/composables/useChatHistory'
 import { useTypewriter } from '@/composables/useTypewriter'
 import { mockAIResponse, QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
 
+// 防抖函数
+function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  return ((...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    timeoutId = setTimeout(() => {
+      fn(...args)
+      timeoutId = null
+    }, delay)
+  }) as T
+}
+
 // ==================== 类型定义 ====================
 interface Props {
   collapsed?: boolean
@@ -355,9 +369,14 @@ onBeforeUnmount(() => {
 })
 
 // ==================== 监听 ====================
-// 监听消息变化，自动保存
-watch(() => messages.value, () => {
+// 防抖保存（1秒防抖）
+const debouncedSave = useDebounceFn(() => {
   save()
+}, 1000)
+
+// 监听消息变化，自动保存（使用防抖版本）
+watch(() => messages.value, () => {
+  debouncedSave()
 }, { deep: true })
 </script>
 

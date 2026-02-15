@@ -51,6 +51,20 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 
+// 防抖函数
+function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  return ((...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    timeoutId = setTimeout(() => {
+      fn(...args)
+      timeoutId = null
+    }, delay)
+  }) as T
+}
+
 // 保存状态类型
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved'
 
@@ -141,6 +155,13 @@ function calculateWordCount(text: string): number {
 
   return chineseChars + englishWords
 }
+
+// 防抖字数统计（500ms 防抖）
+const debouncedUpdateWordCount = useDebounceFn((value: string) => {
+  const count = calculateWordCount(value)
+  wordCount.value = count
+  emit('wordCountChange', count)
+}, 500)
 
 // 防抖保存
 function debouncedSave(content: string) {
@@ -255,10 +276,8 @@ async function initVditor() {
       input: (value: string) => {
         emit('update:modelValue', value)
 
-        // 更新字数统计
-        const count = calculateWordCount(value)
-        wordCount.value = count
-        emit('wordCountChange', count)
+        // 更新字数统计（使用防抖版本）
+        debouncedUpdateWordCount(value)
 
         // 触发自动保存
         if (!props.readonly) {
