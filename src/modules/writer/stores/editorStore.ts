@@ -1,118 +1,183 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-import { editorApi } from '../api/editor'
-import { useDocumentStore } from './documentStore' // 引用其他 Store
-import { debounce } from '@/utils/editor'
-import { message, messageBox } from '@/design-system/services'
+import { ref, computed } from 'vue'
+
+/**
+ * 工具切换类型
+ */
+export type ActiveTool = 'chapters' | 'writing' | 'immersive' | 'ai'
+
+/**
+ * 编辑器状态接口
+ */
+export interface EditorState {
+  currentProjectId: string | null
+  currentChapterId: string | null
+  content: string
+  isDirty: boolean
+  lastSavedAt: number | null
+  activeTool: ActiveTool
+}
+
+/**
+ * 编辑器管理 Store
+ * 负责编辑器的核心状态管理
+ */
 export const useEditorStore = defineStore('writer-editor', () => {
-  const documentStore = useDocumentStore()
+  // ==================== State ====================
 
-  // State
+  /** 当前项目ID */
+  const currentProjectId = ref<string | null>(null)
+
+  /** 当前章节ID */
+  const currentChapterId = ref<string | null>(null)
+
+  /** 当前编辑内容 */
   const content = ref('')
-  const version = ref(0)
-  const isDirty = ref(false) // 是否有未保存修改
-  const isSaving = ref(false) // 是否正在保存
-  const lastSavedAt = ref<string | null>(null)
 
-  // Settings
+  /** 是否有未保存更改 */
+  const isDirty = ref(false)
+
+  /** 上次保存时间（时间戳） */
+  const lastSavedAt = ref<number | null>(null)
+
+  /** 当前激活的工具/模式 */
+  const activeTool = ref<ActiveTool>('writing')
+
+  /** 是否正在保存 */
+  const isSaving = ref(false)
+
+  /** 自动保存是否启用 */
   const autosaveEnabled = ref(true)
 
-  // 1. 加载内容
-  async function loadContent(documentId: string) {
-    // 先重置状态
+  // ==================== Getters ====================
+
+  /**
+   * 是否有内容
+   */
+  const hasContent = computed(() => content.value.length > 0)
+
+  /**
+   * 保存状态文本
+   */
+  const saveStatusText = computed(() => {
+    if (isSaving.value) return '正在保存...'
+    if (isDirty.value) return '有未保存的更改'
+    if (lastSavedAt.value) {
+      const date = new Date(lastSavedAt.value)
+      return `上次保存: ${date.toLocaleTimeString()}`
+    }
+    return ''
+  })
+
+  // ==================== Actions ====================
+
+  /**
+   * 设置当前激活的工具/模式
+   */
+  function setActiveTool(tool: ActiveTool) {
+    activeTool.value = tool
+  }
+
+  /**
+   * 设置当前项目
+   */
+  function setCurrentProject(projectId: string | null) {
+    currentProjectId.value = projectId
+  }
+
+  /**
+   * 设置当前章节
+   */
+  function setCurrentChapter(chapterId: string | null) {
+    currentChapterId.value = chapterId
+  }
+
+  /**
+   * 设置编辑内容
+   * @param newContent 新内容
+   * @param markAsDirty 是否标记为脏（默认 true）
+   */
+  function setContent(newContent: string, markAsDirty = true) {
+    content.value = newContent
+    if (markAsDirty) {
+      isDirty.value = true
+    }
+  }
+
+  /**
+   * 标记为脏（有未保存更改）
+   */
+  function markDirty() {
+    isDirty.value = true
+  }
+
+  /**
+   * 标记为已保存
+   */
+  function markSaved() {
+    isDirty.value = false
+    lastSavedAt.value = Date.now()
+  }
+
+  /**
+   * 重置编辑器状态
+   */
+  function resetEditor() {
     content.value = ''
     isDirty.value = false
-
-    try {
-      const res = await editorApi.getContent(documentId)
-      content.value = res.content
-      version.value = res.version
-      lastSavedAt.value = res.lastSavedAt
-    } catch (e) {
-      console.error('Failed to load content', e)
-    }
+    lastSavedAt.value = null
+    currentChapterId.value = null
   }
 
-  // 2. 更新内容 (用户输入)
-  function setContent(newContent: string) {
-    content.value = newContent
-    isDirty.value = true
-
-    if (autosaveEnabled.value) {
-      debouncedAutoSave()
-    }
+  /**
+   * 重置全部状态
+   */
+  function reset() {
+    resetEditor()
+    currentProjectId.value = null
+    activeTool.value = 'writing'
+    isSaving.value = false
   }
 
-  // 3. 自动保存逻辑 (防抖)
-  const debouncedAutoSave = debounce(async () => {
-    if (!isDirty.value || !documentStore.currentDocMeta?.id) return
-    await performSave(true)
-  }, 5000)
-
-  // 4. 执行保存 (内部方法)
-  async function performSave(isAuto: boolean) {
-    const docId = documentStore.currentDocMeta?.id
-    if (!docId) return
-
-    isSaving.value = true
-    try {
-      const res = await editorApi.autoSave(docId, {
-        documentId: docId,
-        content: content.value,
-        version: version.value,
-      })
-
-      // 更新版本和时间
-      version.value = res.version
-      lastSavedAt.value = res.lastSavedAt
-      isDirty.value = false
-
-      if (!isAuto) message.success('保存成功')
-    } catch (error: any) {
-      if (error.response?.status === 409 || error.code === 409) {
-        handleConflict()
-      } else {
-        console.error('Save failed', error)
-        // 自动保存失败通常只记录日志或显示不打扰的提示
-      }
-    } finally {
-      isSaving.value = false
-    }
+  /**
+   * 切换自动保存
+   */
+  function toggleAutosave(enabled?: boolean) {
+    autosaveEnabled.value = enabled ?? !autosaveEnabled.value
   }
 
-  // 5. 冲突处理
-  function handleConflict() {
-    messageBox.confirm('云端版本比本地新，是否覆盖云端？', '版本冲突', {
-      confirmButtonText: '强制覆盖',
-      cancelButtonText: '刷新获取最新',
-      type: 'warning',
-    })
-      .then(async () => {
-        // 强制保存逻辑：通常需要传一个 force 标记，或者获取最新版本号后再提交
-        // 这里简化处理
-        await editorApi.updateContent(documentStore.currentDocMeta!.id, {
-          documentId: documentStore.currentDocMeta!.id,
-          content: content.value,
-          version: version.value, // 实际场景这里可能需要特殊处理
-        })
-        isDirty.value = false
-      })
-      .catch(() => {
-        // 重新加载
-        if (documentStore.currentDocMeta?.id) {
-          loadContent(documentStore.currentDocMeta.id)
-        }
-      })
+  /**
+   * 设置保存状态（供外部保存逻辑调用）
+   */
+  function setSaving(saving: boolean) {
+    isSaving.value = saving
   }
 
   return {
+    // State
+    currentProjectId,
+    currentChapterId,
     content,
-    version,
     isDirty,
-    isSaving,
     lastSavedAt,
-    loadContent,
+    activeTool,
+    isSaving,
+    autosaveEnabled,
+
+    // Getters
+    hasContent,
+    saveStatusText,
+
+    // Actions
+    setActiveTool,
+    setCurrentProject,
+    setCurrentChapter,
     setContent,
-    save: () => performSave(false), // 手动保存
+    markDirty,
+    markSaved,
+    resetEditor,
+    reset,
+    toggleAutosave,
+    setSaving,
   }
 })

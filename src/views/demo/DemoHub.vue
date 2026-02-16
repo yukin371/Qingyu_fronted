@@ -52,6 +52,41 @@
       </div>
     </div>
 
+    <!-- Business Entrances Section -->
+    <div class="business-entrances-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">业务模块直达</h2>
+          <p class="section-subtitle">用于第 5 章实现展示的关键页面入口，自动附加 Mock 参数。</p>
+        </div>
+        <div class="entrance-grid">
+          <div v-for="group in businessEntrances" :key="group.key" class="entrance-card">
+            <div class="entrance-card-header">
+              <div class="entrance-icon" :style="{ background: group.color }">
+                <QyIcon :name="group.icon" size="md" />
+              </div>
+              <div>
+                <h3 class="entrance-title">{{ group.title }}</h3>
+                <p class="entrance-description">{{ group.description }}</p>
+              </div>
+            </div>
+            <div class="entrance-buttons">
+              <QyButton
+                v-for="item in group.items"
+                :key="item.key"
+                size="sm"
+                variant="secondary"
+                class="entrance-btn"
+                @click="navigateToRoute(item.route)"
+              >
+                {{ item.label }}
+              </QyButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Demo Pages Section -->
     <div class="demos-section" ref="demosSectionRef">
       <div class="container">
@@ -260,6 +295,21 @@ interface DemoPage {
   business?: boolean // 标识是否为业务页面
 }
 
+interface BusinessEntranceItem {
+  key: string
+  label: string
+  route: string
+}
+
+interface BusinessEntranceGroup {
+  key: string
+  title: string
+  description: string
+  icon: string
+  color: string
+  items: BusinessEntranceItem[]
+}
+
 const demoPages = ref<DemoPage[]>([
   // ===== 基础组件 Demo =====
   {
@@ -429,6 +479,62 @@ const demoPages = ref<DemoPage[]>([
   }
 ])
 
+const businessEntrances = ref<BusinessEntranceGroup[]>([
+  {
+    key: 'reader',
+    title: '读者端',
+    description: '读者阅读与社区主流程',
+    icon: 'book-open',
+    color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    items: [
+      { key: 'bookstore-home', label: '书城首页', route: '/bookstore' },
+      { key: 'bookstore-browse', label: '浏览书籍', route: '/bookstore/browse' },
+      { key: 'community', label: '社区论坛', route: '/community' },
+      { key: 'login', label: '登录页', route: '/login' },
+      { key: 'register', label: '注册页', route: '/register' }
+    ]
+  },
+  {
+    key: 'author',
+    title: '作者端',
+    description: '项目管理、编辑、发布链路',
+    icon: 'edit',
+    color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    items: [
+      { key: 'writer-dashboard', label: '创作工作台', route: '/writer/dashboard' },
+      { key: 'writer-projects', label: '项目列表', route: '/writer/projects' },
+      { key: 'writer-publish', label: '发布管理', route: '/writer/publish' },
+      { key: 'become-author', label: '成为作者引导', route: '/writer/become-author' }
+    ]
+  },
+  {
+    key: 'admin',
+    title: '管理员端',
+    description: '审核、配置与用户治理',
+    icon: 'shield-check',
+    color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    items: [
+      { key: 'admin-dashboard', label: '后台仪表板', route: '/admin/dashboard' },
+      { key: 'admin-users', label: '用户管理', route: '/admin/users' },
+      { key: 'admin-reviews', label: '内容审核', route: '/admin/reviews' },
+      { key: 'admin-system-config', label: '系统配置', route: '/admin/system-config' }
+    ]
+  },
+  {
+    key: 'ai',
+    title: 'AI服务',
+    description: 'AI 网关、模型与健康检查',
+    icon: 'sparkles',
+    color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+    items: [
+      { key: 'ai-overview', label: 'AI 总览', route: '/admin/ai/overview' },
+      { key: 'ai-providers', label: '提供商管理', route: '/admin/ai/providers' },
+      { key: 'ai-models', label: '模型管理', route: '/admin/ai/models' },
+      { key: 'ai-health', label: '健康检查', route: '/admin/ai/health' }
+    ]
+  }
+])
+
 // Categories
 const categories = [
   { key: 'all', label: '全部', icon: 'apps' },
@@ -525,6 +631,10 @@ const navigateToDemo = (demo: DemoPage) => {
   if (demo.business) {
     console.log('[DemoHub] Navigating to business page with mock data:', demo.route)
   }
+}
+
+const navigateToRoute = (route: string) => {
+  router.push(`${route}?test=true`)
 }
 
 const getCategoryName = (category: string): string => {
@@ -686,6 +796,77 @@ onMounted(() => {
   font-size: 14px;
   color: #666;
   font-weight: 500;
+}
+
+.business-entrances-section {
+  padding: 56px 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.entrance-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.entrance-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  padding: 16px;
+}
+
+.entrance-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.entrance-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+}
+
+.entrance-title {
+  margin: 0 0 2px;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.entrance-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.entrance-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entrance-btn {
+  min-width: 92px;
 }
 
 /* Demo Pages Section */

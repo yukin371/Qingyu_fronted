@@ -1,6 +1,8 @@
-/**
+﻿/**
  * QyDivider 组件类型定义
  */
+
+import type { HTMLAttributes } from 'vue'
 
 /**
  * 分割线方向
@@ -15,7 +17,7 @@ export type DividerContentPosition = 'left' | 'center' | 'right'
 /**
  * QyDivider 组件 Props
  */
-export interface QyDividerProps {
+export interface QyDividerProps extends /* @vue-ignore */ HTMLAttributes {
   /**
    * 方向
    * @default 'horizontal'
@@ -44,16 +46,6 @@ export interface QyDividerProps {
    * @default 'solid'
    */
   borderStyle?: 'solid' | 'dashed' | 'dotted'
-
-  /**
-   * 自定义类名
-   */
-  class?: string
-
-  /**
-   * 自定义样式
-   */
-  style?: string | Record<string, string | number>
 }
 
 /**

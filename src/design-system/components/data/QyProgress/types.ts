@@ -1,6 +1,8 @@
-/**
+﻿/**
  * QyProgress 组件类型定义
  */
+
+import type { HTMLAttributes } from 'vue'
 
 /**
  * 进度条类型
@@ -15,7 +17,7 @@ export type ProgressStatus = 'success' | 'exception' | 'warning' | 'active'
 /**
  * QyProgress 组件 Props
  */
-export interface QyProgressProps {
+export interface QyProgressProps extends /* @vue-ignore */ HTMLAttributes {
   /**
    * 百分比 (0-100)
    */
@@ -65,16 +67,6 @@ export interface QyProgressProps {
    * 是否展示仪表盘类型进度条（type=circle 时有效）
    */
   dashboard?: boolean
-
-  /**
-   * 自定义类名
-   */
-  class?: string
-
-  /**
-   * 自定义样式
-   */
-  style?: string | Record<string, string | number>
 }
 
 /**
