@@ -1,326 +1,775 @@
 <template>
-  <div class="book-detail-view">
-    <el-container>
-      <div class="back-button">
-        <el-button @click="$router.back()" :icon="ArrowLeft">返回</el-button>
-      </div>
+  <div class="book-detail-demo">
+    <div class="page-shell">
+      <section class="panel intro-panel">
+        <div class="cover-block">
+          <el-image :src="book.cover" fit="cover" :alt="book.title" class="book-cover" @error="onCoverError">
+            <template #error>
+              <div class="cover-fallback">封面加载失败</div>
+            </template>
+          </el-image>
+        </div>
 
-      <div class="container">
-        <div class="page-card">
-          <div class="book-header">
-            <div class="container">
-              <el-row :gutter="40">
-                <el-col :xs="24" :sm="8" :md="6">
-                  <div class="book-cover">
-                    <el-image :src="book.cover" fit="cover" :alt="book.title">
-                      <template #error>
-                        <div class="image-slot">
-                          <QyIcon name="Picture"  />
-                        </div>
-                      </template>
-                    </el-image>
-                  </div>
-                </el-col>
-
-                <el-col :xs="24" :sm="16" :md="18">
-                  <div class="book-info">
-                    <h1 class="book-title">{{ book.title }}</h1>
-
-                    <div class="book-meta">
-                      <span class="author"><QyIcon name="User"  />{{ book.author }}</span>
-                      <span class="category"><QyIcon name="Collection"  />{{ book.categoryName }}</span>
-                      <el-tag :type="statusType">{{ statusText }}</el-tag>
-                    </div>
-
-                    <div class="book-tags" v-if="tags.length">
-                      <el-tag v-for="t in tags" :key="t" size="small">{{ t }}</el-tag>
-                    </div>
-
-                    <div class="book-stats">
-                      <div class="stat-item">
-                        <el-rate v-model="book.rating" disabled show-score text-color="#ff9900" />
-                        <span class="rating-count">({{ book.ratingCount }}人评分)</span>
-                      </div>
-                      <div class="stat-item">
-                        <QyIcon name="View"  />{{ formatNumber(book.viewCount) }} 阅读
-                      </div>
-                      <div class="stat-item">
-                        <QyIcon name="Star"  />{{ formatNumber(book.favoriteCount) }} 收藏
-                      </div>
-                      <div class="stat-item">
-                        <QyIcon name="Document"  />{{ book.wordCount }}字 · {{ book.chapterCount }}章
-                      </div>
-                    </div>
-
-                    <div class="book-actions">
-                      <el-button type="primary" size="large" @click="startReading">
-                        <QyIcon name="Reading"  />{{ hasProgress ? '继续阅读' : '开始阅读' }}
-                      </el-button>
-                      <el-button size="large" @click="addToShelf" :type="inShelf ? 'success' : 'default'">
-                        <QyIcon name="FolderAdd"  />{{ inShelf ? '已在书架' : '加入书架' }}
-                      </el-button>
-                      <el-button size="large" @click="toggleFavorite" :type="isFavorited ? 'warning' : 'default'">
-                        <QyIcon name="Star"  />{{ isFavorited ? '已收藏' : '收藏' }}
-                      </el-button>
-                      <el-button size="large" @click="copyLink">
-                        复制链接
-                      </el-button>
-                      <el-button size="large" @click="share">
-                        分享
-                      </el-button>
-                    </div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
+        <div class="info-block">
+          <div class="title-row">
+            <h1 class="title">{{ book.title }}</h1>
+            <span class="author">{{ book.author }} 著</span>
           </div>
 
-          <div class="book-content">
-            <div class="container">
-              <el-tabs v-model="activeTab">
-                <el-tab-pane label="简介" name="intro">
-                  <div class="book-description">
-                    <p>{{ book.description }}</p>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane label="目录" name="chapters">
-                  <div class="chapter-list">
-                    <div class="chapter-header">
-                      <span>共 {{ book.chapterCount }} 章</span>
-                      <el-button text @click="reverseChapterOrder">{{ isReversed ? '正序' : '倒序' }}</el-button>
-                    </div>
-                    <el-scrollbar max-height="600px">
-                      <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item" :class="{ 'is-read': chapter.isRead }" @click="readChapter(chapter.id)">
-                        <span class="chapter-title">{{ chapter.title }}</span>
-                        <span class="chapter-info">{{ chapter.wordCount }}字</span>
-                      </div>
-                    </el-scrollbar>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane label="评分与评价（演示）" name="rating">
-                  <div class="rating-section">
-                    <div class="rating-card">
-                      <div class="left">
-                        <div class="avg">{{ book.rating.toFixed(1) }}</div>
-                        <div class="count">共 {{ formatNumber(book.ratingCount) }} 人评分</div>
-                      </div>
-                      <div class="right">
-                        <el-rate v-model="userRating" show-score allow-half />
-                        <el-input v-model="ratingText" placeholder="写下你的评分感受（演示）" />
-                        <el-button type="primary" @click="submitRating">提交评分（演示）</el-button>
-                      </div>
-                    </div>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane label="书评（演示）" name="comments">
-                  <div class="comments-container">
-                    <div class="comment-post">
-                      <el-input v-model="commentInput" type="textarea" :rows="4" placeholder="写下你的看法（演示）..." maxlength="300" show-word-limit />
-                      <div class="comment-actions">
-                        <el-button type="primary" @click="submitComment">发表（演示）</el-button>
-                      </div>
-                    </div>
-                    <div class="comments-list">
-                      <div v-if="mockComments.length === 0" class="empty-comments">
-                        <el-empty description="暂无评论（演示）" />
-                      </div>
-                      <div v-for="c in mockComments" :key="c.id" class="comment-item">
-                        <div class="comment-header">
-                          <strong>{{ c.user }}</strong>
-                          <span class="time">{{ c.time }}</span>
-                        </div>
-                        <div class="comment-content">{{ c.content }}</div>
-                      </div>
-                      <div v-if="hasMoreComments" class="load-more">
-                        <el-button @click="loadMoreComments" :loading="loadingMore">加载更多（演示）</el-button>
-                      </div>
-                    </div>
-                  </div>
-                </el-tab-pane>
-              </el-tabs>
-            </div>
+          <div class="tags-row">
+            <el-tag v-for="tag in book.tags" :key="tag" type="warning" effect="plain" round>{{ tag }}</el-tag>
           </div>
 
-          <div v-if="recommendedBooks.length" class="recommended-section">
-            <div class="container">
-              <h2 class="section-title">相似推荐（演示）</h2>
-              <el-row :gutter="20">
-                <el-col v-for="item in recommendedBooks" :key="item.id" :xs="12" :sm="8" :md="6" :lg="4">
-                  <div class="book-card" @click="goToBook(item.id)">
-                    <el-image :src="item.cover" fit="cover">
-                      <template #error>
-                        <div class="image-slot"><QyIcon name="Picture"  /></div>
-                      </template>
-                    </el-image>
-                    <h4>{{ item.title }}</h4>
-                    <p>{{ item.author }}</p>
-                  </div>
-                </el-col>
-              </el-row>
+          <div class="meta-row">
+            <span class="status">{{ book.statusText }}</span>
+            <span class="updated">最后更新：{{ book.lastUpdate }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span>总点击：<b>{{ formatCompact(book.viewCount) }}</b></span>
+            <span>总收藏：<b>{{ formatCompact(book.favoriteCount) }}</b></span>
+            <span>总字数：<b>{{ book.wordCount }}</b></span>
+          </div>
+
+          <div class="chapter-info-row">
+            <span>章节总数：{{ chapters.length }} 章</span>
+            <span>最新章节：{{ latestChapterTitle }}</span>
+          </div>
+
+          <div class="rating-row">
+            <span class="rating-label">评分概览</span>
+            <div class="star-readonly star-summary" aria-label="评分概览">
+              <span v-for="i in 5" :key="`sum-${i}`" class="star-slot">
+                <span class="star-bg">★</span>
+                <span class="star-fg" :style="{ width: `${starFillPercent(i, toHalfStar(avgRating))}%` }">★</span>
+              </span>
             </div>
+            <span class="rating-value">{{ avgRating.toFixed(1) }}</span>
+            <span class="rating-count">{{ ratingCount }} 人评分</span>
+          </div>
+
+          <div class="rating-action-row">
+            <span class="rating-label">我的评分</span>
+            <el-rate v-model="userRating" allow-half class="rate-control rate-action" />
+            <el-button type="warning" plain @click="submitRating">提交评分</el-button>
+          </div>
+
+          <div class="action-row">
+            <el-button type="danger" size="large" @click="startReading">立即阅读</el-button>
+            <el-button size="large" @click="addShelf">放入书架</el-button>
+            <el-button size="large" :type="isFavorited ? 'warning' : 'default'" @click="toggleFavorite">
+              {{ isFavorited ? '已收藏' : '收藏作品' }}
+            </el-button>
+            <el-button size="large" @click="subscribeBook">订阅</el-button>
+            <el-button size="large" plain @click="jumpToRating">去评分</el-button>
+            <el-button size="large" plain @click="jumpToComment">写评论</el-button>
+          </div>
+
+          <div class="intro-text">
+            <h3>作品简介</h3>
+            <p>{{ book.introduction }}</p>
           </div>
         </div>
-      </div>
-    </el-container>
+      </section>
+
+      <section class="panel chapter-panel">
+        <div class="panel-title-row">
+          <h2>章节目录</h2>
+          <el-button text @click="toggleOrder">{{ reverseOrder ? '正序' : '倒序' }}</el-button>
+        </div>
+        <div class="chapter-grid">
+          <button
+            v-for="chapter in visibleChapters"
+            :key="chapter.id"
+            class="chapter-item"
+            type="button"
+            @click="openChapter(chapter.id)"
+          >
+            {{ chapter.title }}
+          </button>
+        </div>
+        <div class="more-row" v-if="!expanded">
+          <el-button text type="warning" @click="expanded = true">展开更多目录</el-button>
+        </div>
+      </section>
+
+      <section class="panel comment-panel">
+        <div class="panel-title-row">
+          <h2>书评区</h2>
+          <span>书评总数量：{{ comments.length }} 条</span>
+        </div>
+
+        <div ref="commentEditorRef" class="comment-editor">
+          <div class="comment-rating-row">
+            <span>我的评分（1-5星）</span>
+            <el-rate v-model="commentRating" allow-half :max="5" class="rate-control rate-comment-input" />
+          </div>
+          <el-input
+            v-model="commentInput"
+            type="textarea"
+            :rows="5"
+            resize="none"
+            maxlength="1000"
+            show-word-limit
+            placeholder="快来吐槽这本书吧，注意文明用语哦"
+          />
+          <div class="editor-action">
+            <el-button type="warning" @click="submitComment">发表</el-button>
+          </div>
+        </div>
+
+        <div class="comment-list">
+          <article v-for="item in comments" :key="item.id" class="comment-item">
+            <header>
+              <strong>{{ item.user }}</strong>
+              <span>{{ item.time }}</span>
+            </header>
+            <div class="comment-meta">
+              <div class="star-readonly star-comment" aria-label="评论评分">
+                <span v-for="i in 5" :key="`${item.id}-${i}`" class="star-slot">
+                  <span class="star-bg">★</span>
+                  <span class="star-fg" :style="{ width: `${starFillPercent(i, toHalfStar(item.rating))}%` }">★</span>
+                </span>
+              </div>
+            </div>
+            <p>{{ item.content }}</p>
+            <div class="comment-actions-row">
+              <el-button text type="primary" @click="toggleReplyEditor(item.id)">
+                {{ activeReplyId === item.id ? '取消回复' : '回复' }}
+              </el-button>
+              <el-button text @click="collectComment(item.id)">
+                收藏({{ item.collectCount }})
+              </el-button>
+            </div>
+            <div v-if="activeReplyId === item.id" class="reply-editor">
+              <el-input
+                v-model="replyDraft"
+                type="textarea"
+                :rows="2"
+                resize="none"
+                maxlength="300"
+                show-word-limit
+                placeholder="请输入回复内容"
+              />
+              <div class="reply-editor-action">
+                <el-button type="warning" size="small" @click="submitReply(item.id)">发送回复</el-button>
+              </div>
+            </div>
+            <div v-if="item.replies.length" class="reply-list">
+              <div v-for="reply in item.replies" :key="reply.id" class="reply-item">
+                <span class="reply-user">{{ reply.user }}：</span>
+                <span class="reply-content">{{ reply.content }}</span>
+                <span class="reply-time">{{ reply.time }}</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
-// Mock data (no API/auth required)
+import defaultBookCover from '@/assets/default-book-cover.svg'
+import {
+  createYunlanChapterList,
+  yunlanBookMeta
+} from '@/modules/bookstore/yunlanDemo.mock'
+import { yunlanInitialComments, type YunlanComment } from '@/modules/bookstore/comment.mock'
+
+interface CommentReply {
+  id: string
+  user: string
+  content: string
+  time: string
+}
+
 const router = useRouter()
-const activeTab = ref('intro')
-const isReversed = ref(false)
+
+const book = ref({ ...yunlanBookMeta })
+const chapters = ref(createYunlanChapterList())
+
+const reverseOrder = ref(false)
+const expanded = ref(false)
+const visibleChapters = computed(() => {
+  const base = reverseOrder.value ? [...chapters.value].reverse() : chapters.value
+  return expanded.value ? base : base.slice(0, 18)
+})
+const latestChapterTitle = computed(() => {
+  const last = chapters.value[chapters.value.length - 1]
+  return last ? last.title : '暂无章节'
+})
+
+const userRating = ref(4.5)
+const avgRating = ref(4.7)
+const ratingCount = ref(1573)
 const isFavorited = ref(false)
-const inShelf = ref(false)
-const tags = ref(['奇幻', '冒险', '经典', '热血'])
-
-const book = ref({
-  id: 'demo-book-1',
-  title: '演示书籍标题',
-  author: '演示作者',
-  categoryName: '演示分类',
-  status: 'serializing',
-  rating: 4.5,
-  ratingCount: 1234,
-  viewCount: 56789,
-  favoriteCount: 2345,
-  wordCount: 356000,
-  chapterCount: 12,
-  cover: 'https://via.placeholder.com/300x400?text=Demo+Book',
-  description: '这是一个用于验证页面布局的演示数据，不依赖后端接口。'
-})
-
-const chapters = ref(
-  Array.from({ length: 12 }).map((_, i) => ({
-    id: `ch-${i + 1}`,
-    title: `第${i + 1}章 演示章节标题`,
-    isRead: i < 2,
-    wordCount: 3000 + i * 100
-  }))
-)
-
-const recommendedBooks = ref(
-  Array.from({ length: 6 }).map((_, i) => ({
-    id: `rec-${i + 1}`,
-    title: `推荐书籍 ${i + 1}`,
-    author: '演示作者',
-    cover: `https://via.placeholder.com/300x400?text=Rec+${i + 1}`
-  }))
-)
-
-const hasProgress = computed(() => false)
-const statusType = computed(() => (book.value.status === 'completed' ? 'success' : 'warning'))
-const statusText = computed(() => {
-  const map: Record<string, string> = { serializing: '连载中', completed: '已完结', paused: '暂停' }
-  return map[book.value.status] || book.value.status
-})
-const displayedChapters = computed(() => (isReversed.value ? [...chapters.value].reverse() : chapters.value))
-
-const formatNumber = (num?: number): string => {
-  if (typeof num !== 'number') return '0'
-  if (num >= 10000) return (num / 10000).toFixed(1) + '万'
-  if (num >= 1000) return (num / 1000).toFixed(1) + '千'
-  return num.toString()
-}
-
-const startReading = () => {
-  if (chapters.value.length > 0) {
-    message.success(`开始阅读：${chapters.value[0].title}`)
-  } else {
-    message.warning('暂无章节')
-  }
-}
-const readChapter = (id: string) => message.info(`阅读章节：${id}`)
-const reverseChapterOrder = () => (isReversed.value = !isReversed.value)
-const addToShelf = () => {
-  inShelf.value = true
-  message.success('已加入书架（演示）')
-}
-const toggleFavorite = () => {
-  isFavorited.value = !isFavorited.value
-  message.success(isFavorited.value ? '收藏成功（演示）' : '取消收藏（演示）')
-}
-const copyLink = async () => {
-  const url = location.origin + '/demo/book-detail'
-  await navigator.clipboard.writeText(url)
-  message.success('链接已复制（演示）')
-}
-const share = () => {
-  message.info('分享功能演示：可接入 Web Share API 或自定义弹窗')
-}
-const goToBook = (id: string) => router.push({ path: '/demo/book-detail', query: { rec: id } })
-
-const userRating = ref(4)
-const ratingText = ref('')
-const submitRating = () => {
-  message.success(`评分成功（演示）：${userRating.value} ⭐`)
-  ratingText.value = ''
-}
 
 const commentInput = ref('')
-const mockComments = ref(Array.from({ length: 5 }).map((_, i) => ({ id: 'c' + i, user: '用户' + (i + 1), time: '刚刚', content: '这是一条演示评论 ' + (i + 1) })))
-const hasMoreComments = ref(true)
-const loadingMore = ref(false)
-const submitComment = () => {
-  if (!commentInput.value.trim()) {
-    message.warning('请输入评论内容（演示）')
-    return
-  }
-  mockComments.value.unshift({ id: 'c' + Math.random().toString(36).slice(2), user: '你', time: '刚刚', content: commentInput.value })
-  commentInput.value = ''
-  message.success('发表成功（演示）')
-}
-const loadMoreComments = async () => {
-  loadingMore.value = true
-  await new Promise(r => setTimeout(r, 600))
-  const more = Array.from({ length: 3 }).map((_, i) => ({ id: 'm' + Math.random().toString(36).slice(2), user: '更多用户', time: '1分钟前', content: '更多演示评论 ' + (i + 1) }))
-  mockComments.value.push(...more)
-  hasMoreComments.value = mockComments.value.length < 20
-  loadingMore.value = false
+const commentRating = ref(4)
+const commentEditorRef = ref<HTMLElement | null>(null)
+const activeReplyId = ref<string | null>(null)
+const replyDraft = ref('')
+const comments = ref<YunlanComment[]>(
+  yunlanInitialComments.map(item => ({
+    ...item,
+    replies: item.replies.map((reply: CommentReply) => ({ ...reply }))
+  }))
+)
+
+const formatCompact = (value: number): string => {
+  if (value >= 10000) return `${(value / 10000).toFixed(1)}万`
+  return String(value)
 }
 
-onMounted(() => {
-  // nothing to fetch in demo
-})
+const startReading = async () => {
+  const firstId = chapters.value[0]?.id
+  if (!firstId) {
+    message.warning('暂无章节')
+    return
+  }
+  await router.push({ path: `/reader/${firstId}`, query: { demo: 'yunlan', from: 'bookstore-demo' } })
+}
+const addShelf = () => message.success('已加入书架（演示）')
+const subscribeBook = () => message.success('订阅成功（演示）')
+const toggleFavorite = () => {
+  isFavorited.value = !isFavorited.value
+  book.value.favoriteCount += isFavorited.value ? 1 : -1
+  message.success(isFavorited.value ? '收藏成功（演示）' : '已取消收藏（演示）')
+}
+const openChapter = (id: string) => {
+  const idx = chapters.value.findIndex(ch => ch.id === id)
+  if (idx < 0) {
+    message.warning('章节不存在')
+    return
+  }
+  void router.push({ path: `/reader/${id}`, query: { demo: 'yunlan', from: 'bookstore-demo' } })
+}
+const toggleOrder = () => (reverseOrder.value = !reverseOrder.value)
+const onCoverError = () => {
+  book.value.cover = defaultBookCover
+}
+
+const submitRating = () => {
+  avgRating.value = Number(((avgRating.value * ratingCount.value + userRating.value) / (ratingCount.value + 1)).toFixed(1))
+  ratingCount.value += 1
+  message.success('评分成功（演示）')
+}
+
+const submitComment = () => {
+  const content = commentInput.value.trim()
+  if (!content) {
+    message.warning('请输入评论内容')
+    return
+  }
+  if (!commentRating.value) {
+    message.warning('请先进行1-5星评分')
+    return
+  }
+  comments.value.unshift({
+    id: `c-${Date.now()}`,
+    user: '当前用户',
+    time: '刚刚',
+    content,
+    rating: commentRating.value,
+    collectCount: 0,
+    replies: []
+  })
+  commentInput.value = ''
+  commentRating.value = 4
+  message.success('评论已发布（演示）')
+}
+
+const toggleReplyEditor = (commentId: string) => {
+  if (activeReplyId.value === commentId) {
+    activeReplyId.value = null
+    replyDraft.value = ''
+    return
+  }
+  activeReplyId.value = commentId
+  replyDraft.value = ''
+}
+
+const submitReply = (commentId: string) => {
+  const content = replyDraft.value.trim()
+  if (!content) {
+    message.warning('请输入回复内容')
+    return
+  }
+  const target = comments.value.find(item => item.id === commentId)
+  if (!target) return
+  target.replies.push({
+    id: `r-${Date.now()}`,
+    user: '当前用户',
+    content,
+    time: '刚刚'
+  })
+  replyDraft.value = ''
+  activeReplyId.value = null
+  message.success('回复成功（演示）')
+}
+
+const collectComment = (commentId: string) => {
+  const target = comments.value.find(item => item.id === commentId)
+  if (!target) return
+  target.collectCount += 1
+  message.success('已收藏该评论（演示）')
+}
+
+const toHalfStar = (value: number): number => {
+  if (!Number.isFinite(value) || value <= 0) return 0
+  if (value < 1) return 0.5
+  return Math.floor(value * 2) / 2
+}
+
+const starFillPercent = (index: number, value: number): number => {
+  const fill = value - (index - 1)
+  if (fill >= 1) return 100
+  if (fill <= 0) return 0
+  return fill * 100
+}
+
+const jumpToComment = async () => {
+  await nextTick()
+  commentEditorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const jumpToRating = async () => {
+  await jumpToComment()
+}
 </script>
 
 <style scoped lang="scss">
-.book-detail-view { min-height: 100vh; background: #f7f8fc; }
-.back-button { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.book-cover .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 12px; border: 1px solid #e5e7eb; }
-.book-info .book-title { font-size: 32px; font-weight: 800; margin: 0 0 12px 0; color: #111827; letter-spacing: .3px; }
-.book-info .book-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; color: #374151; flex-wrap: wrap; }
-.book-tags { display: flex; gap: 8px; margin-bottom: 12px; }
-.book-info .book-stats { display: flex; gap: 24px; margin: 16px 0; flex-wrap: wrap; color: #6b7280; }
-.book-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.book-content { background: white; padding: 24px 0; margin-bottom: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
-.book-description { padding: 20px; line-height: 1.8; color: #374151; white-space: pre-wrap; }
-.chapter-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #ebeef5; }
-.chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background .2s; }
-.chapter-item:hover { background-color: #f9fafb; }
-.recommended-section { background: white; padding: 32px 0; border-radius: 12px; border: 1px solid #e5e7eb; }
-.recommended-section .section-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #111827; }
-.recommended-section .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
-.image-slot { display: flex; align-items: center; justify-content: center; height: 100%; background-color: #f3f4f6; color: #9ca3af; font-size: 30px; border-radius: 10px; }
-.rating-section { padding: 16px; }
-.rating-card { display: flex; gap: 24px; padding: 20px; background: #fafafa; border: 1px solid #eee; border-radius: 12px; }
-.rating-card .left { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 20px; background: white; border-radius: 12px; border: 1px solid #eee; min-width: 140px; }
-.rating-card .avg { font-size: 36px; font-weight: 800; color: #111827; }
-.rating-card .count { color: #6b7280; font-size: 12px; }
-.rating-card .right { flex: 1; display: flex; gap: 10px; align-items: center; }
-.comments-container { padding: 16px; }
-.comment-post { margin-bottom: 16px; padding: 16px; background: #fafafa; border: 1px solid #eee; border-radius: 12px; }
-.comment-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
-.comment-item { padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
-.comment-header { display: flex; justify-content: space-between; color: #374151; margin-bottom: 6px; }
-.comment-content { color: #4b5563; }
-@media (max-width: 768px) { .book-info .book-title { font-size: 24px; } .rating-card { flex-direction: column; } }
+.book-detail-demo {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 20px 0 28px;
+}
+
+.page-shell {
+  width: min(1120px, calc(100vw - 32px));
+  margin: 0 auto;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 14px;
+}
+
+.intro-panel {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+}
+
+.book-cover {
+  width: 220px;
+  height: 310px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cover-fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #909399;
+  background: #f5f7fa;
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.author {
+  color: #409eff;
+  font-size: 22px;
+}
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: #606266;
+  margin-bottom: 12px;
+}
+
+.status {
+  color: #e6a23c;
+  font-weight: 700;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  color: #606266;
+  margin-bottom: 12px;
+}
+
+.stat-row b {
+  color: #f56c6c;
+  font-size: 28px;
+  font-style: italic;
+}
+
+.chapter-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: #606266;
+  margin-bottom: 10px;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 6px;
+}
+
+.rating-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rating-label {
+  color: #606266;
+  min-width: 64px;
+}
+
+.rating-value {
+  color: #303133;
+  font-weight: 600;
+}
+
+.rating-count {
+  color: #909399;
+}
+
+.star-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.star-slot {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+}
+
+.star-bg,
+.star-fg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  line-height: 1em;
+}
+
+.star-bg {
+  color: #d4d7de;
+}
+
+.star-fg {
+  color: #f5b301;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.star-summary {
+  font-size: 16px;
+}
+
+.star-comment {
+  font-size: 14px;
+}
+
+.rate-control {
+  --el-rate-icon-size: 18px;
+  --el-rate-fill-color: #f5b301;
+  --el-rate-void-color: #d4d7de;
+  --el-rate-disabled-void-color: #d4d7de;
+}
+
+.rate-summary {
+  --el-rate-icon-size: 16px;
+}
+
+.rate-comment-item {
+  --el-rate-icon-size: 14px;
+}
+
+.rate-comment-input {
+  --el-rate-icon-size: 18px;
+}
+
+.rate-action {
+  --el-rate-icon-size: 20px;
+  --el-rate-void-color: #d4d7de;
+  --el-rate-disabled-void-color: #d4d7de;
+}
+
+.rate-control :deep(.el-rate__icon.is-active),
+.rate-control :deep(.el-rate__icon.is-half) {
+  color: #f5b301 !important;
+}
+
+.rating-action-row :deep(.el-rate) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.rating-action-row :deep(.el-rate__item) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--el-rate-icon-size);
+  height: var(--el-rate-icon-size);
+  line-height: 1;
+}
+
+.rating-action-row :deep(.el-rate__icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: none;
+}
+
+.rating-action-row :deep(.el-rate__icon .el-icon),
+.rating-action-row :deep(.el-rate__icon .el-icon svg) {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+.rating-action-row :deep(.el-rate__icon:not(.is-active):not(.is-half)) {
+  color: #d4d7de !important;
+}
+
+.intro-text h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.intro-text p {
+  margin: 0;
+  color: #303133;
+  line-height: 1.75;
+}
+
+.panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-title-row h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #111827;
+}
+
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 18px;
+}
+
+.chapter-item {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #303133;
+  font-size: 17px;
+  line-height: 1.4;
+  padding: 7px 0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapter-item:hover {
+  color: #e6a23c;
+}
+
+.more-row {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.comment-editor {
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.comment-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: #606266;
+}
+
+.comment-editor :deep(.el-textarea) {
+  width: 100%;
+}
+
+.comment-editor :deep(.el-textarea__inner) {
+  resize: none;
+  min-height: 160px;
+}
+
+.editor-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.comment-list {
+  border-top: 1px solid #ebeef5;
+}
+
+.comment-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.comment-item header {
+  display: flex;
+  justify-content: space-between;
+  color: #606266;
+  margin-bottom: 6px;
+}
+
+.comment-item p {
+  margin: 0;
+  color: #303133;
+}
+
+.comment-meta {
+  margin: 6px 0 8px;
+}
+
+.comment-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.reply-editor {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+.reply-editor-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.reply-list {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 4px;
+}
+
+.reply-item {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.reply-user {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.reply-time {
+  margin-left: 8px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .intro-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .book-cover {
+    width: 180px;
+    height: 250px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .author {
+    font-size: 20px;
+  }
+
+  .panel-title-row h2 {
+    font-size: 22px;
+  }
+
+  .chapter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chapter-item {
+    font-size: 16px;
+  }
+}
 </style>

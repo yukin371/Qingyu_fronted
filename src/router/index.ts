@@ -149,12 +149,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/demo/book-detail',
-    name: 'BookDetailStandaloneDemo',
-    component: () => import('@/modules/bookstore/views/BookDetailDemo.vue'),
-    meta: {
-      title: '书籍详情演示',
-      layout: 'blank'
-    }
+    redirect: '/bookstore/books-demo'
   },
 
   // 404 处理 (必须放在最后)

@@ -497,7 +497,7 @@ const demoPages = ref<DemoPage[]>([
     componentCount: 5,
     lastUpdated: '2024-02-09',
     new: true,
-    route: '/demo/book-detail',
+    route: '/bookstore/books-demo',
     business: true
   },
   {
@@ -551,7 +551,7 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
     items: [
       { key: 'bookstore-home', label: '书城首页', route: '/bookstore' },
       { key: 'bookstore-browse', label: '浏览书籍', route: '/bookstore/browse' },
-      { key: 'bookstore-detail', label: '书籍详情', route: '/demo/book-detail' },
+      { key: 'bookstore-detail', label: '书籍详情', route: '/bookstore/books-demo' },
       { key: 'reader-demo', label: '章节阅读', route: '/bookstore/reader-demo' },
       { key: 'community', label: '社区论坛', route: '/community' },
       { key: 'collections', label: '收藏管理', route: '/reading/collections' },
@@ -611,9 +611,9 @@ const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
       { section: '5.1.1', title: '登录注册界面', route: '/login', frontendFile: 'src/modules/user/views/AuthenticationView.vue', backendFile: 'Qingyu_backend/service/auth/auth_service.go' },
       { section: '5.1.2', title: '首页界面', route: '/bookstore', frontendFile: 'src/modules/bookstore/views/HomeView.vue', backendFile: 'Qingyu_backend/service/bookstore/bookstore_service.go' },
       { section: '5.1.3', title: '书城浏览界面', route: '/bookstore/browse', frontendFile: 'src/modules/bookstore/views/BrowseBooksView.vue', backendFile: 'Qingyu_backend/service/search/search.go' },
-      { section: '5.1.4', title: '书籍详情界面', route: '/demo/book-detail', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/bookstore/book_detail_service.go' },
+      { section: '5.1.4', title: '书籍详情界面', route: '/bookstore/books-demo', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/bookstore/book_detail_service.go' },
       { section: '5.1.5', title: '章节阅读界面', route: '/bookstore/reader-demo', frontendFile: 'src/modules/reader/views/ReaderView.vue', backendFile: 'Qingyu_backend/service/reader/chapter_service.go' },
-      { section: '5.1.6', title: '评论发表界面', route: '/demo/book-detail', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/social/comment_service.go' },
+      { section: '5.1.6', title: '评论发表界面', route: '/bookstore/books-demo', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/social/comment_service.go' },
       { section: '5.1.7', title: '收藏管理界面', route: '/reading/collections', frontendFile: 'src/modules/reader/views/CollectionsView.vue', backendFile: 'Qingyu_backend/service/reader/collection_service.go' },
       { section: '5.1.8', title: '个人中心界面', route: '/account/profile', frontendFile: 'src/modules/user/views/ProfileView.vue', backendFile: 'Qingyu_backend/service/user/user_service.go' }
     ]
