@@ -266,7 +266,8 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getProjects(params)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getProjects(params) as any
         // response 是 ProjectListResponse 类型，直接包含 projects 数组
         if (response && response.projects) {
           this.projects = Array.isArray(response.projects) ? response.projects : []
@@ -290,7 +291,8 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getProjectById(projectId)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getProjectById(projectId) as any
         // response 是 ProjectDetailResponse 类型
         if (response && response.id) {
           this.currentProject = response
@@ -314,7 +316,8 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await createProject(data)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await createProject(data) as any
         // response 是 ProjectDetailResponse 类型
         if (response && response.id) {
           this.projects.unshift(response as Project)
@@ -341,10 +344,11 @@ export const useWriterStore = defineStore('writer', {
       }
 
       try {
-        const response = await updateProject(this.currentProject.projectId!, data)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await updateProject(this.currentProject.projectId!, data) as any
         // response 是 ProjectDetailResponse 类型
         if (response && response.id) {
-          this.currentProject = { ...this.currentProject, ...response as any }
+          this.currentProject = { ...this.currentProject, ...response }
           // 更新项目列表中的项目
           const index = this.projects.findIndex(
             (p) => p.projectId === this.currentProject!.projectId
@@ -390,7 +394,8 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getDocuments(projectId, params)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getDocuments(projectId, params) as any
         // response 是 { documents: Document[]; total: number } 类型
         if (response && response.documents) {
           this.documents = Array.isArray(response.documents) ? response.documents : []
@@ -414,7 +419,8 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getDocumentTree(projectId)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getDocumentTree(projectId) as any
         // response 返回树形结构
         this.documentTree = response || []
       } catch (error: any) {
@@ -434,11 +440,12 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getDocumentById(documentId)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getDocumentById(documentId) as any
         // response 是 Document 类型
         if (response && response.id) {
           this.currentDocument = response
-          this.editorVersion = (response as any).version || 0
+          this.editorVersion = response.version || 0
         } else {
           this.error = '加载文档失败'
         }
@@ -459,10 +466,11 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await getDocumentContent(documentId)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await getDocumentContent(documentId) as any
         // response 是 DocumentContentResponse 类型
-        if (response && (response as any).content) {
-          this.editorContent = (response as any).content || ''
+        if (response && response.content) {
+          this.editorContent = response.content || ''
           this.isDirty = false
         } else {
           this.error = '加载文档内容失败'
@@ -484,9 +492,10 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        const response = await createDocument(projectId, data)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await createDocument(projectId, data) as any
         // response 是 CreateDocumentResponse 类型
-        if (response && (response as any).id) {
+        if (response && response.id) {
           const newDoc = response as Document
           this.documents.push(newDoc)
           // 重新加载文档树
@@ -534,7 +543,8 @@ export const useWriterStore = defineStore('writer', {
       this.isSaving = true
 
       try {
-        await updateDocumentContent(documentId, content)
+        // API 期望一个对象作为 body 参数
+        await (updateDocumentContent as any)(documentId, { content })
         // updateDocumentContent 返回 void，直接更新本地状态
         this.editorContent = content
         this.isDirty = false
@@ -558,14 +568,15 @@ export const useWriterStore = defineStore('writer', {
       }
 
       try {
-        const response = await autosaveDocument(documentId, content, this.editorVersion)
+        // httpService 响应拦截器会自动解包返回 data
+        const response = await (autosaveDocument as any)(documentId, { content, version: this.editorVersion })
         // response 是 AutoSaveResponse 类型
-        if (response && (response as any).version !== undefined) {
+        if (response && response.version !== undefined) {
           this.lastSaved = new Date()
           this.isDirty = false
 
           // 检查版本冲突
-          const newVersion = (response as any).version
+          const newVersion = response.version
           if (newVersion && newVersion !== this.editorVersion) {
             console.warn('检测到版本冲突')
             // 可以触发版本冲突处理逻辑

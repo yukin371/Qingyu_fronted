@@ -5,6 +5,7 @@ import type {
   BatchOperation,
   BatchOperationProgress,
   SubmitBatchOperationRequest,
+  SubmitBatchOperationResponse,
 } from '../types/batch-operation'
 
 export const useBatchOperationStore = defineStore('writer-batch-operation', () => {
@@ -87,7 +88,8 @@ export const useBatchOperationStore = defineStore('writer-batch-operation', () =
     error.value = null
 
     try {
-      const response = await batchOperationApi.submit(request)
+      // httpService 响应拦截器会自动解包返回 data，这里使用类型断言
+      const response = await batchOperationApi.submit(request) as unknown as SubmitBatchOperationResponse
 
       // 保存当前操作
       currentOperation.value = {
@@ -159,7 +161,8 @@ export const useBatchOperationStore = defineStore('writer-batch-operation', () =
    */
   async function fetchStatus(batchId: string) {
     try {
-      const operation = await batchOperationApi.getStatus(batchId)
+      // httpService 响应拦截器会自动解包返回 data
+      const operation = await batchOperationApi.getStatus(batchId) as unknown as BatchOperation
       currentOperation.value = operation
 
       // 如果操作完成，停止轮询
@@ -168,7 +171,7 @@ export const useBatchOperationStore = defineStore('writer-batch-operation', () =
       }
 
       // 更新进度
-      const operationProgress = await batchOperationApi.getProgress(batchId)
+      const operationProgress = await batchOperationApi.getProgress(batchId) as unknown as BatchOperationProgress
       progress.value = operationProgress
     } catch (err: any) {
       // 如果是404错误，说明操作已被删除，停止轮询

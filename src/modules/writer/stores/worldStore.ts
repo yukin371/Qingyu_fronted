@@ -16,9 +16,10 @@ export const useWorldStore = defineStore('writer-world', () => {
 
   async function loadLocations(projectId: string) {
     // 并行请求：同时获取列表(用于搜索/关系计算)和树(用于展示)
+    // httpService 响应拦截器会自动解包返回 data
     const [listRes, treeRes] = await Promise.all([
-      locationApi.list(projectId),
-      locationApi.getTree(projectId),
+      locationApi.list(projectId) as unknown as Location[],
+      locationApi.getTree(projectId) as unknown as Location[],
     ])
 
     locations.value = listRes
@@ -28,14 +29,15 @@ export const useWorldStore = defineStore('writer-world', () => {
   // Actions
   async function loadAll(projectId: string) {
     // 并行加载，提升速度
+    // httpService 响应拦截器会自动解包返回 data
     const [chars, locs, times] = await Promise.all([
-      characterApi.list(projectId),
-      locationApi.list ? locationApi.list(projectId) : Promise.resolve([]),
-      timelineApi.list(projectId),
+      characterApi.list(projectId) as unknown as Character[],
+      locationApi.list ? locationApi.list(projectId) as unknown as Location[] : Promise.resolve([]),
+      timelineApi.list(projectId) as unknown as Timeline[],
     ])
 
     characters.value = chars
-    locations.value = locs as Location[]
+    locations.value = locs
     timelines.value = times
   }
 

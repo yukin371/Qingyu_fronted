@@ -78,7 +78,7 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
         const width = panelId === 'left' ? data.leftWidth : data.rightWidth
         return width !== undefined && width !== null
       }
-    } catch (error) {
+    } catch {
       // 忽略错误
     }
     return false
@@ -210,7 +210,7 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   /**
    * 处理触摸结束
    */
-  const handleTouchEnd = (event: TouchEvent) => {
+  const handleTouchEnd = () => {
     if (!isDragging.value) return
     stopDrag()
   }
