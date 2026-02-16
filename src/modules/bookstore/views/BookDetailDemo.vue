@@ -248,14 +248,14 @@ const toggleFavorite = () => {
   message.success(isFavorited.value ? '收藏成功（演示）' : '取消收藏（演示）')
 }
 const copyLink = async () => {
-  const url = location.origin + '/bookstore/books-demo'
+  const url = location.origin + '/demo/book-detail'
   await navigator.clipboard.writeText(url)
   message.success('链接已复制（演示）')
 }
 const share = () => {
   message.info('分享功能演示：可接入 Web Share API 或自定义弹窗')
 }
-const goToBook = (id: string) => router.push({ name: 'book-detail-demo', params: { id } })
+const goToBook = (id: string) => router.push({ path: '/demo/book-detail', query: { rec: id } })
 
 const userRating = ref(4)
 const ratingText = ref('')
@@ -292,24 +292,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.book-detail-view { min-height: 100vh; background: linear-gradient(180deg,#f7f8fc 0%,#f5f5f5 100%); }
+.book-detail-view { min-height: 100vh; background: #f7f8fc; }
 .back-button { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
-.hero { background: linear-gradient(135deg,#eef2ff 0%,#fdf2f8 100%); padding: 40px 0; margin-bottom: 20px; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.book-cover .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 12px; box-shadow: 0 10px 30px rgba(99,102,241,0.2); }
+.book-cover .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 12px; border: 1px solid #e5e7eb; }
 .book-info .book-title { font-size: 32px; font-weight: 800; margin: 0 0 12px 0; color: #111827; letter-spacing: .3px; }
 .book-info .book-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; color: #374151; flex-wrap: wrap; }
 .book-tags { display: flex; gap: 8px; margin-bottom: 12px; }
 .book-info .book-stats { display: flex; gap: 24px; margin: 16px 0; flex-wrap: wrap; color: #6b7280; }
 .book-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.book-content { background: white; padding: 24px 0; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+.book-content { background: white; padding: 24px 0; margin-bottom: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
 .book-description { padding: 20px; line-height: 1.8; color: #374151; white-space: pre-wrap; }
 .chapter-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #ebeef5; }
 .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background .2s; }
 .chapter-item:hover { background-color: #f9fafb; }
-.recommended-section { background: white; padding: 40px 0; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+.recommended-section { background: white; padding: 32px 0; border-radius: 12px; border: 1px solid #e5e7eb; }
 .recommended-section .section-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #111827; }
-.recommended-section .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.recommended-section .el-image { width: 100%; aspect-ratio: 3/4; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
 .image-slot { display: flex; align-items: center; justify-content: center; height: 100%; background-color: #f3f4f6; color: #9ca3af; font-size: 30px; border-radius: 10px; }
 .rating-section { padding: 16px; }
 .rating-card { display: flex; gap: 24px; padding: 20px; background: #fafafa; border: 1px solid #eee; border-radius: 12px; }

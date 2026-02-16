@@ -102,7 +102,15 @@ const MOCK_CATEGORY_TREE = [
   }
 ] as const
 
-const MOCK_LEAF_CATEGORIES = MOCK_CATEGORY_TREE.flatMap((item) => item.children)
+type MockLeafCategory = {
+  _id: string
+  name: string
+  slug: string
+}
+
+const MOCK_LEAF_CATEGORIES: MockLeafCategory[] = MOCK_CATEGORY_TREE.flatMap(
+  (item) => item.children as readonly MockLeafCategory[]
+)
 const MOCK_BOOK_POOL_SIZE = 360
 const MOCK_TAG_POOL = [
   '热血', '玄幻', '修仙', '都市', '科幻', '冒险', '机甲', '悬疑', '言情', '治愈'
@@ -119,6 +127,35 @@ const CATEGORY_TAG_MAP: Record<string, string[]> = {
   'cat-4-2': ['修仙', '都市', '悬疑'],
   'cat-5-1': ['冒险', '热血', '都市'],
   'cat-5-2': ['冒险', '玄幻', '科幻']
+}
+
+const CATEGORY_TITLE_CORES: Record<string, string[]> = {
+  'cat-1-1': ['星河骑士', '深空余烬', '银河哨兵', '天穹舰队', '零号跃迁', '黑域灯塔', '环轨遗民', '远星守望'],
+  'cat-1-2': ['逆时旅者', '钟摆尽头', '昨日回声', '时间褶皱', '裂隙档案', '平行归途', '未来备忘录', '因果边界'],
+  'cat-2-1': ['剑道独尊', '苍穹道印', '龙渊战歌', '九天神纹', '万象天书', '太古星宫', '灵墟剑主', '云荒圣域'],
+  'cat-2-2': ['龙血誓约', '银月王庭', '风暴巫歌', '黎明远征', '圣辉边境', '黑森林秘闻', '群岛法典', '王城余火'],
+  'cat-3-1': ['甜点日记', '雨巷旧梦', '烟火人间', '清晨地铁线', '微光咖啡馆', '日落便利店', '城市折页', '慢热心事'],
+  'cat-3-2': ['赛博侦探社', '都市仙尊', '夜行异闻录', '霓虹档案局', '零度共振', '超感回路', '异能法则', '城市暗面'],
+  'cat-4-1': ['青羽物语', '昆仑问道', '太乙山河', '剑开天门', '浮生道卷', '长生碑录', '灵霄古道', '青冥仙图'],
+  'cat-4-2': ['现代修真录', '灵气复苏后', '校园炼气士', '都市问道录', '地铁飞剑客', '公司有剑仙', '晨会御剑术', '高楼渡劫记'],
+  'cat-5-1': ['网游之神级牧师', '虚拟王座', '全服公告后', '神域开荒团', '终极副本线', '新手村传奇', '战术指挥官', '排行榜风云'],
+  'cat-5-2': ['异界龙骑', '开局降临异界', '游戏异世录', '存档重启后', '王都任务簿', '勇者补完计划', '地下城边疆', '传送门彼岸']
+}
+
+const TITLE_SUFFIXES = [
+  '黎明协议', '边境迷航', '灰烬纪元', '冰海坐标', '沉默法则',
+  '终局序章', '回响之城', '裂隙之外', '最后一站', '雾港来信',
+  '逆光远征', '失落航道', '风暴前夜', '白夜备忘', '群星见证'
+]
+
+function buildMockBookTitle(index: number, categoryId: string): string {
+  const categoryIndex = index % MOCK_LEAF_CATEGORIES.length
+  const round = Math.floor(index / MOCK_LEAF_CATEGORIES.length)
+  const cores = CATEGORY_TITLE_CORES[categoryId] || ['未知书名']
+  const core = cores[round % cores.length]
+  const suffix = TITLE_SUFFIXES[(round * 3 + categoryIndex) % TITLE_SUFFIXES.length]
+
+  return `${core}·${suffix}`
 }
 
 // ==================== 书城模块 Mock 数据 ====================
@@ -189,15 +226,11 @@ function getAnnouncements(): MockResponse {
 
 // ==================== 书籍数据生成器 ====================
 
-function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
+function generateBook(index: number, _type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
   const statuses = ['serializing', 'completed', 'paused']
-  const titles = [
-    '星河骑士', '青羽物语', '剑道独尊', '甜点日记', '赛博侦探社',
-    '异界龙骑', '时光信使', '都市仙尊', '网游之神级牧师', '商途无双'
-  ]
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
-  const title = titles[index % titles.length]
   const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
+  const title = buildMockBookTitle(index, category._id)
   const categoryTags = CATEGORY_TAG_MAP[category._id] || ['冒险', '热血', '科幻']
   const baseTag = categoryTags[index % categoryTags.length]
   const secondaryTag = categoryTags[(index + 1) % categoryTags.length]

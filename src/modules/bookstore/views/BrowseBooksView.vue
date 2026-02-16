@@ -1,10 +1,10 @@
 <template>
-  <div class="browse-books-view" data-testid="browse-books-view">
+  <div class="browse-books-view" :class="{ 'compact-mode': isSearchMode }" data-testid="browse-books-view">
     <div class="container">
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">探索书库</h1>
-        <p class="page-subtitle">发现你喜欢的精彩书籍</p>
+        <p v-if="!isSearchMode" class="page-subtitle">发现你喜欢的精彩书籍</p>
       </div>
 
       <!-- 搜索栏 -->
@@ -75,7 +75,7 @@
 
         <!-- 有数据 -->
         <div v-else-if="browseStore.books.length > 0">
-          <BookGrid :books="browseStore.books" />
+          <BookGrid :books="browseStore.books" :single-column="true" />
 
           <!-- 统一使用无限滚动加载 -->
           <div class="load-more-section">
@@ -175,6 +175,7 @@ const emptyStateConfig = computed(() => {
 
 const emptyStateType = computed(() => emptyStateConfig.value.type)
 const emptyStateDescription = computed(() => emptyStateConfig.value.description)
+const isSearchMode = computed(() => Boolean(browseStore.filters.q?.trim()))
 
 // 获取书籍数据
 const fetchBooks = async () => {
@@ -245,32 +246,32 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .browse-books-view {
-  max-width: 1400px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 40px 20px 60px;
+  padding: 4px 40px 24px;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 6px;
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 16px;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  line-height: 1.2;
+  white-space: nowrap;
+  margin-bottom: 0;
 }
 
 .page-subtitle {
-  font-size: 16px;
-  color: #666;
-  margin: 0;
+  display: none;
 }
 
 .search-section,
 .filter-section {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .flex-between {
@@ -284,11 +285,11 @@ onMounted(async () => {
 }
 
 .mb-4 {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .mb-6 {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .flex-1 {
@@ -300,7 +301,7 @@ onMounted(async () => {
 }
 
 .books-section {
-  min-height: 400px;
+  min-height: 320px;
 }
 
 .loading-state {
@@ -313,7 +314,7 @@ onMounted(async () => {
 
 /* 无限滚动区域 */
 .load-more-section {
-  margin-top: 32px;
+  margin-top: 20px;
   text-align: center;
   padding: 20px 0;
 }
@@ -366,26 +367,71 @@ onMounted(async () => {
   letter-spacing: 1px;
 }
 
-@media (max-width: 640px) {
-  .browse-books-view {
-    padding: 20px 16px 40px;
-  }
-
+.compact-mode {
   .page-header {
-    margin-bottom: 24px;
+    text-align: left;
+    margin-bottom: 6px;
   }
 
   .page-title {
-    font-size: 24px;
-  }
-
-  .page-subtitle {
-    font-size: 14px;
+    font-size: 17px;
+    margin-bottom: 0;
   }
 
   .search-section,
   .filter-section {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
+  }
+
+  .mb-4,
+  .mb-6 {
+    margin-bottom: 8px;
+  }
+
+  :deep(.search-bar) {
+    max-width: 100%;
+  }
+
+  :deep(.search-bar .input-wrapper) {
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+
+  :deep(.search-bar .search-input) {
+    font-size: 14px;
+  }
+
+  :deep(.filter-select .select-trigger) {
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  :deep(.tag-filter .tag-scroll-wrapper) {
+    padding: 4px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-books-view {
+    max-width: 100%;
+    padding: 2px 14px 16px;
+  }
+
+  .page-header {
+    margin-bottom: 4px;
+  }
+
+  .page-title {
+    font-size: 15px;
+  }
+
+  .page-subtitle {
+    display: none;
+  }
+
+  .search-section,
+  .filter-section {
+    margin-bottom: 10px;
   }
 
   .flex-between {
@@ -399,7 +445,7 @@ onMounted(async () => {
   }
 
   .load-more-section {
-    margin-top: 24px;
+    margin-top: 16px;
   }
 }
 </style>

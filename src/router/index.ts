@@ -138,6 +138,24 @@ const routes: RouteRecordRaw[] = [
       layout: 'blank'
     }
   },
+  {
+    path: '/demo/register-simple',
+    name: 'RegisterSimpleDemo',
+    component: () => import('@/views/demo/RegisterDemo.vue'),
+    meta: {
+      title: '简洁注册演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/book-detail',
+    name: 'BookDetailStandaloneDemo',
+    component: () => import('@/modules/bookstore/views/BookDetailDemo.vue'),
+    meta: {
+      title: '书籍详情演示',
+      layout: 'blank'
+    }
+  },
 
   // 404 处理 (必须放在最后)
   ...errorRoutes,

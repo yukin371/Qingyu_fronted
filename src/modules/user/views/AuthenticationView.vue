@@ -13,7 +13,6 @@
             <span class="logo-text">青羽阅读</span>
           </div>
           <h2 class="auth-title">{{ pageTitle }}</h2>
-          <p class="auth-subtitle">{{ pageSubtitle }}</p>
         </div>
 
         <div class="mode-switch">
@@ -207,7 +206,7 @@
           </template>
         </QyForm>
 
-        <div class="social-login" v-if="activeMode !== 'reset'">
+        <div class="social-login" v-if="activeMode === 'login'">
           <QyDivider content="第三方登录" content-position="center" />
           <div class="social-buttons">
             <button class="social-btn wechat" title="微信登录">W</button>
@@ -279,7 +278,6 @@ let emailTimer: ReturnType<typeof setInterval> | null = null
 let resetTimer: ReturnType<typeof setInterval> | null = null
 
 const pageTitle = computed(() => activeMode.value === 'login' ? '欢迎回来' : (activeMode.value === 'register' ? '创建账号' : '找回密码'))
-const pageSubtitle = computed(() => activeMode.value === 'login' ? '登录以继续您的阅读之旅' : (activeMode.value === 'register' ? '加入青羽，探索无限世界' : '安全重置您的账户密码'))
 
 // 密码强度
 const passwordStrength = computed(() => {
@@ -508,14 +506,15 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .auth-view {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
   background: linear-gradient(145deg, #f7fbff 0%, #eef5ff 50%, #f8fbff 100%);
-  padding: 20px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .bg-shape {
@@ -544,17 +543,16 @@ onBeforeUnmount(() => {
 
 .auth-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 460px;
   z-index: 1;
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  padding: 28px 26px 22px;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
-  backdrop-filter: blur(8px);
+  padding: 14px 12px 8px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
   position: relative;
   overflow: hidden;
 }
@@ -571,42 +569,42 @@ onBeforeUnmount(() => {
 
 .auth-header {
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
   cursor: pointer;
 }
 
 .logo-icon-wrapper {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: #ffffff;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo-icon {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
 }
 
 .logo-text {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 800;
   color: #1e3a5f;
 }
 
 .auth-title {
-  margin: 0 0 4px;
-  font-size: 24px;
+  margin: 0;
+  font-size: 20px;
   color: #111827;
 }
 
@@ -619,19 +617,19 @@ onBeforeUnmount(() => {
 .mode-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  padding: 5px;
+  padding: 4px;
   border-radius: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 
 .mode-btn {
   border: 0;
   border-radius: 8px;
-  min-height: 38px;
-  font-size: 14px;
+  min-height: 34px;
+  font-size: 13px;
   color: #64748b;
   background: transparent;
   cursor: pointer;
@@ -640,7 +638,8 @@ onBeforeUnmount(() => {
 .mode-btn.active {
   background: #fff;
   color: #2563eb;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
+  border: 1px solid #dbeafe;
+  box-shadow: none;
 }
 
 .auth-form {
@@ -650,7 +649,7 @@ onBeforeUnmount(() => {
 .auth-form :deep(.tw-form-item) {
   display: block;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
 }
 
 .auth-form :deep(.tw-form-item-content),
@@ -665,18 +664,18 @@ onBeforeUnmount(() => {
 }
 
 .premium-input :deep(input) {
-  min-height: 48px;
-  border-radius: 12px;
-  background: #f8fbff;
+  min-height: 35px;
+  border-radius: 10px;
+  background: #ffffff;
   border: 1px solid #dbe6f3;
-  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.24), 0 1px 2px rgba(15, 23, 42, 0.08);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .premium-input :deep(input:focus) {
   background: #ffffff;
   border-color: #93c5fd;
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.14);
 }
 
 .form-options {
@@ -689,41 +688,57 @@ onBeforeUnmount(() => {
 .remember-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   color: #475569;
 }
 
 .remember-checkbox {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   accent-color: #3b82f6;
   border-radius: 4px;
 }
 
 .link-text {
-  font-size: 14px;
+  font-size: 13px;
   color: #3b82f6;
   cursor: pointer;
 }
 
 .submit-btn {
   width: 100%;
-  min-height: 48px;
-  margin-top: 12px;
-  border-radius: 12px;
+  min-height: 35px;
+  margin-top: 4px;
+  border-radius: 10px;
   font-weight: 700;
+  box-shadow: none !important;
 }
 
 .code-input-group {
-  display: grid;
-  grid-template-columns: 1fr 110px;
-  gap: 10px;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .code-btn {
-  min-height: 48px;
-  border-radius: 12px;
+  flex: 0 0 102px;
+  min-height: 35px;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+
+.submit-btn:hover,
+.submit-btn:focus,
+.submit-btn:active,
+.code-btn:hover,
+.code-btn:focus,
+.code-btn:active {
+  box-shadow: none !important;
 }
 
 .highlight {
@@ -731,7 +746,7 @@ onBeforeUnmount(() => {
 }
 
 .password-strength {
-  margin-top: 8px;
+  margin-top: 2px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -794,7 +809,7 @@ onBeforeUnmount(() => {
 }
 
 .social-login {
-  margin-top: 16px;
+  margin-top: 6px;
 }
 
 .social-buttons {
@@ -813,7 +828,7 @@ onBeforeUnmount(() => {
 }
 
 .back-home {
-  margin-top: 12px;
+  margin-top: 2px;
   text-align: center;
 }
 
@@ -823,26 +838,30 @@ onBeforeUnmount(() => {
   gap: 4px;
   color: #94a3b8;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {
   .auth-view {
-    padding: 12px;
+    padding: 8px;
     align-items: flex-start;
   }
 
   .auth-card {
-    padding: 20px 16px;
+    padding: 14px 12px 8px;
     border-radius: 16px;
   }
 
   .auth-title {
-    font-size: 22px;
+    font-size: 19px;
   }
 
   .logo-text {
-    font-size: 24px;
+    font-size: 18px;
+  }
+
+  .code-btn {
+    flex-basis: 96px;
   }
 }
 </style>
