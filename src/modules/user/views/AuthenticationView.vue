@@ -17,8 +17,8 @@
         </div>
 
         <div class="mode-switch">
-          <button class="mode-btn" :class="{ active: activeMode === 'login' }" @click="activeMode = 'login'">登录</button>
-          <button class="mode-btn" :class="{ active: activeMode === 'register' }" @click="activeMode = 'register'">注册</button>
+          <button class="mode-btn" :class="{ active: activeMode === 'login' }" @click="setMode('login')">登录</button>
+          <button class="mode-btn" :class="{ active: activeMode === 'register' }" @click="setMode('register')">注册</button>
           <button v-if="activeMode === 'reset'" class="mode-btn active">找回</button>
         </div>
 
@@ -36,8 +36,9 @@
               placeholder="用户名或邮箱"
               size="lg"
               class="premium-input"
-              :input-attrs="{ 'data-testid': 'login-username-input' }"
+              :input-attrs="{ 'data-testid': 'login-username-input', autocomplete: 'username' }"
               :prefix-icon="userIcon"
+              @keyup.enter="handleLogin"
             />
           </QyFormItem>
 
@@ -50,7 +51,7 @@
               :show-password="true"
               @keyup.enter="handleLogin"
               class="premium-input"
-              :input-attrs="{ 'data-testid': 'login-password-input' }"
+              :input-attrs="{ 'data-testid': 'login-password-input', autocomplete: 'current-password' }"
               :prefix-icon="lockIcon"
             />
           </QyFormItem>
@@ -60,7 +61,7 @@
               <input v-model="rememberMe" type="checkbox" class="remember-checkbox" />
               <span>记住我</span>
             </label>
-            <span class="link-text" @click="activeMode = 'reset'">忘记密码？</span>
+            <span class="link-text" @click="setMode('reset')">忘记密码？</span>
           </div>
 
           <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleLogin" data-testid="login-submit">
@@ -77,16 +78,37 @@
           @submit.prevent="handleRegister"
         >
           <QyFormItem prop="username" data-testid="register-username">
-            <QyInput v-model="registerForm.username" placeholder="设置用户名 (3-20字符)" size="lg" class="premium-input" :prefix-icon="userIcon" />
+            <QyInput
+              v-model="registerForm.username"
+              placeholder="设置用户名 (3-20字符)"
+              size="lg"
+              class="premium-input"
+              :prefix-icon="userIcon"
+              :input-attrs="{ autocomplete: 'username' }"
+            />
           </QyFormItem>
 
           <QyFormItem prop="email" data-testid="register-email">
-            <QyInput v-model="registerForm.email" placeholder="电子邮箱" size="lg" class="premium-input" :prefix-icon="messageIcon" />
+            <QyInput
+              v-model="registerForm.email"
+              placeholder="电子邮箱"
+              size="lg"
+              class="premium-input"
+              :prefix-icon="messageIcon"
+              :input-attrs="{ autocomplete: 'email' }"
+            />
           </QyFormItem>
 
           <QyFormItem prop="emailCode" data-testid="register-email-code">
             <div class="code-input-group">
-              <QyInput v-model="registerForm.emailCode" placeholder="6位验证码" size="lg" class="premium-input" :prefix-icon="lockIcon" />
+              <QyInput
+                v-model="registerForm.emailCode"
+                placeholder="6位验证码"
+                size="lg"
+                class="premium-input"
+                :prefix-icon="lockIcon"
+                :input-attrs="{ inputmode: 'numeric', maxlength: '6' }"
+              />
               <QyButton size="lg" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail" @click="sendEmailCode">
                 {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
               </QyButton>
@@ -94,7 +116,16 @@
           </QyFormItem>
 
           <QyFormItem prop="password" data-testid="register-password">
-            <QyInput v-model="registerForm.password" type="password" placeholder="设置密码" size="lg" :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
+            <QyInput
+              v-model="registerForm.password"
+              type="password"
+              placeholder="设置密码"
+              size="lg"
+              :show-password="true"
+              class="premium-input"
+              :prefix-icon="lockIcon"
+              :input-attrs="{ autocomplete: 'new-password' }"
+            />
             <div v-if="registerForm.password" class="password-strength">
               <div class="strength-bar">
                 <div class="strength-fill" :class="`level-${passwordStrength}`" :style="{ width: passwordStrengthPercent }"></div>
@@ -104,7 +135,16 @@
           </QyFormItem>
 
           <QyFormItem prop="confirmPassword" data-testid="register-confirm-password">
-            <QyInput v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" size="lg" :show-password="true" class="premium-input" />
+            <QyInput
+              v-model="registerForm.confirmPassword"
+              type="password"
+              placeholder="确认密码"
+              size="lg"
+              :show-password="true"
+              class="premium-input"
+              :input-attrs="{ autocomplete: 'new-password' }"
+              @keyup.enter="handleRegister"
+            />
           </QyFormItem>
 
           <QyFormItem prop="agreement" data-testid="register-agreement">
@@ -162,7 +202,7 @@
             <div class="success-result">
               <QyIcon name="CircleCheckFilled" :size="52" class="success-icon" />
               <h3>密码重置成功</h3>
-              <QyButton variant="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</QyButton>
+              <QyButton variant="primary" class="submit-btn" @click="setMode('login')">立即登录</QyButton>
             </div>
           </template>
         </QyForm>
@@ -183,7 +223,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
@@ -215,7 +255,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 // 类型定义
-const activeMode = ref<'login' | 'register' | 'reset'>('login')
+type AuthMode = 'login' | 'register' | 'reset'
+const REMEMBERED_USERNAME_KEY = 'qingyu_remembered_username'
+const activeMode = ref<AuthMode>('login')
 
 const loading = ref(false)
 const rememberMe = ref(false)
@@ -233,6 +275,8 @@ const resetFormRef = ref<FormInstance>()
 const loginForm = ref({ username: '', password: '' })
 const registerForm = ref({ username: '', email: '', emailCode: '', phone: '', password: '', confirmPassword: '', agreement: false })
 const resetForm = ref({ email: '', code: '', newPassword: '', confirmNewPassword: '' })
+let emailTimer: ReturnType<typeof setInterval> | null = null
+let resetTimer: ReturnType<typeof setInterval> | null = null
 
 const pageTitle = computed(() => activeMode.value === 'login' ? '欢迎回来' : (activeMode.value === 'register' ? '创建账号' : '找回密码'))
 const pageSubtitle = computed(() => activeMode.value === 'login' ? '登录以继续您的阅读之旅' : (activeMode.value === 'register' ? '加入青羽，探索无限世界' : '安全重置您的账户密码'))
@@ -279,14 +323,45 @@ const resetRules: FormRules = {
   }]
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const resolveModeFromRoute = (routePath: string, modeQuery?: string): AuthMode => {
+  if (modeQuery === 'reset') return 'reset'
+  if (routePath === '/register') return 'register'
+  return 'login'
+}
+
+const setMode = (mode: AuthMode, syncRoute = true) => {
+  activeMode.value = mode
+  if (mode !== 'reset') {
+    resetStep.value = 0
+  }
+  if (!syncRoute) return
+
+  const basePath = mode === 'register' ? '/register' : '/login'
+  const query = { ...route.query }
+  if (mode === 'reset') {
+    query.mode = 'reset'
+  } else {
+    delete query.mode
+  }
+  router.replace({ path: mode === 'reset' ? '/auth' : basePath, query })
+}
+
 // 方法 (保持原样)
 const handleLogin = async () => {
+  if (loading.value) return
   if (!loginFormRef.value) return
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
       try {
         await authStore.login(loginForm.value)
+        if (rememberMe.value) {
+          localStorage.setItem(REMEMBERED_USERNAME_KEY, loginForm.value.username.trim())
+        } else {
+          localStorage.removeItem(REMEMBERED_USERNAME_KEY)
+        }
         message.success('登录成功')
         router.push((route.query.redirect as string) || '/bookstore')
       } catch (e: any) { message.error(e.message || '登录失败') }
@@ -297,30 +372,42 @@ const handleLogin = async () => {
 }
 
 const sendEmailCode = async () => {
-  // 模拟发送逻辑
-  if (!registerForm.value.email) return message.warning('请输入邮箱')
+  if (sendingEmail.value || emailCountdown.value > 0) return
+  const email = registerForm.value.email.trim()
+  if (!email) return message.warning('请输入邮箱')
+  if (!EMAIL_REGEX.test(email)) return message.warning('邮箱格式不正确')
   sendingEmail.value = true
   try {
-    await sendEmailVerifyCode(registerForm.value.email, 'bind')
+    await sendEmailVerifyCode(email, 'bind')
     message.success('已发送')
     emailCountdown.value = 60
-    const t = setInterval(() => {
+    if (emailTimer) clearInterval(emailTimer)
+    emailTimer = setInterval(() => {
       emailCountdown.value--
-      if (emailCountdown.value <= 0) clearInterval(t)
+      if (emailCountdown.value <= 0 && emailTimer) {
+        clearInterval(emailTimer)
+        emailTimer = null
+      }
     }, 1000)
   } catch (e: any) { message.error(e.message) }
   finally { sendingEmail.value = false }
 }
 
 const handleRegister = async () => {
+  if (loading.value) return
   if (!registerFormRef.value) return
   await registerFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
       try {
-        await authStore.register(registerForm.value)
+        await authStore.register({
+          username: registerForm.value.username.trim(),
+          email: registerForm.value.email.trim(),
+          password: registerForm.value.password
+        })
         message.success('注册成功')
-        activeMode.value = 'login'
+        loginForm.value.username = registerForm.value.username.trim()
+        setMode('login')
       } catch (e: any) { message.error(e.message) }
       finally { loading.value = false }
     }
@@ -329,6 +416,7 @@ const handleRegister = async () => {
 
 // 找回密码功能
 const sendResetCode = async () => {
+  if (sendingReset.value || resetCountdown.value > 0) return
   if (!resetForm.value.email) {
     ElMessage.warning('请输入邮箱')
     return
@@ -339,9 +427,13 @@ const sendResetCode = async () => {
     await sendPasswordResetCode(resetForm.value.email)
     ElMessage.success('验证码已发送')
     resetCountdown.value = 60
-    const timer = setInterval(() => {
+    if (resetTimer) clearInterval(resetTimer)
+    resetTimer = setInterval(() => {
       resetCountdown.value--
-      if (resetCountdown.value <= 0) clearInterval(timer)
+      if (resetCountdown.value <= 0 && resetTimer) {
+        clearInterval(resetTimer)
+        resetTimer = null
+      }
     }, 1000)
   } catch (error: any) {
     ElMessage.error(error.message || '发送验证码失败')
@@ -393,8 +485,24 @@ const handleReset = async () => {
 const goHome = () => router.push('/')
 
 onMounted(() => {
-  const mode = route.query.mode as string
-  if (mode && ['login', 'register', 'reset'].includes(mode)) activeMode.value = mode as any
+  const remembered = localStorage.getItem(REMEMBERED_USERNAME_KEY)
+  if (remembered) {
+    loginForm.value.username = remembered
+    rememberMe.value = true
+  }
+  setMode(resolveModeFromRoute(route.path, route.query.mode as string), false)
+})
+
+watch(
+  () => [route.path, route.query.mode] as const,
+  ([path, mode]) => {
+    setMode(resolveModeFromRoute(path, mode as string), false)
+  }
+)
+
+onBeforeUnmount(() => {
+  if (emailTimer) clearInterval(emailTimer)
+  if (resetTimer) clearInterval(resetTimer)
 })
 </script>
 
@@ -738,4 +846,3 @@ onMounted(() => {
   }
 }
 </style>
-

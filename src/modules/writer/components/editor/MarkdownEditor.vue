@@ -25,45 +25,30 @@
 
     <!-- 编辑器主体 -->
     <div class="editor-body">
-      <!-- vditor 未安装提示 -->
-      <div v-if="!vditorAvailable" class="vditor-missing">
-        <QyIcon name="Warning" class="warning-icon" />
-        <p class="missing-title">vditor 编辑器未安装</p>
-        <p class="missing-desc">请运行以下命令安装：</p>
-        <code class="install-cmd">npm install vditor</code>
-        <p class="missing-hint">或使用 yarn：</p>
-        <code class="install-cmd">yarn add vditor</code>
-      </div>
-
-      <!-- vditor 编辑器容器 -->
-      <div
-        v-else
-        ref="editorRef"
-        class="vditor-container"
-        :class="{ 'is-readonly': readonly }"
-      ></div>
+      <MdEditor
+        v-model="content"
+        :theme="editorTheme"
+        :preview="false"
+        :toolbars="toolbars"
+        :placeholder="placeholder"
+        :disabled="readonly"
+        :style="{ height: '100%' }"
+        :previewOnly="false"
+        :modelValue="modelValue"
+        @onChange="handleChange"
+        @onSave="handleSave"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
-
-// 防抖函数
-function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number): T {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null
-  return ((...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-    timeoutId = setTimeout(() => {
-      fn(...args)
-      timeoutId = null
-    }, delay)
-  }) as T
-}
+import { MdEditor } from 'md-editor-v3'
+import type { Toolbar } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
 
 // 保存状态类型
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved'
@@ -96,14 +81,27 @@ const emit = defineEmits<Emits>()
 const editorStore = useEditorStore()
 
 // Refs
-const editorRef = ref<HTMLDivElement>()
-const vditorAvailable = ref(false)
+const content = ref(props.modelValue)
 const wordCount = ref(0)
 const saveStatus = ref<SaveStatus>('saved')
+const editorTheme = ref<'light' | 'dark'>('light')
 
-// Vditor 实例
-let vditorInstance: any = null
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
+
+// 工具栏配置（精简版）
+const toolbars: Toolbar[] = [
+  'bold',
+  'italic',
+  'strikeThrough',
+  '-',
+  'title',
+  'quote',
+  'unorderedList',
+  'orderedList',
+  '-',
+  'undo',
+  'redo'
+]
 
 // 计算属性
 const displayTitle = computed(() => props.title || '未命名章节')
@@ -137,11 +135,11 @@ function calculateWordCount(text: string): number {
 
   // 移除 Markdown 语法标记
   const cleanText = text
-    .replace(/```[\s\S]*?```/g, '') // 代码块
-    .replace(/`[^`]+`/g, '') // 行内代码
-    .replace(/\[([^\]]*)\]\([^)]+\)/g, '$1') // 链接
-    .replace(/[#*_~>`|-]/g, '') // 标记符号
-    .replace(/\s+/g, ' ') // 空白字符
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/[#*_~>`|-]/g, '')
+    .replace(/\s+/g, ' ')
     .trim()
 
   // 中文字符数
@@ -156,36 +154,36 @@ function calculateWordCount(text: string): number {
   return chineseChars + englishWords
 }
 
-// 防抖字数统计（500ms 防抖）
-const debouncedUpdateWordCount = useDebounceFn((value: string) => {
+// 处理内容变化
+function handleChange(value: string) {
+  emit('update:modelValue', value)
+
+  // 更新字数
   const count = calculateWordCount(value)
   wordCount.value = count
   emit('wordCountChange', count)
-}, 500)
 
-// 防抖保存
-function debouncedSave(content: string) {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout)
-  }
-
+  // 标记未保存
   saveStatus.value = 'unsaved'
   editorStore.markDirty()
 
+  // 防抖自动保存
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
   saveTimeout = setTimeout(() => {
-    performSave(content)
+    handleSave(value)
   }, 3000)
 }
 
-// 执行保存
-function performSave(content: string) {
+// 处理保存
+function handleSave(value: string) {
   saveStatus.value = 'saving'
   editorStore.setSaving(true)
 
-  emit('save', content)
+  emit('save', value)
 
-  // 注意：实际保存成功/失败状态需要父组件通过回调设置
-  // 这里默认设置为已保存，父组件可以调用 setSaveStatus 来更新
+  // 模拟保存成功
   setTimeout(() => {
     saveStatus.value = 'saved'
     editorStore.markSaved()
@@ -193,7 +191,7 @@ function performSave(content: string) {
   }, 500)
 }
 
-// 手动设置保存状态（供父组件调用）
+// 手动设置保存状态
 function setSaveStatus(status: SaveStatus) {
   saveStatus.value = status
   if (status === 'saved') {
@@ -204,170 +202,29 @@ function setSaveStatus(status: SaveStatus) {
   }
 }
 
-// 初始化 vditor
-async function initVditor() {
-  try {
-    // 动态导入 vditor
-    const Vditor = (await import('vditor')).default
-    await import('vditor/dist/index.css')
-
-    vditorAvailable.value = true
-
-    await nextTick()
-
-    if (!editorRef.value) return
-
-    // 工具栏配置（精简版）
-    const toolbar = [
-      {
-        name: 'headings',
-        tip: '标题',
-        tipPosition: 'n'
-      },
-      {
-        name: 'bold',
-        tip: '粗体',
-        tipPosition: 'n'
-      },
-      {
-        name: 'italic',
-        tip: '斜体',
-        tipPosition: 'n'
-      },
-      {
-        name: 'quote',
-        tip: '引用',
-        tipPosition: 'n'
-      },
-      {
-        name: 'list',
-        tip: '无序列表',
-        tipPosition: 'n'
-      },
-      {
-        name: 'ordered-list',
-        tip: '有序列表',
-        tipPosition: 'n'
-      },
-      '|',
-      {
-        name: 'undo',
-        tip: '撤销',
-        tipPosition: 'n'
-      },
-      {
-        name: 'redo',
-        tip: '重做',
-        tipPosition: 'n'
-      }
-    ]
-
-    vditorInstance = new Vditor(editorRef.value, {
-      height: '100%',
-      mode: 'wysiwyg', // 所见即所得模式
-      placeholder: props.placeholder,
-      value: props.modelValue,
-      readonly: props.readonly,
-      toolbar,
-      theme: 'classic',
-      icon: 'material',
-
-      // 输入回调
-      input: (value: string) => {
-        emit('update:modelValue', value)
-
-        // 更新字数统计（使用防抖版本）
-        debouncedUpdateWordCount(value)
-
-        // 触发自动保存
-        if (!props.readonly) {
-          debouncedSave(value)
-        }
-      },
-
-      // 编辑器渲染完成后回调
-      after: () => {
-        // 初始化字数统计
-        if (props.modelValue) {
-          const count = calculateWordCount(props.modelValue)
-          wordCount.value = count
-          emit('wordCountChange', count)
-        }
-      },
-
-      // 聚焦回调
-      focus: () => {
-        editorRef.value?.classList.add('is-focused')
-      },
-
-      // 失焦回调
-      blur: () => {
-        editorRef.value?.classList.remove('is-focused')
-      },
-
-      // 计数器配置
-      counter: {
-        enable: false // 我们使用自己的字数统计
-      },
-
-      // 缓存配置
-      cache: {
-        enable: false // 使用 store 管理
-      }
-    })
-  } catch (error) {
-    console.warn('[MarkdownEditor] vditor 加载失败，请确保已安装:', error)
-    vditorAvailable.value = false
-  }
-}
-
-// 销毁编辑器
-function destroyVditor() {
-  if (vditorInstance) {
-    try {
-      vditorInstance.destroy()
-    } catch (error) {
-      console.warn('[MarkdownEditor] 销毁编辑器时出错:', error)
-    }
-    vditorInstance = null
-  }
-
-  if (saveTimeout) {
-    clearTimeout(saveTimeout)
-    saveTimeout = null
-  }
-}
-
 // 获取编辑器内容
 function getContent(): string {
-  if (vditorInstance) {
-    return vditorInstance.getValue()
-  }
-  return props.modelValue
+  return content.value
 }
 
 // 设置编辑器内容
-function setContent(content: string) {
-  if (vditorInstance) {
-    vditorInstance.setValue(content)
-  }
+function setContent(value: string) {
+  content.value = value
 }
 
 // 聚焦编辑器
 function focus() {
-  if (vditorInstance) {
-    vditorInstance.focus()
-  }
+  // md-editor-v3 没有直接的 focus 方法，通过 DOM 操作
+  const textarea = document.querySelector('.md-editor-v3 textarea') as HTMLTextAreaElement
+  textarea?.focus()
 }
 
-// 监听 modelValue 变化（外部更新）
+// 监听 modelValue 变化
 watch(
   () => props.modelValue,
   (newValue) => {
-    if (vditorInstance && newValue !== vditorInstance.getValue()) {
-      vditorInstance.setValue(newValue)
-
-      // 更新字数
+    if (newValue !== content.value) {
+      content.value = newValue
       const count = calculateWordCount(newValue)
       wordCount.value = count
       emit('wordCountChange', count)
@@ -375,21 +232,8 @@ watch(
   }
 )
 
-// 监听只读状态变化
-watch(
-  () => props.readonly,
-  (isReadonly) => {
-    if (vditorInstance) {
-      vditorInstance.disabled(isReadonly)
-    }
-  }
-)
-
 // 生命周期
 onMounted(() => {
-  initVditor()
-
-  // 初始化字数统计
   if (props.modelValue) {
     const count = calculateWordCount(props.modelValue)
     wordCount.value = count
@@ -398,7 +242,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  destroyVditor()
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+    saveTimeout = null
+  }
 })
 
 // 暴露方法给父组件
@@ -536,84 +383,27 @@ defineExpose({
   flex: 1;
   min-height: 0;
   overflow: hidden;
-}
 
-// vditor 容器
-.vditor-container {
-  height: 100%;
-
-  :deep(.vditor) {
-    border: none;
+  :deep(.md-editor-v3) {
     height: 100%;
-  }
+    border: none;
+    border-radius: 0;
 
-  :deep(.vditor-toolbar) {
-    border-bottom: 1px solid var(--el-border-color-lighter, #e4e7ed);
-    padding: 8px 12px;
-    background: var(--el-bg-color-page, #f5f7fa);
-  }
-
-  :deep(.vditor-content) {
-    height: calc(100% - 45px);
-  }
-
-  :deep(.vditor-wysiwyg) {
-    padding: 20px 24px;
-    font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
-    font-size: 16px;
-    line-height: 1.8;
-  }
-
-  &.is-readonly {
-    :deep(.vditor-toolbar) {
-      display: none;
+    .md-editor-toolbar-wrapper {
+      border-bottom: 1px solid var(--el-border-color-lighter, #e4e7ed);
+      background: var(--el-fill-color-light, #f5f7fa);
     }
 
-    :deep(.vditor-wysiwyg) {
-      background: var(--el-fill-color-lighter, #fafafa);
+    .md-editor-content {
+      height: calc(100% - 40px);
+
+      .md-editor-input {
+        padding: 16px 20px;
+        font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+        font-size: 16px;
+        line-height: 1.8;
+      }
     }
-  }
-}
-
-// vditor 未安装提示
-.vditor-missing {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 40px;
-  text-align: center;
-  color: var(--el-text-color-secondary, #909399);
-
-  .warning-icon {
-    font-size: 48px;
-    color: var(--el-color-warning, #e6a23c);
-    margin-bottom: 16px;
-  }
-
-  .missing-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--el-text-color-primary, #303133);
-    margin: 0 0 8px;
-  }
-
-  .missing-desc,
-  .missing-hint {
-    font-size: 14px;
-    margin: 8px 0;
-  }
-
-  .install-cmd {
-    display: block;
-    padding: 8px 16px;
-    background: var(--el-fill-color-dark, #e4e7ed);
-    border-radius: 4px;
-    font-family: var(--el-font-family-monospace, monospace);
-    font-size: 13px;
-    color: var(--el-color-primary, #409eff);
-    margin: 8px 0;
   }
 }
 
@@ -638,19 +428,19 @@ defineExpose({
     border-bottom-color: var(--el-border-color-darker, #4c4d4f);
   }
 
-  .vditor-container {
-    :deep(.vditor) {
+  .editor-body {
+    :deep(.md-editor-v3) {
       background: var(--el-bg-color-overlay, #1d1e1f);
-    }
 
-    :deep(.vditor-toolbar) {
-      background: var(--el-fill-color-darker, #252627);
-      border-bottom-color: var(--el-border-color-darker, #4c4d4f);
-    }
+      .md-editor-toolbar-wrapper {
+        background: var(--el-fill-color-darker, #252627);
+        border-bottom-color: var(--el-border-color-darker, #4c4d4f);
+      }
 
-    :deep(.vditor-wysiwyg) {
-      background: var(--el-bg-color-overlay, #1d1e1f);
-      color: var(--el-text-color-primary, #e5eaf3);
+      .md-editor-input {
+        background: var(--el-bg-color-overlay, #1d1e1f);
+        color: var(--el-text-color-primary, #e5eaf3);
+      }
     }
   }
 }
