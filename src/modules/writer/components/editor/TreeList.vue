@@ -230,12 +230,12 @@ const deepClone = <T extends Record<string, any>>(obj: T): T => {
 
   // 处理Date对象
   if (obj instanceof Date) {
-    return new Date(obj.getTime()) as T
+    return new Date(obj.getTime()) as unknown as T
   }
 
   // 处理数组
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as T
+    return obj.map(item => deepClone(item)) as unknown as T
   }
 
   // 处理普通对象
@@ -275,23 +275,17 @@ const moveNode = (
   const newData = deepClone(data)
 
   let sourceNode: TreeNode | null = null
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let sourceParent: TreeNode[] | null = null
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let sourceIndex = -1
 
   // 查找并移除源节点
-  const findAndRemoveSource = (nodes: TreeNode[], parent: TreeNode[] | null = null): boolean => {
+  const findAndRemoveSource = (nodes: TreeNode[]): boolean => {
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i].id === sourceId) {
         sourceNode = nodes[i]
-        sourceParent = parent || nodes
-        sourceIndex = i
         nodes.splice(i, 1)
         return true
       }
       if (nodes[i].children && nodes[i].children!.length > 0) {
-        if (findAndRemoveSource(nodes[i].children!, nodes)) {
+        if (findAndRemoveSource(nodes[i].children!)) {
           return true
         }
       }

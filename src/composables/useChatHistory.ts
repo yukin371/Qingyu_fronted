@@ -16,7 +16,7 @@
  * @date 2026-02-08
  */
 
-import { ref, watch } from 'vue'
+import { ref, watch, computed, type ComputedRef, type Ref } from 'vue'
 import { useLocalStorage } from './useLocalStorage'
 
 /**
@@ -37,9 +37,9 @@ export interface ChatMessage {
 
 export interface UseChatHistoryReturn {
   /** 消息列表 */
-  messages: ReturnType<typeof ref<ChatMessage[]>>
+  messages: Ref<ChatMessage[]>
   /** 会话ID */
-  sessionId: ReturnType<typeof ref<string>>
+  sessionId: Ref<string>
   /** 添加消息 */
   addMessage: (role: ChatMessage['role'], content: string) => ChatMessage
   /** 清空历史 */
@@ -49,21 +49,21 @@ export interface UseChatHistoryReturn {
   /** 加载历史 */
   load: () => void
   /** 删除指定消息 */
-  deleteMessage: (messageId: string) => void
+  deleteMessage: (id: string) => void
   /** 更新消息内容 */
-  updateMessage: (messageId: string, content: string) => void
+  updateMessage: (id: string, newContent: string) => void
   /** 获取用户消息数量 */
-  userMessageCount: ReturnType<typeof computed<number>>
+  userMessageCount: ComputedRef<number>
   /** 获取AI消息数量 */
-  aiMessageCount: ReturnType<typeof computed<number>>
+  aiMessageCount: ComputedRef<number>
 }
-
-import { computed } from 'vue'
 
 export function useChatHistory(sessionId: string): UseChatHistoryReturn {
   const storageKey = `ai-chat-${sessionId}`
-  const { data: messages, save: saveToStorage, load: loadFromStorage } = useLocalStorage<ChatMessage[]>(storageKey, [])
+  const { data: storedMessages, save: saveToStorage, load: loadFromStorage } = useLocalStorage<ChatMessage[]>(storageKey, [])
 
+  // 确保 messages 始终是数组类型
+  const messages = ref<ChatMessage[]>(storedMessages.value ?? [])
   const currentSessionId = ref(sessionId)
 
   /**
@@ -111,6 +111,8 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
    */
   function load() {
     loadFromStorage()
+    // 同步加载的数据
+    messages.value = storedMessages.value ?? []
   }
 
   /**
@@ -140,14 +142,14 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
    * 计算用户消息数量
    */
   const userMessageCount = computed(() => {
-    return messages.value.filter(m => m.role === 'user').length
+    return (messages.value ?? []).filter(m => m.role === 'user').length
   })
 
   /**
    * 计算AI消息数量
    */
   const aiMessageCount = computed(() => {
-    return messages.value.filter(m => m.role === 'assistant').length
+    return (messages.value ?? []).filter(m => m.role === 'assistant').length
   })
 
   return {

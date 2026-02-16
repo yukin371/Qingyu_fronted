@@ -21,7 +21,7 @@ const AsyncOnboardingTour = defineAsyncComponent({
 
 function runWhenIdle(task: () => void) {
   const requestIdle = (window as Window & {
-    requestIdleCallback?: (cb: () => void) => number
+    requestIdleCallback?: (callback: () => void) => number
   }).requestIdleCallback
 
   if (requestIdle) {
@@ -55,7 +55,7 @@ onMounted(() => {
           }, 1000)
         }
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error('初始化认证状态失败:', error)
         authStore.clearAuth()
       })

@@ -242,7 +242,7 @@ export function useResponsiveLayout() {
    * 根据布局模式和位置获取面板状态
    */
   function getPanelState(
-    position: PanelPosition,
+    _position: PanelPosition,
     mode: LayoutMode,
     collapsed: boolean
   ): PanelState {

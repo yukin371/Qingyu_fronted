@@ -130,19 +130,20 @@ import { ref, computed, watch, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useBreakpoints } from '@/composables/useBreakpoints'
-import { useChatHistory, type ChatMessage } from '@/composables/useChatHistory'
+import { useChatHistory } from '@/composables/useChatHistory'
 import { useTypewriter } from '@/composables/useTypewriter'
 import { mockAIResponse, QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
 
 // 防抖函数
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  return ((...args: Parameters<T>) => {
+  return ((...parameters: Parameters<T>) => {
     if (timeoutId) {
       clearTimeout(timeoutId)
     }
     timeoutId = setTimeout(() => {
-      fn(...args)
+      fn(...parameters)
       timeoutId = null
     }, delay)
   }) as T
@@ -157,10 +158,11 @@ interface Props {
 
 interface Emits {
   (e: 'update:collapsed', value: boolean): void
-  (e: 'send', message: string): void
+  (e: 'send', msg: string): void
 }
 
 // ==================== Props & Emits ====================
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   collapsed: false,
   sessionId: 'default',
@@ -268,8 +270,8 @@ async function sendMessage(content: string) {
 
     // 监听打字进度
     const stopTyping = watch(typewriter.displayText, (newText) => {
-      aiMessage.content = newText
-      if (typewriter.progress.value >= 1) {
+      aiMessage.content = newText ?? ''
+      if ((typewriter.progress.value ?? 0) >= 1) {
         isTyping.value = false
         stopTyping()
       }

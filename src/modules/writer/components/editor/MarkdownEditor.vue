@@ -34,7 +34,6 @@
         :disabled="readonly"
         :style="{ height: '100%' }"
         :previewOnly="false"
-        :modelValue="modelValue"
         @onChange="handleChange"
         @onSave="handleSave"
       />
@@ -47,7 +46,6 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { MdEditor } from 'md-editor-v3'
-import type { Toolbar } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 
 // 保存状态类型
@@ -70,9 +68,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Emits 定义
 interface Emits {
-  (e: 'update:modelValue', value: string): void
-  (e: 'save', value: string): void
-  (e: 'wordCountChange', count: number): void
+  (e: 'update:modelValue', val: string): void
+  (e: 'save', val: string): void
+  (e: 'wordCountChange', cnt: number): void
 }
 
 const emit = defineEmits<Emits>()
@@ -89,7 +87,8 @@ const editorTheme = ref<'light' | 'dark'>('light')
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
 // 工具栏配置（精简版）
-const toolbars: Toolbar[] = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const toolbars: any[] = [
   'bold',
   'italic',
   'strikeThrough',

@@ -15,8 +15,9 @@ export const useAIStore = defineStore('writer-ai', () => {
     chatHistory.value.push({ role: 'user', content: msg })
 
     try {
-      // 组装上下文
-      const context = worldStore.getAIContext()
+      // 组装上下文（暂未使用，为将来API调用准备）
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _context = worldStore.getAIContext()
 
       // 模拟调用 API
       // const res = await aiApi.chat(msg, context)

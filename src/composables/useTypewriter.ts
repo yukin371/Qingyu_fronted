@@ -19,7 +19,7 @@
  * @date 2026-02-08
  */
 
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 export interface UseTypewriterReturn {
   /** 当前显示的文本 */
@@ -83,17 +83,6 @@ export function useTypewriter(text: string, speed: number = 30): UseTypewriterRe
     isTyping.value = false
   }
 
-  /**
-   * 立即完成打字效果（显示全部文本）
-   */
-  function complete() {
-    stop()
-    displayText.value = text
-    currentIndex = text.length
-    progress.value = 1
-    isTyping.value = false
-  }
-
   // 监听text变化，自动重新开始打字
   watch(() => text, () => {
     start()
@@ -150,7 +139,7 @@ export interface UseTypewriterAdvancedReturn {
   /** 打字进度（0-1） */
   progress: ReturnType<typeof ref<number>>
   /** 设置新的文本并重新开始 */
-  setText: (newText: string) => void
+  setText: (text: string) => void
 }
 
 export function useTypewriterAdvanced(options: UseTypewriterOptions): UseTypewriterAdvancedReturn {
