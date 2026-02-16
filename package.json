@@ -27,7 +27,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
-    "test:all": "npm run test:vitest:run && npm run test:e2e"
+    "test:all": "npm run test:vitest:run && npm run test:e2e",
+    "lint:styles": "stylelint \"src/**/*.{css,scss,vue}\"",
+    "lint:styles:fix": "stylelint \"src/**/*.{css,scss,vue}\" --fix"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
@@ -82,8 +84,13 @@
     "madge": "^8.0.0",
     "min-indent": "^1.0.1",
     "postcss": "^8.4.32",
+    "postcss-html": "^1.8.0",
     "sass-embedded": "^1.93.2",
     "storybook": "^8.6.15",
+    "stylelint": "^16.25.0",
+    "stylelint-config-standard": "^39.0.1",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-config-standard-vue": "^1.0.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.21.0",
