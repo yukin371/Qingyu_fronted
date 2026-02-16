@@ -20,13 +20,13 @@
       <!-- 筛选器 -->
       <div class="filter-section">
         <FilterBar
-          v-model:category-id="browseStore.filters.categoryId"
+          v-model:categoryId="browseStore.filters.categoryId"
           v-model:year="browseStore.filters.year"
           v-model:status="browseStore.filters.status"
           :categories="metaStore.categories"
           :years="metaStore.years"
           :statuses="statuses"
-          @update:category-id="handleFilterChange"
+          @update:categoryId="handleFilterChange"
           @update:year="handleFilterChange"
           @update:status="handleFilterChange"
           class="mb-4"
@@ -36,10 +36,11 @@
       <!-- 标签筛选 + 重置按钮 -->
       <div class="flex-between items-center mb-6">
         <TagFilter
-          v-model:selected-tags="browseStore.filters.tags"
+          v-model:selectedTags="browseStore.filters.tags"
           :available-tags="availableTags"
           :max-selected="8"
           :recommend-limit="3"
+          @update:selectedTags="handleFilterChange"
           class="flex-1"
         />
 
@@ -232,7 +233,7 @@ onMounted(async () => {
 
   // 加载静态数据（分类、年份、标签）
   await Promise.all([
-    metaStore.getCategories(),
+    metaStore.getCategories(true),
     metaStore.getYears(),
     metaStore.getTags()
   ])

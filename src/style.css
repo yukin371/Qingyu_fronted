@@ -92,6 +92,17 @@ body {
   max-height: 100%;
 }
 
+/* Element Plus 回到顶部图标尺寸兜底，防止被全局样式放大 */
+.el-backtop {
+  font-size: 18px;
+}
+
+.el-backtop .el-icon,
+.el-backtop .el-icon svg {
+  width: 1em;
+  height: 1em;
+}
+
 /* ============================================
    自定义组件样式
    ============================================ */
@@ -123,7 +134,6 @@ body {
     padding: 0 2rem;
   }
 }
-
 
 
 

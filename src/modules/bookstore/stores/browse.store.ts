@@ -91,6 +91,10 @@ export const useBrowseStore = defineStore('browse', () => {
       const response = await browseService.getBooks(filters)
       const payload = response as unknown as {
         data?: unknown
+        list?: unknown[]
+        items?: unknown[]
+        books?: unknown[]
+        total?: number
         pagination?: { total?: number; has_next?: boolean; hasMore?: boolean }
       }
       const rawData = payload?.data
@@ -100,11 +104,19 @@ export const useBrowseStore = defineStore('browse', () => {
           ? ((rawData as { items?: unknown[] }).items as BookBrief[])
           : Array.isArray((rawData as { books?: unknown[] } | undefined)?.books)
             ? ((rawData as { books?: unknown[] }).books as BookBrief[])
+          : Array.isArray((rawData as { list?: unknown[] } | undefined)?.list)
+            ? ((rawData as { list?: unknown[] }).list as BookBrief[])
+          : Array.isArray(payload?.list)
+            ? (payload.list as BookBrief[])
+          : Array.isArray(payload?.items)
+            ? (payload.items as BookBrief[])
+          : Array.isArray(payload?.books)
+            ? (payload.books as BookBrief[])
           : []
 
       books.value = append ? [...books.value, ...nextBooks] : nextBooks
 
-      const total = payload?.pagination?.total ?? 0
+      const total = payload?.pagination?.total ?? payload?.total ?? nextBooks.length
       pagination.total = typeof total === 'number' ? total : 0
       pagination.hasMore = Boolean(
         payload?.pagination?.has_next ??

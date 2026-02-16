@@ -183,14 +183,6 @@ watch(() => props.banners, () => {
   overflow: hidden;
 }
 
-:deep(.el-carousel__container) {
-  height: 100% !important;
-}
-
-:deep(.el-carousel__item) {
-  height: 100%;
-}
-
 .banner-slide {
   position: relative;
   width: 100%;

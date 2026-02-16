@@ -665,7 +665,9 @@ apiClient.interceptors.request.use(
       console.log('[TestMode] 拦截 API 请求:', config.url)
 
       // 使用统一的 Mock 数据管理器
-      const mockData = await handleMockRequest(config.url)
+      const mockData = await handleMockRequest(config.url, {
+        params: config.params as Record<string, any> | undefined
+      })
 
       // 将 mock 数据包装成响应格式，直接 reject
       // 这样会跳过真实的 HTTP 请求

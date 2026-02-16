@@ -17,6 +17,7 @@ export function setupRouterGuards(router: Router) {
   createAuthGuard(router)
   setupTestModeGuard(router)
   setupWebSocketGuard(router)
+  setupTestModeGuard(router)
 }
 
 /**

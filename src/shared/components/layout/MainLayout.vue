@@ -54,7 +54,7 @@
 
           <!-- 用户操作区 -->
           <div class="user-actions">
-            <template v-if="showUserControls">
+            <template v-if="isLoggedIn">
               <el-dropdown trigger="click" @command="handleUserCommand">
                 <div class="user-info-premium">
                   <el-avatar :size="20" :src="userAvatar" class="user-avatar">
@@ -76,7 +76,7 @@
             </template>
             <template v-else>
               <div class="auth-btns">
-                <el-button class="login-btn" text @click="showQuickLogin = true">登录</el-button>
+                <el-button class="login-btn" text @click="goToAuth('login')">登录</el-button>
                 <el-button class="register-btn" type="primary" round @click="goToAuth('register')">注册</el-button>
               </div>
             </template>
@@ -250,7 +250,7 @@ const quickLoginRules: FormRules = {
 // 用户信息
 const isTestMode = computed(() => route.query.test === 'true')
 const isLoggedIn = computed(() => authStore.isLoggedIn)
-const showUserControls = computed(() => isLoggedIn.value || isTestMode.value)
+const showUserControls = computed(() => isLoggedIn.value)
 const userAvatar = computed(() => {
   if (authStore.user?.avatar) return authStore.user.avatar
   return isTestMode.value ? '/images/avatars/avatar-demo.svg' : '/images/avatars/avatar-default.svg'
@@ -350,6 +350,10 @@ const handleUserCommand = async (command: string) => {
     case 'logout':
       if (!authStore.isLoggedIn && isTestMode.value) {
         message.success('测试模式下已退出模拟登录')
+        router.push({
+          path: '/auth',
+          query: { ...(route.query as Record<string, any>), mode: 'login' }
+        })
         return
       }
       try {

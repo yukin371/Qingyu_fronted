@@ -4,6 +4,22 @@ import { ref } from 'vue'
 import { browseService } from '../services/browse.service'
 import type { Category, Tag } from '@/types/models'
 
+const normalizeCategoryTree = (items: any[] = []): Category[] => {
+  return items.map((item: any) => ({
+    ...item,
+    id: item.id || item._id || '',
+    children: Array.isArray(item.children) ? normalizeCategoryTree(item.children) : []
+  }))
+}
+
+const extractList = (response: any): any[] => {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.data)) return response.data
+  if (Array.isArray(response?.list)) return response.list
+  if (Array.isArray(response?.data?.list)) return response.data.list
+  return []
+}
+
 export const useMetaStore = defineStore('bookstoreMeta', () => {
   // State
   const categories = ref<Category[]>([])
@@ -21,8 +37,8 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getCategories()
-      categories.value = response.data || []
-      _categoriesLoaded.value = true
+      categories.value = normalizeCategoryTree(extractList(response))
+      _categoriesLoaded.value = categories.value.length > 0
       return categories.value
     } catch (error) {
       console.error('获取分类失败:', error)
@@ -38,8 +54,8 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getYears()
-      years.value = response.data || []
-      _yearsLoaded.value = true
+      years.value = extractList(response)
+      _yearsLoaded.value = years.value.length > 0
       return years.value
     } catch (error) {
       console.error('获取年份失败:', error)
@@ -56,8 +72,8 @@ export const useMetaStore = defineStore('bookstoreMeta', () => {
 
     try {
       const response = await browseService.getTags(categoryId)
-      tags.value = response.data || []
-      _tagsLoaded.value = true
+      tags.value = extractList(response)
+      _tagsLoaded.value = tags.value.length > 0
       return tags.value
     } catch (error) {
       console.error('获取标签失败:', error)

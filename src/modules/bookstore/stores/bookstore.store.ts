@@ -139,16 +139,24 @@ export const useBookstoreStore = defineStore('bookstore', {
       this.error = null
 
       try {
+        const normalizeRankingList = (raw: any): RankingItem[] => {
+          if (Array.isArray(raw)) return raw as RankingItem[]
+          if (Array.isArray(raw?.list)) return raw.list as RankingItem[]
+          if (Array.isArray(raw?.data?.list)) return raw.data.list as RankingItem[]
+          if (Array.isArray(raw?.data)) return raw.data as RankingItem[]
+          return []
+        }
+
         if (type) {
-          const data = await bookstoreService.getRanking(type)
-          this.rankings[type] = data || []
+          const data = await bookstoreService.getRanking(type) as any
+          this.rankings[type] = normalizeRankingList(data)
         } else {
-          const data = await bookstoreService.getAllRankings()
+          const data = await bookstoreService.getAllRankings() as any
           this.rankings = {
-            realtime: data.realtime || [],
-            weekly: data.weekly || [],
-            monthly: data.monthly || [],
-            newbie: data.newbie || []
+            realtime: normalizeRankingList(data.realtime),
+            weekly: normalizeRankingList(data.weekly),
+            monthly: normalizeRankingList(data.monthly),
+            newbie: normalizeRankingList(data.newbie)
           }
         }
       } catch (error: any) {
@@ -238,15 +246,46 @@ export const useBookstoreStore = defineStore('bookstore', {
     /**
      * Fetch recommended books
      */
-    async fetchRecommendedBooks(page: number = 1, size: number = 20): Promise<void> {
+    async fetchRecommendedBooks(page: number = 1, size: number = 20): Promise<{
+      items: BookBrief[]
+      total: number
+      hasMore: boolean
+    }> {
       try {
-        const result = await bookstoreService.getRecommendedBooks(page, size)
-        // 容错：后端可能返回 null/undefined
-        this.books.recommended = Array.isArray(result) ? result : []
+        const result = await bookstoreService.getRecommendedBooks(page, size) as any
+
+        let items: BookBrief[] = []
+        let total = 0
+        let hasMore = false
+
+        if (Array.isArray(result)) {
+          items = result
+          total = page * size + (items.length === size ? 1 : 0)
+          hasMore = items.length === size
+        } else if (result && typeof result === 'object') {
+          if (Array.isArray(result.data?.list)) {
+            items = result.data.list
+          } else if (Array.isArray(result.data?.books)) {
+            items = result.data.books
+          } else if (Array.isArray(result.data)) {
+            items = result.data
+          } else if (Array.isArray(result.list)) {
+            items = result.list
+          } else if (Array.isArray(result.books)) {
+            items = result.books
+          }
+
+          total = Number(result.pagination?.total ?? result.data?.pagination?.total ?? result.total ?? items.length)
+          hasMore = Boolean(result.pagination?.has_next ?? result.data?.pagination?.has_next ?? (items.length === size))
+        }
+
+        this.books.recommended = items
+        return { items, total, hasMore }
       } catch (error: any) {
         console.error('获取推荐书籍失败:', error)
         this.books.recommended = []
         this.error = '获取推荐书籍失败'
+        return { items: [], total: 0, hasMore: false }
       }
     },
 
@@ -316,4 +355,3 @@ export const useBookstoreStore = defineStore('bookstore', {
 })
 
 export default useBookstoreStore
-

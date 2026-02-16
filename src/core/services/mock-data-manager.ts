@@ -103,7 +103,23 @@ const MOCK_CATEGORY_TREE = [
 ] as const
 
 const MOCK_LEAF_CATEGORIES = MOCK_CATEGORY_TREE.flatMap((item) => item.children)
-const MOCK_BOOK_POOL_SIZE = 180
+const MOCK_BOOK_POOL_SIZE = 360
+const MOCK_TAG_POOL = [
+  '热血', '玄幻', '修仙', '都市', '科幻', '冒险', '机甲', '悬疑', '言情', '治愈'
+]
+
+const CATEGORY_TAG_MAP: Record<string, string[]> = {
+  'cat-1-1': ['科幻', '机甲', '冒险'],
+  'cat-1-2': ['科幻', '悬疑', '冒险'],
+  'cat-2-1': ['玄幻', '热血', '冒险'],
+  'cat-2-2': ['玄幻', '言情', '冒险'],
+  'cat-3-1': ['都市', '治愈', '言情'],
+  'cat-3-2': ['都市', '热血', '悬疑'],
+  'cat-4-1': ['修仙', '玄幻', '热血'],
+  'cat-4-2': ['修仙', '都市', '悬疑'],
+  'cat-5-1': ['冒险', '热血', '都市'],
+  'cat-5-2': ['冒险', '玄幻', '科幻']
+}
 
 // ==================== 书城模块 Mock 数据 ====================
 
@@ -180,10 +196,12 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     '异界龙骑', '时光信使', '都市仙尊', '网游之神级牧师', '商途无双'
   ]
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
-  const tags = ['科幻', '冒险', '热血', '机甲', '奇幻', '治愈', '都市', '甜宠', '武侠', '修炼']
-
   const title = titles[index % titles.length]
   const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
+  const categoryTags = CATEGORY_TAG_MAP[category._id] || ['冒险', '热血', '科幻']
+  const baseTag = categoryTags[index % categoryTags.length]
+  const secondaryTag = categoryTags[(index + 1) % categoryTags.length]
+  const extraTag = MOCK_TAG_POOL[index % MOCK_TAG_POOL.length]
 
   return {
     _id: `book-${index + 1}`,
@@ -203,7 +221,7 @@ function generateBook(index: number, type: 'recommended' | 'featured' | 'ranking
     wordCount: Math.floor(Math.random() * 1000000) + 50000,
     chapterCount: Math.floor(Math.random() * 300) + 20,
     description: `这是一本关于${title}的精彩故事，讲述了主人公在${category.name}世界中的冒险经历...`,
-    tags: [tags[index % tags.length], tags[(index + 1) % tags.length]],
+    tags: [baseTag, secondaryTag, extraTag].filter((tag, idx, arr) => arr.indexOf(tag) === idx),
     createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
   }
@@ -229,6 +247,57 @@ function generateRankingBooks(type: string) {
 
 function generateCategories() {
   return JSON.parse(JSON.stringify(MOCK_CATEGORY_TREE))
+}
+
+function filterAndPaginateBooks(
+  source: ReturnType<typeof generateRecommendedBooks>,
+  params: Record<string, any>,
+  parsedUrl: URL
+) {
+  const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
+  const categoryId = String(
+    params.categoryId ||
+    params.category ||
+    parsedUrl.searchParams.get('categoryId') ||
+    parsedUrl.searchParams.get('category') ||
+    ''
+  ).trim()
+  const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
+  const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
+  const tags = Array.isArray(rawTags)
+    ? rawTags.map(String)
+    : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
+  const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
+  const size = Number(
+    params.size ||
+    params.pageSize ||
+    parsedUrl.searchParams.get('size') ||
+    parsedUrl.searchParams.get('pageSize') ||
+    12
+  )
+
+  const filteredBooks = source.filter((book) => {
+    const keywordMatched = !q ||
+      book.title.toLowerCase().includes(q) ||
+      String(book.author || '').toLowerCase().includes(q)
+    const categoryMatched = !categoryId ||
+      book.categoryId === categoryId ||
+      book.categoryId.startsWith(`${categoryId}-`)
+    const statusMatched = !status || book.status === status
+    const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
+    return keywordMatched && categoryMatched && statusMatched && tagsMatched
+  })
+
+  const start = Math.max(0, (page - 1) * size)
+  const list = filteredBooks.slice(start, start + size)
+
+  return {
+    list,
+    total: filteredBooks.length,
+    page,
+    size,
+    hasNext: start + size < filteredBooks.length
+  }
 }
 
 // ==================== 创作中心 Mock 数据 ====================
@@ -383,48 +452,42 @@ export async function getMockDataForRequest(
     })
   }
 
+  if (url.includes('/bookstore/books/search')) {
+    const parsedUrl = new URL(url, window.location.origin)
+    const params = options.params || {}
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const result = filterAndPaginateBooks(allBooks, params, parsedUrl)
+
+    return createMockResponse({
+      books: result.list,
+      total: result.total,
+      page: result.page,
+      size: result.size,
+      pagination: {
+        page: result.page,
+        pageSize: result.size,
+        total: result.total,
+        has_next: result.hasNext
+      }
+    })
+  }
+
   if (url.includes('/bookstore/books') && !url.includes('/books/')) {
     const parsedUrl = new URL(url, window.location.origin)
     const params = options.params || {}
-    const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
-    const categoryId = String(params.categoryId || params.category || parsedUrl.searchParams.get('categoryId') || parsedUrl.searchParams.get('category') || '').trim()
-    const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
-    const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
-    const tags = Array.isArray(rawTags)
-      ? rawTags.map(String)
-      : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
-    const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
-    const size = Number(params.size || params.pageSize || parsedUrl.searchParams.get('size') || parsedUrl.searchParams.get('pageSize') || 12)
-
     const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
-    const filteredBooks = allBooks.filter((book) => {
-      const keywordMatched = !q ||
-        book.title.toLowerCase().includes(q) ||
-        String(book.author || '').toLowerCase().includes(q)
-      const categoryMatched = !categoryId ||
-        book.categoryId === categoryId ||
-        book.categoryId.startsWith(`${categoryId}-`)
-      const statusMatched = !status || book.status === status
-      const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
-      return keywordMatched && categoryMatched && statusMatched && tagsMatched
-    })
+    const result = filterAndPaginateBooks(allBooks, params, parsedUrl)
 
-    const start = Math.max(0, (page - 1) * size)
-    const list = filteredBooks.slice(start, start + size)
-
-    return {
-      code: 200,
-      message: 'success',
-      data: list,
-      total: filteredBooks.length,
+    return createMockResponse({
+      list: result.list,
+      total: result.total,
       pagination: {
-        page,
-        pageSize: size,
-        total: filteredBooks.length,
-        has_next: start + size < filteredBooks.length
-      },
-      timestamp: Date.now()
-    }
+        page: result.page,
+        pageSize: result.size,
+        total: result.total,
+        has_next: result.hasNext
+      }
+    })
   }
 
   // 书籍详情
@@ -455,13 +518,24 @@ export async function getMockDataForRequest(
 
   // 标签列表
   if (url.includes('/bookstore/tags') && !url.includes('/books/tags')) {
-    return createMockResponse([
-      { _id: 'tag-1', name: '热血', count: 1234 },
-      { _id: 'tag-2', name: '玄幻', count: 982 },
-      { _id: 'tag-3', name: '修仙', count: 756 },
-      { _id: 'tag-4', name: '都市', count: 654 },
-      { _id: 'tag-5', name: '科幻', count: 543 }
-    ])
+    const allBooks = generateRecommendedBooks(MOCK_BOOK_POOL_SIZE)
+    const tagCounter = new Map<string, number>()
+
+    for (const book of allBooks) {
+      for (const tag of book.tags || []) {
+        tagCounter.set(tag, (tagCounter.get(tag) || 0) + 1)
+      }
+    }
+
+    const tagList = Array.from(tagCounter.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count], idx) => ({
+        _id: `tag-${idx + 1}`,
+        name,
+        count
+      }))
+
+    return createMockResponse(tagList)
   }
 
   // 年份列表

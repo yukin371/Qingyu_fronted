@@ -75,27 +75,50 @@ class BookstoreService {
   async searchBooks(params: SearchParams): Promise<SearchResult> {
     const response = await bookstoreAPI.searchBooks(params) as any
 
-    // 后端数据可能包含 data.books 或直接是 books 数组
+    // 后端/Mock 返回格式可能包含 data.books、data.list、root.books、root.list 等
     let books: BookBrief[] = []
     let total = 0
     let page = params.page || 1
     let size = params.size || 20
 
     if (response) {
-      if (response.data) {
-        // 格式: { data: { books: [...], total: ... }, total, page, size }
-        books = response.data.books || []
-        total = response.data.total !== undefined ? response.data.total : response.total
-        page = response.page || page
-        size = response.size || size
-      } else if (Array.isArray(response)) {
-        // 直接返回数组
+      if (Array.isArray(response)) {
         books = response
         total = books.length
-      } else if (response.books) {
-        // 格式: { books: [...], total: ... }
+      } else if (response.data) {
+        if (Array.isArray(response.data.books)) {
+          books = response.data.books
+        } else if (Array.isArray(response.data.list)) {
+          books = response.data.list
+        } else if (Array.isArray(response.data.items)) {
+          books = response.data.items
+        } else if (Array.isArray(response.data)) {
+          books = response.data
+        }
+
+        total = Number(
+          response.data.total ??
+          response.pagination?.total ??
+          response.total ??
+          books.length
+        )
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.books)) {
         books = response.books
-        total = response.total !== undefined ? response.total : books.length
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.list)) {
+        books = response.list
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.items)) {
+        books = response.items
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
       }
     }
 
@@ -211,4 +234,3 @@ class BookstoreService {
 
 export const bookstoreService = new BookstoreService()
 export default bookstoreService
-

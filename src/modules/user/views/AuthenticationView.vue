@@ -1,12 +1,10 @@
 <template>
   <div class="auth-view">
-    <!-- 动态背景装饰 -->
     <div class="bg-shape shape-1"></div>
     <div class="bg-shape shape-2"></div>
-    <div class="bg-shape shape-3"></div>
 
     <div class="auth-container">
-      <div class="auth-card animate-in">
+      <div class="auth-card">
         <div class="auth-header">
           <div class="logo" @click="goHome">
             <div class="logo-icon-wrapper">
@@ -18,249 +16,178 @@
           <p class="auth-subtitle">{{ pageSubtitle }}</p>
         </div>
 
-        <Tabs v-model="activeMode" class="premium-tabs" data-testid="auth-tabs" @tab-change="(name: string | number) => handleTabChange(String(name))">
-          <!-- 登录 -->
-          <TabPane label="登录" name="login">
-            <template #label>
-              <span data-testid="tab-login">登录</span>
-            </template>
-            <QyForm ref="loginFormRef" v-model="loginForm" :rules="(loginRules as any)" class="auth-form"
-              @submit.prevent="handleLogin">
-              <QyFormItem prop="username" data-testid="login-username">
-                <QyInput
-                  v-model="loginForm.username"
-                  placeholder="用户名或邮箱"
-                  size="lg"
-                  class="premium-input"
-                  :input-attrs="{ 'data-testid': 'login-username-input' }"
-                  :prefix-icon="userIcon"
-                />
-              </QyFormItem>
+        <div class="mode-switch">
+          <button class="mode-btn" :class="{ active: activeMode === 'login' }" @click="activeMode = 'login'">登录</button>
+          <button class="mode-btn" :class="{ active: activeMode === 'register' }" @click="activeMode = 'register'">注册</button>
+          <button v-if="activeMode === 'reset'" class="mode-btn active">找回</button>
+        </div>
 
-              <QyFormItem prop="password" data-testid="login-password">
-                <QyInput
-                  v-model="loginForm.password"
-                  type="password"
-                  placeholder="密码"
-                  size="lg"
-                  :show-password="true"
-                  @keyup.enter="handleLogin"
-                  class="premium-input"
-                  :input-attrs="{ 'data-testid': 'login-password-input' }"
-                  :prefix-icon="lockIcon"
-                />
-              </QyFormItem>
+        <QyForm
+          v-if="activeMode === 'login'"
+          ref="loginFormRef"
+          v-model="loginForm"
+          :rules="(loginRules as any)"
+          class="auth-form"
+          @submit.prevent="handleLogin"
+        >
+          <QyFormItem prop="username" data-testid="login-username">
+            <QyInput
+              v-model="loginForm.username"
+              placeholder="用户名或邮箱"
+              size="lg"
+              class="premium-input"
+              :input-attrs="{ 'data-testid': 'login-username-input' }"
+              :prefix-icon="userIcon"
+            />
+          </QyFormItem>
 
-              <div class="form-options">
-                <QyCheckbox v-model="rememberMe">记住我</QyCheckbox>
-                <span class="link-text" @click="activeMode = 'reset'">
-                  忘记密码？
-                </span>
-              </div>
+          <QyFormItem prop="password" data-testid="login-password">
+            <QyInput
+              v-model="loginForm.password"
+              type="password"
+              placeholder="密码"
+              size="lg"
+              :show-password="true"
+              @keyup.enter="handleLogin"
+              class="premium-input"
+              :input-attrs="{ 'data-testid': 'login-password-input' }"
+              :prefix-icon="lockIcon"
+            />
+          </QyFormItem>
 
-              <QyButton
-                variant="primary"
-                size="lg"
-                class="submit-btn"
-                :loading="loading"
-                @click="handleLogin"
-                data-testid="login-submit"
-              >
-                立即登录
+          <div class="form-options">
+            <label class="remember-row">
+              <input v-model="rememberMe" type="checkbox" class="remember-checkbox" />
+              <span>记住我</span>
+            </label>
+            <span class="link-text" @click="activeMode = 'reset'">忘记密码？</span>
+          </div>
+
+          <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleLogin" data-testid="login-submit">
+            立即登录
+          </QyButton>
+        </QyForm>
+
+        <QyForm
+          v-if="activeMode === 'register'"
+          ref="registerFormRef"
+          v-model="registerForm"
+          :rules="(registerRules as any)"
+          class="auth-form"
+          @submit.prevent="handleRegister"
+        >
+          <QyFormItem prop="username" data-testid="register-username">
+            <QyInput v-model="registerForm.username" placeholder="设置用户名 (3-20字符)" size="lg" class="premium-input" :prefix-icon="userIcon" />
+          </QyFormItem>
+
+          <QyFormItem prop="email" data-testid="register-email">
+            <QyInput v-model="registerForm.email" placeholder="电子邮箱" size="lg" class="premium-input" :prefix-icon="messageIcon" />
+          </QyFormItem>
+
+          <QyFormItem prop="emailCode" data-testid="register-email-code">
+            <div class="code-input-group">
+              <QyInput v-model="registerForm.emailCode" placeholder="6位验证码" size="lg" class="premium-input" :prefix-icon="lockIcon" />
+              <QyButton size="lg" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail" @click="sendEmailCode">
+                {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
               </QyButton>
-            </QyForm>
-          </TabPane>
+            </div>
+          </QyFormItem>
 
-          <!-- 注册 -->
-          <TabPane label="注册" name="register">
-            <template #label>
-              <span data-testid="tab-register">注册</span>
-            </template>
-            <QyForm ref="registerFormRef" v-model="registerForm" :rules="(registerRules as any)" class="auth-form"
-              @submit.prevent="handleRegister">
-              <QyFormItem prop="username" data-testid="register-username">
-                <QyInput
-                  v-model="registerForm.username"
-                  placeholder="设置用户名 (3-20字符)"
-                  size="lg"
-                  class="premium-input"
-                  :input-attrs="{ 'data-testid': 'register-username-input' }"
-                  :prefix-icon="userIcon"
-                />
-              </QyFormItem>
-
-              <QyFormItem prop="email" data-testid="register-email">
-                <QyInput
-                  v-model="registerForm.email"
-                  placeholder="电子邮箱"
-                  size="lg"
-                  class="premium-input"
-                  :input-attrs="{ 'data-testid': 'register-email-input' }"
-                  :prefix-icon="messageIcon"
-                />
-              </QyFormItem>
-
-              <QyFormItem prop="emailCode" data-testid="register-email-code">
-                <div class="code-input-group">
-                  <QyInput
-                    v-model="registerForm.emailCode"
-                    placeholder="6位验证码"
-                    size="lg"
-                    class="premium-input"
-                    :input-attrs="{ 'data-testid': 'register-email-code-input' }"
-                    :prefix-icon="lockIcon"
-                  />
-                  <QyButton size="lg" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail"
-                    @click="sendEmailCode">
-                    {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
-                  </QyButton>
-                </div>
-              </QyFormItem>
-
-              <QyFormItem prop="password" data-testid="register-password">
-                <QyInput
-                  v-model="registerForm.password"
-                  type="password"
-                  placeholder="设置密码"
-                  size="lg"
-                  :show-password="true"
-                  class="premium-input"
-                  :input-attrs="{ 'data-testid': 'register-password-input' }"
-                  :prefix-icon="lockIcon"
-                />
-                <!-- 密码强度 -->
-                <div v-if="registerForm.password" class="password-strength">
-                  <div class="strength-bar">
-                    <div class="strength-fill" :class="`level-${passwordStrength}`"
-                      :style="{ width: passwordStrengthPercent }">
-                    </div>
-                  </div>
-                  <span class="strength-text">{{ passwordStrengthText }}</span>
-                </div>
-              </QyFormItem>
-
-              <QyFormItem prop="confirmPassword" data-testid="register-confirm-password">
-                <QyInput
-                  v-model="registerForm.confirmPassword"
-                  type="password"
-                  placeholder="确认密码"
-                  size="lg"
-                  :show-password="true"
-                  class="premium-input"
-                  @keyup.enter="handleRegister"
-                  :input-attrs="{ 'data-testid': 'register-confirm-password-input' }"
-                  :prefix-icon="lockIcon"
-                />
-              </QyFormItem>
-
-              <QyFormItem prop="agreement" data-testid="register-agreement">
-                <QyCheckbox v-model="registerForm.agreement" data-testid="register-agreement-checkbox">
-                  我已阅读并同意 <span class="highlight">用户协议</span> 与 <span class="highlight">隐私政策</span>
-                </QyCheckbox>
-              </QyFormItem>
-
-              <QyButton
-                variant="primary"
-                size="lg"
-                class="submit-btn"
-                :loading="loading"
-                @click="handleRegister"
-                data-testid="register-submit"
-              >
-                注册账号
-              </QyButton>
-            </QyForm>
-          </TabPane>
-
-          <!-- 找回密码 -->
-          <TabPane label="找回密码" name="reset" v-if="activeMode === 'reset'">
-            <template #label>
-              <span data-testid="tab-reset">找回密码</span>
-            </template>
-            <!-- 保持原有逻辑，仅添加样式类 -->
-            <QyForm ref="resetFormRef" v-model="resetForm" :rules="(resetRules as any)" class="auth-form"
-              @submit.prevent="handleReset">
-              <Steps :active="resetStep" finish-status="success" class="premium-steps" align-center>
-                <Step title="验证"></Step>
-                <Step title="重置"></Step>
-                <Step title="完成"></Step>
-              </Steps>
-
-              <!-- 步骤内容容器 -->
-              <div class="step-content">
-                <template v-if="resetStep === 0">
-                  <QyFormItem prop="email">
-                    <QyInput v-model="resetForm.email" placeholder="注册邮箱" size="lg" class="premium-input"
-                      :prefix-icon="messageIcon" />
-                  </QyFormItem>
-                  <QyFormItem prop="code">
-                    <div class="code-input-group">
-                      <QyInput v-model="resetForm.code" placeholder="验证码" size="lg" class="premium-input"
-                        :prefix-icon="lockIcon" />
-                      <QyButton size="lg" class="code-btn" :disabled="resetCountdown > 0" :loading="sendingReset"
-                        @click="sendResetCode">
-                        {{ resetCountdown > 0 ? `${resetCountdown}s` : '发送' }}
-                      </QyButton>
-                    </div>
-                  </QyFormItem>
-                  <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading"
-                    @click="verifyResetCode">下一步</QyButton>
-                </template>
-
-                <template v-if="resetStep === 1">
-                  <QyFormItem prop="newPassword">
-                    <QyInput v-model="resetForm.newPassword" type="password" placeholder="新密码" size="lg"
-                      :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
-                  </QyFormItem>
-                  <QyFormItem prop="confirmNewPassword">
-                    <QyInput v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="lg"
-                      :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
-                  </QyFormItem>
-                  <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading"
-                    @click="handleReset">提交修改</QyButton>
-                </template>
-
-                <template v-if="resetStep === 2">
-                  <div class="success-result">
-                    <QyIcon name="CircleCheckFilled" :size="64" class="success-icon" />
-                    <h3>密码重置成功</h3>
-                    <QyButton variant="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</QyButton>
-                  </div>
-                </template>
+          <QyFormItem prop="password" data-testid="register-password">
+            <QyInput v-model="registerForm.password" type="password" placeholder="设置密码" size="lg" :show-password="true" class="premium-input" :prefix-icon="lockIcon" />
+            <div v-if="registerForm.password" class="password-strength">
+              <div class="strength-bar">
+                <div class="strength-fill" :class="`level-${passwordStrength}`" :style="{ width: passwordStrengthPercent }"></div>
               </div>
-            </QyForm>
-          </TabPane>
-        </Tabs>
+              <span class="strength-text">{{ passwordStrengthText }}</span>
+            </div>
+          </QyFormItem>
 
-        <!-- 社交登录 -->
+          <QyFormItem prop="confirmPassword" data-testid="register-confirm-password">
+            <QyInput v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" size="lg" :show-password="true" class="premium-input" />
+          </QyFormItem>
+
+          <QyFormItem prop="agreement" data-testid="register-agreement">
+            <label class="remember-row">
+              <input v-model="registerForm.agreement" type="checkbox" class="remember-checkbox" />
+              <span>我已阅读并同意 <span class="highlight">用户协议</span> 与 <span class="highlight">隐私政策</span></span>
+            </label>
+          </QyFormItem>
+
+          <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleRegister" data-testid="register-submit">
+            注册账号
+          </QyButton>
+        </QyForm>
+
+        <QyForm
+          v-if="activeMode === 'reset'"
+          ref="resetFormRef"
+          v-model="resetForm"
+          :rules="(resetRules as any)"
+          class="auth-form"
+          @submit.prevent="handleReset"
+        >
+          <div class="reset-steps">
+            <span :class="{ active: resetStep >= 0 }">验证</span>
+            <span :class="{ active: resetStep >= 1 }">重置</span>
+            <span :class="{ active: resetStep >= 2 }">完成</span>
+          </div>
+
+          <template v-if="resetStep === 0">
+            <QyFormItem prop="email">
+              <QyInput v-model="resetForm.email" placeholder="注册邮箱" size="lg" class="premium-input" :prefix-icon="messageIcon" />
+            </QyFormItem>
+            <QyFormItem prop="code">
+              <div class="code-input-group">
+                <QyInput v-model="resetForm.code" placeholder="验证码" size="lg" class="premium-input" :prefix-icon="lockIcon" />
+                <QyButton size="lg" class="code-btn" :disabled="resetCountdown > 0" :loading="sendingReset" @click="sendResetCode">
+                  {{ resetCountdown > 0 ? `${resetCountdown}s` : '发送' }}
+                </QyButton>
+              </div>
+            </QyFormItem>
+            <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="verifyResetCode">下一步</QyButton>
+          </template>
+
+          <template v-if="resetStep === 1">
+            <QyFormItem prop="newPassword">
+              <QyInput v-model="resetForm.newPassword" type="password" placeholder="新密码" size="lg" :show-password="true" class="premium-input" />
+            </QyFormItem>
+            <QyFormItem prop="confirmNewPassword">
+              <QyInput v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="lg" :show-password="true" class="premium-input" />
+            </QyFormItem>
+            <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleReset">提交修改</QyButton>
+          </template>
+
+          <template v-if="resetStep === 2">
+            <div class="success-result">
+              <QyIcon name="CircleCheckFilled" :size="52" class="success-icon" />
+              <h3>密码重置成功</h3>
+              <QyButton variant="primary" class="submit-btn" @click="activeMode = 'login'">立即登录</QyButton>
+            </div>
+          </template>
+        </QyForm>
+
         <div class="social-login" v-if="activeMode !== 'reset'">
           <QyDivider content="第三方登录" content-position="center" />
           <div class="social-buttons">
-            <button class="social-btn wechat" title="微信登录">
-              <i class="iconfont icon-wechat"></i> W
-            </button>
-            <button class="social-btn qq" title="QQ登录">
-              <i class="iconfont icon-qq"></i> Q
-            </button>
+            <button class="social-btn wechat" title="微信登录">W</button>
+            <button class="social-btn qq" title="QQ登录">Q</button>
           </div>
         </div>
 
-        <!-- 返回首页 -->
         <div class="back-home">
-          <span class="back-text" @click="goHome">返回首页 <QyIcon name="ArrowRight"  /></span>
+          <span class="back-text" @click="goHome">返回首页 <QyIcon name="ArrowRight" /></span>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
-import { QyIcon, QyForm, QyFormItem, QyInput, QyButton, QyCheckbox, QyDivider } from '@/design-system/components'
-import { Tabs, TabPane, Steps, Step } from '@/design-system'
+import { QyIcon, QyForm, QyFormItem, QyInput, QyButton, QyDivider } from '@/design-system/components'
 import { getIconSVG } from '@/design-system/utils/icon-mapper'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
@@ -463,7 +390,6 @@ const handleReset = async () => {
     }
   })
 }
-const handleTabChange = (n: string) => { if (n === 'reset') resetStep.value = 0 }
 const goHome = () => router.push('/')
 
 onMounted(() => {
@@ -473,485 +399,343 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-// 引入
-@use '@/styles/variables.scss' as *;
-
 .auth-view {
   min-height: 100vh;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  // 使用 CSS 变量定义的渐变，或默认渐变
-  background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-  padding: $spacing-md;
+  background: linear-gradient(145deg, #f7fbff 0%, #eef5ff 50%, #f8fbff 100%);
+  padding: 20px;
 }
 
-// 背景装饰圆
-.bg-circle {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.6;
-
-  &.circle-1 {
-    width: 300px;
-    height: 300px;
-    background: #409eff;
-    top: -50px;
-    left: -50px;
-  }
-
-  &.circle-2 {
-    width: 400px;
-    height: 400px;
-    background: #f56c6c;
-    bottom: -100px;
-    right: -100px;
-    opacity: 0.4;
-  }
-}
-
-// --- 动态背景装饰 ---
 .bg-shape {
   position: absolute;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.5;
-  animation: floatShape 20s infinite ease-in-out alternate;
+  border-radius: 999px;
+  filter: blur(72px);
+  opacity: 0.36;
+  pointer-events: none;
+}
 
-  &.shape-1 {
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(64, 158, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
-    top: -10%;
-    left: -10%;
-  }
+.shape-1 {
+  width: 320px;
+  height: 320px;
+  background: #60a5fa;
+  left: -80px;
+  top: -90px;
+}
 
-  &.shape-2 {
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(118, 75, 162, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
-    bottom: -5%;
-    right: -5%;
-    animation-delay: -5s;
-  }
-
-  &.shape-3 {
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation-delay: -10s;
-  }
+.shape-2 {
+  width: 260px;
+  height: 260px;
+  background: #34d399;
+  right: -80px;
+  bottom: -60px;
 }
 
 .auth-container {
   width: 100%;
-  max-width: 540px;
-  position: relative;
+  max-width: 500px;
   z-index: 1;
-  padding: 20px;
 }
 
 .auth-card {
-  // 毛玻璃核心样式
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px 26px 22px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
 
-  // 视觉样式
-  border-radius: 24px;
-  padding: 48px 56px; // 增加内部留白，显得更宽敞
-  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.08); // 更柔和、更扩散的阴影
-
-  transition: all 0.3s ease;
-
-  // 动画
-  &.animate-in {
-    animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  }
+.auth-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #22c55e, #3b82f6);
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 18px;
+}
 
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    cursor: pointer;
-    transition: transform 0.3s;
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
 
-    &:hover {
-      transform: scale(1.02);
-    }
+.logo-icon-wrapper {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    .logo-icon-wrapper {
-      width: 52px;
-      height: 52px;
-      background: #fff;
-      border-radius: 14px;
-      padding: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+.logo-icon {
+  width: 30px;
+  height: 30px;
+}
 
-      .logo-icon {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-    }
+.logo-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e3a5f;
+}
 
-    .logo-text {
-      font-size: 26px;
-      font-weight: 800;
-      color: #2c3e50;
-      letter-spacing: 1px;
-    }
-  }
+.auth-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: #111827;
+}
 
-  .auth-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-  }
+.auth-subtitle {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 15px;
+}
 
-  .auth-subtitle {
-    font-size: 15px;
-    color: #8590a6;
-  }
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 5px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.mode-btn {
+  border: 0;
+  border-radius: 8px;
+  min-height: 38px;
+  font-size: 14px;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: #fff;
+  color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
 }
 
 .auth-form {
   width: 100%;
 }
 
-// 定制 Element Plus 输入框
+.auth-form :deep(.tw-form-item) {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.auth-form :deep(.tw-form-item-content),
+.auth-form :deep(.tw-form-item-content-left),
+.auth-form :deep(.tw-form-item-content-top) {
+  width: 100%;
+  padding-left: 0 !important;
+}
+
 .premium-input {
-  :deep(.el-input__wrapper) {
-    background-color: #f7f8fa; // 极浅的灰色背景
-    box-shadow: none !important;
-    border: 1px solid #e4e7ed;
-    border-radius: 12px;
-    padding: 1px 15px;
-    height: 46px; // 增高输入框
-    transition: all 0.3s;
-
-    &:hover {
-      background-color: #fff;
-      border-color: #c0c4cc;
-    }
-
-    &.is-focus {
-      background-color: #fff;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1) !important; // 柔和的光晕
-    }
-  }
-
-  :deep(.el-input__inner) {
-    height: 32px;
-  }
-
-  .input-icon {
-    font-size: 18px;
-    color: #909399;
-  }
+  width: 100%;
 }
 
-// 定制按钮
-.submit-btn {
-  width: 100%;
+.premium-input :deep(input) {
+  min-height: 48px;
   border-radius: 12px;
-  height: 50px;
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: 28px;
-  background: var(--primary-color);
-  border: none;
-  box-shadow: 0 10px 20px -5px rgba(64, 158, 255, 0.4);
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 25px -5px rgba(64, 158, 255, 0.5);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+  background: #f8fbff;
+  border: 1px solid #dbe6f3;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.24), 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
-// 验证码区域
-.code-input-group {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-
-  .code-btn {
-    height: 46px;
-    border-radius: 12px;
-    width: 120px;
-    font-weight: 500;
-  }
+.premium-input :deep(input:focus) {
+  background: #ffffff;
+  border-color: #93c5fd;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .form-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 12px 0 20px;
-
-  .link-text {
-    font-size: 14px;
-    color: var(--primary-color, #409eff);
-    cursor: pointer;
-    transition: color 0.3s;
-
-    &:hover {
-      color: rgb(59, 130, 246);
-    }
-  }
+  margin-top: 2px;
 }
 
-// 密码强度条优化
+.remember-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.remember-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+  border-radius: 4px;
+}
+
+.link-text {
+  font-size: 14px;
+  color: #3b82f6;
+  cursor: pointer;
+}
+
+.submit-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.code-input-group {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 10px;
+}
+
+.code-btn {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+.highlight {
+  color: #2563eb;
+}
+
 .password-strength {
   margin-top: 8px;
   display: flex;
   align-items: center;
-  gap: 10px;
-
-  .strength-bar {
-    flex: 1;
-    height: 6px;
-    background: #ebeef5;
-    border-radius: 3px;
-    overflow: hidden;
-
-    .strength-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.3s, background-color 0.3s;
-      background-color: #ff4d4f; // 默认弱
-
-      &.level-2 {
-        background-color: #faad14;
-      }
-
-      &.level-3 {
-        background-color: #52c41a;
-      }
-    }
-  }
-
-  .strength-text {
-    font-size: 12px;
-    color: #909399;
-    width: 20px;
-  }
+  gap: 8px;
 }
 
-// 社交登录
-.social-login {
-  margin-top: 40px;
-
-  .divider {
-    display: flex;
-    align-items: center;
-    color: #c0c4cc;
-    font-size: 13px;
-    margin-bottom: 24px;
-
-    &::before,
-    &::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #ebeef5;
-    }
-
-    span {
-      padding: 0 12px;
-    }
-  }
-
-  .social-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-
-    .social-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 1px solid #e4e7ed;
-      background: #fff;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #606266;
-
-      &:hover {
-        background: #f5f7fa;
-        transform: translateY(-2px);
-      }
-
-      &.wechat:hover {
-        color: #07c160;
-        border-color: #07c160;
-      }
-
-      &.qq:hover {
-        color: #409eff;
-        border-color: #409eff;
-      }
-    }
-  }
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
 }
 
-.back-home {
+.strength-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.strength-fill.level-2 {
+  background: #f59e0b;
+}
+
+.strength-fill.level-3 {
+  background: #22c55e;
+}
+
+.strength-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.reset-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reset-steps span {
   text-align: center;
-  margin-top: 24px;
+  font-size: 12px;
+  padding: 6px 0;
+  color: #94a3b8;
+  border-radius: 999px;
+  background: #f1f5f9;
+}
 
-  .back-text {
-    font-size: 14px;
-    color: var(--text-secondary, #909399);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: color 0.3s;
-
-    &:hover {
-      color: var(--primary-color, #409eff);
-    }
-  }
+.reset-steps span.active {
+  color: #2563eb;
+  background: #dbeafe;
 }
 
 .success-result {
   text-align: center;
-  padding: 30px 0;
-
-  .success-icon {
-    font-size: 64px;
-    color: #67c23a;
-    margin-bottom: 16px;
-  }
-
-  h3 {
-    color: #303133;
-    margin-bottom: 24px;
-  }
+  padding: 12px 0 4px;
 }
 
-// 动画定义
-@keyframes floatShape {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-
-  100% {
-    transform: translate(20px, 20px) rotate(10deg);
-  }
+.success-icon {
+  color: #22c55e;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.social-login {
+  margin-top: 16px;
 }
 
-// 动画定义
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
 }
 
-// --- 移动端适配 ---
+.social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  color: #64748b;
+}
+
+.back-home {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.back-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
   .auth-view {
-    align-items: flex-start; // 移动端顶对齐，避免键盘遮挡
-    padding: 0;
-    background: #fff; // 移动端纯白背景，性能更好
-  }
-
-  .bg-shape {
-    display: none;
-  }
-
-  // 移动端移除背景动画
-
-  .auth-container {
-    max-width: 100%;
-    padding: 0;
-    min-height: 100vh;
+    padding: 12px;
+    align-items: flex-start;
   }
 
   .auth-card {
-    border-radius: 0; // 移除圆角
-    border: none;
-    box-shadow: none;
-    padding: 32px 24px; // 减少内边距
-    background: transparent;
-    backdrop-filter: none;
-    min-height: 100vh; // 占满全屏
-
-    // 确保内容在小屏垂直居中
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 20px 16px;
+    border-radius: 16px;
   }
 
-  .auth-header {
-    margin-bottom: 30px;
-
-    .logo {
-      margin-bottom: 15px;
-
-      .logo-text {
-        color: var(--primary-color);
-      }
-
-      // 移动端Logo用品牌色
-    }
+  .auth-title {
+    font-size: 22px;
   }
 
-  // 调整输入框高度适应手指点击
-  .premium-input :deep(.el-input__wrapper) {
-    height: 48px;
-  }
-
-  .submit-btn {
-    height: 52px;
-    position: relative;
-    // 如果需要底部固定按钮，可以在这里写 fixed
+  .logo-text {
+    font-size: 24px;
   }
 }
 </style>
+
