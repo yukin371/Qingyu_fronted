@@ -103,6 +103,40 @@ body {
   height: 1em;
 }
 
+/* Element Plus 评分星标稳态修复：
+   在复杂页面和全局样式混用场景下，el-rate 图标可能继承到异常字号。
+   这里固定尺寸计算链为：el-rate(--el-rate-icon-size) -> icon(1em) -> svg(1em)。 */
+.el-rate {
+  --el-rate-icon-size: 16px;
+}
+
+.el-rate .el-rate__icon {
+  font-size: var(--el-rate-icon-size) !important;
+  line-height: 1 !important;
+}
+
+.el-rate .el-rate__item {
+  line-height: 1 !important;
+}
+
+.el-rate .el-rate__icon:not(.el-rate__decimal) {
+  width: var(--el-rate-icon-size) !important;
+  height: var(--el-rate-icon-size) !important;
+  min-width: var(--el-rate-icon-size) !important;
+  min-height: var(--el-rate-icon-size) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: none !important;
+}
+
+.el-rate .el-rate__icon .el-icon,
+.el-rate .el-rate__icon .el-icon svg {
+  width: 1em !important;
+  height: 1em !important;
+  font-size: inherit !important;
+}
+
 /* ============================================
    自定义组件样式
    ============================================ */
@@ -134,11 +168,6 @@ body {
     padding: 0 2rem;
   }
 }
-
-
-
-
-
 
 
 

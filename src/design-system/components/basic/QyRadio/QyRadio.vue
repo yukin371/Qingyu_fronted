@@ -15,15 +15,6 @@
       @change="handleChange"
     />
 
-    <!-- 单选框圆点 -->
-    <span
-      v-if="isChecked"
-      :class="dotClasses"
-      aria-hidden="true"
-    >
-      <span class="radio-dot"></span>
-    </span>
-
     <!-- Label -->
     <span v-if="label || $slots.default" :class="labelClasses">
       <slot>{{ label }}</slot>
@@ -39,7 +30,6 @@ import type { QyRadioProps, QyRadioEmits } from './types'
 import {
   radioVariants,
   radioInputVariants,
-  dotContainerVariants,
   labelVariants
 } from './variants'
 
@@ -111,14 +101,6 @@ const inputClasses = computed(() => {
   )
 })
 
-// 计算圆点容器类名
-const dotClasses = computed(() => {
-  return dotContainerVariants({
-    size: actualSize.value,
-    color: props.color
-  })
-})
-
 // 计算label类名
 const labelClasses = computed(() => {
   return cn(
@@ -154,19 +136,4 @@ defineExpose({
 </script>
 
 <style scoped>
-.radio-dot {
-  width: 50%;
-  height: 50%;
-  border-radius: 50%;
-  background-color: currentColor;
-}
-
-input:checked + span {
-  /* 显示圆点 */
-}
-
-input:checked {
-  background-color: currentColor;
-  border-color: currentColor;
-}
 </style>

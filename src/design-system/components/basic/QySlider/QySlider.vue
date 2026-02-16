@@ -7,14 +7,16 @@
     <div
       ref="sliderRef"
       :class="sliderClasses"
+      class="qy-slider__core"
       @mousedown="handleMouseDown"
       @touchstart="handleTouchStart"
     >
       <!-- 轨道 -->
-      <div :class="trackClasses">
+      <div :class="trackClasses" class="qy-slider__track">
         <!-- 已填充轨道 -->
         <div
           :class="fillClasses"
+          class="qy-slider__fill"
           :style="fillStyle"
         ></div>
 
@@ -189,7 +191,6 @@ const trackClasses = computed(() => {
 // 计算填充类名
 const fillClasses = computed(() => {
   return fillVariants({
-    size: props.size,
     vertical: props.vertical,
     color: props.color
   })
@@ -490,3 +491,30 @@ defineExpose({
   blur: () => sliderRef.value?.blur()
 })
 </script>
+
+<style scoped>
+.qy-slider__core {
+  width: 100%;
+  min-height: 24px;
+  overflow: visible;
+}
+
+.qy-slider__track {
+  width: 100%;
+  height: 8px !important;
+  max-height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.qy-slider__fill {
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  max-height: 8px;
+  max-width: 100%;
+  border-radius: inherit;
+  position: absolute;
+}
+</style>

@@ -12,6 +12,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
  */
 export const radioVariants = cva(
   [
+    'relative',
     'inline-flex items-center gap-2 cursor-pointer',
     'transition-all duration-200',
     'select-none'
@@ -59,10 +60,10 @@ export const radioInputVariants = cva(
         lg: 'w-6 h-6'
       },
       color: {
-        primary: 'border-slate-300 focus-visible:ring-primary-500 checked:border-primary-500 dark:border-slate-600',
-        success: 'border-slate-300 focus-visible:ring-success-500 checked:border-success-500 dark:border-slate-600',
-        warning: 'border-slate-300 focus-visible:ring-warning-500 checked:border-warning-500 dark:border-slate-600',
-        danger: 'border-slate-300 focus-visible:ring-danger-500 checked:border-danger-500 dark:border-slate-600'
+        primary: 'border-slate-300 focus-visible:ring-primary-500 checked:border-primary-500 checked:bg-primary-500 dark:border-slate-600',
+        success: 'border-slate-300 focus-visible:ring-success-500 checked:border-success-500 checked:bg-success-500 dark:border-slate-600',
+        warning: 'border-slate-300 focus-visible:ring-warning-500 checked:border-warning-500 checked:bg-warning-500 dark:border-slate-600',
+        danger: 'border-slate-300 focus-visible:ring-danger-500 checked:border-danger-500 checked:bg-danger-500 dark:border-slate-600'
       },
       disabled: {
         true: 'cursor-not-allowed opacity-50',
@@ -88,16 +89,16 @@ export const radioInputVariants = cva(
  */
 export const dotContainerVariants = cva(
   [
-    'absolute inset-0',
+    'absolute left-0 top-1/2 -translate-y-1/2',
     'flex items-center justify-center',
     'pointer-events-none'
   ],
   {
     variants: {
       size: {
-        sm: 'text-[8px]',
-        md: 'text-[10px]',
-        lg: 'text-xs'
+        sm: 'w-4 h-4 text-[8px]',
+        md: 'w-5 h-5 text-[10px]',
+        lg: 'w-6 h-6 text-xs'
       },
       color: {
         primary: 'text-primary-500',
