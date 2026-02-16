@@ -201,10 +201,10 @@ const leftPanelVisible = computed(() => {
 })
 
 // 根据 activeTool 计算右侧面板是否可见
-// chapters: 隐藏 | writing: 折叠 | immersive: 隐藏 | ai: 展开显示
+// chapters: 隐藏 | writing: 折叠 | immersive: 隐藏 | ai-assistant: 展开显示
 const rightPanelVisible = computed(() => {
   const tool = activeTool.value
-  return tool === 'ai'
+  return tool === 'ai-assistant' || tool === 'ai'
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
@@ -218,7 +218,7 @@ const leftPanelState = computed(() => {
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const rightPanelState = computed(() => {
   const tool = activeTool.value
-  if (tool === 'ai') return 'expanded'
+  if (tool === 'ai-assistant' || tool === 'ai') return 'expanded'
   if (tool === 'writing') return 'collapsed'
   return 'hidden'
 })

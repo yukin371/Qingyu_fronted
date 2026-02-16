@@ -285,6 +285,16 @@ async function initVditor() {
         }
       },
 
+      // 编辑器渲染完成后回调
+      after: () => {
+        // 初始化字数统计
+        if (props.modelValue) {
+          const count = calculateWordCount(props.modelValue)
+          wordCount.value = count
+          emit('wordCountChange', count)
+        }
+      },
+
       // 聚焦回调
       focus: () => {
         editorRef.value?.classList.add('is-focused')
