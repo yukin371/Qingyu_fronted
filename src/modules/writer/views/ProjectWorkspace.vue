@@ -40,10 +40,7 @@
 
     <!-- 右侧AI面板插槽 -->
     <template #right-panel>
-      <AIPanel
-        :session-id="currentProjectId"
-        @send="handleAISend"
-      />
+      <AIPanel :session-id="currentProjectId" @send="handleAISend" />
     </template>
   </EditorLayout>
 
@@ -57,7 +54,7 @@
     :y="contextMenu.y"
     :selected-text="contextMenu.selectedText"
     @action="handleAIAction"
-    @update:visible="val => contextMenu.visible = val"
+    @update:visible="(val) => (contextMenu.visible = val)"
   />
 
   <!-- 新建文档对话框 -->
@@ -134,11 +131,13 @@ const currentProjectId = computed({
       projectStore.loadDetail(id)
       documentStore.loadTree(id)
     }
-  }
+  },
 })
 
 const isTestMode = computed(() => route.query.test === 'true')
-const mockProject = computed(() => isTestMode.value ? getWorkspaceMockProject(currentProjectId.value) : null)
+const mockProject = computed(() =>
+  isTestMode.value ? getWorkspaceMockProject(currentProjectId.value) : null,
+)
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
 
@@ -165,7 +164,7 @@ const currentChapterId = computed({
       editorStore.setContent('', false)
       editorStore.markSaved()
     }
-  }
+  },
 })
 
 interface SidebarProjectSummary {
@@ -196,7 +195,7 @@ const availableDocMap = computed(() => {
   for (const doc of docsFromStore.value) {
     map.set(doc.id, doc)
   }
-  for (const doc of (mockProject.value?.docs || [])) {
+  for (const doc of mockProject.value?.docs || []) {
     if (!map.has(doc.id)) {
       map.set(doc.id, doc)
     }
@@ -304,7 +303,7 @@ const flatChapters = computed(() => {
 // 4. 编辑器内容绑定 (双向绑定到 Store，Store 内处理自动保存)
 const fileContent = computed({
   get: () => editorStore.content,
-  set: (val) => editorStore.setContent(val)
+  set: (val) => editorStore.setContent(val),
 })
 
 const stripDirectoryPrefix = (title: string) =>
@@ -322,7 +321,7 @@ const documentTitle = computed({
     if (documentStore.currentDocMeta) {
       documentStore.currentDocMeta.title = val
     }
-  }
+  },
 })
 
 // 当前项目信息
@@ -369,7 +368,7 @@ onMounted(async () => {
     await Promise.all([
       projectStore.loadList(),
       projectStore.loadDetail(pId),
-      documentStore.loadTree(pId)
+      documentStore.loadTree(pId),
     ])
   }
 })
@@ -382,7 +381,7 @@ watch(
       currentChapterId.value = (firstChapter || chapters[0]).id
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -392,7 +391,7 @@ watch(
     if (!docMap.has(chapterId)) return
     currentChapterId.value = chapterId
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -403,7 +402,7 @@ watch(
       editorStore.setActiveTool(tool as ActiveTool)
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 内容更新处理
@@ -434,7 +433,7 @@ const handleCreateDoc = async () => {
     await documentStore.create(currentProjectId.value, {
       title: newDocForm.value.title,
       type: newDocForm.value.type as 'chapter' | 'volume',
-      projectId: currentProjectId.value
+      projectId: currentProjectId.value,
     })
 
     showCreateDocDialog.value = false

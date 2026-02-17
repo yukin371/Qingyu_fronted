@@ -1,10 +1,6 @@
 <template>
   <Teleport to="body">
-    <div
-      v-if="modelValue"
-      class="centered-modal-overlay"
-      @click="handleOverlayClick"
-    >
+    <div v-if="modelValue" class="centered-modal-overlay" @click="handleOverlayClick">
       <div class="centered-modal-card" :style="{ width }" @click.stop>
         <button
           v-if="showClose"

@@ -2,11 +2,11 @@
   <WriterPageShell>
     <div class="project-list-view">
       <WriterSurfaceCard class="mb-5">
-        <div class="page-header" style="margin-bottom: 0;">
-          <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="page-header" style="margin-bottom: 0">
+          <div style="display: flex; align-items: center; gap: 16px">
             <h1>我的项目</h1>
           </div>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px">
             <button
               type="button"
               class="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
@@ -20,130 +20,137 @@
         <p class="mt-3 text-sm text-slate-500">统一管理作品与章节，支持快速新建、编辑与发布。</p>
       </WriterSurfaceCard>
 
-    <div v-loading="loading" class="projects-container">
-      <div v-if="!loading && projectList.length === 0" class="empty-container">
-        <el-empty description="还没有项目，创建一个开始吧！">
-          <el-button type="primary" @click="showCreateDialog = true">
-            <QyIcon name="Plus" :size="14" />
-            创建第一个项目
-          </el-button>
-        </el-empty>
-      </div>
+      <div v-loading="loading" class="projects-container">
+        <div v-if="!loading && projectList.length === 0" class="empty-container">
+          <el-empty description="还没有项目，创建一个开始吧！">
+            <el-button type="primary" @click="showCreateDialog = true">
+              <QyIcon name="Plus" :size="14" />
+              创建第一个项目
+            </el-button>
+          </el-empty>
+        </div>
 
-      <div v-else class="project-grid">
-        <WriterSurfaceCard
-          v-for="project in projectList"
-          :key="project.projectId"
-          tag="article"
-          centered
-          interactive
-          class="project-card"
-          @click="openProject(project.projectId)"
-        >
-          <div class="card-header">
-            <span class="project-name">{{ project.title }}</span>
-            <el-dropdown class="project-actions" @command="handleCommand($event, project)" @click.stop @mousedown.stop>
-              <button type="button" class="more-btn" aria-label="更多操作" @click.stop @mousedown.stop>
-                <QyIcon name="MoreFilled" :size="16" />
-              </button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="publish" :disabled="project.status === 'published'">
-                    一键发布
-                  </el-dropdown-item>
-                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-
-          <div class="project-description">
-            {{ project.description || '暂无描述' }}
-          </div>
-
-          <div class="project-stats">
-            <div class="stat-item">
-              <span class="stat-label">字数</span>
-              <span class="stat-value">{{ project.wordCount || 0 }}</span>
+        <div v-else class="project-grid">
+          <WriterSurfaceCard
+            v-for="project in projectList"
+            :key="project.projectId"
+            tag="article"
+            centered
+            interactive
+            class="project-card"
+            @click="openProject(project.projectId)"
+          >
+            <div class="card-header">
+              <span class="project-name">{{ project.title }}</span>
+              <el-dropdown
+                class="project-actions"
+                @command="handleCommand($event, project)"
+                @click.stop
+                @mousedown.stop
+              >
+                <button
+                  type="button"
+                  class="more-btn"
+                  aria-label="更多操作"
+                  @click.stop
+                  @mousedown.stop
+                >
+                  <QyIcon name="MoreFilled" :size="16" />
+                </button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="publish" :disabled="project.status === 'published'">
+                      一键发布
+                    </el-dropdown-item>
+                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
-            <div class="stat-item">
-              <span class="stat-label">章节</span>
-              <span class="stat-value">{{ project.chapterCount || 0 }}</span>
+
+            <div class="project-description">
+              {{ project.description || '暂无描述' }}
             </div>
-          </div>
 
-          <div class="project-meta">
-            <span class="status-badge" :class="getStatusClass(project.status)">
-              {{ getStatusText(project.status) }}
-            </span>
-            <span class="meta-date">{{ formatDate(project.updatedAt) }}</span>
-          </div>
+            <div class="project-stats">
+              <div class="stat-item">
+                <span class="stat-label">字数</span>
+                <span class="stat-value">{{ project.wordCount || 0 }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">章节</span>
+                <span class="stat-value">{{ project.chapterCount || 0 }}</span>
+              </div>
+            </div>
 
-          <div class="project-entry-hint">
-            <span>点击进入项目</span>
-            <QyIcon name="ArrowRight" :size="14" />
-          </div>
-        </WriterSurfaceCard>
+            <div class="project-meta">
+              <span class="status-badge" :class="getStatusClass(project.status)">
+                {{ getStatusText(project.status) }}
+              </span>
+              <span class="meta-date">{{ formatDate(project.updatedAt) }}</span>
+            </div>
+
+            <div class="project-entry-hint">
+              <span>点击进入项目</span>
+              <QyIcon name="ArrowRight" :size="14" />
+            </div>
+          </WriterSurfaceCard>
+        </div>
       </div>
-    </div>
 
-    <CenteredModalCard
-      v-model="showCreateDialog"
-      title="创建新项目"
-      width="min(760px, 92vw)"
-      :show-close="true"
-      :close-on-click-modal="true"
-    >
-      <el-form :model="newProject" label-position="top" class="create-form">
-        <el-form-item label="项目名称" required>
-          <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
-        </el-form-item>
+      <CenteredModalCard
+        v-model="showCreateDialog"
+        title="创建新项目"
+        width="min(760px, 92vw)"
+        :show-close="true"
+        :close-on-click-modal="true"
+      >
+        <el-form :model="newProject" label-position="top" class="create-form">
+          <el-form-item label="项目名称" required>
+            <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
+          </el-form-item>
 
-        <el-form-item label="项目类型">
-          <div class="native-select-wrap">
-            <select v-model="newProject.type" class="native-select" aria-label="项目类型">
-              <option value="novel">小说</option>
-              <option value="essay">散文随笔</option>
-              <option value="script">剧本</option>
-              <option value="notes">笔记</option>
-              <option value="poetry">诗歌</option>
-              <option value="others">其他</option>
-            </select>
-            <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
-          </div>
-        </el-form-item>
+          <el-form-item label="项目类型">
+            <div class="native-select-wrap">
+              <select v-model="newProject.type" class="native-select" aria-label="项目类型">
+                <option value="novel">小说</option>
+                <option value="essay">散文随笔</option>
+                <option value="script">剧本</option>
+                <option value="notes">笔记</option>
+                <option value="poetry">诗歌</option>
+                <option value="others">其他</option>
+              </select>
+              <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
+            </div>
+          </el-form-item>
 
-        <el-form-item label="项目描述">
-          <el-input
-            v-model="newProject.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入项目描述（可选）"
-            maxlength="200"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleCreate">创建</el-button>
-      </template>
-    </CenteredModalCard>
+          <el-form-item label="项目描述">
+            <el-input
+              v-model="newProject.description"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入项目描述（可选）"
+              maxlength="200"
+              show-word-limit
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showCreateDialog = false">取消</el-button>
+          <el-button type="primary" @click="handleCreate">创建</el-button>
+        </template>
+      </CenteredModalCard>
 
-    <CenteredModalCard
-      v-model="showPublishConfirmDialog"
-      title="发布确认"
-      width="420px"
-    >
-      <div class="publish-confirm-text">
-        确认一键发布项目“{{ pendingPublishProject?.title || '' }}”？
-      </div>
-      <template #footer>
-        <el-button @click="cancelPublish">取消</el-button>
-        <el-button type="primary" @click="confirmPublish">确认发布</el-button>
-      </template>
-    </CenteredModalCard>
+      <CenteredModalCard v-model="showPublishConfirmDialog" title="发布确认" width="420px">
+        <div class="publish-confirm-text">
+          确认一键发布项目“{{ pendingPublishProject?.title || '' }}”？
+        </div>
+        <template #footer>
+          <el-button @click="cancelPublish">取消</el-button>
+          <el-button type="primary" @click="confirmPublish">确认发布</el-button>
+        </template>
+      </CenteredModalCard>
     </div>
   </WriterPageShell>
 </template>
@@ -167,7 +174,7 @@ const showCreateDialog = ref(false)
 const newProject = ref({
   title: '',
   description: '',
-  type: 'novel' as 'novel' | 'essay' | 'script' | 'notes' | 'poetry' | 'others'
+  type: 'novel' as 'novel' | 'essay' | 'script' | 'notes' | 'poetry' | 'others',
 })
 const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
@@ -183,7 +190,7 @@ const formatDate = (dateStr: string) => {
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit'
+    day: '2-digit',
   })
 }
 
@@ -205,7 +212,7 @@ const handleCreate = async () => {
     const project = await writerStore.createNewProject({
       title: newProject.value.title,
       description: newProject.value.description,
-      type: newProject.value.type
+      type: newProject.value.type,
     })
 
     if (project) {
@@ -233,15 +240,11 @@ const handleCommand = async (command: string, project: any) => {
     message.info('编辑功能开发中')
   } else if (command === 'delete') {
     try {
-      await messageBox.confirm(
-        `确定要删除项目"${project.title}"吗？此操作不可恢复。`,
-        '确认删除',
-        {
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
+      await messageBox.confirm(`确定要删除项目"${project.title}"吗？此操作不可恢复。`, '确认删除', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      })
 
       await writerStore.deleteProjectById(project.projectId)
     } catch (error: any) {
@@ -289,7 +292,7 @@ const getStatusText = (status: string) => {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
-    published: '已发布'
+    published: '已发布',
   }
   return textMap[status] || status
 }
@@ -346,7 +349,10 @@ onMounted(async () => {
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 
 .project-card:hover {

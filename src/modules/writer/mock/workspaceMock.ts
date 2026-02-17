@@ -76,7 +76,7 @@ const createYunlanDocs = (projectId: string): Document[] => {
       wordCount: 0,
       createdAt: iso(5 * 24 * 60 * 60 * 1000),
       updatedAt: iso(40 * 60 * 1000),
-    }
+    },
   ]
 
   const chapterDocs = readerChapters.map((chapter) => ({
@@ -101,13 +101,17 @@ const createYunlanScenes = (projectId: string): WorkspaceSceneSummary[] => [
     id: `${projectId}-scene-1`,
     title: '目录一 雨夜入城（小高潮）',
     hook: '林砚入城并在听雨斋开始接触云岚城暗线。',
-    chapterIds: readerChapters.filter((chapter) => chapter.chapterNum < 3).map((chapter) => chapter.id),
+    chapterIds: readerChapters
+      .filter((chapter) => chapter.chapterNum < 3)
+      .map((chapter) => chapter.id),
   },
   {
     id: `${projectId}-scene-2`,
     title: '目录二 灯下问卷（推进）',
     hook: '线索转向书院深处，主角首次触碰更深谜团。',
-    chapterIds: readerChapters.filter((chapter) => chapter.chapterNum >= 3).map((chapter) => chapter.id),
+    chapterIds: readerChapters
+      .filter((chapter) => chapter.chapterNum >= 3)
+      .map((chapter) => chapter.id),
   },
 ]
 
@@ -134,7 +138,7 @@ const createYunlanChapterSummary = (projectId: string): WorkspaceChapterSummary[
       status: 'draft',
       nodeType: 'directory',
       sortOrder: 4,
-    }
+    },
   ]
 
   const chapterEntries: WorkspaceChapterSummary[] = readerChapters.map((chapter) => ({
@@ -149,18 +153,20 @@ const createYunlanChapterSummary = (projectId: string): WorkspaceChapterSummary[
     sortOrder: chapter.chapterNum + 1,
   }))
 
-  return [...sceneEntries, ...chapterEntries].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  return [...sceneEntries, ...chapterEntries].sort(
+    (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0),
+  )
 }
 
 const createYunlanContentByDocId = (projectId: string): Record<string, string> => {
   const entries: Array<[string, string]> = [
     [
       `${projectId}-scene-1`,
-      '# 目录一 雨夜入城（小高潮）\n\n这一目录聚焦主角初入云岚城，完成初次落脚并接触暗线人物，情绪节奏以压抑转安定为主。'
+      '# 目录一 雨夜入城（小高潮）\n\n这一目录聚焦主角初入云岚城，完成初次落脚并接触暗线人物，情绪节奏以压抑转安定为主。',
     ],
     [
       `${projectId}-scene-2`,
-      '# 目录二 灯下问卷（推进）\n\n这一目录承接前文线索，把叙事重心推进到书院内部谜团，并埋入后续冲突触发点。'
+      '# 目录二 灯下问卷（推进）\n\n这一目录承接前文线索，把叙事重心推进到书院内部谜团，并埋入后续冲突触发点。',
     ],
     ...readerChapters.map((chapter) => [chapter.id, `# ${chapter.title}\n\n${chapter.content}`]),
   ]

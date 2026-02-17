@@ -8,7 +8,7 @@
       'is-tablet': isTablet,
       'is-desktop': isDesktop,
       'focus-mode': isFocusMode,
-      'preview-mode': showPreview
+      'preview-mode': showPreview,
     }"
     :style="panelStyle"
   >
@@ -106,10 +106,15 @@
               @keydown="handleKeyDown"
               @contextmenu="handleContextMenu"
               ref="editorContentRef"
-            >{{ editorText }}</div>
+            >
+              {{ editorText }}
+            </div>
           </section>
 
-          <section v-if="showPreview" class="editor-pane editor-pane--preview preview-pane markdown-body">
+          <section
+            v-if="showPreview"
+            class="editor-pane editor-pane--preview preview-pane markdown-body"
+          >
             <header class="section-title">预览</header>
             <div class="preview-content" v-html="renderedContent"></div>
           </section>
@@ -123,13 +128,9 @@
 
     <div class="editor-statusbar" v-if="!isFocusMode">
       <div class="statusbar-left">
-        <span class="word-count">
-          {{ t('editor.wordCount', '字数') }}: {{ wordCount }}
-        </span>
+        <span class="word-count"> {{ t('editor.wordCount', '字数') }}: {{ wordCount }} </span>
 
-        <span class="read-time">
-          {{ t('editor.readTime', '阅读时间') }}: {{ readTime }}
-        </span>
+        <span class="read-time"> {{ t('editor.readTime', '阅读时间') }}: {{ readTime }} </span>
 
         <span class="save-status" :class="saveStatusClass">
           {{ saveStatusText }}
@@ -137,9 +138,7 @@
       </div>
 
       <div class="statusbar-right">
-        <span class="quick-overview">
-          总字数 {{ wordCount }} · 阅读 {{ readTime }}
-        </span>
+        <span class="quick-overview"> 总字数 {{ wordCount }} · 阅读 {{ readTime }} </span>
         <span class="cursor-position">
           {{ t('editor.line', '行') }} {{ cursorPosition.line }} : {{ cursorPosition.column }}
         </span>
@@ -197,7 +196,7 @@ const props = withDefaults(defineProps<Props>(), {
   rightPanelWidth: 320,
   showPreview: false,
   showTimeline: false,
-  timelineId: ''
+  timelineId: '',
 })
 
 const emit = defineEmits<Emits>()
@@ -211,7 +210,7 @@ const cursorPosition = ref({ line: 1, column: 1 })
 const breakpoints = useBreakpoints({
   mobile: 768,
   tablet: 1024,
-  desktop: 1200
+  desktop: 1200,
 })
 
 const isMobile = breakpoints.smaller('mobile')
@@ -232,7 +231,9 @@ const wordCount = computed(() => {
 const readTime = computed(() => {
   const wordsPerMinute = 500
   const minutes = Math.ceil(wordCount.value / wordsPerMinute)
-  return minutes > 0 ? `${minutes} ${t('editor.minutes', '分钟')}` : `0 ${t('editor.minutes', '分钟')}`
+  return minutes > 0
+    ? `${minutes} ${t('editor.minutes', '分钟')}`
+    : `0 ${t('editor.minutes', '分钟')}`
 })
 
 const renderedContent = computed(() => {
@@ -252,22 +253,22 @@ const boardItems = computed(() => {
       title: chapterName,
       words: wordCount.value,
       summary: shortSummary || '输入场景摘要...',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'next',
       title: '第2章',
       words: 0,
       summary: '输入场景摘要...',
-      isActive: false
+      isActive: false,
     },
     {
       id: 'new',
       title: '新章节',
       words: 0,
       summary: '输入场景摘要...',
-      isActive: false
-    }
+      isActive: false,
+    },
   ]
 })
 
@@ -291,7 +292,7 @@ const saveStatusClass = computed(() => {
 const editorStyle = computed(() => ({
   minWidth: '400px',
   minHeight: 0,
-  height: '100%'
+  height: '100%',
 }))
 
 const debouncedUpdate = debounce((newContent: string) => {
@@ -370,7 +371,7 @@ const updateCursorPosition = () => {
 
   cursorPosition.value = {
     line: lines.length,
-    column: lines[lines.length - 1].length + 1
+    column: lines[lines.length - 1].length + 1,
   }
 }
 
@@ -407,7 +408,7 @@ onMounted(() => {
   console.log('[EditorPanel] Mounted', {
     showPreview: props.showPreview,
     showTimeline: props.showTimeline,
-    timelineId: props.timelineId
+    timelineId: props.timelineId,
   })
 })
 
@@ -417,41 +418,55 @@ onBeforeUnmount(() => {
   }
 })
 
-watch(() => props.content, () => {
-  if (props.content) {
-    saveStatus.value = 'unsaved'
-  }
-})
-
-watch(() => props.content, (newContent) => {
-  if (editorContentRef.value && editorContentRef.value.textContent !== newContent) {
-    const selection = window.getSelection()
-    const hasSelection = !!selection && selection.rangeCount > 0
-    const range = hasSelection ? selection!.getRangeAt(0) : null
-    const selectionInEditor = !!range && editorContentRef.value.contains(range.startContainer)
-    const offset = selectionInEditor ? startOffsetInNode(editorContentRef.value, range!.startContainer, range!.startOffset) : 0
-
-    editorContentRef.value.textContent = newContent || ''
-
-    if (selectionInEditor && selection) {
-      const newRange = document.createRange()
-      const { node, offset: newOffset } = restoreCaretPosition(editorContentRef.value, offset)
-      newRange.setStart(node, newOffset)
-      newRange.collapse(true)
-      selection.removeAllRanges()
-      selection.addRange(newRange)
+watch(
+  () => props.content,
+  () => {
+    if (props.content) {
+      saveStatus.value = 'unsaved'
     }
-  }
-})
+  },
+)
 
-watch(() => props.showPreview, () => {
-})
+watch(
+  () => props.content,
+  (newContent) => {
+    if (editorContentRef.value && editorContentRef.value.textContent !== newContent) {
+      const selection = window.getSelection()
+      const hasSelection = !!selection && selection.rangeCount > 0
+      const range = hasSelection ? selection!.getRangeAt(0) : null
+      const selectionInEditor = !!range && editorContentRef.value.contains(range.startContainer)
+      const offset = selectionInEditor
+        ? startOffsetInNode(editorContentRef.value, range!.startContainer, range!.startOffset)
+        : 0
 
-watch(() => props.showTimeline, () => {
-})
+      editorContentRef.value.textContent = newContent || ''
 
-watch(() => props.timelineId, () => {
-})
+      if (selectionInEditor && selection) {
+        const newRange = document.createRange()
+        const { node, offset: newOffset } = restoreCaretPosition(editorContentRef.value, offset)
+        newRange.setStart(node, newOffset)
+        newRange.collapse(true)
+        selection.removeAllRanges()
+        selection.addRange(newRange)
+      }
+    }
+  },
+)
+
+watch(
+  () => props.showPreview,
+  () => {},
+)
+
+watch(
+  () => props.showTimeline,
+  () => {},
+)
+
+watch(
+  () => props.timelineId,
+  () => {},
+)
 
 function startOffsetInNode(container: Node, node: Node, offset: number): number {
   const range = document.createRange()
@@ -464,7 +479,10 @@ function startOffsetInNode(container: Node, node: Node, offset: number): number 
   }
 }
 
-function restoreCaretPosition(container: Node, targetOffset: number): { node: Node; offset: number } {
+function restoreCaretPosition(
+  container: Node,
+  targetOffset: number,
+): { node: Node; offset: number } {
   const textNodes: Text[] = []
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
   let current = walker.nextNode()
@@ -800,9 +818,15 @@ function restoreCaretPosition(container: Node, targetOffset: number): { node: No
   }
 
   .save-status {
-    &--saved { color: #16a34a; }
-    &--saving { color: #2563eb; }
-    &--unsaved { color: #dc2626; }
+    &--saved {
+      color: #16a34a;
+    }
+    &--saving {
+      color: #2563eb;
+    }
+    &--unsaved {
+      color: #dc2626;
+    }
   }
 
   .quick-overview {

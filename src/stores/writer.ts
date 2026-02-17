@@ -15,7 +15,7 @@ import {
   deleteLocalProject,
   getLocalStats,
   initLocalStorage,
-  type LocalProject
+  type LocalProject,
 } from '@/utils/localStorageAPI'
 import { message } from '@/design-system/services'
 // 运行模式
@@ -37,7 +37,7 @@ function buildYunlanMockProject() {
     wordCount: 9800,
     chapterCount: 3,
     createdAt: '2026-02-01T10:00:00.000Z',
-    updatedAt
+    updatedAt,
   }
 }
 
@@ -55,7 +55,7 @@ export const useWriterStore = defineStore('writer', () => {
   const storageMode = ref<StorageMode>('offline')
 
   // 初始化本地存储
-  initLocalStorage().catch(err => {
+  initLocalStorage().catch((err) => {
     console.error('初始化本地存储失败:', err)
   })
 
@@ -64,7 +64,7 @@ export const useWriterStore = defineStore('writer', () => {
     totalWords: 0,
     bookCount: 0,
     todayWords: 0,
-    pending: 0
+    pending: 0,
   })
 
   // 计算属性
@@ -110,7 +110,8 @@ export const useWriterStore = defineStore('writer', () => {
   }
 
   // 创建项目
-  const createNewProject = async (data: any) => { // Changed from ProjectCreateData to any
+  const createNewProject = async (data: any) => {
+    // Changed from ProjectCreateData to any
     try {
       if (storageMode.value === 'offline') {
         // 离线模式：使用 IndexedDB
@@ -178,14 +179,15 @@ export const useWriterStore = defineStore('writer', () => {
   }
 
   // 更新项目
-  const updateProjectData = async (projectId: string, data: any) => { // Changed from ProjectUpdateData to any
+  const updateProjectData = async (projectId: string, data: any) => {
+    // Changed from ProjectUpdateData to any
     try {
       if (storageMode.value === 'offline') {
         // 离线模式：使用 IndexedDB
         const updatedProject = await updateLocalProject(projectId, data)
 
         // 更新列表中的项目
-        const index = projects.value.findIndex(p => p.projectId === projectId)
+        const index = projects.value.findIndex((p) => p.projectId === projectId)
         if (index !== -1) {
           projects.value[index] = updatedProject as any
         }
@@ -234,7 +236,7 @@ export const useWriterStore = defineStore('writer', () => {
         await deleteLocalProject(projectId)
 
         // 从列表中移除
-        projects.value = projects.value.filter(p => p.projectId !== projectId)
+        projects.value = projects.value.filter((p) => p.projectId !== projectId)
 
         // 如果删除的是当前项目，清空当前项目
         if (currentProject.value?.projectId === projectId) {
@@ -280,7 +282,7 @@ export const useWriterStore = defineStore('writer', () => {
     const updatedProject = {
       ...current,
       status: 'published',
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
     projects.value[index] = updatedProject
 
@@ -292,7 +294,7 @@ export const useWriterStore = defineStore('writer', () => {
     try {
       await updateLocalProject(projectId, {
         status: 'published',
-        updatedAt: updatedProject.updatedAt
+        updatedAt: updatedProject.updatedAt,
       } as Partial<LocalProject>)
     } catch (error) {
       console.warn('[writerStore] 发布状态仅内存更新，未持久化:', error)
@@ -314,7 +316,7 @@ export const useWriterStore = defineStore('writer', () => {
           totalWords: 125000,
           bookCount: projects.value.length,
           todayWords: 2500,
-          pending: 3
+          pending: 3,
         }
       }
     } catch (error: any) {
@@ -371,6 +373,6 @@ export const useWriterStore = defineStore('writer', () => {
     loadStats,
     clearState,
     toggleStorageMode,
-    setStorageMode
+    setStorageMode,
   }
 })

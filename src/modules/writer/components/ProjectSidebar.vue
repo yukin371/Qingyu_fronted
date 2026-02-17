@@ -29,8 +29,14 @@
 
     <!-- 2. 工具栏：搜索 -->
     <div class="sidebar-toolbar">
-      <el-input v-model="searchKeyword" placeholder="搜索章节..." size="small" clearable class="search-input">
-          <template #prefix><QyIcon name="Search" :size="14" /></template>
+      <el-input
+        v-model="searchKeyword"
+        placeholder="搜索章节..."
+        size="small"
+        clearable
+        class="search-input"
+      >
+        <template #prefix><QyIcon name="Search" :size="14" /></template>
       </el-input>
     </div>
 
@@ -47,7 +53,9 @@
         <span class="section-count">{{ displayChapters.length }}</span>
       </div>
       <div class="explorer-actions" @click.stop>
-        <button class="explorer-action-btn" title="新增目录" @click="$emit('add-volume')">+目录</button>
+        <button class="explorer-action-btn" title="新增目录" @click="$emit('add-volume')">
+          +目录
+        </button>
         <button
           class="explorer-action-btn explorer-action-btn--primary"
           title="新增章节"
@@ -60,16 +68,29 @@
     </div>
 
     <div v-show="isTreeExpanded" class="sidebar-list">
-      <div v-for="chapter in displayChapters" :key="chapter.id" class="chapter-item" :class="{
-        'is-active': chapter.id === modelChapterId,
-        'is-draft': chapter.status === 'draft',
-        'is-directory': chapter.nodeType === 'directory'
-      }" @click="handleSelectChapter(chapter)">
-        <QyIcon :name="chapter.nodeType === 'directory' ? 'FolderOpened' : 'DocumentCopy'" :size="14" class="item-file-icon" />
+      <div
+        v-for="chapter in displayChapters"
+        :key="chapter.id"
+        class="chapter-item"
+        :class="{
+          'is-active': chapter.id === modelChapterId,
+          'is-draft': chapter.status === 'draft',
+          'is-directory': chapter.nodeType === 'directory',
+        }"
+        @click="handleSelectChapter(chapter)"
+      >
+        <QyIcon
+          :name="chapter.nodeType === 'directory' ? 'FolderOpened' : 'DocumentCopy'"
+          :size="14"
+          class="item-file-icon"
+        />
 
         <div class="item-content">
           <div class="item-title">
-            <span class="chapter-index" v-if="chapter.nodeType !== 'directory' && chapter.chapterNum">
+            <span
+              class="chapter-index"
+              v-if="chapter.nodeType !== 'directory' && chapter.chapterNum"
+            >
               {{ chapter.chapterNum }}.
             </span>
             <!-- 搜索高亮处理 -->
@@ -88,8 +109,11 @@
 
         <!-- 操作菜单 -->
         <div class="item-actions" @click.stop>
-          <el-dropdown trigger="click" @command="(cmd: 'edit' | 'delete') => handleAction(cmd, chapter)">
-            <div class=" action-btn">
+          <el-dropdown
+            trigger="click"
+            @command="(cmd: 'edit' | 'delete') => handleAction(cmd, chapter)"
+          >
+            <div class="action-btn">
               <QyIcon name="MoreFilled" :size="14" />
             </div>
             <template #dropdown>
@@ -107,9 +131,13 @@
       </div>
 
       <!-- 空状态 -->
-      <el-empty v-if="displayChapters.length === 0" :image-size="60" description="暂无章节" class="list-empty" />
+      <el-empty
+        v-if="displayChapters.length === 0"
+        :image-size="60"
+        description="暂无章节"
+        class="list-empty"
+      />
     </div>
-
   </div>
 </template>
 
@@ -150,13 +178,13 @@ interface ChapterSummary {
 interface Props {
   projects: ProjectSummary[]
   chapters: ChapterSummary[]
-  projectId?: string  // v-model:projectId
-  chapterId?: string  // v-model:chapterId
+  projectId?: string // v-model:projectId
+  chapterId?: string // v-model:chapterId
 }
 
 const props = withDefaults(defineProps<Props>(), {
   projects: () => [],
-  chapters: () => []
+  chapters: () => [],
 })
 
 const emit = defineEmits<{
@@ -175,16 +203,16 @@ const isTreeExpanded = ref(true)
 // 双向绑定代理
 const internalProjectId = computed({
   get: () => props.projectId || '',
-  set: (val) => emit('update:projectId', val)
+  set: (val) => emit('update:projectId', val),
 })
 
 const modelChapterId = computed({
   get: () => props.chapterId || '',
-  set: (val) => emit('update:chapterId', val)
+  set: (val) => emit('update:chapterId', val),
 })
 
-const currentProjectTitle = computed(() =>
-  props.projects.find(p => p.id === internalProjectId.value)?.title || ''
+const currentProjectTitle = computed(
+  () => props.projects.find((p) => p.id === internalProjectId.value)?.title || '',
 )
 
 const recentProjects = computed(() => {
@@ -202,14 +230,13 @@ const handleProjectSwitch = (projectId: string | number) => {
 // 章节列表逻辑
 const displayChapters = computed(() => {
   // 1. 筛选项目
-  let list = props.chapters.filter(c => c.projectId === internalProjectId.value)
+  let list = props.chapters.filter((c) => c.projectId === internalProjectId.value)
 
   // 2. 搜索过滤
   if (searchKeyword.value.trim()) {
     const k = searchKeyword.value.toLowerCase()
-    list = list.filter(c =>
-      c.title.toLowerCase().includes(k) ||
-      c.chapterNum.toString().includes(k)
+    list = list.filter(
+      (c) => c.title.toLowerCase().includes(k) || c.chapterNum.toString().includes(k),
     )
   }
 
@@ -230,7 +257,7 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
       await messageBox.confirm(
         `确定删除章节 "第${chapter.chapterNum}章 ${chapter.title}" 吗？`,
         '危险操作',
-        { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }
+        { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' },
       )
       emit('delete-chapter', chapter.id)
     } catch {
@@ -263,11 +290,15 @@ const highlightText = (text: string, keyword: string) => {
 }
 
 // 自动选择第一个项目
-watch(() => props.projects, (newVal) => {
-  if (newVal.length > 0 && !internalProjectId.value) {
-    internalProjectId.value = newVal[0].id
-  }
-}, { immediate: true })
+watch(
+  () => props.projects,
+  (newVal) => {
+    if (newVal.length > 0 && !internalProjectId.value) {
+      internalProjectId.value = newVal[0].id
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped lang="scss">
