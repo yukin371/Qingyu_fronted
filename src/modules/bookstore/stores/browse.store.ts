@@ -6,6 +6,7 @@ import type { BrowseFilters } from '@/types/models/browse'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 import { browseService } from '../services/browse.service'
 import { SEARCH_CONFIG } from '../config/search.config'
+import { listPublishedBookBriefs } from '@/modules/workflow/publishedBridge'
 
 export const useBrowseStore = defineStore('browse', () => {
   const router = useRouter()
@@ -114,10 +115,17 @@ export const useBrowseStore = defineStore('browse', () => {
             ? (payload.books as BookBrief[])
           : []
 
-      books.value = append ? [...books.value, ...nextBooks] : nextBooks
+      const workflowBooks = listPublishedBookBriefs({
+        q: filters.q,
+        status: filters.status,
+        tags: filters.tags
+      }) as unknown as BookBrief[]
+
+      const merged = append ? [...books.value, ...nextBooks] : [...workflowBooks, ...nextBooks]
+      books.value = merged.filter((item, index, list) => list.findIndex(v => v.id === item.id) === index)
 
       const total = payload?.pagination?.total ?? payload?.total ?? nextBooks.length
-      pagination.total = typeof total === 'number' ? total : 0
+      pagination.total = typeof total === 'number' ? Math.max(total, books.value.length) : books.value.length
       pagination.hasMore = Boolean(
         payload?.pagination?.has_next ??
         payload?.pagination?.hasMore ??

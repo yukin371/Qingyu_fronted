@@ -75,7 +75,7 @@
 
         <!-- 有数据 -->
         <div v-else-if="browseStore.books.length > 0">
-          <BookGrid :books="browseStore.books" :single-column="true" />
+          <BookGrid :books="browseStore.books" :single-column="true" @book-click="handleBookClick" />
 
           <!-- 统一使用无限滚动加载 -->
           <div class="load-more-section">
@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
+import { useRouter } from 'vue-router'
 import { useBrowseStore } from '../stores/browse.store'
 import { useMetaStore } from '../stores/meta.store'
 import SearchBar from '../components/BrowseBooks/SearchBar.vue'
@@ -132,6 +133,7 @@ import { Empty } from '@/design-system/base/Empty'
 
 const browseStore = useBrowseStore()
 const metaStore = useMetaStore()
+const router = useRouter()
 
 // 状态筛选选项
 const statuses = ref([
@@ -201,6 +203,11 @@ const handleResetFilters = () => {
   browseStore.resetFilters()
   browseStore.syncFiltersToURL()
   fetchBooks()
+}
+
+const handleBookClick = (book: { id: string }) => {
+  if (!book?.id) return
+  router.push(`/bookstore/books/${book.id}`)
 }
 
 // 无限滚动加载更多

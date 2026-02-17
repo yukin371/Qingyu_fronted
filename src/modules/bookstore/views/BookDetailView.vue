@@ -234,6 +234,7 @@ import { getBookComments, createComment, deleteComment } from '@/modules/reader/
 import { addToBookshelf } from '@/modules/reader/api'
 import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
 import type { ChapterListItem, BookBrief } from '@/types/models'
+import { getPublishedBookDetail, type PublishedBridgeBookDetail } from '@/modules/workflow/publishedBridge'
 
 // Proper TypeScript interfaces
 interface Comment {
@@ -279,6 +280,7 @@ const collectionId = ref<string | null>(null) // 收藏记录ID，用于删除�
 const checkingFavorite = ref(false) // 检查收藏状态loading
 const chapters = ref<ChapterListItem[]>([])
 const recommendedBooks = ref<BookBrief[]>([])
+const publishedBookDetail = ref<PublishedBridgeBookDetail | null>(null)
 
 // 评论相关
 const comments = ref<Comment[]>([])
@@ -294,7 +296,15 @@ const hasMoreComments = computed(() => {
   return comments.value.length < commentTotal.value
 })
 
-const book = computed(() => bookstoreStore.currentBook as Book | null)
+const book = computed(() => {
+  if (publishedBookDetail.value) {
+    return {
+      ...publishedBookDetail.value.book,
+      description: publishedBookDetail.value.book.description,
+    } as unknown as Book
+  }
+  return bookstoreStore.currentBook as Book | null
+})
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -336,7 +346,11 @@ const startReading = async () => {
     if (chapters.value.length > 0) {
       // 设置当前bookId到readerStore，以便reader页面可以加载章节
       readerStore.currentBookId = bookId
-      router.push(`/reader/${chapters.value[0].id}`)
+      if (publishedBookDetail.value) {
+        router.push({ path: `/reader/${chapters.value[0].id}`, query: { source: 'published', bookId } })
+      } else {
+        router.push(`/reader/${chapters.value[0].id}`)
+      }
     } else {
       message.warning('暂无章节')
     }
@@ -349,6 +363,10 @@ const startReading = async () => {
 const readChapter = (chapterId: string) => {
   // 设置当前bookId到readerStore
   readerStore.currentBookId = bookId
+  if (publishedBookDetail.value) {
+    router.push({ path: `/reader/${chapterId}`, query: { source: 'published', bookId } })
+    return
+  }
   router.push(`/reader/${chapterId}`)
 }
 
@@ -553,6 +571,21 @@ const goToBook = (id: string) => {
 const loadBookDetail = async () => {
   loading.value = true
   try {
+    const localDetail = getPublishedBookDetail(bookId)
+    if (localDetail) {
+      publishedBookDetail.value = localDetail
+      chapters.value = localDetail.chapters.map((chapter) => ({
+        id: chapter.id,
+        title: chapter.title,
+        isFree: chapter.isFree,
+        wordCount: chapter.wordCount,
+        isRead: false,
+      }))
+      recommendedBooks.value = []
+      return
+    }
+
+    publishedBookDetail.value = null
     console.log('[BookDetailView] Loading book detail for ID:', bookId)
     await bookstoreStore.fetchBookDetail(bookId)
 
@@ -575,6 +608,17 @@ const loadBookDetail = async () => {
 
 // 加载章节列表
 const loadChapters = async () => {
+  if (publishedBookDetail.value) {
+    chapters.value = publishedBookDetail.value.chapters.map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      isFree: chapter.isFree,
+      wordCount: chapter.wordCount,
+      isRead: false,
+    }))
+    return
+  }
+
   try {
     // 使用公开的bookstore API（不需要认证）
     const response = await fetch(`http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`)
