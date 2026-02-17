@@ -2,7 +2,6 @@
   <div
     class="ai-panel"
     :class="{
-      'ai-panel--collapsed': collapsed,
       'is-mobile': isMobile,
       'is-tablet': isTablet,
       'is-desktop': isDesktop
@@ -10,7 +9,7 @@
     :style="panelStyle"
   >
     <!-- 面板头部 -->
-    <div v-if="!collapsed" class="ai-header">
+    <div class="ai-header">
       <div class="header-left">
         <QyIcon name="MagicStick" class="ai-icon" />
         <h3 class="header-title">AI写作助手</h3>
@@ -25,25 +24,11 @@
         >
           <QyIcon name="Delete" />
         </button>
-        <button
-          class="icon-button"
-          data-action="toggle"
-          :aria-label="t('ai.collapse', '折叠面板')"
-          :title="t('ai.collapse', '折叠面板')"
-          @click="handleToggle"
-        >
-          <QyIcon :name="collapsed ? 'ArrowRight' : 'ArrowLeft'" />
-        </button>
       </div>
     </div>
 
-    <!-- 折叠状态的展开按钮 -->
-    <button v-else class="ai-expand-button" @click="handleToggle" :aria-label="t('ai.expand', '展开面板')">
-      <QyIcon name="MagicStick" />
-    </button>
-
     <!-- 面板内容 -->
-    <div v-if="!collapsed" class="ai-content">
+    <div class="ai-content">
       <!-- 消息列表区域 -->
       <div class="ai-messages" ref="messagesContainer">
         <!-- 空状态提示 -->
@@ -151,20 +136,17 @@ function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number):
 
 // ==================== 类型定义 ====================
 interface Props {
-  collapsed?: boolean
   sessionId?: string
   width?: number
 }
 
 interface Emits {
-  (e: 'update:collapsed', value: boolean): void
   (e: 'send', msg: string): void
 }
 
 // ==================== Props & Emits ====================
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
-  collapsed: false,
   sessionId: 'default',
   width: 320
 })
@@ -334,13 +316,6 @@ async function scrollToBottom() {
 }
 
 /**
- * 切换折叠状态
- */
-function handleToggle() {
-  emit('update:collapsed', !props.collapsed)
-}
-
-/**
  * 清空对话历史
  */
 function handleClear() {
@@ -406,20 +381,6 @@ watch(() => messages.value, () => {
   border-radius: 12px;
   transition: all 0.3s ease;
   overflow: hidden;
-
-  // 折叠状态
-  &.ai-panel--collapsed {
-    width: 48px;
-
-    .ai-expand-button {
-      display: flex;
-    }
-  }
-
-  &.ai-panel--collapsed .ai-header,
-  &.ai-panel--collapsed .ai-content {
-    display: none;
-  }
 
   // 响应式布局
   &.is-mobile {
@@ -488,23 +449,6 @@ watch(() => messages.value, () => {
         background: #bfdbfe;
       }
     }
-  }
-}
-
-.ai-expand-button {
-  display: none;
-  width: 100%;
-  height: 48px;
-  padding: 0;
-  border: none;
-  background: var(--ai-bg-soft);
-  color: #2563eb;
-  cursor: pointer;
-  border-bottom: 1px solid var(--ai-border);
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background: #eff6ff;
   }
 }
 

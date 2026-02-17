@@ -469,7 +469,15 @@ const batchUnpublish = async () => {
 
 // 编辑章节
 const editChapter = (chapter: any) => {
-  router.push(`/writer/editor?chapterId=${chapter.id}`)
+  if (!selectedBook.value) {
+    message.warning('请先选择书籍')
+    return
+  }
+  router.push({
+    name: 'writer-project',
+    params: { projectId: selectedBook.value },
+    query: { chapterId: chapter.id }
+  })
 }
 
 // 删除章节
@@ -652,4 +660,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -468,6 +468,12 @@ function expandParents(nodeId: string) {
   }
 }
 
+.chapter-tree__toolbar :deep(.qy-icon),
+.chapter-tree__content :deep(.qy-icon) {
+  width: 14px;
+  height: 14px;
+}
+
 .chapter-tree__content {
   flex: 1;
   overflow-y: auto;

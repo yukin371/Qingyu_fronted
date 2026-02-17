@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -262,7 +262,7 @@ defineExpose({
   flex-direction: column;
   height: 100%;
   background: var(--el-bg-color, #ffffff);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
 
   &.is-readonly {
@@ -276,7 +276,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--el-border-color-lighter, #e4e7ed);
   background: var(--el-bg-color, #ffffff);
 
@@ -288,13 +288,13 @@ defineExpose({
 
     .chapter-icon {
       color: var(--el-color-primary, #409eff);
-      font-size: 18px;
+      font-size: 14px;
       flex-shrink: 0;
     }
 
     .chapter-title {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
       color: var(--el-text-color-primary, #303133);
       white-space: nowrap;
@@ -306,7 +306,7 @@ defineExpose({
   .header-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     flex-shrink: 0;
   }
 }
@@ -315,9 +315,9 @@ defineExpose({
 .save-status {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 8px;
   font-size: 12px;
   transition: all 0.3s ease;
 
@@ -360,12 +360,12 @@ defineExpose({
   display: flex;
   align-items: baseline;
   gap: 2px;
-  padding: 4px 10px;
+  padding: 2px 8px;
   background: var(--el-fill-color-light, #f5f7fa);
-  border-radius: 12px;
+  border-radius: 8px;
 
-  .count-value {
-    font-size: 14px;
+    .count-value {
+    font-size: 12px;
     font-weight: 600;
     color: var(--el-text-color-primary, #303133);
     font-family: var(--el-font-family-monospace, monospace);
@@ -397,10 +397,10 @@ defineExpose({
       height: calc(100% - 40px);
 
       .md-editor-input {
-        padding: 16px 20px;
+        padding: 10px 12px;
         font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
-        font-size: 16px;
-        line-height: 1.8;
+        font-size: 15px;
+        line-height: 1.75;
       }
     }
   }

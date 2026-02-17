@@ -55,6 +55,10 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     collapsible = false
   } = options
 
+  const clampWidth = (width: number) => {
+    return Math.max(minWidth, Math.min(maxWidth, width))
+  }
+
   // 触摸手势配置
   const {
     edgeThreshold = 20,
@@ -86,21 +90,23 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
 
   // 当前面板宽度（本地状态，用于拖拽过程中避免频繁更新store）
   // 如果没有保存的宽度，使用defaultWidth；否则使用保存的宽度
-  const localWidth = ref(hasSavedWidth.value ? savedWidth.value : defaultWidth)
+  const localWidth = ref(clampWidth(hasSavedWidth.value ? savedWidth.value : defaultWidth))
 
   // 监听store变化，同步到本地
   watch(
     savedWidth,
     (newWidth) => {
       if (!isDragging.value) {
-        localWidth.value = newWidth
+        localWidth.value = clampWidth(newWidth)
       }
-    }
+    },
+    { flush: 'sync' }
   )
 
   // 对于可折叠的右侧面板，监听折叠状态
   const isCollapsed = computed(() => {
-    return collapsible && panelId === 'right' && panelStore.rightCollapsed
+    if (!collapsible) return false
+    return panelId === 'left' ? panelStore.leftCollapsed : panelStore.rightCollapsed
   })
 
   // 当前面板宽度
@@ -262,9 +268,12 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
    * 切换折叠状态（仅右侧面板）
    */
   const toggleCollapse = () => {
-    if (collapsible && panelId === 'right') {
-      panelStore.toggleRightCollapsed()
+    if (!collapsible) return
+    if (panelId === 'left') {
+      panelStore.toggleLeftCollapsed()
+      return
     }
+    panelStore.toggleRightCollapsed()
   }
 
   /**

@@ -1,7 +1,7 @@
 <template>
-  <div class="encyclopedia-view">
+  <div class="encyclopedia-view" :class="{ 'encyclopedia-view--embedded': embedded }">
     <!-- 工具栏 -->
-    <div class="encyclopedia-header">
+    <div v-if="!embedded" class="encyclopedia-header">
       <div class="header-left">
         <el-icon class="header-icon"><Collection /></el-icon>
         <span class="header-title">设定百科</span>
@@ -219,20 +219,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
 import { message } from '@/design-system/services'
 const writerStore = useWriterStore()
+interface Props {
+  embedded?: boolean
+  projectId?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  embedded: false,
+  projectId: '',
+})
+
 const activeCategory = ref('characters')
 const searchKeyword = ref('')
 const selectedItem = ref<Character | Location | null>(null)
 const selectedType = ref<'character' | 'location' | null>(null)
 
-// Mock data for demo purposes
-const characters = ref<Character[]>([])
-const locations = ref<Location[]>([])
+const characters = computed<Character[]>(() => writerStore.characters.list)
+const locations = computed<Location[]>(() => writerStore.locations.list)
 
 const filteredCharacters = computed(() => {
   if (!searchKeyword.value) return characters.value
@@ -285,10 +294,25 @@ const handleEditItem = () => {
   message.info('编辑功能开发中...')
 }
 
-onMounted(() => {
-  // Load initial data
-  // TODO: Connect to writer store or API when available
-})
+const effectiveProjectId = computed(() => props.projectId || writerStore.currentProjectId || '')
+
+async function loadWorldData(projectId: string) {
+  if (!projectId) return
+  await Promise.all([
+    writerStore.loadCharacters(projectId),
+    writerStore.loadLocations(projectId),
+  ])
+}
+
+watch(
+  () => effectiveProjectId.value,
+  (projectId) => {
+    if (!projectId) return
+    loadWorldData(projectId)
+  },
+  { immediate: true }
+)
+
 </script>
 
 <style scoped lang="scss">
@@ -297,6 +321,10 @@ onMounted(() => {
   flex-direction: column;
   height: 100%;
   background: #f9fafb;
+}
+
+.encyclopedia-view--embedded {
+  background: #ffffff;
 }
 
 .encyclopedia-header {
@@ -610,7 +638,5 @@ onMounted(() => {
   }
 }
 </style>
-
-
 
 

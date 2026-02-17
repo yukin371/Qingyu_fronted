@@ -305,7 +305,7 @@ const quickWrite = () => {
 const goToPublish = () => { } // TODO
 const goToStatistics = () => { } // TODO
 const goToAllProjects = () => router.push({ name: 'writer-projects' })
-const openProject = (id: string) => router.push({ name: 'writer-editor', params: { projectId: id } })
+const openProject = (id: string) => router.push({ name: 'writer-project', params: { projectId: id } })
 const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 </script>

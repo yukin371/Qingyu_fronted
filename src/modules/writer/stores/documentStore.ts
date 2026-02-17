@@ -112,6 +112,7 @@ export const useDocumentStore = defineStore('writer-document', () => {
 
   return {
     tree,
+    flatDocs,
     currentDocMeta,
     loading,
     loadTree,

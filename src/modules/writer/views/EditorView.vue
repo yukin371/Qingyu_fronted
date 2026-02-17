@@ -33,8 +33,6 @@
       <template #right-panel>
         <AIPanel
           :session-id="aiSessionId"
-          :collapsed="isAIPanelCollapsed"
-          @update:collapsed="handleAIPanelToggle"
         />
       </template>
     </EditorLayout>
@@ -44,6 +42,10 @@
 <script setup lang="ts">
 /**
  * EditorView.vue - 编辑器主视图
+ *
+ * @deprecated 该页面已废弃，统一使用 ProjectWorkspace。
+ * 兼容入口 `/writer/editor/:projectId/:chapterId?` 已在路由层重定向到
+ * `/writer/project/:projectId?chapterId=...`，请勿再新增对本页面的引用。
  *
  * 整合 EditorLayout 布局组件，实现三栏布局框架：
  * - 左侧：章节树
@@ -89,9 +91,6 @@ const chapterStore = useChapterStore()
 
 // 当前激活的工具
 const activeTool = ref<ActiveTool>('writing')
-
-// AI面板折叠状态
-const isAIPanelCollapsed = ref(false)
 
 // MarkdownEditor 组件引用（保留供将来使用，如需要调用编辑器方法）
 const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null)
@@ -214,25 +213,15 @@ function handleToolChange(toolId: string) {
       break
     case 'writing':
       // 默认写作模式
-      isAIPanelCollapsed.value = false
       break
     case 'immersive':
       // 沉浸模式，隐藏两侧面板
-      isAIPanelCollapsed.value = true
       break
     case 'ai-assistant':
     case 'chat':
       // AI助手模式，右侧展开
-      isAIPanelCollapsed.value = false
       break
   }
-}
-
-/**
- * 处理AI面板折叠切换
- */
-function handleAIPanelToggle(collapsed: boolean) {
-  isAIPanelCollapsed.value = collapsed
 }
 
 // =======================

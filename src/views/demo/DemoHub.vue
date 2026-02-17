@@ -570,7 +570,7 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
     items: [
       { key: 'writer-dashboard', label: '创作工作台', route: '/writer/dashboard' },
       { key: 'writer-projects', label: '项目列表', route: '/writer/projects' },
-      { key: 'writer-editor', label: '章节编辑', route: '/writer/editor/project-1/chapter-1' },
+      { key: 'writer-editor', label: '章节编辑', route: '/writer/project/project-1?chapterId=chapter-1' },
       { key: 'writer-publish', label: '发布管理', route: '/writer/publish' },
       { key: 'writer-statistics', label: '数据统计', route: '/writer/statistics' },
       { key: 'writer-revenue', label: '稿费收入', route: '/writer/revenue' },
@@ -627,8 +627,8 @@ const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
     description: '建议按项目管理 -> 编辑创作 -> AI辅助 -> 发布管理 -> 数据统计 -> 稿费收入演示。',
     items: [
       { section: '5.2.1', title: '作品管理界面', route: '/writer/projects', frontendFile: 'src/modules/writer/views/ProjectListView.vue', backendFile: 'Qingyu_backend/service/writer/project/project_service.go' },
-      { section: '5.2.2', title: '章节编写界面', route: '/writer/editor/project-1/chapter-1', frontendFile: 'src/modules/writer/views/EditorView.vue', backendFile: 'Qingyu_backend/service/writer/document/document_service.go' },
-      { section: '5.2.3', title: 'AI辅助创作界面', route: '/writer/editor/project-1/chapter-1', frontendFile: 'src/modules/writer/components/ai/AIPanel.vue', backendFile: 'Qingyu_backend/service/ai/chat_service.go' },
+      { section: '5.2.2', title: '章节编写界面', route: '/writer/project/project-1?chapterId=chapter-1', frontendFile: 'src/modules/writer/views/ProjectWorkspace.vue', backendFile: 'Qingyu_backend/service/writer/document/document_service.go' },
+      { section: '5.2.3', title: 'AI辅助创作界面', route: '/writer/project/project-1?chapterId=chapter-1', frontendFile: 'src/modules/writer/components/ai/AIPanel.vue', backendFile: 'Qingyu_backend/service/ai/chat_service.go' },
       { section: '5.2.4', title: '发布管理界面', route: '/writer/publish', frontendFile: 'src/modules/writer/views/PublishManagementView.vue', backendFile: 'Qingyu_backend/service/writer/publish_service.go' },
       { section: '5.2.5', title: '数据统计界面', route: '/writer/statistics', frontendFile: 'src/modules/writer/views/StatisticsView.vue', backendFile: 'Qingyu_backend/service/shared/stats/stats_service.go' },
       { section: '5.2.6', title: '稿费收入界面', route: '/writer/revenue', frontendFile: 'src/modules/writer/views/RevenueView.vue', backendFile: 'Qingyu_backend/service/finance/revenue_service.go' }

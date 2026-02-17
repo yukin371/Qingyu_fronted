@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 /**
  * 工具切换类型
  */
-export type ActiveTool = 'chapters' | 'writing' | 'immersive' | 'ai'
+export type ActiveTool = 'chapters' | 'writing' | 'immersive' | 'ai' | 'encyclopedia'
 
 /**
  * 编辑器状态接口

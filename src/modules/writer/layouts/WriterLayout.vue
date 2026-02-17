@@ -110,6 +110,12 @@ const handleUserCommand = async (command: string) => {
   flex-direction: column;
 }
 
+.writer-layout--project {
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
 .writer-header {
   background: color-mix(in oklab, var(--el-bg-color) 92%, #ffffff 8%);
   border-bottom: 1px solid var(--el-border-color-light);
@@ -207,7 +213,8 @@ const handleUserCommand = async (command: string) => {
 }
 
 .writer-layout-content--project {
-  height: 100dvh;
+  flex: 1;
+  min-height: 0;
 }
 
 .writer-layout-content--project :deep(.editor-layout) {

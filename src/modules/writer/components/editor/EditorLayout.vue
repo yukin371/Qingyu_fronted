@@ -45,6 +45,7 @@
           :min-width="layout.leftPanel.minWidth"
           :max-width="layout.leftPanel.maxWidth"
           position="left"
+          :collapsible="true"
           :class="leftPanelClasses"
           :style="leftPanelStyle"
         >
@@ -125,6 +126,7 @@ import EditorPanel from './EditorPanel.vue'
 import AIPanel from './AIPanel.vue'
 import ProjectTree from '../ProjectTree.vue'
 import ChapterTree from '../DocumentTree.vue'
+import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import { useEditorStore, type ActiveTool } from '../../stores/editorStore'
 
@@ -138,10 +140,7 @@ interface Emits {
   (e: 'toolChange', tool: ActiveTool): void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const props = withDefaults(defineProps<Props>(), {
-  activeTool: 'writing'
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<Emits>()
 
@@ -156,17 +155,26 @@ defineSlots<{
 const editorStore = useEditorStore()
 
 // 内部 activeTool 状态（用于本地管理）
-const internalActiveTool = ref<ActiveTool>(props.activeTool)
+const internalActiveTool = ref<ActiveTool>(props.activeTool ?? editorStore.activeTool ?? 'writing')
 
 // 计算 activeTool（优先使用 props，否则使用内部状态，最后使用 store）
 const activeTool = computed<ActiveTool>({
-  get: () => props.activeTool || internalActiveTool.value || editorStore.activeTool,
+  get: () => props.activeTool ?? internalActiveTool.value ?? editorStore.activeTool ?? 'writing',
   set: (value: ActiveTool) => {
     internalActiveTool.value = value
     editorStore.setActiveTool(value)
     emit('update:activeTool', value)
   }
 })
+
+watch(
+  () => props.activeTool,
+  (newTool) => {
+    if (newTool && newTool !== internalActiveTool.value) {
+      internalActiveTool.value = newTool
+    }
+  }
+)
 
 // MiniNavbar v-model 绑定（string 类型，需要转换）
 // MiniNavbar 使用的工具 ID: 'chapters' | 'writing' | 'immersive' | 'ai-assistant'
@@ -195,32 +203,37 @@ watch(
 
 // ==================== 面板可见性计算 ====================
 // 根据 activeTool 计算左侧面板是否可见
-// chapters: 展开 | writing: 折叠 | immersive: 隐藏 | ai: 隐藏
+// chapters/writing: 展开 | immersive/ai: 隐藏
 const leftPanelVisible = computed(() => {
   const tool = activeTool.value
-  return tool === 'chapters'
+  return tool === 'chapters' || tool === 'writing' || tool === 'encyclopedia'
 })
 
 // 根据 activeTool 计算右侧面板是否可见
-// chapters: 隐藏 | writing: 折叠 | immersive: 隐藏 | ai: 展开显示
+// writing/ai: 展开 | chapters/immersive: 隐藏
 const rightPanelVisible = computed(() => {
   const tool = activeTool.value
-  return tool === 'ai'
+  return tool === 'ai' || tool === 'writing'
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const leftPanelState = computed(() => {
   const tool = activeTool.value
+  if (tool === 'immersive' || tool === 'ai') return 'hidden'
+  if (tool === 'encyclopedia') return 'expanded'
+  // 写作模式保持正常宽度，避免侧栏过窄不可见
+  if (tool === 'writing') return 'expanded'
   if (tool === 'chapters') return 'expanded'
-  if (tool === 'writing') return 'collapsed'
   return 'hidden'
 })
 
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const rightPanelState = computed(() => {
   const tool = activeTool.value
+  if (tool === 'immersive' || tool === 'chapters' || tool === 'encyclopedia') return 'hidden'
+  // 写作模式保持正常宽度，避免侧栏过窄不可见
+  if (tool === 'writing') return 'expanded'
   if (tool === 'ai') return 'expanded'
-  if (tool === 'writing') return 'collapsed'
   return 'hidden'
 })
 
@@ -312,7 +325,9 @@ const rightPanelStyle = computed(() => {
   }
   // 展开状态
   return {
-    width: layout.value.rightPanel.state === 'collapsed' ? '0px' : undefined
+    width: layout.value.mode === 'desktop'
+      ? `${layout.value.rightPanel.width}px`
+      : undefined
   }
 })
 
@@ -329,6 +344,7 @@ const layoutModeLabel = computed(() => {
     writing: '写作模式',
     immersive: '沉浸模式',
     ai: 'AI助手模式',
+    encyclopedia: '设定百科模式',
   }
   return `${modeLabel} - ${toolLabels[activeTool.value]}`
 })
@@ -396,6 +412,7 @@ function handleToolChange(toolId: string) {
     writing: '写作模式',
     immersive: '沉浸模式',
     ai: 'AI助手模式',
+    encyclopedia: '设定百科模式',
   }
   ariaAnnouncement.value = `已切换到${toolLabels[normalizedTool]}`
   setTimeout(() => {
@@ -417,8 +434,8 @@ onMounted(() => {
   --editor-navbar-height: 52px;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
   background: #f1f5f9;
   color: #0f172a;
   overflow: hidden;
@@ -427,13 +444,25 @@ onMounted(() => {
 .editor-layout__content {
   display: flex;
   flex: 1;
-  height: calc(100dvh - var(--editor-navbar-height));
+  height: calc(100% - var(--editor-navbar-height));
   min-height: 0;
   overflow: hidden;
   position: relative;
   gap: 10px;
   padding: 0;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+
+  :deep(.side-panel) {
+    background: #ffffff;
+    color: #1e293b;
+    border-color: #e2e8f0;
+  }
+
+  // 兼容旧版 ProjectSidebar，强制隐藏已废弃统计行，避免和搜索框重叠
+  :deep(.sidebar-header .project-stats),
+  :deep(.sidebar-header .stat-item) {
+    display: none !important;
+  }
 }
 
 .editor-layout__main {

@@ -45,6 +45,22 @@ const writerRoutes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: 'encyclopedia/:projectId?',
+        name: 'writer-encyclopedia',
+        redirect: (to) => {
+          const projectId = String(to.params.projectId || '')
+          if (!projectId) {
+            return { name: 'writer-dashboard', query: to.query }
+          }
+          return {
+            name: 'writer-project',
+            params: { projectId },
+            query: { ...to.query, tool: 'encyclopedia' },
+          }
+        },
+        meta: { title: '设定百科' },
+      },
+      {
         path: 'statistics/:bookId?',
         name: 'writer-statistics',
         component: () => import('./views/StatisticsView.vue'),
@@ -67,16 +83,22 @@ const writerRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    // 编辑器通常需要全屏，所以把它提取到 Layout 之外，或者使用 BlankLayout
+    // 兼容旧编辑器链接，统一重定向到 writer-project 工作区
     path: '/writer/editor/:projectId/:chapterId?',
     name: 'writer-editor',
-    component: () => import('./views/EditorView.vue'),
+    redirect: (to) => ({
+      name: 'writer-project',
+      params: { projectId: to.params.projectId },
+      query: {
+        ...to.query,
+        ...(to.params.chapterId ? { chapterId: String(to.params.chapterId) } : {}),
+      },
+    }),
     meta: {
-      title: '编辑器',
       requiresAuth: true,
-      layout: 'blank', // 标记为无布局
+      deprecated: true,
+      replacement: 'writer-project',
     },
-    props: true,
   },
 ]
 
