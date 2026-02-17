@@ -274,6 +274,7 @@ import {
   YUNLAN_TOTAL_CHAPTERS,
   createYunlanReaderChapters
 } from '@/modules/bookstore/yunlanDemo.mock'
+import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
 
 const route = useRoute()
 const router = useRouter()
@@ -283,6 +284,8 @@ const { isMobile } = useResponsive()
 
 const chapterId = ref(route.params.chapterId as string)
 const isDemoMode = computed(() => route.query.demo === 'yunlan')
+const publishedBookId = computed(() => String(route.query.bookId || readerStore.currentBookId || ''))
+const isPublishedMode = computed(() => route.query.source === 'published' && !!publishedBookId.value)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
@@ -301,6 +304,8 @@ const hasAddedToBookshelfThisSession = ref(false)
 const recommendedBooks = ref<any[]>([])
 const demoChapterList = ref(createYunlanReaderChapters())
 const demoCurrentChapter = ref<any | null>(null)
+const publishedChapterList = ref<any[]>([])
+const publishedCurrentChapter = ref<any | null>(null)
 
 // 段落评论相关状态
 const highlightedParagraphIndex = ref<number | null>(null)
@@ -340,8 +345,16 @@ const pageWidthMarks: Record<number, string> = {
 }
 
 // 计算属性
-const currentChapter = computed(() => (isDemoMode.value ? demoCurrentChapter.value : readerStore.currentChapter))
-const chapterList = computed(() => (isDemoMode.value ? demoChapterList.value : readerStore.chapterList))
+const currentChapter = computed(() => {
+  if (isDemoMode.value) return demoCurrentChapter.value
+  if (isPublishedMode.value) return publishedCurrentChapter.value
+  return readerStore.currentChapter
+})
+const chapterList = computed(() => {
+  if (isDemoMode.value) return demoChapterList.value
+  if (isPublishedMode.value) return publishedChapterList.value
+  return readerStore.chapterList
+})
 const settings = computed(() => readerStore.settings)
 
 const bookTitle = computed(() => {
@@ -397,7 +410,7 @@ const toggleSettings = () => {
 const previousChapter = async () => {
   if (!hasPreviousChapter.value) return
   await saveCurrentProgress()
-  if (isDemoMode.value && currentChapter.value?.prevChapterId) {
+  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.prevChapterId) {
     chapterId.value = currentChapter.value.prevChapterId
     await loadChapter()
   } else {
@@ -409,7 +422,7 @@ const previousChapter = async () => {
 const nextChapter = async () => {
   if (!hasNextChapter.value) return
   await saveCurrentProgress()
-  if (isDemoMode.value && currentChapter.value?.nextChapterId) {
+  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.nextChapterId) {
     chapterId.value = currentChapter.value.nextChapterId
     await loadChapter()
   } else {
@@ -439,6 +452,10 @@ const handleContentScroll = () => {
 const goBackToBookDetail = () => {
   if (isDemoMode.value) {
     router.push('/bookstore/books-demo')
+    return
+  }
+  if (isPublishedMode.value && publishedBookId.value) {
+    router.push(`/bookstore/books/${publishedBookId.value}`)
     return
   }
   if (currentChapter.value?.bookId) {
@@ -665,6 +682,39 @@ const loadChapter = async () => {
   try {
     if (isDemoMode.value) {
       loadDemoChapter(chapterId.value)
+      readProgress.value = 0
+      startTime.value = Date.now()
+      return
+    }
+    if (isPublishedMode.value) {
+      const detail = getPublishedBookDetail(publishedBookId.value)
+      if (!detail) {
+        message.error('未找到已发布内容，请先在发布管理中发布章节')
+        return
+      }
+
+      const mapped = detail.chapters
+        .slice()
+        .sort((a, b) => a.chapterNum - b.chapterNum)
+        .map((chapter, index, list) => ({
+          id: chapter.id,
+          chapterNum: chapter.chapterNum,
+          title: chapter.title,
+          content: chapter.content,
+          bookId: detail.book.id,
+          bookTitle: detail.book.title,
+          isRead: false,
+          isFree: chapter.isFree,
+          prevChapterId: index > 0 ? list[index - 1].id : '',
+          nextChapterId: index < list.length - 1 ? list[index + 1].id : '',
+        }))
+
+      publishedChapterList.value = mapped
+      const target = mapped.find((chapter) => chapter.id === chapterId.value) || mapped[0] || null
+      if (target) {
+        publishedCurrentChapter.value = target
+        chapterId.value = target.id
+      }
       readProgress.value = 0
       startTime.value = Date.now()
       return
