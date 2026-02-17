@@ -645,8 +645,12 @@ const jumpToRating = async () => {
 }
 
 .comment-editor {
-  margin-bottom: 14px;
-  width: 100%;
+  width: min(100%, 1040px);
+  margin: 0 auto 14px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .comment-rating-row {
@@ -662,8 +666,16 @@ const jumpToRating = async () => {
 }
 
 .comment-editor :deep(.el-textarea__inner) {
+  width: 100%;
   resize: none;
   min-height: 160px;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.comment-editor :deep(.el-textarea__inner:focus) {
+  border-color: #e6a23c !important;
 }
 
 .editor-action {

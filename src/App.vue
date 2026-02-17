@@ -43,10 +43,6 @@ onMounted(() => {
       onboarding.registerTour(tour)
     })
 
-    if (!authStore.token) {
-      return
-    }
-
     void authStore.initAuth()
       .then(() => {
         if (!onboarding.hasCompleted('welcome-tour') && !onboarding.hasSkipped('welcome-tour')) {

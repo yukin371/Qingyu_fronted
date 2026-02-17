@@ -17,7 +17,6 @@ export function setupRouterGuards(router: Router) {
   createAuthGuard(router)
   setupTestModeGuard(router)
   setupWebSocketGuard(router)
-  setupTestModeGuard(router)
 }
 
 /**
@@ -56,6 +55,7 @@ function createAuthGuard(router: Router) {
     console.log('[Route Guard] Checking:', to.path)
 
     const authStore = useAuthStore()
+    authStore.ensureTestModeMockSession()
     console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
 
     // 处理 guest 页面（登录、注册等）- 已登录用户访问 guest 页面时重定向
@@ -90,27 +90,7 @@ function createAuthGuard(router: Router) {
       const hasRole = authStore.roles?.some((role) => requiredRoles.includes(role))
 
       if (!hasRole) {
-        // 如果是去作家后台，但没权限，可能是普通读者，跳转到引导页
-        if (to.path.startsWith('/writer') && to.path !== '/writer/become-author') {
-          // 检查用户是否有reader角色，如果有则跳转到引导页
-          const isReader = authStore.user?.roles?.includes('reader')
-          if (isReader) {
-            next({ name: 'become-author' })
-          } else {
-            next({ path: '/bookstore', query: { error: 'permission_denied' }})
-          }
-        } else {
-          next({ path: '/403', replace: true })
-        }
-        return
-      }
-    }
-
-    // 特殊处理：读者访问/writer根路径时跳转到引导页
-    if (to.path === '/writer' || to.path === '/writer/') {
-      const hasAuthorRole = authStore.user?.roles?.includes('author') || authStore.user?.roles?.includes('admin')
-      if (!hasAuthorRole) {
-        next({ name: 'become-author' })
+        next({ path: '/403', replace: true })
         return
       }
     }

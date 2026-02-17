@@ -29,9 +29,18 @@
                 <div class="plan-header">
                   <h4>{{ plan.name }}</h4>
                   <div class="plan-price">
-                    <span class="price">¥{{ plan.price }}</span>
+                    <template v-if="hasAuthorDiscount">
+                      <span class="price-discounted">¥{{ getDiscountedPrice(plan) }}</span>
+                      <span class="price-original">¥{{ plan.price }}</span>
+                    </template>
+                    <template v-else>
+                      <span class="price">¥{{ plan.price }}</span>
+                    </template>
                     <span class="duration">/{{ plan.duration_unit }}</span>
                   </div>
+                  <el-tag v-if="hasAuthorDiscount" type="warning" size="small" class="author-discount-tag">
+                    作者优惠 {{ Math.round((1 - authorDiscountRate) * 100) }}%
+                  </el-tag>
                 </div>
                 <div class="plan-body">
                   <p class="plan-description">{{ plan.description }}</p>
@@ -214,6 +223,7 @@ import { ref, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon, QyConfirmDialog } from '@/design-system/components'
 import type { ConfirmDetail } from '@/design-system/components'
+import { useAuthStore } from '@/stores/auth'
 import {
   getMembershipPlans,
   getUserMembership,
@@ -247,6 +257,14 @@ const cardForm = ref({
 const subscribeForm = ref({
   payment_method: 'alipay'
 })
+const authStore = useAuthStore()
+const hasAuthorDiscount = computed(() => authStore.hasAuthorRole)
+const authorDiscountRate = computed(() => authStore.authorAIPackageDiscountRate)
+
+const getDiscountedPrice = (plan: MembershipPlan) => {
+  const finalPrice = Number((plan.price * authorDiscountRate.value).toFixed(2))
+  return finalPrice.toFixed(2)
+}
 
 // 支付方式名称映射
 const paymentMethodMap: Record<string, string> = {
@@ -263,7 +281,11 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
   },
   {
     label: '价格',
-    value: `¥${selectedPlan.value?.price} / ${selectedPlan.value?.duration_unit}`
+    value: selectedPlan.value
+      ? (hasAuthorDiscount.value
+        ? `¥${getDiscountedPrice(selectedPlan.value)}（原价¥${selectedPlan.value.price}）/ ${selectedPlan.value.duration_unit}`
+        : `¥${selectedPlan.value.price} / ${selectedPlan.value.duration_unit}`)
+      : ''
   },
   {
     label: '支付方式',
@@ -493,10 +515,27 @@ onMounted(() => {
         color: var(--el-color-danger);
       }
 
+      .price-discounted {
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--el-color-danger);
+      }
+
+      .price-original {
+        font-size: 14px;
+        color: var(--el-text-color-secondary);
+        text-decoration: line-through;
+        margin-left: 8px;
+      }
+
       .duration {
         font-size: 14px;
         color: var(--el-text-color-secondary);
       }
+    }
+
+    .author-discount-tag {
+      margin-top: 8px;
     }
   }
 
