@@ -21,6 +21,26 @@ import { message } from '@/design-system/services'
 // 运行模式
 type StorageMode = 'online' | 'offline'
 
+function isTestModeActive(): boolean {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('test') === 'true'
+}
+
+function buildYunlanMockProject() {
+  const updatedAt = new Date(Date.now() - 45 * 60 * 1000).toISOString()
+  return {
+    projectId: 'project-yljs-1',
+    title: '云岚纪事',
+    description: '仙侠长篇，当前已编辑 3 章。',
+    type: 'novel',
+    status: 'writing',
+    wordCount: 9800,
+    chapterCount: 3,
+    createdAt: '2026-02-01T10:00:00.000Z',
+    updatedAt
+  }
+}
+
 /**
  * 写作端状态管理
  */
@@ -60,13 +80,21 @@ export const useWriterStore = defineStore('writer', () => {
       if (storageMode.value === 'offline') {
         // 离线模式：使用本地存储
         const localProjects = await getLocalProjects()
-        projects.value = localProjects || []
+        const list = Array.isArray(localProjects) ? [...localProjects] : []
+        if (isTestModeActive() && !list.some((p) => p?.projectId === 'project-yljs-1')) {
+          list.unshift(buildYunlanMockProject())
+        }
+        projects.value = list
         total.value = projects.value.length
         return projects.value
       } else {
         // 在线模式：API未完成，使用离线模式
         const localProjects = await getLocalProjects()
-        projects.value = localProjects || []
+        const list = Array.isArray(localProjects) ? [...localProjects] : []
+        if (isTestModeActive() && !list.some((p) => p?.projectId === 'project-yljs-1')) {
+          list.unshift(buildYunlanMockProject())
+        }
+        projects.value = list
         total.value = projects.value.length
         message.warning('在线模式API功能待完善，已切换到离线模式')
         storageMode.value = 'offline'

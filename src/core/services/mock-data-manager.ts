@@ -336,24 +336,29 @@ function filterAndPaginateBooks(
 // ==================== 创作中心 Mock 数据 ====================
 
 function getWriterProjects(): MockResponse {
+  const yunlanProject = {
+    id: 'project-yljs-1',
+    projectId: 'project-yljs-1',
+    title: '云岚纪事',
+    summary: '仙侠长篇，当前已编辑 3 章。',
+    coverImage: getBookCoverUrl('project-yljs-1', '仙侠'),
+    coverUrl: getBookCoverUrl('project-yljs-1', '仙侠'),
+    status: 'serializing',
+    category: '仙侠',
+    tags: ['仙侠', '成长', '冒险'],
+    totalWords: 9800,
+    chapterCount: 3,
+    lastUpdateTime: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    statistics: {
+      totalWords: 9800,
+      chapterCount: 3,
+      lastUpdateAt: new Date(Date.now() - 45 * 60 * 1000).toISOString()
+    }
+  }
+
   return createMockResponse({
-    list: [
-      {
-        id: 'project-1',
-        projectId: 'project-1',
-        title: '异界猫娘日常',
-        summary: '讲述一只猫娘在异世界的日常生活喵~',
-        coverUrl: getBookCoverUrl('project-1', '奇幻'),
-        status: 'serializing',
-        category: '奇幻',
-        tags: ['猫娘', '日常', '治愈'],
-        statistics: {
-          totalWords: 158000,
-          chapterCount: 42,
-          lastUpdateAt: new Date().toISOString()
-        }
-      }
-    ],
+    projects: [yunlanProject],
+    list: [yunlanProject],
     total: 1
   })
 }

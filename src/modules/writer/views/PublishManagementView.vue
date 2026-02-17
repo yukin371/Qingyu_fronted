@@ -1046,6 +1046,7 @@ const publishChapter = async (record: PublishRecord) => {
         target.status = 'published'
         target.published_at = new Date().toISOString()
       }
+      authStore.promoteToAuthorByPublishing(false)
       message.success('发布成功（Mock）')
       loadPublishRecords()
       loadStats()
@@ -1056,6 +1057,7 @@ const publishChapter = async (record: PublishRecord) => {
       chapter_number: record.chapter_number,
       project_id: bookId.value
     } as any)
+    authStore.promoteToAuthorByPublishing(false)
     // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
     await authStore.getUserInfo().catch(() => undefined)
     message.success('发布成功')

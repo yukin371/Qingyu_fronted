@@ -18,7 +18,7 @@ const writerRoutes: RouteRecordRaw[] = [
   {
     path: '/writer',
     component: WriterLayout,
-    meta: { requiresAuth: true }, // 登录即可访问作者模块
+    meta: { requiresAuth: true }, // 登录用户均可进入，发布后自动升级作者身份
     children: [
       {
         path: '',

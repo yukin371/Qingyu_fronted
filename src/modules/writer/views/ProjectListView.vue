@@ -64,7 +64,9 @@
           <div class="card-header">
             <span class="project-name">{{ project.title }}</span>
             <el-dropdown class="project-actions" @command="handleCommand($event, project)" @click.stop>
-              <el-icon class="more-icon"><QyIcon name="MoreFilled"  /></el-icon>
+              <button type="button" class="more-btn" aria-label="更多操作">
+                <QyIcon name="MoreFilled" :size="16" />
+              </button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="edit">编辑</el-dropdown-item>
@@ -342,14 +344,23 @@ onMounted(async () => {
   max-width: calc(100% - 28px);
 }
 
-.more-icon {
-  cursor: pointer;
-  font-size: 20px;
+.more-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
   color: #909399;
+  cursor: pointer;
+  padding: 0;
 }
 
-.more-icon:hover {
+.more-btn:hover {
   color: #409eff;
+  background: #eff6ff;
 }
 
 .project-description {
