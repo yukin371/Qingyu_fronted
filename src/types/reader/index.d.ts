@@ -38,6 +38,8 @@ export interface ParagraphComment {
   emoji?: string
   likes: number
   likedByMe: boolean
+  replyToCommentId?: string
+  replyToUsername?: string
   createdAt: string
   updatedAt: string
 }

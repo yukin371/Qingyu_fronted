@@ -30,7 +30,7 @@ defineProps<Props>()
     display: flex;
     align-items: center;
     font-size: 14px;
-    color: var(--el-text-color-secondary);
+    color: var(--el-text-color-secondary, #6b7280);
   }
 }
 </style>

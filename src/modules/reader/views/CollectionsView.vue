@@ -1,401 +1,600 @@
-<template>
-  <div class="collections-view">
-    <!-- 头部 -->
-    <div class="collections-header">
-      <h2>我的收藏</h2>
-      <div v-if="total > 0" class="stats-badge">
-        共 {{ total }} 本
-      </div>
+﻿<template>
+  <section class="collections-view">
+    <div class="stats-grid">
+      <article class="stat-card">
+        <p class="label">收藏总数</p>
+        <el-tooltip content="按 bookId 合并重复收藏后的总数" placement="top">
+          <p class="value">{{ total }}</p>
+        </el-tooltip>
+      </article>
+      <article class="stat-card">
+        <p class="label">合并重复</p>
+        <el-tooltip content="原始数据中被合并的重复记录数量" placement="top">
+          <p class="value">{{ mergedDuplicateCount }}</p>
+        </el-tooltip>
+      </article>
+      <article class="stat-card">
+        <p class="label">备注覆盖率</p>
+        <el-tooltip content="当前筛选结果中已备注的占比" placement="top">
+          <p class="value">{{ noteCoverage }}%</p>
+        </el-tooltip>
+      </article>
+      <article class="stat-card">
+        <p class="label">当前已选</p>
+        <el-tooltip content="可用于批量打标签/备注/取消收藏" placement="top">
+          <p class="value">{{ selectedIds.length }}</p>
+        </el-tooltip>
+      </article>
     </div>
 
-    <!-- 加载状态 -->
-    <el-skeleton :loading="loading" :rows="5" animated>
-      <div class="collections-content">
-        <!-- 空状态 -->
-        <el-empty v-if="collections.length === 0 && !loading" description="暂无收藏">
-          <template #extra>
-            <el-button type="primary" @click="goToBookstore">去书城逛逛</el-button>
-          </template>
-          <template #image>
-            <el-icon :size="100" color="#909399">
-              <Star />
-            </el-icon>
-          </template>
-        </el-empty>
+    <section class="query-panel">
+      <Input v-model="keyword" :placeholder="searchScope === 'title' ? '按书名搜索' : '按作者搜索'" clearable class="search-input" />
+      <Select v-model="searchScope" :options="searchScopeSelectOptions" class="scope-select" />
+      <Select v-model="selectedTags" :options="tagSelectOptions" multiple clearable placeholder="标签筛选" class="filter-select" />
+      <Select v-model="selectedAuthors" :options="authorSelectOptions" multiple clearable placeholder="作者筛选" class="filter-select" />
+      <Select v-model="sortBy" :options="sortSelectOptions" class="sort-select" />
+      <el-button text @click="resetFilters">重置</el-button>
+    </section>
 
-        <!-- 收藏列表 -->
-        <div v-else class="collections-list">
-          <div
-            v-for="item in collections"
-            :key="item.id"
-            class="collection-item"
-          >
-            <!-- 封面 -->
-            <el-image
-              :src="item.cover"
-              fit="cover"
-              class="book-cover"
-              @click="goToBook(item.bookId)"
-            >
-              <template #error>
-                <div class="image-slot">
-                  <QyIcon name="Picture" />
-                </div>
-              </template>
-            </el-image>
+    <section class="batch-toolbar">
+      <div class="left">
+        <el-checkbox :indeterminate="isPartialSelected" :model-value="isAllPageSelected" @change="toggleSelectAllPage">本页全选</el-checkbox>
+        <span class="tip">筛选结果 {{ total }} 本</span>
+      </div>
+      <div class="right">
+        <el-button :disabled="selectedIds.length === 0" @click="openBatchTagDialog = true">批量打标签</el-button>
+        <el-button :disabled="selectedIds.length === 0" @click="openBatchNoteEditor">批量备注</el-button>
+        <el-button type="danger" :disabled="selectedIds.length === 0" @click="batchRemoveSelected">批量取消</el-button>
+      </div>
+    </section>
 
-            <!-- 书籍信息 -->
-            <div class="book-info" @click="goToBook(item.bookId)">
-              <h3 class="book-title">{{ item.title }}</h3>
-              <p class="book-author">{{ item.author }}</p>
+    <el-skeleton :loading="loading" :rows="4" animated>
+      <el-empty v-if="pagedCollections.length === 0" description="暂无收藏结果" />
 
-              <!-- 备注区域 -->
-              <div class="note-area" @click.stop>
-                <template v-if="editingId === item.id">
-                  <el-input
-                    ref="noteInputRef"
-                    v-model="editingNote"
-                    placeholder="添加备注..."
-                    size="small"
-                    :maxlength="200"
-                    show-word-limit
-                    @blur="saveNote(item)"
-                    @keyup.enter="saveNote(item)"
-                    @keyup.escape="cancelEdit"
-                  />
-                </template>
-                <template v-else>
-                  <span
-                    class="note-text"
-                    :class="{ 'note-placeholder': !item.description }"
-                    @click="startEdit(item)"
-                  >
-                    {{ item.description || '点击添加备注' }}
-                  </span>
-                </template>
-              </div>
-
-              <!-- 收藏时间 -->
-              <p class="book-meta">收藏于 {{ formatDate(item.createdAt) }}</p>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="book-actions">
-              <el-button type="danger" text @click.stop="handleRemove(item)">
-                取消收藏
-              </el-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 分页 -->
-        <el-pagination
-          v-if="total > pageSize"
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          :total="total"
-          layout="prev, pager, next"
-          style="margin-top: 20px; justify-content: center"
-          @current-change="loadCollections"
+      <div v-else class="collections-grid">
+        <CollectionBookCard
+          v-for="item in pagedCollections"
+          :key="item.id"
+          :item="item"
+          :selected="selectedIds.includes(item.id)"
+          :expanded="expandedNoteIds.includes(item.id)"
+          :formatted-date="formatDate(item.createdAt)"
+          @update:selected="(v:boolean) => toggleSelect(item.id, v)"
+          @open-book="goToBook(item.bookId)"
+          @command="(cmd:string) => handleMoreCommand(item, cmd)"
+          @toggle-note="toggleNote(item.id)"
         />
       </div>
     </el-skeleton>
-  </div>
+
+    <el-pagination
+      v-if="total > pageSize"
+      v-model:current-page="currentPage"
+      :page-size="pageSize"
+      :total="total"
+      layout="prev, pager, next"
+      class="pagination"
+    />
+
+    <el-dialog v-model="noteDialogVisible" title="编辑备注" width="520px">
+      <el-input v-model="noteDialogValue" type="textarea" :rows="5" maxlength="500" show-word-limit />
+      <template #footer>
+        <el-button @click="noteDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveSingleNote">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="openBatchTagDialog" title="批量打标签" width="520px">
+      <el-select v-model="batchTagValues" multiple filterable allow-create default-first-option placeholder="选择或输入标签" style="width: 100%">
+        <el-option v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
+      </el-select>
+      <template #footer>
+        <el-button @click="openBatchTagDialog = false">取消</el-button>
+        <el-button type="primary" @click="applyBatchTags">应用到所选 {{ selectedIds.length }} 项</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="batchNoteDialogVisible" title="批量编辑备注" width="560px">
+      <div class="batch-note-mode">
+        <el-radio-group v-model="batchNoteMode">
+          <el-radio label="replace">覆盖备注</el-radio>
+          <el-radio label="append">追加备注</el-radio>
+        </el-radio-group>
+      </div>
+      <el-input v-model="batchNoteText" type="textarea" :rows="6" maxlength="500" show-word-limit placeholder="输入批量备注内容" />
+      <template #footer>
+        <el-button @click="batchNoteDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="applyBatchNote">应用到所选 {{ selectedIds.length }} 项</el-button>
+      </template>
+    </el-dialog>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Star } from '@element-plus/icons-vue'
-import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
-import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
-import { formatDate } from '@/utils/format'
+import { Input, Select } from '@/design-system/form'
+import type { Collection } from '@/modules/reader/api/manual/collections'
+import CollectionBookCard from '@/modules/reader/components/CollectionBookCard.vue'
+
+type SortBy = 'latest' | 'oldest' | 'title' | 'author'
+type NoteMode = 'replace' | 'append'
 
 const router = useRouter()
 
-// 列表数据
-const collections = ref<Collection[]>([])
-const loading = ref(false)
-const total = ref(0)
-
-// 分页
+const pageSize = 12
 const currentPage = ref(1)
-const pageSize = ref(20)
+const sortBy = ref<SortBy>('latest')
+const loading = ref(false)
 
-// 编辑状态
-const editingId = ref<string | null>(null)
-const editingNote = ref('')
-const originalNote = ref('')
-const noteInputRef = ref()
+const keyword = ref('')
+const searchScope = ref<'title' | 'author'>('title')
+const selectedTags = ref<string[]>([])
+const selectedAuthors = ref<string[]>([])
 
-// 保存中状态
-const saving = ref(false)
+const allCollections = ref<Collection[]>([])
+const rawCollectionCount = ref(0)
 
-onMounted(() => {
-  loadCollections()
+const selectedIds = ref<string[]>([])
+const expandedNoteIds = ref<string[]>([])
+
+const noteDialogVisible = ref(false)
+const noteDialogItemId = ref<string | null>(null)
+const noteDialogValue = ref('')
+
+const openBatchTagDialog = ref(false)
+const batchTagValues = ref<string[]>([])
+
+const batchNoteDialogVisible = ref(false)
+const batchNoteMode = ref<NoteMode>('replace')
+const batchNoteText = ref('')
+
+const searchScopeSelectOptions = [
+  { label: '搜书名', value: 'title' },
+  { label: '搜作者', value: 'author' }
+]
+
+const sortSelectOptions = [
+  { label: '最近收藏', value: 'latest' },
+  { label: '最早收藏', value: 'oldest' },
+  { label: '书名 A-Z', value: 'title' },
+  { label: '作者 A-Z', value: 'author' }
+]
+
+const authorOptions = computed(() => [...new Set(allCollections.value.map((x) => x.author))].sort((a, b) => a.localeCompare(b)))
+const tagOptions = computed(() => [...new Set(allCollections.value.flatMap((x) => x.tags || []))].sort((a, b) => a.localeCompare(b)))
+const authorSelectOptions = computed(() => authorOptions.value.map((author) => ({ label: author, value: author })))
+const tagSelectOptions = computed(() => tagOptions.value.map((tag) => ({ label: tag, value: tag })))
+
+const filteredCollections = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+
+  let list = allCollections.value.filter((item) => {
+    if (kw) {
+      const target = searchScope.value === 'title' ? item.title : item.author
+      if (!target.toLowerCase().includes(kw)) return false
+    }
+
+    if (selectedAuthors.value.length > 0 && !selectedAuthors.value.includes(item.author)) return false
+
+    if (selectedTags.value.length > 0) {
+      const tags = item.tags || []
+      if (!selectedTags.value.some((tag) => tags.includes(tag))) return false
+    }
+
+    return true
+  })
+
+  if (sortBy.value === 'latest') {
+    list = list.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+  } else if (sortBy.value === 'oldest') {
+    list = list.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
+  } else if (sortBy.value === 'author') {
+    list = list.sort((a, b) => a.author.localeCompare(b.author))
+  } else {
+    list = list.sort((a, b) => a.title.localeCompare(b.title))
+  }
+
+  return list
 })
 
-/**
- * 加载收藏列表
- */
-async function loadCollections(): Promise<void> {
-  loading.value = true
-  try {
-    const response = await collectionsAPI.getCollections({
-      page: currentPage.value,
-      pageSize: pageSize.value
-    })
+const total = computed(() => filteredCollections.value.length)
+const pagedCollections = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredCollections.value.slice(start, start + pageSize)
+})
 
-    // 处理响应数据 - PaginatedResponse 结构: { data: T[], pagination: { total, page, pageSize, ... } }
-    collections.value = Array.isArray(response.data) ? response.data : []
-    total.value = response.pagination?.total || collections.value.length
-  } catch (error: any) {
-    console.error('加载收藏列表失败:', error)
-    message.error(error.message || '加载收藏列表失败')
-  } finally {
-    loading.value = false
-  }
+const mergedDuplicateCount = computed(() => Math.max(0, rawCollectionCount.value - allCollections.value.length))
+const noteCoverage = computed(() => {
+  if (total.value === 0) return 0
+  const noted = filteredCollections.value.filter((x) => Boolean(x.description?.trim())).length
+  return Math.round((noted / total.value) * 100)
+})
+
+const isAllPageSelected = computed(() => {
+  const pageIds = pagedCollections.value.map((x) => x.id)
+  return pageIds.length > 0 && pageIds.every((id) => selectedIds.value.includes(id))
+})
+
+const isPartialSelected = computed(() => {
+  const pageIds = pagedCollections.value.map((x) => x.id)
+  if (pageIds.length === 0) return false
+  const selectedCount = pageIds.filter((id) => selectedIds.value.includes(id)).length
+  return selectedCount > 0 && selectedCount < pageIds.length
+})
+
+onMounted(async () => {
+  await loadCollections()
+})
+
+watch([keyword, searchScope, selectedTags, selectedAuthors, sortBy], () => {
+  currentPage.value = 1
+})
+
+watch(total, () => {
+  const maxPage = Math.max(1, Math.ceil(total.value / pageSize))
+  if (currentPage.value > maxPage) currentPage.value = maxPage
+})
+
+watch(allCollections, () => {
+  const idSet = new Set(allCollections.value.map((x) => x.id))
+  selectedIds.value = selectedIds.value.filter((id) => idSet.has(id))
+  expandedNoteIds.value = expandedNoteIds.value.filter((id) => idSet.has(id))
+})
+
+async function loadCollections() {
+  loading.value = true
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  const raw = buildMockCollections()
+  rawCollectionCount.value = raw.length
+  allCollections.value = mergeCollections(raw)
+  loading.value = false
 }
 
-/**
- * 开始编辑备注
- */
-function startEdit(item: Collection): void {
-  if (saving.value) return
+function buildMockCollections(): Collection[] {
+  const baseDate = Date.now()
+  const authors = ['青砚', '临川', '北山客', '宋野', '南渡']
+  const tagMatrix = [
+    ['玄幻', '连载'],
+    ['剧情', '成长'],
+    ['轻小说', '冒险'],
+    ['治愈', '都市'],
+    ['悬疑', '反转']
+  ]
 
-  editingId.value = item.id
-  editingNote.value = item.description || ''
-  originalNote.value = item.description || ''
-
-  // 聚焦输入框
-  nextTick(() => {
-    noteInputRef.value?.focus()
+  return Array.from({ length: 34 }, (_, i) => {
+    const bookNo = 1000 + (i % 20)
+    const id = `col-${i + 1}`
+    const createdAt = new Date(baseDate - i * 1000 * 60 * 60 * 24 * 4).toISOString()
+    const tags = tagMatrix[i % tagMatrix.length]
+    return {
+      id,
+      bookId: `book-${bookNo}`,
+      title: `云岚纪事·卷${(bookNo % 9) + 1}`,
+      author: authors[i % authors.length],
+      cover: `https://picsum.photos/seed/collection-${bookNo}/180/240`,
+      description: i % 3 === 0 ? '人物刻画细腻，冲突推进自然。\n关键章节张力较强。' : '',
+      tags,
+      isPublic: false,
+      createdAt,
+      updatedAt: createdAt
+    }
   })
 }
 
-/**
- * 保存备注
- */
-async function saveNote(item: Collection): Promise<void> {
-  // 如果没有变化，直接取消编辑
-  if (editingNote.value === originalNote.value) {
-    cancelEdit()
+function mergeCollections(list: Collection[]): Collection[] {
+  const map = new Map<string, Collection>()
+
+  list.forEach((item) => {
+    const existing = map.get(item.bookId)
+    if (!existing) {
+      map.set(item.bookId, { ...item, tags: [...new Set(item.tags || [])] })
+      return
+    }
+
+    const newer = +new Date(item.createdAt) > +new Date(existing.createdAt) ? item : existing
+    const mergedTags = [...new Set([...(existing.tags || []), ...(item.tags || [])])]
+    const note = (newer.description || existing.description || '').trim()
+
+    map.set(item.bookId, {
+      ...existing,
+      ...newer,
+      id: existing.id,
+      tags: mergedTags,
+      description: note
+    })
+  })
+
+  return [...map.values()]
+}
+
+function toggleSelect(id: string, checked: boolean) {
+  if (checked) {
+    if (!selectedIds.value.includes(id)) selectedIds.value.push(id)
+  } else {
+    selectedIds.value = selectedIds.value.filter((x) => x !== id)
+  }
+}
+
+function toggleSelectAllPage(checked: boolean) {
+  const pageIds = pagedCollections.value.map((x) => x.id)
+  if (checked) {
+    const set = new Set([...selectedIds.value, ...pageIds])
+    selectedIds.value = [...set]
+  } else {
+    selectedIds.value = selectedIds.value.filter((id) => !pageIds.includes(id))
+  }
+}
+
+function handleMoreCommand(item: Collection, cmd: string) {
+  if (cmd === 'edit-note') {
+    noteDialogItemId.value = item.id
+    noteDialogValue.value = item.description || ''
+    noteDialogVisible.value = true
+    return
+  }
+  if (cmd === 'toggle-note') {
+    toggleNote(item.id)
+    return
+  }
+  if (cmd === 'remove') {
+    handleRemove(item)
+  }
+}
+
+function toggleNote(id: string) {
+  if (expandedNoteIds.value.includes(id)) {
+    expandedNoteIds.value = expandedNoteIds.value.filter((x) => x !== id)
+  } else {
+    expandedNoteIds.value.push(id)
+  }
+}
+
+function saveSingleNote() {
+  if (!noteDialogItemId.value) return
+  const target = allCollections.value.find((x) => x.id === noteDialogItemId.value)
+  if (!target) return
+  target.description = noteDialogValue.value.trim()
+  target.updatedAt = new Date().toISOString()
+  noteDialogVisible.value = false
+  message.success('备注已保存')
+}
+
+async function handleRemove(item: Collection) {
+  try {
+    await messageBox.confirm(`确认取消收藏《${item.title}》吗？`, '取消收藏', {
+      confirmButtonText: '确认',
+      cancelButtonText: '保留'
+    })
+    allCollections.value = allCollections.value.filter((x) => x.id !== item.id)
+    selectedIds.value = selectedIds.value.filter((id) => id !== item.id)
+    message.success('已取消收藏')
+  } catch (e: any) {
+    if (e !== 'cancel') message.error('取消收藏失败')
+  }
+}
+
+function applyBatchTags() {
+  if (selectedIds.value.length === 0 || batchTagValues.value.length === 0) {
+    message.warning('请选择收藏并设置标签')
+    return
+  }
+  const idSet = new Set(selectedIds.value)
+  allCollections.value.forEach((item) => {
+    if (!idSet.has(item.id)) return
+    item.tags = [...new Set([...(item.tags || []), ...batchTagValues.value])]
+    item.updatedAt = new Date().toISOString()
+  })
+  openBatchTagDialog.value = false
+  message.success(`已为 ${selectedIds.value.length} 项添加标签`)
+}
+
+function openBatchNoteEditor() {
+  batchNoteText.value = ''
+  batchNoteMode.value = 'replace'
+  batchNoteDialogVisible.value = true
+}
+
+function applyBatchNote() {
+  if (selectedIds.value.length === 0) {
+    message.warning('请先选择收藏项')
+    return
+  }
+  const text = batchNoteText.value.trim()
+  if (!text) {
+    message.warning('请输入备注内容')
     return
   }
 
-  saving.value = true
-  try {
-    await collectionsAPI.updateCollection(item.id, {
-      description: editingNote.value
-    })
+  const idSet = new Set(selectedIds.value)
+  allCollections.value.forEach((item) => {
+    if (!idSet.has(item.id)) return
+    if (batchNoteMode.value === 'append') {
+      const current = item.description?.trim() || ''
+      item.description = current ? `${current}\n${text}` : text
+    } else {
+      item.description = text
+    }
+    item.updatedAt = new Date().toISOString()
+  })
 
-    // 更新本地数据
-    item.description = editingNote.value
-    message.success('备注已保存')
-  } catch (error: any) {
-    console.error('保存备注失败:', error)
-    message.error(error.message || '保存备注失败')
-    // 恢复原值
-    editingNote.value = originalNote.value
-  } finally {
-    saving.value = false
-    cancelEdit()
+  batchNoteDialogVisible.value = false
+  message.success(`已更新 ${selectedIds.value.length} 项备注`)
+}
+
+async function batchRemoveSelected() {
+  if (selectedIds.value.length === 0) return
+  try {
+    await messageBox.confirm(`确认批量取消收藏 ${selectedIds.value.length} 项吗？`, '批量取消收藏', {
+      confirmButtonText: '确认',
+      cancelButtonText: '保留'
+    })
+    const set = new Set(selectedIds.value)
+    allCollections.value = allCollections.value.filter((x) => !set.has(x.id))
+    selectedIds.value = []
+    message.success('批量取消收藏成功')
+  } catch (e: any) {
+    if (e !== 'cancel') message.error('批量取消收藏失败')
   }
 }
 
-/**
- * 取消编辑
- */
-function cancelEdit(): void {
-  editingId.value = null
-  editingNote.value = ''
-  originalNote.value = ''
+function resetFilters() {
+  keyword.value = ''
+  searchScope.value = 'title'
+  selectedTags.value = []
+  selectedAuthors.value = []
+  sortBy.value = 'latest'
 }
 
-/**
- * 取消收藏
- */
-async function handleRemove(item: Collection): Promise<void> {
-  try {
-    await messageBox.confirm('确定要取消收藏这本书吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消'
-    })
-
-    await collectionsAPI.deleteCollection(item.id)
-    message.success('已取消收藏')
-
-    // 从列表中移除
-    const index = collections.value.findIndex(c => c.id === item.id)
-    if (index > -1) {
-      collections.value.splice(index, 1)
-      total.value--
-    }
-
-    // 如果当前页没有数据了，加载上一页
-    if (collections.value.length === 0 && currentPage.value > 1) {
-      currentPage.value--
-      loadCollections()
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('取消收藏失败:', error)
-      message.error(error.message || '取消收藏失败')
-    }
-  }
-}
-
-/**
- * 跳转到书籍详情
- */
-function goToBook(bookId: string): void {
+function goToBook(bookId: string) {
   router.push(`/bookstore/books/${bookId}`)
 }
 
-/**
- * 跳转到书城
- */
-function goToBookstore(): void {
-  router.push('/bookstore')
+function formatDate(date: string) {
+  const d = new Date(date)
+  return `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, '0')}-${`${d.getDate()}`.padStart(2, '0')}`
 }
 </script>
 
 <style scoped lang="scss">
 .collections-view {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 18px 20px 24px;
+  background: radial-gradient(circle at top right, #ecf4ff 0%, #f8fafc 42%, #ffffff 100%);
+  border-radius: 16px;
+}
 
-  .collections-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
 
-    h2 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 500;
-      color: #303133;
-    }
+.stat-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
 
-    .stats-badge {
-      padding: 4px 12px;
-      background: #f0f9eb;
-      border-radius: 12px;
-      font-size: 14px;
-      color: #67c23a;
-    }
+.stat-card .label {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.stat-card .value {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  width: fit-content;
+}
+
+.query-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.3fr) 110px 1fr 1fr 130px auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.scope-select,
+.sort-select,
+.filter-select,
+.search-input {
+  width: 100%;
+}
+
+.query-panel :deep(.search-input),
+.query-panel :deep(.scope-select),
+.query-panel :deep(.filter-select),
+.query-panel :deep(.sort-select) {
+  min-height: 36px;
+}
+
+.query-panel :deep(.search-input:focus),
+.query-panel :deep(.scope-select:focus-visible),
+.query-panel :deep(.filter-select:focus-visible),
+.query-panel :deep(.sort-select:focus-visible) {
+  outline: none;
+}
+
+.batch-toolbar {
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.batch-toolbar .left,
+.batch-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-toolbar .tip {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pagination {
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.batch-note-mode {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1200px) {
+  .query-panel {
+    grid-template-columns: 1fr 100px 1fr 1fr;
   }
 
-  .collections-content {
-    min-height: 400px;
+  .sort-select {
+    grid-column: span 1;
   }
 
-  .collections-list {
-    display: flex;
+  .collections-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .query-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-toolbar {
     flex-direction: column;
-    gap: 16px;
-
-    .collection-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 16px;
-      background: #fff;
-      border-radius: 8px;
-      transition: all 0.3s;
-
-      &:hover {
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .book-cover {
-        width: 80px;
-        height: 106px;
-        border-radius: 4px;
-        flex-shrink: 0;
-        cursor: pointer;
-      }
-
-      .book-info {
-        flex: 1;
-        min-width: 0;
-        cursor: pointer;
-
-        .book-title {
-          margin: 0 0 8px;
-          font-size: 16px;
-          font-weight: 500;
-          color: #303133;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-
-          &:hover {
-            color: #409eff;
-          }
-        }
-
-        .book-author {
-          margin: 0 0 12px;
-          font-size: 14px;
-          color: #606266;
-        }
-
-        .note-area {
-          margin-bottom: 12px;
-
-          .note-text {
-            display: inline-block;
-            padding: 4px 8px;
-            font-size: 14px;
-            color: #606266;
-            background: #f5f7fa;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              background: #ecf5ff;
-              color: #409eff;
-            }
-
-            &.note-placeholder {
-              color: #c0c4cc;
-              font-style: italic;
-            }
-          }
-
-          :deep(.el-input) {
-            width: 100%;
-            max-width: 400px;
-          }
-        }
-
-        .book-meta {
-          margin: 0;
-          font-size: 12px;
-          color: #909399;
-        }
-      }
-
-      .book-actions {
-        flex-shrink: 0;
-      }
-    }
+    align-items: flex-start;
   }
 
-  .image-slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: #f5f7fa;
-    color: #909399;
-    font-size: 24px;
+  .collections-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

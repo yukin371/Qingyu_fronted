@@ -1,8 +1,10 @@
 <template>
-  <el-drawer
+  <QyDrawer
     v-model="visible"
     direction="rtl"
-    :size="400"
+    size="400px"
+    :z-index="3200"
+    :modal-z-index="3190"
     :close-on-click-modal="true"
     @close="handleClose"
   >
@@ -19,6 +21,7 @@
         :comments="comments"
         :loading="loading"
         @like="handleLike"
+        @reply="handleReply"
       />
 
       <!-- 空状态 -->
@@ -31,14 +34,17 @@
     <template #footer>
       <CommentInput
         @submit="handleSubmit"
+        @cancel-reply="clearReply"
         :disabled="loading"
+        :reply-to-username="replyTo?.username || ''"
       />
     </template>
-  </el-drawer>
+  </QyDrawer>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { QyDrawer } from '@/design-system/components'
 import CommentDrawerHeader from './CommentDrawerHeader.vue'
 import CommentList from './CommentList.vue'
 import CommentInput from './CommentInput.vue'
@@ -55,8 +61,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'like': [commentId: string]
-  'submit': [data: { content: string; emoji?: string }]
+  'submit': [data: { content: string; emoji?: string; replyToCommentId?: string; replyToUsername?: string }]
 }>()
+const replyTo = ref<{ commentId: string; username: string } | null>(null)
 
 const visible = computed({
   get: () => props.modelValue,
@@ -66,6 +73,7 @@ const visible = computed({
 const commentCount = computed(() => props.comments.length)
 
 const handleClose = () => {
+  clearReply()
   visible.value = false
 }
 
@@ -73,8 +81,21 @@ const handleLike = (commentId: string) => {
   emit('like', commentId)
 }
 
+const handleReply = (data: { commentId: string; username: string }) => {
+  replyTo.value = data
+}
+
+const clearReply = () => {
+  replyTo.value = null
+}
+
 const handleSubmit = (data: { content: string; emoji?: string }) => {
-  emit('submit', data)
+  emit('submit', {
+    ...data,
+    replyToCommentId: replyTo.value?.commentId,
+    replyToUsername: replyTo.value?.username
+  })
+  clearReply()
 }
 </script>
 
@@ -82,6 +103,7 @@ const handleSubmit = (data: { content: string; emoji?: string }) => {
 .comment-drawer-content {
   height: 100%;
   overflow-y: auto;
-  padding: 0 20px;
+  padding: 4px 20px 10px;
+  background: #ffffff;
 }
 </style>

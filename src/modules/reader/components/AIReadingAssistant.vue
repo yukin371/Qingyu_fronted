@@ -99,6 +99,7 @@
 
 <script setup lang="ts" name="AIReadingAssistant">
 import { ref, watch, nextTick, computed } from 'vue'
+import { MagicStick, Close, Promotion, VideoPause } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { useAIStream } from '../../../composables/useAIStream'
@@ -509,4 +510,3 @@ watch(messages, () => {
   }
 }
 </style>
-

@@ -33,13 +33,13 @@
                 class="paragraph-wrapper"
                 :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
                 :data-testid="`paragraph-${index}`"
-                @click="handleParagraphClick(index)"
+                @click.stop="handleParagraphClick(index)"
               >
                 <p class="paragraph-text">{{ paragraph }}</p>
                 <CommentBadge
                   v-if="getParagraphCommentCount(index) > 0"
                   :comment-count="getParagraphCommentCount(index)"
-                  @click.stop="handleParagraphClick(index)"
+                  @click="handleCommentBadgeClick(index)"
                 />
               </article>
             </div>
@@ -125,7 +125,7 @@
     </transition>
 
     <!-- 目录抽屉 -->
-    <QyDrawer v-model:visible="catalogVisible" title="目录" direction="rtl" size="400px" data-testid="catalog-drawer">
+    <QyDrawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">
       <QyScrollbar>
         <div v-for="chapter in chapterList" :key="chapter.id" class="catalog-item"
           :class="{ 'is-active': chapter.id === chapterId, 'is-read': chapter.isRead }"
@@ -139,16 +139,6 @@
         </div>
       </QyScrollbar>
     </QyDrawer>
-
-    <!-- AI助手 -->
-    <AIReadingAssistant
-      :visible="aiAssistantVisible"
-      @update:visible="aiAssistantVisible = $event"
-      :chapter-content="currentChapter?.content"
-      :book-title="bookTitle"
-      :chapter-title="currentChapter?.title"
-      @close="aiAssistantVisible = false"
-    />
 
     <!-- 设置浮层卡片 -->
     <div v-if="settingsVisible" class="settings-overlay" data-testid="settings-overlay" @click.self="settingsVisible = false">
@@ -171,35 +161,39 @@
 
         <!-- 行距 -->
         <div class="setting-item" data-testid="line-height-setting">
-          <label>行距</label>
-          <div class="option-chip-group">
-            <button
-              v-for="option in lineHeightOptions"
-              :key="`line-height-${option.value}`"
-              type="button"
-              class="option-chip"
-              :class="{ 'is-active': settings.lineHeight === option.value }"
-              @click="setLineHeight(option.value)"
-            >
-              {{ option.label }}
-            </button>
+          <div class="setting-title-row">
+            <label>行距</label>
+            <span class="setting-value">{{ settings.lineHeight.toFixed(1) }}</span>
+          </div>
+          <div class="setting-slider-wrap">
+            <el-slider
+              :model-value="settings.lineHeight"
+              :min="lineHeightMin"
+              :max="lineHeightMax"
+              :step="lineHeightStep"
+              :show-tooltip="false"
+              :marks="lineHeightMarks"
+              @update:model-value="setLineHeight"
+            />
           </div>
         </div>
 
         <!-- 页面宽度 -->
         <div class="setting-item" data-testid="page-width-setting">
-          <label>页面宽度</label>
-          <div class="option-chip-group">
-            <button
-              v-for="option in pageWidthOptions"
-              :key="`page-width-${option.value}`"
-              type="button"
-              class="option-chip"
-              :class="{ 'is-active': settings.pageWidth === option.value }"
-              @click="setPageWidth(option.value)"
-            >
-              {{ option.label }}
-            </button>
+          <div class="setting-title-row">
+            <label>页面宽度</label>
+            <span class="setting-value">{{ settings.pageWidth }}px</span>
+          </div>
+          <div class="setting-slider-wrap">
+            <el-slider
+              :model-value="settings.pageWidth"
+              :min="pageWidthMin"
+              :max="pageWidthMax"
+              :step="pageWidthStep"
+              :show-tooltip="false"
+              :marks="pageWidthMarks"
+              @update:model-value="setPageWidth"
+            />
           </div>
         </div>
 
@@ -273,8 +267,7 @@ import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
 import { message } from '@/design-system/services'
-import { QyButton, QyCard, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio } from '@/design-system/components'
-import AIReadingAssistant from '../components/AIReadingAssistant.vue'
+import { QyButton, QyCard, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio, QyAlert, QyIcon } from '@/design-system/components'
 import CommentBadge from '../components/comments/CommentBadge.vue'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
 import {
@@ -293,7 +286,6 @@ const isDemoMode = computed(() => route.query.demo === 'yunlan')
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
-const aiAssistantVisible = ref(false)
 const isFullscreen = ref(false)
 const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
@@ -328,18 +320,24 @@ const themes = [
   { label: '夜间', value: 'night', bg: '#1a1a1a', color: '#c9c9c9' }, // --reader-night-*
   { label: '暗黑', value: 'dark', bg: '#121212', color: '#e0e0e0' }   // --reader-dark-*
 ]
-const lineHeightOptions = [
-  { label: '紧凑', value: 1.6 },
-  { label: '标准', value: 1.8 },
-  { label: '舒适', value: 2.0 },
-  { label: '宽松', value: 2.2 }
-]
-const pageWidthOptions = [
-  { label: '窄', value: 680 },
-  { label: '标准', value: 780 },
-  { label: '宽', value: 880 },
-  { label: '超宽', value: 980 }
-]
+const lineHeightMin = 1.6
+const lineHeightMax = 2.2
+const lineHeightStep = 0.1
+const lineHeightMarks: Record<number, string> = {
+  1.6: '紧凑',
+  1.8: '标准',
+  2.0: '舒适',
+  2.2: '宽松'
+}
+const pageWidthMin = 680
+const pageWidthMax = 980
+const pageWidthStep = 20
+const pageWidthMarks: Record<number, string> = {
+  680: '窄',
+  780: '标准',
+  880: '宽',
+  980: '超宽'
+}
 
 // 计算属性
 const currentChapter = computed(() => (isDemoMode.value ? demoCurrentChapter.value : readerStore.currentChapter))
@@ -561,7 +559,18 @@ const getParagraphCommentCount = (paragraphIndex: number): number => {
 }
 
 // 处理段落点击
-const handleParagraphClick = async (index: number) => {
+const handleParagraphClick = (index: number) => {
+  if (highlightedParagraphIndex.value === index) {
+    highlightedParagraphIndex.value = null
+    commentDrawerVisible.value = false
+    commentStore.clearSelection()
+    return
+  }
+
+  highlightedParagraphIndex.value = index
+}
+
+const handleCommentBadgeClick = async (index: number) => {
   highlightedParagraphIndex.value = index
   await openCommentDrawer(index)
 }
@@ -577,7 +586,7 @@ const openCommentDrawer = async (paragraphIndex: number) => {
 }
 
 // 处理评论提交
-const handleCommentSubmit = async (data: { content: string; emoji?: string }) => {
+const handleCommentSubmit = async (data: { content: string; emoji?: string; replyToCommentId?: string; replyToUsername?: string }) => {
   if (highlightedParagraphIndex.value === null || !currentChapter.value) return
 
   await commentStore.addComment({
@@ -585,7 +594,9 @@ const handleCommentSubmit = async (data: { content: string; emoji?: string }) =>
     chapterId: currentChapter.value.id,
     paragraphIndex: highlightedParagraphIndex.value,
     content: data.content,
-    emoji: data.emoji
+    emoji: data.emoji,
+    replyToCommentId: data.replyToCommentId,
+    replyToUsername: data.replyToUsername
   })
 }
 
@@ -704,6 +715,8 @@ const saveCurrentProgress = async () => {
 
 // 键盘快捷键
 const handleKeyPress = (e: KeyboardEvent) => {
+  if (settingsVisible.value) return
+
   switch (e.key) {
     case 'ArrowLeft':
       previousChapter()
@@ -799,6 +812,12 @@ watch(() => route.params.chapterId, (newId) => {
     chapterId.value = newId as string
     loadChapter()
   }
+})
+
+watch(commentDrawerVisible, (visible) => {
+  if (visible) return
+  highlightedParagraphIndex.value = null
+  commentStore.clearSelection()
 })
 </script>
 
@@ -907,6 +926,15 @@ watch(() => route.params.chapterId, (newId) => {
         text-indent: 2em;
         text-align: justify;
         line-height: inherit;
+        padding-right: 56px;
+      }
+
+      :deep(.comment-badge) {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        margin-left: 0;
+        z-index: 1;
       }
     }
   }
@@ -1072,9 +1100,22 @@ watch(() => route.params.chapterId, (newId) => {
 
     label {
       display: block;
-      margin-bottom: 12px;
       font-size: 14px;
       font-weight: 500;
+    }
+
+    .setting-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .setting-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2563eb;
     }
 
     .setting-control {
@@ -1088,6 +1129,10 @@ watch(() => route.params.chapterId, (newId) => {
         text-align: center;
         font-weight: bold;
       }
+    }
+
+    .setting-slider-wrap {
+      padding: 0 4px;
     }
   }
 
