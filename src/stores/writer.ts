@@ -269,6 +269,39 @@ export const useWriterStore = defineStore('writer', () => {
     }
   }
 
+  // 一键发布项目
+  const publishProjectById = async (projectId: string) => {
+    const index = projects.value.findIndex((p) => (p.projectId || p.id) === projectId)
+    if (index === -1) {
+      throw new Error('项目不存在')
+    }
+
+    const current = projects.value[index]
+    const updatedProject = {
+      ...current,
+      status: 'published',
+      updatedAt: new Date().toISOString()
+    }
+    projects.value[index] = updatedProject
+
+    if ((currentProject.value?.projectId || currentProject.value?.id) === projectId) {
+      currentProject.value = updatedProject
+    }
+
+    // 尝试持久化到本地存储，mock项目不存在时忽略持久化错误
+    try {
+      await updateLocalProject(projectId, {
+        status: 'published',
+        updatedAt: updatedProject.updatedAt
+      } as Partial<LocalProject>)
+    } catch (error) {
+      console.warn('[writerStore] 发布状态仅内存更新，未持久化:', error)
+    }
+
+    message.success('项目发布成功')
+    return updatedProject
+  }
+
   // 加载统计数据
   const loadStats = async () => {
     try {
@@ -334,6 +367,7 @@ export const useWriterStore = defineStore('writer', () => {
     fetchProjectById,
     updateProjectData,
     deleteProjectById,
+    publishProjectById,
     loadStats,
     clearState,
     toggleStorageMode,

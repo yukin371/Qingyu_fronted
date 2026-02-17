@@ -5,35 +5,14 @@
         <div class="page-header" style="margin-bottom: 0;">
           <div style="display: flex; align-items: center; gap: 16px;">
             <h1>我的项目</h1>
-            <!-- 存储模式指示器 -->
-            <span
-              class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-              :class="writerStore.storageMode === 'offline' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'"
-            >
-              {{ writerStore.storageMode === 'offline' ? '📦 离线模式' : '🌐 在线模式' }}
-            </span>
           </div>
           <div style="display: flex; gap: 8px;">
-            <!-- 切换存储模式按钮 -->
-            <el-tooltip
-              :content="writerStore.storageMode === 'offline' ? '切换到在线模式（需要后端支持）' : '切换到离线模式（使用本地存储）'"
-              placement="bottom"
-            >
-              <button
-                type="button"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-                @click="handleToggleMode"
-              >
-                <QyIcon :name="writerStore.storageMode === 'offline' ? 'Connection' : 'FolderOpened'"  />
-                {{ writerStore.storageMode === 'offline' ? '切换在线' : '切换离线' }}
-              </button>
-            </el-tooltip>
             <button
               type="button"
               class="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               @click="showCreateDialog = true"
             >
-              <QyIcon name="Plus"  />
+              <QyIcon name="Plus" :size="14" />
               新建项目
             </button>
           </div>
@@ -45,7 +24,7 @@
       <div v-if="!loading && projectList.length === 0" class="empty-container">
         <el-empty description="还没有项目，创建一个开始吧！">
           <el-button type="primary" @click="showCreateDialog = true">
-            <QyIcon name="Plus"  />
+            <QyIcon name="Plus" :size="14" />
             创建第一个项目
           </el-button>
         </el-empty>
@@ -63,12 +42,15 @@
         >
           <div class="card-header">
             <span class="project-name">{{ project.title }}</span>
-            <el-dropdown class="project-actions" @command="handleCommand($event, project)" @click.stop>
-              <button type="button" class="more-btn" aria-label="更多操作">
+            <el-dropdown class="project-actions" @command="handleCommand($event, project)" @click.stop @mousedown.stop>
+              <button type="button" class="more-btn" aria-label="更多操作" @click.stop @mousedown.stop>
                 <QyIcon name="MoreFilled" :size="16" />
               </button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="publish" :disabled="project.status === 'published'">
+                    一键发布
+                  </el-dropdown-item>
                   <el-dropdown-item command="edit">编辑</el-dropdown-item>
                   <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
                 </el-dropdown-menu>
@@ -100,25 +82,36 @@
 
           <div class="project-entry-hint">
             <span>点击进入项目</span>
-            <QyIcon name="ArrowRight" />
+            <QyIcon name="ArrowRight" :size="14" />
           </div>
         </WriterSurfaceCard>
       </div>
     </div>
 
-    <!-- 创建项目对话框 -->
-    <el-dialog v-model="showCreateDialog" title="创建新项目" width="520px">
-      <el-form :model="newProject" label-width="90px">
+    <CenteredModalCard
+      v-model="showCreateDialog"
+      title="创建新项目"
+      width="min(760px, 92vw)"
+      :show-close="true"
+      :close-on-click-modal="true"
+    >
+      <el-form :model="newProject" label-position="top" class="create-form">
         <el-form-item label="项目名称" required>
           <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
         </el-form-item>
 
         <el-form-item label="项目类型">
-          <el-select v-model="newProject.type" placeholder="选择项目类型">
-            <el-option label="小说" value="novel" />
-            <el-option label="散文随笔" value="essay" />
-            <el-option label="其他" value="others" />
-          </el-select>
+          <div class="native-select-wrap">
+            <select v-model="newProject.type" class="native-select" aria-label="项目类型">
+              <option value="novel">小说</option>
+              <option value="essay">散文随笔</option>
+              <option value="script">剧本</option>
+              <option value="notes">笔记</option>
+              <option value="poetry">诗歌</option>
+              <option value="others">其他</option>
+            </select>
+            <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
+          </div>
         </el-form-item>
 
         <el-form-item label="项目描述">
@@ -136,7 +129,21 @@
         <el-button @click="showCreateDialog = false">取消</el-button>
         <el-button type="primary" @click="handleCreate">创建</el-button>
       </template>
-    </el-dialog>
+    </CenteredModalCard>
+
+    <CenteredModalCard
+      v-model="showPublishConfirmDialog"
+      title="发布确认"
+      width="420px"
+    >
+      <div class="publish-confirm-text">
+        确认一键发布项目“{{ pendingPublishProject?.title || '' }}”？
+      </div>
+      <template #footer>
+        <el-button @click="cancelPublish">取消</el-button>
+        <el-button type="primary" @click="confirmPublish">确认发布</el-button>
+      </template>
+    </CenteredModalCard>
     </div>
   </WriterPageShell>
 </template>
@@ -150,6 +157,7 @@ import { useWriterStore } from '@/stores/writer'
 import { ElMessage } from 'element-plus'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import WriterSurfaceCard from '@/modules/writer/components/WriterSurfaceCard.vue'
+import CenteredModalCard from '@/modules/writer/components/CenteredModalCard.vue'
 
 const router = useRouter()
 const writerStore = useWriterStore()
@@ -159,8 +167,10 @@ const showCreateDialog = ref(false)
 const newProject = ref({
   title: '',
   description: '',
-  type: 'novel' as 'novel' | 'essay' | 'others'
+  type: 'novel' as 'novel' | 'essay' | 'script' | 'notes' | 'poetry' | 'others'
 })
+const showPublishConfirmDialog = ref(false)
+const pendingPublishProject = ref<any | null>(null)
 
 // Computed
 const projectList = computed(() => writerStore.projectList)
@@ -216,7 +226,9 @@ const handleCreate = async () => {
 }
 
 const handleCommand = async (command: string, project: any) => {
-  if (command === 'edit') {
+  if (command === 'publish') {
+    await handlePublish(project)
+  } else if (command === 'edit') {
     // TODO: 实现编辑功能
     message.info('编辑功能开发中')
   } else if (command === 'delete') {
@@ -240,6 +252,37 @@ const handleCommand = async (command: string, project: any) => {
   }
 }
 
+const handlePublish = async (project: any) => {
+  const projectId = project.projectId || project.id
+  if (!projectId) {
+    message.error('项目ID无效，无法发布')
+    return
+  }
+  pendingPublishProject.value = project
+  showPublishConfirmDialog.value = true
+}
+
+const cancelPublish = () => {
+  showPublishConfirmDialog.value = false
+  pendingPublishProject.value = null
+}
+
+const confirmPublish = async () => {
+  const project = pendingPublishProject.value
+  const projectId = project?.projectId || project?.id
+  if (!projectId) {
+    message.error('项目ID无效，无法发布')
+    return
+  }
+
+  try {
+    await writerStore.publishProjectById(projectId)
+    cancelPublish()
+  } catch (error: any) {
+    message.error('发布失败：' + (error.message || '未知错误'))
+  }
+}
+
 // 获取状态文本
 const getStatusText = (status: string) => {
   const textMap: Record<string, string> = {
@@ -252,17 +295,6 @@ const getStatusText = (status: string) => {
 }
 
 const getStatusClass = (status: string) => `status-${status || 'draft'}`
-
-// 切换存储模式
-async function handleToggleMode() {
-  writerStore.toggleStorageMode()
-  // 重新加载项目列表
-  try {
-    await writerStore.fetchProjects()
-  } catch (error: any) {
-    message.error('加载项目列表失败：' + (error.message || '未知错误'))
-  }
-}
 
 // Lifecycle
 onMounted(async () => {
@@ -345,22 +377,29 @@ onMounted(async () => {
 }
 
 .more-btn {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  color: #909399;
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  border-radius: 10px;
+  color: #1d4ed8;
   cursor: pointer;
   padding: 0;
+  transition: all 0.16s ease;
 }
 
 .more-btn:hover {
-  color: #409eff;
-  background: #eff6ff;
+  color: #1e40af;
+  background: #dbeafe;
+  border-color: #60a5fa;
+}
+
+.more-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
 }
 
 .project-description {
@@ -413,5 +452,131 @@ onMounted(async () => {
   color: #2563eb;
   font-size: 13px;
   font-weight: 600;
+}
+
+.create-form :deep(.el-form-item__content .el-input),
+.create-form :deep(.el-form-item__content .el-textarea) {
+  width: 100% !important;
+  display: block;
+}
+
+.create-form {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.create-form :deep(.el-form-item) {
+  display: block !important;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.create-form :deep(.el-form-item__label) {
+  padding-bottom: 6px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.create-form :deep(.el-form-item__content) {
+  display: block !important;
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+}
+
+.create-form :deep(.el-form-item__content .el-input__wrapper) {
+  width: 100% !important;
+  min-height: 44px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+  padding: 0 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden;
+}
+
+.create-form :deep(.el-form-item__content .el-textarea__inner) {
+  width: 100% !important;
+  min-height: 132px;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  padding: 10px 12px !important;
+}
+
+.create-form :deep(.el-input__inner) {
+  width: 100% !important;
+  height: 100% !important;
+  line-height: 44px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.create-form :deep(.el-input__wrapper.is-focus),
+.create-form :deep(.el-textarea__inner:focus) {
+  border-color: #60a5fa !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14) !important;
+}
+
+.native-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.native-select {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 0 40px 0 12px;
+  font-size: 16px;
+  line-height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.native-select:focus {
+  border-color: #60a5fa;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+}
+
+.native-select-caret {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+:global(.centered-modal-card .create-form .el-form-item) {
+  display: block !important;
+  width: 100% !important;
+}
+
+:global(.centered-modal-card .create-form .el-form-item__content),
+:global(.centered-modal-card .create-form .el-input),
+:global(.centered-modal-card .create-form .el-textarea),
+:global(.centered-modal-card .create-form .el-input__wrapper),
+:global(.centered-modal-card .create-form .el-textarea__inner) {
+  width: 100% !important;
+}
+
+.publish-confirm-text {
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.7;
+  text-align: center;
 }
 </style>

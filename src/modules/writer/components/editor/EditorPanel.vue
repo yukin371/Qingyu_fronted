@@ -88,62 +88,32 @@
             <div class="board-card__body">
               <p>{{ item.summary }}</p>
             </div>
-            <footer class="board-card__footer">+ New Scene</footer>
           </article>
         </div>
-        <div class="story-board__add">+ 新章节</div>
       </section>
 
       <div v-else class="editor-workspace" :class="{ 'editor-workspace--focus': isFocusMode }">
         <section class="editor-writing-card" :class="{ 'dual-view': showPreview }">
-          <header class="section-title">场景正文</header>
+          <section class="editor-pane editor-pane--editor">
+            <header class="section-title">场景正文</header>
+            <div
+              class="editor-content"
+              role="textbox"
+              :aria-label="t('editor.contentArea', '编辑器内容区域')"
+              tabindex="0"
+              :contenteditable="!readonly"
+              @input="handleContentChange"
+              @keydown="handleKeyDown"
+              @contextmenu="handleContextMenu"
+              ref="editorContentRef"
+            >{{ editorText }}</div>
+          </section>
 
-          <div
-            class="editor-content"
-            role="textbox"
-            :aria-label="t('editor.contentArea', '编辑器内容区域')"
-            tabindex="0"
-            :contenteditable="!readonly"
-            @input="handleContentChange"
-            @keydown="handleKeyDown"
-            @contextmenu="handleContextMenu"
-            ref="editorContentRef"
-          >{{ editorText }}</div>
-
-          <div v-if="showPreview" class="preview-pane markdown-body">
+          <section v-if="showPreview" class="editor-pane editor-pane--preview preview-pane markdown-body">
             <header class="section-title">预览</header>
-            <div v-html="renderedContent"></div>
-          </div>
+            <div class="preview-content" v-html="renderedContent"></div>
+          </section>
         </section>
-
-        <aside v-if="!isFocusMode" class="editor-inspector">
-          <article class="inspector-card">
-            <h3>写作概览</h3>
-            <div class="stat-grid">
-              <div class="stat-item">
-                <span class="label">总字数</span>
-                <span class="value">{{ wordCount }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="label">阅读时间</span>
-                <span class="value">{{ readTime }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="label">光标</span>
-                <span class="value">{{ cursorPosition.line }}:{{ cursorPosition.column }}</span>
-              </div>
-            </div>
-          </article>
-
-          <article class="inspector-card">
-            <h3>快捷操作</h3>
-            <div class="action-list">
-              <button class="inspector-action" @click="handleSave">立即保存</button>
-              <button class="inspector-action" @click="emit('togglePreview')">切换预览</button>
-              <button class="inspector-action" @click="handleAIAssistant">呼出 AI 助手</button>
-            </div>
-          </article>
-        </aside>
       </div>
     </div>
 
@@ -167,10 +137,15 @@
       </div>
 
       <div class="statusbar-right">
+        <span class="quick-overview">
+          总字数 {{ wordCount }} · 阅读 {{ readTime }}
+        </span>
         <span class="cursor-position">
           {{ t('editor.line', '行') }} {{ cursorPosition.line }} : {{ cursorPosition.column }}
         </span>
-
+        <button class="statusbar-action" @click="handleSave">保存</button>
+        <button class="statusbar-action" @click="emit('togglePreview')">预览</button>
+        <button class="statusbar-action" @click="handleAIAssistant">AI</button>
         <span class="encoding">UTF-8</span>
       </div>
     </div>
@@ -451,18 +426,20 @@ watch(() => props.content, () => {
 watch(() => props.content, (newContent) => {
   if (editorContentRef.value && editorContentRef.value.textContent !== newContent) {
     const selection = window.getSelection()
-    const range = selection?.getRangeAt(0)
-    const offset = range ? startOffsetInNode(editorContentRef.value, range.startContainer, range.startOffset) : 0
+    const hasSelection = !!selection && selection.rangeCount > 0
+    const range = hasSelection ? selection!.getRangeAt(0) : null
+    const selectionInEditor = !!range && editorContentRef.value.contains(range.startContainer)
+    const offset = selectionInEditor ? startOffsetInNode(editorContentRef.value, range!.startContainer, range!.startOffset) : 0
 
     editorContentRef.value.textContent = newContent || ''
 
-    if (range) {
+    if (selectionInEditor && selection) {
       const newRange = document.createRange()
-      const newOffset = restoreOffsetInNode(editorContentRef.value, offset)
-      newRange.setStart(editorContentRef.value, newOffset)
+      const { node, offset: newOffset } = restoreCaretPosition(editorContentRef.value, offset)
+      newRange.setStart(node, newOffset)
       newRange.collapse(true)
-      selection?.removeAllRanges()
-      selection?.addRange(newRange)
+      selection.removeAllRanges()
+      selection.addRange(newRange)
     }
   }
 })
@@ -477,33 +454,44 @@ watch(() => props.timelineId, () => {
 })
 
 function startOffsetInNode(container: Node, node: Node, offset: number): number {
-  if (node === container) return offset
-
-  let totalOffset = 0
-  let current = container.firstChild
-
-  while (current && current !== node) {
-    totalOffset += current.textContent?.length || 0
-    current = current.nextSibling
+  const range = document.createRange()
+  range.selectNodeContents(container)
+  try {
+    range.setEnd(node, offset)
+    return range.toString().length
+  } catch {
+    return container.textContent?.length || 0
   }
-
-  return totalOffset + offset
 }
 
-function restoreOffsetInNode(container: Node, targetOffset: number): number {
-  let currentOffset = 0
-  let current = container.firstChild
-
+function restoreCaretPosition(container: Node, targetOffset: number): { node: Node; offset: number } {
+  const textNodes: Text[] = []
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+  let current = walker.nextNode()
   while (current) {
-    const nodeLength = current.textContent?.length || 0
-    if (currentOffset + nodeLength >= targetOffset) {
-      return Math.min(targetOffset - currentOffset, nodeLength)
-    }
-    currentOffset += nodeLength
-    current = current.nextSibling
+    textNodes.push(current as Text)
+    current = walker.nextNode()
   }
 
-  return currentOffset
+  if (textNodes.length === 0) {
+    const maxOffset = container.childNodes.length
+    return { node: container, offset: Math.max(0, Math.min(targetOffset, maxOffset)) }
+  }
+
+  let currentOffset = 0
+  for (const textNode of textNodes) {
+    const nodeLength = textNode.textContent?.length || 0
+    if (currentOffset + nodeLength >= targetOffset) {
+      return {
+        node: textNode,
+        offset: Math.max(0, Math.min(targetOffset - currentOffset, nodeLength)),
+      }
+    }
+    currentOffset += nodeLength
+  }
+
+  const lastNode = textNodes[textNodes.length - 1]
+  return { node: lastNode, offset: lastNode.textContent?.length || 0 }
 }
 </script>
 
@@ -594,12 +582,12 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 
 .chapter-header-card {
   flex-shrink: 0;
-  border: 1px solid #dbe3ef;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 2px 6px;
+  margin-bottom: 4px;
 
   .chapter-title-row {
     display: flex;
@@ -623,13 +611,13 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   .chapter-meta-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 
     .meta-chip {
       border: 1px solid #dbe3ef;
       border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
       color: #475569;
       background: #f8fafc;
     }
@@ -638,7 +626,7 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 
 .editor-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   flex: 1;
   min-height: 0;
@@ -664,19 +652,6 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
-}
-
-.story-board__add {
-  height: 88px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  background: #f8fafc;
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .board-card {
@@ -726,14 +701,6 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   color: #334155;
 }
 
-.board-card__footer {
-  border-top: 1px solid #e2e8f0;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #64748b;
-  background: #ffffff;
-}
-
 .editor-writing-card {
   min-height: 0;
   height: 100%;
@@ -746,13 +713,13 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   overflow: hidden;
 
   &.dual-view {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .section-title {
     margin: 0;
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
     font-weight: 700;
     color: #334155;
     border-bottom: 1px solid #e2e8f0;
@@ -760,7 +727,15 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   }
 }
 
+.editor-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .editor-content {
+  flex: 1;
   min-height: 0;
   height: 100%;
   font-family: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
@@ -770,7 +745,7 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
-  padding: 24px 32px;
+  padding: 14px 16px;
   caret-color: #2563eb;
   overflow: auto;
 
@@ -787,87 +762,17 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 
 .preview-pane {
   min-height: 0;
+  min-width: 0;
   border-left: 1px solid #e2e8f0;
-  overflow: auto;
+  overflow: hidden;
   background: #fcfdff;
-
-  > div {
-    padding: 18px 22px 26px;
-  }
 }
 
-.editor-inspector {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 240px;
+.preview-content {
+  flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-.inspector-card {
-  border: 1px solid #dbe3ef;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
-  padding: 12px;
-
-  h3 {
-    margin: 0 0 10px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #1e293b;
-  }
-}
-
-.stat-grid {
-  display: grid;
-  gap: 8px;
-
-  .stat-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 8px 10px;
-    background: #f8fafc;
-
-    .label {
-      color: #64748b;
-      font-size: 12px;
-    }
-
-    .value {
-      color: #0f172a;
-      font-size: 12px;
-      font-weight: 600;
-    }
-  }
-}
-
-.action-list {
-  display: grid;
-  gap: 8px;
-
-  .inspector-action {
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 8px 10px;
-    text-align: center;
-    font-size: 12px;
-    color: #334155;
-    background: #ffffff;
-    cursor: pointer;
-    transition: all 0.16s ease;
-
-    &:hover {
-      border-color: #93c5fd;
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-  }
+  overflow: auto;
+  padding: 18px 22px 26px;
 }
 
 .timeline-panel {
@@ -891,13 +796,29 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
   .statusbar-right {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
   }
 
   .save-status {
     &--saved { color: #16a34a; }
     &--saving { color: #2563eb; }
     &--unsaved { color: #dc2626; }
+  }
+
+  .quick-overview {
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  .statusbar-action {
+    height: 22px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    padding: 0 8px;
+    cursor: pointer;
   }
 }
 
@@ -910,9 +831,8 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
     grid-template-columns: 1fr;
   }
 
-  .editor-inspector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .editor-statusbar .quick-overview {
+    display: none;
   }
 }
 
@@ -943,10 +863,6 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
     padding: 18px 20px;
   }
 
-  .editor-inspector {
-    grid-template-columns: 1fr;
-  }
-
   .editor-statusbar .read-time,
   .editor-statusbar .encoding {
     display: none;
@@ -955,21 +871,21 @@ function restoreOffsetInNode(container: Node, targetOffset: number): number {
 
 .editor-main::-webkit-scrollbar,
 .editor-content::-webkit-scrollbar,
-.preview-pane::-webkit-scrollbar {
+.preview-content::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 .editor-main::-webkit-scrollbar-thumb,
 .editor-content::-webkit-scrollbar-thumb,
-.preview-pane::-webkit-scrollbar-thumb {
+.preview-content::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: #cbd5e1;
 }
 
 .editor-main::-webkit-scrollbar-track,
 .editor-content::-webkit-scrollbar-track,
-.preview-pane::-webkit-scrollbar-track {
+.preview-content::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
 </style>

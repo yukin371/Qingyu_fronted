@@ -1,101 +1,104 @@
 <template>
-  <div class="sidebar-container chapter-list" data-testid="chapter-list" :class="{ 'collapsed': isCollapsed }">
-    <!-- 1. 顶部区域：项目选择与统计 -->
-    <div class="sidebar-header" v-if="!isCollapsed">
-      <div class="project-selector">
-        <el-select v-model="internalProjectId" placeholder="选择书籍" size="default" filterable class="full-width">
-          <template #prefix><QyIcon name="Reading"  /></template>
-          <el-option v-for="p in projects" :key="p.id" :label="p.title" :value="p.id">
-            <span class="option-label">{{ p.title }}</span>
-            <span class="option-meta">{{ formatCount(p.wordCount) }}</span>
-          </el-option>
-        </el-select>
-      </div>
-
-      <!-- 项目极简统计 -->
-      <div class="project-stats" v-if="currentProject">
-        <div class="stat-item" title="总字数">
-          <QyIcon name="EditPen"  />
-          <span>{{ formatCount(currentProject.wordCount) }}</span>
+  <div class="sidebar-container chapter-list" data-testid="chapter-list">
+    <!-- 1. 顶部区域：单行标题 + 最近项目快速切换 -->
+    <div class="sidebar-header">
+      <div class="project-bar">
+        <div class="project-title" :title="currentProjectTitle">
+          {{ currentProjectTitle || '未命名项目' }}
         </div>
-        <el-divider direction="vertical" />
-        <div class="stat-item" title="章节数">
-          <QyIcon name="DocumentCopy"  />
-          <span>{{ currentProject.chapterCount }} 章</span>
-        </div>
-        <el-divider direction="vertical" />
-        <div class="stat-item highlight" title="最近更新">
-          <span>{{ fromNow(currentProject.updatedAt) }}</span>
-        </div>
+        <el-dropdown trigger="click" @command="handleProjectSwitch">
+          <button type="button" class="recent-switch-btn" :disabled="recentProjects.length <= 1">
+            最近项目
+            <QyIcon name="ArrowDown" :size="12" class="recent-switch-caret" />
+          </button>
+          <template #dropdown>
+            <el-dropdown-menu class="project-switch-menu">
+              <el-dropdown-item
+                v-for="p in recentProjects"
+                :key="p.id"
+                :command="p.id"
+                :disabled="p.id === internalProjectId"
+              >
+                {{ p.title }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
 
-    <!-- 2. 工具栏：搜索与新建 -->
-    <div class="sidebar-toolbar" v-if="!isCollapsed">
+    <!-- 2. 工具栏：搜索 -->
+    <div class="sidebar-toolbar">
       <el-input v-model="searchKeyword" placeholder="搜索章节..." size="small" clearable class="search-input">
-        <template #prefix><QyIcon name="Search"  /></template>
+          <template #prefix><QyIcon name="Search" :size="14" /></template>
       </el-input>
     </div>
 
-    <div class="quick-create-row" v-if="!isCollapsed">
-      <button
-        class="quick-create-btn"
-        data-testid="add-document-button"
-        @click="$emit('add-chapter')"
-      >
-        + 章节
-      </button>
-      <button
-        class="quick-create-btn quick-create-btn--secondary"
-        @click="$emit('add-volume')"
-      >
-        + 目录
-      </button>
+    <!-- 3. VSCode风格目录树 -->
+    <div class="explorer-header" @click="isTreeExpanded = !isTreeExpanded">
+      <div class="explorer-title">
+        <QyIcon
+          name="ArrowRight"
+          :size="14"
+          class="tree-chevron"
+          :class="{ expanded: isTreeExpanded }"
+        />
+        <span>目录</span>
+        <span class="section-count">{{ displayChapters.length }}</span>
+      </div>
+      <div class="explorer-actions" @click.stop>
+        <button class="explorer-action-btn" title="新增目录" @click="$emit('add-volume')">+目录</button>
+        <button
+          class="explorer-action-btn explorer-action-btn--primary"
+          title="新增章节"
+          data-testid="add-document-button"
+          @click="$emit('add-chapter')"
+        >
+          +章节
+        </button>
+      </div>
     </div>
 
-    <!-- 3. 章节列表区域 -->
-    <div class="sidebar-section-header" v-if="!isCollapsed">
-      <span>章节列表</span>
-      <span class="section-count">{{ displayChapters.length }}</span>
-    </div>
-
-    <div class="sidebar-list" v-if="!isCollapsed">
+    <div v-show="isTreeExpanded" class="sidebar-list">
       <div v-for="chapter in displayChapters" :key="chapter.id" class="chapter-item" :class="{
         'is-active': chapter.id === modelChapterId,
-        'is-draft': chapter.status === 'draft'
+        'is-draft': chapter.status === 'draft',
+        'is-directory': chapter.nodeType === 'directory'
       }" @click="handleSelectChapter(chapter)">
-        <!-- 状态指示点 -->
-        <div class="status-indicator" :class="chapter.status"></div>
+        <QyIcon :name="chapter.nodeType === 'directory' ? 'FolderOpened' : 'DocumentCopy'" :size="14" class="item-file-icon" />
 
         <div class="item-content">
           <div class="item-title">
-            <span class="chapter-index" v-if="chapter.chapterNum">
+            <span class="chapter-index" v-if="chapter.nodeType !== 'directory' && chapter.chapterNum">
               {{ chapter.chapterNum }}.
             </span>
             <!-- 搜索高亮处理 -->
-            <span v-html="highlightText(chapter.title, searchKeyword)"></span>
+            <span v-html="highlightText(getDisplayTitle(chapter), searchKeyword)"></span>
           </div>
 
-          <div class="item-meta">
+          <div class="item-meta" v-if="chapter.nodeType !== 'directory'">
             <span>{{ formatCount(chapter.wordCount) }}字</span>
             <span class="dot">·</span>
             <span>{{ fromNow(chapter.updatedAt) }}</span>
           </div>
+          <div class="item-meta item-meta--directory" v-else>
+            <span>目录分组</span>
+          </div>
         </div>
 
-        <!-- 悬浮操作菜单 -->
+        <!-- 操作菜单 -->
         <div class="item-actions" @click.stop>
           <el-dropdown trigger="click" @command="(cmd: 'edit' | 'delete') => handleAction(cmd, chapter)">
             <div class=" action-btn">
-              <QyIcon name="MoreFilled"  />
+              <QyIcon name="MoreFilled" :size="14" />
             </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="edit">
-                  <QyIcon name="Edit"  /> 重命名/设置
+                  <QyIcon name="Edit" :size="14" /> 重命名/设置
                 </el-dropdown-item>
                 <el-dropdown-item command="delete" class="danger-item">
-                  <QyIcon name="Delete"  /> 删除章节
+                  <QyIcon name="Delete" :size="14" /> 删除章节
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -107,15 +110,11 @@
       <el-empty v-if="displayChapters.length === 0" :image-size="60" description="暂无章节" class="list-empty" />
     </div>
 
-    <!-- 4. 折叠/展开 触发条 -->
-    <div class="collapse-trigger" @click="isCollapsed = !isCollapsed">
-      <QyIcon :name="isCollapsed ? 'Expand' : 'Fold'" />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
 import { sanitizeText } from '@/utils/sanitize'
@@ -144,6 +143,8 @@ interface ChapterSummary {
   wordCount: number
   updatedAt: string
   status: 'draft' | 'published'
+  nodeType?: 'directory' | 'chapter'
+  sortOrder?: number
 }
 
 interface Props {
@@ -168,8 +169,8 @@ const emit = defineEmits<{
 }>()
 
 // 状态
-const isCollapsed = ref(false)
 const searchKeyword = ref('')
+const isTreeExpanded = ref(true)
 
 // 双向绑定代理
 const internalProjectId = computed({
@@ -182,10 +183,21 @@ const modelChapterId = computed({
   set: (val) => emit('update:chapterId', val)
 })
 
-// 当前项目
-const currentProject = computed(() =>
-  props.projects.find(p => p.id === internalProjectId.value)
+const currentProjectTitle = computed(() =>
+  props.projects.find(p => p.id === internalProjectId.value)?.title || ''
 )
+
+const recentProjects = computed(() => {
+  return [...props.projects].sort((a, b) => {
+    const ta = new Date(a.updatedAt).getTime() || 0
+    const tb = new Date(b.updatedAt).getTime() || 0
+    return tb - ta
+  })
+})
+
+const handleProjectSwitch = (projectId: string | number) => {
+  internalProjectId.value = String(projectId)
+}
 
 // 章节列表逻辑
 const displayChapters = computed(() => {
@@ -201,8 +213,8 @@ const displayChapters = computed(() => {
     )
   }
 
-  // 3. 排序 (按章节号)
-  return list.sort((a, b) => a.chapterNum - b.chapterNum)
+  // 3. 排序：优先 sortOrder，再回退 chapterNum
+  return list.sort((a, b) => (a.sortOrder || a.chapterNum) - (b.sortOrder || b.chapterNum))
 })
 
 // 操作处理
@@ -235,6 +247,12 @@ const formatCount = (n: number) => {
 
 const fromNow = (date: string) => dayjs(date).fromNow()
 
+const stripDirectoryPrefix = (title: string) =>
+  title.replace(/^目录[一二三四五六七八九十百千万0-9]+\s*/u, '').trim()
+
+const getDisplayTitle = (chapter: ChapterSummary) =>
+  chapter.nodeType === 'directory' ? stripDirectoryPrefix(chapter.title) : chapter.title
+
 const highlightText = (text: string, keyword: string) => {
   if (!keyword) return sanitizeText(text)
   // 先转义HTML特殊字符，防止XSS攻击
@@ -264,71 +282,97 @@ watch(() => props.projects, (newVal) => {
   border-right: 1px solid #e2e8f0;
   transition: width 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
   position: relative;
-
-  &.collapsed {
-    width: 0;
-    border-right: none;
-    overflow: hidden;
-
-    .collapse-trigger {
-      right: -24px;
-      opacity: 0.8;
-      background: #cbd5e1;
-
-      &:hover {
-        right: -32px;
-        width: 32px;
-      }
-    }
-  }
 }
 
 // 1. 头部
 .sidebar-header {
-  padding: 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
 
-  .full-width {
-    width: 100%;
+  .project-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .option-label {
-    float: left;
-    max-width: 120px;
+  .project-title {
+    flex: 1;
+    min-width: 0;
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .option-meta {
-    float: right;
-    color: #64748b;
-    font-size: 12px;
-  }
-
-  .project-stats {
+  .recent-switch-btn {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    margin-top: 10px;
-    padding: 8px 0;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 12px;
+    cursor: pointer;
 
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      color: #64748b;
-      cursor: help;
+    &:hover:not(:disabled) {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
 
-      &.highlight {
-        color: #2563eb;
-      }
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
   }
+
+  .recent-switch-caret {
+    opacity: 0.85;
+  }
+}
+
+// 下拉弹层采用不透明背景，避免与页面内容视觉重叠
+:global(.project-switcher-popper) {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ef !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14) !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+:global(.project-switcher-popper .el-scrollbar__view),
+:global(.project-switcher-popper .el-select-dropdown__list) {
+  background: #ffffff !important;
+}
+
+:global(.project-switcher-popper .el-select-dropdown__item) {
+  min-height: 32px;
+  height: auto;
+  line-height: 1.4;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  white-space: normal;
+  word-break: break-all;
+}
+
+:global(.project-switcher-popper .el-select-dropdown__item.is-selected) {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+:global(.project-switch-menu) {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ef !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14) !important;
 }
 
 // 2. 工具栏
@@ -344,36 +388,50 @@ watch(() => props.projects, (newVal) => {
   }
 }
 
-.quick-create-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 8px 12px 10px;
+// 3. 目录树
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-top: 1px solid #eef2f7;
   border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
 }
 
-.quick-create-btn {
-  height: 30px;
-  border: 1px solid #93c5fd;
-  border-radius: 8px;
-  background: #eff6ff;
-  color: #1d4ed8;
+.explorer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.16s ease;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
 
-  &:hover {
-    background: #dbeafe;
-    border-color: #60a5fa;
+.tree-chevron {
+  transition: transform 0.18s ease;
+
+  &.expanded {
+    transform: rotate(90deg);
   }
 }
 
-.quick-create-btn--secondary {
-  border-color: #cbd5e1;
+.explorer-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.explorer-action-btn {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   background: #f8fafc;
   color: #334155;
+  font-size: 11px;
+  cursor: pointer;
 
   &:hover {
     border-color: #94a3b8;
@@ -381,7 +439,17 @@ watch(() => props.projects, (newVal) => {
   }
 }
 
-// 3. 列表区域
+.explorer-action-btn--primary {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+
+  &:hover {
+    border-color: #60a5fa;
+    background: #dbeafe;
+  }
+}
+
 .sidebar-list {
   flex: 1;
   overflow-y: auto;
@@ -399,12 +467,12 @@ watch(() => props.projects, (newVal) => {
 
   .chapter-item {
     position: relative;
-    padding: 10px 10px 10px 16px;
+    padding: 10px 10px 10px 12px;
     margin-bottom: 6px;
     cursor: pointer;
     transition: all 0.16s ease;
     border: 1px solid #e2e8f0;
-    border-left: 3px solid #cbd5e1;
+    border-left: 2px solid #cbd5e1;
     border-radius: 10px;
     background: #ffffff;
     display: flex;
@@ -434,22 +502,11 @@ watch(() => props.projects, (newVal) => {
       }
     }
 
-    // 状态指示点
-    .status-indicator {
-      position: absolute;
-      left: 6px;
-      top: 16px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-
-      &.published {
-        background-color: #22c55e;
-      }
-
-      &.draft {
-        background-color: #94a3b8;
-      }
+    .item-file-icon {
+      margin-right: 8px;
+      margin-top: 2px;
+      color: #64748b;
+      flex-shrink: 0;
     }
 
     .item-content {
@@ -481,11 +538,14 @@ watch(() => props.projects, (newVal) => {
       .dot {
         margin: 0 4px;
       }
+
+      &.item-meta--directory {
+        color: #b45309;
+      }
     }
 
-    // 操作菜单
     .item-actions {
-      opacity: 0;
+      opacity: 0.45;
       transition: opacity 0.2s;
       margin-left: 8px;
 
@@ -500,62 +560,41 @@ watch(() => props.projects, (newVal) => {
         }
       }
     }
+
+    &:hover .item-actions,
+    &.is-active .item-actions {
+      opacity: 1;
+    }
+
+    &.is-directory {
+      border-left-color: #f59e0b;
+      background: #fffaf0;
+
+      .item-title {
+        color: #92400e;
+        font-weight: 700;
+      }
+
+      .item-file-icon {
+        color: #d97706;
+      }
+    }
   }
 }
 
-.sidebar-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
-
-  .section-count {
-    min-width: 24px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 999px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-// 4. 折叠触发器 (仿 VS Code 风格)
-.collapse-trigger {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 16px;
-  height: 40px;
-  transform: translateY(-50%);
-  background-color: #ffffff;
+.section-count {
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
   border: 1px solid #cbd5e1;
-  border-right: none;
-  border-radius: 4px 0 0 4px;
-  display: flex;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  color: #64748b;
-  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
-
-  &:hover {
-    width: 20px;
-    background-color: #eff6ff;
-    color: #2563eb;
-  }
 }
 
 // 搜索高亮样式 (通过 v-html 插入)
