@@ -1,7 +1,7 @@
 <template>
   <WriterPageShell>
     <div class="statistics-view">
-      <div class="mb-5 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6">
+      <div class="statistics-header-card mb-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6">
         <div class="page-header" style="margin-bottom: 0;">
           <h1>作品数据统计</h1>
           <el-select
@@ -9,7 +9,7 @@
             class="header-book-select"
             popper-class="writer-book-select-popper"
             placeholder="选择作品"
-            style="width: 240px"
+            style="width: 300px; max-width: 100%;"
             @change="loadStatistics"
           >
             <el-option
@@ -168,6 +168,7 @@ const loading = ref(false)
 const selectedBookId = ref('')
 const viewsTrendRange = ref('30')
 const writerStore = useWriterStore()
+const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true'
 
 // 作品列表
 const books = ref<Array<{ id: string; title: string }>>([])
@@ -221,8 +222,8 @@ async function loadBooks(): Promise<void> {
     console.warn('加载作品列表失败，使用模拟数据:', error)
     // 使用模拟数据
     books.value = [
-      { id: '1', title: '示例作品1' },
-      { id: '2', title: '示例作品2' }
+      { id: '1', title: '云岚纪事' },
+      { id: '2', title: '云岚纪事·外传' }
     ]
     selectedBookId.value = books.value[0].id
     loadStatistics()
@@ -232,8 +233,8 @@ async function loadBooks(): Promise<void> {
   // 远端无可用数据时兜底 mock，避免页面不可用
   if (books.value.length === 0) {
     books.value = [
-      { id: '1', title: '示例作品1' },
-      { id: '2', title: '示例作品2' }
+      { id: '1', title: '云岚纪事' },
+      { id: '2', title: '云岚纪事·外传' }
     ]
     selectedBookId.value = books.value[0].id
     loadStatistics()
@@ -269,26 +270,129 @@ function formatNumber(num: number): string {
   return num.toString()
 }
 
+function hashString(input: string): number {
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0
+  }
+  return hash
+}
+
+function getMockProfile() {
+  const currentBook = books.value.find((b) => b.id === selectedBookId.value)
+  const seed = hashString(`${selectedBookId.value}:${currentBook?.title || ''}`)
+  const baseViews = 118000 + (seed % 9) * 7600
+  const subscribers = 6200 + ((seed >> 3) % 8) * 520
+  const favorites = Math.floor(baseViews * (0.032 + ((seed % 5) * 0.004)))
+  const comments = Math.floor(favorites * (0.42 + ((seed % 4) * 0.05)))
+  return {
+    seed,
+    overview: {
+      totalViews: baseViews,
+      subscribers,
+      favorites,
+      comments
+    }
+  }
+}
+
+function getMockDates(days: number): string[] {
+  const dates: string[] = []
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    dates.push(date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }))
+  }
+  return dates
+}
+
+function getMockViewsTrend(days: number, seed: number): number[] {
+  const trend: number[] = []
+  const base = 2200 + (seed % 7) * 230
+  for (let i = 0; i < days; i++) {
+    const date = new Date()
+    date.setDate(date.getDate() - (days - 1 - i))
+    const day = date.getDay()
+    const weekendBoost = day === 0 || day === 6 ? 1.25 : 1
+    const growth = 1 + i / (days * 6)
+    const wave = Math.sin((i + (seed % 9)) / 3.1) * 260
+    const noise = ((seed + i * 17) % 120) - 60
+    trend.push(Math.max(900, Math.round((base + wave + noise) * weekendBoost * growth)))
+  }
+  return trend
+}
+
+function getMockSubscribersTrend(days: number, seed: number): number[] {
+  const trend: number[] = []
+  const base = 65 + (seed % 4) * 8
+  for (let i = 0; i < days; i++) {
+    const wave = Math.sin((i + (seed % 5)) / 4.2) * 9
+    const noise = ((seed + i * 23) % 12) - 6
+    const growth = i / Math.max(1, days) * 7
+    trend.push(Math.max(24, Math.round(base + wave + noise + growth)))
+  }
+  return trend
+}
+
+function getMockChapterStats(seed: number): { chapters: string[]; views: number[] } {
+  const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
+  const top = 8900 + (seed % 9) * 420
+  const views = chapters.map((_, i) => {
+    const decay = Math.pow(0.86, i)
+    const noise = ((seed + i * 19) % 420) - 210
+    return Math.max(1200, Math.round(top * decay + noise))
+  })
+  return { chapters, views }
+}
+
+function getMockReaderActivity(seed: number): Array<{ value: number; name: string }> {
+  return [
+    { value: 3200 + (seed % 600), name: '每日活跃' },
+    { value: 2600 + ((seed >> 2) % 500), name: '每周活跃' },
+    { value: 1900 + ((seed >> 4) % 420), name: '每月活跃' },
+    { value: 1100 + ((seed >> 6) % 320), name: '不活跃' }
+  ]
+}
+
+function getMockHeatmap(seed: number): number[][] {
+  const data: number[][] = []
+  for (let day = 0; day < 7; day++) {
+    const weekendBoost = day === 5 || day === 6 ? 1.15 : 1
+    for (let hour = 0; hour < 24; hour++) {
+      const morning = Math.exp(-Math.pow((hour - 9) / 2.8, 2))
+      const evening = Math.exp(-Math.pow((hour - 21) / 3.2, 2))
+      const base = 18 + morning * 92 + evening * 165
+      const noise = ((seed + day * 31 + hour * 11) % 24) - 12
+      data.push([hour, day, Math.max(3, Math.round((base + noise) * weekendBoost))])
+    }
+  }
+  return data
+}
+
 // 加载统计数据
 async function loadStatistics(): Promise<void> {
   if (!selectedBookId.value) return
 
   loading.value = true
   try {
-    // 加载统计概览
-    try {
-      const response: any = await getBookStats(selectedBookId.value)
-      if (response.data) {
-        stats.value = response.data
-      }
-    } catch (error) {
-      console.warn('加载统计概览失败，使用模拟数据:', error)
-      // 使用模拟数据
-      stats.value = {
-        totalViews: 125800,
-        subscribers: 8650,
-        favorites: 4520,
-        comments: 2180
+    if (isTestMode) {
+      stats.value = getMockProfile().overview
+    } else {
+      // 加载统计概览
+      try {
+        const response: any = await getBookStats(selectedBookId.value)
+        if (response.data) {
+          stats.value = response.data
+        }
+      } catch (error) {
+        console.warn('加载统计概览失败，使用模拟数据:', error)
+        // 使用模拟数据
+        stats.value = {
+          totalViews: 125800,
+          subscribers: 8650,
+          favorites: 4520,
+          comments: 2180
+        }
       }
     }
 
@@ -312,6 +416,14 @@ async function loadStatistics(): Promise<void> {
 async function loadDailyStats(): Promise<void> {
   try {
     const days = parseInt(viewsTrendRange.value)
+    const mock = getMockProfile()
+
+    if (isTestMode) {
+      const dates = getMockDates(days)
+      updateViewsChart(dates, getMockViewsTrend(days, mock.seed))
+      updateSubscribersChart(dates, getMockSubscribersTrend(days, mock.seed))
+      return
+    }
 
     // 加载阅读量趋势
     try {
@@ -373,6 +485,13 @@ async function loadDailyStats(): Promise<void> {
 
 // 加载章节统计
 async function loadChaptersStats(): Promise<void> {
+  const mock = getMockProfile()
+  if (isTestMode) {
+    const { chapters, views } = getMockChapterStats(mock.seed)
+    updateChaptersChart(chapters, views)
+    return
+  }
+
   try {
     const response: any = await getChapterStats(selectedBookId.value, {
       sortBy: 'views',
@@ -396,6 +515,12 @@ async function loadChaptersStats(): Promise<void> {
 
 // 加载读者活跃度
 async function loadReaderActivity(): Promise<void> {
+  const mock = getMockProfile()
+  if (isTestMode) {
+    updateReaderActivityChart(getMockReaderActivity(mock.seed))
+    return
+  }
+
   try {
     const response: any = await getReaderActivity(selectedBookId.value)
     if (response.data && Array.isArray(response.data)) {
@@ -422,6 +547,12 @@ async function loadReaderActivity(): Promise<void> {
 
 // 加载阅读热力图
 async function loadReadingHeatmap(): Promise<void> {
+  const mock = getMockProfile()
+  if (isTestMode) {
+    updateHeatmapChart(getMockHeatmap(mock.seed))
+    return
+  }
+
   try {
     const response: any = await getReadingHeatmap(selectedBookId.value, { days: 7 })
     if (response.data && Array.isArray(response.data)) {
@@ -773,6 +904,10 @@ onUnmounted(() => {
 .statistics-view {
   padding: 0;
 
+  .statistics-header-card {
+    margin-top: -10px;
+  }
+
   .page-header {
     display: flex;
     justify-content: space-between;
@@ -789,11 +924,24 @@ onUnmounted(() => {
 
   .header-book-select {
     :deep(.el-select__wrapper) {
-      min-height: 42px;
+      display: flex;
+      align-items: center;
+      height: 46px;
+      padding-left: 14px;
+      padding-right: 8px;
       border-radius: 12px;
       border: 1px solid #dbe6f6;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    :deep(.el-select__selection) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1 1 auto;
+      min-width: 0;
+      line-height: 1;
     }
 
     :deep(.el-select__wrapper:hover) {
@@ -807,12 +955,44 @@ onUnmounted(() => {
 
     :deep(.el-select__placeholder),
     :deep(.el-select__selected-item) {
+      display: block;
+      width: 100%;
+      text-align: center;
       font-size: 14px;
       color: #334155;
+      line-height: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     :deep(.el-select__caret) {
       color: #64748b;
+      font-size: 16px;
+      line-height: 1;
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      flex: 0 0 auto;
+    }
+
+    :deep(.el-select__suffix) {
+      margin-left: 8px;
+      margin-right: 0;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    :deep(.el-select__caret .el-icon),
+    :deep(.el-select__caret .el-icon svg),
+    :deep(.el-select__caret svg) {
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      display: block;
     }
 
     :deep(.el-select__input),
@@ -1009,6 +1189,10 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .statistics-view {
     padding: 0;
+
+    .statistics-header-card {
+      margin-top: -6px;
+    }
 
     .stats-overview {
       grid-template-columns: 1fr;

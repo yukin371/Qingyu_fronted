@@ -104,11 +104,22 @@
               :contenteditable="!readonly"
               @input="handleContentChange"
               @keydown="handleKeyDown"
+              @mouseup="handleEditorSelectionChange"
+              @keyup="handleEditorSelectionChange"
               @contextmenu="handleContextMenu"
               ref="editorContentRef"
             >
               {{ editorText }}
             </div>
+            <button
+              v-if="selectionAddButton.visible"
+              class="selection-add-btn"
+              :style="selectionAddButtonStyle"
+              @mousedown.prevent
+              @click.stop="handleAddSelectionToChat"
+            >
+              添加到对话
+            </button>
           </section>
 
           <section
@@ -184,6 +195,7 @@ interface Emits {
   (e: 'togglePreview'): void
   (e: 'formatCommand', _command: string): void
   (e: 'contextmenu', _event: MouseEvent, _selectedText: string): void
+  (e: 'addToAIContext', _selectedText: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -206,6 +218,17 @@ const editorContentRef = ref<HTMLDivElement>()
 const isFocusMode = ref(false)
 const saveStatus = ref<'saved' | 'saving' | 'unsaved'>('saved')
 const cursorPosition = ref({ line: 1, column: 1 })
+const selectionAddButton = ref({
+  visible: false,
+  text: '',
+  top: 0,
+  left: 0,
+})
+
+const selectionAddButtonStyle = computed(() => ({
+  top: `${selectionAddButton.value.top}px`,
+  left: `${selectionAddButton.value.left}px`,
+}))
 
 const breakpoints = useBreakpoints({
   mobile: 768,
@@ -383,6 +406,60 @@ const handleContextMenu = (event: MouseEvent) => {
   }
 }
 
+const handleEditorSelectionChange = () => {
+  window.setTimeout(() => {
+    updateSelectionAddButton()
+  }, 0)
+}
+
+const hideSelectionAddButton = () => {
+  selectionAddButton.value.visible = false
+}
+
+const updateSelectionAddButton = () => {
+  const selection = window.getSelection()
+  const editorEl = editorContentRef.value
+  if (!selection || !editorEl || selection.rangeCount === 0 || selection.isCollapsed) {
+    hideSelectionAddButton()
+    return
+  }
+
+  const range = selection.getRangeAt(0)
+  const targetNode = range.commonAncestorContainer
+  if (!editorEl.contains(targetNode)) {
+    hideSelectionAddButton()
+    return
+  }
+
+  const selectedText = selection.toString().trim()
+  if (!selectedText) {
+    hideSelectionAddButton()
+    return
+  }
+
+  const rect = range.getBoundingClientRect()
+  if (!rect.width && !rect.height) {
+    hideSelectionAddButton()
+    return
+  }
+
+  const buttonTop = Math.max(8, rect.top - 34)
+  const buttonLeft = Math.min(window.innerWidth - 132, Math.max(8, rect.right - 124))
+  selectionAddButton.value = {
+    visible: true,
+    text: selectedText,
+    top: buttonTop,
+    left: buttonLeft,
+  }
+}
+
+const handleAddSelectionToChat = () => {
+  const selectedText = selectionAddButton.value.text.trim()
+  if (!selectedText) return
+  emit('addToAIContext', selectedText)
+  hideSelectionAddButton()
+}
+
 const handleToolbarCommand = (cmd: string) => {
   emit('formatCommand', cmd)
 }
@@ -410,12 +487,20 @@ onMounted(() => {
     showTimeline: props.showTimeline,
     timelineId: props.timelineId,
   })
+  document.addEventListener('selectionchange', updateSelectionAddButton)
+  window.addEventListener('resize', updateSelectionAddButton)
+  window.addEventListener('scroll', updateSelectionAddButton, true)
+  editorContentRef.value?.addEventListener('scroll', updateSelectionAddButton)
 })
 
 onBeforeUnmount(() => {
   if (saveStatus.value === 'unsaved') {
     handleSave()
   }
+  document.removeEventListener('selectionchange', updateSelectionAddButton)
+  window.removeEventListener('resize', updateSelectionAddButton)
+  window.removeEventListener('scroll', updateSelectionAddButton, true)
+  editorContentRef.value?.removeEventListener('scroll', updateSelectionAddButton)
 })
 
 watch(
@@ -450,6 +535,7 @@ watch(
         selection.addRange(newRange)
       }
     }
+    hideSelectionAddButton()
   },
 )
 
@@ -750,6 +836,21 @@ function restoreCaretPosition(
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.selection-add-btn {
+  position: fixed;
+  z-index: 1200;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
 }
 
 .editor-content {

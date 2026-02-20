@@ -75,7 +75,11 @@ export function setupTestModeGuard(router: Router) {
  * 检查 query 对象是否包含 test=true 参数
  */
 function hasTestParameter(query: Record<string, any>): boolean {
-  return query[TEST_PARAM_KEY] === 'true' || query[TEST_PARAM_KEY] === true
+  const value = query[TEST_PARAM_KEY]
+  if (Array.isArray(value)) {
+    return value.some((v) => v === 'true' || v === true)
+  }
+  return value === 'true' || value === true
 }
 
 /**

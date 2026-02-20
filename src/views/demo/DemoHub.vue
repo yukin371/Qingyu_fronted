@@ -587,7 +587,7 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
       { key: 'admin-dashboard', label: '后台仪表板', route: '/admin/dashboard' },
       { key: 'admin-users', label: '用户管理', route: '/admin/users' },
       { key: 'admin-reviews', label: '内容审核', route: '/admin/reviews' },
-      { key: 'admin-system-config', label: '系统配置', route: '/admin/system-config' }
+      { key: 'admin-categories', label: '分类管理', route: '/admin/categories' }
     ]
   },
   {
@@ -641,7 +641,7 @@ const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
     items: [
       { section: '5.3.1', title: '用户管理界面', route: '/admin/users', frontendFile: 'src/modules/admin/views/UserManagement.vue', backendFile: 'Qingyu_backend/service/admin/user_admin_service.go' },
       { section: '5.3.2', title: '内容审核界面', route: '/admin/reviews', frontendFile: 'src/modules/admin/views/ReviewManagement.vue', backendFile: 'Qingyu_backend/service/audit/content_audit_service.go' },
-      { section: '5.3.3', title: '分类管理界面', route: '/admin/system-config', frontendFile: 'src/modules/admin/views/SystemConfig.vue', backendFile: 'Qingyu_backend/service/admin/admin_service.go' }
+      { section: '5.3.3', title: '分类管理界面', route: '/admin/categories', frontendFile: 'src/modules/admin/views/CategoryManagement.vue', backendFile: 'Qingyu_backend/service/bookstore/category_service.go' }
     ]
   },
   {

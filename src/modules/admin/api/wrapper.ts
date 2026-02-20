@@ -612,38 +612,73 @@ export default {
 
 // 导出为默认对象，以支持 import { adminAPI } from './api'
 const adminAPIExport = {
+  // 仪表盘
   getDashboardStats,
   getStats,
+  // 审核相关
   getPendingAudits,
   getReviewList,
   getPendingReviews,
-  approveAudit,
-  rejectAudit,
-  getUserManagementList,
-  banUser,
-  unbanUser,
-  getOperationLogs,
-  batchUpdateUserStatus,
+  getHighRiskAudits,
+  getAuditStatistics,
+  reviewAudit,
+  reviewContent,
+  reviewAppeal,
+  // 用户管理
+  getUserList,
+  updateUser,
+  deleteUser,
+  updateUserStatus,
+  assignRole,
+  updateUserRole,
   batchDeleteUsers,
+  // 操作日志
+  getOperationLogs,
+  // 配额管理
+  getUserQuotaDetails,
+  updateUserQuota,
+  suspendUserQuota,
+  activateUserQuota,
+  // 公告管理
+  getAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  batchUpdateAnnouncementStatus,
+  batchDeleteAnnouncements,
+  // 配置管理
+  getAllConfigs,
+  getConfigByKey,
   updateConfig,
   batchUpdateConfig,
-  getSystemConfig,
   validateConfig,
-  getReviewStats,
+  systemConfig,
+  // 配置备份
+  getConfigBackups,
+  restoreConfigBackup,
+  // Banner管理
+  getBanners,
+  createBanner,
+  updateBanner,
+  deleteBanner,
+  batchUpdateBannerSort,
   batchUpdateBannerStatus,
+  // 角色管理
   getRoles,
   createRole,
   getRole,
   updateRole,
   deleteRole,
   getRolePermissions,
+  // 权限管理
   getPermissions,
   createPermission,
   getPermission,
   updatePermission,
   deletePermission,
-  batchUpdateStatus,
-  batchDelete,
+  // 提现审核
+  reviewWithdrawRequest,
+  // 工具函数
   getApi,
 }
 

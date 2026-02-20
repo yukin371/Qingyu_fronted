@@ -5,6 +5,7 @@
 
 import { httpService } from '@/core/services/http.service'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
+import { aiDirectApi, isDirectModeEnabled } from './ai-direct'
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
@@ -126,6 +127,13 @@ export const chatWithAI = async (
   message: string,
   history?: ChatMessage[]
 ): Promise<{ reply: string; usage?: any }> => {
+  console.log('[AI API] chatWithAI called, isDirectModeEnabled:', isDirectModeEnabled())
+  if (isDirectModeEnabled()) {
+    console.log('[AI API] 使用直连模式')
+    return aiDirectApi.chat(message, history)
+  }
+
+  console.log('[AI API] 使用httpService模式')
   const response = await httpService.post('/api/v1/ai/chat', {
     message,
     history: history || []
@@ -152,12 +160,22 @@ export const chatWithAI = async (
 export const continueWriting = async (
   projectId: string,
   currentText: string,
-  length: number = 200
+  length: number = 200,
+  instructions?: string
 ): Promise<AIGenerateResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.continue(currentText)
+  }
+
+  const trimmedInstructions = (instructions || '').trim()
+  const prompt = trimmedInstructions
+    ? `${currentText}\n\n续写要求：${trimmedInstructions}`
+    : currentText
+
   const response = await httpService.post('/api/v1/ai/generate', {
     projectId,
     currentText,
-    prompt: currentText,
+    prompt,
     continueLength: length,
     type: 'continue'
   })
@@ -182,6 +200,10 @@ export const polishText = async (
   text: string,
   instructions?: string
 ): Promise<AIGenerateResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.polish(text)
+  }
+
   const response = await httpService.post('/api/v1/ai/polish', {
     projectId,
     originalText: text,
@@ -211,6 +233,10 @@ export const expandText = async (
   instructions?: string,
   targetLength?: number
 ): Promise<AIGenerateResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.expand(text)
+  }
+
   const response = await httpService.post('/api/v1/ai/expand', {
     projectId,
     originalText: text,
@@ -241,6 +267,10 @@ export const rewriteText = async (
   mode: 'polish' | 'simplify' | 'formal' | 'casual',
   instructions?: string
 ): Promise<AIGenerateResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.rewrite(text)
+  }
+
   const response = await httpService.post('/api/v1/ai/rewrite', {
     projectId,
     originalText: text,
@@ -453,5 +483,4 @@ export default {
   createSession,
   updateSession
 }
-
 

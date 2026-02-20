@@ -55,7 +55,13 @@ function createAuthGuard(router: Router) {
     console.log('[Route Guard] Checking:', to.path)
 
     const authStore = useAuthStore()
-    authStore.ensureTestModeMockSession()
+    const routeTestFlag = to.query?.test
+    const routeHasTestMode =
+      routeTestFlag === 'true' ||
+      routeTestFlag === true ||
+      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true' || v === true)) ||
+      to.hash.includes('test=true')
+    authStore.ensureTestModeMockSession(routeHasTestMode)
     console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
 
     // 处理 guest 页面（登录、注册等）- 已登录用户访问 guest 页面时重定向

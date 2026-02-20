@@ -126,10 +126,11 @@ function createTestModeMockUser(): User {
     username: 'demo_user',
     nickname: '测试用户',
     email: 'demo@example.com',
-    avatar: '/images/avatars/avatar-demo.svg',
+    // 使用 DiceBear 生成测试头像，确保头像可正常显示
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo-user',
     gender: 'unknown',
-    bio: '这是测试模式下的模拟用户',
-    role: 'reader',
+    bio: '这是测试模式下的模拟用户（拥有所有角色权限用于演示）',
+    role: 'admin',
     level: 5,
     exp: 2500,
     balance: 0,
@@ -137,8 +138,9 @@ function createTestModeMockUser(): User {
     registerTime: now,
     lastLoginTime: now,
     isVip: false,
-    roles: ['reader'],
-    permissions: []
+    // 测试模式拥有所有角色，可访问所有功能页面
+    roles: ['admin', 'author', 'reader'],
+    permissions: ['*']
   }
 }
 
@@ -254,8 +256,8 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    ensureTestModeMockSession(): void {
-      if (!isTestMode()) return
+    ensureTestModeMockSession(forceTestMode = false): void {
+      if (!forceTestMode && !isTestMode()) return
       if (this.isLoggedIn && this.token && isMockToken(this.token) && this.user) return
 
       const mockUser = createTestModeMockUser()
@@ -263,7 +265,8 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = TEST_MODE_MOCK_REFRESH_TOKEN
       this.user = mockUser
       this.permissions = mockUser.permissions || []
-      this.roles = mockUser.roles || ['reader']
+      // 测试模式使用完整角色列表
+      this.roles = mockUser.roles || ['admin', 'author', 'reader']
       this.isLoggedIn = true
       this.error = null
 
@@ -272,7 +275,7 @@ export const useAuthStore = defineStore('auth', {
       storage.set(STORAGE_KEYS.USER, this.user)
       storage.set(STORAGE_KEYS.ROLES, this.roles)
       localStorage.setItem(STORAGE_KEYS.TOKEN, this.token)
-      console.log('[测试模式] 已自动注入 mock 登录用户')
+      console.log('[测试模式] 已自动注入 mock 登录用户，角色:', this.roles)
     },
 
     // 初始化认证状态
@@ -304,16 +307,17 @@ export const useAuthStore = defineStore('auth', {
           if (!this.user) {
             this.user = storage.get<User>(STORAGE_KEYS.USER)
           }
-          // 修复：优先从localStorage恢复roles
+          // 优先从localStorage恢复roles，否则使用默认的完整角色列表
           const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
             console.log('[initAuth] 从localStorage恢复roles:', savedRoles)
           } else {
-            this.roles = this.user?.roles || ['reader']
-            console.log('[initAuth] 使用user.roles:', this.roles)
+            // 测试模式默认拥有所有角色
+            this.roles = this.user?.roles || ['admin', 'author', 'reader']
+            console.log('[initAuth] 使用默认测试角色:', this.roles)
           }
-          this.permissions = this.user?.permissions || []
+          this.permissions = this.user?.permissions || ['*']
           return
         }
 

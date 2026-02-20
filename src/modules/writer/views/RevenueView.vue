@@ -749,6 +749,8 @@ onUnmounted(() => {
 
   .header-book-select {
     :deep(.el-select__wrapper) {
+      display: flex;
+      align-items: center;
       min-height: 42px;
       border-radius: 12px;
       border: 1px solid #dbe6f6;
@@ -773,6 +775,23 @@ onUnmounted(() => {
 
     :deep(.el-select__caret) {
       color: #64748b;
+      font-size: 16px;
+      line-height: 1;
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      flex: 0 0 auto;
+    }
+
+    :deep(.el-select__caret .el-icon),
+    :deep(.el-select__caret .el-icon svg),
+    :deep(.el-select__caret svg) {
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      display: block;
     }
 
     :deep(.el-select__input),

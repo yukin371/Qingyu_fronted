@@ -331,25 +331,4 @@ defineExpose({
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
-
-/* 居中对话框的特殊处理 */
-.center {
-  transform: translate(-50%, -50%);
-}
-
-.center.dialog-enter-from,
-.center.dialog-leave-to {
-  transform: translate(-50%, -50%) scale(0.95);
-}
-
-/* 非居中对话框的定位 */
-:not(.center) {
-  top: 5rem;
-  transform: translateX(-50%);
-}
-
-:not(.center).dialog-enter-from,
-:not(.center).dialog-leave-to {
-  transform: translateX(-50%) scale(0.95);
-}
 </style>

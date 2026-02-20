@@ -1,77 +1,174 @@
-<template>
+﻿<template>
   <div class="banner-management">
-    <el-card class="header-card">
-      <div class="header-content">
-        <div>
-          <h2>Banner管理</h2>
-          <p class="subtitle">管理首页轮播图Banner</p>
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="header-info">
+        <h2 class="page-title">Banner管理</h2>
+        <p class="page-subtitle">管理首页轮播图Banner，控制展示顺序和状态</p>
+      </div>
+      <el-button type="primary" @click="handleCreate">
+        <el-icon><Plus /></el-icon>
+        新建Banner
+      </el-button>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-row">
+      <div class="stat-item total">
+        <div class="stat-icon">
+          <el-icon :size="20"><Picture /></el-icon>
         </div>
-        <el-button type="primary" @click="handleCreate">
-          <QyIcon name="Plus" :size="16" />
-          新建Banner
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.total }}</span>
+          <span class="stat-label">总Banner数</span>
+        </div>
+      </div>
+      <div class="stat-item active">
+        <div class="stat-icon">
+          <el-icon :size="20"><CircleCheck /></el-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.active }}</span>
+          <span class="stat-label">已启用</span>
+        </div>
+      </div>
+      <div class="stat-item views">
+        <div class="stat-icon">
+          <el-icon :size="20"><View /></el-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalClicks.toLocaleString() }}</span>
+          <span class="stat-label">总点击量</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选器 -->
+    <div class="filters-card">
+      <div class="filter-group">
+        <span class="filter-label">目标类型</span>
+        <el-select popper-class="admin-select-popper" v-model="filters.targetType" placeholder="全部类型" clearable @change="handleFilterChange">
+          <el-option label="全部" value="" />
+          <el-option label="书籍" value="book" />
+          <el-option label="分类" value="category" />
+          <el-option label="外链" value="url" />
+        </el-select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">状态</span>
+        <el-select popper-class="admin-select-popper" v-model="filters.status" placeholder="全部状态" clearable @change="handleFilterChange">
+          <el-option label="全部" value="" />
+          <el-option label="已启用" value="active" />
+          <el-option label="已禁用" value="inactive" />
+        </el-select>
+      </div>
+
+      <div class="filter-actions">
+        <el-button @click="loadBanners">
+          <el-icon><Refresh /></el-icon>
+          刷新
         </el-button>
       </div>
-    </el-card>
+    </div>
 
-    <el-card>
+    <!-- Banner列表 -->
+    <div class="banner-card">
       <el-table
         v-loading="loading"
         :data="banners"
         style="width: 100%"
+        :header-cell-style="{ background: '#f9fafb', color: '#374151', fontWeight: '600' }"
       >
-        <el-table-column label="预览" width="120">
+        <el-table-column label="预览" width="160">
           <template #default="{ row }">
-            <el-image
-              :src="row.image"
-              fit="cover"
-              style="width: 100px; height: 60px"
-            />
+            <div class="banner-preview">
+              <el-image
+                :src="row.image"
+                fit="cover"
+                style="width: 140px; height: 70px; border-radius: 8px"
+              >
+                <template #error>
+                  <div class="image-placeholder">
+                    <el-icon :size="24"><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="title" label="标题" />
+        <el-table-column prop="title" label="标题" min-width="150">
+          <template #default="{ row }">
+            <div class="title-cell">
+              <span class="title">{{ row.title }}</span>
+              <span v-if="row.description" class="desc">{{ row.description }}</span>
+            </div>
+          </template>
+        </el-table-column>
 
         <el-table-column label="目标类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="getTypeColor(row.targetType)">
+            <span class="type-tag" :class="row.targetType">
+              <el-icon v-if="row.targetType === 'book'" :size="14"><Reading /></el-icon>
+              <el-icon v-else-if="row.targetType === 'category'" :size="14"><FolderOpened /></el-icon>
+              <el-icon v-else :size="14"><Link /></el-icon>
               {{ getTypeLabel(row.targetType) }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="sortOrder" label="排序" width="80" />
+        <el-table-column prop="sortOrder" label="排序" width="80">
+          <template #default="{ row }">
+            <span class="sort-badge">{{ row.sortOrder }}</span>
+          </template>
+        </el-table-column>
 
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-switch
               v-model="row.isActive"
               @change="handleStatusChange(row)"
+              active-color="#10b981"
             />
           </template>
         </el-table-column>
 
-        <el-table-column prop="clickCount" label="点击量" width="100" />
-
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="clickCount" label="点击量" width="100">
           <template #default="{ row }">
-            <el-button size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">
-              删除
-            </el-button>
+            <span class="click-count">{{ row.clickCount?.toLocaleString() || 0 }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="{ row }">
+            <div class="action-btns">
+              <el-button size="small" @click="handleEdit(row)">
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row)">
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        :current-page="currentPage"
-        :page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 20px; justify-content: center"
-        @current-change="handleCurrentChange"
-        @size-change="handleSizeChange"
-      />
-    </el-card>
+      <!-- 分页 -->
+      <div v-if="total > 0" class="pagination-card">
+        <div class="pagination-total">共 {{ total }} 条</div>
+        <el-pagination
+          :current-page="pagination.page"
+          :page-size="pagination.pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          @update:current-page="pagination.page = $event"
+          @current-change="loadBanners"
+        />
+      </div>
+    </div>
 
     <!-- 编辑对话框 -->
     <el-dialog
@@ -81,19 +178,27 @@
     >
       <el-form :model="bannerForm" label-width="100px">
         <el-form-item label="标题" required>
-          <el-input v-model="bannerForm.title" />
+          <el-input v-model="bannerForm.title" placeholder="请输入Banner标题" />
         </el-form-item>
 
         <el-form-item label="描述">
-          <el-input v-model="bannerForm.description" type="textarea" />
+          <el-input v-model="bannerForm.description" type="textarea" :rows="2" placeholder="请输入描述（可选）" />
         </el-form-item>
 
         <el-form-item label="图片URL" required>
-          <el-input v-model="bannerForm.image" />
+          <el-input v-model="bannerForm.image" placeholder="请输入图片URL" />
+        </el-form-item>
+
+        <el-form-item label="预览" v-if="bannerForm.image">
+          <el-image :src="bannerForm.image" fit="cover" style="width: 200px; height: 100px; border-radius: 8px">
+            <template #error>
+              <div class="image-placeholder">图片加载失败</div>
+            </template>
+          </el-image>
         </el-form-item>
 
         <el-form-item label="目标类型" required>
-          <el-select v-model="bannerForm.targetType">
+          <el-select popper-class="admin-select-popper" v-model="bannerForm.targetType" style="width: 100%">
             <el-option label="书籍" value="book" />
             <el-option label="分类" value="category" />
             <el-option label="外链" value="url" />
@@ -101,11 +206,12 @@
         </el-form-item>
 
         <el-form-item label="跳转目标" required>
-          <el-input v-model="bannerForm.target" />
+          <el-input v-model="bannerForm.target" placeholder="请输入跳转目标ID或URL" />
         </el-form-item>
 
         <el-form-item label="排序权重">
-          <el-input-number v-model="bannerForm.sortOrder" :min="0" />
+          <el-input-number v-model="bannerForm.sortOrder" :min="0" :max="999" style="width: 150px" />
+          <span class="form-hint">数字越大越靠前</span>
         </el-form-item>
 
         <el-form-item label="是否启用">
@@ -124,21 +230,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
-import * as bannerApi from '@/modules/admin/api'
+import {
+  Plus, Picture, CircleCheck, View, Refresh, Reading, FolderOpened,
+  Link, Edit, Delete
+} from '@element-plus/icons-vue'
 
+// 检查是否为测试模式
+const isTestMode = computed(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  return urlParams.get('test') === 'true'
+})
+
+// 筛选器
+const filters = reactive({
+  targetType: '',
+  status: ''
+})
+
+// 分页
+const pagination = reactive({
+  page: 1,
+  pageSize: 10
+})
+
+// 统计数据
+const stats = reactive({
+  total: 8,
+  active: 6,
+  totalClicks: 15823
+})
+
+// 数据
 const loading = ref(false)
-const banners = ref<bannerApi.Banner[]>([])
+const banners = ref<any[]>([])
 const total = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(10)
 const dialogVisible = ref(false)
-const editingBanner = ref<bannerApi.Banner | null>(null)
+const editingBanner = ref<any | null>(null)
 const submitting = ref(false)
 
-const bannerForm = reactive<any>({
+const bannerForm = reactive({
   title: '',
   description: '',
   image: '',
@@ -148,49 +280,97 @@ const bannerForm = reactive<any>({
   isActive: true
 })
 
-const getTypeColor = (type: string) => {
-  const colors: Record<string, string> = {
-    book: 'primary',
-    category: 'success',
-    url: 'warning'
-  }
-  return colors[type] || ''
+// 生成模拟Banner数据
+const createMockBanners = () => {
+  const images = [
+    'https://picsum.photos/seed/banner1/800/400',
+    'https://picsum.photos/seed/banner2/800/400',
+    'https://picsum.photos/seed/banner3/800/400',
+    'https://picsum.photos/seed/banner4/800/400',
+    'https://picsum.photos/seed/banner5/800/400',
+    'https://picsum.photos/seed/banner6/800/400',
+    'https://picsum.photos/seed/banner7/800/400',
+    'https://picsum.photos/seed/banner8/800/400'
+  ]
+
+  const titles = [
+    { title: '云岚纪事', desc: '热门玄幻小说推荐', type: 'book' },
+    { title: '仙侠精选', desc: '本周最受欢迎仙侠作品', type: 'category' },
+    { title: '新作上架', desc: '查看最新发布的作品', type: 'url' },
+    { title: '都市言情', desc: '甜蜜都市爱情故事', type: 'category' },
+    { title: '科幻世界', desc: '探索未来科幻宇宙', type: 'category' },
+    { title: '历史军事', desc: '金戈铁马征战沙场', type: 'category' },
+    { title: '活动公告', desc: '参与赢取丰厚奖励', type: 'url' },
+    { title: '限量推荐', desc: '编辑精选优质内容', type: 'book' }
+  ]
+
+  return titles.map((item, i) => ({
+    id: `banner_${i + 1}`,
+    title: item.title,
+    description: item.desc,
+    image: images[i],
+    target: item.type === 'url' ? 'https://example.com/promo' : `target_${i + 1}`,
+    targetType: item.type,
+    sortOrder: 100 - i * 10,
+    isActive: i < 6,
+    clickCount: Math.floor(Math.random() * 5000) + 500,
+    createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString()
+  }))
 }
 
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    book: '书籍',
-    category: '分类',
-    url: '外链'
-  }
-  return labels[type] || type
-}
+const mockBannersPool = createMockBanners()
 
+// 加载Banner列表
 const loadBanners = async () => {
   loading.value = true
   try {
-    const response = await bannerApi.getBanners({
-      limit: pageSize.value,
-      offset: (currentPage.value - 1) * pageSize.value
-    })
-    banners.value = response.data?.items || []
-    total.value = response.data?.total || 0
+    if (isTestMode.value) {
+      let filtered = [...mockBannersPool]
+
+      if (filters.targetType) {
+        filtered = filtered.filter(b => b.targetType === filters.targetType)
+      }
+
+      if (filters.status) {
+        filtered = filtered.filter(b =>
+          filters.status === 'active' ? b.isActive : !b.isActive
+        )
+      }
+
+      total.value = filtered.length
+
+      const start = (pagination.page - 1) * pagination.pageSize
+      banners.value = filtered.slice(start, start + pagination.pageSize)
+
+      // 更新统计
+      stats.total = mockBannersPool.length
+      stats.active = mockBannersPool.filter(b => b.isActive).length
+      stats.totalClicks = mockBannersPool.reduce((sum, b) => sum + (b.clickCount || 0), 0)
+    } else {
+      banners.value = []
+      total.value = 0
+    }
   } catch (error) {
+    console.error('加载Banner列表失败:', error)
     message.error('加载Banner列表失败')
   } finally {
     loading.value = false
   }
 }
 
-const handleCurrentChange = (page: number) => {
-  currentPage.value = page
+// 筛选变化
+const handleFilterChange = () => {
+  pagination.page = 1
   loadBanners()
 }
 
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1
-  loadBanners()
+const getTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    book: '书籍',
+    category: '分类',
+    url: '外链'
+  }
+  return labels[type] || type
 }
 
 const handleCreate = () => {
@@ -207,7 +387,7 @@ const handleCreate = () => {
   dialogVisible.value = true
 }
 
-const handleEdit = (banner: bannerApi.Banner) => {
+const handleEdit = (banner: any) => {
   editingBanner.value = banner
   Object.assign(bannerForm, {
     title: banner.title,
@@ -222,17 +402,32 @@ const handleEdit = (banner: bannerApi.Banner) => {
 }
 
 const handleSubmit = async () => {
+  if (!bannerForm.title || !bannerForm.image || !bannerForm.target) {
+    message.warning('请填写必填项')
+    return
+  }
+
   submitting.value = true
   try {
-    if (editingBanner.value) {
-      await bannerApi.updateBanner(editingBanner.value.id, bannerForm)
-      message.success('更新成功')
-    } else {
-      await bannerApi.createBanner(bannerForm)
-      message.success('创建成功')
+    if (isTestMode.value) {
+      if (editingBanner.value) {
+        const banner = mockBannersPool.find(b => b.id === editingBanner.value.id)
+        if (banner) {
+          Object.assign(banner, bannerForm)
+        }
+        message.success('更新成功')
+      } else {
+        mockBannersPool.unshift({
+          id: `banner_${Date.now()}`,
+          ...bannerForm,
+          clickCount: 0,
+          createdAt: new Date().toISOString()
+        })
+        message.success('创建成功')
+      }
     }
     dialogVisible.value = false
-    await loadBanners()
+    loadBanners()
   } catch (error) {
     message.error('操作失败')
   } finally {
@@ -240,25 +435,33 @@ const handleSubmit = async () => {
   }
 }
 
-const handleStatusChange = async (banner: bannerApi.Banner) => {
+const handleStatusChange = async (banner: any) => {
   try {
-    await bannerApi.updateBanner(banner.id, { isActive: banner.isActive })
-    message.success('状态更新成功')
+    if (isTestMode.value) {
+      const b = mockBannersPool.find(item => item.id === banner.id)
+      if (b) b.isActive = banner.isActive
+    }
+    message.success(banner.isActive ? '已启用' : '已禁用')
+    loadBanners()
   } catch (error) {
     message.error('状态更新失败')
     banner.isActive = !banner.isActive
   }
 }
 
-const handleDelete = async (banner: bannerApi.Banner) => {
+const handleDelete = async (banner: any) => {
   try {
     await messageBox.confirm('确定要删除此Banner吗？', '确认', {
       type: 'warning'
     })
 
-    await bannerApi.deleteBanner(banner.id)
+    if (isTestMode.value) {
+      const index = mockBannersPool.findIndex(b => b.id === banner.id)
+      if (index > -1) mockBannersPool.splice(index, 1)
+    }
+
     message.success('删除成功')
-    await loadBanners()
+    loadBanners()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('删除失败')
@@ -273,28 +476,366 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .banner-management {
-  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.header-card {
-  margin-bottom: 20px;
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
 
-  .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    h2 {
+  .header-info {
+    .page-title {
       margin: 0;
-      font-size: 24px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a2e;
     }
 
-    .subtitle {
+    .page-subtitle {
       margin: 8px 0 0;
-      color: #909399;
+      color: #6b7280;
       font-size: 14px;
     }
   }
 }
-</style>
 
+// 统计卡片
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  border: 1px solid #e5e7eb;
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  &.total {
+    .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .stat-value { color: #3b82f6; }
+  }
+
+  &.active {
+    .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .stat-value { color: #10b981; }
+  }
+
+  &.views {
+    .stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .stat-value { color: #8b5cf6; }
+  }
+}
+
+// 筛选器
+.filters-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .filter-label {
+    font-size: 14px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  > .el-select {
+    width: 130px;
+  }
+
+  :deep(.el-select__wrapper) {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    min-height: 36px;
+    position: relative;
+    padding: 0 30px 0 12px;
+    box-sizing: border-box;
+  }
+
+  :deep(.el-select__selection) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    min-width: 0;
+  }
+
+  :deep(.el-select__placeholder),
+  :deep(.el-select__selected-item) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :deep(.el-select__placeholder) {
+    flex: 0 0 auto;
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  :deep(.el-select__suffix) {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :deep(.el-select__caret) {
+    margin-left: 0;
+  }
+}
+
+.filter-actions {
+  margin-left: auto;
+}
+
+// Banner列表卡片
+.banner-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+
+  // 表格行分隔线样式
+  :deep(.el-table__body-wrapper) {
+    .el-table__row {
+      td {
+        padding: 16px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+    }
+
+    .el-table__row:last-child {
+      td {
+        border-bottom: none;
+      }
+    }
+  }
+
+  :deep(.el-table__header-wrapper) {
+    th {
+      border-bottom: 1px solid #e5e7eb;
+    }
+  }
+}
+
+.banner-preview {
+  .image-placeholder {
+    width: 140px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 8px;
+    color: #9ca3af;
+  }
+}
+
+.title-cell {
+  display: flex;
+  flex-direction: column;
+
+  .title {
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .desc {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 4px;
+  }
+}
+
+.type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.book {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  &.category {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+
+  &.url {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
+}
+
+.sort-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.click-count {
+  font-weight: 500;
+  color: #374151;
+}
+
+.action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+// 分页
+.pagination-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+
+  .pagination-total {
+    font-size: 14px;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  :deep(.el-pagination) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    font-size: 14px;
+    color: #475569;
+  }
+
+  :deep(.el-pagination__total),
+  :deep(.el-pagination__sizes),
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager),
+  :deep(.el-pagination__jump) {
+    margin: 0 !important;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager li) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  :deep(.el-pager li.is-active) {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  :deep(.el-pagination__sizes .el-select) {
+    width: 100px;
+  }
+}
+
+.form-hint {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    flex-direction: column;
+  }
+
+  .filters-card {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-group {
+      flex-direction: column;
+      align-items: stretch;
+
+      > .el-select {
+        width: 100%;
+      }
+    }
+
+    .filter-actions {
+      margin-left: 0;
+    }
+  }
+}
+</style>

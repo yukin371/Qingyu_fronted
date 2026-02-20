@@ -29,6 +29,35 @@
 
     <!-- 面板内容 -->
     <div class="ai-content">
+      <div class="conversation-toolbar">
+        <select v-model="currentConversationId" class="conversation-select" :disabled="isTyping">
+          <option v-for="conversation in conversationList" :key="conversation.id" :value="conversation.id">
+            {{ conversation.title }}
+          </option>
+        </select>
+        <button class="conversation-action-btn" :disabled="isTyping" @click="handleRenameConversation">
+          <QyIcon name="Edit" />
+        </button>
+        <button class="conversation-action-btn" :disabled="isTyping" @click="handleDeleteConversation">
+          <QyIcon name="Delete" />
+        </button>
+        <button class="conversation-new-btn" :disabled="isTyping" @click="handleCreateConversation">
+          <QyIcon name="Plus" />
+          新对话
+        </button>
+      </div>
+
+      <div v-if="selectionNotice" class="selection-notice" :class="`is-${selectionNotice.status}`">
+        <div class="selection-title">
+          {{ selectionNotice.actionLabel }} · 已选中 {{ selectionNotice.text.length }} 字
+        </div>
+        <div class="selection-content">{{ selectionNotice.text }}</div>
+        <div v-if="selectionNotice.instructions" class="selection-extra">
+          要求：{{ selectionNotice.instructions }}
+        </div>
+        <div class="selection-status">{{ selectionNotice.statusText }}</div>
+      </div>
+
       <!-- 消息列表区域 -->
       <div class="ai-messages" ref="messagesContainer">
         <!-- 空状态提示 -->
@@ -82,6 +111,11 @@
 
       <!-- 输入框区域 -->
       <div class="ai-input-area">
+        <div v-if="selectedChatContext" class="chat-context-chip">
+          <span class="context-label">即将发送片段</span>
+          <span class="context-text">{{ selectedChatContext.text }}</span>
+          <button class="context-clear" @click="handleClearSelectedContext">移除</button>
+        </div>
         <div class="input-wrapper">
           <textarea
             ref="inputRef"
@@ -117,7 +151,9 @@ import { useI18n } from '@/composables/useI18n'
 import { useBreakpoints } from '@/composables/useBreakpoints'
 import { useChatHistory } from '@/composables/useChatHistory'
 import { useTypewriter } from '@/composables/useTypewriter'
-import { mockAIResponse, QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
+import { message } from '@/design-system/services'
+import { QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
+import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
 
 // 防抖函数
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,10 +174,40 @@ function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number):
 interface Props {
   sessionId?: string
   width?: number
+  actionTrigger?: {
+    id: number
+    action: string
+    text: string
+    instructions?: string
+  } | null
 }
 
 interface Emits {
   (e: 'send', msg: string): void
+  (e: 'applyGeneratedText', payload: { action: string; sourceText: string; generatedText: string }): void
+}
+
+interface ConversationMeta {
+  id: string
+  title: string
+  updatedAt: number
+}
+
+type SelectionNoticeStatus = 'pending' | 'running' | 'done' | 'error'
+
+interface SelectionNotice {
+  action: string
+  actionLabel: string
+  text: string
+  instructions?: string
+  status: SelectionNoticeStatus
+  statusText: string
+}
+
+interface ChatContextSnippet {
+  text: string
+  instructions?: string
+  addedAt: number
 }
 
 // ==================== Props & Emits ====================
@@ -168,7 +234,17 @@ const isTablet = breakpoints.between('mobile', 'desktop')
 const isDesktop = breakpoints.greaterOrEqual('desktop')
 
 // ==================== 对话历史管理 ====================
-const { messages, addMessage, clearHistory, save, load } = useChatHistory(props.sessionId)
+const currentConversationId = ref('default')
+const conversationList = ref<ConversationMeta[]>([])
+const chatSessionKey = computed(() => `${props.sessionId}:${currentConversationId.value}`)
+const {
+  messages,
+  addMessage,
+  clearHistory,
+  save,
+  load,
+  setSessionId,
+} = useChatHistory(chatSessionKey.value)
 
 // ==================== 打字机效果 ====================
 const typingText = ref('')
@@ -179,6 +255,8 @@ const inputText = ref('')
 const isTyping = ref(false)
 const messagesContainer = ref<HTMLElement>()
 const inputRef = ref<HTMLTextAreaElement>()
+const selectionNotice = ref<SelectionNotice | null>(null)
+const selectedChatContext = ref<ChatContextSnippet | null>(null)
 
 // ==================== 快捷操作 ====================
 // 仅保留3个快捷操作：续写、润色、摘要
@@ -194,6 +272,131 @@ const panelStyle = computed(() => {
     '--ai-panel-width': `${props.width}px`
   }
 })
+
+const conversationStorageKey = computed(() => `ai-conversation-list-${props.sessionId}`)
+
+function loadConversations() {
+  try {
+    const raw = localStorage.getItem(conversationStorageKey.value)
+    const parsed = raw ? JSON.parse(raw) : []
+    const list = Array.isArray(parsed) ? parsed : []
+    const deduped = list.filter((item, index, arr) => {
+      if (!item?.id) return false
+      return arr.findIndex((x) => x?.id === item.id) === index
+    })
+    conversationList.value = list.length > 0 ? list : [{
+      id: 'default',
+      title: '默认对话',
+      updatedAt: Date.now(),
+    }]
+    if (deduped.length > 0) {
+      conversationList.value = deduped
+    }
+  } catch {
+    conversationList.value = [{
+      id: 'default',
+      title: '默认对话',
+      updatedAt: Date.now(),
+    }]
+  }
+}
+
+function saveConversations() {
+  try {
+    localStorage.setItem(conversationStorageKey.value, JSON.stringify(conversationList.value))
+  } catch (error) {
+    console.warn('[AIPanel] Failed to save conversations:', error)
+  }
+}
+
+function ensureCurrentConversation() {
+  if (!conversationList.value.some((item) => item.id === currentConversationId.value)) {
+    currentConversationId.value = conversationList.value[0]?.id || 'default'
+  }
+}
+
+function touchConversationTitle() {
+  const index = conversationList.value.findIndex((item) => item.id === currentConversationId.value)
+  if (index < 0) return
+  const firstUserMessage = messages.value.find((item) => item.role === 'user')?.content || ''
+  const nextTitle = firstUserMessage
+    ? firstUserMessage.replace(/\s+/g, ' ').slice(0, 18)
+    : `对话 ${index + 1}`
+  conversationList.value[index] = {
+    ...conversationList.value[index],
+    title: nextTitle,
+    updatedAt: Date.now(),
+  }
+  saveConversations()
+}
+
+function handleCreateConversation() {
+  const id = `chat-${Date.now()}`
+  conversationList.value.unshift({
+    id,
+    title: `新对话 ${conversationList.value.length + 1}`,
+    updatedAt: Date.now(),
+  })
+  saveConversations()
+  currentConversationId.value = id
+}
+
+function handleRenameConversation() {
+  const current = conversationList.value.find((item) => item.id === currentConversationId.value)
+  if (!current) return
+  const nextTitle = window.prompt('请输入新的会话名称', current.title)?.trim()
+  if (!nextTitle) return
+  const idx = conversationList.value.findIndex((item) => item.id === currentConversationId.value)
+  if (idx < 0) return
+  conversationList.value[idx] = {
+    ...conversationList.value[idx],
+    title: nextTitle,
+    updatedAt: Date.now(),
+  }
+  saveConversations()
+}
+
+function handleDeleteConversation() {
+  if (conversationList.value.length <= 1) {
+    message.warning('至少保留一个会话')
+    return
+  }
+  const current = conversationList.value.find((item) => item.id === currentConversationId.value)
+  if (!current) return
+  if (!window.confirm(`确定删除会话「${current.title}」吗？`)) return
+  const remaining = conversationList.value.filter((item) => item.id !== currentConversationId.value)
+  conversationList.value = remaining
+  saveConversations()
+  currentConversationId.value = remaining[0]?.id || 'default'
+}
+
+function updateSelectionNotice(
+  action: string,
+  selectedText: string,
+  instructions: string | undefined,
+  status: SelectionNoticeStatus,
+) {
+  const actionLabelMap: Record<string, string> = {
+    continue: '续写',
+    polish: '润色',
+    expand: '扩写',
+    rewrite: '改写',
+  }
+  const statusLabelMap: Record<SelectionNoticeStatus, string> = {
+    pending: '已识别选中内容，等待执行',
+    running: '正在处理选中内容...',
+    done: '已完成并应用到编辑器',
+    error: '处理失败，请重试',
+  }
+  selectionNotice.value = {
+    action,
+    actionLabel: actionLabelMap[action] || '处理',
+    text: selectedText,
+    instructions: instructions?.trim() || undefined,
+    status,
+    statusText: statusLabelMap[status],
+  }
+}
 
 // ==================== 方法 ====================
 /**
@@ -229,8 +432,13 @@ function formatTime(timestamp: number): string {
 async function sendMessage(content: string) {
   if (!content.trim() || isTyping.value) return
 
+  const trimmedContent = content.trim()
+  const requestMessage = selectedChatContext.value
+    ? `参考片段：${selectedChatContext.value.text}\n\n用户需求：${trimmedContent}`
+    : trimmedContent
+
   // 添加用户消息
-  addMessage('user', content)
+  addMessage('user', trimmedContent)
 
   // 清空输入框
   inputText.value = ''
@@ -238,32 +446,95 @@ async function sendMessage(content: string) {
   // 滚动到底部
   await scrollToBottom()
 
-  // 模拟AI响应
+  // 调用真实AI API
   isTyping.value = true
   try {
-    const response = await mockAIResponse(content)
+    // 构建对话历史
+    const history = messages.value
+      .filter(m => m.role !== 'system')
+      .map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }))
 
-    // 添加AI消息（打字状态）
-    const aiMessage = addMessage('assistant', response)
+    const response = await chatWithAI(requestMessage, history)
+    const aiResponseText = response.reply || '抱歉，我没有理解您的问题。'
 
-    // 启动打字机效果
-    typewriter.displayText.value = ''
-    typewriter.start()
-
-    // 监听打字进度
-    const stopTyping = watch(typewriter.displayText, (newText) => {
-      aiMessage.content = newText ?? ''
-      if ((typewriter.progress.value ?? 0) >= 1) {
-        isTyping.value = false
-        stopTyping()
-      }
-    })
+    // 直接添加AI消息（简化处理，不使用打字机效果）
+    addMessage('assistant', aiResponseText)
+    if (selectedChatContext.value) {
+      handleClearSelectedContext()
+    }
+    isTyping.value = false
 
     // 滚动到底部
     await scrollToBottom()
   } catch (error) {
     console.error('[AIPanel] Failed to get AI response:', error)
     addMessage('assistant', '抱歉，我遇到了一些问题。请稍后再试。')
+    isTyping.value = false
+  }
+}
+
+function getGeneratedTextByAction(action: string, response: Record<string, any>): string {
+  if (action === 'continue') return response.generated_text || ''
+  if (action === 'polish') return response.polished_text || response.rewritten_text || ''
+  if (action === 'expand') return response.expanded_text || response.rewritten_text || ''
+  if (action === 'rewrite') return response.rewritten_text || response.polished_text || ''
+  return ''
+}
+
+async function runSelectionAction(action: string, selectedText: string, instructions?: string) {
+  if (!selectedText.trim()) return
+  if (isTyping.value) return
+
+  isTyping.value = true
+  updateSelectionNotice(action, selectedText, instructions, 'running')
+  try {
+    const actionLabelMap: Record<string, string> = {
+      continue: '续写',
+      polish: '润色',
+      expand: '扩写',
+      rewrite: '改写',
+    }
+    const label = actionLabelMap[action] || '处理'
+    const trimmedInstructions = (instructions || '').trim()
+    const userPrompt = trimmedInstructions
+      ? `[${label}] ${selectedText}\n要求：${trimmedInstructions}`
+      : `[${label}] ${selectedText}`
+    addMessage('user', userPrompt)
+
+    const projectId = props.sessionId || 'demo-project'
+    let response: Record<string, any> = {}
+    if (action === 'continue') {
+      response = await continueWriting(projectId, selectedText, 200, trimmedInstructions)
+    } else if (action === 'polish') {
+      response = await polishText(projectId, selectedText, trimmedInstructions || undefined)
+    } else if (action === 'expand') {
+      response = await expandText(projectId, selectedText, trimmedInstructions || undefined)
+    } else if (action === 'rewrite') {
+      response = await rewriteText(projectId, selectedText, 'polish', trimmedInstructions || undefined)
+    }
+
+    const generatedText = getGeneratedTextByAction(action, response)
+    if (!generatedText) {
+      addMessage('assistant', '未生成有效内容，请稍后重试。')
+      return
+    }
+
+    addMessage('assistant', generatedText)
+    emit('applyGeneratedText', {
+      action,
+      sourceText: selectedText,
+      generatedText,
+    })
+    updateSelectionNotice(action, selectedText, instructions, 'done')
+    await scrollToBottom()
+  } catch (error) {
+    console.error('[AIPanel] Failed to run selection action:', error)
+    addMessage('assistant', '处理失败，请稍后重试。')
+    updateSelectionNotice(action, selectedText, instructions, 'error')
+  } finally {
     isTyping.value = false
   }
 }
@@ -321,11 +592,24 @@ async function scrollToBottom() {
 function handleClear() {
   if (confirm(t('ai.clearConfirm', '确定要清空对话历史吗？'))) {
     clearHistory()
+    selectionNotice.value = null
+    selectedChatContext.value = null
+  }
+}
+
+function handleClearSelectedContext() {
+  selectedChatContext.value = null
+  if (selectionNotice.value?.action === 'chat') {
+    selectionNotice.value = null
   }
 }
 
 // ==================== 生命周期 ====================
 onMounted(() => {
+  loadConversations()
+  ensureCurrentConversation()
+  setSessionId(chatSessionKey.value)
+
   // 加载历史对话
   load()
 
@@ -340,6 +624,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // 保存对话历史
   save()
+  saveConversations()
 
   // 停止打字机效果
   typewriter.stop()
@@ -354,7 +639,65 @@ const debouncedSave = useDebounceFn(() => {
 // 监听消息变化，自动保存（使用防抖版本）
 watch(() => messages.value, () => {
   debouncedSave()
+  touchConversationTitle()
 }, { deep: true })
+
+watch(
+  () => currentConversationId.value,
+  () => {
+    setSessionId(chatSessionKey.value)
+    load()
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
+)
+
+watch(
+  () => props.sessionId,
+  () => {
+    loadConversations()
+    ensureCurrentConversation()
+    setSessionId(chatSessionKey.value)
+    load()
+  }
+)
+
+watch(
+  () => props.actionTrigger?.id,
+  async (newId, oldId) => {
+    if (!newId || newId === oldId || !props.actionTrigger) return
+    const { action, text, instructions } = props.actionTrigger
+    if (!action || !text.trim()) return
+
+    if (action === 'add_to_chat') {
+      selectedChatContext.value = {
+        text: text.trim(),
+        instructions: instructions?.trim() || undefined,
+        addedAt: Date.now(),
+      }
+      selectionNotice.value = {
+        action: 'chat',
+        actionLabel: '对话上下文',
+        text: text.trim(),
+        instructions: instructions?.trim() || undefined,
+        status: 'done',
+        statusText: '已加入即将发送内容，下一条消息会自动携带',
+      }
+      return
+    }
+
+    if (action === 'chat') {
+      await sendMessage(text)
+      return
+    }
+
+    if (['continue', 'polish', 'expand', 'rewrite'].includes(action)) {
+      updateSelectionNotice(action, text, instructions, 'pending')
+      await runSelectionAction(action, text, instructions)
+    }
+  }
+)
 </script>
 
 <style scoped lang="scss">
@@ -458,6 +801,101 @@ watch(() => messages.value, () => {
   flex-direction: column;
   overflow: hidden;
   background: #fcfdff;
+}
+
+.conversation-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ai-border);
+  background: #ffffff;
+
+  .conversation-select {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    border: 1px solid var(--ai-border-strong);
+    border-radius: 8px;
+    padding: 0 8px;
+    background: #ffffff;
+    color: var(--ai-text);
+    font-size: 12px;
+  }
+
+  .conversation-new-btn {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .conversation-action-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--ai-border-strong);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+}
+
+.selection-notice {
+  margin: 10px 12px 0;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #334155;
+
+  .selection-title {
+    font-weight: 600;
+  }
+
+  .selection-content {
+    margin-top: 4px;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .selection-extra {
+    margin-top: 4px;
+    color: #1e293b;
+  }
+
+  .selection-status {
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  &.is-running {
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+
+  &.is-done {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+
+  &.is-error {
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
 }
 
 .ai-messages {
@@ -647,6 +1085,42 @@ watch(() => messages.value, () => {
   padding: 12px 16px;
   background: var(--ai-bg-soft);
   border-top: 1px solid var(--ai-border);
+
+  .chat-context-chip {
+    margin-bottom: 8px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    border-radius: 10px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+
+    .context-label {
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    .context-text {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .context-clear {
+      flex-shrink: 0;
+      border: none;
+      background: transparent;
+      color: #1d4ed8;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+    }
+  }
 
   .input-wrapper {
     display: flex;

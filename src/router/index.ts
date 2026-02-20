@@ -37,7 +37,7 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: '/bookstore' },
+  { path: '/', redirect: to => ({ path: '/bookstore', query: to.query }) },
 
   // 搜索路由重定向（兼容旧路径）
   { path: '/search', redirect: to => ({ path: '/bookstore/search', query: to.query }) },

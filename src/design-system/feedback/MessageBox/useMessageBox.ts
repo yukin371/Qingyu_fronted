@@ -132,6 +132,11 @@ messageBox.confirm = (
     message,
     title,
     type: 'confirm',
+  }).then((result) => {
+    if (result.action === 'confirm') {
+      return result
+    }
+    return Promise.reject('cancel')
   })
 }
 
@@ -146,6 +151,11 @@ messageBox.prompt = (
     message,
     title,
     type: 'prompt',
+  }).then((result) => {
+    if (result.action === 'confirm') {
+      return result
+    }
+    return Promise.reject('cancel')
   })
 }
 

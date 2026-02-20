@@ -180,8 +180,11 @@ const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
 
 // Computed
-const projectList = computed(() => writerStore.projectList)
-const loading = computed(() => writerStore.loading)
+const projectList = computed<any[]>(() => {
+  const list = (writerStore as any).projectList
+  return Array.isArray(list) ? list : []
+})
+const loading = computed(() => Boolean((writerStore as any).loading))
 
 // Methods
 const formatDate = (dateStr: string) => {

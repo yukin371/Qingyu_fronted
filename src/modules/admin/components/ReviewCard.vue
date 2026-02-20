@@ -1,7 +1,17 @@
 <template>
   <div class="review-card">
     <div class="review-header">
-      <el-tag :type="typeTagType">{{ contentTypeName }}</el-tag>
+      <div class="review-type">
+        <div class="type-icon" :class="item.contentType">
+          <el-icon :size="16">
+            <Document v-if="item.contentType === 'document'" />
+            <Notebook v-else-if="item.contentType === 'book'" />
+            <DocumentCopy v-else-if="item.contentType === 'chapter'" />
+            <ChatDotRound v-else />
+          </el-icon>
+        </div>
+        <span class="type-name">{{ contentTypeName }}</span>
+      </div>
       <span class="review-time">{{ formatTime(item.submittedAt) }}</span>
     </div>
 
@@ -9,21 +19,28 @@
       <h4 class="review-title">{{ item.title || '无标题' }}</h4>
       <p v-if="item.content" class="review-text">{{ truncatedContent }}</p>
       <div class="review-meta">
-        <span class="review-author">提交者: {{ item.submittedBy }}</span>
+        <span class="meta-item">
+          <el-icon><User /></el-icon>
+          {{ item.submittedBy }}
+        </span>
+        <span v-if="item.projectName" class="meta-item">
+          <el-icon><FolderOpened /></el-icon>
+          {{ item.projectName }}
+        </span>
       </div>
     </div>
 
     <div class="review-actions">
-      <el-button type="success" size="small" @click="handleApprove">
-        <QyIcon name="Select" :size="14" />
+      <el-button type="success" size="default" @click="handleApprove">
+        <el-icon><Select /></el-icon>
         批准
       </el-button>
-      <el-button type="danger" size="small" @click="handleReject">
-        <QyIcon name="CloseBold" :size="14" />
+      <el-button type="danger" size="default" @click="handleReject">
+        <el-icon><CloseBold /></el-icon>
         拒绝
       </el-button>
-      <el-button size="small" @click="handleView">
-        <QyIcon name="View" :size="14" />
+      <el-button size="default" @click="handleView">
+        <el-icon><View /></el-icon>
         详情
       </el-button>
     </div>
@@ -32,7 +49,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import { Document, Notebook, DocumentCopy, ChatDotRound, User, FolderOpened, Select, CloseBold, View } from '@element-plus/icons-vue'
 import type { PendingReview } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format.ts'
 
@@ -60,21 +77,10 @@ const contentTypeName = computed(() => {
   return typeMap[props.item.contentType] || props.item.contentType
 })
 
-// 类型标签颜色
-const typeTagType = computed(() => {
-  const typeMap: Record<string, any> = {
-    document: 'primary',
-    book: 'success',
-    chapter: 'warning',
-    comment: 'info'
-  }
-  return typeMap[props.item.contentType] || ''
-})
-
 // 截断内容
 const truncatedContent = computed(() => {
   if (!props.item.content) return ''
-  const maxLength = 100
+  const maxLength = 150
   return props.item.content.length > maxLength
     ? props.item.content.substring(0, maxLength) + '...'
     : props.item.content
@@ -91,30 +97,23 @@ const formatTime = (time?: string) => {
 }
 
 // 事件处理
-const handleApprove = () => {
-  emit('approve', props.item)
-}
-
-const handleReject = () => {
-  emit('reject', props.item)
-}
-
-const handleView = () => {
-  emit('view', props.item)
-}
+const handleApprove = () => emit('approve', props.item)
+const handleReject = () => emit('reject', props.item)
+const handleView = () => emit('view', props.item)
 </script>
 
 <style scoped lang="scss">
 .review-card {
   background: #fff;
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 24px;
   transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
 
   &:hover {
-    border-color: #409eff;
-    box-shadow: 0 2px 12px rgba(64, 158, 255, 0.1);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
   }
 }
 
@@ -122,47 +121,84 @@ const handleView = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.review-type {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .type-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+
+    &.document { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    &.book { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    &.chapter { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    &.comment { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+  }
+
+  .type-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
 }
 
 .review-time {
-  font-size: 12px;
-  color: #909399;
+  font-size: 13px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .review-content {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .review-title {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 10px 0;
+  font-size: 18px;
   font-weight: 600;
-  color: #303133;
-  line-height: 1.5;
+  color: #1a1a2e;
+  line-height: 1.4;
 }
 
 .review-text {
-  margin: 0 0 8px 0;
+  margin: 0 0 14px 0;
   font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
+  color: #6b7280;
+  line-height: 1.7;
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 8px;
 }
 
 .review-meta {
-  font-size: 13px;
-  color: #909399;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.review-author {
-  margin-right: 16px;
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #9ca3af;
 }
 
 .review-actions {
   display: flex;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #ebeef5;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
 }
 </style>
-

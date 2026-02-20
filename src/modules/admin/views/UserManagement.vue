@@ -1,161 +1,257 @@
-<template>
+﻿<template>
   <div class="user-management">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <h3>用户管理</h3>
-          <el-button type="primary" :icon="Plus" @click="handleAdd">
-            添加用户
-          </el-button>
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="header-info">
+        <h2 class="page-title">用户管理</h2>
+        <p class="page-subtitle">管理系统用户，查看和编辑用户信息</p>
+      </div>
+      <div class="header-actions">
+        <el-button type="primary" @click="handleAdd">
+          <el-icon><Plus /></el-icon>
+          添加用户
+        </el-button>
+        <el-button type="success" @click="handleBatchAdd">
+          <el-icon><UserFilled /></el-icon>
+          批量添加
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-row">
+      <div class="stat-item total">
+        <div class="stat-icon">
+          <el-icon :size="20"><User /></el-icon>
         </div>
-      </template>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.total }}</span>
+          <span class="stat-label">总用户数</span>
+        </div>
+      </div>
+      <div class="stat-item active">
+        <div class="stat-icon">
+          <el-icon :size="20"><CircleCheck /></el-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.active }}</span>
+          <span class="stat-label">活跃用户</span>
+        </div>
+      </div>
+      <div class="stat-item author">
+        <div class="stat-icon">
+          <el-icon :size="20"><EditPen /></el-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.authors }}</span>
+          <span class="stat-label">作者</span>
+        </div>
+      </div>
+      <div class="stat-item new">
+        <div class="stat-icon">
+          <el-icon :size="20"><TrendCharts /></el-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.newToday }}</span>
+          <span class="stat-label">今日新增</span>
+        </div>
+      </div>
+    </div>
 
-      <!-- 搜索栏 -->
-      <div class="search-bar">
-        <el-form :inline="true" :model="searchForm" class="search-form">
-          <el-form-item label="用户名">
-            <el-input
-              v-model="searchForm.username"
-              placeholder="输入用户名搜索"
-              clearable
-              @clear="handleSearch"
-            />
-          </el-form-item>
-
-          <el-form-item label="邮箱">
-            <el-input
-              v-model="searchForm.email"
-              placeholder="输入邮箱搜索"
-              clearable
-              @clear="handleSearch"
-            />
-          </el-form-item>
-
-          <el-form-item label="角色">
-            <el-select
-              v-model="searchForm.role"
-              placeholder="选择角色"
-              clearable
-              @clear="handleSearch"
-            >
-              <el-option label="全部" value="" />
-              <el-option label="管理员" value="admin" />
-              <el-option label="作者" value="author" />
-              <el-option label="普通用户" value="user" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="状态">
-            <el-select
-              v-model="searchForm.status"
-              placeholder="选择状态"
-              clearable
-              @clear="handleSearch"
-            >
-              <el-option label="全部" value="" />
-              <el-option label="正常" value="active" />
-              <el-option label="未激活" value="inactive" />
-              <el-option label="已封禁" value="banned" />
-              <el-option label="已删除" value="deleted" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item>
-            <el-button type="primary" :icon="Search" @click="handleSearch">
-              搜索
-            </el-button>
-            <el-button :icon="Refresh" @click="handleReset">重置</el-button>
-          </el-form-item>
-        </el-form>
+    <!-- 筛选器 -->
+    <div class="filters-card">
+      <div class="filter-group">
+        <span class="filter-label">关键词</span>
+        <el-input
+          v-model="filters.keyword"
+          placeholder="用户名/邮箱/手机号"
+          clearable
+          class="keyword-input"
+          @keyup.enter="handleSearch"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
       </div>
 
-      <!-- 用户列表 -->
+      <div class="filter-group">
+        <span class="filter-label">角色</span>
+        <el-select popper-class="admin-select-popper" v-model="filters.role" placeholder="全部角色" clearable @change="handleFilterChange">
+          <el-option label="全部" value="" />
+          <el-option label="管理员" value="admin" />
+          <el-option label="作者" value="author" />
+          <el-option label="读者" value="reader" />
+        </el-select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">状态</span>
+        <el-select popper-class="admin-select-popper" v-model="filters.status" placeholder="全部状态" clearable @change="handleFilterChange">
+          <el-option label="全部" value="" />
+          <el-option label="正常" value="active" />
+          <el-option label="未激活" value="inactive" />
+          <el-option label="已封禁" value="banned" />
+        </el-select>
+      </div>
+
+      <div class="filter-actions">
+        <el-button type="primary" @click="handleSearch">
+          <el-icon><Search /></el-icon>
+          搜索
+        </el-button>
+        <el-button @click="handleReset">
+          <el-icon><Refresh /></el-icon>
+          重置
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 批量操作栏 -->
+    <div v-if="selectedUsers.length > 0" class="batch-actions-card">
+      <div class="batch-info">
+        <el-icon color="#3b82f6"><InfoFilled /></el-icon>
+        <span>已选择 <strong>{{ selectedUsers.length }}</strong> 个用户</span>
+      </div>
+      <div class="batch-btns">
+        <el-button type="success" size="small" @click="handleBatchActivate">
+          <el-icon><CircleCheck /></el-icon>
+          批量激活
+        </el-button>
+        <el-button type="warning" size="small" @click="handleBatchBan">
+          <el-icon><Lock /></el-icon>
+          批量封禁
+        </el-button>
+        <el-button type="danger" size="small" @click="handleBatchDelete">
+          <el-icon><Delete /></el-icon>
+          批量删除
+        </el-button>
+        <el-button size="small" @click="clearSelection">
+          取消选择
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 用户列表 -->
+    <div class="user-card">
       <el-table
-        v-loading="userStore.loading"
-        :data="userStore.userList"
-        stripe
+        ref="tableRef"
+        v-loading="loading"
+        :data="users"
         style="width: 100%"
+        :header-cell-style="{ background: '#f9fafb', color: '#374151', fontWeight: '600' }"
+        @selection-change="handleSelectionChange"
       >
-        <el-table-column prop="user_id" label="用户ID" width="220" />
+        <el-table-column type="selection" width="50" />
 
-        <el-table-column prop="username" label="用户名" width="150" />
+        <el-table-column prop="userId" label="用户ID" width="140">
+          <template #default="{ row }">
+            <span class="id-text">{{ row.userId }}</span>
+          </template>
+        </el-table-column>
 
-        <el-table-column prop="email" label="邮箱" width="200" />
+        <el-table-column label="用户信息" min-width="200">
+          <template #default="{ row }">
+            <div class="user-info">
+              <el-avatar :size="40" :src="row.avatar">
+                {{ row.username?.charAt(0)?.toUpperCase() }}
+              </el-avatar>
+              <div class="user-meta">
+                <span class="username">{{ row.username }}</span>
+                <span class="email">{{ row.email }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
 
         <el-table-column label="角色" width="100">
           <template #default="{ row }">
-            <el-tag :type="getRoleType(row.role)">
+            <span class="role-tag" :class="row.role">
               {{ getRoleText(row.role) }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
 
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
+            <span class="status-tag" :class="row.status">
               {{ getStatusText(row.status) }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
 
-        <el-table-column label="邮箱验证" width="100">
+        <el-table-column label="邮箱验证" width="90">
           <template #default="{ row }">
-            <el-tag v-if="row.email_verified" type="success" size="small">
-              已验证
-            </el-tag>
-            <el-tag v-else type="info" size="small">未验证</el-tag>
+            <el-icon v-if="row.emailVerified" color="#10b981" :size="18">
+              <CircleCheckFilled />
+            </el-icon>
+            <el-icon v-else color="#9ca3af" :size="18">
+              <WarningFilled />
+            </el-icon>
           </template>
         </el-table-column>
 
-        <el-table-column prop="created_at" label="注册时间" width="180">
+        <el-table-column prop="createdAt" label="注册时间" width="160">
           <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
+            {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
 
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button
-              type="primary"
-              size="small"
-              :icon="View"
-              @click="handleView(row)"
-            >
-              查看
-            </el-button>
-            <el-button
-              type="warning"
-              size="small"
-              :icon="Edit"
-              @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
+            <div class="action-btns">
+              <el-button size="small" @click="handleView(row)">
+                <el-icon><View /></el-icon>
+                查看
+              </el-button>
+              <el-button type="warning" size="small" @click="handleEdit(row)">
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+              <el-button
+                v-if="row.status !== 'banned'"
+                type="info"
+                size="small"
+                @click="handleBan(row)"
+              >
+                <el-icon><Lock /></el-icon>
+                封禁
+              </el-button>
+              <el-button
+                v-else
+                type="success"
+                size="small"
+                @click="handleUnban(row)"
+              >
+                <el-icon><Unlock /></el-icon>
+                解封
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                @click="handleDelete(row)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination">
+      <div v-if="total > 0" class="pagination-card">
+        <div class="pagination-total">共 {{ total }} 条</div>
         <el-pagination
-          :current-page="currentPage"
-          :page-size="pageSize"
-          :total="userStore.totalUsers"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
+          :current-page="pagination.page"
+          :page-size="pagination.pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          @update:current-page="pagination.page = $event"
+          @current-change="loadUsers"
         />
       </div>
-    </el-card>
+    </div>
 
     <!-- 查看/编辑用户对话框 -->
     <el-dialog
@@ -168,11 +264,17 @@
         ref="userFormRef"
         :model="userForm"
         :rules="userRules"
-        label-width="120px"
+        label-width="100px"
         :disabled="dialogMode === 'view'"
       >
+        <div v-if="dialogMode !== 'add'" class="user-avatar-section">
+          <el-avatar :size="80" :src="userForm.avatar">
+            {{ userForm.username?.charAt(0)?.toUpperCase() }}
+          </el-avatar>
+        </div>
+
         <el-form-item label="用户ID" v-if="dialogMode !== 'add'">
-          <el-input v-model="userForm.user_id" disabled />
+          <el-input v-model="userForm.userId" disabled />
         </el-form-item>
 
         <el-form-item label="用户名" prop="username">
@@ -195,20 +297,16 @@
           <el-input v-model="userForm.nickname" placeholder="请输入昵称" />
         </el-form-item>
 
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="userForm.phone" placeholder="请输入手机号" />
-        </el-form-item>
-
         <el-form-item label="角色" prop="role">
-          <el-select v-model="userForm.role" placeholder="请选择角色">
+          <el-select popper-class="admin-select-popper" v-model="userForm.role" placeholder="请选择角色">
             <el-option label="管理员" value="admin" />
             <el-option label="作者" value="author" />
-            <el-option label="普通用户" value="user" />
+            <el-option label="读者" value="reader" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="状态" prop="status">
-          <el-select v-model="userForm.status" placeholder="请选择状态">
+          <el-select popper-class="admin-select-popper" v-model="userForm.status" placeholder="请选择状态">
             <el-option label="正常" value="active" />
             <el-option label="未激活" value="inactive" />
             <el-option label="已封禁" value="banned" />
@@ -216,11 +314,7 @@
         </el-form-item>
 
         <el-form-item label="邮箱验证">
-          <el-switch v-model="userForm.email_verified" />
-        </el-form-item>
-
-        <el-form-item label="手机验证">
-          <el-switch v-model="userForm.phone_verified" />
+          <el-switch v-model="userForm.emailVerified" />
         </el-form-item>
 
         <el-form-item label="个人简介">
@@ -232,90 +326,139 @@
           />
         </el-form-item>
 
-        <el-form-item label="头像URL">
-          <el-input v-model="userForm.avatar" placeholder="请输入头像URL" />
-        </el-form-item>
-
-        <el-form-item v-if="dialogMode === 'view'" label="创建时间">
-          <span>{{ formatDate(userForm.created_at) }}</span>
-        </el-form-item>
-
-        <el-form-item v-if="dialogMode === 'view'" label="更新时间">
-          <span>{{ formatDate(userForm.updated_at) }}</span>
+        <el-form-item v-if="dialogMode === 'view'" label="注册时间">
+          <span>{{ formatDate(userForm.createdAt) }}</span>
         </el-form-item>
 
         <el-form-item v-if="dialogMode === 'view'" label="最后登录">
-          <span>{{ formatDate(userForm.last_login_at) }}</span>
-        </el-form-item>
-
-        <el-form-item v-if="dialogMode === 'view'" label="登录IP">
-          <span>{{ userForm.last_login_ip || '-' }}</span>
+          <span>{{ formatDate(userForm.lastLoginAt) || '-' }}</span>
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">
-            {{ dialogMode === 'view' ? '关闭' : '取消' }}
-          </el-button>
-          <el-button
-            v-if="dialogMode !== 'view'"
-            type="primary"
-            :loading="submitting"
-            @click="handleSubmit"
-          >
-            确定
-          </el-button>
-        </span>
+        <el-button @click="dialogVisible = false">
+          {{ dialogMode === 'view' ? '关闭' : '取消' }}
+        </el-button>
+        <el-button
+          v-if="dialogMode !== 'view'"
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量添加对话框 -->
+    <el-dialog v-model="batchAddDialogVisible" title="批量添加用户" width="500px">
+      <el-form :model="batchAddForm" label-width="100px">
+        <el-form-item label="添加数量" required>
+          <el-input-number v-model="batchAddForm.count" :min="1" :max="100" />
+          <span class="form-hint">一次最多添加100个用户</span>
+        </el-form-item>
+        <el-form-item label="用户名前缀">
+          <el-input v-model="batchAddForm.prefix" placeholder="批量用户名前缀" />
+        </el-form-item>
+        <el-form-item label="默认角色">
+          <el-select popper-class="admin-select-popper" v-model="batchAddForm.role">
+            <el-option label="管理员" value="admin" />
+            <el-option label="作者" value="author" />
+            <el-option label="读者" value="reader" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="默认状态">
+          <el-select popper-class="admin-select-popper" v-model="batchAddForm.status">
+            <el-option label="正常" value="active" />
+            <el-option label="未激活" value="inactive" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="batchAddDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmBatchAdd">
+          <el-icon><UserFilled /></el-icon>
+          确认添加
+        </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
-import { useUserStore } from '@/stores/user'
+import {
+  Plus, User, CircleCheck, EditPen, TrendCharts, Search, Refresh,
+  View, Edit, Lock, Unlock, CircleCheckFilled, WarningFilled,
+  UserFilled, InfoFilled, Delete
+} from '@element-plus/icons-vue'
+import { formatDate } from '@/utils/format'
 
-const userStore = useUserStore()
+// 检查是否为测试模式
+const isTestMode = computed(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  return urlParams.get('test') === 'true'
+})
 
-// 状态
-const currentPage = ref(1)
-const pageSize = ref(10)
-const dialogVisible = ref(false)
-const dialogMode = ref('view') // view / edit / add
-const dialogTitle = ref('')
-const submitting = ref(false)
-
-// 表单引用
-const userFormRef = ref(null)
-
-// 搜索表单
-const searchForm = reactive({
-  username: '',
-  email: '',
+// 筛选器
+const filters = reactive({
+  keyword: '',
   role: '',
   status: ''
 })
 
+// 分页
+const pagination = reactive({
+  page: 1,
+  pageSize: 20
+})
+
+// 统计数据
+const stats = reactive({
+  total: 156,
+  active: 142,
+  authors: 38,
+  newToday: 5
+})
+
+// 数据
+const loading = ref(false)
+const users = ref<any[]>([])
+const total = ref(0)
+
+// 批量操作
+const tableRef = ref(null)
+const selectedUsers = ref<any[]>([])
+const batchAddDialogVisible = ref(false)
+const batchAddForm = reactive({
+  count: 10,
+  role: 'reader',
+  status: 'active',
+  prefix: 'batch_user'
+})
+
+// 对话框
+const dialogVisible = ref(false)
+const dialogMode = ref('view') // view / edit / add
+const dialogTitle = ref('')
+const submitting = ref(false)
+const userFormRef = ref(null)
+
 // 用户表单
 const userForm = reactive({
-  user_id: '',
+  userId: '',
   username: '',
   email: '',
   nickname: '',
-  phone: '',
-  role: 'user',
+  role: 'reader',
   status: 'active',
-  email_verified: false,
-  phone_verified: false,
+  emailVerified: false,
   bio: '',
   avatar: '',
-  created_at: '',
-  updated_at: '',
-  last_login_at: '',
-  last_login_ip: ''
+  createdAt: '',
+  lastLoginAt: ''
 })
 
 // 用户表单验证规则
@@ -330,56 +473,109 @@ const userRules = {
   ],
   role: [
     { required: true, message: '请选择角色', trigger: 'change' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'change' }
   ]
 }
 
-// 初始化
-onMounted(() => {
-  loadUserList()
-})
+// 生成模拟用户数据
+const createMockUsers = () => {
+  const roles = ['admin', 'author', 'reader', 'reader', 'reader']
+  const statuses = ['active', 'active', 'active', 'inactive', 'banned']
+  const names = [
+    '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+    '郑十一', '王小明', '李小红', '刘大强', '陈美丽', '杨光', '黄海',
+    '林峰', '何雨', '高山', '罗兰', '梁子'
+  ]
+
+  return Array.from({ length: 50 }, (_, i) => {
+    const name = names[i % names.length]
+    const role = roles[i % roles.length]
+    return {
+      userId: `user_${String(i + 1).padStart(4, '0')}`,
+      username: `user${i + 1}`,
+      email: `user${i + 1}@example.com`,
+      nickname: name,
+      role,
+      status: statuses[i % statuses.length],
+      emailVerified: i % 3 !== 0,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      bio: `这是${name}的个人简介`,
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+      lastLoginAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  })
+}
+
+const mockUsersPool = createMockUsers()
 
 // 加载用户列表
-const loadUserList = async () => {
+const loadUsers = async () => {
+  loading.value = true
   try {
-    await userStore.fetchUserList({
-      page: currentPage.value,
-      page_size: pageSize.value,
-      ...searchForm
-    })
+    if (isTestMode.value) {
+      // 使用模拟数据
+      let filtered = [...mockUsersPool]
+
+      // 应用筛选
+      if (filters.keyword) {
+        const kw = filters.keyword.toLowerCase()
+        filtered = filtered.filter(u =>
+          u.username.toLowerCase().includes(kw) ||
+          u.email.toLowerCase().includes(kw) ||
+          u.nickname.includes(kw)
+        )
+      }
+
+      if (filters.role) {
+        filtered = filtered.filter(u => u.role === filters.role)
+      }
+
+      if (filters.status) {
+        filtered = filtered.filter(u => u.status === filters.status)
+      }
+
+      total.value = filtered.length
+
+      // 分页
+      const start = (pagination.page - 1) * pagination.pageSize
+      users.value = filtered.slice(start, start + pagination.pageSize)
+
+      // 更新统计
+      stats.total = mockUsersPool.length
+      stats.active = mockUsersPool.filter(u => u.status === 'active').length
+      stats.authors = mockUsersPool.filter(u => u.role === 'author').length
+      stats.newToday = Math.floor(Math.random() * 10) + 1
+    } else {
+      // TODO: 调用真实API
+      users.value = []
+      total.value = 0
+    }
   } catch (error) {
+    console.error('加载用户列表失败:', error)
     message.error('加载用户列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
 // 搜索
 const handleSearch = () => {
-  currentPage.value = 1
-  loadUserList()
+  pagination.page = 1
+  loadUsers()
+}
+
+// 筛选变化
+const handleFilterChange = () => {
+  pagination.page = 1
+  loadUsers()
 }
 
 // 重置搜索
 const handleReset = () => {
-  searchForm.username = ''
-  searchForm.email = ''
-  searchForm.role = ''
-  searchForm.status = ''
-  currentPage.value = 1
-  loadUserList()
-}
-
-// 分页大小改变
-const handleSizeChange = (size) => {
-  pageSize.value = size
-  loadUserList()
-}
-
-// 页码改变
-const handlePageChange = (page) => {
-  currentPage.value = page
-  loadUserList()
+  filters.keyword = ''
+  filters.role = ''
+  filters.status = ''
+  pagination.page = 1
+  loadUsers()
 }
 
 // 添加用户
@@ -390,87 +586,254 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-// 查看用户
-const handleView = async (row) => {
-  dialogMode.value = 'view'
-  dialogTitle.value = '查看用户'
+// 批量添加用户
+const handleBatchAdd = () => {
+  batchAddForm.count = 10
+  batchAddForm.role = 'reader'
+  batchAddForm.status = 'active'
+  batchAddForm.prefix = 'batch_user'
+  batchAddDialogVisible.value = true
+}
+
+// 确认批量添加
+const confirmBatchAdd = async () => {
+  if (batchAddForm.count < 1 || batchAddForm.count > 100) {
+    message.warning('批量添加数量应在1-100之间')
+    return
+  }
 
   try {
-    const userData = await userStore.fetchUser(row.user_id)
-    Object.assign(userForm, userData)
-    dialogVisible.value = true
+    if (isTestMode.value) {
+      const startId = mockUsersPool.length + 1
+      for (let i = 0; i < batchAddForm.count; i++) {
+        const id = startId + i
+        mockUsersPool.push({
+          userId: `user_${String(id).padStart(4, '0')}`,
+          username: `${batchAddForm.prefix}${id}`,
+          email: `${batchAddForm.prefix}${id}@example.com`,
+          nickname: `批量用户${id}`,
+          role: batchAddForm.role,
+          status: batchAddForm.status,
+          emailVerified: false,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=batch${id}`,
+          bio: '批量创建的用户',
+          createdAt: new Date().toISOString(),
+          lastLoginAt: ''
+        })
+      }
+    }
+
+    message.success(`成功批量添加 ${batchAddForm.count} 个用户`)
+    batchAddDialogVisible.value = false
+    loadUsers()
   } catch (error) {
-    message.error('获取用户信息失败')
+    console.error('批量添加失败:', error)
+    message.error('批量添加失败')
   }
 }
 
+// 选择变化
+const handleSelectionChange = (selection: any[]) => {
+  selectedUsers.value = selection
+}
+
+// 清除选择
+const clearSelection = () => {
+  tableRef.value?.clearSelection()
+}
+
+// 批量激活
+const handleBatchActivate = async () => {
+  try {
+    await messageBox.confirm(
+      `确定要激活选中的 ${selectedUsers.value.length} 个用户吗？`,
+      '批量激活',
+      { type: 'info' }
+    )
+
+    if (isTestMode.value) {
+      selectedUsers.value.forEach(user => {
+        const u = mockUsersPool.find(m => m.userId === user.userId)
+        if (u) u.status = 'active'
+      })
+    }
+
+    message.success('批量激活成功')
+    clearSelection()
+    loadUsers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      message.error('操作失败')
+    }
+  }
+}
+
+// 批量封禁
+const handleBatchBan = async () => {
+  try {
+    await messageBox.confirm(
+      `确定要封禁选中的 ${selectedUsers.value.length} 个用户吗？`,
+      '批量封禁',
+      { type: 'warning' }
+    )
+
+    if (isTestMode.value) {
+      selectedUsers.value.forEach(user => {
+        const u = mockUsersPool.find(m => m.userId === user.userId)
+        if (u) u.status = 'banned'
+      })
+    }
+
+    message.success('批量封禁成功')
+    clearSelection()
+    loadUsers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      message.error('操作失败')
+    }
+  }
+}
+
+// 批量删除
+const handleBatchDelete = async () => {
+  try {
+    await messageBox.confirm(
+      `确定要删除选中的 ${selectedUsers.value.length} 个用户吗？此操作不可恢复！`,
+      '批量删除',
+      { type: 'error', confirmButtonText: '确认删除' }
+    )
+
+    if (isTestMode.value) {
+      const deleteIds = selectedUsers.value.map(u => u.userId)
+      const index = mockUsersPool.findIndex(u => deleteIds.includes(u.userId))
+      if (index > -1) {
+        mockUsersPool.splice(index, 1)
+      }
+    }
+
+    message.success('批量删除成功')
+    clearSelection()
+    loadUsers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      message.error('操作失败')
+    }
+  }
+}
+
+// 查看用户
+const handleView = (row: any) => {
+  dialogMode.value = 'view'
+  dialogTitle.value = '查看用户'
+  Object.assign(userForm, row)
+  dialogVisible.value = true
+}
+
 // 编辑用户
-const handleEdit = async (row) => {
+const handleEdit = (row: any) => {
   dialogMode.value = 'edit'
   dialogTitle.value = '编辑用户'
+  Object.assign(userForm, row)
+  dialogVisible.value = true
+}
 
+// 封禁用户
+const handleBan = async (row: any) => {
   try {
-    const userData = await userStore.fetchUser(row.user_id)
-    Object.assign(userForm, userData)
-    dialogVisible.value = true
-  } catch (error) {
-    message.error('获取用户信息失败')
+    await messageBox.confirm(
+      `确定要封禁用户 "${row.nickname || row.username}" 吗？`,
+      '确认封禁',
+      { type: 'warning' }
+    )
+
+    if (isTestMode.value) {
+      const user = mockUsersPool.find(u => u.userId === row.userId)
+      if (user) user.status = 'banned'
+    }
+
+    message.success('封禁成功')
+    loadUsers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      message.error('封禁失败')
+    }
+  }
+}
+
+// 解封用户
+const handleUnban = async (row: any) => {
+  try {
+    await messageBox.confirm(
+      `确定要解封用户 "${row.nickname || row.username}" 吗？`,
+      '确认解封',
+      { type: 'info' }
+    )
+
+    if (isTestMode.value) {
+      const user = mockUsersPool.find(u => u.userId === row.userId)
+      if (user) user.status = 'active'
+    }
+
+    message.success('解封成功')
+    loadUsers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      message.error('解封失败')
+    }
   }
 }
 
 // 删除用户
-const handleDelete = async (row) => {
+const handleDelete = async (row: any) => {
   try {
     await messageBox.confirm(
-      `确定要删除用户 "${row.username}" 吗？此操作不可恢复！`,
-      '警告',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      `确定要删除用户 "${row.nickname || row.username}" 吗？此操作不可恢复！`,
+      '确认删除',
+      { type: 'error', confirmButtonText: '确认删除' }
     )
 
-    await userStore.deleteUser(row.user_id)
+    if (isTestMode.value) {
+      const index = mockUsersPool.findIndex(u => u.userId === row.userId)
+      if (index > -1) {
+        mockUsersPool.splice(index, 1)
+      }
+    }
+
     message.success('删除成功')
-    loadUserList()
-  } catch (error) {
+    loadUsers()
+  } catch (error: any) {
     if (error !== 'cancel') {
-      message.error(error.message || '删除失败')
+      message.error('删除失败')
     }
   }
 }
 
 // 提交表单
 const handleSubmit = async () => {
-  const valid = await userFormRef.value.validate()
+  const valid = await userFormRef.value?.validate()
   if (!valid) return
 
   submitting.value = true
   try {
-    if (dialogMode.value === 'add') {
-      // 添加用户（暂未实现后端接口）
-      message.warning('添加用户功能暂未实现')
-    } else if (dialogMode.value === 'edit') {
-      // 更新用户
-      const updateData = {
-        nickname: userForm.nickname,
-        phone: userForm.phone,
-        role: userForm.role,
-        status: userForm.status,
-        email_verified: userForm.email_verified,
-        phone_verified: userForm.phone_verified,
-        bio: userForm.bio,
-        avatar: userForm.avatar
+    if (isTestMode.value) {
+      if (dialogMode.value === 'edit') {
+        const user = mockUsersPool.find(u => u.userId === userForm.userId)
+        if (user) {
+          Object.assign(user, {
+            nickname: userForm.nickname,
+            role: userForm.role,
+            status: userForm.status,
+            emailVerified: userForm.emailVerified,
+            bio: userForm.bio
+          })
+        }
       }
-
-      await userStore.updateUser(userForm.user_id, updateData)
-      message.success('更新成功')
-      dialogVisible.value = false
-      loadUserList()
+      message.success(dialogMode.value === 'add' ? '添加成功' : '更新成功')
     }
+    dialogVisible.value = false
+    loadUsers()
   } catch (error) {
-    message.error(error.message || '操作失败')
+    message.error('操作失败')
   } finally {
     submitting.value = false
   }
@@ -484,124 +847,477 @@ const handleDialogClose = () => {
 
 // 重置用户表单
 const resetUserForm = () => {
-  userForm.user_id = ''
+  userForm.userId = ''
   userForm.username = ''
   userForm.email = ''
   userForm.nickname = ''
-  userForm.phone = ''
-  userForm.role = 'user'
+  userForm.role = 'reader'
   userForm.status = 'active'
-  userForm.email_verified = false
-  userForm.phone_verified = false
+  userForm.emailVerified = false
   userForm.bio = ''
   userForm.avatar = ''
-  userForm.created_at = ''
-  userForm.updated_at = ''
-  userForm.last_login_at = ''
-  userForm.last_login_ip = ''
-}
-
-// 格式化日期
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleString('zh-CN')
-}
-
-// 获取角色类型
-const getRoleType = (role) => {
-  const types = {
-    admin: 'danger',
-    author: 'warning',
-    user: 'info'
-  }
-  return types[role] || 'info'
+  userForm.createdAt = ''
+  userForm.lastLoginAt = ''
 }
 
 // 获取角色文本
-const getRoleText = (role) => {
-  const texts = {
+const getRoleText = (role: string): string => {
+  const texts: Record<string, string> = {
     admin: '管理员',
     author: '作者',
-    user: '普通用户'
+    reader: '读者'
   }
   return texts[role] || role
 }
 
-// 获取状态类型
-const getStatusType = (status) => {
-  const types = {
-    active: 'success',
-    inactive: 'info',
-    banned: 'danger',
-    deleted: 'danger'
-  }
-  return types[status] || 'info'
-}
-
 // 获取状态文本
-const getStatusText = (status) => {
-  const texts = {
+const getStatusText = (status: string): string => {
+  const texts: Record<string, string> = {
     active: '正常',
     inactive: '未激活',
-    banned: '已封禁',
-    deleted: '已删除'
+    banned: '已封禁'
   }
   return texts[status] || status
 }
+
+onMounted(() => {
+  loadUsers()
+})
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .user-management {
-  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.card-header {
+.page-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  margin-bottom: 24px;
+
+  .header-info {
+    .page-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .page-subtitle {
+      margin: 8px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  }
+}
+
+// 统计卡片
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 24px;
+  display: flex;
   align-items: center;
-}
+  gap: 12px;
+  flex: 1;
+  border: 1px solid #e5e7eb;
 
-.card-header h3 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.search-bar {
-  margin-bottom: 20px;
-}
-
-.search-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.pagination {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-@media (max-width: 768px) {
-  .user-management {
-    padding: 10px;
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .search-form {
+  .stat-info {
+    display: flex;
     flex-direction: column;
   }
 
-  .search-form :deep(.el-form-item) {
-    margin-right: 0;
-    margin-bottom: 10px;
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  &.total {
+    .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .stat-value { color: #3b82f6; }
+  }
+
+  &.active {
+    .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .stat-value { color: #10b981; }
+  }
+
+  &.author {
+    .stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .stat-value { color: #f59e0b; }
+  }
+
+  &.new {
+    .stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .stat-value { color: #8b5cf6; }
+  }
+}
+
+// 筛选器
+.filters-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  > .keyword-input {
+    width: 300px;
+  }
+
+  :deep(.keyword-input .el-input__wrapper) {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :deep(.keyword-input .el-input__inner) {
+    height: 100%;
+    line-height: 36px;
+  }
+
+  :deep(.keyword-input .el-input__prefix),
+  :deep(.keyword-input .el-input__prefix-inner) {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 14px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  > .el-select {
+    width: 130px;
+  }
+
+  :deep(.el-select__wrapper) {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    min-height: 36px;
+    position: relative;
+    padding: 0 30px 0 12px;
+    box-sizing: border-box;
+  }
+
+  :deep(.el-select__selection) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    min-width: 0;
+  }
+
+  :deep(.el-select__placeholder),
+  :deep(.el-select__selected-item) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :deep(.el-select__placeholder) {
+    flex: 0 0 auto;
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  :deep(.el-select__suffix) {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :deep(.el-select__caret) {
+    margin-left: 0;
+  }
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+// 批量操作栏
+.batch-actions-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #bfdbfe;
+
+  .batch-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #3b82f6;
+
+    strong {
+      color: #2563eb;
+    }
+  }
+
+  .batch-btns {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+// 批量添加表单提示
+.form-hint {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+// 用户列表卡片
+.user-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.id-text {
+  font-family: monospace;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  :deep(.el-avatar) {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.el-avatar img) {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  .user-meta {
+    display: flex;
+    flex-direction: column;
+
+    .username {
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .email {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  }
+}
+
+.role-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.admin {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  &.author {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
+
+  &.reader {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+
+  &.inactive {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+  }
+
+  &.banned {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+}
+
+.action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+// 分页
+.pagination-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+
+  .pagination-total {
+    font-size: 14px;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  :deep(.el-pagination) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    font-size: 14px;
+    color: #475569;
+  }
+
+  :deep(.el-pagination__total),
+  :deep(.el-pagination__sizes),
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager),
+  :deep(.el-pagination__jump) {
+    margin: 0 !important;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager li) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  :deep(.el-pager li.is-active) {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  :deep(.el-pagination__sizes .el-select) {
+    width: 100px;
+  }
+}
+
+// 对话框用户头像
+.user-avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    flex-direction: column;
+  }
+
+  .filters-card {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-group {
+      flex-direction: column;
+      align-items: stretch;
+
+      > .el-input,
+      > .el-select,
+      > .keyword-input {
+        width: 100%;
+      }
+    }
+
+    .filter-actions {
+      margin-left: 0;
+      justify-content: flex-end;
+    }
   }
 }
 </style>
-

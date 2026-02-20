@@ -35,12 +35,18 @@
         @formatCommand="handleToolbarCommand"
         @aiAssistant="toggleAISidebar"
         @contextmenu="handleContextMenu"
+        @addToAIContext="handleAddToAIContext"
       />
     </template>
 
     <!-- 右侧AI面板插槽 -->
     <template #right-panel>
-      <AIPanel :session-id="currentProjectId" @send="handleAISend" />
+      <AIPanel
+        :session-id="currentProjectId"
+        :action-trigger="aiActionTrigger"
+        @send="handleAISend"
+        @apply-generated-text="handleAIApplyGeneratedText"
+      />
     </template>
   </EditorLayout>
 
@@ -114,10 +120,17 @@ const writerStore = useWriterStore() // 用于 Timeline 数据
 const showPreview = ref(false)
 const showTimeline = ref(false)
 const showCreateDocDialog = ref(false)
+const aiActionSeq = ref(0)
 
 // Forms
 const newDocForm = ref({ title: '', type: 'chapter' })
 const contextMenu = reactive({ visible: false, x: 0, y: 0, selectedText: '' })
+const aiActionTrigger = ref<{
+  id: number
+  action: string
+  text: string
+  instructions?: string
+} | null>(null)
 
 // =======================
 // 数据绑定 (核心)
@@ -484,18 +497,71 @@ const handleContextMenu = (event: MouseEvent, selectedText: string) => {
   }
 }
 
-const handleAIAction = (action: string, text?: string) => {
+const handleAddToAIContext = (selectedText: string) => {
+  const normalizedText = (selectedText || '').trim()
+  if (!normalizedText) return
+  handleAIAction('add_to_chat', normalizedText)
+}
+
+const handleAIAction = (action: string, text?: string, instructions?: string) => {
   contextMenu.visible = false
   editorStore.setActiveTool('ai')
   // 这里可以调用 AI Store 设置当前模式和文本
-  writerStore.setAITool(action as 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'agent')
-  if (text) writerStore.setSelectedText(text)
+  const aiTool = action === 'add_to_chat' ? 'chat' : action
+  writerStore.setAITool(aiTool as 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'agent')
+  const normalizedText = (text || '').trim()
+  const normalizedInstructions = (instructions || '').trim()
+  writerStore.setSelectedText(normalizedText)
+
+  aiActionSeq.value += 1
+  aiActionTrigger.value = {
+    id: aiActionSeq.value,
+    action,
+    text: normalizedText,
+    instructions: normalizedInstructions || undefined,
+  }
 }
 
 const handleAISend = (message: string) => {
   // 处理AI发送消息事件
   console.log('[ProjectWorkspace] AI send message:', message)
   // TODO: 集成到writerStore的AI功能
+}
+
+const handleAIApplyGeneratedText = (payload: {
+  action: string
+  sourceText: string
+  generatedText: string
+}) => {
+  const generatedText = (payload.generatedText || '').trim()
+  if (!generatedText) return
+
+  const sourceText = payload.sourceText || ''
+  const currentContent = editorStore.content || ''
+  let nextContent = currentContent
+
+  if (sourceText) {
+    const sourceIndex = currentContent.indexOf(sourceText)
+    if (sourceIndex >= 0) {
+      if (payload.action === 'continue') {
+        const insertPos = sourceIndex + sourceText.length
+        nextContent =
+          `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
+      } else {
+        nextContent =
+          `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
+      }
+    }
+  }
+
+  if (nextContent === currentContent) {
+    const separator = currentContent && !currentContent.endsWith('\n') ? '\n\n' : ''
+    nextContent = `${currentContent}${separator}${generatedText}`
+  }
+
+  editorStore.setContent(nextContent)
+  writerStore.setSelectedText('')
+  message.success('AI 结果已应用到编辑器')
 }
 </script>
 
