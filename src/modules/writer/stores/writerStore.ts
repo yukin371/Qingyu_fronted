@@ -30,6 +30,7 @@ import type {
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import { syncService, type SyncStatus } from '@/utils/syncService'
 
 /**
  * 自动保存任务
@@ -124,6 +125,9 @@ export interface WriterState {
   // 统计缓存
   statisticsCache: Record<string, any>
 
+  // 同步状态
+  sync: SyncStatus
+
   // 错误信息
   error: string | null
 }
@@ -214,6 +218,9 @@ export const useWriterStore = defineStore('writer', {
     // 统计缓存
     statisticsCache: {},
 
+    // 同步状态
+    sync: syncService.getStatus(),
+
     // 错误信息
     error: null,
   }),
@@ -248,6 +255,20 @@ export const useWriterStore = defineStore('writer', {
     },
 
     /**
+     * 获取项目列表（兼容旧代码）
+     */
+    projectList: (state): Project[] => {
+      return state.projects
+    },
+
+    /**
+     * 获取加载状态（兼容旧代码）
+     */
+    loading: (state): boolean => {
+      return state.projectsLoading
+    },
+
+    /**
      * 获取文档总数
      */
     documentCount: (state): number => {
@@ -269,8 +290,11 @@ export const useWriterStore = defineStore('writer', {
         // httpService 响应拦截器会自动解包返回 data
         const response = await getProjects(params) as any
         // response 是 ProjectListResponse 类型，直接包含 projects 数组
+        // 后端返回 id 字段，前端需要 projectId 字段
         if (response && response.projects) {
-          this.projects = Array.isArray(response.projects) ? response.projects : []
+          this.projects = Array.isArray(response.projects)
+            ? response.projects.map((p: any) => ({ ...p, projectId: p.id || p.projectId }))
+            : []
         } else {
           this.projects = []
         }
@@ -284,6 +308,14 @@ export const useWriterStore = defineStore('writer', {
     },
 
     /**
+     * 获取项目列表（兼容旧代码的别名方法）
+     */
+    async fetchProjects(params?: any): Promise<Project[]> {
+      await this.loadProjects(params)
+      return this.projects
+    },
+
+    /**
      * 加载项目详情
      */
     async loadProject(projectId: string): Promise<void> {
@@ -294,8 +326,9 @@ export const useWriterStore = defineStore('writer', {
         // httpService 响应拦截器会自动解包返回 data
         const response = await getProjectById(projectId) as any
         // response 是 ProjectDetailResponse 类型
+        // 后端返回 id 字段，前端需要 projectId 字段
         if (response && response.id) {
-          this.currentProject = response
+          this.currentProject = { ...response, projectId: response.id }
         } else {
           this.error = '加载项目失败'
         }
@@ -319,9 +352,11 @@ export const useWriterStore = defineStore('writer', {
         // httpService 响应拦截器会自动解包返回 data
         const response = await createProject(data) as any
         // response 是 ProjectDetailResponse 类型
+        // 后端返回 id 字段，前端需要 projectId 字段
         if (response && response.id) {
-          this.projects.unshift(response as Project)
-          return response as Project
+          const projectWithId = { ...response, projectId: response.id } as Project
+          this.projects.unshift(projectWithId)
+          return projectWithId
         } else {
           this.error = '创建项目失败'
           return null
@@ -347,8 +382,9 @@ export const useWriterStore = defineStore('writer', {
         // httpService 响应拦截器会自动解包返回 data
         const response = await updateProject(this.currentProject.projectId!, data) as any
         // response 是 ProjectDetailResponse 类型
+        // 后端返回 id 字段，前端需要 projectId 字段
         if (response && response.id) {
-          this.currentProject = { ...this.currentProject, ...response }
+          this.currentProject = { ...this.currentProject, ...response, projectId: response.id }
           // 更新项目列表中的项目
           const index = this.projects.findIndex(
             (p) => p.projectId === this.currentProject!.projectId
@@ -1206,6 +1242,51 @@ export const useWriterStore = defineStore('writer', {
       }
     },
 
+    // ==================== 同步管理 ====================
+
+    /**
+     * 初始化同步服务
+     */
+    initSyncService(): void {
+      // 注册同步回调 - 网络恢复时刷新项目列表
+      syncService.onSync(async () => {
+        console.log('[WriterStore] 执行同步回调')
+        await this.loadProjects()
+      })
+
+      // 监听同步状态变化
+      syncService.onStatusChange((status) => {
+        this.sync = status
+      })
+
+      // 启动健康检查
+      syncService.startHealthCheck()
+
+      console.log('[WriterStore] 同步服务已初始化')
+    },
+
+    /**
+     * 停止同步服务
+     */
+    stopSyncService(): void {
+      syncService.stopHealthCheck()
+      console.log('[WriterStore] 同步服务已停止')
+    },
+
+    /**
+     * 手动触发同步
+     */
+    async syncNow(): Promise<void> {
+      await syncService.syncNow()
+    },
+
+    /**
+     * 检查是否在线
+     */
+    isOnline(): boolean {
+      return this.sync.isOnline
+    },
+
     /**
      * 重置状态
      */
@@ -1274,6 +1355,7 @@ export const useWriterStore = defineStore('writer', {
         loading: false,
       }
       this.statisticsCache = {}
+      this.sync = syncService.getStatus()
       this.error = null
     },
   },

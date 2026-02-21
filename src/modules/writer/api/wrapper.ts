@@ -8,7 +8,6 @@
  */
 
 import { getApi } from './generated/writer'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 // 获取生成的API对象
 const api = getApi()
@@ -200,13 +199,15 @@ export type DocumentUpdateData = {
 }
 
 // ==================== 项目相关 API ====================
+// 使用 project.ts 中的正确路径（/writer/projects），而不是 generated API 中的错误路径
 
-export const getProjects = api.getApiV1Projects
-export const getProject = api.getApiV1ProjectsProjectId
-export const getProjectById = api.getApiV1ProjectsProjectId
-export const createProject = api.postApiV1Projects
-export const updateProject = api.putApiV1ProjectsProjectId
-export const deleteProject = api.deleteApiV1ProjectsProjectId
+import * as projectApi from './project'
+export const getProjects = projectApi.getProjects
+export const getProject = projectApi.getProjectById
+export const getProjectById = projectApi.getProjectById
+export const createProject = projectApi.createProject
+export const updateProject = projectApi.updateProject
+export const deleteProject = projectApi.deleteProject
 
 // ==================== 文档相关 API ====================
 

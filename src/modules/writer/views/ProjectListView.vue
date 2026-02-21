@@ -7,6 +7,28 @@
             <h1>我的项目</h1>
           </div>
           <div style="display: flex; gap: 8px">
+            <label
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-green-600 bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700 cursor-pointer"
+            >
+              <QyIcon name="FileDown" :size="14" />
+              导入项目
+              <input
+                type="file"
+                accept=".zip"
+                class="hidden"
+                @change="handleImportProject"
+              />
+            </label>
+            <button
+              v-if="hasLocalData"
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-orange-500 bg-orange-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-orange-600"
+              @click="showMigrationDialog = true"
+            >
+              <QyIcon name="Upload" :size="14" />
+              迁移本地数据
+            </button>
             <button
               type="button"
               class="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
@@ -59,6 +81,9 @@
                 </button>
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item command="export">
+                      导出为ZIP
+                    </el-dropdown-item>
                     <el-dropdown-item command="publish" :disabled="project.status === 'published'">
                       一键发布
                     </el-dropdown-item>
@@ -151,6 +176,12 @@
           <el-button type="primary" @click="confirmPublish">确认发布</el-button>
         </template>
       </CenteredModalCard>
+
+      <!-- 数据迁移对话框 -->
+      <MigrationDialog
+        v-model="showMigrationDialog"
+        @migration-complete="handleMigrationComplete"
+      />
     </div>
   </WriterPageShell>
 </template>
@@ -160,11 +191,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import { useWriterStore } from '@/stores/writer'
+// 使用后端 API 的 writerStore，而不是 IndexedDB 的旧 store
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { ElMessage } from 'element-plus'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import WriterSurfaceCard from '@/modules/writer/components/WriterSurfaceCard.vue'
 import CenteredModalCard from '@/modules/writer/components/CenteredModalCard.vue'
+import MigrationDialog from '@/modules/writer/components/MigrationDialog.vue'
+import { hasLocalDataToMigrate } from '@/utils/migration'
 
 const router = useRouter()
 const writerStore = useWriterStore()
@@ -178,6 +212,10 @@ const newProject = ref({
 })
 const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
+
+// 迁移相关状态
+const showMigrationDialog = ref(false)
+const hasLocalData = ref(false)
 
 // Computed
 const projectList = computed<any[]>(() => {
@@ -236,7 +274,9 @@ const handleCreate = async () => {
 }
 
 const handleCommand = async (command: string, project: any) => {
-  if (command === 'publish') {
+  if (command === 'export') {
+    await handleExport(project)
+  } else if (command === 'publish') {
     await handlePublish(project)
   } else if (command === 'edit') {
     // TODO: 实现编辑功能
@@ -255,6 +295,50 @@ const handleCommand = async (command: string, project: any) => {
         message.error('删除失败：' + (error.message || '未知错误'))
       }
     }
+  }
+}
+
+// 导出项目
+const handleExport = async (project: any) => {
+  const projectId = project.projectId || project.id
+  if (!projectId) {
+    message.error('项目ID无效，无法导出')
+    return
+  }
+
+  try {
+    message.info('正在导出项目...')
+    const { exportProjectToZip } = await import('@/utils/exportImport')
+    await exportProjectToZip(projectId)
+    message.success('项目导出成功')
+  } catch (error: any) {
+    message.error('导出失败：' + (error.message || '未知错误'))
+  }
+}
+
+// 导入项目
+const handleImportProject = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // 清空 input 以允许重复选择同一文件
+  input.value = ''
+
+  try {
+    message.info('正在导入项目...')
+    const { importProjectFromZip } = await import('@/utils/exportImport')
+    const result = await importProjectFromZip(file)
+
+    if (result.success) {
+      message.success(`项目 "${result.title}" 导入成功，共 ${result.documentCount} 个文档`)
+      // 刷新项目列表
+      await writerStore.fetchProjects()
+    } else {
+      message.error(result.error || '导入失败')
+    }
+  } catch (error: any) {
+    message.error('导入失败：' + (error.message || '未知错误'))
   }
 }
 
@@ -302,10 +386,21 @@ const getStatusText = (status: string) => {
 
 const getStatusClass = (status: string) => `status-${status || 'draft'}`
 
+// 迁移完成处理
+const handleMigrationComplete = async () => {
+  hasLocalData.value = false
+  await writerStore.fetchProjects()
+  message.success('数据迁移完成，项目列表已刷新')
+}
+
 // Lifecycle
 onMounted(async () => {
   try {
     await writerStore.fetchProjects()
+
+    // 检查是否有本地数据需要迁移
+    const localDataStatus = await hasLocalDataToMigrate()
+    hasLocalData.value = localDataStatus.hasData
   } catch (error: any) {
     message.error('加载项目列表失败：' + (error.message || '未知错误'))
   }
