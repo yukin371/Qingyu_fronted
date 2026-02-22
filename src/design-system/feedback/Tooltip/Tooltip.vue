@@ -188,7 +188,8 @@ const arrowStyle = computed(() => {
     borderBottomColor: color,
     borderLeftColor: color,
     transform: `rotate(${rotation}deg) ${pos.transform}`,
-    ...pos,
+    top: pos.top,
+    left: pos.left,
   }
 })
 
