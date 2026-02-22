@@ -33,8 +33,8 @@ const bookstoreRoutes: RouteRecordRaw[] = [
           const routeTestFlag = to.query?.test
           const isTestMode =
             routeTestFlag === 'true' ||
-            routeTestFlag === true ||
-            (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true' || v === true))
+            String(routeTestFlag) === 'true' ||
+            (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => String(v) === 'true'))
           const isYunlanProject = String(to.params.id || '') === 'project-yljs-1'
           if (isTestMode && isYunlanProject) {
             return {

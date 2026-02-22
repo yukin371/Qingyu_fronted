@@ -30,6 +30,8 @@ const emit = defineEmits<{
 }>()
 
 // 图片加载状态
+import type { ImageStatus } from './types'
+
 const imageStatus = ref<ImageStatus>(props.src ? 'loading' : 'error')
 const currentSrc = ref(props.src)
 

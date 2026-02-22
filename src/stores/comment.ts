@@ -172,7 +172,7 @@ export const useCommentStore = defineStore('comment', () => {
 
   // 测试模式：点赞
   async function toggleLike(commentId: string) {
-    for (const [paragraphId, commentList] of comments.value.entries()) {
+    for (const [_paragraphId, commentList] of comments.value.entries()) {
       const comment = commentList.find(c => c.id === commentId)
       if (comment) {
         comment.likedByMe = !comment.likedByMe

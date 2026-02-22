@@ -3,10 +3,11 @@
  * 用于 TypeScript 修复验证 Demo
  */
 
-import type { Comment, ShelfBook, ParagraphComment, ParagraphCommentSummary } from '@/types/reader'
+import type { Comment, ParagraphComment, ParagraphCommentSummary } from '@/types/reader'
 import type { ReviewItem } from '@/modules/admin/types/admin.types'
 import type { Transaction, WalletBalance } from '@/modules/user/types/user.types'
 import type { Project } from '@/modules/writer/types/project'
+import { ProjectStatus, Visibility } from '@/modules/writer/types/project'
 
 // ==================== Reader 模块数据 ====================
 
@@ -630,10 +631,10 @@ export const projects: Project[] = [
     title: '异界猫娘日常',
     summary: '讲述一只猫娘在异世界的日常生活，轻松、治愈、又带着一点点冒险的故事。',
     coverUrl: '',
-    status: 'serializing',
+    status: ProjectStatus.SERIALIZING,
     category: '奇幻',
     tags: ['猫娘', '日常', '治愈', '轻小说'],
-    visibility: 'public',
+    visibility: Visibility.PUBLIC,
     statistics: {
       totalWords: 158000,
       chapterCount: 42,
@@ -656,10 +657,10 @@ export const projects: Project[] = [
     title: '赛博侦探社',
     summary: '在赛博朋克的世界里，一家不起眼的侦探社接手了一个改变世界的案件...',
     coverUrl: '',
-    status: 'draft',
+    status: ProjectStatus.DRAFT,
     category: '科幻',
     tags: ['赛博朋克', '悬疑', '侦探'],
-    visibility: 'private',
+    visibility: Visibility.PRIVATE,
     statistics: {
       totalWords: 45000,
       chapterCount: 8,
@@ -680,10 +681,10 @@ export const projects: Project[] = [
     title: '古剑传说',
     summary: '一把上古神剑，一位落魄少年，一段传奇的冒险之旅。',
     coverUrl: '',
-    status: 'completed',
+    status: ProjectStatus.COMPLETED,
     category: '武侠',
     tags: ['武侠', '冒险', '热血'],
-    visibility: 'public',
+    visibility: Visibility.PUBLIC,
     statistics: {
       totalWords: 520000,
       chapterCount: 156,

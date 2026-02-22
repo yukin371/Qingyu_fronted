@@ -97,9 +97,9 @@ const createMessageBox = (
 // MessageBox API
 export interface MessageBoxAPI {
   (options: MessageBoxOptions): Promise<MessageBoxResult>
-  alert: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
-  confirm: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
-  prompt: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
+  alert: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
+  confirm: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
+  prompt: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
 }
 
 // 创建 MessageBox 函数
@@ -111,7 +111,7 @@ const messageBox: MessageBoxAPI = (options: MessageBoxOptions) => {
 messageBox.alert = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options: Omit<MessageBoxOptions, 'message' | 'title'> = {}
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,
@@ -125,7 +125,7 @@ messageBox.alert = (
 messageBox.confirm = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options: Omit<MessageBoxOptions, 'message' | 'title'> = {}
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,
@@ -144,7 +144,7 @@ messageBox.confirm = (
 messageBox.prompt = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options: Omit<MessageBoxOptions, 'message' | 'title'> = {}
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,

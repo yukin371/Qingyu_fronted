@@ -15,7 +15,7 @@ export { default as notification, useNotification } from '../feedback/Notificati
 
 // 类型导出
 export type { MessageOptions, MessageType, MessageHandler } from '../feedback/Message/types'
-export type { MessageBoxOptions, MessageBoxType, MessageBoxAction, MessageBoxResult } from '../feedback/MessageBox/types'
+export type { MessageBoxOptions, MessageBoxType, MessageBoxIconType, MessageBoxAction, MessageBoxResult } from '../feedback/MessageBox/types'
 export type { NotificationOptions, NotificationType, NotificationPosition, NotificationHandler } from '../feedback/Notification/types'
 
 // Form 类型（从 element-plus 重新导出）

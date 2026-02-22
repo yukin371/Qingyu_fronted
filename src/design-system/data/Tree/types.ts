@@ -143,7 +143,10 @@ export interface TreeInstance {
 }
 
 // Tree 组件默认属性
-export const treeDefaults: Partial<TreeProps> = {
+export const treeDefaults: Partial<Omit<TreeProps, 'defaultCheckedKeys' | 'defaultExpandedKeys'>> & {
+  defaultCheckedKeys?: () => (string | number)[]
+  defaultExpandedKeys?: () => (string | number)[]
+} = {
   checkable: false,
   defaultExpandAll: false,
   highlightCurrent: false,

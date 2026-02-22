@@ -35,8 +35,8 @@ const props = withDefaults(defineProps<QyScrollbarProps>(), {
 })
 
 // 模板引用
-const scrollbarWrapper = ref<HTMLElement>()
-const scrollbarView = ref<HTMLElement>()
+const _scrollbarWrapper = ref<HTMLElement>()
+const _scrollbarView = ref<HTMLElement>()
 
 // 计算包装器类名
 const wrapperClasses = computed(() => {

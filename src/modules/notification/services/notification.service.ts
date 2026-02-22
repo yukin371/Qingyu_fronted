@@ -121,9 +121,9 @@ export class NotificationService {
   }
 
   /**
-   * 降级到轮询
+   * 降级到轮询（保留供将来使用）
    */
-  private fallbackToPolling(): void {
+  private _fallbackToPolling(): void {
     if (this.currentMode === 'websocket') {
       this.currentMode = 'polling'
 

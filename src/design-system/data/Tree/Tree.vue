@@ -153,8 +153,7 @@ const toggleExpand = (nodeState: TreeNodeState) => {
 const toggleCheck = (nodeState: TreeNodeState) => {
   if (nodeState.node.disabled || !props.checkable) return
 
-  const nodeId = nodeState.node.id || nodeState.node.label
-  const newChecked = !nodeState.checked.value
+  const newChecked = !nodeState.checked
 
   // 更新自身及所有子节点
   updateNodeCheckState(nodeState, newChecked)

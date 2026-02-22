@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+import { PriceTag } from '@element-plus/icons-vue'
 </script>
 
 <style scoped lang="scss">

@@ -269,7 +269,7 @@ const currentPreviewIndex = ref(props.initialIndex)
 const scale = ref(1)
 
 // 图片引用
-const imageRef = ref<HTMLImageElement>()
+const _imageRef = ref<HTMLImageElement>()
 
 // 实际显示的图片源
 const actualSrc = computed(() => {

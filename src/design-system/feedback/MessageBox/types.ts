@@ -5,6 +5,9 @@
 // MessageBox 类型
 export type MessageBoxType = 'alert' | 'confirm' | 'prompt'
 
+// MessageBox 图标类型（用于显示不同样式的图标）
+export type MessageBoxIconType = 'success' | 'warning' | 'info' | 'error'
+
 // MessageBox 动作
 export type MessageBoxAction = 'confirm' | 'cancel'
 
@@ -36,6 +39,8 @@ export interface MessageBoxOptions {
   message: string
   /** 对话框类型 */
   type?: MessageBoxType
+  /** 图标类型（用于显示不同样式的图标） */
+  iconType?: MessageBoxIconType
   /** 是否显示图标 */
   showIcon?: boolean
   /** 是否显示关闭按钮 */

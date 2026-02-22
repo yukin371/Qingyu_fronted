@@ -163,7 +163,7 @@ const selectAll = computed({
     return notifications.value.length > 0 &&
            selectedIds.value.length === notifications.value.length
   },
-  set: (value) => {
+  set: (_value) => {
     // 只用于显示，实际逻辑在 handleSelectAll
   }
 })

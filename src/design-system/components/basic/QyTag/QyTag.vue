@@ -61,7 +61,7 @@ const tagClasses = computed(() => {
     {
       'opacity-50 cursor-not-allowed pointer-events-none': props.disabled,
       'shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]':
-        props.effect === 'light' && props.type === 'default',
+        props.effect === 'light' && props.type === 'primary',
       'hover:shadow-lg': !props.disabled
     },
     props.class

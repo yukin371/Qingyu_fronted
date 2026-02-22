@@ -46,10 +46,10 @@ export interface CollapseItemProps {
 }
 
 // Collapse 组件默认属性
-export const collapseDefaults: Partial<CollapseProps> = {
-  modelValue: () => [],
+export const collapseDefaults = {
+  modelValue: (): (string | number)[] => [],
   accordion: false,
-}
+} as const
 
 // CollapseItem 组件默认属性
 export const collapseItemDefaults: Partial<CollapseItemProps> = {

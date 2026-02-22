@@ -8,18 +8,10 @@
  */
 
 import { getApi } from './generated/bookstore'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
+import type { APIResponse } from '@/types/api'
 import type {
-  Banner,
-  BookBrief,
   BookDetail,
-  BookStatistics,
   Category,
-  Chapter,
-  HomepageData,
-  RankingItem,
-  SearchFilter,
-  SearchResult,
 } from '@/modules/bookstore/types'
 
 // 获取生成的API对象
@@ -415,3 +407,71 @@ export const getUserBookRating = api.getApiV1BookstoreRatingsUserId
  * 可以传入自定义axios实例
  */
 export { getApi }
+
+/**
+ * 导出 bookstoreAPI 对象（兼容 index.ts 导出）
+ */
+export const bookstoreAPI = {
+  getBanners,
+  incrementBannerClick,
+  getBookList,
+  getBookDetail,
+  createBook,
+  updateBook,
+  deleteBook,
+  searchBooks,
+  searchByTitle,
+  searchByAuthor,
+  getBooksByStatus,
+  getBooksByTags,
+  getRecommendedBooks,
+  getFeaturedBooks,
+  getPopularBooks,
+  getLatestBooks,
+  getSimilarBooks,
+  incrementBookView,
+  getBookStatistics,
+  likeBook,
+  unlikeBook,
+  getBookRatingDistribution,
+  getBookReviews,
+  rateBook,
+  updateBookRating,
+  deleteBookRating,
+  getBookAverageRating,
+  getBookChapters,
+  getBookFirstChapter,
+  getBookLastChapter,
+  getBookFreeChapters,
+  getBookPaidChapters,
+  getBookPublishedChapters,
+  getBookChapterStatistics,
+  getBookTrialChapters,
+  getBookVipChapters,
+  getBooksByCategory,
+  getAllCategories,
+  getCategories,
+  getCategoryTree,
+  getCategoryDetail,
+  getBooksByCategoryWithPagination,
+  getChapterDetail,
+  getChapterContent,
+  getNextChapter,
+  getPreviousChapter,
+  getChapterPrice,
+  searchChapters,
+  createChapter,
+  updateChapter,
+  deleteChapter,
+  getChapterAccess,
+  getHomepage,
+  getRealtimeRanking,
+  getWeeklyRanking,
+  getMonthlyRanking,
+  getNewbieRanking,
+  getRankingByType,
+  getBookChapterByNumber,
+  getBookChapterById,
+  getUserBookRating,
+  getApi,
+}

@@ -205,7 +205,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getFirstChapter } from '@/modules/reader/api'
 import { message } from '@/design-system/services'
@@ -394,13 +393,6 @@ const handleSearch = async () => {
       query.page = currentPage.value
 
       router.push({ path: '/bookstore/search', query })
-
-      const params: any = {
-        keyword,
-        ...filters,
-        page: currentPage.value,
-        size: pageSize.value
-      }
 
       // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
       await bookstoreStore.searchBooks(keyword, filters)

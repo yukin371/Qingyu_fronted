@@ -168,10 +168,10 @@
                 <QyIcon :name="demo.icon" size="md" />
               </div>
               <div class="card-badges">
-                <QyBadge v-if="demo.new" type="status" text="NEW" color="cyan" />
-                <QyBadge v-if="demo.updated" type="status" text="UPDATED" color="blue" />
-                <QyBadge v-if="demo.business" type="status" text="业务页面" color="purple" />
-                <QyBadge v-else type="status" :text="getCategoryName(demo.category)" color="green" />
+                <QyBadge v-if="demo.new" type="text" text="NEW" color="primary" />
+                <QyBadge v-if="demo.updated" type="text" text="UPDATED" color="info" />
+                <QyBadge v-if="demo.business" type="text" text="业务页面" color="warning" />
+                <QyBadge v-else type="text" :text="getCategoryName(demo.category)" color="success" />
               </div>
             </div>
             <div class="card-body">

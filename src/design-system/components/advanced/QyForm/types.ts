@@ -32,11 +32,6 @@ export interface QyFormProps {
    * @default 'top'
    */
   labelPosition?: QyFormLabelPosition
-
-  /**
-   * 表单项标签宽度
-   */
-  labelWidth?: string
 }
 
 // QyForm Events 接口

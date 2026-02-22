@@ -250,7 +250,6 @@ import {
 import {
   getNotifications,
   getUnreadCount,
-  getNotificationStats,
   markAsRead,
   markMultipleAsRead,
   markAllAsRead,

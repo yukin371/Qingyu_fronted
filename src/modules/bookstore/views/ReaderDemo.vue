@@ -69,7 +69,7 @@ const chapterIndex = ref(0)
 const pageIndex = ref(0)
 const fontSize = ref(18)
 const theme = ref<'light' | 'sepia' | 'dark'>('light')
-const readerRef = ref<HTMLElement | null>(null)
+const _readerRef = ref<HTMLElement | null>(null)
 
 const currentChapter = computed(() => chapters[chapterIndex.value])
 

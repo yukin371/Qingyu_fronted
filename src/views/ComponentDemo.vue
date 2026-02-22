@@ -141,7 +141,7 @@
               <div class="space-y-2">
                 <QyCheckbox v-model="checkboxValues.a">选项 A</QyCheckbox>
                 <QyCheckbox v-model="checkboxValues.b">选项 B</QyCheckbox>
-                <QyCheckbox disabled>禁用选项</QyCheckbox>
+                <QyCheckbox :model-value="false" disabled>禁用选项</QyCheckbox>
               </div>
             </div>
             <div>
@@ -166,7 +166,7 @@
                   <span class="text-sm">开关 B</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QySwitch disabled />
+                  <QySwitch :model-value="false" disabled />
                   <span class="text-sm text-slate-400">禁用</span>
                 </div>
               </div>
@@ -236,17 +236,17 @@
                 <div class="relative inline-block">
                   <QyButton size="sm">消息</QyButton>
                   <div class="absolute -top-2 -right-2">
-                    <QyBadge type="count" :value="5" color="primary" />
+                    <QyBadge type="number" :value="5" color="primary" />
                   </div>
                 </div>
                 <div class="relative inline-block">
                   <QyButton size="sm">通知</QyButton>
                   <div class="absolute -top-2 -right-2">
-                    <QyBadge type="count" :value="99" color="danger" />
+                    <QyBadge type="number" :value="99" color="danger" />
                   </div>
                 </div>
-                <QyBadge type="status" text="NEW" color="success" />
-                <QyBadge type="status" text="HOT" color="danger" />
+                <QyBadge type="text" text="NEW" color="success" />
+                <QyBadge type="text" text="HOT" color="danger" />
                 <QyBadge type="dot" color="info" />
               </div>
             </div>
@@ -312,7 +312,7 @@
             <QyButton @click="openDrawer('bottom')">从底部打开</QyButton>
           </div>
 
-          <QyDrawer v-model:visible="drawerVisible" :placement="drawerPlacement" title="抽屉标题">
+          <QyDrawer v-model="drawerVisible" :direction="drawerPlacement" title="抽屉标题">
             <p class="text-slate-600">这是抽屉内容，可以从 {{ drawerPlacement }} 方向打开。</p>
           </QyDrawer>
         </QyCard>

@@ -97,7 +97,7 @@
           </QyCard>
 
           <!-- Card without Shadow -->
-          <QyCard :shadow="false">
+          <QyCard shadow="never">
             <h3 class="text-xl font-bold text-slate-800 mb-2">No Shadow</h3>
             <p class="text-slate-600">This card has shadow disabled.</p>
           </QyCard>
@@ -160,7 +160,7 @@
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Textarea</h3>
               <div class="max-w-md">
-                <QyInput
+                <el-input
                   v-model="textareaInput"
                   type="textarea"
                   placeholder="Write a message..."
@@ -210,24 +210,24 @@
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Count Badges</h3>
               <div class="flex flex-wrap items-center gap-6">
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="5" color="cyan" />
-                  <span class="text-sm text-slate-600">Cyan (5)</span>
+                  <QyBadge type="number" :value="5" color="primary" />
+                  <span class="text-sm text-slate-600">Primary (5)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="10" color="blue" />
-                  <span class="text-sm text-slate-600">Blue (10)</span>
+                  <QyBadge type="number" :value="10" color="info" />
+                  <span class="text-sm text-slate-600">Info (10)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="3" color="green" />
-                  <span class="text-sm text-slate-600">Green (3)</span>
+                  <QyBadge type="number" :value="3" color="success" />
+                  <span class="text-sm text-slate-600">Success (3)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="150" :max="99" color="red" />
-                  <span class="text-sm text-slate-600">Red (150+)</span>
+                  <QyBadge type="number" :value="150" :max="99" color="danger" />
+                  <span class="text-sm text-slate-600">Danger (150+)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="7" color="yellow" />
-                  <span class="text-sm text-slate-600">Yellow (7)</span>
+                  <QyBadge type="number" :value="7" color="warning" />
+                  <span class="text-sm text-slate-600">Warning (7)</span>
                 </div>
               </div>
             </div>
@@ -236,12 +236,12 @@
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Status Badges</h3>
               <div class="flex flex-wrap gap-4">
-                <QyBadge type="status" text="Active" color="green" />
-                <QyBadge type="status" text="Pending" color="yellow" />
-                <QyBadge type="status" text="Inactive" color="red" />
-                <QyBadge type="status" text="Processing" color="blue" />
-                <QyBadge type="status" text="New" color="cyan" />
-                <QyBadge type="status" color="purple">
+                <QyBadge type="text" text="Active" color="success" />
+                <QyBadge type="text" text="Pending" color="warning" />
+                <QyBadge type="text" text="Inactive" color="danger" />
+                <QyBadge type="text" text="Processing" color="info" />
+                <QyBadge type="text" text="New" color="primary" />
+                <QyBadge type="text" color="primary">
                   Custom
                 </QyBadge>
               </div>

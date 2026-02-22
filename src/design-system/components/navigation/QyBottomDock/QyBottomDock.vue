@@ -57,7 +57,7 @@ const containerClasses = computed(() => {
 })
 
 // Dock container classes
-const dockContainerClasses = computed(() => {
+const _dockContainerClasses = computed(() => {
   return [
     'dock-container',
     // Base styles

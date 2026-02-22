@@ -25,14 +25,14 @@ class BookstoreService {
    */
   async getHomepageData(): Promise<HomepageData> {
     // TODO: Add caching later
-    return await bookstoreAPI.getHomepage()
+    return await bookstoreAPI.getHomepage() as unknown as HomepageData
   }
 
   /**
    * Get ranking by type
    */
   async getRanking(type: RankingType, period?: string, limit?: number): Promise<RankingItem[]> {
-    return await bookstoreAPI.getRankingByType(type, period, limit)
+    return await bookstoreAPI.getRankingByType(type, period, limit) as unknown as RankingItem[]
   }
 
   /**
@@ -65,7 +65,7 @@ class BookstoreService {
       console.error('Failed to increment view count:', err)
     )
 
-    return book
+    return book as unknown as Book
   }
 
   /**
@@ -127,7 +127,6 @@ class BookstoreService {
       total,
       page,
       size,
-      hasMore: page * size < total
     }
   }
 
@@ -135,14 +134,14 @@ class BookstoreService {
    * Get recommended books
    */
   async getRecommendedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return await bookstoreAPI.getRecommendedBooks(page, size)
+    return await bookstoreAPI.getRecommendedBooks(page, size) as unknown as BookBrief[]
   }
 
   /**
    * Get featured books
    */
   async getFeaturedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return await bookstoreAPI.getFeaturedBooks(page, size)
+    return await bookstoreAPI.getFeaturedBooks(page, size) as unknown as BookBrief[]
   }
 
   /**
@@ -153,7 +152,7 @@ class BookstoreService {
     page: number = 1,
     size: number = 20
   ): Promise<SearchResult> {
-    return await bookstoreAPI.getBooksByCategory(categoryId, { page, pageSize: size })
+    return await bookstoreAPI.getBooksByCategoryWithPagination(categoryId, { page, size }) as unknown as SearchResult
   }
 
   /**
@@ -169,14 +168,14 @@ class BookstoreService {
    * Get category tree
    */
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    return await bookstoreAPI.getCategoryTree()
+    return await bookstoreAPI.getCategoryTree() as unknown as CategoryTreeNode[]
   }
 
   /**
    * Get banners
    */
   async getBanners(limit: number = 5): Promise<Banner[]> {
-    return await bookstoreAPI.getBanners(limit)
+    return await bookstoreAPI.getBanners(limit) as unknown as Banner[]
   }
 
   /**

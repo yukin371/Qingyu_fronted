@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<QyRadioProps>(), {
 const emit = defineEmits<QyRadioEmits>()
 
 // 注入组上下文
-const groupContext = inject<QyRadioGroupContext>(RADIO_GROUP_KEY, undefined)
+const groupContext = inject<QyRadioGroupContext | undefined>(RADIO_GROUP_KEY, undefined)
 
 // 是否在组中
 const isInGroup = computed(() => groupContext !== undefined)

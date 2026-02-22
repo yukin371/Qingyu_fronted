@@ -114,9 +114,9 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/modules/shared/api/auth')
-      const response = await userAPI.getProfile()
-      userInfo.value = response
+      const { sharedAuthAPI } = await import('@/modules/shared/api/auth')
+      const response = await sharedAuthAPI.getProfile()
+      userInfo.value = response as any
       return response
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -152,9 +152,9 @@ export const useUserStore = defineStore('user', () => {
   async function updateProfile(data: any) {
     try {
       isLoading.value = true
-      const { userAPI } = await import('@/modules/shared/api/auth')
-      const response = await userAPI.updateProfile(data)
-      updateUserInfo(response)
+      const { sharedAuthAPI } = await import('@/modules/shared/api/auth')
+      const response = await sharedAuthAPI.updateProfile(data)
+      updateUserInfo(response as any)
       return response
     } catch (error) {
       console.error('更新资料失败:', error)

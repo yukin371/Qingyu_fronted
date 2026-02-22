@@ -60,7 +60,7 @@ export const reviewContent = reviewAudit
  * @deprecated 提现功能已移至 finance 模块
  * 请使用: import { getAuthorWithdrawals, getWalletWithdrawals } from '@/modules/finance/api'
  */
-export const getWithdrawalList = (...args: any[]) => {
+export const getWithdrawalList = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] getWithdrawalList 已移至 finance 模块。' +
     '请使用:\n' +
@@ -74,7 +74,7 @@ export const getWithdrawalList = (...args: any[]) => {
  * @deprecated 请使用 reviewWithdrawRequest 代替
  * 提现功能已移至 finance 模块
  */
-export const handleWithdrawal = (...args: any[]) => {
+export const handleWithdrawal = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] handleWithdrawal 已移至 finance 模块。\n' +
     '请使用:\n' +
@@ -109,9 +109,19 @@ export async function getUserList(params?: {
 /**
  * 更新用户信息
  * 兼容旧API: updateUser(id, params)
+ * 注意：后端暂不支持完整的用户更新，请使用 updateUserStatus 或 assignRole
  */
 export async function updateUser(id: string, params: Partial<UserManagementItem>): Promise<APIResponse<void>> {
-  return api.putApiV1AdminUsersId(id, params as any) as any
+  // 如果只更新状态，使用状态更新接口
+  if (params.status && Object.keys(params).length === 1) {
+    return api.putApiV1AdminUsersIdStatus(id, { status: params.status } as any) as any
+  }
+  // 如果只更新角色，使用角色分配接口
+  if (params.roles && Object.keys(params).length === 1) {
+    return api.putApiV1AdminUsersIdRole(id, { role: params.roles[0] } as any) as any
+  }
+  // 其他情况暂不支持，抛出错误
+  throw new Error('updateUser: 当前仅支持更新 status 或 roles 单个字段，请使用 updateUserStatus 或 assignRole')
 }
 
 /**
@@ -119,7 +129,7 @@ export async function updateUser(id: string, params: Partial<UserManagementItem>
  * 兼容旧API: deleteUser(id)
  */
 export async function deleteUser(id: string): Promise<APIResponse<void>> {
-  return api.deleteApiV1AdminUsersId(id)
+  return api.deleteApiV1AdminUsersId(id) as any
 }
 
 /**
@@ -493,7 +503,7 @@ export const deletePermission = api.deleteApiV1AdminPermissionsCode
  * @deprecated 请使用具体的批量更新API
  * 例如：batchUpdateAnnouncementStatus, batchUpdateBannerStatus 等
  */
-export const batchUpdateStatus = (...args: any[]) => {
+export const batchUpdateStatus = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] batchUpdateStatus 已被移除。\n' +
     '请使用具体的批量更新API：\n' +
@@ -508,7 +518,7 @@ export const batchUpdateStatus = (...args: any[]) => {
  * @deprecated 请使用具体的批量删除API
  * 例如：batchDeleteUsers, batchDeleteAnnouncements 等
  */
-export const batchDelete = (...args: any[]) => {
+export const batchDelete = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] batchDelete 已被移除。\n' +
     '请使用具体的批量删除API：\n' +

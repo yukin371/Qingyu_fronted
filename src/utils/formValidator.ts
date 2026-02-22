@@ -139,7 +139,7 @@ export class FormValidator {
           return this.validatePattern(value, ruleValue, message)
 
         case 'custom':
-          return this.validateCustom(value, validator, message)
+          return this.validateCustom(value, validator!, message)
 
         default:
           return { valid: true }

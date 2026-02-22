@@ -37,7 +37,7 @@ const isDropdownVisible = ref(false)
 const searchText = ref('')
 const selectRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
-const dropdownRef = ref<HTMLElement>()
+const _dropdownRef = ref<HTMLElement>()
 const highlightedIndex = ref(-1)
 
 // 过滤后的选项

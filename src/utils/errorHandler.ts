@@ -365,20 +365,17 @@ export class ErrorHandler {
    * 显示错误消息
    */
   private static showError(appError: AppError, type: 'message' | 'notification') {
-    const message = this.getErrorMessage(appError)
+    const errorMessage = this.getErrorMessage(appError)
     const title = appError.errorInfo?.title || '错误'
 
     if (type === 'notification') {
       notification.error({
         title,
-        message,
+        message: errorMessage,
         duration: 4000
       })
     } else {
-      message.error({
-        message,
-        duration: 3000
-      })
+      message.error(errorMessage)
     }
   }
 

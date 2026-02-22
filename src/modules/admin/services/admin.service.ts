@@ -9,7 +9,7 @@ import type {
   ReviewItem,
   WithdrawalRequest
 } from '../types/admin.types'
-import type { APIResponse } from '@/types/api'
+import type { APIResponse as _APIResponse } from '@/types/api'
 
 class AdminService {
   /**
@@ -24,7 +24,7 @@ class AdminService {
    * Get pending reviews
    */
   async getPendingReviews(page: number = 1, size: number = 20): Promise<ReviewItem[]> {
-    const response = await adminAPI.getReviewList({ status: 'pending', page, pageSize: size })
+    const response = await adminAPI.getReviewList({ page, pageSize: size })
     return (response.data as any)?.items || response.data || []
   }
 
@@ -32,7 +32,7 @@ class AdminService {
    * Approve review
    */
   async approveReview(reviewId: string, feedback?: string): Promise<void> {
-    await adminAPI.reviewContent(reviewId, { status: 'approved', reason: feedback })
+    await adminAPI.reviewContent(reviewId, { approved: true, reason: feedback })
   }
 
   /**
@@ -42,32 +42,33 @@ class AdminService {
     if (!reason || reason.trim().length < 5) {
       throw new Error('拒绝原因至少需要5个字符')
     }
-    await adminAPI.reviewContent(reviewId, { status: 'rejected', reason })
+    await adminAPI.reviewContent(reviewId, { approved: false, reason })
   }
 
   /**
    * Get pending withdrawals
+   * @deprecated 请使用 finance 模块的相关方法
    */
   async getPendingWithdrawals(): Promise<WithdrawalRequest[]> {
-    const response = await adminAPI.getWithdrawalList({ status: 'pending' })
-    return (response.data as any)?.items || response.data || []
+    // 此方法已废弃，返回空数组
+    console.warn('getPendingWithdrawals is deprecated. Use finance module instead.')
+    return []
   }
 
   /**
    * Approve withdrawal
+   * @deprecated 请使用 finance 模块的相关方法
    */
-  async approveWithdrawal(withdrawalId: string): Promise<void> {
-    await adminAPI.reviewWithdraw(withdrawalId, { status: 'approved' })
+  async approveWithdrawal(_withdrawalId: string): Promise<void> {
+    throw new Error('approveWithdrawal is deprecated. Use finance module instead.')
   }
 
   /**
    * Reject withdrawal
+   * @deprecated 请使用 finance 模块的相关方法
    */
-  async rejectWithdrawal(withdrawalId: string, reason: string): Promise<void> {
-    if (!reason || reason.trim().length < 5) {
-      throw new Error('拒绝原因至少需要5个字符')
-    }
-    await adminAPI.reviewWithdraw(withdrawalId, { status: 'rejected', reason })
+  async rejectWithdrawal(_withdrawalId: string, _reason: string): Promise<void> {
+    throw new Error('rejectWithdrawal is deprecated. Use finance module instead.')
   }
 
   /**
