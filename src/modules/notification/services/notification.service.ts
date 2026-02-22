@@ -122,8 +122,10 @@ export class NotificationService {
 
   /**
    * 降级到轮询（保留供将来使用）
+   * @deprecated 使用 initializePolling 代替
    */
   private _fallbackToPolling(): void {
+    void this // 保持方法签名，供将来使用
     if (this.currentMode === 'websocket') {
       this.currentMode = 'polling'
 

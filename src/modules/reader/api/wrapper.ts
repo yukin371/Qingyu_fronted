@@ -144,7 +144,7 @@ export const purchaseChapter = api.postApiV1ReaderChaptersIdPurchase
  * 兼容旧API: getChapterContent(bookId, chapterId)
  */
 export async function getChapterContent(
-  bookId: string,
+  _bookId: string,
   chapterId: string
 ): Promise<APIResponse<ChapterContent>> {
   // 使用bookstore的公开API获取章节内容
@@ -161,8 +161,7 @@ export async function getChapterByNumber(
 ): Promise<APIResponse<Chapter>> {
   return api.getApiV1ReaderBooksBookIdChaptersByNumberChapterNum(
     bookId,
-    String(chapterNum),
-    {} as any
+    chapterNum
   ) as any
 }
 
@@ -373,7 +372,7 @@ export const addToBookshelf = addBookToShelf
  * 获取第一章
  */
 export async function getFirstChapter(bookId: string): Promise<any> {
-  return api.getApiV1ReaderBooksBookIdChaptersFirst(bookId) as any
+  return api.getApiV1BookstoreBooksIdChaptersFirst(bookId) as any
 }
 
 // ==================== 阅读设置相关 API ====================

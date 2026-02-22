@@ -47,7 +47,7 @@ class UserService {
       throw new Error(validation.message)
     }
 
-    await userAPI.changePassword({ old_password: oldPassword, new_password: newPassword })
+    await userAPI.changePassword(oldPassword, newPassword)
   }
 
   /**

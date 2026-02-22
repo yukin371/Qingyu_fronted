@@ -3,7 +3,7 @@
  * 用于 TypeScript 修复验证 Demo
  */
 
-import type { Comment, ParagraphComment, ParagraphCommentSummary } from '@/types/reader'
+import type { Comment, ParagraphComment, ParagraphCommentSummary, ShelfBook } from '../../types/reader'
 import type { ReviewItem } from '@/modules/admin/types/admin.types'
 import type { Transaction, WalletBalance } from '@/modules/user/types/user.types'
 import type { Project } from '@/modules/writer/types/project'

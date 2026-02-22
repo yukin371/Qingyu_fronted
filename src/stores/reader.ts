@@ -204,7 +204,7 @@ export const useReaderStore = defineStore('reader', () => {
       }
 
       // 生产模式：调用真实API
-      const response = await readerAPI.getChapterList({ bookId, page: 1, pageSize: 1000 })
+      const response = await readerAPI.getBookChapters(bookId)
       const list = Array.isArray(response)
         ? response
         : (response as any)?.data?.chapters || (response as any)?.chapters || []

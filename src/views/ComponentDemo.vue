@@ -306,10 +306,10 @@
             <h3 class="text-xl font-bold text-slate-800">QyDrawer 抽屉</h3>
           </template>
           <div class="flex flex-wrap gap-3">
-            <QyButton @click="openDrawer('right')">从右侧打开</QyButton>
-            <QyButton @click="openDrawer('left')">从左侧打开</QyButton>
-            <QyButton @click="openDrawer('top')">从顶部打开</QyButton>
-            <QyButton @click="openDrawer('bottom')">从底部打开</QyButton>
+            <QyButton @click="openDrawer('rtl')">从右侧打开</QyButton>
+            <QyButton @click="openDrawer('ltr')">从左侧打开</QyButton>
+            <QyButton @click="openDrawer('ttb')">从顶部打开</QyButton>
+            <QyButton @click="openDrawer('btt')">从底部打开</QyButton>
           </div>
 
           <QyDrawer v-model="drawerVisible" :direction="drawerPlacement" title="抽屉标题">
@@ -349,34 +349,22 @@
           </template>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <QyBookCard
-              :book="{
-                id: '1',
-                title: '青羽传说',
-                author: '张三',
-                cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop',
-                description: '一部奇幻冒险小说，讲述少年在青羽大陆的冒险故事。',
-                tags: ['奇幻', '冒险'],
-                status: '连载中',
-                category: '玄幻',
-                wordCount: 120000,
-                chapterCount: 156,
-                rating: 4.5
-              }"
+              title="青羽传说"
+              author="张三"
+              cover="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop"
+              description="一部奇幻冒险小说，讲述少年在青羽大陆的冒险故事。"
+              :tags="['奇幻', '冒险']"
+              status="reading"
+              :rating="4.5"
             />
             <QyBookCard
-              :book="{
-                id: '2',
-                title: '星际漫游',
-                author: '李四',
-                cover: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=400&fit=crop',
-                description: '科幻小说，描述人类在宇宙中的探索之旅。',
-                tags: ['科幻', '太空'],
-                status: '已完结',
-                category: '科幻',
-                wordCount: 350000,
-                chapterCount: 420,
-                rating: 4.8
-              }"
+              title="星际漫游"
+              author="李四"
+              cover="https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=400&fit=crop"
+              description="科幻小说，描述人类在宇宙中的探索之旅。"
+              :tags="['科幻', '太空']"
+              status="completed"
+              :rating="4.8"
             />
           </div>
         </QyCard>
@@ -388,32 +376,20 @@
           </template>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
             <QyUserCard
-              :user="{
-                id: '1',
-                username: '青羽创作者',
-                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-                bio: '热爱写作，专注于奇幻小说创作',
-                level: 5,
-                followers: 1250,
-                following: 86,
-                works: 12,
-                isFollowing: false,
-                isVerified: true
-              }"
+              username="青羽创作者"
+              avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+              bio="热爱写作，专注于奇幻小说创作"
+              :level="5"
+              :followerCount="1250"
+              :followingCount="86"
             />
             <QyUserCard
-              :user="{
-                id: '2',
-                username: '读者小王',
-                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-                bio: '热爱阅读的书虫',
-                level: 3,
-                followers: 56,
-                following: 234,
-                works: 0,
-                isFollowing: true,
-                isVerified: false
-              }"
+              username="读者小王"
+              avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka"
+              bio="热爱阅读的书虫"
+              :level="3"
+              :followerCount="56"
+              :followingCount="234"
             />
           </div>
         </QyCard>
@@ -448,8 +424,8 @@
               <p class="text-sm text-slate-600 mb-3 font-medium">底部标签栏</p>
               <div class="bg-slate-50 rounded-lg p-4">
                 <QyTabBar
-                  :items="tabItems"
-                  v-model:active-key="activeTabKey"
+                  :tabs="tabItems"
+                  v-model="activeTabKey"
                 />
               </div>
             </div>
@@ -584,7 +560,20 @@ const selectOptions = [
 ]
 
 // Tooltip 配置
-const tooltipPlacements = [
+const tooltipPlacements: readonly (
+  | 'top'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end'
+)[] = [
   'top',
   'top-start',
   'top-end',
@@ -601,9 +590,9 @@ const tooltipPlacements = [
 
 // Drawer 配置
 const drawerVisible = ref(false)
-const drawerPlacement = ref<'top' | 'bottom' | 'left' | 'right'>('right')
+const drawerPlacement = ref<'rtl' | 'ltr' | 'ttb' | 'btt'>('rtl')
 
-const openDrawer = (placement: 'top' | 'bottom' | 'left' | 'right') => {
+const openDrawer = (placement: 'rtl' | 'ltr' | 'ttb' | 'btt') => {
   drawerPlacement.value = placement
   drawerVisible.value = true
 }
@@ -616,7 +605,7 @@ const showMessage = (type: 'success' | 'warning' | 'error' | 'info') => {
     error: '操作失败！',
     info: '提示信息'
   }
-  message({
+  message.show({
     type,
     message: messages[type]
   })

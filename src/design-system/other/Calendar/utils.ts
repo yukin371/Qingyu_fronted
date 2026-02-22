@@ -195,7 +195,7 @@ export function generateMonthView(
   showWeekNumbers?: boolean
 ): MonthView {
   const firstDay = createDate(year, month, 1)
-  const lastDay = getLastDayOfMonth(firstDay)
+  void getLastDayOfMonth(firstDay)
   const daysInMonth = getDaysInMonth(firstDay)
   
   // 计算需要显示的日期范围
@@ -235,14 +235,14 @@ export function generateMonthView(
     // 检查范围选择状态
     const isRangeStart = startDate ? isSameDay(currentDate, startDate) : false
     const isRangeEnd = endDate ? isSameDay(currentDate, endDate) : false
-    const inRange = startDate && endDate && isBetween(currentDate, startDate, endDate)
+    const inRange = !!(startDate && endDate && isBetween(currentDate, startDate, endDate))
     
     week.push({
       date: cloneDate(currentDate),
       isCurrentMonth,
       isSelected,
       isToday: isTodayValue,
-      isDisabled,
+      isDisabled: !!isDisabled,
       isRangeStart,
       isRangeEnd,
       inRange,

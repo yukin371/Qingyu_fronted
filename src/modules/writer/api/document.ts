@@ -1,11 +1,9 @@
 import httpService from '@/core/services/http.service'
 import type {
   Document,
-  DocumentContent,
   CreateDocumentRequest,
   UpdateDocumentMetaRequest,
   CreateDocumentResponse, // 假设你需要后端返回的新ID等
-  DocumentTreeResponse, // 假设后端返回 { tree: Document[] } 或直接 Document[]
 } from '../types/document'
 
 // 为了处理移动和排序，我们需要定义额外的请求接口
@@ -32,7 +30,6 @@ export interface DuplicateDocumentResponse {
   stableRef: string
 }
 
-const BASE_PROJECT_URL = '/writer/projects'
 const BASE_DOC_URL = '/writer/documents'
 // 文档操作使用单数 project 路径（后端路由定义）
 const BASE_PROJECT_DOC_URL = '/writer/project'

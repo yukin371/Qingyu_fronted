@@ -270,7 +270,7 @@ export const transferPanelDefaults: Partial<TransferPanelProps> = {
   filterable: false,
   filterPlaceholder: '请输入搜索内容',
   format: '{label}',
-  props: {
+  itemProps: {
     key: 'key',
     label: 'label',
     disabled: 'disabled',

@@ -45,10 +45,10 @@ export const useUserStore = defineStore('user', () => {
 
       token.value = responseToken
 
-      // 适配后端返回的用户数据：roles数组 -> role字符串
+      // 适配后端返回的用户数据
       const adaptedUser: UserInfo = {
         ...user,
-        role: user.roles?.[0] || 'user' // 取第一个角色作为主角色
+        role: user.role || 'user' // 使用后端返回的role或默认值
       }
 
       userInfo.value = adaptedUser
@@ -115,9 +115,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       isLoading.value = true
       const { sharedAuthAPI } = await import('@/modules/shared/api/auth')
-      const response = await sharedAuthAPI.getProfile()
-      userInfo.value = response as any
-      return response
+      const response = await sharedAuthAPI.getUserInfo()
+      userInfo.value = response.user as any
+      return response.user
     } catch (error) {
       console.error('获取用户信息失败:', error)
       // 如果token失效，清除登录状态
@@ -153,9 +153,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       isLoading.value = true
       const { sharedAuthAPI } = await import('@/modules/shared/api/auth')
-      const response = await sharedAuthAPI.updateProfile(data)
-      updateUserInfo(response as any)
-      return response
+      const response = await sharedAuthAPI.updateUserInfo(data)
+      updateUserInfo(response.user as any)
+      return response.user
     } catch (error) {
       console.error('更新资料失败:', error)
       throw error

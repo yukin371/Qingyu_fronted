@@ -8,9 +8,7 @@ import { createApp, h, reactive, type App } from 'vue'
 import MessageBoxComponent from './MessageBox.vue'
 import type {
   MessageBoxOptions,
-  MessageBoxType,
   MessageBoxAction,
-  MessageBoxHandler,
   MessageBoxResult,
 } from './types'
 
