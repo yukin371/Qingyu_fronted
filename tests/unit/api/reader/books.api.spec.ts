@@ -267,6 +267,36 @@ describe('bookshelfAPI', () => {
     })
   })
 
+  describe('checkBookStatus', () => {
+    // B-012: 检查书籍状态-已加入
+    it('应该返回书籍已在书架的状态', async () => {
+      const mockResponse = {
+        code: 0,
+        data: { isInShelf: true, status: 'reading' },
+      }
+      vi.mocked(httpService.get).mockResolvedValue(mockResponse)
+
+      const result = await bookshelfAPI.checkBookStatus('book-1')
+
+      expect(httpService.get).toHaveBeenCalledWith('/reader/books/book-1/status')
+      expect(result.data.isInShelf).toBe(true)
+    })
+
+    // B-013: 检查书籍状态-未加入
+    it('应该返回书籍不在书架的状态', async () => {
+      const mockResponse = {
+        code: 0,
+        data: { isInShelf: false },
+      }
+      vi.mocked(httpService.get).mockResolvedValue(mockResponse)
+
+      const result = await bookshelfAPI.checkBookStatus('book-999')
+
+      expect(httpService.get).toHaveBeenCalledWith('/reader/books/book-999/status')
+      expect(result.data.isInShelf).toBe(false)
+    })
+  })
+
   describe('错误处理', () => {
     // B-004: 添加到书架-重复添加
     it('应该正确处理重复添加书籍的错误', async () => {
