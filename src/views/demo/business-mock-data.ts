@@ -9,11 +9,13 @@
 import {
   getBookCoverUrl,
   getUserAvatarUrl,
-  getBannerUrl,
   BOOK_COVERS,
   USER_AVATARS,
   BANNER_IMAGES,
 } from './mock-images'
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { getBannerUrl } from './mock-images'
 
 // ==================== 类型定义 ====================
 

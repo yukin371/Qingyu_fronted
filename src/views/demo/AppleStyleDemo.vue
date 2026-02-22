@@ -57,7 +57,9 @@ const generateRandomShapes = (count: number): DecorativeShape[] => {
 }
 
 const card1Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 1 : 3))
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const card2Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 2 : 4))
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const card3Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 1 : 3))
 
 // -----------------------------

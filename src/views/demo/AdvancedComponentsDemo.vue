@@ -520,6 +520,7 @@ const modalWithForm = ref(false)
 
 // Watch modalWidth changes
 const widthMap = { sm: '400px', md: '500px', lg: '600px' }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleWidthChange = (size: 'sm' | 'md' | 'lg') => {
   modalWidth.value = size
   modalWidthValue.value = widthMap[size]

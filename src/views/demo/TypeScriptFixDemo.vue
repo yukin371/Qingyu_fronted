@@ -485,9 +485,9 @@
                     <div>
                       <h5 class="text-sm font-medium text-slate-600 mb-2">不同尺寸</h5>
                       <div class="flex flex-wrap gap-2 items-center">
-                        <QyTag size="large">大尺寸</QyTag>
+                        <QyTag size="lg">大尺寸</QyTag>
                         <QyTag>默认尺寸</QyTag>
-                        <QyTag size="small">小尺寸</QyTag>
+                        <QyTag size="sm">小尺寸</QyTag>
                       </div>
                     </div>
                     <div>
@@ -532,8 +532,8 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ArrowRight, ChatDotRound, Star, Reading, Document, Files } from '@element-plus/icons-vue'
 import { QyTag } from '@/design-system/components'
-import { formatRelativeTime, formatReadingTime } from '@/utils/format'
-import type { Comment, ShelfBook } from '@/types/reader'
+import { formatRelativeTime, formatReadingTime } from '../../utils/format'
+import type { Comment, ShelfBook } from '../../types/reader'
 import type { ReviewItem } from '@/modules/admin/types/admin.types'
 import type { Transaction, WalletBalance } from '@/modules/user/types/user.types'
 import type { Project } from '@/modules/writer/types/project'
@@ -641,7 +641,7 @@ const currentDemoDescription = computed(() => {
 })
 
 const totalLikes = computed(() => {
-  return mockData.value.comments.reduce((sum, c) => sum + c.likeCount, 0)
+  return mockData.value.comments.reduce((sum: number, c) => sum + c.likeCount, 0)
 })
 
 const totalFixedItems = computed(() => {
