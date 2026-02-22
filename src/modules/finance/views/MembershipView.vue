@@ -36,7 +36,7 @@
                     <template v-else>
                       <span class="price">¥{{ plan.price }}</span>
                     </template>
-                    <span class="duration">/{{ plan.duration_unit }}</span>
+                    <span class="duration">/{{ plan.duration_unit || '月' }}</span>
                   </div>
                   <el-tag v-if="hasAuthorDiscount" type="warning" size="small" class="author-discount-tag">
                     作者优惠 {{ Math.round((1 - authorDiscountRate) * 100) }}%
@@ -172,7 +172,7 @@
           {{ selectedPlan?.name }}
         </el-descriptions-item>
         <el-descriptions-item label="价格">
-          ¥{{ selectedPlan?.price }} / {{ selectedPlan?.duration_unit }}
+          ¥{{ selectedPlan?.price }} / {{ selectedPlan?.duration_unit || '月' }}
         </el-descriptions-item>
       </el-descriptions>
 
@@ -231,22 +231,73 @@ import {
   cancelMembership,
   getMembershipBenefits,
   getMembershipBenefitsUsage,
-  activateMembershipCard,
-  type MembershipPlan,
-  type UserMembership,
-  type MembershipUsage
+  activateMembershipCard
 } from '@/modules/finance/api'
+
+// 定义本地类型，使用 duration_unit 字段
+interface LocalMembershipPlan {
+  id: string
+  name: string
+  type: string
+  price: number
+  duration: number
+  duration_unit: string
+  is_enabled?: boolean
+  sort_order?: number
+  description?: string
+  benefits?: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+// 本地 MembershipBenefit 类型
+interface LocalMembershipBenefit {
+  id: string
+  code: string
+  name: string
+  level?: string
+  description?: string
+  type?: string
+  value?: number
+  unit?: string
+  is_enabled?: boolean
+}
+
+// 本地 MembershipUsage 类型
+interface LocalMembershipUsage {
+  id: string
+  user_id: string
+  benefit_code: string
+  used_count: number
+  limit_count: number
+  reset_period?: string
+  last_reset_at?: string
+}
+
+// 从 membership.ts 导入 UserMembership 类型
+type UserMembership = {
+  id: string
+  user_id: string
+  plan_id: string
+  plan_name: string
+  status: 'active' | 'expired' | 'cancelled'
+  start_date: string
+  end_date: string
+  auto_renew: boolean
+  created_at: string
+  updated_at: string
+}
 import { validateAmount } from '@/utils/validation'
 
-const membershipPlans = ref<MembershipPlan[]>([])
+const membershipPlans = ref<LocalMembershipPlan[]>([])
 const userMembership = ref<UserMembership | null>(null)
-const benefitsUsage = ref<MembershipUsage[]>([])
+const benefitsUsage = ref<LocalMembershipUsage[]>([])
 const benefitsMap = ref<Record<string, string>>({})
 
 const subscribeDialogVisible = ref(false)
 const subscribeConfirmDialogVisible = ref(false)
 const cancelConfirmDialogVisible = ref(false)
-const selectedPlan = ref<MembershipPlan | null>(null)
+const selectedPlan = ref<LocalMembershipPlan | null>(null)
 const subscribeLoading = ref(false)
 const cancelLoading = ref(false)
 
@@ -261,7 +312,7 @@ const authStore = useAuthStore()
 const hasAuthorDiscount = computed(() => authStore.hasAuthorRole)
 const authorDiscountRate = computed(() => authStore.authorAIPackageDiscountRate)
 
-const getDiscountedPrice = (plan: MembershipPlan) => {
+const getDiscountedPrice = (plan: LocalMembershipPlan) => {
   const finalPrice = Number((plan.price * authorDiscountRate.value).toFixed(2))
   return finalPrice.toFixed(2)
 }
@@ -283,8 +334,8 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
     label: '价格',
     value: selectedPlan.value
       ? (hasAuthorDiscount.value
-        ? `¥${getDiscountedPrice(selectedPlan.value)}（原价¥${selectedPlan.value.price}）/ ${selectedPlan.value.duration_unit}`
-        : `¥${selectedPlan.value.price} / ${selectedPlan.value.duration_unit}`)
+        ? `¥${getDiscountedPrice(selectedPlan.value)}（原价¥${selectedPlan.value.price}）/ ${selectedPlan.value.duration_unit || '月'}`
+        : `¥${selectedPlan.value.price} / ${selectedPlan.value.duration_unit || '月'}`)
       : ''
   },
   {
@@ -297,7 +348,8 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
 const loadMembershipPlans = async () => {
   try {
     const res = await getMembershipPlans()
-    membershipPlans.value = res.data || []
+    // 处理两种返回类型：直接返回数组或包装对象
+    membershipPlans.value = Array.isArray(res) ? res : ((res as any).data || [])
   } catch (error) {
     message.error('获取套餐列表失败')
   }
@@ -307,7 +359,7 @@ const loadMembershipPlans = async () => {
 const loadUserMembership = async () => {
   try {
     const res = await getUserMembership()
-    userMembership.value = res.data
+    userMembership.value = res as any
   } catch (error) {
     // 未开通会员不算错误
     userMembership.value = null
@@ -321,11 +373,11 @@ const loadMembershipBenefits = async () => {
       getMembershipBenefitsUsage(),
       getMembershipBenefits()
     ])
-    benefitsUsage.value = usageRes.data || []
+    benefitsUsage.value = (Array.isArray(usageRes) ? usageRes : (usageRes as any).data) || []
 
     // 建立权益代码到名称的映射
-    const benefits = benefitsRes.data || []
-    benefitsMap.value = benefits.reduce((map, benefit) => {
+    const benefits = (Array.isArray(benefitsRes) ? benefitsRes : (benefitsRes as any).data) || [] as LocalMembershipBenefit[]
+    benefitsMap.value = benefits.reduce((map: Record<string, string>, benefit: LocalMembershipBenefit) => {
       map[benefit.code] = benefit.name
       return map
     }, {} as Record<string, string>)
@@ -335,7 +387,7 @@ const loadMembershipBenefits = async () => {
 }
 
 // 订阅会员
-const handleSubscribe = (plan: MembershipPlan) => {
+const handleSubscribe = (plan: LocalMembershipPlan) => {
   // 验证价格
   if (!validateAmount(plan.price.toString())) {
     message.error('套餐价格无效')
@@ -423,13 +475,13 @@ const getBenefitName = (code: string) => {
 }
 
 // 获取使用百分比
-const getUsagePercentage = (usage: MembershipUsage) => {
+const getUsagePercentage = (usage: LocalMembershipUsage) => {
   if (usage.limit_count === 0) return 0
   return Math.min(100, Math.round((usage.used_count / usage.limit_count) * 100))
 }
 
 // 获取使用进度条颜色
-const getUsageColor = (usage: MembershipUsage) => {
+const getUsageColor = (usage: LocalMembershipUsage) => {
   const percentage = getUsagePercentage(usage)
   if (percentage >= 90) return '#f56c6c'
   if (percentage >= 70) return '#e6a23c'

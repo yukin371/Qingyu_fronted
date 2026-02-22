@@ -12,8 +12,8 @@ import type {
   ShortcutCategory,
 } from '../types/editor'
 
-const BASE_DOC_URL = '/documents'
-const BASE_USER_URL = '/user'
+const BASE_DOC_URL = '/writer/documents'
+const BASE_USER_URL = '/writer/user'
 
 /**
  * 写作编辑器 API

@@ -5,7 +5,6 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 /**
  * 收藏项
@@ -69,8 +68,8 @@ export const collectionsAPI = {
   async addCollection(
     bookId: string,
     data?: { title?: string; description?: string; tags?: string[] }
-  ): Promise<APIResponse<Collection>> {
-    return httpService.post<APIResponse<Collection>>('/social/collections', {
+  ): Promise<Collection> {
+    return httpService.post<Collection>('/social/collections', {
       book_id: bookId,
       ...data
     })
@@ -91,8 +90,8 @@ export const collectionsAPI = {
   async getCollections(params?: {
     page?: number
     pageSize?: number
-  }): Promise<PaginatedResponse<Collection>> {
-    return httpService.get<PaginatedResponse<Collection>>('/social/collections', { params })
+  }): Promise<Collection[]> {
+    return httpService.get<Collection[]>('/social/collections', { params })
   },
 
   /**
@@ -109,8 +108,8 @@ export const collectionsAPI = {
   async updateCollection(
     id: string,
     data: Partial<Collection>
-  ): Promise<APIResponse<Collection>> {
-    return httpService.put<APIResponse<Collection>>(`/social/collections/${id}`, data)
+  ): Promise<Collection> {
+    return httpService.put<Collection>(`/social/collections/${id}`, data)
   },
 
   /**
@@ -123,8 +122,8 @@ export const collectionsAPI = {
    * @response {APIResponse<void>} 204 - 成功删除收藏
    * @security BearerAuth
    */
-  async deleteCollection(id: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/collections/${id}`)
+  async deleteCollection(id: string): Promise<void> {
+    return httpService.delete<void>(`/social/collections/${id}`)
   },
 
   /**
@@ -137,8 +136,8 @@ export const collectionsAPI = {
    * @response {APIResponse<{is_collected: boolean}>} 200 - 成功返回收藏状态
    * @security BearerAuth
    */
-  async checkCollected(bookId: string): Promise<APIResponse<{ is_collected: boolean }>> {
-    return httpService.get<APIResponse<{ is_collected: boolean }>>(
+  async checkCollected(bookId: string): Promise<{ is_collected: boolean }> {
+    return httpService.get<{ is_collected: boolean }>(
       `/social/collections/check`,
       { params: { book_id: bookId } }
     )
@@ -154,8 +153,8 @@ export const collectionsAPI = {
    * @response {APIResponse<Collection[]>} 200 - 成功返回带有该标签的收藏列表
    * @security BearerAuth
    */
-  async getCollectionsByTag(tag: string): Promise<APIResponse<Collection[]>> {
-    return httpService.get<APIResponse<Collection[]>>(`/social/collections/tags/${tag}`)
+  async getCollectionsByTag(tag: string): Promise<Collection[]> {
+    return httpService.get<Collection[]>(`/social/collections/tags/${tag}`)
   },
 
   /**
@@ -167,8 +166,8 @@ export const collectionsAPI = {
    * @response {APIResponse<CollectionStats>} 200 - 成功返回收藏统计数据
    * @security BearerAuth
    */
-  async getCollectionStats(): Promise<APIResponse<CollectionStats>> {
-    return httpService.get<APIResponse<CollectionStats>>('/social/collections/stats')
+  async getCollectionStats(): Promise<CollectionStats> {
+    return httpService.get<CollectionStats>('/social/collections/stats')
   },
 
   /**
@@ -181,8 +180,8 @@ export const collectionsAPI = {
    * @response {APIResponse<{shareUrl: string}>} 201 - 成功生成分享链接
    * @security BearerAuth
    */
-  async shareCollection(id: string): Promise<APIResponse<{ shareUrl: string }>> {
-    return httpService.post<APIResponse<{ shareUrl: string }>>(
+  async shareCollection(id: string): Promise<{ shareUrl: string }> {
+    return httpService.post<{ shareUrl: string }>(
       `/social/collections/${id}/share`
     )
   },
@@ -197,8 +196,8 @@ export const collectionsAPI = {
    * @response {APIResponse<void>} 204 - 成功取消分享
    * @security BearerAuth
    */
-  async unshareCollection(id: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/collections/${id}/share`)
+  async unshareCollection(id: string): Promise<void> {
+    return httpService.delete<void>(`/social/collections/${id}/share`)
   },
 
   /**
@@ -215,8 +214,8 @@ export const collectionsAPI = {
   async createFolder(
     name: string,
     description?: string
-  ): Promise<APIResponse<CollectionFolder>> {
-    return httpService.post<APIResponse<CollectionFolder>>('/social/collections/folders', {
+  ): Promise<CollectionFolder> {
+    return httpService.post<CollectionFolder>('/social/collections/folders', {
       name,
       description
     })
@@ -231,8 +230,8 @@ export const collectionsAPI = {
    * @response {APIResponse<CollectionFolder[]>} 200 - 成功返回收藏夹列表
    * @security BearerAuth
    */
-  async getFolders(): Promise<APIResponse<CollectionFolder[]>> {
-    return httpService.get<APIResponse<CollectionFolder[]>>('/social/collections/folders')
+  async getFolders(): Promise<CollectionFolder[]> {
+    return httpService.get<CollectionFolder[]>('/social/collections/folders')
   },
 
   /**
@@ -249,8 +248,8 @@ export const collectionsAPI = {
   async updateFolder(
     id: string,
     data: Partial<CollectionFolder>
-  ): Promise<APIResponse<CollectionFolder>> {
-    return httpService.put<APIResponse<CollectionFolder>>(
+  ): Promise<CollectionFolder> {
+    return httpService.put<CollectionFolder>(
       `/social/collections/folders/${id}`,
       data
     )
@@ -266,8 +265,8 @@ export const collectionsAPI = {
    * @response {APIResponse<void>} 204 - 成功删除收藏夹
    * @security BearerAuth
    */
-  async deleteFolder(id: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/collections/folders/${id}`)
+  async deleteFolder(id: string): Promise<void> {
+    return httpService.delete<void>(`/social/collections/folders/${id}`)
   }
 }
 

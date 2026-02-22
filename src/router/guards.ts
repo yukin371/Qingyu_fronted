@@ -14,8 +14,8 @@ NProgress.configure({ showSpinner: false })
 export function setupRouterGuards(router: Router) {
   createProgressGuard(router)
   createTitleGuard(router)
-  createAuthGuard(router)
   setupTestModeGuard(router)
+  createAuthGuard(router)
   setupWebSocketGuard(router)
 }
 
@@ -56,10 +56,18 @@ function createAuthGuard(router: Router) {
 
     const authStore = useAuthStore()
     const routeTestFlag = to.query?.test
+    const fromTestFlag = from.query?.test
+    const currentUrlTestMode = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('test') === 'true'
+      : false
     const routeHasTestMode =
       routeTestFlag === 'true' ||
       routeTestFlag === true ||
       (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true' || v === true)) ||
+      fromTestFlag === 'true' ||
+      fromTestFlag === true ||
+      (Array.isArray(fromTestFlag) && fromTestFlag.some((v) => v === 'true' || v === true)) ||
+      currentUrlTestMode ||
       to.hash.includes('test=true')
     authStore.ensureTestModeMockSession(routeHasTestMode)
     console.log('[Route Guard] Auth status:', authStore.isLoggedIn)

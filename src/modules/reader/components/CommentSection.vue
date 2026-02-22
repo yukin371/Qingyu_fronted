@@ -81,7 +81,7 @@ import { ref } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { formatDate } from '@/utils/format'
 import { message } from '@/design-system/services'
-import { commentAPI } from '@/modules/reader/api'
+import { commentsAPI as commentAPI } from '@/modules/reader/api/manual/comments'
 import type { Comment } from '@/types/reader/index'
 
 /**

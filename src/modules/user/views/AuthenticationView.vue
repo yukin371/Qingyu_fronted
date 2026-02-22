@@ -350,23 +350,29 @@ const setMode = (mode: AuthMode, syncRoute = true) => {
 const handleLogin = async () => {
   if (loading.value) return
   if (!loginFormRef.value) return
-  await loginFormRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        await authStore.login(loginForm.value)
-        if (rememberMe.value) {
-          localStorage.setItem(REMEMBERED_USERNAME_KEY, loginForm.value.username.trim())
-        } else {
-          localStorage.removeItem(REMEMBERED_USERNAME_KEY)
-        }
-        message.success('登录成功')
-        router.push((route.query.redirect as string) || '/bookstore')
-      } catch (e: any) { message.error(e.message || '登录失败') }
 
-      finally { loading.value = false }
+  try {
+    const valid = await loginFormRef.value.validate()
+    if (!valid) return
+
+    loading.value = true
+    try {
+      await authStore.login(loginForm.value)
+      if (rememberMe.value) {
+        localStorage.setItem(REMEMBERED_USERNAME_KEY, loginForm.value.username.trim())
+      } else {
+        localStorage.removeItem(REMEMBERED_USERNAME_KEY)
+      }
+      message.success('登录成功')
+      router.push((route.query.redirect as string) || '/bookstore')
+    } catch (e: any) {
+      message.error(e.message || '登录失败')
+    } finally {
+      loading.value = false
     }
-  })
+  } catch (error) {
+    console.error('[AuthView] Validation error:', error)
+  }
 }
 
 const sendEmailCode = async () => {

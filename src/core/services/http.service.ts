@@ -771,6 +771,14 @@ apiClient.interceptors.response.use(
 
     // 处理HTTP 401状态码（认证失败）
     if (response.status === 401) {
+      // 对于登录接口，构造带有正确消息的Error对象，由调用方显示错误
+      const isLoginRequest = config?.url?.includes('/auth/login') || config?.url?.includes('/login')
+      if (isLoginRequest) {
+        // 登录失败，使用后端返回的错误消息
+        const errorMessage = message || '用户名或密码错误'
+        const customError = new Error(errorMessage)
+        return Promise.reject(customError)
+      }
       handleAuthError()
       return Promise.reject(error)
     }
@@ -933,8 +941,20 @@ apiClient.interceptors.request.use(
 // 导出实例供模块使用
 export default apiClient
 
-// 别名导出，保持向后兼容
-export const httpService = apiClient
+// 类型安全的 HTTP 服务接口
+// 响应拦截器会自动提取 response.data，所以返回类型应该是 T 而不是 AxiosResponse<T>
+interface HttpService {
+  get<T = any>(url: string, config?: object): Promise<T>
+  post<T = any>(url: string, data?: any, config?: object): Promise<T>
+  put<T = any>(url: string, data?: any, config?: object): Promise<T>
+  delete<T = any>(url: string, config?: object): Promise<T>
+  patch<T = any>(url: string, data?: any, config?: object): Promise<T>
+  head<T = any>(url: string, config?: object): Promise<T>
+  options<T = any>(url: string, config?: object): Promise<T>
+}
+
+// 别名导出，保持向后兼容，使用类型断言确保类型安全
+export const httpService = apiClient as unknown as HttpService
 
 // 同时导出类型化的实例
 export { apiClient }

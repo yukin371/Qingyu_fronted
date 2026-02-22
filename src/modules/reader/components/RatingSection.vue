@@ -101,7 +101,7 @@ import { ref, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/modules/reader/api'
+import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/modules/reader/api/manual/rating'
 
 interface Props {
   bookId: string

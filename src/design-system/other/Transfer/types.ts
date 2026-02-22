@@ -182,10 +182,10 @@ export interface TransferPanelProps {
   /**
    * 数据项字段配置
    */
-  props: {
-    key: string
-    label: string
-    disabled: string
+  itemProps: {
+    key?: string
+    label?: string
+    disabled?: string
   }
 
   /**
@@ -234,10 +234,10 @@ export interface TransferItemProps {
   /**
    * 数据项字段配置
    */
-  props: {
-    key: string
-    label: string
-    disabled: string
+  itemProps: {
+    key?: string
+    label?: string
+    disabled?: string
   }
 }
 
@@ -282,7 +282,7 @@ export const transferItemDefaults: Partial<TransferItemProps> = {
   checked: false,
   disabled: false,
   format: '{label}',
-  props: {
+  itemProps: {
     key: 'key',
     label: 'label',
     disabled: 'disabled',

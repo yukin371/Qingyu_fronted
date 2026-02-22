@@ -52,7 +52,31 @@ export const getBookList = api.getApiV1BookstoreBooks
  * 兼容旧API: getBookDetail(id)
  */
 export async function getBookDetail(id: string): Promise<APIResponse<BookDetail>> {
-  return api.getApiV1BookstoreBooksIdDetail(id) as any
+  try {
+    return await (api.getApiV1BookstoreBooksIdDetail(id) as any)
+  } catch (error: any) {
+    const status = error?.response?.status
+    if (status === 404 || status === 400) {
+      const direct = await (api.getApiV1BookstoreBooksId(id) as any)
+      if (direct?.data) {
+        return direct
+      }
+
+      // 兼容部分后端实例详情接口不可用：从列表分页回捞指定ID
+      const pageSize = 100
+      for (let page = 1; page <= 20; page++) {
+        const listResp = await (api.getApiV1BookstoreBooks({ page, size: pageSize }) as any)
+        const list = Array.isArray(listResp?.data) ? listResp.data : []
+        const found = list.find((item: any) => String(item?.id) === String(id))
+        if (found) {
+          return { ...(direct || {}), code: 0, data: found } as any
+        }
+        const hasNext = Boolean(listResp?.pagination?.has_next ?? listResp?.pagination?.hasNext)
+        if (!hasNext) break
+      }
+    }
+    throw error
+  }
 }
 
 /**

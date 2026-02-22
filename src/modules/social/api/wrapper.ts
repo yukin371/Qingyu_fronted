@@ -174,6 +174,16 @@ export interface Message {
 }
 
 /**
+ * 消息类型
+ */
+export type MessageType = 'text' | 'image' | 'voice' | 'file' | 'system'
+
+/**
+ * 消息状态
+ */
+export type MessageStatus = 'sending' | 'sent' | 'read' | 'failed'
+
+/**
  * 会话
  */
 export interface Conversation {
@@ -183,9 +193,29 @@ export interface Conversation {
   participant_avatar?: string
   last_message?: string
   last_message_time?: string
+  last_message_type?: MessageType
   unread_count: number
   created_at: string
   updated_at: string
+}
+
+/**
+ * 消息
+ */
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  sender_name: string
+  sender_avatar?: string
+  type: MessageType
+  content: string
+  file_url?: string
+  file_name?: string
+  file_size?: number
+  status?: MessageStatus
+  is_read: boolean
+  created_at: string
 }
 
 // ==================== 书单相关 API ====================

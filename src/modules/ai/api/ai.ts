@@ -134,14 +134,15 @@ export const chatWithAI = async (
   }
 
   console.log('[AI API] 使用httpService模式')
-  const response = await httpService.post('/api/v1/ai/chat', {
+  const response = await httpService.post<{ reply?: string; message?: string; usage?: any }>('/api/v1/ai/chat', {
     message,
     history: history || []
   })
 
+  const data = response as unknown as { reply?: string; message?: string; usage?: any }
   return {
-    reply: response?.reply || response?.message || '',
-    usage: response?.usage
+    reply: data?.reply || data?.message || '',
+    usage: data?.usage
   }
 }
 
@@ -172,7 +173,7 @@ export const continueWriting = async (
     ? `${currentText}\n\n续写要求：${trimmedInstructions}`
     : currentText
 
-  const response = await httpService.post('/api/v1/ai/generate', {
+  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/generate', {
     projectId,
     currentText,
     prompt,
@@ -180,7 +181,7 @@ export const continueWriting = async (
     type: 'continue'
   })
 
-  return response || {}
+  return (response as unknown as AIGenerateResponse) || {}
 }
 
 /**
@@ -204,14 +205,14 @@ export const polishText = async (
     return aiDirectApi.writing.polish(text)
   }
 
-  const response = await httpService.post('/api/v1/ai/polish', {
+  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/polish', {
     projectId,
     originalText: text,
     rewriteMode: 'polish',
     instructions: instructions || '提升文学性和表达力'
   })
 
-  return response || {}
+  return (response as unknown as AIGenerateResponse) || {}
 }
 
 /**
@@ -237,7 +238,7 @@ export const expandText = async (
     return aiDirectApi.writing.expand(text)
   }
 
-  const response = await httpService.post('/api/v1/ai/expand', {
+  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/expand', {
     projectId,
     originalText: text,
     rewriteMode: 'expand',
@@ -245,7 +246,7 @@ export const expandText = async (
     targetLength
   })
 
-  return response || {}
+  return (response as unknown as AIGenerateResponse) || {}
 }
 
 /**
@@ -271,14 +272,14 @@ export const rewriteText = async (
     return aiDirectApi.writing.rewrite(text)
   }
 
-  const response = await httpService.post('/api/v1/ai/rewrite', {
+  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/rewrite', {
     projectId,
     originalText: text,
     rewriteMode: mode,
     instructions
   })
 
-  return response || {}
+  return (response as unknown as AIGenerateResponse) || {}
 }
 
 /**
@@ -335,7 +336,8 @@ export const getAIModels = async (): Promise<any> => {
  * @security BearerAuth
  */
 export const getQuotaInfo = async (): Promise<APIResponse<QuotaInfo>> => {
-  return httpService.get<APIResponse<QuotaInfo>>('/ai/quota')
+  const response = await httpService.get<APIResponse<QuotaInfo>>('/ai/quota')
+  return response as unknown as APIResponse<QuotaInfo>
 }
 
 /**
@@ -348,7 +350,8 @@ export const getQuotaInfo = async (): Promise<APIResponse<QuotaInfo>> => {
  * @security BearerAuth
  */
 export const getAllQuotas = async (): Promise<APIResponse<QuotaInfo[]>> => {
-  return httpService.get<APIResponse<QuotaInfo[]>>('/ai/quota/all')
+  const response = await httpService.get<APIResponse<QuotaInfo[]>>('/ai/quota/all')
+  return response as unknown as APIResponse<QuotaInfo[]>
 }
 
 /**
@@ -361,7 +364,8 @@ export const getAllQuotas = async (): Promise<APIResponse<QuotaInfo[]>> => {
  * @security BearerAuth
  */
 export const getQuotaStatistics = async (): Promise<APIResponse<QuotaStatistics>> => {
-  return httpService.get<APIResponse<QuotaStatistics>>('/ai/quota/statistics')
+  const response = await httpService.get<APIResponse<QuotaStatistics>>('/ai/quota/statistics')
+  return response as unknown as APIResponse<QuotaStatistics>
 }
 
 /**
@@ -379,7 +383,8 @@ export const getTransactionHistory = async (params?: {
   page?: number
   pageSize?: number
 }): Promise<PaginatedResponse<QuotaTransaction>> => {
-  return httpService.get<PaginatedResponse<QuotaTransaction>>('/ai/quota/transactions', { params })
+  const response = await httpService.get<PaginatedResponse<QuotaTransaction>>('/ai/quota/transactions', { params })
+  return response as unknown as PaginatedResponse<QuotaTransaction>
 }
 
 /**
@@ -397,7 +402,8 @@ export const getTransactionHistory = async (params?: {
  * @security BearerAuth
  */
 export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => {
-  return httpService.get<APIResponse<ChatSession[]>>('/ai/chat/sessions')
+  const response = await httpService.get<APIResponse<ChatSession[]>>('/ai/chat/sessions')
+  return response as unknown as APIResponse<ChatSession[]>
 }
 
 /**
@@ -411,7 +417,8 @@ export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => 
  * @security BearerAuth
  */
 export const getSessionHistory = async (sessionId: string): Promise<APIResponse<ChatMessage[]>> => {
-  return httpService.get<APIResponse<ChatMessage[]>>(`/ai/chat/sessions/${sessionId}`)
+  const response = await httpService.get<APIResponse<ChatMessage[]>>(`/ai/chat/sessions/${sessionId}`)
+  return response as unknown as APIResponse<ChatMessage[]>
 }
 
 /**
@@ -425,7 +432,8 @@ export const getSessionHistory = async (sessionId: string): Promise<APIResponse<
  * @security BearerAuth
  */
 export const deleteSession = async (sessionId: string): Promise<APIResponse<void>> => {
-  return httpService.delete<APIResponse<void>>(`/ai/chat/sessions/${sessionId}`)
+  const response = await httpService.delete<APIResponse<void>>(`/ai/chat/sessions/${sessionId}`)
+  return response as unknown as APIResponse<void>
 }
 
 /**
@@ -439,7 +447,8 @@ export const deleteSession = async (sessionId: string): Promise<APIResponse<void
  * @security BearerAuth
  */
 export const createSession = async (title?: string): Promise<APIResponse<ChatSession>> => {
-  return httpService.post<APIResponse<ChatSession>>('/ai/chat/sessions', { title })
+  const response = await httpService.post<APIResponse<ChatSession>>('/ai/chat/sessions', { title })
+  return response as unknown as APIResponse<ChatSession>
 }
 
 /**
@@ -457,7 +466,8 @@ export const updateSession = async (
   sessionId: string,
   title: string
 ): Promise<APIResponse<ChatSession>> => {
-  return httpService.put<APIResponse<ChatSession>>(`/ai/chat/sessions/${sessionId}`, { title })
+  const response = await httpService.put<APIResponse<ChatSession>>(`/ai/chat/sessions/${sessionId}`, { title })
+  return response as unknown as APIResponse<ChatSession>
 }
 
 export default {

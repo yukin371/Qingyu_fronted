@@ -276,6 +276,16 @@ import {
 } from '@/modules/bookstore/yunlanDemo.mock'
 import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
 
+interface ReaderSettings {
+  fontSize: number
+  lineHeight: number
+  theme: string
+  fontFamily: string
+  pageWidth: number
+  pageMode: string
+  autoSave?: boolean
+}
+
 const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
@@ -355,8 +365,9 @@ const chapterList = computed(() => {
   if (isPublishedMode.value) return publishedChapterList.value
   return readerStore.chapterList
 })
-const settings = computed(() => readerStore.settings)
+const settings = computed(() => readerStore.settings as ReaderSettings)
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const bookTitle = computed(() => {
   return currentChapter.value?.bookTitle || '正在阅读'
 })
@@ -569,27 +580,29 @@ const stopReadingTimer = () => {
 // ========== 段落评论相关方法 ==========
 
 // 获取段落评论数量
-const getParagraphCommentCount = (paragraphIndex: number): number => {
+const getParagraphCommentCount = (paragraphIndex: number | string): number => {
   if (!currentChapter.value) return 0
   const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
   return commentStore.summaries.get(paragraphId)?.commentCount || 0
 }
 
 // 处理段落点击
-const handleParagraphClick = (index: number) => {
-  if (highlightedParagraphIndex.value === index) {
+const handleParagraphClick = (index: number | string) => {
+  const numIndex = Number(index)
+  if (highlightedParagraphIndex.value === numIndex) {
     highlightedParagraphIndex.value = null
     commentDrawerVisible.value = false
     commentStore.clearSelection()
     return
   }
 
-  highlightedParagraphIndex.value = index
+  highlightedParagraphIndex.value = numIndex
 }
 
-const handleCommentBadgeClick = async (index: number) => {
-  highlightedParagraphIndex.value = index
-  await openCommentDrawer(index)
+const handleCommentBadgeClick = async (index: number | string) => {
+  const numIndex = Number(index)
+  highlightedParagraphIndex.value = numIndex
+  await openCommentDrawer(numIndex)
 }
 
 // 打开评论抽屉

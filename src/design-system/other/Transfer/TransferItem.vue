@@ -67,7 +67,8 @@ const handleClick = () => {
 
 // 格式化显示文本
 const displayLabel = computed(() => {
-  const label = props.item[props.props.label] || ''
+  const labelField = props.itemProps.label ?? 'label'
+  const label = props.item[labelField] || ''
   return props.format.replace('{label}', label)
 })
 

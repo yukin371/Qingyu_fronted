@@ -16,6 +16,13 @@ import {
   deleteDocument,
   moveDocument,
   autosaveDocument,
+  listCharacters,
+  listCharacterRelations,
+  listLocations,
+  getLocationTree,
+  listTimelines,
+  listTimelineEvents,
+  getOutlineTree,
   type ProjectCreateData,
   type ProjectUpdateData,
 } from '..'
@@ -1002,8 +1009,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.characters.loading = true
       try {
-        const { listCharacters } = await import('..')
-        this.characters.list = await listCharacters(pid)
+        this.characters.list = await listCharacters(pid) as Character[]
       } catch (error: any) {
         console.error('加载角色列表失败:', error)
         this.error = error.message
@@ -1020,8 +1026,7 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const { listCharacterRelations } = await import('..')
-        this.characters.relations = await listCharacterRelations(pid)
+        this.characters.relations = await listCharacterRelations(pid) as CharacterRelation[]
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
       }
@@ -1045,8 +1050,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.locations.loading = true
       try {
-        const { listLocations } = await import('..')
-        this.locations.list = await listLocations(pid)
+        this.locations.list = await listLocations(pid) as Location[]
       } catch (error: any) {
         console.error('加载地点列表失败:', error)
         this.error = error.message
@@ -1063,8 +1067,7 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const { getLocationTree } = await import('..')
-        this.locations.tree = await getLocationTree(pid)
+        this.locations.tree = await getLocationTree(pid) as Location[]
       } catch (error: any) {
         console.error('加载地点树失败:', error)
       }
@@ -1088,8 +1091,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.timeline.loading = true
       try {
-        const { listTimelines } = await import('..')
-        this.timeline.list = await listTimelines(pid)
+        this.timeline.list = (await listTimelines(pid)) as unknown as Timeline[]
         // 默认选择第一个时间线
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
           this.timeline.currentTimeline = this.timeline.list[0]
@@ -1110,8 +1112,7 @@ export const useWriterStore = defineStore('writer', {
       if (!tid) return
 
       try {
-        const { listTimelineEvents } = await import('..')
-        this.timeline.events = await listTimelineEvents(tid)
+        this.timeline.events = (await listTimelineEvents(tid)) as unknown as TimelineEvent[]
       } catch (error: any) {
         console.error('加载时间线事件失败:', error)
       }
@@ -1145,8 +1146,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const { getOutlineTree } = await import('..')
-        this.outline.tree = await getOutlineTree(pid)
+        this.outline.tree = (await getOutlineTree(pid)) as unknown as OutlineNode[]
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = error.message

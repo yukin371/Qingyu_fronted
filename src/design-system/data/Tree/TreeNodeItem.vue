@@ -8,7 +8,6 @@
  */
 
 import { computed, inject } from 'vue'
-import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
 import type { TreeNodeState } from './types'
 import { TREE_CONTEXT_KEY } from './constants'

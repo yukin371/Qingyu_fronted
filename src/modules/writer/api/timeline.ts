@@ -129,4 +129,4 @@ export const timelineApi = {
 
 // 便捷函数导出（兼容旧代码）
 export const listTimelines = (projectId: string) => timelineApi.list(projectId)
-export const listTimelineEvents = (timelineId: string, projectId: string) => timelineApi.listEvents(timelineId, projectId)
+export const listTimelineEvents = (timelineId: string, _projectId?: string) => timelineApi.listEvents(timelineId)

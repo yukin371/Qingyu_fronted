@@ -60,7 +60,8 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/register
    */
   async register(data: RegisterData): Promise<LoginResponse> {
-    return httpService.post<LoginResponse>(getAuthPath('register'), data)
+    const response = await httpService.post<LoginResponse>(getAuthPath('register'), data)
+    return response as unknown as LoginResponse
   },
 
   /**
@@ -68,7 +69,8 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/login
    */
   async login(data: LoginCredentials): Promise<LoginResponse> {
-    return httpService.post<LoginResponse>(getAuthPath('login'), data)
+    const response = await httpService.post<LoginResponse>(getAuthPath('login'), data)
+    return response as unknown as LoginResponse
   },
 
   /**
@@ -76,7 +78,7 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/logout
    */
   async logout(): Promise<void> {
-    return httpService.post<void>(getAuthPath('logout'))
+    await httpService.post<void>(getAuthPath('logout'))
   },
 
   /**
@@ -84,7 +86,8 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/refresh
    */
   async refreshToken(): Promise<TokenRefreshResponse> {
-    return httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
+    const response = await httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
+    return response as unknown as TokenRefreshResponse
   },
 
   /**
@@ -92,15 +95,17 @@ export const sharedAuthAPI = {
    * GET /api/v1/user/auth/permissions
    */
   async getUserPermissions(): Promise<UserPermission[]> {
-    return httpService.get<UserPermission[]>(getAuthPath('permissions'))
+    const response = await httpService.get<UserPermission[]>(getAuthPath('permissions'))
+    return response as unknown as UserPermission[]
   },
 
   /**
    * 获取用户角色
    * GET /api/v1/user/auth/roles
    */
-  async getUserRoles(): UserRole[] {
-    return httpService.get<UserRole[]>(getAuthPath('roles'))
+  async getUserRoles(): Promise<UserRole[]> {
+    const response = await httpService.get<UserRole[]>(getAuthPath('roles'))
+    return response as unknown as UserRole[]
   },
 
   // ==================== 用户信息管理 ====================
@@ -111,7 +116,7 @@ export const sharedAuthAPI = {
    */
   async getUserInfo(): Promise<{ user: UserInfo; permissions?: UserPermission[]; roles?: UserRole[] }> {
     const user = await httpService.get<UserInfo>('/user/profile')
-    return { user }
+    return { user: user as unknown as UserInfo }
   },
 
   /**
@@ -120,7 +125,7 @@ export const sharedAuthAPI = {
    */
   async updateUserInfo(data: Partial<UserInfo>): Promise<{ user: UserInfo }> {
     const user = await httpService.put<UserInfo>('/user/profile', data)
-    return { user }
+    return { user: user as unknown as UserInfo }
   },
 
   /**
@@ -128,7 +133,7 @@ export const sharedAuthAPI = {
    * PUT /api/v1/user/password
    */
   async changePassword(data: PasswordChangeData): Promise<void> {
-    return httpService.put<void>('/user/password', data)
+    await httpService.put<void>('/user/password', data)
   },
 
   // ==================== 用户名/邮箱检查 ====================

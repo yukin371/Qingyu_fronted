@@ -33,17 +33,20 @@ export const useBookstoreStore = defineStore('bookstore', () => {
   async function fetchHomepage() {
     try {
       isLoading.value = true
-      const data = await getHomepage()
+      const response = await getHomepage()
+      // 处理API响应 - 返回类型可能是 ApiV1BookstoreAPIResponse
+      const data = response as any
       homepageData.value = data
 
-      if (data.banners) {
-        banners.value = data.banners
+      // 安全地访问属性
+      if (data && data.banners) {
+        banners.value = Array.isArray(data.banners) ? data.banners : []
       }
-      if (data.categories) {
-        categories.value = data.categories
+      if (data && data.categories) {
+        categories.value = Array.isArray(data.categories) ? data.categories : []
       }
 
-      return data
+      return data as HomepageData
     } catch (error) {
       console.error('获取首页数据失败:', error)
       throw error
@@ -61,20 +64,20 @@ export const useBookstoreStore = defineStore('bookstore', () => {
       console.log('[fetchBookDetail] Fetching book detail for ID:', bookId)
 
       // httpService会自动将snake_case转换为camelCase
-      const data = await getBookDetail(bookId)
+      const response = await getBookDetail(bookId)
 
-      console.log('[fetchBookDetail] Received data from API:', data)
+      console.log('[fetchBookDetail] Received data from API:', response)
 
       // 数据可能被httpService自动转换，也可能需要手动处理
       // 兼容多种可能的数据结构
-      let bookDetail = data
+      let bookDetail: any = response
 
-      // 如果data有嵌套的data或book字段，提取出来
-      if (data && typeof data === 'object') {
-        if ((data as any).data) {
-          bookDetail = (data as any).data
-        } else if ((data as any).book) {
-          bookDetail = (data as any).book
+      // 如果response有嵌套的data或book字段，提取出来
+      if (response && typeof response === 'object') {
+        if ((response as any).data) {
+          bookDetail = (response as any).data
+        } else if ((response as any).book) {
+          bookDetail = (response as any).book
         }
       }
 
@@ -83,7 +86,7 @@ export const useBookstoreStore = defineStore('bookstore', () => {
       console.log('[fetchBookDetail] Book cover:', bookDetail?.cover)
 
       currentBook.value = bookDetail as BookDetail
-      return bookDetail
+      return bookDetail as BookDetail
     } catch (error) {
       console.error('[fetchBookDetail] 获取书籍详情失败:', error)
       throw error
@@ -97,9 +100,15 @@ export const useBookstoreStore = defineStore('bookstore', () => {
    */
   async function fetchCategoryTree() {
     try {
-      const data = await getCategoryTree()
-      categories.value = data
-      return data
+      const response = await getCategoryTree()
+      // 处理API响应
+      const data = response as any
+      if (data && data.data && Array.isArray(data.data)) {
+        categories.value = data.data
+      } else if (Array.isArray(data)) {
+        categories.value = data
+      }
+      return categories.value
     } catch (error) {
       console.error('获取分类树失败:', error)
       throw error
@@ -111,9 +120,15 @@ export const useBookstoreStore = defineStore('bookstore', () => {
    */
   async function fetchBanners() {
     try {
-      const data = await getBanners()
-      banners.value = data
-      return data
+      const response = await getBanners()
+      // 处理API响应
+      const data = response as any
+      if (data && data.data && Array.isArray(data.data)) {
+        banners.value = data.data
+      } else if (Array.isArray(data)) {
+        banners.value = data
+      }
+      return banners.value
     } catch (error) {
       console.error('获取Banner失败:', error)
       throw error

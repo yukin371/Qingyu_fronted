@@ -23,35 +23,40 @@ export const walletAPI = {
    * 查询余额
    */
   async getBalance(): Promise<APIResponse<{ balance: number }>> {
-    return httpService.get<APIResponse<{ balance: number }>>('/shared/wallet/balance')
+    const response = await httpService.get<APIResponse<{ balance: number }>>('/shared/wallet/balance')
+    return response as unknown as APIResponse<{ balance: number }>
   },
 
   /**
    * 获取钱包信息
    */
   async getWallet(): Promise<APIResponse<WalletInfo>> {
-    return httpService.get<APIResponse<WalletInfo>>('/shared/wallet')
+    const response = await httpService.get<APIResponse<WalletInfo>>('/shared/wallet')
+    return response as unknown as APIResponse<WalletInfo>
   },
 
   /**
    * 充值
    */
   async recharge(params: RechargeParams): Promise<APIResponse<Transaction>> {
-    return httpService.post<APIResponse<Transaction>>('/shared/wallet/recharge', params)
+    const response = await httpService.post<APIResponse<Transaction>>('/shared/wallet/recharge', params)
+    return response as unknown as APIResponse<Transaction>
   },
 
   /**
    * 消费
    */
   async consume(params: ConsumeParams): Promise<APIResponse<Transaction>> {
-    return httpService.post<APIResponse<Transaction>>('/shared/wallet/consume', params)
+    const response = await httpService.post<APIResponse<Transaction>>('/shared/wallet/consume', params)
+    return response as unknown as APIResponse<Transaction>
   },
 
   /**
    * 转账
    */
   async transfer(params: TransferParams): Promise<APIResponse<Transaction>> {
-    return httpService.post<APIResponse<Transaction>>('/shared/wallet/transfer', params)
+    const response = await httpService.post<APIResponse<Transaction>>('/shared/wallet/transfer', params)
+    return response as unknown as APIResponse<Transaction>
   },
 
   /**
@@ -61,15 +66,17 @@ export const walletAPI = {
     page?: number
     pageSize?: number
     type?: string
-  }): Promise<APIResponse<PaginatedResponse<Transaction>>> {
-    return httpService.get<APIResponse<PaginatedResponse<Transaction>>>('/shared/wallet/transactions', { params })
+  }): Promise<PaginatedResponse<Transaction>> {
+    const response = await httpService.get<PaginatedResponse<Transaction>>('/shared/wallet/transactions', { params })
+    return response as unknown as PaginatedResponse<Transaction>
   },
 
   /**
    * 提交提现申请
    */
   async submitWithdraw(params: WithdrawParams): Promise<APIResponse<WithdrawRequest>> {
-    return httpService.post<APIResponse<WithdrawRequest>>('/shared/wallet/withdraw', params)
+    const response = await httpService.post<APIResponse<WithdrawRequest>>('/shared/wallet/withdraw', params)
+    return response as unknown as APIResponse<WithdrawRequest>
   },
 
   /**
@@ -79,8 +86,9 @@ export const walletAPI = {
     page?: number
     pageSize?: number
     status?: string
-  }): Promise<APIResponse<PaginatedResponse<WithdrawRequest>>> {
-    return httpService.get<APIResponse<PaginatedResponse<WithdrawRequest>>>('/shared/wallet/withdraw-requests', { params })
+  }): Promise<PaginatedResponse<WithdrawRequest>> {
+    const response = await httpService.get<PaginatedResponse<WithdrawRequest>>('/shared/wallet/withdraw-requests', { params })
+    return response as unknown as PaginatedResponse<WithdrawRequest>
   }
 }
 

@@ -5,6 +5,31 @@ export * from './writer'
 export * from './timeline'
 export * from './publish'
 
+// 导出文档/大纲管理API
+export {
+  getOutlineTree,
+  createOutlineNode,
+  updateOutlineNode,
+  deleteOutlineNode
+} from './document'
+
+// 导出角色管理API
+export {
+  listCharacters,
+  listCharacterRelations,
+  createCharacter,
+  updateCharacter,
+  deleteCharacter,
+  characterApi
+} from './character'
+
+// 导出地点管理API
+export {
+  listLocations,
+  getLocationTree,
+  locationApi
+} from './location'
+
 // 导出export.ts中的函数（排除与wrapper冲突的函数）
 export {
   createExportTask,
