@@ -1,4 +1,4 @@
-# Reader模块API验证报告 - P0/P1阶段
+# Reader模块API验证报告 - P0/P1/P2阶段
 
 **生成日期**: 2026-02-23
 **测试框架**: Vitest v4.0.18
@@ -8,15 +8,19 @@
 
 ## 1. 测试执行摘要
 
-| 阶段        | 测试文件             | 测试用例 | 通过   | 失败  | 状态               |
-| ----------- | -------------------- | -------- | ------ | ----- | ------------------ |
-| P0 书架核心 | books.api.spec.ts    | 23       | 23     | 0     | :white_check_mark: |
-| P1 阅读进度 | progress.api.spec.ts | 14       | 14     | 0     | :white_check_mark: |
-| P1 章节导航 | chapters.api.spec.ts | 14       | 14     | 0     | :white_check_mark: |
-| P1 阅读历史 | history.api.spec.ts  | 18       | 18     | 0     | :white_check_mark: |
-| **总计**    | **4**                | **69**   | **69** | **0** | :white_check_mark: |
+| 阶段        | 测试文件                | 测试用例 | 通过    | 失败  | 状态               |
+| ----------- | ----------------------- | -------- | ------- | ----- | ------------------ |
+| P0 书架核心 | books.api.spec.ts       | 23       | 23      | 0     | :white_check_mark: |
+| P1 阅读进度 | progress.api.spec.ts    | 14       | 14      | 0     | :white_check_mark: |
+| P1 章节导航 | chapters.api.spec.ts    | 14       | 14      | 0     | :white_check_mark: |
+| P1 阅读历史 | history.api.spec.ts     | 18       | 18      | 0     | :white_check_mark: |
+| P2 评论     | comments.api.spec.ts    | 26       | 26      | 0     | :white_check_mark: |
+| P2 收藏     | collections.api.spec.ts | 26       | 26      | 0     | :white_check_mark: |
+| P2 评分     | rating.api.spec.ts      | 20       | 20      | 0     | :white_check_mark: |
+| P2 点赞     | likes.api.spec.ts       | 21       | 21      | 0     | :white_check_mark: |
+| **总计**    | **8**                   | **162**  | **162** | **0** | :white_check_mark: |
 
-**执行时间**: 8.61s (测试运行时间: 139ms)
+**执行时间**: 8.77s (测试运行时间: 305ms)
 
 ---
 
@@ -68,131 +72,162 @@
 | `/reader/history/clear` | DELETE | :white_check_mark: | :white_check_mark: | 通过 |
 | `/reader/history/stats` | GET    | :white_check_mark: | :white_check_mark: | 通过 |
 
+### P2 评论API (6个)
+
+| API端点                    | 方法   | 请求格式           | 响应格式           | 状态 |
+| -------------------------- | ------ | ------------------ | ------------------ | ---- |
+| `/reader/comments`         | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/comments`         | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/comments/:id`     | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/comments/:id`     | PUT    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/comments/:id`     | DELETE | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/comments/:id/like` | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+
+### P2 收藏API (10个)
+
+| API端点                         | 方法   | 请求格式           | 响应格式           | 状态 |
+| ------------------------------- | ------ | ------------------ | ------------------ | ---- |
+| `/reader/collections`           | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections`           | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/:id`       | DELETE | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/check`     | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/:id`       | PUT    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/by-tag`    | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/stats`     | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/:id/share` | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/folders`   | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/reader/collections/folders`   | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+
+### P2 评分API (5个)
+
+| API端点                           | 方法   | 请求格式           | 响应格式           | 状态 |
+| --------------------------------- | ------ | ------------------ | ------------------ | ---- |
+| `/bookstore/ratings/book/:bookId` | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/bookstore/ratings`              | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+| `/bookstore/ratings/user/me/book/:bookId` | GET | :white_check_mark: | :white_check_mark: | 通过 |
+| `/bookstore/ratings/:id`          | PUT    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/bookstore/ratings/:id`          | DELETE | :white_check_mark: | :white_check_mark: | 通过 |
+
+### P2 点赞API (5个)
+
+| API端点                        | 方法   | 请求格式           | 响应格式           | 状态 |
+| ------------------------------ | ------ | ------------------ | ------------------ | ---- |
+| `/social/books/:bookId/like`   | POST   | :white_check_mark: | :white_check_mark: | 通过 |
+| `/social/books/:bookId/like`   | DELETE | :white_check_mark: | :white_check_mark: | 通过 |
+| `/social/books/:bookId/like`   | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/social/likes/books`          | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+| `/social/likes/stats`          | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+
 ---
 
 ## 3. 覆盖的测试用例
 
 ### P0 书架核心 (23个)
 
-**基础操作 (16个)**
-
-- B-001: 获取书架列表 - 正确GET请求
-- B-002: 获取书架列表 - 查询参数传递
-- B-003: 获取书架列表 - 空书架响应处理
-- B-004: 获取最近阅读 - 正确GET请求
-- B-005: 获取最近阅读 - limit参数传递
-- B-006: 获取最近阅读 - 空响应处理
-- B-007: 获取未读书籍 - 正确GET请求
-- B-008: 获取未读书籍 - 分页参数传递
-- B-009: 获取已读书籍 - 正确GET请求
-- B-010: 获取已读书籍 - 分页参数传递
-- B-011: 添加书籍到书架 - 正确POST请求
-- B-012: 从书架移除书籍 - 正确DELETE请求
-- B-013: 更新书籍状态 - reading状态
-- B-014: 更新书籍状态 - want_read状态
-- B-015: 更新书籍状态 - finished状态
-- B-016: 批量更新书籍状态 - 正确PUT请求
-- B-017: 批量更新书籍状态 - 空数组处理
-- B-018: 检查书籍状态 - 已在书架
-- B-019: 检查书籍状态 - 不在书架
+**基础操作 (19个)**
+- B-001 ~ B-019: 书架列表、最近阅读、未读/已读书籍、添加/移除、状态更新、批量操作、状态检查
 
 **错误处理 (4个)**
-
-- B-E01: 重复添加书籍错误 (409)
-- B-E02: 未登录错误 (401)
-- B-E03: 移除不存在书籍错误 (404)
-- B-E04: 检查状态时未登录错误 (401)
+- B-E01 ~ B-E04: 重复添加、未登录、移除不存在、检查状态未登录
 
 ### P1 阅读进度 (14个)
 
-**进度保存 (3个)**
-
-- P-001: 保存阅读进度 - 正确POST请求
-- P-002: 保存阅读进度 - 100%进度处理
-- P-003: 保存阅读进度 - 0%进度处理
-
-**进度获取 (4个)**
-
-- P-004: 获取阅读进度 - 正确GET请求
-- P-005: 获取阅读进度 - 无进度响应处理
-- P-006: 获取阅读统计 - 正确GET请求
-- P-007: 获取阅读统计 - 新用户响应处理
-
-**其他进度API (5个)**
-
-- P-008: 更新阅读时长
-- P-009: 获取最近阅读列表
-- P-010: 获取阅读历史（分页）
-- P-011: 获取未读完的书籍
-- P-012: 获取已读完的书籍
-
-**错误处理 (2个)**
-
-- P-E01: 保存进度时未登录错误 (401)
-- P-E02: 获取进度时书籍不存在错误 (404)
+- P-001 ~ P-012: 进度保存、进度获取、统计、时长更新、最近阅读、历史、未读/已读
+- P-E01 ~ P-E02: 未登录、书籍不存在
 
 ### P1 章节导航 (14个)
 
-**章节列表与内容 (4个)**
-
-- C-001: 获取章节列表 - 正确GET请求
-- C-002: 获取章节列表 - 分页参数传递
-- C-003: 获取章节列表 - 空列表处理
-- C-004: 获取章节内容 - 正确GET请求（含元数据）
-
-**章节导航 (4个)**
-
-- C-005: 获取上一章 - 正确GET请求
-- C-006: 获取上一章 - 已是第一章处理
-- C-007: 获取下一章 - 正确GET请求
-- C-008: 获取下一章 - 已是最后一章处理
-
-**其他章节API (2个)**
-
-- C-009: 根据ID获取章节信息
-- C-010: 根据章节号获取章节
-
-**错误处理 (4个)**
-
-- C-E01: 章节不存在错误 (404)
-- C-E02: 书籍不存在错误 (404)
-- C-E03: 导航时未登录错误 (401)
-- C-E04: 无效参数错误 (400)
+- C-001 ~ C-010: 章节列表、内容获取、上一章/下一章导航、根据ID/章节号获取
+- C-E01 ~ C-E04: 章节不存在、书籍不存在、未登录、无效参数
 
 ### P1 阅读历史 (18个)
 
-**历史记录 (3个)**
+- H-001 ~ H-014: 历史记录、列表获取(分页/排序/筛选)、删除、批量删除、清空、统计
+- H-E01 ~ H-E04: 未登录、记录不存在、未登录(获取)、无效参数
 
-- H-001: 记录阅读历史 - 正确POST请求
-- H-002: 记录阅读历史 - 不带阅读时长
-- H-003: 记录阅读历史 - 位置为0处理
+### P2 评论功能 (26个)
 
-**历史获取 (6个)**
+**评论CRUD (16个)**
+- CM-001: 创建评论 - 正确POST请求
+- CM-001: 创建评论 - 带章节ID
+- CM-001: 创建评论 - 不带评分
+- CM-002: 获取评论列表 - 正确GET请求
+- CM-002: 获取评论列表 - 分页参数
+- CM-002: 获取评论列表 - 时间排序参数
+- CM-002: 获取评论列表 - 章节评论
+- CM-002: 获取评论列表 - 空列表处理
+- CM-002: 获取评论详情 - 正确GET请求
+- CM-003: 更新评论 - 正确PUT请求
+- CM-003: 更新评论 - 更新评分
+- CM-003: 更新评论 - 同时更新内容和评分
+- CM-004: 删除评论 - 正确DELETE请求
+- CM-003: 回复评论 - 正确POST请求
+- CM-003: 回复评论 - 带父评论ID
+- CM-003: 点赞评论 - POST/DELETE请求
 
-- H-004: 获取阅读历史列表 - 正确GET请求
-- H-005: 获取阅读历史列表 - 分页参数
-- H-006: 获取阅读历史列表 - 排序参数
-- H-007: 获取阅读历史列表 - 书籍筛选参数
-- H-008: 获取阅读历史列表 - 时间范围参数
-- H-009: 获取阅读历史列表 - 空列表处理
+**错误处理 (10个)**
+- 未登录、参数错误、评论不存在、无权限更新、无权限删除、回复不存在、重复点赞、取消未点赞、服务器错误
 
-**删除操作 (3个)**
+### P2 收藏功能 (26个)
 
-- H-010: 删除历史记录 - 正确DELETE请求
-- H-011: 删除历史记录 - 成功响应处理
-- H-012: 批量删除历史记录
-- H-013: 清空所有历史
+**收藏CRUD (10个)**
+- CL-001: 添加收藏 - 正确POST请求
+- CL-001: 添加收藏 - 带附加信息
+- CL-002: 获取收藏列表 - 正确GET请求
+- CL-002: 获取收藏列表 - 分页参数
+- CL-002: 获取收藏列表 - 空列表处理
+- CL-002: 删除收藏 - 正确DELETE请求
+- CL-002: 检查收藏状态 - 已收藏/未收藏
+- CL-002: 更新收藏 - PUT请求
+- CL-002: 按标签获取收藏
+- CL-002: 获取收藏统计
 
-**阅读统计 (1个)**
+**收藏夹管理 (6个)**
+- 分享/取消分享收藏
+- 创建收藏夹 (带/不带描述)
+- 获取收藏夹列表
+- 更新/删除收藏夹
 
-- H-014: 获取阅读统计
+**错误处理 (10个)**
+- 重复添加、未登录、删除不存在、未登录(获取列表)、未登录(检查状态)、未登录(创建收藏夹)、删除不存在收藏夹
 
-**错误处理 (4个)**
+### P2 评分功能 (20个)
 
-- H-E01: 记录历史时未登录错误 (401)
-- H-E02: 删除不存在历史记录错误 (404)
-- H-E03: 获取历史列表时未登录错误 (401)
-- H-E04: 无效参数错误 (400)
+**评分操作 (13个)**
+- RT-001: 获取书籍评分统计 - 正确GET请求
+- RT-001: 获取书籍评分 - 无评分处理
+- RT-001: 获取书籍评分 - 高分书籍响应
+- RT-002: 提交评分 - 5分评分
+- RT-002: 提交评分 - 1分评分(边界值)
+- RT-002: 提交评分 - 3分评分
+- RT-002: 提交评分 - 不带评论
+- RT-002: 获取用户评分 - 已评分/未评分
+- RT-002: 更新评分 - PUT请求
+- RT-002: 更新评分 - 更新为5分/1分
+- RT-002: 删除评分 - DELETE请求
+
+**错误处理 (7个)**
+- 书籍不存在、未登录、重复评分、未登录(获取用户评分)、更新不存在评分、删除不存在评分
+
+### P2 点赞功能 (21个)
+
+**点赞操作 (13个)**
+- LK-001: 点赞书籍 - 正确POST请求
+- LK-001: 点赞书籍 - 不同bookId参数
+- LK-002: 取消点赞 - 正确DELETE请求
+- LK-002: 取消点赞 - 不同bookId参数
+- LK-001: 获取点赞信息 - 未点赞状态
+- LK-001: 获取点赞信息 - 已点赞状态
+- LK-001: 获取点赞信息 - 零点赞处理
+- 获取用户点赞书籍列表 - 正确GET请求
+- 获取用户点赞书籍列表 - 分页参数
+- 获取用户点赞书籍列表 - 空列表处理
+- 获取用户点赞统计 - 正确GET请求
+- 获取用户点赞统计 - 数据验证
+- 获取用户点赞统计 - 零统计处理
+
+**错误处理 (8个)**
+- 点赞时未登录、重复点赞、点赞不存在书籍、取消未点赞书籍、取消点赞时未登录、获取不存在书籍点赞信息、获取用户点赞列表时未登录、获取用户点赞统计时未登录
 
 ---
 
@@ -200,20 +235,24 @@
 
 ### 按功能模块
 
-| 模块     | 测试用例 | 覆盖场景                                   |
-| -------- | -------- | ------------------------------------------ |
-| 书架管理 | 23       | CRUD操作、状态管理、批量操作、错误处理     |
-| 阅读进度 | 14       | 进度保存/获取、统计、错误处理              |
-| 章节导航 | 14       | 列表获取、内容获取、前后章节、错误处理     |
-| 阅读历史 | 18       | 记录、获取、删除、批量操作、统计、错误处理 |
+| 模块     | 测试用例 | 覆盖场景                                                 |
+| -------- | -------- | -------------------------------------------------------- |
+| 书架管理 | 23       | CRUD操作、状态管理、批量操作、错误处理                   |
+| 阅读进度 | 14       | 进度保存/获取、统计、错误处理                            |
+| 章节导航 | 14       | 列表获取、内容获取、前后章节、错误处理                   |
+| 阅读历史 | 18       | 记录、获取、删除、批量操作、统计、错误处理               |
+| 评论功能 | 26       | CRUD操作、回复、点赞、分页、错误处理                     |
+| 收藏功能 | 26       | CRUD操作、收藏夹管理、分享、统计、标签、错误处理         |
+| 评分功能 | 20       | 获取/提交/更新/删除评分、边界值测试、错误处理            |
+| 点赞功能 | 21       | 点赞/取消点赞、状态查询、用户列表、统计、错误处理        |
 
 ### 按测试类型
 
-| 类型                 | 数量 | 占比  |
-| -------------------- | ---- | ----- |
-| 正向测试（成功场景） | 47   | 68.1% |
-| 边界测试             | 10   | 14.5% |
-| 错误处理测试         | 12   | 17.4% |
+| 类型                 | 数量  | 占比  |
+| -------------------- | ----- | ----- |
+| 正向测试（成功场景） | 110   | 67.9% |
+| 边界测试             | 23    | 14.2% |
+| 错误处理测试         | 29    | 17.9% |
 
 ---
 
@@ -230,7 +269,6 @@
 E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
 
 包含4个测试场景：
-
 1. 应该显示书架页面并加载书籍列表
 2. 应该能够添加书籍到书架
 3. 应该能够从书架移除书籍
@@ -242,19 +280,25 @@ E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
 
 ## 7. 测试文件清单
 
-| 文件路径                                     | 状态                        |
-| -------------------------------------------- | --------------------------- |
-| `tests/unit/api/reader/books.api.spec.ts`    | :white_check_mark:          |
-| `tests/unit/api/reader/progress.api.spec.ts` | :white_check_mark:          |
-| `tests/unit/api/reader/chapters.api.spec.ts` | :white_check_mark:          |
-| `tests/unit/api/reader/history.api.spec.ts`  | :white_check_mark:          |
-| `tests/e2e/reader/bookshelf.spec.ts`         | :white_check_mark: (待执行) |
+| 文件路径                                        | 状态                        |
+| ----------------------------------------------- | --------------------------- |
+| `tests/unit/api/reader/books.api.spec.ts`       | :white_check_mark:          |
+| `tests/unit/api/reader/progress.api.spec.ts`    | :white_check_mark:          |
+| `tests/unit/api/reader/chapters.api.spec.ts`    | :white_check_mark:          |
+| `tests/unit/api/reader/history.api.spec.ts`     | :white_check_mark:          |
+| `tests/unit/api/reader/comments.api.spec.ts`    | :white_check_mark:          |
+| `tests/unit/api/reader/collections.api.spec.ts` | :white_check_mark:          |
+| `tests/unit/api/reader/rating.api.spec.ts`      | :white_check_mark:          |
+| `tests/unit/api/reader/likes.api.spec.ts`       | :white_check_mark:          |
+| `tests/e2e/reader/bookshelf.spec.ts`            | :white_check_mark: (待执行) |
 
 ---
 
 ## 8. 下一步行动
 
-- [ ] P2 社交功能测试（评论、收藏、评分、点赞）
+- [x] P0 书架核心测试
+- [x] P1 阅读流程测试（进度/章节/历史）
+- [x] P2 社交功能测试（评论/收藏/评分/点赞）
 - [ ] P3 推荐系统测试
 - [ ] E2E测试执行（需要后端服务）
 - [ ] 集成测试添加（Mock Server场景）
@@ -266,15 +310,19 @@ E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
 ```
  RUN  v4.0.18 E:/Github/Qingyu/Qingyu_fronted
 
- ✓ tests/unit/api/reader/chapters.api.spec.ts (14 tests) 6ms
+ ✓ tests/unit/api/reader/books.api.spec.ts (23 tests) 6ms
+ ✓ tests/unit/api/reader/chapters.api.spec.ts (14 tests) 10ms
+ ✓ tests/unit/api/reader/collections.api.spec.ts (26 tests) 12ms
+ ✓ tests/unit/api/reader/comments.api.spec.ts (26 tests) 12ms
+ ✓ tests/unit/api/reader/history.api.spec.ts (18 tests) 9ms
+ ✓ tests/unit/api/reader/likes.api.spec.ts (21 tests) 10ms
  ✓ tests/unit/api/reader/progress.api.spec.ts (14 tests) 7ms
- ✓ tests/unit/api/reader/history.api.spec.ts (18 tests) 8ms
- ✓ tests/unit/api/reader/books.api.spec.ts (23 tests) 5ms
+ ✓ tests/unit/api/reader/rating.api.spec.ts (20 tests) 10ms
 
- Test Files  4 passed (4)
-      Tests  69 passed (69)
-   Start at  00:56:14
-   Duration  8.61s (transform 2.71s, setup 6.35s, import 19.34s, tests 139ms, environment 5.82s)
+ Test Files  8 passed (8)
+      Tests  162 passed (162)
+   Start at  01:28:36
+   Duration  8.77s (transform 5.52s, setup 11.98s, import 41.14s, tests 305ms, environment 11.63s)
 ```
 
 ---
