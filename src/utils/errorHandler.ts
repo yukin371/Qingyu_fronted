@@ -369,11 +369,7 @@ export class ErrorHandler {
     const title = appError.errorInfo?.title || '错误'
 
     if (type === 'notification') {
-      notification.error({
-        title,
-        message: errorMessage,
-        duration: 4000
-      })
+      notification.error(`${title}: ${errorMessage}`)
     } else {
       message.error(errorMessage)
     }

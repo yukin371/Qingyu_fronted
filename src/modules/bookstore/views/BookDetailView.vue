@@ -1,7 +1,7 @@
 <template>
   <div class="book-detail-view">
     <div class="page-shell">
-      <Spinner v-if="loading" :size="48" class="loading-spinner" />
+      <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
       <template v-else-if="book">
         <section class="panel intro-panel" data-testid="book-detail">
@@ -143,7 +143,7 @@
           </div>
 
           <div class="comments-list">
-            <Spinner v-if="commentsLoading" :size="32" class="loading-spinner" />
+            <Spinner v-if="commentsLoading" size="md" class="loading-spinner" />
             <template v-else>
               <div v-if="comments.length === 0" class="empty-comments">
                 <Empty title="暂无评论，来发表第一条评论吧" />
@@ -172,7 +172,6 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
-import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'
 import { Button, Rate, Empty, Image, Tag, Spinner } from '@/design-system'
@@ -220,7 +219,6 @@ interface Book {
 const route = useRoute()
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
-const readerStore = useReaderStore()
 const authStore = useAuthStore()
 
 const bookId = route.params.id as string
@@ -318,7 +316,6 @@ const jumpToComment = async () => {
 const startReading = async () => {
   try {
     if (chapters.value.length > 0) {
-      readerStore.currentBookId = bookId
       router.push(`/reader/${chapters.value[0].id}`)
     } else {
       message.warning('暂无章节')
@@ -329,7 +326,6 @@ const startReading = async () => {
 }
 
 const readChapter = (chapterId: string) => {
-  readerStore.currentBookId = bookId
   router.push(`/reader/${chapterId}`)
 }
 
@@ -365,9 +361,9 @@ const toggleFavorite = async () => {
       }
     } else {
       const response = await collectionsAPI.addCollection(bookId)
-      if (response.data) {
+      if (response) {
         isFavorited.value = true
-        collectionId.value = response.data.id || response.data._id || (response.data as any).collection_id
+        collectionId.value = response.id || response._id || (response as any).collection_id
         message.success('收藏成功')
       }
     }
@@ -396,12 +392,12 @@ const checkFavoriteStatus = async () => {
   try {
     checkingFavorite.value = true
     const response = await collectionsAPI.checkCollected(bookId)
-    if (response.data?.is_collected) {
+    if (response.is_collected) {
       isFavorited.value = true
       if (!collectionId.value) {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
-        if (collections.data?.list) {
-          const currentBookCollection = collections.data.list.find(
+        if (collections.list) {
+          const currentBookCollection = collections.list.find(
             (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
           )
           if (currentBookCollection) {

@@ -302,10 +302,6 @@ const leftPanelStyle = computed(() => {
   if (leftPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 折叠状态
-  if (leftPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
-  }
   // 展开状态
   return {
     width: layout.value.mode === 'desktop'
@@ -318,10 +314,6 @@ const rightPanelStyle = computed(() => {
   // 隐藏状态
   if (rightPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
-  }
-  // 折叠状态
-  if (rightPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
   }
   // 展开状态
   return {

@@ -178,6 +178,20 @@ export const bookshelfAPI = {
       bookIds,
       status
     })
+  },
+
+  /**
+   * 检查书籍是否在书架中
+   * @description 检查指定书籍是否在用户的书架中
+   * @endpoint GET /api/v1/reader/books/:bookId/status
+   * @category reader
+   * @tags 书架管理
+   * @param {string} bookId - 书籍ID
+   * @response {APIResponse<{isInShelf: boolean, status?: string}>} 200 - 成功返回书籍状态信息
+   * @security BearerAuth
+   */
+  async checkBookStatus(bookId: string): Promise<APIResponse<{ isInShelf: boolean; status?: string }>> {
+    return httpService.get<APIResponse<{ isInShelf: boolean; status?: string }>>(`/reader/books/${bookId}/status`)
   }
 }
 
@@ -190,6 +204,7 @@ export const addToBookshelf = (bookId: string) => bookshelfAPI.addToBookshelf(bo
 export const removeFromBookshelf = (bookId: string) => bookshelfAPI.removeFromBookshelf(bookId)
 export const updateBookStatus = (bookId: string, status: 'reading' | 'want_read' | 'finished') => bookshelfAPI.updateBookStatus(bookId, status)
 export const batchUpdateBookStatus = (bookIds: string[], status: 'reading' | 'want_read' | 'finished') => bookshelfAPI.batchUpdateBookStatus(bookIds, status)
+export const checkBookStatus = (bookId: string) => bookshelfAPI.checkBookStatus(bookId)
 
 // 别名导出：booksAPI 等同于 bookshelfAPI
 export const booksAPI = bookshelfAPI

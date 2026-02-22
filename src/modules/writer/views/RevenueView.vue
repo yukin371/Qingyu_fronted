@@ -260,10 +260,16 @@ const revenueStats = ref({
 })
 
 // 章节收入排行
-const chapterRanking = ref([])
+const chapterRanking = ref<ChapterRevenue[]>([])
 
 // 提现记录
-const withdrawalRecords = ref([])
+const withdrawalRecords = ref<Array<{
+  applyTime: string
+  amount: number
+  status: string
+  processTime: string
+  remark: string
+}>>([])
 
 // 提现表单
 const withdrawFormRef = ref<FormInstance>()
@@ -686,12 +692,12 @@ async function submitWithdraw(): Promise<void> {
     }
 
     withdrawing.value = true
-    await walletAPI.requestWithdraw({
+    await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
       account: withdrawForm.account,
-      method: withdrawForm.method,
+      accountType: withdrawForm.method,
       remark: withdrawForm.remark
-    })
+    } as any)
 
     message.success('提现申请已提交，请等待审核')
     showWithdrawDialog.value = false

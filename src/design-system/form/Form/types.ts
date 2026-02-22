@@ -142,10 +142,10 @@ export interface FormProps {
 }
 
 // Form 组件默认属性
-export const formDefaults: Partial<FormProps> = {
+export const formDefaults = {
   labelWidth: 'auto',
-  labelPosition: 'right',
-  size: 'md',
+  labelPosition: 'right' as const,
+  size: 'md' as const,
   disabled: false,
   validateOnRuleChange: true,
   showColon: true,
@@ -216,16 +216,28 @@ export interface FormItemProps {
   inline?: boolean
 
   /**
+   * 表单项尺寸
+   */
+  size?: FormSize
+
+  /**
+   * 是否禁用
+   * @default false
+   */
+  disabled?: boolean
+
+  /**
    * 自定义类名
    */
   class?: any
 }
 
 // FormItem 组件默认属性
-export const formItemDefaults: Partial<FormItemProps> = {
+export const formItemDefaults = {
   required: false,
   showMessage: true,
   inline: false,
+  disabled: false,
 }
 
 // FormItem 组件 Events 接口

@@ -106,27 +106,27 @@ export interface PopoverEmits {
   /**
    * 显示前触发
    */
-  beforeEnter?: () => void
+  (e: 'beforeEnter'): void
 
   /**
    * 显示后触发
    */
-  afterEnter?: () => void
+  (e: 'afterEnter'): void
 
   /**
    * 隐藏前触发
    */
-  beforeLeave?: () => void
+  (e: 'beforeLeave'): void
 
   /**
    * 隐藏后触发
    */
-  afterLeave?: () => void
+  (e: 'afterLeave'): void
 
   /**
    * 显示状态变化时触发
    */
-  'update:visible'?: (visible: boolean) => void
+  (e: 'update:visible', visible: boolean): void
 }
 
 // Popover 组件默认属性

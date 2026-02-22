@@ -5,7 +5,7 @@
  * 日期选择器组件，支持单日期和日期范围选择
  */
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
@@ -69,7 +69,6 @@ const emit = defineEmits<DatePickerEmits>()
 // 内部状态
 const isFocused = ref(false)
 const startDateRef = ref<HTMLInputElement>()
-const endDateRef = ref<HTMLInputElement>()
 
 // 计算输入框样式类名
 const inputClasses = computed(() =>
@@ -284,7 +283,7 @@ defineExpose({
           class="absolute left-0 top-0 h-full flex items-center justify-center pl-3 pointer-events-none text-slate-400"
         >
           <slot name="prefix">
-            <Icon :name="prefix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
+            <Icon :name="prefix as any" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
           </slot>
         </div>
 
@@ -309,7 +308,7 @@ defineExpose({
           <!-- 后缀图标/插槽 -->
           <div v-if="showSuffix && (suffix || slots.suffix)" class="flex items-center text-slate-400">
             <slot name="suffix">
-              <Icon :name="suffix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
+              <Icon :name="suffix as any" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
             </slot>
           </div>
 
@@ -340,7 +339,7 @@ defineExpose({
             class="absolute left-0 top-0 h-full flex items-center justify-center pl-3 pointer-events-none text-slate-400"
           >
             <slot name="prefix">
-              <Icon :name="prefix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
+              <Icon :name="prefix as any" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
             </slot>
           </div>
 
@@ -368,7 +367,7 @@ defineExpose({
         <div class="relative flex-1">
           <!-- 结束日期输入框 -->
           <input
-            ref="endDateRef"
+            ref="_endDateRef"
             :type="inputType"
             :class="inputClasses"
             :placeholder="(computedPlaceholder as string[])[1] || '结束日期'"

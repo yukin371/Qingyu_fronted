@@ -12,10 +12,12 @@
         </el-tag>
       </div>
       <div class="header-actions">
-        <el-button size="small" @click="handleRefresh" :icon="Refresh">
+        <el-button size="small" @click="handleRefresh">
+          <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
-        <el-button type="primary" size="small" :icon="Plus" @click="handleAddCharacter">
+        <el-button type="primary" size="small" @click="handleAddCharacter">
+          <el-icon><Plus /></el-icon>
           添加角色
         </el-button>
       </div>
@@ -50,8 +52,12 @@
               </div>
             </div>
             <div class="card-actions">
-              <el-button text size="small" :icon="Edit" @click.stop="handleEditCharacter(character)" />
-              <el-button text size="small" :icon="Delete" @click.stop="handleDeleteCharacter(character)" />
+              <el-button text size="small" @click.stop="handleEditCharacter(character)">
+                <el-icon><Edit /></el-icon>
+              </el-button>
+              <el-button text size="small" @click.stop="handleDeleteCharacter(character)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </div>
           </div>
 
@@ -64,7 +70,9 @@
         <div v-if="selectedCharacter" class="detail-sidebar">
           <div class="sidebar-header">
             <h3>{{ selectedCharacter.name }}</h3>
-            <el-button text :icon="Close" @click="selectedCharacter = null" />
+            <el-button text @click="selectedCharacter = null">
+              <el-icon><Close /></el-icon>
+            </el-button>
           </div>
           <el-scrollbar class="sidebar-content">
             <!-- 基本信息 -->
@@ -202,14 +210,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { Plus, Refresh, Edit, Delete, Close } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
+import type { CreateCharacterRequest } from '../types/character'
 import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
 import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
-const graphCanvasRef = ref()
 const selectedCharacter = ref<Character | null>(null)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -217,8 +226,6 @@ const submitting = ref(false)
 const formRef = ref()
 const showAliasInput = ref(false)
 const showTraitInput = ref(false)
-const aliasInputRef = ref()
-const traitInputRef = ref()
 const newAlias = ref('')
 const newTrait = ref('')
 
@@ -344,7 +351,17 @@ const handleSubmit = async () => {
         await updateCharacter(selectedCharacter.value.id, projectId, characterForm.value)
       } else {
         const { createCharacter } = await import('..')
-        await createCharacter(projectId, characterForm.value)
+        const createData: CreateCharacterRequest = {
+          projectId,
+          name: characterForm.value.name,
+          alias: characterForm.value.alias,
+          summary: characterForm.value.summary,
+          traits: characterForm.value.traits,
+          background: characterForm.value.background,
+          personalityPrompt: characterForm.value.personalityPrompt,
+          speechPattern: characterForm.value.speechPattern,
+        }
+        await createCharacter(projectId, createData)
       }
 
       await handleRefresh()
@@ -358,7 +375,7 @@ const handleSubmit = async () => {
   })
 }
 
-const handleManageRelations = (character: Character) => {
+const handleManageRelations = (_character: Character) => {
   message.info('关系管理功能开发中...')
 }
 

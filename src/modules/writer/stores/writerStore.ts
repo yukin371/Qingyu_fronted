@@ -36,7 +36,7 @@ import type {
   OutlineNode,
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
-import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import { chatWithAI, continueWriting, polishText, expandText, rewriteText, type ChatMessage as AIChatMessage } from '@/modules/ai/api'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 
 /**
@@ -802,7 +802,12 @@ export const useWriterStore = defineStore('writer', {
       this.ai.chatHistory.push(userMessage)
 
       try {
-        const response = await chatWithAI(message, this.ai.chatHistory.slice(0, -1))
+        const historyForAPI = this.ai.chatHistory.slice(0, -1).map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp
+        })) as AIChatMessage[]
+        const response = await chatWithAI(message, historyForAPI)
 
         // 添加AI回复到历史
         const aiMessage: ChatMessage = {
@@ -863,7 +868,7 @@ export const useWriterStore = defineStore('writer', {
           input: text,
           output: result,
           timestamp: Date.now(),
-          projectId: this.currentProjectId,
+          projectId: this.currentProjectId || undefined,
           usage: response.usage,
         })
 
@@ -900,7 +905,7 @@ export const useWriterStore = defineStore('writer', {
           input: text,
           output: result,
           timestamp: Date.now(),
-          projectId: this.currentProjectId,
+          projectId: this.currentProjectId || undefined,
           usage: response.usage,
         })
 
@@ -941,7 +946,7 @@ export const useWriterStore = defineStore('writer', {
           input: text,
           output: result,
           timestamp: Date.now(),
-          projectId: this.currentProjectId,
+          projectId: this.currentProjectId || undefined,
           usage: response.usage,
         })
 
@@ -982,7 +987,7 @@ export const useWriterStore = defineStore('writer', {
           input: text,
           output: result,
           timestamp: Date.now(),
-          projectId: this.currentProjectId,
+          projectId: this.currentProjectId || undefined,
           usage: response.usage,
         })
 

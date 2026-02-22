@@ -22,18 +22,20 @@ export interface UserRating {
  * 获取评分统计
  */
 export function getRatingStats(targetType: TargetType, targetId: string) {
-  return request.get<RatingStats>(
-    API_PATHS.RATINGS.STATS(targetType, targetId)
-  )
+  return request<RatingStats>({
+    url: API_PATHS.RATINGS.STATS(targetType, targetId),
+    method: 'get'
+  })
 }
 
 /**
  * 获取用户评分
  */
 export function getUserRating(targetType: TargetType, targetId: string) {
-  return request.get<UserRating | null>(
-    API_PATHS.RATINGS.USER_RATING(targetType, targetId)
-  )
+  return request<UserRating | null>({
+    url: API_PATHS.RATINGS.USER_RATING(targetType, targetId),
+    method: 'get'
+  })
 }
 
 /**
@@ -44,10 +46,11 @@ export function submitRating(
   targetId: string,
   rating: number
 ) {
-  return request.post(
-    API_PATHS.RATINGS.CREATE(targetType, targetId),
-    { rating }
-  )
+  return request<void>({
+    url: API_PATHS.RATINGS.CREATE(targetType, targetId),
+    method: 'post',
+    data: { rating }
+  })
 }
 
 /**
@@ -58,17 +61,19 @@ export function updateRating(
   targetId: string,
   rating: number
 ) {
-  return request.put(
-    API_PATHS.RATINGS.UPDATE(targetType, targetId),
-    { rating }
-  )
+  return request<void>({
+    url: API_PATHS.RATINGS.UPDATE(targetType, targetId),
+    method: 'put',
+    data: { rating }
+  })
 }
 
 /**
  * 删除评分
  */
 export function deleteRating(targetType: TargetType, targetId: string) {
-  return request.delete(
-    API_PATHS.RATINGS.DELETE(targetType, targetId)
-  )
+  return request<void>({
+    url: API_PATHS.RATINGS.DELETE(targetType, targetId),
+    method: 'delete'
+  })
 }
