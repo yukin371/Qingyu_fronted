@@ -261,20 +261,20 @@ const loadBooks = async () => {
           }
           books.value = response.data
           total.value = (response as any).total || response.data.length
-        } else if (response.data && response.data.list) {
+        } else if (response.data && (response.data as any).list) {
           // 兼容 { data: { list: [...], total? } }
-          books.value = response.data.list
-          total.value = response.data.total || (response as any).total || response.data.list.length
-        } else if (response.data && response.data.items) {
+          books.value = (response.data as any).list
+          total.value = (response.data as any).total || (response as any).total || (response.data as any).list.length
+        } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')
-          books.value = response.data.items
-          total.value = response.data.total || 0
-        } else if (response.data && response.data.books) {
+          books.value = (response.data as any).items
+          total.value = (response.data as any).total || 0
+        } else if (response.data && (response.data as any).books) {
           // 兼容另一种格式 { data: { books: [...], total, ... } }
           console.log('[BooksView] Found nested books format')
-          books.value = response.data.books
-          total.value = response.data.total || 0
+          books.value = (response.data as any).books
+          total.value = (response.data as any).total || 0
         } else {
           console.warn('[BooksView] Unexpected data structure:', response.data)
           books.value = []

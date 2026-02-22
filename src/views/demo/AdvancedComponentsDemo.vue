@@ -195,7 +195,7 @@
                 </QyCard>
                 <QyCard class="bg-slate-50">
                   <div class="flex flex-col items-center justify-center py-8">
-                    <QyButton @click="loadingFullscreen2 = true; setTimeout(() => loadingFullscreen2 = false, 3000)">
+                    <QyButton @click="triggerFullscreenLoading2">
                       触发全屏加载
                     </QyButton>
                     <p class="mt-4 text-sm text-slate-500">覆盖整个视口</p>
@@ -447,7 +447,7 @@
             <p class="text-slate-600 mb-4">切换空状态和加载状态。</p>
             <div class="flex gap-3">
               <QyButton @click="showEmptyState = true">显示空状态</QyButton>
-              <QyButton @click="showEmptyState = false; loadingDemo = true; setTimeout(() => loadingDemo = false, 2000)">
+              <QyButton @click="triggerLoadingDemo">
                 模拟加载
               </QyButton>
             </div>
@@ -513,20 +513,12 @@ const modalVisible = ref(false)
 const modalCustom = ref(false)
 const modalHeader = ref(false)
 const modalNonClosable = ref(false)
-const modalWidth = ref<'sm' | 'md' | 'lg'>('md')
 const modalWidthVisible = ref(false)
 const modalWidthValue = ref('500px')
 const modalWithForm = ref(false)
 
-// Watch modalWidth changes
-const widthMap = { sm: '400px', md: '500px', lg: '600px' }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleWidthChange = (size: 'sm' | 'md' | 'lg') => {
-  modalWidth.value = size
-  modalWidthValue.value = widthMap[size]
-  modalWidthVisible.value = true
-}
-
+// Width mapping
+const widthMap: Record<'sm' | 'md' | 'lg', string> = { sm: '400px', md: '500px', lg: '600px' }
 // QyLoading state
 const loadingFullscreen = ref(false)
 const loadingFullscreen2 = ref(false)
@@ -534,9 +526,24 @@ const loadingDemo = ref(false)
 
 const showFullscreenLoading = () => {
   loadingFullscreen.value = true
-  setTimeout(() => {
+  window.setTimeout(() => {
     loadingFullscreen.value = false
   }, 3000)
+}
+
+const triggerFullscreenLoading2 = () => {
+  loadingFullscreen2.value = true
+  window.setTimeout(() => {
+    loadingFullscreen2.value = false
+  }, 3000)
+}
+
+const triggerLoadingDemo = () => {
+  showEmptyState.value = false
+  loadingDemo.value = true
+  window.setTimeout(() => {
+    loadingDemo.value = false
+  }, 2000)
 }
 
 // QyEmpty handlers
@@ -575,7 +582,7 @@ const formSubmitted = ref(false)
 const handleSubmit = () => {
   console.log('Form submitted:', formData.value)
   formSubmitted.value = true
-  setTimeout(() => {
+  window.setTimeout(() => {
     formSubmitted.value = false
   }, 3000)
 }
@@ -611,7 +618,7 @@ const validationRules = {
   ],
   age: [
     { pattern: /^\d+$/, message: '年龄必须是数字' },
-    { validator: (value: string) => {
+    { validator: (_rule: any, value: string) => {
       const age = parseInt(value)
       if (value && (age < 18 || age > 120)) {
         return '年龄必须在18-120之间'
@@ -622,7 +629,7 @@ const validationRules = {
   website: [
     { pattern: /^https?:\/\/.+/, message: '请输入有效的网址（以http://或https://开头）' }
   ]
-}
+} as Record<string, any>
 
 const validationResult = ref<{ valid: boolean; message: string } | null>(null)
 
@@ -647,7 +654,7 @@ const validateForm = () => {
     validationResult.value = { valid: false, message: `验证失败：${messages.join('，')}` }
   }
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     validationResult.value = null
   }, 3000)
 }
@@ -662,7 +669,7 @@ const customRules = {
   password: [
     { required: true, message: '密码不能为空' },
     { min: 8, message: '密码至少8个字符' },
-    { validator: (value: string) => {
+    { validator: (_rule: any, value: string) => {
       if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
         return '密码必须包含字母和数字'
       }
@@ -671,14 +678,14 @@ const customRules = {
   ],
   confirmPassword: [
     { required: true, message: '请确认密码' },
-    { validator: (value: string) => {
+    { validator: (_rule: any, value: string) => {
       if (value !== customForm.value.password) {
         return '两次输入的密码不一致'
       }
       return true
     }}
   ]
-}
+} as Record<string, any>
 
 const validateCustomForm = () => {
   alert('密码验证：\n' + JSON.stringify(customForm.value, null, 2))
@@ -710,7 +717,7 @@ const registerLoading = ref(false)
 
 const handleRegister = () => {
   registerLoading.value = true
-  setTimeout(() => {
+  window.setTimeout(() => {
     registerLoading.value = false
     modalWithForm.value = false
     alert('注册成功！')

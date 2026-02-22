@@ -213,7 +213,7 @@
                         <div class="flex items-center gap-2 mb-1">
                           <span class="font-medium text-slate-800">{{ comment.user.nickname }}</span>
                           <span class="text-xs text-slate-400">{{ comment.user.username }}</span>
-                          <QyTag v-if="comment.user.level" size="small" type="info">Lv{{ comment.user.level }}</QyTag>
+                          <QyTag v-if="comment.user.level" size="sm" type="info">Lv{{ comment.user.level }}</QyTag>
                         </div>
                         <p class="text-slate-600 text-sm mb-2">{{ comment.content }}</p>
                         <div class="flex items-center gap-4 text-xs text-slate-400">
@@ -285,7 +285,7 @@
                         <p class="text-sm text-slate-600 mb-2">{{ item.content || '无内容预览' }}</p>
                         <div class="flex items-center gap-4 text-xs text-slate-400">
                           <span>提交者: {{ item.authorName }}</span>
-                          <span>提交时间: {{ formatRelativeTime(item.submitTime * 1000) }}</span>
+                          <span>提交时间: {{ formatRelativeTime(String(item.submitTime * 1000)) }}</span>
                         </div>
                       </div>
                       <div class="flex gap-2">
@@ -325,12 +325,12 @@
                     <div class="flex items-center justify-between">
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                          <QyTag :type="getTransactionTypeColor(tx.type)" size="small">
+                          <QyTag :type="getTransactionTypeColor(tx.type)" size="sm">
                             {{ getTransactionTypeName(tx.type) }}
                           </QyTag>
                           <span class="font-medium text-slate-800 text-sm">{{ tx.description || getTypeDescription(tx.type) }}</span>
                         </div>
-                        <div class="text-xs text-slate-400">{{ formatRelativeTime(tx.createTime * 1000) }}</div>
+                        <div class="text-xs text-slate-400">{{ formatRelativeTime(String(tx.createTime * 1000)) }}</div>
                       </div>
                       <div class="text-right">
                         <div :class="[
@@ -417,7 +417,7 @@
                           <span class="font-medium text-slate-800">{{ node.title }}</span>
                           <span v-if="node.wordCount" class="text-xs text-slate-400 ml-2">({{ node.wordCount }}字)</span>
                         </div>
-                        <QyTag v-if="node.status" size="small" :type="node.status === 'completed' ? 'success' : 'info'">
+                        <QyTag v-if="node.status" size="sm" :type="node.status === 'completed' ? 'success' : 'info'">
                           {{ node.status === 'completed' ? '已完成' : '进行中' }}
                         </QyTag>
                       </div>

@@ -140,7 +140,7 @@
                     </span>
                   </div>
                 </div>
-                <el-dropdown trigger="click" @command="(cmd) => handleMessageAction(cmd, msg)">
+                <el-dropdown trigger="click" @command="(cmd: string) => handleMessageAction(cmd, msg)">
                   <el-icon class="more-btn"><QyIcon name="MoreFilled"  /></el-icon>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -223,7 +223,7 @@ import { QyIcon } from '@/design-system/components'
 import {
   getConversations,
   getConversationMessages,
-  sendMessage,
+  sendMessage as sendMessageAPI,
   createConversation,
   markConversationAsRead,
   deleteMessage,
@@ -332,7 +332,8 @@ const loadMessages = async (loadMore = false) => {
   }
 }
 
-// 发送消息
+// 发送消息（保留供后续使用）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sendTextMessage = async () => {
   if (!selectedConversation.value) return
 
@@ -345,8 +346,8 @@ const sendTextMessage = async () => {
 
   sending.value = true
   try {
-    const msg = await sendMessage({
-      conversation_id: selectedConversation.value.id,
+    const msg = await sendMessageAPI({
+      conversationId: selectedConversation.value.id,
       content: result.sanitized!,
       type: 'text'
     })
@@ -369,6 +370,7 @@ const sendTextMessage = async () => {
 }
 
 // 上传图片
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleImageUpload = async (file: File) => {
   try {
     // TODO: 实现图片上传和发送功能
@@ -380,6 +382,7 @@ const handleImageUpload = async (file: File) => {
 }
 
 // 上传文件
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleFileUpload = async (file: File) => {
   try {
     // TODO: 实现文件上传和发送功能
@@ -395,7 +398,7 @@ const markAsRead = async () => {
   if (!selectedConversation.value) return
 
   try {
-    await markConversationAsRead(selectedConversation.value.id)
+    await markConversationAsRead(selectedConversation.value.id, selectedConversation.value.participant_id)
     const conv = conversations.value.find(c => c.id === selectedConversation.value?.id)
     if (conv) {
       conv.unread_count = 0
@@ -470,9 +473,9 @@ const createNewConversation = async () => {
 
   creating.value = true
   try {
-    const conv = await createConversation({ participant_id: newChatUserId.value })
-    conversations.value.unshift(conv)
-    selectedConversation.value = conv
+    const conv = await createConversation({ participantId: newChatUserId.value })
+    conversations.value.unshift(conv as any)
+    selectedConversation.value = conv as any
     showNewChatDialog.value = false
     newChatUserId.value = ''
     loadMessages()

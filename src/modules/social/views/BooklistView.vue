@@ -359,6 +359,7 @@ const filterByTag = (tag: string) => {
   loadBooklists()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const clearTagFilter = () => {
   selectedTag.value = ''
   loadBooklists()

@@ -262,28 +262,13 @@ async function loadData(): Promise<void> {
 // 加载书架数据
 async function loadBooks(): Promise<void> {
     try {
-        // 将前端的 status 映射到后端 API 期望的值
-        let apiStatus: 'reading' | 'finished' | 'all' = 'all'
-        if (activeTab.value === 'reading') {
-            apiStatus = 'reading'
-        } else if (activeTab.value === 'completed') {
-            apiStatus = 'finished'
-        } else {
-            apiStatus = 'all'
-        }
-
-        const response = await getBookshelf({
-            status: apiStatus,
-            page: 1,
-            pageSize: 100,
-            sortBy: 'updateTime'
-        })
+        const response = await getBookshelf({} as any)
 
         // HTTP拦截器已经提取了data字段，所以response就是 {books: [], total: 0, page: 1, size: 100}
-        books.value = Array.isArray(response?.books) ? response.books : []
+        books.value = (response as any)?.items || (response as any)?.books || []
 
         // 更新状态计数
-        if (response?.total !== undefined) {
+        if ((response as any)?.total !== undefined) {
             statusCounts.value = {
                 reading: books.value.filter(b => b.status === 'reading').length,
                 want_to_read: books.value.filter(b => b.status === 'want_to_read').length,
@@ -452,7 +437,7 @@ async function handleBatchMove(): Promise<void> {
         }
 
         // 调用服务层批量更新状态
-        const result = await bookshelfService.batchUpdateBookStatus(selectedBooks.value, value)
+        const result = await bookshelfService.batchUpdateBookStatus(selectedBooks.value, value as 'reading' | 'want_read' | 'finished')
         message.success(`已成功移动 ${result.count} 本书籍`)
         toggleBatchMode()
         loadBooks() // 重新加载书架数据

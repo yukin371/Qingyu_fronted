@@ -157,10 +157,7 @@ import {
   getSubscribersTrend,
   getChapterStats,
   getReaderActivity,
-  getReadingHeatmap,
-  type BookStats as BookStatsType,
-  type DailyStats as DailyStatsType,
-  type ChapterStats as ChapterStatsType
+  getReadingHeatmap
 } from '@/modules/writer/api/statistics'
 import { getWriterBooks } from '@/modules/writer/api/revenue'
 
@@ -427,7 +424,7 @@ async function loadDailyStats(): Promise<void> {
 
     // 加载阅读量趋势
     try {
-      const viewsResponse: any = await getDailyStats(selectedBookId.value, { days })
+      const viewsResponse: any = await getDailyStats(selectedBookId.value, days)
       if (viewsResponse.data && Array.isArray(viewsResponse.data)) {
         const dates = viewsResponse.data.map((item: any) => {
           const d = new Date(item.date)
@@ -493,10 +490,7 @@ async function loadChaptersStats(): Promise<void> {
   }
 
   try {
-    const response: any = await getChapterStats(selectedBookId.value, {
-      sortBy: 'views',
-      limit: 10
-    })
+    const response: any = await getChapterStats(selectedBookId.value, 1, 10)
     if (response.data && Array.isArray(response.data)) {
       const chapters = response.data.map((item: any) => item.chapterTitle)
       const views = response.data.map((item: any) => item.views)
@@ -554,7 +548,7 @@ async function loadReadingHeatmap(): Promise<void> {
   }
 
   try {
-    const response: any = await getReadingHeatmap(selectedBookId.value, { days: 7 })
+    const response: any = await getReadingHeatmap(selectedBookId.value)
     if (response.data && Array.isArray(response.data)) {
       const heatmapData = response.data.map((item: any) => [
         item.hour,
