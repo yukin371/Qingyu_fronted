@@ -60,8 +60,7 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/register
    */
   async register(data: RegisterData): Promise<LoginResponse> {
-    const response = await httpService.post<LoginResponse>(getAuthPath('register'), data)
-    return response as unknown as LoginResponse
+    return httpService.post<LoginResponse>(getAuthPath('register'), data)
   },
 
   /**
@@ -69,8 +68,7 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/login
    */
   async login(data: LoginCredentials): Promise<LoginResponse> {
-    const response = await httpService.post<LoginResponse>(getAuthPath('login'), data)
-    return response as unknown as LoginResponse
+    return httpService.post<LoginResponse>(getAuthPath('login'), data)
   },
 
   /**
@@ -86,8 +84,7 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/refresh
    */
   async refreshToken(): Promise<TokenRefreshResponse> {
-    const response = await httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
-    return response as unknown as TokenRefreshResponse
+    return httpService.post<TokenRefreshResponse>(getAuthPath('refresh'))
   },
 
   /**
@@ -95,8 +92,7 @@ export const sharedAuthAPI = {
    * GET /api/v1/user/auth/permissions
    */
   async getUserPermissions(): Promise<UserPermission[]> {
-    const response = await httpService.get<UserPermission[]>(getAuthPath('permissions'))
-    return response as unknown as UserPermission[]
+    return httpService.get<UserPermission[]>(getAuthPath('permissions'))
   },
 
   /**
@@ -104,8 +100,7 @@ export const sharedAuthAPI = {
    * GET /api/v1/user/auth/roles
    */
   async getUserRoles(): Promise<UserRole[]> {
-    const response = await httpService.get<UserRole[]>(getAuthPath('roles'))
-    return response as unknown as UserRole[]
+    return httpService.get<UserRole[]>(getAuthPath('roles'))
   },
 
   // ==================== 用户信息管理 ====================
@@ -116,7 +111,7 @@ export const sharedAuthAPI = {
    */
   async getUserInfo(): Promise<{ user: UserInfo; permissions?: UserPermission[]; roles?: UserRole[] }> {
     const user = await httpService.get<UserInfo>('/user/profile')
-    return { user: user as unknown as UserInfo }
+    return { user }
   },
 
   /**
@@ -125,7 +120,7 @@ export const sharedAuthAPI = {
    */
   async updateUserInfo(data: Partial<UserInfo>): Promise<{ user: UserInfo }> {
     const user = await httpService.put<UserInfo>('/user/profile', data)
-    return { user: user as unknown as UserInfo }
+    return { user }
   },
 
   /**

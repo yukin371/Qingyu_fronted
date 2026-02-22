@@ -772,7 +772,10 @@ apiClient.interceptors.response.use(
     // 处理HTTP 401状态码（认证失败）
     if (response.status === 401) {
       // 对于登录接口，构造带有正确消息的Error对象，由调用方显示错误
-      const isLoginRequest = config?.url?.includes('/auth/login') || config?.url?.includes('/login')
+      // 使用精确的 URL 路径匹配，避免误匹配其他包含 login 的路径
+      const urlPath = config?.url || ''
+      const isLoginRequest = /^\/(user\/auth\/login|api\/v1\/user\/auth\/login|login)$/.test(urlPath) ||
+        urlPath.endsWith('/auth/login')
       if (isLoginRequest) {
         // 登录失败，使用后端返回的错误消息
         const errorMessage = message || '用户名或密码错误'

@@ -348,8 +348,8 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
 const loadMembershipPlans = async () => {
   try {
     const res = await getMembershipPlans()
-    // 处理两种返回类型：直接返回数组或包装对象
-    membershipPlans.value = Array.isArray(res) ? res : ((res as any).data || [])
+    // API 已经返回正确类型 MembershipPlan[]，直接使用
+    membershipPlans.value = Array.isArray(res) ? res : []
   } catch (error) {
     message.error('获取套餐列表失败')
   }
@@ -359,7 +359,8 @@ const loadMembershipPlans = async () => {
 const loadUserMembership = async () => {
   try {
     const res = await getUserMembership()
-    userMembership.value = res as any
+    // API 返回 UserMembership 类型，如果存在则赋值
+    userMembership.value = res || null
   } catch (error) {
     // 未开通会员不算错误
     userMembership.value = null
@@ -373,10 +374,11 @@ const loadMembershipBenefits = async () => {
       getMembershipBenefitsUsage(),
       getMembershipBenefits()
     ])
-    benefitsUsage.value = (Array.isArray(usageRes) ? usageRes : (usageRes as any).data) || []
+    // API 已经返回正确的数组类型，直接使用
+    benefitsUsage.value = Array.isArray(usageRes) ? usageRes : []
 
     // 建立权益代码到名称的映射
-    const benefits = (Array.isArray(benefitsRes) ? benefitsRes : (benefitsRes as any).data) || [] as LocalMembershipBenefit[]
+    const benefits: LocalMembershipBenefit[] = Array.isArray(benefitsRes) ? benefitsRes : []
     benefitsMap.value = benefits.reduce((map: Record<string, string>, benefit: LocalMembershipBenefit) => {
       map[benefit.code] = benefit.name
       return map
