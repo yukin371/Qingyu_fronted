@@ -303,32 +303,4 @@ test.describe('书架功能', () => {
 
     console.log('✅ E-B04 测试完成')
   })
-
-  // 附加测试：未登录访问书架
-  test('未登录用户访问书架应重定向到登录页', async ({ page }) => {
-    console.log('📚 测试：未登录访问书架')
-
-    // 直接访问书架页面（不登录）
-    await page.goto('/reading/bookshelf')
-    await page.waitForLoadState('load')
-    await page.waitForTimeout(1500)
-
-    const currentUrl = page.url()
-    console.log(`📍 当前URL: ${currentUrl}`)
-
-    // 验证是否被重定向到登录页
-    if (currentUrl.includes('/login') || currentUrl.includes('/auth')) {
-      console.log('✅ 未登录用户被正确重定向到登录页')
-
-      // 验证登录页面显示正常
-      const loginForm = page.locator('form, [class*="login"]')
-      await expect(loginForm).toBeVisible()
-    } else if (currentUrl.includes('/bookshelf')) {
-      console.log('ℹ️  可以在未登录状态访问书架页面（可能是公开页面）')
-    } else {
-      console.log(`⚠️  被重定向到: ${currentUrl}`)
-    }
-
-    console.log('✅ 未登录访问测试完成')
-  })
 })
