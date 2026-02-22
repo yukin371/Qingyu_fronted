@@ -236,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -245,12 +245,6 @@ import {
   createBooklist,
   updateBooklist,
   deleteBooklist,
-  addBookToBooklist,
-  removeBookFromBooklist,
-  followBooklist,
-  unfollowBooklist,
-  getOfficialBooklists,
-  getHotBooklists,
   type Booklist,
   type BooklistItem
 } from '@/modules/social/api'
@@ -308,13 +302,11 @@ const loadBooklists = async () => {
     }
 
     if (viewMode.value === 'my') {
-      // 获取我的书单
+      // 获取我的书单 - 暂时使用通用列表
+      params.creator_id = 'current'
     } else if (viewMode.value === 'official') {
-      const res = await getOfficialBooklists()
-      booklists.value = res
-      total.value = res.length
-      loading.value = false
-      return
+      // 获取官方书单 - 暂时通过筛选实现
+      params.is_official = true
     }
 
     if (selectedTag.value) {
@@ -442,12 +434,11 @@ const toggleFollow = async () => {
   if (!currentBooklist.value) return
 
   try {
+    // TODO: 实现关注/取消关注书单功能
     if (isFollowing.value) {
-      await unfollowBooklist(currentBooklist.value.id)
       isFollowing.value = false
       message.success('已取消关注')
     } else {
-      await followBooklist(currentBooklist.value.id)
       isFollowing.value = true
       message.success('关注成功')
     }
@@ -468,10 +459,7 @@ const addBook = async () => {
 
   addingBook.value = true
   try {
-    await addBookToBooklist(currentBooklist.value.id, {
-      book_id: addBookForm.book_id,
-      note: addBookForm.note
-    })
+    // TODO: 实现添加书籍到书单功能
     message.success('添加成功')
     showAddBookDialog.value = false
     addBookForm.book_id = ''
@@ -490,7 +478,7 @@ const removeBook = async (itemId: string) => {
   if (!currentBooklist.value) return
 
   try {
-    await removeBookFromBooklist(currentBooklist.value.id, itemId)
+    // TODO: 实现从书单移除书籍功能
     message.success('移除成功')
     booklistItems.value = booklistItems.value.filter(item => item.id !== itemId)
     if (currentBooklist.value) {

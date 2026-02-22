@@ -10,11 +10,14 @@
         <el-input
           v-model="searchKeyword"
           placeholder="搜索..."
-          :prefix-icon="Search"
           size="small"
           style="width: 200px;"
           clearable
-        />
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
       </div>
     </div>
 
@@ -55,7 +58,8 @@
         <div v-show="activeCategory === 'characters'" class="list-container">
           <div class="list-header">
             <h3>角色列表</h3>
-            <el-button type="primary" size="small" :icon="Plus" @click="handleAddCharacter">
+            <el-button type="primary" size="small" @click="handleAddCharacter">
+              <el-icon><Plus /></el-icon>
               添加角色
             </el-button>
           </div>
@@ -85,7 +89,8 @@
         <div v-show="activeCategory === 'locations'" class="list-container">
           <div class="list-header">
             <h3>地点列表</h3>
-            <el-button type="primary" size="small" :icon="Plus" @click="handleAddLocation">
+            <el-button type="primary" size="small" @click="handleAddLocation">
+              <el-icon><Plus /></el-icon>
               添加地点
             </el-button>
           </div>
@@ -128,8 +133,13 @@
                 </div>
               </div>
               <div class="header-actions">
-                <el-button text :icon="Edit" @click="handleEditItem">编辑</el-button>
-                <el-button text :icon="Close" @click="selectedItem = null" />
+                <el-button text @click="handleEditItem">
+                  <el-icon><Edit /></el-icon>
+                  编辑
+                </el-button>
+                <el-button text @click="selectedItem = null">
+                  <el-icon><Close /></el-icon>
+                </el-button>
               </div>
             </div>
 
@@ -182,8 +192,13 @@
                 </div>
               </div>
               <div class="header-actions">
-                <el-button text :icon="Edit" @click="handleEditItem">编辑</el-button>
-                <el-button text :icon="Close" @click="selectedItem = null" />
+                <el-button text @click="handleEditItem">
+                  <el-icon><Edit /></el-icon>
+                  编辑
+                </el-button>
+                <el-button text @click="selectedItem = null">
+                  <el-icon><Close /></el-icon>
+                </el-button>
               </div>
             </div>
 
@@ -220,6 +235,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { Search, Plus, Edit, Close } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
@@ -266,21 +282,6 @@ const handleSelectItem = (item: Character | Location, type: 'character' | 'locat
   selectedItem.value = item as any
   selectedType.value = type
 }
-
-// Computed properties for type safety
-const selectedCharacter = computed(() => {
-  if (selectedType.value === 'character' && selectedItem.value) {
-    return selectedItem.value as Character
-  }
-  return null
-})
-
-const selectedLocation = computed(() => {
-  if (selectedType.value === 'location' && selectedItem.value) {
-    return selectedItem.value as Location
-  }
-  return null
-})
 
 const handleAddCharacter = () => {
   message.info('添加角色功能开发中...')

@@ -266,4 +266,51 @@ describe('bookshelfAPI', () => {
       expect(result.data?.count).toBe(0)
     })
   })
+
+  describe('错误处理', () => {
+    // B-004: 添加到书架-重复添加
+    it('应该正确处理重复添加书籍的错误', async () => {
+      const mockError = {
+        response: {
+          data: {
+            code: 409,
+            message: '书籍已在书架中',
+          },
+        },
+      }
+      vi.mocked(httpService.post).mockRejectedValue(mockError)
+
+      await expect(bookshelfAPI.addToBookshelf('book-1')).rejects.toEqual(mockError)
+    })
+
+    // B-005: 添加到书架-未登录
+    it('应该正确处理未登录错误', async () => {
+      const mockError = {
+        response: {
+          data: {
+            code: 401,
+            message: '请先登录',
+          },
+        },
+      }
+      vi.mocked(httpService.post).mockRejectedValue(mockError)
+
+      await expect(bookshelfAPI.addToBookshelf('book-1')).rejects.toEqual(mockError)
+    })
+
+    // B-007: 从书架移除-不存在
+    it('应该正确处理移除不存在书籍的错误', async () => {
+      const mockError = {
+        response: {
+          data: {
+            code: 404,
+            message: '书籍不在书架中',
+          },
+        },
+      }
+      vi.mocked(httpService.delete).mockRejectedValue(mockError)
+
+      await expect(bookshelfAPI.removeFromBookshelf('nonexistent')).rejects.toEqual(mockError)
+    })
+  })
 })

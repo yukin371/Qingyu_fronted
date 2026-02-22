@@ -95,7 +95,7 @@
                             <el-button type="primary" size="small" @click.stop="continueReading(book)">
                                 继续阅读
                             </el-button>
-                            <el-dropdown @command="(cmd) => handleAction(cmd, book)">
+                            <el-dropdown @command="(cmd: string) => handleAction(cmd, book)">
                                 <el-button size="small" text>
                                     <QyIcon name="MoreFilled"  />
                                 </el-button>
@@ -206,7 +206,6 @@ import { formatDate, formatReadingTime } from '@/utils/format.ts'
 import { message, messageBox } from '@/design-system/services'
 import {
     getBookshelf,
-    addToBookshelf,
     removeFromBookshelf
 } from '@/modules/reader/api'
 import { getReadingHistory } from '@/modules/reader/api'
@@ -291,23 +290,22 @@ async function loadBooks(): Promise<void> {
                 completed: books.value.filter(b => b.status === 'completed').length
             }
         }
-    } catch (error: any) {
-        ElMessage.error(error.message || '加载书架失败')
+    } catch (error: unknown) {
+        const err = error as Error
+        message.error(err.message || '加载书架失败')
     }
 }
 
 async function loadHistory(): Promise<void> {
     try {
-        const response = await getReadingHistory({
-            page: historyPage.value,
-            pageSize: historyPageSize.value
-        })
+        const response = await getReadingHistory(historyPage.value, historyPageSize.value)
 
-        const data = response.data || response
-        histories.value = Array.isArray(data) ? data : (data.data || [])
-        historyTotal.value = data.total || (response as any).total || 0
-    } catch (error: any) {
-        ElMessage.error(error.message || '加载历史记录失败')
+        const data = response || {}
+        histories.value = Array.isArray(data) ? data : []
+        historyTotal.value = (data as any).total || 0
+    } catch (error: unknown) {
+        const err = error as Error
+        message.error(err.message || '加载历史记录失败')
     }
 }
 
@@ -322,8 +320,9 @@ async function loadStats(): Promise<void> {
             finishedBooks: finishedCount,
             todayTime: 0
         }
-    } catch (error: any) {
-        ElMessage.error(error.message || '加载统计数据失败')
+    } catch (error: unknown) {
+        const err = error as Error
+        message.error(err.message || '加载统计数据失败')
         // 使用默认值
         stats.value = {
             totalBooks: books.value.length,
@@ -440,19 +439,12 @@ async function handleBatchMove(): Promise<void> {
 
     try {
         // 显示状态选择对话框
-        const { value } = await ElMessageBox({
+        const { value } = await messageBox({
             title: '批量移动书籍',
             message: '请选择目标状态',
             showCancelButton: true,
             confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            inputType: 'select',
-            inputValue: 'reading',
-            options: [
-                { value: 'reading', label: '在读' },
-                { value: 'want_read', label: '想读' },
-                { value: 'finished', label: '读完' }
-            ]
+            cancelButtonText: '取消'
         })
 
         if (!value) {

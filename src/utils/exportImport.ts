@@ -145,7 +145,7 @@ export async function exportProjectToZip(projectId: string): Promise<void> {
           `/writer/documents/${doc.documentId || doc.id}/content`
         )
         documents.push({
-          documentId: doc.documentId || doc.id,
+          documentId: doc.documentId || doc.id || '',
           title: doc.title,
           content: contentResponse?.content || '',
           parentId: doc.parentId,
@@ -154,7 +154,7 @@ export async function exportProjectToZip(projectId: string): Promise<void> {
       } catch {
         // 内容获取失败时添加空内容
         documents.push({
-          documentId: doc.documentId || doc.id,
+          documentId: doc.documentId || doc.id || '',
           title: doc.title,
           content: '',
           parentId: doc.parentId,

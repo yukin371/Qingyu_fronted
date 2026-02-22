@@ -260,7 +260,8 @@ function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): an
   
   // 章节列表
   if (pathname.includes('/chapters')) {
-    const bookId = pathname.split('/').slice(-2, -1)[0]
+    // bookId is extracted but not used in this mock response
+    // const bookId = pathname.split('/').slice(-2, -1)[0]
     const page = parseInt(searchParams.get('page') || '1')
     
     return {
@@ -278,10 +279,11 @@ function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): an
   // 榜单
   if (pathname.includes('/rankings')) {
     const type = searchParams.get('type') || 'realtime'
+    const rankings = businessMockData.rankings as Record<string, unknown[]>
     return {
       code: 200,
       message: 'success',
-      data: businessMockData.rankings[type] || businessMockData.rankings.realtime
+      data: rankings[type] || rankings.realtime
     }
   }
   
@@ -368,7 +370,7 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
 /**
  * 处理用户中心 API
  */
-function handleUserApi(pathname: string, searchParams: URLSearchParams): any {
+function handleUserApi(pathname: string, _searchParams: URLSearchParams): unknown {
   // 个人信息
   if (pathname.includes('/profile')) {
     return {
@@ -427,23 +429,16 @@ function handleCommunityApi(pathname: string, searchParams: URLSearchParams): an
 /**
  * 创建模拟响应
  */
-function createMockResponse(data: any): Response {
+function createMockResponse(data: unknown): Response {
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
-  
-  return {
-    ok: true,
+
+  return new Response(blob, {
     status: 200,
     statusText: 'OK',
     headers: new Headers({
       'content-type': 'application/json'
-    }),
-    url: window.location.href,
-    cloned: function() { return createMockResponse(data) },
-    json: async () => data,
-    text: async () => JSON.stringify(data),
-    blob: async () => blob,
-    arrayBuffer: async () => await blob.arrayBuffer()
-  } as Response
+    })
+  })
 }
 
 /**

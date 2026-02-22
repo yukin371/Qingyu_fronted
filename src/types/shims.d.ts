@@ -385,10 +385,10 @@ declare module '@/types/writer' {
 
 declare module '@/types/ai' {
   export interface ChatMessage {
-    id: string
+    id?: string
     role: 'user' | 'assistant' | 'system'
     content: string
-    timestamp: string
+    timestamp: number
   }
 
   export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite'
@@ -405,7 +405,13 @@ declare module '@/types/ai' {
     tool: AIToolType
     input: string
     output: string
-    timestamp: string
+    timestamp: number
+    projectId?: string
+    usage?: {
+      prompt_tokens: number
+      completion_tokens: number
+      total_tokens: number
+    }
   }
 }
 

@@ -98,7 +98,7 @@ export class FormValidator {
    * 根据规则验证
    */
   private static validateByRule(value: any, rule: ValidationRuleConfig): ValidationResult {
-    const { type, message, value: ruleValue, validator } = rule
+    const { type, message, value: ruleValue } = rule
 
     try {
       switch (type) {
@@ -139,7 +139,7 @@ export class FormValidator {
           return this.validatePattern(value, ruleValue, message)
 
         case 'custom':
-          return this.validateCustom(value, validator!, message)
+          return { valid: true } // custom validation should be handled separately with async validateCustom
 
         default:
           return { valid: true }

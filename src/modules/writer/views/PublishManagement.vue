@@ -12,9 +12,9 @@
           <el-select v-model="selectedBook" placeholder="选择作品" clearable @change="loadChapters">
             <el-option
               v-for="book in bookList"
-              :key="book?.projectId || `book-${Math.random()}`"
-              :label="book?.title || '未命名作品'"
-              :value="book?.projectId"
+              :key="(book as any)?.projectId || (book as any)?.id || `book-${Math.random()}`"
+              :label="(book as any)?.title || (book as any)?.name || '未命名作品'"
+              :value="(book as any)?.projectId || (book as any)?.id"
             />
           </el-select>
         </el-col>
@@ -325,12 +325,14 @@ const loadBooks = async () => {
   try {
     const response = await getProjects({ page: 1, pageSize: 100 })
     // 过滤掉 null 或 undefined 的项目
-    bookList.value = (response.data || []).filter(item => item && item.projectId)
+    const responseAny = response as any
+    const projects = responseAny?.data || responseAny?.projects || []
+    bookList.value = (Array.isArray(projects) ? projects : []).filter((item: any) => item && (item.projectId || item.id))
 
     if (bookList.value.length > 0) {
-      const firstBook = bookList.value[0]
-      if (firstBook && firstBook.projectId) {
-        selectedBook.value = firstBook.projectId
+      const firstBook = bookList.value[0] as any
+      if (firstBook && (firstBook.projectId || firstBook.id)) {
+        selectedBook.value = firstBook.projectId || firstBook.id
         loadChapters()
       }
     }
@@ -417,7 +419,7 @@ const confirmPublish = async () => {
 }
 
 // 下架章节
-const unpublishChapter = async (chapter: any) => {
+const unpublishChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要下架该章节吗？', '提示', {
       confirmButtonText: '确定',
@@ -481,7 +483,7 @@ const editChapter = (chapter: any) => {
 }
 
 // 删除章节
-const deleteChapter = async (chapter: any) => {
+const deleteChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要删除该章节吗？删除后无法恢复！', '警告', {
       confirmButtonText: '确定',

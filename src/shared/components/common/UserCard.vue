@@ -1,5 +1,5 @@
 <template>
-  <QyCard class="user-card" :class="{ compact }">
+  <QyCard class="user-card" :class="compact ? 'compact' : ''">
     <template #title v-if="!compact"></template>
     <div class="user-card-content">
       <!-- 用户头像 -->

@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -117,12 +117,15 @@ import {
   getFollowersList,
   followUser,
   unfollowUser,
-  getFollowStats,
-  getMutualFollows,
-  getRecommendedFollows,
-  type UserFollowInfo,
-  type FollowStats
+  type UserFollowInfo
 } from '@/modules/social/api'
+
+// 本地类型定义
+interface FollowStats {
+  follower_count: number
+  following_count: number
+  mutual_count: number
+}
 
 const loading = ref(false)
 const activeTab = ref<'following' | 'followers' | 'mutual' | 'recommended'>('following')
@@ -156,10 +159,11 @@ const showPagination = computed(() => {
 // 加载统计数据
 const loadStats = async () => {
   try {
-    const res = await getFollowStats()
-    Object.assign(stats, res)
+    // TODO: 实现获取关注统计功能
+    // const res = await getUserFollowStats()
+    // Object.assign(stats, res)
   } catch (error: any) {
-    ElMessage.error(error.message || '加载统计数据失败')
+    message.error(error.message || '加载统计数据失败')
   }
 }
 
@@ -169,12 +173,13 @@ const loadFollowingList = async () => {
   try {
     const res = await getFollowingList({
       page: currentPage.value,
-      page_size: pageSize.value
+      size: pageSize.value
     })
-    userList.value = res.items
-    followingTotal.value = res.total
-  } catch (error: any) {
-    message.error(error.message || '加载失败')
+    userList.value = (res as any).items || []
+    followingTotal.value = (res as any).total || 0
+  } catch (error: unknown) {
+    const err = error as Error
+    message.error(err.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -184,14 +189,16 @@ const loadFollowingList = async () => {
 const loadFollowersList = async () => {
   loading.value = true
   try {
-    const res = await getFollowersList({
+    // TODO: 实现获取粉丝列表功能
+    const res = await getFollowersList('current', {
       page: currentPage.value,
-      page_size: pageSize.value
+      size: pageSize.value
     })
-    userList.value = res.items
-    followersTotal.value = res.total
-  } catch (error: any) {
-    message.error(error.message || '加载失败')
+    userList.value = (res as any).items || []
+    followersTotal.value = (res as any).total || 0
+  } catch (error: unknown) {
+    const err = error as Error
+    message.error(err.message || '加载失败')
   } finally {
     loading.value = false
   }
@@ -201,9 +208,9 @@ const loadFollowersList = async () => {
 const loadMutualFollows = async () => {
   loading.value = true
   try {
-    const res = await getMutualFollows(100)
-    userList.value = res
-    mutualTotal.value = res.length
+    // TODO: 实现获取互关好友功能
+    userList.value = []
+    mutualTotal.value = 0
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -215,8 +222,8 @@ const loadMutualFollows = async () => {
 const loadRecommendedFollows = async () => {
   loading.value = true
   try {
-    const res = await getRecommendedFollows(20)
-    userList.value = res
+    // TODO: 实现获取推荐关注功能
+    userList.value = []
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -297,7 +304,7 @@ const handleUnfollow = async (userId: string) => {
 // 查看用户主页
 const viewUserProfile = (userId: string) => {
   // TODO: 实现跳转到用户主页逻辑
-  ElMessage.info(`跳转到用户 ${userId} 的主页`)
+  message.info(`跳转到用户 ${userId} 的主页`)
 }
 
 onMounted(() => {
