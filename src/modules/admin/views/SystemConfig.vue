@@ -437,7 +437,7 @@ const handleDeleteBackup = async (backup: any) => {
 }
 
 // 监听备份对话框打开（保留供将来使用）
-const _handleBackupDialogOpen = () => {
+const handleBackupDialogOpen = () => {
   if (showBackupDialog.value) {
     loadingBackups.value = true
     setTimeout(() => {
@@ -448,6 +448,9 @@ const _handleBackupDialogOpen = () => {
     }, 300)
   }
 }
+
+// 保留未使用变量以备将来使用
+void handleBackupDialogOpen
 
 onMounted(() => {
   loadConfigs()

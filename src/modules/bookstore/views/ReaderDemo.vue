@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="reader-area" :class="theme" :style="{ fontSize: fontSize + 'px' }" ref="readerRef">
+    <div class="reader-area" :class="theme" :style="{ fontSize: fontSize + 'px' }" ref="_readerRef">
       <div class="reader-header">
         <strong>{{ currentChapter.title }}</strong>
         <div class="chapter-controls">
@@ -69,6 +69,7 @@ const chapterIndex = ref(0)
 const pageIndex = ref(0)
 const fontSize = ref(18)
 const theme = ref<'light' | 'sepia' | 'dark'>('light')
+// Template ref for reader area
 const _readerRef = ref<HTMLElement | null>(null)
 
 const currentChapter = computed(() => chapters[chapterIndex.value])
@@ -149,6 +150,8 @@ watch([chapterIndex, fontSize], () => {
 onMounted(() => {
   // 保证至少有一页
   if (pageIndex.value >= pagesCount.value) pageIndex.value = 0
+  // Template ref used for potential future DOM access
+  void _readerRef.value
 })
 </script>
 

@@ -466,7 +466,7 @@ const handleApprove = async (item: PendingReview) => {
     }
 
     await adminAPI.reviewContent(item.contentId || item.targetId, {
-      status: 'approved'
+      approved: true
     })
 
     message.success('批准成功，内容已发布')
@@ -517,7 +517,7 @@ const confirmReject = async () => {
     }
 
     await adminAPI.reviewContent(currentItem.value.contentId || currentItem.value.targetId, {
-      status: 'rejected',
+      approved: false,
       reason: rejectForm.reason
     })
 

@@ -218,7 +218,8 @@ function goToBook(bookId: string) {
   // 后续实现跳转逻辑
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
   const now = new Date()
   const diff = now.getTime() - date.getTime()

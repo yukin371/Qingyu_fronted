@@ -4,7 +4,7 @@
       <!-- 分类筛选 -->
       <Select
         :model-value="categoryId"
-        @update:model-value="(val: string | number | undefined) => $emit('update:categoryId', val as string)"
+        @update:model-value="(val: unknown) => $emit('update:categoryId', String(val ?? ''))"
         :options="categoryOptions"
         placeholder="分类"
         clearable
@@ -14,7 +14,7 @@
       <!-- 年份筛选 -->
       <Select
         :model-value="year"
-        @update:model-value="(val: string | number | undefined) => $emit('update:year', val as string)"
+        @update:model-value="(val: unknown) => $emit('update:year', String(val ?? ''))"
         :options="yearOptions"
         placeholder="年份"
         clearable
@@ -24,7 +24,7 @@
       <!-- 状态筛选 -->
       <Select
         :model-value="status"
-        @update:model-value="(val: string | number | undefined) => $emit('update:status', val as string)"
+        @update:model-value="(val: unknown) => $emit('update:status', String(val ?? ''))"
         :options="statusOptions"
         placeholder="状态"
         clearable

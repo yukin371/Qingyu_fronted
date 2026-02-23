@@ -118,12 +118,10 @@
 
         <!-- 结果列表 -->
         <div class="results-list">
-          <Spinner v-if="loading" :size="48" class="loading-spinner" />
+          <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
           <!-- 书籍搜索结果 -->
           <template v-else-if="searchType === 'book'">
-
-          <template v-else>
             <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
               <div class="item-cover">
                 <Image :src="book.cover" fit="cover">
