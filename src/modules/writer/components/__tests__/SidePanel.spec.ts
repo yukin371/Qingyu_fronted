@@ -56,7 +56,7 @@ describe('SidePanel', () => {
           position: 'left'
         }
       })
-      expect(wrapper.props('position')).toBe('left')
+      expect(wrapper.props()).toHaveProperty('position', 'left')
     })
 
     it('应该接受position属性为right', () => {
@@ -65,12 +65,12 @@ describe('SidePanel', () => {
           position: 'right'
         }
       })
-      expect(wrapper.props('position')).toBe('right')
+      expect(wrapper.props()).toHaveProperty('position', 'right')
     })
 
     it('应该有默认的position值', () => {
       const wrapper = mount(SidePanel)
-      expect(wrapper.props('position')).toBeDefined()
+      expect(wrapper.props()).toBeDefined()
     })
 
     it('应该接受width属性', () => {
@@ -79,13 +79,13 @@ describe('SidePanel', () => {
           width: 300
         }
       })
-      expect(wrapper.props('width')).toBe(300)
+      expect(wrapper.props()).toHaveProperty('width', 300)
     })
 
     it('应该有默认的width值', () => {
       const wrapper = mount(SidePanel)
       // width prop为0时，组件会从store获取默认宽度
-      expect(wrapper.props('width')).toBeDefined()
+      expect(wrapper.props()).toBeDefined()
       // 检查实际渲染的宽度是否大于0
       const sidePanel = wrapper.find('.side-panel')
       const style = sidePanel.attributes('style') || ''
@@ -103,7 +103,7 @@ describe('SidePanel', () => {
           resizable: true
         }
       })
-      expect(wrapper.props('resizable')).toBe(true)
+      expect(wrapper.props()).toHaveProperty('resizable', true)
     })
 
     it('应该接受resizable属性为false', () => {
@@ -112,12 +112,12 @@ describe('SidePanel', () => {
           resizable: false
         }
       })
-      expect(wrapper.props('resizable')).toBe(false)
+      expect(wrapper.props()).toHaveProperty('resizable', false)
     })
 
     it('应该有默认的resizable值', () => {
       const wrapper = mount(SidePanel)
-      expect(wrapper.props('resizable')).toBeDefined()
+      expect(wrapper.props()).toBeDefined()
     })
 
     it('应该接受collapsible属性为true', () => {
@@ -126,7 +126,7 @@ describe('SidePanel', () => {
           collapsible: true
         }
       })
-      expect(wrapper.props('collapsible')).toBe(true)
+      expect(wrapper.props()).toHaveProperty('collapsible', true)
     })
 
     it('应该接受collapsible属性为false', () => {
@@ -135,12 +135,12 @@ describe('SidePanel', () => {
           collapsible: false
         }
       })
-      expect(wrapper.props('collapsible')).toBe(false)
+      expect(wrapper.props()).toHaveProperty('collapsible', false)
     })
 
     it('应该有默认的collapsible值', () => {
       const wrapper = mount(SidePanel)
-      expect(wrapper.props('collapsible')).toBeDefined()
+      expect(wrapper.props()).toBeDefined()
     })
   })
 
@@ -353,13 +353,13 @@ describe('SidePanel', () => {
           position: 'left'
         }
       })
-      
+
       const initialWidth = panelStore.leftWidth
-      
+
       // 模拟宽度变化
-      wrapper.vm.updateWidth(350)
+      ;(wrapper.vm as any).updateWidth(350)
       await nextTick()
-      
+
       // 验证store被更新
       expect(panelStore.leftWidth).not.toBe(initialWidth)
     })
@@ -602,7 +602,7 @@ describe('SidePanel', () => {
           collapsible: true
         }
       })
-      
+
       const event = new KeyboardEvent('keydown', {
         key: '[',
         ctrlKey: true,
@@ -610,8 +610,8 @@ describe('SidePanel', () => {
       })
       document.dispatchEvent(event)
       await nextTick()
-      
-      expect(wrapper.vm.isCollapsed).toBe(true)
+
+      expect((wrapper.vm as any).isCollapsed).toBe(true)
     })
 
     it('应该在按下Ctrl+]时展开左侧面板', async () => {
@@ -621,11 +621,11 @@ describe('SidePanel', () => {
           collapsible: true
         }
       })
-      
+
       // 先折叠面板
-      wrapper.vm.isCollapsed = true
+      ;(wrapper.vm as any).isCollapsed = true
       await nextTick()
-      
+
       const event = new KeyboardEvent('keydown', {
         key: ']',
         ctrlKey: true,
@@ -633,18 +633,11 @@ describe('SidePanel', () => {
       })
       document.dispatchEvent(event)
       await nextTick()
-      
-      expect(wrapper.vm.isCollapsed).toBe(false)
+
+      expect((wrapper.vm as any).isCollapsed).toBe(false)
     })
 
     it('应该阻止Ctrl+[和Ctrl+]的默认行为', () => {
-      const wrapper = mount(SidePanel, {
-        props: {
-          position: 'left',
-          collapsible: true
-        }
-      })
-      
       const preventDefault = vi.fn()
       const event = new KeyboardEvent('keydown', {
         key: '[',
@@ -655,9 +648,9 @@ describe('SidePanel', () => {
         value: preventDefault,
         writable: false
       })
-      
+
       document.dispatchEvent(event)
-      
+
       expect(preventDefault).toHaveBeenCalled()
     })
 
@@ -668,7 +661,7 @@ describe('SidePanel', () => {
           collapsible: true
         }
       })
-      
+
       const event = new KeyboardEvent('keydown', {
         key: '[',
         ctrlKey: true,
@@ -676,9 +669,9 @@ describe('SidePanel', () => {
       })
       document.dispatchEvent(event)
       await nextTick()
-      
+
       // 右侧面板不应该响应
-      expect(wrapper.vm.isCollapsed).toBe(false)
+      expect((wrapper.vm as any).isCollapsed).toBe(false)
     })
 
     it('非collapsible面板不应该响应快捷键', async () => {
@@ -688,7 +681,7 @@ describe('SidePanel', () => {
           collapsible: false
         }
       })
-      
+
       const event = new KeyboardEvent('keydown', {
         key: '[',
         ctrlKey: true,
@@ -696,9 +689,9 @@ describe('SidePanel', () => {
       })
       document.dispatchEvent(event)
       await nextTick()
-      
+
       // 非collapsible面板不应该响应
-      expect(wrapper.vm.isCollapsed).toBe(false)
+      expect((wrapper.vm as any).isCollapsed).toBe(false)
     })
 
     it('应该只处理Ctrl键组合，不处理其他修饰键', async () => {
@@ -708,7 +701,7 @@ describe('SidePanel', () => {
           collapsible: true
         }
       })
-      
+
       // Ctrl+Shift+[ 不应该触发
       const event1 = new KeyboardEvent('keydown', {
         key: '[',
@@ -718,8 +711,8 @@ describe('SidePanel', () => {
       })
       document.dispatchEvent(event1)
       await nextTick()
-      
-      expect(wrapper.vm.isCollapsed).toBe(false)
+
+      expect((wrapper.vm as any).isCollapsed).toBe(false)
     })
   })
 

@@ -15,10 +15,8 @@ class MockWebSocket {
   readyState = MockWebSocket.CONNECTING
 
   private eventHandlers: Map<string, Array<Function>> = new Map()
-  private _url: string
 
-  constructor(url: string) {
-    this._url = url
+  constructor(_url: string) {
     // Don't throw error in constructor
   }
 

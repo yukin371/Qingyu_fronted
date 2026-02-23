@@ -1,7 +1,8 @@
 /**
  * BooklistForm组件测试
  */
-
+// @ts-nocheck - Test file with flexible type assertions
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { mount } from '@vue/test-utils'
 import { createMockBooklist } from '../../../../tests/fixtures'
@@ -24,8 +25,8 @@ vi.mock('@/design-system/components', () => {
       size: { type: String, default: 'medium' },
     },
     emits: ['update:modelValue', 'change', 'blur', 'focus'],
-    setup(props, { emit }) {
-      const handleInput = (e) => {
+    setup(props: any, { emit }: any) {
+      const handleInput = (e: any) => {
         const target = e.target
         const value = target.value
         emit('update:modelValue', value)
@@ -77,7 +78,7 @@ vi.mock('@/design-system/components', () => {
       type: { type: String, default: 'button' },
     },
     emits: ['click'],
-    setup(props, { emit, slots }) {
+    setup(props: any, { emit, slots }: any) {
       const classes = [
         'qy-button',
         `qy-button--${props.variant}`,
@@ -92,7 +93,7 @@ vi.mock('@/design-system/components', () => {
           class: classes,
           disabled: props.disabled,
           type: props.type,
-          onClick: (e) => emit('click', e),
+          onClick: (e: any) => emit('click', e),
         },
         slots.default ? slots.default() : []
       )
@@ -107,7 +108,7 @@ vi.mock('@/design-system/components', () => {
       closable: { type: Boolean, default: false },
     },
     emits: ['click', 'close'],
-    setup(props, { emit, slots }) {
+    setup(props: any, { emit, slots }: any) {
       const children = [
         slots.default ? slots.default() : '',
       ]
@@ -115,7 +116,7 @@ vi.mock('@/design-system/components', () => {
         children.push(
           h('span', {
             class: 'close-btn',
-            onClick: (e) => {
+            onClick: (e: any) => {
               e.stopPropagation()
               emit('close')
             },
@@ -139,7 +140,7 @@ vi.mock('@/design-system/components', () => {
       name: { type: String, required: true },
       size: { type: Number, default: 16 },
     },
-    setup(props) {
+    setup(props: any) {
       return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
     },
   })
@@ -181,7 +182,7 @@ describe('BooklistForm', () => {
 
     it('should render form correctly in edit mode', () => {
       // Arrange
-      const booklist = createMockBooklist({
+      const booklist: any = createMockBooklist({
         title: '编辑书单',
         description: '编辑描述',
         tags: ['玄幻', '仙侠'],
@@ -212,7 +213,7 @@ describe('BooklistForm', () => {
 
     it('should render submit button as "保存" in edit mode', () => {
       // Arrange
-      const booklist = createMockBooklist()
+      const booklist = createMockBooklist() as any
 
       // Act
       const wrapper = mount(BooklistForm, {
@@ -272,10 +273,10 @@ describe('BooklistForm', () => {
 
     it('should initialize with booklist data in edit mode', () => {
       // Arrange
-      const booklist = createMockBooklist({
+      const booklist: any = createMockBooklist({
         title: '测试书单',
         description: '测试描述',
-        cover: 'https://example.com/cover.jpg',
+        coverImage: 'https://example.com/cover.jpg',
         isPublic: true,
         tags: ['玄幻', '仙侠'],
       })
@@ -298,8 +299,8 @@ describe('BooklistForm', () => {
 
     it('should update form data when booklist prop changes', async () => {
       // Arrange
-      const booklist1 = createMockBooklist({ title: '书单1' })
-      const booklist2 = createMockBooklist({ title: '书单2' })
+      const booklist1 = createMockBooklist({ title: '书单1' }) as any
+      const booklist2 = createMockBooklist({ title: '书单2' }) as any
       const wrapper = mount(BooklistForm, {
         props: {
           ...defaultProps,
@@ -308,7 +309,7 @@ describe('BooklistForm', () => {
       })
 
       // Act
-      await wrapper.setProps({ booklist: booklist2 })
+      await wrapper.setProps({ booklist: booklist2 } as any)
       await wrapper.vm.$nextTick()
 
       // Assert
@@ -354,11 +355,11 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.inputVisible = true
+      ;(wrapper.vm as any).inputVisible = true
 
       // Act
-      wrapper.vm.inputValue = '新标签'
-      await wrapper.vm.confirmTag()
+      ;(wrapper.vm as any).inputValue = '新标签'
+      await (wrapper.vm as any).confirmTag()
 
       // Assert
       expect(wrapper.vm.formData.tags).toContain('新标签')
@@ -371,12 +372,12 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData.tags = ['玄幻']
-      wrapper.vm.inputVisible = true
+      ;(wrapper.vm as any).formData.tags = ['玄幻']
+      ;(wrapper.vm as any).inputVisible = true
 
       // Act
-      wrapper.vm.inputValue = '玄幻'
-      await wrapper.vm.confirmTag()
+      ;(wrapper.vm as any).inputValue = '玄幻'
+      await (wrapper.vm as any).confirmTag()
 
       // Assert
       expect(wrapper.vm.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
@@ -387,10 +388,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData.tags = ['玄幻', '仙侠']
+      ;(wrapper.vm as any).formData.tags = ['玄幻', '仙侠']
 
       // Act
-      await wrapper.vm.removeTag('玄幻')
+      await (wrapper.vm as any).removeTag('玄幻')
 
       // Assert
       expect(wrapper.vm.formData.tags).not.toContain('玄幻')
@@ -404,7 +405,7 @@ describe('BooklistForm', () => {
       })
 
       // Act
-      await wrapper.vm.addTag('玄幻')
+      await (wrapper.vm as any).addTag('玄幻')
 
       // Assert
       expect(wrapper.vm.formData.tags).toContain('玄幻')
@@ -415,10 +416,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData.tags = ['玄幻']
+      ;(wrapper.vm as any).formData.tags = ['玄幻']
 
       // Act
-      await wrapper.vm.addTag('玄幻')
+      await (wrapper.vm as any).addTag('玄幻')
 
       // Assert
       expect(wrapper.vm.formData.tags.filter((t) => t === '玄幻')).toHaveLength(1)
@@ -444,10 +445,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData.cover = 'https://example.com/cover.jpg'
+      ;(wrapper.vm as any).formData.cover = 'https://example.com/cover.jpg'
 
       // Act
-      await wrapper.vm.removeCover()
+      await (wrapper.vm as any).removeCover()
 
       // Assert
       expect(wrapper.vm.formData.cover).toBe('')
@@ -488,7 +489,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData = {
+      ;(wrapper.vm as any).formData = {
         title: '测试书单',
         description: '测试描述',
         cover: 'https://example.com/cover.jpg',
@@ -497,7 +498,7 @@ describe('BooklistForm', () => {
       }
 
       // Act
-      await wrapper.vm.handleSubmit()
+      await (wrapper.vm as any).handleSubmit()
 
       // Assert
       expect(wrapper.emitted('submit')).toBeTruthy()
@@ -517,10 +518,10 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData.title = '' // Invalid title
+      ;(wrapper.vm as any).formData.title = '' // Invalid title
 
       // Act
-      await wrapper.vm.handleSubmit()
+      await (wrapper.vm as any).handleSubmit()
 
       // Assert
       expect(wrapper.emitted('submit')).toBeFalsy()
@@ -531,7 +532,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      wrapper.vm.formData = {
+      ;(wrapper.vm as any).formData = {
         title: '  测试书单  ',
         description: '  测试描述  ',
         cover: '',
@@ -540,11 +541,11 @@ describe('BooklistForm', () => {
       }
 
       // Act
-      await wrapper.vm.handleSubmit()
+      await (wrapper.vm as any).handleSubmit()
 
       // Assert
-      expect(wrapper.emitted('submit')?.[0]?.[0]?.title).toBe('测试书单')
-      expect(wrapper.emitted('submit')?.[0]?.[0]?.description).toBe('测试描述')
+      expect((wrapper.emitted('submit')?.[0] as any)?.[0]?.title).toBe('测试书单')
+      expect((wrapper.emitted('submit')?.[0] as any)?.[0]?.description).toBe('测试描述')
     })
   })
 
@@ -556,7 +557,7 @@ describe('BooklistForm', () => {
       })
 
       // Act
-      await wrapper.vm.handleCancel()
+      await (wrapper.vm as any).handleCancel()
 
       // Assert
       expect(wrapper.emitted('cancel')).toBeTruthy()
@@ -630,7 +631,7 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: {
           ...defaultProps,
-          booklist: createMockBooklist(),
+          booklist: createMockBooklist() as any,
         },
       })
 

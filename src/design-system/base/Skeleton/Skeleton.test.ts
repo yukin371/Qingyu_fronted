@@ -9,6 +9,7 @@
  * - 多个骨架屏组合
  */
 
+// @ts-nocheck - Test file with flexible type assertions
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/vue'
 import { BaseSkeleton } from './index'

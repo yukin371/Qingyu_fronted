@@ -10,8 +10,9 @@
  * - 可访问性
  */
 
-
-import { render, fireEvent, waitFor } from '@testing-library/vue'
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi } from 'vitest'
+import { render, fireEvent } from '@testing-library/vue'
 import { BaseButton } from './index'
 
 describe('BaseButton', () => {
@@ -275,7 +276,8 @@ describe('BaseButton', () => {
 
       const svg = button.querySelector('svg')
       expect(svg).toBeTruthy()
-      expect(svg).toHaveClass('h-4', 'w-4', 'animate-spin')
+      expect(svg).toHaveClass('h-4', 'w-4')
+      expect(svg).toHaveClass('animate-spin')
     })
 
     it('loading 状态下插槽内容仍显示', () => {

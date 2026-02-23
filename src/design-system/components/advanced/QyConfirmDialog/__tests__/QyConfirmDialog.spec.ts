@@ -2,8 +2,9 @@
  * QyConfirmDialog 组件单元测试
  */
 
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 import QyConfirmDialog from '../QyConfirmDialog.vue'
 import QyModal from '../../QyModal/QyModal.vue'
 
@@ -112,7 +113,7 @@ describe('QyConfirmDialog', () => {
     const confirmButton = wrapper.findAll('.qy-confirm-dialog__footer button')[1]
     await confirmButton.trigger('click')
 
-    expect(wrapper.emitted('confirm')).toBeTruthy()
+    expect((wrapper as any).emitted('confirm')).toBeTruthy()
   })
 
   it('点击取消按钮应该触发cancel事件并关闭对话框', async () => {
@@ -125,9 +126,9 @@ describe('QyConfirmDialog', () => {
     const cancelButton = wrapper.findAll('.qy-confirm-dialog__footer button')[0]
     await cancelButton.trigger('click')
 
-    expect(wrapper.emitted('cancel')).toBeTruthy()
-    expect(wrapper.emitted('update:visible')).toBeTruthy()
-    expect(wrapper.emitted('update:visible')?.[0]).toEqual([false])
+    expect((wrapper as any).emitted('cancel')).toBeTruthy()
+    expect((wrapper as any).emitted('update:visible')).toBeTruthy()
+    expect((wrapper as any).emitted('update:visible')?.[0]).toEqual([false])
   })
 
   it('危险类型应该使用危险样式按钮', () => {
@@ -139,8 +140,7 @@ describe('QyConfirmDialog', () => {
     })
 
     // 验证confirmButtonType计算属性
-    const vm = wrapper.vm as any
-    expect(vm.confirmButtonType).toBe('danger')
+    expect((wrapper.vm as any).confirmButtonType).toBe('danger')
   })
 
   it('警告类型应该使用主色调按钮', () => {
@@ -151,8 +151,7 @@ describe('QyConfirmDialog', () => {
       }
     })
 
-    const vm = wrapper.vm as any
-    expect(vm.confirmButtonType).toBe('primary')
+    expect((wrapper.vm as any).confirmButtonType).toBe('primary')
   })
 
   it('应该支持不同的尺寸', () => {
@@ -192,7 +191,7 @@ describe('QyConfirmDialog', () => {
     })
 
     // 验证width属性传递给QyModal
-    const modal = wrapper.findComponent(QyModal)
+    const modal = (wrapper as any).findComponent(QyModal)
     expect(modal.props('width')).toBe('600px')
   })
 })

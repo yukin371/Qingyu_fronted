@@ -2,7 +2,8 @@
  * Breadcrumb 组件单元测试
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '../Breadcrumb.vue'

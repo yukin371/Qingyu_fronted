@@ -208,7 +208,7 @@ export const createWrapper = <V extends ComponentPublicInstance = any>(
         },
         ...options.global?.mocks,
       },
-      plugins: options.global?.plugins || [],
+      plugins: (options.global?.plugins || []) as any,
     },
   }) as VueWrapper<V>
 }

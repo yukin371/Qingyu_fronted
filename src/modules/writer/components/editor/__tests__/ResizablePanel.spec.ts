@@ -114,7 +114,7 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.props('panelId')).toBe('left')
+      expect(wrapper.props()).toHaveProperty('panelId', 'left')
     })
 
     it('应该接受position属性', () => {
@@ -132,7 +132,7 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.props('position')).toBe('left')
+      expect(wrapper.props()).toHaveProperty('position', 'left')
     })
 
     it('应该有默认的minWidth和maxWidth', () => {
@@ -150,8 +150,8 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.props('minWidth')).toBe(200)
-      expect(wrapper.props('maxWidth')).toBe(600)
+      expect(wrapper.props()).toHaveProperty('minWidth', 200)
+      expect(wrapper.props()).toHaveProperty('maxWidth', 600)
     })
 
     it('应该接受自定义的minWidth和maxWidth', () => {
@@ -171,8 +171,8 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.props('minWidth')).toBe(250)
-      expect(wrapper.props('maxWidth')).toBe(500)
+      expect(wrapper.props()).toHaveProperty('minWidth', 250)
+      expect(wrapper.props()).toHaveProperty('maxWidth', 500)
     })
 
     it('应该接受collapsible属性', () => {
@@ -191,7 +191,7 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.props('collapsible')).toBe(true)
+      expect(wrapper.props()).toHaveProperty('collapsible', true)
     })
   })
 
@@ -258,7 +258,7 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', dragStartEvent)
 
       // 验证组件开始拖拽状态
-      expect(wrapper.vm.isDragging).toBe(true)
+      expect((wrapper.vm as any).isDragging).toBe(true)
     })
   })
 
@@ -335,7 +335,7 @@ describe('ResizablePanel', () => {
       await nextTick()
 
       // 验证拖拽已停止
-      expect(wrapper.vm.isDragging).toBe(false)
+      expect((wrapper.vm as any).isDragging).toBe(false)
     })
   })
 
@@ -822,7 +822,7 @@ describe('ResizablePanel', () => {
       await nextTick()
 
       // 组件应该仍然正常工作
-      expect(wrapper.vm.isDragging).toBe(true)
+      expect((wrapper.vm as any).isDragging).toBe(true)
     })
 
     it('应该处理未完成的拖拽（鼠标离开窗口）', async () => {
@@ -857,7 +857,7 @@ describe('ResizablePanel', () => {
       await nextTick()
 
       // 拖拽应该停止
-      expect(wrapper.vm.isDragging).toBe(false)
+      expect((wrapper.vm as any).isDragging).toBe(false)
     })
 
     it('应该在组件卸载时清理事件监听器', async () => {
@@ -890,8 +890,8 @@ describe('ResizablePanel', () => {
       await nextTick()
 
       // 应该清理事件监听器
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function))
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function))
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function) as any)
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function) as any)
     })
   })
 
