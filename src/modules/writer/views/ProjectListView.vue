@@ -152,26 +152,24 @@
 
           <el-form-item label="项目封面">
             <div class="cover-upload-container">
-              <el-upload
-                class="cover-uploader"
-                :show-file-list="false"
-                :before-upload="beforeCoverUpload"
-                :http-request="handleCoverUpload"
-                accept="image/*"
-              >
-                <div v-if="coverPreviewUrl" class="cover-preview">
-                  <img :src="coverPreviewUrl" alt="封面预览" />
-                  <div class="cover-actions">
-                    <button type="button" class="cover-action-btn" @click.stop="removeCover">
-                      <QyIcon name="Close" :size="16" />
-                    </button>
-                  </div>
-                </div>
-                <div v-else class="cover-placeholder">
-                  <QyIcon name="Plus" :size="24" />
-                  <span>上传封面</span>
-                </div>
-              </el-upload>
+              <!-- 有预览图时显示预览和删除按钮 -->
+              <div v-if="coverPreviewUrl" class="cover-preview-wrapper">
+                <img :src="coverPreviewUrl" alt="封面预览" class="cover-preview-img" />
+                <button type="button" class="cover-remove-btn" @click="removeCover">
+                  <QyIcon name="Close" :size="16" />
+                </button>
+              </div>
+              <!-- 无预览图时显示上传按钮 -->
+              <label v-else class="cover-upload-btn">
+                <QyIcon name="Plus" :size="24" />
+                <span>上传封面</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  class="hidden"
+                  @change="handleCoverFileSelect"
+                />
+              </label>
               <p class="cover-hint">支持 JPG、PNG 格式，建议尺寸 300x400，大小不超过 2MB</p>
             </div>
           </el-form-item>
@@ -314,39 +312,37 @@ const handleCreate = async () => {
   }
 }
 
-// 封面上传前校验
-const beforeCoverUpload = (file: File) => {
-  const isImage = file.type.startsWith('image/')
-  const isLt2M = file.size / 1024 / 1024 < 2
+// 封面文件选择处理
+const handleCoverFileSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
 
-  if (!isImage) {
+  // 校验文件类型
+  if (!file.type.startsWith('image/')) {
     ElMessage.error('只能上传图片文件')
-    return false
+    input.value = ''
+    return
   }
-  if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB')
-    return false
-  }
-  return true
-}
 
-// 自定义封面上传处理
-const handleCoverUpload = async (options: { file: File }) => {
+  // 校验文件大小 (2MB)
+  if (file.size / 1024 / 1024 > 2) {
+    ElMessage.error('图片大小不能超过 2MB')
+    input.value = ''
+    return
+  }
+
   try {
     // 创建本地预览URL
-    const previewUrl = URL.createObjectURL(options.file)
+    const previewUrl = URL.createObjectURL(file)
     coverPreviewUrl.value = previewUrl
-
-    // TODO: 实际上传到服务器获取URL
-    // 目前暂时使用 base64 或 blob URL 作为封面
-    // 后续可以对接后端的文件上传API
 
     // 将文件转换为 base64 Data URL（临时方案）
     const reader = new FileReader()
     reader.onload = (e) => {
       newProject.value.coverUrl = e.target?.result as string
     }
-    reader.readAsDataURL(options.file)
+    reader.readAsDataURL(file)
 
     ElMessage.success('封面上传成功')
   } catch (error: any) {
@@ -354,6 +350,9 @@ const handleCoverUpload = async (options: { file: File }) => {
     coverPreviewUrl.value = ''
     newProject.value.coverUrl = ''
   }
+
+  // 清空 input 以允许重复选择同一文件
+  input.value = ''
 }
 
 // 移除封面
@@ -782,67 +781,51 @@ onMounted(async () => {
   width: 100%;
 }
 
-.cover-uploader {
-  display: inline-block;
-}
-
-.cover-uploader :deep(.el-upload) {
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.2s ease;
-  background: #f8fafc;
-}
-
-.cover-uploader :deep(.el-upload:hover) {
-  border-color: #60a5fa;
-  background: #eff6ff;
-}
-
-.cover-placeholder {
+.cover-upload-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 150px;
   height: 200px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
   color: #64748b;
   gap: 8px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
 }
 
-.cover-placeholder span {
+.cover-upload-btn:hover {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.cover-upload-btn span {
   font-size: 14px;
   font-weight: 500;
 }
 
-.cover-preview {
+.cover-preview-wrapper {
   position: relative;
   width: 150px;
   height: 200px;
 }
 
-.cover-preview img {
+.cover-preview-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
 }
 
-.cover-actions {
+.cover-remove-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.cover-preview:hover .cover-actions {
-  opacity: 1;
-}
-
-.cover-action-btn {
   width: 28px;
   height: 28px;
   display: flex;
@@ -853,11 +836,17 @@ onMounted(async () => {
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  opacity: 0;
 }
 
-.cover-action-btn:hover {
+.cover-preview-wrapper:hover .cover-remove-btn {
+  opacity: 1;
+}
+
+.cover-remove-btn:hover {
   background: rgba(239, 68, 68, 0.9);
+  transform: scale(1.1);
 }
 
 .cover-hint {
@@ -865,5 +854,9 @@ onMounted(async () => {
   font-size: 12px;
   color: #94a3b8;
   line-height: 1.5;
+}
+
+.hidden {
+  display: none;
 }
 </style>
