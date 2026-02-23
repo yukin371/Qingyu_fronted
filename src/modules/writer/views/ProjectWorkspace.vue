@@ -108,6 +108,13 @@ import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 import { formatMarkdown } from '@/modules/writer/utils/editor'
 
 // =======================
+// Props 定义
+// =======================
+const props = defineProps<{
+  projectId?: string
+}>()
+
+// =======================
 // 状态初始化
 // =======================
 const route = useRoute()
@@ -136,9 +143,9 @@ const aiActionTrigger = ref<{
 // 数据绑定 (核心)
 // =======================
 
-// 1. 项目 ID
+// 1. 项目 ID - 优先使用 props，然后是 route.params
 const currentProjectId = computed({
-  get: () => projectStore.currentProjectId || (route.params.projectId as string),
+  get: () => props.projectId || projectStore.currentProjectId || (route.params.projectId as string),
   set: (id) => {
     if (id) {
       projectStore.loadDetail(id)
