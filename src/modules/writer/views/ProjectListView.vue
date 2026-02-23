@@ -282,8 +282,9 @@ const handleCreate = async () => {
   try {
     const project = await writerStore.createNewProject({
       title: newProject.value.title,
-      description: newProject.value.description,
-      type: newProject.value.type,
+      summary: newProject.value.description, // 映射到后端的 summary 字段
+      // type 字段暂时不使用，后端没有对应字段
+      // type: newProject.value.type,
     })
 
     if (project) {
