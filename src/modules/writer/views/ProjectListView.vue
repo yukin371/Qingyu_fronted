@@ -150,6 +150,32 @@
             </div>
           </el-form-item>
 
+          <el-form-item label="项目封面">
+            <div class="cover-upload-container">
+              <el-upload
+                class="cover-uploader"
+                :show-file-list="false"
+                :before-upload="beforeCoverUpload"
+                :http-request="handleCoverUpload"
+                accept="image/*"
+              >
+                <div v-if="coverPreviewUrl" class="cover-preview">
+                  <img :src="coverPreviewUrl" alt="封面预览" />
+                  <div class="cover-actions">
+                    <button type="button" class="cover-action-btn" @click.stop="removeCover">
+                      <QyIcon name="Close" :size="16" />
+                    </button>
+                  </div>
+                </div>
+                <div v-else class="cover-placeholder">
+                  <QyIcon name="Plus" :size="24" />
+                  <span>上传封面</span>
+                </div>
+              </el-upload>
+              <p class="cover-hint">支持 JPG、PNG 格式，建议尺寸 300x400，大小不超过 2MB</p>
+            </div>
+          </el-form-item>
+
           <el-form-item label="项目描述">
             <el-input
               v-model="newProject.description"
@@ -209,7 +235,9 @@ const newProject = ref({
   title: '',
   description: '',
   type: 'novel' as 'novel' | 'essay' | 'script' | 'notes' | 'poetry' | 'others',
+  coverUrl: '',
 })
+const coverPreviewUrl = ref('')
 const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
 
@@ -257,8 +285,12 @@ const handleCreate = async () => {
     })
 
     if (project) {
+      // 关闭弹窗
       showCreateDialog.value = false
-      newProject.value = { title: '', description: '', type: 'novel' }
+      // 重置表单
+      newProject.value = { title: '', description: '', type: 'novel', coverUrl: '' }
+      // 清除封面预览
+      coverPreviewUrl.value = ''
 
       // 打开新创建的项目 - 兼容不同的字段名
       const projectId = project.projectId || project.id
@@ -269,8 +301,69 @@ const handleCreate = async () => {
       }
     }
   } catch (error: any) {
-    ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
+    // 处理重复项目名称错误（后端返回 40901/HTTP 409）
+    const errorCode = error?.response?.data?.code || error?.code
+    const errorStatus = error?.response?.status
+    if (errorCode === 40901 || errorStatus === 409) {
+      ElMessage.error('项目名称已存在，请使用其他名称')
+    } else if (error.message) {
+      ElMessage.error('创建项目失败：' + error.message)
+    } else {
+      ElMessage.error('创建项目失败，请稍后重试')
+    }
   }
+}
+
+// 封面上传前校验
+const beforeCoverUpload = (file: File) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB')
+    return false
+  }
+  return true
+}
+
+// 自定义封面上传处理
+const handleCoverUpload = async (options: { file: File }) => {
+  try {
+    // 创建本地预览URL
+    const previewUrl = URL.createObjectURL(options.file)
+    coverPreviewUrl.value = previewUrl
+
+    // TODO: 实际上传到服务器获取URL
+    // 目前暂时使用 base64 或 blob URL 作为封面
+    // 后续可以对接后端的文件上传API
+
+    // 将文件转换为 base64 Data URL（临时方案）
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      newProject.value.coverUrl = e.target?.result as string
+    }
+    reader.readAsDataURL(options.file)
+
+    ElMessage.success('封面上传成功')
+  } catch (error: any) {
+    ElMessage.error('封面上传失败：' + (error.message || '未知错误'))
+    coverPreviewUrl.value = ''
+    newProject.value.coverUrl = ''
+  }
+}
+
+// 移除封面
+const removeCover = () => {
+  // 释放预览URL
+  if (coverPreviewUrl.value && coverPreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(coverPreviewUrl.value)
+  }
+  coverPreviewUrl.value = ''
+  newProject.value.coverUrl = ''
 }
 
 const handleCommand = async (command: string, project: any) => {
@@ -682,5 +775,95 @@ onMounted(async () => {
   color: #334155;
   line-height: 1.7;
   text-align: center;
+}
+
+/* 封面上传样式 */
+.cover-upload-container {
+  width: 100%;
+}
+
+.cover-uploader {
+  display: inline-block;
+}
+
+.cover-uploader :deep(.el-upload) {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+}
+
+.cover-uploader :deep(.el-upload:hover) {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+
+.cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 200px;
+  color: #64748b;
+  gap: 8px;
+}
+
+.cover-placeholder span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cover-preview {
+  position: relative;
+  width: 150px;
+  height: 200px;
+}
+
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cover-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.cover-preview:hover .cover-actions {
+  opacity: 1;
+}
+
+.cover-action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cover-action-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.cover-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
 }
 </style>
