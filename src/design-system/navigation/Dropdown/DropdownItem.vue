@@ -46,7 +46,7 @@ const props = withDefaults(defineProps<DropdownItemProps>(), {
 const emit = defineEmits<DropdownItemEmits>()
 
 // 组件 Slots
-const slots = defineSlots<DropdownItemSlots>()
+const _slots = defineSlots<DropdownItemSlots>()
 
 // 从父组件注入上下文
 const dropdownContext = inject<{
@@ -74,10 +74,10 @@ const handleClick = (event: MouseEvent) => {
   if (props.disabled) return
 
   // 触发点击事件
-  emit('click', event, props.command)
+  emit('click', event, props.command as DropdownCommand)
 
   // 调用父组件的处理方法
-  if (dropdownContext) {
+  if (dropdownContext && props.command) {
     dropdownContext.handleItemClick(props.command)
   }
 }
@@ -94,7 +94,7 @@ const handleClick = (event: MouseEvent) => {
     @keydown.space.prevent="handleClick"
   >
     <!-- 图标插槽或图标类名 -->
-    <span v-if="icon || $slots.icon" :class="cn('mr-2 h-4 w-4', icon)">
+    <span v-if="props.icon || $slots.icon" :class="cn('mr-2 h-4 w-4', props.icon)">
       <slot name="icon" />
     </span>
 

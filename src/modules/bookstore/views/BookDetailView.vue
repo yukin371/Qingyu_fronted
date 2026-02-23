@@ -182,7 +182,8 @@ import CommentItem from '@/components/CommentItem.vue'
 import { getBookChapters } from '@/modules/bookstore/api/wrapper'
 import { getBookComments, createComment, deleteComment } from '@/modules/reader/api'
 import { addToBookshelf } from '@/modules/reader/api'
-import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
+import { collectionsAPI } from '@/modules/reader/api/manual/collections'
+import type { Collection } from '@/modules/reader/api/manual/collections'
 import type { ChapterListItem } from '@/types/models'
 
 interface Comment {

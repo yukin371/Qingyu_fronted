@@ -2,12 +2,12 @@
   <div class="review-card">
     <div class="review-header">
       <div class="review-type">
-        <div class="type-icon" :class="item.contentType">
+        <div class="type-icon" :class="item.contentType || item.type">
           <el-icon :size="16">
-            <Document v-if="item.contentType === 'document'" />
-            <Notebook v-else-if="item.contentType === 'book'" />
-            <DocumentCopy v-else-if="item.contentType === 'chapter'" />
-            <ChatDotRound v-else />
+            <Notebook v-if="(item.contentType || item.type) === 'book'" />
+            <DocumentCopy v-else-if="(item.contentType || item.type) === 'chapter'" />
+            <ChatDotRound v-else-if="(item.contentType || item.type) === 'comment'" />
+            <Document v-else />
           </el-icon>
         </div>
         <span class="type-name">{{ contentTypeName }}</span>
@@ -22,10 +22,6 @@
         <span class="meta-item">
           <el-icon><User /></el-icon>
           {{ item.submittedBy }}
-        </span>
-        <span v-if="item.projectName" class="meta-item">
-          <el-icon><FolderOpened /></el-icon>
-          {{ item.projectName }}
         </span>
       </div>
     </div>
@@ -49,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Document, Notebook, DocumentCopy, ChatDotRound, User, FolderOpened, Select, CloseBold, View } from '@element-plus/icons-vue'
+import { Document, Notebook, DocumentCopy, ChatDotRound, User, Select, CloseBold, View } from '@element-plus/icons-vue'
 import type { PendingReview } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format.ts'
 
@@ -58,9 +54,9 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'approve', item: PendingReview): void
-  (e: 'reject', item: PendingReview): void
-  (e: 'view', item: PendingReview): void
+  (e: 'approve', _item: PendingReview): void
+  (e: 'reject', _item: PendingReview): void
+  (e: 'view', _item: PendingReview): void
 }
 
 const props = defineProps<Props>()

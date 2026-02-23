@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+import { Refresh, Plus, Minus } from '@element-plus/icons-vue'
 import { formatCurrency } from '@/utils/currency'
 
 interface Props {
@@ -58,9 +58,9 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'refresh'): void
-  (e: 'recharge'): void
-  (e: 'withdraw'): void
+  (_e: 'refresh'): void
+  (_e: 'recharge'): void
+  (_e: 'withdraw'): void
 }
 
 withDefaults(defineProps<Props>(), {
@@ -240,4 +240,3 @@ const handleWithdraw = () => {
   }
 }
 </style>
-
