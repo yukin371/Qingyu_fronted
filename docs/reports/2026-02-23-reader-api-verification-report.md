@@ -1,4 +1,4 @@
-# Reader模块API验证报告 - P0/P1/P2阶段
+# Reader模块API验证报告 - P0/P1/P2/P3阶段 (完整版)
 
 **生成日期**: 2026-02-23
 **测试框架**: Vitest v4.0.18
@@ -8,19 +8,20 @@
 
 ## 1. 测试执行摘要
 
-| 阶段        | 测试文件                | 测试用例 | 通过    | 失败  | 状态               |
-| ----------- | ----------------------- | -------- | ------- | ----- | ------------------ |
-| P0 书架核心 | books.api.spec.ts       | 23       | 23      | 0     | :white_check_mark: |
-| P1 阅读进度 | progress.api.spec.ts    | 14       | 14      | 0     | :white_check_mark: |
-| P1 章节导航 | chapters.api.spec.ts    | 14       | 14      | 0     | :white_check_mark: |
-| P1 阅读历史 | history.api.spec.ts     | 18       | 18      | 0     | :white_check_mark: |
-| P2 评论     | comments.api.spec.ts    | 26       | 26      | 0     | :white_check_mark: |
-| P2 收藏     | collections.api.spec.ts | 26       | 26      | 0     | :white_check_mark: |
-| P2 评分     | rating.api.spec.ts      | 20       | 20      | 0     | :white_check_mark: |
-| P2 点赞     | likes.api.spec.ts       | 21       | 21      | 0     | :white_check_mark: |
-| **总计**    | **8**                   | **162**  | **162** | **0** | :white_check_mark: |
+| 阶段        | 测试文件                   | 测试用例 | 通过    | 失败  | 状态               |
+| ----------- | -------------------------- | -------- | ------- | ----- | ------------------ |
+| P0 书架核心 | books.api.spec.ts          | 23       | 23      | 0     | :white_check_mark: |
+| P1 阅读进度 | progress.api.spec.ts       | 14       | 14      | 0     | :white_check_mark: |
+| P1 章节导航 | chapters.api.spec.ts       | 14       | 14      | 0     | :white_check_mark: |
+| P1 阅读历史 | history.api.spec.ts        | 18       | 18      | 0     | :white_check_mark: |
+| P2 评论     | comments.api.spec.ts       | 26       | 26      | 0     | :white_check_mark: |
+| P2 收藏     | collections.api.spec.ts    | 26       | 26      | 0     | :white_check_mark: |
+| P2 评分     | rating.api.spec.ts         | 20       | 20      | 0     | :white_check_mark: |
+| P2 点赞     | likes.api.spec.ts          | 21       | 21      | 0     | :white_check_mark: |
+| P3 推荐系统 | recommendation.api.spec.ts | 27       | 27      | 0     | :white_check_mark: |
+| **总计**    | **9**                      | **189**  | **189** | **0** | :white_check_mark: |
 
-**执行时间**: 8.77s (测试运行时间: 305ms)
+**执行时间**: 10.85s (测试运行时间: 327ms)
 
 ---
 
@@ -117,6 +118,17 @@
 | `/social/books/:bookId/like`   | GET    | :white_check_mark: | :white_check_mark: | 通过 |
 | `/social/likes/books`          | GET    | :white_check_mark: | :white_check_mark: | 通过 |
 | `/social/likes/stats`          | GET    | :white_check_mark: | :white_check_mark: | 通过 |
+
+### P3 推荐系统API (6个)
+
+| API端点                            | 方法 | 请求格式           | 响应格式           | 状态 |
+| ---------------------------------- | ---- | ------------------ | ------------------ | ---- |
+| `/recommendation/personalized`     | GET  | :white_check_mark: | :white_check_mark: | 通过 |
+| `/recommendation/hot`              | GET  | :white_check_mark: | :white_check_mark: | 通过 |
+| `/recommendation/similar`          | GET  | :white_check_mark: | :white_check_mark: | 通过 |
+| `/recommendation/category`         | GET  | :white_check_mark: | :white_check_mark: | 通过 |
+| `/recommendation/behavior`         | POST | :white_check_mark: | :white_check_mark: | 通过 |
+| `/recommendation/homepage`         | GET  | :white_check_mark: | :white_check_mark: | 通过 |
 
 ---
 
@@ -229,6 +241,37 @@
 **错误处理 (8个)**
 - 点赞时未登录、重复点赞、点赞不存在书籍、取消未点赞书籍、取消点赞时未登录、获取不存在书籍点赞信息、获取用户点赞列表时未登录、获取用户点赞统计时未登录
 
+### P3 推荐系统 (27个)
+
+**推荐获取 (15个)**
+- R-001: 获取个性化推荐 - 正确GET请求
+- R-001: 获取个性化推荐 - 分页参数
+- R-001: 获取个性化推荐 - 空推荐处理
+- R-001: 获取个性化推荐 - 包含推荐理由
+- R-002: 获取热门推荐 - 正确GET请求
+- R-002: 获取热门推荐 - 分页参数
+- R-002: 获取热门推荐 - 按热度排序
+- R-003: 获取相似书籍 - 正确GET请求
+- R-003: 获取相似书籍 - 包含bookId参数
+- R-003: 获取相似书籍 - 空相似书籍处理
+- R-004: 获取分类推荐 - 正确GET请求
+- R-004: 获取分类推荐 - 包含categoryId参数
+- R-004: 获取分类推荐 - 空分类处理
+- 首页推荐 - 正确GET请求
+- 首页推荐 - 混合推荐策略
+
+**用户行为 (4个)**
+- R-005: 记录用户行为 - 正确POST请求
+- R-005: 记录用户行为 - view行为类型
+- R-005: 记录用户行为 - like行为类型
+- R-005: 记录用户行为 - 多种行为类型
+
+**错误处理 (7个)**
+- 未登录(个性化推荐)、未登录(记录行为)、资源不存在(相似书籍)、分类不存在、无效行为类型、服务器错误、向后兼容导出
+
+**类型定义 (1个)**
+- 验证向后兼容的导出结构
+
 ---
 
 ## 4. 测试覆盖率分析
@@ -245,14 +288,15 @@
 | 收藏功能 | 26       | CRUD操作、收藏夹管理、分享、统计、标签、错误处理         |
 | 评分功能 | 20       | 获取/提交/更新/删除评分、边界值测试、错误处理            |
 | 点赞功能 | 21       | 点赞/取消点赞、状态查询、用户列表、统计、错误处理        |
+| 推荐系统 | 27       | 个性化推荐、热门推荐、相似书籍、分类推荐、用户行为、错误处理 |
 
 ### 按测试类型
 
 | 类型                 | 数量  | 占比  |
 | -------------------- | ----- | ----- |
-| 正向测试（成功场景） | 110   | 67.9% |
-| 边界测试             | 23    | 14.2% |
-| 错误处理测试         | 29    | 17.9% |
+| 正向测试（成功场景） | 129   | 68.3% |
+| 边界测试             | 26    | 13.8% |
+| 错误处理测试         | 34    | 18.0% |
 
 ---
 
@@ -280,17 +324,18 @@ E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
 
 ## 7. 测试文件清单
 
-| 文件路径                                        | 状态                        |
-| ----------------------------------------------- | --------------------------- |
-| `tests/unit/api/reader/books.api.spec.ts`       | :white_check_mark:          |
-| `tests/unit/api/reader/progress.api.spec.ts`    | :white_check_mark:          |
-| `tests/unit/api/reader/chapters.api.spec.ts`    | :white_check_mark:          |
-| `tests/unit/api/reader/history.api.spec.ts`     | :white_check_mark:          |
-| `tests/unit/api/reader/comments.api.spec.ts`    | :white_check_mark:          |
-| `tests/unit/api/reader/collections.api.spec.ts` | :white_check_mark:          |
-| `tests/unit/api/reader/rating.api.spec.ts`      | :white_check_mark:          |
-| `tests/unit/api/reader/likes.api.spec.ts`       | :white_check_mark:          |
-| `tests/e2e/reader/bookshelf.spec.ts`            | :white_check_mark: (待执行) |
+| 文件路径                                           | 状态                        |
+| -------------------------------------------------- | --------------------------- |
+| `tests/unit/api/reader/books.api.spec.ts`          | :white_check_mark:          |
+| `tests/unit/api/reader/progress.api.spec.ts`       | :white_check_mark:          |
+| `tests/unit/api/reader/chapters.api.spec.ts`       | :white_check_mark:          |
+| `tests/unit/api/reader/history.api.spec.ts`        | :white_check_mark:          |
+| `tests/unit/api/reader/comments.api.spec.ts`       | :white_check_mark:          |
+| `tests/unit/api/reader/collections.api.spec.ts`    | :white_check_mark:          |
+| `tests/unit/api/reader/rating.api.spec.ts`         | :white_check_mark:          |
+| `tests/unit/api/reader/likes.api.spec.ts`          | :white_check_mark:          |
+| `tests/unit/api/reader/recommendation.api.spec.ts` | :white_check_mark:          |
+| `tests/e2e/reader/bookshelf.spec.ts`               | :white_check_mark: (待执行) |
 
 ---
 
@@ -299,7 +344,7 @@ E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
 - [x] P0 书架核心测试
 - [x] P1 阅读流程测试（进度/章节/历史）
 - [x] P2 社交功能测试（评论/收藏/评分/点赞）
-- [ ] P3 推荐系统测试
+- [x] P3 推荐系统测试（个性化/热门/相似/分类/行为记录）
 - [ ] E2E测试执行（需要后端服务）
 - [ ] 集成测试添加（Mock Server场景）
 
@@ -318,9 +363,10 @@ E2E测试文件已创建：`tests/e2e/reader/bookshelf.spec.ts`
  ✓ tests/unit/api/reader/likes.api.spec.ts (21 tests) 10ms
  ✓ tests/unit/api/reader/progress.api.spec.ts (14 tests) 7ms
  ✓ tests/unit/api/reader/rating.api.spec.ts (20 tests) 10ms
+ ✓ tests/unit/api/reader/recommendation.api.spec.ts (27 tests) 13ms
 
- Test Files  8 passed (8)
-      Tests  162 passed (162)
+ Test Files  9 passed (9)
+      Tests  189 passed (189)
    Start at  01:28:36
    Duration  8.77s (transform 5.52s, setup 11.98s, import 41.14s, tests 305ms, environment 11.63s)
 ```
