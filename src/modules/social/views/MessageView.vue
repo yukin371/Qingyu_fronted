@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch as vueWatch } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
@@ -274,7 +274,7 @@ const loadConversations = async () => {
     const res = await getConversations({
       page: 1,
       size: 50
-    })
+    }) as any
     conversations.value = res.items || []
   } catch (error: any) {
     message.error(error.message || '加载失败')
@@ -308,7 +308,7 @@ const loadMessages = async (loadMore = false) => {
     const res = await getConversationMessages(selectedConversation.value.id, {
       page: loadMore ? currentPage.value + 1 : 1,
       size: pageSize.value
-    })
+    }) as any
 
     if (loadMore) {
       messages.value = [...(res.items || []), ...messages.value]
@@ -332,9 +332,8 @@ const loadMessages = async (loadMore = false) => {
   }
 }
 
-// 发送消息（保留供后续使用）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const sendTextMessage = async () => {
+// 发送消息
+const sendMessage = async () => {
   if (!selectedConversation.value) return
 
   // 使用验证工具验证消息
@@ -347,10 +346,10 @@ const sendTextMessage = async () => {
   sending.value = true
   try {
     const msg = await sendMessageAPI({
-      conversationId: selectedConversation.value.id,
+      receiver_id: selectedConversation.value.participant_id,
       content: result.sanitized!,
-      type: 'text'
-    })
+      message_type: 'text'
+    }) as any
     messages.value.push(msg)
     messageInput.value = ''
     scrollToBottom()
@@ -370,8 +369,7 @@ const sendTextMessage = async () => {
 }
 
 // 上传图片
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleImageUpload = async (file: File) => {
+const handleImageUpload = async (_file: File) => {
   try {
     // TODO: 实现图片上传和发送功能
     message.warning('图片上传功能暂未实现')
@@ -382,8 +380,7 @@ const handleImageUpload = async (file: File) => {
 }
 
 // 上传文件
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleFileUpload = async (file: File) => {
+const handleFileUpload = async (_file: File) => {
   try {
     // TODO: 实现文件上传和发送功能
     message.warning('文件上传功能暂未实现')
@@ -398,7 +395,7 @@ const markAsRead = async () => {
   if (!selectedConversation.value) return
 
   try {
-    await markConversationAsRead(selectedConversation.value.id, selectedConversation.value.participant_id)
+    await markConversationAsRead(selectedConversation.value.id, {})
     const conv = conversations.value.find(c => c.id === selectedConversation.value?.id)
     if (conv) {
       conv.unread_count = 0
@@ -517,7 +514,8 @@ const handleScroll = (e: Event) => {
 }
 
 // 时间格式化
-const formatTime = (time: string) => {
+const formatTime = (time: string | undefined) => {
+  if (!time) return ''
   const date = new Date(time)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -591,7 +589,7 @@ onMounted(() => {
   websocketStore.onMessage(handleNewMessage)
 
   // 监听WebSocket降级状态变化，启动轮询降级
-  watch(() => websocketStore.fallbackActive, (isActive) => {
+  vueWatch(() => websocketStore.fallbackActive, (isActive) => {
     if (isActive) {
       console.log('[MessageView] WebSocket连接失败，启动轮询降级')
       pollingService.start(() => {

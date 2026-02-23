@@ -111,11 +111,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { QyIcon, QyIconName } from '@/design-system/components'
+import { QyIcon } from '@/design-system/components'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
 import { message } from '@/design-system/services'
-import { followAPI } from '@/modules/social/api'
+import * as socialAPI from '@/modules/social/api'
 
 interface UserItem {
   id: string
@@ -144,19 +144,20 @@ const targetUserId = ref<string>('')
 const currentTab = ref<'followers' | 'following' | 'mutual'>('followers')
 
 // 标签配置
+type TabType = 'followers' | 'following' | 'mutual'
 const tabs = computed(() => [
   {
-    key: 'followers',
+    key: 'followers' as TabType,
     label: '粉丝',
     count: socialStore.getStats(targetUserId.value)?.followersCount || 0
   },
   {
-    key: 'following',
+    key: 'following' as TabType,
     label: '关注',
     count: socialStore.getStats(targetUserId.value)?.followingCount || 0
   },
   {
-    key: 'mutual',
+    key: 'mutual' as TabType,
     label: '互关',
     count: 0 // 需要单独计算
   }
@@ -186,7 +187,7 @@ const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value))
 const loadUserList = async () => {
   loading.value = true
   try {
-    let response
+    let response: any
     const params = {
       page: currentPage.value,
       page_size: pageSize.value,
@@ -194,13 +195,13 @@ const loadUserList = async () => {
     }
 
     if (currentTab.value === 'followers') {
-      response = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
+      response = await socialAPI.getFollowersList(targetUserId.value, params)
     } else if (currentTab.value === 'following') {
-      response = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
+      response = await socialAPI.getUserFollowing(targetUserId.value, params)
     } else {
       // 互关列表需要前端过滤
-      const followersRes = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
-      const followingRes = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
+      const followersRes = await socialAPI.getFollowersList(targetUserId.value, params) as any
+      const followingRes = await socialAPI.getUserFollowing(targetUserId.value, params) as any
 
       // API直接返回数据,不需要解包
       const followersList = Array.isArray(followersRes)
@@ -225,12 +226,12 @@ const loadUserList = async () => {
     // API直接返回数据,不需要解包
     const data = Array.isArray(response)
       ? response
-      : response?.items || []
+      : (response as any)?.items || []
     list.value = data.map((u: any) => ({
       ...u,
       isMutual: socialStore.isMutualFollow(u.id)
     }))
-    totalCount.value = response?.total || data.length
+    totalCount.value = (response as any)?.total || data.length
   } catch (error) {
     console.error('[FollowListView] 加载列表失败:', error)
     message.error('加载失败，请稍后重试')
@@ -310,7 +311,7 @@ onMounted(async () => {
   // 从路由获取初始标签
   const tab = route.params.tab as string || route.query.tab as string
   if (tab && ['followers', 'following', 'mutual'].includes(tab)) {
-    currentTab.value = tab as any
+    currentTab.value = tab as 'followers' | 'following' | 'mutual'
   }
 
   // 加载列表

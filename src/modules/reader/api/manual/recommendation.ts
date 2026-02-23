@@ -5,7 +5,7 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
+import type { APIResponse } from '@/types/api'
 
 /**
  * 推荐书籍信息

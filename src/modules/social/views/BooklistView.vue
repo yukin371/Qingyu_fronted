@@ -313,9 +313,9 @@ const loadBooklists = async () => {
       params.tag = selectedTag.value
     }
 
-    const res = await getBooklists(params)
-    booklists.value = res.items
-    total.value = res.total
+    const res = await getBooklists(params) as any
+    booklists.value = res.items || []
+    total.value = res.total || 0
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -328,7 +328,7 @@ const viewBooklistDetail = async (id: string) => {
   showDetailDialog.value = true
   loadingBooks.value = true
   try {
-    const res = await getBooklistDetail(id)
+    const res = await getBooklistDetail(id) as any
     currentBooklist.value = res
     booklistItems.value = res.items || []
     isFollowing.value = false // 需要从后端返回
@@ -405,10 +405,10 @@ const submitBooklist = async () => {
   await booklistFormRef.value?.validate()
   submitting.value = true
   try {
-    const data = {
-      name: booklistForm.name,
+    const data: any = {
+      title: booklistForm.name,
       description: booklistForm.description,
-      cover_url: booklistForm.cover_url || undefined,
+      cover: booklistForm.cover_url || undefined,
       tags: booklistForm.tags,
       is_public: booklistForm.is_public
     }

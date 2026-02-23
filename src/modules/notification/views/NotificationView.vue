@@ -162,7 +162,7 @@
       width="500px"
     >
       <!-- 通知设置表单 -->
-      <QyForm :model="preferences as Record<string, unknown>" label-width="100px">
+      <QyForm :modelValue="preferences as Record<string, unknown>" label-width="100px">
         <h4>通知渠道</h4>
         <QyFormItem label="站内通知">
           <QySwitch v-model="preferences.channel_enabled.in_app" />

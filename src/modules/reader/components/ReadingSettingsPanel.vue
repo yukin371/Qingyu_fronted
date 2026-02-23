@@ -85,7 +85,7 @@
             :min="lineHeightMin"
             :max="lineHeightMax"
             :step="lineHeightStep"
-            :format-tooltip="(val) => val.toFixed(1)"
+            :format-tooltip="(val: number) => val.toFixed(1)"
             class="line-height-slider"
             @update:model-value="updateLineHeight"
           />
@@ -102,7 +102,7 @@
             :min="pageWidthMin"
             :max="pageWidthMax"
             :step="pageWidthStep"
-            :format-tooltip="(val) => `${val}%`"
+            :format-tooltip="(val: number) => `${val}%`"
             class="page-width-slider"
             @update:model-value="updatePageWidth"
           />

@@ -397,7 +397,7 @@ const handleSearch = async () => {
 
       // 使用 store 中的搜索结果
       const resultList = bookstoreStore.books.searchResults || []
-      searchResults.value = Array.isArray(resultList) ? resultList : []
+      searchResults.value = Array.isArray(resultList) ? resultList as BookBrief[] : []
       totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
     }
   } catch (error) {

@@ -201,10 +201,9 @@ const loadBooks = async () => {
   booksLoading.value = true
   try {
     const response = await getBooksByCategory({
-      category_id: selectedCategoryId.value,
+      category: selectedCategoryId.value,
       page: currentPage.value,
-      page_size: pageSize.value,
-      sort: filters.sortBy
+      size: pageSize.value
     })
 
     // 处理响应

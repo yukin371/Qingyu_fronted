@@ -92,7 +92,7 @@ import { QyIcon, QyButton, QyEmpty } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
 import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/stores/notification'
-import type { NotificationMessage, NotificationType } from '@/types/notification'
+import type { NotificationType } from '@/types/notification'
 
 interface TabItem {
   key: string
@@ -234,7 +234,7 @@ const handleSelectAll = () => {
     selectedIds.value = []
   } else {
     // 全选
-    selectedIds.value = notifications.value.map(n => n.id)
+    selectedIds.value = notifications.value.map((n: any) => n.id)
   }
 }
 
@@ -327,7 +327,7 @@ const handleClearAll = async () => {
 
     // 这里需要调用清空API
     await notificationStore.markAllAsRead()
-    notifications.value = []
+    selectedIds.value = []
     message.success('已清空所有通知')
   } catch (error) {
     if (error !== 'cancel') {

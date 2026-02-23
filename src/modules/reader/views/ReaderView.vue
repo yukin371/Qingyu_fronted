@@ -379,7 +379,8 @@ const settings = computed((): ReaderSettings => {
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const bookTitle = computed(() => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _bookTitle = computed(() => {
   return currentChapter.value?.bookTitle || '正在阅读'
 })
 

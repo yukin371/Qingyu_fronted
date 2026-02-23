@@ -150,9 +150,9 @@ const loadRatingData = async () => {
   try {
     const response = await getBookRating(props.bookId)
     const data = response.data || response
-    averageRating.value = data.averageScore || 0
-    totalRatings.value = data.totalCount || 0
-    ratingDistribution.value = data.distribution || {
+    averageRating.value = (data as any).averageScore || 0
+    totalRatings.value = (data as any).totalCount || 0
+    ratingDistribution.value = (data as any).distribution || {
       5: 0,
       4: 0,
       3: 0,
@@ -172,7 +172,7 @@ const loadUserRating = async () => {
     const response = await getUserBookRating(props.bookId)
     const data = response.data || response
     if (data) {
-      userRating.value = data
+      userRating.value = data as { score: number; review?: string }
     }
   } catch (error) {
     // 用户未评分

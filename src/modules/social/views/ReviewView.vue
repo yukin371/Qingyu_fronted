@@ -253,7 +253,7 @@ const loadReviews = async () => {
       params.rating = ratingFilter.value
     }
 
-    const res = await getReviews(params)
+    const res = await getReviews(params) as any
     reviews.value = res.items || []
     total.value = res.total || 0
   } catch (error: any) {
@@ -268,15 +268,14 @@ const submitReview = async () => {
   await reviewFormRef.value?.validate()
   submitting.value = true
   try {
-    await createReview({
+    const reviewData: any = {
       title: reviewForm.title,
       content: reviewForm.content,
       rating: reviewForm.rating,
       is_spoiler: reviewForm.is_spoiler,
-      target_type: reviewForm.target_type,
-      book_id: reviewForm.target_type === 'book' ? reviewForm.target_id : undefined,
-      chapter_id: reviewForm.target_type === 'chapter' ? reviewForm.target_id : undefined
-    })
+      book_id: reviewForm.target_id
+    }
+    await createReview(reviewData)
     message.success('发布成功')
     showCreateDialog.value = false
     // 重置表单
@@ -363,7 +362,7 @@ const submitComment = async () => {
 }
 
 // 分享
-const shareReview = (review: Review) => {
+const shareReview = (_review: Review) => {
   // TODO: 实现分享功能
   message.info('分享功能开发中')
 }

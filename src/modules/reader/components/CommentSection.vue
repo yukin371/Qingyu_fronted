@@ -112,7 +112,8 @@ const commentContent = ref('')
 const submitting = ref(false)
 const replyToComment = ref<Comment | null>(null)
 
-function formatTime(time: string): string {
+function formatTime(time: string | undefined): string {
+    if (!time) return ''
     return formatDate(time, 'YYYY-MM-DD HH:mm')
 }
 
@@ -152,11 +153,11 @@ async function handleLike(comment: Comment): Promise<void> {
     try {
         if (comment.isLiked) {
             // 取消点赞
-            await commentAPI.unlikeComment(comment.id)
+            await commentAPI.unlikeComment(comment.id!)
             message.success('已取消点赞')
         } else {
             // 点赞
-            await commentAPI.likeComment(comment.id)
+            await commentAPI.likeComment(comment.id!)
             message.success('点赞成功')
         }
         // 刷新评论列表以更新点赞状态
