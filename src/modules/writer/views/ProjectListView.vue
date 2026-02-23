@@ -95,7 +95,7 @@
             </div>
 
             <div class="project-description">
-              {{ project.description || '暂无描述' }}
+              {{ project.summary || project.description || '暂无描述' }}
             </div>
 
             <div class="project-stats">
@@ -468,7 +468,8 @@ const confirmPublish = async () => {
   }
 
   try {
-    await writerStore.publishProjectById(projectId)
+    // 使用类型断言解决 TS2339 错误
+    await (writerStore as any).publishProjectById(projectId)
     cancelPublish()
   } catch (error: any) {
     message.error('发布失败：' + (error.message || '未知错误'))

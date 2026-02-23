@@ -351,10 +351,11 @@ export const useWriterStore = defineStore('writer', {
       try {
         // httpService 响应拦截器会自动解包返回 data
         const response = await createProject(data) as any
-        // response 是 ProjectDetailResponse 类型
-        // 后端返回 id 字段，前端需要 projectId 字段
-        if (response && response.id) {
-          const projectWithId = { ...response, projectId: response.id } as Project
+        const projectData = response as Record<string, unknown>
+        // 兼容后端返回 projectId 或 id 的情况
+        const projectId = projectData?.projectId || projectData?.id
+        if (projectData && projectId) {
+          const projectWithId = { ...projectData, projectId } as Project
           this.projects.unshift(projectWithId)
           return projectWithId
         } else {
