@@ -46,8 +46,7 @@
         <QyIcon
           name="ArrowRight"
           :size="14"
-          class="tree-chevron"
-          :class="{ expanded: isTreeExpanded }"
+          :class="isTreeExpanded ? 'tree-chevron expanded' : 'tree-chevron'"
         />
         <span>目录</span>
         <span class="section-count">{{ displayChapters.length }}</span>

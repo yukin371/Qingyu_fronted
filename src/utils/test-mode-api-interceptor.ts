@@ -363,7 +363,7 @@ function getMockDataForUrl(url: string): any {
   const urlObj = new URL(url, window.location.origin)
   const pathname = urlObj.pathname
   const searchParams = urlObj.searchParams
-  
+
   console.log('[TestMode API] 获取 Mock 数据:', pathname, searchParams.toString())
   
   // 书城模块
@@ -563,7 +563,7 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
 /**
  * 根据规则处理器处理Writer API请求
  */
-function handleWriterApiByRule(handler: string, pathname: string, _searchParams: URLSearchParams): any {
+function handleWriterApiByRule(handler: string, _pathname: string, _searchParams: URLSearchParams): any {
   const successResponse = (data: unknown) => ({
     code: 200,
     message: 'success',

@@ -57,10 +57,6 @@ const generateRandomShapes = (count: number): DecorativeShape[] => {
 }
 
 const card1Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 1 : 3))
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const card2Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 2 : 4))
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const card3Shapes = shallowRef(generateRandomShapes(isLowEndDevice ? 1 : 3))
 
 // -----------------------------
 // 书籍数据
@@ -390,20 +386,17 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Feature Cards (保持原样) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="feature-card group">
-          <div class="absolute inset-0 overflow-hidden rounded-2xl">
-            <div v-for="shape in card1Shapes" :key="shape.id" class="card-shape" :style="{ top: shape.top, left: shape.left, width: shape.width, height: shape.height, background: shape.background, opacity: shape.opacity }"></div>
-          </div>
-          <div class="feature-card-content">
-            <div class="icon-box bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white">
-               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-            </div>
-            <div><h3 class="text-lg font-bold text-slate-800">我的书架</h3><p class="text-sm text-slate-500 mt-1">管理你的藏书</p></div>
-          </div>
+      <!-- Feature Cards -->
+      <div class="feature-card group">
+        <div class="absolute inset-0 overflow-hidden rounded-2xl">
+          <div v-for="shape in card1Shapes" :key="shape.id" class="card-shape" :style="{ top: shape.top, left: shape.left, width: shape.width, height: shape.height, background: shape.background, opacity: shape.opacity }"></div>
         </div>
-        <!-- (其他卡片省略...) -->
+        <div class="feature-card-content">
+          <div class="icon-box bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+          </div>
+          <div><h3 class="text-lg font-bold text-slate-800">我的书架</h3><p class="text-sm text-slate-500 mt-1">管理你的藏书</p></div>
+        </div>
       </div>
     </main>
 

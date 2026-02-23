@@ -14,9 +14,6 @@ import {
   BANNER_IMAGES,
 } from './mock-images'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getBannerUrl } from './mock-images'
-
 // ==================== 类型定义 ====================
 
 export interface Book {
