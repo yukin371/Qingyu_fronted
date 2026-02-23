@@ -127,28 +127,30 @@
       <CenteredModalCard
         v-model="showCreateDialog"
         title="创建新项目"
-        width="min(760px, 92vw)"
+        width="min(560px, 92vw)"
         :show-close="true"
         :close-on-click-modal="true"
       >
         <el-form :model="newProject" label-position="top" class="create-form">
-          <el-form-item label="项目名称" required>
-            <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
-          </el-form-item>
+          <div class="form-row">
+            <el-form-item label="项目名称" required class="flex-1">
+              <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
+            </el-form-item>
 
-          <el-form-item label="项目类型">
-            <div class="native-select-wrap">
-              <select v-model="newProject.type" class="native-select" aria-label="项目类型">
-                <option value="novel">小说</option>
-                <option value="essay">散文随笔</option>
-                <option value="script">剧本</option>
-                <option value="notes">笔记</option>
-                <option value="poetry">诗歌</option>
-                <option value="others">其他</option>
-              </select>
-              <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
-            </div>
-          </el-form-item>
+            <el-form-item label="项目类型" class="type-select">
+              <div class="native-select-wrap">
+                <select v-model="newProject.type" class="native-select" aria-label="项目类型">
+                  <option value="novel">小说</option>
+                  <option value="essay">散文随笔</option>
+                  <option value="script">剧本</option>
+                  <option value="notes">笔记</option>
+                  <option value="poetry">诗歌</option>
+                  <option value="others">其他</option>
+                </select>
+                <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
+              </div>
+            </el-form-item>
+          </div>
 
           <el-form-item label="项目封面">
             <div class="cover-upload-container">
@@ -156,21 +158,22 @@
               <div v-if="coverPreviewUrl" class="cover-preview-wrapper">
                 <img :src="coverPreviewUrl" alt="封面预览" class="cover-preview-img" />
                 <button type="button" class="cover-remove-btn" @click="removeCover">
-                  <QyIcon name="Close" :size="16" />
+                  <QyIcon name="Close" :size="14" />
                 </button>
               </div>
               <!-- 无预览图时显示上传按钮 -->
-              <label v-else class="cover-upload-btn">
-                <QyIcon name="Plus" :size="24" />
+              <button type="button" class="cover-upload-btn" @click="triggerCoverUpload">
+                <QyIcon name="Plus" :size="20" />
                 <span>上传封面</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  class="hidden"
-                  @change="handleCoverFileSelect"
-                />
-              </label>
-              <p class="cover-hint">支持 JPG、PNG 格式，建议尺寸 300x400，大小不超过 2MB</p>
+              </button>
+              <input
+                ref="coverInputRef"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style="display: none"
+                @change="handleCoverFileSelect"
+              />
+              <p class="cover-hint">支持 JPG、PNG，不超过 2MB</p>
             </div>
           </el-form-item>
 
@@ -178,7 +181,7 @@
             <el-input
               v-model="newProject.description"
               type="textarea"
-              :rows="4"
+              :rows="3"
               placeholder="请输入项目描述（可选）"
               maxlength="200"
               show-word-limit
@@ -236,6 +239,7 @@ const newProject = ref({
   coverUrl: '',
 })
 const coverPreviewUrl = ref('')
+const coverInputRef = ref<HTMLInputElement | null>(null)
 const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
 
@@ -310,6 +314,11 @@ const handleCreate = async () => {
       ElMessage.error('创建项目失败，请稍后重试')
     }
   }
+}
+
+// 触发封面文件选择
+const triggerCoverUpload = () => {
+  coverInputRef.value?.click()
 }
 
 // 封面文件选择处理
@@ -776,9 +785,28 @@ onMounted(async () => {
   text-align: center;
 }
 
+/* 表单行布局 */
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.form-row .flex-1 {
+  flex: 1;
+}
+
+.form-row .type-select {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
 /* 封面上传样式 */
 .cover-upload-container {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .cover-upload-btn {
@@ -786,15 +814,16 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  height: 200px;
+  width: 120px;
+  height: 160px;
   border: 2px dashed #cbd5e1;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   color: #64748b;
-  gap: 8px;
+  gap: 6px;
   background: #f8fafc;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .cover-upload-btn:hover {
@@ -804,30 +833,30 @@ onMounted(async () => {
 }
 
 .cover-upload-btn span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .cover-preview-wrapper {
   position: relative;
-  width: 150px;
-  height: 200px;
+  width: 120px;
+  height: 160px;
 }
 
 .cover-preview-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 2px solid #e2e8f0;
 }
 
 .cover-remove-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -850,13 +879,9 @@ onMounted(async () => {
 }
 
 .cover-hint {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 12px;
   color: #94a3b8;
-  line-height: 1.5;
-}
-
-.hidden {
-  display: none;
+  line-height: 1.4;
 }
 </style>
