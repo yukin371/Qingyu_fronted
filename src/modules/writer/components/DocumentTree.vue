@@ -156,6 +156,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
+import { ElTree } from 'element-plus'
 import { messageBox, message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
@@ -164,6 +165,11 @@ import { useBatchOperationStore } from '../stores/batchOperationStore'
 import { duplicateDocument, moveDocument } from '../api/document'
 import BatchOperationConfirmDialog from './BatchOperationConfirmDialog.vue'
 import BatchOperationProgressDialog from './BatchOperationProgressDialog.vue'
+
+// DocumentIcon 组件定义
+const DocumentIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`
+}
 
 // 拖拽数据类型定义
 interface DragData {
@@ -424,10 +430,7 @@ async function executeDragOperation(
         copyContent: true
       })
 
-      message.success({
-        message: `已复制 "${dragData.title}" 到 "${dropData.title}"`,
-        duration: 2000
-      })
+      message.success(`已复制 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
     } else {
       // 移动模式：调用 move API
       const newParentId = type === 'inner' ? dropData.id : dropData.parentId
@@ -436,10 +439,7 @@ async function executeDragOperation(
         parentId: newParentId
       })
 
-      message.success({
-        message: `已移动 "${dragData.title}" 到 "${dropData.title}"`,
-        duration: 2000
-      })
+      message.success(`已移动 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
     }
 
     // API调用成功后，触发刷新事件
@@ -447,10 +447,7 @@ async function executeDragOperation(
   } catch (error) {
     console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
 
-    message.error({
-      message: `${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`,
-      duration: 3000
-    })
+    message.error(`${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`, { duration: 3000 })
 
     // API失败后，刷新树节点以同步后端状态
     // 这会撤销ElTree的默认UI更新

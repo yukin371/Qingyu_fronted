@@ -279,6 +279,7 @@ export const useBatchOperationStore = defineStore('writer-batch-operation', () =
 
     // Actions
     submit,
+    fetchStatus,
     cancel,
     undo,
     reset,

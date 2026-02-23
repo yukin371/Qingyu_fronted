@@ -51,7 +51,7 @@ export const timelineApi = {
   getDetail(timelineId: string, projectId: string) {
     return httpService.get<Timeline>(
       `${BASE_TIMELINE_URL}/${timelineId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 
@@ -62,7 +62,7 @@ export const timelineApi = {
   delete(timelineId: string, projectId: string) {
     return httpService.delete<void>(
       `${BASE_TIMELINE_URL}/${timelineId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 

@@ -92,7 +92,7 @@ export default {
     QyCheckbox
   },
   emits: ['login-success', 'switch-to-register', 'forgot-password'],
-  setup(props, { emit }) {
+  setup(_props, { emit }) {
     const authStore = useAuthStore()
     const loginFormRef = ref()
 
@@ -104,7 +104,7 @@ export default {
     })
 
     // 表单验证规则
-    const loginRules = {
+    const loginRules: any = {
       username: [
         { required: true, message: '请输入用户名或邮箱', trigger: 'blur' },
         { min: 3, max: 50, message: '用户名长度在 3 到 50 个字符', trigger: 'blur' }

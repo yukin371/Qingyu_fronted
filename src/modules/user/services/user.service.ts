@@ -12,7 +12,7 @@ class UserService {
    * Get user profile
    */
   async getUserProfile(): Promise<UserProfile> {
-    return await userAPI.getUserProfile()
+    return await userAPI.getUserProfile() as UserProfile
   }
 
   /**

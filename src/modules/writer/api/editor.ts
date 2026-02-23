@@ -71,7 +71,7 @@ export const editorApi = {
     return httpService.post<AutoSaveResponse>(`${BASE_DOC_URL}/${documentId}/autosave`, data, {
       silent: true,
       skipErrorHandler: true,
-    })
+    } as any)
   },
 
   /**
@@ -179,15 +179,15 @@ export const getDocumentContent = (documentId: string) => {
 /**
  * 更新文档内容
  */
-export const updateDocumentContent = (documentId: string, content: string) => {
-  return editorApi.updateContent(documentId, { content })
+export const updateDocumentContent = (documentId: string, content: string, version: number = 1) => {
+  return editorApi.updateContent(documentId, { documentId, content, version } as any)
 }
 
 /**
  * 自动保存文档
  */
 export const autosaveDocument = (documentId: string, content: string, version: number) => {
-  return editorApi.autoSave(documentId, { content, version })
+  return editorApi.autoSave(documentId, { documentId, content, version } as any)
 }
 
 /**

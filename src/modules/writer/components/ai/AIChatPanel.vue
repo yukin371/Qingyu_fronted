@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { marked } from 'marked'
+import { Delete, Promotion } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import type { ChatMessage } from '../../../../types/ai'
 import { sanitizeMarkdownHtml } from '@/utils/sanitize'
@@ -112,7 +113,7 @@ const inputMessage = ref('')
 
 // 获取角色名称
 const getRoleName = (role: string): string => {
-  const roleNames = {
+  const roleNames: Record<string, string> = {
     user: '你',
     assistant: 'AI助手',
     system: '系统'

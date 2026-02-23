@@ -14,16 +14,45 @@ interface RequestOption {
   params?: unknown
   headers?: Record<string, string>
   timeout?: number
+  responseType?: 'json' | 'blob' | 'text' | 'arraybuffer' | 'document' | 'stream'
 }
 
 // 请求函数
 export function request<T = unknown>(options: RequestOption) {
-  const { url, method = 'get', data, params, ...config } = options
+  const { url, method = 'get', data, params, responseType, ...config } = options
 
   // 返回处理后的数据
   return new Promise<T>((resolve, reject) => {
-    const httpConfig = { ...config, params }
+    const httpConfig = { ...config, params, responseType }
 
+    // 对于 blob 等特殊响应类型，直接返回原始响应
+    if (responseType && responseType !== 'json') {
+      let promise: Promise<T>
+
+      switch (method) {
+        case 'post':
+          promise = httpService.post<T>(url, data, httpConfig)
+          break
+        case 'put':
+          promise = httpService.put<T>(url, data, httpConfig)
+          break
+        case 'delete':
+          promise = httpService.delete<T>(url, httpConfig)
+          break
+        case 'patch':
+          promise = httpService.patch<T>(url, data, httpConfig)
+          break
+        case 'get':
+        default:
+          promise = httpService.get<T>(url, httpConfig)
+          break
+      }
+
+      promise.then(resolve).catch(reject)
+      return
+    }
+
+    // 标准 JSON 响应处理
     let promise: Promise<APIResponse<T>>
 
     switch (method) {

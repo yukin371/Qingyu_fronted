@@ -85,7 +85,7 @@ export const documentApi = {
   list(projectId: string, params?: { page?: number; pageSize?: number }) {
     return httpService.get<{ documents: Document[]; total: number }>(
       `${BASE_PROJECT_DOC_URL}/${projectId}/documents`,
-      params
+      params as any
     )
   },
 
