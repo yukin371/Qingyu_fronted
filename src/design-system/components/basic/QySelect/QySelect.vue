@@ -37,7 +37,7 @@ const isDropdownVisible = ref(false)
 const searchText = ref('')
 const selectRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
-const _dropdownRef = ref<HTMLElement>()
+const dropdownRef = ref<HTMLElement>()
 const highlightedIndex = ref(-1)
 
 // 过滤后的选项
@@ -244,6 +244,8 @@ onUnmounted(() => {
 
 // 暴露方法
 defineExpose({
+  selectRef,
+  dropdownRef,
   focus: () => inputRef.value?.focus(),
   blur: () => inputRef.value?.blur(),
 })

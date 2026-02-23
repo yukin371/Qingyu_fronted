@@ -17,6 +17,11 @@ const props = defineProps<{
   nodeState: TreeNodeState
 }>()
 
+// 使用 defineSlots 明确定义 slot 类型，解决递归组件的类型推断问题
+defineSlots<{
+  default(props: { node: TreeNode; data: TreeNode }): void
+}>()
+
 // 从父组件注入的方法
 const treeContext = inject<{
   props: any
@@ -141,8 +146,8 @@ const onCheckClick = (event: MouseEvent) => {
         :key="childState.node.id || childState.node.label"
         :node-state="childState"
       >
-        <template #default="slotProps: any">
-          <slot :node="(slotProps as { node: TreeNode; data: TreeNode }).node" :data="(slotProps as { node: TreeNode; data: TreeNode }).data" />
+        <template #default="slotProps">
+          <slot v-bind="slotProps" />
         </template>
       </TreeNodeItem>
     </div>

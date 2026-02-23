@@ -228,7 +228,7 @@ const updateParentCheckState = (nodeState: TreeNodeState) => {
 }
 
 // 节点点击
-const handleNodeClick = (nodeState: TreeNodeState, event: MouseEvent) => {
+const handleNodeClick = (nodeState: TreeNodeState, _event: MouseEvent) => {
   if (nodeState.node.disabled) return
 
   currentNode.value = nodeState

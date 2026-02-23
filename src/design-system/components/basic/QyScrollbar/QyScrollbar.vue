@@ -35,8 +35,8 @@ const props = withDefaults(defineProps<QyScrollbarProps>(), {
 })
 
 // 模板引用
-const _scrollbarWrapper = ref<HTMLElement>()
-const _scrollbarView = ref<HTMLElement>()
+const scrollbarWrapper = ref<HTMLElement>()
+const scrollbarView = ref<HTMLElement>()
 
 // 计算包装器类名
 const wrapperClasses = computed(() => {
@@ -63,6 +63,12 @@ const wrapStyle = computed(() => props.wrapStyle)
 
 // 视图样式
 const viewStyle = computed(() => props.viewStyle)
+
+// 暴露给父组件
+defineExpose({
+  scrollbarWrapper,
+  scrollbarView,
+})
 </script>
 
 <style scoped>

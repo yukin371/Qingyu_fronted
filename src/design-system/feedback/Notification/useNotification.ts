@@ -11,6 +11,7 @@ import type {
   NotificationPosition,
   NotificationHandler,
   NotificationConfig,
+  NotificationProps,
 } from './types'
 
 // 通知实例管理
@@ -117,15 +118,15 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
     NotificationComponent,
     {
       ...props,
-      duration,
-      position,
+      duration: duration!,
+      position: position!,
       onClose: () => {
         removeNotification(id)
         if (props.onClose) {
           props.onClose()
         }
       },
-    }
+    } as NotificationProps
   )
 
   // 渲染组件
@@ -165,19 +166,19 @@ const notification: NotificationAPI = (options: NotificationOptions) => {
 }
 
 // 添加快捷方法
-notification.success = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.success = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'success' })
 }
 
-notification.info = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.info = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'info' })
 }
 
-notification.warning = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.warning = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'warning' })
 }
 
-notification.error = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.error = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'error' })
 }
 

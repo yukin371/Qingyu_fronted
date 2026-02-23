@@ -45,6 +45,11 @@ export interface QyFormEmits {
    * 表单验证事件
    */
   (e: 'validate', valid: boolean): void
+
+  /**
+   * 表单提交事件
+   */
+  (e: 'submit', event: Event): void
 }
 
 // QyFormItem Props 接口
