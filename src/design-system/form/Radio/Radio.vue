@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 /**
  * Radio 组件
@@ -110,7 +111,7 @@ const groupProps = inject<{
   size?: RadioSize
   button?: boolean
   modelValue?: string | number | boolean
-  updateModelValue?: (value: string | number | boolean) => void
+  updateModelValue?: (v: string | number | boolean) => void  // eslint-disable-line no-unused-vars
 }>('radioGroup', {})
 
 // 计算实际属性（优先使用自身属性，否则使用组属性）
