@@ -1,17 +1,200 @@
 /**
  * 测试模式 API 拦截器
- * 
+ *
  * 在 ?test=true 模式下拦截所有 API 请求并返回 Mock 数据
  * 确保开发和测试过程中不依赖后端服务
- * 
+ *
  * 功能：
  * 1. 拦截 axios 和 fetch 请求
  * 2. 检测 URL 中的 test 参数
  * 3. 返回对应的 mock 数据
  * 4. 模拟真实的 API 响应格式
+ *
+ * 支持的模块：
+ * - 书城模块 (/bookstore, /books)
+ * - 创作中心 (/writer, 包括文档/角色/地点/时间线/导出/发布)
+ * - 用户中心 (/account, /user)
+ * - 社区模块 (/community)
  */
 
 import businessMockData from '@/views/demo/business-mock-data'
+
+/**
+ * Writer模块API规则配置
+ * 用于匹配和处理Writer模块的API请求
+ */
+const writerApiRules = [
+  { pattern: /\/writer\/projects\/[\w-]+\/documents\/tree/, handler: 'documentTree' },
+  { pattern: /\/writer\/projects\/[\w-]+\/documents\/[\w-]+/, handler: 'documentDetail' },
+  { pattern: /\/writer\/projects\/[\w-]+\/documents/, handler: 'document' },
+  { pattern: /\/writer\/projects\/[\w-]+\/characters\/[\w-]+\/relations/, handler: 'characterRelations' },
+  { pattern: /\/writer\/projects\/[\w-]+\/characters\/[\w-]+/, handler: 'characterDetail' },
+  { pattern: /\/writer\/projects\/[\w-]+\/characters/, handler: 'character' },
+  { pattern: /\/writer\/projects\/[\w-]+\/locations\/[\w-]+/, handler: 'locationDetail' },
+  { pattern: /\/writer\/projects\/[\w-]+\/locations/, handler: 'location' },
+  { pattern: /\/writer\/projects\/[\w-]+\/timelines\/[\w-]+\/events/, handler: 'timelineEvents' },
+  { pattern: /\/writer\/projects\/[\w-]+\/timelines\/[\w-]+/, handler: 'timelineDetail' },
+  { pattern: /\/writer\/projects\/[\w-]+\/timelines/, handler: 'timeline' },
+  { pattern: /\/writer\/projects\/[\w-]+\/publish\/history/, handler: 'publishHistory' },
+  { pattern: /\/writer\/projects\/[\w-]+\/documents\/[\w-]+\/publish/, handler: 'publishDocument' },
+  { pattern: /\/writer\/projects\/[\w-]+\/publish/, handler: 'publishProject' },
+  { pattern: /\/writer\/exports\/[\w-]+/, handler: 'exportStatus' },
+  { pattern: /\/writer\/exports/, handler: 'export' },
+]
+
+/**
+ * Mock ID生成器
+ */
+const generateMockId = (prefix: string): string => {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+}
+
+/**
+ * 生成ISO日期字符串
+ */
+const generateDate = (offsetDays: number = 0): string => {
+  const date = new Date()
+  date.setDate(date.getDate() + offsetDays)
+  return date.toISOString()
+}
+
+/**
+ * Writer模块Mock数据生成器
+ */
+const writerMockGenerator = {
+  document: () => ({
+    id: generateMockId('doc'),
+    documentId: generateMockId('doc'),
+    projectId: 'test-project',
+    title: '测试文档',
+    type: 'chapter',
+    level: 0,
+    order: 0,
+    status: 'writing',
+    wordCount: Math.floor(Math.random() * 5000) + 100,
+    characterIds: [],
+    locationIds: [],
+    timelineIds: [],
+    tags: ['测试'],
+    createdAt: generateDate(-7),
+    updatedAt: generateDate(-1),
+  }),
+
+  documentTree: () => ({
+    id: generateMockId('volume'),
+    documentId: generateMockId('volume'),
+    projectId: 'test-project',
+    parentId: null,
+    title: '第一卷',
+    type: 'volume',
+    level: 0,
+    order: 0,
+    status: 'writing',
+    wordCount: 0,
+    children: [
+      {
+        id: generateMockId('chapter'),
+        documentId: generateMockId('chapter'),
+        projectId: 'test-project',
+        parentId: null,
+        title: '第一章：启程',
+        type: 'chapter',
+        level: 1,
+        order: 0,
+        status: 'published',
+        wordCount: 3500,
+        children: [],
+        createdAt: generateDate(-5),
+        updatedAt: generateDate(-1),
+      },
+      {
+        id: generateMockId('chapter'),
+        documentId: generateMockId('chapter'),
+        projectId: 'test-project',
+        parentId: null,
+        title: '第二章：遭遇',
+        type: 'chapter',
+        level: 1,
+        order: 1,
+        status: 'writing',
+        wordCount: 2100,
+        children: [],
+        createdAt: generateDate(-3),
+        updatedAt: generateDate(0),
+      },
+    ],
+    createdAt: generateDate(-10),
+    updatedAt: generateDate(0),
+  }),
+
+  character: () => ({
+    id: generateMockId('char'),
+    projectId: 'test-project',
+    name: '主角',
+    alias: ['别名1'],
+    summary: '这是故事的主角',
+    traits: ['勇敢', '聪明'],
+    background: '角色的背景故事...',
+    avatarUrl: 'https://example.com/avatar.png',
+    createdAt: generateDate(-10),
+    updatedAt: generateDate(-2),
+  }),
+
+  location: () => ({
+    id: generateMockId('loc'),
+    projectId: 'test-project',
+    name: '神秘森林',
+    description: '故事发生的主要地点',
+    climate: '温带气候',
+    culture: '东方文化',
+    geography: '森林地形',
+    atmosphere: '神秘莫测',
+    imageUrl: 'https://example.com/location.png',
+    createdAt: generateDate(-8),
+    updatedAt: generateDate(-3),
+  }),
+
+  timeline: () => ({
+    id: generateMockId('timeline'),
+    projectId: 'test-project',
+    name: '主线时间',
+    description: '故事主线的时间线',
+    startTime: { year: 2024, month: 1, day: 1, era: '新历' },
+    endTime: { year: 2024, month: 12, day: 31 },
+    createdAt: generateDate(-15),
+    updatedAt: generateDate(-5),
+  }),
+
+  exportTask: () => ({
+    id: generateMockId('export'),
+    type: 'document',
+    resourceId: generateMockId('doc'),
+    resourceTitle: '导出文档',
+    format: 'docx',
+    status: 'completed',
+    progress: 100,
+    fileSize: Math.floor(Math.random() * 1000000) + 10000,
+    fileUrl: 'https://example.com/download/export.docx',
+    expiresAt: generateDate(7),
+    createdBy: 'test-user',
+    createdAt: generateDate(-1),
+    updatedAt: generateDate(-1),
+    completedAt: generateDate(-1),
+  }),
+
+  publishPlan: () => ({
+    id: generateMockId('plan'),
+    projectId: 'test-project',
+    name: '发布计划',
+    description: '这是一个发布计划',
+    status: 'published',
+    documentIds: [generateMockId('doc')],
+    scheduledAt: generateDate(7),
+    publishedAt: generateDate(0),
+    createdAt: generateDate(-3),
+    updatedAt: generateDate(0),
+  }),
+}
 
 // 是否启用测试模式
 let isTestMode = false
@@ -292,10 +475,20 @@ function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): an
 
 /**
  * 处理创作中心 API
+ * 支持完整的Writer模块API Mock
  */
 function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
-  // 项目列表
-  if (pathname.includes('/projects') || pathname.includes('/books')) {
+  // 使用规则匹配器处理请求
+  for (const rule of writerApiRules) {
+    if (rule.pattern.test(pathname)) {
+      return handleWriterApiByRule(rule.handler, pathname, searchParams)
+    }
+  }
+
+  // 项目列表（默认）
+  if (pathname.includes('/projects') && !pathname.includes('/documents') &&
+      !pathname.includes('/characters') && !pathname.includes('/locations') &&
+      !pathname.includes('/timelines') && !pathname.includes('/publish')) {
     return {
       code: 200,
       message: 'success',
@@ -305,7 +498,7 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
       }
     }
   }
-  
+
   // 项目详情
   if (pathname.includes('/stats') || pathname.includes('/detail')) {
     // 处理统计数据请求
@@ -321,19 +514,19 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
         }
       }
     }
-    
+
     if (pathname.includes('reading-heatmap')) {
       return {
         code: 200,
         message: 'success',
         data: {
-          heatmap: Array.from({ length: 7 }, () => 
+          heatmap: Array.from({ length: 7 }, () =>
             Array.from({ length: 24 }, () => Math.floor(Math.random() * 50))
           )
         }
       }
     }
-    
+
     if (pathname.includes('subscribers')) {
       const days = parseInt(searchParams.get('days') || '30')
       return {
@@ -347,7 +540,7 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
         }
       }
     }
-    
+
     // 默认项目数据
     const project = businessMockData.writerProjects[0]
     return {
@@ -363,8 +556,130 @@ function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
       }
     }
   }
-  
+
   return { code: 200, message: 'success', data: {} }
+}
+
+/**
+ * 根据规则处理器处理Writer API请求
+ */
+function handleWriterApiByRule(handler: string, pathname: string, _searchParams: URLSearchParams): any {
+  const successResponse = (data: unknown) => ({
+    code: 200,
+    message: 'success',
+    data
+  })
+
+  switch (handler) {
+    case 'documentTree':
+      return successResponse(writerMockGenerator.documentTree())
+
+    case 'documentDetail': {
+      const doc = writerMockGenerator.document()
+      return successResponse(doc)
+    }
+
+    case 'document': {
+      const docs = Array.from({ length: 5 }, () => writerMockGenerator.document())
+      return successResponse({
+        items: docs,
+        total: docs.length,
+        page: 1,
+        pageSize: 10
+      })
+    }
+
+    case 'characterDetail': {
+      const char = writerMockGenerator.character()
+      return successResponse(char)
+    }
+
+    case 'characterRelations': {
+      const relations = [
+        { id: generateMockId('rel'), fromId: 'char_1', toId: 'char_2', type: '朋友', strength: 80 },
+        { id: generateMockId('rel'), fromId: 'char_1', toId: 'char_3', type: '对手', strength: 60 }
+      ]
+      return successResponse(relations)
+    }
+
+    case 'character': {
+      const chars = Array.from({ length: 5 }, () => writerMockGenerator.character())
+      return successResponse({
+        items: chars,
+        total: chars.length
+      })
+    }
+
+    case 'locationDetail': {
+      const loc = writerMockGenerator.location()
+      return successResponse(loc)
+    }
+
+    case 'location': {
+      const locs = Array.from({ length: 5 }, () => writerMockGenerator.location())
+      return successResponse({
+        items: locs,
+        total: locs.length
+      })
+    }
+
+    case 'timelineEvents': {
+      const events = Array.from({ length: 3 }, () => ({
+        id: generateMockId('event'),
+        title: '故事事件',
+        description: '事件描述',
+        storyTime: { year: 2024, month: 6, day: 15 },
+        importance: Math.floor(Math.random() * 10) + 1
+      }))
+      return successResponse(events)
+    }
+
+    case 'timelineDetail': {
+      const timeline = writerMockGenerator.timeline()
+      return successResponse(timeline)
+    }
+
+    case 'timeline': {
+      const timelines = Array.from({ length: 3 }, () => writerMockGenerator.timeline())
+      return successResponse({
+        items: timelines,
+        total: timelines.length
+      })
+    }
+
+    case 'exportStatus': {
+      const task = writerMockGenerator.exportTask()
+      return successResponse(task)
+    }
+
+    case 'export': {
+      const tasks = Array.from({ length: 3 }, () => writerMockGenerator.exportTask())
+      return successResponse({
+        items: tasks,
+        total: tasks.length
+      })
+    }
+
+    case 'publishDocument': {
+      const doc = writerMockGenerator.document()
+      doc.status = 'published'
+      return successResponse(doc)
+    }
+
+    case 'publishProject': {
+      const plan = writerMockGenerator.publishPlan()
+      plan.status = 'published'
+      return successResponse(plan)
+    }
+
+    case 'publishHistory': {
+      const plans = Array.from({ length: 3 }, () => writerMockGenerator.publishPlan())
+      return successResponse(plans)
+    }
+
+    default:
+      return { code: 200, message: 'success', data: {} }
+  }
 }
 
 /**
