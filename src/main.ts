@@ -72,7 +72,7 @@ app.config.globalProperties.$MessageBox = messageBox
 app.config.globalProperties.$notify = notification
 
 // 添加类型声明
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   export interface ComponentCustomProperties {
     $message: typeof message
     $MessageBox: typeof messageBox

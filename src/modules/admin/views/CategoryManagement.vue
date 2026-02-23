@@ -165,11 +165,11 @@
                 分类详情
               </h3>
               <div class="detail-actions">
-                <el-button type="primary" size="small" @click="handleEditCategory(selectedCategory, parentCategory)">
+                <el-button type="primary" size="small" @click="handleEditCategory(selectedCategory!, parentCategory ?? undefined)">
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" size="small" @click="handleDeleteCategory(selectedCategory, parentCategory)">
+                <el-button type="danger" size="small" @click="handleDeleteCategory(selectedCategory!, parentCategory ?? undefined)">
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
@@ -484,7 +484,7 @@ const handleDeleteCategory = async (category: Category, parent?: Category) => {
 const handleSaveCategory = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate((valid: boolean) => {
     if (valid) {
       if (isEditMode.value) {
         // 编辑模式

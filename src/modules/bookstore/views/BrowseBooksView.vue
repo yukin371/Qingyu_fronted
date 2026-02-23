@@ -46,7 +46,7 @@
 
         <Button
           v-if="browseStore.hasActiveFilters"
-          variant="outline"
+          variant="ghost"
           size="sm"
           @click="handleResetFilters"
           class="ml-4"
@@ -69,7 +69,7 @@
             :image-type="'error'"
             :description="browseStore.error.message || '加载失败，请稍后重试'"
           >
-            <Button @click="fetchBooks" type="primary">重试</Button>
+            <Button @click="fetchBooks" variant="primary">重试</Button>
           </Empty>
         </div>
 
@@ -106,7 +106,7 @@
           <Button
             v-if="browseStore.hasActiveFilters"
             @click="handleResetFilters"
-            type="primary"
+            variant="primary"
           >
             清空筛选
           </Button>

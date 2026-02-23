@@ -68,7 +68,7 @@
       <QyButton
         variant="ghost"
         size="sm"
-        :class="{ 'is-active': booklist.isLiked }"
+        :class="booklist.isLiked ? 'is-active' : ''"
         @click.stop="handleFavorite"
       >
         <QyIcon :name="booklist.isLiked ? 'StarFilled' : 'Star'" :size="16" />

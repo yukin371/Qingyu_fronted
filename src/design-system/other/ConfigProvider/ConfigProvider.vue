@@ -9,15 +9,25 @@
 
 import { provide, reactive, watchEffect } from 'vue'
 import type { ConfigProviderProps, ConfigProviderContext } from './types'
-import { configProviderDefaults, CONFIG_PROVIDER_KEY } from './types'
+import { CONFIG_PROVIDER_KEY } from './types'
 
 // 组件 Props
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
-  size: () => configProviderDefaults.size as ConfigProviderProps['size'],
-  namespace: () => configProviderDefaults.namespace as string,
-  direction: () => configProviderDefaults.direction as ConfigProviderProps['direction'],
-  button: () => configProviderDefaults.button as ConfigProviderProps['button'],
-  zIndex: () => configProviderDefaults.zIndex as ConfigProviderProps['zIndex'],
+  size: 'medium',
+  namespace: 'qy',
+  direction: 'ltr',
+  button: () => ({
+    size: 'medium',
+    variant: 'solid',
+  }),
+  zIndex: () => ({
+    base: 1000,
+    dropdown: 1050,
+    popover: 1060,
+    dialog: 1070,
+    notification: 1080,
+    message: 1090,
+  }),
 })
 
 // 组件 Emits

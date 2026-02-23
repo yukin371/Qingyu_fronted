@@ -68,7 +68,8 @@ const contentTypeName = computed(() => {
     chapter: '章节',
     comment: '评论'
   }
-  return typeMap[props.item.contentType] || props.item.contentType
+  const type = props.item.contentType ?? props.item.type
+  return typeMap[type ?? ''] ?? type ?? '未知类型'
 })
 
 // 截断内容

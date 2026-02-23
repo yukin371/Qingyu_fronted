@@ -362,8 +362,7 @@ async function handleAction(command: string, provider: AIProvider) {
         '确认删除',
         {
           type: 'warning',
-          confirmButtonText: '删除',
-          confirmButtonClass: 'el-button--danger'
+          confirmButtonText: '删除'
         }
       )
 

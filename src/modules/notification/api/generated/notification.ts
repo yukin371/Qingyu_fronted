@@ -363,7 +363,7 @@ import type {
 } from '../../../../api/generated'
 
 import { orvalMutator } from '../../../../core/config/orval-mutator'
-export const getApi = (axiosInstance: AxiosInstance = axios.default) => {
+export const getApi = (_axiosInstance: AxiosInstance = axios.default) => {
   /**
    * 管理员获取公告列表
    * @summary 获取公告列表

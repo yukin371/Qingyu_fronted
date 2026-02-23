@@ -244,7 +244,7 @@ const loadingMore = ref(false)
 
 const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
 
-const book = computed(() => bookstoreStore.currentBook as Book | null)
+const book = computed<Book | null>(() => bookstoreStore.currentBook as unknown as Book | null)
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -364,7 +364,7 @@ const toggleFavorite = async () => {
       const response = await collectionsAPI.addCollection(bookId)
       if (response) {
         isFavorited.value = true
-        collectionId.value = response.id || response._id || (response as any).collection_id
+        collectionId.value = response.id || (response as { _id?: string })._id || (response as { collection_id?: string }).collection_id || null
         message.success('收藏成功')
       }
     }
@@ -397,13 +397,12 @@ const checkFavoriteStatus = async () => {
       isFavorited.value = true
       if (!collectionId.value) {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
-        if (collections.list) {
-          const currentBookCollection = collections.list.find(
-            (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
-          )
-          if (currentBookCollection) {
-            collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id
-          }
+        const collectionList = Array.isArray(collections) ? collections : []
+        const currentBookCollection = collectionList.find(
+          (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
+        )
+        if (currentBookCollection) {
+          collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id || null
         }
       }
     } else {
