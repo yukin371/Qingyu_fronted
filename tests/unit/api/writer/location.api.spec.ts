@@ -259,8 +259,8 @@ describe('locationApi', () => {
       const result = await locationApi.getDetail(locationId, projectId)
 
       expect(httpService.get).toHaveBeenCalledWith(`/locations/${locationId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 
@@ -373,8 +373,8 @@ describe('locationApi', () => {
       const result = await locationApi.delete(locationId, projectId)
 
       expect(httpService.delete).toHaveBeenCalledWith(`/locations/${locationId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 
@@ -560,7 +560,7 @@ describe('locationApi', () => {
 
       expect(httpService.delete).toHaveBeenCalledWith(
         `/locations/relations/${relationId}`,
-        { projectId }
+        { params: { projectId } } as any
       )
       expect(result).toEqual(mockResponse)
     })

@@ -204,8 +204,8 @@ describe('timelineApi', () => {
       const result = await timelineApi.getDetail(timelineId, projectId)
 
       expect(httpService.get).toHaveBeenCalledWith(`/timelines/${timelineId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 
@@ -250,8 +250,8 @@ describe('timelineApi', () => {
       const result = await timelineApi.delete(timelineId, projectId)
 
       expect(httpService.delete).toHaveBeenCalledWith(`/timelines/${timelineId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 

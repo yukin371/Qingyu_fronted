@@ -197,8 +197,8 @@ describe('characterApi', () => {
       const result = await characterApi.getDetail(characterId, projectId)
 
       expect(httpService.get).toHaveBeenCalledWith(`/characters/${characterId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 
@@ -296,8 +296,8 @@ describe('characterApi', () => {
       const result = await characterApi.delete(characterId, projectId)
 
       expect(httpService.delete).toHaveBeenCalledWith(`/characters/${characterId}`, {
-        projectId,
-      })
+        params: { projectId },
+      } as any)
       expect(result).toEqual(mockResponse)
     })
 
@@ -457,7 +457,7 @@ describe('characterApi', () => {
 
       expect(httpService.delete).toHaveBeenCalledWith(
         `/characters/relations/${relationId}`,
-        { projectId }
+        { params: { projectId } } as any
       )
       expect(result).toEqual(mockResponse)
     })
@@ -611,8 +611,8 @@ describe('characterApi', () => {
       await deleteCharacter('char-123', 'proj-456')
 
       expect(httpService.delete).toHaveBeenCalledWith('/characters/char-123', {
-        projectId: 'proj-456',
-      })
+        params: { projectId: 'proj-456' },
+      } as any)
     })
   })
 
