@@ -155,24 +155,32 @@ export interface ChapterStatistics {
 
 /**
  * 项目创建数据类型别名
+ * 注意：支持新旧字段映射
  */
 export type ProjectCreateData = {
   title: string
-  description?: string
-  coverImage?: string
-  genre?: string
+  summary?: string // 后端字段（推荐）
+  description?: string // 前端旧字段（向后兼容）
+  coverUrl?: string // 后端字段（推荐）
+  coverImage?: string // 前端旧字段（向后兼容）
+  category?: string // 后端字段（推荐）
+  genre?: string // 前端旧字段（向后兼容）
   tags?: string[]
   visibility?: 'public' | 'private'
 }
 
 /**
  * 项目更新数据类型别名
+ * 注意：支持新旧字段映射
  */
 export type ProjectUpdateData = {
   title?: string
-  description?: string
-  coverImage?: string
-  genre?: string
+  summary?: string // 后端字段（推荐）
+  description?: string // 前端旧字段（向后兼容）
+  coverUrl?: string // 后端字段（推荐）
+  coverImage?: string // 前端旧字段（向后兼容）
+  category?: string // 后端字段（推荐）
+  genre?: string // 前端旧字段（向后兼容）
   tags?: string[]
   status?: string
   visibility?: string
