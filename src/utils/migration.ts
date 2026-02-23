@@ -13,7 +13,7 @@ import {
 import { httpService } from '@/core/services/http.service'
 import type { LocalProject, LocalDocument } from './localStorageAPI'
 
-interface MigrationResult {
+export interface MigrationResult {
   success: boolean
   projectsMigrated: number
   documentsMigrated: number

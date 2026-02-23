@@ -147,7 +147,7 @@ const emit = defineEmits<Emits>()
 // ==================== 插槽类型定义 ====================
 defineSlots<{
   'left-panel'?: () => unknown
-  'editor'?: () => unknown
+  'editor'?: (props: { activeTool: ActiveTool }) => unknown
   'right-panel'?: () => unknown
 }>()
 

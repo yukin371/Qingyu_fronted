@@ -286,7 +286,7 @@ function handleCancel(): void {
 function resetSelection(): void {
   selectedParentId.value = null
   position.value = 'inner'
-  treeRef.value?.setCurrentKey(null)
+  treeRef.value?.setCurrentKey(undefined)
 }
 
 // =======================
@@ -311,7 +311,7 @@ watch(position, (newPos) => {
       // 如果选中的不是volume类型，切换到after位置并清除选择
       position.value = 'after'
       selectedParentId.value = null
-      treeRef.value?.setCurrentKey(null)
+      treeRef.value?.setCurrentKey(undefined)
     }
   }
 })

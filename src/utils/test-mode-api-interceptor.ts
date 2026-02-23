@@ -180,7 +180,7 @@ function getMockDataForUrl(url: string): any {
   const urlObj = new URL(url, window.location.origin)
   const pathname = urlObj.pathname
   const searchParams = urlObj.searchParams
-  
+
   console.log('[TestMode API] 获取 Mock 数据:', pathname, searchParams.toString())
   
   // 书城模块
