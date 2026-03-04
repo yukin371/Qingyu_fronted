@@ -28,9 +28,9 @@
         <el-button
           type="primary"
           size="small"
-          :icon="Plus"
           @click="handleAddNode"
         >
+          <QyIcon name="Plus" />
           添加节点
         </el-button>
       </div>
@@ -58,7 +58,7 @@
                   <div class="node-content">
                     <el-icon v-if="data.level === 1"><QyIcon name="Folder"  /></el-icon>
                     <el-icon v-else-if="data.level === 2"><QyIcon name="Document"  /></el-icon>
-                    <el-icon v-else><Memo /></el-icon>
+                    <el-icon v-else><QyIcon name="Document" /></el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
                       {{ getStatusText(data.status) }}
@@ -66,18 +66,20 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <el-button
-                      text
-                      size="small"
-                      :icon="Edit"
-                      @click.stop="handleEditNode(data)"
-                    />
-                    <el-button
-                      text
-                      size="small"
-                      :icon="Delete"
-                      @click.stop="handleDeleteNode(data)"
-                    />
+                      <el-button
+                        text
+                        size="small"
+                        @click.stop="handleEditNode(data)"
+                      >
+                        <QyIcon name="Edit" />
+                      </el-button>
+                      <el-button
+                        text
+                        size="small"
+                        @click.stop="handleDeleteNode(data)"
+                      >
+                        <QyIcon name="Delete" />
+                      </el-button>
                   </div>
                 </div>
               </template>
@@ -89,7 +91,9 @@
         <div v-if="selectedNode" class="node-detail">
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
-            <el-button text :icon="Close" @click="selectedNode = null" />
+            <el-button text @click="selectedNode = null">
+              <QyIcon name="Close" />
+            </el-button>
           </div>
           <div class="detail-content">
             <el-descriptions :column="1" border>
@@ -113,7 +117,7 @@
               <el-button type="primary" @click="handleEditNode(selectedNode)">
                 编辑
               </el-button>
-              <el-button @click="handleJumpToChapter(selectedNode)">
+              <el-button @click="selectedNode && handleJumpToChapter(selectedNode)">
                 跳转到章节
               </el-button>
             </div>
@@ -211,8 +215,6 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref()
-const mindmapContainer = ref()
-
 const nodeForm = ref({
   title: '',
   level: 1,
@@ -234,16 +236,13 @@ const formRules = {
 const outlineTree = computed(() => writerStore.outline.tree)
 
 // 思维导图配置
-const mindmapConfig = ref<Partial<DrawEngineConfig>>({
-  zoom: {
-    min: 0.5,
-    max: 3,
-    step: 0.1
-  },
-  grid: {
-    enabled: true,
-    size: 20
-  }
+const mindmapConfig = ref<DrawEngineConfig>({
+  canvasId: 'writer-outline-mindmap',
+  type: 'mindmap',
+  minZoom: 0.5,
+  maxZoom: 3,
+  enableGrid: true,
+  gridSize: 20
 })
 
 // 将大纲树转换为思维导图节点和边
@@ -255,12 +254,12 @@ const mindmapNodes = computed((): DrawNode[] => {
     nodes.push({
       id: item.id,
       label: item.title,
-      type: `level-${item.level}`,
+      type: 'node',
       x: level * 300,
       y: nodes.length * 100,
       width: 150,
       height: 60,
-      data: {
+      metadata: {
         level: item.level,
         status: item.status,
         description: item.description,
@@ -287,8 +286,9 @@ const mindmapEdges = computed((): DrawEdge[] => {
       item.children.forEach(child => {
         edges.push({
           id: `edge-${item.id}-${child.id}`,
-          source: item.id,
-          target: child.id,
+          type: 'line',
+          fromNodeId: item.id,
+          toNodeId: child.id,
           label: ''
         })
         traverse(child)
@@ -317,9 +317,9 @@ const handleEditNode = (node: OutlineNode) => {
   dialogVisible.value = true
   nodeForm.value = {
     title: node.title,
-    level: node.level,
+    level: (node.level as 1 | 2 | 3) || 1,
     parentId: node.parentId || '',
-    status: node.status || 'draft',
+    status: (node.status as 'draft' | 'writing' | 'completed' | 'reviewing') || 'draft',
     description: node.description || '',
     order: node.order
   }
@@ -330,12 +330,11 @@ const handleDeleteNode = async (node: OutlineNode) => {
     await messageBox.confirm(
       `确定要删除节点"${node.title}"吗？`,
       '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }
+      )
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
@@ -422,7 +421,8 @@ const handleMindmapNodeDelete = (nodeId: string) => {
   // 可以在这里调用删除节点的API
 }
 
-const handleMindmapExport = async (format: string, data: any) => {
+const handleMindmapExport = async (payload: any) => {
+  const format = payload?.format || 'unknown'
   message.success(`已导出为 ${format} 格式`)
   // 处理导出逻辑
 }
@@ -447,24 +447,26 @@ const getLevelText = (level: number): string => {
   return levelMap[level] || '未知'
 }
 
-const getStatusText = (status: string): string => {
+const getStatusText = (status?: string): string => {
   const statusMap: Record<string, string> = {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
     reviewing: '审阅中'
   }
-  return statusMap[status] || status
+  const key = status || 'draft'
+  return statusMap[key] || key
 }
 
-const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger' => {
+const getStatusType = (status?: string): 'info' | 'warning' | 'success' | 'danger' => {
   const typeMap: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     draft: 'info',
     writing: 'warning',
     completed: 'success',
     reviewing: 'warning'
   }
-  return typeMap[status] || 'info'
+  const key = status || 'draft'
+  return typeMap[key] || 'info'
 }
 </script>
 
@@ -722,8 +724,6 @@ const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger
   }
 }
 </style>
-
-
 
 
 
