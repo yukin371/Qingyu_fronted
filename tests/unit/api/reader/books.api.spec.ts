@@ -267,6 +267,30 @@ describe('bookshelfAPI', () => {
     })
   })
 
+  describe('checkBookStatus', () => {
+    // B-012: 检查书籍状态-已加入
+    it('应该返回书籍已在书架的状态', async () => {
+      const mockResponse = createMockAPIResponse({ isInShelf: true, status: 'reading' })
+      vi.mocked(httpService.get).mockResolvedValue(mockResponse)
+
+      const result = await bookshelfAPI.checkBookStatus('book-1')
+
+      expect(httpService.get).toHaveBeenCalledWith('/reader/books/book-1/status')
+      expect(result.data.isInShelf).toBe(true)
+    })
+
+    // B-013: 检查书籍状态-未加入
+    it('应该返回书籍不在书架的状态', async () => {
+      const mockResponse = createMockAPIResponse({ isInShelf: false })
+      vi.mocked(httpService.get).mockResolvedValue(mockResponse)
+
+      const result = await bookshelfAPI.checkBookStatus('book-999')
+
+      expect(httpService.get).toHaveBeenCalledWith('/reader/books/book-999/status')
+      expect(result.data.isInShelf).toBe(false)
+    })
+  })
+
   describe('错误处理', () => {
     // B-004: 添加到书架-重复添加
     it('应该正确处理重复添加书籍的错误', async () => {
@@ -311,6 +335,21 @@ describe('bookshelfAPI', () => {
       vi.mocked(httpService.delete).mockRejectedValue(mockError)
 
       await expect(bookshelfAPI.removeFromBookshelf('nonexistent')).rejects.toEqual(mockError)
+    })
+
+    // B-014: 检查状态-未登录
+    it('应该正确处理检查书架状态时的未登录错误', async () => {
+      const mockError = {
+        response: {
+          data: {
+            code: 401,
+            message: '请先登录',
+          },
+        },
+      }
+      vi.mocked(httpService.get).mockRejectedValue(mockError)
+
+      await expect(bookshelfAPI.checkBookStatus('book-1')).rejects.toEqual(mockError)
     })
   })
 })
