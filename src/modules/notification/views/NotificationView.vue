@@ -162,7 +162,7 @@
       width="500px"
     >
       <!-- 通知设置表单 -->
-      <QyForm :model="preferences" label-width="100px">
+      <QyForm v-model="preferences" label-width="100px">
         <h4>通知渠道</h4>
         <QyFormItem label="站内通知">
           <QySwitch v-model="preferences.channel_enabled.in_app" />
@@ -250,13 +250,11 @@ import {
 import {
   getNotifications,
   getUnreadCount,
-  getNotificationStats,
   markAsRead,
   markMultipleAsRead,
   markAllAsRead,
   deleteNotification,
   deleteMultipleNotifications,
-  clearReadNotifications,
   getNotificationPreference,
   updateNotificationPreference,
   type Notification,
@@ -272,7 +270,6 @@ const total = ref(0)
 const currentFilter = ref<string>('all')
 const selectedIds = ref<string[]>([])
 const unreadCount = ref(0)
-const stats = ref<any>({})
 
 const showSettingsDialog = ref(false)
 const preferences = ref<NotificationPreference>({
@@ -343,8 +340,8 @@ const loadNotifications = async (page = currentPage.value) => {
     }
 
     const res = await getNotifications(params)
-    notifications.value = res.data?.items || []
-    total.value = res.data?.total || 0
+    notifications.value = res.items || []
+    total.value = res.total || 0
     currentPage.value = page
   } catch (error) {
     message.error('获取通知列表失败')
@@ -357,7 +354,7 @@ const loadNotifications = async (page = currentPage.value) => {
 const loadUnreadCount = async () => {
   try {
     const res = await getUnreadCount()
-    unreadCount.value = res.data?.count || 0
+    unreadCount.value = res.count || 0
   } catch (error) {
     console.error('获取未读数量失败', error)
   }
@@ -378,9 +375,10 @@ const handleNotificationClick = (notification: Notification) => {
   }
 
   // 实现通知点击跳转逻辑
-  if (notification.link) {
+  const link = (notification as unknown as { link?: string }).link
+  if (link) {
     // 如果通知包含link字段，直接跳转
-    window.location.href = notification.link
+    window.location.href = link
   } else if (notification.data) {
     // 根据通知类型和数据跳转到相应页面
     const { type, data } = notification
@@ -475,7 +473,7 @@ const handleBatchMarkRead = async () => {
 const handleMarkAllRead = async () => {
   try {
     const res = await markAllAsRead()
-    message.success(`已标记 ${res.data?.count || 0} 条通知为已读`)
+    message.success(`已标记 ${res.count || 0} 条通知为已读`)
     loadNotifications(currentPage.value)
     loadUnreadCount()
   } catch (error) {
@@ -500,8 +498,7 @@ const handleBatchDelete = async () => {
   try {
     await messageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条通知吗？`, '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
     await deleteMultipleNotifications(selectedIds.value)
@@ -517,8 +514,9 @@ const handleBatchDelete = async () => {
 }
 
 // 选择变更
-const handleSelectChange = (id: string, checked: boolean) => {
-  if (checked) {
+const handleSelectChange = (id: string, checked: boolean | string[]) => {
+  const isChecked = Array.isArray(checked) ? checked.includes(id) : checked
+  if (isChecked) {
     selectedIds.value.push(id)
   } else {
     const index = selectedIds.value.indexOf(id)
@@ -581,12 +579,12 @@ const formatRelativeTime = (date: string) => {
 const loadPreferences = async () => {
   try {
     const res = await getNotificationPreference()
-    preferences.value = res.data
+    preferences.value = res
 
-    if (res.data.quiet_hours_start && res.data.quiet_hours_end) {
+    if (res.quiet_hours_start && res.quiet_hours_end) {
       quietHoursEnabled.value = true
-      quietHoursStart.value = res.data.quiet_hours_start
-      quietHoursEnd.value = res.data.quiet_hours_end
+      quietHoursStart.value = res.quiet_hours_start
+      quietHoursEnd.value = res.quiet_hours_end
     }
   } catch (error) {
     console.error('获取通知设置失败', error)
