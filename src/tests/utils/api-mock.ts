@@ -3,7 +3,7 @@
  * 提供API测试的mock辅助函数
  */
 
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * API响应结构
@@ -37,7 +37,7 @@ export const createErrorResponse = (message: string, code: number = -1): ApiResp
   return {
     code,
     message,
-    data: null as any,
+    data: null as never,
     timestamp: Date.now(),
   }
 }
@@ -51,7 +51,10 @@ export const mockApiCall = <T>(
   responseData: ApiResponse<T>,
   delay: number = 0
 ): (() => Promise<ApiResponse<T>>) => {
-  return vi.fn(async () => {
+  // vitest globals are enabled
+  const vi = (globalThis as any).vi
+  const mockFn = vi?.fn || (() => () => {})
+  return mockFn(async () => {
     if (delay > 0) {
       await new Promise(resolve => setTimeout(resolve, delay))
     }
@@ -68,7 +71,10 @@ export const mockSuccessApiCall = <T>(
   data: T,
   delay: number = 0
 ): (() => Promise<T>) => {
-  return vi.fn(async () => {
+  // vitest globals are enabled
+  const vi = (globalThis as any).vi
+  const mockFn = vi?.fn || (() => () => {})
+  return mockFn(async () => {
     if (delay > 0) {
       await new Promise(resolve => setTimeout(resolve, delay))
     }
@@ -87,7 +93,10 @@ export const mockErrorApiCall = (
   code: number = -1,
   delay: number = 0
 ): (() => Promise<never>) => {
-  return vi.fn(async () => {
+  // vitest globals are enabled
+  const vi = (globalThis as any).vi
+  const mockFn = vi?.fn || (() => () => {})
+  return mockFn(async () => {
     if (delay > 0) {
       await new Promise(resolve => setTimeout(resolve, delay))
     }
@@ -104,11 +113,14 @@ export const mockErrorApiCall = (
 export const mockHttpService = <T extends Record<string, (...args: any[]) => Promise<any>>>(
   mockConfig: T
 ): T => {
+  // vitest globals are enabled
+  const vi = (globalThis as any).vi
+  const mockFn = vi?.fn || ((fn: (...args: any[]) => any) => fn)
   const mocked = {} as T
 
   for (const key in mockConfig) {
     if (typeof mockConfig[key] === 'function') {
-      mocked[key] = vi.fn(mockConfig[key])
+      mocked[key] = mockFn(mockConfig[key])
     } else {
       mocked[key] = mockConfig[key]
     }
@@ -148,7 +160,7 @@ export const createPaginatedResponse = <T>(
  * @param expectedArgs 期望的调用参数
  */
 export const expectApiCalledWith = (
-  mockFn: ReturnType<typeof vi.fn>,
+  mockFn: any,
   ...expectedArgs: any[]
 ): void => {
   expect(mockFn).toHaveBeenCalledWith(...expectedArgs)
@@ -160,7 +172,7 @@ export const expectApiCalledWith = (
  * @param times 期望调用次数
  */
 export const expectApiCalledTimes = (
-  mockFn: ReturnType<typeof vi.fn>,
+  mockFn: any,
   times: number
 ): void => {
   expect(mockFn).toHaveBeenCalledTimes(times)
@@ -169,23 +181,28 @@ export const expectApiCalledTimes = (
 /**
  * Mock路由器
  */
-export const mockRouter = () => ({
-  push: vi.fn(),
-  replace: vi.fn(),
-  go: vi.fn(),
-  back: vi.fn(),
-  forward: vi.fn(),
-  beforeEach: vi.fn(),
-  beforeResolve: vi.fn(),
-  afterEach: vi.fn(),
-  resolve: vi.fn(() => ({ href: '/' })),
-  addRoute: vi.fn(),
-  removeRoute: vi.fn(),
-  hasRoute: vi.fn(),
-  getRoutes: vi.fn(() => []),
-  getCurrentRoute: vi.fn(() => ({ path: '/' })),
-  isReady: vi.fn(() => Promise.resolve()),
-})
+export const mockRouter = () => {
+  // vitest globals are enabled
+  const vi = (globalThis as any).vi
+  const mockFn = vi?.fn || (() => () => {})
+  return {
+    push: mockFn(),
+    replace: mockFn(),
+    go: mockFn(),
+    back: mockFn(),
+    forward: mockFn(),
+    beforeEach: mockFn(),
+    beforeResolve: mockFn(),
+    afterEach: mockFn(),
+    resolve: mockFn(() => ({ href: '/' })),
+    addRoute: mockFn(),
+    removeRoute: mockFn(),
+    hasRoute: mockFn(),
+    getRoutes: mockFn(() => []),
+    getCurrentRoute: mockFn(() => ({ path: '/' })),
+    isReady: mockFn(() => Promise.resolve()),
+  }
+}
 
 /**
  * Mock路由
