@@ -2,7 +2,7 @@
  * Authors Result Store Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthorsResultStore } from '../authors-result.store'
 

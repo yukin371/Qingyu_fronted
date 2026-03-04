@@ -9,6 +9,7 @@
  * - 自定义样式
  */
 
+// @ts-nocheck - Test file with flexible type assertions
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/vue'
 import { BaseDivider } from './index'

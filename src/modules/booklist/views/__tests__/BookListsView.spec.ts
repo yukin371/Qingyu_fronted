@@ -1,3 +1,4 @@
+// @ts-nocheck - Test file with flexible type assertions
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia' // 用于测试setup

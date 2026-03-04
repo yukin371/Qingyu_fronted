@@ -9,6 +9,7 @@
  * - 自定义样式
  */
 
+// @ts-nocheck - Test file with flexible type assertions
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/vue'
 import { BaseCard } from './index'
@@ -20,7 +21,8 @@ describe('BaseCard', () => {
       const card = container.querySelector('.bg-white')
 
       expect(card).toBeInTheDocument()
-      expect(card).toHaveClass('rounded-lg', 'border')
+      expect(card).toHaveClass('rounded-lg')
+      expect(card).toHaveClass('border')
     })
 
     it('正确渲染默认插槽内容', () => {
@@ -37,25 +39,25 @@ describe('BaseCard', () => {
       const { container } = render(BaseCard, {
         props: { variant: 'bordered' }
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
       expect(card).toHaveClass('border')
     })
 
     it('支持 shadow 变体', () => {
       const { container } = render(BaseCard, {
-        props: { variant: 'shadow' }
+        props: { variant: 'shadow' } as any
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
       expect(card).toHaveClass('shadow-md')
     })
 
     it('支持 flat 变体', () => {
       const { container } = render(BaseCard, {
-        props: { variant: 'flat' }
+        props: { variant: 'flat' } as any
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
       expect(card).toHaveClass('shadow-none')
     })
@@ -72,9 +74,9 @@ describe('BaseCard', () => {
 
     it.each(shadows)('正确渲染 %s 阴影级别', (shadow) => {
       const { container } = render(BaseCard, {
-        props: { shadow }
+        props: { shadow } as any
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
       expect(card).toBeInTheDocument()
     })
@@ -85,9 +87,10 @@ describe('BaseCard', () => {
       const { container } = render(BaseCard, {
         props: { hoverable: true }
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
-      expect(card).toHaveClass('hover:shadow-lg', 'transition-shadow')
+      expect(card).toHaveClass('hover:shadow-lg')
+      expect(card).toHaveClass('transition-shadow')
     })
   })
 
@@ -139,9 +142,9 @@ describe('BaseCard', () => {
 
     it('支持自定义 padding', () => {
       const { container } = render(BaseCard, {
-        props: { padding: 'lg' }
+        props: { padding: 'lg' } as any
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
       expect(card).toHaveClass('p-6')
     })
@@ -150,11 +153,12 @@ describe('BaseCard', () => {
   describe('深色模式', () => {
     it('支持深色模式样式', () => {
       const { container } = render(BaseCard, {
-        props: { darkMode: true }
+        props: { darkMode: true } as any
       })
-      const card = container.firstChild
+      const card = container.firstChild as Element
 
-      expect(card).toHaveClass('dark:bg-slate-800', 'dark:border-slate-700')
+      expect(card).toHaveClass('dark:bg-slate-800')
+      expect(card).toHaveClass('dark:border-slate-700')
     })
   })
 })

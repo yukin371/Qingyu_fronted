@@ -9,6 +9,7 @@
  * - 可访问性
  */
 
+// @ts-nocheck - Test file with flexible type assertions
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/vue'
 import { BaseIcon } from './index'

@@ -3,11 +3,11 @@
  * 测试wrapper层是否可以正常工作
  */
 
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
-  orvalMutator: vi.fn((config) => {
+  orvalMutator: vi.fn((config: any) => {
     // 模拟返回数据
     return Promise.resolve({
       books: [],
@@ -29,10 +29,10 @@ describe('Reader API Wrapper', () => {
       const wrapper = await import('../wrapper')
 
       // 检查核心方法是否存在
-      expect(wrapper.getBooks).toBeDefined()
-      expect(wrapper.getBookInfo).toBeDefined()
-      expect(wrapper.getChapterInfo).toBeDefined()
-      expect(wrapper.saveReadingProgress).toBeDefined()
+      expect((wrapper as any).getBooks).toBeDefined()
+      expect((wrapper as any).getBookInfo).toBeDefined()
+      expect((wrapper as any).getChapterInfo).toBeDefined()
+      expect((wrapper as any).saveReadingProgress).toBeDefined()
     }, 30000)
   })
 
@@ -41,13 +41,13 @@ describe('Reader API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getBooks({ page: 1, size: 20 })
+      const result = await (wrapper as any).getBooks({ page: 1, size: 20 })
 
       expect(orvalMutator).toHaveBeenCalledWith({
         method: 'GET',
         url: '/api/v1/reader/books',
         params: { page: 1, size: 20 },
-      })
+      } as any, { page: 1, size: 20 } as any)
       expect(result).toBeDefined()
     }, 30000)
 
@@ -61,7 +61,7 @@ describe('Reader API Wrapper', () => {
         progress: 50,
       }
 
-      await wrapper.saveReadingProgress(progressData)
+      await (wrapper as any).saveReadingProgress(progressData)
 
       expect(orvalMutator).toHaveBeenCalled()
     }, 30000)

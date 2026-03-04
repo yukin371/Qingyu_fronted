@@ -41,7 +41,7 @@ describe('Writer API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getProjects({ page: 1, size: 20 })
+      const result = await wrapper.getProjects({ page: 1 } as any)
 
       expect(orvalMutator).toHaveBeenCalled()
       expect(result).toBeDefined()
@@ -57,7 +57,7 @@ describe('Writer API Wrapper', () => {
         content: 'Test content',
       }
 
-      await wrapper.createDocument(documentData as any)
+      await wrapper.createDocument(documentData as any, {} as any)
 
       expect(orvalMutator).toHaveBeenCalled()
     })
