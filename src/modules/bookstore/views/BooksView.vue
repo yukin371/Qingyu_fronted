@@ -49,14 +49,14 @@
 
       <!-- 书籍列表 -->
       <div class="books-container" data-testid="books-list">
-        <Spinner v-if="loading" :size="48" class="loading-spinner" />
+        <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
         <!-- 网格视图 -->
         <Row v-else-if="viewMode === 'grid'" :gutter="20">
           <Col v-for="book in books" :key="book.id" :xs="12" :sm="8" :md="6" :lg="4">
             <div class="book-card" @click="goToDetail(book.id)" data-testid="book-card">
               <div class="book-cover">
-                <Image :src="book.cover" fit="cover">
+                <Image :src="book.coverUrl" fit="cover">
                   <template #error>
                     <div class="image-slot">
                       <Icon name="photo" size="md" />
@@ -86,7 +86,7 @@
         <div v-else class="books-list">
           <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)" data-testid="book-card">
             <div class="item-cover">
-              <Image :src="book.cover" fit="cover">
+              <Image :src="book.coverUrl" fit="cover">
                 <template #error>
                   <div class="image-slot">
                     <Icon name="photo" size="lg" />
@@ -165,9 +165,9 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBookList } from '@/modules/bookstore/api'
 import { getAllCategories } from '@/modules/bookstore/api'
-import { Button, Select, Radio, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
+import { Button, Select, Radio, Pagination, Empty, Image, Tag, Spinner, Row, Col } from '@/design-system'
 import { Icon } from '@/design-system'
-import type { BookBrief, Category } from '@/types/models'
+import type { Category } from '@/types/models'
 import type { Book } from '@/types/bookstore'
 import { isEmptyData, handleError as handleApiError, isNetworkError, isPermissionError, isServerError } from '@/utils/errorHandler'
 
@@ -229,7 +229,7 @@ const loadBooks = async () => {
     }
 
     console.log('[BooksView] Loading books with params:', params)
-    const response = await getBookList(params)
+    const response: any = await getBookList(params)
 
     // 处理多种可能的响应格式
     // 格式1: response 直接是书籍数组 (httpService 默认行为)
@@ -260,21 +260,21 @@ const loadBooks = async () => {
             console.log('[BooksView] First book data:', response.data[0])
           }
           books.value = response.data
-          total.value = (response as any).total || response.data.length
-        } else if (response.data && response.data.list) {
+          total.value = response.total || response.data.length
+        } else if (response.data && (response.data as any).list) {
           // 兼容 { data: { list: [...], total? } }
-          books.value = response.data.list
-          total.value = response.data.total || (response as any).total || response.data.list.length
-        } else if (response.data && response.data.items) {
+          books.value = (response.data as any).list
+          total.value = (response.data as any).total || response.total || (response.data as any).list.length
+        } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')
-          books.value = response.data.items
-          total.value = response.data.total || 0
-        } else if (response.data && response.data.books) {
+          books.value = (response.data as any).items
+          total.value = (response.data as any).total || 0
+        } else if (response.data && (response.data as any).books) {
           // 兼容另一种格式 { data: { books: [...], total, ... } }
           console.log('[BooksView] Found nested books format')
-          books.value = response.data.books
-          total.value = response.data.total || 0
+          books.value = (response.data as any).books
+          total.value = (response.data as any).total || 0
         } else {
           console.warn('[BooksView] Unexpected data structure:', response.data)
           books.value = []
@@ -370,15 +370,13 @@ const handleFilterChange = () => {
 }
 
 // 页码变化
-const handlePageChange = (page: number) => {
-  currentPage.value = page
+const handlePageChange = () => {
   loadBooks()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 每页数量变化
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
+const handleSizeChange = () => {
   currentPage.value = 1
   loadBooks()
 }
