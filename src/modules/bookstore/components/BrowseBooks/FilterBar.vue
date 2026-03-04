@@ -4,7 +4,7 @@
       <!-- 分类筛选 -->
       <Select
         :model-value="categoryId"
-        @update:model-value="$emit('update:categoryId', $event)"
+        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:categoryId', normalizeSelectValue(val))"
         :options="categoryOptions"
         placeholder="分类"
         clearable
@@ -14,7 +14,7 @@
       <!-- 年份筛选 -->
       <Select
         :model-value="year"
-        @update:model-value="$emit('update:year', $event)"
+        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:year', normalizeSelectValue(val))"
         :options="yearOptions"
         placeholder="年份"
         clearable
@@ -24,7 +24,7 @@
       <!-- 状态筛选 -->
       <Select
         :model-value="status"
-        @update:model-value="$emit('update:status', $event)"
+        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:status', normalizeSelectValue(val))"
         :options="statusOptions"
         placeholder="状态"
         clearable
@@ -56,6 +56,18 @@ defineEmits<{
   'update:year': [value: string]
   'update:status': [value: string]
 }>()
+
+const normalizeSelectValue = (
+  value: string | number | (string | number)[] | undefined
+): string => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? String(value[0]) : ''
+  }
+  if (value === undefined) {
+    return ''
+  }
+  return String(value)
+}
 
 const flattenCategories = (items: any[] = []): any[] => {
   const result: any[] = []
