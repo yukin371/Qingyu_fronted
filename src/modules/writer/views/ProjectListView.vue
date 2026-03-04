@@ -283,6 +283,7 @@ const handleCreate = async () => {
     const project = await writerStore.createNewProject({
       title: newProject.value.title,
       summary: newProject.value.description, // 映射到后端的 summary 字段
+      coverUrl: newProject.value.coverUrl, // 封面图片URL
       // type 字段暂时不使用，后端没有对应字段
       // type: newProject.value.type,
     })
@@ -387,8 +388,7 @@ const handleCommand = async (command: string, project: any) => {
     try {
       await messageBox.confirm(`确定要删除项目"${project.title}"吗？此操作不可恢复。`, '确认删除', {
         confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
+        cancelButtonText: '取消'
       })
 
       await writerStore.deleteProjectById(project.projectId)
