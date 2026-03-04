@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 推荐API契约测试
  * @description 验证 recommendationAPI 与后端 /api/v1/recommendation 接口的契约一致性
  */

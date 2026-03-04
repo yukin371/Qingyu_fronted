@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 推荐 API 模块
  * 对接后端 /api/v1/recommendation 路由
  * 后端路由文档: Qingyu_backend/router/reader/reader_router.go

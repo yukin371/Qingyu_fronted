@@ -1,4 +1,4 @@
-﻿# Reader模块API验证实施计划
+# Reader模块API验证实施计划
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
