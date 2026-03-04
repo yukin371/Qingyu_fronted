@@ -22,7 +22,7 @@ const TEST_MODE_INDICATOR_ID = 'test-mode-indicator'
  */
 export function setupTestModeGuard(router: Router) {
   // 在 beforeEach 中处理 test 参数
-  router.beforeEach((to, from, next) => {
+  router.beforeEach((to, from) => {
     const hasTestParam = hasTestParameter(from.query)
     const targetHasTestParam = hasTestParameter(to.query)
 
@@ -30,18 +30,17 @@ export function setupTestModeGuard(router: Router) {
     if (hasTestParam && !targetHasTestParam) {
       // 保留原有的 test 参数
       const newQuery = { ...to.query, [TEST_PARAM_KEY]: 'true' }
-      
+
       console.log('[TestMode] Auto-adding test parameter to:', to.path)
-      
+
       // 使用 replace 避免产生额外的历史记录
-      next({
+      return {
         path: to.path,
         query: newQuery,
         params: to.params,
         hash: to.hash,
         replace: true
-      })
-      return
+      }
     }
 
     // 如果目标页面移除了 test 参数，说明用户想要退出测试模式
@@ -52,7 +51,7 @@ export function setupTestModeGuard(router: Router) {
       addTestModeIndicator()
     }
 
-    next()
+    return true
   })
 
   // 在 afterEach 中更新测试模式标识
@@ -155,12 +154,12 @@ function makeDraggable(element: HTMLElement) {
     initialX = e.clientX - xOffset
     initialY = e.clientY - yOffset
 
-    if (e.target === element || element.contains(e.target)) {
+    if (e.target === element || element.contains(e.target as Node)) {
       isDragging = true
     }
   }
 
-  function dragEnd(e: MouseEvent) {
+  function dragEnd() {
     initialX = currentX
     initialY = currentY
     isDragging = false
