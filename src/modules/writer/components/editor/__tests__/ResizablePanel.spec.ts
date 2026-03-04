@@ -848,12 +848,8 @@ describe('ResizablePanel', () => {
         startY: 0
       })
 
-      // 模拟鼠标离开窗口
-      const mouseLeaveEvent = new MouseEvent('mouseleave', {
-        clientX: -100,
-        clientY: 0
-      })
-      window.dispatchEvent(mouseLeaveEvent)
+      // 组件通过 document 监听 mouseup 来结束拖拽
+      document.dispatchEvent(new MouseEvent('mouseup'))
       await nextTick()
 
       // 拖拽应该停止
