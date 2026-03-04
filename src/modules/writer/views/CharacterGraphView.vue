@@ -12,10 +12,12 @@
         </el-tag>
       </div>
       <div class="header-actions">
-        <el-button size="small" @click="handleRefresh" :icon="Refresh">
+        <el-button size="small" @click="handleRefresh">
+          <QyIcon name="Refresh" />
           刷新
         </el-button>
-        <el-button type="primary" size="small" :icon="Plus" @click="handleAddCharacter">
+        <el-button type="primary" size="small" @click="handleAddCharacter">
+          <QyIcon name="Plus" />
           添加角色
         </el-button>
       </div>
@@ -50,8 +52,12 @@
               </div>
             </div>
             <div class="card-actions">
-              <el-button text size="small" :icon="Edit" @click.stop="handleEditCharacter(character)" />
-              <el-button text size="small" :icon="Delete" @click.stop="handleDeleteCharacter(character)" />
+              <el-button text size="small" @click.stop="handleEditCharacter(character)">
+                <QyIcon name="Edit" />
+              </el-button>
+              <el-button text size="small" @click.stop="handleDeleteCharacter(character)">
+                <QyIcon name="Delete" />
+              </el-button>
             </div>
           </div>
 
@@ -64,7 +70,9 @@
         <div v-if="selectedCharacter" class="detail-sidebar">
           <div class="sidebar-header">
             <h3>{{ selectedCharacter.name }}</h3>
-            <el-button text :icon="Close" @click="selectedCharacter = null" />
+            <el-button text @click="selectedCharacter = null">
+              <QyIcon name="Close" />
+            </el-button>
           </div>
           <el-scrollbar class="sidebar-content">
             <!-- 基本信息 -->
@@ -202,7 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
@@ -221,6 +229,9 @@ const aliasInputRef = ref()
 const traitInputRef = ref()
 const newAlias = ref('')
 const newTrait = ref('')
+void graphCanvasRef
+void aliasInputRef
+void traitInputRef
 
 const characterForm = ref({
   name: '',
@@ -287,16 +298,15 @@ const handleDeleteCharacter = async (character: Character) => {
       '提示',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const { deleteCharacter } = await import('..')
-    await deleteCharacter(character.id, projectId)
+    const writerModule = await import('..') as any
+    await writerModule.deleteCharacter?.(character.id, projectId)
     await handleRefresh()
     if (selectedCharacter.value?.id === character.id) {
       selectedCharacter.value = null
@@ -340,11 +350,11 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedCharacter.value) {
-        const { updateCharacter } = await import('..')
-        await updateCharacter(selectedCharacter.value.id, projectId, characterForm.value)
+        const writerModule = await import('..') as any
+        await writerModule.updateCharacter?.(selectedCharacter.value.id, projectId, characterForm.value)
       } else {
-        const { createCharacter } = await import('..')
-        await createCharacter(projectId, characterForm.value)
+        const writerModule = await import('..') as any
+        await writerModule.createCharacter?.(projectId, characterForm.value)
       }
 
       await handleRefresh()
@@ -358,7 +368,7 @@ const handleSubmit = async () => {
   })
 }
 
-const handleManageRelations = (character: Character) => {
+const handleManageRelations = (_character: Character) => {
   message.info('关系管理功能开发中...')
 }
 
