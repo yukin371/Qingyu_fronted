@@ -23,7 +23,8 @@
 
         <el-divider direction="vertical" />
 
-        <el-button type="primary" size="small" :icon="Plus" @click="handleAddNode">
+        <el-button type="primary" size="small" @click="handleAddNode">
+          <QyIcon name="Plus" />
           添加节点
         </el-button>
       </div>
@@ -39,7 +40,7 @@
               :default-expand-all="false" :expand-on-click-node="false"
               :props="{ label: 'title', children: 'children' }" draggable @node-click="handleNodeClick"
               @node-drop="handleNodeDrop">
-              <template #default="{ node, data }">
+              <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
                     <el-icon v-if="data.level === 1">
@@ -49,7 +50,7 @@
                       <QyIcon name="Document"  />
                     </el-icon>
                     <el-icon v-else>
-                      <Memo />
+                      <QyIcon name="Document" />
                     </el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
@@ -58,8 +59,12 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <el-button text size="small" :icon="Edit" @click.stop="handleEditNode(data)" />
-                    <el-button text size="small" :icon="Delete" @click.stop="handleDeleteNode(data)" />
+                    <el-button text size="small" @click.stop="handleEditNode(data)">
+                      <QyIcon name="Edit" />
+                    </el-button>
+                    <el-button text size="small" @click.stop="handleDeleteNode(data)">
+                      <QyIcon name="Delete" />
+                    </el-button>
                   </div>
                 </div>
               </template>
@@ -71,7 +76,9 @@
         <div v-if="selectedNode" class="node-detail">
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
-            <el-button text :icon="Close" @click="selectedNode = null" />
+            <el-button text @click="selectedNode = null">
+              <QyIcon name="Close" />
+            </el-button>
           </div>
           <div class="detail-content">
             <el-descriptions :column="1" border>
@@ -95,7 +102,7 @@
               <el-button type="primary" @click="handleEditNode(selectedNode)">
                 编辑
               </el-button>
-              <el-button @click="handleJumpToChapter(selectedNode)">
+              <el-button @click="selectedNode && handleJumpToChapter(selectedNode)">
                 跳转到章节
               </el-button>
             </div>
@@ -315,9 +322,9 @@ const handleEditNode = (node: OutlineNode) => {
   dialogVisible.value = true
   nodeForm.value = {
     title: node.title,
-    level: node.level,
+    level: (node.level as 1 | 2 | 3) || 1,
     parentId: node.parentId || '',
-    status: node.status || 'draft',
+    status: (node.status as 'draft' | 'writing' | 'completed' | 'reviewing') || 'draft',
     description: node.description || '',
     order: node.order
   }
@@ -330,16 +337,14 @@ const handleDeleteNode = async (node: OutlineNode) => {
       '提示',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const { deleteOutlineNode } = await import('..')
-    await deleteOutlineNode(node.id, projectId)
+    await writerStore.deleteOutlineNode(node.id, projectId)
     await writerStore.loadOutlineTree()
     message.success('删除成功')
   } catch (error: any) {
@@ -381,8 +386,7 @@ const handleOutlineNodeChanged = async (node: DrawNode) => {
     if (!originalNode) return
 
     // 更新节点
-    const { updateOutlineNode } = await import('..')
-    await updateOutlineNode(node.id, projectId, {
+    await writerStore.updateOutlineNode(node.id, projectId, {
       title: node.label,
       description: node.description
     })
@@ -423,16 +427,13 @@ const handleExportOutline = async (data: any) => {
 /**
  * 生成大纲 Markdown
  */
-const generateOutlineMarkdown = (nodes: DrawNode[], edges: DrawEdge[]): string => {
+const generateOutlineMarkdown = (_nodes: DrawNode[], _edges: DrawEdge[]): string => {
   let markdown = '# 文章大纲\n\n'
 
   // 按层级生成缩进的列表
   const treeNodes = outlineTree.value
 
   const renderNode = (node: OutlineNode, level: number) => {
-    const indent = '  '.repeat(level - 1)
-    const bullet = level === 1 ? '#' : level === 2 ? '##' : '###'
-
     markdown += `${'#'.repeat(level)} ${node.title}\n`
     if (node.description) {
       markdown += `\n${node.description}\n\n`
@@ -466,11 +467,9 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedNode.value) {
-        const { updateOutlineNode } = await import('..')
-        await updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
+        await writerStore.updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
       } else {
-        const { createOutlineNode } = await import('..')
-        await createOutlineNode(projectId, {
+        await writerStore.createOutlineNode(projectId, {
           ...nodeForm.value,
           order: outlineTree.value.length
         })
@@ -508,24 +507,26 @@ const getLevelText = (level: number): string => {
   return levelMap[level] || '未知'
 }
 
-const getStatusText = (status: string): string => {
+const getStatusText = (status?: string): string => {
   const statusMap: Record<string, string> = {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
     reviewing: '审阅中'
   }
-  return statusMap[status] || status
+  const key = status || 'draft'
+  return statusMap[key] || key
 }
 
-const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger' => {
+const getStatusType = (status?: string): 'info' | 'warning' | 'success' | 'danger' => {
   const typeMap: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     draft: 'info',
     writing: 'warning',
     completed: 'success',
     reviewing: 'warning'
   }
-  return typeMap[status] || 'info'
+  const key = status || 'draft'
+  return typeMap[key] || 'info'
 }
 </script>
 
