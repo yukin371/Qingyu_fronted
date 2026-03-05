@@ -293,12 +293,8 @@ const leftPanelStyle = computed(() => {
   if (leftPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 展开状态
-  return {
-    width: layout.value.mode === 'desktop'
-      ? `${layout.value.leftPanel.width}px`
-      : undefined
-  }
+  // 展开状态由 ResizablePanel 内部宽度管理，避免覆盖拖拽结果
+  return {}
 })
 
 const rightPanelStyle = computed(() => {
@@ -306,12 +302,8 @@ const rightPanelStyle = computed(() => {
   if (rightPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 展开状态
-  return {
-    width: layout.value.mode === 'desktop'
-      ? `${layout.value.rightPanel.width}px`
-      : undefined
-  }
+  // 展开状态由 ResizablePanel 内部宽度管理，避免覆盖拖拽结果
+  return {}
 })
 
 const layoutModeLabel = computed(() => {

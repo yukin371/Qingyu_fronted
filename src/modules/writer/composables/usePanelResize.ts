@@ -73,35 +73,24 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     return panelId === 'left' ? panelStore.leftWidth : panelStore.rightWidth
   })
 
-  // 检查是否有保存的宽度（通过检查localStorage）
-  const hasSavedWidth = computed(() => {
+  const readPersistedWidth = (): number | null => {
     try {
       const saved = localStorage.getItem('qingyu_editor_panel_layout')
-      if (saved) {
-        const data = JSON.parse(saved)
-        const width = panelId === 'left' ? data.leftWidth : data.rightWidth
-        return width !== undefined && width !== null
+      if (!saved) return null
+      const data = JSON.parse(saved) as { leftWidth?: unknown; rightWidth?: unknown }
+      const width = panelId === 'left' ? data.leftWidth : data.rightWidth
+      if (typeof width === 'number' && Number.isFinite(width)) {
+        return width
       }
     } catch {
-      // 忽略错误
+      // 忽略读取异常，回退到 store/default
     }
-    return false
-  })
+    return null
+  }
 
   // 当前面板宽度（本地状态，用于拖拽过程中避免频繁更新store）
-  // 如果没有保存的宽度，使用defaultWidth；否则使用保存的宽度
-  const localWidth = ref(clampWidth(hasSavedWidth.value ? savedWidth.value : defaultWidth))
-
-  // 监听store变化，同步到本地
-  watch(
-    savedWidth,
-    (newWidth) => {
-      if (!isDragging.value) {
-        localWidth.value = clampWidth(newWidth)
-      }
-    },
-    { flush: 'sync' }
-  )
+  const initialWidth = readPersistedWidth() ?? savedWidth.value ?? defaultWidth
+  const localWidth = ref(clampWidth(initialWidth))
 
   // 对于可折叠的右侧面板，监听折叠状态
   const isCollapsed = computed(() => {
@@ -123,6 +112,17 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   const dragStartWidth = ref(0)
   const dragSource = ref<'mouse' | 'touch'>('mouse')
   const currentTouchId = ref<number | null>(null)
+
+  // 监听store变化，同步到本地
+  watch(
+    savedWidth,
+    (newWidth) => {
+      if (!isDragging.value) {
+        localWidth.value = clampWidth(newWidth)
+      }
+    },
+    { flush: 'sync', immediate: true },
+  )
 
   const resolveEffectiveWidth = () => {
     const preferred = localWidth.value || savedWidth.value || defaultWidth
