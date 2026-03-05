@@ -1,12 +1,16 @@
 <template>
-  <div class="tiptap-editor-view" data-testid="tiptap-editor-view">
+  <div
+    class="tiptap-editor-view"
+    :class="{ 'tiptap-editor-view--without-ref': !showReferencePanel }"
+    data-testid="tiptap-editor-view"
+  >
     <div class="tiptap-editor-view__main-wrap">
       <header class="editor-toolbar">
         <div class="editor-toolbar__title">
           <p class="kicker">Writing Studio</p>
           <h3>正文编辑区</h3>
         </div>
-        <div class="editor-toolbar__meta">
+        <div v-if="showReferencePanel" class="editor-toolbar__meta">
           <span class="meta-chip">关键词 {{ referenceSummary.length }}</span>
           <span class="meta-chip meta-chip--soft">智能引用已启用</span>
         </div>
@@ -163,6 +167,10 @@ function typeLabel(type: KeywordInfo['type']) {
     radial-gradient(circle at 8% 8%, rgba(47, 111, 255, 0.11) 0%, transparent 26%),
     radial-gradient(circle at 92% 26%, rgba(2, 180, 139, 0.09) 0%, transparent 28%),
     #f5f7fb;
+}
+
+.tiptap-editor-view--without-ref {
+  grid-template-columns: 1fr;
 }
 
 .tiptap-editor-view__main-wrap {

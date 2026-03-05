@@ -95,7 +95,7 @@
           :project-id="currentProjectId"
           :document-id="currentChapterId"
           :readonly="false"
-          :show-reference-panel="activeTool === 'writing' || activeTool === 'chapters'"
+          :show-reference-panel="false"
           @save="handleTipTapSave"
         />
       </template>
