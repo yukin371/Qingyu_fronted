@@ -46,6 +46,7 @@
           :max-width="layout.leftPanel.maxWidth"
           position="left"
           :collapsible="true"
+          :resizable="!isImmersiveMode"
           :class="leftPanelClasses"
           :style="leftPanelStyle"
         >
@@ -93,6 +94,7 @@
           :max-width="layout.rightPanel.maxWidth"
           position="right"
           :collapsible="true"
+          :resizable="!isImmersiveMode"
           :class="rightPanelClasses"
           :style="rightPanelStyle"
         >

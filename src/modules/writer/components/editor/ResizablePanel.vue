@@ -17,6 +17,7 @@
         <slot />
       </div>
       <DragHandle
+        v-if="resizable"
         :position="position"
         @drag-start="handleDragStart"
       />
@@ -25,6 +26,7 @@
     <!-- 右侧面板: 手柄在前，内容在后（手柄贴近编辑区） -->
     <template v-else>
       <DragHandle
+        v-if="resizable"
         :position="position"
         @drag-start="handleDragStart"
       />
@@ -77,12 +79,15 @@ interface Props {
   position: 'left' | 'right'
   /** 是否可折叠 */
   collapsible?: boolean
+  /** 是否启用拖拽调宽 */
+  resizable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   minWidth: 200,
   maxWidth: 600,
-  collapsible: false
+  collapsible: false,
+  resizable: true,
 })
 
 // ============================================

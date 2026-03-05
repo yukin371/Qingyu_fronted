@@ -1057,16 +1057,6 @@ const handleAIApplyGeneratedText = (payload: {
   background: linear-gradient(90deg, #f0872f, #de6720);
 }
 
-.workspace-studio.workspace-studio--immersive :deep(.drag-handle),
-.workspace-studio.workspace-studio--immersive :deep(.panel-resize-guide) {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-.workspace-studio.workspace-studio--immersive :deep(.resizable-panel--dragging) {
-  box-shadow: none !important;
-}
-
 .workspace-statusbar__stats {
   display: flex;
   align-items: center;
