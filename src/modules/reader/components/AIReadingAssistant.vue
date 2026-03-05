@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts" name="AIReadingAssistant">
-import { ref, watch, nextTick, computed } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { MagicStick, Close, Promotion, VideoPause } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'

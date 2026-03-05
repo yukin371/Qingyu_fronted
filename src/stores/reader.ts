@@ -38,7 +38,7 @@ export const useReaderStore = defineStore('reader', () => {
   /**
    * 加载章节内容
    */
-  async function loadChapter(chapterId: string, bookId?: string) {
+  async function loadChapter(chapterId: string, _bookId?: string) {
     try {
       isLoading.value = true
 
@@ -112,7 +112,7 @@ export const useReaderStore = defineStore('reader', () => {
       // 生产模式：调用真实API
       const [chapterRes, contentRes] = await Promise.all([
         readerAPI.getChapterInfo(chapterId),
-        readerAPI.getChapterContent(targetBookId, chapterId),
+        readerAPI.getChapterContent(currentBookId.value || '', chapterId),
       ])
 
       // 合并章节信息和内容数据，并转换字段名
@@ -204,7 +204,7 @@ export const useReaderStore = defineStore('reader', () => {
       }
 
       // 生产模式：调用真实API
-      const response = await readerAPI.getChapterList(bookId, 1, 1000)
+      const response = await readerAPI.getBookChapters(bookId)
       const list = Array.isArray(response)
         ? response
         : (response as any)?.data?.chapters || (response as any)?.chapters || []
@@ -315,7 +315,7 @@ export const useReaderStore = defineStore('reader', () => {
   /**
    * 保存进度（带位置信息）
    */
-  async function saveProgress(bookId: string, chapterId: string, progress: number, scrollPosition: number) {
+  async function saveProgress(bookId: string, chapterId: string, progress: number, _scrollPosition: number) {
     try {
       // 检测测试模式
       const authStore = useAuthStore()

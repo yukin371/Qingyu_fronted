@@ -76,7 +76,7 @@ export const sharedAuthAPI = {
    * POST /api/v1/user/auth/logout
    */
   async logout(): Promise<void> {
-    return httpService.post<void>(getAuthPath('logout'))
+    await httpService.post<void>(getAuthPath('logout'))
   },
 
   /**
@@ -99,7 +99,7 @@ export const sharedAuthAPI = {
    * 获取用户角色
    * GET /api/v1/user/auth/roles
    */
-  async getUserRoles(): UserRole[] {
+  async getUserRoles(): Promise<UserRole[]> {
     return httpService.get<UserRole[]>(getAuthPath('roles'))
   },
 
@@ -128,7 +128,7 @@ export const sharedAuthAPI = {
    * PUT /api/v1/user/password
    */
   async changePassword(data: PasswordChangeData): Promise<void> {
-    return httpService.put<void>('/user/password', data)
+    await httpService.put<void>('/user/password', data)
   },
 
   // ==================== 用户名/邮箱检查 ====================

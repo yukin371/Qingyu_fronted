@@ -72,7 +72,7 @@
           <!-- 多选框 -->
           <QyCheckbox
             :model-value="selectedIds.includes(notification.id)"
-            @change="handleSelectChange(notification.id, $event)"
+            @change="(val: boolean | string[]) => handleSelectChange(notification.id, typeof val === 'boolean' ? val : false)"
             @click.stop
           />
 

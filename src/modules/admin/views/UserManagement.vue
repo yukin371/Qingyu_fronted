@@ -395,6 +395,7 @@ import {
   UserFilled, InfoFilled, Delete
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
+import { ElTable, FormInstance } from 'element-plus'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -429,7 +430,7 @@ const users = ref<any[]>([])
 const total = ref(0)
 
 // 批量操作
-const tableRef = ref(null)
+const tableRef = ref<InstanceType<typeof ElTable> | null>(null)
 const selectedUsers = ref<any[]>([])
 const batchAddDialogVisible = ref(false)
 const batchAddForm = reactive({
@@ -444,7 +445,7 @@ const dialogVisible = ref(false)
 const dialogMode = ref('view') // view / edit / add
 const dialogTitle = ref('')
 const submitting = ref(false)
-const userFormRef = ref(null)
+const userFormRef = ref<FormInstance | null>(null)
 
 // 用户表单
 const userForm = reactive({

@@ -39,8 +39,7 @@ export const progressTrackVariants = cva(
     'dark:bg-slate-800',
     'rounded-full',
     'overflow-hidden'
-  ],
-  {}
+  ]
 )
 
 /**

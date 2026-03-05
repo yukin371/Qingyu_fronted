@@ -8,10 +8,10 @@ import { h, render, type VNode } from 'vue'
 import NotificationComponent from './Notification.vue'
 import type {
   NotificationOptions,
-  NotificationType,
   NotificationPosition,
   NotificationHandler,
   NotificationConfig,
+  NotificationProps,
 } from './types'
 
 // 通知实例管理
@@ -65,7 +65,7 @@ function removeNotification(id: string): void {
   const instance = instances.get(id)
   if (!instance) return
 
-  const { container, vnode } = instance
+  const { container, vnode: _vnode } = instance
 
   // 等待动画完成后移除
   setTimeout(() => {
@@ -95,11 +95,11 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
   const props = options
 
   // 检查最大数量限制
-  if (globalConfig.maxCount > 0) {
+  if (globalConfig.maxCount! > 0) {
     const positionInstances = Array.from(instances.values()).filter(
       (inst) => inst.position === position
     )
-    if (positionInstances.length >= globalConfig.maxCount) {
+    if (positionInstances.length >= globalConfig.maxCount!) {
       const firstInstance = positionInstances[0]
       if (firstInstance) {
         removeNotification(firstInstance.id)
@@ -108,7 +108,7 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
   }
 
   // 创建容器
-  const container = getPositionContainer(position)
+  const container = getPositionContainer(position!)
   const wrapper = document.createElement('div')
   wrapper.className = 'notification-wrapper'
   container.appendChild(wrapper)
@@ -118,15 +118,15 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
     NotificationComponent,
     {
       ...props,
-      duration,
-      position,
+      duration: duration!,
+      position: position!,
       onClose: () => {
         removeNotification(id)
         if (props.onClose) {
           props.onClose()
         }
       },
-    }
+    } as NotificationProps
   )
 
   // 渲染组件
@@ -143,7 +143,7 @@ function createNotification(options: NotificationOptions = {}): NotificationHand
     vnode,
     handler,
     container: wrapper,
-    position,
+    position: position!,
   })
 
   return handler
@@ -166,19 +166,19 @@ const notification: NotificationAPI = (options: NotificationOptions) => {
 }
 
 // 添加快捷方法
-notification.success = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.success = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'success' })
 }
 
-notification.info = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.info = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'info' })
 }
 
-notification.warning = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.warning = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'warning' })
 }
 
-notification.error = (message: string, options: Omit<NotificationOptions, 'type' | 'message'> = {}) => {
+notification.error = (message: string, options?: Omit<NotificationOptions, 'type' | 'message'>) => {
   return createNotification({ ...options, message, type: 'error' })
 }
 

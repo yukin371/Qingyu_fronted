@@ -8,10 +8,9 @@ import { createApp, h, reactive, type App } from 'vue'
 import MessageBoxComponent from './MessageBox.vue'
 import type {
   MessageBoxOptions,
-  MessageBoxType,
   MessageBoxAction,
-  MessageBoxHandler,
   MessageBoxResult,
+  MessageBoxType,
 } from './types'
 
 // 消息框实例
@@ -39,13 +38,20 @@ const createMessageBox = (
     // 响应式状态
     const state = reactive({
       ...options,
-      type: options.type || 'confirm',
+      type: (options.type || 'confirm') as MessageBoxType,
       showIcon: options.showIcon !== false,
       showClose: options.showClose !== false,
       center: options.center || false,
       closeOnClickModal: options.closeOnClickModal !== false,
       closeOnPressEscape: options.closeOnPressEscape !== false,
-    })
+    }) as MessageBoxOptions & {
+      type: MessageBoxType
+      showIcon: boolean
+      showClose: boolean
+      center: boolean
+      closeOnClickModal: boolean
+      closeOnPressEscape: boolean
+    }
 
     // 创建 Vue 应用实例
     let messageBoxRef: any = null
@@ -97,9 +103,9 @@ const createMessageBox = (
 // MessageBox API
 export interface MessageBoxAPI {
   (options: MessageBoxOptions): Promise<MessageBoxResult>
-  alert: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
-  confirm: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
-  prompt: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title' | 'type'>) => Promise<MessageBoxResult>
+  alert: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
+  confirm: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
+  prompt: (message: string, title?: string, options?: Omit<MessageBoxOptions, 'message' | 'title'>) => Promise<MessageBoxResult>
 }
 
 // 创建 MessageBox 函数
@@ -111,7 +117,7 @@ const messageBox: MessageBoxAPI = (options: MessageBoxOptions) => {
 messageBox.alert = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options?: Omit<MessageBoxOptions, 'message' | 'title'>
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,
@@ -125,7 +131,7 @@ messageBox.alert = (
 messageBox.confirm = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options?: Omit<MessageBoxOptions, 'message' | 'title'>
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,
@@ -144,7 +150,7 @@ messageBox.confirm = (
 messageBox.prompt = (
   message: string,
   title?: string,
-  options: Omit<MessageBoxOptions, 'message' | 'title' | 'type'> = {}
+  options?: Omit<MessageBoxOptions, 'message' | 'title'>
 ): Promise<MessageBoxResult> => {
   return createMessageBox({
     ...options,

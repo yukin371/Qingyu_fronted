@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 /**
  * Dropdown 下拉菜单组件
@@ -7,7 +8,7 @@
 
 import { ref, computed, watch, onUnmounted, provide } from 'vue'
 import { cn } from '../../utils/cn'
-import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
+import type { DropdownProps, DropdownEmits } from './types'
 
 // 定义注入的 key
 const DROPDOWN_KEY = Symbol('dropdown')
@@ -333,7 +334,14 @@ const adjustPosition = () => {
   }
 }
 
-// 清理定时器
+// 清理定时器（供模板使用）
+const clearShowTimer = () => {
+  if (showTimer) {
+    clearTimeout(showTimer)
+    showTimer = null
+  }
+}
+
 onUnmounted(() => {
   if (showTimer) clearTimeout(showTimer)
   if (hideTimer) clearTimeout(hideTimer)

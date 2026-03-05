@@ -263,9 +263,7 @@ const submitReview = async () => {
   await reviewFormRef.value?.validate()
   submitting.value = true
   try {
-    await createReview({
-      target_id: reviewForm.target_id,
-      target_type: reviewForm.target_type,
+    const reviewData: any = {
       title: reviewForm.title,
       content: reviewForm.content,
       rating: reviewForm.rating,
@@ -355,7 +353,6 @@ const submitComment = async () => {
     }
     message.success('评论成功')
     newComment.value = ''
-    loadComments()
     // 更新评论数
     if (currentReview.value) {
       currentReview.value.comment_count = (currentReview.value.comment_count || 0) + 1

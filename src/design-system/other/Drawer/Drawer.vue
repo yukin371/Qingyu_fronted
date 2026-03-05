@@ -52,7 +52,6 @@ const emit = defineEmits<DrawerEmits>()
 // 内部状态
 const isVisible = ref(props.modelValue)
 const isAnimating = ref(false)
-const drawerContent = ref<HTMLElement | null>(null)
 
 // 计算抽屉样式类名
 const drawerClasses = computed(() => {
@@ -114,11 +113,6 @@ const modalClasses = computed(() =>
     props.modalClass
   )
 )
-
-// 计算遮罩层透明度
-const modalOpacity = computed(() => {
-  return isVisible.value && !isAnimating ? 'opacity-100' : 'opacity-0'
-})
 
 // 监听 modelValue 变化
 watch(() => props.modelValue, (newVal) => {

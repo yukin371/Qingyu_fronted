@@ -179,7 +179,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   Check, Refresh, FolderOpened, Setting, Edit, RefreshRight,
-  InfoFilled, Plus, Clock, User, Lock, Bell, CreditCard, Document
+  InfoFilled, Plus, Clock, User, Bell, CreditCard, Document
 } from '@element-plus/icons-vue'
 
 // 检查是否为测试模式
@@ -436,7 +436,7 @@ const handleDeleteBackup = async (backup: any) => {
   }
 }
 
-// 监听备份对话框打开
+// 监听备份对话框打开（保留供将来使用）
 const handleBackupDialogOpen = () => {
   if (showBackupDialog.value) {
     loadingBackups.value = true
@@ -448,6 +448,9 @@ const handleBackupDialogOpen = () => {
     }, 300)
   }
 }
+
+// 保留未使用变量以备将来使用
+void handleBackupDialogOpen
 
 onMounted(() => {
   loadConfigs()

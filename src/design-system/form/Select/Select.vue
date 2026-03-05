@@ -282,6 +282,11 @@ defineExpose({
   focus: () => inputRef.value?.focus(),
   blur: () => inputRef.value?.blur(),
 })
+
+// 创建一个空的 MouseEvent 用于 slot 中的 handleClose
+const createEmptyMouseEvent = (): MouseEvent => {
+  return new MouseEvent('click')
+}
 </script>
 
 <template>
@@ -310,13 +315,13 @@ defineExpose({
           :key="option.value"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-100 text-primary-700 text-xs"
         >
-          <slot v-if="$slots.tag" name="tag" :option="option" :index="index" :handleClose="() => handleTagClose(option, $event)" />
+          <slot v-if="$slots.tag" name="tag" :option="option" :index="index" :handleClose="(e?: MouseEvent) => handleTagClose(option, e || createEmptyMouseEvent())" />
           <template v-else>
             {{ option.label }}
             <button
               type="button"
               class="hover:text-primary-900"
-              @click="handleTagClose(option, $event)"
+              @click="handleTagClose(option, $event as MouseEvent)"
             >
               <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

@@ -146,7 +146,7 @@ const handleResize = () => {
 onMounted(() => {
   // 添加滚动监听
   const target = getScrollTarget()
-  target.addEventListener('scroll', handleScroll, { passive: true })
+  target.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
   window.addEventListener('resize', handleResize)
 
   // 在下一个tick中初始化
@@ -172,7 +172,7 @@ onUnmounted(() => {
   try {
     const target = getScrollTarget()
     if (target && target.removeEventListener) {
-      target.removeEventListener('scroll', handleScroll, { passive: true })
+      target.removeEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
     }
   } catch (error) {
     // Ignore errors during cleanup
@@ -202,7 +202,7 @@ watch(() => props.target, () => {
 
   checkFixed()
   const newTarget = getScrollTarget()
-  newTarget.addEventListener('scroll', handleScroll, { passive: true })
+  newTarget.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
 })
 
 // 暴露方法和状态给父组件
@@ -216,7 +216,7 @@ defineExpose({
 
 <template>
   <div
-    :ref="affixRef"
+    :ref="(el: any) => affixRef = el"
     :class="classes"
     :style="{ ...fixedStyle, ...style }"
   >

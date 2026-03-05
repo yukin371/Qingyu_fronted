@@ -9,7 +9,7 @@
 import { computed, ref, watch } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { PaginationProps, PaginationEmits, PagerItem } from './types'
+import type { PaginationProps, PaginationEmits, PagerItem, PaginationLayout } from './types'
 
 // 使用 CVA 定义按钮变体
 const buttonVariants = cva(

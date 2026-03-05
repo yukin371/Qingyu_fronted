@@ -18,14 +18,16 @@ class ReaderService {
    * Get chapter content
    */
   async getChapterContent(bookId: string, chapterId: string): Promise<ChapterContent> {
-    return await readerAPI.getChapterContent(bookId, chapterId)
+    const response = await readerAPI.getChapterContent(bookId, chapterId)
+    return (response as any).data as ChapterContent
   }
 
   /**
    * Get book chapters
    */
   async getBookChapters(bookId: string, page = 1, size = 50): Promise<Chapter[]> {
-    return await readerAPI.getBookChapters(bookId, page, size)
+    const response = await readerAPI.getBookChapters({ bookId, page, size } as any)
+    return (response as any).data?.items || (response as any).items || []
   }
 
   /**
@@ -38,11 +40,11 @@ class ReaderService {
   ): Promise<void> {
     try {
       await readerAPI.saveReadingProgress({
-        book_id: bookId,
-        chapter_id: chapterId,
-        progress_percent: progress,
-        read_duration: 0 // TODO: Track actual duration
-      })
+        bookId,
+        chapterId,
+        progressPercent: progress,
+        readDuration: 0 // TODO: Track actual duration
+      } as any)
     } catch (error) {
       console.error('Failed to save reading progress:', error)
     }
@@ -53,7 +55,8 @@ class ReaderService {
    */
   async getReadingProgress(bookId: string): Promise<ReadingProgress | null> {
     try {
-      return await readerAPI.getReadingProgress(bookId)
+      const response = await readerAPI.getReadingProgress(bookId)
+      return (response as any).data as ReadingProgress || null
     } catch (error) {
       console.error('Failed to get reading progress:', error)
       return null

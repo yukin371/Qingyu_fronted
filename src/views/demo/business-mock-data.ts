@@ -9,7 +9,6 @@
 import {
   getBookCoverUrl,
   getUserAvatarUrl,
-  getBannerUrl,
   BOOK_COVERS,
   USER_AVATARS,
   BANNER_IMAGES,

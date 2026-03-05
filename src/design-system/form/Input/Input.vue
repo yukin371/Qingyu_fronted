@@ -9,6 +9,7 @@ import { computed, ref } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
+import type { IconName } from '../../base/Icon/types'
 import type { InputProps, InputEmits } from './types'
 
 // 使用 CVA 定义 Input 变体
@@ -185,7 +186,7 @@ defineExpose({
         class="absolute left-0 top-0 h-full flex items-center justify-center pl-3 pointer-events-none text-slate-400"
       >
         <slot name="prefix">
-          <Icon :name="prefix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
+          <Icon :name="prefix as IconName" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
         </slot>
       </div>
 
@@ -210,7 +211,7 @@ defineExpose({
         <!-- 后缀图标/插槽 -->
         <div v-if="suffix || slots.suffix" class="flex items-center text-slate-400">
           <slot name="suffix">
-            <Icon :name="suffix" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
+            <Icon :name="suffix as IconName" :size="size === 'sm' ? 'xs' : size === 'lg' ? 'sm' : 'sm'" />
           </slot>
         </div>
 

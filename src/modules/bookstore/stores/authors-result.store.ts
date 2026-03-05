@@ -99,7 +99,7 @@ export const useAuthorsResultStore = defineStore('authorsResult', {
     /**
      * 搜索作者（使用mock数据）
      */
-    async search(keyword: string, filters?: Record<string, unknown>): Promise<void> {
+    async search(keyword: string, _filters?: Record<string, unknown>): Promise<void> {
       // 重置状态
       this.authors = []
       this.cursor = ''

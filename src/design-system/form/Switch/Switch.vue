@@ -8,7 +8,7 @@
 import { computed, ref } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { SwitchProps, SwitchEmits, SwitchValue } from './types'
+import type { SwitchProps, SwitchEmits } from './types'
 
 // 使用 CVA 定义 Switch 变体
 const switchVariants = cva(

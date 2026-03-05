@@ -2,8 +2,6 @@
  * Tree 组件类型定义
  */
 
-import type { Ref } from 'vue'
-
 // Tree 节点数据结构
 export interface TreeNode {
   /**
@@ -145,7 +143,10 @@ export interface TreeInstance {
 }
 
 // Tree 组件默认属性
-export const treeDefaults: Partial<TreeProps> = {
+export const treeDefaults: Partial<Omit<TreeProps, 'defaultCheckedKeys' | 'defaultExpandedKeys'>> & {
+  defaultCheckedKeys?: () => (string | number)[]
+  defaultExpandedKeys?: () => (string | number)[]
+} = {
   checkable: false,
   defaultExpandAll: false,
   highlightCurrent: false,

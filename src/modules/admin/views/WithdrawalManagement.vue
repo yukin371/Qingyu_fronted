@@ -300,21 +300,30 @@ const loadWithdrawals = async () => {
     // 模拟数据
     const mockData: WithdrawRecord[] = [
       {
+        id: 'WD20251021001',
         withdrawId: 'WD20251021001',
+        userId: 'user_0001',
+        accountType: 'alipay',
         amount: 500,
         account: '支付宝: user@example.com',
         status: 'pending',
         createdAt: '2025-10-21T10:00:00Z'
       },
       {
+        id: 'WD20251021002',
         withdrawId: 'WD20251021002',
+        userId: 'user_0002',
+        accountType: 'bank',
         amount: 1000,
         account: '银行卡: 6222****1234',
         status: 'pending',
         createdAt: '2025-10-21T09:30:00Z'
       },
       {
+        id: 'WD20251020003',
         withdrawId: 'WD20251020003',
+        userId: 'user_0003',
+        accountType: 'alipay',
         amount: 300,
         account: '支付宝: test@example.com',
         status: 'approved',

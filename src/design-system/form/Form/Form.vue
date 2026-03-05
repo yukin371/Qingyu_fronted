@@ -6,7 +6,7 @@
  */
 
 import { computed, provide, reactive, ref, watch } from 'vue'
-import type { FormContext, FormEmits, FormInstance, FormItemInstance, FormProps, FormValidationResult } from './types'
+import type { FormContext, FormEmits, FormInstance, FormItemInstance, FormProps, FormModel } from './types'
 import { formDefaults } from './types'
 
 // 组件 Props
@@ -118,17 +118,17 @@ async function validate(): Promise<boolean> {
     // 收集验证结果
     let hasError = false
     results.forEach((result, index) => {
-      const prop = fieldKeys[index]
+      const _prop = fieldKeys[index]
       if (result.status === 'fulfilled') {
         if (!result.value.valid) {
           hasError = true
           if (result.value.error) {
-            errors[prop] = [result.value.error]
+            errors[_prop] = [result.value.error]
           }
         }
       } else {
         hasError = true
-        errors[prop] = [result.reason?.message || 'Validation failed']
+        errors[_prop] = [result.reason?.message || 'Validation failed']
       }
     })
 
@@ -163,7 +163,7 @@ async function validateFields(props: string | string[]): Promise<boolean> {
 
 // 重置表单
 function resetFields(): void {
-  fields.value.forEach((item, prop) => {
+  fields.value.forEach((item, _prop) => {
     item.resetField()
   })
 }

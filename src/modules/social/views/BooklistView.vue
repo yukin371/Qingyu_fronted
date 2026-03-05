@@ -364,6 +364,7 @@ const filterByTag = (tag: string) => {
   loadBooklists()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const clearTagFilter = () => {
   selectedTag.value = ''
   loadBooklists()
@@ -408,10 +409,10 @@ const submitBooklist = async () => {
   await booklistFormRef.value?.validate()
   submitting.value = true
   try {
-    const data = {
-      name: booklistForm.name,
+    const data: any = {
+      title: booklistForm.name,
       description: booklistForm.description,
-      cover_url: booklistForm.cover_url || undefined,
+      cover: booklistForm.cover_url || undefined,
       tags: booklistForm.tags,
       is_public: booklistForm.is_public
     }
@@ -438,6 +439,7 @@ const toggleFollow = async () => {
   if (!currentBooklist.value) return
 
   try {
+    // TODO: 实现关注/取消关注书单功能
     if (isFollowing.value) {
       isFollowing.value = false
       message.success('已取消关注')

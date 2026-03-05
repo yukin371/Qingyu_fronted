@@ -90,7 +90,7 @@ const handleSelectEmoji = (emoji: string) => {
   if (props.disabled) return
   content.value = emoji
   showEmojiPicker.value = false
-  emit('submit', { emoji })
+  emit('submit', { content: '', emoji })
   content.value = ''
 }
 

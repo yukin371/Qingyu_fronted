@@ -72,7 +72,11 @@ withDefaults(defineProps<Props>(), {
   showExtra: false
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+  refresh: []
+  recharge: []
+  withdraw: []
+}>()
 
 // 格式化金额
 // 注意：amount 参数单位是分（后端返回），需要转换为元显示

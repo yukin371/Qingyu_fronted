@@ -2,6 +2,8 @@
  * Image 组件类型定义
  */
 
+import type { IconName } from '../Icon/types'
+
 // Image 尺寸
 export type ImageSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 
@@ -72,7 +74,7 @@ export interface ImageProps {
    * 错误状态下显示的 fallback 图标名称
    * @default 'image'
    */
-  fallbackIcon?: string
+  fallbackIcon?: IconName
 
   /**
    * 自定义类名

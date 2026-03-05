@@ -8,7 +8,7 @@
 import { computed, provide, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
 import type { MenuEmits, MenuProps } from './types'
-import { MENU_KEY, type MenuContext } from './constants'
+import { MENU_KEY } from './constants'
 
 // 组件 Props
 const props = withDefaults(defineProps<MenuProps>(), {

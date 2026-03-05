@@ -5,7 +5,6 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 /**
  * 书签信息
@@ -46,8 +45,8 @@ export const bookmarksAPI = {
     page?: number
     pageSize?: number
     bookId?: string
-  }): Promise<PaginatedResponse<Bookmark>> {
-    return httpService.get<PaginatedResponse<Bookmark>>('/reader/annotations', {
+  }): Promise<Bookmark[]> {
+    return httpService.get<Bookmark[]>('/reader/annotations', {
       params: { ...params, type: 'bookmark' }
     })
   },
@@ -71,8 +70,8 @@ export const bookmarksAPI = {
     position: number
     note?: string
     highlightText?: string
-  }): Promise<APIResponse<Bookmark>> {
-    return httpService.post<APIResponse<Bookmark>>('/reader/annotations', {
+  }): Promise<Bookmark> {
+    return httpService.post<Bookmark>('/reader/annotations', {
       ...data,
       type: 'bookmark'
     })
@@ -97,8 +96,8 @@ export const bookmarksAPI = {
       note?: string
       highlightText?: string
     }
-  ): Promise<APIResponse<Bookmark>> {
-    return httpService.put<APIResponse<Bookmark>>(`/reader/annotations/${bookmarkId}`, data)
+  ): Promise<Bookmark> {
+    return httpService.put<Bookmark>(`/reader/annotations/${bookmarkId}`, data)
   },
 
   /**
@@ -111,8 +110,8 @@ export const bookmarksAPI = {
    * @response {APIResponse<void>} 204 - 成功删除书签
    * @security BearerAuth
    */
-  async deleteBookmark(bookmarkId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/reader/annotations/${bookmarkId}`)
+  async deleteBookmark(bookmarkId: string): Promise<void> {
+    return httpService.delete<void>(`/reader/annotations/${bookmarkId}`)
   },
 
   /**
@@ -125,8 +124,8 @@ export const bookmarksAPI = {
    * @response {APIResponse<Bookmark[]>} 200 - 成功返回章节书签列表
    * @security BearerAuth
    */
-  async getChapterBookmarks(chapterId: string): Promise<APIResponse<Bookmark[]>> {
-    return httpService.get<APIResponse<Bookmark[]>>(
+  async getChapterBookmarks(chapterId: string): Promise<Bookmark[]> {
+    return httpService.get<Bookmark[]>(
       `/reader/annotations/chapter/${chapterId}`,
       { params: { type: 'bookmark' } }
     )
@@ -141,8 +140,8 @@ export const bookmarksAPI = {
    * @response {APIResponse<Bookmark | null>} 200 - 成功返回最新书签，如果没有则返回null
    * @security BearerAuth
    */
-  async getLatestBookmark(): Promise<APIResponse<Bookmark | null>> {
-    return httpService.get<APIResponse<Bookmark | null>>('/reader/bookmark/latest')
+  async getLatestBookmark(): Promise<Bookmark | null> {
+    return httpService.get<Bookmark | null>('/reader/bookmark/latest')
   },
 
   /**
@@ -155,8 +154,8 @@ export const bookmarksAPI = {
    * @response {APIResponse<void>} 204 - 成功删除所有指定书签
    * @security BearerAuth
    */
-  async batchDeleteBookmarks(bookmarkIds: string[]): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>('/reader/annotations/batch', {
+  async batchDeleteBookmarks(bookmarkIds: string[]): Promise<void> {
+    return httpService.delete<void>('/reader/annotations/batch', {
       data: { ids: bookmarkIds }
     })
   }

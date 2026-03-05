@@ -18,15 +18,15 @@ const props = withDefaults(defineProps<MenuSubProps>(), {
 
 // 注入 Menu 上下文
 const menuContext = inject<MenuContext>(MENU_KEY, {
-  activeIndex: { value: '' },
-  openedMenus: { value: [] },
-  mode: { value: 'vertical' },
-  collapse: { value: false },
-  uniqueOpened: { value: false },
+  activeIndex: ref(''),
+  openedMenus: ref([] as string[]),
+  mode: ref('vertical'),
+  collapse: ref(false),
+  uniqueOpened: ref(false),
   handleSelect: () => {},
   handleOpen: () => {},
   handleClose: () => {},
-})
+} as MenuContext)
 
 // 本地状态
 const isOpened = ref(false)

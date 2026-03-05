@@ -221,7 +221,6 @@ import {
   getThemes,
   setActiveTheme,
   createCustomTheme as apiCreateTheme,
-  updateCustomTheme,
   deleteCustomTheme as apiDeleteTheme,
   type Theme
 } from '@/modules/reader/api'
@@ -229,7 +228,6 @@ import {
   builtinFonts,
   fontSizeOptions,
   lineHeightOptions,
-  getFonts,
   setFont,
   getFontSettings,
   updateFontSettings,

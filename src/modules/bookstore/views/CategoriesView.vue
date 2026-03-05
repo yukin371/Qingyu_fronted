@@ -200,13 +200,11 @@ const loadBooks = async () => {
 
   booksLoading.value = true
   try {
-    const params = {
+    const response = await getBooksByCategory({
+      category: selectedCategoryId.value,
       page: currentPage.value,
-      pageSize: pageSize.value,
-      sort: filters.sortBy
-    }
-
-    const response = await getBooksByCategory(selectedCategoryId.value, params)
+      size: pageSize.value
+    })
 
     // 处理响应
     if (response && (response as any).code === 200) {

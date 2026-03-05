@@ -362,8 +362,8 @@ export const useAuthStore = defineStore('auth', {
             const savedUser = storage.get<User>(STORAGE_KEYS.USER)
             const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
 
-            this.user = savedUser
-            this.roles = savedRoles
+            this.user = savedUser ?? null
+            this.roles = savedRoles ?? []
             this.isLoggedIn = true
             console.log('[initAuth] 从localStorage恢复状态，保持登录:', savedRoles)
           } else {
@@ -387,10 +387,10 @@ export const useAuthStore = defineStore('auth', {
 
         // 保存认证信息
         this.token = data.token
-        this.refreshToken = data.refreshToken
+        this.refreshToken = data.refreshToken ?? null
         const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
         // 确保user对象包含roles字段，兼容后端 role(字符串) 与 roles(数组)
-        this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
+        this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
         this.permissions = data.permissions || []
         this.roles = normalizedRoles
         this.isLoggedIn = true
@@ -425,8 +425,8 @@ export const useAuthStore = defineStore('auth', {
         if (data.token) {
           const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
           this.token = data.token
-          this.refreshToken = data.refreshToken
-          this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
+          this.refreshToken = data.refreshToken ?? null
+          this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
           this.permissions = data.permissions || []
           this.roles = normalizedRoles
           this.isLoggedIn = true

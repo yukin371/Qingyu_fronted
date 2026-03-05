@@ -123,7 +123,7 @@ async function applyTemplate(templateId: string, variables: Record<string, strin
       variables
     })
 
-    emit('applied', result.renderedContent)
+    emit('applied', (result as unknown as { renderedContent: string }).renderedContent)
     message.success('模板应用成功')
 
     // 关闭所有对话框

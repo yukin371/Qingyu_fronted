@@ -9,7 +9,7 @@ import { computed, ref, watch } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import TransferItem from './TransferItem.vue'
-import type { TransferPanelProps, TransferPanelEmits } from './types'
+import type { TransferPanelProps, TransferPanelEmits, TransferPropsOption } from './types'
 
 // 使用 CVA 定义面板变体
 const panelVariants = cva(
@@ -67,7 +67,7 @@ const filteredData = computed(() => {
     return props.data.filter((item) => props.filterMethod!(query.value, item))
   }
 
-  const labelKey = props.props.label
+  const labelKey = props.itemProps.label ?? 'label'
   return props.data.filter((item) => {
     const label = String(item[labelKey] || '').toLowerCase()
     return label.includes(query.value.toLowerCase())
@@ -79,8 +79,9 @@ const handleCheckChange = (checkedValues: (string | number)[]) => {
   internalChecked.value = checkedValues
 
   // 获取选中的项
+  const keyField = props.itemProps.key ?? 'key'
   const checkedItems = props.data.filter((item) => {
-    const key = item[props.props.key]
+    const key = item[keyField]
     return checkedValues.includes(key)
   })
 
@@ -89,7 +90,8 @@ const handleCheckChange = (checkedValues: (string | number)[]) => {
 
 // 处理单个项的选中变化
 const handleItemChange = (item: TransferPropsOption, checked: boolean) => {
-  const key = item[props.props.key]
+  const keyField = props.itemProps.key ?? 'key'
+  const key = item[keyField]
   const newChecked = [...internalChecked.value]
 
   if (checked) {
@@ -108,11 +110,13 @@ const handleItemChange = (item: TransferPropsOption, checked: boolean) => {
 
 // 是否全选
 const isAllChecked = computed(() => {
-  const availableData = filteredData.value.filter((item) => !item[props.props.disabled])
+  const disabledField = props.itemProps.disabled ?? 'disabled'
+  const keyField = props.itemProps.key ?? 'key'
+  const availableData = filteredData.value.filter((item) => !item[disabledField])
   return (
     availableData.length > 0 &&
     availableData.every((item) => {
-      const key = item[props.props.key]
+      const key = item[keyField]
       return internalChecked.value.includes(key)
     })
   )
@@ -120,9 +124,11 @@ const isAllChecked = computed(() => {
 
 // 是否部分选中
 const isIndeterminate = computed(() => {
-  const availableData = filteredData.value.filter((item) => !item[props.props.disabled])
+  const disabledField = props.itemProps.disabled ?? 'disabled'
+  const keyField = props.itemProps.key ?? 'key'
+  const availableData = filteredData.value.filter((item) => !item[disabledField])
   const checkedCount = availableData.filter((item) => {
-    const key = item[props.props.key]
+    const key = item[keyField]
     return internalChecked.value.includes(key)
   }).length
 
@@ -131,16 +137,18 @@ const isIndeterminate = computed(() => {
 
 // 处理全选/取消全选
 const handleCheckAll = () => {
-  const availableData = filteredData.value.filter((item) => !item[props.props.disabled])
+  const disabledField = props.itemProps.disabled ?? 'disabled'
+  const keyField = props.itemProps.key ?? 'key'
+  const availableData = filteredData.value.filter((item) => !item[disabledField])
 
   if (isAllChecked.value) {
     // 取消全选
-    const keysToRemove = availableData.map((item) => item[props.props.key])
+    const keysToRemove = availableData.map((item) => item[keyField])
     const newChecked = internalChecked.value.filter((key) => !keysToRemove.includes(key))
     handleCheckChange(newChecked)
   } else {
     // 全选
-    const keysToAdd = availableData.map((item) => item[props.props.key])
+    const keysToAdd = availableData.map((item) => item[keyField])
     const newChecked = [...internalChecked.value]
     keysToAdd.forEach((key) => {
       if (!newChecked.includes(key)) {
@@ -189,6 +197,18 @@ const listVariants = cva(
     variants: {},
   }
 )
+
+// 获取 item 的 key
+const getItemKey = (item: TransferPropsOption) => {
+  const keyField = props.itemProps.key ?? 'key'
+  return item[keyField]
+}
+
+// 获取 item 的 disabled 状态
+const getItemDisabled = (item: TransferPropsOption) => {
+  const disabledField = props.itemProps.disabled ?? 'disabled'
+  return item[disabledField]
+}
 </script>
 
 <template>
@@ -268,13 +288,13 @@ const listVariants = cva(
 
       <TransferItem
         v-for="item in filteredData"
-        :key="item[props.key]"
+        :key="getItemKey(item)"
         :item="item"
-        :checked="internalChecked.includes(item[props.key])"
-        :disabled="item[props.disabled]"
+        :checked="internalChecked.includes(getItemKey(item))"
+        :disabled="getItemDisabled(item)"
         :render-content="renderContent"
         :format="format"
-        :props="props"
+        :item-props="itemProps"
         @change="(checked) => handleItemChange(item, checked)"
       />
     </div>

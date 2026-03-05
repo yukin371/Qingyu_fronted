@@ -381,8 +381,8 @@ async function loadTransactions(): Promise<void> {
     const response = await walletAPI.getTransactions(params)
 
     if (response.code === 200) {
-      transactions.value = response.data?.data || []
-      total.value = response.data?.pagination?.total || 0
+      transactions.value = (response.data as any)?.data || []
+      total.value = (response.data as any)?.pagination?.total || 0
     }
   } catch (error) {
     message.error(error instanceof Error ? error.message : '加载交易记录失败')

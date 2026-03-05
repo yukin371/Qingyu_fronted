@@ -260,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
@@ -276,6 +276,16 @@ import {
 } from '@/modules/bookstore/yunlanDemo.mock'
 import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
 
+interface ReaderSettings {
+  fontSize: number
+  lineHeight: number
+  theme: string
+  fontFamily: string
+  pageWidth: number
+  pageMode: string
+  autoSave?: boolean
+}
+
 const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
@@ -284,7 +294,7 @@ const { isMobile } = useResponsive()
 
 const chapterId = ref(route.params.chapterId as string)
 const isDemoMode = computed(() => route.query.demo === 'yunlan')
-const publishedBookId = computed(() => String(route.query.bookId || readerStore.currentBookId || ''))
+const publishedBookId = computed(() => String(route.query.bookId || (readerStore as any).currentBookId || ''))
 const isPublishedMode = computed(() => route.query.source === 'published' && !!publishedBookId.value)
 const loading = ref(false)
 const catalogVisible = ref(false)
@@ -314,8 +324,8 @@ const parsedParagraphs = computed(() => {
   if (!currentChapter.value?.content) return []
   return currentChapter.value.content
     .split('\n')
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
+    .map((p: string) => p.trim())
+    .filter((p: string) => p.length > 0)
 })
 
 // 主题配置（与reader-variables.scss中的CSS变量保持一致）
@@ -355,11 +365,19 @@ const chapterList = computed(() => {
   if (isPublishedMode.value) return publishedChapterList.value
   return readerStore.chapterList
 })
-const settings = computed(() => readerStore.settings)
-
-const bookTitle = computed(() => {
-  return currentChapter.value?.bookTitle || '正在阅读'
+const settings = computed((): ReaderSettings => {
+  const s = unref(readerStore.settings) as ReaderSettings | undefined
+  return {
+    fontSize: s?.fontSize ?? 16,
+    lineHeight: s?.lineHeight ?? 1.8,
+    theme: s?.theme ?? 'light',
+    fontFamily: s?.fontFamily ?? 'system-ui',
+    pageWidth: s?.pageWidth ?? 800,
+    pageMode: s?.pageMode ?? 'scroll',
+    autoSave: s?.autoSave ?? true
+  }
 })
+
 
 const hasPreviousChapter = computed(() => {
   return !!currentChapter.value?.prevChapterId
@@ -491,11 +509,7 @@ const addToBookshelf = async () => {
     isInBookshelf.value = true
 
     // 显示轻提示
-    message.success({
-      message: '已添加到书架',
-      duration: 2000,
-      showClose: false
-    })
+    message.success('已添加到书架')
   } catch {
     console.error('添加到书架失败')
   }
@@ -569,27 +583,29 @@ const stopReadingTimer = () => {
 // ========== 段落评论相关方法 ==========
 
 // 获取段落评论数量
-const getParagraphCommentCount = (paragraphIndex: number): number => {
+const getParagraphCommentCount = (paragraphIndex: number | string): number => {
   if (!currentChapter.value) return 0
   const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
   return commentStore.summaries.get(paragraphId)?.commentCount || 0
 }
 
 // 处理段落点击
-const handleParagraphClick = (index: number) => {
-  if (highlightedParagraphIndex.value === index) {
+const handleParagraphClick = (index: number | string) => {
+  const numIndex = Number(index)
+  if (highlightedParagraphIndex.value === numIndex) {
     highlightedParagraphIndex.value = null
     commentDrawerVisible.value = false
     commentStore.clearSelection()
     return
   }
 
-  highlightedParagraphIndex.value = index
+  highlightedParagraphIndex.value = numIndex
 }
 
-const handleCommentBadgeClick = async (index: number) => {
-  highlightedParagraphIndex.value = index
-  await openCommentDrawer(index)
+const handleCommentBadgeClick = async (index: number | string) => {
+  const numIndex = Number(index)
+  highlightedParagraphIndex.value = numIndex
+  await openCommentDrawer(numIndex)
 }
 
 // 打开评论抽屉
@@ -727,7 +743,10 @@ const loadChapter = async () => {
     startTime.value = Date.now()
 
     // 如果还没有加载章节列表，加载它
-    if (chapterList.value.length === 0 && currentChapter.value) {
+    const chapterListValue = Array.isArray(chapterList.value)
+      ? chapterList.value
+      : (chapterList.value as any).value || []
+    if (chapterListValue.length === 0 && currentChapter.value) {
       await readerStore.loadChapterList(currentChapter.value.bookId)
     }
   } catch (error: any) {

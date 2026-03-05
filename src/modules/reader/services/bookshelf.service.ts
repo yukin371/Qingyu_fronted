@@ -11,7 +11,8 @@ class BookshelfService {
    * Get bookshelf items
    */
   async getBookshelf(): Promise<BookshelfItem[]> {
-    return await bookshelfAPI.getBookshelf()
+    const response = await bookshelfAPI.getBookshelf()
+    return (response as any).data?.items || (response as any).items || []
   }
 
   /**
@@ -44,7 +45,7 @@ class BookshelfService {
    * Update book status (reading/want_read/finished)
    */
   async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<void> {
-    await bookshelfAPI.updateBookStatus(bookId, status)
+    await bookshelfAPI.updateBookStatus(bookId, { status } as any)
   }
 
   /**
@@ -54,8 +55,8 @@ class BookshelfService {
     bookIds: string[],
     status: 'reading' | 'want_read' | 'finished'
   ): Promise<{ count: number }> {
-    const response = await bookshelfAPI.batchUpdateBookStatus(bookIds, status)
-    return response.data || { count: bookIds.length }
+    const response = await bookshelfAPI.batchUpdateBookStatus({ bookIds, status } as any)
+    return (response as any).data || { count: bookIds.length }
   }
 
   /**
