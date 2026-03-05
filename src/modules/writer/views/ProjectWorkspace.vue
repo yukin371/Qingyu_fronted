@@ -18,6 +18,7 @@
           class="workspace-action-btn workspace-action-btn--icon"
           :class="{ active: !panelStore.leftCollapsed }"
           title="切换左侧边栏"
+          :disabled="isImmersiveMode"
           @click="toggleLeftPanel"
         >
           <QyIcon name="List" :size="14" />
@@ -27,6 +28,7 @@
           class="workspace-action-btn workspace-action-btn--icon"
           :class="{ active: !panelStore.rightCollapsed }"
           title="切换右侧边栏"
+          :disabled="isImmersiveMode"
           @click="toggleRightPanel"
         >
           <QyIcon name="MagicStick" :size="14" />
@@ -46,7 +48,11 @@
     <EditorLayout class="workspace-editor-layout">
       <!-- 左侧面板插槽 -->
       <template #left-panel>
-        <div class="workspace-left-panel-shell" :class="{ 'is-collapsed': panelStore.leftCollapsed }">
+        <div
+          v-if="!isImmersiveMode"
+          class="workspace-left-panel-shell"
+          :class="{ 'is-collapsed': panelStore.leftCollapsed }"
+        >
           <aside class="workspace-left-dock" aria-label="左侧工具栏">
             <button
               v-for="item in leftDockItems"
@@ -64,22 +70,38 @@
 
           <div class="workspace-left-panel-body">
             <div v-if="isEncyclopediaTool" class="world-sidebar">
-              <div class="world-sidebar__header">世界系统</div>
-              <QyGhostButton
-                v-for="item in worldNavItems"
-                :key="item.value"
-                class="world-sidebar__item"
-                :active="encyclopediaSubView === item.value"
-                @click="setEncyclopediaSubView(item.value)"
-              >
-                <span class="world-sidebar__icon">
-                  <QyIcon :name="item.icon" :size="14" />
-                </span>
-                <span class="world-sidebar__copy">
-                  <strong>{{ item.label }}</strong>
-                  <em>{{ item.description }}</em>
-                </span>
-              </QyGhostButton>
+              <div class="world-sidebar__header">{{ worldSidebarTitle }}</div>
+              <template v-if="encyclopediaSubView === 'encyclopedia'">
+                <QyGhostButton
+                  class="world-sidebar__item"
+                  :active="encyclopediaCategory === 'characters'"
+                  @click="setEncyclopediaCategory('characters')"
+                >
+                  <span class="world-sidebar__icon">
+                    <QyIcon name="User" :size="14" />
+                  </span>
+                  <span class="world-sidebar__copy">
+                    <strong>角色卡片</strong>
+                    <em>人物设定与关键标签</em>
+                  </span>
+                </QyGhostButton>
+                <QyGhostButton
+                  class="world-sidebar__item"
+                  :active="encyclopediaCategory === 'locations'"
+                  @click="setEncyclopediaCategory('locations')"
+                >
+                  <span class="world-sidebar__icon">
+                    <QyIcon name="LocationInformation" :size="14" />
+                  </span>
+                  <span class="world-sidebar__copy">
+                    <strong>地点卡片</strong>
+                    <em>空间信息与世界观锚点</em>
+                  </span>
+                </QyGhostButton>
+              </template>
+              <div v-else class="world-sidebar__hint">
+                <p>{{ worldSidebarHint }}</p>
+              </div>
             </div>
             <ProjectSidebar
               v-else
@@ -113,6 +135,8 @@
           v-else-if="activeTool === 'encyclopedia'"
           :project-id="currentProjectId"
           :embedded="true"
+          :active-category="encyclopediaCategory"
+          @update:active-category="setEncyclopediaCategory"
         />
         <TipTapEditorView
           v-else
@@ -127,7 +151,11 @@
 
       <!-- 右侧AI面板插槽 -->
       <template #right-panel>
-        <div class="workspace-right-panel-shell" :class="{ 'is-collapsed': panelStore.rightCollapsed }">
+        <div
+          v-if="!isImmersiveMode"
+          class="workspace-right-panel-shell"
+          :class="{ 'is-collapsed': panelStore.rightCollapsed }"
+        >
           <div class="workspace-right-panel-body">
             <AIPanel
               :session-id="currentProjectId"
@@ -154,15 +182,16 @@
       </template>
     </EditorLayout>
 
-    <footer class="workspace-statusbar">
+    <footer class="workspace-statusbar" :class="{ 'workspace-statusbar--immersive': isImmersiveMode }">
       <div class="workspace-statusbar__stats">
         <span>章节数：{{ chapterCount }}</span>
         <span>目录节点：{{ directoryCount }}</span>
         <span>当前工具：{{ activeToolLabel }}</span>
+        <span v-if="isImmersiveMode">沉浸计时：{{ immersiveTimerText }}</span>
       </div>
       <div class="workspace-statusbar__state">
         <span class="workspace-statusbar__dot" />
-        <span>{{ saveStatusLabel }}</span>
+        <span>{{ isImmersiveMode ? '沉浸写作进行中' : saveStatusLabel }}</span>
       </div>
     </footer>
   </div>
@@ -188,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
@@ -266,6 +295,8 @@ const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
 const isEncyclopediaTool = computed(() => editorStore.activeTool === 'encyclopedia')
 type EncyclopediaSubView = 'relations' | 'encyclopedia' | 'timeline' | 'branches'
+type EncyclopediaInnerCategory = 'characters' | 'locations'
+type LeftDockTool = 'writing' | 'immersive' | EncyclopediaSubView
 
 const encyclopediaSubView = computed<EncyclopediaSubView>(() => {
   const raw = String(route.query.encyclopediaView || route.query.worldView || '').toLowerCase()
@@ -276,32 +307,27 @@ const encyclopediaSubView = computed<EncyclopediaSubView>(() => {
   return 'relations'
 })
 
-const setEncyclopediaSubView = async (view: EncyclopediaSubView) => {
+const encyclopediaCategory = computed<EncyclopediaInnerCategory>(() => {
+  const raw = String(route.query.worldCategory || '').toLowerCase()
+  return raw === 'locations' ? 'locations' : 'characters'
+})
+
+const setEncyclopediaCategory = async (category: EncyclopediaInnerCategory) => {
   await router.replace({
     query: {
       ...route.query,
-      tool: 'encyclopedia',
-      encyclopediaView: view,
+      worldCategory: category,
     },
   })
 }
 
-const worldNavItems: Array<{
-  value: EncyclopediaSubView
-  label: string
-  description: string
-  icon: string
-}> = [
-  { value: 'relations', label: '关系图谱', description: '角色连接与强度', icon: 'Share' },
-  { value: 'encyclopedia', label: '设定百科', description: '人物与地点卡片', icon: 'Collection' },
-  { value: 'timeline', label: '时间线大纲', description: '事件顺序与优先级', icon: 'Clock' },
-  { value: 'branches', label: '分支系统', description: '主支线结构与状态', icon: 'Connection' },
-]
-
-const leftDockItems: Array<{ tool: ActiveTool; label: string; icon: string }> = [
+const leftDockItems: Array<{ tool: LeftDockTool; label: string; icon: string }> = [
   { tool: 'writing', label: '写作', icon: 'Edit' },
   { tool: 'immersive', label: '沉浸', icon: 'FullScreen' },
-  { tool: 'encyclopedia', label: '设定', icon: 'Location' },
+  { tool: 'relations', label: '关系', icon: 'Share' },
+  { tool: 'encyclopedia', label: '百科', icon: 'Collection' },
+  { tool: 'timeline', label: '时间', icon: 'Clock' },
+  { tool: 'branches', label: '分支', icon: 'Connection' },
 ]
 
 type RightDockTool = 'ai'
@@ -310,33 +336,100 @@ const rightDockItems: Array<{ tool: RightDockTool; label: string; icon: string }
   { tool: 'ai', label: 'AI 助手', icon: 'MagicStick' },
 ]
 
-const activeToolForDock = computed<ActiveTool>(() => {
+const activeToolForDock = computed<LeftDockTool>(() => {
   const tool = editorStore.activeTool
+  if (tool === 'encyclopedia') return encyclopediaSubView.value
   return tool === 'ai' || tool === 'chapters' ? 'writing' : tool
 })
 
 const activeRightDockTool = computed<RightDockTool>(() => 'ai')
+const isImmersiveMode = computed(() => editorStore.activeTool === 'immersive')
 
-const handleDockSelect = async (tool: ActiveTool) => {
-  const normalizedTool: ActiveTool =
-    tool === 'chapters' || tool === 'ai' ? 'writing' : tool
+const immersiveStartedAt = ref<number | null>(null)
+const immersiveAccumulatedSeconds = ref(0)
+const immersiveTickNow = ref(Date.now())
+const immersiveTickId = ref<ReturnType<typeof setInterval> | null>(null)
+const immersivePrevLeftCollapsed = ref<boolean | null>(null)
+const immersivePrevRightCollapsed = ref<boolean | null>(null)
 
-  editorStore.setActiveTool(normalizedTool)
-  const nextQuery = { ...route.query, tool: normalizedTool } as Record<string, unknown>
+const immersiveElapsedSeconds = computed(() => {
+  if (!isImmersiveMode.value || immersiveStartedAt.value === null) {
+    return immersiveAccumulatedSeconds.value
+  }
+  const ongoing = Math.max(0, Math.floor((immersiveTickNow.value - immersiveStartedAt.value) / 1000))
+  return immersiveAccumulatedSeconds.value + ongoing
+})
 
-  if (normalizedTool === 'encyclopedia') {
-    if (!nextQuery.encyclopediaView) {
-      nextQuery.encyclopediaView = 'relations'
-    }
+const immersiveTimerText = computed(() => {
+  const total = immersiveElapsedSeconds.value
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const seconds = total % 60
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
+
+const startImmersiveTimer = () => {
+  if (immersiveStartedAt.value !== null) return
+  immersiveStartedAt.value = Date.now()
+  immersiveTickNow.value = immersiveStartedAt.value
+  if (immersiveTickId.value) return
+  immersiveTickId.value = setInterval(() => {
+    immersiveTickNow.value = Date.now()
+  }, 1000)
+}
+
+const stopImmersiveTimer = () => {
+  if (immersiveStartedAt.value !== null) {
+    const delta = Math.max(0, Math.floor((Date.now() - immersiveStartedAt.value) / 1000))
+    immersiveAccumulatedSeconds.value += delta
+    immersiveStartedAt.value = null
+  }
+  if (immersiveTickId.value) {
+    clearInterval(immersiveTickId.value)
+    immersiveTickId.value = null
+  }
+}
+
+const handleDockSelect = async (tool: LeftDockTool) => {
+  if (isImmersiveMode.value && tool !== 'writing' && tool !== 'immersive') {
+    return
+  }
+  const nextQuery = { ...route.query } as Record<string, unknown>
+  if (tool === 'relations' || tool === 'encyclopedia' || tool === 'timeline' || tool === 'branches') {
+    editorStore.setActiveTool('encyclopedia')
+    nextQuery.tool = 'encyclopedia'
+    nextQuery.encyclopediaView = tool
   } else {
+    const normalizedTool: ActiveTool = tool
+    editorStore.setActiveTool(normalizedTool)
+    nextQuery.tool = normalizedTool
     delete nextQuery.encyclopediaView
     delete nextQuery.worldView
+    delete nextQuery.worldCategory
   }
 
   await router.replace({ query: nextQuery as any })
 }
 
+const worldSidebarTitle = computed(() => {
+  if (encyclopediaSubView.value === 'relations') return '关系图谱工具'
+  if (encyclopediaSubView.value === 'timeline') return '时间线工具'
+  if (encyclopediaSubView.value === 'branches') return '分支工具'
+  return '设定百科工具'
+})
+
+const worldSidebarHint = computed(() => {
+  if (encyclopediaSubView.value === 'relations') return '当前视图聚焦角色关系，选择角色即可查看关系链路与强度。'
+  if (encyclopediaSubView.value === 'timeline') return '当前视图聚焦事件推进，切换时间线并校准事件顺序。'
+  if (encyclopediaSubView.value === 'branches') return '当前视图聚焦主支线结构，建议从根节点逐层推进。'
+  return '在左侧选择角色或地点分类以切换百科卡片列表。'
+})
+
 const handleRightDockSelect = (tool: RightDockTool) => {
+  if (isImmersiveMode.value) return
   if (tool === 'ai') {
     panelStore.setRightCollapsed(false)
   }
@@ -640,6 +733,31 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => isImmersiveMode.value,
+  (immersive) => {
+    if (immersive) {
+      immersivePrevLeftCollapsed.value = panelStore.leftCollapsed
+      immersivePrevRightCollapsed.value = panelStore.rightCollapsed
+      panelStore.setLeftCollapsed(true)
+      panelStore.setRightCollapsed(true)
+      startImmersiveTimer()
+      return
+    }
+
+    stopImmersiveTimer()
+    if (immersivePrevLeftCollapsed.value !== null) {
+      panelStore.setLeftCollapsed(immersivePrevLeftCollapsed.value)
+      immersivePrevLeftCollapsed.value = null
+    }
+    if (immersivePrevRightCollapsed.value !== null) {
+      panelStore.setRightCollapsed(immersivePrevRightCollapsed.value)
+      immersivePrevRightCollapsed.value = null
+    }
+  },
+  { immediate: true },
+)
+
 const handleAddChapterQuick = () => {
   newDocForm.value.type = 'chapter'
   showCreateDocDialog.value = true
@@ -690,12 +808,18 @@ const handleShareDraft = async () => {
 }
 
 const toggleLeftPanel = () => {
+  if (isImmersiveMode.value) return
   panelStore.setLeftCollapsed(!panelStore.leftCollapsed)
 }
 
 const toggleRightPanel = () => {
+  if (isImmersiveMode.value) return
   panelStore.setRightCollapsed(!panelStore.rightCollapsed)
 }
+
+onBeforeUnmount(() => {
+  stopImmersiveTimer()
+})
 
 // 创建文档
 const handleCreateDoc = async () => {
@@ -884,6 +1008,11 @@ const handleAIApplyGeneratedText = (payload: {
   background: #f0f5ff;
 }
 
+.workspace-action-btn:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
 .workspace-action-btn--primary {
   background: linear-gradient(145deg, #2f6fff, #1a4fcb);
   border-color: #2f6fff;
@@ -927,6 +1056,10 @@ const handleAIApplyGeneratedText = (payload: {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
+}
+
+.workspace-statusbar.workspace-statusbar--immersive {
+  background: linear-gradient(90deg, #f0872f, #de6720);
 }
 
 .workspace-statusbar__stats {
@@ -1206,6 +1339,20 @@ const handleAIApplyGeneratedText = (payload: {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.world-sidebar__hint {
+  border: 1px solid #dbe4f3;
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 10px 12px;
+  color: #5f7191;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.world-sidebar__hint p {
+  margin: 0;
 }
 
 @media (max-width: 1024px) {
