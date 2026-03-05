@@ -61,10 +61,10 @@ function createAuthGuard(router: Router) {
       ? new URLSearchParams(window.location.search).get('test') === 'true'
       : false
     const routeHasTestMode =
-      String(routeTestFlag) === 'true' ||
-      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => String(v) === 'true')) ||
-      String(fromTestFlag) === 'true' ||
-      (Array.isArray(fromTestFlag) && fromTestFlag.some((v) => String(v) === 'true')) ||
+      routeTestFlag === 'true' ||
+      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true')) ||
+      fromTestFlag === 'true' ||
+      (Array.isArray(fromTestFlag) && fromTestFlag.some((v) => v === 'true')) ||
       currentUrlTestMode ||
       to.hash.includes('test=true')
     authStore.ensureTestModeMockSession(routeHasTestMode)

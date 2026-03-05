@@ -57,6 +57,12 @@ interface Props {
   showExtra?: boolean
 }
 
+interface Emits {
+  (_e: 'refresh'): void
+  (_e: 'recharge'): void
+  (_e: 'withdraw'): void
+}
+
 withDefaults(defineProps<Props>(), {
   balance: 0,
   availableAmount: 0,

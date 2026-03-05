@@ -111,7 +111,7 @@ const groupProps = inject<{
   size?: RadioSize
   button?: boolean
   modelValue?: string | number | boolean
-  updateModelValue?: (v: string | number | boolean) => void  // eslint-disable-line no-unused-vars
+  updateModelValue?: (value: string | number | boolean) => void
 }>('radioGroup', {})
 
 // 计算实际属性（优先使用自身属性，否则使用组属性）

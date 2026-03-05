@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 书架管理 API
  * 对接后端 /api/v1/reader/books 路由
  * 后端路由文档: Qingyu_backend/router/reader/reader_router.go
@@ -6,6 +6,15 @@
 
 import { httpService } from '@/core/services/http.service'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
+
+type HttpClientLike = {
+  get<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  post<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  put<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  delete<T>(url: string, config?: Record<string, unknown>): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
 
 /**
  * 书架书籍信息
@@ -55,7 +64,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async getBookshelf(params?: BookshelfParams): Promise<PaginatedResponse<BookshelfBook>> {
-    return httpService.get<PaginatedResponse<BookshelfBook>>('/reader/books', { params })
+    return httpClient.get<PaginatedResponse<BookshelfBook>>('/reader/books', { params })
   },
 
   /**
@@ -69,7 +78,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async getRecentReading(limit: number = 10): Promise<APIResponse<BookshelfBook[]>> {
-    return httpService.get<APIResponse<BookshelfBook[]>>('/reader/books/recent', {
+    return httpClient.get<APIResponse<BookshelfBook[]>>('/reader/books/recent', {
       params: { limit }
     })
   },
@@ -90,7 +99,7 @@ export const bookshelfAPI = {
     page?: number
     pageSize?: number
   }): Promise<PaginatedResponse<BookshelfBook>> {
-    return httpService.get<PaginatedResponse<BookshelfBook>>('/reader/books/unfinished', {
+    return httpClient.get<PaginatedResponse<BookshelfBook>>('/reader/books/unfinished', {
       params
     })
   },
@@ -111,7 +120,7 @@ export const bookshelfAPI = {
     page?: number
     pageSize?: number
   }): Promise<PaginatedResponse<BookshelfBook>> {
-    return httpService.get<PaginatedResponse<BookshelfBook>>('/reader/books/finished', {
+    return httpClient.get<PaginatedResponse<BookshelfBook>>('/reader/books/finished', {
       params
     })
   },
@@ -127,7 +136,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async addToBookshelf(bookId: string): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>(`/reader/books/${bookId}`)
+    return httpClient.post<APIResponse<void>>(`/reader/books/${bookId}`)
   },
 
   /**
@@ -141,7 +150,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async removeFromBookshelf(bookId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/reader/books/${bookId}`)
+    return httpClient.delete<APIResponse<void>>(`/reader/books/${bookId}`)
   },
 
   /**
@@ -156,7 +165,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<APIResponse<void>> {
-    return httpService.put<APIResponse<void>>(`/reader/books/${bookId}/status`, { status })
+    return httpClient.put<APIResponse<void>>(`/reader/books/${bookId}/status`, { status })
   },
 
   /**
@@ -174,7 +183,7 @@ export const bookshelfAPI = {
     bookIds: string[],
     status: 'reading' | 'want_read' | 'finished'
   ): Promise<APIResponse<{ count: number }>> {
-    return httpService.put<APIResponse<{ count: number }>>('/reader/books/batch/status', {
+    return httpClient.put<APIResponse<{ count: number }>>('/reader/books/batch/status', {
       bookIds,
       status
     })
@@ -191,7 +200,7 @@ export const bookshelfAPI = {
    * @security BearerAuth
    */
   async checkBookStatus(bookId: string): Promise<APIResponse<{ isInShelf: boolean; status?: string }>> {
-    return httpService.get<APIResponse<{ isInShelf: boolean; status?: string }>>(`/reader/books/${bookId}/status`)
+    return httpClient.get<APIResponse<{ isInShelf: boolean; status?: string }>>(`/reader/books/${bookId}/status`)
   }
 }
 

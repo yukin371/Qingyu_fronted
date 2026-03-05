@@ -229,7 +229,7 @@ const loadBooks = async () => {
     }
 
     console.log('[BooksView] Loading books with params:', params)
-    const response = await getBookList(params)
+    const response: any = await getBookList(params)
 
     // 处理多种可能的响应格式
     // 格式1: response 直接是书籍数组 (httpService 默认行为)
@@ -260,11 +260,11 @@ const loadBooks = async () => {
             console.log('[BooksView] First book data:', response.data[0])
           }
           books.value = response.data
-          total.value = (response as any).total || response.data.length
+          total.value = response.total || response.data.length
         } else if (response.data && (response.data as any).list) {
           // 兼容 { data: { list: [...], total? } }
           books.value = (response.data as any).list
-          total.value = (response.data as any).total || (response as any).total || (response.data as any).list.length
+          total.value = (response.data as any).total || response.total || (response.data as any).list.length
         } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')
@@ -370,15 +370,13 @@ const handleFilterChange = () => {
 }
 
 // 页码变化
-const handlePageChange = (page: number) => {
-  currentPage.value = page
+const handlePageChange = () => {
   loadBooks()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 每页数量变化
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
+const handleSizeChange = () => {
   currentPage.value = 1
   loadBooks()
 }

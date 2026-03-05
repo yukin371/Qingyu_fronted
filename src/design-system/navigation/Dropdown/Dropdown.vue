@@ -31,6 +31,9 @@ const props = withDefaults(defineProps<DropdownProps>(), {
 // 组件 Emits
 const emit = defineEmits<DropdownEmits>()
 
+// 组件 Slots
+const _slots = defineSlots<DropdownSlots>()
+
 // 状态管理
 const isVisible = ref(false)
 const triggerRef = ref<HTMLElement>()
@@ -211,6 +214,13 @@ const handleTriggerHover = () => {
 const handleTriggerLeave = () => {
   if (triggerArray.value.includes('hover')) {
     handleHide()
+  }
+}
+
+const clearShowTimer = () => {
+  if (showTimer) {
+    clearTimeout(showTimer)
+    showTimer = null
   }
 }
 

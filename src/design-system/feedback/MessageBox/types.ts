@@ -4,13 +4,11 @@
 
 // MessageBox 类型
 export type MessageBoxType = 'alert' | 'confirm' | 'prompt'
-
 // MessageBox 图标类型（用于显示不同样式的图标）
 export type MessageBoxIconType = 'success' | 'warning' | 'info' | 'error'
 
 // MessageBox type 属性可以是 MessageBoxType 或 MessageBoxIconType（向后兼容）
 export type MessageBoxTypeOrIcon = MessageBoxType | MessageBoxIconType
-
 // MessageBox 动作
 export type MessageBoxAction = 'confirm' | 'cancel'
 

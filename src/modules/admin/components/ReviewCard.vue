@@ -53,6 +53,12 @@ interface Props {
   item: PendingReview
 }
 
+interface Emits {
+  (e: 'approve', _item: PendingReview): void
+  (e: 'reject', _item: PendingReview): void
+  (e: 'view', _item: PendingReview): void
+}
+
 const props = defineProps<Props>()
 const emit = defineEmits<{
   approve: [item: PendingReview]
@@ -68,8 +74,8 @@ const contentTypeName = computed(() => {
     chapter: '章节',
     comment: '评论'
   }
-  const type = props.item.contentType ?? props.item.type
-  return typeMap[type ?? ''] ?? type ?? '未知类型'
+  const contentType = props.item.contentType || props.item.type || 'document'
+  return typeMap[contentType] || contentType
 })
 
 // 截断内容

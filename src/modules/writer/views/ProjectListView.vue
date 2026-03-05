@@ -388,8 +388,7 @@ const handleCommand = async (command: string, project: any) => {
     try {
       await messageBox.confirm(`确定要删除项目"${project.title}"吗？此操作不可恢复。`, '确认删除', {
         confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
+        cancelButtonText: '取消'
       })
 
       await writerStore.deleteProjectById(project.projectId)

@@ -7,6 +7,13 @@
 import { httpService } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 
+type HttpClientLike = {
+  get<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  post<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
+
 /**
  * 推荐书籍信息
  */
@@ -153,7 +160,7 @@ export const recommendationAPI = {
   async getPersonalized(
     params?: PersonalizedRecommendationParams
   ): Promise<APIResponse<RecommendationResponse>> {
-    return httpService.get<APIResponse<RecommendationResponse>>(
+    return httpClient.get<APIResponse<RecommendationResponse>>(
       '/recommendation/personalized',
       { params }
     )
@@ -171,7 +178,7 @@ export const recommendationAPI = {
   async getHot(
     params?: HotRecommendationParams
   ): Promise<APIResponse<RecommendationResponse>> {
-    return httpService.get<APIResponse<RecommendationResponse>>('/recommendation/hot', {
+    return httpClient.get<APIResponse<RecommendationResponse>>('/recommendation/hot', {
       params
     })
   },
@@ -188,7 +195,7 @@ export const recommendationAPI = {
   async getSimilar(
     params: SimilarRecommendationParams
   ): Promise<APIResponse<RecommendationResponse>> {
-    return httpService.get<APIResponse<RecommendationResponse>>('/recommendation/similar', {
+    return httpClient.get<APIResponse<RecommendationResponse>>('/recommendation/similar', {
       params
     })
   },
@@ -205,7 +212,7 @@ export const recommendationAPI = {
   async getByCategory(
     params: CategoryRecommendationParams
   ): Promise<APIResponse<RecommendationResponse>> {
-    return httpService.get<APIResponse<RecommendationResponse>>('/recommendation/category', {
+    return httpClient.get<APIResponse<RecommendationResponse>>('/recommendation/category', {
       params
     })
   },
@@ -221,7 +228,7 @@ export const recommendationAPI = {
    * @security BearerAuth
    */
   async recordBehavior(behavior: UserBehavior): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>('/recommendation/behavior', behavior)
+    return httpClient.post<APIResponse<void>>('/recommendation/behavior', behavior)
   },
 
   /**
@@ -236,7 +243,7 @@ export const recommendationAPI = {
   async getHomepage(
     params?: HomepageRecommendationParams
   ): Promise<APIResponse<HomepageRecommendationResponse>> {
-    return httpService.get<APIResponse<HomepageRecommendationResponse>>(
+    return httpClient.get<APIResponse<HomepageRecommendationResponse>>(
       '/recommendation/homepage',
       { params }
     )

@@ -10,19 +10,16 @@ import {
   getDocumentTree,
   getDocumentById,
   getDocumentContent,
+  getDocumentContents,
   createDocument,
   updateDocument,
   updateDocumentContent,
+  replaceDocumentContents,
+  searchProjectKeywords,
   deleteDocument,
   moveDocument,
   autosaveDocument,
-  listCharacters,
-  listCharacterRelations,
-  listLocations,
-  getLocationTree,
-  listTimelines,
-  listTimelineEvents,
-  getOutlineTree,
+  type ParagraphContent,
   type ProjectCreateData,
   type ProjectUpdateData,
 } from '..'
@@ -284,6 +281,40 @@ export const useWriterStore = defineStore('writer', {
   },
 
   actions: {
+    /**
+     * 将段落数组合并为编辑器字符串
+     */
+    composeContentFromParagraphs(contents: ParagraphContent[] = []): string {
+      if (!Array.isArray(contents) || contents.length === 0) {
+        return ''
+      }
+
+      return contents
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map((item) => item.content || '')
+        .join('\n\n')
+    },
+
+    /**
+     * 将编辑器字符串拆分为段落数组（用于V2批量提交）
+     */
+    splitContentToParagraphs(content: string): ParagraphContent[] {
+      const blocks = (content || '')
+        .split(/\n{2,}/g)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+
+      if (blocks.length === 0) {
+        return [{ order: 1, content: '' }]
+      }
+
+      return blocks.map((item, index) => ({
+        order: index + 1,
+        content: item,
+      }))
+    },
+
     // ==================== 项目管理 ====================
 
     /**
@@ -361,11 +392,10 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         // httpService 响应拦截器会自动解包返回 data
-        const response = await createProject(data)
-        // response 是 CreateProjectResponse 类型，后端返回 projectId 字段
-        const projectData = response as unknown as Record<string, unknown>
+        const response = await createProject(data) as any
+        const projectData = response as Record<string, unknown>
         // 兼容后端返回 projectId 或 id 的情况
-        const projectId = projectData.projectId || projectData.id
+        const projectId = projectData?.projectId || projectData?.id
         if (projectData && projectId) {
           const projectWithId = { ...projectData, projectId } as Project
           this.projects.unshift(projectWithId)
@@ -405,7 +435,7 @@ export const useWriterStore = defineStore('writer', {
             (p) => p.projectId === this.currentProject!.projectId
           )
           if (index !== -1) {
-            this.projects[index] = this.currentProject
+            this.projects[index] = this.currentProject!
           }
         } else {
           this.error = '更新项目失败'
@@ -524,12 +554,20 @@ export const useWriterStore = defineStore('writer', {
       this.error = null
 
       try {
-        // httpService 响应拦截器会自动解包返回 data
-        const response = await getDocumentContent(documentId)
-        // response 是 DocumentContentResponse 类型
-        const contentData = response as { content?: string }
-        if (contentData && contentData.content) {
-          this.editorContent = contentData.content || ''
+        try {
+          const response = await getDocumentContents(documentId)
+          if (response && Array.isArray((response as any).contents)) {
+            this.editorContent = this.composeContentFromParagraphs((response as any).contents || [])
+            this.isDirty = false
+            return
+          }
+        } catch (v2Error) {
+          console.warn('V2分段接口加载失败，回退到content接口:', v2Error)
+        }
+
+        const fallback = await getDocumentContent(documentId)
+        if (fallback && (fallback as any).content !== undefined) {
+          this.editorContent = (fallback as any).content || ''
           this.isDirty = false
         } else {
           this.error = '加载文档内容失败'
@@ -606,9 +644,16 @@ export const useWriterStore = defineStore('writer', {
       this.isSaving = true
 
       try {
-        // API 期望一个对象作为 body 参数
-        await updateDocumentContent(documentId, { content })
-        // updateDocumentContent 返回 void，直接更新本地状态
+        const contents = this.splitContentToParagraphs(content)
+        try {
+          await replaceDocumentContents(documentId, contents)
+        } catch (v2Error) {
+          console.warn('V2分段保存失败，回退到content接口:', v2Error)
+          await updateDocumentContent(documentId, {
+            content,
+            version: this.editorVersion,
+          })
+        }
         this.editorContent = content
         this.isDirty = false
         this.lastSaved = new Date()
@@ -632,19 +677,18 @@ export const useWriterStore = defineStore('writer', {
       }
 
       try {
-        // httpService 响应拦截器会自动解包返回 data
-        const response = await autosaveDocument(documentId, { content, version: this.editorVersion })
-        // response 是 AutoSaveResponse 类型
-        const saveData = response as { version?: number }
-        if (saveData && saveData.version !== undefined) {
+        const response = await autosaveDocument(documentId, {
+          content,
+          currentVersion: this.editorVersion,
+          saveType: 'auto',
+        })
+        if (response) {
           this.lastSaved = new Date()
           this.isDirty = false
 
-          // 检查版本冲突
-          const newVersion = saveData.version
+          const newVersion = (response as any).newVersion
           if (newVersion && newVersion !== this.editorVersion) {
             console.warn('检测到版本冲突')
-            // 可以触发版本冲突处理逻辑
           }
         }
       } catch (error: unknown) {
@@ -692,8 +736,8 @@ export const useWriterStore = defineStore('writer', {
         }) as { code?: number; message?: string }
         if (response.code === 200) {
           // 重新加载文档树
-          if (this.currentProject && this.currentProject.projectId) {
-            await this.loadDocumentTree(this.currentProject.projectId)
+          if (this.currentProject) {
+            await this.loadDocumentTree(this.currentProject.projectId!)
           }
         } else {
           this.error = response.message || '移动文档失败'
@@ -714,6 +758,28 @@ export const useWriterStore = defineStore('writer', {
     updateEditorContent(content: string): void {
       this.editorContent = content
       this.isDirty = true
+    },
+
+    /**
+     * 关键词检索（支持拼音模糊/补全）
+     */
+    async searchKeywords(
+      query: string,
+      limit: number = 20,
+      projectId?: string,
+    ): Promise<Array<{ type: string; id: string; name: string; matchMode: string }>> {
+      const targetProjectId = projectId || this.currentProjectId
+      if (!targetProjectId || !query.trim()) {
+        return []
+      }
+
+      try {
+        const response = await searchProjectKeywords(targetProjectId, query.trim(), limit)
+        return Array.isArray((response as any)?.suggestions) ? (response as any).suggestions : []
+      } catch (error) {
+        console.warn('关键词检索失败:', error)
+        return []
+      }
     },
 
     /**
@@ -1038,10 +1104,9 @@ export const useWriterStore = defineStore('writer', {
 
       this.characters.loading = true
       try {
-        const characters = await listCharacters(pid)
-        this.characters.list = characters as unknown as Character[]
-      } catch (error: unknown) {
-        const err = error as Error
+        const writerModule = await import('..') as any
+        this.characters.list = await (writerModule.listCharacters?.(pid) ?? [])
+      } catch (error: any) {
         console.error('加载角色列表失败:', error)
         this.error = err.message
       } finally {
@@ -1057,9 +1122,9 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const relations = await listCharacterRelations(pid)
-        this.characters.relations = relations as unknown as CharacterRelation[]
-      } catch (error: unknown) {
+        const writerModule = await import('..') as any
+        this.characters.relations = await (writerModule.listCharacterRelations?.(pid) ?? [])
+      } catch (error: any) {
         console.error('加载角色关系失败:', error)
       }
     },
@@ -1082,10 +1147,9 @@ export const useWriterStore = defineStore('writer', {
 
       this.locations.loading = true
       try {
-        const locations = await listLocations(pid)
-        this.locations.list = locations as unknown as Location[]
-      } catch (error: unknown) {
-        const err = error as Error
+        const writerModule = await import('..') as any
+        this.locations.list = await (writerModule.listLocations?.(pid) ?? [])
+      } catch (error: any) {
         console.error('加载地点列表失败:', error)
         this.error = err.message
       } finally {
@@ -1101,9 +1165,9 @@ export const useWriterStore = defineStore('writer', {
       if (!pid) return
 
       try {
-        const tree = await getLocationTree(pid)
-        this.locations.tree = tree as unknown as Location[]
-      } catch (error: unknown) {
+        const writerModule = await import('..') as any
+        this.locations.tree = await (writerModule.getLocationTree?.(pid) ?? [])
+      } catch (error: any) {
         console.error('加载地点树失败:', error)
       }
     },
@@ -1126,8 +1190,8 @@ export const useWriterStore = defineStore('writer', {
 
       this.timeline.loading = true
       try {
-        const timelines = await listTimelines(pid)
-        this.timeline.list = Array.isArray(timelines) ? timelines as Timeline[] : []
+        const writerModule = await import('..') as any
+        this.timeline.list = await (writerModule.listTimelines?.(pid) ?? [])
         // 默认选择第一个时间线
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
           this.timeline.currentTimeline = this.timeline.list[0]
@@ -1149,9 +1213,9 @@ export const useWriterStore = defineStore('writer', {
       if (!tid) return
 
       try {
-        const events = await listTimelineEvents(tid)
-        this.timeline.events = Array.isArray(events) ? events as TimelineEvent[] : []
-      } catch (error: unknown) {
+        const writerModule = await import('..') as any
+        this.timeline.events = await (writerModule.listTimelineEvents?.(tid) ?? [])
+      } catch (error: any) {
         console.error('加载时间线事件失败:', error)
       }
     },
@@ -1184,10 +1248,9 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const tree = await getOutlineTree(pid)
-        this.outline.tree = Array.isArray(tree) ? tree as OutlineNode[] : []
-      } catch (error: unknown) {
-        const err = error as Error
+        const writerModule = await import('..') as any
+        this.outline.tree = await (writerModule.getOutlineTree?.(pid) ?? [])
+      } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = err.message
       } finally {

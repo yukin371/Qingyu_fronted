@@ -95,7 +95,7 @@
                             <el-button type="primary" size="small" @click.stop="continueReading(book)">
                                 继续阅读
                             </el-button>
-                            <el-dropdown @command="(cmd: string) => handleAction(cmd, book)">
+                            <el-dropdown @command="handleAction($event, book)">
                                 <el-button size="small" text>
                                     <QyIcon name="MoreFilled"  />
                                 </el-button>
@@ -262,35 +262,51 @@ async function loadData(): Promise<void> {
 // 加载书架数据
 async function loadBooks(): Promise<void> {
     try {
-        const response = await getBookshelf({} as any)
+        // 将前端的 status 映射到后端 API 期望的值
+        let apiStatus: 'reading' | 'finished' | 'all' = 'all'
+        if (activeTab.value === 'reading') {
+            apiStatus = 'reading'
+        } else if (activeTab.value === 'completed') {
+            apiStatus = 'finished'
+        } else {
+            apiStatus = 'all'
+        }
 
-        // HTTP拦截器已经提取了data字段，所以response就是 {books: [], total: 0, page: 1, size: 100}
-        books.value = (response as any)?.items || (response as any)?.books || []
+        const response = await getBookshelf({
+            page: 1,
+            size: 100
+        } as any)
+
+        const payload = response as any
+        const bookList = payload?.books || payload?.items || payload?.data?.books || payload?.data?.items || []
+        books.value = Array.isArray(bookList) ? bookList : []
+
+        if (apiStatus !== 'all') {
+            books.value = books.value.filter(b => b?.status === apiStatus)
+        }
 
         // 更新状态计数
-        if ((response as any)?.total !== undefined) {
+        if (payload?.total !== undefined || Array.isArray(books.value)) {
             statusCounts.value = {
                 reading: books.value.filter(b => b.status === 'reading').length,
                 want_to_read: books.value.filter(b => b.status === 'want_to_read').length,
                 completed: books.value.filter(b => b.status === 'completed').length
             }
         }
-    } catch (error: unknown) {
-        const err = error as Error
-        message.error(err.message || '加载书架失败')
+    } catch (error: any) {
+        message.error(error.message || '加载书架失败')
     }
 }
 
 async function loadHistory(): Promise<void> {
     try {
         const response = await getReadingHistory(historyPage.value, historyPageSize.value)
-
-        const data = response || {}
-        histories.value = Array.isArray(data) ? data : []
-        historyTotal.value = (data as any).total || 0
-    } catch (error: unknown) {
-        const err = error as Error
-        message.error(err.message || '加载历史记录失败')
+        const payload = response as any
+        const list = payload?.items || payload?.list || payload?.data || []
+        histories.value = Array.isArray(list) ? list : []
+        historyTotal.value = payload?.total || histories.value.length
+    } catch (error: any) {
+        message.error(error.message || '加载历史记录失败')
     }
 }
 
@@ -305,9 +321,8 @@ async function loadStats(): Promise<void> {
             finishedBooks: finishedCount,
             todayTime: 0
         }
-    } catch (error: unknown) {
-        const err = error as Error
-        message.error(err.message || '加载统计数据失败')
+    } catch (error: any) {
+        message.error(error.message || '加载统计数据失败')
         // 使用默认值
         stats.value = {
             totalBooks: books.value.length,
@@ -401,8 +416,7 @@ async function handleRemove(bookId: string): Promise<void> {
     try {
         await messageBox.confirm('确定要移出书架吗？', '提示', {
             confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
+            cancelButtonText: '取消'
         })
 
         await removeFromBookshelf(bookId)
@@ -423,21 +437,16 @@ async function handleBatchMove(): Promise<void> {
     }
 
     try {
-        // 显示状态选择对话框
-        const { value } = await messageBox({
-            title: '批量移动书籍',
-            message: '请选择目标状态',
-            showCancelButton: true,
-            confirmButtonText: '确定',
-            cancelButtonText: '取消'
-        })
-
-        if (!value) {
+        const value = window.prompt('请输入目标状态: reading / want_read / finished', 'reading')
+        if (!value || !['reading', 'want_read', 'finished'].includes(value)) {
             return
         }
 
         // 调用服务层批量更新状态
-        const result = await bookshelfService.batchUpdateBookStatus(selectedBooks.value, value as 'reading' | 'want_read' | 'finished')
+        const result = await bookshelfService.batchUpdateBookStatus(
+            selectedBooks.value,
+            value as 'reading' | 'want_read' | 'finished'
+        )
         message.success(`已成功移动 ${result.count} 本书籍`)
         toggleBatchMode()
         loadBooks() // 重新加载书架数据
@@ -458,8 +467,7 @@ async function handleBatchDelete(): Promise<void> {
     try {
         await messageBox.confirm(`确定要移出所选的 ${selectedBooks.value.length} 本书吗？`, '提示', {
             confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
+            cancelButtonText: '取消'
         })
 
         // 逐个删除书籍

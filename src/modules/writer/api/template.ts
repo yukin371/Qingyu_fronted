@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 模板管理 API
  *
  * 提供模板的增删改查、应用等功能
@@ -7,6 +7,15 @@
  */
 
 import httpService from '@/core/services/http.service'
+
+type HttpClientLike = {
+  get<T>(url: string, config?: unknown): Promise<T>
+  post<T>(url: string, data?: unknown, config?: unknown): Promise<T>
+  put<T>(url: string, data?: unknown, config?: unknown): Promise<T>
+  delete<T>(url: string, config?: unknown): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
 
 // ==========================================
 // 类型定义
@@ -129,7 +138,7 @@ export const templateApi = {
    * GET /api/v1/writer/templates
    */
   list(params?: ListTemplatesParams) {
-    return httpService.get<ListTemplatesResponse>(BASE_TEMPLATE_URL, params as any)
+    return httpClient.get<ListTemplatesResponse>(BASE_TEMPLATE_URL, params)
   },
 
   /**
@@ -137,7 +146,7 @@ export const templateApi = {
    * GET /api/v1/writer/templates/:id
    */
   getDetail(templateId: string) {
-    return httpService.get<Template>(`${BASE_TEMPLATE_URL}/${templateId}`)
+    return httpClient.get<Template>(`${BASE_TEMPLATE_URL}/${templateId}`)
   },
 
   /**
@@ -145,7 +154,7 @@ export const templateApi = {
    * POST /api/v1/writer/templates
    */
   create(data: CreateTemplateRequest) {
-    return httpService.post<Template>(BASE_TEMPLATE_URL, data)
+    return httpClient.post<Template>(BASE_TEMPLATE_URL, data)
   },
 
   /**
@@ -153,7 +162,7 @@ export const templateApi = {
    * PUT /api/v1/writer/templates/:id
    */
   update(templateId: string, data: UpdateTemplateRequest) {
-    return httpService.put<Template>(`${BASE_TEMPLATE_URL}/${templateId}`, data)
+    return httpClient.put<Template>(`${BASE_TEMPLATE_URL}/${templateId}`, data)
   },
 
   /**
@@ -161,7 +170,7 @@ export const templateApi = {
    * DELETE /api/v1/writer/templates/:id
    */
   delete(templateId: string) {
-    return httpService.delete<void>(`${BASE_TEMPLATE_URL}/${templateId}`)
+    return httpClient.delete<void>(`${BASE_TEMPLATE_URL}/${templateId}`)
   },
 
   /**
@@ -169,7 +178,7 @@ export const templateApi = {
    * POST /api/v1/writer/templates/:id/apply
    */
   applyTemplate(templateId: string, data: ApplyTemplateRequest) {
-    return httpService.post<ApplyTemplateResponse>(
+    return httpClient.post<ApplyTemplateResponse>(
       `${BASE_TEMPLATE_URL}/${templateId}/apply`,
       data
     )
@@ -215,3 +224,4 @@ export const deleteTemplate = (templateId: string) =>
  */
 export const applyTemplate = (templateId: string, data: ApplyTemplateRequest) =>
   templateApi.applyTemplate(templateId, data)
+

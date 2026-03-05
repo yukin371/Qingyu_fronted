@@ -1,15 +1,32 @@
 <template>
   <div class="book-detail-view">
-    <div class="page-shell">
+    <div class="detail-container">
+      <!-- 加载状态 -->
       <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
-      <template v-else-if="book">
-        <section class="panel intro-panel" data-testid="book-detail">
-          <div class="cover-block">
-            <Image :src="book.cover" fit="cover" :alt="book.title" class="book-cover">
-              <template #error>
-                <div class="image-slot">
-                  <Icon name="photo" size="md" />
+      <template v-else>
+        <!-- 返回按钮 -->
+        <div class="back-button">
+          <Button @click="router.back()">
+            <Icon name="arrow-left" size="sm" class="mr-1" />
+            返回
+          </Button>
+        </div>
+
+        <!-- 书籍信息区 -->
+        <div v-if="book" class="book-header" data-testid="book-detail">
+          <div class="container">
+            <Row :gutter="40">
+              <!-- 封面 -->
+              <Col :span="6" :xs="24" :sm="8">
+                <div class="book-cover">
+                  <Image :src="book.cover" fit="cover" :alt="book.title">
+                    <template #error>
+                      <div class="image-slot">
+                        <Icon name="photo" size="md" />
+                      </div>
+                    </template>
+                  </Image>
                 </div>
               </template>
             </Image>
@@ -164,6 +181,113 @@
           </div>
         </section>
       </template>
+
+      <!-- 内容区 -->
+      <div v-if="book" class="book-content">
+        <div class="container">
+          <Tabs v-model:active-tab="activeTab">
+            <!-- 简介 -->
+            <TabPane label="简介" name="intro">
+              <div class="book-description">
+                <p>{{ book.description || '暂无简介' }}</p>
+              </div>
+            </TabPane>
+
+            <!-- 章节列表 -->
+            <TabPane label="目录" name="chapters">
+              <div class="chapter-list">
+                <div class="chapter-header">
+                  <span>共 {{ book.chapterCount }} 章</span>
+                  <Button variant="text" @click="reverseChapterOrder">
+                    {{ isReversed ? '正序' : '倒序' }}
+                  </Button>
+                </div>
+
+                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto;">
+                  <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item"
+                    :class="{ 'is-read': chapter.isRead }" @click="readChapter(chapter.id)">
+                    <span class="chapter-title">{{ chapter.title }}</span>
+                    <span class="chapter-info">
+                      <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
+                      {{ chapter.wordCount }}字
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </TabPane>
+
+            <!-- 评分 -->
+            <TabPane label="评分与评价" name="rating">
+              <RatingSection :book-id="bookId" />
+            </TabPane>
+
+            <!-- 评论 -->
+            <TabPane label="书评" name="comments">
+              <div class="comments-container">
+                <!-- 发表评论 -->
+                <div class="comment-post">
+                  <Textarea
+                    v-model="newComment"
+                    :rows="4"
+                    placeholder="写下你的看法..."
+                    :maxlength="1000"
+                    show-word-limit
+                  />
+                  <div class="comment-actions">
+                    <Button variant="primary" @click="submitComment" :loading="submittingComment">
+                      发表
+                    </Button>
+                  </div>
+                </div>
+
+                <!-- 评论列表 -->
+                <div class="comments-list">
+                  <Spinner v-if="commentsLoading" size="md" class="loading-spinner" />
+                  <template v-else>
+                    <div v-if="comments.length === 0" class="empty-comments">
+                      <Empty title="暂无评论，来发表第一条评论吧" />
+                    </div>
+                    <CommentItem
+                      v-for="comment in comments"
+                      :key="comment.id"
+                      :comment="comment"
+                      @delete="handleDeleteComment"
+                      @update="onCommentUpdated"
+                    />
+                    <div v-if="hasMoreComments" class="load-more">
+                      <Button @click="loadMoreComments" :loading="loadingMore">
+                        加载更多
+                      </Button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </TabPane>
+          </Tabs>
+        </div>
+      </div>
+
+      <!-- 推荐书籍 -->
+      <div v-if="recommendedBooks.length" class="recommended-section">
+        <div class="container">
+          <h2 class="section-title">相似推荐</h2>
+          <Row :gutter="20">
+            <Col v-for="item in recommendedBooks" :key="item.id" :xs="12" :sm="8" :md="6" :lg="4">
+              <div class="book-card" @click="goToBook(item.id)">
+                <Image :src="item.cover" fit="cover">
+                  <template #error>
+                    <div class="image-slot">
+                      <Icon name="photo" size="md" />
+                    </div>
+                  </template>
+                </Image>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.author }}</p>
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -244,7 +368,15 @@ const loadingMore = ref(false)
 
 const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
 
-const book = computed<Book | null>(() => bookstoreStore.currentBook as unknown as Book | null)
+const book = computed(() => {
+  if (publishedBookDetail.value) {
+    return {
+      ...publishedBookDetail.value.book,
+      description: publishedBookDetail.value.book.description,
+    } as unknown as Book
+  }
+  return bookstoreStore.currentBook ? ({ ...bookstoreStore.currentBook } as unknown as Book) : null
+})
 
 const statusType = computed(() => {
   if (!book.value) return 'info'
@@ -364,7 +496,8 @@ const toggleFavorite = async () => {
       const response = await collectionsAPI.addCollection(bookId)
       if (response) {
         isFavorited.value = true
-        collectionId.value = response.id || (response as { _id?: string })._id || (response as { collection_id?: string }).collection_id || null
+        // response.data 应该包含收藏记录的完整信息，包括 id
+        collectionId.value = response.data.id || (response.data as any).collection_id || null
         message.success('收藏成功')
       }
     }
@@ -397,12 +530,13 @@ const checkFavoriteStatus = async () => {
       isFavorited.value = true
       if (!collectionId.value) {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
-        const collectionList = Array.isArray(collections) ? collections : []
-        const currentBookCollection = collectionList.find(
-          (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
-        )
-        if (currentBookCollection) {
-          collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id || null
+        if (Array.isArray(collections.data)) {
+          const currentBookCollection = collections.data.find(
+            (c: Collection) => c.bookId === bookId || (c as { book_id?: string }).book_id === bookId
+          )
+          if (currentBookCollection) {
+            collectionId.value = currentBookCollection.id
+          }
         }
       }
     } else {
@@ -495,10 +629,7 @@ const submitComment = async () => {
 
   submittingComment.value = true
   try {
-    await createComment({
-      bookId,
-      content: newComment.value
-    })
+    await createComment({ bookId, content: newComment.value })
     message.success('发表成功')
     newComment.value = ''
     await loadComments(true)
@@ -513,8 +644,7 @@ const handleDeleteComment = async (commentId: string) => {
   try {
     await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
     await deleteComment(commentId)
@@ -538,6 +668,24 @@ const reverseChapterOrder = () => {
 const loadBookDetail = async () => {
   loading.value = true
   try {
+    const localDetail = getPublishedBookDetail(bookId)
+    if (localDetail) {
+      publishedBookDetail.value = localDetail
+      chapters.value = localDetail.chapters.map((chapter) => ({
+        id: chapter.id,
+        title: chapter.title,
+        chapterNum: chapter.chapterNum || 0,
+        isFree: chapter.isFree,
+        wordCount: chapter.wordCount,
+        price: 0,
+        publishTime: chapter.publishedAt || new Date().toISOString(),
+        isRead: false,
+      }))
+      recommendedBooks.value = []
+      return
+    }
+
+    publishedBookDetail.value = null
     console.log('[BookDetailView] Loading book detail for ID:', bookId)
     await bookstoreStore.fetchBookDetail(bookId)
     console.log('[BookDetailView] Book loaded, currentBook:', bookstoreStore.currentBook)
@@ -550,6 +698,20 @@ const loadBookDetail = async () => {
 }
 
 const loadChapters = async () => {
+  if (publishedBookDetail.value) {
+    chapters.value = publishedBookDetail.value.chapters.map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      chapterNum: chapter.chapterNum || 0,
+      isFree: chapter.isFree,
+      wordCount: chapter.wordCount,
+      price: 0,
+      publishTime: chapter.publishedAt || new Date().toISOString(),
+      isRead: false,
+    }))
+    return
+  }
+
   try {
     const response = await (getBookChapters as any)(bookId, { page: 1, size: 1000 })
     const list = Array.isArray(response) ? response : response?.data
@@ -568,6 +730,10 @@ onMounted(() => {
   loadComments(true)
   checkFavoriteStatus()
 })
+
+const onCommentUpdated = async (): Promise<void> => {
+  await loadComments(true)
+}
 </script>
 
 <style scoped lang="scss">

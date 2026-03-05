@@ -6,6 +6,16 @@ import { httpService } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 import type { AxiosError } from 'axios'
 
+type HttpClientLike = {
+  get<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  post<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  put<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  delete<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  patch<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
+
 // 通用请求方法
 interface RequestOption {
   url: string
@@ -31,20 +41,20 @@ export function request<T = unknown>(options: RequestOption) {
 
       switch (method) {
         case 'post':
-          promise = httpService.post<T>(url, data, httpConfig)
+          promise = httpClient.post<T>(url, data, httpConfig)
           break
         case 'put':
-          promise = httpService.put<T>(url, data, httpConfig)
+          promise = httpClient.put<T>(url, data, httpConfig)
           break
         case 'delete':
-          promise = httpService.delete<T>(url, httpConfig)
+          promise = httpClient.delete<T>(url, httpConfig)
           break
         case 'patch':
-          promise = httpService.patch<T>(url, data, httpConfig)
+          promise = httpClient.patch<T>(url, data, httpConfig)
           break
         case 'get':
         default:
-          promise = httpService.get<T>(url, httpConfig)
+          promise = httpClient.get<T>(url, httpConfig)
           break
       }
 
@@ -57,20 +67,20 @@ export function request<T = unknown>(options: RequestOption) {
 
     switch (method) {
       case 'post':
-        promise = httpService.post<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.post<APIResponse<T>>(url, data, httpConfig)
         break
       case 'put':
-        promise = httpService.put<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.put<APIResponse<T>>(url, data, httpConfig)
         break
       case 'delete':
-        promise = httpService.delete<APIResponse<T>>(url, httpConfig)
+        promise = httpClient.delete<APIResponse<T>>(url, httpConfig)
         break
       case 'patch':
-        promise = httpService.patch<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.patch<APIResponse<T>>(url, data, httpConfig)
         break
       case 'get':
       default:
-        promise = httpService.get<APIResponse<T>>(url, { ...httpConfig, params: data || params })
+        promise = httpClient.get<APIResponse<T>>(url, { ...httpConfig, params: data || params })
         break
     }
 

@@ -45,6 +45,9 @@ const props = withDefaults(defineProps<DropdownItemProps>(), {
 // 组件 Emits
 const emit = defineEmits<DropdownItemEmits>()
 
+// 组件 Slots
+const _slots = defineSlots<DropdownItemSlots>()
+
 // 从父组件注入上下文
 const dropdownContext = inject<{
   isVisible: import('vue').Ref<boolean>
@@ -67,11 +70,11 @@ const itemClasses = computed(() =>
 )
 
 // 处理点击
-const handleClick = (event: MouseEvent) => {
+const handleClick = (event: MouseEvent | KeyboardEvent) => {
   if (props.disabled) return
 
   // 触发点击事件
-  emit('click', event, props.command as DropdownCommand)
+  emit('click', event as MouseEvent, props.command as DropdownCommand)
 
   // 调用父组件的处理方法
   if (dropdownContext && props.command) {
