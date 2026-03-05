@@ -109,12 +109,19 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   // 拖拽状态
   const isDragging = ref(false)
   const dragStartX = ref(0)
-  const dragToggleAnchorX = ref(0)
+  const dragSwitchLineX = ref<number | null>(null)
   const dragLastX = ref(0)
   const dragStartWidth = ref(0)
   const dragCurrentRawWidth = ref(0)
   const dragSource = ref<'mouse' | 'touch'>('mouse')
   const currentTouchId = ref<number | null>(null)
+  const computeSwitchLine = (clientX: number, widthAtClientX: number) => {
+    const collapseThreshold = minWidth / 2
+    const offsetToLine = widthAtClientX - collapseThreshold
+    return panelId === 'left'
+      ? clientX - offsetToLine
+      : clientX + offsetToLine
+  }
 
   const detachGlobalListeners = () => {
     window.removeEventListener('mousemove', handleMouseMove)
@@ -164,11 +171,20 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
 
     isDragging.value = true
     dragStartX.value = event.startX
-    dragToggleAnchorX.value = event.startX
     dragLastX.value = event.startX
     dragStartWidth.value = isCollapsed.value ? 0 : resolveEffectiveWidth()
     dragCurrentRawWidth.value = dragStartWidth.value
     dragSource.value = event.source || 'mouse'
+
+    // 同步切换中线：
+    // 展开态每次拖拽按当前宽度重算；折叠态优先复用上次中线，首次缺失时估算一个。
+    if (!isCollapsed.value) {
+      dragSwitchLineX.value = computeSwitchLine(event.startX, dragStartWidth.value)
+    } else if (dragSwitchLineX.value === null) {
+      dragSwitchLineX.value = panelId === 'left'
+        ? event.startX + (minWidth / 2)
+        : event.startX - (minWidth / 2)
+    }
 
     // 添加全局事件监听器（根据来源选择事件类型）
     if (event.source === 'touch') {
@@ -280,19 +296,21 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
 
   const handleDragProgress = (clientX: number, deltaX: number) => {
     const collapseThreshold = minWidth / 2
-    const hysteresis = 8
-    const expandDelta = panelId === 'left'
-      ? clientX - dragToggleAnchorX.value
-      : dragToggleAnchorX.value - clientX
+    const hysteresis = 2
+    const switchLine = dragSwitchLineX.value ?? clientX
 
-    // 折叠态下：拖过 min/2 即展开到 min，然后重置锚点继续跟随拖拽
+    // 折叠态下：跨过同一条中线即展开到 min（与隐藏共享同一条线）
     if (isCollapsed.value) {
-      if (expandDelta >= collapseThreshold - hysteresis) {
+      const shouldExpand = panelId === 'left'
+        ? clientX >= switchLine + hysteresis
+        : clientX <= switchLine - hysteresis
+
+      if (shouldExpand) {
         setCollapsedState(false)
         localWidth.value = minWidth
         dragStartWidth.value = minWidth
         dragStartX.value = clientX
-        dragToggleAnchorX.value = clientX
+        dragSwitchLineX.value = switchLine
       }
       return
     }
@@ -306,12 +324,19 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     }
     dragCurrentRawWidth.value = rawWidth
 
-    // 展开态下：小于 min/2 即立即隐藏（模拟 VSCode 吸附）
-    if (collapsible && rawWidth <= collapseThreshold + hysteresis) {
+    const shouldCollapseByLine = panelId === 'left'
+      ? clientX <= switchLine - hysteresis
+      : clientX >= switchLine + hysteresis
+    const shouldCollapseByWidth = rawWidth <= collapseThreshold
+
+    // 展开态下：跨过中线（或首次达到 min/2）即隐藏
+    if (collapsible && (shouldCollapseByLine || shouldCollapseByWidth)) {
+      dragSwitchLineX.value = shouldCollapseByWidth
+        ? computeSwitchLine(clientX, rawWidth)
+        : switchLine
       setCollapsedState(true)
       dragStartWidth.value = 0
       dragStartX.value = clientX
-      dragToggleAnchorX.value = clientX
       return
     }
 
