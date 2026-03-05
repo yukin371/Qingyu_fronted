@@ -20,16 +20,27 @@
       <QyIcon :name="collapseIcon" />
     </button>
 
-    <!-- 面板内容插槽 -->
-    <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed }">
-      <slot />
-    </div>
+    <!-- 左侧面板: 内容在前，手柄在后 -->
+    <template v-if="position === 'left'">
+      <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed }">
+        <slot />
+      </div>
+      <DragHandle
+        :position="position"
+        @drag-start="handleDragStart"
+      />
+    </template>
 
-    <!-- 拖拽手柄 -->
-    <DragHandle
-      :position="position"
-      @drag-start="handleDragStart"
-    />
+    <!-- 右侧面板: 手柄在前，内容在后（手柄贴近编辑区） -->
+    <template v-else>
+      <DragHandle
+        :position="position"
+        @drag-start="handleDragStart"
+      />
+      <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed }">
+        <slot />
+      </div>
+    </template>
   </div>
 </template>
 

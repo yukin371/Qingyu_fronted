@@ -714,7 +714,8 @@ watch(
   --ai-assistant-bg: #f1f5f9;
   --ai-accent-soft: #dbeafe;
 
-  width: var(--ai-panel-width);
+  width: 100%;
+  min-width: 0;
   height: 100%;
   display: flex;
   flex-direction: column;

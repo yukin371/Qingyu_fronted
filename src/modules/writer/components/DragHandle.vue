@@ -215,10 +215,10 @@ onMounted(() => {
   position: relative;
   flex-shrink: 0;
   height: 100%;
-  z-index: 30;
+  z-index: 40;
   
   /* VSCode 主题变量 */
-  width: var(--drag-handle-width, 8px);
+  width: var(--drag-handle-width, 10px);
   background-color: transparent;
   
   /* 交互样式 */
@@ -274,7 +274,7 @@ onMounted(() => {
 }
 
 .drag-handle--right {
-  order: 3;
+  order: 0;
 }
 
 /* 过渡动画 */
