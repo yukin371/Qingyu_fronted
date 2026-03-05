@@ -21,6 +21,7 @@ withDefaults(defineProps<Props>(), {
 .side-panel {
   height: 100%;
   min-height: 0;
+  min-width: 0;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -40,6 +41,7 @@ withDefaults(defineProps<Props>(), {
 .side-panel__content {
   height: 100%;
   min-height: 0;
+  min-width: 0;
   overflow-x: hidden;
   overflow-y: auto;
   background: #fff;

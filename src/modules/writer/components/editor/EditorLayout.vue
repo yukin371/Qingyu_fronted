@@ -181,14 +181,14 @@ watch(
 const activeToolModel = computed<string>({
   get: () => {
     const tool = activeTool.value
-    // 'ai' -> 'ai-assistant' 转换
-    return tool === 'ai' ? 'ai-assistant' : tool
+    if (tool === 'ai' || tool === 'chapters') return 'writing'
+    return tool
   },
   set: (value: string) => {
-    // 'ai-assistant' -> 'ai' 转换
-    const validTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
-    const tool: ActiveTool = value === 'ai-assistant' ? 'ai' :
-      (validTools.includes(value as ActiveTool) ? value as ActiveTool : 'writing')
+    const validTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
+    const tool: ActiveTool = validTools.includes(value as ActiveTool)
+      ? (value as ActiveTool)
+      : 'writing'
     activeTool.value = tool
   }
 })
@@ -204,39 +204,28 @@ watch(
 )
 
 // ==================== 面板可见性计算 ====================
-// 根据 activeTool 计算左侧面板是否可见
-// chapters/writing: 展开 | immersive/ai: 隐藏
 const leftPanelVisible = computed(() => {
-  const tool = activeTool.value
-  return tool === 'chapters' || tool === 'writing' || tool === 'encyclopedia'
+  if (layout.value.mode === 'mobile') {
+    return layout.value.activeTab === 'left'
+  }
+  return true
 })
 
-// 根据 activeTool 计算右侧面板是否可见
-// writing/ai: 展开 | chapters/immersive: 隐藏
 const rightPanelVisible = computed(() => {
-  const tool = activeTool.value
-  return tool === 'ai' || tool === 'writing'
+  if (layout.value.mode === 'mobile') {
+    return layout.value.activeTab === 'right'
+  }
+  return true
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const leftPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
-  const tool = activeTool.value
-  if (tool === 'immersive' || tool === 'ai') return 'hidden'
-  if (tool === 'encyclopedia') return 'expanded'
-  // 写作模式保持正常宽度，避免侧栏过窄不可见
-  if (tool === 'writing') return 'expanded'
-  if (tool === 'chapters') return 'expanded'
-  return 'hidden'
+  return 'expanded'
 })
 
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const rightPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
-  const tool = activeTool.value
-  if (tool === 'immersive' || tool === 'chapters' || tool === 'encyclopedia') return 'hidden'
-  // 写作模式保持正常宽度，避免侧栏过窄不可见
-  if (tool === 'writing') return 'expanded'
-  if (tool === 'ai') return 'expanded'
-  return 'hidden'
+  return 'expanded'
 })
 
 // 是否为沉浸模式
@@ -388,10 +377,10 @@ function handleContentTouchEnd(event: TouchEvent) {
 }
 
 function handleToolChange(toolId: string) {
-  // MiniNavbar 发出的是 string 类型，需要转换
-  const validTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
-  const normalizedTool: ActiveTool = toolId === 'ai-assistant' ? 'ai' :
-    (validTools.includes(toolId as ActiveTool) ? toolId as ActiveTool : 'writing')
+  const validTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
+  const normalizedTool: ActiveTool = validTools.includes(toolId as ActiveTool)
+    ? (toolId as ActiveTool)
+    : 'writing'
 
   // 更新内部状态和发出事件
   activeTool.value = normalizedTool

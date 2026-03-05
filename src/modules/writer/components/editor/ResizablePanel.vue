@@ -93,8 +93,6 @@ const {
   isDragging,
   isCollapsed,
   startDrag,
-  onDrag,
-  stopDrag,
   toggleCollapse
 } = usePanelResize({
   panelId: props.panelId,
@@ -145,28 +143,6 @@ const handleDragStart = (event: DragStartEvent) => {
     position: props.position
   }
   startDrag(updatedEvent)
-
-  // 添加全局鼠标事件监听器
-  document.addEventListener('mousemove', handleGlobalMouseMove)
-  document.addEventListener('mouseup', handleGlobalMouseUp)
-}
-
-/**
- * 处理全局鼠标移动事件
- */
-const handleGlobalMouseMove = (event: MouseEvent) => {
-  onDrag(event)
-}
-
-/**
- * 处理全局鼠标松开事件
- */
-const handleGlobalMouseUp = () => {
-  stopDrag()
-
-  // 移除全局事件监听器
-  document.removeEventListener('mousemove', handleGlobalMouseMove)
-  document.removeEventListener('mouseup', handleGlobalMouseUp)
 }
 
 /**

@@ -234,20 +234,24 @@ const setEncyclopediaSubView = async (view: 'relations' | 'encyclopedia') => {
 }
 
 const leftDockItems: Array<{ tool: ActiveTool; label: string; icon: string }> = [
-  { tool: 'chapters', label: '章节', icon: 'Document' },
   { tool: 'writing', label: '写作', icon: 'Edit' },
   { tool: 'immersive', label: '沉浸', icon: 'FullScreen' },
-  { tool: 'ai', label: 'AI助手', icon: 'MagicStick' },
   { tool: 'encyclopedia', label: '设定', icon: 'Location' },
 ]
 
-const activeToolForDock = computed(() => editorStore.activeTool)
+const activeToolForDock = computed<ActiveTool>(() => {
+  const tool = editorStore.activeTool
+  return tool === 'ai' || tool === 'chapters' ? 'writing' : tool
+})
 
 const handleDockSelect = async (tool: ActiveTool) => {
-  editorStore.setActiveTool(tool)
-  const nextQuery = { ...route.query, tool } as Record<string, unknown>
+  const normalizedTool: ActiveTool =
+    tool === 'chapters' || tool === 'ai' ? 'writing' : tool
 
-  if (tool === 'encyclopedia') {
+  editorStore.setActiveTool(normalizedTool)
+  const nextQuery = { ...route.query, tool: normalizedTool } as Record<string, unknown>
+
+  if (normalizedTool === 'encyclopedia') {
     if (!nextQuery.encyclopediaView) {
       nextQuery.encyclopediaView = 'relations'
     }
@@ -528,9 +532,10 @@ watch(
 watch(
   () => queryTool.value,
   (tool) => {
-    const allowedTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
-    if (allowedTools.includes(tool as ActiveTool)) {
-      editorStore.setActiveTool(tool as ActiveTool)
+    const normalizedTool = tool === 'chapters' || tool === 'ai' ? 'writing' : tool
+    const allowedTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
+    if (allowedTools.includes(normalizedTool as ActiveTool)) {
+      editorStore.setActiveTool(normalizedTool as ActiveTool)
     }
   },
   { immediate: true },

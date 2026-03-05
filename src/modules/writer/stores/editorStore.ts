@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { ParagraphContent } from '@/modules/writer/api/wrapper'
+import type { DocumentContent } from '@/modules/writer/types/document'
 
 /**
  * 工具切换类型
@@ -48,6 +50,18 @@ export const useEditorStore = defineStore('writer-editor', () => {
 
   /** 自动保存是否启用 */
   const autosaveEnabled = ref(true)
+
+  /** TipTap 编辑器实例 */
+  const tipTapEditor = ref<any>(null)
+
+  /** TipTap JSON 字符串内容 */
+  const editorContent = ref<string>('')
+
+  /** 段落内容映射（paragraphId -> 文档内容） */
+  const paragraphs = ref<Map<string, DocumentContent>>(new Map())
+
+  /** 段落顺序 */
+  const paragraphOrder = ref<string[]>([])
 
   // ==================== Getters ====================
 
@@ -153,6 +167,109 @@ export const useEditorStore = defineStore('writer-editor', () => {
     isSaving.value = saving
   }
 
+  /**
+   * 设置 TipTap 实例
+   */
+  function setTipTapEditor(editor: any) {
+    tipTapEditor.value = editor
+  }
+
+  /**
+   * 加载文档（优先段落接口，回退全文接口）
+   */
+  async function loadDocument(documentId: string) {
+    setCurrentChapter(documentId)
+    setSaving(true)
+    try {
+      const writerApi = await import('@/modules/writer/api/wrapper')
+      const resp = await writerApi.getDocumentContents(documentId)
+      const payload = (resp as any)?.data || resp || {}
+      const contents = Array.isArray(payload.contents) ? payload.contents : []
+      const mapped = new Map<string, DocumentContent>()
+      const order: string[] = []
+
+      for (const item of contents as ParagraphContent[]) {
+        const pid = item.paragraphId || `p-${item.order}`
+        order.push(pid)
+        mapped.set(pid, {
+          id: pid,
+          documentId,
+          content: item.content || '',
+          version: Number(item.version || 1),
+          updatedAt: item.updatedAt || new Date().toISOString(),
+        } as DocumentContent)
+      }
+
+      paragraphs.value = mapped
+      paragraphOrder.value = order
+      const mergedText = order
+        .map((id) => mapped.get(id)?.content || '')
+        .join('\n')
+      setContent(mergedText, false)
+      editorContent.value = mergedText
+      markSaved()
+    } catch {
+      const writerApi = await import('@/modules/writer/api/wrapper')
+      const fallback = await writerApi.getDocumentContent(documentId)
+      const payload = (fallback as any)?.data || fallback || {}
+      const text = String(payload.content || '')
+      setContent(text, false)
+      editorContent.value = text
+      markSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /**
+   * 保存段落内容
+   */
+  async function saveParagraphs(contents: ParagraphContent[]) {
+    if (!currentChapterId.value) return
+    setSaving(true)
+    try {
+      const writerApi = await import('@/modules/writer/api/wrapper')
+      await writerApi.replaceDocumentContents(currentChapterId.value, contents)
+
+      const mapped = new Map<string, DocumentContent>()
+      const order: string[] = []
+      for (const item of contents) {
+        const pid = item.paragraphId || `p-${item.order}`
+        order.push(pid)
+        mapped.set(pid, {
+          id: pid,
+          documentId: currentChapterId.value,
+          content: item.content || '',
+          version: Number(item.version || 1),
+          updatedAt: item.updatedAt || new Date().toISOString(),
+        } as DocumentContent)
+      }
+      paragraphs.value = mapped
+      paragraphOrder.value = order
+      const mergedText = order.map((id) => mapped.get(id)?.content || '').join('\n')
+      setContent(mergedText, false)
+      editorContent.value = mergedText
+      markSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /**
+   * 加载设定数据（角色/地点/物品）
+   */
+  async function loadSettings(type: 'character' | 'location' | 'item') {
+    const worldStore = await import('./worldStore')
+    const store = worldStore.useWorldStore()
+    const projectId = currentProjectId.value || ''
+    if (!projectId) return []
+    await store.loadAll(projectId)
+    if (type === 'character') return store.characters
+    if (type === 'location') return store.locations
+    const maybeItems = (store as unknown as { items?: unknown[] }).items
+    return Array.isArray(maybeItems) ? maybeItems : []
+  }
+
   return {
     // State
     currentProjectId,
@@ -163,6 +280,10 @@ export const useEditorStore = defineStore('writer-editor', () => {
     activeTool,
     isSaving,
     autosaveEnabled,
+    tipTapEditor,
+    editorContent,
+    paragraphs,
+    paragraphOrder,
 
     // Getters
     hasContent,
@@ -179,5 +300,9 @@ export const useEditorStore = defineStore('writer-editor', () => {
     reset,
     toggleAutosave,
     setSaving,
+    setTipTapEditor,
+    loadDocument,
+    saveParagraphs,
+    loadSettings,
   }
 })

@@ -215,10 +215,11 @@ onMounted(() => {
   position: relative;
   flex-shrink: 0;
   height: 100%;
+  z-index: 30;
   
   /* VSCode 主题变量 */
-  width: var(--drag-handle-width, 4px);
-  background-color: var(--color-border, #3c3c3c);
+  width: var(--drag-handle-width, 8px);
+  background-color: transparent;
   
   /* 交互样式 */
   cursor: col-resize;
@@ -233,16 +234,33 @@ onMounted(() => {
   outline: none;
 }
 
+.drag-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background-color: var(--color-border, #3c3c3c);
+}
+
 .drag-handle:hover {
   /* Hover 状态 */
+  opacity: 1;
+}
+
+.drag-handle:hover::before {
   background-color: var(--drag-handle-hover-bg, #007fd4);
-  opacity: 0.8;
 }
 
 .drag-handle--active {
   /* 激活/拖拽状态 */
-  background-color: var(--drag-handle-hover-bg, #007fd4);
   opacity: 1;
+}
+
+.drag-handle--active::before {
+  background-color: var(--drag-handle-hover-bg, #007fd4);
 }
 
 .drag-handle:focus-visible {
