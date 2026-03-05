@@ -54,6 +54,11 @@
 
       <!-- 中间列表区 -->
       <div class="list-panel">
+        <div class="list-stats">
+          <SystemStatCard label="角色" :value="characters.length" hint="设定人物总数" tone="info" />
+          <SystemStatCard label="地点" :value="locations.length" hint="世界空间节点" tone="success" />
+          <SystemStatCard label="当前筛选" :value="activeCategoryLabel" :hint="searchHint" tone="warning" />
+        </div>
         <!-- 角色列表 -->
         <div v-show="activeCategory === 'characters'" class="list-container">
           <div class="list-header">
@@ -239,6 +244,7 @@ import { Search, Plus, Edit, Close } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
+import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import { message } from '@/design-system/services'
 const writerStore = useWriterStore()
 interface Props {
@@ -272,6 +278,9 @@ const filteredLocations = computed(() => {
     l.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
+
+const activeCategoryLabel = computed(() => (activeCategory.value === 'locations' ? '地点' : '角色'))
+const searchHint = computed(() => (searchKeyword.value ? `关键词：${searchKeyword.value}` : '未启用关键词'))
 
 const handleCategoryChange = (index: string) => {
   activeCategory.value = index
@@ -376,11 +385,23 @@ watch(
 }
 
 .list-panel {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
+.list-stats {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fbff;
+}
+
 .list-container {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: #f9fafb;
@@ -557,6 +578,10 @@ watch(
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
     }
   }
+
+  .list-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -570,6 +595,10 @@ watch(
     .detail-panel {
       width: 100%;
     }
+  }
+
+  .list-stats {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -639,5 +668,3 @@ watch(
   }
 }
 </style>
-
-

@@ -64,23 +64,22 @@
 
           <div class="workspace-left-panel-body">
             <div v-if="isEncyclopediaTool" class="world-sidebar">
-              <div class="world-sidebar__header">设定工具</div>
-              <button
-                type="button"
+              <div class="world-sidebar__header">世界系统</div>
+              <QyGhostButton
+                v-for="item in worldNavItems"
+                :key="item.value"
                 class="world-sidebar__item"
-                :class="{ active: encyclopediaSubView === 'relations' }"
-                @click="setEncyclopediaSubView('relations')"
+                :active="encyclopediaSubView === item.value"
+                @click="setEncyclopediaSubView(item.value)"
               >
-                人物关系图
-              </button>
-              <button
-                type="button"
-                class="world-sidebar__item"
-                :class="{ active: encyclopediaSubView === 'encyclopedia' }"
-                @click="setEncyclopediaSubView('encyclopedia')"
-              >
-                设定百科卡片
-              </button>
+                <span class="world-sidebar__icon">
+                  <QyIcon :name="item.icon" :size="14" />
+                </span>
+                <span class="world-sidebar__copy">
+                  <strong>{{ item.label }}</strong>
+                  <em>{{ item.description }}</em>
+                </span>
+              </QyGhostButton>
             </div>
             <ProjectSidebar
               v-else
@@ -101,6 +100,14 @@
       <template #editor="{ activeTool }">
         <CharacterGraphView
           v-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'relations'"
+        />
+        <TimelineOutlineView
+          v-else-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'timeline'"
+          :project-id="currentProjectId"
+        />
+        <StoryBranchView
+          v-else-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'branches'"
+          :project-id="currentProjectId"
         />
         <EncyclopediaView
           v-else-if="activeTool === 'encyclopedia'"
@@ -185,6 +192,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
+import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
@@ -202,6 +210,8 @@ import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
 import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
+import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
+import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 
 // =======================
 // Props 定义
@@ -255,14 +265,18 @@ const mockProject = computed(() =>
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
 const isEncyclopediaTool = computed(() => editorStore.activeTool === 'encyclopedia')
-const encyclopediaSubView = computed<'relations' | 'encyclopedia'>(() => {
+type EncyclopediaSubView = 'relations' | 'encyclopedia' | 'timeline' | 'branches'
+
+const encyclopediaSubView = computed<EncyclopediaSubView>(() => {
   const raw = String(route.query.encyclopediaView || route.query.worldView || '').toLowerCase()
   if (['encyclopedia', 'cards', 'list'].includes(raw)) return 'encyclopedia'
   if (['relations', 'relation', 'graph', 'relationship'].includes(raw)) return 'relations'
+  if (['timeline', 'timelines'].includes(raw)) return 'timeline'
+  if (['branch', 'branches', 'outline'].includes(raw)) return 'branches'
   return 'relations'
 })
 
-const setEncyclopediaSubView = async (view: 'relations' | 'encyclopedia') => {
+const setEncyclopediaSubView = async (view: EncyclopediaSubView) => {
   await router.replace({
     query: {
       ...route.query,
@@ -271,6 +285,18 @@ const setEncyclopediaSubView = async (view: 'relations' | 'encyclopedia') => {
     },
   })
 }
+
+const worldNavItems: Array<{
+  value: EncyclopediaSubView
+  label: string
+  description: string
+  icon: string
+}> = [
+  { value: 'relations', label: '关系图谱', description: '角色连接与强度', icon: 'Share' },
+  { value: 'encyclopedia', label: '设定百科', description: '人物与地点卡片', icon: 'Collection' },
+  { value: 'timeline', label: '时间线大纲', description: '事件顺序与优先级', icon: 'Clock' },
+  { value: 'branches', label: '分支系统', description: '主支线结构与状态', icon: 'Connection' },
+]
 
 const leftDockItems: Array<{ tool: ActiveTool; label: string; icon: string }> = [
   { tool: 'writing', label: '写作', icon: 'Edit' },
@@ -1122,17 +1148,20 @@ const handleAIApplyGeneratedText = (payload: {
   width: 100%;
   text-align: left;
   border: 1px solid #d8e0ef;
-  background: #fff;
   color: #283452;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 10px 10px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .world-sidebar__item:hover {
   border-color: #3b82f6;
+  background: #f4f8ff;
 }
 
 .world-sidebar__item.active {
@@ -1141,6 +1170,42 @@ const handleAIApplyGeneratedText = (payload: {
   color: #1f4ec2;
   font-weight: 700;
   box-shadow: 0 8px 18px rgba(47, 111, 255, 0.14);
+}
+
+.world-sidebar__icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 111, 255, 0.12);
+  color: currentColor;
+  flex: 0 0 20px;
+}
+
+.world-sidebar__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.world-sidebar__copy strong {
+  font-size: 12px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.world-sidebar__copy em {
+  margin: 0;
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #677694;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 1024px) {

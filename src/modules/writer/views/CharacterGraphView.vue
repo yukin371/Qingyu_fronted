@@ -27,6 +27,11 @@
     <div class="graph-content">
       <!-- 图谱区域 -->
       <div class="graph-canvas" ref="graphCanvasRef" v-loading="writerStore.characters.loading">
+        <div class="graph-stats">
+          <SystemStatCard label="角色总数" :value="characters.length" hint="已收录人物" tone="info" />
+          <SystemStatCard label="关系总数" :value="relations.length" hint="人物连接边" tone="success" />
+          <SystemStatCard label="高强度关系" :value="strongRelationsCount" hint="强度 >= 70" tone="warning" />
+        </div>
         <!-- 简化版：使用卡片展示角色关系 -->
         <div class="characters-grid">
           <div v-for="character in characters" :key="character.id" class="character-card"
@@ -216,6 +221,7 @@ import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
 import type { CreateCharacterRequest } from '../types/character'
 import { QyIcon } from '@/design-system/components'
+import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import { message, messageBox } from '@/design-system/services'
 import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
@@ -248,6 +254,7 @@ const formRules = {
 
 const characters = computed(() => writerStore.characters.list)
 const relations = computed(() => writerStore.characters.relations)
+const strongRelationsCount = computed(() => relations.value.filter((relation) => relation.strength >= 70).length)
 
 onMounted(async () => {
   await handleRefresh()
@@ -468,6 +475,13 @@ const resetForm = () => {
   padding: 16px;
 }
 
+.graph-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 .characters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -643,6 +657,10 @@ const resetForm = () => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .graph-stats {
+    grid-template-columns: 1fr;
+  }
+
   .characters-grid {
     grid-template-columns: 1fr;
   }
