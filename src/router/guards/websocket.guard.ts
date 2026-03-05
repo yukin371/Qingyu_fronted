@@ -6,9 +6,11 @@ import type { Router } from 'vue-router'
  * 确保路由切换时正确清理连接状态
  */
 export function setupWebSocketGuard(router: Router) {
-  router.beforeEach((_to, _from, next) => {
+  router.beforeEach((to, _from, next) => {
     // 如果离开需要WebSocket的页面，可以选择断开连接
     // 这里保持连接，但清理页面特定的消息处理器
+    // to 参数用于后续的路由逻辑判断
+    void to // 临时使用 to 参数避免警告
 
     next()
   })
