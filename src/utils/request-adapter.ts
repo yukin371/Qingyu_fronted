@@ -5,7 +5,16 @@
 import { httpService } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 import type { AxiosError } from 'axios'
-import type { AxiosResponse } from 'axios'
+
+type HttpClientLike = {
+  get<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  post<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  put<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  delete<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  patch<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
 
 // 通用请求方法
 interface RequestOption {
@@ -15,45 +24,73 @@ interface RequestOption {
   params?: unknown
   headers?: Record<string, string>
   timeout?: number
+  responseType?: 'json' | 'blob' | 'text' | 'arraybuffer' | 'document' | 'stream'
 }
 
 // 请求函数
 export function request<T = unknown>(options: RequestOption) {
-  const { url, method = 'get', data, params, ...config } = options
+  const { url, method = 'get', data, params, responseType, ...config } = options
 
   // 返回处理后的数据
   return new Promise<T>((resolve, reject) => {
-    const httpConfig = { ...config, params }
+    const httpConfig = { ...config, params, responseType }
 
-    let promise: Promise<AxiosResponse<APIResponse<T>>>
+    // 对于 blob 等特殊响应类型，直接返回原始响应
+    if (responseType && responseType !== 'json') {
+      let promise: Promise<T>
+
+      switch (method) {
+        case 'post':
+          promise = httpClient.post<T>(url, data, httpConfig)
+          break
+        case 'put':
+          promise = httpClient.put<T>(url, data, httpConfig)
+          break
+        case 'delete':
+          promise = httpClient.delete<T>(url, httpConfig)
+          break
+        case 'patch':
+          promise = httpClient.patch<T>(url, data, httpConfig)
+          break
+        case 'get':
+        default:
+          promise = httpClient.get<T>(url, httpConfig)
+          break
+      }
+
+      promise.then(resolve).catch(reject)
+      return
+    }
+
+    // 标准 JSON 响应处理
+    let promise: Promise<APIResponse<T>>
 
     switch (method) {
       case 'post':
-        promise = httpService.post<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.post<APIResponse<T>>(url, data, httpConfig)
         break
       case 'put':
-        promise = httpService.put<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.put<APIResponse<T>>(url, data, httpConfig)
         break
       case 'delete':
-        promise = httpService.delete<APIResponse<T>>(url, httpConfig)
+        promise = httpClient.delete<APIResponse<T>>(url, httpConfig)
         break
       case 'patch':
-        promise = httpService.patch<APIResponse<T>>(url, data, httpConfig)
+        promise = httpClient.patch<APIResponse<T>>(url, data, httpConfig)
         break
       case 'get':
       default:
-        promise = httpService.get<APIResponse<T>>(url, { ...httpConfig, params: data || params })
+        promise = httpClient.get<APIResponse<T>>(url, { ...httpConfig, params: data || params })
         break
     }
 
     promise
-      .then((res: AxiosResponse<APIResponse<T>>) => {
-        const payload = res.data
+      .then((res: APIResponse<T>) => {
         // 假设后端返回格式为 { code, message, data }
-        if (payload.code === 200 || payload.code === 0) {
-          resolve(payload.data as T)
+        if (res.code === 200 || res.code === 0) {
+          resolve(res.data as T)
         } else {
-          reject(new Error(payload.message || '请求失败'))
+          reject(new Error(res.message || '请求失败'))
         }
       })
       .catch((error: AxiosError) => {
