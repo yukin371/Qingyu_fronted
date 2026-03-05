@@ -2,7 +2,15 @@
   <EditorLayout>
     <!-- 左侧面板插槽 -->
     <template #left-panel>
+      <SettingToolSidebar
+        v-if="editorStore.activeTool === 'encyclopedia' || editorStore.activeTool === 'relations'"
+        v-model="settingToolView"
+      />
+      <TimelineSidebar
+        v-else-if="editorStore.activeTool === 'timeline'"
+      />
       <ProjectSidebar
+        v-else
         v-model:projectId="currentProjectId"
         v-model:chapterId="currentChapterId"
         :projects="projects"
@@ -15,8 +23,14 @@
 
     <!-- 主编辑器插槽 -->
     <template #editor="{ activeTool }">
+      <CharacterGraphView
+        v-if="activeTool === 'relations'"
+      />
+      <TimelineCanvasView
+        v-else-if="activeTool === 'timeline'"
+      />
       <EncyclopediaView
-        v-if="activeTool === 'encyclopedia'"
+        v-else-if="activeTool === 'encyclopedia'"
         :project-id="currentProjectId"
         :embedded="true"
       />
@@ -85,7 +99,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
@@ -103,6 +117,10 @@ import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
 import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import AIContextMenu from '@/modules/writer/components/ai/AIContextMenu.vue'
 import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
+import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
+import SettingToolSidebar from '@/modules/writer/components/SettingToolSidebar.vue'
+import TimelineSidebar from '@/modules/writer/components/TimelineSidebar.vue'
+import TimelineCanvasView from '@/modules/writer/views/TimelineCanvasView.vue'
 
 // 工具
 import { formatMarkdown } from '@/modules/writer/utils/editor'
@@ -111,6 +129,7 @@ import { formatMarkdown } from '@/modules/writer/utils/editor'
 // 状态初始化
 // =======================
 const route = useRoute()
+const router = useRouter()
 const projectStore = useProjectStore()
 const documentStore = useDocumentStore()
 const editorStore = useEditorStore()
@@ -153,6 +172,14 @@ const mockProject = computed(() =>
 )
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
+type SettingSidebarView = 'relations' | 'encyclopedia'
+
+const settingToolView = computed<SettingSidebarView>({
+  get: () => (editorStore.activeTool === 'encyclopedia' ? 'encyclopedia' : 'relations'),
+  set: (value) => {
+    editorStore.setActiveTool(value === 'encyclopedia' ? 'encyclopedia' : 'relations')
+  },
+})
 
 // 2. 文档 ID (切换文档的核心逻辑)
 const currentChapterId = computed({
@@ -382,9 +409,19 @@ onMounted(async () => {
       projectStore.loadList(),
       projectStore.loadDetail(pId),
       documentStore.loadTree(pId),
+      writerStore.loadProject(pId),
     ])
   }
 })
+
+watch(
+  () => currentProjectId.value,
+  async (projectId) => {
+    if (!projectId) return
+    await writerStore.loadProject(projectId)
+  },
+  { immediate: true },
+)
 
 watch(
   () => flatChapters.value,
@@ -410,12 +447,36 @@ watch(
 watch(
   () => queryTool.value,
   (tool) => {
-    const allowedTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
+    const allowedTools: ActiveTool[] = [
+      'chapters',
+      'writing',
+      'immersive',
+      'ai',
+      'encyclopedia',
+      'relations',
+      'timeline',
+    ]
     if (allowedTools.includes(tool as ActiveTool)) {
       editorStore.setActiveTool(tool as ActiveTool)
+      return
+    }
+
+    if (tool === 'encyclopedia' && String(route.query.encyclopediaView || '') === 'relations') {
+      editorStore.setActiveTool('relations')
     }
   },
   { immediate: true },
+)
+
+watch(
+  () => editorStore.activeTool,
+  (tool) => {
+    const nextQuery = {
+      ...route.query,
+      tool,
+    }
+    router.replace({ query: nextQuery })
+  }
 )
 
 // 内容更新处理

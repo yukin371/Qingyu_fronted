@@ -5,12 +5,6 @@
     role="application"
     :aria-label="`编辑器，${layoutModeLabel}`"
   >
-    <!-- 顶部导航栏 -->
-    <MiniNavbar
-      v-model:model-value="activeToolModel"
-      @tool-change="handleToolChange"
-    />
-
     <!-- 移动端tab导航 -->
     <div v-if="layout.mode === 'mobile'" class="mobile-tabs" role="tablist">
       <button
@@ -36,6 +30,11 @@
       @touchmove="handleContentTouchMove"
       @touchend="handleContentTouchEnd"
     >
+      <ActivityBar
+        v-model="activityToolModel"
+        @tool-change="handleToolChange"
+      />
+
       <!-- 左侧面板 - 添加过渡动画 -->
       <Transition name="panel-slide-left">
         <ResizablePanel
@@ -119,7 +118,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
-import MiniNavbar from './MiniNavbar.vue'
+import ActivityBar from './ActivityBar.vue'
 import ResizablePanel from './ResizablePanel.vue'
 import SidePanel from './SidePanel.vue'
 import EditorPanel from './EditorPanel.vue'
@@ -176,18 +175,10 @@ watch(
   }
 )
 
-// MiniNavbar v-model 绑定（string 类型，需要转换）
-// MiniNavbar 使用的工具 ID: 'chapters' | 'writing' | 'immersive' | 'ai-assistant'
-const activeToolModel = computed<string>({
-  get: () => {
-    const tool = activeTool.value
-    // 'ai' -> 'ai-assistant' 转换
-    return tool === 'ai' ? 'ai-assistant' : tool
-  },
-  set: (value: string) => {
-    // 'ai-assistant' -> 'ai' 转换
-    const tool: ActiveTool = value === 'ai-assistant' ? 'ai' : value as ActiveTool
-    activeTool.value = tool
+const activityToolModel = computed<ActiveTool>({
+  get: () => activeTool.value,
+  set: (value: ActiveTool) => {
+    activeTool.value = value
   }
 })
 
@@ -206,20 +197,27 @@ watch(
 // chapters/writing: 展开 | immersive/ai: 隐藏
 const leftPanelVisible = computed(() => {
   const tool = activeTool.value
-  return tool === 'chapters' || tool === 'writing' || tool === 'encyclopedia'
+  return (
+    tool === 'chapters' ||
+    tool === 'writing' ||
+    tool === 'encyclopedia' ||
+    tool === 'relations' ||
+    tool === 'timeline'
+  )
 })
 
 // 根据 activeTool 计算右侧面板是否可见
-// writing/ai: 展开 | chapters/immersive: 隐藏
+// 仅 AI 页面展示右侧面板
 const rightPanelVisible = computed(() => {
   const tool = activeTool.value
-  return tool === 'ai' || tool === 'writing'
+  return tool === 'ai'
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const leftPanelState = computed(() => {
   const tool = activeTool.value
   if (tool === 'immersive' || tool === 'ai') return 'hidden'
+  if (tool === 'relations' || tool === 'timeline') return 'expanded'
   if (tool === 'encyclopedia') return 'expanded'
   // 写作模式保持正常宽度，避免侧栏过窄不可见
   if (tool === 'writing') return 'expanded'
@@ -230,9 +228,14 @@ const leftPanelState = computed(() => {
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
 const rightPanelState = computed(() => {
   const tool = activeTool.value
-  if (tool === 'immersive' || tool === 'chapters' || tool === 'encyclopedia') return 'hidden'
-  // 写作模式保持正常宽度，避免侧栏过窄不可见
-  if (tool === 'writing') return 'expanded'
+  if (
+    tool === 'immersive' ||
+    tool === 'chapters' ||
+    tool === 'writing' ||
+    tool === 'encyclopedia' ||
+    tool === 'relations' ||
+    tool === 'timeline'
+  ) return 'hidden'
   if (tool === 'ai') return 'expanded'
   return 'hidden'
 })
@@ -306,12 +309,8 @@ const leftPanelStyle = computed(() => {
   if (leftPanelState.value === 'collapsed') {
     return { width: '48px', minWidth: '48px' }
   }
-  // 展开状态
-  return {
-    width: layout.value.mode === 'desktop'
-      ? `${layout.value.leftPanel.width}px`
-      : undefined
-  }
+  // 展开状态交由 ResizablePanel 控制
+  return {}
 })
 
 const rightPanelStyle = computed(() => {
@@ -323,12 +322,8 @@ const rightPanelStyle = computed(() => {
   if (rightPanelState.value === 'collapsed') {
     return { width: '48px', minWidth: '48px' }
   }
-  // 展开状态
-  return {
-    width: layout.value.mode === 'desktop'
-      ? `${layout.value.rightPanel.width}px`
-      : undefined
-  }
+  // 展开状态交由 ResizablePanel 控制
+  return {}
 })
 
 const layoutModeLabel = computed(() => {
@@ -345,6 +340,8 @@ const layoutModeLabel = computed(() => {
     immersive: '沉浸模式',
     ai: 'AI助手模式',
     encyclopedia: '设定百科模式',
+    relations: '关系图谱模式',
+    timeline: '时间线模式',
   }
   return `${modeLabel} - ${toolLabels[activeTool.value]}`
 })
@@ -393,10 +390,8 @@ function handleContentTouchEnd(event: TouchEvent) {
   }
 }
 
-function handleToolChange(toolId: string) {
-  // MiniNavbar 发出的是 string 类型，需要转换
-  const normalizedTool: ActiveTool = toolId === 'ai-assistant' ? 'ai' : toolId as ActiveTool
-
+function handleToolChange(toolId: ActiveTool | string) {
+  const normalizedTool: ActiveTool = toolId as ActiveTool
   // 更新内部状态和发出事件
   activeTool.value = normalizedTool
   emit('toolChange', normalizedTool)
@@ -413,6 +408,8 @@ function handleToolChange(toolId: string) {
     immersive: '沉浸模式',
     ai: 'AI助手模式',
     encyclopedia: '设定百科模式',
+    relations: '关系图谱模式',
+    timeline: '时间线模式',
   }
   ariaAnnouncement.value = `已切换到${toolLabels[normalizedTool]}`
   setTimeout(() => {
@@ -431,7 +428,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .editor-layout {
-  --editor-navbar-height: 52px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -444,7 +440,7 @@ onMounted(() => {
 .editor-layout__content {
   display: flex;
   flex: 1;
-  height: calc(100% - var(--editor-navbar-height));
+  height: 100%;
   min-height: 0;
   overflow: hidden;
   position: relative;

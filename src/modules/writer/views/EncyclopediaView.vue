@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div v-if="!embedded" class="encyclopedia-header">
       <div class="header-left">
-        <el-icon class="header-icon"><Collection /></el-icon>
+        <el-icon class="header-icon"><QyIcon name="Collection"  /></el-icon>
         <span class="header-title">设定百科</span>
       </div>
       <div class="header-actions">
@@ -32,7 +32,7 @@
             <el-badge v-if="characters.length > 0" :value="characters.length" class="nav-badge" />
           </el-menu-item>
           <el-menu-item index="locations">
-            <QyIcon name="LocationInformation"  />
+            <QyIcon name="Location"  />
             <span>地点</span>
             <el-badge v-if="locations.length > 0" :value="locations.length" class="nav-badge" />
           </el-menu-item>
@@ -69,7 +69,7 @@
                 @click="handleSelectItem(character, 'character')"
               >
                 <el-avatar :size="50" :src="character.avatarUrl">
-                  {{ character.name.charAt(0) }}
+                  {{ getAvatarText(character.name) }}
                 </el-avatar>
                 <div class="item-info">
                   <div class="item-name">{{ character.name }}</div>
@@ -99,7 +99,7 @@
                 @click="handleSelectItem(location, 'location')"
               >
                 <el-avatar :size="50" :src="location.imageUrl" shape="square">
-                  <QyIcon name="LocationInformation"  />
+                  <QyIcon name="Location"  />
                 </el-avatar>
                 <div class="item-info">
                   <div class="item-name">{{ location.name }}</div>
@@ -120,7 +120,7 @@
             <div class="detail-header">
               <div class="header-info">
                 <el-avatar :size="60" :src="(selectedItem as Character).avatarUrl">
-                  {{ (selectedItem as Character).name.charAt(0) }}
+                  {{ getAvatarText((selectedItem as Character).name) }}
                 </el-avatar>
                 <div class="header-text">
                   <h2>{{ (selectedItem as Character).name }}</h2>
@@ -175,7 +175,7 @@
             <div class="detail-header">
               <div class="header-info">
                 <el-avatar :size="60" :src="(selectedItem as Location).imageUrl" shape="square">
-                  <QyIcon name="LocationInformation"  />
+                  <QyIcon name="Location"  />
                 </el-avatar>
                 <div class="header-text">
                   <h2>{{ (selectedItem as Location).name }}</h2>
@@ -246,16 +246,21 @@ const locations = computed<Location[]>(() => writerStore.locations.list)
 const filteredCharacters = computed(() => {
   if (!searchKeyword.value) return characters.value
   return characters.value.filter(c =>
-    c.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    (c.name || '').toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
 
 const filteredLocations = computed(() => {
   if (!searchKeyword.value) return locations.value
   return locations.value.filter(l =>
-    l.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    (l.name || '').toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
+
+const getAvatarText = (name?: string) => {
+  const safeName = (name || '').trim()
+  return safeName ? safeName.charAt(0) : '设'
+}
 
 const handleCategoryChange = (index: string) => {
   activeCategory.value = index
@@ -638,5 +643,4 @@ watch(
   }
 }
 </style>
-
 
