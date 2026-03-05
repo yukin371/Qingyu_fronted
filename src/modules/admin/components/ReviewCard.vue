@@ -60,11 +60,7 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{
-  approve: [item: PendingReview]
-  reject: [item: PendingReview]
-  view: [item: PendingReview]
-}>()
+const emit = defineEmits<Emits>()
 
 // 内容类型名称
 const contentTypeName = computed(() => {

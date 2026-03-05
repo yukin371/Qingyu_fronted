@@ -264,11 +264,14 @@ const submitReview = async () => {
   submitting.value = true
   try {
     const reviewData: any = {
+      target_id: reviewForm.target_id,
+      target_type: reviewForm.target_type,
       title: reviewForm.title,
       content: reviewForm.content,
       rating: reviewForm.rating,
       is_spoiler: reviewForm.is_spoiler
-    } as any)
+    }
+    await createReview(reviewData)
     message.success('发布成功')
     showCreateDialog.value = false
     // 重置表单

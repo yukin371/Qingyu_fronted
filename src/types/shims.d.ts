@@ -95,6 +95,7 @@ declare module '@/stores/reader' {
   import type { Chapter, ChapterContent, ReaderSettings } from '@/types/reader'
 
   export interface ReaderStore {
+    currentBookId: import('vue').Ref<string | null>
     currentChapter: import('vue').Ref<Chapter | null>
     chapterContent: import('vue').Ref<ChapterContent | null>
     chapterList: import('vue').Ref<Chapter[]>

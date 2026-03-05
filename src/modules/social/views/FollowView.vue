@@ -116,13 +116,6 @@ import * as socialAPI from '@/modules/social/api'
 import { useAuthStore } from '@/stores/auth'
 import type { UserFollowInfo, FollowStats } from '@/modules/social/api'
 
-// 本地类型定义
-interface FollowStats {
-  follower_count: number
-  following_count: number
-  mutual_count: number
-}
-
 const loading = ref(false)
 const activeTab = ref<'following' | 'followers' | 'mutual' | 'recommended'>('following')
 const userList = ref<UserFollowInfo[]>([])
