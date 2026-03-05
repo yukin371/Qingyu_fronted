@@ -129,10 +129,10 @@
           :aria-label="isDirectoryCollapsed(row.chapter.id) ? '展开目录' : '折叠目录'"
           @click.stop="toggleDirectoryCollapse(row.chapter.id)"
         >
-          <span
-            class="directory-triangle"
-            :class="{ 'is-collapsed': isDirectoryCollapsed(row.chapter.id) }"
-            aria-hidden="true"
+          <QyIcon
+            name="ArrowRight"
+            :size="12"
+            :class="isDirectoryCollapsed(row.chapter.id) ? 'directory-triangle is-collapsed' : 'directory-triangle'"
           />
         </QyGhostButton>
 
@@ -712,7 +712,34 @@ onBeforeUnmount(() => {
 
   .search-input {
     flex: 1;
+    min-width: 0;
   }
+}
+
+.sidebar-toolbar :deep(.el-input__wrapper) {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.sidebar-toolbar :deep(.el-input__prefix) {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sidebar-toolbar :deep(.el-input__prefix-inner) {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.sidebar-toolbar :deep(.el-input__inner) {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // 3. 目录树
@@ -803,7 +830,7 @@ onBeforeUnmount(() => {
     background: #ffffff;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: stretch;
     box-shadow: none;
     margin-left: calc(var(--tree-depth, 0) * 16px);
 
@@ -842,6 +869,7 @@ onBeforeUnmount(() => {
       color: inherit;
       cursor: pointer;
       transition: background-color 0.16s ease;
+      min-height: 36px;
 
       &:hover {
         background: rgba(148, 163, 184, 0.12);
@@ -858,6 +886,7 @@ onBeforeUnmount(() => {
     .item-content {
       flex: 1;
       overflow: hidden;
+      min-width: 0;
     }
 
     .item-title {
@@ -880,9 +909,20 @@ onBeforeUnmount(() => {
       color: #64748b;
       display: flex;
       align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       .dot {
         margin: 0 4px;
+        flex-shrink: 0;
+      }
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       &.item-meta--directory {
@@ -936,24 +976,22 @@ onBeforeUnmount(() => {
 }
 
 .directory-collapse-zone {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  margin-top: 0;
+  width: 44px;
+  min-width: 44px;
+  height: auto;
   margin-left: 6px;
-  align-self: center;
+  align-self: stretch;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .directory-triangle {
-  width: 0;
-  height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 7px solid #64748b;
+  width: 12px;
+  height: 12px;
+  color: #64748b;
   transform: rotate(90deg);
   transition: transform 0.16s ease;
+  flex-shrink: 0;
 }
 
 .directory-triangle.is-collapsed {
