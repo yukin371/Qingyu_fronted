@@ -25,7 +25,7 @@ withDefaults(defineProps<Props>(), {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .side-panel--left {
@@ -42,8 +42,7 @@ withDefaults(defineProps<Props>(), {
   height: 100%;
   min-height: 0;
   min-width: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   background: #fff;
 }
 

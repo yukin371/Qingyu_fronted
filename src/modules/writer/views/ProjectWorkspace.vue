@@ -1093,6 +1093,8 @@ const handleAIApplyGeneratedText = (payload: {
   flex: 0 0 56px;
   border-right: 1px solid #d7deeb;
   background: linear-gradient(180deg, #ffffff, #f2f7ff);
+  position: relative;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1142,7 +1144,7 @@ const handleAIApplyGeneratedText = (payload: {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.16s ease;
-  z-index: 20;
+  z-index: 120;
 }
 
 .workspace-left-dock__item:hover .workspace-left-dock__label,
@@ -1166,6 +1168,11 @@ const handleAIApplyGeneratedText = (payload: {
   min-width: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+.workspace-left-panel-shell.is-collapsed :deep(.side-panel),
+.workspace-left-panel-shell.is-collapsed :deep(.side-panel__content) {
+  overflow: visible !important;
 }
 
 .workspace-left-panel-shell.is-immersive-focus {
@@ -1210,6 +1217,11 @@ const handleAIApplyGeneratedText = (payload: {
   pointer-events: none;
 }
 
+.workspace-right-panel-shell.is-collapsed :deep(.side-panel),
+.workspace-right-panel-shell.is-collapsed :deep(.side-panel__content) {
+  overflow: visible !important;
+}
+
 .workspace-right-panel-shell.is-immersive-hidden {
   width: 0 !important;
   min-width: 0 !important;
@@ -1231,6 +1243,8 @@ const handleAIApplyGeneratedText = (payload: {
   flex: 0 0 56px;
   border-left: 1px solid #d7deeb;
   background: linear-gradient(180deg, #ffffff, #f2f7ff);
+  position: relative;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1280,7 +1294,7 @@ const handleAIApplyGeneratedText = (payload: {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.16s ease;
-  z-index: 20;
+  z-index: 120;
 }
 
 .workspace-right-dock__item:hover .workspace-right-dock__label,

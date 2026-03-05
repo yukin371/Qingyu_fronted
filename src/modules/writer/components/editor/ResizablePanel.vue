@@ -201,15 +201,20 @@ defineExpose({
 .resizable-panel--collapsed-right {
   width: 66px !important;
   min-width: 66px !important;
-  overflow: hidden;
+  overflow: visible;
   border: none;
 }
 
 .resizable-panel--collapsed-left {
   width: 66px !important;
   min-width: 66px !important;
-  overflow: hidden;
+  overflow: visible;
   border: none;
+}
+
+.resizable-panel--collapsed-left .panel-content,
+.resizable-panel--collapsed-right .panel-content {
+  overflow: visible;
 }
 
 /* 拖拽状态 */
