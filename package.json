@@ -49,6 +49,7 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@pinia/testing": "^0.1.3",
     "@playwright/test": "^1.58.0",
     "@storybook/addon-essentials": "^8.6.15",
@@ -78,6 +79,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
+    "eslint": "^10.0.2",
     "eslint-plugin-vue": "^10.7.0",
     "file-saver": "^2.0.5",
     "globals": "^17.2.0",
@@ -89,6 +91,7 @@
     "min-indent": "^1.0.1",
     "postcss": "^8.4.32",
     "postcss-html": "^1.8.0",
+    "prettier": "^3.8.1",
     "sass-embedded": "^1.93.2",
     "storybook": "^8.6.15",
     "stylelint": "^16.25.0",
