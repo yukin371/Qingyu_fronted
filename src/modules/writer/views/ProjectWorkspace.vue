@@ -1,5 +1,5 @@
 <template>
-  <div class="workspace-studio">
+  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }">
     <header class="workspace-topbar">
       <div class="workspace-topbar__title-group">
         <div class="workspace-topbar__logo">QY</div>
@@ -49,9 +49,8 @@
       <!-- 左侧面板插槽 -->
       <template #left-panel>
         <div
-          v-if="!isImmersiveMode"
           class="workspace-left-panel-shell"
-          :class="{ 'is-collapsed': panelStore.leftCollapsed }"
+          :class="{ 'is-collapsed': panelStore.leftCollapsed, 'is-immersive-focus': isImmersiveMode }"
         >
           <aside class="workspace-left-dock" aria-label="左侧工具栏">
             <button
@@ -152,9 +151,8 @@
       <!-- 右侧AI面板插槽 -->
       <template #right-panel>
         <div
-          v-if="!isImmersiveMode"
           class="workspace-right-panel-shell"
-          :class="{ 'is-collapsed': panelStore.rightCollapsed }"
+          :class="{ 'is-collapsed': panelStore.rightCollapsed, 'is-immersive-hidden': isImmersiveMode }"
         >
           <div class="workspace-right-panel-body">
             <AIPanel
@@ -394,9 +392,6 @@ const stopImmersiveTimer = () => {
 }
 
 const handleDockSelect = async (tool: LeftDockTool) => {
-  if (isImmersiveMode.value && tool !== 'writing' && tool !== 'immersive') {
-    return
-  }
   const nextQuery = { ...route.query } as Record<string, unknown>
   if (tool === 'relations' || tool === 'encyclopedia' || tool === 'timeline' || tool === 'branches') {
     editorStore.setActiveTool('encyclopedia')
@@ -1062,6 +1057,16 @@ const handleAIApplyGeneratedText = (payload: {
   background: linear-gradient(90deg, #f0872f, #de6720);
 }
 
+.workspace-studio.workspace-studio--immersive :deep(.drag-handle),
+.workspace-studio.workspace-studio--immersive :deep(.panel-resize-guide) {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.workspace-studio.workspace-studio--immersive :deep(.resizable-panel--dragging) {
+  box-shadow: none !important;
+}
+
 .workspace-statusbar__stats {
   display: flex;
   align-items: center;
@@ -1173,6 +1178,26 @@ const handleAIApplyGeneratedText = (payload: {
   pointer-events: none;
 }
 
+.workspace-left-panel-shell.is-immersive-focus {
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+}
+
+.workspace-left-panel-shell.is-immersive-focus .workspace-left-dock {
+  width: 56px !important;
+  min-width: 56px !important;
+}
+
+.workspace-left-panel-shell.is-immersive-focus .workspace-left-panel-body {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .workspace-right-panel-shell {
   height: 100%;
   min-height: 0;
@@ -1191,6 +1216,22 @@ const handleAIApplyGeneratedText = (payload: {
 .workspace-right-panel-shell.is-collapsed .workspace-right-panel-body {
   width: 0;
   min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.workspace-right-panel-shell.is-immersive-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.workspace-right-panel-shell.is-immersive-hidden .workspace-right-dock,
+.workspace-right-panel-shell.is-immersive-hidden .workspace-right-panel-body {
+  width: 0 !important;
+  min-width: 0 !important;
   opacity: 0;
   pointer-events: none;
 }
