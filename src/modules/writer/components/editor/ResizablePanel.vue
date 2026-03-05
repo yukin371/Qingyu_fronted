@@ -13,7 +13,7 @@
   >
     <!-- 左侧面板: 内容在前，手柄在后 -->
     <template v-if="position === 'left'">
-      <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed && panelId === 'right' }">
+      <div class="panel-content">
         <slot />
       </div>
       <DragHandle
@@ -28,7 +28,7 @@
         :position="position"
         @drag-start="handleDragStart"
       />
-      <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed && panelId === 'right' }">
+      <div class="panel-content">
         <slot />
       </div>
     </template>
@@ -194,15 +194,15 @@ defineExpose({
 
 /* 折叠状态 */
 .resizable-panel--collapsed-right {
-  width: 0 !important;
-  min-width: 0 !important;
+  width: 66px !important;
+  min-width: 66px !important;
   overflow: hidden;
   border: none;
 }
 
 .resizable-panel--collapsed-left {
-  width: 56px !important;
-  min-width: 56px !important;
+  width: 66px !important;
+  min-width: 66px !important;
   overflow: hidden;
   border: none;
 }
