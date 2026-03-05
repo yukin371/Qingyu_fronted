@@ -124,6 +124,11 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   const dragSource = ref<'mouse' | 'touch'>('mouse')
   const currentTouchId = ref<number | null>(null)
 
+  const resolveEffectiveWidth = () => {
+    const preferred = localWidth.value || savedWidth.value || defaultWidth
+    return clampWidth(preferred)
+  }
+
   /**
    * 开始拖拽
    */
@@ -137,9 +142,19 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
       }
     }
 
+    // 如果当前是折叠态，拖拽开始时自动展开，避免“拖不动”的假象
+    if (collapsible && isCollapsed.value) {
+      if (panelId === 'left') {
+        panelStore.toggleLeftCollapsed()
+      } else {
+        panelStore.toggleRightCollapsed()
+      }
+      localWidth.value = resolveEffectiveWidth()
+    }
+
     isDragging.value = true
     dragStartX.value = event.startX
-    dragStartWidth.value = currentWidth.value
+    dragStartWidth.value = resolveEffectiveWidth()
     dragSource.value = event.source || 'mouse'
 
     // 添加全局事件监听器（根据来源选择事件类型）
