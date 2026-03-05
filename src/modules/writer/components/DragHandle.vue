@@ -240,9 +240,11 @@ onMounted(() => {
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 2px;
+  width: 1px;
   transform: translateX(-50%);
-  background-color: var(--color-border, #3c3c3c);
+  background-color: var(--drag-handle-idle-line, #cbd5e1);
+  transition: background-color var(--transition-fast, 100ms) ease-out,
+              width var(--transition-fast, 100ms) ease-out;
 }
 
 .drag-handle:hover {
@@ -252,6 +254,7 @@ onMounted(() => {
 
 .drag-handle:hover::before {
   background-color: var(--drag-handle-hover-bg, #007fd4);
+  width: 2px;
 }
 
 .drag-handle--active {
@@ -261,6 +264,20 @@ onMounted(() => {
 
 .drag-handle--active::before {
   background-color: var(--drag-handle-hover-bg, #007fd4);
+  width: 3px;
+}
+
+.drag-handle--active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.35);
+  pointer-events: none;
 }
 
 .drag-handle:focus-visible {
