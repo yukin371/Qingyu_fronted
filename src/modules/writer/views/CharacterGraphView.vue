@@ -13,11 +13,11 @@
       </div>
       <div class="header-actions">
         <el-button size="small" @click="handleRefresh">
-          <QyIcon name="Refresh" />
+          <el-icon><Refresh /></el-icon>
           刷新
         </el-button>
         <el-button type="primary" size="small" @click="handleAddCharacter">
-          <QyIcon name="Plus" />
+          <el-icon><Plus /></el-icon>
           添加角色
         </el-button>
       </div>
@@ -53,10 +53,10 @@
             </div>
             <div class="card-actions">
               <el-button text size="small" @click.stop="handleEditCharacter(character)">
-                <QyIcon name="Edit" />
+                <el-icon><Edit /></el-icon>
               </el-button>
               <el-button text size="small" @click.stop="handleDeleteCharacter(character)">
-                <QyIcon name="Delete" />
+                <el-icon><Delete /></el-icon>
               </el-button>
             </div>
           </div>
@@ -71,7 +71,7 @@
           <div class="sidebar-header">
             <h3>{{ selectedCharacter.name }}</h3>
             <el-button text @click="selectedCharacter = null">
-              <QyIcon name="Close" />
+              <el-icon><Close /></el-icon>
             </el-button>
           </div>
           <el-scrollbar class="sidebar-content">
@@ -211,13 +211,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { Plus, Refresh, Edit, Delete, Close } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
+import type { CreateCharacterRequest } from '../types/character'
 import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
 import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
-const graphCanvasRef = ref()
 const selectedCharacter = ref<Character | null>(null)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -225,13 +226,8 @@ const submitting = ref(false)
 const formRef = ref()
 const showAliasInput = ref(false)
 const showTraitInput = ref(false)
-const aliasInputRef = ref()
-const traitInputRef = ref()
 const newAlias = ref('')
 const newTrait = ref('')
-void graphCanvasRef
-void aliasInputRef
-void traitInputRef
 
 const characterForm = ref({
   name: '',
@@ -298,15 +294,16 @@ const handleDeleteCharacter = async (character: Character) => {
       '提示',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
+        cancelButtonText: '取消',
+        type: 'warning'
       }
     )
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
 
-    const writerModule = await import('..') as any
-    await writerModule.deleteCharacter?.(character.id, projectId)
+    const { deleteCharacter } = await import('..')
+    await deleteCharacter(character.id, projectId)
     await handleRefresh()
     if (selectedCharacter.value?.id === character.id) {
       selectedCharacter.value = null
@@ -350,11 +347,21 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedCharacter.value) {
-        const writerModule = await import('..') as any
-        await writerModule.updateCharacter?.(selectedCharacter.value.id, projectId, characterForm.value)
+        const { updateCharacter } = await import('..')
+        await updateCharacter(selectedCharacter.value.id, projectId, characterForm.value)
       } else {
-        const writerModule = await import('..') as any
-        await writerModule.createCharacter?.(projectId, characterForm.value)
+        const { createCharacter } = await import('..')
+        const createData: CreateCharacterRequest = {
+          projectId,
+          name: characterForm.value.name,
+          alias: characterForm.value.alias,
+          summary: characterForm.value.summary,
+          traits: characterForm.value.traits,
+          background: characterForm.value.background,
+          personalityPrompt: characterForm.value.personalityPrompt,
+          speechPattern: characterForm.value.speechPattern,
+        }
+        await createCharacter(projectId, createData)
       }
 
       await handleRefresh()

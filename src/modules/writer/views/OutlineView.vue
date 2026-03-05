@@ -30,7 +30,7 @@
           size="small"
           @click="handleAddNode"
         >
-          <QyIcon name="Plus" />
+          <el-icon><Plus /></el-icon>
           添加节点
         </el-button>
       </div>
@@ -58,7 +58,7 @@
                   <div class="node-content">
                     <el-icon v-if="data.level === 1"><QyIcon name="Folder"  /></el-icon>
                     <el-icon v-else-if="data.level === 2"><QyIcon name="Document"  /></el-icon>
-                    <el-icon v-else><QyIcon name="Document" /></el-icon>
+                    <el-icon v-else><Memo /></el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
                       {{ getStatusText(data.status) }}
@@ -66,20 +66,20 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                      <el-button
-                        text
-                        size="small"
-                        @click.stop="handleEditNode(data)"
-                      >
-                        <QyIcon name="Edit" />
-                      </el-button>
-                      <el-button
-                        text
-                        size="small"
-                        @click.stop="handleDeleteNode(data)"
-                      >
-                        <QyIcon name="Delete" />
-                      </el-button>
+                    <el-button
+                      text
+                      size="small"
+                      @click.stop="handleEditNode(data)"
+                    >
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                    <el-button
+                      text
+                      size="small"
+                      @click.stop="handleDeleteNode(data)"
+                    >
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
                   </div>
                 </div>
               </template>
@@ -92,7 +92,7 @@
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
             <el-button text @click="selectedNode = null">
-              <QyIcon name="Close" />
+              <el-icon><Close /></el-icon>
             </el-button>
           </div>
           <div class="detail-content">
@@ -101,8 +101,8 @@
                 {{ getLevelText(selectedNode.level) }}
               </el-descriptions-item>
               <el-descriptions-item label="状态">
-                <el-tag :type="getStatusType(selectedNode.status)">
-                  {{ getStatusText(selectedNode.status) }}
+                <el-tag :type="getStatusType(selectedNode.status || 'draft')">
+                  {{ getStatusText(selectedNode.status || 'draft') }}
                 </el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="字数">
@@ -117,7 +117,7 @@
               <el-button type="primary" @click="handleEditNode(selectedNode)">
                 编辑
               </el-button>
-              <el-button @click="selectedNode && handleJumpToChapter(selectedNode)">
+              <el-button @click="handleJumpToChapter(selectedNode)">
                 跳转到章节
               </el-button>
             </div>
@@ -128,13 +128,10 @@
       <!-- 思维导图视图 -->
       <div v-show="viewMode === 'mindmap'" class="mindmap-view">
         <DrawCanvas
-          :nodes="mindmapNodes"
-          :edges="mindmapEdges"
-          canvas-type="mindmap"
           :config="mindmapConfig"
-          @node-add="handleMindmapNodeAdd"
-          @node-update="handleMindmapNodeUpdate"
-          @node-delete="handleMindmapNodeDelete"
+          :initial-data="mindmapData"
+          @node-selected="handleMindmapNodeSelected"
+          @node-changed="handleMindmapNodeChanged"
           @export="handleMindmapExport"
         />
       </div>
@@ -201,10 +198,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { Plus, Edit, Delete, Close, Memo } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
-import type { DrawNode, DrawEdge, DrawEngineConfig } from '@/core/draw-engine/types'
+import type { DrawNode, DrawEngineConfig } from '@/core/draw-engine/types'
 import { QyIcon } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
 import { ElMessage } from 'element-plus'
@@ -215,9 +213,10 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref()
+
 const nodeForm = ref({
   title: '',
-  level: 1,
+  level: 1 as 1 | 2 | 3,
   parentId: '',
   status: 'draft' as 'draft' | 'writing' | 'completed' | 'reviewing',
   description: '',
@@ -237,15 +236,17 @@ const outlineTree = computed(() => writerStore.outline.tree)
 
 // 思维导图配置
 const mindmapConfig = ref<DrawEngineConfig>({
-  canvasId: 'writer-outline-mindmap',
+  canvasId: 'outline-mindmap',
   type: 'mindmap',
-  minZoom: 0.5,
-  maxZoom: 3,
+  theme: 'default',
   enableGrid: true,
-  gridSize: 20
+  enableHistory: true,
+  directions: 'TB',
+  defaultNodeWidth: 140,
+  defaultNodeHeight: 70
 })
 
-// 将大纲树转换为思维导图节点和边
+// 将大纲树转换为思维导图节点
 const mindmapNodes = computed((): DrawNode[] => {
   if (!outlineTree.value || outlineTree.value.length === 0) return []
 
@@ -258,13 +259,7 @@ const mindmapNodes = computed((): DrawNode[] => {
       x: level * 300,
       y: nodes.length * 100,
       width: 150,
-      height: 60,
-      metadata: {
-        level: item.level,
-        status: item.status,
-        description: item.description,
-        wordCount: item.wordCount
-      }
+      height: 60
     })
 
     if (item.children && item.children.length > 0) {
@@ -277,16 +272,14 @@ const mindmapNodes = computed((): DrawNode[] => {
 })
 
 // 将大纲树转换为边关系
-const mindmapEdges = computed((): DrawEdge[] => {
+const mindmapEdges = computed(() => {
   if (!outlineTree.value || outlineTree.value.length === 0) return []
 
-  const edges: DrawEdge[] = []
+  const edges: Array<{ fromNodeId: string; toNodeId: string; label?: string }> = []
   const traverse = (item: OutlineNode) => {
     if (item.children && item.children.length > 0) {
       item.children.forEach(child => {
         edges.push({
-          id: `edge-${item.id}-${child.id}`,
-          type: 'line',
           fromNodeId: item.id,
           toNodeId: child.id,
           label: ''
@@ -299,6 +292,12 @@ const mindmapEdges = computed((): DrawEdge[] => {
   outlineTree.value.forEach(root => traverse(root))
   return edges
 })
+
+// 组合数据供 DrawCanvas 使用
+const mindmapData = computed(() => ({
+  nodes: mindmapNodes.value,
+  edges: mindmapEdges.value
+}))
 
 onMounted(async () => {
   if (writerStore.currentProjectId) {
@@ -315,11 +314,22 @@ const handleAddNode = () => {
 const handleEditNode = (node: OutlineNode) => {
   isEdit.value = true
   dialogVisible.value = true
+  // 帮助函数：将数值 level 转换为 1 | 2 | 3
+  const toLevelType = (lvl: number): 1 | 2 | 3 => {
+    if (lvl === 1 || lvl === 2 || lvl === 3) return lvl
+    return 1
+  }
+  // 帮助函数：将 status 字符串转换为正确的类型
+  const toStatusType = (st?: string): 'draft' | 'writing' | 'completed' | 'reviewing' => {
+    const validStatuses = ['draft', 'writing', 'completed', 'reviewing'] as const
+    if (st && validStatuses.includes(st as any)) return st as typeof validStatuses[number]
+    return 'draft'
+  }
   nodeForm.value = {
     title: node.title,
-    level: (node.level as 1 | 2 | 3) || 1,
+    level: toLevelType(node.level),
     parentId: node.parentId || '',
-    status: (node.status as 'draft' | 'writing' | 'completed' | 'reviewing') || 'draft',
+    status: toStatusType(node.status),
     description: node.description || '',
     order: node.order
   }
@@ -330,11 +340,12 @@ const handleDeleteNode = async (node: OutlineNode) => {
     await messageBox.confirm(
       `确定要删除节点"${node.title}"吗？`,
       '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        }
-      )
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
@@ -406,24 +417,17 @@ const handleJumpToChapter = (node: OutlineNode) => {
 }
 
 // 思维导图事件处理
-const handleMindmapNodeAdd = (node: DrawNode) => {
-  message.info(`添加节点: ${node.label}`)
-  // 可以在这里调用添加节点的API
+const handleMindmapNodeSelected = (node: DrawNode) => {
+  message.info(`选中节点: ${node.label}`)
 }
 
-const handleMindmapNodeUpdate = (node: DrawNode) => {
+const handleMindmapNodeChanged = (node: DrawNode) => {
   message.info(`更新节点: ${node.label}`)
   // 可以在这里调用更新节点的API
 }
 
-const handleMindmapNodeDelete = (nodeId: string) => {
-  message.info(`删除节点: ${nodeId}`)
-  // 可以在这里调用删除节点的API
-}
-
-const handleMindmapExport = async (payload: any) => {
-  const format = payload?.format || 'unknown'
-  message.success(`已导出为 ${format} 格式`)
+const handleMindmapExport = (_data: any) => {
+  message.success('已导出')
   // 处理导出逻辑
 }
 
@@ -447,26 +451,24 @@ const getLevelText = (level: number): string => {
   return levelMap[level] || '未知'
 }
 
-const getStatusText = (status?: string): string => {
+const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
     reviewing: '审阅中'
   }
-  const key = status || 'draft'
-  return statusMap[key] || key
+  return statusMap[status] || status
 }
 
-const getStatusType = (status?: string): 'info' | 'warning' | 'success' | 'danger' => {
+const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger' => {
   const typeMap: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     draft: 'info',
     writing: 'warning',
     completed: 'success',
     reviewing: 'warning'
   }
-  const key = status || 'draft'
-  return typeMap[key] || 'info'
+  return typeMap[status] || 'info'
 }
 </script>
 
@@ -724,6 +726,8 @@ const getStatusType = (status?: string): 'info' | 'warning' | 'success' | 'dange
   }
 }
 </style>
+
+
 
 
 

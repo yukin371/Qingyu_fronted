@@ -16,7 +16,6 @@ import type {
   ExportDocumentRequest,
   ExportProjectRequest,
   ExportTask,
-  ExportFile,
   ExportTaskListResponse
 } from '../types/export'
 
@@ -170,7 +169,7 @@ export function exportChapter(chapterId: string, format: string) {
  * @deprecated 后端不支持此功能
  * 旧版本的导出选中文本方法
  */
-export function exportSelection(data: any) {
+export function exportSelection(_data: any) {
   console.warn('[DEPRECATED] exportSelection 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持导出选中内容'))
 }
@@ -206,7 +205,7 @@ export function getExportHistory(bookId: string, params?: any) {
  * @deprecated 后端不支持此功能
  * 旧版本的获取用户所有导出历史方法
  */
-export function getAllExportHistory(params?: any) {
+export function getAllExportHistory(_params?: any) {
   console.warn('[DEPRECATED] getAllExportHistory 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持全局导出历史查询'))
 }
@@ -242,7 +241,7 @@ export function getExportTemplates() {
  * @deprecated 后端不支持此功能
  * 旧版本的保存导出模板方法
  */
-export function saveExportTemplate(data: any) {
+export function saveExportTemplate(_data: any) {
   console.warn('[DEPRECATED] saveExportTemplate 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持导出模板管理'))
 }
@@ -251,7 +250,7 @@ export function saveExportTemplate(data: any) {
  * @deprecated 后端不支持此功能
  * 旧版本的批量导出方法
  */
-export function batchExport(data: any) {
+export function batchExport(_data: any) {
   console.warn('[DEPRECATED] batchExport 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持批量导出'))
 }

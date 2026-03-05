@@ -24,7 +24,7 @@
         <el-divider direction="vertical" />
 
         <el-button type="primary" size="small" @click="handleAddNode">
-          <QyIcon name="Plus" />
+          <el-icon><Plus /></el-icon>
           添加节点
         </el-button>
       </div>
@@ -50,7 +50,7 @@
                       <QyIcon name="Document"  />
                     </el-icon>
                     <el-icon v-else>
-                      <QyIcon name="Document" />
+                      <Memo />
                     </el-icon>
                     <span class="node-title">{{ data.title }}</span>
                     <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
@@ -60,10 +60,10 @@
                   </div>
                   <div class="node-actions">
                     <el-button text size="small" @click.stop="handleEditNode(data)">
-                      <QyIcon name="Edit" />
+                      <el-icon><Edit /></el-icon>
                     </el-button>
                     <el-button text size="small" @click.stop="handleDeleteNode(data)">
-                      <QyIcon name="Delete" />
+                      <el-icon><Delete /></el-icon>
                     </el-button>
                   </div>
                 </div>
@@ -77,7 +77,7 @@
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
             <el-button text @click="selectedNode = null">
-              <QyIcon name="Close" />
+              <el-icon><Close /></el-icon>
             </el-button>
           </div>
           <div class="detail-content">
@@ -86,8 +86,8 @@
                 {{ getLevelText(selectedNode.level) }}
               </el-descriptions-item>
               <el-descriptions-item label="状态">
-                <el-tag :type="getStatusType(selectedNode.status)">
-                  {{ getStatusText(selectedNode.status) }}
+                <el-tag :type="getStatusType(selectedNode.status || 'draft')">
+                  {{ getStatusText(selectedNode.status || 'draft') }}
                 </el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="字数">
@@ -102,7 +102,7 @@
               <el-button type="primary" @click="handleEditNode(selectedNode)">
                 编辑
               </el-button>
-              <el-button @click="selectedNode && handleJumpToChapter(selectedNode)">
+              <el-button @click="handleJumpToChapter(selectedNode)">
                 跳转到章节
               </el-button>
             </div>
@@ -158,6 +158,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { Plus, Edit, Delete, Close, Memo } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import type { DrawNode, DrawEdge } from '@/core/draw-engine/types'
@@ -320,11 +321,22 @@ const handleEditNode = (node: OutlineNode) => {
   isEdit.value = true
   selectedNode.value = node
   dialogVisible.value = true
+  // 帮助函数：将数值 level 转换为 1 | 2 | 3
+  const toLevelType = (lvl: number): 1 | 2 | 3 => {
+    if (lvl === 1 || lvl === 2 || lvl === 3) return lvl
+    return 1
+  }
+  // 帮助函数：将 status 字符串转换为正确的类型
+  const toStatusType = (st?: string): 'draft' | 'writing' | 'completed' | 'reviewing' => {
+    const validStatuses = ['draft', 'writing', 'completed', 'reviewing'] as const
+    if (st && validStatuses.includes(st as any)) return st as typeof validStatuses[number]
+    return 'draft'
+  }
   nodeForm.value = {
     title: node.title,
-    level: (node.level as 1 | 2 | 3) || 1,
+    level: toLevelType(node.level),
     parentId: node.parentId || '',
-    status: (node.status as 'draft' | 'writing' | 'completed' | 'reviewing') || 'draft',
+    status: toStatusType(node.status),
     description: node.description || '',
     order: node.order
   }
@@ -337,14 +349,13 @@ const handleDeleteNode = async (node: OutlineNode) => {
       '提示',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
+        cancelButtonText: '取消',
+        type: 'warning'
       }
     )
 
-    const projectId = writerStore.currentProjectId
-    if (!projectId) return
-
-    await writerStore.deleteOutlineNode(node.id, projectId)
+    const { deleteOutlineNode } = await import('..')
+    await deleteOutlineNode(node.id)
     await writerStore.loadOutlineTree()
     message.success('删除成功')
   } catch (error: any) {
@@ -377,19 +388,17 @@ const handleJumpToChapter = (node: OutlineNode) => {
  * 当思维导图中的节点被修改时同步到大纲
  */
 const handleOutlineNodeChanged = async (node: DrawNode) => {
-  const projectId = writerStore.currentProjectId
-  if (!projectId) return
-
   try {
     // 查找原始节点
     const originalNode = outlineTree.value.find(n => n.id === node.id)
     if (!originalNode) return
 
     // 更新节点
-    await writerStore.updateOutlineNode(node.id, projectId, {
+    const { updateOutlineNode } = await import('..')
+    await updateOutlineNode(node.id, {
       title: node.label,
       description: node.description
-    })
+    } as any)
 
     // 重新加载大纲树
     await writerStore.loadOutlineTree()
@@ -467,12 +476,14 @@ const handleSubmit = async () => {
     submitting.value = true
     try {
       if (isEdit.value && selectedNode.value) {
-        await writerStore.updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
+        const { updateOutlineNode } = await import('..')
+        await updateOutlineNode(selectedNode.value.id, nodeForm.value as any)
       } else {
-        await writerStore.createOutlineNode(projectId, {
+        const { createOutlineNode } = await import('..')
+        await createOutlineNode(projectId, {
           ...nodeForm.value,
           order: outlineTree.value.length
-        })
+        } as any)
       }
 
       await writerStore.loadOutlineTree()
@@ -507,26 +518,24 @@ const getLevelText = (level: number): string => {
   return levelMap[level] || '未知'
 }
 
-const getStatusText = (status?: string): string => {
+const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
     reviewing: '审阅中'
   }
-  const key = status || 'draft'
-  return statusMap[key] || key
+  return statusMap[status] || status
 }
 
-const getStatusType = (status?: string): 'info' | 'warning' | 'success' | 'danger' => {
+const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger' => {
   const typeMap: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     draft: 'info',
     writing: 'warning',
     completed: 'success',
     reviewing: 'warning'
   }
-  const key = status || 'draft'
-  return typeMap[key] || 'info'
+  return typeMap[status] || 'info'
 }
 </script>
 

@@ -695,9 +695,8 @@ async function submitWithdraw(): Promise<void> {
     await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
       account: withdrawForm.account,
-      accountType: withdrawForm.method,
-      remark: withdrawForm.remark
-    } as any)
+      accountType: withdrawForm.method === 'bank' ? 'bank' : 'alipay'
+    })
 
     message.success('提现申请已提交，请等待审核')
     showWithdrawDialog.value = false

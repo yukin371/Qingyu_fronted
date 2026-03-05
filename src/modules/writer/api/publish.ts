@@ -237,7 +237,7 @@ export function batchPublishChapters(data: {
  * @response {{success: boolean}} 204 - 成功取消发布
  * @security BearerAuth
  */
-export function unpublishChapter(chapterId: string) {
+export function unpublishChapter(_chapterId: string) {
   return Promise.reject(new Error('后端暂未提供章节下架接口，请使用项目下架或管理端操作'))
 }
 
@@ -252,7 +252,7 @@ export function unpublishChapter(chapterId: string) {
  * @response {PublishRecord} 201 - 成功设置定时发布
  * @security BearerAuth
  */
-export function scheduleChapter(chapterId: string, publishAt: string) {
+export function scheduleChapter(_chapterId: string, _publishAt: string) {
   return Promise.reject(new Error('后端暂未提供独立定时发布接口'))
 }
 
@@ -358,7 +358,7 @@ export function getPublishStats(bookId: string) {
  * @response {{success: boolean}} 200 - 成功提交审核
  * @security BearerAuth
  */
-export function submitForReview(bookId: string) {
+export function submitForReview(_bookId: string) {
   return Promise.reject(new Error('后端暂未提供提交审核接口'))
 }
 
@@ -509,11 +509,14 @@ export const publishPlatformOptions = [
 ]
 
 // 发布状态映射
-export const publishStatusMap: Record<PublishStatus, { label: string; type: 'info' | 'success' | 'warning' | 'danger' }> = {
+export const publishStatusMap: Partial<Record<PublishStatus, { label: string; type: 'info' | 'success' | 'warning' | 'danger' }>> = {
   draft: { label: '草稿', type: 'info' },
   pending_review: { label: '审核中', type: 'warning' },
   scheduled: { label: '定时发布', type: 'info' },
   published: { label: '已发布', type: 'success' },
   rejected: { label: '审核驳回', type: 'danger' },
-  unpublished: { label: '已下架', type: 'info' }
+  unpublished: { label: '已下架', type: 'info' },
+  // active 和 paused 是内部状态，映射到已有状态
+  active: { label: '活跃', type: 'success' },
+  paused: { label: '暂停', type: 'warning' }
 }

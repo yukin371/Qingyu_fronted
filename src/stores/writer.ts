@@ -26,7 +26,7 @@ function isTestModeActive(): boolean {
   return new URLSearchParams(window.location.search).get('test') === 'true'
 }
 
-function buildYunlanMockProject() {
+function buildYunlanMockProject(): LocalProject {
   const updatedAt = new Date(Date.now() - 45 * 60 * 1000).toISOString()
   return {
     projectId: 'project-yljs-1',
@@ -74,7 +74,7 @@ export const useWriterStore = defineStore('writer', () => {
   const isOfflineMode = computed(() => storageMode.value === 'offline')
 
   // 获取项目列表
-  const fetchProjects = async (params?: any) => {
+  const fetchProjects = async (_params?: any) => {
     loading.value = true
     try {
       if (storageMode.value === 'offline') {

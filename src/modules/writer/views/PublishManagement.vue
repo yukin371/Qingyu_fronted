@@ -12,9 +12,9 @@
           <el-select v-model="selectedBook" placeholder="选择作品" clearable @change="loadChapters">
             <el-option
               v-for="book in bookList"
-              :key="book?.id || `book-${Math.random()}`"
-              :label="book?.name || '未命名作品'"
-              :value="book?.id"
+              :key="(book as any)?.projectId || (book as any)?.id || `book-${Math.random()}`"
+              :label="(book as any)?.title || (book as any)?.name || '未命名作品'"
+              :value="(book as any)?.projectId || (book as any)?.id"
             />
           </el-select>
         </el-col>
@@ -324,13 +324,15 @@ const filteredChapters = computed(() => {
 const loadBooks = async () => {
   try {
     const response = await getProjects({ page: 1, pageSize: 100 })
-    const projectList = ((response as { projects?: Project[] }).projects || []) as Project[]
-    bookList.value = projectList.filter((item: Project | null | undefined): item is Project => Boolean(item?.id))
+    // 过滤掉 null 或 undefined 的项目
+    const responseAny = response as any
+    const projects = responseAny?.data || responseAny?.projects || []
+    bookList.value = (Array.isArray(projects) ? projects : []).filter((item: any) => item && (item.projectId || item.id))
 
     if (bookList.value.length > 0) {
-      const firstBook = bookList.value[0]
-      if (firstBook && firstBook.id) {
-        selectedBook.value = firstBook.id
+      const firstBook = bookList.value[0] as any
+      if (firstBook && (firstBook.projectId || firstBook.id)) {
+        selectedBook.value = firstBook.projectId || firstBook.id
         loadChapters()
       }
     }
@@ -421,7 +423,8 @@ const unpublishChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要下架该章节吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
+      type: 'warning'
     })
 
     // 实际应该调用API下架
@@ -437,7 +440,8 @@ const batchPublish = async () => {
   try {
     await messageBox.confirm(`确定要发布选中的 ${selectedChapters.value.length} 个章节吗？`, '批量发布', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
+      type: 'warning'
     })
 
     // 实际应该调用API批量发布
@@ -453,7 +457,8 @@ const batchUnpublish = async () => {
   try {
     await messageBox.confirm(`确定要下架选中的 ${selectedChapters.value.length} 个章节吗？`, '批量下架', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
+      type: 'warning'
     })
 
     // 实际应该调用API批量下架
@@ -482,7 +487,8 @@ const deleteChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要删除该章节吗？删除后无法恢复！', '警告', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
+      type: 'error'
     })
 
     // 实际应该调用API删除
