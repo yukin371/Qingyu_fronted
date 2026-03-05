@@ -411,7 +411,8 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .sidebar-container {
-  width: 260px;
+  width: 100%;
+  min-width: 0;
   height: 100%;
   min-height: 0;
   flex: 1;

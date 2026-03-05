@@ -1,67 +1,127 @@
 <template>
-  <EditorLayout>
-    <!-- 左侧面板插槽 -->
-    <template #left-panel>
-      <ProjectSidebar
-        v-model:projectId="currentProjectId"
-        v-model:chapterId="currentChapterId"
-        :projects="projects"
-        :chapters="flatChapters"
-        @add-chapter="handleAddChapterQuick"
-        @add-volume="handleAddVolumeQuick"
-        @delete-chapter="handleDeleteChapter"
-      />
-    </template>
+  <div class="workspace-studio">
+    <header class="workspace-topbar">
+      <div class="workspace-topbar__title-group">
+        <div class="workspace-topbar__logo">QY</div>
+        <div class="workspace-topbar__title-block">
+          <h1 class="workspace-topbar__title">{{ projectDisplayName }}</h1>
+          <div class="workspace-topbar__meta">
+            <span class="workspace-pill">{{ activeToolLabel }}</span>
+            <span class="workspace-meta-text">当前章节：{{ currentChapterTitle }}</span>
+            <span class="workspace-meta-text">{{ saveStatusLabel }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="workspace-topbar__actions">
+        <button type="button" class="workspace-action-btn" @click="handleTipTapSave">保存</button>
+        <button type="button" class="workspace-action-btn" @click="handleExportDraft">导出</button>
+        <button
+          type="button"
+          class="workspace-action-btn workspace-action-btn--primary"
+          @click="handleShareDraft"
+        >
+          分享
+        </button>
+      </div>
+    </header>
 
-    <!-- 主编辑器插槽 -->
-    <template #editor="{ activeTool }">
-      <EncyclopediaView
-        v-if="activeTool === 'encyclopedia'"
-        :project-id="currentProjectId"
-        :embedded="true"
-      />
-      <EditorPanel
-        v-else
-        :content="fileContent"
-        :project-name="editorBreadcrumbTitle"
-        :chapter-title="documentTitle"
-        :active-tool="activeTool"
-        :show-preview="showPreview"
-        :show-timeline="showTimeline"
-        :timeline-id="currentTimelineId"
-        @update:content="handleContentUpdate"
-        @save="handleManualSave"
-        @togglePreview="showPreview = !showPreview"
-        @formatCommand="handleToolbarCommand"
-        @aiAssistant="toggleAISidebar"
-        @contextmenu="handleContextMenu"
-        @addToAIContext="handleAddToAIContext"
-      />
-    </template>
+    <EditorLayout class="workspace-editor-layout">
+      <!-- 左侧面板插槽 -->
+      <template #left-panel>
+        <div class="workspace-left-panel-shell">
+          <aside class="workspace-left-dock" aria-label="左侧工具栏">
+            <button
+              v-for="item in leftDockItems"
+              :key="item.tool"
+              type="button"
+              class="workspace-left-dock__item"
+              :class="{ active: activeToolForDock === item.tool }"
+              :title="item.label"
+              @click="handleDockSelect(item.tool)"
+            >
+              <QyIcon :name="item.icon" :size="16" />
+              <span class="workspace-left-dock__label">{{ item.label }}</span>
+            </button>
+          </aside>
 
-    <!-- 右侧AI面板插槽 -->
-    <template #right-panel>
-      <AIPanel
-        :session-id="currentProjectId"
-        :action-trigger="aiActionTrigger"
-        @send="handleAISend"
-        @apply-generated-text="handleAIApplyGeneratedText"
-      />
-    </template>
-  </EditorLayout>
+          <div class="workspace-left-panel-body">
+            <div v-if="isEncyclopediaTool" class="world-sidebar">
+              <div class="world-sidebar__header">设定工具</div>
+              <button
+                type="button"
+                class="world-sidebar__item"
+                :class="{ active: encyclopediaSubView === 'relations' }"
+                @click="setEncyclopediaSubView('relations')"
+              >
+                人物关系图
+              </button>
+              <button
+                type="button"
+                class="world-sidebar__item"
+                :class="{ active: encyclopediaSubView === 'encyclopedia' }"
+                @click="setEncyclopediaSubView('encyclopedia')"
+              >
+                设定百科卡片
+              </button>
+            </div>
+            <ProjectSidebar
+              v-else
+              v-model:projectId="currentProjectId"
+              v-model:chapterId="currentChapterId"
+              :projects="projects"
+              :chapters="flatChapters"
+              @add-chapter="handleAddChapterQuick"
+              @add-volume="handleAddVolumeQuick"
+              @delete-chapter="handleDeleteChapter"
+            />
+          </div>
+        </div>
+      </template>
 
-  <!-- 辅助组件 -->
+      <!-- 主编辑器插槽 -->
+      <template #editor="{ activeTool }">
+        <CharacterGraphView
+          v-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'relations'"
+        />
+        <EncyclopediaView
+          v-else-if="activeTool === 'encyclopedia'"
+          :project-id="currentProjectId"
+          :embedded="true"
+        />
+        <TipTapEditorView
+          v-else
+          v-model="tipTapContent"
+          :project-id="currentProjectId"
+          :document-id="currentChapterId"
+          :readonly="false"
+          :show-reference-panel="activeTool === 'writing' || activeTool === 'chapters'"
+          @save="handleTipTapSave"
+        />
+      </template>
 
-  <!-- AI 右键菜单 -->
-  <AIContextMenu
-    v-if="contextMenu.visible"
-    :visible="contextMenu.visible"
-    :x="contextMenu.x"
-    :y="contextMenu.y"
-    :selected-text="contextMenu.selectedText"
-    @action="handleAIAction"
-    @update:visible="(val) => (contextMenu.visible = val)"
-  />
+      <!-- 右侧AI面板插槽 -->
+      <template #right-panel>
+        <AIPanel
+          :session-id="currentProjectId"
+          :action-trigger="aiActionTrigger"
+          @send="handleAISend"
+          @apply-generated-text="handleAIApplyGeneratedText"
+        />
+      </template>
+    </EditorLayout>
+
+    <footer class="workspace-statusbar">
+      <div class="workspace-statusbar__stats">
+        <span>章节数：{{ chapterCount }}</span>
+        <span>目录节点：{{ directoryCount }}</span>
+        <span>当前工具：{{ activeToolLabel }}</span>
+      </div>
+      <div class="workspace-statusbar__state">
+        <span class="workspace-statusbar__dot" />
+        <span>{{ saveStatusLabel }}</span>
+      </div>
+    </footer>
+  </div>
 
   <!-- 新建文档对话框 -->
   <el-dialog v-model="showCreateDocDialog" title="新建文档" width="400px">
@@ -84,28 +144,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
+import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 // 引入新的 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
-import { useWriterStore } from '@/modules/writer/stores/writerStore' // 假如还需要读取 timeline 等
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { DocumentType, type Document } from '@/modules/writer/types/document'
 import type { ActiveTool } from '@/modules/writer/stores/editorStore'
 
 // 引入组件
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
-import EditorPanel from '@/modules/writer/components/editor/EditorPanel.vue'
+import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
 import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
 import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
-import AIContextMenu from '@/modules/writer/components/ai/AIContextMenu.vue'
 import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
-
-// 工具
-import { formatMarkdown } from '@/modules/writer/utils/editor'
+import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
 
 // =======================
 // Props 定义
@@ -118,20 +176,17 @@ const props = defineProps<{
 // 状态初始化
 // =======================
 const route = useRoute()
+const router = useRouter()
 const projectStore = useProjectStore()
 const documentStore = useDocumentStore()
 const editorStore = useEditorStore()
-const writerStore = useWriterStore() // 用于 Timeline 数据
+const writerStore = useWriterStore()
 
 // UI Flags
-const showPreview = ref(false)
-const showTimeline = ref(false)
 const showCreateDocDialog = ref(false)
-const aiActionSeq = ref(0)
 
 // Forms
 const newDocForm = ref({ title: '', type: 'chapter' })
-const contextMenu = reactive({ visible: false, x: 0, y: 0, selectedText: '' })
 const aiActionTrigger = ref<{
   id: number
   action: string
@@ -160,6 +215,49 @@ const mockProject = computed(() =>
 )
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
+const isEncyclopediaTool = computed(() => editorStore.activeTool === 'encyclopedia')
+const encyclopediaSubView = computed<'relations' | 'encyclopedia'>(() => {
+  const raw = String(route.query.encyclopediaView || route.query.worldView || '').toLowerCase()
+  if (['encyclopedia', 'cards', 'list'].includes(raw)) return 'encyclopedia'
+  if (['relations', 'relation', 'graph', 'relationship'].includes(raw)) return 'relations'
+  return 'relations'
+})
+
+const setEncyclopediaSubView = async (view: 'relations' | 'encyclopedia') => {
+  await router.replace({
+    query: {
+      ...route.query,
+      tool: 'encyclopedia',
+      encyclopediaView: view,
+    },
+  })
+}
+
+const leftDockItems: Array<{ tool: ActiveTool; label: string; icon: string }> = [
+  { tool: 'chapters', label: '章节', icon: 'Document' },
+  { tool: 'writing', label: '写作', icon: 'Edit' },
+  { tool: 'immersive', label: '沉浸', icon: 'FullScreen' },
+  { tool: 'ai', label: 'AI助手', icon: 'MagicStick' },
+  { tool: 'encyclopedia', label: '设定', icon: 'Location' },
+]
+
+const activeToolForDock = computed(() => editorStore.activeTool)
+
+const handleDockSelect = async (tool: ActiveTool) => {
+  editorStore.setActiveTool(tool)
+  const nextQuery = { ...route.query, tool } as Record<string, unknown>
+
+  if (tool === 'encyclopedia') {
+    if (!nextQuery.encyclopediaView) {
+      nextQuery.encyclopediaView = 'relations'
+    }
+  } else {
+    delete nextQuery.encyclopediaView
+    delete nextQuery.worldView
+  }
+
+  await router.replace({ query: nextQuery as any })
+}
 
 // 2. 文档 ID (切换文档的核心逻辑)
 const currentChapterId = computed({
@@ -172,16 +270,36 @@ const currentChapterId = computed({
     }
     editorStore.setCurrentChapter(id)
 
-    // 真实内容 API 未就绪时，测试模式优先用统一 mock 文本填充
-    if (mockProject.value?.contentByDocId[id]) {
-      editorStore.setContent(mockProject.value.contentByDocId[id], false)
+    // 目录节点不加载正文
+    if (
+      selectedDoc &&
+      (selectedDoc.type === DocumentType.SCENE || selectedDoc.type === DocumentType.VOLUME)
+    ) {
+      editorStore.setContent('', false)
+      editorStore.editorContent = ''
       editorStore.markSaved()
       return
     }
 
-    // 非 mock 文档默认不覆盖已有内容，仅在首次无内容时清空
+    // 真实内容 API 未就绪时，测试模式优先用统一 mock 文本填充
+    if (mockProject.value?.contentByDocId[id]) {
+      editorStore.setContent(mockProject.value.contentByDocId[id], false)
+      editorStore.editorContent = mockProject.value.contentByDocId[id]
+      editorStore.markSaved()
+      return
+    }
+
+    // 真实文档走段落内容加载链路
+    try {
+      await editorStore.loadDocument(id)
+      return
+    } catch {
+      // 非 mock 文档默认不覆盖已有内容，仅在首次无内容时清空
+    }
+
     if (!editorStore.content) {
       editorStore.setContent('', false)
+      editorStore.editorContent = ''
       editorStore.markSaved()
     }
   },
@@ -320,60 +438,49 @@ const flatChapters = computed(() => {
   return mockProject.value?.chapters || []
 })
 
+const projectDisplayName = computed(() => {
+  return (
+    mockProject.value?.project?.title ||
+    (projectStore.currentProject as { title?: string } | null)?.title ||
+    projects.value.find((item) => item.id === currentProjectId.value)?.title ||
+    '未命名项目'
+  )
+})
+
+const currentChapterTitle = computed(() => {
+  const target = flatChapters.value.find((item) => item.id === currentChapterId.value)
+  return target?.title || '未选择章节'
+})
+
+const chapterCount = computed(() => {
+  return flatChapters.value.filter((item) => item.nodeType !== 'directory').length
+})
+
+const directoryCount = computed(() => {
+  return flatChapters.value.filter((item) => item.nodeType === 'directory').length
+})
+
+const activeToolLabel = computed(() => {
+  const labels: Record<ActiveTool, string> = {
+    chapters: '章节模式',
+    writing: '写作模式',
+    immersive: '沉浸模式',
+    ai: 'AI助手',
+    encyclopedia: '设定百科',
+  }
+  return labels[editorStore.activeTool]
+})
+
+const saveStatusLabel = computed(() => editorStore.saveStatusText || '系统就绪')
+
 // 4. 编辑器内容绑定 (双向绑定到 Store，Store 内处理自动保存)
-const fileContent = computed({
-  get: () => editorStore.content,
-  set: (val) => editorStore.setContent(val),
-})
-
-const stripDirectoryPrefix = (title: string) =>
-  title.replace(/^目录[一二三四五六七八九十百千万0-9]+\s*/u, '').trim()
-
-const documentTitle = computed({
-  get: () => {
-    const title = documentStore.currentDocMeta?.title || ''
-    const type = documentStore.currentDocMeta?.type
-    return type === DocumentType.SCENE || type === DocumentType.VOLUME
-      ? stripDirectoryPrefix(title)
-      : title
+const tipTapContent = computed({
+  get: () => editorStore.editorContent || editorStore.content,
+  set: (val: string) => {
+    editorStore.editorContent = val
+    // 保持旧内容链路兼容：写作统计/AI 上下文仍可读取 content
+    editorStore.setContent(val)
   },
-  set: (val) => {
-    if (documentStore.currentDocMeta) {
-      documentStore.currentDocMeta.title = val
-    }
-  },
-})
-
-// 当前项目信息
-const currentProject = computed(() => {
-  if (projectStore.currentProject) return projectStore.currentProject
-  const current = projects.value.find((p) => p.id === currentProjectId.value)
-  return current || null
-})
-
-const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.id)
-
-const editorBreadcrumbTitle = computed(() => {
-  const currentDocId = currentChapterId.value
-  if (!currentDocId) return currentProject.value?.title || ''
-
-  const docs = docsForTree.value
-  const currentDoc = docs.find((doc) => doc.id === currentDocId)
-  if (!currentDoc) return currentProject.value?.title || ''
-
-  // 目录本身被选中时，首栏显示目录名
-  if (currentDoc.type === DocumentType.SCENE || currentDoc.type === DocumentType.VOLUME) {
-    return stripDirectoryPrefix(currentDoc.title)
-  }
-
-  // 章节被选中时，首栏显示所属目录名
-  if (currentDoc.parentId) {
-    const parent = docs.find((doc) => doc.id === currentDoc.parentId)
-    if (parent) return stripDirectoryPrefix(parent.title)
-  }
-
-  // 无目录时回退项目名
-  return currentProject.value?.title || ''
 })
 
 // =======================
@@ -429,11 +536,6 @@ watch(
   { immediate: true },
 )
 
-// 内容更新处理
-const handleContentUpdate = (newContent: string) => {
-  editorStore.setContent(newContent)
-}
-
 const handleAddChapterQuick = () => {
   newDocForm.value.type = 'chapter'
   showCreateDocDialog.value = true
@@ -444,10 +546,27 @@ const handleAddVolumeQuick = () => {
   showCreateDocDialog.value = true
 }
 
-// 手动保存内容
-const handleManualSave = async () => {
+const handleTipTapSave = async () => {
   editorStore.markSaved()
-  message.success('保存成功')
+  message.success('已保存（TipTap）')
+}
+
+const handleExportDraft = () => {
+  message.info('导出功能已接入入口，后续可绑定实际导出流程')
+}
+
+const handleShareDraft = async () => {
+  const shareUrl = window.location.href
+  if (!navigator?.clipboard?.writeText) {
+    message.info('当前环境不支持自动复制，请手动复制地址栏链接')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(shareUrl)
+    message.success('分享链接已复制到剪贴板')
+  } catch {
+    message.error('复制失败，请手动复制地址栏链接')
+  }
 }
 
 // 创建文档
@@ -483,60 +602,6 @@ const handleDeleteChapter = async (docId: string) => {
   }
 }
 
-// 工具栏命令
-const handleToolbarCommand = (cmd: string) => {
-  // 由于EditorPanel使用contenteditable，需要特殊处理
-  // 这里暂时简单处理，直接在editorStore上操作
-  // 实际可能需要通过emit传递DOM引用
-  const editorElement = document.querySelector('.editor-content') as HTMLTextAreaElement
-  if (editorElement) {
-    formatMarkdown(cmd, editorElement)
-    editorStore.setContent(editorElement.value || '')
-  }
-}
-
-// AI 相关
-const toggleAISidebar = () => {
-  // 添加 activeTool 的空值检查，解决 TS2339 错误
-  const currentTool = editorStore.activeTool ?? 'writing'
-  editorStore.setActiveTool(currentTool === 'ai' ? 'writing' : 'ai')
-}
-
-const handleContextMenu = (event: MouseEvent, selectedText: string) => {
-  if (selectedText) {
-    contextMenu.x = event.clientX
-    contextMenu.y = event.clientY
-    contextMenu.selectedText = selectedText
-    contextMenu.visible = true
-  }
-}
-
-const handleAddToAIContext = (selectedText: string) => {
-  const normalizedText = (selectedText || '').trim()
-  if (!normalizedText) return
-  handleAIAction('add_to_chat', normalizedText)
-}
-
-const handleAIAction = (action: string, text?: string, instructions?: string) => {
-  contextMenu.visible = false
-  editorStore.setActiveTool('ai')
-  // 这里可以调用 AI Store 设置当前模式和文本
-  const aiTool = action === 'add_to_chat' ? 'chat' : action
-  // 使用类型断言解决 TS2345 AIToolType 不匹配错误
-  writerStore.setAITool(aiTool as any)
-  const normalizedText = (text || '').trim()
-  const normalizedInstructions = (instructions || '').trim()
-  writerStore.setSelectedText(normalizedText)
-
-  aiActionSeq.value += 1
-  aiActionTrigger.value = {
-    id: aiActionSeq.value,
-    action,
-    text: normalizedText,
-    instructions: normalizedInstructions || undefined,
-  }
-}
-
 const handleAISend = (message: string) => {
   // 处理AI发送消息事件
   console.log('[ProjectWorkspace] AI send message:', message)
@@ -560,11 +625,9 @@ const handleAIApplyGeneratedText = (payload: {
     if (sourceIndex >= 0) {
       if (payload.action === 'continue') {
         const insertPos = sourceIndex + sourceText.length
-        nextContent =
-          `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
+        nextContent = `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
       } else {
-        nextContent =
-          `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
+        nextContent = `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
       }
     }
   }
@@ -581,6 +644,342 @@ const handleAIApplyGeneratedText = (payload: {
 </script>
 
 <style scoped lang="scss">
-// ProjectWorkspace现在使用EditorLayout，不需要额外的样式
-// 所有布局相关样式由EditorLayout及其子组件处理
+.workspace-studio {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 12% -24%, rgba(19, 91, 236, 0.2) 0%, transparent 36%),
+    radial-gradient(circle at 88% -30%, rgba(15, 23, 42, 0.24) 0%, transparent 42%), #eef3fb;
+}
+
+.workspace-topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #d5dfef;
+  background: linear-gradient(110deg, #ffffff 0%, #f6f9ff 100%);
+}
+
+.workspace-topbar__title-group {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workspace-topbar__logo {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(145deg, #1f63f0, #083ca5);
+  box-shadow: 0 10px 18px rgba(31, 99, 240, 0.24);
+}
+
+.workspace-topbar__title-block {
+  min-width: 0;
+}
+
+.workspace-topbar__title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #13233f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-topbar__meta {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workspace-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2053c6;
+  background: #e5edff;
+  border: 1px solid #c8d8ff;
+}
+
+.workspace-meta-text {
+  font-size: 12px;
+  color: #63708b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.workspace-action-btn {
+  border: 1px solid #d4deef;
+  background: #fff;
+  color: #24344f;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.workspace-action-btn:hover {
+  border-color: #8cadf8;
+  color: #1246b3;
+  background: #f0f5ff;
+}
+
+.workspace-action-btn--primary {
+  background: linear-gradient(145deg, #2f6fff, #1a4fcb);
+  border-color: #2f6fff;
+  color: #fff;
+}
+
+.workspace-action-btn--primary:hover {
+  filter: brightness(1.06);
+  color: #fff;
+}
+
+.workspace-editor-layout {
+  flex: 1;
+  min-height: 0;
+}
+
+.workspace-statusbar {
+  height: 30px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(90deg, #1f59d3, #1545a8);
+  color: #f8fbff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.workspace-statusbar__stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.workspace-statusbar__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.workspace-statusbar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #48e594;
+  box-shadow: 0 0 0 5px rgba(72, 229, 148, 0.15);
+}
+
+.workspace-left-panel-shell {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.workspace-left-dock {
+  width: 56px;
+  flex: 0 0 56px;
+  border-right: 1px solid #d7deeb;
+  background: linear-gradient(180deg, #ffffff, #f2f7ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+}
+
+.workspace-left-dock__item {
+  width: 100%;
+  border: 1px solid #d8e1f2;
+  border-radius: 10px;
+  padding: 7px 4px;
+  background: #fff;
+  color: #314360;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.workspace-left-dock__item:hover {
+  border-color: #95b3f8;
+  background: #eff5ff;
+}
+
+.workspace-left-dock__item.active {
+  border-color: #2f6fff;
+  background: linear-gradient(140deg, #eaf1ff, #dce9ff);
+  color: #1f4ec2;
+  box-shadow: 0 8px 14px rgba(47, 111, 255, 0.14);
+}
+
+.workspace-left-dock__label {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #0f1e3a;
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  z-index: 20;
+}
+
+.workspace-left-dock__item:hover .workspace-left-dock__label,
+.workspace-left-dock__item:focus-visible .workspace-left-dock__label {
+  opacity: 1;
+}
+
+.workspace-left-dock__item :deep(.qy-icon) {
+  color: currentColor;
+}
+
+.workspace-left-panel-body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.world-sidebar {
+  height: 100%;
+  padding: 16px 12px;
+  border-right: 1px solid #d7deeb;
+  background: linear-gradient(180deg, #f8fbff, #f0f5ff);
+}
+
+.world-sidebar__header {
+  font-size: 11px;
+  color: #63708b;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.world-sidebar__item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #d8e0ef;
+  background: #fff;
+  color: #283452;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.world-sidebar__item:hover {
+  border-color: #3b82f6;
+}
+
+.world-sidebar__item.active {
+  border-color: #2f6fff;
+  background: linear-gradient(130deg, #edf3ff, #e4eeff);
+  color: #1f4ec2;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(47, 111, 255, 0.14);
+}
+
+@media (max-width: 1024px) {
+  .workspace-topbar {
+    height: auto;
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workspace-topbar__actions {
+    width: 100%;
+  }
+
+  .workspace-action-btn {
+    flex: 1;
+  }
+
+  .workspace-statusbar {
+    height: auto;
+    min-height: 30px;
+    padding: 6px 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workspace-statusbar__stats {
+    width: 100%;
+    gap: 10px;
+    overflow-x: auto;
+  }
+
+  .workspace-left-dock {
+    width: 50px;
+    flex-basis: 50px;
+    padding: 8px 6px;
+  }
+
+  .workspace-left-dock__label {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace-topbar__meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .workspace-meta-text {
+    font-size: 11px;
+  }
+}
 </style>
