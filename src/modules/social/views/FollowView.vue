@@ -109,24 +109,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import {
-  getFollowingList,
-  getFollowersList,
-  followUser,
-  unfollowUser,
-  getFollowStats,
-  getMutualFollows,
-  getRecommendedFollows,
-  type UserFollowInfo,
-  type FollowStats
-} from '@/modules/social/api'
+import * as socialAPI from '@/modules/social/api'
+import { useAuthStore } from '@/stores/auth'
+import type { UserFollowInfo, FollowStats } from '@/modules/social/api'
 
 const loading = ref(false)
 const activeTab = ref<'following' | 'followers' | 'mutual' | 'recommended'>('following')
 const userList = ref<UserFollowInfo[]>([])
+const authStore = useAuthStore()
+const currentUserId = computed(() => authStore.user?.id || '')
 
 const stats = reactive<FollowStats>({
   follower_count: 0,
@@ -155,11 +149,18 @@ const showPagination = computed(() => {
 
 // 加载统计数据
 const loadStats = async () => {
+  if (!currentUserId.value) return
   try {
-    const res = await getFollowStats()
-    Object.assign(stats, res)
+    const api = socialAPI as any
+    const res = await api.getUserFollowStats?.(currentUserId.value)
+    const payload = res?.data || res || {}
+    Object.assign(stats, {
+      follower_count: payload.follower_count || 0,
+      following_count: payload.following_count || 0,
+      mutual_count: payload.mutual_count || 0
+    })
   } catch (error: any) {
-    ElMessage.error(error.message || '加载统计数据失败')
+    message.error(error.message || '加载统计数据失败')
   }
 }
 
@@ -167,12 +168,14 @@ const loadStats = async () => {
 const loadFollowingList = async () => {
   loading.value = true
   try {
-    const res = await getFollowingList({
+    const api = socialAPI as any
+    const res = await api.getFollowingList?.({
       page: currentPage.value,
-      page_size: pageSize.value
+      pageSize: pageSize.value
     })
-    userList.value = res.items
-    followingTotal.value = res.total
+    const payload = res?.data || res || {}
+    userList.value = payload.items || payload.data || []
+    followingTotal.value = payload.total || userList.value.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -182,14 +185,17 @@ const loadFollowingList = async () => {
 
 // 加载粉丝列表
 const loadFollowersList = async () => {
+  if (!currentUserId.value) return
   loading.value = true
   try {
-    const res = await getFollowersList({
+    const api = socialAPI as any
+    const res = await api.getFollowersList?.(currentUserId.value, {
       page: currentPage.value,
-      page_size: pageSize.value
+      pageSize: pageSize.value
     })
-    userList.value = res.items
-    followersTotal.value = res.total
+    const payload = res?.data || res || {}
+    userList.value = payload.items || payload.data || []
+    followersTotal.value = payload.total || userList.value.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -201,9 +207,11 @@ const loadFollowersList = async () => {
 const loadMutualFollows = async () => {
   loading.value = true
   try {
-    const res = await getMutualFollows(100)
-    userList.value = res
-    mutualTotal.value = res.length
+    const api = socialAPI as any
+    const res = await api.getMutualFollows?.(100)
+    const payload = res?.data || res || []
+    userList.value = Array.isArray(payload) ? payload : []
+    mutualTotal.value = userList.value.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -215,8 +223,10 @@ const loadMutualFollows = async () => {
 const loadRecommendedFollows = async () => {
   loading.value = true
   try {
-    const res = await getRecommendedFollows(20)
-    userList.value = res
+    const api = socialAPI as any
+    const res = await api.getRecommendedFollows?.(20)
+    const payload = res?.data || res || []
+    userList.value = Array.isArray(payload) ? payload : []
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -258,7 +268,7 @@ const handleSizeChange = () => {
 // 关注用户
 const handleFollow = async (userId: string) => {
   try {
-    await followUser(userId)
+    await (socialAPI as any).followUser(userId)
     message.success('关注成功')
     // 更新用户状态
     const user = userList.value.find(u => u.user_id === userId)
@@ -275,7 +285,7 @@ const handleFollow = async (userId: string) => {
 // 取消关注
 const handleUnfollow = async (userId: string) => {
   try {
-    await unfollowUser(userId)
+    await (socialAPI as any).unfollowUser(userId)
     message.success('已取消关注')
     // 更新用户状态
     const user = userList.value.find(u => u.user_id === userId)
@@ -297,7 +307,7 @@ const handleUnfollow = async (userId: string) => {
 // 查看用户主页
 const viewUserProfile = (userId: string) => {
   // TODO: 实现跳转到用户主页逻辑
-  ElMessage.info(`跳转到用户 ${userId} 的主页`)
+  message.info(`跳转到用户 ${userId} 的主页`)
 }
 
 onMounted(() => {

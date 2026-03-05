@@ -14,8 +14,8 @@ NProgress.configure({ showSpinner: false })
 export function setupRouterGuards(router: Router) {
   createProgressGuard(router)
   createTitleGuard(router)
-  createAuthGuard(router)
   setupTestModeGuard(router)
+  createAuthGuard(router)
   setupWebSocketGuard(router)
 }
 
@@ -56,10 +56,16 @@ function createAuthGuard(router: Router) {
 
     const authStore = useAuthStore()
     const routeTestFlag = to.query?.test
+    const fromTestFlag = from.query?.test
+    const currentUrlTestMode = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('test') === 'true'
+      : false
     const routeHasTestMode =
       routeTestFlag === 'true' ||
-      routeTestFlag === true ||
-      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true' || v === true)) ||
+      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => v === 'true')) ||
+      fromTestFlag === 'true' ||
+      (Array.isArray(fromTestFlag) && fromTestFlag.some((v) => v === 'true')) ||
+      currentUrlTestMode ||
       to.hash.includes('test=true')
     authStore.ensureTestModeMockSession(routeHasTestMode)
     console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
@@ -93,7 +99,7 @@ function createAuthGuard(router: Router) {
     // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['author', 'admin'] }
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       const requiredRoles = to.meta.roles
-      const hasRole = authStore.roles?.some((role) => requiredRoles.includes(role))
+      const hasRole = authStore.roles?.some((role: string) => requiredRoles.includes(role))
 
       if (!hasRole) {
         next({ path: '/403', replace: true })

@@ -46,7 +46,7 @@ export const characterApi = {
   getDetail(characterId: string, projectId: string) {
     return httpService.get<Character>(
       `${BASE_CHAR_URL}/${characterId}`,
-      { projectId } // 作为 query 参数传递
+      { params: { projectId } } as any
     )
   },
 
@@ -98,7 +98,7 @@ export const characterApi = {
   delete(characterId: string, projectId: string) {
     return httpService.delete<void>(
       `${BASE_CHAR_URL}/${characterId}`,
-      { projectId } // delete 的第二个参数是 params
+      { params: { projectId } } as any
     )
   },
 
@@ -158,7 +158,7 @@ export const characterApi = {
    * @security BearerAuth
    */
   deleteRelation(relationId: string, projectId: string) {
-    return httpService.delete<void>(`${BASE_CHAR_URL}/relations/${relationId}`, { projectId })
+    return httpService.delete<void>(`${BASE_CHAR_URL}/relations/${relationId}`, { params: { projectId } } as any)
   },
 
   /**

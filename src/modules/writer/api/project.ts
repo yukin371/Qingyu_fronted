@@ -210,7 +210,7 @@ export const projectApi = {
   refreshStatistics(id: string) {
     return httpService.put<void>(`${BASE_URL}/${id}/statistics`, null, {
       silent: true,
-    })
+    } as any)
   },
 }
 

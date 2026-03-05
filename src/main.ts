@@ -72,7 +72,7 @@ app.config.globalProperties.$MessageBox = messageBox
 app.config.globalProperties.$notify = notification
 
 // 添加类型声明
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   export interface ComponentCustomProperties {
     $message: typeof message
     $MessageBox: typeof messageBox
@@ -82,8 +82,9 @@ declare module '@vue/runtime-core' {
 
 // 空闲时补齐全量组件注册，避免后续页面因未注册组件报错
 const runWhenIdle = (task: () => void) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const requestIdle = (window as Window & {
-    requestIdleCallback?: (cb: () => void) => number
+    requestIdleCallback?: (_cb: () => void) => number
   }).requestIdleCallback
 
   if (requestIdle) {

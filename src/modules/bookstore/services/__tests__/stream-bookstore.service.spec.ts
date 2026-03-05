@@ -3,6 +3,7 @@
  * 测试流式搜索服务
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { streamBookstoreService } from '../stream-bookstore.service'
 
@@ -382,29 +383,29 @@ another invalid line`
         order: 'desc'
       })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('keyword=test+keyword'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('keyword=test+keyword'),
+        (expect as any).any(Object)
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('category=fantasy'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('category=fantasy'),
+        (expect as any).any(Object)
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('status=completed'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('status=completed'),
+        (expect as any).any(Object)
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('sort_by=rating'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('sort_by=rating'),
+        (expect as any).any(Object)
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('order=desc'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('order=desc'),
+        (expect as any).any(Object)
       )
     })
 
@@ -427,9 +428,9 @@ another invalid line`
         initialCursor: 'abc123'
       })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('cursor=abc123'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('cursor=abc123'),
+        (expect as any).any(Object)
       )
     })
 
@@ -452,9 +453,9 @@ another invalid line`
         limit: 50
       })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=50'),
-        expect.any(Object)
+      expect((global.fetch as any)).toHaveBeenCalledWith(
+        (expect as any).stringContaining('limit=50'),
+        (expect as any).any(Object)
       )
     })
   })

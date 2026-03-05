@@ -208,6 +208,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+import { DocumentCopy } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 interface Props {
@@ -228,7 +229,7 @@ const emit = defineEmits<Emits>()
 const activeTool = ref('continue')
 const usage = ref<any>(null)
 
-const toolConfig = reactive({
+const toolConfig: Record<string, { text: string; length?: number; style?: string; instructions?: string; detailLevel?: string; mode?: string }> = reactive({
   continue: {
     text: '',
     length: 200
@@ -255,7 +256,7 @@ const canGenerate = computed(() => {
 })
 
 // 工具切换
-const handleToolChange = (tab: any) => {
+const handleToolChange = (tab: { paneName: string }) => {
   // 如果有选中文本，自动填充到当前工具
   if (props.selectedText) {
     const toolName = tab.paneName
@@ -276,29 +277,23 @@ const handleGenerate = (tool: string) => {
 
   const text = config.text || props.selectedText || ''
 
-  let options: any = {}
+  const options: Record<string, unknown> = {}
 
   switch (tool) {
     case 'continue':
-      options = { length: config.length }
+      options.length = config.length
       break
     case 'polish':
-      options = {
-        style: config.style,
-        instructions: config.instructions
-      }
+      options.style = config.style
+      options.instructions = config.instructions
       break
     case 'expand':
-      options = {
-        detailLevel: config.detailLevel,
-        instructions: config.instructions
-      }
+      options.detailLevel = config.detailLevel
+      options.instructions = config.instructions
       break
     case 'rewrite':
-      options = {
-        mode: config.mode,
-        instructions: config.instructions
-      }
+      options.mode = config.mode
+      options.instructions = config.instructions
       break
   }
 

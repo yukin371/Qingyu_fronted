@@ -13,7 +13,7 @@ import {
 import { httpService } from '@/core/services/http.service'
 import type { LocalProject, LocalDocument } from './localStorageAPI'
 
-interface MigrationResult {
+export interface MigrationResult {
   success: boolean
   projectsMigrated: number
   documentsMigrated: number
@@ -81,7 +81,7 @@ export async function migrateToBackend(
           genre: localProject.type === 'novel' ? '玄幻' : localProject.type,
         })
 
-        const newProjectId = (createResponse as { id: string }).id
+        const newProjectId = (createResponse as any)?.id || (createResponse as any)?.data?.id
         if (!newProjectId) {
           throw new Error('创建项目失败：未返回项目ID')
         }

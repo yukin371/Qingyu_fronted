@@ -147,7 +147,7 @@ const emit = defineEmits<Emits>()
 // ==================== 插槽类型定义 ====================
 defineSlots<{
   'left-panel'?: () => unknown
-  'editor'?: () => unknown
+  'editor'?: (props: { activeTool: ActiveTool }) => unknown
   'right-panel'?: () => unknown
 }>()
 
@@ -186,7 +186,9 @@ const activeToolModel = computed<string>({
   },
   set: (value: string) => {
     // 'ai-assistant' -> 'ai' 转换
-    const tool: ActiveTool = value === 'ai-assistant' ? 'ai' : value as ActiveTool
+    const validTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
+    const tool: ActiveTool = value === 'ai-assistant' ? 'ai' :
+      (validTools.includes(value as ActiveTool) ? value as ActiveTool : 'writing')
     activeTool.value = tool
   }
 })
@@ -217,7 +219,7 @@ const rightPanelVisible = computed(() => {
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
-const leftPanelState = computed(() => {
+const leftPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
   const tool = activeTool.value
   if (tool === 'immersive' || tool === 'ai') return 'hidden'
   if (tool === 'encyclopedia') return 'expanded'
@@ -228,7 +230,7 @@ const leftPanelState = computed(() => {
 })
 
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
-const rightPanelState = computed(() => {
+const rightPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
   const tool = activeTool.value
   if (tool === 'immersive' || tool === 'chapters' || tool === 'encyclopedia') return 'hidden'
   // 写作模式保持正常宽度，避免侧栏过窄不可见
@@ -302,10 +304,6 @@ const leftPanelStyle = computed(() => {
   if (leftPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 折叠状态
-  if (leftPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
-  }
   // 展开状态
   return {
     width: layout.value.mode === 'desktop'
@@ -318,10 +316,6 @@ const rightPanelStyle = computed(() => {
   // 隐藏状态
   if (rightPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
-  }
-  // 折叠状态
-  if (rightPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
   }
   // 展开状态
   return {
@@ -395,7 +389,9 @@ function handleContentTouchEnd(event: TouchEvent) {
 
 function handleToolChange(toolId: string) {
   // MiniNavbar 发出的是 string 类型，需要转换
-  const normalizedTool: ActiveTool = toolId === 'ai-assistant' ? 'ai' : toolId as ActiveTool
+  const validTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
+  const normalizedTool: ActiveTool = toolId === 'ai-assistant' ? 'ai' :
+    (validTools.includes(toolId as ActiveTool) ? toolId as ActiveTool : 'writing')
 
   // 更新内部状态和发出事件
   activeTool.value = normalizedTool

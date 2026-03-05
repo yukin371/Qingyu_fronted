@@ -2,12 +2,12 @@
   <div class="book-detail-view">
     <div class="detail-container">
       <!-- 加载状态 -->
-      <Spinner v-if="loading" :size="48" class="loading-spinner" />
+      <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
       <template v-else>
         <!-- 返回按钮 -->
         <div class="back-button">
-          <Button @click="$router.back()">
+          <Button @click="router.back()">
             <Icon name="arrow-left" size="sm" class="mr-1" />
             返回
           </Button>
@@ -156,7 +156,7 @@
                     v-model="newComment"
                     :rows="4"
                     placeholder="写下你的看法..."
-                    maxlength="1000"
+                    :maxlength="1000"
                     show-word-limit
                   />
                   <div class="comment-actions">
@@ -168,7 +168,7 @@
 
                 <!-- 评论列表 -->
                 <div class="comments-list">
-                  <Spinner v-if="commentsLoading" :size="32" class="loading-spinner" />
+                  <Spinner v-if="commentsLoading" size="md" class="loading-spinner" />
                   <template v-else>
                     <div v-if="comments.length === 0" class="empty-comments">
                       <Empty title="暂无评论，来发表第一条评论吧" />
@@ -303,7 +303,7 @@ const book = computed(() => {
       description: publishedBookDetail.value.book.description,
     } as unknown as Book
   }
-  return bookstoreStore.currentBook as Book | null
+  return bookstoreStore.currentBook ? ({ ...bookstoreStore.currentBook } as unknown as Book) : null
 })
 
 const statusType = computed(() => {
@@ -411,7 +411,7 @@ const toggleFavorite = async () => {
         // 立即更新状态 - 使用返回的数据
         isFavorited.value = true
         // response.data 应该包含收藏记录的完整信息，包括 id
-        collectionId.value = response.data.id || response.data._id || (response.data as any).collection_id
+        collectionId.value = response.data.id || (response.data as any).collection_id || null
         message.success('收藏成功')
       }
     }
@@ -449,12 +449,12 @@ const checkFavoriteStatus = async () => {
       // 如果还没有 collectionId，获取收藏列表以找到收藏ID
       if (!collectionId.value) {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
-        if (collections.data?.list) {
-          const currentBookCollection = collections.data.list.find(
-            (c: Collection) => c.id === bookId || (c as { book_id?: string }).book_id === bookId
+        if (Array.isArray(collections.data)) {
+          const currentBookCollection = collections.data.find(
+            (c: Collection) => c.bookId === bookId || (c as { book_id?: string }).book_id === bookId
           )
           if (currentBookCollection) {
-            collectionId.value = currentBookCollection.id || (currentBookCollection as { _id?: string })._id
+            collectionId.value = currentBookCollection.id
           }
         }
       }
@@ -480,7 +480,8 @@ const loadComments = async (reset = false) => {
 
   commentsLoading.value = true
   try {
-    const response = await getBookComments(bookId, {
+    const response = await getBookComments({
+      bookId,
       page: commentPage.value,
       size: commentPageSize.value
     })
@@ -526,7 +527,7 @@ const submitComment = async () => {
 
   submittingComment.value = true
   try {
-    await createComment(bookId, newComment.value)
+    await createComment({ bookId, content: newComment.value })
     message.success('发表成功')
     newComment.value = ''
     // 重新加载评论列表
@@ -543,8 +544,7 @@ const handleDeleteComment = async (commentId: string) => {
   try {
     await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
     await deleteComment(commentId)
@@ -577,8 +577,11 @@ const loadBookDetail = async () => {
       chapters.value = localDetail.chapters.map((chapter) => ({
         id: chapter.id,
         title: chapter.title,
+        chapterNum: chapter.chapterNum || 0,
         isFree: chapter.isFree,
         wordCount: chapter.wordCount,
+        price: 0,
+        publishTime: chapter.publishedAt || new Date().toISOString(),
         isRead: false,
       }))
       recommendedBooks.value = []
@@ -612,8 +615,11 @@ const loadChapters = async () => {
     chapters.value = publishedBookDetail.value.chapters.map((chapter) => ({
       id: chapter.id,
       title: chapter.title,
+      chapterNum: chapter.chapterNum || 0,
       isFree: chapter.isFree,
       wordCount: chapter.wordCount,
+      price: 0,
+      publishTime: chapter.publishedAt || new Date().toISOString(),
       isRead: false,
     }))
     return
@@ -649,6 +655,10 @@ onMounted(() => {
   loadComments(true)
   checkFavoriteStatus()
 })
+
+const onCommentUpdated = async (): Promise<void> => {
+  await loadComments(true)
+}
 </script>
 
 <style scoped lang="scss">

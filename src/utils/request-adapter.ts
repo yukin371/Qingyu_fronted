@@ -3,43 +3,89 @@
  * 为新的 API 模块提供简化的请求封装
  */
 import { httpService } from '@/core/services/http.service'
-import type { RequestConfig } from '@/core/services/http.service'
 import type { APIResponse } from '@/types/api'
 import type { AxiosError } from 'axios'
 
+type HttpClientLike = {
+  get<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  post<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  put<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+  delete<T>(url: string, config?: Record<string, unknown>): Promise<T>
+  patch<T>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<T>
+}
+
+const httpClient = httpService as unknown as HttpClientLike
+
 // 通用请求方法
-interface RequestOption extends RequestConfig {
+interface RequestOption {
   url: string
   method?: 'get' | 'post' | 'put' | 'delete' | 'patch'
-  data?: any
-  params?: any
+  data?: unknown
+  params?: unknown
+  headers?: Record<string, string>
+  timeout?: number
+  responseType?: 'json' | 'blob' | 'text' | 'arraybuffer' | 'document' | 'stream'
 }
 
 // 请求函数
-export function request<T = any>(options: RequestOption) {
-  const { url, method = 'get', data, params, ...config } = options
-
-  // 构建 httpService 参数
-  const httpOptions: RequestConfig = {
-    ...config,
-    method,
-    url
-  }
-
-  if (method === 'get') {
-    httpOptions.params = data || params
-  } else {
-    httpOptions.data = data
-  }
+export function request<T = unknown>(options: RequestOption) {
+  const { url, method = 'get', data, params, responseType, ...config } = options
 
   // 返回处理后的数据
   return new Promise<T>((resolve, reject) => {
-    httpService
-      .request<APIResponse<T>>({
-        ...httpOptions,
-        returnFullResponse: false
-      } as any)
-      .then((res: any) => {
+    const httpConfig = { ...config, params, responseType }
+
+    // 对于 blob 等特殊响应类型，直接返回原始响应
+    if (responseType && responseType !== 'json') {
+      let promise: Promise<T>
+
+      switch (method) {
+        case 'post':
+          promise = httpClient.post<T>(url, data, httpConfig)
+          break
+        case 'put':
+          promise = httpClient.put<T>(url, data, httpConfig)
+          break
+        case 'delete':
+          promise = httpClient.delete<T>(url, httpConfig)
+          break
+        case 'patch':
+          promise = httpClient.patch<T>(url, data, httpConfig)
+          break
+        case 'get':
+        default:
+          promise = httpClient.get<T>(url, httpConfig)
+          break
+      }
+
+      promise.then(resolve).catch(reject)
+      return
+    }
+
+    // 标准 JSON 响应处理
+    let promise: Promise<APIResponse<T>>
+
+    switch (method) {
+      case 'post':
+        promise = httpClient.post<APIResponse<T>>(url, data, httpConfig)
+        break
+      case 'put':
+        promise = httpClient.put<APIResponse<T>>(url, data, httpConfig)
+        break
+      case 'delete':
+        promise = httpClient.delete<APIResponse<T>>(url, httpConfig)
+        break
+      case 'patch':
+        promise = httpClient.patch<APIResponse<T>>(url, data, httpConfig)
+        break
+      case 'get':
+      default:
+        promise = httpClient.get<APIResponse<T>>(url, { ...httpConfig, params: data || params })
+        break
+    }
+
+    promise
+      .then((res: APIResponse<T>) => {
         // 假设后端返回格式为 { code, message, data }
         if (res.code === 200 || res.code === 0) {
           resolve(res.data as T)
@@ -54,22 +100,22 @@ export function request<T = any>(options: RequestOption) {
 }
 
 // 简化的 GET 请求
-export function get<T = any>(url: string, params?: any) {
+export function get<T = unknown>(url: string, params?: unknown) {
   return request<T>({ url, method: 'get', params })
 }
 
 // 简化的 POST 请求
-export function post<T = any>(url: string, data?: any) {
+export function post<T = unknown>(url: string, data?: unknown) {
   return request<T>({ url, method: 'post', data })
 }
 
 // 简化的 PUT 请求
-export function put<T = any>(url: string, data?: any) {
+export function put<T = unknown>(url: string, data?: unknown) {
   return request<T>({ url, method: 'put', data })
 }
 
 // 简化的 DELETE 请求
-export function del<T = any>(url: string, params?: any) {
+export function del<T = unknown>(url: string, params?: unknown) {
   return request<T>({ url, method: 'delete', params })
 }
 

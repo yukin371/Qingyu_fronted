@@ -4,7 +4,6 @@
 
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
-import { h } from 'vue'
 import Notification from '../Notification.vue'
 import notification from '../useNotification'
 
@@ -24,7 +23,7 @@ describe('Notification 组件', () => {
   // 基础渲染测试
   describe('基础渲染', () => {
     it('应该正确渲染组件', async () => {
-      const { container } = render(Notification, {
+      render(Notification, {
         props: {
           message: '这是一条通知',
           duration: 0,
@@ -275,7 +274,7 @@ describe('Notification 组件', () => {
       // 检查元素是否已被隐藏或移除
       await waitFor(() => {
         const element = container.querySelector('[role="alert"]')
-        expect(element?.style.display).toBe('none')
+        expect((element as HTMLElement | null)?.style.display).toBe('none')
       })
     })
 

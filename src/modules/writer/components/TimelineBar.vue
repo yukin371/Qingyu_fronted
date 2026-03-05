@@ -118,6 +118,7 @@ import {
   EVENT_TYPE_OPTIONS,
   formatStoryTime
 } from '@/modules/writer/types/timeline'
+import { Plus, ArrowDown, ArrowUp, Stamp, User, Trophy, Document, Location } from '@element-plus/icons-vue'
 
 // 引入 Store
 import { useWriterStore } from '@/modules/writer/stores/writerStore'  // 假设还没拆分，或者 import { useTimelineStore }

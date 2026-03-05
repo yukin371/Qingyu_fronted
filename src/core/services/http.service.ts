@@ -23,7 +23,7 @@ interface PromiseCallbacks {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ExtendedAxiosInstance extends AxiosInstance {
   /** 设置认证Token */
-  setAuthToken(token: string): void
+  setAuthToken(_token: string): void
   /** 清除认证Token */
   clearAuthToken(): void
   /** 取消所有进行中的请求 */
@@ -80,10 +80,10 @@ function readStoredToken(): string | null {
 // ==================== 测试模式支持 ====================
 // 旧的 mock 数据函数已被 mock-data-manager.ts 替代
 // @deprecated 请使用 mock-data-manager.ts 中的函数
-async function getMockDataForRequest(url: string | undefined): Promise<any> {
+async function _getMockDataForRequest(url: string | undefined): Promise<any> {
   // 动态导入 mock 数据
-  const { default: mockData } = await import('@/views/demo/business-mock-data')
-  
+  await import('@/views/demo/business-mock-data')
+
   console.log('[TestMode] 返回 Mock 数据:', url)
   
   // 根据请求路径返回对应的 mock 数据
@@ -651,10 +651,12 @@ async function getMockDataForRequest(url: string | undefined): Promise<any> {
 /**
  * 模拟网络延迟
  */
-function mockDelay(): Promise<void> {
+function _mockDelay(): Promise<void> {
   const delay = 100 + Math.random() * 200
   return new Promise(resolve => setTimeout(resolve, delay))
 }
+
+void [_getMockDataForRequest, _mockDelay]
 
 // 请求拦截器 - 添加认证令牌 + 智能前缀检测 + 测试模式支持
 // 注意：storage工具会自动添加 qingyu_ 前缀，所以需要使用 qingyu_token
@@ -882,8 +884,8 @@ function handleAuthError() {
 /**
  * 设置认证Token
  */
-apiClient.setAuthToken = function(token: string): void {
-  this.defaults.headers.common['Authorization'] = `Bearer ${token}`
+apiClient.setAuthToken = function(_token: string): void {
+  this.defaults.headers.common['Authorization'] = `Bearer ${_token}`
 }
 
 /**

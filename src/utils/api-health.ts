@@ -3,6 +3,8 @@
  * 用于检测后端服务是否可用
  */
 
+import { ref } from 'vue'
+
 interface HealthCheckResult {
   healthy: boolean
   latency?: number

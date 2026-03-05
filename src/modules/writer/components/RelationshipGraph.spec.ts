@@ -126,8 +126,7 @@ describe('RelationshipGraph - P0 Fix: D3直接DOM操作', () => {
     vi.advanceTimersByTime(100)
 
     // 获取组件实例
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vm: any = wrapper.vm
+    const vm = wrapper.vm as any
 
     // 验证simulation存在
     const sim = vm.d3Simulation?.()

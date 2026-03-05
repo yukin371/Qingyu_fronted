@@ -545,9 +545,7 @@ import {
   QyLoading,
   QyEmpty
 } from '@/design-system/components'
-import { useMessage } from '@/design-system/feedback/Message'
-
-const message = useMessage()
+import message from '@/design-system/feedback/Message/useMessage'
 
 // 导航配置
 const sections = [

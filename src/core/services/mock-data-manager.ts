@@ -343,6 +343,7 @@ function getAnnouncements(): MockResponse {
 
 // ==================== 书籍数据生成器 ====================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateBook(index: number, _type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
   const statuses = ['serializing', 'completed', 'paused']
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
@@ -478,6 +479,64 @@ function getWriterProjects(): MockResponse {
     list: [yunlanProject],
     total: 1
   })
+}
+
+function getWriterProjectDocuments(projectId: string): MockResponse {
+  const chapters = mockState.bookChapters.get(projectId) || []
+  const documents = chapters.map((chapter, index) => ({
+    id: chapter._id,
+    documentId: chapter._id,
+    projectId,
+    parentId: `${projectId}-volume-1`,
+    title: chapter.title,
+    type: 'chapter',
+    level: 1,
+    order: chapter.chapterNumber || index + 1,
+    status: 'completed',
+    wordCount: chapter.wordCount,
+    createdAt: chapter.publishTime,
+    updatedAt: chapter.publishTime
+  }))
+
+  return createMockResponse({
+    documents,
+    list: documents,
+    total: documents.length
+  })
+}
+
+function getWriterProjectDocumentTree(projectId: string): MockResponse {
+  const chapters = mockState.bookChapters.get(projectId) || []
+  const rootNode = {
+    id: `${projectId}-volume-1`,
+    documentId: `${projectId}-volume-1`,
+    projectId,
+    parentId: '',
+    title: '正文卷',
+    type: 'volume',
+    level: 0,
+    order: 1,
+    status: 'writing',
+    wordCount: chapters.reduce((sum, chapter) => sum + (chapter.wordCount || 0), 0),
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    children: chapters.map((chapter, index) => ({
+      id: chapter._id,
+      documentId: chapter._id,
+      projectId,
+      parentId: `${projectId}-volume-1`,
+      title: chapter.title,
+      type: 'chapter',
+      level: 1,
+      order: chapter.chapterNumber || index + 1,
+      status: 'completed',
+      wordCount: chapter.wordCount,
+      createdAt: chapter.publishTime,
+      updatedAt: chapter.publishTime
+    }))
+  }
+
+  return createMockResponse([rootNode])
 }
 
 function getWriterRevenueStats(): MockResponse {
@@ -706,6 +765,18 @@ export async function getMockDataForRequest(
   // 写作项目列表
   if (url.includes('/writer/projects')) {
     return getWriterProjects()
+  }
+
+  // 写作项目文档树（单数 project 路由）
+  if (/\/writer\/project\/[^/]+\/documents\/tree(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/project\/([^/]+)\/documents\/tree/)?.[1]
+    return getWriterProjectDocumentTree(projectId || 'project-yljs-1')
+  }
+
+  // 写作项目文档列表（单数 project 路由）
+  if (/\/writer\/project\/[^/]+\/documents(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/project\/([^/]+)\/documents/)?.[1]
+    return getWriterProjectDocuments(projectId || 'project-yljs-1')
   }
 
   // 收入统计

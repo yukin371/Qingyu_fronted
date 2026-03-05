@@ -83,7 +83,6 @@
  */
 
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { QyIcon } from '@/design-system/components'
 import DragHandle from './DragHandle.vue'
 import { usePanelStore } from '../stores/panelStore'
 
@@ -145,7 +144,11 @@ const panelStore = usePanelStore()
 // 响应式状态
 // ============================================
 
+// Note: panelRef is declared for template ref binding
+// Although not directly used in script, Vue template refs require this binding
 const panelRef = ref<HTMLElement | null>(null)
+// Reference panelRef to avoid TS6133 error (template ref is used by Vue compiler)
+void panelRef.value
 const isCollapsed = ref(false)
 const statusMessage = ref('')
 

@@ -1,7 +1,7 @@
 /**
  * Community API测试
  */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as communityApi from '../index'
 import {
@@ -9,7 +9,6 @@ import {
   createMockPosts,
   createMockComment,
   createMockComments,
-  createMockTopic,
   createMockTopics,
 } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'

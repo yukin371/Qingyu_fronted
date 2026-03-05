@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- 可选：显示"应用模板"按钮 -->
   <button
     v-if="showButton"
@@ -136,17 +136,5 @@ async function applyTemplate(templateId: string, variables: Record<string, strin
   }
 }
 
-/**
- * 预览模板（可选功能）
- */
-async function handlePreviewTemplate(templateId: string): Promise<void> {
-  try {
-    const template = await templateApi.getDetail(templateId)
-    selectedTemplate.value = template
-    showPreviewDialog.value = true
-  } catch (error) {
-    console.error('获取模板详情失败:', error)
-    message.error('获取模板详情失败')
-  }
-}
 </script>
+

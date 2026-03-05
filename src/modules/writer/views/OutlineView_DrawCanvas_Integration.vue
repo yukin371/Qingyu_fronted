@@ -23,7 +23,8 @@
 
         <el-divider direction="vertical" />
 
-        <el-button type="primary" size="small" :icon="Plus" @click="handleAddNode">
+        <el-button type="primary" size="small" @click="handleAddNode">
+          <el-icon><Plus /></el-icon>
           添加节点
         </el-button>
       </div>
@@ -39,7 +40,7 @@
               :default-expand-all="false" :expand-on-click-node="false"
               :props="{ label: 'title', children: 'children' }" draggable @node-click="handleNodeClick"
               @node-drop="handleNodeDrop">
-              <template #default="{ node, data }">
+              <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
                     <el-icon v-if="data.level === 1">
@@ -58,8 +59,12 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <el-button text size="small" :icon="Edit" @click.stop="handleEditNode(data)" />
-                    <el-button text size="small" :icon="Delete" @click.stop="handleDeleteNode(data)" />
+                    <el-button text size="small" @click.stop="handleEditNode(data)">
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                    <el-button text size="small" @click.stop="handleDeleteNode(data)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
                   </div>
                 </div>
               </template>
@@ -71,7 +76,9 @@
         <div v-if="selectedNode" class="node-detail">
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
-            <el-button text :icon="Close" @click="selectedNode = null" />
+            <el-button text @click="selectedNode = null">
+              <el-icon><Close /></el-icon>
+            </el-button>
           </div>
           <div class="detail-content">
             <el-descriptions :column="1" border>
@@ -79,8 +86,8 @@
                 {{ getLevelText(selectedNode.level) }}
               </el-descriptions-item>
               <el-descriptions-item label="状态">
-                <el-tag :type="getStatusType(selectedNode.status)">
-                  {{ getStatusText(selectedNode.status) }}
+                <el-tag :type="getStatusType(selectedNode.status || 'draft')">
+                  {{ getStatusText(selectedNode.status || 'draft') }}
                 </el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="字数">
@@ -151,6 +158,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { Plus, Edit, Delete, Close, Memo } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import type { DrawNode, DrawEdge } from '@/core/draw-engine/types'
@@ -313,11 +321,22 @@ const handleEditNode = (node: OutlineNode) => {
   isEdit.value = true
   selectedNode.value = node
   dialogVisible.value = true
+  // 帮助函数：将数值 level 转换为 1 | 2 | 3
+  const toLevelType = (lvl: number): 1 | 2 | 3 => {
+    if (lvl === 1 || lvl === 2 || lvl === 3) return lvl
+    return 1
+  }
+  // 帮助函数：将 status 字符串转换为正确的类型
+  const toStatusType = (st?: string): 'draft' | 'writing' | 'completed' | 'reviewing' => {
+    const validStatuses = ['draft', 'writing', 'completed', 'reviewing'] as const
+    if (st && validStatuses.includes(st as any)) return st as typeof validStatuses[number]
+    return 'draft'
+  }
   nodeForm.value = {
     title: node.title,
-    level: node.level,
+    level: toLevelType(node.level),
     parentId: node.parentId || '',
-    status: node.status || 'draft',
+    status: toStatusType(node.status),
     description: node.description || '',
     order: node.order
   }
@@ -335,11 +354,8 @@ const handleDeleteNode = async (node: OutlineNode) => {
       }
     )
 
-    const projectId = writerStore.currentProjectId
-    if (!projectId) return
-
     const { deleteOutlineNode } = await import('..')
-    await deleteOutlineNode(node.id, projectId)
+    await deleteOutlineNode(node.id)
     await writerStore.loadOutlineTree()
     message.success('删除成功')
   } catch (error: any) {
@@ -372,9 +388,6 @@ const handleJumpToChapter = (node: OutlineNode) => {
  * 当思维导图中的节点被修改时同步到大纲
  */
 const handleOutlineNodeChanged = async (node: DrawNode) => {
-  const projectId = writerStore.currentProjectId
-  if (!projectId) return
-
   try {
     // 查找原始节点
     const originalNode = outlineTree.value.find(n => n.id === node.id)
@@ -382,10 +395,10 @@ const handleOutlineNodeChanged = async (node: DrawNode) => {
 
     // 更新节点
     const { updateOutlineNode } = await import('..')
-    await updateOutlineNode(node.id, projectId, {
+    await updateOutlineNode(node.id, {
       title: node.label,
       description: node.description
-    })
+    } as any)
 
     // 重新加载大纲树
     await writerStore.loadOutlineTree()
@@ -423,16 +436,13 @@ const handleExportOutline = async (data: any) => {
 /**
  * 生成大纲 Markdown
  */
-const generateOutlineMarkdown = (nodes: DrawNode[], edges: DrawEdge[]): string => {
+const generateOutlineMarkdown = (_nodes: DrawNode[], _edges: DrawEdge[]): string => {
   let markdown = '# 文章大纲\n\n'
 
   // 按层级生成缩进的列表
   const treeNodes = outlineTree.value
 
   const renderNode = (node: OutlineNode, level: number) => {
-    const indent = '  '.repeat(level - 1)
-    const bullet = level === 1 ? '#' : level === 2 ? '##' : '###'
-
     markdown += `${'#'.repeat(level)} ${node.title}\n`
     if (node.description) {
       markdown += `\n${node.description}\n\n`
@@ -467,13 +477,13 @@ const handleSubmit = async () => {
     try {
       if (isEdit.value && selectedNode.value) {
         const { updateOutlineNode } = await import('..')
-        await updateOutlineNode(selectedNode.value.id, projectId, nodeForm.value)
+        await updateOutlineNode(selectedNode.value.id, nodeForm.value as any)
       } else {
         const { createOutlineNode } = await import('..')
         await createOutlineNode(projectId, {
           ...nodeForm.value,
           order: outlineTree.value.length
-        })
+        } as any)
       }
 
       await writerStore.loadOutlineTree()

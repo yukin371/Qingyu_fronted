@@ -245,7 +245,7 @@ export function sanitizeUrl(url: string): string {
  */
 export function setupSanitizeHooks(): void {
   // 添加钩子检查href属性
-  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
     // 检查所有href属性
     if (data.attrName === 'href') {
       // 确保href不是javascript:协议
@@ -268,7 +268,7 @@ export function setupSanitizeHooks(): void {
   })
 
   // 添加钩子检查元素
-  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+  DOMPurify.addHook('uponSanitizeElement', (_node, data) => {
     // 移除所有style标签
     if (data.tagName === 'style') {
       // DOMPurify会自动移除，这里只是示例

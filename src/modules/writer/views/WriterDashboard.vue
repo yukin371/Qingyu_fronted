@@ -168,7 +168,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
-import type { Project } from '@/modules/writer/types/project'
+import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
@@ -253,7 +253,7 @@ onMounted(async () => {
     stats.value.bookCount = projectStore.total
     const projects = projectStore.projects || []
     stats.value.totalWords = projects.reduce((acc: number, cur: { totalWords: number }) => acc + (cur.totalWords || 0), 0)
-    stats.value.pending = projects.filter((p: Project) => p.status === 'serializing').length
+    stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
     stats.value.todayWords = 1200 // Mock Data
 
   } catch (error) {

@@ -480,9 +480,9 @@
         </el-form-item>
         <el-form-item label="发布方式">
           <el-radio-group v-model="planForm.scheduleType">
-            <el-radio label="immediate">立即发布</el-radio>
-            <el-radio label="scheduled">定时发布</el-radio>
-            <el-radio label="manual">手动发布</el-radio>
+            <el-radio value="immediate">立即发布</el-radio>
+            <el-radio value="scheduled">定时发布</el-radio>
+            <el-radio value="manual">手动发布</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="发布间隔">
@@ -606,10 +606,10 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth'
 import { useWriterStore } from '@/stores/writer'
-import { Download, Setting, Refresh } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import * as echarts from 'echarts'
@@ -623,7 +623,6 @@ import {
   getPublishRecords,
   publishChapter as apiPublishChapter,
   unpublishChapter as apiUnpublishChapter,
-  scheduleChapter as apiScheduleChapter,
   submitForReview,
   type PublishPlan,
   type PublishRecord,
@@ -708,7 +707,7 @@ const planForm = reactive({
   name: '',
   type: 'free' as const,
   platforms: ['all'],
-  scheduleType: 'immediate' as const,
+  scheduleType: 'immediate' as 'immediate' | 'scheduled' | 'manual',
   intervalDays: 1,
   chaptersPerRelease: 1,
   isFree: true,
@@ -754,7 +753,9 @@ const currentLocalProject = computed(() =>
 )
 
 const isMockProjectContext = computed(() => {
-  if (writerStore.storageMode === 'offline') return true
+  // 使用 any 类型来避免 storageMode 属性不存在的问题
+  const storeAny = writerStore as any
+  if (storeAny.storageMode === 'offline') return true
   return !!currentLocalProject.value
 })
 
@@ -784,7 +785,7 @@ const ensureMockRecords = (projectId: string) => {
     return records
   }
 
-  const chapterCount = Math.max(Number(currentLocalProject.value?.chapterCount || 0), 3)
+  const chapterCount = Math.max(Number((currentLocalProject.value as any)?.chapterCount || 0), 3)
   const now = Date.now()
   const records: PublishRecord[] = Array.from({ length: chapterCount }, (_, idx) => {
     const chapterNo = idx + 1
@@ -838,7 +839,7 @@ const computeMockStats = (projectId: string): PublishStats => {
   const pending = records.filter(r => r.status === 'pending_review').length
   const scheduled = records.filter(r => r.status === 'scheduled').length
   const draft = total - published - pending - scheduled
-  const totalWords = Number(currentLocalProject.value?.wordCount || total * 1800)
+  const totalWords = Number((currentLocalProject.value as any)?.wordCount || total * 1800)
   const publishedWords = Math.floor(totalWords * (published / Math.max(total, 1)))
   return {
     total_chapters: total,
@@ -902,7 +903,7 @@ const loadPublishRecords = async () => {
     const res = await getPublishRecords(bookId.value, {
       page: recordPage.value,
       page_size: recordPageSize.value,
-      status: chapterFilter.status || undefined
+      status: chapterFilter.status as PublishStatus || undefined
     })
     publishRecords.value = res.items
     recordTotal.value = res.total
@@ -932,7 +933,7 @@ const loadExportHistory = async () => {
       page: exportPage.value,
       page_size: exportPageSize.value
     })
-    exportHistory.value = res.items
+    exportHistory.value = res.items as unknown as ExportTask[]
     exportTotal.value = res.total
   } catch (error: any) {
     message.error(error.message || '加载失败')
@@ -978,7 +979,7 @@ const savePublishPlan = async () => {
       await updatePublishPlan(publishPlan.value.id, {
         name: planForm.name,
         type: planForm.type,
-        platforms: planForm.platforms,
+        platforms: planForm.platforms as any,
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
@@ -995,7 +996,7 @@ const savePublishPlan = async () => {
       await createPublishPlan(bookId.value, {
         name: planForm.name,
         type: planForm.type,
-        platforms: planForm.platforms,
+        platforms: planForm.platforms as any,
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
@@ -1148,7 +1149,7 @@ const scheduleChapter = (record: PublishRecord) => {
 }
 
 // 查看审核
-const viewReview = (record: PublishRecord) => {
+const viewReview = (_record: PublishRecord) => {
   message.info('审核详情功能开发中')
 }
 

@@ -2,15 +2,15 @@
  * Community Store测试
  */
 
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createPinia, setActivePinia } from 'pinia'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useCommunityStore } from '../community.store'
 import {
   createMockPost,
   createMockPosts,
   createMockComment,
   createMockComments,
-  createMockTopic,
   createMockTopics,
 } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
@@ -76,22 +76,10 @@ vi.mock('../../api', () => ({
   getTopicPosts: (...args: any[]) => mockGetTopicPosts(...args),
 }))
 
-import * as communityApi from '../../api'
+import * as _communityApi from '../../api'
 
-// 导出API函数供测试使用
-const {
-  getPosts,
-  getPostDetail,
-  getPostComments,
-  createPost,
-  createPostComment,
-  likePost,
-  unlikePost,
-  bookmarkPost,
-  getTopics,
-  followTopic,
-  getTopicPosts,
-} = communityApi
+// 导出API函数供测试使用 (保持import但标记为未使用)
+void _communityApi
 
 describe('useCommunityStore', () => {
   beforeEach(() => {
@@ -123,7 +111,7 @@ describe('useCommunityStore', () => {
       expect(store.hasPosts).toBe(false)
 
       // Act
-      store.posts = createMockPosts(3)
+      ;(store as any).posts = createMockPosts(3)
 
       // Assert
       expect(store.hasPosts).toBe(true)
@@ -319,7 +307,7 @@ describe('useCommunityStore', () => {
         mockSuccessApiCall(mockComment)
       )
       const store = useCommunityStore()
-      store.currentPost = createMockPost({ id: postId, commentCount: 5 })
+      ;(store as any).currentPost = createMockPost({ id: postId, commentsCount: 5 } as any)
 
       // Act
       const result = await store.createComment(postId, content)
@@ -327,7 +315,7 @@ describe('useCommunityStore', () => {
       // Assert
       expect(result).toEqual(mockComment)
       expect(store.comments[0]).toEqual(mockComment)
-      expect(store.currentPost?.commentCount).toBe(6)
+      expect((store.currentPost as any)?.commentsCount).toBe(6)
       expect(mockCreatePostComment).toHaveBeenCalledWith(postId, {
         content,
         replyTo: undefined,
@@ -339,7 +327,7 @@ describe('useCommunityStore', () => {
       const postId = 'post_123'
       const content = '这是一个回复'
       const replyTo = 'comment_456'
-      const mockComment = createMockComment({ content, replyTo })
+      const mockComment = createMockComment({ content, replyToId: replyTo } as any)
       mockCreatePostComment.mockImplementation(
         mockSuccessApiCall(mockComment)
       )
@@ -377,19 +365,19 @@ describe('useCommunityStore', () => {
       const mockPost = createMockPost({
         id: 'post_123',
         isLiked: false,
-        likeCount: 10,
-      })
-      const mockResponse = { success: true, likeCount: 11 }
+        likesCount: 10,
+      } as any)
+      const mockResponse = { success: true, likesCount: 11 }
       mockLikePost.mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useCommunityStore()
-      store.posts = [mockPost]
+      ;(store as any).posts = [mockPost]
 
       // Act
       await store.toggleLike('post_123')
 
       // Assert
-      expect(store.posts[0].isLiked).toBe(true)
-      expect(store.posts[0].likeCount).toBe(11)
+      expect((store.posts[0] as any).isLiked).toBe(true)
+      expect((store.posts[0] as any).likesCount).toBe(11)
       expect(mockLikePost).toHaveBeenCalledWith('post_123')
     })
 
@@ -398,21 +386,21 @@ describe('useCommunityStore', () => {
       const mockPost = createMockPost({
         id: 'post_123',
         isLiked: true,
-        likeCount: 10,
-      })
-      const mockResponse = { success: true, likeCount: 9 }
+        likesCount: 10,
+      } as any)
+      const mockResponse = { success: true, likesCount: 9 }
       mockUnlikePost.mockImplementation(
         mockSuccessApiCall(mockResponse)
       )
       const store = useCommunityStore()
-      store.posts = [mockPost]
+      ;(store as any).posts = [mockPost]
 
       // Act
       await store.toggleLike('post_123')
 
       // Assert
-      expect(store.posts[0].isLiked).toBe(false)
-      expect(store.posts[0].likeCount).toBe(9)
+      expect((store.posts[0] as any).isLiked).toBe(false)
+      expect((store.posts[0] as any).likesCount).toBe(9)
       expect(mockUnlikePost).toHaveBeenCalledWith('post_123')
     })
 
@@ -426,13 +414,13 @@ describe('useCommunityStore', () => {
         mockErrorApiCall('Error')
       )
       const store = useCommunityStore()
-      store.posts = [mockPost]
+      ;(store as any).posts = [mockPost]
 
       // Act - 应该不会抛出错误
       await store.toggleLike('post_123')
 
       // Assert
-      expect(store.posts[0].isLiked).toBe(false)
+      expect((store.posts[0] as any).isLiked).toBe(false)
     })
 
     it('should work with currentPost', async () => {
@@ -440,19 +428,19 @@ describe('useCommunityStore', () => {
       const mockPost = createMockPost({
         id: 'post_123',
         isLiked: false,
-        likeCount: 10,
-      })
-      const mockResponse = { success: true, likeCount: 11 }
+        likesCount: 10,
+      } as any)
+      const mockResponse = { success: true, likesCount: 11 }
       mockLikePost.mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useCommunityStore()
-      store.currentPost = mockPost
+      ;(store as any).currentPost = mockPost
 
       // Act
       await store.toggleLike('post_123')
 
       // Assert
-      expect(store.currentPost?.isLiked).toBe(true)
-      expect(store.currentPost?.likeCount).toBe(11)
+      expect((store.currentPost as any)?.isLiked).toBe(true)
+      expect((store.currentPost as any)?.likesCount).toBe(11)
     })
   })
 

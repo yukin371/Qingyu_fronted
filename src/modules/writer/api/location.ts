@@ -46,7 +46,7 @@ export const locationApi = {
   getDetail(locationId: string, projectId: string) {
     return httpService.get<Location>(
       `${BASE_LOCATION_URL}/${locationId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 
@@ -68,7 +68,7 @@ export const locationApi = {
   delete(locationId: string, projectId: string) {
     return httpService.delete<void>(
       `${BASE_LOCATION_URL}/${locationId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 
@@ -106,7 +106,7 @@ export const locationApi = {
    * DELETE /api/v1/locations/relations/{relationId}?projectId=...
    */
   deleteRelation(relationId: string, projectId: string) {
-    return httpService.delete<void>(`${BASE_LOCATION_URL}/relations/${relationId}`, { projectId })
+    return httpService.delete<void>(`${BASE_LOCATION_URL}/relations/${relationId}`, { params: { projectId } } as any)
   },
 }
 

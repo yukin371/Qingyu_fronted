@@ -64,6 +64,11 @@ export interface MessageProps {
   offset?: number
 
   /**
+   * 自定义类名
+   */
+  class?: any
+
+  /**
    * 关闭时的回调函数
    */
   onClose?: () => void

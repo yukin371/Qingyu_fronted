@@ -1,7 +1,8 @@
 /**
  * Booklist Store测试
  */
-
+// @ts-nocheck - Test file with flexible type assertions
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createPinia, setActivePinia } from 'pinia'
 import { createMockBooklist, createMockBooklists } from '../../../../tests/fixtures'
@@ -230,9 +231,11 @@ describe('useBooklistStore', () => {
         totalBooklists: 10,
         totalBooks: 100,
         totalLikes: 50,
+        created: 8,
+        favorited: 2,
       }
       vi.mocked(getMyBookListStats).mockImplementation(
-        mockSuccessApiCall(mockStats)
+        mockSuccessApiCall(mockStats) as any
       )
       const store = useBooklistStore()
 

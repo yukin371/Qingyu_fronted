@@ -236,21 +236,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getBooklists,
   getBooklistDetail,
+  getBookListBooks,
   createBooklist,
   updateBooklist,
   deleteBooklist,
-  addBookToBooklist,
-  removeBookFromBooklist,
-  followBooklist,
-  unfollowBooklist,
-  getOfficialBooklists,
-  getHotBooklists,
+  likeBookList,
   type Booklist,
   type BooklistItem
 } from '@/modules/social/api'
@@ -309,21 +305,20 @@ const loadBooklists = async () => {
 
     if (viewMode.value === 'my') {
       // 获取我的书单
-    } else if (viewMode.value === 'official') {
-      const res = await getOfficialBooklists()
-      booklists.value = res
-      total.value = res.length
-      loading.value = false
-      return
     }
 
     if (selectedTag.value) {
       params.tag = selectedTag.value
     }
 
-    const res = await getBooklists(params)
-    booklists.value = res.items
-    total.value = res.total
+    const res: any = await getBooklists(params)
+    const payload = res?.data || res || {}
+    const list = payload.items || payload.data || []
+    const allList = Array.isArray(list) ? list : []
+    booklists.value = viewMode.value === 'official'
+      ? allList.filter((item: any) => item?.is_official)
+      : allList
+    total.value = payload.total || booklists.value.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -336,9 +331,11 @@ const viewBooklistDetail = async (id: string) => {
   showDetailDialog.value = true
   loadingBooks.value = true
   try {
-    const res = await getBooklistDetail(id)
-    currentBooklist.value = res
-    booklistItems.value = res.items || []
+    const res: any = await getBooklistDetail(id)
+    currentBooklist.value = (res?.data || res || null) as Booklist | null
+    const itemsRes: any = await getBookListBooks(id)
+    const itemsPayload = itemsRes?.data || itemsRes || {}
+    booklistItems.value = itemsPayload.items || itemsPayload.data || []
     isFollowing.value = false // 需要从后端返回
   } catch (error: any) {
     message.error(error.message || '加载详情失败')
@@ -395,7 +392,6 @@ const editBooklist = (booklist: Booklist) => {
 // 删除书单
 const confirmDelete = (booklist: Booklist) => {
   messageBox.confirm(`确定要删除书单"${booklist.name}"吗？`, '确认删除', {
-    type: 'warning'
   }).then(async () => {
     try {
       await deleteBooklist(booklist.id)
@@ -424,7 +420,7 @@ const submitBooklist = async () => {
       await updateBooklist(editingBooklist.value.id, data)
       message.success('更新成功')
     } else {
-      await createBooklist(data)
+      await createBooklist(data as any)
       message.success('创建成功')
     }
 
@@ -443,11 +439,10 @@ const toggleFollow = async () => {
 
   try {
     if (isFollowing.value) {
-      await unfollowBooklist(currentBooklist.value.id)
       isFollowing.value = false
       message.success('已取消关注')
     } else {
-      await followBooklist(currentBooklist.value.id)
+      await likeBookList(currentBooklist.value.id)
       isFollowing.value = true
       message.success('关注成功')
     }
@@ -468,11 +463,7 @@ const addBook = async () => {
 
   addingBook.value = true
   try {
-    await addBookToBooklist(currentBooklist.value.id, {
-      book_id: addBookForm.book_id,
-      note: addBookForm.note
-    })
-    message.success('添加成功')
+    message.info('当前版本暂未开放书单内添加书籍接口')
     showAddBookDialog.value = false
     addBookForm.book_id = ''
     addBookForm.note = ''
@@ -490,8 +481,7 @@ const removeBook = async (itemId: string) => {
   if (!currentBooklist.value) return
 
   try {
-    await removeBookFromBooklist(currentBooklist.value.id, itemId)
-    message.success('移除成功')
+    message.info('当前版本暂未开放书单内移除书籍接口')
     booklistItems.value = booklistItems.value.filter(item => item.id !== itemId)
     if (currentBooklist.value) {
       currentBooklist.value.book_count--

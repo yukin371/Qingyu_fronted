@@ -4,8 +4,10 @@
  */
 
 import { mount, VueWrapper } from '@vue/test-utils'
-import { ComponentPublicInstance } from 'vue'
-import { h, defineComponent } from 'vue'
+import { ComponentPublicInstance, h, defineComponent } from 'vue'
+
+// vitest globals are enabled in vitest.config.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 创建完整的QyButton组件mock
@@ -109,7 +111,7 @@ export const MockQyBadge = defineComponent({
                 e.stopPropagation()
                 emit('close')
               },
-            }, '×')
+            }, 'x')
           : null,
       ]
     )
@@ -162,13 +164,13 @@ export const MockQyCard = defineComponent({
 /**
  * 组件挂载选项的扩展类型
  */
-export interface ComponentMountOptions<V extends ComponentPublicInstance> {
-  props?: Record<string, any>
+export interface ComponentMountOptions {
+  props?: Record<string, unknown>
   slots?: Record<string, string>
   global?: {
-    stubs?: Record<string, boolean | Record<string, any>>
-    mocks?: Record<string, any>
-    plugins?: any[]
+    stubs?: Record<string, boolean | Record<string, unknown>>
+    mocks?: Record<string, unknown>
+    plugins?: unknown[]
   }
 }
 
@@ -177,22 +179,26 @@ export interface ComponentMountOptions<V extends ComponentPublicInstance> {
  * @param component Vue组件
  * @param options 挂载选项
  */
-export const createWrapper = <V extends ComponentPublicInstance>(
-  component: any,
-  options: ComponentMountOptions<V> = {}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createWrapper = <V extends ComponentPublicInstance = any>(
+  component: unknown,
+  options: ComponentMountOptions = {}
 ): VueWrapper<V> => {
-  return mount<V>(component, {
+  // vitest globals are enabled
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vi = (globalThis as any).vi
+  return mount(component as Parameters<typeof mount>[0], {
     props: options.props,
     slots: options.slots,
     global: {
       stubs: options.global?.stubs,
       mocks: {
         $router: {
-          push: vi.fn(),
-          replace: vi.fn(),
-          go: vi.fn(),
-          back: vi.fn(),
-          forward: vi.fn(),
+          push: vi?.fn?.() || (() => {}),
+          replace: vi?.fn?.() || (() => {}),
+          go: vi?.fn?.() || (() => {}),
+          back: vi?.fn?.() || (() => {}),
+          forward: vi?.fn?.() || (() => {}),
         },
         $route: {
           path: '/',
@@ -202,21 +208,23 @@ export const createWrapper = <V extends ComponentPublicInstance>(
         },
         ...options.global?.mocks,
       },
-      plugins: options.global?.plugins || [],
+      plugins: (options.global?.plugins || []) as any,
     },
-  })
+  }) as VueWrapper<V>
 }
 
 /**
  * 等待组件更新完成
  * @param wrapper 组件wrapper
- * @param timeout 超时时间 (默认1000ms)
  */
 export const waitForUpdate = async (
-  wrapper: VueWrapper,
-  timeout: number = 1000
+  wrapper: VueWrapper<ComponentPublicInstance>
 ): Promise<void> => {
-  await wrapper.vm.$nextTick()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vm = (wrapper as any).vm
+  if (vm && typeof vm.$nextTick === 'function') {
+    await vm.$nextTick()
+  }
   await new Promise(resolve => setTimeout(resolve, 0))
 }
 
@@ -248,12 +256,16 @@ export const waitFor = async (
  * @param eventName 事件名称
  * @param payload 事件载荷
  */
-export const emitEvent = <T = any>(
-  wrapper: VueWrapper,
+export const emitEvent = <T = unknown>(
+  wrapper: VueWrapper<ComponentPublicInstance>,
   eventName: string,
   payload?: T
 ): void => {
-  wrapper.vm.$emit(eventName, payload)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vm = (wrapper as any).vm
+  if (vm && typeof vm.$emit === 'function') {
+    vm.$emit(eventName, payload)
+  }
 }
 
 /**
@@ -263,7 +275,7 @@ export const emitEvent = <T = any>(
  * @param shouldContain 是否应该包含 (默认true)
  */
 export const expectTextContent = (
-  wrapper: VueWrapper,
+  wrapper: VueWrapper<ComponentPublicInstance>,
   text: string,
   shouldContain: boolean = true
 ): void => {
@@ -282,7 +294,7 @@ export const expectTextContent = (
  * @param shouldExist 是否应该存在 (默认true)
  */
 export const expectElementExists = (
-  wrapper: VueWrapper,
+  wrapper: VueWrapper<ComponentPublicInstance>,
   selector: string,
   shouldExist: boolean = true
 ): void => {
@@ -299,11 +311,12 @@ export const expectElementExists = (
  * @param wrapper 组件wrapper
  * @param propName prop名称
  */
-export const getProp = <T = any>(
-  wrapper: VueWrapper,
+export const getProp = <T = unknown>(
+  wrapper: VueWrapper<ComponentPublicInstance>,
   propName: string
 ): T | undefined => {
-  return wrapper.props(propName) as T
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (wrapper as any).props(propName) as T
 }
 
 /**
@@ -312,10 +325,14 @@ export const getProp = <T = any>(
  * @param props props对象
  */
 export const setProps = async (
-  wrapper: VueWrapper,
-  props: Record<string, any>
+  wrapper: VueWrapper<ComponentPublicInstance>,
+  props: Record<string, unknown>
 ): Promise<void> => {
-  await wrapper.setProps(props)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (wrapper as any).setProps === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (wrapper as any).setProps(props)
+  }
 }
 
 /**
@@ -323,11 +340,16 @@ export const setProps = async (
  * @param wrapper 组件wrapper
  * @param eventName 事件名称
  */
-export const getEmittedEvents = <T = any>(
-  wrapper: VueWrapper,
+export const getEmittedEvents = <T = unknown>(
+  wrapper: VueWrapper<ComponentPublicInstance>,
   eventName: string
 ): T[] | undefined => {
-  return wrapper.emitted<T[]>(eventName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (wrapper as any).emitted === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (wrapper as any).emitted(eventName) as T[]
+  }
+  return undefined
 }
 
 /**
@@ -337,11 +359,15 @@ export const getEmittedEvents = <T = any>(
  * @param count 期望的事件数量 (可选)
  */
 export const expectEventEmitted = (
-  wrapper: VueWrapper,
+  wrapper: VueWrapper<ComponentPublicInstance>,
   eventName: string,
   count?: number
 ): void => {
-  const events = wrapper.emitted(eventName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const events = typeof (wrapper as any).emitted === 'function'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ? (wrapper as any).emitted(eventName)
+    : undefined
   expect(events).toBeDefined()
 
   if (count !== undefined) {
