@@ -19,10 +19,10 @@ export interface HttpClient {
 }
 
 export const http: HttpClient = {
-  get: (_url, _config) => httpService.get(_url, _config) as unknown as Promise<unknown>,
-  post: (_url, _data, _config) => httpService.post(_url, _data, _config) as unknown as Promise<unknown>,
-  put: (_url, _data, _config) => httpService.put(_url, _data, _config) as unknown as Promise<unknown>,
-  delete: (_url, _config) => httpService.delete(_url, _config) as unknown as Promise<unknown>
+  get: (_url, _config) => httpService.get(_url, _config) as any,
+  post: (_url, _data, _config) => httpService.post(_url, _data, _config) as any,
+  put: (_url, _data, _config) => httpService.put(_url, _data, _config) as any,
+  delete: (_url, _config) => httpService.delete(_url, _config) as any
 }
 
 export default http
