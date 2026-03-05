@@ -72,6 +72,7 @@
               :chapters="flatChapters"
               @add-chapter="handleAddChapterQuick"
               @add-volume="handleAddVolumeQuick"
+              @open-directory-outline="handleOpenDirectoryOutline"
               @delete-chapter="handleDeleteChapter"
             />
           </div>
@@ -263,6 +264,25 @@ const handleDockSelect = async (tool: ActiveTool) => {
   await router.replace({ query: nextQuery as any })
 }
 
+const buildDirectoryOutline = (directoryId: string): string => {
+  const directory = availableDocMap.value.get(directoryId)
+  if (!directory) return ''
+
+  if (mockProject.value?.contentByDocId?.[directoryId]) {
+    return mockProject.value.contentByDocId[directoryId]
+  }
+
+  const children = Array.from(availableDocMap.value.values())
+    .filter((doc) => doc.parentId === directoryId && doc.type === DocumentType.CHAPTER)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+  const chapterLines = children.length > 0
+    ? children.map((chapter, index) => `${index + 1}. ${chapter.title}`).join('\n')
+    : '- 暂无章节，请在右上角新增章节。'
+
+  return `# ${directory.title} 细纲\n\n## 目录目标\n- 待补充此目录核心冲突与推进目标。\n\n## 章节推进\n${chapterLines}\n`
+}
+
 // 2. 文档 ID (切换文档的核心逻辑)
 const currentChapterId = computed({
   get: () => (route.query.chapterId as string) || documentStore.currentDocMeta?.id || '',
@@ -274,13 +294,14 @@ const currentChapterId = computed({
     }
     editorStore.setCurrentChapter(id)
 
-    // 目录节点不加载正文
+    // 目录节点展示细纲
     if (
       selectedDoc &&
       (selectedDoc.type === DocumentType.SCENE || selectedDoc.type === DocumentType.VOLUME)
     ) {
-      editorStore.setContent('', false)
-      editorStore.editorContent = ''
+      const outlineContent = buildDirectoryOutline(id)
+      editorStore.setContent(outlineContent, false)
+      editorStore.editorContent = outlineContent
       editorStore.markSaved()
       return
     }
@@ -549,6 +570,22 @@ const handleAddChapterQuick = () => {
 const handleAddVolumeQuick = () => {
   newDocForm.value.type = 'volume'
   showCreateDocDialog.value = true
+}
+
+const handleOpenDirectoryOutline = async (directoryId: string) => {
+  if (!directoryId) return
+  editorStore.setActiveTool('writing')
+  if (currentChapterId.value !== directoryId) {
+    currentChapterId.value = directoryId
+    return
+  }
+  const outlineContent = buildDirectoryOutline(directoryId)
+  editorStore.setContent(outlineContent, false)
+  editorStore.editorContent = outlineContent
+  editorStore.markSaved()
+  if (route.query.tool !== 'writing') {
+    await router.replace({ query: { ...route.query, tool: 'writing' } as any })
+  }
 }
 
 const handleTipTapSave = async () => {
