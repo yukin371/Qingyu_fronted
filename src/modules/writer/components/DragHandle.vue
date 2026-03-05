@@ -242,7 +242,7 @@ onMounted(() => {
   left: 50%;
   width: 1px;
   transform: translateX(-50%);
-  background-color: var(--drag-handle-idle-line, #cbd5e1);
+  background-color: var(--drag-handle-idle-line, transparent);
   transition: background-color var(--transition-fast, 100ms) ease-out,
               width var(--transition-fast, 100ms) ease-out;
 }
