@@ -343,7 +343,7 @@ function getAnnouncements(): MockResponse {
 
 // ==================== 书籍数据生成器 ====================
 
-function generateBook(index: number, _type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
+function generateBook(index: number) {
   const statuses = ['serializing', 'completed', 'paused']
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
   const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
@@ -378,11 +378,11 @@ function generateBook(index: number, _type: 'recommended' | 'featured' | 'rankin
 }
 
 function generateRecommendedBooks(count: number) {
-  return Array.from({ length: count }, (_, i) => generateBook(i, 'recommended'))
+  return Array.from({ length: count }, (_, i) => generateBook(i))
 }
 
 function generateFeaturedBooks(count: number) {
-  return Array.from({ length: count }, (_, i) => generateBook(i + 10, 'featured'))
+  return Array.from({ length: count }, (_, i) => generateBook(i + 10))
 }
 
 function generateRankingBooks(type: string) {
@@ -480,6 +480,31 @@ function getWriterProjects(): MockResponse {
   })
 }
 
+function getWriterProjectDetail(projectId: string): MockResponse {
+  const baseList = getWriterProjects().data?.list || []
+  const matched = baseList.find((item: any) => item.id === projectId || item.projectId === projectId)
+  if (matched) {
+    return createMockResponse(matched)
+  }
+  return createMockResponse({
+    id: projectId,
+    projectId,
+    title: '未命名项目',
+    summary: '',
+    status: 'serializing',
+    category: '仙侠',
+    tags: [],
+    totalWords: 0,
+    chapterCount: 0,
+    lastUpdateTime: new Date().toISOString(),
+    statistics: {
+      totalWords: 0,
+      chapterCount: 0,
+      lastUpdateAt: new Date().toISOString()
+    }
+  })
+}
+
 function getWriterRevenueStats(): MockResponse {
   return createMockResponse({
     totalRevenue: 12580.50,
@@ -487,6 +512,227 @@ function getWriterRevenueStats(): MockResponse {
     availableBalance: 8650.30,
     totalWithdrawn: 3930.20
   })
+}
+
+const WRITER_RELATION_CHARACTERS = [
+  {
+    id: 'char-yljs-linyi',
+    projectId: 'project-yljs-1',
+    name: '林逸',
+    alias: ['少主'],
+    summary: '云岚宗外门弟子，天资卓绝却行事谨慎。',
+    traits: ['隐忍', '果决', '护短'],
+    background: '出身边陲小镇，幼年意外觉醒灵根后踏入修行路。',
+    personalityPrompt: '说话克制、逻辑清晰，危机中优先保护同伴。',
+    speechPattern: '短句、重点明确，偶尔带冷幽默。',
+    currentState: '正在追查秘境异动源头。',
+    avatarUrl: ''
+  },
+  {
+    id: 'char-yljs-ningxue',
+    projectId: 'project-yljs-1',
+    name: '宁雪',
+    alias: ['小师姐'],
+    summary: '云岚宗内门弟子，擅阵法与情报分析。',
+    traits: ['冷静', '理性', '细致'],
+    background: '世家出身，为摆脱家族束缚主动加入宗门。',
+    personalityPrompt: '先分析后行动，喜欢用证据说话。',
+    speechPattern: '语速平稳，偶尔反问。',
+    currentState: '负责统筹秘境探索队的路线。',
+    avatarUrl: ''
+  },
+  {
+    id: 'char-yljs-huoyun',
+    projectId: 'project-yljs-1',
+    name: '霍云',
+    alias: ['霍师兄'],
+    summary: '执法堂弟子，战力强悍但性格强硬。',
+    traits: ['强势', '忠诚', '急躁'],
+    background: '执法堂培养体系出身，重视规则与秩序。',
+    personalityPrompt: '说话直接，不喜欢拐弯抹角。',
+    speechPattern: '语气偏硬，常用命令句。',
+    currentState: '对林逸持怀疑态度。',
+    avatarUrl: ''
+  },
+  {
+    id: 'char-yljs-qingli',
+    projectId: 'project-yljs-1',
+    name: '青璃',
+    alias: ['医师'],
+    summary: '药堂弟子，负责后勤与疗伤支持。',
+    traits: ['温和', '敏感', '坚定'],
+    background: '医修世家后人，对古籍医方有深度研究。',
+    personalityPrompt: '语气柔和但立场坚定，善于安抚。',
+    speechPattern: '偏口语化，常用安慰语句。',
+    currentState: '在前线营地维持伤员救治。',
+    avatarUrl: ''
+  }
+]
+
+const WRITER_RELATION_EDGES = [
+  {
+    id: 'rel-yljs-1',
+    projectId: 'project-yljs-1',
+    fromId: 'char-yljs-linyi',
+    toId: 'char-yljs-ningxue',
+    type: '盟友',
+    strength: 84,
+    notes: '共同执行秘境侦查任务。'
+  },
+  {
+    id: 'rel-yljs-2',
+    projectId: 'project-yljs-1',
+    fromId: 'char-yljs-linyi',
+    toId: 'char-yljs-huoyun',
+    type: '敌人',
+    strength: 63,
+    notes: '理念冲突，长期存在竞争。'
+  },
+  {
+    id: 'rel-yljs-3',
+    projectId: 'project-yljs-1',
+    fromId: 'char-yljs-ningxue',
+    toId: 'char-yljs-qingli',
+    type: '朋友',
+    strength: 76,
+    notes: '私下关系密切，常互通情报。'
+  },
+  {
+    id: 'rel-yljs-4',
+    projectId: 'project-yljs-1',
+    fromId: 'char-yljs-qingli',
+    toId: 'char-yljs-linyi',
+    type: '朋友',
+    strength: 68,
+    notes: '多次协作救援后建立信任。'
+  }
+]
+
+function getWriterProjectId(url: string): string {
+  return url.match(/\/writer\/projects\/([^/?]+)/)?.[1] || 'project-yljs-1'
+}
+
+function getWriterCharacters(projectId: string) {
+  if (projectId !== 'project-yljs-1') return []
+  return WRITER_RELATION_CHARACTERS
+}
+
+function getWriterCharacterRelations(projectId: string) {
+  if (projectId !== 'project-yljs-1') return []
+  return WRITER_RELATION_EDGES
+}
+
+function getWriterLocations(projectId: string) {
+  if (projectId !== 'project-yljs-1') return []
+  return [
+    {
+      id: 'loc-yljs-1',
+      projectId,
+      name: '云岚峰',
+      description: '宗门主峰，议事与授课核心区域。',
+      climate: '四季偏凉',
+      culture: '重礼法与师承',
+      geography: '山脉主峰',
+      atmosphere: '肃穆'
+    },
+    {
+      id: 'loc-yljs-2',
+      projectId,
+      name: '青云秘境',
+      description: '周期性开启的古代遗迹，危险与机缘并存。',
+      climate: '区域波动',
+      culture: '遗迹文明残留',
+      geography: '独立空间',
+      atmosphere: '诡谲'
+    },
+    {
+      id: 'loc-yljs-3',
+      projectId,
+      name: '药堂营地',
+      description: '秘境外围临时营地，承担补给与救治。',
+      climate: '湿润',
+      culture: '救治优先',
+      geography: '谷地营盘',
+      atmosphere: '紧张'
+    }
+  ]
+}
+
+function getWriterTimelines(projectId: string) {
+  if (projectId !== 'project-yljs-1') return []
+  return [
+    {
+      id: 'timeline-yljs-main',
+      projectId,
+      name: '云岚纪事主线',
+      description: '主角成长与秘境主事件推进线'
+    },
+    {
+      id: 'timeline-yljs-past',
+      projectId,
+      name: '宗门旧史',
+      description: '补完背景冲突与历史因果'
+    }
+  ]
+}
+
+function getWriterTimelineEvents(timelineId: string) {
+  if (timelineId === 'timeline-yljs-main') {
+    return [
+      {
+        id: 'event-yljs-1',
+        timelineId,
+        title: '外门试炼',
+        description: '林逸在试炼中暴露特殊灵力波动。',
+        eventType: 'plot',
+        importance: 8,
+        storyTime: { description: '第一卷·初春' }
+      },
+      {
+        id: 'event-yljs-2',
+        timelineId,
+        title: '秘境开启公告',
+        description: '掌门宣布青云秘境百年再启，各堂口集结。',
+        eventType: 'world',
+        importance: 9,
+        storyTime: { description: '第一卷·仲春' }
+      },
+      {
+        id: 'event-yljs-3',
+        timelineId,
+        title: '执法堂冲突',
+        description: '霍云质疑林逸行动，双方矛盾升级。',
+        eventType: 'character',
+        importance: 7,
+        storyTime: { description: '第一卷·仲春后段' }
+      }
+    ]
+  }
+
+  if (timelineId === 'timeline-yljs-past') {
+    return [
+      {
+        id: 'event-yljs-p1',
+        timelineId,
+        title: '旧盟约破裂',
+        description: '云岚宗与邻宗旧盟约在二十年前终止。',
+        eventType: 'background',
+        importance: 6,
+        storyTime: { description: '二十年前' }
+      },
+      {
+        id: 'event-yljs-p2',
+        timelineId,
+        title: '禁术封印',
+        description: '长老团封存秘境禁术，留下残卷线索。',
+        eventType: 'milestone',
+        importance: 8,
+        storyTime: { description: '十八年前' }
+      }
+    ]
+  }
+
+  return []
 }
 
 // ==================== 用户中心 Mock 数据 ====================
@@ -702,6 +948,68 @@ export async function getMockDataForRequest(
   }
 
   // ==================== 创作中心 ====================
+
+  // 角色关系图谱
+  if (url.match(/\/writer\/projects\/[^/]+\/characters\/graph(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return createMockResponse({
+      characters: getWriterCharacters(projectId),
+      relations: getWriterCharacterRelations(projectId)
+    })
+  }
+
+  // 角色关系列表
+  if (url.match(/\/writer\/projects\/[^/]+\/characters\/relations(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return createMockResponse(getWriterCharacterRelations(projectId))
+  }
+
+  // 角色列表
+  if (url.match(/\/writer\/projects\/[^/]+\/characters(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return createMockResponse(getWriterCharacters(projectId))
+  }
+
+  // 地点树
+  if (url.match(/\/writer\/projects\/[^/]+\/locations\/tree(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    const locations = getWriterLocations(projectId)
+    return createMockResponse([
+      {
+        ...locations[0],
+        children: [locations[1], locations[2]]
+      }
+    ])
+  }
+
+  // 地点关系（当前为空）
+  if (url.match(/\/writer\/projects\/[^/]+\/locations\/relations(\?.*)?$/)) {
+    return createMockResponse([])
+  }
+
+  // 地点列表
+  if (url.match(/\/writer\/projects\/[^/]+\/locations(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return createMockResponse(getWriterLocations(projectId))
+  }
+
+  // 时间线列表
+  if (url.match(/\/writer\/projects\/[^/]+\/timelines(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return createMockResponse(getWriterTimelines(projectId))
+  }
+
+  // 时间线事件列表
+  if (url.match(/\/timelines\/[^/]+\/events(\?.*)?$/)) {
+    const timelineId = url.match(/\/timelines\/([^/?]+)\/events/)?.[1] || ''
+    return createMockResponse(getWriterTimelineEvents(timelineId))
+  }
+
+  // 写作项目详情
+  if (url.match(/\/writer\/projects\/[^/?]+(\?.*)?$/)) {
+    const projectId = getWriterProjectId(url)
+    return getWriterProjectDetail(projectId)
+  }
 
   // 写作项目列表
   if (url.includes('/writer/projects')) {

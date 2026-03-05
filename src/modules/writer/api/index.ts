@@ -3,6 +3,8 @@ export * from './writer'
 
 // 导出手动定义的API（兼容旧代码）
 export * from './timeline'
+export * from './character'
+export * from './location'
 export * from './publish'
 
 // 导出export.ts中的函数（排除与wrapper冲突的函数）
