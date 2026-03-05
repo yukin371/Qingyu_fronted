@@ -1,8 +1,22 @@
 ﻿<template>
   <div class="qy-tiptap-editor" @click="handleEditorClick">
-    <slot name="toolbar" :editor="editor">
-      <QyTipTapToolbar :editor="editor" />
-    </slot>
+    <div class="qy-tiptap-toolbar">
+      <button type="button" :class="{ active: isActive('bold') }" @click="run('toggleBold')"><strong>B</strong></button>
+      <button type="button" :class="{ active: isActive('italic') }" @click="run('toggleItalic')"><em>I</em></button>
+      <button type="button" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')"><u>U</u></button>
+      <span class="sep" />
+      <button type="button" :class="{ active: isActive('heading', { level: 1 }) }" @click="run('toggleHeading1')">H1</button>
+      <button type="button" :class="{ active: isActive('heading', { level: 2 }) }" @click="run('toggleHeading2')">H2</button>
+      <button type="button" :class="{ active: isActive('heading', { level: 3 }) }" @click="run('toggleHeading3')">H3</button>
+      <button type="button" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')">引用</button>
+      <button type="button" :class="{ active: isActive('codeBlock') }" @click="run('toggleCodeBlock')">代码</button>
+      <span class="sep" />
+      <button type="button" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')">无序</button>
+      <button type="button" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')">有序</button>
+      <span class="sep" />
+      <button type="button" @click="run('undo')">撤销</button>
+      <button type="button" @click="run('redo')">重做</button>
+    </div>
 
     <EditorContent v-if="editor" class="qy-tiptap-editor__content" :editor="editor" />
 
@@ -35,7 +49,6 @@ import CharacterCount from '@tiptap/extension-character-count'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
-import QyTipTapToolbar from '../QyTipTapToolbar/QyTipTapToolbar.vue'
 import QyKeywordPopover from '../QySmartKeyword/QyKeywordPopover.vue'
 import QyCompletionPopover from '../QySmartKeyword/QyCompletionPopover.vue'
 import { SmartKeyword, type KeywordInfo } from '../QySmartKeyword/extensions/SmartKeyword'
@@ -64,6 +77,20 @@ const emit = defineEmits<{
   (e: 'ready', editor: CoreEditor): void
 }>()
 
+type ToolbarCommand =
+  | 'toggleBold'
+  | 'toggleItalic'
+  | 'toggleUnderline'
+  | 'toggleHeading1'
+  | 'toggleHeading2'
+  | 'toggleHeading3'
+  | 'toggleBlockquote'
+  | 'toggleCodeBlock'
+  | 'toggleBulletList'
+  | 'toggleOrderedList'
+  | 'undo'
+  | 'redo'
+
 function parseInitialContent() {
   if (!props.modelValue) return '<p></p>'
   try {
@@ -71,6 +98,55 @@ function parseInitialContent() {
   } catch {
     return props.modelValue
   }
+}
+
+function run(command: ToolbarCommand) {
+  if (!editor.value) return
+  const chain = editor.value.chain().focus()
+
+  switch (command) {
+    case 'toggleBold':
+      chain.toggleBold().run()
+      break
+    case 'toggleItalic':
+      chain.toggleItalic().run()
+      break
+    case 'toggleUnderline':
+      chain.toggleUnderline().run()
+      break
+    case 'toggleHeading1':
+      chain.toggleHeading({ level: 1 }).run()
+      break
+    case 'toggleHeading2':
+      chain.toggleHeading({ level: 2 }).run()
+      break
+    case 'toggleHeading3':
+      chain.toggleHeading({ level: 3 }).run()
+      break
+    case 'toggleBlockquote':
+      chain.toggleBlockquote().run()
+      break
+    case 'toggleCodeBlock':
+      chain.toggleCodeBlock().run()
+      break
+    case 'toggleBulletList':
+      chain.toggleBulletList().run()
+      break
+    case 'toggleOrderedList':
+      chain.toggleOrderedList().run()
+      break
+    case 'undo':
+      chain.undo().run()
+      break
+    case 'redo':
+      chain.redo().run()
+      break
+  }
+}
+
+function isActive(name: string, attrs?: Record<string, unknown>) {
+  if (!editor.value) return false
+  return attrs ? editor.value.isActive(name, attrs) : editor.value.isActive(name)
 }
 
 const completion = reactive<{
@@ -366,6 +442,32 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background: #fff;
+}
+.qy-tiptap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid #ebeef5;
+  background: #fafafa;
+}
+.qy-tiptap-toolbar button {
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.qy-tiptap-toolbar button.active {
+  color: #fff;
+  background: #409eff;
+  border-color: #409eff;
+}
+.sep {
+  width: 1px;
+  height: 20px;
+  background: #e4e7ed;
 }
 .qy-tiptap-editor__content {
   flex: 1;

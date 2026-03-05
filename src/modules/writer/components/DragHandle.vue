@@ -33,7 +33,7 @@
  * - 无障碍支持
  */
 
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 // ============================================
 // Props 定义
@@ -68,6 +68,14 @@ const emit = defineEmits<{
 
 const dragHandleRef = ref<HTMLElement | null>(null)
 const isActive = ref(false)
+
+const cleanupGlobalHandleListeners = () => {
+  window.removeEventListener('mouseup', handleGlobalMouseUp)
+  window.removeEventListener('blur', handleGlobalMouseUp)
+  document.removeEventListener('mouseup', handleGlobalMouseUp, true)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
 
 // ============================================
 // 计算属性
@@ -124,33 +132,21 @@ const handleMouseDown = (event: MouseEvent) => {
   }
 
   emit('drag-start', dragEvent)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
 
-  // 添加全局鼠标事件监听器
-  document.addEventListener('mousemove', handleMouseMove, { passive: false })
-  document.addEventListener('mouseup', handleGlobalMouseUp, { once: true })
-}
-
-/**
- * 处理鼠标移动事件
- */
-const handleMouseMove = (event: MouseEvent) => {
-  if (!isActive.value) return
-  
-  // 阻止默认行为
-  event.preventDefault()
+  cleanupGlobalHandleListeners()
+  window.addEventListener('mouseup', handleGlobalMouseUp)
+  window.addEventListener('blur', handleGlobalMouseUp)
+  document.addEventListener('mouseup', handleGlobalMouseUp, true)
 }
 
 /**
  * 处理全局鼠标松开事件
  */
 const handleGlobalMouseUp = () => {
-  if (!isActive.value) return
-
-  // 移除激活状态
   isActive.value = false
-
-  // 移除全局事件监听器
-  document.removeEventListener('mousemove', handleMouseMove)
+  cleanupGlobalHandleListeners()
 }
 
 /**
@@ -193,12 +189,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
 // 生命周期
 // ============================================
 
-onMounted(() => {
-  // 确保组件卸载时清理事件监听器
-  onUnmounted(() => {
-    document.removeEventListener('mousemove', handleMouseMove)
-    document.removeEventListener('mouseup', handleGlobalMouseUp)
-  })
+onUnmounted(() => {
+  cleanupGlobalHandleListeners()
 })
 </script>
 

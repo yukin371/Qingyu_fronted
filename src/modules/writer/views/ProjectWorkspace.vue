@@ -13,6 +13,24 @@
         </div>
       </div>
       <div class="workspace-topbar__actions">
+        <button
+          type="button"
+          class="workspace-action-btn workspace-action-btn--icon"
+          :class="{ active: !panelStore.leftCollapsed }"
+          title="切换左侧边栏"
+          @click="toggleLeftPanel"
+        >
+          <QyIcon name="List" :size="14" />
+        </button>
+        <button
+          type="button"
+          class="workspace-action-btn workspace-action-btn--icon"
+          :class="{ active: !panelStore.rightCollapsed }"
+          title="切换右侧边栏"
+          @click="toggleRightPanel"
+        >
+          <QyIcon name="MagicStick" :size="14" />
+        </button>
         <button type="button" class="workspace-action-btn" @click="handleTipTapSave">保存</button>
         <button type="button" class="workspace-action-btn" @click="handleExportDraft">导出</button>
         <button
@@ -28,7 +46,7 @@
     <EditorLayout class="workspace-editor-layout">
       <!-- 左侧面板插槽 -->
       <template #left-panel>
-        <div class="workspace-left-panel-shell">
+        <div class="workspace-left-panel-shell" :class="{ 'is-collapsed': panelStore.leftCollapsed }">
           <aside class="workspace-left-dock" aria-label="左侧工具栏">
             <button
               v-for="item in leftDockItems"
@@ -153,6 +171,7 @@ import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
+import { usePanelStore } from '@/modules/writer/stores/panelStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { DocumentType, type Document } from '@/modules/writer/types/document'
@@ -181,6 +200,7 @@ const router = useRouter()
 const projectStore = useProjectStore()
 const documentStore = useDocumentStore()
 const editorStore = useEditorStore()
+const panelStore = usePanelStore()
 const writerStore = useWriterStore()
 
 // UI Flags
@@ -611,6 +631,14 @@ const handleShareDraft = async () => {
   }
 }
 
+const toggleLeftPanel = () => {
+  panelStore.setLeftCollapsed(!panelStore.leftCollapsed)
+}
+
+const toggleRightPanel = () => {
+  panelStore.setRightCollapsed(!panelStore.rightCollapsed)
+}
+
 // 创建文档
 const handleCreateDoc = async () => {
   if (!newDocForm.value.title) return
@@ -804,6 +832,21 @@ const handleAIApplyGeneratedText = (payload: {
   color: #fff;
 }
 
+.workspace-action-btn--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-action-btn--icon.active {
+  border-color: #8cadf8;
+  color: #1246b3;
+  background: #f0f5ff;
+}
+
 .workspace-action-btn--primary:hover {
   filter: brightness(1.06);
   color: #fff;
@@ -930,6 +973,13 @@ const handleAIApplyGeneratedText = (payload: {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.workspace-left-panel-shell.is-collapsed .workspace-left-panel-body {
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .world-sidebar {
