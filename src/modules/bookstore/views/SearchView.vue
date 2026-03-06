@@ -93,7 +93,7 @@
             <Col :xs="24" :sm="8" :md="6">
               <Select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
                 <option value="">全部状态</option>
-                <option value="serializing">连载中</option>
+                <option value="ongoing">连载中</option>
                 <option value="completed">已完结</option>
               </Select>
             </Col>

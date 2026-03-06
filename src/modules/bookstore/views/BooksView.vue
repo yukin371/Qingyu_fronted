@@ -20,7 +20,7 @@
           <Col :xs="24" :sm="8" :md="6">
             <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange" data-testid="status-filter">
               <option value="">全部状态</option>
-              <option value="serializing">连载中</option>
+              <option value="ongoing">连载中</option>
               <option value="completed">已完结</option>
             </Select>
           </Col>
@@ -190,7 +190,7 @@ const error = ref<{
 
 const filters = reactive({
   categoryId: '',
-  status: '' as '' | 'serializing' | 'completed',
+  status: '' as '' | 'ongoing' | 'completed',
   sortBy: 'updateTime' as 'updateTime' | 'rating' | 'viewCount' | 'wordCount'
 })
 
@@ -260,7 +260,7 @@ const loadBooks = async () => {
             console.log('[BooksView] First book data:', response.data[0])
           }
           books.value = response.data
-          total.value = (response as any).total || response.data.length
+          total.value = (response as any).pagination?.total || (response as any).total || response.data.length
         } else if (response.data && response.data.items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')

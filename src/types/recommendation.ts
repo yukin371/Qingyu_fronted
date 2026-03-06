@@ -48,7 +48,7 @@ export interface SimilarItem {
 /**
  * 行为类型
  */
-export type BehaviorType = 'view' | 'click' | 'like' | 'collect' | 'read' | 'search' | 'favorite' | 'purchase'
+export type BehaviorType = 'view' | 'click' | 'like' | 'collect' | 'read' | 'search' | 'finish' | 'share' | 'purchase'
 
 /**
  * 物品类型
@@ -169,5 +169,4 @@ export interface UserPreference {
     }
   }
 }
-
 

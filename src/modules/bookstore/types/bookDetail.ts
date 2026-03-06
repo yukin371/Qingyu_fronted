@@ -22,10 +22,13 @@ export interface BookDetail {
 
   // 网络小说特有字段
   serialized_at: ISODate
+  publishedAt?: ISODate
+  publishTime?: ISODate
   completed_at?: ISODate
 
   categories: string[]
   category_ids: ID[] // 注意与 Book 中的 categoryIds 区分
+  categoryId?: ID // 单分类兼容别名
   categoryIds?: ID[] // camelCase 别名
   tags: string[]
   status: BookStatus

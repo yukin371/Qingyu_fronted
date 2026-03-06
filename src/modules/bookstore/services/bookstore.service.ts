@@ -83,11 +83,19 @@ class BookstoreService {
 
     if (response) {
       if (response.data) {
-        // 格式: { data: { books: [...], total: ... }, total, page, size }
-        books = response.data.books || []
-        total = response.data.total !== undefined ? response.data.total : response.total
-        page = response.page || page
-        size = response.size || size
+        // 格式1: { data: [...], pagination }
+        if (Array.isArray(response.data)) {
+          books = response.data
+          total = response.pagination?.total ?? response.total ?? books.length
+          page = response.pagination?.page ?? response.page ?? page
+          size = response.pagination?.pageSize ?? response.size ?? size
+        } else {
+          // 格式2: { data: { books: [...], total: ... }, total, page, size }
+          books = response.data.books || []
+          total = response.data.total !== undefined ? response.data.total : response.total
+          page = response.page || page
+          size = response.size || size
+        }
       } else if (Array.isArray(response)) {
         // 直接返回数组
         books = response
@@ -211,4 +219,3 @@ class BookstoreService {
 
 export const bookstoreService = new BookstoreService()
 export default bookstoreService
-
