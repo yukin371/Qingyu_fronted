@@ -162,7 +162,7 @@
       width="500px"
     >
       <!-- 通知设置表单 -->
-      <QyForm :modelValue="preferences as Record<string, unknown>" label-width="100px">
+      <QyForm v-model="preferences" label-width="100px">
         <h4>通知渠道</h4>
         <QyFormItem label="站内通知">
           <QySwitch v-model="preferences.channel_enabled.in_app" />
@@ -375,7 +375,11 @@ const handleNotificationClick = (notification: Notification) => {
   }
 
   // 实现通知点击跳转逻辑
-  if (notification.data) {
+  const link = (notification as unknown as { link?: string }).link
+  if (link) {
+    // 如果通知包含link字段，直接跳转
+    window.location.href = link
+  } else if (notification.data) {
     // 根据通知类型和数据跳转到相应页面
     const { type, data } = notification
 
@@ -494,8 +498,7 @@ const handleBatchDelete = async () => {
   try {
     await messageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条通知吗？`, '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      cancelButtonText: '取消'
     })
 
     await deleteMultipleNotifications(selectedIds.value)
@@ -511,8 +514,9 @@ const handleBatchDelete = async () => {
 }
 
 // 选择变更
-const handleSelectChange = (id: string, checked: boolean) => {
-  if (checked) {
+const handleSelectChange = (id: string, checked: boolean | string[]) => {
+  const isChecked = Array.isArray(checked) ? checked.includes(id) : checked
+  if (isChecked) {
     selectedIds.value.push(id)
   } else {
     const index = selectedIds.value.indexOf(id)

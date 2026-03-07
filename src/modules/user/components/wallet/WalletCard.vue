@@ -57,6 +57,12 @@ interface Props {
   showExtra?: boolean
 }
 
+interface Emits {
+  (_e: 'refresh'): void
+  (_e: 'recharge'): void
+  (_e: 'withdraw'): void
+}
+
 withDefaults(defineProps<Props>(), {
   balance: 0,
   availableAmount: 0,
@@ -66,11 +72,7 @@ withDefaults(defineProps<Props>(), {
   showExtra: false
 })
 
-const emit = defineEmits<{
-  refresh: []
-  recharge: []
-  withdraw: []
-}>()
+const emit = defineEmits<Emits>()
 
 // 格式化金额
 // 注意：amount 参数单位是分（后端返回），需要转换为元显示

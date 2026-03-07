@@ -343,6 +343,7 @@ function getAnnouncements(): MockResponse {
 
 // ==================== 书籍数据生成器 ====================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateBook(index: number, _type: 'recommended' | 'featured' | 'ranking' = 'recommended') {
   const statuses = ['serializing', 'completed', 'paused']
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']

@@ -81,7 +81,7 @@ export async function migrateToBackend(
           genre: localProject.type === 'novel' ? '玄幻' : localProject.type,
         })
 
-        const newProjectId = (createResponse as { id: string }).id
+        const newProjectId = (createResponse as any)?.id || (createResponse as any)?.data?.id
         if (!newProjectId) {
           throw new Error('创建项目失败：未返回项目ID')
         }

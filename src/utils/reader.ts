@@ -68,6 +68,7 @@ export function formatChapterContent(
   }
 ): string {
   if (!content) return ''
+  void _settings
 
   // 移除空段落
   let formatted = content.replace(/<p>\s*<\/p>/g, '')
@@ -195,7 +196,7 @@ export function isLocalStorageAvailable(): boolean {
     localStorage.setItem(test, test)
     localStorage.removeItem(test)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -226,4 +227,3 @@ export function loadReadingSettingsFromLocal(): any | null {
     return null
   }
 }
-

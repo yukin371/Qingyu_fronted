@@ -100,7 +100,8 @@ class SyncService {
   async checkBackendHealth(): Promise<boolean> {
     try {
       const response = await httpService.get<{ status: string }>('/health', { timeout: 5000 })
-      return response && response.status === 'ok'
+      const status = (response as any)?.status ?? (response as any)?.data?.status
+      return status === 'ok'
     } catch (error) {
       console.warn('[SyncService] 后端健康检查失败:', error)
       return false

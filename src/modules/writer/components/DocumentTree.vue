@@ -358,7 +358,7 @@ const handleDragStart = (node: any, event: DragEvent) => {
 // 事件处理
 // =======================
 
-const handleNodeClick = (data: Document, event?: MouseEvent) => {
+const handleNodeClick = (data: Document, _node?: any, _nodeInstance?: any, event?: MouseEvent) => {
   if (isMultiSelectMode.value) {
     // 多选模式
     if (event && event.shiftKey) {
@@ -479,10 +479,11 @@ const contextMenu = reactive({
   target: null as Document | null
 })
 
-const handleContextMenu = (event: MouseEvent, data: Document) => {
+const handleContextMenu = (event: Event, data: Document) => {
+  const mouseEvent = event as MouseEvent
   contextMenu.visible = true
-  contextMenu.x = event.clientX
-  contextMenu.y = event.clientY
+  contextMenu.x = mouseEvent.clientX
+  contextMenu.y = mouseEvent.clientY
   contextMenu.target = data
 }
 

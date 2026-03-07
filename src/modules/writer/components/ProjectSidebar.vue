@@ -29,15 +29,22 @@
 
     <!-- 2. 工具栏：搜索 -->
     <div class="sidebar-toolbar">
-      <el-input
+      <el-autocomplete
         v-model="searchKeyword"
-        placeholder="搜索章节..."
-        size="small"
+        :fetch-suggestions="fetchKeywordSuggestions"
+        placeholder="搜索章节/角色/地点..."
         clearable
         class="search-input"
+        @select="handleSuggestionSelect"
       >
         <template #prefix><QyIcon name="Search" :size="14" /></template>
-      </el-input>
+        <template #default="{ item }">
+          <div class="keyword-option">
+            <span class="keyword-option__name">{{ item.value }}</span>
+            <span class="keyword-option__meta">{{ item.typeLabel }} · {{ item.matchModeLabel }}</span>
+          </div>
+        </template>
+      </el-autocomplete>
     </div>
 
     <!-- 3. VSCode风格目录树 -->
@@ -46,7 +53,7 @@
         <QyIcon
           name="ArrowRight"
           :size="14"
-          :class="isTreeExpanded ? 'tree-chevron expanded' : 'tree-chevron'"
+          :class="chevronClass"
         />
         <span>目录</span>
         <span class="section-count">{{ displayChapters.length }}</span>
@@ -141,16 +148,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { sanitizeText } from '@/utils/sanitize'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import 'dayjs/locale/zh-cn'
-
-dayjs.extend(relativeTime)
-dayjs.locale('zh-cn')
 
 // 定义类型 (建议从 types/project.ts 引入)
 interface ProjectSummary {
@@ -172,6 +174,15 @@ interface ChapterSummary {
   status: 'draft' | 'published'
   nodeType?: 'directory' | 'chapter'
   sortOrder?: number
+}
+
+interface KeywordSuggestion {
+  value: string
+  id?: string
+  type: string
+  typeLabel: string
+  matchMode?: string
+  matchModeLabel: string
 }
 
 interface Props {
@@ -198,6 +209,9 @@ const emit = defineEmits<{
 // 状态
 const searchKeyword = ref('')
 const isTreeExpanded = ref(true)
+const writerStore = useWriterStore()
+let suggestionTimer: ReturnType<typeof setTimeout> | null = null
+const chevronClass = computed(() => (isTreeExpanded.value ? 'tree-chevron expanded' : 'tree-chevron'))
 
 // 双向绑定代理
 const internalProjectId = computed({
@@ -224,6 +238,83 @@ const recentProjects = computed(() => {
 
 const handleProjectSwitch = (projectId: string | number) => {
   internalProjectId.value = String(projectId)
+}
+
+const getTypeLabel = (type: string): string => {
+  if (type === 'character') return '角色'
+  if (type === 'location') return '地点'
+  if (type === 'timeline') return '时间线'
+  if (type === 'chapter') return '章节'
+  return '关键词'
+}
+
+const getMatchModeLabel = (matchMode?: string): string => {
+  if (matchMode === 'pinyin_prefix') return '拼音前缀'
+  if (matchMode === 'fuzzy') return '模糊匹配'
+  if (matchMode === 'prefix') return '前缀匹配'
+  if (matchMode === 'exact') return '精确匹配'
+  return '匹配'
+}
+
+const fetchKeywordSuggestions = async (
+  queryString: string,
+  cb: (items: KeywordSuggestion[]) => void,
+) => {
+  const query = queryString.trim()
+  if (!query) {
+    cb([])
+    return
+  }
+
+  if (suggestionTimer) {
+    clearTimeout(suggestionTimer)
+  }
+
+  suggestionTimer = setTimeout(async () => {
+    const remote = await writerStore.searchKeywords(query, 10, internalProjectId.value || undefined)
+    const remoteSuggestions: KeywordSuggestion[] = (remote || []).map((item) => ({
+      value: item.name,
+      id: item.id,
+      type: item.type,
+      typeLabel: getTypeLabel(item.type),
+      matchMode: item.matchMode,
+      matchModeLabel: getMatchModeLabel(item.matchMode),
+    }))
+
+    const localChapters: KeywordSuggestion[] = displayChapters.value
+      .filter((chapter) =>
+        getDisplayTitle(chapter).toLowerCase().includes(query.toLowerCase()),
+      )
+      .slice(0, 8)
+      .map((chapter) => ({
+        value: getDisplayTitle(chapter),
+        id: chapter.id,
+        type: 'chapter',
+        typeLabel: '章节',
+        matchMode: 'local',
+        matchModeLabel: '本地匹配',
+      }))
+
+    const dedup = new Map<string, KeywordSuggestion>()
+    for (const item of [...remoteSuggestions, ...localChapters]) {
+      if (!dedup.has(item.value)) {
+        dedup.set(item.value, item)
+      }
+    }
+    cb(Array.from(dedup.values()).slice(0, 12))
+  }, 150)
+}
+
+const handleSuggestionSelect = (item: KeywordSuggestion) => {
+  searchKeyword.value = item.value
+  if (!item.id) {
+    return
+  }
+
+  const target = displayChapters.value.find((chapter) => chapter.id === item.id)
+  if (target) {
+    handleSelectChapter(target)
+  }
 }
 
 // 章节列表逻辑
@@ -256,7 +347,7 @@ const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => 
       await messageBox.confirm(
         `确定删除章节 "第${chapter.chapterNum}章 ${chapter.title}" 吗？`,
         '危险操作',
-        { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' },
+        { confirmButtonText: '删除', cancelButtonText: '取消' },
       )
       emit('delete-chapter', chapter.id)
     } catch {
@@ -271,7 +362,19 @@ const formatCount = (n: number) => {
   return n
 }
 
-const fromNow = (date: string) => dayjs(date).fromNow()
+const fromNow = (date: string) => {
+  const time = new Date(date).getTime()
+  if (!time) return '未知时间'
+  const diff = Date.now() - time
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+
+  if (diff < minute) return '刚刚'
+  if (diff < hour) return `${Math.floor(diff / minute)}分钟前`
+  if (diff < day) return `${Math.floor(diff / hour)}小时前`
+  return `${Math.floor(diff / day)}天前`
+}
 
 const stripDirectoryPrefix = (title: string) =>
   title.replace(/^目录[一二三四五六七八九十百千万0-9]+\s*/u, '').trim()
@@ -298,6 +401,12 @@ watch(
   },
   { immediate: true },
 )
+
+onBeforeUnmount(() => {
+  if (suggestionTimer) {
+    clearTimeout(suggestionTimer)
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -367,6 +476,24 @@ watch(
   .recent-switch-caret {
     opacity: 0.85;
   }
+}
+
+:deep(.keyword-option) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:deep(.keyword-option__name) {
+  font-size: 13px;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+:deep(.keyword-option__meta) {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 // 下拉弹层采用不透明背景，避免与页面内容视觉重叠

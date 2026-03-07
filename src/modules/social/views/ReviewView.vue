@@ -73,7 +73,7 @@
 
         <div class="review-actions">
           <div class="action-item" @click="toggleLike(review)">
-            <el-icon :class="{ 'is-liked': (review as any)._isLiked }"><QyIcon name="Star"  /></el-icon>
+            <el-icon :class="{ 'is-liked': isReviewLiked(review) }"><QyIcon name="Star"  /></el-icon>
             <span>{{ review.like_count || 0 }}</span>
           </div>
           <div class="action-item" @click="viewComments(review)">
@@ -182,6 +182,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import * as socialAPI from '@/modules/social/api'
 import {
   getReviews,
   createReview,
@@ -190,14 +191,7 @@ import {
   type ReviewComment,
   type ReviewType
 } from '@/modules/social/api'
-
-// 简单的评论验证函数
-const validateComment = (content: string) => {
-  if (!content || !content.trim()) {
-    return { valid: false, error: '评论内容不能为空', sanitized: '' }
-  }
-  return { valid: true, error: null, sanitized: content.trim() }
-}
+import { validateComment } from '@/utils/validation'
 
 const loading = ref(false)
 const reviews = ref<Review[]>([])
@@ -253,9 +247,10 @@ const loadReviews = async () => {
       params.rating = ratingFilter.value
     }
 
-    const res = await getReviews(params) as any
-    reviews.value = res.items || []
-    total.value = res.total || 0
+    const res: any = await getReviews(params)
+    const payload = res?.data || res || {}
+    reviews.value = payload.items || payload.data || []
+    total.value = payload.total || reviews.value.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -269,11 +264,12 @@ const submitReview = async () => {
   submitting.value = true
   try {
     const reviewData: any = {
+      target_id: reviewForm.target_id,
+      target_type: reviewForm.target_type,
       title: reviewForm.title,
       content: reviewForm.content,
       rating: reviewForm.rating,
-      is_spoiler: reviewForm.is_spoiler,
-      book_id: reviewForm.target_id
+      is_spoiler: reviewForm.is_spoiler
     }
     await createReview(reviewData)
     message.success('发布成功')
@@ -297,19 +293,22 @@ const submitReview = async () => {
 
 // 点赞/取消点赞
 const toggleLike = async (review: Review) => {
+  const reviewState = review as any
   try {
-    // 使用扩展运算符添加本地状态
-    const isCurrentlyLiked = (review as any)._isLiked || false
-    if (isCurrentlyLiked) {
+    if (reviewState.is_liked) {
       review.like_count = Math.max(0, (review.like_count || 0) - 1)
     } else {
       await likeReview(review.id)
       review.like_count = (review.like_count || 0) + 1
     }
-    ;(review as any)._isLiked = !isCurrentlyLiked
+    reviewState.is_liked = !reviewState.is_liked
   } catch (error: any) {
     message.error(error.message || '操作失败')
   }
+}
+
+const isReviewLiked = (review: Review): boolean => {
+  return Boolean((review as any).is_liked)
 }
 
 // 查看评论
@@ -325,8 +324,10 @@ const loadComments = async () => {
 
   loadingComments.value = true
   try {
-    // TODO: 实现获取书评评论功能
-    comments.value = []
+    const api = socialAPI as any
+    const res = await api.getReviewComments?.(currentReview.value.id)
+    const payload = res?.data || res || {}
+    comments.value = payload.items || payload.data || []
   } catch (error: any) {
     message.error(error.message || '加载评论失败')
   } finally {
@@ -347,7 +348,12 @@ const submitComment = async () => {
 
   submittingComment.value = true
   try {
-    // TODO: 实现添加书评评论功能
+    const api = socialAPI as any
+    if (api.addReviewComment) {
+      await api.addReviewComment(currentReview.value.id, {
+        content: result.sanitized!
+      })
+    }
     message.success('评论成功')
     newComment.value = ''
     // 更新评论数
