@@ -1,10 +1,10 @@
 <template>
-  <div class="browse-books-view" data-testid="browse-books-view">
+  <div class="browse-books-view" :class="{ 'compact-mode': isSearchMode }" data-testid="browse-books-view">
     <div class="container">
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">探索书库</h1>
-        <p class="page-subtitle">发现你喜欢的精彩书籍</p>
+        <p v-if="!isSearchMode" class="page-subtitle">发现你喜欢的精彩书籍</p>
       </div>
 
       <!-- 搜索栏 -->
@@ -20,13 +20,13 @@
       <!-- 筛选器 -->
       <div class="filter-section">
         <FilterBar
-          v-model:category-id="browseStore.filters.categoryId"
+          v-model:categoryId="browseStore.filters.categoryId"
           v-model:year="browseStore.filters.year"
           v-model:status="browseStore.filters.status"
           :categories="metaStore.categories"
           :years="metaStore.years"
           :statuses="statuses"
-          @update:category-id="handleFilterChange"
+          @update:categoryId="handleFilterChange"
           @update:year="handleFilterChange"
           @update:status="handleFilterChange"
           class="mb-4"
@@ -36,16 +36,17 @@
       <!-- 标签筛选 + 重置按钮 -->
       <div class="flex-between items-center mb-6">
         <TagFilter
-          v-model:selected-tags="browseStore.filters.tags"
+          v-model:selectedTags="browseStore.filters.tags"
           :available-tags="availableTags"
           :max-selected="8"
           :recommend-limit="3"
+          @update:selectedTags="handleFilterChange"
           class="flex-1"
         />
 
         <Button
           v-if="browseStore.hasActiveFilters"
-          variant="outline"
+          variant="ghost"
           size="sm"
           @click="handleResetFilters"
           class="ml-4"
@@ -68,13 +69,13 @@
             :image-type="'error'"
             :description="browseStore.error.message || '加载失败，请稍后重试'"
           >
-            <Button @click="fetchBooks" type="primary">重试</Button>
+            <Button @click="fetchBooks" variant="primary">重试</Button>
           </Empty>
         </div>
 
         <!-- 有数据 -->
         <div v-else-if="browseStore.books.length > 0">
-          <BookGrid :books="browseStore.books" />
+          <BookGrid :books="browseStore.books" :single-column="true" @book-click="handleBookClick" />
 
           <!-- 统一使用无限滚动加载 -->
           <div class="load-more-section">
@@ -105,7 +106,7 @@
           <Button
             v-if="browseStore.hasActiveFilters"
             @click="handleResetFilters"
-            type="primary"
+            variant="primary"
           >
             清空筛选
           </Button>
@@ -118,6 +119,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
+import { useRouter } from 'vue-router'
 import { useBrowseStore } from '../stores/browse.store'
 import { useMetaStore } from '../stores/meta.store'
 import SearchBar from '../components/BrowseBooks/SearchBar.vue'
@@ -131,6 +133,7 @@ import { Empty } from '@/design-system/base/Empty'
 
 const browseStore = useBrowseStore()
 const metaStore = useMetaStore()
+const router = useRouter()
 
 // 状态筛选选项
 const statuses = ref([
@@ -174,6 +177,7 @@ const emptyStateConfig = computed(() => {
 
 const emptyStateType = computed(() => emptyStateConfig.value.type)
 const emptyStateDescription = computed(() => emptyStateConfig.value.description)
+const isSearchMode = computed(() => Boolean(browseStore.filters.q?.trim()))
 
 // 获取书籍数据
 const fetchBooks = async () => {
@@ -199,6 +203,11 @@ const handleResetFilters = () => {
   browseStore.resetFilters()
   browseStore.syncFiltersToURL()
   fetchBooks()
+}
+
+const handleBookClick = (book: { id: string }) => {
+  if (!book?.id) return
+  router.push(`/bookstore/books/${book.id}`)
 }
 
 // 无限滚动加载更多
@@ -232,7 +241,7 @@ onMounted(async () => {
 
   // 加载静态数据（分类、年份、标签）
   await Promise.all([
-    metaStore.getCategories(),
+    metaStore.getCategories(true),
     metaStore.getYears(),
     metaStore.getTags()
   ])
@@ -244,32 +253,32 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .browse-books-view {
-  max-width: 1400px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 40px 20px 60px;
+  padding: 4px 40px 24px;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 6px;
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 16px;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  line-height: 1.2;
+  white-space: nowrap;
+  margin-bottom: 0;
 }
 
 .page-subtitle {
-  font-size: 16px;
-  color: #666;
-  margin: 0;
+  display: none;
 }
 
 .search-section,
 .filter-section {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .flex-between {
@@ -283,11 +292,11 @@ onMounted(async () => {
 }
 
 .mb-4 {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .mb-6 {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .flex-1 {
@@ -299,7 +308,7 @@ onMounted(async () => {
 }
 
 .books-section {
-  min-height: 400px;
+  min-height: 320px;
 }
 
 .loading-state {
@@ -312,7 +321,7 @@ onMounted(async () => {
 
 /* 无限滚动区域 */
 .load-more-section {
-  margin-top: 32px;
+  margin-top: 20px;
   text-align: center;
   padding: 20px 0;
 }
@@ -365,26 +374,71 @@ onMounted(async () => {
   letter-spacing: 1px;
 }
 
-@media (max-width: 640px) {
-  .browse-books-view {
-    padding: 20px 16px 40px;
-  }
-
+.compact-mode {
   .page-header {
-    margin-bottom: 24px;
+    text-align: left;
+    margin-bottom: 6px;
   }
 
   .page-title {
-    font-size: 24px;
-  }
-
-  .page-subtitle {
-    font-size: 14px;
+    font-size: 17px;
+    margin-bottom: 0;
   }
 
   .search-section,
   .filter-section {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
+  }
+
+  .mb-4,
+  .mb-6 {
+    margin-bottom: 8px;
+  }
+
+  :deep(.search-bar) {
+    max-width: 100%;
+  }
+
+  :deep(.search-bar .input-wrapper) {
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+
+  :deep(.search-bar .search-input) {
+    font-size: 14px;
+  }
+
+  :deep(.filter-select .select-trigger) {
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  :deep(.tag-filter .tag-scroll-wrapper) {
+    padding: 4px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-books-view {
+    max-width: 100%;
+    padding: 2px 14px 16px;
+  }
+
+  .page-header {
+    margin-bottom: 4px;
+  }
+
+  .page-title {
+    font-size: 15px;
+  }
+
+  .page-subtitle {
+    display: none;
+  }
+
+  .search-section,
+  .filter-section {
+    margin-bottom: 10px;
   }
 
   .flex-between {
@@ -398,7 +452,7 @@ onMounted(async () => {
   }
 
   .load-more-section {
-    margin-top: 24px;
+    margin-top: 16px;
   }
 }
 </style>

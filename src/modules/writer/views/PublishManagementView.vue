@@ -480,9 +480,9 @@
         </el-form-item>
         <el-form-item label="发布方式">
           <el-radio-group v-model="planForm.scheduleType">
-            <el-radio label="immediate">立即发布</el-radio>
-            <el-radio label="scheduled">定时发布</el-radio>
-            <el-radio label="manual">手动发布</el-radio>
+            <el-radio value="immediate">立即发布</el-radio>
+            <el-radio value="scheduled">定时发布</el-radio>
+            <el-radio value="manual">手动发布</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="发布间隔">
@@ -606,10 +606,10 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth'
 import { useWriterStore } from '@/stores/writer'
-import { Download, Setting, Refresh } from '@element-plus/icons-vue'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import * as echarts from 'echarts'
@@ -623,10 +623,10 @@ import {
   getPublishRecords,
   publishChapter as apiPublishChapter,
   unpublishChapter as apiUnpublishChapter,
-  scheduleChapter as apiScheduleChapter,
   submitForReview,
   type PublishPlan,
   type PublishRecord,
+  type PublishStatus,
   type PublishStats,
   publishTypeOptions,
   publishPlatformOptions
@@ -642,6 +642,8 @@ import {
   exportScopeOptions,
   type ExportTask
 } from '@/modules/writer/api'
+import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
+import { syncPublishedBookFromRecords } from '@/modules/workflow/publishedBridge'
 
 // 假设从路由参数获取书籍ID
 const bookId = ref('')
@@ -705,7 +707,7 @@ const planForm = reactive({
   name: '',
   type: 'free' as const,
   platforms: ['all'],
-  scheduleType: 'immediate' as const,
+  scheduleType: 'immediate' as 'immediate' | 'scheduled' | 'manual',
   intervalDays: 1,
   chaptersPerRelease: 1,
   isFree: true,
@@ -751,13 +753,39 @@ const currentLocalProject = computed(() =>
 )
 
 const isMockProjectContext = computed(() => {
-  if (writerStore.storageMode === 'offline') return true
+  // 使用 any 类型来避免 storageMode 属性不存在的问题
+  const storeAny = writerStore as any
+  if (storeAny.storageMode === 'offline') return true
   return !!currentLocalProject.value
 })
 
 const ensureMockRecords = (projectId: string) => {
   if (mockRecordMap[projectId]?.length) return mockRecordMap[projectId]
-  const chapterCount = Math.max(Number(currentLocalProject.value?.chapterCount || 0), 8)
+  const projectMock = getWorkspaceMockProject(projectId)
+  if (projectMock?.chapters?.length) {
+    const now = Date.now()
+    const records: PublishRecord[] = projectMock.chapters
+      .slice()
+      .sort((a, b) => a.chapterNum - b.chapterNum)
+      .map((chapter, idx) => {
+        const chapterNo = chapter.chapterNum || idx + 1
+        const status: PublishStatus = chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
+        return {
+          id: `${projectId}-record-${chapterNo}`,
+          book_id: projectId,
+          chapter_id: chapter.id,
+          chapter_title: chapter.title,
+          chapter_number: chapterNo,
+          status,
+          published_at: status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
+          created_at: new Date(now - chapterNo * 3600000).toISOString()
+        }
+      })
+    mockRecordMap[projectId] = records
+    return records
+  }
+
+  const chapterCount = Math.max(Number((currentLocalProject.value as any)?.chapterCount || 0), 3)
   const now = Date.now()
   const records: PublishRecord[] = Array.from({ length: chapterCount }, (_, idx) => {
     const chapterNo = idx + 1
@@ -775,6 +803,14 @@ const ensureMockRecords = (projectId: string) => {
   })
   mockRecordMap[projectId] = records
   return records
+}
+
+const persistMockPublication = (projectId: string) => {
+  const records = ensureMockRecords(projectId)
+  const mockProject = getWorkspaceMockProject(projectId)
+  syncPublishedBookFromRecords(projectId, records, {
+    title: currentLocalProject.value?.title || mockProject?.project.title || '未命名作品'
+  })
 }
 
 const ensureMockPlan = (projectId: string) => {
@@ -803,7 +839,7 @@ const computeMockStats = (projectId: string): PublishStats => {
   const pending = records.filter(r => r.status === 'pending_review').length
   const scheduled = records.filter(r => r.status === 'scheduled').length
   const draft = total - published - pending - scheduled
-  const totalWords = Number(currentLocalProject.value?.wordCount || total * 1800)
+  const totalWords = Number((currentLocalProject.value as any)?.wordCount || total * 1800)
   const publishedWords = Math.floor(totalWords * (published / Math.max(total, 1)))
   return {
     total_chapters: total,
@@ -867,7 +903,7 @@ const loadPublishRecords = async () => {
     const res = await getPublishRecords(bookId.value, {
       page: recordPage.value,
       page_size: recordPageSize.value,
-      status: chapterFilter.status || undefined
+      status: chapterFilter.status as PublishStatus || undefined
     })
     publishRecords.value = res.items
     recordTotal.value = res.total
@@ -897,7 +933,7 @@ const loadExportHistory = async () => {
       page: exportPage.value,
       page_size: exportPageSize.value
     })
-    exportHistory.value = res.items
+    exportHistory.value = res.items as unknown as ExportTask[]
     exportTotal.value = res.total
   } catch (error: any) {
     message.error(error.message || '加载失败')
@@ -943,7 +979,7 @@ const savePublishPlan = async () => {
       await updatePublishPlan(publishPlan.value.id, {
         name: planForm.name,
         type: planForm.type,
-        platforms: planForm.platforms,
+        platforms: planForm.platforms as any,
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
@@ -960,7 +996,7 @@ const savePublishPlan = async () => {
       await createPublishPlan(bookId.value, {
         name: planForm.name,
         type: planForm.type,
-        platforms: planForm.platforms,
+        platforms: planForm.platforms as any,
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
@@ -1046,6 +1082,8 @@ const publishChapter = async (record: PublishRecord) => {
         target.status = 'published'
         target.published_at = new Date().toISOString()
       }
+      persistMockPublication(bookId.value)
+      authStore.promoteToAuthorByPublishing(false)
       message.success('发布成功（Mock）')
       loadPublishRecords()
       loadStats()
@@ -1056,6 +1094,7 @@ const publishChapter = async (record: PublishRecord) => {
       chapter_number: record.chapter_number,
       project_id: bookId.value
     } as any)
+    authStore.promoteToAuthorByPublishing(false)
     // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
     await authStore.getUserInfo().catch(() => undefined)
     message.success('发布成功')
@@ -1076,6 +1115,7 @@ const unpublishChapter = async (record: PublishRecord) => {
         target.status = 'draft'
         target.published_at = undefined
       }
+      persistMockPublication(bookId.value)
       message.success('下架成功（Mock）')
       loadPublishRecords()
       loadStats()
@@ -1099,6 +1139,7 @@ const scheduleChapter = (record: PublishRecord) => {
       target.status = 'scheduled'
       target.published_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
     }
+    persistMockPublication(bookId.value)
     message.success('已设为定时发布（Mock）')
     loadPublishRecords()
     loadStats()
@@ -1108,7 +1149,7 @@ const scheduleChapter = (record: PublishRecord) => {
 }
 
 // 查看审核
-const viewReview = (record: PublishRecord) => {
+const viewReview = (_record: PublishRecord) => {
   message.info('审核详情功能开发中')
 }
 
@@ -1121,6 +1162,7 @@ const submitReview = async () => {
       draft.slice(0, 2).forEach(r => {
         r.status = 'pending_review'
       })
+      persistMockPublication(bookId.value)
       message.success('已提交审核（Mock）')
       loadPublishRecords()
       loadStats()
@@ -1566,6 +1608,10 @@ onMounted(() => {
     if (!bookId.value) {
       message.warning('未找到可用项目，请先在“我的项目”中创建项目')
       return
+    }
+
+    if (isMockProjectContext.value) {
+      persistMockPublication(bookId.value)
     }
 
     loadStats()

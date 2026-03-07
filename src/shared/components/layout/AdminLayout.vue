@@ -42,7 +42,12 @@
 
         <div class="header-right">
           <!-- 通知图标 -->
-          <el-badge :value="notificationCount" :max="99" class="notification-badge">
+          <el-badge
+            :value="notificationCount"
+            :max="99"
+            :hidden="notificationCount <= 0"
+            class="notification-badge"
+          >
             <el-button :icon="Bell" circle @click="showNotifications" />
           </el-badge>
 
@@ -76,11 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Bell } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import * as adminAPI from '@/modules/admin/api'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -88,11 +94,18 @@ const authStore = useAuthStore()
 // 侧边栏状态
 const sidebarCollapsed = ref(false)
 
-// 通知数量（示例数据）
-const notificationCount = ref(5)
+// 通知数量（后续接入真实数据）
+const notificationCount = ref(0)
+
+const menuBadges = ref({
+  reviews: 0,
+  withdrawals: 0
+})
+
+const isTestMode = computed(() => new URLSearchParams(window.location.search).get('test') === 'true')
 
 // 菜单项
-const menuItems = ref([
+const menuItems = computed(() => [
   {
     path: '/admin/dashboard',
     label: '仪表板',
@@ -102,13 +115,13 @@ const menuItems = ref([
     path: '/admin/reviews',
     label: '内容审核',
     icon: 'el-icon-document-checked',
-    badge: 12
+    badge: menuBadges.value.reviews > 0 ? menuBadges.value.reviews : undefined
   },
   {
     path: '/admin/withdrawals',
     label: '提现审核',
     icon: 'el-icon-wallet',
-    badge: 3
+    badge: menuBadges.value.withdrawals > 0 ? menuBadges.value.withdrawals : undefined
   },
   {
     path: '/admin/users',
@@ -124,6 +137,11 @@ const menuItems = ref([
     path: '/admin/announcements',
     label: '公告管理',
     icon: 'el-icon-bell'
+  },
+  {
+    path: '/admin/categories',
+    label: '分类管理',
+    icon: 'el-icon-folder-opened'
   },
   {
     path: '/admin/system-config',
@@ -146,6 +164,24 @@ const currentPageTitle = computed(() => {
   const item = menuItems.value.find((m) => m.path === path)
   return item?.label || ''
 })
+
+const loadMenuBadges = async () => {
+  if (isTestMode.value) {
+    menuBadges.value = {
+      reviews: 23,
+      withdrawals: 2
+    }
+    return
+  }
+
+  try {
+    const response = await adminAPI.getAuditStatistics() as { data?: { pending?: number }; pending?: number }
+    const pending = response?.data?.pending ?? response?.pending ?? 0
+    menuBadges.value.reviews = Number(pending) || 0
+  } catch (error) {
+    console.warn('加载审核徽标数量失败:', error)
+  }
+}
 
 // 方法
 const toggleSidebar = () => {
@@ -178,6 +214,17 @@ const handleUserCommand = async (command: string) => {
       break
   }
 }
+
+onMounted(() => {
+  loadMenuBadges()
+})
+
+watch(
+  () => route.fullPath,
+  () => {
+    loadMenuBadges()
+  }
+)
 </script>
 
 <style scoped lang="scss">
@@ -374,6 +421,14 @@ const handleUserCommand = async (command: string) => {
     font-size: 14px;
     color: #303133;
   }
+
+  :deep(.el-avatar) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    flex: 0 0 32px;
+  }
 }
 
 .admin-content {
@@ -427,4 +482,3 @@ const handleUserCommand = async (command: string) => {
   }
 }
 </style>
-

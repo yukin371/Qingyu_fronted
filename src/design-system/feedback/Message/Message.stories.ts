@@ -1,3 +1,4 @@
+// @ts-nocheck - Storybook file with flexible type assertions
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Message from './Message.vue'
 import { useMessage } from './useMessage'

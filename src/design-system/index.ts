@@ -33,7 +33,8 @@ export { default as Step } from './navigation/Steps/Step.vue'      // Step 子�
 // Feedback Components - 只导出Qy组件库中没有的（直接从.vue文件导入以避免index.ts问题）
 export { default as Alert } from './feedback/Alert/Alert.vue'        // Qy组件库中没有Alert
 export { default as Dialog } from './feedback/Dialog/Dialog.vue'      // Qy组件库中没有Dialog/Modal
-export * from './feedback/Message'     // Message 有特殊的 useMessage 导出
+export { default as Message, useMessage } from './feedback/Message/useMessage'  // Message 有特殊的 useMessage 导出
+export type { MessageProps, MessageType, MessageInstance, MessageOptions, MessageHandler } from './feedback/Message/types'
 export { default as Notification } from './feedback/Notification/Notification.vue' // Qy组件库中没有Notification
 export { default as Popover } from './feedback/Popover/Popover.vue'     // Qy组件库中没有Popover
 export { default as Progress } from './feedback/Progress/Progress.vue'    // Qy组件库中没有Progress

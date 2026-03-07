@@ -194,16 +194,6 @@ function clearValidation(props?: string | string[]): void {
   }
 }
 
-// 获取表单数据
-function getFormData(): Record<string, any> {
-  return { ...formModel.value }
-}
-
-// 设置表单数据
-function setFormData(data: Partial<Record<string, any>>): void {
-  emit('update:modelValue', { ...formModel.value, ...data })
-}
-
 // 提交表单
 function handleSubmit(event: Event) {
   emit('submit', event)

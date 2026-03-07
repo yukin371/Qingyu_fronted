@@ -5,6 +5,7 @@
       :key="comment.id"
       :comment="comment"
       @like="$emit('like', $event)"
+      @reply="$emit('reply', $event)"
     />
 
     <el-skeleton
@@ -28,6 +29,7 @@ defineProps<Props>()
 
 defineEmits<{
   like: [commentId: string]
+  reply: [data: { commentId: string; username: string }]
 }>()
 </script>
 
@@ -36,5 +38,16 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+:deep(.comment-item) {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+:deep(.el-skeleton) {
+  width: 100%;
+  margin: 0;
 }
 </style>

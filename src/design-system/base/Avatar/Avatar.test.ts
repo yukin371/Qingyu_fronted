@@ -10,7 +10,8 @@
  * - 点击事件
  */
 
-import { describe, it, expect } from 'vitest'
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/vue'
 import { BaseAvatar } from './index'
 
@@ -41,7 +42,7 @@ describe('BaseAvatar', () => {
       '2xl',
     ]
 
-    const sizeClasses = {
+    const sizeClasses: Record<string, string[]> = {
       xs: ['w-6', 'h-6'],
       sm: ['w-8', 'h-8'],
       md: ['w-10', 'h-10'],
@@ -54,7 +55,7 @@ describe('BaseAvatar', () => {
       const { container } = render(BaseAvatar, {
         props: { size }
       })
-      const avatar = container.firstChild
+      const avatar = container.firstChild as Element
 
       expect(avatar).toHaveClass(...sizeClasses[size])
     })
@@ -111,10 +112,10 @@ describe('BaseAvatar', () => {
   describe('形状变体', () => {
     it('支持方形头像', () => {
       const { container } = render(BaseAvatar, {
-        props: { shape: 'square' }
+        props: { shape: 'square' } as any
       })
 
-      const avatar = container.firstChild
+      const avatar = container.firstChild as Element
       expect(avatar).toHaveClass('rounded-md')
     })
 
@@ -133,8 +134,8 @@ describe('BaseAvatar', () => {
         props: { onClick }
       })
 
-      const avatar = container.firstChild
-      await fireEvent.click(avatar!)
+      const avatar = container.firstChild as Element
+      await fireEvent.click(avatar)
 
       expect(onClick).toHaveBeenCalledTimes(1)
     })
@@ -152,10 +153,10 @@ describe('BaseAvatar', () => {
 
     it('支持自定义背景色', () => {
       const { container } = render(BaseAvatar, {
-        props: { color: 'primary' }
+        props: { color: 'primary' } as any
       })
 
-      const avatar = container.firstChild
+      const avatar = container.firstChild as Element
       expect(avatar).toHaveClass('bg-primary-500')
     })
   })

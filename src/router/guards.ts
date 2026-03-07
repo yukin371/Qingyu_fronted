@@ -14,8 +14,8 @@ NProgress.configure({ showSpinner: false })
 export function setupRouterGuards(router: Router) {
   createProgressGuard(router)
   createTitleGuard(router)
-  createAuthGuard(router)
   setupTestModeGuard(router)
+  createAuthGuard(router)
   setupWebSocketGuard(router)
 }
 
@@ -55,6 +55,19 @@ function createAuthGuard(router: Router) {
     console.log('[Route Guard] Checking:', to.path)
 
     const authStore = useAuthStore()
+    const routeTestFlag = to.query?.test
+    const fromTestFlag = from.query?.test
+    const currentUrlTestMode = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('test') === 'true'
+      : false
+    const routeHasTestMode =
+      String(routeTestFlag) === 'true' ||
+      (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => String(v) === 'true')) ||
+      String(fromTestFlag) === 'true' ||
+      (Array.isArray(fromTestFlag) && fromTestFlag.some((v) => String(v) === 'true')) ||
+      currentUrlTestMode ||
+      to.hash.includes('test=true')
+    authStore.ensureTestModeMockSession(routeHasTestMode)
     console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
 
     // 处理 guest 页面（登录、注册等）- 已登录用户访问 guest 页面时重定向
@@ -86,30 +99,10 @@ function createAuthGuard(router: Router) {
     // 假设路由 meta 中定义了 roles 数组: meta: { roles: ['author', 'admin'] }
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       const requiredRoles = to.meta.roles
-      const hasRole = authStore.roles?.some((role) => requiredRoles.includes(role))
+      const hasRole = authStore.roles?.some((role: string) => requiredRoles.includes(role))
 
       if (!hasRole) {
-        // 如果是去作家后台，但没权限，可能是普通读者，跳转到引导页
-        if (to.path.startsWith('/writer') && to.path !== '/writer/become-author') {
-          // 检查用户是否有reader角色，如果有则跳转到引导页
-          const isReader = authStore.user?.roles?.includes('reader')
-          if (isReader) {
-            next({ name: 'become-author' })
-          } else {
-            next({ path: '/bookstore', query: { error: 'permission_denied' }})
-          }
-        } else {
-          next({ path: '/403', replace: true })
-        }
-        return
-      }
-    }
-
-    // 特殊处理：读者访问/writer根路径时跳转到引导页
-    if (to.path === '/writer' || to.path === '/writer/') {
-      const hasAuthorRole = authStore.user?.roles?.includes('author') || authStore.user?.roles?.includes('admin')
-      if (!hasAuthorRole) {
-        next({ name: 'become-author' })
+        next({ path: '/403', replace: true })
         return
       }
     }

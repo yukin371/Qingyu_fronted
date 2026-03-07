@@ -84,9 +84,12 @@ export interface ProjectListResponse {
 // 创建项目请求参数
 export interface CreateProjectRequest {
   title: string
-  description?: string
-  coverImage?: string
-  genre?: string
+  summary?: string // 后端字段：summary（前端旧字段：description）
+  description?: string // @deprecated 使用 summary 代替
+  coverUrl?: string // 后端字段：coverUrl（前端旧字段：coverImage）
+  coverImage?: string // @deprecated 使用 coverUrl 代替
+  category?: string // 后端字段：category（前端旧字段：genre）
+  genre?: string // @deprecated 使用 category 代替
   tags?: string[]
   visibility?: 'public' | 'private'
 }
@@ -127,15 +130,24 @@ export const projectApi = {
   /**
    * 创建项目
    * @description 创建新的写作项目
-   * @endpoint POST /api/v1/projects
+   * @endpoint POST /api/v1/writer/projects
    * @category writer
    * @tags 项目管理
    * @param {CreateProjectRequest} data - 项目创建数据
-   * @response {ProjectDetailResponse} 201 - 成功创建项目，返回项目详情
+   * @response {ProjectDetailResponse} 200 - 成功创建项目，返回项目详情
    * @security BearerAuth
    */
   create(data: CreateProjectRequest) {
-    return httpService.post<ProjectDetailResponse>(BASE_URL, data)
+    // 字段映射：前端兼容字段 -> 后端字段
+    const mappedData = {
+      title: data.title,
+      summary: data.summary || data.description, // 支持 summary 或 description
+      coverUrl: data.coverUrl || data.coverImage, // 支持 coverUrl 或 coverImage
+      category: data.category || data.genre, // 支持 category 或 genre
+      tags: data.tags,
+      visibility: data.visibility,
+    }
+    return httpService.post<ProjectDetailResponse>(BASE_URL, mappedData)
   },
 
   /**
@@ -210,7 +222,7 @@ export const projectApi = {
   refreshStatistics(id: string) {
     return httpService.put<void>(`${BASE_URL}/${id}/statistics`, null, {
       silent: true,
-    })
+    } as any)
   },
 }
 

@@ -3,10 +3,14 @@ import { ref, computed } from 'vue'
 import { projectApi } from '../api/project'
 import type {
   ProjectSummary,
-  ProjectDetail,
+  ProjectDetailResponse,
   CreateProjectRequest,
   UpdateProjectRequest,
-} from '../types/project'
+  ProjectListResponse,
+} from '../api/project'
+
+// 类型别名用于 store 内部
+type ProjectDetail = ProjectDetailResponse
 
 export const useProjectStore = defineStore('writer-project', () => {
   // State
@@ -22,7 +26,8 @@ export const useProjectStore = defineStore('writer-project', () => {
   async function loadList(params: { page?: number; pageSize?: number; status?: string } = {}) {
     loading.value = true
     try {
-      const res = await projectApi.list(params)
+      // httpService 响应拦截器会自动解包返回 data
+      const res = await projectApi.list(params) as unknown as ProjectListResponse
       projects.value = res.projects
       total.value = res.total
     } finally {
@@ -33,7 +38,7 @@ export const useProjectStore = defineStore('writer-project', () => {
   async function loadDetail(id: string) {
     loading.value = true
     try {
-      currentProject.value = await projectApi.getDetail(id)
+      currentProject.value = await projectApi.getDetail(id) as unknown as ProjectDetail
     } finally {
       loading.value = false
     }

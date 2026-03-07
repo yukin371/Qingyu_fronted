@@ -3,8 +3,7 @@
  * 基于 doc/api/frontend/推荐系统API参考.md
  */
 
-import type { APIResponse } from './api'
-import type { Book, BookBrief } from './bookstore'
+import type { BookBrief } from './bookstore'
 
 // ==================== 推荐结果相关 ====================
 

@@ -57,11 +57,11 @@ export function calculateProgress(
 /**
  * 格式化章节内容
  * @param content HTML内容
- * @param settings 阅读设置
+ * @param _settings 阅读设置 (预留参数，未来可能使用)
  */
 export function formatChapterContent(
   content: string,
-  settings?: {
+  _settings?: {
     fontSize?: number
     lineHeight?: number
     paragraphSpacing?: number

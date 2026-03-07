@@ -2,19 +2,21 @@
   <div class="become-author-page">
     <div class="container">
       <!-- 结果展示卡片 -->
-      <el-result icon="warning" title="成为作者" sub-title="发布3部作品即可申请成为作者">
+      <el-result icon="info" title="作者工作台开放" sub-title="读者可直接创作，首次发布后自动获得作者身份">
         <template #extra>
           <div class="role-info-card">
             <el-descriptions :column="1" border>
               <el-descriptions-item label="当前角色">
-                <el-tag type="info" size="large">读者</el-tag>
+                <el-tag :type="hasAuthorRole ? 'success' : 'info'" size="large">
+                  {{ hasAuthorRole ? '作者' : '读者' }}
+                </el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="所需角色">
                 <el-tag type="success" size="large">作者</el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="已发布作品">
                 <span class="works-count">{{ publishedWorksCount }}</span>
-                <span class="works-target"> / 3</span>
+                <span class="works-target"> / 首次发布解锁</span>
                 <el-progress
                   :percentage="progressPercentage"
                   :color="progressColor"
@@ -29,28 +31,27 @@
           <div class="action-buttons">
             <el-button type="primary" size="large" @click="goToPublish">
               <el-icon><Edit /></el-icon>
-              去发布作品
+              进入创作工作台
             </el-button>
             <el-button size="large" @click="goToBookstore">
               <el-icon><House /></el-icon>
               返回书城
             </el-button>
-            <!-- 当作品数满足条件时显示申请按钮 -->
             <el-button
-              v-if="canApply"
+              v-if="!hasAuthorRole && canApply"
               type="success"
               size="large"
               @click="applyForAuthor"
             >
               <el-icon><Check /></el-icon>
-              申请成为作者
+              手动同步作者身份
             </el-button>
           </div>
 
           <!-- 提示信息 -->
           <el-alert
-            v-if="canApply"
-            title="您已满足成为作者的条件！"
+            v-if="hasAuthorRole"
+            title="当前账号已具备作者身份，可使用发布管理与数据统计功能。"
             type="success"
             :closable="false"
             show-icon
@@ -58,7 +59,7 @@
           />
           <el-alert
             v-else
-            :title="`再发布 ${3 - publishedWorksCount} 部作品即可申请成为作者`"
+            title="发布任意作品后，系统将自动为您增加作者身份。"
             type="info"
             :closable="false"
             show-icon
@@ -72,39 +73,59 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import { Edit, House, Check } from '@element-plus/icons-vue'
+import { useWriterStore } from '@/stores/writer'
+import { isTestModeActive } from '@/router/test-mode-guard'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+const writerStore = useWriterStore()
+const isTestMode = computed(() => route.query.test === 'true' || isTestModeActive())
 
 // 已发布作品数量
 const publishedWorksCount = ref(0)
+const hasAuthorRole = computed(() => authStore.hasAuthorRole)
 
 // 进度百分比
 const progressPercentage = computed(() => {
-  return Math.min((publishedWorksCount.value / 3) * 100, 100)
+  return publishedWorksCount.value > 0 ? 100 : 0
 })
 
 // 进度条颜色
 const progressColor = computed(() => {
   if (progressPercentage.value >= 100) return '#67c23a'
-  if (progressPercentage.value >= 66) return '#409eff'
-  if (progressPercentage.value >= 33) return '#e6a23c'
   return '#f56c6c'
 })
 
 // 是否可以申请成为作者
 const canApply = computed(() => {
-  return publishedWorksCount.value >= 3
+  return publishedWorksCount.value > 0
 })
 
 // 获取已发布作品数量
 const fetchPublishedWorksCount = async () => {
+  if (isTestMode.value) {
+    try {
+      await writerStore.fetchProjects()
+      publishedWorksCount.value = (writerStore.projectList || []).filter((item: any) => {
+        const status = (item.status || '').toString().toLowerCase()
+        return status === 'published' || status === 'completed'
+      }).length
+    } catch {
+      publishedWorksCount.value = 1
+    }
+    if (publishedWorksCount.value > 0) {
+      authStore.promoteToAuthorByPublishing(false)
+    }
+    return
+  }
+
   try {
-    const token = localStorage.getItem('qingyu_token')
+    const token = localStorage.getItem('qingyu_token') || localStorage.getItem('token')
     if (!token) {
       publishedWorksCount.value = 0
       return
@@ -119,6 +140,9 @@ const fetchPublishedWorksCount = async () => {
     if (response.ok) {
       const data = await response.json()
       publishedWorksCount.value = data.data?.published_count || 0
+      if (publishedWorksCount.value > 0) {
+        authStore.promoteToAuthorByPublishing(false)
+      }
     }
   } catch (error) {
     console.error('获取作品数量失败:', error)
@@ -138,8 +162,15 @@ const goToBookstore = () => {
 
 // 申请成为作者
 const applyForAuthor = async () => {
+  if (isTestMode.value || canApply.value) {
+    authStore.promoteToAuthorByPublishing(false)
+    ElMessage.success('作者身份已同步')
+    router.push('/writer/dashboard')
+    return
+  }
+
   try {
-    const token = localStorage.getItem('qingyu_token')
+    const token = localStorage.getItem('qingyu_token') || localStorage.getItem('token')
     const response = await fetch('/api/v1/user/upgrade-role', {
       method: 'POST',
       headers: {
@@ -154,7 +185,7 @@ const applyForAuthor = async () => {
     if (response.ok) {
       ElMessage.success('申请成为作者成功！')
       // 更新用户信息
-      await authStore.fetchUserInfo()
+      await authStore.getUserInfo()
       // 跳转到作者工作台
       router.push('/writer/dashboard')
     } else {

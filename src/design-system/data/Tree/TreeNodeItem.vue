@@ -8,14 +8,18 @@
  */
 
 import { computed, inject } from 'vue'
-import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
-import type { TreeNodeState } from './types'
+import type { TreeNodeState, TreeNode } from './types'
 import { TREE_CONTEXT_KEY } from './constants'
 
 // Props
 const props = defineProps<{
   nodeState: TreeNodeState
+}>()
+
+// 使用 defineSlots 明确定义 slot 类型，解决递归组件的类型推断问题
+defineSlots<{
+  default(props: { node: TreeNode; data: TreeNode }): void
 }>()
 
 // 从父组件注入的方法
@@ -100,20 +104,20 @@ const onCheckClick = (event: MouseEvent) => {
             'checkbox',
             'relative flex-shrink-0 rounded border-2 transition-all duration-200',
             'w-4 h-4 flex items-center justify-center',
-            isChecked.value
+            isChecked
               ? 'bg-primary-500 border-primary-500'
               : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700',
-            isIndeterminate.value && 'bg-primary-500 border-primary-500',
+            isIndeterminate && 'bg-primary-500 border-primary-500',
           ].join(' ')"
         >
-          <svg v-if="isChecked.value" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <svg v-if="isChecked" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path
               fill-rule="evenodd"
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
               clip-rule="evenodd"
             />
           </svg>
-          <svg v-if="isIndeterminate.value && !isChecked.value" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <svg v-if="isIndeterminate && !isChecked" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path
               fill-rule="evenodd"
               d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"

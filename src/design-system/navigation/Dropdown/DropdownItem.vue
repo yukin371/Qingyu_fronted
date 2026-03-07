@@ -8,7 +8,7 @@
 import { computed, inject } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { DropdownItemProps, DropdownItemEmits, DropdownItemSlots, DropdownCommand } from './types'
+import type { DropdownItemProps, DropdownItemEmits, DropdownCommand } from './types'
 
 // 定义注入的 key
 const DROPDOWN_KEY = Symbol('dropdown')
@@ -45,13 +45,10 @@ const props = withDefaults(defineProps<DropdownItemProps>(), {
 // 组件 Emits
 const emit = defineEmits<DropdownItemEmits>()
 
-// 组件 Slots
-const slots = defineSlots<DropdownItemSlots>()
-
 // 从父组件注入上下文
 const dropdownContext = inject<{
   isVisible: import('vue').Ref<boolean>
-  handleItemClick: (command: DropdownCommand) => void
+  handleItemClick: (c: DropdownCommand) => void  // eslint-disable-line no-unused-vars
   size: import('vue').Ref<'small' | 'medium' | 'large'>
 } | null>(DROPDOWN_KEY, null)
 
@@ -74,10 +71,10 @@ const handleClick = (event: MouseEvent) => {
   if (props.disabled) return
 
   // 触发点击事件
-  emit('click', event, props.command)
+  emit('click', event, props.command as DropdownCommand)
 
   // 调用父组件的处理方法
-  if (dropdownContext) {
+  if (dropdownContext && props.command) {
     dropdownContext.handleItemClick(props.command)
   }
 }
@@ -90,11 +87,11 @@ const handleClick = (event: MouseEvent) => {
     :tabindex="disabled ? -1 : 0"
     :aria-disabled="disabled"
     @click="handleClick"
-    @keydown.enter="handleClick"
-    @keydown.space.prevent="handleClick"
+    @keydown.enter="(e) => handleClick(e as unknown as MouseEvent)"
+    @keydown.space.prevent="(e) => handleClick(e as unknown as MouseEvent)"
   >
     <!-- 图标插槽或图标类名 -->
-    <span v-if="icon || $slots.icon" :class="cn('mr-2 h-4 w-4', icon)">
+    <span v-if="props.icon || $slots.icon" :class="cn('mr-2 h-4 w-4', props.icon)">
       <slot name="icon" />
     </span>
 

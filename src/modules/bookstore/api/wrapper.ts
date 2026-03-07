@@ -69,16 +69,44 @@ export async function getBookList(params?: any) {
  * 兼容旧API: getBookDetail(id)
  */
 export async function getBookDetail(id: string): Promise<APIResponse<BookDetail>> {
-  const response = await api.getApiV1BookstoreBooksIdDetail(id) as any
+  try {
+    const response = await (api.getApiV1BookstoreBooksIdDetail(id) as any)
 
-  if (response?.data) {
-    return {
-      ...response,
-      data: normalizeBookDetail(response.data) ?? response.data
+    // 使用 normalizeBookDetail 处理数据
+    if (response?.data) {
+      return {
+        ...response,
+        data: normalizeBookDetail(response.data) ?? response.data
+      }
     }
-  }
 
-  return response
+    return response
+  } catch (error: any) {
+    const status = error?.response?.status
+    if (status === 404 || status === 400) {
+      const direct = await (api.getApiV1BookstoreBooksId(id) as any)
+      if (direct?.data) {
+        return {
+          ...direct,
+          data: normalizeBookDetail(direct.data) ?? direct.data
+        }
+      }
+
+      // 兼容部分后端实例详情接口不可用：从列表分页回捞指定ID
+      const pageSize = 100
+      for (let page = 1; page <= 20; page++) {
+        const listResp = await (api.getApiV1BookstoreBooks({ page, size: pageSize }) as any)
+        const list = Array.isArray(listResp?.data) ? listResp.data : []
+        const found = list.find((item: any) => String(item?.id) === String(id))
+        if (found) {
+          return { ...(direct || {}), code: 0, data: normalizeBookDetail(found) ?? found } as any
+        }
+        const hasNext = Boolean(listResp?.pagination?.has_next ?? listResp?.pagination?.hasNext)
+        if (!hasNext) break
+      }
+    }
+    throw error
+  }
 }
 
 /**
@@ -467,3 +495,71 @@ export const getUserBookRating = api.getApiV1BookstoreRatingsUserId
  * 可以传入自定义axios实例
  */
 export { getApi }
+
+/**
+ * 导出 bookstoreAPI 对象（兼容 index.ts 导出）
+ */
+export const bookstoreAPI = {
+  getBanners,
+  incrementBannerClick,
+  getBookList,
+  getBookDetail,
+  createBook,
+  updateBook,
+  deleteBook,
+  searchBooks,
+  searchByTitle,
+  searchByAuthor,
+  getBooksByStatus,
+  getBooksByTags,
+  getRecommendedBooks,
+  getFeaturedBooks,
+  getPopularBooks,
+  getLatestBooks,
+  getSimilarBooks,
+  incrementBookView,
+  getBookStatistics,
+  likeBook,
+  unlikeBook,
+  getBookRatingDistribution,
+  getBookReviews,
+  rateBook,
+  updateBookRating,
+  deleteBookRating,
+  getBookAverageRating,
+  getBookChapters,
+  getBookFirstChapter,
+  getBookLastChapter,
+  getBookFreeChapters,
+  getBookPaidChapters,
+  getBookPublishedChapters,
+  getBookChapterStatistics,
+  getBookTrialChapters,
+  getBookVipChapters,
+  getBooksByCategory,
+  getAllCategories,
+  getCategories,
+  getCategoryTree,
+  getCategoryDetail,
+  getBooksByCategoryWithPagination,
+  getChapterDetail,
+  getChapterContent,
+  getNextChapter,
+  getPreviousChapter,
+  getChapterPrice,
+  searchChapters,
+  createChapter,
+  updateChapter,
+  deleteChapter,
+  getChapterAccess,
+  getHomepage,
+  getRealtimeRanking,
+  getWeeklyRanking,
+  getMonthlyRanking,
+  getNewbieRanking,
+  getRankingByType,
+  getBookChapterByNumber,
+  getBookChapterById,
+  getUserBookRating,
+  getApi,
+}

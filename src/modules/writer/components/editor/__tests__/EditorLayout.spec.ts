@@ -72,7 +72,6 @@ describe('EditorLayout - 响应式布局', () => {
       await nextTick()
       const leftPanel = wrapper.find('.left-panel')
       const rightPanel = wrapper.find('.right-panel')
-      const editorPanel = wrapper.find('.editor-panel')
 
       // 移动端模式下，面板应该是overlay状态
       expect(leftPanel.classes()).toContain('panel-overlay')
@@ -417,11 +416,11 @@ describe('EditorLayout - 响应式布局', () => {
         value: 375,
       })
       window.dispatchEvent(new Event('resize'))
-      
+
       await nextTick()
       const tabs = wrapper.findAll('.mobile-tab')
-      
-      tabs.forEach((tab, index) => {
+
+      tabs.forEach((tab: any) => {
         expect(tab.attributes('role')).toBe('tab')
         expect(tab.attributes('aria-label')).toBeDefined()
       })

@@ -3,8 +3,6 @@
  * 基于 doc/api/frontend/书城API参考.md
  */
 
-import type { APIResponse, PaginatedResponse } from './api'
-
 // ==================== 书籍相关 ====================
 
 /**

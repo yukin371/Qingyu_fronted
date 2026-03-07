@@ -129,7 +129,7 @@ export const templateApi = {
    * GET /api/v1/writer/templates
    */
   list(params?: ListTemplatesParams) {
-    return httpService.get<ListTemplatesResponse>(BASE_TEMPLATE_URL, params)
+    return httpService.get<ListTemplatesResponse>(BASE_TEMPLATE_URL, params as any)
   },
 
   /**

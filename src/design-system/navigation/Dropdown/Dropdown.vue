@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 /**
  * Dropdown 下拉菜单组件
@@ -5,9 +6,9 @@
  * 通用的下拉菜单组件，支持多种触发方式和位置
  */
 
-import { ref, computed, watch, onMounted, onUnmounted, provide, type Ref } from 'vue'
+import { ref, computed, watch, onUnmounted, provide } from 'vue'
 import { cn } from '../../utils/cn'
-import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
+import type { DropdownProps, DropdownEmits } from './types'
 
 // 定义注入的 key
 const DROPDOWN_KEY = Symbol('dropdown')
@@ -29,9 +30,6 @@ const props = withDefaults(defineProps<DropdownProps>(), {
 
 // 组件 Emits
 const emit = defineEmits<DropdownEmits>()
-
-// 组件 Slots
-const slots = defineSlots<DropdownSlots>()
 
 // 状态管理
 const isVisible = ref(false)
@@ -307,10 +305,9 @@ watch(isVisible, (newVal) => {
 
 // 调整位置以确保在视口内
 const adjustPosition = () => {
-  if (!dropdownRef.value || !triggerRef.value) return
+  if (!dropdownRef.value) return
 
   const dropdownRect = dropdownRef.value.getBoundingClientRect()
-  const triggerRect = triggerRef.value.getBoundingClientRect()
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
 
@@ -327,7 +324,14 @@ const adjustPosition = () => {
   }
 }
 
-// 清理定时器
+// 清理定时器（供模板使用）
+const clearShowTimer = () => {
+  if (showTimer) {
+    clearTimeout(showTimer)
+    showTimer = null
+  }
+}
+
 onUnmounted(() => {
   if (showTimer) clearTimeout(showTimer)
   if (hideTimer) clearTimeout(hideTimer)
@@ -388,7 +392,7 @@ defineExpose({
           role="menu"
           :aria-orientation="'vertical'"
           tabindex="-1"
-          @mouseenter="triggerArray.includes('hover') ? (showTimer && clearTimeout(showTimer)) : undefined"
+          @mouseenter="triggerArray.includes('hover') ? clearShowTimer() : undefined"
           @mouseleave="triggerArray.includes('hover') ? handleHide : undefined"
         >
           <!-- 箭头 -->

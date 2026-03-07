@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+import { Refresh, Plus, Minus } from '@element-plus/icons-vue'
 import { formatCurrency } from '@/utils/currency'
 
 interface Props {
@@ -57,12 +57,6 @@ interface Props {
   showExtra?: boolean
 }
 
-interface Emits {
-  (e: 'refresh'): void
-  (e: 'recharge'): void
-  (e: 'withdraw'): void
-}
-
 withDefaults(defineProps<Props>(), {
   balance: 0,
   availableAmount: 0,
@@ -72,7 +66,11 @@ withDefaults(defineProps<Props>(), {
   showExtra: false
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+  refresh: []
+  recharge: []
+  withdraw: []
+}>()
 
 // 格式化金额
 // 注意：amount 参数单位是分（后端返回），需要转换为元显示
@@ -240,4 +238,3 @@ const handleWithdraw = () => {
   }
 }
 </style>
-

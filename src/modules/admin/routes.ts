@@ -62,6 +62,12 @@ const adminRoutes: RouteRecordRaw[] = [
         name: 'admin-announcements',
         component: () => import('./views/AnnouncementManagement.vue'),
         meta: { title: '公告管理', requiresAuth: true, roles: ['admin'] }
+      },
+      {
+        path: 'categories',
+        name: 'admin-categories',
+        component: () => import('./views/CategoryManagement.vue'),
+        meta: { title: '分类管理', requiresAuth: true, roles: ['admin'] }
       }
     ]
   }

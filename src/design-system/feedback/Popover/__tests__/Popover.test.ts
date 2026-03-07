@@ -2,7 +2,8 @@
  * Popover 组件单元测试
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/vue'
 import Popover from '../Popover.vue'
 

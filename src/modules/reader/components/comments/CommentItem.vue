@@ -1,6 +1,6 @@
 <template>
   <div class="comment-item">
-    <el-avatar :src="comment.avatar" :size="40">
+    <el-avatar class="user-avatar" :src="comment.avatar" :size="40">
       {{ comment.username?.charAt(0) || 'U' }}
     </el-avatar>
 
@@ -20,14 +20,23 @@
         {{ comment.emoji }}
       </div>
 
+      <div v-if="comment.replyToUsername" class="reply-to">
+        回复 @{{ comment.replyToUsername }}
+      </div>
+
       <div class="comment-actions">
         <el-button
           text
           :type="comment.likedByMe ? 'primary' : 'default'"
-          :icon="comment.likedByMe ? StarFilled : Star"
           @click="$emit('like', comment.id)"
         >
-          {{ comment.likes || '点赞' }}
+          点赞 {{ comment.likes || 0 }}
+        </el-button>
+        <el-button
+          text
+          @click="$emit('reply', { commentId: comment.id, username: comment.username })"
+        >
+          回复
         </el-button>
       </div>
     </div>
@@ -35,7 +44,6 @@
 </template>
 
 <script setup lang="ts">
-import { Star, StarFilled } from '@element-plus/icons-vue'
 import type { ParagraphComment } from '@/types/reader/index'
 
 interface Props {
@@ -46,6 +54,7 @@ defineProps<Props>()
 
 defineEmits<{
   like: [commentId: string]
+  reply: [data: { commentId: string; username: string }]
 }>()
 
 const formatTime = (dateStr: string): string => {
@@ -65,8 +74,25 @@ const formatTime = (dateStr: string): string => {
   display: flex;
   gap: 12px;
   padding: 12px;
-  background: var(--el-fill-color-light);
+  background: var(--el-fill-color-light, #f8fafc);
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
+}
+
+:deep(.user-avatar.el-avatar) {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 9999px !important;
+  overflow: hidden;
+  flex: 0 0 40px;
+}
+
+:deep(.user-avatar img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .comment-content {
@@ -82,12 +108,12 @@ const formatTime = (dateStr: string): string => {
 
   .username {
     font-weight: 500;
-    color: var(--el-text-color-primary);
+    color: var(--el-text-color-primary, #111827);
   }
 
   .time {
     font-size: 12px;
-    color: var(--el-text-color-secondary);
+    color: var(--el-text-color-secondary, #6b7280);
   }
 }
 
@@ -103,6 +129,16 @@ const formatTime = (dateStr: string): string => {
 }
 
 .comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 8px;
+}
+
+.reply-to {
+  margin-top: 2px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #6b7280;
 }
 </style>

@@ -5,6 +5,7 @@
 import type { PollingService } from '@/core/services/polling.service'
 import { createPollingService } from '@/core/services/polling.service'
 import { httpService } from '@/core/services/http.service'
+import type { AxiosInstance } from 'axios'
 import { getWebSocketEndpoint } from '../api'
 import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
 import { API_PATHS } from '@/config/apiPaths'
@@ -102,7 +103,7 @@ export class NotificationService {
    */
   private initializePolling(): void {
     this.pollingService = createPollingService({
-      axios: httpService,
+      axios: httpService as unknown as AxiosInstance,
       endpoint: '/api/v1/notifications/polling',
       interval: 30000,
       minInterval: 10000,
@@ -120,23 +121,6 @@ export class NotificationService {
     this.currentMode = 'polling'
   }
 
-  /**
-   * 降级到轮询
-   */
-  private fallbackToPolling(): void {
-    if (this.currentMode === 'websocket') {
-      this.currentMode = 'polling'
-
-      // 取消 WebSocket 消息订阅
-      if (this.unsubscribeHandler) {
-        this.unsubscribeHandler()
-        this.unsubscribeHandler = null
-      }
-
-      // 启动轮询
-      this.initializePolling()
-    }
-  }
 
   /**
    * 处理接收到的消息

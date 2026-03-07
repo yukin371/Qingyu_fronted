@@ -14,6 +14,9 @@ const STORAGE_KEYS = {
   ROLES: 'roles'
 }
 
+const TEST_MODE_MOCK_TOKEN = 'mock-token-for-testing'
+const TEST_MODE_MOCK_REFRESH_TOKEN = 'mock-refresh-token-for-testing'
+
 // 检查是否启用测试模式（URL参数：?test=true 或 #test）
 function isTestMode(): boolean {
   if (typeof window === 'undefined') return false
@@ -30,6 +33,12 @@ function isTestMode(): boolean {
     console.log('[测试模式] URL检测到测试模式标识')
   }
   return isTestMode
+}
+
+function isMockToken(token: string | null | undefined): boolean {
+  if (!token) return false
+  const normalized = token.toString()
+  return normalized.startsWith('mock-') || normalized.includes('mock')
 }
 
 /**
@@ -110,6 +119,31 @@ export interface PasswordResetData {
   new_password: string
 }
 
+function createTestModeMockUser(): User {
+  const now = new Date().toISOString()
+  return {
+    id: 'mock-user-001',
+    username: 'demo_user',
+    nickname: '测试用户',
+    email: 'demo@example.com',
+    // 使用 DiceBear 生成测试头像，确保头像可正常显示
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo-user',
+    gender: 'unknown',
+    bio: '这是测试模式下的模拟用户（拥有所有角色权限用于演示）',
+    role: 'admin',
+    level: 5,
+    exp: 2500,
+    balance: 0,
+    readingTime: 1200,
+    registerTime: now,
+    lastLoginTime: now,
+    isVip: false,
+    // 测试模式拥有所有角色，可访问所有功能页面
+    roles: ['admin', 'author', 'reader'],
+    permissions: ['*']
+  }
+}
+
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => {
     // 从storage恢复token
@@ -182,27 +216,90 @@ export const useAuthStore = defineStore('auth', {
     // 检查是否为VIP用户
     isVip: (state): boolean => {
       return state.user?.isVip || false
+    },
+
+    // 是否拥有作者身份（作者或管理员）
+    hasAuthorRole: (state): boolean => {
+      return state.roles.includes('author') || state.roles.includes('admin')
+    },
+
+    // 作者购买 AI 套餐折扣（85折）
+    authorAIPackageDiscountRate: (state): number => {
+      const hasAuthor = state.roles.includes('author') || state.roles.includes('admin')
+      return hasAuthor ? 0.85 : 1
     }
   },
 
   actions: {
+    // 发布作品后自动升级作者身份（前端状态兜底，避免等待下一次刷新）
+    promoteToAuthorByPublishing(showToast = true): void {
+      const currentRoles = Array.isArray(this.roles) ? [...this.roles] : []
+      const hasAuthor = currentRoles.includes('author') || currentRoles.includes('admin')
+      if (hasAuthor) return
+
+      this.roles = [...currentRoles, 'author']
+
+      if (this.user) {
+        const nextUserRoles = Array.from(new Set([...(this.user.roles || []), 'author']))
+        this.user = {
+          ...this.user,
+          role: this.user.role === 'admin' ? 'admin' : 'author',
+          roles: nextUserRoles
+        }
+      }
+
+      storage.set(STORAGE_KEYS.USER, this.user)
+      storage.set(STORAGE_KEYS.ROLES, this.roles)
+
+      if (showToast) {
+        console.log('[auth] 用户已因发布作品自动获得作者身份')
+      }
+    },
+
+    ensureTestModeMockSession(forceTestMode = false): void {
+      if (!forceTestMode && !isTestMode()) return
+      if (this.isLoggedIn && this.token && isMockToken(this.token) && this.user) return
+
+      const mockUser = createTestModeMockUser()
+      this.token = TEST_MODE_MOCK_TOKEN
+      this.refreshToken = TEST_MODE_MOCK_REFRESH_TOKEN
+      this.user = mockUser
+      this.permissions = mockUser.permissions || []
+      // 测试模式使用完整角色列表
+      this.roles = mockUser.roles || ['admin', 'author', 'reader']
+      this.isLoggedIn = true
+      this.error = null
+
+      storage.set(STORAGE_KEYS.TOKEN, this.token)
+      storage.set(STORAGE_KEYS.REFRESH_TOKEN, this.refreshToken)
+      storage.set(STORAGE_KEYS.USER, this.user)
+      storage.set(STORAGE_KEYS.ROLES, this.roles)
+      localStorage.setItem(STORAGE_KEYS.TOKEN, this.token)
+      console.log('[测试模式] 已自动注入 mock 登录用户，角色:', this.roles)
+    },
+
     // 初始化认证状态
     async initAuth(): Promise<void> {
+      if (!this.token && isTestMode()) {
+        this.ensureTestModeMockSession()
+        return
+      }
+
       if (this.token) {
         // 检查是否是测试模式的mock token
-        const isMockToken = this.token?.toString().startsWith('mock-') || this.token?.toString().includes('mock')
+        const mockToken = isMockToken(this.token)
 
         // 只有在URL明确标记为测试模式时，才允许使用mock token
         const isTestModeEnabled = isTestMode()
 
-        if (isMockToken && !isTestModeEnabled) {
+        if (mockToken && !isTestModeEnabled) {
           // 发现mock token但URL没有测试模式标识，清空并要求真实登录
           console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
           this.clearAuth()
           return
         }
 
-        if (isMockToken && isTestModeEnabled) {
+        if (mockToken && isTestModeEnabled) {
           // 测试模式：直接使用localStorage中的用户数据，不调用API
           console.log('[测试模式] 使用模拟登录状态')
           this.isLoggedIn = true
@@ -210,16 +307,17 @@ export const useAuthStore = defineStore('auth', {
           if (!this.user) {
             this.user = storage.get<User>(STORAGE_KEYS.USER)
           }
-          // 修复：优先从localStorage恢复roles
+          // 优先从localStorage恢复roles，否则使用默认的完整角色列表
           const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
             console.log('[initAuth] 从localStorage恢复roles:', savedRoles)
           } else {
-            this.roles = this.user?.roles || ['reader']
-            console.log('[initAuth] 使用user.roles:', this.roles)
+            // 测试模式默认拥有所有角色
+            this.roles = this.user?.roles || ['admin', 'author', 'reader']
+            console.log('[initAuth] 使用默认测试角色:', this.roles)
           }
-          this.permissions = this.user?.permissions || []
+          this.permissions = this.user?.permissions || ['*']
           return
         }
 
@@ -264,8 +362,8 @@ export const useAuthStore = defineStore('auth', {
             const savedUser = storage.get<User>(STORAGE_KEYS.USER)
             const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
 
-            this.user = savedUser
-            this.roles = savedRoles
+            this.user = savedUser ?? null
+            this.roles = savedRoles ?? []
             this.isLoggedIn = true
             console.log('[initAuth] 从localStorage恢复状态，保持登录:', savedRoles)
           } else {
@@ -289,10 +387,10 @@ export const useAuthStore = defineStore('auth', {
 
         // 保存认证信息
         this.token = data.token
-        this.refreshToken = data.refreshToken
+        this.refreshToken = data.refreshToken ?? null
         const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
         // 确保user对象包含roles字段，兼容后端 role(字符串) 与 roles(数组)
-        this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
+        this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
         this.permissions = data.permissions || []
         this.roles = normalizedRoles
         this.isLoggedIn = true
@@ -327,8 +425,8 @@ export const useAuthStore = defineStore('auth', {
         if (data.token) {
           const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
           this.token = data.token
-          this.refreshToken = data.refreshToken
-          this.user = data.user ? { ...data.user, roles: normalizedRoles } : null
+          this.refreshToken = data.refreshToken ?? null
+          this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
           this.permissions = data.permissions || []
           this.roles = normalizedRoles
           this.isLoggedIn = true

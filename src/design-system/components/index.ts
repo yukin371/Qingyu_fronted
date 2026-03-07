@@ -117,7 +117,7 @@ import type { QyTagProps } from './basic/QyTag/types'
 import type { QyIconProps } from './basic/QyIcon/types'
 import type { QyImageProps } from './basic/QyImage/types'
 import type { QyCardProps } from './basic/QyCard/types'
-import type { QyRateProps } from './basic/QyRate/types'
+import type { RateProps as QyRateProps } from './basic/QyRate/types'
 
 // Export backward compatibility type aliases
 export type ButtonProps = QyButtonProps

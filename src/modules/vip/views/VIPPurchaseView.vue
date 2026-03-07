@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
 </script>
 
 <style scoped lang="scss">

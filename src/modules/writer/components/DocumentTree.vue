@@ -4,27 +4,27 @@
     <div class="tree-toolbar">
       <div class="header-row">
         <span class="title">目录</span>
-        <div class="actions flex items-center gap-2">
+        <div class="actions">
           <!-- 多选模式切换按钮 -->
           <button
             v-if="!isMultiSelectMode"
             type="button"
-            class="p-1.5 text-gray-600 hover:text-secondary-500 hover:bg-secondary-50 rounded transition-colors"
+            class="icon-button"
             title="多选模式"
             @click="toggleMultiSelectMode"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="toolbar-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </button>
           <button
             v-else
             type="button"
-            class="p-1.5 text-secondary-500 bg-secondary-50 rounded transition-colors"
+            class="icon-button icon-button--active"
             title="退出多选"
             @click="toggleMultiSelectMode"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="toolbar-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -47,17 +47,17 @@
     </div>
 
     <!-- 多选模式提示栏 -->
-    <div v-if="isMultiSelectMode" class="multi-select-hint px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">已选择</span>
-        <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 rounded text-sm font-medium">{{ selectionCount }}</span>
-        <span class="text-sm text-gray-600">个文档</span>
+    <div v-if="isMultiSelectMode" class="multi-select-hint">
+      <div class="hint-left">
+        <span class="hint-text">已选择</span>
+        <span class="hint-count">{{ selectionCount }}</span>
+        <span class="hint-text">个文档</span>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="hint-actions">
         <button
           v-if="hasSelection"
           type="button"
-          class="px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-medium"
+          class="hint-btn hint-btn--danger"
           @click="handleBatchDelete"
         >
           批量删除
@@ -65,7 +65,7 @@
         <button
           v-if="hasSelection"
           type="button"
-          class="px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
+          class="hint-btn"
           @click="clearSelection"
         >
           取消选择
@@ -91,7 +91,7 @@
             <input
               v-if="isMultiSelectMode"
               type="checkbox"
-              class="w-4 h-4 text-secondary-500 rounded border-gray-300 focus:ring-secondary-500 cursor-pointer mr-2"
+              class="multi-select-checkbox"
               :checked="isSelected(data.id)"
               @click.stop="toggleSelection(data.id, $event)"
             />
@@ -156,6 +156,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
+import { ElTree } from 'element-plus'
 import { messageBox, message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
@@ -164,6 +165,11 @@ import { useBatchOperationStore } from '../stores/batchOperationStore'
 import { duplicateDocument, moveDocument } from '../api/document'
 import BatchOperationConfirmDialog from './BatchOperationConfirmDialog.vue'
 import BatchOperationProgressDialog from './BatchOperationProgressDialog.vue'
+
+// DocumentIcon 组件定义
+const DocumentIcon = {
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`
+}
 
 // 拖拽数据类型定义
 interface DragData {
@@ -424,10 +430,7 @@ async function executeDragOperation(
         copyContent: true
       })
 
-      message.success({
-        message: `已复制 "${dragData.title}" 到 "${dropData.title}"`,
-        duration: 2000
-      })
+      message.success(`已复制 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
     } else {
       // 移动模式：调用 move API
       const newParentId = type === 'inner' ? dropData.id : dropData.parentId
@@ -436,10 +439,7 @@ async function executeDragOperation(
         parentId: newParentId
       })
 
-      message.success({
-        message: `已移动 "${dragData.title}" 到 "${dropData.title}"`,
-        duration: 2000
-      })
+      message.success(`已移动 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
     }
 
     // API调用成功后，触发刷新事件
@@ -447,10 +447,7 @@ async function executeDragOperation(
   } catch (error) {
     console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
 
-    message.error({
-      message: `${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`,
-      duration: 3000
-    })
+    message.error(`${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`, { duration: 3000 })
 
     // API失败后，刷新树节点以同步后端状态
     // 这会撤销ElTree的默认UI更新
@@ -621,6 +618,100 @@ const formatCount = (count: number) => {
   }
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-button--active {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.toolbar-icon-svg {
+  width: 14px;
+  height: 14px;
+}
+
+.multi-select-hint {
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hint-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hint-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.hint-count {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.hint-btn {
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hint-btn--danger {
+  color: #fff;
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.multi-select-checkbox {
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
 .custom-tree-node {
   flex: 1;
   display: flex;
@@ -650,6 +741,16 @@ const formatCount = (count: number) => {
   .node-icon {
     margin-right: 6px;
     font-size: 16px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    :deep(svg) {
+      width: 14px;
+      height: 14px;
+    }
 
     &.volume {
       color: #e6a23c; // 文件夹颜色

@@ -15,9 +15,15 @@
 
     <!-- 主编辑器插槽 -->
     <template #editor="{ activeTool }">
+      <EncyclopediaView
+        v-if="activeTool === 'encyclopedia'"
+        :project-id="currentProjectId"
+        :embedded="true"
+      />
       <EditorPanel
+        v-else
         :content="fileContent"
-        :project-name="currentProject?.title"
+        :project-name="editorBreadcrumbTitle"
         :chapter-title="documentTitle"
         :active-tool="activeTool"
         :show-preview="showPreview"
@@ -29,15 +35,17 @@
         @formatCommand="handleToolbarCommand"
         @aiAssistant="toggleAISidebar"
         @contextmenu="handleContextMenu"
+        @addToAIContext="handleAddToAIContext"
       />
     </template>
 
     <!-- 右侧AI面板插槽 -->
     <template #right-panel>
       <AIPanel
-        v-model:collapsed="aiSidebarVisible"
         :session-id="currentProjectId"
+        :action-trigger="aiActionTrigger"
         @send="handleAISend"
+        @apply-generated-text="handleAIApplyGeneratedText"
       />
     </template>
   </EditorLayout>
@@ -52,7 +60,7 @@
     :y="contextMenu.y"
     :selected-text="contextMenu.selectedText"
     @action="handleAIAction"
-    @update:visible="val => contextMenu.visible = val"
+    @update:visible="(val) => (contextMenu.visible = val)"
   />
 
   <!-- 新建文档对话框 -->
@@ -76,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 // 引入新的 Store 体系
@@ -84,6 +92,9 @@ import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore' // 假如还需要读取 timeline 等
+import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
+import { DocumentType, type Document } from '@/modules/writer/types/document'
+import type { ActiveTool } from '@/modules/writer/stores/editorStore'
 
 // 引入组件
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
@@ -91,9 +102,17 @@ import EditorPanel from '@/modules/writer/components/editor/EditorPanel.vue'
 import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
 import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import AIContextMenu from '@/modules/writer/components/ai/AIContextMenu.vue'
+import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 
 // 工具
 import { formatMarkdown } from '@/modules/writer/utils/editor'
+
+// =======================
+// Props 定义
+// =======================
+const props = defineProps<{
+  projectId?: string
+}>()
 
 // =======================
 // 状态初始化
@@ -108,63 +127,254 @@ const writerStore = useWriterStore() // 用于 Timeline 数据
 const showPreview = ref(false)
 const showTimeline = ref(false)
 const showCreateDocDialog = ref(false)
-const aiSidebarVisible = ref(false)
+const aiActionSeq = ref(0)
 
 // Forms
 const newDocForm = ref({ title: '', type: 'chapter' })
 const contextMenu = reactive({ visible: false, x: 0, y: 0, selectedText: '' })
+const aiActionTrigger = ref<{
+  id: number
+  action: string
+  text: string
+  instructions?: string
+} | null>(null)
 
 // =======================
 // 数据绑定 (核心)
 // =======================
 
-// 1. 项目 ID
+// 1. 项目 ID - 优先使用 props，然后是 route.params
 const currentProjectId = computed({
-  get: () => projectStore.currentProjectId || (route.params.projectId as string),
+  get: () => props.projectId || projectStore.currentProjectId || (route.params.projectId as string),
   set: (id) => {
     if (id) {
       projectStore.loadDetail(id)
       documentStore.loadTree(id)
     }
-  }
+  },
 })
+
+const isTestMode = computed(() => route.query.test === 'true')
+const mockProject = computed(() =>
+  isTestMode.value ? getWorkspaceMockProject(currentProjectId.value) : null,
+)
+const queryChapterId = computed(() => String(route.query.chapterId || ''))
+const queryTool = computed(() => String(route.query.tool || ''))
 
 // 2. 文档 ID (切换文档的核心逻辑)
 const currentChapterId = computed({
-  get: () => documentStore.currentDocMeta?.id || '',
+  get: () => (route.query.chapterId as string) || documentStore.currentDocMeta?.id || '',
   set: async (id) => {
     if (!id) return
-    // 切换前先保存旧的（虽然 Store 有 debounce，但切换是强制的）
-    if (editorStore.isDirty) await editorStore.save()
+    const selectedDoc = availableDocMap.value.get(id)
+    if (selectedDoc) {
+      await documentStore.selectDocument(selectedDoc)
+    }
+    editorStore.setCurrentChapter(id)
 
-    await documentStore.selectDocument(id) // 选中树节点
-    await editorStore.loadContent(id)      // 加载编辑器内容
+    // 真实内容 API 未就绪时，测试模式优先用统一 mock 文本填充
+    if (mockProject.value?.contentByDocId[id]) {
+      editorStore.setContent(mockProject.value.contentByDocId[id], false)
+      editorStore.markSaved()
+      return
+    }
+
+    // 非 mock 文档默认不覆盖已有内容，仅在首次无内容时清空
+    if (!editorStore.content) {
+      editorStore.setContent('', false)
+      editorStore.markSaved()
+    }
+  },
+})
+
+interface SidebarProjectSummary {
+  id: string
+  title: string
+  status: string
+  wordCount: number
+  chapterCount: number
+  updatedAt: string
+}
+
+interface SidebarChapterSummary {
+  id: string
+  projectId: string
+  chapterNum: number
+  title: string
+  wordCount: number
+  updatedAt: string
+  status: 'draft' | 'published'
+  nodeType?: 'directory' | 'chapter'
+  sortOrder?: number
+}
+
+const docsFromStore = computed(() => (documentStore.flatDocs || []) as Document[])
+
+const availableDocMap = computed(() => {
+  const map = new Map<string, Document>()
+  for (const doc of docsFromStore.value) {
+    map.set(doc.id, doc)
   }
+  for (const doc of mockProject.value?.docs || []) {
+    if (!map.has(doc.id)) {
+      map.set(doc.id, doc)
+    }
+  }
+  return map
 })
 
 // 3. 供 Sidebar 使用的数据源
-const projects = computed(() => projectStore.projects)
-const flatChapters = computed(() => documentStore.flatDocs || []) // 需确保 Store 中有这个 getter 或 state
+const projects = computed<SidebarProjectSummary[]>(() => {
+  const normalized = (projectStore.projects || []).map((p: any) => ({
+    id: p.id,
+    title: p.title,
+    status: p.status || 'writing',
+    wordCount: Number(p.wordCount ?? p.totalWords ?? 0),
+    chapterCount: Number(p.chapterCount ?? 0),
+    updatedAt: p.updatedAt || p.lastUpdateTime || new Date().toISOString(),
+  }))
+
+  const mock = mockProject.value?.project
+  if (mock && !normalized.some((p) => p.id === mock.id)) {
+    normalized.unshift(mock)
+  }
+
+  return normalized
+})
+
+const docsForTree = computed<Document[]>(() => {
+  const docs = [...docsFromStore.value]
+  if (!isTestMode.value || !mockProject.value?.docs?.length) return docs
+  const seen = new Set(docs.map((doc) => doc.id))
+  for (const doc of mockProject.value.docs) {
+    if (!seen.has(doc.id)) {
+      docs.push(doc)
+    }
+  }
+  return docs
+})
+
+const chaptersFromDocs = computed<SidebarChapterSummary[]>(() => {
+  const docs = docsForTree.value
+  const sceneDocs = docs
+    .filter((doc) => doc.type === DocumentType.SCENE || doc.type === DocumentType.VOLUME)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+  const chapterDocs = docs
+    .filter((doc) => doc.type === DocumentType.CHAPTER)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+  if (sceneDocs.length === 0) {
+    return chapterDocs.map((doc, index) => ({
+      id: doc.id,
+      projectId: doc.projectId,
+      chapterNum: index + 1,
+      title: doc.title,
+      wordCount: Number(doc.wordCount || 0),
+      updatedAt: doc.updatedAt || new Date().toISOString(),
+      status: doc.status === 'completed' ? 'published' : 'draft',
+      nodeType: 'chapter',
+      sortOrder: index + 1,
+    }))
+  }
+
+  const list: SidebarChapterSummary[] = []
+  let runningIndex = 1
+  for (const scene of sceneDocs) {
+    list.push({
+      id: scene.id,
+      projectId: scene.projectId,
+      chapterNum: 0,
+      title: scene.title,
+      wordCount: 0,
+      updatedAt: scene.updatedAt || new Date().toISOString(),
+      status: scene.status === 'completed' ? 'published' : 'draft',
+      nodeType: 'directory',
+      sortOrder: (scene.order || 0) * 100,
+    })
+
+    const children = chapterDocs
+      .filter((chapter) => chapter.parentId === scene.id)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    for (const chapter of children) {
+      list.push({
+        id: chapter.id,
+        projectId: chapter.projectId,
+        chapterNum: runningIndex++,
+        title: chapter.title,
+        wordCount: Number(chapter.wordCount || 0),
+        updatedAt: chapter.updatedAt || new Date().toISOString(),
+        status: chapter.status === 'completed' ? 'published' : 'draft',
+        nodeType: 'chapter',
+        sortOrder: (scene.order || 0) * 100 + (chapter.order || 0),
+      })
+    }
+  }
+
+  return list
+})
+
+const flatChapters = computed(() => {
+  if (chaptersFromDocs.value.length > 0) return chaptersFromDocs.value
+  return mockProject.value?.chapters || []
+})
 
 // 4. 编辑器内容绑定 (双向绑定到 Store，Store 内处理自动保存)
 const fileContent = computed({
   get: () => editorStore.content,
-  set: (val) => editorStore.setContent(val)
+  set: (val) => editorStore.setContent(val),
 })
 
+const stripDirectoryPrefix = (title: string) =>
+  title.replace(/^目录[一二三四五六七八九十百千万0-9]+\s*/u, '').trim()
+
 const documentTitle = computed({
-  get: () => documentStore.currentDocMeta?.title || '',
+  get: () => {
+    const title = documentStore.currentDocMeta?.title || ''
+    const type = documentStore.currentDocMeta?.type
+    return type === DocumentType.SCENE || type === DocumentType.VOLUME
+      ? stripDirectoryPrefix(title)
+      : title
+  },
   set: (val) => {
     if (documentStore.currentDocMeta) {
       documentStore.currentDocMeta.title = val
     }
-  }
+  },
 })
 
 // 当前项目信息
-const currentProject = computed(() => projectStore.currentProject)
+const currentProject = computed(() => {
+  if (projectStore.currentProject) return projectStore.currentProject
+  const current = projects.value.find((p) => p.id === currentProjectId.value)
+  return current || null
+})
 
 const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.id)
+
+const editorBreadcrumbTitle = computed(() => {
+  const currentDocId = currentChapterId.value
+  if (!currentDocId) return currentProject.value?.title || ''
+
+  const docs = docsForTree.value
+  const currentDoc = docs.find((doc) => doc.id === currentDocId)
+  if (!currentDoc) return currentProject.value?.title || ''
+
+  // 目录本身被选中时，首栏显示目录名
+  if (currentDoc.type === DocumentType.SCENE || currentDoc.type === DocumentType.VOLUME) {
+    return stripDirectoryPrefix(currentDoc.title)
+  }
+
+  // 章节被选中时，首栏显示所属目录名
+  if (currentDoc.parentId) {
+    const parent = docs.find((doc) => doc.id === currentDoc.parentId)
+    if (parent) return stripDirectoryPrefix(parent.title)
+  }
+
+  // 无目录时回退项目名
+  return currentProject.value?.title || ''
+})
 
 // =======================
 // 业务逻辑方法
@@ -176,16 +386,48 @@ onMounted(async () => {
   if (pId) {
     // 并行加载数据
     await Promise.all([
+      projectStore.loadList(),
       projectStore.loadDetail(pId),
-      documentStore.loadTree(pId)
+      documentStore.loadTree(pId),
     ])
-
-    // 如果没有选中章节，且列表不为空，默认选第一个
-    if (!currentChapterId.value && flatChapters.value.length > 0) {
-      currentChapterId.value = flatChapters.value[0].id
-    }
   }
 })
+
+watch(
+  () => flatChapters.value,
+  (chapters) => {
+    if (!currentChapterId.value && chapters.length > 0) {
+      const firstChapter = chapters.find((chapter) => chapter.nodeType !== 'directory')
+      // 添加数组长度检查，解决 TS2493 错误
+      const targetChapter = firstChapter || chapters[0]
+      if (targetChapter) {
+        currentChapterId.value = targetChapter.id
+      }
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  [queryChapterId, availableDocMap],
+  ([chapterId, docMap]) => {
+    if (!chapterId) return
+    if (!docMap.has(chapterId)) return
+    currentChapterId.value = chapterId
+  },
+  { immediate: true },
+)
+
+watch(
+  () => queryTool.value,
+  (tool) => {
+    const allowedTools: ActiveTool[] = ['chapters', 'writing', 'immersive', 'ai', 'encyclopedia']
+    if (allowedTools.includes(tool as ActiveTool)) {
+      editorStore.setActiveTool(tool as ActiveTool)
+    }
+  },
+  { immediate: true },
+)
 
 // 内容更新处理
 const handleContentUpdate = (newContent: string) => {
@@ -204,7 +446,7 @@ const handleAddVolumeQuick = () => {
 
 // 手动保存内容
 const handleManualSave = async () => {
-  await editorStore.save()
+  editorStore.markSaved()
   message.success('保存成功')
 }
 
@@ -212,10 +454,11 @@ const handleManualSave = async () => {
 const handleCreateDoc = async () => {
   if (!newDocForm.value.title) return
   try {
+    // 使用类型断言解决 TS2322 错误
     await documentStore.create(currentProjectId.value, {
       title: newDocForm.value.title,
-      type: newDocForm.value.type as 'chapter' | 'volume',
-      projectId: currentProjectId.value
+      type: newDocForm.value.type as unknown as DocumentType,
+      projectId: currentProjectId.value,
     })
 
     showCreateDocDialog.value = false
@@ -245,15 +488,19 @@ const handleToolbarCommand = (cmd: string) => {
   // 由于EditorPanel使用contenteditable，需要特殊处理
   // 这里暂时简单处理，直接在editorStore上操作
   // 实际可能需要通过emit传递DOM引用
-  const editorElement = document.querySelector('.editor-content') as HTMLDivElement
+  const editorElement = document.querySelector('.editor-content') as HTMLTextAreaElement
   if (editorElement) {
     formatMarkdown(cmd, editorElement)
-    editorStore.setContent(editorElement.textContent || '')
+    editorStore.setContent(editorElement.value || '')
   }
 }
 
 // AI 相关
-const toggleAISidebar = () => aiSidebarVisible.value = !aiSidebarVisible.value
+const toggleAISidebar = () => {
+  // 添加 activeTool 的空值检查，解决 TS2339 错误
+  const currentTool = editorStore.activeTool ?? 'writing'
+  editorStore.setActiveTool(currentTool === 'ai' ? 'writing' : 'ai')
+}
 
 const handleContextMenu = (event: MouseEvent, selectedText: string) => {
   if (selectedText) {
@@ -264,18 +511,72 @@ const handleContextMenu = (event: MouseEvent, selectedText: string) => {
   }
 }
 
-const handleAIAction = (action: string, text?: string) => {
+const handleAddToAIContext = (selectedText: string) => {
+  const normalizedText = (selectedText || '').trim()
+  if (!normalizedText) return
+  handleAIAction('add_to_chat', normalizedText)
+}
+
+const handleAIAction = (action: string, text?: string, instructions?: string) => {
   contextMenu.visible = false
-  aiSidebarVisible.value = true
+  editorStore.setActiveTool('ai')
   // 这里可以调用 AI Store 设置当前模式和文本
-  writerStore.setAITool(action as 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'agent')
-  if (text) writerStore.setSelectedText(text)
+  const aiTool = action === 'add_to_chat' ? 'chat' : action
+  // 使用类型断言解决 TS2345 AIToolType 不匹配错误
+  writerStore.setAITool(aiTool as any)
+  const normalizedText = (text || '').trim()
+  const normalizedInstructions = (instructions || '').trim()
+  writerStore.setSelectedText(normalizedText)
+
+  aiActionSeq.value += 1
+  aiActionTrigger.value = {
+    id: aiActionSeq.value,
+    action,
+    text: normalizedText,
+    instructions: normalizedInstructions || undefined,
+  }
 }
 
 const handleAISend = (message: string) => {
   // 处理AI发送消息事件
   console.log('[ProjectWorkspace] AI send message:', message)
   // TODO: 集成到writerStore的AI功能
+}
+
+const handleAIApplyGeneratedText = (payload: {
+  action: string
+  sourceText: string
+  generatedText: string
+}) => {
+  const generatedText = (payload.generatedText || '').trim()
+  if (!generatedText) return
+
+  const sourceText = payload.sourceText || ''
+  const currentContent = editorStore.content || ''
+  let nextContent = currentContent
+
+  if (sourceText) {
+    const sourceIndex = currentContent.indexOf(sourceText)
+    if (sourceIndex >= 0) {
+      if (payload.action === 'continue') {
+        const insertPos = sourceIndex + sourceText.length
+        nextContent =
+          `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
+      } else {
+        nextContent =
+          `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
+      }
+    }
+  }
+
+  if (nextContent === currentContent) {
+    const separator = currentContent && !currentContent.endsWith('\n') ? '\n\n' : ''
+    nextContent = `${currentContent}${separator}${generatedText}`
+  }
+
+  editorStore.setContent(nextContent)
+  writerStore.setSelectedText('')
+  message.success('AI 结果已应用到编辑器')
 }
 </script>
 

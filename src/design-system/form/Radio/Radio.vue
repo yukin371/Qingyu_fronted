@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 /**
  * Radio 组件
@@ -8,7 +9,7 @@
 import { computed, inject } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { RadioProps, RadioEmits } from './types'
+import type { RadioProps, RadioEmits, RadioSize } from './types'
 
 // 使用 CVA 定义单选框变体
 const radioVariants = cva(
@@ -110,7 +111,7 @@ const groupProps = inject<{
   size?: RadioSize
   button?: boolean
   modelValue?: string | number | boolean
-  updateModelValue: (value: string | number | boolean) => void
+  updateModelValue?: (v: string | number | boolean) => void  // eslint-disable-line no-unused-vars
 }>('radioGroup', {})
 
 // 计算实际属性（优先使用自身属性，否则使用组属性）
@@ -212,8 +213,7 @@ const updateValue = () => {
     :class="cn(
       'inline-flex items-center',
       actualButton ? '' : 'cursor-pointer',
-      actualDisabled && 'cursor-not-allowed opacity-50',
-      $attrs.class
+      actualDisabled && 'cursor-not-allowed opacity-50'
     )"
   >
     <!-- 按钮模式 -->
@@ -223,7 +223,7 @@ const updateValue = () => {
         :class="'sr-only'"
         :checked="isChecked"
         :disabled="actualDisabled"
-        :value="value"
+        :value="props.value"
         @change="updateValue"
       >
       <span :class="classes">
@@ -238,7 +238,7 @@ const updateValue = () => {
         :class="inputClasses"
         :checked="isChecked"
         :disabled="actualDisabled"
-        :value="value"
+        :value="props.value"
         @change="updateValue"
       >
       <!-- 选中状态的小圆点 -->

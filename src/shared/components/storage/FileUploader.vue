@@ -1,7 +1,6 @@
 <template>
   <div class="file-uploader">
     <el-upload
-      ref="uploadRef"
       :action="uploadAction"
       :headers="uploadHeaders"
       :multiple="multiple"
@@ -51,7 +50,7 @@
             :percentage="item.progress"
             :show-text="false"
           />
-          <span v-if="item.status === 'success'" class="status-text success">上传成功</span>
+          <span v-if="item.status === 'done'" class="status-text success">上传成功</span>
           <span v-if="item.status === 'error'" class="status-text error">{{ item.error }}</span>
         </div>
         <el-button
@@ -68,10 +67,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { message } from '@/design-system/services'
-import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
-import { QyIcon } from '@/design-system/components'
-import type { UploadProgress } from '@/types/shared'
+import type { UploadProps, UploadRawFile } from 'element-plus'
+import { UploadFilled, Close } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+
+// 扩展的上传进度接口
+interface ExtendedUploadProgress {
+  fileId: string
+  filename: string
+  progress: number
+  status: 'uploading' | 'done' | 'error'
+  error?: string
+}
 
 interface Props {
   accept?: string
@@ -108,8 +115,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const authStore = useAuthStore()
-const uploadRef = ref<UploadInstance>()
-const uploadQueue = ref<UploadProgress[]>([])
+const uploadQueue = ref<ExtendedUploadProgress[]>([])
 
 // 上传地址
 const uploadAction = computed(() => {
@@ -145,10 +151,10 @@ const handleBeforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 // 上传成功
-const handleSuccess: UploadProps['onSuccess'] = (response, uploadFile, uploadFiles) => {
+const handleSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
   const item = uploadQueue.value.find((i) => i.filename === uploadFile.name)
   if (item) {
-    item.status = 'success'
+    item.status = 'done'
     item.progress = 100
   }
 
@@ -178,7 +184,7 @@ const handleProgress: UploadProps['onProgress'] = (evt, uploadFile) => {
 }
 
 // 超出文件数量限制
-const handleExceed: UploadProps['onExceed'] = (files) => {
+const handleExceed: UploadProps['onExceed'] = (_files) => {
   message.warning(`最多只能上传 ${props.limit} 个文件`)
 }
 
@@ -187,7 +193,7 @@ const getStatusIcon = (status: string): string => {
   const iconMap: Record<string, string> = {
     pending: 'el-icon-document',
     uploading: 'el-icon-loading',
-    success: 'el-icon-circle-check',
+    done: 'el-icon-circle-check',
     error: 'el-icon-circle-close'
   }
   return iconMap[status] || 'el-icon-document'

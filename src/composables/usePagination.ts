@@ -47,7 +47,8 @@ export function usePagination<T>(
   const loading = ref(false)
   const currentPage = ref(1)
   const total = ref(0)
-  const hasMore = computed(() => items.value.length < total.value || total.value === 0)
+  const reachedEnd = ref(false)
+  const hasMore = computed(() => !reachedEnd.value && (items.value.length < total.value || total.value === 0))
 
   // IntersectionObserver 实例
   let observer: IntersectionObserver | null = null
@@ -66,10 +67,18 @@ export function usePagination<T>(
       if (result.items && result.items.length > 0) {
         items.value.push(...result.items)
         currentPage.value++
+      } else {
+        // 返回空列表时视为已到底，避免触底后无限请求
+        reachedEnd.value = true
       }
 
       if (result.total !== undefined) {
         total.value = result.total
+        if (result.total <= items.value.length) {
+          reachedEnd.value = true
+        }
+      } else if (!result.items || result.items.length < pageSize) {
+        reachedEnd.value = true
       }
     } catch (error) {
       console.error('加载数据失败:', error)
@@ -94,6 +103,7 @@ export function usePagination<T>(
     items.value = []
     currentPage.value = 1
     total.value = 0
+    reachedEnd.value = false
   }
 
   /**
@@ -175,4 +185,3 @@ export function usePagination<T>(
     setupScrollObserver
   }
 }
-

@@ -260,10 +260,16 @@ const revenueStats = ref({
 })
 
 // 章节收入排行
-const chapterRanking = ref([])
+const chapterRanking = ref<ChapterRevenue[]>([])
 
 // 提现记录
-const withdrawalRecords = ref([])
+const withdrawalRecords = ref<Array<{
+  applyTime: string
+  amount: number
+  status: string
+  processTime: string
+  remark: string
+}>>([])
 
 // 提现表单
 const withdrawFormRef = ref<FormInstance>()
@@ -686,12 +692,12 @@ async function submitWithdraw(): Promise<void> {
     }
 
     withdrawing.value = true
-    await walletAPI.requestWithdraw({
+    await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
       account: withdrawForm.account,
-      method: withdrawForm.method,
+      accountType: withdrawForm.method,
       remark: withdrawForm.remark
-    })
+    } as any)
 
     message.success('提现申请已提交，请等待审核')
     showWithdrawDialog.value = false
@@ -749,6 +755,8 @@ onUnmounted(() => {
 
   .header-book-select {
     :deep(.el-select__wrapper) {
+      display: flex;
+      align-items: center;
       min-height: 42px;
       border-radius: 12px;
       border: 1px solid #dbe6f6;
@@ -773,6 +781,23 @@ onUnmounted(() => {
 
     :deep(.el-select__caret) {
       color: #64748b;
+      font-size: 16px;
+      line-height: 1;
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      flex: 0 0 auto;
+    }
+
+    :deep(.el-select__caret .el-icon),
+    :deep(.el-select__caret .el-icon svg),
+    :deep(.el-select__caret svg) {
+      width: 1em !important;
+      height: 1em !important;
+      min-width: 1em;
+      min-height: 1em;
+      display: block;
     }
 
     :deep(.el-select__input),

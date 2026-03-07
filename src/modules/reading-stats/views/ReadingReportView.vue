@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { QyIcon } from '@/design-system/components'
+
 const period = ref('week')
 </script>
 

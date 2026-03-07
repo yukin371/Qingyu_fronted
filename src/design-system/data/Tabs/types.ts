@@ -104,10 +104,12 @@ export interface TabPaneInstance {
 }
 
 // Tabs 上下文类型
+import type { Ref } from 'vue'
+
 export interface TabsContext {
   props: TabsProps
-  currentName: string | number
-  panes: TabPaneInstance[]
+  currentName: Ref<string | number>
+  panes: Ref<TabPaneInstance[]>
   addPane: (pane: TabPaneInstance) => void
   removePane: (pane: TabPaneInstance) => void
   handleTabClick: (pane: TabPaneInstance, event: MouseEvent) => void

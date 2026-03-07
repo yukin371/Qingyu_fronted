@@ -83,11 +83,6 @@ export const fillVariants = cva(
   ],
   {
     variants: {
-      size: {
-        sm: 'h-1',
-        md: 'h-2',
-        lg: 'h-3'
-      },
       vertical: {
         true: 'w-full',
         false: 'h-full'
@@ -100,7 +95,6 @@ export const fillVariants = cva(
       }
     },
     defaultVariants: {
-      size: 'md',
       vertical: false,
       color: 'primary'
     }

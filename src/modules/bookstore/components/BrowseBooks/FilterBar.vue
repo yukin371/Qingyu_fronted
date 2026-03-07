@@ -4,7 +4,7 @@
       <!-- 分类筛选 -->
       <Select
         :model-value="categoryId"
-        @update:model-value="$emit('update:categoryId', $event)"
+        @update:model-value="(val: unknown) => $emit('update:categoryId', String(val ?? ''))"
         :options="categoryOptions"
         placeholder="分类"
         clearable
@@ -14,7 +14,7 @@
       <!-- 年份筛选 -->
       <Select
         :model-value="year"
-        @update:model-value="$emit('update:year', $event)"
+        @update:model-value="(val: unknown) => $emit('update:year', String(val ?? ''))"
         :options="yearOptions"
         placeholder="年份"
         clearable
@@ -24,7 +24,7 @@
       <!-- 状态筛选 -->
       <Select
         :model-value="status"
-        @update:model-value="$emit('update:status', $event)"
+        @update:model-value="(val: unknown) => $emit('update:status', String(val ?? ''))"
         :options="statusOptions"
         placeholder="状态"
         clearable
@@ -57,10 +57,25 @@ defineEmits<{
   'update:status': [value: string]
 }>()
 
+const flattenCategories = (items: any[] = []): any[] => {
+  const result: any[] = []
+  items.forEach((item) => {
+    if (Array.isArray(item?.children) && item.children.length > 0) {
+      result.push(...flattenCategories(item.children))
+      return
+    }
+    result.push(item)
+  })
+  return result
+}
+
 // 转换分类数据为 Select options
 const categoryOptions = computed<SelectOption[]>(() => [
   { value: '', label: '全部分类' },
-  ...props.categories.map(cat => ({ value: cat.id, label: cat.name }))
+  ...flattenCategories(props.categories as any[]).map((cat: any) => ({
+    value: cat.id || cat._id,
+    label: cat.name
+  }))
 ])
 
 // 转换年份数据为 Select options

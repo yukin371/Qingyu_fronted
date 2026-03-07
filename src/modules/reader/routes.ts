@@ -41,6 +41,12 @@ const readerRoutes: RouteRecordRaw[] = [
         meta: { title: '我的书签', requiresAuth: true }
       },
       {
+        path: 'collections',
+        name: 'collections',
+        component: () => import('./views/CollectionsView.vue'),
+        meta: { title: '我的收藏', requiresAuth: true }
+      },
+      {
         path: 'theme-settings',
         name: 'theme-settings',
         component: () => import('./views/ThemeSettingsView.vue'),

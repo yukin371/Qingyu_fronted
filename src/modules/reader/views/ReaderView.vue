@@ -6,14 +6,14 @@
         <el-container v-loading="loading" data-testid="reader-container">
         <!-- 顶部导航栏 -->
         <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-header">
-          <div class="header-left">
-            <QyButton variant="text" @click="goBack" :icon="ArrowLeft" data-testid="reader-back-btn">返回</QyButton>
-            <span class="book-title" data-testid="reader-book-title">{{ bookTitle }}</span>
-          </div>
-          <div class="header-right">
-            <QyButton variant="text" @click="toggleAIAssistant" :icon="MagicStick" class="ai-button" data-testid="reader-ai-assistant-btn">AI助手</QyButton>
-            <QyButton variant="text" @click="toggleCatalog" :icon="List" data-testid="reader-catalog-btn">目录</QyButton>
-            <QyButton variant="text" @click="toggleSettings" :icon="Setting" data-testid="reader-settings-btn">设置</QyButton>
+          <div class="reader-nav-bar">
+            <QyButton class="nav-btn" variant="secondary" :disabled="!hasPreviousChapter" @click="previousChapter">上一章</QyButton>
+            <div class="nav-center">
+              <QyButton class="nav-btn" variant="secondary" @click="goBackToBookDetail">返回目录</QyButton>
+              <QyButton class="nav-btn" variant="secondary" @click="goHome">返回首页</QyButton>
+              <QyButton class="nav-btn" variant="secondary" @click="toggleSettings" data-testid="reader-settings-btn">阅读设置</QyButton>
+            </div>
+            <QyButton class="nav-btn" variant="secondary" :disabled="!hasNextChapter" @click="nextChapter">下一章</QyButton>
           </div>
         </el-header>
 
@@ -33,13 +33,13 @@
                 class="paragraph-wrapper"
                 :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
                 :data-testid="`paragraph-${index}`"
-                @click="handleParagraphClick(index)"
+                @click.stop="handleParagraphClick(index)"
               >
                 <p class="paragraph-text">{{ paragraph }}</p>
                 <CommentBadge
                   v-if="getParagraphCommentCount(index) > 0"
                   :comment-count="getParagraphCommentCount(index)"
-                  @click.stop="handleParagraphClick(index)"
+                  @click="handleCommentBadgeClick(index)"
                 />
               </article>
             </div>
@@ -57,26 +57,8 @@
 
                 <!-- 操作按钮 -->
                 <div class="action-buttons">
-                  <QyButton
-                    v-if="hasNextChapter"
-                    variant="primary"
-                    size="lg"
-                    class="action-btn"
-                    @click="nextChapterAndAddToBookshelf"
-                    data-testid="next-chapter-btn"
-                  >
-                    继续阅读下一章
-                  </QyButton>
-
-                  <QyButton
-                    v-else
-                    variant="success"
-                    size="lg"
-                    class="action-btn"
-                    @click="goBackToBookDetail"
-                    data-testid="back-to-book-detail-btn"
-                  >
-                    返回作品详情
+                  <QyButton variant="primary" size="lg" class="action-btn" @click="addToBookshelf" data-testid="collect-book-btn">
+                    {{ isInBookshelf ? '已收藏本书' : '收藏本书' }}
                   </QyButton>
                 </div>
 
@@ -121,11 +103,17 @@
         <footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-footer">
           <div class="footer-progress" data-testid="reader-progress-bar">
             <span class="progress-text">{{ progressText }}</span>
-            <QySlider v-model="readProgress" :show-tooltip="false" size="sm" @change="handleProgressChange" />
+            <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
           </div>
           <div class="footer-nav">
             <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasPreviousChapter" @click="previousChapter" data-testid="previous-chapter-btn">
               上一章
+            </QyButton>
+            <QyButton class="footer-nav-btn" variant="secondary" @click="goBackToBookDetail">
+              返回目录
+            </QyButton>
+            <QyButton class="footer-nav-btn" variant="secondary" @click="goHome">
+              返回首页
             </QyButton>
             <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasNextChapter" @click="nextChapter" data-testid="next-chapter-nav-btn">
               下一章
@@ -137,7 +125,7 @@
     </transition>
 
     <!-- 目录抽屉 -->
-    <QyDrawer v-model:visible="catalogVisible" title="目录" direction="rtl" size="400px" data-testid="catalog-drawer">
+    <QyDrawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">
       <QyScrollbar>
         <div v-for="chapter in chapterList" :key="chapter.id" class="catalog-item"
           :class="{ 'is-active': chapter.id === chapterId, 'is-read': chapter.isRead }"
@@ -152,39 +140,61 @@
       </QyScrollbar>
     </QyDrawer>
 
-    <!-- AI助手 -->
-    <AIReadingAssistant
-      :visible="aiAssistantVisible"
-      @update:visible="aiAssistantVisible = $event"
-      :chapter-content="currentChapter?.content"
-      :book-title="bookTitle"
-      :chapter-title="currentChapter?.title"
-      @close="aiAssistantVisible = false"
-    />
+    <!-- 设置浮层卡片 -->
+    <div v-if="settingsVisible" class="settings-overlay" data-testid="settings-overlay" @click.self="settingsVisible = false">
+      <section class="settings-modal" data-testid="settings-modal">
+        <div class="settings-modal-header">
+          <h3>阅读设置</h3>
+          <QyButton variant="secondary" size="sm" @click="settingsVisible = false">关闭</QyButton>
+        </div>
 
-    <!-- 设置抽屉 -->
-    <QyDrawer v-model:visible="settingsVisible" title="阅读设置" direction="rtl" size="400px" data-testid="settings-drawer">
-      <div class="settings-panel">
+        <div class="settings-panel">
         <!-- 字体大小 -->
         <div class="setting-item" data-testid="font-size-setting">
           <label>字体大小</label>
           <div class="setting-control">
-            <QyButton @click="decreaseFontSize" :icon="Minus" circle data-testid="decrease-font-btn" />
+            <QyButton @click="decreaseFontSize" circle data-testid="decrease-font-btn">-</QyButton>
             <span class="font-size-value">{{ settings.fontSize }}px</span>
-            <QyButton @click="increaseFontSize" :icon="Plus" circle data-testid="increase-font-btn" />
+            <QyButton @click="increaseFontSize" circle data-testid="increase-font-btn">+</QyButton>
           </div>
         </div>
 
         <!-- 行距 -->
         <div class="setting-item" data-testid="line-height-setting">
-          <label>行距</label>
-          <QySlider v-model="settings.lineHeight" :min="1.5" :max="2.5" :step="0.1" :show-tooltip="true" />
+          <div class="setting-title-row">
+            <label>行距</label>
+            <span class="setting-value">{{ settings.lineHeight.toFixed(1) }}</span>
+          </div>
+          <div class="setting-slider-wrap">
+            <el-slider
+              :model-value="settings.lineHeight"
+              :min="lineHeightMin"
+              :max="lineHeightMax"
+              :step="lineHeightStep"
+              :show-tooltip="false"
+              :marks="lineHeightMarks"
+              @update:model-value="setLineHeight"
+            />
+          </div>
         </div>
 
         <!-- 页面宽度 -->
         <div class="setting-item" data-testid="page-width-setting">
-          <label>页面宽度</label>
-          <QySlider v-model="settings.pageWidth" :min="600" :max="1000" :step="50" :show-tooltip="true" />
+          <div class="setting-title-row">
+            <label>页面宽度</label>
+            <span class="setting-value">{{ settings.pageWidth }}px</span>
+          </div>
+          <div class="setting-slider-wrap">
+            <el-slider
+              :model-value="settings.pageWidth"
+              :min="pageWidthMin"
+              :max="pageWidthMax"
+              :step="pageWidthStep"
+              :show-tooltip="false"
+              :marks="pageWidthMarks"
+              @update:model-value="setPageWidth"
+            />
+          </div>
         </div>
 
         <!-- 主题选择 -->
@@ -217,20 +227,15 @@
           <QyRadio v-model="settings.pageMode" value="page" data-testid="page-mode-page">翻页</QyRadio>
         </div>
 
-        <!-- 自动保存 -->
-        <div class="setting-item" data-testid="auto-save-setting">
-          <label>自动保存进度</label>
-          <QySwitch v-model="settings.autoSave" data-testid="auto-save-switch" />
-        </div>
-
         <!-- 重置按钮 -->
         <div class="setting-item">
           <QyButton @click="resetSettings" style="width: 100%" data-testid="reset-settings-btn">
             重置设置
           </QyButton>
         </div>
+        </div>
+      </section>
       </div>
-    </QyDrawer>
 
     <!-- 段落评论抽屉 -->
     <CommentDrawer
@@ -241,25 +246,45 @@
       @like="commentStore.toggleLike"
       @submit="handleCommentSubmit"
     />
+
+    <QyButton
+      v-if="showBackTop"
+      class="back-to-top-btn"
+      variant="secondary"
+      @click="scrollToTop"
+      data-testid="reader-back-to-top-btn"
+    >
+      ↑
+    </QyButton>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
 import { message } from '@/design-system/services'
-import {
-  ArrowLeft, List, Setting,
-  Minus, Plus, MagicStick
-} from '@element-plus/icons-vue'
-import { QyButton, QyCard, QySlider, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio, QySwitch } from '@/design-system/components'
-import AIReadingAssistant from '../components/AIReadingAssistant.vue'
+import { QyButton, QyCard, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio, QyAlert, QyIcon } from '@/design-system/components'
 import CommentBadge from '../components/comments/CommentBadge.vue'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
+import {
+  YUNLAN_TOTAL_CHAPTERS,
+  createYunlanReaderChapters
+} from '@/modules/bookstore/yunlanDemo.mock'
+import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
+
+interface ReaderSettings {
+  fontSize: number
+  lineHeight: number
+  theme: string
+  fontFamily: string
+  pageWidth: number
+  pageMode: string
+  autoSave?: boolean
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -268,10 +293,12 @@ const commentStore = useCommentStore()
 const { isMobile } = useResponsive()
 
 const chapterId = ref(route.params.chapterId as string)
+const isDemoMode = computed(() => route.query.demo === 'yunlan')
+const publishedBookId = computed(() => String(route.query.bookId || (readerStore as any).currentBookId || ''))
+const isPublishedMode = computed(() => route.query.source === 'published' && !!publishedBookId.value)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
-const aiAssistantVisible = ref(false)
 const isFullscreen = ref(false)
 const readProgress = ref(0)
 const readingTimer = ref<number | null>(null)
@@ -285,6 +312,10 @@ const readingDuration = ref(0)
 const readingDurationTimer = ref<number | null>(null)
 const hasAddedToBookshelfThisSession = ref(false)
 const recommendedBooks = ref<any[]>([])
+const demoChapterList = ref(createYunlanReaderChapters())
+const demoCurrentChapter = ref<any | null>(null)
+const publishedChapterList = ref<any[]>([])
+const publishedCurrentChapter = ref<any | null>(null)
 
 // 段落评论相关状态
 const highlightedParagraphIndex = ref<number | null>(null)
@@ -293,8 +324,8 @@ const parsedParagraphs = computed(() => {
   if (!currentChapter.value?.content) return []
   return currentChapter.value.content
     .split('\n')
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
+    .map((p: string) => p.trim())
+    .filter((p: string) => p.length > 0)
 })
 
 // 主题配置（与reader-variables.scss中的CSS变量保持一致）
@@ -304,15 +335,49 @@ const themes = [
   { label: '夜间', value: 'night', bg: '#1a1a1a', color: '#c9c9c9' }, // --reader-night-*
   { label: '暗黑', value: 'dark', bg: '#121212', color: '#e0e0e0' }   // --reader-dark-*
 ]
+const lineHeightMin = 1.6
+const lineHeightMax = 2.2
+const lineHeightStep = 0.1
+const lineHeightMarks: Record<number, string> = {
+  1.6: '紧凑',
+  1.8: '标准',
+  2.0: '舒适',
+  2.2: '宽松'
+}
+const pageWidthMin = 680
+const pageWidthMax = 980
+const pageWidthStep = 20
+const pageWidthMarks: Record<number, string> = {
+  680: '窄',
+  780: '标准',
+  880: '宽',
+  980: '超宽'
+}
 
 // 计算属性
-const currentChapter = computed(() => readerStore.currentChapter)
-const chapterList = computed(() => readerStore.chapterList)
-const settings = computed(() => readerStore.settings)
-
-const bookTitle = computed(() => {
-  return currentChapter.value?.title || '正在加载...'
+const currentChapter = computed(() => {
+  if (isDemoMode.value) return demoCurrentChapter.value
+  if (isPublishedMode.value) return publishedCurrentChapter.value
+  return readerStore.currentChapter
 })
+const chapterList = computed(() => {
+  if (isDemoMode.value) return demoChapterList.value
+  if (isPublishedMode.value) return publishedChapterList.value
+  return readerStore.chapterList
+})
+const settings = computed((): ReaderSettings => {
+  const s = unref(readerStore.settings) as ReaderSettings | undefined
+  return {
+    fontSize: s?.fontSize ?? 16,
+    lineHeight: s?.lineHeight ?? 1.8,
+    theme: s?.theme ?? 'light',
+    fontFamily: s?.fontFamily ?? 'system-ui',
+    pageWidth: s?.pageWidth ?? 800,
+    pageMode: s?.pageMode ?? 'scroll',
+    autoSave: s?.autoSave ?? true
+  }
+})
+
 
 const hasPreviousChapter = computed(() => {
   return !!currentChapter.value?.prevChapterId
@@ -330,6 +395,7 @@ const progressText = computed(() => {
 const themeClass = computed(() => {
   return `theme-${settings.value.theme}`
 })
+const showBackTop = computed(() => readProgress.value > 15)
 
 const containerStyle = computed(() => {
   return {
@@ -351,37 +417,35 @@ const formatReadingTime = computed(() => {
 })
 
 // 方法
-const goBack = () => {
-  router.back()
-}
-
-const toggleCatalog = () => {
-  catalogVisible.value = !catalogVisible.value
+const toggleHeaderFooter = () => {
+  isFullscreen.value = !isFullscreen.value
 }
 
 const toggleSettings = () => {
   settingsVisible.value = !settingsVisible.value
 }
 
-const toggleAIAssistant = () => {
-  aiAssistantVisible.value = !aiAssistantVisible.value
-}
-
-const toggleHeaderFooter = () => {
-  isFullscreen.value = !isFullscreen.value
-}
-
 const previousChapter = async () => {
   if (!hasPreviousChapter.value) return
   await saveCurrentProgress()
-  await readerStore.loadPreviousChapter()
+  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.prevChapterId) {
+    chapterId.value = currentChapter.value.prevChapterId
+    await loadChapter()
+  } else {
+    await readerStore.loadPreviousChapter()
+  }
   scrollToTop()
 }
 
 const nextChapter = async () => {
   if (!hasNextChapter.value) return
   await saveCurrentProgress()
-  await readerStore.loadNextChapter()
+  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.nextChapterId) {
+    chapterId.value = currentChapter.value.nextChapterId
+    await loadChapter()
+  } else {
+    await readerStore.loadNextChapter()
+  }
   scrollToTop()
 }
 
@@ -402,23 +466,25 @@ const handleContentScroll = () => {
   }
 }
 
-// 下一章并自动添加到书架
-const nextChapterAndAddToBookshelf = async () => {
-  // 自动添加到书架（如果还没添加）
-  await addToBookshelf()
-
-  // 进入下一章
-  showChapterEndRecommendation.value = false
-  await nextChapter()
-}
-
 // 返回书籍详情
 const goBackToBookDetail = () => {
+  if (isDemoMode.value) {
+    router.push('/bookstore/books-demo')
+    return
+  }
+  if (isPublishedMode.value && publishedBookId.value) {
+    router.push(`/bookstore/books/${publishedBookId.value}`)
+    return
+  }
   if (currentChapter.value?.bookId) {
     router.push(`/bookstore/books/${currentChapter.value.bookId}`)
   } else {
     router.back()
   }
+}
+
+const goHome = () => {
+  router.push('/bookstore')
 }
 
 // 跳转到推荐书籍
@@ -443,11 +509,7 @@ const addToBookshelf = async () => {
     isInBookshelf.value = true
 
     // 显示轻提示
-    message.success({
-      message: '已添加到书架',
-      duration: 2000,
-      showClose: false
-    })
+    message.success('已添加到书架')
   } catch {
     console.error('添加到书架失败')
   }
@@ -521,16 +583,29 @@ const stopReadingTimer = () => {
 // ========== 段落评论相关方法 ==========
 
 // 获取段落评论数量
-const getParagraphCommentCount = (paragraphIndex: number): number => {
+const getParagraphCommentCount = (paragraphIndex: number | string): number => {
   if (!currentChapter.value) return 0
   const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
   return commentStore.summaries.get(paragraphId)?.commentCount || 0
 }
 
 // 处理段落点击
-const handleParagraphClick = async (index: number) => {
-  highlightedParagraphIndex.value = index
-  await openCommentDrawer(index)
+const handleParagraphClick = (index: number | string) => {
+  const numIndex = Number(index)
+  if (highlightedParagraphIndex.value === numIndex) {
+    highlightedParagraphIndex.value = null
+    commentDrawerVisible.value = false
+    commentStore.clearSelection()
+    return
+  }
+
+  highlightedParagraphIndex.value = numIndex
+}
+
+const handleCommentBadgeClick = async (index: number | string) => {
+  const numIndex = Number(index)
+  highlightedParagraphIndex.value = numIndex
+  await openCommentDrawer(numIndex)
 }
 
 // 打开评论抽屉
@@ -544,7 +619,7 @@ const openCommentDrawer = async (paragraphIndex: number) => {
 }
 
 // 处理评论提交
-const handleCommentSubmit = async (data: { content: string; emoji?: string }) => {
+const handleCommentSubmit = async (data: { content: string; emoji?: string; replyToCommentId?: string; replyToUsername?: string }) => {
   if (highlightedParagraphIndex.value === null || !currentChapter.value) return
 
   await commentStore.addComment({
@@ -552,7 +627,9 @@ const handleCommentSubmit = async (data: { content: string; emoji?: string }) =>
     chapterId: currentChapter.value.id,
     paragraphIndex: highlightedParagraphIndex.value,
     content: data.content,
-    emoji: data.emoji
+    emoji: data.emoji,
+    replyToCommentId: data.replyToCommentId,
+    replyToUsername: data.replyToUsername
   })
 }
 
@@ -581,9 +658,16 @@ const decreaseFontSize = () => {
 const changeTheme = (theme: string) => {
   readerStore.updateSettings({ theme: theme as any })
 }
+const setLineHeight = (value: number) => {
+  readerStore.updateSettings({ lineHeight: value })
+}
+const setPageWidth = (value: number) => {
+  readerStore.updateSettings({ pageWidth: value })
+}
 
 const resetSettings = () => {
   readerStore.resetSettings()
+  readerStore.updateSettings({ autoSave: true })
   message.success('设置已重置')
 }
 
@@ -597,10 +681,61 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const ensureDemoChapterList = () => {
+  if (demoChapterList.value.length > 0) return
+  demoChapterList.value = createYunlanReaderChapters(YUNLAN_TOTAL_CHAPTERS)
+}
+
+const loadDemoChapter = (id: string) => {
+  ensureDemoChapterList()
+  const target = demoChapterList.value.find(ch => ch.id === id) || demoChapterList.value[0]
+  demoCurrentChapter.value = target || null
+}
+
 // 加载章节
 const loadChapter = async () => {
   loading.value = true
   try {
+    if (isDemoMode.value) {
+      loadDemoChapter(chapterId.value)
+      readProgress.value = 0
+      startTime.value = Date.now()
+      return
+    }
+    if (isPublishedMode.value) {
+      const detail = getPublishedBookDetail(publishedBookId.value)
+      if (!detail) {
+        message.error('未找到已发布内容，请先在发布管理中发布章节')
+        return
+      }
+
+      const mapped = detail.chapters
+        .slice()
+        .sort((a, b) => a.chapterNum - b.chapterNum)
+        .map((chapter, index, list) => ({
+          id: chapter.id,
+          chapterNum: chapter.chapterNum,
+          title: chapter.title,
+          content: chapter.content,
+          bookId: detail.book.id,
+          bookTitle: detail.book.title,
+          isRead: false,
+          isFree: chapter.isFree,
+          prevChapterId: index > 0 ? list[index - 1].id : '',
+          nextChapterId: index < list.length - 1 ? list[index + 1].id : '',
+        }))
+
+      publishedChapterList.value = mapped
+      const target = mapped.find((chapter) => chapter.id === chapterId.value) || mapped[0] || null
+      if (target) {
+        publishedCurrentChapter.value = target
+        chapterId.value = target.id
+      }
+      readProgress.value = 0
+      startTime.value = Date.now()
+      return
+    }
+
     await readerStore.loadChapter(chapterId.value)
 
     // 重置阅读进度
@@ -608,7 +743,10 @@ const loadChapter = async () => {
     startTime.value = Date.now()
 
     // 如果还没有加载章节列表，加载它
-    if (chapterList.value.length === 0 && currentChapter.value) {
+    const chapterListValue = Array.isArray(chapterList.value)
+      ? chapterList.value
+      : (chapterList.value as any).value || []
+    if (chapterListValue.length === 0 && currentChapter.value) {
       await readerStore.loadChapterList(currentChapter.value.bookId)
     }
   } catch (error: any) {
@@ -620,7 +758,7 @@ const loadChapter = async () => {
 
 // 保存阅读进度
 const saveCurrentProgress = async () => {
-  if (!currentChapter.value || !settings.value.autoSave) return
+  if (!currentChapter.value) return
 
   try {
     const scrollPercent = Math.round(
@@ -646,6 +784,8 @@ const saveCurrentProgress = async () => {
 
 // 键盘快捷键
 const handleKeyPress = (e: KeyboardEvent) => {
+  if (settingsVisible.value) return
+
   switch (e.key) {
     case 'ArrowLeft':
       previousChapter()
@@ -691,9 +831,7 @@ onMounted(async () => {
   window.addEventListener('keydown', handleKeyPress)
 
   // 定时保存进度（每30秒）
-  if (settings.value.autoSave) {
-    readingTimer.value = setInterval(saveCurrentProgress, 30000) as any
-  }
+  readingTimer.value = setInterval(saveCurrentProgress, 30000) as any
 
   // 集成触摸手势
   if (isMobile.value && readerContainerRef.value) {
@@ -744,6 +882,12 @@ watch(() => route.params.chapterId, (newId) => {
     loadChapter()
   }
 })
+
+watch(commentDrawerVisible, (visible) => {
+  if (visible) return
+  highlightedParagraphIndex.value = null
+  commentStore.clearSelection()
+})
 </script>
 
 <style scoped lang="scss">
@@ -778,50 +922,43 @@ watch(() => route.params.chapterId, (newId) => {
 
 .reader-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  height: 60px;
+  justify-content: center;
+  padding: 0 12px;
+  min-height: 68px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f8fafc;
   transition: transform 0.3s;
 
   &.is-hidden {
     transform: translateY(-100%);
   }
+}
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.reader-nav-bar {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
 
-    .book-title {
-      font-size: 16px;
-      font-weight: 500;
-      max-width: 300px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
+.nav-center {
+  display: inline-flex;
+  gap: 10px;
+  justify-content: center;
+}
 
-  .header-right {
-    display: flex;
-    gap: 8px;
+.reader-nav-bar > .nav-btn:first-child {
+  justify-self: start;
+}
 
-    .ai-button {
-      color: #667eea;
-      font-weight: 500;
-
-      &:hover {
-        color: #764ba2;
-        background: rgba(102, 126, 234, 0.1);
-      }
-    }
-  }
+.reader-nav-bar > .nav-btn:last-child {
+  justify-self: end;
 }
 
 .reader-main {
-  padding: 40px 20px;
+  padding: 22px 20px 30px;
   overflow-y: auto;
 }
 
@@ -858,8 +995,39 @@ watch(() => route.params.chapterId, (newId) => {
         text-indent: 2em;
         text-align: justify;
         line-height: inherit;
+        padding-right: 56px;
+      }
+
+      :deep(.comment-badge) {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        margin-left: 0;
+        z-index: 1;
       }
     }
+  }
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 92px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 16px;
+  line-height: 34px;
+  text-align: center;
+  opacity: 0.58;
+  backdrop-filter: blur(2px);
+  transition: opacity 0.2s ease;
+  z-index: 1200;
+
+  &:hover {
+    opacity: 0.9;
   }
 }
 
@@ -931,8 +1099,21 @@ watch(() => route.params.chapterId, (newId) => {
   .footer-nav {
     display: flex;
     justify-content: center;
-    gap: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
   }
+}
+
+:deep(.qy-slider__track) {
+  height: 8px !important;
+  max-height: 8px !important;
+  overflow: hidden !important;
+}
+
+:deep(.qy-slider__fill) {
+  height: 8px !important;
+  max-height: 8px !important;
+  border-radius: 9999px !important;
 }
 
 // 目录样式
@@ -979,16 +1160,31 @@ watch(() => route.params.chapterId, (newId) => {
 
 // 设置面板样式
 .settings-panel {
-  padding: 0 20px;
+  padding: 0 20px 18px;
+  max-height: min(70vh, 640px);
+  overflow: auto;
 
   .setting-item {
     margin-bottom: 32px;
 
     label {
       display: block;
-      margin-bottom: 12px;
       font-size: 14px;
       font-weight: 500;
+    }
+
+    .setting-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .setting-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2563eb;
     }
 
     .setting-control {
@@ -1002,6 +1198,10 @@ watch(() => route.params.chapterId, (newId) => {
         text-align: center;
         font-weight: bold;
       }
+    }
+
+    .setting-slider-wrap {
+      padding: 0 4px;
     }
   }
 
@@ -1030,21 +1230,66 @@ watch(() => route.params.chapterId, (newId) => {
   }
 }
 
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(15 23 42 / 30%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1600;
+}
+
+.settings-modal {
+  width: min(560px, calc(100vw - 32px));
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid #eef2f7;
+  margin-bottom: 12px;
+}
+
+.settings-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
 // 响应式
 @media (max-width: 768px) {
-  .reader-header {
-    .book-title {
-      max-width: 150px;
-    }
-  }
-
   .reader-container {
     .chapter-title {
       font-size: 22px;
     }
   }
 
-  .footer-nav {
+  .reader-nav-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .reader-nav-bar > .nav-btn:first-child,
+  .reader-nav-bar > .nav-btn:last-child {
+    justify-self: stretch;
+  }
+
+  .nav-center {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .reader-footer .footer-nav {
     flex-direction: column;
 
     .footer-nav-btn {
@@ -1073,86 +1318,83 @@ watch(() => route.params.chapterId, (newId) => {
 
 // 章节结束推荐区
 .chapter-end-recommendation {
-  margin-top: 60px;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  color: white;
+  margin-top: 32px;
+  padding: 22px 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  color: #1f2937;
 
   .recommendation-card {
     h3 {
-      font-size: 28px;
-      margin: 0 0 16px 0;
+      font-size: 18px;
+      margin: 0 0 8px 0;
       text-align: center;
+      font-weight: 600;
     }
 
     .read-time {
       text-align: center;
-      font-size: 16px;
-      margin-bottom: 32px;
-      opacity: 0.9;
+      font-size: 13px;
+      margin-bottom: 14px;
+      color: #4b5563;
     }
 
     .action-buttons {
       display: flex;
       justify-content: center;
-      gap: 16px;
-      margin-bottom: 32px;
+      gap: 10px;
+      margin-bottom: 14px;
 
       .action-btn {
-        min-width: 200px;
-        height: 50px;
-        font-size: 18px;
-        transition: all 0.3s ease;
-
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
+        min-width: 140px;
+        height: 36px;
+        font-size: 14px;
       }
     }
 
     .add-to-bookshelf-tip {
-      margin-bottom: 32px;
+      margin-bottom: 14px;
 
       :deep(.qy-alert) {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: #eef6ff;
+        border: 1px solid #dbeafe;
 
         .qy-alert__title {
-          color: white;
+          color: #1f2937;
         }
 
         .qy-alert__description {
-          color: rgba(255, 255, 255, 0.9);
+          color: #4b5563;
         }
       }
     }
 
     .recommended-books {
       h4 {
-        font-size: 18px;
-        margin: 0 0 16px 0;
+        font-size: 14px;
+        margin: 0 0 10px 0;
         text-align: center;
+        color: #6b7280;
       }
 
       .book-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
+        gap: 10px;
 
         .book-item {
           display: flex;
           gap: 12px;
           padding: 12px;
-          background: rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
           border-radius: 8px;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: background-color 0.2s ease;
 
           &:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            background: #f9fafb;
           }
 
           .book-cover {
@@ -1169,7 +1411,7 @@ watch(() => route.params.chapterId, (newId) => {
             .book-title {
               font-size: 14px;
               font-weight: 600;
-              color: white;
+              color: #111827;
               margin-bottom: 4px;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -1178,7 +1420,7 @@ watch(() => route.params.chapterId, (newId) => {
 
             .book-author {
               font-size: 12px;
-              color: rgba(255, 255, 255, 0.7);
+              color: #6b7280;
             }
           }
         }

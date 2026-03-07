@@ -118,12 +118,10 @@
 
         <!-- 结果列表 -->
         <div class="results-list">
-          <Spinner v-if="loading" :size="48" class="loading-spinner" />
+          <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
           <!-- 书籍搜索结果 -->
           <template v-else-if="searchType === 'book'">
-
-          <template v-else>
             <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
               <div class="item-cover">
                 <Image :src="book.cover" fit="cover">
@@ -205,7 +203,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getFirstChapter } from '@/modules/reader/api'
 import { message } from '@/design-system/services'
@@ -395,19 +392,12 @@ const handleSearch = async () => {
 
       router.push({ path: '/bookstore/search', query })
 
-      const params: any = {
-        keyword,
-        ...filters,
-        page: currentPage.value,
-        size: pageSize.value
-      }
-
       // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
       await bookstoreStore.searchBooks(keyword, filters)
 
       // 使用 store 中的搜索结果
       const resultList = bookstoreStore.books.searchResults || []
-      searchResults.value = Array.isArray(resultList) ? resultList : []
+      searchResults.value = Array.isArray(resultList) ? resultList as BookBrief[] : []
       totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
     }
   } catch (error) {

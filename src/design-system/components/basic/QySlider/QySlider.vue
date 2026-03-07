@@ -7,14 +7,16 @@
     <div
       ref="sliderRef"
       :class="sliderClasses"
+      class="qy-slider__core"
       @mousedown="handleMouseDown"
       @touchstart="handleTouchStart"
     >
       <!-- 轨道 -->
-      <div :class="trackClasses">
+      <div :class="trackClasses" class="qy-slider__track">
         <!-- 已填充轨道 -->
         <div
           :class="fillClasses"
+          class="qy-slider__fill"
           :style="fillStyle"
         ></div>
 
@@ -38,7 +40,7 @@
             @touchstart.stop="handleThumbTouchStart(0)"
           >
             <!-- Tooltip -->
-            <div v-if="showTooltip" :class="tooltipClasses">
+            <div v-if="showTooltip && Array.isArray(internalValue)" :class="tooltipClasses">
               {{ formatValue(internalValue[0]) }}
             </div>
           </div>
@@ -51,7 +53,7 @@
             @touchstart.stop="handleThumbTouchStart(1)"
           >
             <!-- Tooltip -->
-            <div v-if="showTooltip" :class="tooltipClasses">
+            <div v-if="showTooltip && Array.isArray(internalValue)" :class="tooltipClasses">
               {{ formatValue(internalValue[1]) }}
             </div>
           </div>
@@ -93,7 +95,7 @@
     <div v-if="!showTooltip && !isRange" class="mt-2 text-sm text-slate-600">
       {{ formatValue(internalValue) }}
     </div>
-    <div v-else-if="!showTooltip && isRange" class="mt-2 text-sm text-slate-600">
+    <div v-else-if="!showTooltip && isRange && Array.isArray(internalValue)" class="mt-2 text-sm text-slate-600">
       {{ formatValue(internalValue[0]) }} - {{ formatValue(internalValue[1]) }}
     </div>
   </div>
@@ -189,7 +191,6 @@ const trackClasses = computed(() => {
 // 计算填充类名
 const fillClasses = computed(() => {
   return fillVariants({
-    size: props.size,
     vertical: props.vertical,
     color: props.color
   })
@@ -197,11 +198,11 @@ const fillClasses = computed(() => {
 
 // 计算填充样式
 const fillStyle = computed(() => {
-  if (isRange.value) {
+  if (isRange.value && Array.isArray(internalValue.value)) {
     const [min, max] = internalValue.value as number[]
     const minPercent = ((min - props.min) / (props.max - props.min)) * 100
     const maxPercent = ((max - props.min) / (props.max - props.min)) * 100
-    
+
     if (props.vertical) {
       return {
         bottom: `${minPercent}%`,
@@ -214,7 +215,7 @@ const fillStyle = computed(() => {
     }
   } else {
     const percent = ((internalValue.value as number - props.min) / (props.max - props.min)) * 100
-    
+
     if (props.vertical) {
       return {
         bottom: '0%',
@@ -263,9 +264,10 @@ const getThumbClasses = (index: number) => {
 
 // 获取滑块样式
 const getThumbStyle = (index: number) => {
-  const value = (internalValue.value as number[])[index]
+  if (!Array.isArray(internalValue.value)) return {}
+  const value = internalValue.value[index]
   const percent = ((value - props.min) / (props.max - props.min)) * 100
-  
+
   if (props.vertical) {
     return { bottom: `${percent}%` }
   }
@@ -366,18 +368,18 @@ const getValueFromPosition = (clientX: number, clientY: number): number => {
 // 更新值
 const updateValue = (value: number, index: number = 0) => {
   if (props.disabled) return
-  
-  if (isRange.value) {
+
+  if (isRange.value && Array.isArray(internalValue.value)) {
     const values = [...internalValue.value] as number[]
     values[index] = value
-    
+
     // 确保最小值不大于最大值
     if (index === 0 && value > values[1]) {
       values[0] = values[1]
     } else if (index === 1 && value < values[0]) {
       values[1] = values[0]
     }
-    
+
     internalValue.value = values
     emit('update:modelValue', values)
     emit('change', values)
@@ -490,3 +492,30 @@ defineExpose({
   blur: () => sliderRef.value?.blur()
 })
 </script>
+
+<style scoped>
+.qy-slider__core {
+  width: 100%;
+  min-height: 24px;
+  overflow: visible;
+}
+
+.qy-slider__track {
+  width: 100%;
+  height: 8px !important;
+  max-height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.qy-slider__fill {
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  max-height: 8px;
+  max-width: 100%;
+  border-radius: inherit;
+  position: absolute;
+}
+</style>

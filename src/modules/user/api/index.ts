@@ -7,14 +7,23 @@
  */
 
 // 用户核心 API
-export * from './user.api'
-export { userAPI } from './user.api'
-// 注意：getProfile 等方法是 userAPI 对象的方法，不是独立导出的函数
-// 使用方式：userAPI.getProfile()
+export {
+  userAPI,
+  getProfile,
+  updateProfile,
+  getBookshelf,
+  getReadingHistory,
+  uploadAvatar,
+} from './user.api'
+export type { UserProfile, UpdateProfileData, AvatarUploadResponse } from './user.api'
 
 // 用户个人资料 API
-export * from './profile'
-export { getUserProfile, updateUserProfile, changePassword as changeProfilePassword, uploadAvatar as uploadProfileAvatar } from './profile'
+export {
+  getUserProfile,
+  updateUserProfile,
+  changePassword,
+  uploadAvatar as uploadProfileAvatar,
+} from './profile'
 
 // 用户安全功能 API
 export * from './security'

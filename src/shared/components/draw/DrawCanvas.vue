@@ -1,5 +1,5 @@
 <template>
-  <div class="draw-canvas-container" ref="containerRef">
+  <div class="draw-canvas-container" ref="_containerRef">
     <!-- 工具栏 -->
     <div class="draw-toolbar">
       <div class="toolbar-left">
@@ -29,13 +29,13 @@
           <el-button
             size="small"
             :icon="ZoomIn"
-            @click="() => drawEngine?.zoom(1.2)"
+            @click="handleZoomIn"
             :disabled="!drawEngine"
           />
           <el-button
             size="small"
             :icon="ZoomOut"
-            @click="() => drawEngine?.zoom(0.8)"
+            @click="handleZoomOut"
             :disabled="!drawEngine"
           />
           <el-button
@@ -53,13 +53,13 @@
             size="small"
             :icon="Back"
             @click="undo"
-            :disabled="!drawEngine || !drawEngine.canUndo()"
+            :disabled="!canUndo"
           />
           <el-button
             size="small"
             :icon="Right"
             @click="redo"
-            :disabled="!drawEngine || !drawEngine.canRedo()"
+            :disabled="!canRedo"
           />
         </el-button-group>
       </div>
@@ -106,7 +106,7 @@
           v-for="node in nodes"
           :key="node.id"
           class="draw-node"
-          :class="{ 'is-selected': node.id === drawEngine?.getSelectedNode()?.id }"
+          :class="{ 'is-selected': node.id === getSelectedNodeId() }"
           :style="getNodeStyle(node)"
           @mousedown.stop="handleNodeMouseDown(node, $event)"
           @click.stop="handleNodeClick(node)"
@@ -116,7 +116,7 @@
             <div class="node-label">{{ node.label }}</div>
             <div v-if="node.metadata?.subtitle" class="node-subtitle">{{ node.metadata.subtitle }}</div>
           </div>
-          <div class="node-actions" v-if="node.id === drawEngine?.getSelectedNode()?.id">
+          <div class="node-actions" v-if="node.id === getSelectedNodeId()">
             <el-button text size="small" :icon="Edit" @click.stop="handleEditNode(node)" />
             <el-button text size="small" :icon="Delete" @click.stop="handleDeleteNode(node)" />
           </div>
@@ -190,9 +190,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import {
+  CirclePlus,
+  Connection,
+  ZoomIn,
+  ZoomOut,
+  Expand,
+  Back,
+  Right,
+  Edit,
+  Delete,
+  Close
+} from '@element-plus/icons-vue'
 import DrawEngine from '@/core/draw-engine/draw-engine'
 import type { DrawEngineConfig, DrawNode } from '@/core/draw-engine/types'
 
@@ -211,7 +222,7 @@ const emit = defineEmits<{
   'export': [data: any]
 }>()
 
-const containerRef = ref<HTMLDivElement>()
+// containerRef 用于模板引用，但这里不直接使用
 const canvasWrapperRef = ref<HTMLDivElement>()
 const canvasRef = ref<HTMLCanvasElement>()
 
@@ -228,6 +239,8 @@ const draggedNodeId = ref<string | null>(null)
 const connectFromNodeId = ref<string | null>(null)
 const editDialogVisible = ref(false)
 const editingNode = ref<DrawNode | null>(null)
+const canUndo = ref(false)
+const canRedo = ref(false)
 
 const nodeForm = ref({
   label: '',
@@ -241,6 +254,26 @@ const editForm = ref({
   label: '',
   description: ''
 })
+
+// 获取选中的节点ID
+const getSelectedNodeId = (): string | null => {
+  if (!drawEngine) return null
+  const selected = drawEngine.getSelectedNode()
+  return selected?.id || null
+}
+
+// 缩放处理
+const handleZoomIn = () => {
+  if (drawEngine) {
+    drawEngine.zoom(1.2)
+  }
+}
+
+const handleZoomOut = () => {
+  if (drawEngine) {
+    drawEngine.zoom(0.8)
+  }
+}
 
 onMounted(async () => {
   await setupCanvas()
@@ -269,14 +302,14 @@ const setupCanvas = async () => {
 
   // 初始化绘制引擎
   drawEngine = new DrawEngine({
-    canvasId: 'main-canvas',
     ...props.config,
+    canvasId: 'main-canvas',
     enableHistory: true,
     maxHistorySteps: 50
   })
 
   // 监听引擎事件
-  drawEngine.on('nodeCreate', (e) => {
+  drawEngine.on('nodeCreate', () => {
     nodes.value = drawEngine!.getAllNodes()
     render()
   })
@@ -287,12 +320,22 @@ const setupCanvas = async () => {
     render()
   })
 
-  drawEngine.on('edgeCreate', (e) => {
+  drawEngine.on('edgeCreate', () => {
     edges.value = drawEngine!.getAllEdges()
     render()
   })
 
+  // 更新撤销/重做状态
+  updateHistoryState()
+
   render()
+}
+
+const updateHistoryState = () => {
+  if (drawEngine) {
+    canUndo.value = drawEngine.canUndo()
+    canRedo.value = drawEngine.canRedo()
+  }
 }
 
 const loadInitialData = () => {
@@ -386,7 +429,7 @@ const drawEdges = () => {
     ctx!.stroke()
 
     if (edge.showArrow) {
-      drawArrow(x2, y2, x1, y1, edge.color)
+      drawArrow(x2, y2, x1, y1, edge.color || theme.edgeColor)
     }
   })
 }
@@ -448,7 +491,7 @@ const handleNodeClick = (node: DrawNode) => {
   emit('node-selected', node)
 }
 
-const handleNodeMouseDown = (node: DrawNode, event: MouseEvent) => {
+const handleNodeMouseDown = (node: DrawNode, _event: MouseEvent) => {
   if (connectingMode.value) {
     connectFromNodeId.value = node.id
     return
@@ -477,13 +520,13 @@ const handleCanvasMouseMove = (event: MouseEvent) => {
   }
 }
 
-const handleCanvasMouseUp = (event: MouseEvent) => {
+const handleCanvasMouseUp = (_event: MouseEvent) => {
   if (connectingMode.value && connectFromNodeId.value) {
     // 尝试连接到目标节点
     const canvas = canvasRef.value!
     const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
+    const x = _event.clientX - rect.left
+    const y = _event.clientY - rect.top
 
     for (const node of nodes.value) {
       const nodeRect = {
@@ -522,7 +565,7 @@ const handleCanvasWheel = (event: WheelEvent) => {
   drawEngine.zoom(factor, centerX, centerY)
 }
 
-const handleContextMenu = (event: MouseEvent) => {
+const handleContextMenu = (_event: MouseEvent) => {
   // 实现右键菜单
 }
 
@@ -547,8 +590,7 @@ const confirmEdit = () => {
 const handleDeleteNode = (node: DrawNode) => {
   messageBox.confirm('确定要删除该节点吗？', '提示', {
     confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
+    cancelButtonText: '取消'
   }).then(() => {
     if (drawEngine) {
       drawEngine.deleteNode(node.id)
@@ -577,12 +619,14 @@ const fitToScreen = () => {
 
 const undo = () => {
   drawEngine?.undo()
-  nodes.value = drawEngine!.getAllNodes()
+  nodes.value = drawEngine?.getAllNodes() || []
+  updateHistoryState()
 }
 
 const redo = () => {
   drawEngine?.redo()
-  nodes.value = drawEngine!.getAllNodes()
+  nodes.value = drawEngine?.getAllNodes() || []
+  updateHistoryState()
 }
 
 const handleThemeChange = () => {
@@ -601,15 +645,19 @@ const handleExport = (command: string) => {
       message.success('已复制到剪贴板')
       break
     case 'markdown':
-      const md = drawEngine.exportAsMarkdown()
-      emit('export', { type: 'markdown', data: md })
-      message.success('已导出为Markdown')
+      {
+        const md = drawEngine.exportAsMarkdown()
+        emit('export', { type: 'markdown', data: md })
+        message.success('已导出为Markdown')
+      }
       break
     case 'svg':
-      const rect = canvasRef.value?.getBoundingClientRect()
-      if (rect) {
-        const svg = drawEngine.exportAsSVG(rect.width, rect.height)
-        emit('export', { type: 'svg', data: svg })
+      {
+        const rect = canvasRef.value?.getBoundingClientRect()
+        if (rect) {
+          const svg = drawEngine.exportAsSVG(rect.width, rect.height)
+          emit('export', { type: 'svg', data: svg })
+        }
       }
       break
   }

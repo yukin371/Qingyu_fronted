@@ -41,11 +41,94 @@ export interface LocalDocument {
   updatedAt: string
 }
 
+const TEST_SEED_PROJECT_ID = 'project-yljs-1'
+
+function isInTestMode(): boolean {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('test') === 'true'
+}
+
+async function seedTestProjectIfNeeded() {
+  if (!isInTestMode()) return
+
+  const projects = await getAllItems<LocalProject>(STORES.PROJECTS)
+  const alreadyExists = projects.some((p) => p.projectId === TEST_SEED_PROJECT_ID)
+  const now = new Date()
+  const updatedAt = new Date(now.getTime() - 45 * 60 * 1000).toISOString()
+
+  const project: LocalProject = {
+    projectId: TEST_SEED_PROJECT_ID,
+    title: '云岚纪事',
+    description: '仙侠长篇，当前已编辑 3 章。',
+    type: 'novel',
+    status: 'writing',
+    wordCount: 9800,
+    chapterCount: 3,
+    createdAt: '2026-02-01T10:00:00.000Z',
+    updatedAt
+  }
+
+  const seedDocs: LocalDocument[] = [
+    {
+      documentId: `${TEST_SEED_PROJECT_ID}-doc-1`,
+      projectId: TEST_SEED_PROJECT_ID,
+      title: '第一章 云岚初起',
+      content: '山门晨雾未散，少年提剑上山，命运自此转动。',
+      chapterNum: 1,
+      wordCount: 3200,
+      version: 1,
+      createdAt: '2026-02-01T10:30:00.000Z',
+      updatedAt
+    },
+    {
+      documentId: `${TEST_SEED_PROJECT_ID}-doc-2`,
+      projectId: TEST_SEED_PROJECT_ID,
+      title: '第二章 试剑台',
+      content: '试剑台上风声凛冽，旧怨与新局在一剑之间分明。',
+      chapterNum: 2,
+      wordCount: 3300,
+      version: 1,
+      createdAt: '2026-02-02T11:00:00.000Z',
+      updatedAt
+    },
+    {
+      documentId: `${TEST_SEED_PROJECT_ID}-doc-3`,
+      projectId: TEST_SEED_PROJECT_ID,
+      title: '第三章 夜探藏经阁',
+      content: '夜色如墨，藏经阁灯火微明，一页残卷牵出旧案。',
+      chapterNum: 3,
+      wordCount: 3300,
+      version: 1,
+      createdAt: '2026-02-03T09:00:00.000Z',
+      updatedAt
+    }
+  ]
+
+  if (!alreadyExists) {
+    await addItem(STORES.PROJECTS, project)
+    console.log('✅ 已注入测试项目: 云岚纪事（3章）')
+  } else {
+    await updateItem(STORES.PROJECTS, project)
+    console.log('✅ 已同步测试项目: 云岚纪事（3章）')
+  }
+
+  for (const doc of seedDocs) {
+    const existing = await getItem<LocalDocument>(STORES.DOCUMENTS, doc.documentId)
+    if (!existing) {
+      await addItem(STORES.DOCUMENTS, doc)
+    } else {
+      await updateItem(STORES.DOCUMENTS, doc)
+    }
+  }
+}
+
 /**
  * 初始化本地存储
  */
 export async function initLocalStorage() {
   await initDB()
+  await seedTestProjectIfNeeded()
   console.log('📦 本地存储已初始化')
 }
 
@@ -55,6 +138,7 @@ export async function initLocalStorage() {
  * 获取项目列表
  */
 export async function getLocalProjects(): Promise<LocalProject[]> {
+  await seedTestProjectIfNeeded()
   const projects = await getAllItems<LocalProject>(STORES.PROJECTS)
   // 按更新时间倒序排列
   return projects.sort((a, b) => {
@@ -332,7 +416,6 @@ export async function getLocalStats() {
     recentProjects: projects.slice(0, 5)
   }
 }
-
 
 
 

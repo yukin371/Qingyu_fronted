@@ -5,7 +5,7 @@
  * 步骤条中的单个步骤项
  */
 
-import { computed, inject, onMounted, onUnmounted } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue'
 import { cn } from '../../utils/cn'
 import type { StepEmits, StepProps } from './types'
 import { STEPS_KEY, type StepsContext } from './constants'
@@ -20,14 +20,14 @@ const emit = defineEmits<StepEmits>()
 
 // 注入 Steps 上下文
 const stepsContext = inject<StepsContext>(STEPS_KEY, {
-  currentStep: { value: 0 },
-  direction: { value: 'horizontal' },
-  simple: { value: false },
-  finishStatus: { value: 'finish' },
-  processStatus: { value: 'process' },
-  stepCount: { value: 0 },
+  currentStep: ref(0),
+  direction: ref('horizontal'),
+  simple: ref(false),
+  finishStatus: ref('finish'),
+  processStatus: ref('process'),
+  stepCount: ref(0),
   handleClick: () => {},
-})
+} as StepsContext)
 
 // 计算步骤索引（需要在挂载时设置）
 let stepIndex = 0

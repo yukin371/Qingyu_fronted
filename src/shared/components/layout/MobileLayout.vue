@@ -53,7 +53,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { QyIcon } from '@/design-system/components'
+import { HomeFilled, Reading, ChatDotRound, Collection, User } from '@element-plus/icons-vue'
+
 interface TabItem {
   path: string
   label: string
@@ -82,7 +83,7 @@ const tabs = ref<TabItem[]>([
 // 是否显示底部导航栏
 const showTabBar = computed(() => {
   // 在登录页、注册页等页面不显示
-  const hidePaths = ['/login', '/register', '/auth', '/404', '/writer/editor']
+  const hidePaths = ['/login', '/register', '/auth', '/404', '/writer/editor', '/writer/project']
   return !hidePaths.some(path => route.path.startsWith(path)) &&
          route.meta.showTabBar !== false
 })

@@ -56,26 +56,6 @@ const containerClasses = computed(() => {
   }
 })
 
-// Dock container classes
-const dockContainerClasses = computed(() => {
-  return [
-    'dock-container',
-    // Base styles
-    'flex items-center justify-around md:justify-center md:gap-2',
-    'px-3 py-3 md:py-4',
-    // Glassmorphism
-    'bg-white/80 backdrop-blur-2xl',
-    // Border
-    'border-t md:border border-white/50',
-    // Shadow
-    'shadow-[0_8px_32px_rgba(0,0,0,0.12)]',
-    // Desktop rounded
-    'md:rounded-full',
-    // Safe area
-    'safe-area-bottom'
-  ].join(' ')
-})
-
 // Get item classes
 const getItemClasses = (item: QyBottomDockItem) => {
   return [

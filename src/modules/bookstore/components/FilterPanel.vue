@@ -276,11 +276,6 @@ const handleApply = () => {
   emit('apply', currentFilters.value)
 }
 
-const formatCount = (num?: number) => {
-  if (!num) return ''
-  return num > 10000 ? (num / 10000).toFixed(1) + 'w' : num
-}
-
 // 监听筛选变化 (如果是即时筛选模式)
 watch(currentFilters, () => {
   // 可以在这里做防抖处理

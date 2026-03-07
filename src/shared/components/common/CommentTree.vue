@@ -35,7 +35,7 @@
 
           <el-button text size="small" @click="showReplyBox = !showReplyBox">
             <QyIcon name="ChatLineRound"  />
-            回复 {{ comment.replyCount > 0 ? `(${comment.replyCount})` : '' }}
+            回复 {{ (comment.replyCount ?? 0) > 0 ? `(${comment.replyCount})` : '' }}
           </el-button>
 
           <el-button

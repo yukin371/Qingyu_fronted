@@ -4,7 +4,7 @@
         <div class="chapter-header">
             <span class="chapter-count">共 {{ chapters.length }} 章</span>
             <div class="chapter-controls">
-                <QyButton v-if="showSort" variant="ghost" size="small" @click="toggleOrder">
+                <QyButton v-if="showSort" variant="ghost" size="sm" @click="toggleOrder">
                     {{ isReversed ? '正序' : '倒序' }}
                 </QyButton>
                 <slot name="header-actions" />

@@ -125,23 +125,25 @@ import { message } from '@/design-system/services'
 const router = useRouter()
 const bookstoreStore = useBookstoreStore()
 
-const activeTab = ref('realtime')
+type RankingTab = 'realtime' | 'weekly' | 'monthly' | 'newbie'
 
-const loading = reactive({
+const activeTab = ref<RankingTab>('realtime')
+
+const loading = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
   newbie: false
 })
 
-const loadingMore = reactive({
+const loadingMore = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
   newbie: false
 })
 
-const hasMore = reactive({
+const hasMore = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
@@ -152,7 +154,7 @@ const rankings = computed(() => bookstoreStore.rankings)
 
 // 获取榜单描述
 const getRankingDescription = () => {
-  const descriptions = {
+  const descriptions: Record<RankingTab, string> = {
     realtime: '实时榜：根据最近24小时的阅读量和互动数据实时更新',
     weekly: '周榜：统计最近7天的热度，每天更新一次',
     monthly: '月榜：统计最近30天的综合表现，每天更新一次',
@@ -162,36 +164,38 @@ const getRankingDescription = () => {
 }
 
 // 加载榜单数据
-const loadRankingData = async (type: string) => {
+const loadRankingData = async (type: RankingTab) => {
   loading[type] = true
   try {
-    await bookstoreStore.fetchRankings(type as any)
+    await bookstoreStore.fetchRankings(type)
     // 检查是否还有更多数据（这里简化处理，实际应从API返回判断）
-    hasMore[type] = (rankings.value[type]?.length || 0) >= 50
-  } catch (error: any) {
-    message.error(`加载${type}榜单失败: ${error.message}`)
+    hasMore[type] = ((rankings.value as Record<string, any[]>)?.[type]?.length || 0) >= 50
+  } catch (error: unknown) {
+    const err = error as Error
+    message.error(`加载${type}榜单失败: ${err.message}`)
   } finally {
     loading[type] = false
   }
 }
 
 // Tab切换事件
-const handleTabChange = (tab: any) => {
+const handleTabChange = (tab: { props: { name: RankingTab } }) => {
   const tabName = tab.props.name
   // 如果该榜单数据为空，则加载
-  if (!rankings.value[tabName] || rankings.value[tabName].length === 0) {
+  if (!(rankings.value as Record<string, any[]>)[tabName] || (rankings.value as Record<string, any[]>)[tabName].length === 0) {
     loadRankingData(tabName)
   }
 }
 
 // 加载更多
-const loadMore = async (type: string) => {
+const loadMore = async (type: RankingTab) => {
   loadingMore[type] = true
   try {
     // 由于当前API不支持分页，这里只是重新加载
-    await bookstoreStore.fetchRankings(type as any)
-  } catch (error: any) {
-    message.error(`加载更多失败: ${error.message}`)
+    await bookstoreStore.fetchRankings(type)
+  } catch (error: unknown) {
+    const err = error as Error
+    message.error(`加载更多失败: ${err.message}`)
   } finally {
     loadingMore[type] = false
   }

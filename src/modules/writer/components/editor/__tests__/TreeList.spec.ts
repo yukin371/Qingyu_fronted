@@ -11,7 +11,7 @@
  * 7. 边界情况和无障碍性
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import TreeList from '../TreeList.vue'
@@ -126,7 +126,8 @@ describe('TreeList', () => {
         }
       })
 
-      expect(wrapper.props('data')).toEqual(mockSimpleData)
+      expect(wrapper.props()).toHaveProperty('data')
+      expect(wrapper.props().data).toEqual(mockSimpleData)
     })
 
     it('应该接受icon属性作为默认图标', () => {
@@ -137,7 +138,7 @@ describe('TreeList', () => {
         }
       })
 
-      expect(wrapper.props('icon')).toBe('folder')
+      expect(wrapper.props()).toHaveProperty('icon', 'folder')
     })
 
     it('应该接受defaultExpandedKeys属性', () => {
@@ -148,7 +149,8 @@ describe('TreeList', () => {
         }
       })
 
-      expect(wrapper.props('defaultExpandedKeys')).toEqual(['1'])
+      expect(wrapper.props()).toHaveProperty('defaultExpandedKeys')
+      expect(wrapper.props().defaultExpandedKeys).toEqual(['1'])
     })
 
     it('应该接受selectedKey属性', () => {
@@ -159,7 +161,7 @@ describe('TreeList', () => {
         }
       })
 
-      expect(wrapper.props('selectedKey')).toBe('1')
+      expect(wrapper.props()).toHaveProperty('selectedKey', '1')
     })
   })
 
@@ -267,8 +269,9 @@ describe('TreeList', () => {
       await nextTick()
 
       expect(wrapper.emitted('expand')).toBeTruthy()
-      const expandEvent = wrapper.emitted('expand')![0]
-      expect(expandEvent[0]).toHaveProperty('id', '1')
+      const expandEvent = wrapper.emitted('expand')![0] as unknown[]
+      const eventData = expandEvent[0] as Record<string, unknown>
+      expect(eventData).toHaveProperty('id', '1')
       expect(expandEvent[1]).toBe(true) // expanded = true
     })
   })
@@ -299,8 +302,9 @@ describe('TreeList', () => {
       await nextTick()
 
       expect(wrapper.emitted('select')).toBeTruthy()
-      const selectEvent = wrapper.emitted('select')![0]
-      expect(selectEvent[0]).toHaveProperty('id', '1')
+      const selectEvent = wrapper.emitted('select')![0] as unknown[]
+      const eventData = selectEvent[0] as Record<string, unknown>
+      expect(eventData).toHaveProperty('id', '1')
     })
 
     it('点击节点应该高亮显示', async () => {

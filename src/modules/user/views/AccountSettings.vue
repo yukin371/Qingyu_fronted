@@ -18,8 +18,7 @@
                     <QyTag
                         v-for="role in userRoles"
                         :key="role"
-                        :type="getRoleTagType(role)"
-                        size="large"
+                        :variant="getRoleTagType(role) as 'primary' | 'success' | 'warning' | 'info' | 'danger'"
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
@@ -29,7 +28,6 @@
                 <QyButton
                     v-if="canDowngrade"
                     variant="danger"
-                    :icon="ArrowDown"
                     @click="showDowngradeDialog"
                 >
                     降级为读者
@@ -43,13 +41,13 @@
                 <QyFormItem label="头像">
                     <div class="avatar-upload-container">
                         <QyAvatar :size="100" :src="form.avatar || userStore.avatar">
-                            {{ userStore.displayName.charAt(0) }}
+                            {{ String(userStore.displayName || '').charAt(0) || 'U' }}
                         </QyAvatar>
                         <div class="avatar-actions">
                             <qy-upload :action="uploadUrl" :headers="uploadHeaders" :show-file-list="false"
                                 :before-upload="beforeAvatarUpload" :on-success="handleAvatarSuccess"
                                 :on-error="handleUploadError">
-                                <QyButton type="primary" :icon="Upload" :loading="uploading">
+                                <QyButton type="primary" :loading="uploading">
                                     上传头像
                                 </QyButton>
                             </qy-upload>
@@ -72,9 +70,9 @@
                 <!-- 性别 -->
                 <QyFormItem label="性别" prop="gender">
                     <QyRadioGroup v-model="form.gender">
-                        <QyRadio label="male">男</QyRadio>
-                        <QyRadio label="female">女</QyRadio>
-                        <QyRadio label="other">保密</QyRadio>
+                        <QyRadio value="male">男</QyRadio>
+                        <QyRadio value="female">女</QyRadio>
+                        <QyRadio value="other">保密</QyRadio>
                     </QyRadioGroup>
                 </QyFormItem>
 
@@ -149,7 +147,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import type { FormInstance, UploadProps } from 'element-plus'
-import { Upload, ArrowDown, WarningFilled } from '@element-plus/icons-vue'
 import { QyCard, QyButton, QyTag, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
@@ -348,7 +345,7 @@ const confirmDowngrade = async () => {
 
 // 初始化表单
 const initForm = () => {
-    const profile = userStore.profile as Record<string, unknown>
+    const profile = userStore.profile as unknown as Record<string, unknown> | undefined
     form.avatar = (profile?.avatar as string) || ''
     form.nickname = (profile?.nickname as string) || ''
     form.bio = (profile?.bio as string) || ''

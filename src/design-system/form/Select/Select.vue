@@ -5,7 +5,7 @@
  * 功能完整的下拉选择组件，支持单选、多选、可搜索、可清空等特性
  */
 
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { SelectProps, SelectEmits, SelectSlots, SelectOption } from './types'
@@ -54,6 +54,7 @@ const searchText = ref('')
 const selectRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
 const dropdownRef = ref<HTMLElement>()
+const dropdownStyle = ref<Record<string, string>>({})
 
 // 计算样式类名
 const classes = computed(() =>
@@ -124,8 +125,21 @@ const handleToggleDropdown = () => {
   
   if (isDropdownVisible.value) {
     nextTick(() => {
+      updateDropdownPosition()
       inputRef.value?.focus()
     })
+  }
+}
+
+const updateDropdownPosition = () => {
+  if (!selectRef.value) return
+  const rect = selectRef.value.getBoundingClientRect()
+  dropdownStyle.value = {
+    position: 'fixed',
+    top: `${rect.bottom + 4}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: '9999'
   }
 }
 
@@ -222,6 +236,7 @@ const handleClickOutside = (event: MouseEvent) => {
 watch(isDropdownVisible, (newValue) => {
   if (newValue) {
     nextTick(() => {
+      updateDropdownPosition()
       document.addEventListener('click', handleClickOutside as any, true)
     })
   } else {
@@ -245,11 +260,33 @@ watch(() => props.modelValue, () => {
   }
 })
 
+const handleViewportChange = () => {
+  if (isDropdownVisible.value) {
+    updateDropdownPosition()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleViewportChange)
+  window.addEventListener('scroll', handleViewportChange, true)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleViewportChange)
+  window.removeEventListener('scroll', handleViewportChange, true)
+  document.removeEventListener('click', handleClickOutside as any, true)
+})
+
 // 暴露方法
 defineExpose({
   focus: () => inputRef.value?.focus(),
   blur: () => inputRef.value?.blur(),
 })
+
+// 创建一个空的 MouseEvent 用于 slot 中的 handleClose
+const createEmptyMouseEvent = (): MouseEvent => {
+  return new MouseEvent('click')
+}
 </script>
 
 <template>
@@ -278,13 +315,13 @@ defineExpose({
           :key="option.value"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-100 text-primary-700 text-xs"
         >
-          <slot v-if="$slots.tag" name="tag" :option="option" :index="index" :handleClose="() => handleTagClose(option, $event)" />
+          <slot v-if="$slots.tag" name="tag" :option="option" :index="index" :handleClose="(e?: MouseEvent) => handleTagClose(option, e || createEmptyMouseEvent())" />
           <template v-else>
             {{ option.label }}
             <button
               type="button"
               class="hover:text-primary-900"
-              @click="handleTagClose(option, $event)"
+              @click="handleTagClose(option, $event as MouseEvent)"
             >
               <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -345,8 +382,9 @@ defineExpose({
       <div
         v-if="isDropdownVisible"
         ref="dropdownRef"
-        class="absolute z-50 mt-1 w-full min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md"
+        class="overflow-hidden rounded-md border border-gray-200 bg-white text-gray-800 shadow-md"
         :style="{
+          ...dropdownStyle,
           maxHeight: `${popperMaxHeight}px`,
           overflowY: 'auto',
         }"
@@ -373,9 +411,9 @@ defineExpose({
           <li
             v-for="(option, index) in filteredOptions"
             :key="option.value"
-            class="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+            class="relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none bg-white hover:bg-slate-100 hover:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             :class="{
-              'bg-accent': selectedOptions.some(o => o.value === option.value),
+              'bg-blue-50 text-blue-700': selectedOptions.some(o => o.value === option.value),
               'opacity-50 cursor-not-allowed': option.disabled,
             }"
             @click="handleSelectOption(option)"

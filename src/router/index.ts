@@ -37,7 +37,7 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: '/bookstore' },
+  { path: '/', redirect: to => ({ path: '/bookstore', query: to.query }) },
 
   // 搜索路由重定向（兼容旧路径）
   { path: '/search', redirect: to => ({ path: '/bookstore/search', query: to.query }) },
@@ -138,6 +138,19 @@ const routes: RouteRecordRaw[] = [
       layout: 'blank'
     }
   },
+  {
+    path: '/demo/register-simple',
+    name: 'RegisterSimpleDemo',
+    component: () => import('@/views/demo/RegisterDemo.vue'),
+    meta: {
+      title: '简洁注册演示',
+      layout: 'blank'
+    }
+  },
+  {
+    path: '/demo/book-detail',
+    redirect: '/bookstore/books-demo'
+  },
 
   // 404 处理 (必须放在最后)
   ...errorRoutes,
@@ -150,7 +163,7 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     }

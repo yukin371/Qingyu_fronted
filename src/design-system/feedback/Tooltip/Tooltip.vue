@@ -8,7 +8,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, useSlots } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { TooltipProps, TooltipPlacement, TooltipTrigger } from './types'
+import type { TooltipProps, TooltipPlacement } from './types'
 
 // 使用 CVA 定义 Tooltip 变体
 const tooltipVariants = cva(
@@ -188,7 +188,8 @@ const arrowStyle = computed(() => {
     borderBottomColor: color,
     borderLeftColor: color,
     transform: `rotate(${rotation}deg) ${pos.transform}`,
-    ...pos,
+    top: pos.top,
+    left: pos.left,
   }
 })
 

@@ -5,7 +5,6 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 /**
  * 评论信息
@@ -95,8 +94,8 @@ export const commentsAPI = {
    * @response {APIResponse<Comment>} 201 - 成功创建评论
    * @security BearerAuth
    */
-  async createComment(params: CreateCommentParams): Promise<APIResponse<Comment>> {
-    return httpService.post<APIResponse<Comment>>('/social/comments', params)
+  async createComment(params: CreateCommentParams): Promise<Comment> {
+    return httpService.post<Comment>('/social/comments', params)
   },
 
   /**
@@ -121,8 +120,8 @@ export const commentsAPI = {
    * @param {string} commentId - 评论ID
    * @response {APIResponse<Comment>} 200 - 成功返回评论详情
    */
-  async getCommentById(commentId: string): Promise<APIResponse<Comment>> {
-    return httpService.get<APIResponse<Comment>>(`/social/comments/${commentId}`)
+  async getCommentById(commentId: string): Promise<Comment> {
+    return httpService.get<Comment>(`/social/comments/${commentId}`)
   },
 
   /**
@@ -139,8 +138,8 @@ export const commentsAPI = {
   async updateComment(
     commentId: string,
     params: UpdateCommentParams
-  ): Promise<APIResponse<Comment>> {
-    return httpService.put<APIResponse<Comment>>(`/social/comments/${commentId}`, params)
+  ): Promise<Comment> {
+    return httpService.put<Comment>(`/social/comments/${commentId}`, params)
   },
 
   /**
@@ -153,8 +152,8 @@ export const commentsAPI = {
    * @response {APIResponse<void>} 204 - 成功删除评论
    * @security BearerAuth
    */
-  async deleteComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}`)
+  async deleteComment(commentId: string): Promise<void> {
+    return httpService.delete<void>(`/social/comments/${commentId}`)
   },
 
   /**
@@ -171,8 +170,8 @@ export const commentsAPI = {
   async replyComment(
     commentId: string,
     params: ReplyCommentParams
-  ): Promise<APIResponse<Comment>> {
-    return httpService.post<APIResponse<Comment>>(
+  ): Promise<Comment> {
+    return httpService.post<Comment>(
       `/social/comments/${commentId}/reply`,
       params
     )
@@ -188,8 +187,8 @@ export const commentsAPI = {
    * @response {APIResponse<void>} 200 - 成功点赞
    * @security BearerAuth
    */
-  async likeComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.post<APIResponse<void>>(`/social/comments/${commentId}/like`)
+  async likeComment(commentId: string): Promise<void> {
+    return httpService.post<void>(`/social/comments/${commentId}/like`)
   },
 
   /**
@@ -202,8 +201,8 @@ export const commentsAPI = {
    * @response {APIResponse<void>} 204 - 成功取消点赞
    * @security BearerAuth
    */
-  async unlikeComment(commentId: string): Promise<APIResponse<void>> {
-    return httpService.delete<APIResponse<void>>(`/social/comments/${commentId}/like`)
+  async unlikeComment(commentId: string): Promise<void> {
+    return httpService.delete<void>(`/social/comments/${commentId}/like`)
   }
 }
 

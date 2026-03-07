@@ -25,14 +25,14 @@ class BookstoreService {
    */
   async getHomepageData(): Promise<HomepageData> {
     // TODO: Add caching later
-    return await bookstoreAPI.getHomepage()
+    return await bookstoreAPI.getHomepage() as unknown as HomepageData
   }
 
   /**
    * Get ranking by type
    */
   async getRanking(type: RankingType, period?: string, limit?: number): Promise<RankingItem[]> {
-    return await bookstoreAPI.getRankingByType(type, period, limit)
+    return await bookstoreAPI.getRankingByType(type, period, limit) as unknown as RankingItem[]
   }
 
   /**
@@ -65,7 +65,7 @@ class BookstoreService {
       console.error('Failed to increment view count:', err)
     )
 
-    return book
+    return book as unknown as Book
   }
 
   /**
@@ -75,35 +75,50 @@ class BookstoreService {
   async searchBooks(params: SearchParams): Promise<SearchResult> {
     const response = await bookstoreAPI.searchBooks(params) as any
 
-    // 后端数据可能包含 data.books 或直接是 books 数组
+    // 后端/Mock 返回格式可能包含 data.books、data.list、root.books、root.list 等
     let books: BookBrief[] = []
     let total = 0
     let page = params.page || 1
     let size = params.size || 20
 
     if (response) {
-      if (response.data) {
-        // 格式1: { data: [...], pagination }
-        if (Array.isArray(response.data)) {
-          books = response.data
-          total = response.pagination?.total ?? response.total ?? books.length
-          page = response.pagination?.page ?? response.page ?? page
-          size = response.pagination?.pageSize ?? response.size ?? size
-        } else {
-          // 格式2: { data: { books: [...], total: ... }, total, page, size }
-          books = response.data.books || []
-          total = response.data.total !== undefined ? response.data.total : response.total
-          page = response.page || page
-          size = response.size || size
-        }
-      } else if (Array.isArray(response)) {
-        // 直接返回数组
+      if (Array.isArray(response)) {
         books = response
         total = books.length
-      } else if (response.books) {
-        // 格式: { books: [...], total: ... }
+      } else if (response.data) {
+        if (Array.isArray(response.data.books)) {
+          books = response.data.books
+        } else if (Array.isArray(response.data.list)) {
+          books = response.data.list
+        } else if (Array.isArray(response.data.items)) {
+          books = response.data.items
+        } else if (Array.isArray(response.data)) {
+          books = response.data
+        }
+
+        total = Number(
+          response.data.total ??
+          response.pagination?.total ??
+          response.total ??
+          books.length
+        )
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.books)) {
         books = response.books
-        total = response.total !== undefined ? response.total : books.length
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.list)) {
+        books = response.list
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
+      } else if (Array.isArray(response.items)) {
+        books = response.items
+        total = Number(response.total ?? response.pagination?.total ?? books.length)
+        page = Number(response.page ?? response.pagination?.page ?? page)
+        size = Number(response.size ?? response.pagination?.pageSize ?? size)
       }
     }
 
@@ -112,7 +127,6 @@ class BookstoreService {
       total,
       page,
       size,
-      hasMore: page * size < total
     }
   }
 
@@ -120,14 +134,14 @@ class BookstoreService {
    * Get recommended books
    */
   async getRecommendedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return await bookstoreAPI.getRecommendedBooks(page, size)
+    return await bookstoreAPI.getRecommendedBooks(page, size) as unknown as BookBrief[]
   }
 
   /**
    * Get featured books
    */
   async getFeaturedBooks(page: number = 1, size: number = 20): Promise<BookBrief[]> {
-    return await bookstoreAPI.getFeaturedBooks(page, size)
+    return await bookstoreAPI.getFeaturedBooks(page, size) as unknown as BookBrief[]
   }
 
   /**
@@ -138,7 +152,7 @@ class BookstoreService {
     page: number = 1,
     size: number = 20
   ): Promise<SearchResult> {
-    return await bookstoreAPI.getBooksByCategory(categoryId, { page, pageSize: size })
+    return await bookstoreAPI.getBooksByCategoryWithPagination(categoryId, { page, size }) as unknown as SearchResult
   }
 
   /**
@@ -154,14 +168,14 @@ class BookstoreService {
    * Get category tree
    */
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    return await bookstoreAPI.getCategoryTree()
+    return await bookstoreAPI.getCategoryTree() as unknown as CategoryTreeNode[]
   }
 
   /**
    * Get banners
    */
   async getBanners(limit: number = 5): Promise<Banner[]> {
-    return await bookstoreAPI.getBanners(limit)
+    return await bookstoreAPI.getBanners(limit) as unknown as Banner[]
   }
 
   /**

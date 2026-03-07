@@ -5,8 +5,8 @@
     :data-level="level"
     :style="nodeStyle"
     :role="isLeaf ? 'treeitem' : 'treeitem'"
-    :aria-expanded="isLeaf ? undefined : String(expanded)"
-    :aria-selected="String(selected)"
+    :aria-expanded="isLeaf ? undefined : expanded"
+    :aria-selected="selected"
     :tabindex="selected ? 0 : -1"
     :draggable="true"
     @click="handleClick"
@@ -241,12 +241,6 @@ const handleDragOver = (event: DragEvent) => {
 const handleDragEnd = () => {
   dropPosition.value = null
   emit('dragend')
-}
-
-// 拖拽离开
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleDragLeave = () => {
-  dropPosition.value = null
 }
 
 // 放置

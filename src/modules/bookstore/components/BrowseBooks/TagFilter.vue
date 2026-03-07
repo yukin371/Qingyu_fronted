@@ -45,6 +45,19 @@
       <Icon name="exclamation-triangle" size="sm" />
       <span>标签过多可能影响搜索性能</span>
     </div>
+
+    <div v-if="showDropdown" class="tag-dropdown">
+      <button
+        v-for="tag in unselectedTags"
+        :key="tag"
+        class="tag-option"
+        type="button"
+        @click="addTag(tag)"
+      >
+        {{ tag }}
+      </button>
+      <div v-if="unselectedTags.length === 0" class="tag-option-empty">没有更多标签</div>
+    </div>
   </div>
 </template>
 
@@ -76,6 +89,10 @@ const canAddMore = computed(() => {
 
 const shouldShowPerfWarning = computed(() => {
   return props.selectedTags.length >= props.recommendLimit
+})
+
+const unselectedTags = computed(() => {
+  return props.availableTags.filter(tag => !props.selectedTags.includes(tag))
 })
 
 const removeTag = (tagName: string) => {
@@ -186,6 +203,40 @@ const addTag = (tagName: string) => {
   gap: 4px;
   font-size: 12px;
   color: #e6a23c;
+}
+
+.tag-dropdown {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-option {
+  border: 1px solid #dbe3ef;
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+    background: #ecf5ff;
+  }
+}
+
+.tag-option-empty {
+  color: #9ca3af;
+  font-size: 12px;
+  padding: 4px 2px;
 }
 
 .tag-list-enter-active,

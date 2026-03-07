@@ -7,6 +7,58 @@ import { ref, computed } from 'vue'
 import type { ParagraphComment, ParagraphCommentSummary } from '@/types/reader/index'
 import { useAuthStore } from './auth'
 
+const MOCK_COMMENT_CONTENTS = [
+  '这一段情绪铺垫很到位，代入感很强。',
+  '细节描写很有画面感，像在看电影。',
+  '这里的节奏控制得不错，读起来很顺。',
+  '人物反应很真实，能感受到紧张氛围。',
+  '转场自然，前后衔接很舒服。',
+  '这句台词写得很有味道，记忆点很高。',
+  '伏笔埋得巧，期待后面展开。',
+  '这个段落的信息量大但不乱，赞。'
+]
+
+const MOCK_COMMENT_USERS = [
+  { id: 'user1', name: '书虫小明', avatar: 'https://picsum.photos/seed/user1/40/40' },
+  { id: 'user2', name: '文学爱好者', avatar: 'https://picsum.photos/seed/user2/40/40' },
+  { id: 'user3', name: '夜读人', avatar: 'https://picsum.photos/seed/user3/40/40' },
+  { id: 'user4', name: '追更喵', avatar: 'https://picsum.photos/seed/user4/40/40' },
+  { id: 'user5', name: '段落观察员', avatar: 'https://picsum.photos/seed/user5/40/40' }
+]
+
+function getStableMockCountByParagraphIndex(paragraphIndex: number): number {
+  const counts = [2, 0, 4, 1, 3, 2, 0, 5, 2, 1, 3, 0]
+  return counts[paragraphIndex % counts.length]
+}
+
+function buildMockComments(paragraphId: string, chapterId: string, paragraphIndex: number, count: number): ParagraphComment[] {
+  return Array.from({ length: count }, (_, i) => {
+    const user = MOCK_COMMENT_USERS[i % MOCK_COMMENT_USERS.length]
+    const content = MOCK_COMMENT_CONTENTS[(paragraphIndex + i) % MOCK_COMMENT_CONTENTS.length]
+    const ts = Date.now() - (i + 1) * 18 * 60 * 1000
+    return {
+      id: `mock-${paragraphId}-${i + 1}`,
+      paragraphId,
+      chapterId,
+      paragraphIndex,
+      userId: user.id,
+      username: user.name,
+      avatar: user.avatar,
+      content,
+      likes: Math.max(0, 12 - i * 2),
+      likedByMe: i === 0,
+      createdAt: new Date(ts).toISOString(),
+      updatedAt: new Date(ts).toISOString()
+    }
+  })
+}
+
+function isUrlTestMode(): boolean {
+  if (typeof window === 'undefined') return false
+  const url = new URL(window.location.href)
+  return url.searchParams.get('test') === 'true'
+}
+
 export const useCommentStore = defineStore('comment', () => {
   // 状态
   const currentParagraphId = ref<string | null>(null)
@@ -34,43 +86,23 @@ export const useCommentStore = defineStore('comment', () => {
     const authStore = useAuthStore()
     const token = authStore.token as any
     const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+    const isMockMode = Boolean(isMockToken) || isUrlTestMode()
 
-    if (isMockToken) {
+    if (isMockMode) {
       // 返回模拟评论
       console.log('[测试模式] 加载段落评论:', paragraphId)
 
-      const mockComments: ParagraphComment[] = [
-        {
-          id: 'c1',
-          paragraphId,
-          chapterId: 'chapter-001',
-          paragraphIndex: 0,
-          userId: 'user1',
-          username: '书虫小明',
-          avatar: 'https://picsum.photos/seed/user1/40/40',
-          content: '这一段写得太棒了！情节跌宕起伏，人物刻画细腻入微。',
-          likes: 12,
-          likedByMe: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-          updatedAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: 'c2',
-          paragraphId,
-          chapterId: 'chapter-001',
-          paragraphIndex: 0,
-          userId: 'user2',
-          username: '文学爱好者',
-          avatar: 'https://picsum.photos/seed/user2/40/40',
-          emoji: '👍',
-          likes: 8,
-          likedByMe: true,
-          createdAt: new Date(Date.now() - 7200000).toISOString(),
-          updatedAt: new Date(Date.now() - 7200000).toISOString()
-        }
-      ]
+      const separatorIndex = paragraphId.lastIndexOf('-')
+      const chapterId = separatorIndex > 0 ? paragraphId.slice(0, separatorIndex) : 'chapter-001'
+      const paragraphIndexRaw = separatorIndex > 0 ? paragraphId.slice(separatorIndex + 1) : '0'
+      const paragraphIndex = Number(paragraphIndexRaw) || 0
+      const summaryCount = summaries.value.get(paragraphId)?.commentCount
+      const mockCount = summaryCount && summaryCount > 0 ? Math.min(summaryCount, 8) : 2
+      const mockComments = buildMockComments(paragraphId, chapterId || 'chapter-001', paragraphIndex, mockCount)
 
-      comments.value.set(paragraphId, mockComments)
+      const nextComments = new Map(comments.value)
+      nextComments.set(paragraphId, mockComments)
+      comments.value = nextComments
       isLoading.value = false
       return mockComments
     }
@@ -88,6 +120,8 @@ export const useCommentStore = defineStore('comment', () => {
     paragraphIndex: number
     content?: string
     emoji?: string
+    replyToCommentId?: string
+    replyToUsername?: string
   }) {
     const authStore = useAuthStore()
     const user = authStore.user
@@ -106,17 +140,22 @@ export const useCommentStore = defineStore('comment', () => {
       emoji: data.emoji,
       likes: 0,
       likedByMe: false,
+      replyToCommentId: data.replyToCommentId,
+      replyToUsername: data.replyToUsername,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
 
     const existing = comments.value.get(data.paragraphId) || []
-    comments.value.set(data.paragraphId, [...existing, newComment])
+    const nextComments = new Map(comments.value)
+    nextComments.set(data.paragraphId, [...existing, newComment])
+    comments.value = nextComments
 
     // 更新摘要
     const summary = summaries.value.get(data.paragraphId)
     if (summary) {
-      summaries.value.set(data.paragraphId, {
+      const nextSummaries = new Map(summaries.value)
+      nextSummaries.set(data.paragraphId, {
         ...summary,
         commentCount: summary.commentCount + 1,
         latestComment: {
@@ -125,6 +164,7 @@ export const useCommentStore = defineStore('comment', () => {
           time: '刚刚'
         }
       })
+      summaries.value = nextSummaries
     }
 
     return newComment
@@ -132,7 +172,7 @@ export const useCommentStore = defineStore('comment', () => {
 
   // 测试模式：点赞
   async function toggleLike(commentId: string) {
-    for (const [paragraphId, commentList] of comments.value.entries()) {
+    for (const [_paragraphId, commentList] of comments.value.entries()) {
       const comment = commentList.find(c => c.id === commentId)
       if (comment) {
         comment.likedByMe = !comment.likedByMe
@@ -147,25 +187,29 @@ export const useCommentStore = defineStore('comment', () => {
     const authStore = useAuthStore()
     const token = authStore.token as any
     const isMockToken = token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
+    const isMockMode = Boolean(isMockToken) || isUrlTestMode()
 
-    if (isMockToken) {
+    if (isMockMode) {
       console.log('[测试模式] 加载章节评论摘要')
 
-      // 为段落0-5添加评论摘要
-      for (let i = 0; i < 6; i++) {
-        const count = Math.floor(Math.random() * 20)
+      // 为前 12 段提供稳定 mock 摘要，避免刷新后评论数量跳变
+      const nextSummaries = new Map(summaries.value)
+      for (let i = 0; i < 12; i++) {
+        const count = getStableMockCountByParagraphIndex(i)
         if (count > 0) {
-          summaries.value.set(`${chapterId}-${i}`, {
+          const preview = MOCK_COMMENT_CONTENTS[i % MOCK_COMMENT_CONTENTS.length]
+          nextSummaries.set(`${chapterId}-${i}`, {
             paragraphId: `${chapterId}-${i}`,
             commentCount: count,
             latestComment: {
-              content: '精彩段落！',
+              content: preview,
               username: '读者' + i,
               time: '1小时前'
             }
           })
         }
       }
+      summaries.value = nextSummaries
     }
   }
 

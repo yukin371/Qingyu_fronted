@@ -33,7 +33,7 @@
                 :class="{ 'is-active': isItemActive(item.action) }" @click="handleMenuClick(item.action)"
                 @mouseenter="hoverIndex = getItemGlobalIndex(gIndex, iIndex)">
                 <div class="item-left">
-                  <QyIcon :name="item.icon"  />
+                  <el-icon><component :is="item.icon" /></el-icon>
                   <span class="item-label">{{ item.label }}</span>
                 </div>
                 <span class="shortcut" v-if="item.shortcut">{{ item.shortcut }}</span>
@@ -56,7 +56,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { Loading, MagicStick, Brush, Plus, RefreshRight, Edit, ChatLineSquare } from '@element-plus/icons-vue'
-import { QyIcon } from '@/design-system/components'
 interface Props {
   visible: boolean
   x: number
@@ -67,7 +66,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:visible', _visible: boolean): void
-  (e: 'action', _action: string, _text?: string): void // action: 'chat' | 'polish' | 'custom' ...
+  (e: 'action', _action: string, _text?: string, _instructions?: string): void
   (e: 'close'): void
 }
 
@@ -91,6 +90,7 @@ const menuGroups = [
     { label: '改写/重写', action: 'rewrite', icon: RefreshRight, shortcut: '' },
   ],
   [
+    { label: '添加到对话', action: 'add_to_chat', icon: ChatLineSquare, shortcut: '' },
     { label: '从此续写', action: 'continue', icon: Edit, shortcut: 'Ctrl+Shift+K' },
     { label: '询问 AI', action: 'chat', icon: ChatLineSquare, shortcut: 'Ctrl+K' },
   ]
@@ -108,26 +108,54 @@ const placeholderText = computed(() => {
     : '输入指令以生成内容...'
 })
 
+const ACTION_KEYWORDS: Record<string, string[]> = {
+  polish: ['润色', '优化', '通顺', '精炼', '文采', '提升表达', '语句优化'],
+  continue: ['续写', '接着写', '继续写', '后续', '往下写', '补完', '延续'],
+  expand: ['扩写', '展开', '丰富', '细化', '细节', '加细节', '充实'],
+  rewrite: ['改写', '重写', '换个说法', '换一种表达', '改成', '重构语句'],
+}
+
+const detectActionByPrompt = (prompt: string): 'polish' | 'continue' | 'expand' | 'rewrite' => {
+  const text = prompt.trim().toLowerCase()
+  if (!text) return 'continue'
+
+  for (const [action, keywords] of Object.entries(ACTION_KEYWORDS)) {
+    if (keywords.some((keyword) => text.includes(keyword.toLowerCase()))) {
+      return action as 'polish' | 'continue' | 'expand' | 'rewrite'
+    }
+  }
+
+  // 未命中关键词时，对选中文本默认续写
+  return 'continue'
+}
+
 // =======================
 // 逻辑处理
 // =======================
 
 // 1. 提交自定义指令
 const handleCustomSubmit = () => {
-  if (customPrompt.value.trim()) {
-    // 发送 'custom' 动作，将输入内容作为 text 参数传递
-    emit('action', 'chat', customPrompt.value) // 这里为了复用后端逻辑，通常映射为 chat 或专门的 instruct
-    closeMenu()
-  } else if (activeIndex.value >= 0) {
-    // 如果没有输入文字但选中了菜单项，执行菜单项
+  const prompt = customPrompt.value.trim()
+  if (activeIndex.value >= 0) {
+    // 输入了补充要求并且选中了菜单项：按菜单项动作执行
     const item = flatMenuItems.value[activeIndex.value]
     handleMenuClick(item.action)
+  } else if (prompt) {
+    // 选中文本时，根据输入要求自动判定动作
+    if (props.selectedText?.trim()) {
+      const inferredAction = detectActionByPrompt(prompt)
+      emit('action', inferredAction, props.selectedText, prompt)
+    } else {
+      emit('action', 'chat', prompt)
+    }
+    closeMenu()
   }
 }
 
 // 2. 点击菜单项
 const handleMenuClick = (action: string) => {
-  emit('action', action, props.selectedText)
+  const prompt = customPrompt.value.trim()
+  emit('action', action, props.selectedText, prompt || undefined)
   closeMenu()
 }
 

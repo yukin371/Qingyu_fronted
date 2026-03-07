@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import * as storageAPI from '@/modules/shared/api/storage'
-import type { FileInfo, FileListParams, UploadProgress } from '@/types/shared'
+import type { FileInfo, FileListParams, UploadProgress, FileCategory } from '@/types/shared'
 
 /**
  * 存储状态接口
@@ -56,7 +56,7 @@ export const useStorageStore = defineStore('storage', {
      * 获取上传成功的文件数量
      */
     uploadSuccessCount: (state): number => {
-      return state.uploadQueue.filter((item) => item.status === 'success').length
+      return state.uploadQueue.filter((item) => item.status === 'done').length
     },
 
     /**
@@ -106,10 +106,10 @@ export const useStorageStore = defineStore('storage', {
       this.error = null
 
       try {
-        const queryParams = {
+        const queryParams: FileListParams = {
           page: params?.page || this.filesPage,
           page_size: params?.page_size || this.filesPageSize,
-          category: params?.category || this.currentCategory || undefined
+          category: params?.category || (this.currentCategory as FileCategory) || undefined
         }
 
         const response = await storageAPI.listFiles(queryParams)
@@ -120,8 +120,8 @@ export const useStorageStore = defineStore('storage', {
         } else if (response.data) {
           this.files = response.data
           this.filesTotal = response.pagination?.total || 0
-          this.filesPage = response.pagination?.page || queryParams.page
-          this.filesPageSize = response.pagination?.page_size || queryParams.page_size
+          this.filesPage = response.pagination?.page || queryParams.page!
+          this.filesPageSize = response.pagination?.pageSize || queryParams.page_size!
         }
       } catch (error: any) {
         this.error = error.message || '获取文件列表失败'
@@ -135,13 +135,11 @@ export const useStorageStore = defineStore('storage', {
      * 上传文件
      */
     async uploadFile(file: File, path?: string): Promise<FileInfo> {
-      const fileId = `temp_${Date.now()}_${Math.random()}`
-
       // 添加到上传队列
       const uploadItem: UploadProgress = {
-        fileId,
-        filename: file.name,
-        progress: 0,
+        loaded: 0,
+        total: file.size,
+        percentage: 0,
         status: 'uploading'
       }
       this.uploadQueue.push(uploadItem)
@@ -154,10 +152,10 @@ export const useStorageStore = defineStore('storage', {
         const result = await storageAPI.uploadFile(file, path)
 
         // 更新上传队列状态
-        const index = this.uploadQueue.findIndex((item) => item.fileId === fileId)
+        const index = this.uploadQueue.findIndex((item) => item === uploadItem)
         if (index !== -1) {
-          this.uploadQueue[index].status = 'success'
-          this.uploadQueue[index].progress = 100
+          this.uploadQueue[index].status = 'done'
+          this.uploadQueue[index].percentage = 100
         }
 
         // 刷新文件列表
@@ -166,10 +164,9 @@ export const useStorageStore = defineStore('storage', {
         return result.data?.file || result.data as any || result as any
       } catch (error: any) {
         // 更新上传队列状态
-        const index = this.uploadQueue.findIndex((item) => item.fileId === fileId)
+        const index = this.uploadQueue.findIndex((item) => item === uploadItem)
         if (index !== -1) {
           this.uploadQueue[index].status = 'error'
-          this.uploadQueue[index].error = error.message || '上传失败'
         }
 
         this.error = error.message || '上传文件失败'

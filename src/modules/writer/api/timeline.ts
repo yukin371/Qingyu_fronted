@@ -51,7 +51,7 @@ export const timelineApi = {
   getDetail(timelineId: string, projectId: string) {
     return httpService.get<Timeline>(
       `${BASE_TIMELINE_URL}/${timelineId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 
@@ -62,7 +62,7 @@ export const timelineApi = {
   delete(timelineId: string, projectId: string) {
     return httpService.delete<void>(
       `${BASE_TIMELINE_URL}/${timelineId}`,
-      { projectId } // Query Params
+      { params: { projectId } } as any
     )
   },
 
@@ -129,4 +129,4 @@ export const timelineApi = {
 
 // 便捷函数导出（兼容旧代码）
 export const listTimelines = (projectId: string) => timelineApi.list(projectId)
-export const listTimelineEvents = (timelineId: string, projectId: string) => timelineApi.listEvents(timelineId, projectId)
+export const listTimelineEvents = (timelineId: string, _projectId?: string) => timelineApi.listEvents(timelineId)

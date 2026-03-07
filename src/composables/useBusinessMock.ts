@@ -20,8 +20,8 @@
  * ```
  */
 
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 // 导入业务模块 Mock 数据
 import businessMockData from '@/views/demo/business-mock-data'
@@ -75,7 +75,6 @@ function randomFailure(failureRate = 0.05): never | void {
 // ==================== useBusinessMock Composable ====================
 
 export function useBusinessMock() {
-  const router = useRouter()
   const route = useRoute()
 
   // 检测是否处于测试模式
@@ -191,7 +190,7 @@ export function useBusinessMock() {
    * 获取书籍章节列表
    */
   const getBookChapters = async (
-    bookId: string,
+    _bookId: string,
     options: PaginationOptions
   ): Promise<ApiResult<PaginatedResult<typeof businessMockData.bookChapters[0]>>> => {
     await delay(200)
@@ -285,7 +284,7 @@ export function useBusinessMock() {
     }
 
     if (options.category) {
-      posts = posts.filter(post => post.tags.includes(options.category))
+      posts = posts.filter(post => post.tags.includes(options.category as string))
     }
 
     // 应用分页

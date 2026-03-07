@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+// 占位页面，功能开发中
 </script>
 
 <style scoped lang="scss">

@@ -3,11 +3,11 @@
  * 测试wrapper层是否可以正常工作
  */
 
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
-  orvalMutator: vi.fn((config) => {
+  orvalMutator: vi.fn((config: any) => {
     // 模拟返回数据
     return Promise.resolve({
       books: [],
@@ -85,49 +85,49 @@ describe('Bookstore API Wrapper', () => {
     it('应该能调用getBooksByStatus', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getBooksByStatus({ status: 'published' })
+      await (wrapper as any).getBooksByStatus({ status: 'published' })
 
-      expect(wrapper.getBooksByStatus).toBeDefined()
+      expect((wrapper as any).getBooksByStatus).toBeDefined()
     })
 
     it('应该能调用getBooksByTags', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getBooksByTags({ tags: ['玄幻', '修真'] })
+      await (wrapper as any).getBooksByTags({ tags: '玄幻,修真' })
 
-      expect(wrapper.getBooksByTags).toBeDefined()
+      expect((wrapper as any).getBooksByTags).toBeDefined()
     })
 
     it('应该能调用getRecommendedBooks', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getRecommendedBooks({ page: 1, size: 10 })
+      await (wrapper as any).getRecommendedBooks(1, 10)
 
-      expect(wrapper.getRecommendedBooks).toBeDefined()
+      expect((wrapper as any).getRecommendedBooks).toBeDefined()
     })
 
     it('应该能调用getFeaturedBooks', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getFeaturedBooks({ page: 1, size: 10 })
+      await (wrapper as any).getFeaturedBooks(1, 10)
 
-      expect(wrapper.getFeaturedBooks).toBeDefined()
+      expect((wrapper as any).getFeaturedBooks).toBeDefined()
     })
 
     it('应该能调用getPopularBooks', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getPopularBooks({ page: 1, size: 10 })
+      await (wrapper as any).getPopularBooks(1, 10)
 
-      expect(wrapper.getPopularBooks).toBeDefined()
+      expect((wrapper as any).getPopularBooks).toBeDefined()
     })
 
     it('应该能调用getLatestBooks', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getLatestBooks({ page: 1, size: 10 })
+      await (wrapper as any).getLatestBooks(1, 10)
 
-      expect(wrapper.getLatestBooks).toBeDefined()
+      expect((wrapper as any).getLatestBooks).toBeDefined()
     })
 
     it('应该能调用getSimilarBooks', async () => {
@@ -271,41 +271,41 @@ describe('Bookstore API Wrapper', () => {
     it('应该能调用getRealtimeRanking', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getRealtimeRanking({ page: 1, size: 20 })
+      await (wrapper as any).getRealtimeRanking(1, 20)
 
-      expect(wrapper.getRealtimeRanking).toBeDefined()
+      expect((wrapper as any).getRealtimeRanking).toBeDefined()
     })
 
     it('应该能调用getWeeklyRanking', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getWeeklyRanking({ page: 1, size: 20 })
+      await (wrapper as any).getWeeklyRanking(1, 20)
 
-      expect(wrapper.getWeeklyRanking).toBeDefined()
+      expect((wrapper as any).getWeeklyRanking).toBeDefined()
     })
 
     it('应该能调用getMonthlyRanking', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getMonthlyRanking({ page: 1, size: 20 })
+      await (wrapper as any).getMonthlyRanking(1, 20)
 
-      expect(wrapper.getMonthlyRanking).toBeDefined()
+      expect((wrapper as any).getMonthlyRanking).toBeDefined()
     })
 
     it('应该能调用getNewbieRanking', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getNewbieRanking({ page: 1, size: 20 })
+      await (wrapper as any).getNewbieRanking(1, 20)
 
-      expect(wrapper.getNewbieRanking).toBeDefined()
+      expect((wrapper as any).getNewbieRanking).toBeDefined()
     })
 
     it('应该能调用getRankingByType', async () => {
       const wrapper = await import('../wrapper')
 
-      await wrapper.getRankingByType({ type: 'realtime', page: 1, size: 20 })
+      await (wrapper as any).getRankingByType('realtime', 1, 20)
 
-      expect(wrapper.getRankingByType).toBeDefined()
+      expect((wrapper as any).getRankingByType).toBeDefined()
     })
   })
 

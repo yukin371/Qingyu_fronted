@@ -18,11 +18,11 @@
  * @date 2026-02-08
  */
 
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref, type ShallowRef, shallowRef } from 'vue'
 
 export interface UseLocalStorageReturn<T> {
   /** 存储的数据 */
-  data: ReturnType<typeof ref<T>>
+  data: ShallowRef<T>
   /** 保存数据到LocalStorage */
   save: () => void
   /** 从LocalStorage加载数据 */
@@ -30,11 +30,11 @@ export interface UseLocalStorageReturn<T> {
   /** 清空数据 */
   clear: () => void
   /** 错误信息 */
-  error: ReturnType<typeof ref<Error | null>>
+  error: Ref<Error | null>
 }
 
 export function useLocalStorage<T>(key: string, defaultValue: T): UseLocalStorageReturn<T> {
-  const data = ref<T>(defaultValue)
+  const data = shallowRef<T>(defaultValue) as ShallowRef<T>
   const error = ref<Error | null>(null)
 
   /**

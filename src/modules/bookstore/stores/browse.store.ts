@@ -6,6 +6,7 @@ import type { BrowseFilters } from '@/types/models/browse'
 import { filtersToQuery, queryToFilters } from '../utils/url-sync'
 import { browseService } from '../services/browse.service'
 import { SEARCH_CONFIG } from '../config/search.config'
+import { listPublishedBookBriefs } from '@/modules/workflow/publishedBridge'
 
 export const useBrowseStore = defineStore('browse', () => {
   const router = useRouter()
@@ -91,6 +92,10 @@ export const useBrowseStore = defineStore('browse', () => {
       const response = await browseService.getBooks(filters)
       const payload = response as unknown as {
         data?: unknown
+        list?: unknown[]
+        items?: unknown[]
+        books?: unknown[]
+        total?: number
         pagination?: { total?: number; has_next?: boolean; hasMore?: boolean }
       }
       const rawData = payload?.data
@@ -100,12 +105,27 @@ export const useBrowseStore = defineStore('browse', () => {
           ? ((rawData as { items?: unknown[] }).items as BookBrief[])
           : Array.isArray((rawData as { books?: unknown[] } | undefined)?.books)
             ? ((rawData as { books?: unknown[] }).books as BookBrief[])
+          : Array.isArray((rawData as { list?: unknown[] } | undefined)?.list)
+            ? ((rawData as { list?: unknown[] }).list as BookBrief[])
+          : Array.isArray(payload?.list)
+            ? (payload.list as BookBrief[])
+          : Array.isArray(payload?.items)
+            ? (payload.items as BookBrief[])
+          : Array.isArray(payload?.books)
+            ? (payload.books as BookBrief[])
           : []
 
-      books.value = append ? [...books.value, ...nextBooks] : nextBooks
+      const workflowBooks = listPublishedBookBriefs({
+        q: filters.q,
+        status: filters.status,
+        tags: filters.tags
+      }) as unknown as BookBrief[]
 
-      const total = payload?.pagination?.total ?? 0
-      pagination.total = typeof total === 'number' ? total : 0
+      const merged = append ? [...books.value, ...nextBooks] : [...workflowBooks, ...nextBooks]
+      books.value = merged.filter((item, index, list) => list.findIndex(v => v.id === item.id) === index)
+
+      const total = payload?.pagination?.total ?? payload?.total ?? nextBooks.length
+      pagination.total = typeof total === 'number' ? Math.max(total, books.value.length) : books.value.length
       pagination.hasMore = Boolean(
         payload?.pagination?.has_next ??
         payload?.pagination?.hasMore ??

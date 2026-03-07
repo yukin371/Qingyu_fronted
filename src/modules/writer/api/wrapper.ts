@@ -8,7 +8,6 @@
  */
 
 import { getApi } from './generated/writer'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 // 获取生成的API对象
 const api = getApi()
@@ -156,24 +155,32 @@ export interface ChapterStatistics {
 
 /**
  * 项目创建数据类型别名
+ * 注意：支持新旧字段映射
  */
 export type ProjectCreateData = {
   title: string
-  description?: string
-  coverImage?: string
-  genre?: string
+  summary?: string // 后端字段（推荐）
+  description?: string // 前端旧字段（向后兼容）
+  coverUrl?: string // 后端字段（推荐）
+  coverImage?: string // 前端旧字段（向后兼容）
+  category?: string // 后端字段（推荐）
+  genre?: string // 前端旧字段（向后兼容）
   tags?: string[]
   visibility?: 'public' | 'private'
 }
 
 /**
  * 项目更新数据类型别名
+ * 注意：支持新旧字段映射
  */
 export type ProjectUpdateData = {
   title?: string
-  description?: string
-  coverImage?: string
-  genre?: string
+  summary?: string // 后端字段（推荐）
+  description?: string // 前端旧字段（向后兼容）
+  coverUrl?: string // 后端字段（推荐）
+  coverImage?: string // 前端旧字段（向后兼容）
+  category?: string // 后端字段（推荐）
+  genre?: string // 前端旧字段（向后兼容）
   tags?: string[]
   status?: string
   visibility?: string
@@ -200,19 +207,21 @@ export type DocumentUpdateData = {
 }
 
 // ==================== 项目相关 API ====================
+// 使用 project.ts 中的正确路径（/writer/projects），而不是 generated API 中的错误路径
 
-export const getProjects = api.getApiV1Projects
-export const getProject = api.getApiV1ProjectsProjectId
-export const getProjectById = api.getApiV1ProjectsProjectId
-export const createProject = api.postApiV1Projects
-export const updateProject = api.putApiV1ProjectsProjectId
-export const deleteProject = api.deleteApiV1ProjectsProjectId
+import * as projectApi from './project'
+export const getProjects = projectApi.getProjects
+export const getProject = projectApi.getProjectById
+export const getProjectById = projectApi.getProjectById
+export const createProject = projectApi.createProject
+export const updateProject = projectApi.updateProject
+export const deleteProject = projectApi.deleteProject
 
 // ==================== 文档相关 API ====================
 
 export const getDocuments = api.getApiV1ProjectsProjectIdDocuments
 export const getProjectDocuments = api.getApiV1ProjectsProjectIdDocuments
-export const getDocument = api.getApiV1DocumentsDocumentId
+export const getDocument = api.getApiV1DocumentsId
 export const getDocumentById = api.getApiV1DocumentsId
 export const getDocumentContent = api.getApiV1DocumentsIdContent
 export const getDocumentTree = api.getApiV1ProjectsProjectIdDocumentsTree
@@ -224,7 +233,7 @@ export const getSaveStatus = api.getApiV1DocumentsIdSaveStatus
 export const createDocument = api.postApiV1ProjectsProjectIdDocuments
 
 export const updateDocument = api.putApiV1DocumentsId
-export const deleteDocument = api.deleteApiV1DocumentsDocumentId
+export const deleteDocument = api.deleteApiV1DocumentsId
 
 /**
  * 自动保存文档
@@ -547,12 +556,12 @@ export const getDocumentAuditResult = api.getApiV1DocumentsIdAuditResult
 /**
  * 更新快捷方式
  */
-export const updateShortcuts = api.putApiV1WriterShortcuts
+export const updateShortcuts = api.putApiV1UserShortcuts
 
 /**
  * 更新字数统计
  */
-export const updateWordCount = api.postApiV1WriterWordCount
+export const updateWordCount = api.postApiV1DocumentsIdWordCount
 
 /**
  * 获取项目角色关系

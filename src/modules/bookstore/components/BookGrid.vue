@@ -31,7 +31,13 @@
     </div>
 
     <!-- 真实数据列表 -->
-    <div v-else class="books-layout" :style="gridStyle" data-testid="book-grid">
+    <div
+      v-else
+      class="books-layout"
+      :class="{ 'single-column': singleColumn }"
+      :style="singleColumn ? undefined : gridStyle"
+      data-testid="book-grid"
+    >
       <div v-for="book in displayBooks" :key="book.id || book._id" class="book-card" :class="[`style-${cardStyle}`]"
         :data-testid="`book-card-${book.id || book._id}`"
         @click="handleBookClick(book)">
@@ -127,6 +133,10 @@ const props = defineProps({
   cardStyle: { // 卡片风格：'standard' | 'premium-mini'
     type: String,
     default: 'standard'
+  },
+  singleColumn: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -217,6 +227,12 @@ const formatRating = (rating) => {
   width: 100%;
 }
 
+.books-layout.single-column {
+  display: grid;
+  grid-template-columns: 1fr !important;
+  gap: 12px;
+}
+
 /* 卡片通用样式 - Apple 风格 */
 .book-card {
   position: relative;
@@ -249,6 +265,20 @@ const formatRating = (rating) => {
     .hover-overlay {
       opacity: 1;
     }
+  }
+}
+
+.single-column .book-card {
+  display: flex;
+  align-items: stretch;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: none;
+  min-height: 132px;
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -322,6 +352,23 @@ const formatRating = (rating) => {
   }
 }
 
+.single-column .cover-wrapper {
+  flex: 0 0 88px;
+  width: 88px;
+  min-width: 88px;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px 0 0 10px;
+
+  .book-cover {
+    transform: none !important;
+  }
+
+  .hover-overlay,
+  .rating-badge {
+    display: none;
+  }
+}
+
 /* 信息区域 */
 .info-wrapper {
   padding: 16px;
@@ -375,6 +422,21 @@ const formatRating = (rating) => {
       font-size: 13px;
       font-weight: 600;
     }
+  }
+}
+
+.single-column .info-wrapper {
+  flex: 1;
+  padding: 10px 12px;
+
+  .book-title {
+    font-size: 15px;
+    margin: 0 0 4px;
+  }
+
+  .book-author {
+    font-size: 12px;
+    margin-bottom: 8px;
   }
 }
 
@@ -434,6 +496,12 @@ const formatRating = (rating) => {
     .book-title {
       font-size: 14px;
     }
+  }
+
+  .single-column .cover-wrapper {
+    flex-basis: 76px;
+    width: 76px;
+    min-width: 76px;
   }
 }
 </style>

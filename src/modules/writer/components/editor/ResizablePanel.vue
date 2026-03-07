@@ -125,10 +125,10 @@ const panelStyle = computed(() => {
  */
 const collapseIcon = computed(() => {
   if (props.position === 'right') {
-    return isCollapsed.value ? 'ChevronLeft' : 'ChevronRight'
+    return isCollapsed.value ? 'ArrowLeft' : 'ArrowRight'
   }
   // 左侧面板
-  return isCollapsed.value ? 'ChevronRight' : 'ChevronLeft'
+  return isCollapsed.value ? 'ArrowRight' : 'ArrowLeft'
 })
 
 // ============================================
@@ -208,7 +208,7 @@ defineExpose({
   /* 布局 */
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex-shrink: 0;
   height: 100%;
   min-height: 0;
@@ -236,9 +236,9 @@ defineExpose({
 
 /* 折叠状态 */
 .resizable-panel--collapsed {
-  width: 0 !important;
-  min-width: 0 !important;
-  overflow: hidden;
+  width: 28px !important;
+  min-width: 28px !important;
+  overflow: visible;
   border: none;
 }
 
@@ -306,11 +306,11 @@ defineExpose({
   &--collapsed {
     /* 当面板折叠时，按钮移动到可见区域 */
     .resizable-panel--left & {
-      right: 8px;
+      right: 2px;
     }
 
     .resizable-panel--right & {
-      left: 8px;
+      left: 2px;
     }
   }
 }
@@ -321,7 +321,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   height: 100%;
 
   /* 过渡动画 - 使用统一变量 */

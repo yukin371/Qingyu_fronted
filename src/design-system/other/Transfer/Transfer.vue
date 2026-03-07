@@ -10,7 +10,6 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import TransferPanel from './TransferPanel.vue'
 import type { TransferProps, TransferEmits } from './types'
-import { transferDefaults } from './types'
 
 // 使用 CVA定义按钮变体
 const buttonVariants = cva(
@@ -29,19 +28,29 @@ const buttonVariants = cva(
 )
 
 // 组件 Props
-const props = withDefaults(defineProps<TransferProps>(), transferDefaults)
+const props = withDefaults(defineProps<TransferProps>(), {
+  filterable: false,
+  filterPlaceholder: '请输入搜索内容',
+  format: '{label}',
+  leftDefaultChecked: () => [],
+  rightDefaultChecked: () => [],
+  targetOrder: 'original',
+})
 
 // 组件 Emits
 const emit = defineEmits<TransferEmits>()
 
 // 内部目标列表值
-const internalValue = ref<(string | number)[]>([...props.modelValue!])
+const internalValue = ref<(string | number)[]>(props.modelValue ? [...props.modelValue] : [])
 
 // 左侧选中状态
-const leftChecked = ref<(string | number)[]>([...props.leftDefaultChecked!])
+const leftChecked = ref<(string | number)[]>(props.leftDefaultChecked ? [...props.leftDefaultChecked] : [])
 
 // 右侧选中状态
-const rightChecked = ref<(string | number)[]>([...props.rightDefaultChecked!])
+const rightChecked = ref<(string | number)[]>(props.rightDefaultChecked ? [...props.rightDefaultChecked] : [])
+
+// 获取 props 配置
+const itemProps = computed(() => props.props ?? { key: 'key', label: 'label', disabled: 'disabled' })
 
 // 监听外部值变化
 watch(
@@ -53,25 +62,11 @@ watch(
   }
 )
 
-// 构建数据项映射
-const buildDataMap = () => {
-  const map = new Map<string | number, any>()
-  if (props.data) {
-    props.data.forEach((item) => {
-      const key = item[props.props!.key]
-      map.set(key, item)
-    })
-  }
-  return map
-}
-
-const dataMap = computed(() => buildDataMap())
-
 // 源数据（左侧，未在目标列表中的数据）
 const sourceData = computed(() => {
   if (!props.data) return []
   return props.data.filter((item) => {
-    const key = item[props.props!.key]
+    const key = item[itemProps.value.key!]
     return !internalValue.value.includes(key)
   })
 })
@@ -85,7 +80,7 @@ const targetData = computed(() => {
     // original: 按原始数据顺序排序
     return props.data
       .filter((item) => {
-        const key = item[props.props!.key]
+        const key = item[itemProps.value.key!]
         return internalValue.value.includes(key)
       })
       .sort((a, b) => {
@@ -96,13 +91,13 @@ const targetData = computed(() => {
   } else if (props.targetOrder === 'push') {
     // push: 按 internalValue 中的顺序（追加到末尾）
     return internalValue.value
-      .map((key) => props.data!.find((item) => item[props.props!.key] === key))
+      .map((key) => props.data!.find((item) => item[itemProps.value.key!] === key))
       .filter((item) => item !== undefined)
   } else if (props.targetOrder === 'unshift') {
     // unshift: 按 internalValue 的相反顺序（插入到开头）
     return [...internalValue.value]
       .reverse()
-      .map((key) => props.data!.find((item) => item[props.props!.key] === key))
+      .map((key) => props.data!.find((item) => item[itemProps.value.key!] === key))
       .filter((item) => item !== undefined)
   }
 
@@ -169,7 +164,7 @@ const handleRightCheckChange = (checkedValues: (string | number)[], checkedItems
 
 // 计算样式类
 const containerClasses = computed(() =>
-  cn('flex items-center gap-4', props.class)
+  cn('flex items-center gap-4')
 )
 
 // 按钮容器样式
@@ -197,7 +192,7 @@ const buttonsClasses = computed(() =>
       :filter-method="filterMethod"
       :render-content="renderContent"
       :format="format"
-      :props="props"
+      :item-props="itemProps"
       panel="left"
       @check-change="handleLeftCheckChange"
     />
@@ -247,7 +242,7 @@ const buttonsClasses = computed(() =>
       :filter-method="filterMethod"
       :render-content="renderContent"
       :format="format"
-      :props="props"
+      :item-props="itemProps"
       panel="right"
       @check-change="handleRightCheckChange"
     />

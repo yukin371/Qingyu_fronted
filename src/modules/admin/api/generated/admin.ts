@@ -8,6 +8,9 @@
 import * as axios from 'axios'
 import type { AxiosInstance } from 'axios'
 
+// Re-export AxiosInstance for consumers that need it
+export type { AxiosInstance }
+
 import type {
   ApiV1AdminAssignRoleRequest,
   ApiV1AdminBatchDeleteRequest,
@@ -363,7 +366,7 @@ import type {
 } from '../../../../api/generated'
 
 import { orvalMutator } from '../../../../core/config/orval-mutator'
-export const getApi = (axiosInstance: AxiosInstance = axios.default) => {
+export const getApi = (_axiosInstance: AxiosInstance = axios.default) => {
   /**
    * 管理员获取公告列表
    * @summary 获取公告列表

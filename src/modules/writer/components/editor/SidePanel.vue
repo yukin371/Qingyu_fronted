@@ -78,10 +78,6 @@ withDefaults(defineProps<Props>(), {
   background: #f8fafc;
 }
 
-:deep(.collapse-trigger) {
-  display: none;
-}
-
 @media (max-width: 1024px) {
   .side-panel {
     border-radius: 10px;

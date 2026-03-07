@@ -29,9 +29,18 @@
                 <div class="plan-header">
                   <h4>{{ plan.name }}</h4>
                   <div class="plan-price">
-                    <span class="price">¥{{ plan.price }}</span>
-                    <span class="duration">/{{ plan.duration_unit }}</span>
+                    <template v-if="hasAuthorDiscount">
+                      <span class="price-discounted">¥{{ getDiscountedPrice(plan) }}</span>
+                      <span class="price-original">¥{{ plan.price }}</span>
+                    </template>
+                    <template v-else>
+                      <span class="price">¥{{ plan.price }}</span>
+                    </template>
+                    <span class="duration">/{{ plan.duration_unit || '月' }}</span>
                   </div>
+                  <el-tag v-if="hasAuthorDiscount" type="warning" size="small" class="author-discount-tag">
+                    作者优惠 {{ Math.round((1 - authorDiscountRate) * 100) }}%
+                  </el-tag>
                 </div>
                 <div class="plan-body">
                   <p class="plan-description">{{ plan.description }}</p>
@@ -163,7 +172,7 @@
           {{ selectedPlan?.name }}
         </el-descriptions-item>
         <el-descriptions-item label="价格">
-          ¥{{ selectedPlan?.price }} / {{ selectedPlan?.duration_unit }}
+          ¥{{ selectedPlan?.price }} / {{ selectedPlan?.duration_unit || '月' }}
         </el-descriptions-item>
       </el-descriptions>
 
@@ -214,6 +223,7 @@ import { ref, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon, QyConfirmDialog } from '@/design-system/components'
 import type { ConfirmDetail } from '@/design-system/components'
+import { useAuthStore } from '@/stores/auth'
 import {
   getMembershipPlans,
   getUserMembership,
@@ -221,22 +231,73 @@ import {
   cancelMembership,
   getMembershipBenefits,
   getMembershipBenefitsUsage,
-  activateMembershipCard,
-  type MembershipPlan,
-  type UserMembership,
-  type MembershipUsage
+  activateMembershipCard
 } from '@/modules/finance/api'
+
+// 定义本地类型，使用 duration_unit 字段
+interface LocalMembershipPlan {
+  id: string
+  name: string
+  type: string
+  price: number
+  duration: number
+  duration_unit: string
+  is_enabled?: boolean
+  sort_order?: number
+  description?: string
+  benefits?: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+// 本地 MembershipBenefit 类型
+interface LocalMembershipBenefit {
+  id: string
+  code: string
+  name: string
+  level?: string
+  description?: string
+  type?: string
+  value?: number
+  unit?: string
+  is_enabled?: boolean
+}
+
+// 本地 MembershipUsage 类型
+interface LocalMembershipUsage {
+  id: string
+  user_id: string
+  benefit_code: string
+  used_count: number
+  limit_count: number
+  reset_period?: string
+  last_reset_at?: string
+}
+
+// 从 membership.ts 导入 UserMembership 类型
+type UserMembership = {
+  id: string
+  user_id: string
+  plan_id: string
+  plan_name: string
+  status: 'active' | 'expired' | 'cancelled'
+  start_date: string
+  end_date: string
+  auto_renew: boolean
+  created_at: string
+  updated_at: string
+}
 import { validateAmount } from '@/utils/validation'
 
-const membershipPlans = ref<MembershipPlan[]>([])
+const membershipPlans = ref<LocalMembershipPlan[]>([])
 const userMembership = ref<UserMembership | null>(null)
-const benefitsUsage = ref<MembershipUsage[]>([])
+const benefitsUsage = ref<LocalMembershipUsage[]>([])
 const benefitsMap = ref<Record<string, string>>({})
 
 const subscribeDialogVisible = ref(false)
 const subscribeConfirmDialogVisible = ref(false)
 const cancelConfirmDialogVisible = ref(false)
-const selectedPlan = ref<MembershipPlan | null>(null)
+const selectedPlan = ref<LocalMembershipPlan | null>(null)
 const subscribeLoading = ref(false)
 const cancelLoading = ref(false)
 
@@ -247,6 +308,14 @@ const cardForm = ref({
 const subscribeForm = ref({
   payment_method: 'alipay'
 })
+const authStore = useAuthStore()
+const hasAuthorDiscount = computed(() => authStore.hasAuthorRole)
+const authorDiscountRate = computed(() => authStore.authorAIPackageDiscountRate)
+
+const getDiscountedPrice = (plan: LocalMembershipPlan) => {
+  const finalPrice = Number((plan.price * authorDiscountRate.value).toFixed(2))
+  return finalPrice.toFixed(2)
+}
 
 // 支付方式名称映射
 const paymentMethodMap: Record<string, string> = {
@@ -263,7 +332,11 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
   },
   {
     label: '价格',
-    value: `¥${selectedPlan.value?.price} / ${selectedPlan.value?.duration_unit}`
+    value: selectedPlan.value
+      ? (hasAuthorDiscount.value
+        ? `¥${getDiscountedPrice(selectedPlan.value)}（原价¥${selectedPlan.value.price}）/ ${selectedPlan.value.duration_unit || '月'}`
+        : `¥${selectedPlan.value.price} / ${selectedPlan.value.duration_unit || '月'}`)
+      : ''
   },
   {
     label: '支付方式',
@@ -275,7 +348,8 @@ const subscribeConfirmDetails = computed<ConfirmDetail[]>(() => [
 const loadMembershipPlans = async () => {
   try {
     const res = await getMembershipPlans()
-    membershipPlans.value = res.data || []
+    // API 已经返回正确类型 MembershipPlan[]，直接使用
+    membershipPlans.value = Array.isArray(res) ? res : []
   } catch (error) {
     message.error('获取套餐列表失败')
   }
@@ -285,7 +359,8 @@ const loadMembershipPlans = async () => {
 const loadUserMembership = async () => {
   try {
     const res = await getUserMembership()
-    userMembership.value = res.data
+    // API 返回 UserMembership 类型，如果存在则赋值
+    userMembership.value = res || null
   } catch (error) {
     // 未开通会员不算错误
     userMembership.value = null
@@ -299,11 +374,12 @@ const loadMembershipBenefits = async () => {
       getMembershipBenefitsUsage(),
       getMembershipBenefits()
     ])
-    benefitsUsage.value = usageRes.data || []
+    // API 已经返回正确的数组类型，直接使用
+    benefitsUsage.value = Array.isArray(usageRes) ? usageRes : []
 
     // 建立权益代码到名称的映射
-    const benefits = benefitsRes.data || []
-    benefitsMap.value = benefits.reduce((map, benefit) => {
+    const benefits: LocalMembershipBenefit[] = Array.isArray(benefitsRes) ? benefitsRes : []
+    benefitsMap.value = benefits.reduce((map: Record<string, string>, benefit: LocalMembershipBenefit) => {
       map[benefit.code] = benefit.name
       return map
     }, {} as Record<string, string>)
@@ -313,7 +389,7 @@ const loadMembershipBenefits = async () => {
 }
 
 // 订阅会员
-const handleSubscribe = (plan: MembershipPlan) => {
+const handleSubscribe = (plan: LocalMembershipPlan) => {
   // 验证价格
   if (!validateAmount(plan.price.toString())) {
     message.error('套餐价格无效')
@@ -401,13 +477,13 @@ const getBenefitName = (code: string) => {
 }
 
 // 获取使用百分比
-const getUsagePercentage = (usage: MembershipUsage) => {
+const getUsagePercentage = (usage: LocalMembershipUsage) => {
   if (usage.limit_count === 0) return 0
   return Math.min(100, Math.round((usage.used_count / usage.limit_count) * 100))
 }
 
 // 获取使用进度条颜色
-const getUsageColor = (usage: MembershipUsage) => {
+const getUsageColor = (usage: LocalMembershipUsage) => {
   const percentage = getUsagePercentage(usage)
   if (percentage >= 90) return '#f56c6c'
   if (percentage >= 70) return '#e6a23c'
@@ -493,10 +569,27 @@ onMounted(() => {
         color: var(--el-color-danger);
       }
 
+      .price-discounted {
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--el-color-danger);
+      }
+
+      .price-original {
+        font-size: 14px;
+        color: var(--el-text-color-secondary);
+        text-decoration: line-through;
+        margin-left: 8px;
+      }
+
       .duration {
         font-size: 14px;
         color: var(--el-text-color-secondary);
       }
+    }
+
+    .author-discount-tag {
+      margin-top: 8px;
     }
   }
 

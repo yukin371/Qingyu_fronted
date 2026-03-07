@@ -2,7 +2,9 @@
  * Reading Report View测试
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import ReadingReportView from '../ReadingReportView.vue'
 
@@ -52,7 +54,7 @@ describe('ReadingReportView', () => {
 
     it('should have correct class name', () => {
       const wrapper = mount(ReadingReportView)
-      expect(wrapper.classes()).toContain('reading-report-view')
+      expect((wrapper as any).classes()).toContain('reading-report-view')
     })
 
     it('should render container', () => {
@@ -117,7 +119,7 @@ describe('ReadingReportView', () => {
 
     it('should initialize period with default value', () => {
       const wrapper = mount(ReadingReportView)
-      expect(wrapper.vm.period).toBe('week')
+      expect((wrapper.vm as any).period).toBe('week')
     })
   })
 
@@ -140,7 +142,7 @@ describe('ReadingReportView', () => {
   describe('styles', () => {
     it('should have scoped styles', () => {
       const wrapper = mount(ReadingReportView)
-      expect(wrapper.attributes('style')).toBeFalsy() // styles are in scoped
+      expect((wrapper as any).attributes('style')).toBeFalsy() // styles are in scoped
     })
 
     it('should have container with max-width', () => {
@@ -159,8 +161,8 @@ describe('ReadingReportView', () => {
   describe('interaction', () => {
     it('should have period ref initialized', () => {
       const wrapper = mount(ReadingReportView)
-      expect(wrapper.vm.period).toBeDefined()
-      expect(wrapper.vm.period).toBe('week')
+      expect((wrapper.vm as any).period).toBeDefined()
+      expect((wrapper.vm as any).period).toBe('week')
     })
 
     it('should contain radio buttons for period selection', () => {

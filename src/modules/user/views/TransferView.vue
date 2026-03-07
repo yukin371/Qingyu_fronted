@@ -380,8 +380,8 @@ async function loadTransferHistory() {
     })
 
     if (response.code === 200) {
-      transferHistory.value = response.data?.data || []
-      total.value = response.data?.pagination?.total || 0
+      transferHistory.value = (response.data as any)?.data || []
+      total.value = (response.data as any)?.pagination?.total || 0
     }
   } catch (error) {
     console.error('加载转账记录失败:', error)

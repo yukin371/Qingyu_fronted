@@ -1,11 +1,9 @@
 import httpService from '@/core/services/http.service'
 import type {
   Document,
-  DocumentContent,
   CreateDocumentRequest,
   UpdateDocumentMetaRequest,
   CreateDocumentResponse, // 假设你需要后端返回的新ID等
-  DocumentTreeResponse, // 假设后端返回 { tree: Document[] } 或直接 Document[]
 } from '../types/document'
 
 // 为了处理移动和排序，我们需要定义额外的请求接口
@@ -32,8 +30,9 @@ export interface DuplicateDocumentResponse {
   stableRef: string
 }
 
-const BASE_PROJECT_URL = '/writer/projects'
-const BASE_DOC_URL = '/documents'
+const BASE_DOC_URL = '/writer/documents'
+// 文档操作使用单数 project 路径（后端路由定义）
+const BASE_PROJECT_DOC_URL = '/writer/project'
 
 export const documentApi = {
   // ==========================================
@@ -42,18 +41,18 @@ export const documentApi = {
 
   /**
    * 创建文档
-   * POST /api/v1/projects/{projectId}/documents
+   * POST /api/v1/writer/project/{projectId}/documents
    */
   create(projectId: string, data: CreateDocumentRequest) {
     return httpService.post<CreateDocumentResponse>(
-      `${BASE_PROJECT_URL}/${projectId}/documents`,
+      `${BASE_PROJECT_DOC_URL}/${projectId}/documents`,
       data
     )
   },
 
   /**
    * 获取文档详情 (通常是元数据)
-   * GET /api/v1/documents/{id}
+   * GET /api/v1/writer/documents/{id}
    */
   getDetail(documentId: string) {
     return httpService.get<Document>(`${BASE_DOC_URL}/${documentId}`)
@@ -61,7 +60,7 @@ export const documentApi = {
 
   /**
    * 更新文档 (元数据/属性)
-   * PUT /api/v1/documents/{id}
+   * PUT /api/v1/writer/documents/{id}
    */
   update(documentId: string, data: UpdateDocumentMetaRequest) {
     return httpService.put<void>(`${BASE_DOC_URL}/${documentId}`, data)
@@ -69,7 +68,7 @@ export const documentApi = {
 
   /**
    * 删除文档
-   * DELETE /api/v1/documents/{id}
+   * DELETE /api/v1/writer/documents/{id}
    */
   delete(documentId: string) {
     return httpService.delete<void>(`${BASE_DOC_URL}/${documentId}`)
@@ -81,23 +80,23 @@ export const documentApi = {
 
   /**
    * 获取文档列表 (分页)
-   * GET /api/v1/projects/{projectId}/documents
+   * GET /api/v1/writer/project/{projectId}/documents
    */
   list(projectId: string, params?: { page?: number; pageSize?: number }) {
     return httpService.get<{ documents: Document[]; total: number }>(
-      `${BASE_PROJECT_URL}/${projectId}/documents`,
-      params
+      `${BASE_PROJECT_DOC_URL}/${projectId}/documents`,
+      params as any
     )
   },
 
   /**
    * 获取文档树
-   * GET /api/v1/projects/{projectId}/documents/tree
+   * GET /api/v1/writer/project/{projectId}/documents/tree
    */
   getTree(projectId: string) {
     // 根据后端返回类型调整泛型，可能是 Document[] 也可能是 { tree: Document[] }
     // 这里假设后端 DocumentTreeResponse 结构包含 tree 字段或本身就是数组
-    return httpService.get<any>(`${BASE_PROJECT_URL}/${projectId}/documents/tree`)
+    return httpService.get<any>(`${BASE_PROJECT_DOC_URL}/${projectId}/documents/tree`)
   },
 
   // ==========================================
@@ -106,7 +105,7 @@ export const documentApi = {
 
   /**
    * 移动文档 (修改 ParentID)
-   * PUT /api/v1/documents/{id}/move
+   * PUT /api/v1/writer/documents/{id}/move
    */
   move(documentId: string, data: MoveDocumentRequest) {
     return httpService.put<void>(`${BASE_DOC_URL}/${documentId}/move`, data)
@@ -114,10 +113,10 @@ export const documentApi = {
 
   /**
    * 重新排序 (批量更新同级文档)
-   * PUT /api/v1/projects/{projectId}/documents/reorder
+   * PUT /api/v1/writer/project/{projectId}/documents/reorder
    */
   reorder(projectId: string, data: ReorderDocumentsRequest) {
-    return httpService.put<void>(`${BASE_PROJECT_URL}/${projectId}/documents/reorder`, data)
+    return httpService.put<void>(`${BASE_PROJECT_DOC_URL}/${projectId}/documents/reorder`, data)
   },
 
   // ==========================================

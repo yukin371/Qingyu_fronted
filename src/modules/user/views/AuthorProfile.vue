@@ -84,7 +84,7 @@
             </div>
           </el-tab-pane>
         </el-tabs>
-      </el-card>
+      </QyCard>
     </div>
   </div>
 </template>
@@ -394,4 +394,3 @@ onMounted(() => {
   }
 }
 </style>
-

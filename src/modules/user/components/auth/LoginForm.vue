@@ -50,12 +50,14 @@
           variant="primary"
           size="lg"
           :loading="loading"
-          :disabled="!isFormValid"
           class="login-button"
-          @click="handleLogin"
+          @click="onButtonClick"
         >
           {{ loading ? '登录中...' : '登录' }}
         </qy-button>
+        <div style="font-size: 12px; color: #999; margin-top: 8px;">
+          Debug: isFormValid={{ isFormValid }}, loading={{ loading }}
+        </div>
       </qy-form-item>
 
       <div class="form-footer">
@@ -70,7 +72,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
@@ -90,7 +92,7 @@ export default {
     QyCheckbox
   },
   emits: ['login-success', 'switch-to-register', 'forgot-password'],
-  setup(props, { emit }) {
+  setup(_props, { emit }) {
     const authStore = useAuthStore()
     const loginFormRef = ref()
 
@@ -102,7 +104,7 @@ export default {
     })
 
     // 表单验证规则
-    const loginRules = {
+    const loginRules: any = {
       username: [
         { required: true, message: '请输入用户名或邮箱', trigger: 'blur' },
         { min: 3, max: 50, message: '用户名长度在 3 到 50 个字符', trigger: 'blur' }
@@ -121,26 +123,66 @@ export default {
 
     // 处理登录
     const handleLogin = async () => {
-      if (!loginFormRef.value) return
+      console.log('[LoginForm] handleLogin called')
+      console.log('[LoginForm] loginFormRef.value:', loginFormRef.value)
+      console.log('[LoginForm] username:', loginForm.username)
+      console.log('[LoginForm] password:', loginForm.password ? '***' : 'empty')
+      console.log('[LoginForm] isFormValid:', isFormValid.value)
+      console.log('[LoginForm] loading:', loading.value)
+
+      if (!loginFormRef.value) {
+        console.error('[LoginForm] loginFormRef.value is null')
+        return
+      }
 
       try {
         // 表单验证
-        await loginFormRef.value.validate()
+        console.log('[LoginForm] Starting form validation...')
+        const isValid = await loginFormRef.value.validate()
+        console.log('[LoginForm] Validation result:', isValid)
+
+        if (!isValid) {
+          console.log('[LoginForm] Form validation failed')
+          return
+        }
 
         // 调用登录接口
+        console.log('[LoginForm] Calling authStore.login...')
         await authStore.login({
           username: loginForm.username.trim(),
           password: loginForm.password,
           rememberMe: loginForm.rememberMe
         })
 
+        console.log('[LoginForm] Login successful')
         message.success('登录成功')
         emit('login-success')
-      } catch (error) {
-        if (error.message) {
-          message.error(error.message)
+      } catch (error: unknown) {
+        // 获取错误消息 - 支持多种错误格式
+        let errorMessage = '登录失败，请稍后重试'
+
+        if (error instanceof Error) {
+          errorMessage = error.message
+        } else if (typeof error === 'string') {
+          errorMessage = error
+        } else if (error && typeof error === 'object') {
+          const err = error as { message?: string; response?: { data?: { message?: string } } }
+          errorMessage = err.message || err.response?.data?.message || errorMessage
+        }
+
+        console.error('[LoginForm] 登录错误:', error, 'errorMessage:', errorMessage)
+
+        // 只有非表单验证错误才显示消息（表单验证错误会在表单项下显示）
+        if (errorMessage && !errorMessage.includes('验证失败')) {
+          message.error(errorMessage)
         }
       }
+    }
+
+    // 调试：监听按钮点击
+    const onButtonClick = (event: Event) => {
+      console.log('[LoginForm] Button clicked!', event)
+      handleLogin()
     }
 
     // 重置表单
@@ -162,6 +204,7 @@ export default {
       loading,
       isFormValid,
       handleLogin,
+      onButtonClick,
       resetForm
     }
   }

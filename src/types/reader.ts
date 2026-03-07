@@ -3,7 +3,6 @@
  * 基于 doc/api/frontend/阅读器API参考.md
  */
 
-import type { APIResponse, PaginatedResponse } from './api'
 import type { BookBrief } from './bookstore'
 
 // ==================== 章节相关 ====================
@@ -334,6 +333,8 @@ export interface ParagraphComment {
   emoji?: string
   likes: number
   likedByMe: boolean
+  replyToCommentId?: string
+  replyToUsername?: string
   createdAt: string
   updatedAt: string
 }

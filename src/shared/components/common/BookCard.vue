@@ -49,8 +49,8 @@
             <!-- 操作按钮 -->
             <div v-if="showActions" class="book-actions" @click.stop>
                 <slot name="actions">
-                    <QyButton variant="primary" size="small" @click.stop="handleRead">阅读</QyButton>
-                    <QyButton variant="ghost" size="small" :icon="starIcon" @click.stop="handleFavorite" />
+                    <QyButton variant="primary" size="sm" @click.stop="handleRead">阅读</QyButton>
+                    <QyButton variant="ghost" size="sm" :icon="starIcon" @click.stop="handleFavorite" />
                 </slot>
             </div>
         </div>
