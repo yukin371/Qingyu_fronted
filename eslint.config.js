@@ -26,6 +26,13 @@ export default defineConfig([
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
   {
+    name: 'disable-base-no-unused-vars',
+    rules: {
+      // 禁用基础规则，使用 TypeScript 版本的 no-unused-vars
+      'no-unused-vars': 'off',
+    },
+  },
+  {
     name: 'vue/rules',
     rules: {
       'vue/no-v-model-argument': 'off',

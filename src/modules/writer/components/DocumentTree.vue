@@ -324,8 +324,9 @@ function getValidProjectId(data: Document): string {
  * 处理拖拽开始事件
  * 设置拖拽数据和效果
  */
-const handleDragStart = (node: any, event: DragEvent) => {
-  const isCopy = detectCopyMode(event)
+// el-tree node-drag-start 事件签名: (node, evt)
+const handleDragStart = (node: any, evt: DragEvent) => {
+  const isCopy = detectCopyMode(evt)
   const data = node.data as Document
 
   // 获取有效的projectId
@@ -346,27 +347,28 @@ const handleDragStart = (node: any, event: DragEvent) => {
   }
 
   // 设置拖拽效果
-  event.dataTransfer!.effectAllowed = isCopy ? 'copy' : 'move'
+  evt.dataTransfer!.effectAllowed = isCopy ? 'copy' : 'move'
 
   // 设置拖拽数据（用于跨组件/跨窗口拖拽）
   const jsonData = JSON.stringify(payload)
-  event.dataTransfer!.setData('application/x-documents+json', jsonData)
-  event.dataTransfer!.setData('text/plain', jsonData) // 兼容性
+  evt.dataTransfer!.setData('application/x-documents+json', jsonData)
+  evt.dataTransfer!.setData('text/plain', jsonData) // 兼容性
 }
 
 // =======================
 // 事件处理
 // =======================
 
-const handleNodeClick = (data: Document, _node?: any, _nodeInstance?: any, event?: MouseEvent) => {
+// el-tree node-click 事件签名: (data, node, nodeInstance, evt)
+const handleNodeClick = (data: Document, _node: any, _nodeInstance: any, evt: MouseEvent) => {
   if (isMultiSelectMode.value) {
     // 多选模式
-    if (event && event.shiftKey) {
+    if (evt && evt.shiftKey) {
       // Shift+点击：范围选择
       selectRange(data.id, flatDocs.value)
     } else {
       // Ctrl/Cmd+点击或普通点击：切换选择
-      toggleSelection(data.id, event || null)
+      toggleSelection(data.id, evt || null)
     }
   } else {
     // 普通模式：选中并打开文档
@@ -381,7 +383,8 @@ function handleTreeClick(event: MouseEvent): void {
   }
 }
 
-const handleNodeDrop = async (dragNode: any, dropNode: any, type: 'inner' | 'before' | 'after', event?: DragEvent) => {
+// el-tree node-drop 事件签名: (dragNode, dropNode, type, evt)
+const handleNodeDrop = async (dragNode: any, dropNode: any, type: 'inner' | 'before' | 'after', evt?: DragEvent) => {
   const dragData = dragNode.data as Document
   const dropData = dropNode.data as Document
 
@@ -391,10 +394,10 @@ const handleNodeDrop = async (dragNode: any, dropNode: any, type: 'inner' | 'bef
   if (dragState.value) {
     // 使用组件状态
     dragMode = dragState.value.isCopy ? 'copy' : 'move'
-  } else if (event?.dataTransfer) {
+  } else if (evt?.dataTransfer) {
     // 如果没有状态，尝试从 dataTransfer 获取（跨组件拖拽）
     try {
-      const dragDataJson = event.dataTransfer.getData('application/x-documents+json')
+      const dragDataJson = evt.dataTransfer.getData('application/x-documents+json')
       if (dragDataJson) {
         const dragPayload: DragData = JSON.parse(dragDataJson)
         dragMode = dragPayload.mode
@@ -479,9 +482,10 @@ const contextMenu = reactive({
   target: null as Document | null
 })
 
-const handleContextMenu = (event: Event, data: Document) => {
-  const mouseEvent = event as MouseEvent
+// el-tree node-contextmenu 事件签名: (evt, data, node, nodeInstance)
+const handleContextMenu = (evt: Event, data: Document, _node: any, _nodeInstance: any) => {
   contextMenu.visible = true
+  const mouseEvent = evt as MouseEvent
   contextMenu.x = mouseEvent.clientX
   contextMenu.y = mouseEvent.clientY
   contextMenu.target = data

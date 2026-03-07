@@ -18,7 +18,7 @@
                     <QyTag
                         v-for="role in userRoles"
                         :key="role"
-                        :variant="getRoleTagType(role) as 'primary' | 'success' | 'warning' | 'info' | 'danger'"
+                        :variant="getRoleTagType(role)"
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
@@ -58,7 +58,7 @@
 
                 <!-- 昵称 -->
                 <QyFormItem label="昵称" prop="nickname">
-                    <QyInput v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
+                    <QyInput v-model="form.nickname" placeholder="请输入昵称" :maxlength="50" show-word-limit clearable />
                 </QyFormItem>
 
                 <!-- 个人简介 -->
@@ -84,25 +84,25 @@
 
                 <!-- 所在地 -->
                 <QyFormItem label="所在地" prop="location">
-                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
+                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" :maxlength="100" clearable />
                 </QyFormItem>
 
                 <!-- 个人网站 -->
                 <QyFormItem label="个人网站" prop="website">
-                    <QyInput v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
+                    <QyInput v-model="form.website" placeholder="https://example.com" :maxlength="200" clearable />
                 </QyFormItem>
 
                 <!-- 社交账号 -->
                 <QyFormItem label="微博">
-                    <QyInput v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
+                    <QyInput v-model="form.social.weibo" placeholder="微博账号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="微信">
-                    <QyInput v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
+                    <QyInput v-model="form.social.wechat" placeholder="微信号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="QQ">
-                    <QyInput v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
+                    <QyInput v-model="form.social.qq" placeholder="QQ号" :maxlength="20" clearable />
                 </QyFormItem>
 
                 <!-- 提交按钮 -->
@@ -247,8 +247,8 @@ const rules = {
 }
 
 // 获取角色标签颜色
-const getRoleTagType = (role: string) => {
-    const roleTypes: Record<string, string> = {
+const getRoleTagType = (role: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+    const roleTypes: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
         admin: 'danger',
         author: 'success',
         reader: 'info'
