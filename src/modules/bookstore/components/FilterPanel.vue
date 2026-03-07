@@ -40,8 +40,8 @@
         <div class="group-title">连载状态</div>
         <div class="pills-wrapper">
           <div class="filter-pill" :class="{ active: !selectedStatus }" @click="selectedStatus = ''">全部</div>
-          <div class="filter-pill" :class="{ active: selectedStatus === 'serializing' }"
-            @click="selectedStatus = 'serializing'">连载中</div>
+          <div class="filter-pill" :class="{ active: selectedStatus === 'ongoing' }"
+            @click="selectedStatus = 'ongoing'">连载中</div>
           <div class="filter-pill" :class="{ active: selectedStatus === 'completed' }"
             @click="selectedStatus = 'completed'">已完结</div>
         </div>
@@ -209,7 +209,7 @@ const activeFiltersList = computed(() => {
   }
 
   if (selectedStatus.value) {
-    filters.push({ key: 'status', label: selectedStatus.value === 'serializing' ? '连载中' : '已完结' })
+    filters.push({ key: 'status', label: selectedStatus.value === 'ongoing' ? '连载中' : '已完结' })
   }
 
   const wcOpt = wordCountOptions.find(o => o.value === selectedWordCount.value)

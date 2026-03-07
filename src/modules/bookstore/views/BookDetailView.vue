@@ -315,6 +315,7 @@ const statusText = computed(() => {
   if (!book.value) return ''
   const statusMap: Record<string, string> = {
     serializing: '连载中',
+    ongoing: '连载中',
     completed: '已完结',
     paused: '暂停'
   }

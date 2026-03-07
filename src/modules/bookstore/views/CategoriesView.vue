@@ -53,7 +53,7 @@
           <el-col :xs="24" :sm="8" :md="6">
             <QySelect v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
               <el-option label="全部" value="" />
-              <el-option label="连载中" value="serializing" />
+              <el-option label="连载中" value="ongoing" />
               <el-option label="已完结" value="completed" />
             </QySelect>
           </el-col>
@@ -210,7 +210,7 @@ const loadBooks = async () => {
     if (response && (response as any).code === 200) {
       const data = (response as any).data
       books.value = data?.books || data || []
-      bookTotal.value = data?.total || 0
+      bookTotal.value = data?.total || (response as any).pagination?.total || (Array.isArray(books.value) ? books.value.length : 0)
     } else {
       books.value = Array.isArray(response) ? response : []
       bookTotal.value = books.value.length

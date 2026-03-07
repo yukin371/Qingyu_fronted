@@ -8,7 +8,7 @@
 /**
  * 书籍状态
  */
-export type BookStatus = 'serializing' | 'completed' | 'paused'
+export type BookStatus = 'ongoing' | 'completed' | 'paused' | 'serializing'
 
 /**
  * 书籍完整信息
@@ -20,7 +20,8 @@ export interface Book {
   authorId?: string
   cover: string
   description: string
-  categoryId: string
+  categoryId?: string
+  categoryIds?: string[]
   categoryName?: string
   category?: string
   tags?: string[]
@@ -34,12 +35,15 @@ export interface Book {
   isVip?: boolean
   isFree?: boolean
   price?: number
-  publishTime: string
-  updateTime: string
+  publishTime?: string
+  publishedAt?: string
+  updateTime?: string
+  updatedAt?: string
   latestChapter?: {
     id: string
     title: string
-    updateTime: string
+    updateTime?: string
+    updatedAt?: string
   }
 }
 
@@ -159,6 +163,7 @@ export interface SearchParams {
   keyword?: string
   author?: string
   categoryId?: string
+  categoryIds?: string[]
   tags?: string[]
   status?: BookStatus
   wordCountMin?: number
@@ -226,5 +231,3 @@ export interface RecommendedBook {
   reason: string
   score: number
 }
-
-

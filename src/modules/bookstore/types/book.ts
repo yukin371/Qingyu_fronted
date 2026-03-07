@@ -21,6 +21,7 @@ export interface Book {
   authorId?: ID
   introduction: string
   cover: string
+  categoryId?: ID
   categoryIds: ID[]
   categories: string[]
   tags: string[]

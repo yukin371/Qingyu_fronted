@@ -5,7 +5,7 @@
 // ==================== 书籍相关 ====================
 
 /** 书籍状态 */
-export type BookStatus = 'serializing' | 'completed' | 'paused'
+export type BookStatus = 'ongoing' | 'completed' | 'paused' | 'serializing'
 
 /** 书籍信息 */
 export interface Book {
@@ -15,7 +15,8 @@ export interface Book {
   authorId?: string
   cover: string
   description: string
-  categoryId: string
+  categoryId?: string
+  categoryIds?: string[]
   categoryName?: string
   category?: string
   tags?: string[]
@@ -29,12 +30,15 @@ export interface Book {
   isVip?: boolean
   isFree?: boolean
   price?: number
-  publishTime: string
-  updateTime: string
+  publishTime?: string
+  publishedAt?: string
+  updateTime?: string
+  updatedAt?: string
   latestChapter?: {
     id: string
     title: string
-    updateTime: string
+    updateTime?: string
+    updatedAt?: string
   } | string
 }
 
@@ -65,8 +69,10 @@ export interface Chapter {
   wordCount: number
   isFree: boolean
   price: number
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
   updateTime?: string
+  updatedAt?: string
   locked?: boolean
   prevChapterId: string | null
   nextChapterId: string | null
@@ -80,7 +86,8 @@ export interface ChapterContent {
   content: string
   chapterNum: number
   wordCount: number
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
   prevChapterId: string | null
   nextChapterId: string | null
 }
@@ -94,7 +101,8 @@ export interface ChapterListItem {
   isFree: boolean
   price: number
   isRead?: boolean
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
 }
 
 // ==================== 分类相关 ====================
@@ -173,7 +181,8 @@ export interface ReadingProgress {
   chapterTitle: string
   progress: number // 0-100
   scrollPosition: number
-  updateTime: string
+  updateTime?: string
+  updatedAt?: string
 }
 
 /** 阅读历史 */
@@ -349,4 +358,3 @@ export interface HomepageData {
     monthly: RankingItem[]
   }
 }
-

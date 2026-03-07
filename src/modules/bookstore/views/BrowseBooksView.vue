@@ -137,7 +137,7 @@ const router = useRouter()
 
 // 状态筛选选项
 const statuses = ref([
-  { value: 'serializing', label: '连载中' },
+  { value: 'ongoing', label: '连载中' },
   { value: 'completed', label: '已完结' }
 ])
 

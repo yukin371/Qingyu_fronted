@@ -1,6 +1,7 @@
 import { httpService } from '@/core/services/http.service'
 import type { BookBrief } from '@/types/models'
 import type { BrowseFilters } from '@/types/models/browse'
+import { normalizeBookList } from '../utils/contract-normalizer'
 
 interface GetBooksResponse {
   code: number
@@ -43,7 +44,16 @@ export const browseService = {
       Object.entries(params).filter(([, value]) => value !== undefined)
     )
 
-    return httpService.get('/bookstore/books', { params: cleanParams })
+    const response = await httpService.get('/bookstore/books', { params: cleanParams }) as GetBooksResponse
+
+    if (Array.isArray((response as any)?.data)) {
+      return {
+        ...response,
+        data: normalizeBookList((response as any).data) as BookBrief[]
+      }
+    }
+
+    return response
   },
 
   /**

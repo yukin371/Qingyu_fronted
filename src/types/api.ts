@@ -77,6 +77,6 @@ export interface RecommendationItem {
 
 export interface RecommendationBehavior {
   itemId: string
-  behaviorType: 'view' | 'click' | 'favorite' | 'purchase'
+  behaviorType: 'view' | 'click' | 'collect' | 'purchase'
   context?: Record<string, unknown>
 }
