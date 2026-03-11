@@ -1,68 +1,56 @@
 <template>
   <div class="admin-dashboard">
-    <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="page-title">管理仪表板</h2>
       <p class="page-subtitle">系统运营数据概览与快捷操作入口</p>
     </div>
 
-    <!-- 统计卡片 -->
     <div class="stat-cards">
       <div class="stat-card" @click="goToUsers">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="stat-icon primary">
           <el-icon :size="24"><User /></el-icon>
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ formatNumber(stats.totalUsers) }}</div>
           <div class="stat-label">用户总数</div>
-          <div class="stat-trend positive">
-            <el-icon><ArrowUp /></el-icon>
-            {{ stats.userTrend }}%
-          </div>
+          <div class="stat-meta">今日新增 {{ formatNumber(stats.newUsersToday) }}</div>
         </div>
       </div>
 
       <div class="stat-card highlight" @click="goToReviews">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <div class="stat-icon danger">
           <el-icon :size="24"><DocumentChecked /></el-icon>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.pendingReviews }}</div>
+          <div class="stat-value">{{ formatNumber(stats.pendingReviews) }}</div>
           <div class="stat-label">待审核</div>
           <div class="stat-badge">需处理</div>
         </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <div class="stat-icon info">
           <el-icon :size="24"><Wallet /></el-icon>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ formatCurrency(stats.todayIncome) }}</div>
-          <div class="stat-label">今日收入</div>
-          <div class="stat-trend positive">
-            <el-icon><ArrowUp /></el-icon>
-            {{ stats.incomeTrend }}%
-          </div>
+          <div class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</div>
+          <div class="stat-label">累计收入</div>
+          <div class="stat-meta">当前后端未提供日收入趋势</div>
         </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+        <div class="stat-icon warning">
           <el-icon :size="24"><TrendCharts /></el-icon>
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ formatNumber(stats.activeUsers) }}</div>
           <div class="stat-label">活跃用户</div>
-          <div class="stat-trend negative">
-            <el-icon><ArrowDown /></el-icon>
-            {{ Math.abs(stats.activeTrend) }}%
-          </div>
+          <div class="stat-meta">作者数 {{ formatNumber(stats.authorsCount) }}</div>
         </div>
       </div>
     </div>
 
-    <!-- 快捷操作 -->
     <div class="section-title">
       <h3>快捷操作</h3>
       <span class="section-desc">常用管理功能入口</span>
@@ -132,19 +120,16 @@
       </div>
     </div>
 
-    <!-- 图表区 -->
     <div class="section-title">
-      <h3>数据统计</h3>
-      <span class="section-desc">平台运营数据趋势</span>
+      <h3>数据概览</h3>
+      <span class="section-desc">当前以真实接口返回的聚合数据为准</span>
     </div>
     <div class="charts-section">
       <div class="chart-card">
         <div class="chart-header">
-          <span class="chart-title">用户增长趋势</span>
-          <el-radio-group v-model="userGrowthPeriod" size="small">
-            <el-radio-button label="week">周</el-radio-button>
-            <el-radio-button label="month">月</el-radio-button>
-            <el-radio-button label="year">年</el-radio-button>
+          <span class="chart-title">用户规模概览</span>
+          <el-radio-group v-model="userOverviewMode" size="small">
+            <el-radio-button value="overview">概览</el-radio-button>
           </el-radio-group>
         </div>
         <div ref="userChartRef" class="chart-container"></div>
@@ -152,26 +137,27 @@
 
       <div class="chart-card">
         <div class="chart-header">
-          <span class="chart-title">交易金额趋势</span>
-          <el-radio-group v-model="transactionPeriod" size="small">
-            <el-radio-button label="week">周</el-radio-button>
-            <el-radio-button label="month">月</el-radio-button>
+          <span class="chart-title">审核状态分布</span>
+          <el-radio-group v-model="auditOverviewMode" size="small">
+            <el-radio-button value="overview">概览</el-radio-button>
           </el-radio-group>
         </div>
-        <div ref="transactionChartRef" class="chart-container"></div>
+        <div ref="auditChartRef" class="chart-container"></div>
       </div>
     </div>
 
-    <!-- 最近活动 -->
     <div class="section-title">
       <h3>最近活动</h3>
-      <el-button text type="primary" @click="loadActivities">
+      <el-button text type="primary" :loading="activitiesLoading" @click="loadActivities">
         <el-icon><Refresh /></el-icon>
         刷新
       </el-button>
     </div>
     <div class="recent-activities">
-      <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
+      <div v-if="recentActivities.length === 0" class="empty-state">
+        <el-empty description="暂无操作日志" />
+      </div>
+      <div v-else v-for="activity in recentActivities" :key="activity.id" class="activity-item">
         <div class="activity-dot" :class="activity.type"></div>
         <div class="activity-content">
           <div class="activity-text">{{ activity.content }}</div>
@@ -183,123 +169,209 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import {
-  User, UserFilled, DocumentChecked, Wallet, TrendCharts,
-  ArrowUp, ArrowDown, Refresh, Grid, Document, Picture
+  User,
+  UserFilled,
+  DocumentChecked,
+  Wallet,
+  TrendCharts,
+  Refresh,
+  Grid,
+  Document,
+  Picture,
 } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
+import { getAuditStatistics, getDashboardStats, getOperationLogs } from '../api'
+import type { OperationLog } from '../types/admin.types'
+
+type DashboardMetrics = {
+  totalUsers: number
+  newUsersToday: number
+  pendingReviews: number
+  totalRevenue: number
+  activeUsers: number
+  authorsCount: number
+  approved: number
+  rejected: number
+  highRisk: number
+}
+
+type ActivityItem = {
+  id: string
+  time: string
+  type: 'primary' | 'success' | 'warning' | 'info'
+  content: string
+}
 
 const router = useRouter()
 
-// 统计数据
-const stats = ref({
-  totalUsers: 12586,
-  userTrend: 12.5,
-  pendingReviews: 23,
-  todayIncome: 15680.5,
-  incomeTrend: 8.3,
-  activeUsers: 3562,
-  activeTrend: -2.1
+const stats = ref<DashboardMetrics>({
+  totalUsers: 0,
+  newUsersToday: 0,
+  pendingReviews: 0,
+  totalRevenue: 0,
+  activeUsers: 0,
+  authorsCount: 0,
+  approved: 0,
+  rejected: 0,
+  highRisk: 0,
 })
 
-// 图表周期选择
-const userGrowthPeriod = ref('month')
-const transactionPeriod = ref('week')
+const userOverviewMode = ref('overview')
+const auditOverviewMode = ref('overview')
+const activitiesLoading = ref(false)
+const recentActivities = ref<ActivityItem[]>([])
 
-// 图表引用
 const userChartRef = ref<HTMLElement>()
-const transactionChartRef = ref<HTMLElement>()
+const auditChartRef = ref<HTMLElement>()
 
-// 格式化数字
+let userChart: echarts.ECharts | null = null
+let auditChart: echarts.ECharts | null = null
+
 const formatNumber = (num: number) => {
   if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
+    return `${(num / 10000).toFixed(1)}万`
   }
   return num.toLocaleString()
 }
 
-// 格式化货币
-const formatCurrency = (num: number) => {
-  return '¥' + num.toLocaleString()
+const formatCurrency = (num: number) => `¥${num.toLocaleString()}`
+
+const formatDateTime = (value?: string | number) => {
+  if (!value) return '未知时间'
+  const date = typeof value === 'number' ? new Date(value) : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return String(value)
+  }
+  return date.toLocaleString('zh-CN', { hour12: false })
 }
 
-// 最近活动
-const recentActivities = ref([
-  { id: 1, time: '2025-10-21 14:30', type: 'primary', content: '用户 张三 注册成功' },
-  { id: 2, time: '2025-10-21 14:25', type: 'success', content: '管理员 审核通过了书籍《测试书籍》' },
-  { id: 3, time: '2025-10-21 14:20', type: 'warning', content: '用户 李四 申请提现 ¥500' },
-  { id: 4, time: '2025-10-21 14:15', type: 'info', content: '系统自动清理了过期缓存' }
-])
+const normalizeActivityType = (log: OperationLog): ActivityItem['type'] => {
+  if (log.result === 'failure') return 'warning'
+  if (/(approve|create|publish|enable)/i.test(log.action)) return 'success'
+  if (/(delete|ban|reject|disable)/i.test(log.action)) return 'warning'
+  return 'primary'
+}
 
-// 初始化用户增长图表
+const formatActivityText = (log: OperationLog) => {
+  const operator = log.operatorName || log.operatorId || '管理员'
+  const action = log.action || '执行操作'
+  const target = log.target || log.targetId || '系统资源'
+  return `${operator} ${action} ${target}`.trim()
+}
+
 const initUserChart = () => {
   if (!userChartRef.value) return
-  const chart = echarts.init(userChartRef.value)
-  chart.setOption({
+  userChart?.dispose()
+  userChart = echarts.init(userChartRef.value)
+  userChart.setOption({
     tooltip: { trigger: 'axis' },
-    legend: { data: ['新增用户', '活跃用户'], bottom: 0 },
-    grid: { left: '3%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
+    grid: { left: '3%', right: '4%', bottom: '8%', top: '12%', containLabel: true },
     xAxis: {
       type: 'category',
-      boundaryGap: false,
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      data: ['总用户', '活跃用户', '作者数', '今日新增'],
+      axisTick: { alignWithLabel: true },
     },
     yAxis: { type: 'value' },
     series: [
       {
-        name: '新增用户',
-        type: 'line',
-        smooth: true,
-        data: [120, 132, 101, 134, 90, 230, 210],
-        areaStyle: { color: 'rgba(102, 126, 234, 0.2)' },
-        lineStyle: { color: '#667eea' },
-        itemStyle: { color: '#667eea' }
+        type: 'bar',
+        data: [
+          stats.value.totalUsers,
+          stats.value.activeUsers,
+          stats.value.authorsCount,
+          stats.value.newUsersToday,
+        ],
+        itemStyle: {
+          color: (params: { dataIndex: number }) =>
+            ['#667eea', '#4facfe', '#fa709a', '#67c23a'][params.dataIndex] ?? '#667eea',
+        },
+        barMaxWidth: 56,
       },
-      {
-        name: '活跃用户',
-        type: 'line',
-        smooth: true,
-        data: [220, 182, 191, 234, 290, 330, 310],
-        areaStyle: { color: 'rgba(79, 172, 254, 0.2)' },
-        lineStyle: { color: '#4facfe' },
-        itemStyle: { color: '#4facfe' }
-      }
-    ]
+    ],
   })
-  window.addEventListener('resize', () => chart.resize())
 }
 
-// 初始化交易图表
-const initTransactionChart = () => {
-  if (!transactionChartRef.value) return
-  const chart = echarts.init(transactionChartRef.value)
-  chart.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['充值', '消费', '提现'], bottom: 0 },
-    grid: { left: '3%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-    },
-    yAxis: { type: 'value' },
+const initAuditChart = () => {
+  if (!auditChartRef.value) return
+  auditChart?.dispose()
+  auditChart = echarts.init(auditChartRef.value)
+  const seriesData = [
+    { value: stats.value.pendingReviews, name: '待审核' },
+    { value: stats.value.approved, name: '已通过' },
+    { value: stats.value.rejected, name: '已拒绝' },
+    { value: stats.value.highRisk, name: '高风险' },
+  ]
+  const hasData = seriesData.some(item => item.value > 0)
+  auditChart.setOption({
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
     series: [
-      { name: '充值', type: 'bar', data: [2500, 3200, 2800, 3500, 3000, 4200, 3800], itemStyle: { color: '#67c23a' } },
-      { name: '消费', type: 'bar', data: [1800, 2200, 1900, 2400, 2100, 2800, 2500], itemStyle: { color: '#409eff' } },
-      { name: '提现', type: 'bar', data: [500, 800, 600, 900, 700, 1200, 1000], itemStyle: { color: '#e6a23c' } }
-    ]
+      {
+        type: 'pie',
+        radius: ['45%', '70%'],
+        center: ['50%', '45%'],
+        data: hasData ? seriesData : [{ value: 1, name: '暂无审核数据', itemStyle: { color: '#d1d5db' } }],
+        label: { formatter: '{b}' },
+      },
+    ],
   })
-  window.addEventListener('resize', () => chart.resize())
 }
 
-// 加载活动
-const loadActivities = () => {
-  message.success('数据已刷新')
+const resizeCharts = () => {
+  userChart?.resize()
+  auditChart?.resize()
 }
 
-// 路由跳转
+const loadActivities = async () => {
+  activitiesLoading.value = true
+  try {
+    const response = await getOperationLogs({ page: 1, page_size: 5 })
+    const logs = Array.isArray(response.data) ? response.data : []
+    recentActivities.value = logs.map(log => ({
+      id: log.id,
+      time: formatDateTime(log.timestamp),
+      type: normalizeActivityType(log),
+      content: formatActivityText(log),
+    }))
+  } catch (error) {
+    recentActivities.value = []
+    console.error('Failed to load admin activities:', error)
+    message.error('获取操作日志失败')
+  } finally {
+    activitiesLoading.value = false
+  }
+}
+
+const loadDashboard = async () => {
+  try {
+    const [dashboardResponse, auditResponse] = await Promise.all([
+      getDashboardStats(),
+      getAuditStatistics(),
+      loadActivities(),
+    ])
+
+    const auditData = (auditResponse as any)?.data ?? auditResponse ?? {}
+    stats.value = {
+      totalUsers: Number((dashboardResponse as any)?.totalUsers ?? 0),
+      newUsersToday: Number((dashboardResponse as any)?.newUsersToday ?? 0),
+      pendingReviews: Number((dashboardResponse as any)?.pendingAudits ?? auditData.pending ?? 0),
+      totalRevenue: Number((dashboardResponse as any)?.totalRevenue ?? 0),
+      activeUsers: Number((dashboardResponse as any)?.activeUsers ?? 0),
+      authorsCount: Number((dashboardResponse as any)?.authorsCount ?? 0),
+      approved: Number(auditData.approved ?? 0),
+      rejected: Number(auditData.rejected ?? 0),
+      highRisk: Number(auditData.highRisk ?? 0),
+    }
+  } catch (error) {
+    console.error('Failed to load admin dashboard:', error)
+    message.error('加载仪表盘失败')
+  }
+}
+
 const goToReviews = () => router.push('/admin/reviews')
 const goToWithdrawals = () => router.push('/admin/withdrawals')
 const goToUsers = () => router.push('/admin/users')
@@ -307,15 +379,26 @@ const goToLogs = () => router.push('/admin/logs')
 const goToCategories = () => router.push('/admin/categories')
 const goToBanners = () => router.push('/admin/banners')
 
-// 监听周期变化
-watch([userGrowthPeriod, transactionPeriod], () => {
-  console.log('Period changed')
-})
+watch([stats, userOverviewMode], () => {
+  initUserChart()
+}, { deep: true })
+
+watch([stats, auditOverviewMode], () => {
+  initAuditChart()
+}, { deep: true })
 
 onMounted(async () => {
+  await loadDashboard()
   await nextTick()
   initUserChart()
-  initTransactionChart()
+  initAuditChart()
+  window.addEventListener('resize', resizeCharts)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeCharts)
+  userChart?.dispose()
+  auditChart?.dispose()
 })
 </script>
 
@@ -362,7 +445,6 @@ onMounted(async () => {
   }
 }
 
-// 统计卡片
 .stat-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -400,6 +482,22 @@ onMounted(async () => {
     justify-content: center;
     color: #fff;
     flex-shrink: 0;
+
+    &.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    &.danger {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    &.info {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    &.warning {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
   }
 
   .stat-content {
@@ -418,24 +516,10 @@ onMounted(async () => {
       margin-top: 4px;
     }
 
-    .stat-trend {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      font-size: 13px;
+    .stat-meta {
       margin-top: 8px;
-      padding: 2px 8px;
-      border-radius: 12px;
-
-      &.positive {
-        color: #10b981;
-        background: rgba(16, 185, 129, 0.1);
-      }
-
-      &.negative {
-        color: #ef4444;
-        background: rgba(239, 68, 68, 0.1);
-      }
+      font-size: 13px;
+      color: #9ca3af;
     }
 
     .stat-badge {
@@ -451,7 +535,6 @@ onMounted(async () => {
   }
 }
 
-// 快捷操作
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -533,7 +616,6 @@ onMounted(async () => {
   }
 }
 
-// 图表区
 .charts-section {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -565,12 +647,15 @@ onMounted(async () => {
   }
 }
 
-// 最近活动
 .recent-activities {
   background: #fff;
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state {
+  padding: 12px 0;
 }
 
 .activity-item {
@@ -618,7 +703,6 @@ onMounted(async () => {
   }
 }
 
-// 响应式
 @media (max-width: 1200px) {
   .stat-cards {
     grid-template-columns: repeat(2, 1fr);

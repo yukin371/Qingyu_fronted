@@ -17,7 +17,14 @@
  * - 社区模块 (/community)
  */
 
-import businessMockData from '@/views/demo/business-mock-data'
+let businessMockDataPromise: Promise<typeof import('@/views/demo/business-mock-data').default> | null = null
+
+async function loadBusinessMockData() {
+  if (!businessMockDataPromise) {
+    businessMockDataPromise = import('@/views/demo/business-mock-data').then(module => module.default)
+  }
+  return businessMockDataPromise
+}
 
 /**
  * Writer模块API规则配置
@@ -312,14 +319,14 @@ function shouldInterceptRequest(url: string): boolean {
  * 测试模式 fetch 拦截器
  */
 async function testModeFetch(
-  input: RequestInfo | URL,
-  init?: RequestInit
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1]
 ): Promise<Response> {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
   
   if (shouldInterceptRequest(url)) {
     console.log('[TestMode API] 拦截 fetch 请求:', url)
-    const mockData = getMockDataForUrl(url)
+    const mockData = await getMockDataForUrl(url)
     
     // 模拟网络延迟
     await delay(100 + Math.random() * 200)
@@ -339,7 +346,7 @@ async function handleMockRequest(config: any) {
   const url = config.url || ''
   console.log('[TestMode API] 拦截 axios 请求:', url)
   
-  const mockData = getMockDataForUrl(url)
+  const mockData = await getMockDataForUrl(url)
   
   // 模拟网络延迟
   await delay(100 + Math.random() * 200)
@@ -358,7 +365,7 @@ async function handleMockRequest(config: any) {
 /**
  * 根据 URL 获取对应的 mock 数据
  */
-function getMockDataForUrl(url: string): any {
+async function getMockDataForUrl(url: string): Promise<any> {
   // 解析 URL
   const urlObj = new URL(url, window.location.origin)
   const pathname = urlObj.pathname
@@ -393,7 +400,8 @@ function getMockDataForUrl(url: string): any {
 /**
  * 处理书城模块 API
  */
-function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): any {
+async function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): Promise<any> {
+  const businessMockData = await loadBusinessMockData()
   // 首页数据
   if (pathname === '/api/v1/bookstore/home' || pathname === '/api/v1/home') {
     return {
@@ -477,7 +485,8 @@ function handleBookstoreApi(pathname: string, searchParams: URLSearchParams): an
  * 处理创作中心 API
  * 支持完整的Writer模块API Mock
  */
-function handleWriterApi(pathname: string, searchParams: URLSearchParams): any {
+async function handleWriterApi(pathname: string, searchParams: URLSearchParams): Promise<any> {
+  const businessMockData = await loadBusinessMockData()
   // 使用规则匹配器处理请求
   for (const rule of writerApiRules) {
     if (rule.pattern.test(pathname)) {
@@ -685,7 +694,8 @@ function handleWriterApiByRule(handler: string, _pathname: string, _searchParams
 /**
  * 处理用户中心 API
  */
-function handleUserApi(pathname: string, _searchParams: URLSearchParams): unknown {
+async function handleUserApi(pathname: string, _searchParams: URLSearchParams): Promise<unknown> {
+  const businessMockData = await loadBusinessMockData()
   // 个人信息
   if (pathname.includes('/profile')) {
     return {
@@ -719,7 +729,8 @@ function handleUserApi(pathname: string, _searchParams: URLSearchParams): unknow
 /**
  * 处理社区模块 API
  */
-function handleCommunityApi(pathname: string, searchParams: URLSearchParams): any {
+async function handleCommunityApi(pathname: string, searchParams: URLSearchParams): Promise<any> {
+  const businessMockData = await loadBusinessMockData()
   // 帖子列表
   if (pathname.includes('/posts')) {
     const page = parseInt(searchParams.get('page') || '1')
