@@ -10,6 +10,7 @@
     "build:prod": "vite build --mode production",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json",
     "type-check:full": "vue-tsc --noEmit",
+    "type-check:lint-staged": "node scripts/run-vue-tsc.cjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -119,7 +120,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,vue}": [
-      "vue-tsc --noEmit -p tsconfig.app.json"
+      "npm run type-check:lint-staged"
     ],
     "*.{js,jsx,ts,tsx,vue}": [
       "eslint --fix"

@@ -416,7 +416,7 @@ import {
 import { formatDate } from '@/utils/format'
 import type { FormInstance } from 'element-plus';
 import { ElTable } from 'element-plus'
-import { getUserList, updateUserStatus } from '../api'
+import { getUserList, updateUserStatus, assignRole, deleteUser as deleteUserAPI } from '../api'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -900,11 +900,20 @@ const handleSubmit = async () => {
           })
         }
       }
-      message.success(dialogMode.value === 'add' ? '添加成功' : '更新成功')
+    } else {
+      // 调用真实API
+      if (dialogMode.value === 'edit') {
+        // 更新状态
+        await updateUserStatus(userForm.userId, { status: userForm.status })
+        // 更新角色
+        await assignRole(userForm.userId, { role: userForm.role })
+      }
     }
+    message.success(dialogMode.value === 'add' ? '添加成功' : '更新成功')
     dialogVisible.value = false
     loadUsers()
   } catch (error) {
+    console.error('操作失败:', error)
     message.error('操作失败')
   } finally {
     submitting.value = false

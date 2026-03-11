@@ -243,6 +243,7 @@ import {
   CircleClose, Lock, Edit, View
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
+import { getOperationLogs as fetchOperationLogs } from '../api'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -372,8 +373,45 @@ const loadLogs = async () => {
       stats.success = mockLogsPool.filter(l => l.operation.includes('approve')).length
       stats.warning = mockLogsPool.filter(l => l.operation.includes('reject') || l.operation.includes('ban')).length
     } else {
-      logs.value = []
-      total.value = 0
+      // 调用真实API
+      const params: any = {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      }
+
+      // 添加筛选条件
+      if (filters.operation) {
+        params.action = filters.operation
+      }
+      if (filters.adminId) {
+        params.operatorId = filters.adminId
+      }
+      if (filters.dateRange && filters.dateRange.length === 2) {
+        params.startTime = new Date(filters.dateRange[0]).getTime()
+        params.endTime = new Date(filters.dateRange[1]).getTime()
+      }
+
+      const response = await fetchOperationLogs(params)
+      if (response.data) {
+        // 将API返回的数据格式转换为表格使用的格式
+        logs.value = response.data.items.map(item => ({
+          logId: item.id,
+          adminId: item.operatorId,
+          adminName: item.operatorName,
+          operation: item.action,
+          targetType: item.target,
+          targetId: item.targetId,
+          targetName: item.target,
+          details: item.details || '',
+          status: item.result === 'success' ? 'success' : 'warning',
+          createdAt: new Date(item.timestamp).toISOString(),
+          ip: item.ip || ''
+        }))
+        total.value = response.data.total
+
+        // 更新统计
+        stats.total = response.data.total
+      }
     }
   } catch (error) {
     console.error('加载日志失败:', error)
