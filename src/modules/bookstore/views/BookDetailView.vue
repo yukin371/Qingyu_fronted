@@ -41,9 +41,7 @@
                       <span v-if="book.author" class="author-name">
                         {{ book.author }}
                       </span>
-                      <span v-else class="author-name">
-                        未知作者
-                      </span>
+                      <span v-else class="author-name"> 未知作者 </span>
                     </span>
                     <span class="category">
                       <Icon name="folder" size="sm" />
@@ -84,7 +82,8 @@
                       variant="primary"
                       size="lg"
                       :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
-                      @click="startReading">
+                      @click="startReading"
+                    >
                       <Icon name="book-open" size="md" class="mr-1" />
                       {{ hasProgress ? '继续阅读' : '开始阅读' }}
                     </Button>
@@ -96,7 +95,8 @@
                       size="lg"
                       @click="toggleFavorite"
                       :loading="checkingFavorite"
-                      :data-testid="isFavorited ? 'unfavorite-button' : 'favorite-button'">
+                      :data-testid="isFavorited ? 'unfavorite-button' : 'favorite-button'"
+                    >
                       <Icon name="star" size="md" class="mr-1" />
                       {{ isFavorited ? '已收藏' : '收藏' }}
                     </Button>
@@ -129,9 +129,14 @@
                   </Button>
                 </div>
 
-                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto;">
-                  <div v-for="chapter in displayedChapters" :key="chapter.id" class="chapter-item"
-                    :class="{ 'is-read': chapter.isRead }" @click="readChapter(chapter.id)">
+                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto">
+                  <div
+                    v-for="chapter in displayedChapters"
+                    :key="chapter.id"
+                    class="chapter-item"
+                    :class="{ 'is-read': chapter.isRead }"
+                    @click="readChapter(chapter.id)"
+                  >
                     <span class="chapter-title">{{ chapter.title }}</span>
                     <span class="chapter-info">
                       <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
@@ -181,9 +186,7 @@
                       @update="onCommentUpdated"
                     />
                     <div v-if="hasMoreComments" class="load-more">
-                      <Button @click="loadMoreComments" :loading="loadingMore">
-                        加载更多
-                      </Button>
+                      <Button @click="loadMoreComments" :loading="loadingMore"> 加载更多 </Button>
                     </div>
                   </template>
                 </div>
@@ -232,9 +235,13 @@ import RatingSection from '@/components/RatingSection.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { getBookComments, createComment, deleteComment } from '@/modules/reader/api'
 import { addToBookshelf } from '@/modules/reader/api'
+import { getBookRating as getBookRatingSummary } from '@/modules/reader/api/manual/rating'
 import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
 import type { ChapterListItem, BookBrief } from '@/types/models'
-import { getPublishedBookDetail, type PublishedBridgeBookDetail } from '@/modules/workflow/publishedBridge'
+import {
+  getPublishedBookDetail,
+  type PublishedBridgeBookDetail,
+} from '@/modules/workflow/publishedBridge'
 
 // Proper TypeScript interfaces
 interface Comment {
@@ -317,7 +324,7 @@ const statusText = computed(() => {
     serializing: '连载中',
     ongoing: '连载中',
     completed: '已完结',
-    paused: '暂停'
+    paused: '暂停',
   }
   const key = String(book.value.status)
   return statusMap[key] || key
@@ -348,7 +355,10 @@ const startReading = async () => {
       // 设置当前bookId到readerStore，以便reader页面可以加载章节
       readerStore.currentBookId.value = bookId
       if (publishedBookDetail.value) {
-        router.push({ path: `/reader/${chapters.value[0].id}`, query: { source: 'published', bookId } })
+        router.push({
+          path: `/reader/${chapters.value[0].id}`,
+          query: { source: 'published', bookId },
+        })
       } else {
         router.push(`/reader/${chapters.value[0].id}`)
       }
@@ -418,7 +428,11 @@ const toggleFavorite = async () => {
     }
   } catch (error) {
     console.error('收藏操作失败:', error)
-    const errorMsg = (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (error as Error).message || '操作失败'
+    const errorMsg =
+      (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data
+        ?.message ||
+      (error as Error).message ||
+      '操作失败'
     // 如果是"已经收藏"的错误，视为成功
     if (errorMsg.includes('已经收藏') || errorMsg.includes('already')) {
       if (!isFavorited.value) {
@@ -426,7 +440,7 @@ const toggleFavorite = async () => {
         isFavorited.value = true
         message.success('已收藏')
         // 异步获取收藏ID
-        checkFavoriteStatus().catch(err => console.error('获取收藏状态失败:', err))
+        checkFavoriteStatus().catch((err) => console.error('获取收藏状态失败:', err))
       }
     } else {
       message.error(errorMsg)
@@ -452,7 +466,8 @@ const checkFavoriteStatus = async () => {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
         if (Array.isArray(collections)) {
           const currentBookCollection = collections.find(
-            (c: Collection) => c.bookId === bookId || (c as { book_id?: string }).book_id === bookId
+            (c: Collection) =>
+              c.bookId === bookId || (c as { book_id?: string }).book_id === bookId,
           )
           if (currentBookCollection) {
             collectionId.value = currentBookCollection.id
@@ -484,12 +499,20 @@ const loadComments = async (reset = false) => {
     const response = await getBookComments({
       bookId,
       page: commentPage.value,
-      size: commentPageSize.value
+      size: commentPageSize.value,
     })
 
-    const data = (response as { data?: Comment[] | { data?: Comment[]; comments?: Comment[]; total?: number }; total?: number })?.data || response
+    const data =
+      (
+        response as {
+          data?: Comment[] | { data?: Comment[]; comments?: Comment[]; total?: number }
+          total?: number
+        }
+      )?.data || response
     if (data) {
-      const commentList = Array.isArray(data) ? data : ((data as { data?: Comment[] }).data || (data as { comments?: Comment[] }).comments || [])
+      const commentList = Array.isArray(data)
+        ? data
+        : (data as { data?: Comment[] }).data || (data as { comments?: Comment[] }).comments || []
       if (reset) {
         comments.value = commentList
       } else {
@@ -545,7 +568,7 @@ const handleDeleteComment = async (commentId: string) => {
   try {
     await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
     })
 
     await deleteComment(commentId)
@@ -593,6 +616,24 @@ const loadBookDetail = async () => {
     console.log('[BookDetailView] Loading book detail for ID:', bookId)
     await bookstoreStore.fetchBookDetail(bookId)
 
+    try {
+      const ratingResponse = await getBookRatingSummary(bookId)
+      const ratingData = ratingResponse.data || ratingResponse
+      if (bookstoreStore.currentBook) {
+        bookstoreStore.currentBook = {
+          ...bookstoreStore.currentBook,
+          rating: Number(
+            (ratingData as any).averageRating ?? (ratingData as any).averageScore ?? 0,
+          ),
+          ratingCount: Number(
+            (ratingData as any).totalRatings ?? (ratingData as any).totalCount ?? 0,
+          ),
+        } as any
+      }
+    } catch {
+      // 评分摘要失败不影响详情主体展示
+    }
+
     console.log('[BookDetailView] Book loaded, currentBook:', bookstoreStore.currentBook)
 
     // 加载章节列表
@@ -628,7 +669,9 @@ const loadChapters = async () => {
 
   try {
     // 使用公开的bookstore API（不需要认证）
-    const response = await fetch(`http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`)
+    const response = await fetch(
+      `http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`,
+    )
     const data = await response.json()
     if (data.code === 0 && Array.isArray(data.data)) {
       chapters.value = data.data

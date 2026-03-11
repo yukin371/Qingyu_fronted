@@ -8,23 +8,13 @@
     <div class="rating-stats">
       <div class="rating-score">
         <div class="score-number">{{ averageRating.toFixed(1) }}</div>
-        <el-rate
-          v-model="averageRating"
-          disabled
-          show-score
-          text-color="#ff9900"
-          :max="5"
-        />
+        <el-rate v-model="averageRating" disabled show-score text-color="#ff9900" :max="5" />
         <div class="rating-count">{{ totalRatings }} 人评分</div>
       </div>
 
       <!-- 评分分布 -->
       <div class="rating-distribution">
-        <div
-          v-for="star in [5, 4, 3, 2, 1]"
-          :key="star"
-          class="distribution-item"
-        >
+        <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="distribution-item">
           <span class="star-label">{{ star }}星</span>
           <el-progress
             :percentage="getRatingPercentage(star)"
@@ -60,11 +50,7 @@
     </div>
 
     <!-- 评分对话框 -->
-    <el-dialog
-      v-model="showRatingDialog"
-      title="评价这本书"
-      width="500px"
-    >
+    <el-dialog v-model="showRatingDialog" title="评价这本书" width="500px">
       <el-form :model="ratingForm" label-width="80px">
         <el-form-item label="评分">
           <el-rate
@@ -88,9 +74,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showRatingDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitRating" :loading="submitting">
-          提交
-        </el-button>
+        <el-button type="primary" @click="submitRating" :loading="submitting"> 提交 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -101,7 +85,12 @@ import { ref, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { getBookRating, rateBook, getUserBookRating, updateRating } from '@/modules/reader/api/manual/rating'
+import {
+  getBookRating,
+  rateBook,
+  getUserBookRating,
+  updateRating,
+} from '@/modules/reader/api/manual/rating'
 
 interface Props {
   bookId: string
@@ -119,7 +108,7 @@ const ratingDistribution = ref<Record<number, number>>({
   4: 0,
   3: 0,
   2: 0,
-  1: 0
+  1: 0,
 })
 
 const userRating = ref<{ score: number; review?: string } | null>(null)
@@ -129,7 +118,7 @@ const submitting = ref(false)
 
 const ratingForm = ref({
   score: 0,
-  review: ''
+  review: '',
 })
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
@@ -150,17 +139,54 @@ const loadRatingData = async () => {
   try {
     const response = await getBookRating(props.bookId)
     const data = response.data || response
-    averageRating.value = (data as any).averageScore || 0
-    totalRatings.value = (data as any).totalCount || 0
-    ratingDistribution.value = (data as any).distribution || {
-      5: 0,
-      4: 0,
-      3: 0,
-      2: 0,
-      1: 0
-    }
+    averageRating.value = (data as any).averageRating || (data as any).averageScore || 0
+    totalRatings.value = (data as any).totalRatings || (data as any).totalCount || 0
+    ratingDistribution.value = normalizeDistribution(
+      (data as any).distribution || (data as any).scoreDistribution,
+    )
   } catch (error) {
     console.error('加载评分数据失败:', error)
+  }
+}
+
+const normalizeDistribution = (value: unknown): Record<number, number> => {
+  if (Array.isArray(value)) {
+    return value.reduce<Record<number, number>>(
+      (acc, item) => {
+        const score = Number((item as any)?.score)
+        const count = Number((item as any)?.count)
+        if (score >= 1 && score <= 5) {
+          acc[score] = Number.isFinite(count) ? count : 0
+        }
+        return acc
+      },
+      {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      },
+    )
+  }
+
+  if (value && typeof value === 'object') {
+    const source = value as Record<string, unknown>
+    return {
+      5: Number(source['5'] ?? source[5] ?? 0),
+      4: Number(source['4'] ?? source[4] ?? 0),
+      3: Number(source['3'] ?? source[3] ?? 0),
+      2: Number(source['2'] ?? source[2] ?? 0),
+      1: Number(source['1'] ?? source[1] ?? 0),
+    }
+  }
+
+  return {
+    5: 0,
+    4: 0,
+    3: 0,
+    2: 0,
+    1: 0,
   }
 }
 
@@ -348,4 +374,3 @@ onMounted(() => {
   }
 }
 </style>
-

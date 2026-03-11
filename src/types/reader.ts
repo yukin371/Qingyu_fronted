@@ -25,6 +25,19 @@ export interface Chapter {
   locked?: boolean
   prevChapterId: string | null
   nextChapterId: string | null
+  content?: string
+  paragraphs?: ChapterParagraph[]
+}
+
+/**
+ * 章节内容
+ */
+export interface ChapterParagraph {
+  id: string
+  paragraphOrder: number
+  content: string
+  format?: string
+  wordCount?: number
 }
 
 /**
@@ -41,6 +54,7 @@ export interface ChapterContent {
   publishedAt?: string
   prevChapterId: string | null
   nextChapterId: string | null
+  paragraphs?: ChapterParagraph[]
 }
 
 /**

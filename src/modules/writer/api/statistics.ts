@@ -78,7 +78,7 @@ export const getBookStats = (bookId: string) => {
 /**
  * 获取每日统计数据
  * @description 获取指定作品的每日阅读量统计，支持自定义时间范围
- * @endpoint GET /api/v1/writer/books/:bookId/stats/daily
+ * @endpoint GET /api/v1/writer/books/:bookId/daily-stats
  * @category writer
  * @tags 数据统计
  * @param {string} bookId - 作品ID
@@ -87,7 +87,7 @@ export const getBookStats = (bookId: string) => {
  * @security BearerAuth
  */
 export const getDailyStats = (bookId: string, days: number = 30) => {
-  return httpService.get(`/api/v1/writer/books/${bookId}/stats/daily`, {
+  return httpService.get(`/api/v1/writer/books/${bookId}/daily-stats`, {
     params: { days }
   })
 }
@@ -152,7 +152,7 @@ export const getReaderActivity = (bookId: string) => {
 /**
  * 获取阅读时段热力图数据
  * @description 获取指定作品的阅读时段热力图数据，用于分析读者在不同时段的阅读行为
- * @endpoint GET /api/v1/writer/books/:bookId/stats/heatmap
+ * @endpoint GET /api/v1/writer/books/:bookId/heatmap
  * @category writer
  * @tags 数据统计
  * @param {string} bookId - 作品ID
@@ -160,7 +160,7 @@ export const getReaderActivity = (bookId: string) => {
  * @security BearerAuth
  */
 export const getReadingHeatmap = (bookId: string) => {
-  return httpService.get(`/api/v1/writer/books/${bookId}/stats/reading-heatmap`)
+  return httpService.get(`/api/v1/writer/books/${bookId}/heatmap`)
 }
 
 /**

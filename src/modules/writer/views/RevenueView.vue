@@ -2,7 +2,7 @@
   <WriterPageShell>
     <div class="revenue-view">
       <div class="mb-5 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6">
-        <div class="page-header" style="margin-bottom: 0;">
+        <div class="page-header" style="margin-bottom: 0">
           <h1>收入统计</h1>
           <div class="header-actions">
             <el-select
@@ -21,202 +21,191 @@
                 :value="book.id"
               />
             </el-select>
-            <el-button type="primary" @click="showWithdrawDialog = true">
-              申请提现
-            </el-button>
+            <el-button type="primary" @click="showWithdrawDialog = true"> 申请提现 </el-button>
           </div>
         </div>
-        <p class="mt-2 text-sm text-slate-500">查看收入趋势、来源构成和提现记录，掌握作品商业表现。</p>
+        <p class="mt-2 text-sm text-slate-500">
+          查看收入趋势、来源构成和提现记录，掌握作品商业表现。
+        </p>
       </div>
 
-    <el-skeleton v-if="loading" :rows="8" animated />
+      <el-skeleton v-if="loading" :rows="8" animated />
 
-    <div v-else class="revenue-content">
-      <!-- 收入概览 -->
-      <div class="revenue-overview">
-        <el-card class="revenue-card">
-          <div class="revenue-item">
-            <div class="revenue-icon total">
-              <QyIcon name="Wallet"  />
-            </div>
-            <div class="revenue-details">
-              <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalRevenue) }}</div>
-              <div class="revenue-label">总收入</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="revenue-card">
-          <div class="revenue-item">
-            <div class="revenue-icon today">
-              <QyIcon name="TrendCharts"  />
-            </div>
-            <div class="revenue-details">
-              <div class="revenue-value">¥ {{ formatAmount(revenueStats.todayRevenue) }}</div>
-              <div class="revenue-label">今日收入</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="revenue-card">
-          <div class="revenue-item">
-            <div class="revenue-icon available">
-              <QyIcon name="Money"  />
-            </div>
-            <div class="revenue-details">
-              <div class="revenue-value">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
-              <div class="revenue-label">可提现余额</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="revenue-card">
-          <div class="revenue-item">
-            <div class="revenue-icon withdrawn">
-              <QyIcon name="DocumentChecked"  />
-            </div>
-            <div class="revenue-details">
-              <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalWithdrawn) }}</div>
-              <div class="revenue-label">已提现</div>
-            </div>
-          </div>
-        </el-card>
-      </div>
-
-      <!-- 收入趋势图 -->
-      <el-row :gutter="20">
-        <el-col :span="24" :lg="16">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="card-header">
-                <span>收入趋势</span>
-                <el-radio-group v-model="trendRange" size="small" @change="loadRevenueTrend">
-                  <el-radio-button label="7">7天</el-radio-button>
-                  <el-radio-button label="30">30天</el-radio-button>
-                  <el-radio-button label="90">90天</el-radio-button>
-                </el-radio-group>
+      <div v-else class="revenue-content">
+        <!-- 收入概览 -->
+        <div class="revenue-overview">
+          <el-card class="revenue-card">
+            <div class="revenue-item">
+              <div class="revenue-icon total">
+                <QyIcon name="Wallet" />
               </div>
-            </template>
-            <div ref="trendChartRef" class="chart-container"></div>
+              <div class="revenue-details">
+                <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalRevenue) }}</div>
+                <div class="revenue-label">总收入</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
 
-        <el-col :span="24" :lg="8">
-          <el-card class="chart-card">
-            <template #header>
-              <span>收入来源</span>
-            </template>
-            <div ref="sourceChartRef" class="chart-container"></div>
+          <el-card class="revenue-card">
+            <div class="revenue-item">
+              <div class="revenue-icon today">
+                <QyIcon name="TrendCharts" />
+              </div>
+              <div class="revenue-details">
+                <div class="revenue-value">¥ {{ formatAmount(revenueStats.todayRevenue) }}</div>
+                <div class="revenue-label">今日收入</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
-      </el-row>
 
-      <!-- 章节收入排行 -->
-      <el-card class="ranking-card">
-        <template #header>
-          <span>章节收入排行 TOP 10</span>
+          <el-card class="revenue-card">
+            <div class="revenue-item">
+              <div class="revenue-icon available">
+                <QyIcon name="Money" />
+              </div>
+              <div class="revenue-details">
+                <div class="revenue-value">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
+                <div class="revenue-label">可提现余额</div>
+              </div>
+            </div>
+          </el-card>
+
+          <el-card class="revenue-card">
+            <div class="revenue-item">
+              <div class="revenue-icon withdrawn">
+                <QyIcon name="DocumentChecked" />
+              </div>
+              <div class="revenue-details">
+                <div class="revenue-value">¥ {{ formatAmount(revenueStats.totalWithdrawn) }}</div>
+                <div class="revenue-label">已提现</div>
+              </div>
+            </div>
+          </el-card>
+        </div>
+
+        <!-- 收入趋势图 -->
+        <el-row :gutter="20">
+          <el-col :span="24" :lg="16">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="card-header">
+                  <span>收入趋势</span>
+                  <el-radio-group v-model="trendRange" size="small" @change="loadRevenueTrend">
+                    <el-radio-button label="7">7天</el-radio-button>
+                    <el-radio-button label="30">30天</el-radio-button>
+                    <el-radio-button label="90">90天</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </template>
+              <div ref="trendChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+
+          <el-col :span="24" :lg="8">
+            <el-card class="chart-card">
+              <template #header>
+                <span>收入来源</span>
+              </template>
+              <div ref="sourceChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+        </el-row>
+
+        <!-- 章节收入排行 -->
+        <el-card class="ranking-card">
+          <template #header>
+            <span>章节收入排行 TOP 10</span>
+          </template>
+          <el-table :data="chapterRanking" stripe>
+            <el-table-column type="index" label="排名" width="80" />
+            <el-table-column prop="chapterTitle" label="章节名称" min-width="200" />
+            <el-table-column prop="views" label="阅读量" width="120" align="right">
+              <template #default="{ row }">
+                {{ formatNumber(row.views) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="subscriptions" label="订阅数" width="120" align="right">
+              <template #default="{ row }">
+                {{ formatNumber(row.subscriptions) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="revenue" label="收入金额" width="150" align="right">
+              <template #default="{ row }">
+                <span class="revenue-amount">¥ {{ formatAmount(row.revenue) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+
+        <!-- 提现记录 -->
+        <el-card class="withdrawal-card">
+          <template #header>
+            <span>提现记录</span>
+          </template>
+          <el-table :data="withdrawalRecords" stripe>
+            <el-table-column prop="applyTime" label="申请时间" width="180" />
+            <el-table-column prop="amount" label="提现金额" width="150" align="right">
+              <template #default="{ row }"> ¥ {{ formatAmount(row.amount) }} </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="120">
+              <template #default="{ row }">
+                <el-tag :type="getStatusType(row.status)">
+                  {{ getStatusLabel(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="processTime" label="处理时间" width="180" />
+            <el-table-column prop="remark" label="备注" min-width="200" />
+          </el-table>
+        </el-card>
+      </div>
+
+      <!-- 提现对话框 -->
+      <el-dialog v-model="showWithdrawDialog" title="申请提现" width="500px">
+        <el-form
+          ref="withdrawFormRef"
+          :model="withdrawForm"
+          :rules="withdrawRules"
+          label-width="100px"
+        >
+          <el-form-item label="可提现余额">
+            <div class="balance-info">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
+          </el-form-item>
+          <el-form-item label="提现金额" prop="amount">
+            <el-input
+              v-model.number="withdrawForm.amount"
+              placeholder="请输入提现金额"
+              type="number"
+            >
+              <template #prefix>¥</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="提现方式" prop="method">
+            <el-select v-model="withdrawForm.method" placeholder="请选择提现方式">
+              <el-option label="支付宝" value="alipay" />
+              <el-option label="微信" value="wechat" />
+              <el-option label="银行卡" value="bank" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="收款账号" prop="account">
+            <el-input v-model="withdrawForm.account" placeholder="请输入收款账号" />
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input
+              v-model="withdrawForm.remark"
+              type="textarea"
+              :rows="3"
+              placeholder="可选填写备注信息"
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showWithdrawDialog = false">取消</el-button>
+          <el-button type="primary" @click="submitWithdraw" :loading="withdrawing">
+            提交申请
+          </el-button>
         </template>
-        <el-table :data="chapterRanking" stripe>
-          <el-table-column type="index" label="排名" width="80" />
-          <el-table-column prop="chapterTitle" label="章节名称" min-width="200" />
-          <el-table-column prop="views" label="阅读量" width="120" align="right">
-            <template #default="{ row }">
-              {{ formatNumber(row.views) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="subscriptions" label="订阅数" width="120" align="right">
-            <template #default="{ row }">
-              {{ formatNumber(row.subscriptions) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="revenue" label="收入金额" width="150" align="right">
-            <template #default="{ row }">
-              <span class="revenue-amount">¥ {{ formatAmount(row.revenue) }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-card>
-
-      <!-- 提现记录 -->
-      <el-card class="withdrawal-card">
-        <template #header>
-          <span>提现记录</span>
-        </template>
-        <el-table :data="withdrawalRecords" stripe>
-          <el-table-column prop="applyTime" label="申请时间" width="180" />
-          <el-table-column prop="amount" label="提现金额" width="150" align="right">
-            <template #default="{ row }">
-              ¥ {{ formatAmount(row.amount) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="状态" width="120">
-            <template #default="{ row }">
-              <el-tag :type="getStatusType(row.status)">
-                {{ getStatusLabel(row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="processTime" label="处理时间" width="180" />
-          <el-table-column prop="remark" label="备注" min-width="200" />
-        </el-table>
-      </el-card>
-    </div>
-
-    <!-- 提现对话框 -->
-    <el-dialog
-      v-model="showWithdrawDialog"
-      title="申请提现"
-      width="500px"
-    >
-      <el-form
-        ref="withdrawFormRef"
-        :model="withdrawForm"
-        :rules="withdrawRules"
-        label-width="100px"
-      >
-        <el-form-item label="可提现余额">
-          <div class="balance-info">
-            ¥ {{ formatAmount(revenueStats.availableBalance) }}
-          </div>
-        </el-form-item>
-        <el-form-item label="提现金额" prop="amount">
-          <el-input
-            v-model.number="withdrawForm.amount"
-            placeholder="请输入提现金额"
-            type="number"
-          >
-            <template #prefix>¥</template>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="提现方式" prop="method">
-          <el-select v-model="withdrawForm.method" placeholder="请选择提现方式">
-            <el-option label="支付宝" value="alipay" />
-            <el-option label="微信" value="wechat" />
-            <el-option label="银行卡" value="bank" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="收款账号" prop="account">
-          <el-input
-            v-model="withdrawForm.account"
-            placeholder="请输入收款账号"
-          />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="withdrawForm.remark"
-            type="textarea"
-            :rows="3"
-            placeholder="可选填写备注信息"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showWithdrawDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitWithdraw" :loading="withdrawing">
-          提交申请
-        </el-button>
-      </template>
-    </el-dialog>
+      </el-dialog>
     </div>
   </WriterPageShell>
 </template>
@@ -235,7 +224,7 @@ import {
   getRevenueSources,
   getChapterRevenueRanking,
   type RevenueStats as RevenueStatsType,
-  type ChapterRevenue
+  type ChapterRevenue,
 } from '@/modules/writer/api/revenue'
 import { walletAPI } from '@/modules/shared/api'
 
@@ -243,12 +232,19 @@ const loading = ref(false)
 const withdrawing = ref(false)
 const selectedBookId = ref('all')
 const trendRange = ref('30')
+
+const resolveTrendPeriod = (range: string): 'daily' | 'monthly' | 'yearly' => {
+  const days = Number.parseInt(range, 10)
+  if (days >= 365) return 'yearly'
+  if (days >= 30) return 'monthly'
+  return 'daily'
+}
 const showWithdrawDialog = ref(false)
 
 // 作品列表
 const books = ref([
   { id: '1', title: '示例作品1' },
-  { id: '2', title: '示例作品2' }
+  { id: '2', title: '示例作品2' },
 ])
 
 // 收入统计
@@ -256,20 +252,22 @@ const revenueStats = ref({
   totalRevenue: 0,
   todayRevenue: 0,
   availableBalance: 0,
-  totalWithdrawn: 0
+  totalWithdrawn: 0,
 })
 
 // 章节收入排行
 const chapterRanking = ref<ChapterRevenue[]>([])
 
 // 提现记录
-const withdrawalRecords = ref<Array<{
-  applyTime: string
-  amount: number
-  status: string
-  processTime: string
-  remark: string
-}>>([])
+const withdrawalRecords = ref<
+  Array<{
+    applyTime: string
+    amount: number
+    status: string
+    processTime: string
+    remark: string
+  }>
+>([])
 
 // 提现表单
 const withdrawFormRef = ref<FormInstance>()
@@ -277,20 +275,16 @@ const withdrawForm = reactive({
   amount: 0,
   method: '',
   account: '',
-  remark: ''
+  remark: '',
 })
 
 const withdrawRules: FormRules = {
   amount: [
     { required: true, message: '请输入提现金额', trigger: 'blur' },
-    { type: 'number', min: 1, message: '提现金额必须大于0', trigger: 'blur' }
+    { type: 'number', min: 1, message: '提现金额必须大于0', trigger: 'blur' },
   ],
-  method: [
-    { required: true, message: '请选择提现方式', trigger: 'change' }
-  ],
-  account: [
-    { required: true, message: '请输入收款账号', trigger: 'blur' }
-  ]
+  method: [{ required: true, message: '请选择提现方式', trigger: 'change' }],
+  account: [{ required: true, message: '请输入收款账号', trigger: 'blur' }],
 }
 
 // 图表实例
@@ -318,7 +312,7 @@ function getStatusType(status: string): string {
     pending: 'warning',
     processing: 'info',
     completed: 'success',
-    rejected: 'danger'
+    rejected: 'danger',
   }
   return typeMap[status] || 'info'
 }
@@ -329,7 +323,7 @@ function getStatusLabel(status: string): string {
     pending: '待审核',
     processing: '处理中',
     completed: '已完成',
-    rejected: '已拒绝'
+    rejected: '已拒绝',
   }
   return labelMap[status] || status
 }
@@ -355,27 +349,23 @@ function mockChapterRecord(bookId: string, bookTitle: string, chapterNo: number)
     subscriptions,
     revenue,
     bookId,
-    bookTitle
+    bookTitle,
   }
 }
 
 function buildMockChapterRanking(targetBookId?: string): ChapterRevenue[] {
-  const targetBooks = targetBookId
-    ? books.value.filter(b => b.id === targetBookId)
-    : books.value
+  const targetBooks = targetBookId ? books.value.filter((b) => b.id === targetBookId) : books.value
 
   if (!targetBooks.length) return []
 
   const pool: ChapterRevenue[] = []
-  targetBooks.forEach(book => {
+  targetBooks.forEach((book) => {
     for (let i = 1; i <= 6; i++) {
       pool.push(mockChapterRecord(book.id, book.title, i))
     }
   })
 
-  return pool
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10)
+  return pool.sort((a, b) => b.revenue - a.revenue).slice(0, 10)
 }
 
 function isStatsEmpty(stats: {
@@ -400,7 +390,7 @@ function normalizeRevenueStatsPayload(raw: any): RevenueStatsType | null {
 }
 
 function syncStatsWithTrendIfNeeded(revenues: number[]): void {
-  if (!revenues.length || !revenues.some(v => v > 0)) return
+  if (!revenues.length || !revenues.some((v) => v > 0)) return
   if (!isStatsEmpty(revenueStats.value)) return
 
   const total = revenues.reduce((sum, value) => sum + Number(value || 0), 0)
@@ -412,7 +402,7 @@ function syncStatsWithTrendIfNeeded(revenues: number[]): void {
     totalRevenue: Number(total.toFixed(2)),
     todayRevenue: Number(today.toFixed(2)),
     availableBalance: Number(availableBalance.toFixed(2)),
-    totalWithdrawn: Number(totalWithdrawn.toFixed(2))
+    totalWithdrawn: Number(totalWithdrawn.toFixed(2)),
   }
 }
 
@@ -432,17 +422,17 @@ async function loadRevenue(): Promise<void> {
           totalRevenue: Number(normalized.totalRevenue || 0),
           todayRevenue: Number(normalized.todayRevenue || 0),
           availableBalance: Number(normalized.availableBalance || 0),
-          totalWithdrawn: Number(normalized.totalWithdrawn || 0)
+          totalWithdrawn: Number(normalized.totalWithdrawn || 0),
         }
       }
     } catch (error) {
       console.warn('加载收入统计失败，使用模拟数据:', error)
       // 使用模拟数据
       revenueStats.value = {
-        totalRevenue: 12580.50,
-        todayRevenue: 235.80,
-        availableBalance: 8650.30,
-        totalWithdrawn: 3930.20
+        totalRevenue: 12580.5,
+        todayRevenue: 235.8,
+        availableBalance: 8650.3,
+        totalWithdrawn: 3930.2,
       }
     }
 
@@ -476,7 +466,7 @@ async function loadRevenue(): Promise<void> {
           amount: item.amount,
           status: item.status,
           processTime: item.processed_at || item.processedAt || '-',
-          remark: item.remark || item.note || '-'
+          remark: item.remark || item.note || '-',
         }))
       }
     } catch (error) {
@@ -488,18 +478,17 @@ async function loadRevenue(): Promise<void> {
           amount: 1000,
           status: 'completed',
           processTime: '2024-01-21 14:20:00',
-          remark: '提现成功'
+          remark: '提现成功',
         },
         {
           applyTime: '2024-01-15 15:45:00',
           amount: 500,
           status: 'completed',
           processTime: '2024-01-16 09:10:00',
-          remark: '提现成功'
-        }
+          remark: '提现成功',
+        },
       ]
     }
-
   } catch (error: any) {
     console.error('加载收入数据失败:', error)
     message.error(error.message || '加载收入数据失败')
@@ -517,8 +506,7 @@ async function loadRevenue(): Promise<void> {
 // 加载收入趋势
 async function loadRevenueTrend(): Promise<void> {
   try {
-    const days = parseInt(trendRange.value)
-    const response: any = await getRevenueTrendAPI(days)
+    const response: any = await getRevenueTrendAPI(resolveTrendPeriod(trendRange.value))
     const trendData = response?.data?.data ?? response?.data ?? response
 
     if (Array.isArray(trendData)) {
@@ -560,7 +548,7 @@ async function loadRevenueSources(): Promise<void> {
     if (Array.isArray(sourceResponse)) {
       const sourceData = sourceResponse.map((item: any) => ({
         value: item.amount,
-        name: item.label
+        name: item.label,
       }))
       updateSourceChart(sourceData)
       return
@@ -592,18 +580,18 @@ function updateTrendChart(dates: string[], revenues: number[]): void {
       trigger: 'axis',
       formatter: (params: any) => {
         return `${params[0].name}<br/>收入: ¥${params[0].value.toFixed(2)}`
-      }
+      },
     },
     xAxis: {
       type: 'category',
       data: dates,
-      boundaryGap: false
+      boundaryGap: false,
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        formatter: '¥{value}'
-      }
+        formatter: '¥{value}',
+      },
     },
     series: [
       {
@@ -614,20 +602,20 @@ function updateTrendChart(dates: string[], revenues: number[]): void {
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(103, 194, 58, 0.5)' },
-            { offset: 1, color: 'rgba(103, 194, 58, 0.1)' }
-          ])
+            { offset: 1, color: 'rgba(103, 194, 58, 0.1)' },
+          ]),
         },
         itemStyle: {
-          color: '#67C23A'
-        }
-      }
+          color: '#67C23A',
+        },
+      },
     ],
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      containLabel: true
-    }
+      containLabel: true,
+    },
   }
 
   trendChart.setOption(option)
@@ -642,7 +630,7 @@ function initSourceChart(): void {
   const defaultData = [
     { value: 8580, name: '订阅收入', itemStyle: { color: '#409EFF' } },
     { value: 2850, name: '打赏收入', itemStyle: { color: '#67C23A' } },
-    { value: 1150, name: '广告收入', itemStyle: { color: '#E6A23C' } }
+    { value: 1150, name: '广告收入', itemStyle: { color: '#E6A23C' } },
   ]
 
   updateSourceChart(defaultData)
@@ -654,7 +642,7 @@ function updateSourceChart(data: Array<{ value: number; name: string; itemStyle?
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: ¥{c} ({d}%)'
+      formatter: '{b}: ¥{c} ({d}%)',
     },
     series: [
       {
@@ -665,15 +653,15 @@ function updateSourceChart(data: Array<{ value: number; name: string; itemStyle?
         itemStyle: {
           borderRadius: 10,
           borderColor: '#fff',
-          borderWidth: 2
+          borderWidth: 2,
         },
         label: {
           show: true,
-          formatter: '{b}\n¥{c}'
+          formatter: '{b}\n¥{c}',
         },
-        data: data
-      }
-    ]
+        data: data,
+      },
+    ],
   }
 
   sourceChart.setOption(option)
@@ -695,7 +683,7 @@ async function submitWithdraw(): Promise<void> {
     await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
       account: withdrawForm.account,
-      accountType: withdrawForm.method === 'bank' ? 'bank' : 'alipay'
+      accountType: withdrawForm.method === 'bank' ? 'bank' : 'alipay',
     })
 
     message.success('提现申请已提交，请等待审核')
@@ -760,7 +748,9 @@ onUnmounted(() => {
       border-radius: 12px;
       border: 1px solid #dbe6f6;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
     }
 
     :deep(.el-select__wrapper:hover) {
@@ -844,7 +834,9 @@ onUnmounted(() => {
     font-size: 14px;
     font-weight: 500;
     color: #334155;
-    transition: background-color 0.18s ease, color 0.18s ease;
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease;
     outline: none;
   }
 
@@ -937,7 +929,7 @@ onUnmounted(() => {
             .revenue-value {
               font-size: 28px;
               font-weight: bold;
-              color: #67C23A;
+              color: #67c23a;
               margin-bottom: 4px;
             }
 
@@ -1013,7 +1005,7 @@ onUnmounted(() => {
       }
 
       .revenue-amount {
-        color: #67C23A;
+        color: #67c23a;
         font-weight: 500;
       }
     }
@@ -1022,7 +1014,7 @@ onUnmounted(() => {
   .balance-info {
     font-size: 20px;
     font-weight: bold;
-    color: #67C23A;
+    color: #67c23a;
   }
 }
 

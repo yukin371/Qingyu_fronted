@@ -12,9 +12,12 @@ import type { APIResponse } from '@/types/api'
  */
 export interface BookRating {
   bookId: string
+  averageRating?: number
   averageScore: number
   totalRatings: number
-  scoreDistribution: {
+  totalCount?: number
+  distribution?: Record<string, number>
+  scoreDistribution?: {
     score: number
     count: number
   }[]
@@ -50,15 +53,11 @@ export const ratingAPI = {
    * 提交书籍评分
    * POST /api/v1/bookstore/ratings
    */
-  async rateBook(
-    bookId: string,
-    score: number,
-    review?: string
-  ): Promise<APIResponse<UserRating>> {
+  async rateBook(bookId: string, score: number, review?: string): Promise<APIResponse<UserRating>> {
     return httpService.post<APIResponse<UserRating>>('/bookstore/ratings', {
       bookId,
       score,
-      review
+      review,
     })
   },
 
@@ -68,7 +67,7 @@ export const ratingAPI = {
    */
   async getUserBookRating(bookId: string): Promise<APIResponse<UserRating | null>> {
     return httpService.get<APIResponse<UserRating | null>>(
-      `/bookstore/ratings/user/me/book/${bookId}`
+      `/bookstore/ratings/user/me/book/${bookId}`,
     )
   },
 
@@ -79,11 +78,11 @@ export const ratingAPI = {
   async updateRating(
     ratingId: string,
     score: number,
-    review?: string
+    review?: string,
   ): Promise<APIResponse<UserRating>> {
     return httpService.put<APIResponse<UserRating>>(`/bookstore/ratings/${ratingId}`, {
       score,
-      review
+      review,
     })
   },
 
@@ -93,7 +92,7 @@ export const ratingAPI = {
    */
   async deleteRating(ratingId: string): Promise<APIResponse<void>> {
     return httpService.delete<APIResponse<void>>(`/bookstore/ratings/${ratingId}`)
-  }
+  },
 }
 
 // 向后兼容：导出旧的函数名

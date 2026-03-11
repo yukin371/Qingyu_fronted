@@ -1,5 +1,13 @@
 // 直接定义类型，避免路径解析问题
 
+export interface ChapterParagraph {
+  id: string
+  paragraphOrder: number
+  content: string
+  format?: string
+  wordCount?: number
+}
+
 export interface UserBrief {
   id: string
   username: string

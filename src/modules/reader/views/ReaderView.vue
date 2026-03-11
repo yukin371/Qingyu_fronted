@@ -28,14 +28,14 @@
             <!-- 章节内容 -->
             <div v-if="currentChapter" class="chapter-content" data-testid="chapter-content">
               <article
-                v-for="(paragraph, index) in parsedParagraphs"
-                :key="index"
+                v-for="(paragraph, index) in displayParagraphs"
+                :key="paragraph.id || index"
                 class="paragraph-wrapper"
                 :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
                 :data-testid="`paragraph-${index}`"
                 @click.stop="handleParagraphClick(index)"
               >
-                <p class="paragraph-text">{{ paragraph }}</p>
+                <p class="paragraph-text">{{ paragraph.content }}</p>
                 <CommentBadge
                   v-if="getParagraphCommentCount(index) > 0"
                   :comment-count="getParagraphCommentCount(index)"
@@ -286,6 +286,20 @@ interface ReaderSettings {
   autoSave?: boolean
 }
 
+interface ReaderParagraph {
+  id: string
+  paragraphOrder: number
+  content: string
+  format?: string
+  wordCount?: number
+}
+
+interface ParagraphRef {
+  paragraphId: string
+  chapterId: string
+  paragraphIndex: number
+}
+
 const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
@@ -320,13 +334,48 @@ const publishedCurrentChapter = ref<any | null>(null)
 // 段落评论相关状态
 const highlightedParagraphIndex = ref<number | null>(null)
 const commentDrawerVisible = ref(false)
-const parsedParagraphs = computed(() => {
-  if (!currentChapter.value?.content) return []
-  return currentChapter.value.content
-    .split('\n')
-    .map((p: string) => p.trim())
-    .filter((p: string) => p.length > 0)
+const splitContentToParagraphs = (content?: string): ReaderParagraph[] => {
+  if (!content) return []
+
+  const normalized = content.replace(/\r\n/g, '\n').trim()
+  if (!normalized) return []
+
+  return normalized
+    .split(/\n\s*\n/)
+    .map((paragraph, index) => ({
+      id: `fallback-paragraph-${index + 1}`,
+      paragraphOrder: index + 1,
+      content: paragraph.trim(),
+      format: 'markdown',
+      wordCount: paragraph.trim().length
+    }))
+    .filter((paragraph) => paragraph.content.length > 0)
+}
+
+const displayParagraphs = computed<ReaderParagraph[]>(() => {
+  const paragraphs = currentChapter.value?.paragraphs
+  if (Array.isArray(paragraphs) && paragraphs.length > 0) {
+    return paragraphs
+      .filter((paragraph): paragraph is ReaderParagraph => !!paragraph?.content)
+      .slice()
+      .sort((a, b) => (a.paragraphOrder || 0) - (b.paragraphOrder || 0))
+  }
+
+  return splitContentToParagraphs(currentChapter.value?.content)
 })
+
+const getParagraphRef = (paragraphIndex: number): ParagraphRef | null => {
+  if (!currentChapter.value) return null
+
+  const paragraph = displayParagraphs.value[paragraphIndex]
+  if (!paragraph) return null
+
+  return {
+    paragraphId: paragraph.id || `${currentChapter.value.id}-${paragraphIndex}`,
+    chapterId: currentChapter.value.id,
+    paragraphIndex
+  }
+}
 
 // 主题配置（与reader-variables.scss中的CSS变量保持一致）
 const themes = [
@@ -584,9 +633,9 @@ const stopReadingTimer = () => {
 
 // 获取段落评论数量
 const getParagraphCommentCount = (paragraphIndex: number | string): number => {
-  if (!currentChapter.value) return 0
-  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
-  return commentStore.summaries.get(paragraphId)?.commentCount || 0
+  const paragraphRef = getParagraphRef(Number(paragraphIndex))
+  if (!paragraphRef) return 0
+  return commentStore.summaries.get(paragraphRef.paragraphId)?.commentCount || 0
 }
 
 // 处理段落点击
@@ -610,11 +659,11 @@ const handleCommentBadgeClick = async (index: number | string) => {
 
 // 打开评论抽屉
 const openCommentDrawer = async (paragraphIndex: number) => {
-  if (!currentChapter.value) return
+  const paragraphRef = getParagraphRef(paragraphIndex)
+  if (!paragraphRef) return
 
-  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
-  commentStore.selectParagraph(paragraphId)
-  await commentStore.loadParagraphComments(paragraphId)
+  commentStore.selectParagraph(paragraphRef.paragraphId)
+  await commentStore.loadParagraphComments(paragraphRef)
   commentDrawerVisible.value = true
 }
 
@@ -622,10 +671,14 @@ const openCommentDrawer = async (paragraphIndex: number) => {
 const handleCommentSubmit = async (data: { content: string; emoji?: string; replyToCommentId?: string; replyToUsername?: string }) => {
   if (highlightedParagraphIndex.value === null || !currentChapter.value) return
 
+  const paragraphRef = getParagraphRef(highlightedParagraphIndex.value)
+  if (!paragraphRef) return
+
   await commentStore.addComment({
-    paragraphId: `${currentChapter.value.id}-${highlightedParagraphIndex.value}`,
-    chapterId: currentChapter.value.id,
-    paragraphIndex: highlightedParagraphIndex.value,
+    paragraphId: paragraphRef.paragraphId,
+    chapterId: paragraphRef.chapterId,
+    bookId: currentChapter.value.bookId,
+    paragraphIndex: paragraphRef.paragraphIndex,
     content: data.content,
     emoji: data.emoji,
     replyToCommentId: data.replyToCommentId,
@@ -717,6 +770,7 @@ const loadChapter = async () => {
           chapterNum: chapter.chapterNum,
           title: chapter.title,
           content: chapter.content,
+          paragraphs: splitContentToParagraphs(chapter.content),
           bookId: detail.book.id,
           bookTitle: detail.book.title,
           isRead: false,
@@ -818,7 +872,14 @@ onMounted(async () => {
 
   // 加载段落评论摘要
   if (currentChapter.value) {
-    await commentStore.loadChapterSummaries(currentChapter.value.id)
+    await commentStore.loadChapterSummaries(
+      currentChapter.value.id,
+      displayParagraphs.value.map((paragraph, index) => ({
+        paragraphId: paragraph.id || `${currentChapter.value!.id}-${index}`,
+        chapterId: currentChapter.value!.id,
+        paragraphIndex: index
+      }))
+    )
   }
 
   // 启动阅读时长计时器

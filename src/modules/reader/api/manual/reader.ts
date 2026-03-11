@@ -27,8 +27,17 @@ export interface Chapter {
 export interface ChapterContent {
   chapter: Chapter
   content: string
+  paragraphs?: ChapterParagraph[]
   nextChapter?: Chapter
   prevChapter?: Chapter
+}
+
+export interface ChapterParagraph {
+  id: string
+  paragraphOrder: number
+  content: string
+  format?: string
+  wordCount?: number
 }
 
 /**
