@@ -57,7 +57,7 @@
 
       <div class="filter-group">
         <span class="filter-label">目标用户</span>
-        <el-select popper-class="admin-select-popper" v-model="filters.targetUsers" placeholder="全部用户" clearable @change="handleFilterChange">
+        <el-select popper-class="admin-select-popper" v-model="filters.targetRole" placeholder="全部用户" clearable @change="handleFilterChange">
           <el-option label="全部" value="" />
           <el-option label="所有用户" value="all" />
           <el-option label="读者" value="reader" />
@@ -113,7 +113,7 @@
 
         <el-table-column label="目标用户" width="100">
           <template #default="{ row }">
-            <span class="target-tag">{{ getTargetLabel(row.targetUsers) }}</span>
+            <span class="target-tag">{{ getTargetLabel(row.targetRole) }}</span>
           </template>
         </el-table-column>
 
@@ -208,7 +208,7 @@
         </el-form-item>
 
         <el-form-item label="目标用户" required>
-          <el-select popper-class="admin-select-popper" v-model="announcementForm.targetUsers" style="width: 200px">
+          <el-select popper-class="admin-select-popper" v-model="announcementForm.targetRole" style="width: 200px">
             <el-option label="所有用户" value="all" />
             <el-option label="读者" value="reader" />
             <el-option label="作者" value="author" />
@@ -259,6 +259,7 @@ import {
   Plus, Bell, CircleCheck, View, Refresh, InfoFilled, WarningFilled, Edit, Delete
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
+import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../api'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -269,7 +270,7 @@ const isTestMode = computed(() => {
 // 筛选器
 const filters = reactive({
   type: '',
-  targetUsers: '',
+  targetRole: '',
   status: ''
 })
 
@@ -297,8 +298,8 @@ const submitting = ref(false)
 const announcementForm = reactive({
   title: '',
   content: '',
-  type: 'info',
-  targetUsers: 'all',
+  type: 'info' as 'info' | 'warning' | 'notice',
+  targetRole: 'all' as 'all' | 'reader' | 'writer' | 'admin',
   priority: 0,
   isActive: true,
   startTime: null as any,
@@ -329,7 +330,7 @@ const createMockAnnouncements = () => {
     title: item.title,
     content: item.content,
     type: types[i % types.length],
-    targetUsers: targets[i % targets.length],
+    targetRole: targets[i % targets.length],
     priority: Math.floor(Math.random() * 100),
     isActive: i < 8,
     viewCount: Math.floor(Math.random() * 5000) + 500,
@@ -352,8 +353,8 @@ const loadAnnouncements = async () => {
         filtered = filtered.filter(a => a.type === filters.type)
       }
 
-      if (filters.targetUsers) {
-        filtered = filtered.filter(a => a.targetUsers === filters.targetUsers)
+      if (filters.targetRole) {
+        filtered = filtered.filter(a => a.targetRole === filters.targetRole)
       }
 
       if (filters.status) {
@@ -372,8 +373,19 @@ const loadAnnouncements = async () => {
       stats.active = mockAnnouncementsPool.filter(a => a.isActive).length
       stats.totalViews = mockAnnouncementsPool.reduce((sum, a) => sum + (a.viewCount || 0), 0)
     } else {
-      announcements.value = []
-      total.value = 0
+      // 调用真实API
+      const response = await getAnnouncements({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        type: filters.type || undefined,
+        targetRole: filters.targetRole || undefined,
+        status: filters.status || undefined
+      })
+      if (response.data) {
+        announcements.value = response.data.items || response.data
+        total.value = response.data.total || response.data.length
+        stats.total = total.value
+      }
     }
   } catch (error) {
     console.error('加载公告列表失败:', error)
@@ -420,7 +432,7 @@ const handleCreate = () => {
     title: '',
     content: '',
     type: 'info',
-    targetUsers: 'all',
+    targetRole: 'all',
     priority: 0,
     isActive: true,
     startTime: null,
@@ -435,7 +447,7 @@ const handleEdit = (announcement: any) => {
     title: announcement.title,
     content: announcement.content,
     type: announcement.type,
-    targetUsers: announcement.targetUsers,
+    targetRole: announcement.targetRole,
     priority: announcement.priority,
     isActive: announcement.isActive,
     startTime: announcement.startTime,
@@ -468,6 +480,15 @@ const handleSubmit = async () => {
         })
         message.success('创建成功')
       }
+    } else {
+      // 调用真实API
+      if (editingAnnouncement.value) {
+        await updateAnnouncement(editingAnnouncement.value.id, announcementForm)
+        message.success('更新成功')
+      } else {
+        await createAnnouncement(announcementForm)
+        message.success('创建成功')
+      }
     }
     dialogVisible.value = false
     loadAnnouncements()
@@ -483,6 +504,9 @@ const handleStatusChange = async (announcement: any) => {
     if (isTestMode.value) {
       const a = mockAnnouncementsPool.find(item => item.id === announcement.id)
       if (a) a.isActive = announcement.isActive
+    } else {
+      // 调用真实API
+      await updateAnnouncement(announcement.id, { isActive: announcement.isActive })
     }
     message.success(announcement.isActive ? '已启用' : '已禁用')
     loadAnnouncements()
@@ -501,6 +525,9 @@ const handleDelete = async (announcement: any) => {
     if (isTestMode.value) {
       const index = mockAnnouncementsPool.findIndex(a => a.id === announcement.id)
       if (index > -1) mockAnnouncementsPool.splice(index, 1)
+    } else {
+      // 调用真实API
+      await deleteAnnouncement(announcement.id)
     }
 
     message.success('删除成功')

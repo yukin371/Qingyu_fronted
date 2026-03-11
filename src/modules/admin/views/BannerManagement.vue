@@ -236,6 +236,7 @@ import {
   Plus, Picture, CircleCheck, View, Refresh, Reading, FolderOpened,
   Link, Edit, Delete
 } from '@element-plus/icons-vue'
+import { getBanners, createBanner, updateBanner, deleteBanner } from '../api'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -347,8 +348,18 @@ const loadBanners = async () => {
       stats.active = mockBannersPool.filter(b => b.isActive).length
       stats.totalClicks = mockBannersPool.reduce((sum, b) => sum + (b.clickCount || 0), 0)
     } else {
-      banners.value = []
-      total.value = 0
+      // 调用真实API
+      const response = await getBanners({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        targetType: filters.targetType || undefined,
+        status: filters.status || undefined
+      })
+      if (response.data) {
+        banners.value = response.data.items || response.data
+        total.value = response.data.total || response.data.length
+        stats.total = total.value
+      }
     }
   } catch (error) {
     console.error('加载Banner列表失败:', error)
@@ -425,6 +436,15 @@ const handleSubmit = async () => {
         })
         message.success('创建成功')
       }
+    } else {
+      // 调用真实API
+      if (editingBanner.value) {
+        await updateBanner(editingBanner.value.id, bannerForm)
+        message.success('更新成功')
+      } else {
+        await createBanner(bannerForm)
+        message.success('创建成功')
+      }
     }
     dialogVisible.value = false
     loadBanners()
@@ -440,6 +460,9 @@ const handleStatusChange = async (banner: any) => {
     if (isTestMode.value) {
       const b = mockBannersPool.find(item => item.id === banner.id)
       if (b) b.isActive = banner.isActive
+    } else {
+      // 调用真实API
+      await updateBanner(banner.id, { isActive: banner.isActive })
     }
     message.success(banner.isActive ? '已启用' : '已禁用')
     loadBanners()
@@ -458,6 +481,9 @@ const handleDelete = async (banner: any) => {
     if (isTestMode.value) {
       const index = mockBannersPool.findIndex(b => b.id === banner.id)
       if (index > -1) mockBannersPool.splice(index, 1)
+    } else {
+      // 调用真实API
+      await deleteBanner(banner.id)
     }
 
     message.success('删除成功')

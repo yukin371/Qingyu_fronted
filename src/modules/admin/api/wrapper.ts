@@ -292,8 +292,28 @@ export const reviewAppeal = api.postApiV1AdminAuditIdAppealReview
 /**
  * 获取公告列表
  * 兼容旧API: getAnnouncements(params)
+ * 转换参数： page/pageSize -> page/pageSize (backend uses same)
  */
-export const getAnnouncements = api.getApiV1AdminAnnouncements
+export async function getAnnouncements(params?: {
+  page?: number
+  pageSize?: number
+  type?: string
+  targetUsers?: string
+  status?: string
+}): Promise<APIResponse<any>> {
+  const response = await api.getApiV1AdminAnnouncements({
+    page: params?.page,
+    pageSize: params?.pageSize,
+    type: params?.type,
+    targetRole: params?.targetUsers,
+    isActive: params?.status === 'active' ? true : undefined
+  })
+  return {
+    items: response.data?.data?.items || response.data,
+    total: response.data?.data?.total || response.data?.length || 0,
+    ...response
+  }
+}
 
 /**
  * 创建公告
@@ -302,10 +322,12 @@ export const getAnnouncements = api.getApiV1AdminAnnouncements
 export async function createAnnouncement(data: {
   title: string
   content: string
-  type: 'system' | 'event' | 'maintenance'
-  priority: 'low' | 'medium' | 'high'
-  effectiveStartTime: string
-  effectiveEndTime: string
+  type: 'info' | 'warning' | 'notice'
+  priority?: number
+  isActive?: boolean
+  startTime?: string
+  endTime?: string
+  targetRole?: 'all' | 'reader' | 'writer' | 'admin'
 }): Promise<APIResponse<any>> {
   return api.postApiV1AdminAnnouncements(data as any) as any
 }
@@ -394,8 +416,28 @@ export const restoreConfigBackup = api.postApiV1AdminConfigRestore
 /**
  * 获取Banner列表
  * 兼容旧API: getBanners(params)
+ * 转换参数： page/pageSize -> limit/offset
  */
-export const getBanners = api.getApiV1AdminBanners
+export async function getBanners(params: {
+  page?: number
+  pageSize?: number
+  targetType?: string
+  status?: string
+}): Promise<APIResponse<any>> {
+  const limit = params.pageSize || 10
+  const offset = ((params.page || 1) - 1) * (params.pageSize || 10)
+  const response = await api.getApiV1AdminBanners({
+    limit,
+    offset,
+    targetType: params.targetType,
+    isActive: params.status === 'active' ? true : undefined
+  })
+  return {
+    items: response.data?.data?.items || response.data,
+    total: response.data?.data?.total || response.data?.length || 0,
+    ...response
+  }
+}
 
 /**
  * 创建Banner
@@ -403,10 +445,11 @@ export const getBanners = api.getApiV1AdminBanners
  */
 export async function createBanner(data: {
   title: string
-  imageUrl: string
-  link?: string
-  position: string
+  image: string
+  target: string
+  targetType: string
   sortOrder?: number
+  isActive?: boolean
   startTime?: string
   endTime?: string
 }): Promise<APIResponse<any>> {
