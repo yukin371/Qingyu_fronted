@@ -4,11 +4,7 @@
  */
 
 import * as adminAPI from '@/modules/admin/api'
-import type {
-  DashboardStats,
-  ReviewItem,
-  WithdrawalRequest
-} from '../types/admin.types'
+import type { DashboardStats, ReviewItem, WithdrawalRequest } from '../types/admin.types'
 import type { APIResponse as _APIResponse } from '@/types/api'
 
 class AdminService {
@@ -16,8 +12,7 @@ class AdminService {
    * Get dashboard statistics
    */
   async getDashboardStats(): Promise<DashboardStats> {
-    const response = await adminAPI.getDashboardStats()
-    return response.data as DashboardStats
+    return adminAPI.getDashboardStats()
   }
 
   /**
@@ -78,7 +73,7 @@ class AdminService {
     const statusMap: Record<string, string> = {
       pending: '待审核',
       approved: '已通过',
-      rejected: '已拒绝'
+      rejected: '已拒绝',
     }
     return statusMap[status] || status
   }
@@ -91,7 +86,7 @@ class AdminService {
       pending: '待处理',
       approved: '已批准',
       rejected: '已拒绝',
-      completed: '已完成'
+      completed: '已完成',
     }
     return statusMap[status] || status
   }
@@ -99,4 +94,3 @@ class AdminService {
 
 export const adminService = new AdminService()
 export default adminService
-

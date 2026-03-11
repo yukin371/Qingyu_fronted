@@ -11,12 +11,64 @@ import { getApi } from './generated/admin'
 import type { APIResponse } from '@/types/api'
 import type {
   DashboardStats,
+  Announcement,
+  Banner,
   UserManagementItem,
-  OperationLog
+  OperationLog,
 } from '@/modules/admin/types/admin.types'
 
 // 获取生成的API对象
 const api = getApi()
+
+type AdminListResult<T> = {
+  items: T[]
+  total: number
+}
+
+function unwrapPayload<T>(response: unknown): T {
+  const maybeWrapped = response as { data?: T }
+  return (maybeWrapped?.data ?? response) as T
+}
+
+function normalizeAnnouncement(item: Record<string, any>): Announcement {
+  return {
+    id: item.id || item._id || '',
+    title: item.title || '',
+    content: item.content || '',
+    type: item.type || 'system',
+    priority: item.priority || 'medium',
+    status: item.status || (item.isActive ? 'active' : 'inactive'),
+    effectiveStartTime: item.effectiveStartTime || item.startTime || '',
+    effectiveEndTime: item.effectiveEndTime || item.endTime || '',
+    targetUsers: item.targetUsers || (item.targetRole ? [item.targetRole] : undefined),
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt,
+    isActive: item.isActive ?? item.status === 'active',
+    startTime: item.startTime || item.effectiveStartTime,
+    endTime: item.endTime || item.effectiveEndTime,
+  }
+}
+
+function normalizeBanner(item: Record<string, any>): Banner {
+  return {
+    id: item.id || item._id || '',
+    title: item.title || '',
+    imageUrl: item.imageUrl || item.image || '',
+    link: item.link || item.target,
+    position: item.position || item.targetType || 'home',
+    sortOrder: item.sortOrder ?? 0,
+    status: item.status || (item.isActive ? 'active' : 'inactive'),
+    startTime: item.startTime,
+    endTime: item.endTime,
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt,
+    isActive: item.isActive ?? item.status === 'active',
+    description: item.description,
+    image: item.image || item.imageUrl,
+    target: item.target || item.link,
+    targetType: item.targetType || item.position,
+  }
+}
 
 // ==================== 仪表盘相关 API ====================
 
@@ -24,8 +76,11 @@ const api = getApi()
  * 获取仪表盘统计数据
  * 兼容旧API: getDashboardStats()
  * 使用生成的 getApiV1AdminStats
+ *
+ * 注意：httpService 响应拦截器已自动解包 APIResponse
+ * 后端返回: { totalUsers: number, activeUsers: number, authorsCount: number, newUsersToday: number, ... }
  */
-export async function getDashboardStats(): Promise<APIResponse<DashboardStats>> {
+export async function getDashboardStats(): Promise<DashboardStats> {
   return api.getApiV1AdminStats() as any
 }
 
@@ -63,9 +118,9 @@ export const reviewContent = reviewAudit
 export const getWithdrawalList = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] getWithdrawalList 已移至 finance 模块。' +
-    '请使用:\n' +
-    '  - financeAPI.getAuthorWithdrawals() 获取作者提现记录\n' +
-    '  - financeAPI.getWalletWithdrawals() 获取钱包提现记录'
+      '请使用:\n' +
+      '  - financeAPI.getAuthorWithdrawals() 获取作者提现记录\n' +
+      '  - financeAPI.getWalletWithdrawals() 获取钱包提现记录',
   )
 }
 
@@ -77,9 +132,9 @@ export const getWithdrawalList = (..._args: any[]) => {
 export const handleWithdrawal = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] handleWithdrawal 已移至 finance 模块。\n' +
-    '请使用:\n' +
-    '  - financeAPI.reviewAuthorWithdrawal() 审核作者提现申请\n' +
-    '  - financeAPI.reviewWalletWithdrawal() 审核钱包提现申请'
+      '请使用:\n' +
+      '  - financeAPI.reviewAuthorWithdrawal() 审核作者提现申请\n' +
+      '  - financeAPI.reviewWalletWithdrawal() 审核钱包提现申请',
   )
 }
 
@@ -95,6 +150,9 @@ export const reviewWithdraw = handleWithdrawal
 /**
  * 获取用户管理列表
  * 兼容旧API: getUserList(params)
+ *
+ * 注意：httpService 响应拦截器已自动解包 APIResponse
+ * 后端返回: { users: UserManagementItem[], total: number, page: number, size: number }
  */
 export async function getUserList(params?: {
   page?: number
@@ -102,7 +160,7 @@ export async function getUserList(params?: {
   keyword?: string
   role?: string
   status?: string
-}): Promise<APIResponse<{ items: UserManagementItem[]; total: number }>> {
+}): Promise<{ users: UserManagementItem[]; total: number; page: number; size: number }> {
   return api.getApiV1AdminUsers(params as any) as any
 }
 
@@ -111,7 +169,10 @@ export async function getUserList(params?: {
  * 兼容旧API: updateUser(id, params)
  * 注意：后端暂不支持完整的用户更新，请使用 updateUserStatus 或 assignRole
  */
-export async function updateUser(id: string, params: Partial<UserManagementItem>): Promise<APIResponse<void>> {
+export async function updateUser(
+  id: string,
+  params: Partial<UserManagementItem>,
+): Promise<APIResponse<void>> {
   // 如果只更新状态，使用状态更新接口
   if (params.status && Object.keys(params).length === 1) {
     return api.putApiV1AdminUsersIdStatus(id, { status: params.status } as any) as any
@@ -121,7 +182,9 @@ export async function updateUser(id: string, params: Partial<UserManagementItem>
     return api.putApiV1AdminUsersIdRole(id, { role: params.roles[0] } as any) as any
   }
   // 其他情况暂不支持，抛出错误
-  throw new Error('updateUser: 当前仅支持更新 status 或 roles 单个字段，请使用 updateUserStatus 或 assignRole')
+  throw new Error(
+    'updateUser: 当前仅支持更新 status 或 roles 单个字段，请使用 updateUserStatus 或 assignRole',
+  )
 }
 
 /**
@@ -138,7 +201,7 @@ export async function deleteUser(id: string): Promise<APIResponse<void>> {
  */
 export async function updateUserStatus(
   id: string,
-  params: { status: string; reason?: string }
+  params: { status: string; reason?: string },
 ): Promise<APIResponse<void>> {
   return api.putApiV1AdminUsersIdStatus(id, params as any) as any
 }
@@ -149,7 +212,7 @@ export async function updateUserStatus(
  */
 export async function assignRole(
   id: string,
-  params: { role: string; reason?: string }
+  params: { role: string; reason?: string },
 ): Promise<APIResponse<void>> {
   return api.putApiV1AdminUsersIdRole(id, params as any) as any
 }
@@ -176,15 +239,24 @@ export async function batchDeleteUsers(params: {
 /**
  * 获取操作日志
  * 兼容旧API: getOperationLogs(params)
+ *
+ * 注意：由于响应包含 pagination 字段，httpService 不会解包
+ * 后端返回: { code: 0, data: OperationLog[], pagination: { total: number, ... } }
+ *
+ * 后端参数: page, page_size, admin_id, operation
  */
 export async function getOperationLogs(params?: {
   page?: number
-  pageSize?: number
-  action?: string
-  operatorId?: string
-  startTime?: number
-  endTime?: number
-}): Promise<APIResponse<{ items: OperationLog[]; total: number }>> {
+  page_size?: number
+  admin_id?: string
+  operation?: string
+  start_date?: string
+  end_date?: string
+}): Promise<{
+  code: number
+  data: OperationLog[]
+  pagination: { total: number; page: number; page_size: number }
+}> {
   return api.getApiV1AdminOperationLogs(params as any) as any
 }
 
@@ -202,11 +274,14 @@ export async function getUserQuotaDetails(userId: string): Promise<APIResponse<a
  * 更新用户配额
  * 兼容旧API: updateUserQuota(userId, params)
  */
-export async function updateUserQuota(userId: string, params: {
-  quotaType?: 'free' | 'paid' | 'trial'
-  totalQuota?: number
-  resetDate?: string
-}): Promise<APIResponse<void>> {
+export async function updateUserQuota(
+  userId: string,
+  params: {
+    quotaType?: 'free' | 'paid' | 'trial'
+    totalQuota?: number
+    resetDate?: string
+  },
+): Promise<APIResponse<void>> {
   return api.putApiV1AdminQuotaUserId(userId, params as any) as any
 }
 
@@ -262,12 +337,14 @@ export async function getHighRiskAudits(params?: {
  * 获取审核统计数据
  * 兼容旧API: getAuditStatistics()
  */
-export async function getAuditStatistics(): Promise<APIResponse<{
-  pending: number
-  approved: number
-  rejected: number
-  highRisk: number
-}>> {
+export async function getAuditStatistics(): Promise<
+  APIResponse<{
+    pending: number
+    approved: number
+    rejected: number
+    highRisk: number
+  }>
+> {
   return api.getApiV1AdminAuditStatistics() as any
 }
 
@@ -275,10 +352,13 @@ export async function getAuditStatistics(): Promise<APIResponse<{
  * 审核内容
  * 兼容旧API: reviewAudit(auditId, params)
  */
-export async function reviewAudit(auditId: string, params: {
-  approved: boolean
-  reason?: string
-}): Promise<APIResponse<void>> {
+export async function reviewAudit(
+  auditId: string,
+  params: {
+    approved: boolean
+    reason?: string
+  },
+): Promise<APIResponse<void>> {
   return api.postApiV1AdminAuditIdReview(auditId, params as any) as any
 }
 
@@ -299,19 +379,27 @@ export async function getAnnouncements(params?: {
   pageSize?: number
   type?: string
   targetUsers?: string
+  targetRole?: string
   status?: string
-}): Promise<APIResponse<any>> {
-  const response = await api.getApiV1AdminAnnouncements({
+}): Promise<AdminListResult<Announcement>> {
+  const rawResponse = await api.getApiV1AdminAnnouncements({
     page: params?.page,
-    pageSize: params?.pageSize,
+    page_size: params?.pageSize,
     type: params?.type,
-    targetRole: params?.targetUsers,
-    isActive: params?.status === 'active' ? true : undefined
-  })
+    targetRole: params?.targetRole ?? params?.targetUsers,
+    isActive: params?.status === 'active' ? true : undefined,
+  } as any)
+  const response = unwrapPayload<Record<string, any>>(rawResponse)
+  const rawItems = Array.isArray(response?.items)
+    ? response.items
+    : Array.isArray(response?.announcements)
+      ? response.announcements
+      : Array.isArray(response?.list)
+        ? response.list
+        : []
   return {
-    items: response.data?.data?.items || response.data,
-    total: response.data?.data?.total || response.data?.length || 0,
-    ...response
+    items: rawItems.map((item) => normalizeAnnouncement(item)),
+    total: Number(response?.total ?? response?.pagination?.total ?? rawItems.length ?? 0),
   }
 }
 
@@ -350,7 +438,10 @@ export const deleteAnnouncement = api.deleteApiV1AdminAnnouncementsId
  * 批量更新公告状态
  * 兼容旧API: batchUpdateAnnouncementStatus(ids, status)
  */
-export async function batchUpdateAnnouncementStatus(ids: string[], status: 'active' | 'inactive'): Promise<APIResponse<void>> {
+export async function batchUpdateAnnouncementStatus(
+  ids: string[],
+  status: 'active' | 'inactive',
+): Promise<APIResponse<void>> {
   return api.putApiV1AdminAnnouncementsBatchStatus({ ids, status } as any) as any
 }
 
@@ -423,19 +514,26 @@ export async function getBanners(params: {
   pageSize?: number
   targetType?: string
   status?: string
-}): Promise<APIResponse<any>> {
+}): Promise<AdminListResult<Banner>> {
   const limit = params.pageSize || 10
   const offset = ((params.page || 1) - 1) * (params.pageSize || 10)
-  const response = await api.getApiV1AdminBanners({
+  const rawResponse = await api.getApiV1AdminBanners({
     limit,
     offset,
     targetType: params.targetType,
-    isActive: params.status === 'active' ? true : undefined
+    isActive: params.status === 'active' ? true : undefined,
   })
+  const response = unwrapPayload<Record<string, any>>(rawResponse)
+  const rawItems = Array.isArray(response?.items)
+    ? response.items
+    : Array.isArray(response?.banners)
+      ? response.banners
+      : Array.isArray(response?.list)
+        ? response.list
+        : []
   return {
-    items: response.data?.data?.items || response.data,
-    total: response.data?.data?.total || response.data?.length || 0,
-    ...response
+    items: rawItems.map((item) => normalizeBanner(item)),
+    total: Number(response?.total ?? response?.pagination?.total ?? rawItems.length ?? 0),
   }
 }
 
@@ -549,10 +647,10 @@ export const deletePermission = api.deleteApiV1AdminPermissionsCode
 export const batchUpdateStatus = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] batchUpdateStatus 已被移除。\n' +
-    '请使用具体的批量更新API：\n' +
-    '  - batchUpdateAnnouncementStatus() - 批量更新公告状态\n' +
-    '  - batchUpdateBannerStatus() - 批量更新Banner状态\n' +
-    '  - 或其他特定模块的批量更新方法'
+      '请使用具体的批量更新API：\n' +
+      '  - batchUpdateAnnouncementStatus() - 批量更新公告状态\n' +
+      '  - batchUpdateBannerStatus() - 批量更新Banner状态\n' +
+      '  - 或其他特定模块的批量更新方法',
   )
 }
 
@@ -564,10 +662,10 @@ export const batchUpdateStatus = (..._args: any[]) => {
 export const batchDelete = (..._args: any[]) => {
   throw new Error(
     '[DEPRECATED] batchDelete 已被移除。\n' +
-    '请使用具体的批量删除API：\n' +
-    '  - batchDeleteUsers() - 批量删除用户\n' +
-    '  - batchDeleteAnnouncements() - 批量删除公告\n' +
-    '  - 或其他特定模块的批量删除方法'
+      '请使用具体的批量删除API：\n' +
+      '  - batchDeleteUsers() - 批量删除用户\n' +
+      '  - batchDeleteAnnouncements() - 批量删除公告\n' +
+      '  - 或其他特定模块的批量删除方法',
   )
 }
 

@@ -414,7 +414,7 @@ import {
   Delete,
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
-import type { FormInstance } from 'element-plus';
+import type { FormInstance } from 'element-plus'
 import { ElTable } from 'element-plus'
 import { getUserList, updateUserStatus, assignRole, deleteUser as deleteUserAPI } from '../api'
 
@@ -592,26 +592,23 @@ const loadUsers = async () => {
         status: filters.status || undefined,
       })
 
-      if (response.data) {
-        // 将API返回的数据格式转换为表格使用的格式
-        users.value = response.data.items.map((item) => ({
-          userId: item.id,
-          username: item.username,
-          email: item.email || '',
-          nickname: item.username, // API没有nickname字段，使用username
-          role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
-          status: item.status,
-          emailVerified: false, // API没有此字段
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
-          bio: '',
-          createdAt: new Date(item.registerTime).toISOString(),
-          lastLoginAt: item.lastLoginTime ? new Date(item.lastLoginTime).toISOString() : '',
-        }))
-        total.value = response.data.total
+      users.value = response.users.map((item: any) => ({
+        userId: item.id,
+        username: item.username,
+        email: item.email || '',
+        nickname: item.username,
+        role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
+        status: item.status,
+        emailVerified: false,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
+        bio: '',
+        createdAt: new Date(item.registerTime).toISOString(),
+        lastLoginAt: item.lastLoginTime ? new Date(item.lastLoginTime).toISOString() : '',
+      }))
+      total.value = response.total
 
-        // 更新统计 - 目前使用返回的total，后续可调用count-by-status API获取详细统计
-        stats.total = response.data.total
-      }
+      // 更新统计 - 目前使用返回的total，后续可调用count-by-status API获取详细统计
+      stats.total = response.total
     }
   } catch (error) {
     console.error('加载用户列表失败:', error)
@@ -1241,17 +1238,22 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
 
-  :deep(.el-avatar) {
+  .el-avatar {
     width: 40px !important;
     height: 40px !important;
     min-width: 40px !important;
     min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
     border-radius: 50% !important;
     overflow: hidden !important;
     flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    font-size: 16px !important;
+    line-height: 40px !important;
   }
 
-  :deep(.el-avatar img) {
+  .el-avatar img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
@@ -1328,6 +1330,7 @@ onMounted(() => {
 // 分页
 .pagination-card {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -1343,48 +1346,51 @@ onMounted(() => {
     white-space: nowrap;
   }
 
-  :deep(.el-pagination) {
-    display: flex;
+  .el-pagination {
+    display: flex !important;
+    flex-direction: row !important;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px 10px;
+    flex-wrap: nowrap !important;
+    gap: 8px;
     font-size: 14px;
     color: #475569;
-  }
 
-  :deep(.el-pagination__total),
-  :deep(.el-pagination__sizes),
-  :deep(.btn-prev),
-  :deep(.btn-next),
-  :deep(.el-pager),
-  :deep(.el-pagination__jump) {
-    margin: 0 !important;
-    display: inline-flex;
-    align-items: center;
-  }
+    .el-pagination__total,
+    .el-pagination__sizes,
+    .btn-prev,
+    .btn-next,
+    .el-pager,
+    .el-pagination__jump {
+      margin: 0 !important;
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center;
+    }
 
-  :deep(.btn-prev),
-  :deep(.btn-next),
-  :deep(.el-pager li) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-  }
+    .btn-prev,
+    .btn-next,
+    .el-pager li {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
 
-  :deep(.el-pager li.is-active) {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-color: transparent;
-    color: #fff;
-    font-weight: 500;
-  }
+    .el-pager li.is-active {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border-color: transparent;
+      color: #fff;
+      font-weight: 500;
+    }
 
-  :deep(.el-pagination__sizes .el-select) {
-    width: 100px;
+    .el-pagination__sizes .el-select {
+      width: 100px;
+    }
   }
 }
 

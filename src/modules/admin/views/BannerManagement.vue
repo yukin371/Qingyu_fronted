@@ -47,7 +47,13 @@
     <div class="filters-card">
       <div class="filter-group">
         <span class="filter-label">目标类型</span>
-        <el-select popper-class="admin-select-popper" v-model="filters.targetType" placeholder="全部类型" clearable @change="handleFilterChange">
+        <el-select
+          popper-class="admin-select-popper"
+          v-model="filters.targetType"
+          placeholder="全部类型"
+          clearable
+          @change="handleFilterChange"
+        >
           <el-option label="全部" value="" />
           <el-option label="书籍" value="book" />
           <el-option label="分类" value="category" />
@@ -57,7 +63,13 @@
 
       <div class="filter-group">
         <span class="filter-label">状态</span>
-        <el-select popper-class="admin-select-popper" v-model="filters.status" placeholder="全部状态" clearable @change="handleFilterChange">
+        <el-select
+          popper-class="admin-select-popper"
+          v-model="filters.status"
+          placeholder="全部状态"
+          clearable
+          @change="handleFilterChange"
+        >
           <el-option label="全部" value="" />
           <el-option label="已启用" value="active" />
           <el-option label="已禁用" value="inactive" />
@@ -111,7 +123,9 @@
           <template #default="{ row }">
             <span class="type-tag" :class="row.targetType">
               <el-icon v-if="row.targetType === 'book'" :size="14"><Reading /></el-icon>
-              <el-icon v-else-if="row.targetType === 'category'" :size="14"><FolderOpened /></el-icon>
+              <el-icon v-else-if="row.targetType === 'category'" :size="14"
+                ><FolderOpened
+              /></el-icon>
               <el-icon v-else :size="14"><Link /></el-icon>
               {{ getTypeLabel(row.targetType) }}
             </span>
@@ -182,7 +196,12 @@
         </el-form-item>
 
         <el-form-item label="描述">
-          <el-input v-model="bannerForm.description" type="textarea" :rows="2" placeholder="请输入描述（可选）" />
+          <el-input
+            v-model="bannerForm.description"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入描述（可选）"
+          />
         </el-form-item>
 
         <el-form-item label="图片URL" required>
@@ -190,7 +209,11 @@
         </el-form-item>
 
         <el-form-item label="预览" v-if="bannerForm.image">
-          <el-image :src="bannerForm.image" fit="cover" style="width: 200px; height: 100px; border-radius: 8px">
+          <el-image
+            :src="bannerForm.image"
+            fit="cover"
+            style="width: 200px; height: 100px; border-radius: 8px"
+          >
             <template #error>
               <div class="image-placeholder">图片加载失败</div>
             </template>
@@ -198,7 +221,11 @@
         </el-form-item>
 
         <el-form-item label="目标类型" required>
-          <el-select popper-class="admin-select-popper" v-model="bannerForm.targetType" style="width: 100%">
+          <el-select
+            popper-class="admin-select-popper"
+            v-model="bannerForm.targetType"
+            style="width: 100%"
+          >
             <el-option label="书籍" value="book" />
             <el-option label="分类" value="category" />
             <el-option label="外链" value="url" />
@@ -210,7 +237,12 @@
         </el-form-item>
 
         <el-form-item label="排序权重">
-          <el-input-number v-model="bannerForm.sortOrder" :min="0" :max="999" style="width: 150px" />
+          <el-input-number
+            v-model="bannerForm.sortOrder"
+            :min="0"
+            :max="999"
+            style="width: 150px"
+          />
           <span class="form-hint">数字越大越靠前</span>
         </el-form-item>
 
@@ -221,9 +253,7 @@
 
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">
-          确定
-        </el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting"> 确定 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -233,8 +263,16 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
-  Plus, Picture, CircleCheck, View, Refresh, Reading, FolderOpened,
-  Link, Edit, Delete
+  Plus,
+  Picture,
+  CircleCheck,
+  View,
+  Refresh,
+  Reading,
+  FolderOpened,
+  Link,
+  Edit,
+  Delete,
 } from '@element-plus/icons-vue'
 import { getBanners, createBanner, updateBanner, deleteBanner } from '../api'
 
@@ -247,20 +285,20 @@ const isTestMode = computed(() => {
 // 筛选器
 const filters = reactive({
   targetType: '',
-  status: ''
+  status: '',
 })
 
 // 分页
 const pagination = reactive({
   page: 1,
-  pageSize: 10
+  pageSize: 10,
 })
 
 // 统计数据
 const stats = reactive({
   total: 8,
   active: 6,
-  totalClicks: 15823
+  totalClicks: 15823,
 })
 
 // 数据
@@ -278,7 +316,7 @@ const bannerForm = reactive({
   target: '',
   targetType: 'book',
   sortOrder: 0,
-  isActive: true
+  isActive: true,
 })
 
 // 生成模拟Banner数据
@@ -291,7 +329,7 @@ const createMockBanners = () => {
     'https://picsum.photos/seed/banner5/800/400',
     'https://picsum.photos/seed/banner6/800/400',
     'https://picsum.photos/seed/banner7/800/400',
-    'https://picsum.photos/seed/banner8/800/400'
+    'https://picsum.photos/seed/banner8/800/400',
   ]
 
   const titles = [
@@ -302,7 +340,7 @@ const createMockBanners = () => {
     { title: '科幻世界', desc: '探索未来科幻宇宙', type: 'category' },
     { title: '历史军事', desc: '金戈铁马征战沙场', type: 'category' },
     { title: '活动公告', desc: '参与赢取丰厚奖励', type: 'url' },
-    { title: '限量推荐', desc: '编辑精选优质内容', type: 'book' }
+    { title: '限量推荐', desc: '编辑精选优质内容', type: 'book' },
   ]
 
   return titles.map((item, i) => ({
@@ -315,7 +353,7 @@ const createMockBanners = () => {
     sortOrder: 100 - i * 10,
     isActive: i < 6,
     clickCount: Math.floor(Math.random() * 5000) + 500,
-    createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString()
+    createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
   }))
 }
 
@@ -329,13 +367,11 @@ const loadBanners = async () => {
       let filtered = [...mockBannersPool]
 
       if (filters.targetType) {
-        filtered = filtered.filter(b => b.targetType === filters.targetType)
+        filtered = filtered.filter((b) => b.targetType === filters.targetType)
       }
 
       if (filters.status) {
-        filtered = filtered.filter(b =>
-          filters.status === 'active' ? b.isActive : !b.isActive
-        )
+        filtered = filtered.filter((b) => (filters.status === 'active' ? b.isActive : !b.isActive))
       }
 
       total.value = filtered.length
@@ -345,7 +381,7 @@ const loadBanners = async () => {
 
       // 更新统计
       stats.total = mockBannersPool.length
-      stats.active = mockBannersPool.filter(b => b.isActive).length
+      stats.active = mockBannersPool.filter((b) => b.isActive).length
       stats.totalClicks = mockBannersPool.reduce((sum, b) => sum + (b.clickCount || 0), 0)
     } else {
       // 调用真实API
@@ -353,13 +389,16 @@ const loadBanners = async () => {
         page: pagination.page,
         pageSize: pagination.pageSize,
         targetType: filters.targetType || undefined,
-        status: filters.status || undefined
+        status: filters.status || undefined,
       })
-      if (response.data) {
-        banners.value = response.data.items || response.data
-        total.value = response.data.total || response.data.length
-        stats.total = total.value
-      }
+      banners.value = response.items
+      total.value = response.total || 0
+      stats.total = total.value
+      stats.active = response.items.filter((b: any) => b.isActive).length
+      stats.totalClicks = response.items.reduce(
+        (sum: number, b: any) => sum + (b.clickCount || 0),
+        0,
+      )
     }
   } catch (error) {
     console.error('加载Banner列表失败:', error)
@@ -379,7 +418,7 @@ const getTypeLabel = (type: string): string => {
   const labels: Record<string, string> = {
     book: '书籍',
     category: '分类',
-    url: '外链'
+    url: '外链',
   }
   return labels[type] || type
 }
@@ -393,7 +432,7 @@ const handleCreate = () => {
     target: '',
     targetType: 'book',
     sortOrder: 0,
-    isActive: true
+    isActive: true,
   })
   dialogVisible.value = true
 }
@@ -407,7 +446,7 @@ const handleEdit = (banner: any) => {
     target: banner.target,
     targetType: banner.targetType,
     sortOrder: banner.sortOrder,
-    isActive: banner.isActive
+    isActive: banner.isActive,
   })
   dialogVisible.value = true
 }
@@ -422,7 +461,7 @@ const handleSubmit = async () => {
   try {
     if (isTestMode.value) {
       if (editingBanner.value) {
-        const banner = mockBannersPool.find(b => b.id === editingBanner.value.id)
+        const banner = mockBannersPool.find((b) => b.id === editingBanner.value.id)
         if (banner) {
           Object.assign(banner, bannerForm)
         }
@@ -432,7 +471,7 @@ const handleSubmit = async () => {
           id: `banner_${Date.now()}`,
           ...bannerForm,
           clickCount: 0,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         })
         message.success('创建成功')
       }
@@ -458,7 +497,7 @@ const handleSubmit = async () => {
 const handleStatusChange = async (banner: any) => {
   try {
     if (isTestMode.value) {
-      const b = mockBannersPool.find(item => item.id === banner.id)
+      const b = mockBannersPool.find((item) => item.id === banner.id)
       if (b) b.isActive = banner.isActive
     } else {
       // 调用真实API
@@ -475,11 +514,11 @@ const handleStatusChange = async (banner: any) => {
 const handleDelete = async (banner: any) => {
   try {
     await messageBox.confirm('确定要删除此Banner吗？', '确认', {
-      type: 'warning'
+      type: 'warning',
     })
 
     if (isTestMode.value) {
-      const index = mockBannersPool.findIndex(b => b.id === banner.id)
+      const index = mockBannersPool.findIndex((b) => b.id === banner.id)
       if (index > -1) mockBannersPool.splice(index, 1)
     } else {
       // 调用真实API
@@ -571,18 +610,33 @@ onMounted(() => {
   }
 
   &.total {
-    .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-    .stat-value { color: #3b82f6; }
+    .stat-icon {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+    .stat-value {
+      color: #3b82f6;
+    }
   }
 
   &.active {
-    .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    .stat-value { color: #10b981; }
+    .stat-icon {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+    .stat-value {
+      color: #10b981;
+    }
   }
 
   &.views {
-    .stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-    .stat-value { color: #8b5cf6; }
+    .stat-icon {
+      background: rgba(139, 92, 246, 0.1);
+      color: #8b5cf6;
+    }
+    .stat-value {
+      color: #8b5cf6;
+    }
   }
 }
 
