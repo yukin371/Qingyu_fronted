@@ -1,144 +1,141 @@
 <template>
   <WriterPageShell>
     <div class="statistics-view">
-      <div class="statistics-header-card mb-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6">
-        <div class="page-header" style="margin-bottom: 0;">
+      <div
+        class="statistics-header-card mb-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm md:p-6"
+      >
+        <div class="page-header" style="margin-bottom: 0">
           <h1>作品数据统计</h1>
           <el-select
             v-model="selectedBookId"
             class="header-book-select"
             popper-class="writer-book-select-popper"
             placeholder="选择作品"
-            style="width: 300px; max-width: 100%;"
+            style="width: 300px; max-width: 100%"
             @change="loadStatistics"
           >
-            <el-option
-              v-for="book in books"
-              :key="book.id"
-              :label="book.title"
-              :value="book.id"
-            />
+            <el-option v-for="book in books" :key="book.id" :label="book.title" :value="book.id" />
           </el-select>
         </div>
         <p class="mt-2 text-sm text-slate-500">跟踪阅读、订阅、收藏与评论趋势，辅助内容迭代。</p>
       </div>
 
-    <el-skeleton v-if="loading" :rows="8" animated />
+      <el-skeleton v-if="loading" :rows="8" animated />
 
-    <div v-else-if="!selectedBookId" class="empty-state">
-      <el-empty description="请选择一部作品查看统计数据" />
-    </div>
-
-    <div v-else class="statistics-content">
-      <!-- 统计概览 -->
-      <div class="stats-overview">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-icon total-views">
-              <QyIcon name="View"  />
-            </div>
-            <div class="stat-details">
-              <div class="stat-value">{{ formatNumber(stats.totalViews) }}</div>
-              <div class="stat-label">总阅读量</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-icon subscribers">
-              <QyIcon name="Star"  />
-            </div>
-            <div class="stat-details">
-              <div class="stat-value">{{ formatNumber(stats.subscribers) }}</div>
-              <div class="stat-label">订阅人数</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-icon favorites">
-              <QyIcon name="Collection"  />
-            </div>
-            <div class="stat-details">
-              <div class="stat-value">{{ formatNumber(stats.favorites) }}</div>
-              <div class="stat-label">收藏数</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-icon comments">
-              <QyIcon name="ChatDotRound"  />
-            </div>
-            <div class="stat-details">
-              <div class="stat-value">{{ formatNumber(stats.comments) }}</div>
-              <div class="stat-label">评论数</div>
-            </div>
-          </div>
-        </el-card>
+      <div v-else-if="!selectedBookId" class="empty-state">
+        <el-empty description="请选择一部作品查看统计数据" />
       </div>
 
-      <!-- 图表区域 -->
-      <el-row :gutter="20">
-        <!-- 阅读量趋势图 -->
-        <el-col :span="24" :lg="12">
-          <el-card class="chart-card">
-            <template #header>
-              <div class="card-header">
-                <span>阅读量趋势</span>
-                <el-radio-group v-model="viewsTrendRange" size="small" @change="loadDailyStats">
-                  <el-radio-button label="7">7天</el-radio-button>
-                  <el-radio-button label="30">30天</el-radio-button>
-                  <el-radio-button label="90">90天</el-radio-button>
-                </el-radio-group>
+      <div v-else class="statistics-content">
+        <!-- 统计概览 -->
+        <div class="stats-overview">
+          <el-card class="stat-card">
+            <div class="stat-item">
+              <div class="stat-icon total-views">
+                <QyIcon name="View" />
               </div>
-            </template>
-            <div ref="viewsChartRef" class="chart-container"></div>
+              <div class="stat-details">
+                <div class="stat-value">{{ formatNumber(stats.totalViews) }}</div>
+                <div class="stat-label">总阅读量</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
 
-        <!-- 订阅增长图 -->
-        <el-col :span="24" :lg="12">
-          <el-card class="chart-card">
-            <template #header>
-              <span>订阅增长</span>
-            </template>
-            <div ref="subscribersChartRef" class="chart-container"></div>
+          <el-card class="stat-card">
+            <div class="stat-item">
+              <div class="stat-icon subscribers">
+                <QyIcon name="Star" />
+              </div>
+              <div class="stat-details">
+                <div class="stat-value">{{ formatNumber(stats.subscribers) }}</div>
+                <div class="stat-label">订阅人数</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
 
-        <!-- 章节热度分布 -->
-        <el-col :span="24" :lg="12">
-          <el-card class="chart-card">
-            <template #header>
-              <span>章节阅读热度 TOP 10</span>
-            </template>
-            <div ref="chaptersChartRef" class="chart-container"></div>
+          <el-card class="stat-card">
+            <div class="stat-item">
+              <div class="stat-icon favorites">
+                <QyIcon name="Collection" />
+              </div>
+              <div class="stat-details">
+                <div class="stat-value">{{ formatNumber(stats.favorites) }}</div>
+                <div class="stat-label">收藏数</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
 
-        <!-- 读者活跃度 -->
-        <el-col :span="24" :lg="12">
-          <el-card class="chart-card">
-            <template #header>
-              <span>读者活跃度分布</span>
-            </template>
-            <div ref="readerActivityChartRef" class="chart-container"></div>
+          <el-card class="stat-card">
+            <div class="stat-item">
+              <div class="stat-icon comments">
+                <QyIcon name="ChatDotRound" />
+              </div>
+              <div class="stat-details">
+                <div class="stat-value">{{ formatNumber(stats.comments) }}</div>
+                <div class="stat-label">评论数</div>
+              </div>
+            </div>
           </el-card>
-        </el-col>
-      </el-row>
+        </div>
 
-      <!-- 阅读热力图 -->
-      <el-card class="chart-card heatmap-card">
-        <template #header>
-          <span>阅读时段热力图</span>
-        </template>
-        <div ref="heatmapChartRef" class="heatmap-container"></div>
-      </el-card>
-    </div>
+        <!-- 图表区域 -->
+        <el-row :gutter="20">
+          <!-- 阅读量趋势图 -->
+          <el-col :span="24" :lg="12">
+            <el-card class="chart-card">
+              <template #header>
+                <div class="card-header">
+                  <span>阅读量趋势</span>
+                  <el-radio-group v-model="viewsTrendRange" size="small" @change="loadDailyStats">
+                    <el-radio-button label="7">7天</el-radio-button>
+                    <el-radio-button label="30">30天</el-radio-button>
+                    <el-radio-button label="90">90天</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </template>
+              <div ref="viewsChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+
+          <!-- 订阅增长图 -->
+          <el-col :span="24" :lg="12">
+            <el-card class="chart-card">
+              <template #header>
+                <span>订阅增长</span>
+              </template>
+              <div ref="subscribersChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+
+          <!-- 章节热度分布 -->
+          <el-col :span="24" :lg="12">
+            <el-card class="chart-card">
+              <template #header>
+                <span>章节阅读热度 TOP 10</span>
+              </template>
+              <div ref="chaptersChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+
+          <!-- 读者活跃度 -->
+          <el-col :span="24" :lg="12">
+            <el-card class="chart-card">
+              <template #header>
+                <span>读者活跃度分布</span>
+              </template>
+              <div ref="readerActivityChartRef" class="chart-container"></div>
+            </el-card>
+          </el-col>
+        </el-row>
+
+        <!-- 阅读热力图 -->
+        <el-card class="chart-card heatmap-card">
+          <template #header>
+            <span>阅读时段热力图</span>
+          </template>
+          <div ref="heatmapChartRef" class="heatmap-container"></div>
+        </el-card>
+      </div>
     </div>
   </WriterPageShell>
 </template>
@@ -157,7 +154,7 @@ import {
   getSubscribersTrend,
   getChapterStats,
   getReaderActivity,
-  getReadingHeatmap
+  getReadingHeatmap,
 } from '@/modules/writer/api/statistics'
 import { getWriterBooks } from '@/modules/writer/api/revenue'
 
@@ -178,7 +175,7 @@ async function loadBooks(): Promise<void> {
     const localBooks = (writerStore.projectList || [])
       .map((p: any) => ({
         id: p.projectId || p.id || '',
-        title: p.title || p.name || '未命名作品'
+        title: p.title || p.name || '未命名作品',
       }))
       .filter((b: any) => !!b.id)
 
@@ -197,16 +194,12 @@ async function loadBooks(): Promise<void> {
   try {
     const response: any = await getWriterBooks({ page: 1, size: 100 })
     const remoteList =
-      response?.data?.list ||
-      response?.list ||
-      response?.data?.items ||
-      response?.items ||
-      []
+      response?.data?.list || response?.list || response?.data?.items || response?.items || []
     if (Array.isArray(remoteList) && remoteList.length > 0) {
       books.value = remoteList
         .map((b: any) => ({
           id: b.id || b.projectId || b.bookId || '',
-          title: b.title || b.name || '未命名作品'
+          title: b.title || b.name || '未命名作品',
         }))
         .filter((b: any) => !!b.id)
     }
@@ -220,7 +213,7 @@ async function loadBooks(): Promise<void> {
     // 使用模拟数据
     books.value = [
       { id: '1', title: '云岚纪事' },
-      { id: '2', title: '云岚纪事·外传' }
+      { id: '2', title: '云岚纪事·外传' },
     ]
     selectedBookId.value = books.value[0].id
     loadStatistics()
@@ -231,7 +224,7 @@ async function loadBooks(): Promise<void> {
   if (books.value.length === 0) {
     books.value = [
       { id: '1', title: '云岚纪事' },
-      { id: '2', title: '云岚纪事·外传' }
+      { id: '2', title: '云岚纪事·外传' },
     ]
     selectedBookId.value = books.value[0].id
     loadStatistics()
@@ -243,7 +236,7 @@ const stats = ref({
   totalViews: 0,
   subscribers: 0,
   favorites: 0,
-  comments: 0
+  comments: 0,
 })
 
 // 图表实例
@@ -280,16 +273,16 @@ function getMockProfile() {
   const seed = hashString(`${selectedBookId.value}:${currentBook?.title || ''}`)
   const baseViews = 118000 + (seed % 9) * 7600
   const subscribers = 6200 + ((seed >> 3) % 8) * 520
-  const favorites = Math.floor(baseViews * (0.032 + ((seed % 5) * 0.004)))
-  const comments = Math.floor(favorites * (0.42 + ((seed % 4) * 0.05)))
+  const favorites = Math.floor(baseViews * (0.032 + (seed % 5) * 0.004))
+  const comments = Math.floor(favorites * (0.42 + (seed % 4) * 0.05))
   return {
     seed,
     overview: {
       totalViews: baseViews,
       subscribers,
       favorites,
-      comments
-    }
+      comments,
+    },
   }
 }
 
@@ -325,7 +318,7 @@ function getMockSubscribersTrend(days: number, seed: number): number[] {
   for (let i = 0; i < days; i++) {
     const wave = Math.sin((i + (seed % 5)) / 4.2) * 9
     const noise = ((seed + i * 23) % 12) - 6
-    const growth = i / Math.max(1, days) * 7
+    const growth = (i / Math.max(1, days)) * 7
     trend.push(Math.max(24, Math.round(base + wave + noise + growth)))
   }
   return trend
@@ -347,7 +340,7 @@ function getMockReaderActivity(seed: number): Array<{ value: number; name: strin
     { value: 3200 + (seed % 600), name: '每日活跃' },
     { value: 2600 + ((seed >> 2) % 500), name: '每周活跃' },
     { value: 1900 + ((seed >> 4) % 420), name: '每月活跃' },
-    { value: 1100 + ((seed >> 6) % 320), name: '不活跃' }
+    { value: 1100 + ((seed >> 6) % 320), name: '不活跃' },
   ]
 }
 
@@ -388,11 +381,10 @@ async function loadStatistics(): Promise<void> {
           totalViews: 125800,
           subscribers: 8650,
           favorites: 4520,
-          comments: 2180
+          comments: 2180,
         }
       }
     }
-
   } catch (error: any) {
     console.error('加载统计数据失败:', error)
     message.error(error.message || '加载统计数据失败')
@@ -457,7 +449,9 @@ async function loadDailyStats(): Promise<void> {
           const d = new Date(item.date)
           return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
         })
-        const subscribers = subsResponse.data.map((item: any) => item.count || item.subscribers || 0)
+        const subscribers = subsResponse.data.map(
+          (item: any) => item.count || item.subscribers || 0,
+        )
         updateSubscribersChart(dates, subscribers)
       } else {
         throw new Error('No data')
@@ -520,7 +514,7 @@ async function loadReaderActivity(): Promise<void> {
     if (response.data && Array.isArray(response.data)) {
       const data = response.data.map((item: any) => ({
         value: item.count,
-        name: item.label
+        name: item.label,
       }))
       updateReaderActivityChart(data)
       return
@@ -534,7 +528,7 @@ async function loadReaderActivity(): Promise<void> {
     { value: 3580, name: '每日活跃' },
     { value: 2150, name: '每周活跃' },
     { value: 1850, name: '每月活跃' },
-    { value: 1070, name: '不活跃' }
+    { value: 1070, name: '不活跃' },
   ]
   updateReaderActivityChart(data)
 }
@@ -550,11 +544,7 @@ async function loadReadingHeatmap(): Promise<void> {
   try {
     const response: any = await getReadingHeatmap(selectedBookId.value)
     if (response.data && Array.isArray(response.data)) {
-      const heatmapData = response.data.map((item: any) => [
-        item.hour,
-        item.day,
-        item.value
-      ])
+      const heatmapData = response.data.map((item: any) => [item.hour, item.day, item.value])
       updateHeatmapChart(heatmapData)
       return
     }
@@ -592,15 +582,15 @@ function updateViewsChart(dates: string[], views: number[]): void {
 
   const option: echarts.EChartsOption = {
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
     },
     xAxis: {
       type: 'category',
       data: dates,
-      boundaryGap: false
+      boundaryGap: false,
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
     },
     series: [
       {
@@ -611,20 +601,20 @@ function updateViewsChart(dates: string[], views: number[]): void {
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
-          ])
+            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' },
+          ]),
         },
         itemStyle: {
-          color: '#409EFF'
-        }
-      }
+          color: '#409EFF',
+        },
+      },
     ],
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      containLabel: true
-    }
+      containLabel: true,
+    },
   }
 
   viewsChart.setOption(option)
@@ -642,15 +632,15 @@ function updateSubscribersChart(dates: string[], subscribers: number[]): void {
 
   const option: echarts.EChartsOption = {
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
     },
     xAxis: {
       type: 'category',
       data: dates,
-      boundaryGap: false
+      boundaryGap: false,
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
     },
     series: [
       {
@@ -658,16 +648,16 @@ function updateSubscribersChart(dates: string[], subscribers: number[]): void {
         type: 'bar',
         data: subscribers,
         itemStyle: {
-          color: '#67C23A'
-        }
-      }
+          color: '#67C23A',
+        },
+      },
     ],
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      containLabel: true
-    }
+      containLabel: true,
+    },
   }
 
   subscribersChart.setOption(option)
@@ -676,7 +666,8 @@ function updateSubscribersChart(dates: string[], subscribers: number[]): void {
 // 章节热度图
 function initChaptersChart(): void {
   if (!chaptersChartRef.value) return
-  chaptersChart = echarts.getInstanceByDom(chaptersChartRef.value) || echarts.init(chaptersChartRef.value)
+  chaptersChart =
+    echarts.getInstanceByDom(chaptersChartRef.value) || echarts.init(chaptersChartRef.value)
 
   // 模拟数据
   const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
@@ -686,15 +677,15 @@ function initChaptersChart(): void {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-        type: 'shadow'
-      }
+        type: 'shadow',
+      },
     },
     xAxis: {
-      type: 'value'
+      type: 'value',
     },
     yAxis: {
       type: 'category',
-      data: chapters.reverse()
+      data: chapters.reverse(),
     },
     series: [
       {
@@ -704,17 +695,17 @@ function initChaptersChart(): void {
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: '#E6A23C' },
-            { offset: 1, color: '#F56C6C' }
-          ])
-        }
-      }
+            { offset: 1, color: '#F56C6C' },
+          ]),
+        },
+      },
     ],
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      containLabel: true
-    }
+      containLabel: true,
+    },
   }
 
   chaptersChart.setOption(option)
@@ -725,15 +716,15 @@ function updateChaptersChart(chapters: string[], views: number[]): void {
   chaptersChart.setOption({
     yAxis: {
       type: 'category',
-      data: [...chapters].reverse()
+      data: [...chapters].reverse(),
     },
     series: [
       {
         name: '阅读量',
         type: 'bar',
-        data: [...views].reverse()
-      }
-    ]
+        data: [...views].reverse(),
+      },
+    ],
   })
 }
 
@@ -741,11 +732,12 @@ function updateChaptersChart(chapters: string[], views: number[]): void {
 function initReaderActivityChart(): void {
   if (!readerActivityChartRef.value) return
   readerActivityChart =
-    echarts.getInstanceByDom(readerActivityChartRef.value) || echarts.init(readerActivityChartRef.value)
+    echarts.getInstanceByDom(readerActivityChartRef.value) ||
+    echarts.init(readerActivityChartRef.value)
 
   const option: echarts.EChartsOption = {
     tooltip: {
-      trigger: 'item'
+      trigger: 'item',
     },
     series: [
       {
@@ -756,20 +748,20 @@ function initReaderActivityChart(): void {
         itemStyle: {
           borderRadius: 10,
           borderColor: '#fff',
-          borderWidth: 2
+          borderWidth: 2,
         },
         label: {
           show: true,
-          formatter: '{b}: {d}%'
+          formatter: '{b}: {d}%',
         },
         data: [
           { value: 1048, name: '活跃用户', itemStyle: { color: '#67C23A' } },
           { value: 735, name: '一般用户', itemStyle: { color: '#409EFF' } },
           { value: 580, name: '沉默用户', itemStyle: { color: '#E6A23C' } },
-          { value: 484, name: '流失用户', itemStyle: { color: '#F56C6C' } }
-        ]
-      }
-    ]
+          { value: 484, name: '流失用户', itemStyle: { color: '#F56C6C' } },
+        ],
+      },
+    ],
   }
 
   readerActivityChart.setOption(option)
@@ -782,16 +774,17 @@ function updateReaderActivityChart(data: Array<{ value: number; name: string }>)
       {
         name: '读者活跃度',
         type: 'pie',
-        data
-      }
-    ]
+        data,
+      },
+    ],
   })
 }
 
 // 阅读热力图
 function initHeatmapChart(): void {
   if (!heatmapChartRef.value) return
-  heatmapChart = echarts.getInstanceByDom(heatmapChartRef.value) || echarts.init(heatmapChartRef.value)
+  heatmapChart =
+    echarts.getInstanceByDom(heatmapChartRef.value) || echarts.init(heatmapChartRef.value)
 
   const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
@@ -805,25 +798,25 @@ function initHeatmapChart(): void {
 
   const option: echarts.EChartsOption = {
     tooltip: {
-      position: 'top'
+      position: 'top',
     },
     grid: {
       height: '70%',
-      top: '10%'
+      top: '10%',
     },
     xAxis: {
       type: 'category',
       data: hours,
       splitArea: {
-        show: true
-      }
+        show: true,
+      },
     },
     yAxis: {
       type: 'category',
       data: days,
       splitArea: {
-        show: true
-      }
+        show: true,
+      },
     },
     visualMap: {
       min: 0,
@@ -833,8 +826,8 @@ function initHeatmapChart(): void {
       left: 'center',
       bottom: '5%',
       inRange: {
-        color: ['#E6F4FF', '#1890FF', '#0050B3']
-      }
+        color: ['#E6F4FF', '#1890FF', '#0050B3'],
+      },
     },
     series: [
       {
@@ -842,16 +835,16 @@ function initHeatmapChart(): void {
         type: 'heatmap',
         data: data,
         label: {
-          show: false
+          show: false,
         },
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }
-    ]
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
+      },
+    ],
   }
 
   heatmapChart.setOption(option)
@@ -864,9 +857,9 @@ function updateHeatmapChart(data: number[][]): void {
       {
         name: '阅读量',
         type: 'heatmap',
-        data
-      }
-    ]
+        data,
+      },
+    ],
   })
 }
 
@@ -926,7 +919,9 @@ onUnmounted(() => {
       border-radius: 12px;
       border: 1px solid #dbe6f6;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
     }
 
     :deep(.el-select__selection) {
@@ -1034,7 +1029,9 @@ onUnmounted(() => {
     font-size: 14px;
     font-weight: 500;
     color: #334155;
-    transition: background-color 0.18s ease, color 0.18s ease;
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease;
     outline: none;
   }
 

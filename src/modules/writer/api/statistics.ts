@@ -88,7 +88,7 @@ export const getBookStats = (bookId: string) => {
  */
 export const getDailyStats = (bookId: string, days: number = 30) => {
   return httpService.get(`/api/v1/writer/books/${bookId}/daily-stats`, {
-    params: { days }
+    params: { days },
   })
 }
 
@@ -112,7 +112,7 @@ export function getSubscribersTrend(
     days?: number
     startDate?: string
     endDate?: string
-  }
+  },
 ) {
   return httpService.get(`/api/v1/writer/books/${bookId}/stats/subscribers`, { params })
 }
@@ -131,7 +131,7 @@ export function getSubscribersTrend(
  */
 export const getChapterStats = (bookId: string, page: number = 1, size: number = 20) => {
   return httpService.get(`/api/v1/writer/books/${bookId}/stats/chapters`, {
-    params: { page, size }
+    params: { page, size },
   })
 }
 
@@ -183,7 +183,7 @@ export function compareBooks(
     metrics?: string[] // ['views', 'subscribers', 'favorites']
     startDate?: string
     endDate?: string
-  }
+  },
 ) {
   return httpService.post('/api/v1/writer/stats/compare', {
     bookIds,
@@ -196,6 +196,5 @@ export default {
   getDailyStats,
   getChapterStats,
   getReaderActivity,
-  getReadingHeatmap
+  getReadingHeatmap,
 }
-

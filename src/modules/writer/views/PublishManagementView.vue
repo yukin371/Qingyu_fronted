@@ -3,601 +3,614 @@
     <div class="publish-management-view">
       <el-row :gutter="20" class="content-grid">
         <el-col :span="24">
-          <div class="publish-hero mb-4 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm md:p-5">
+          <div
+            class="publish-hero mb-4 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm md:p-5"
+          >
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h1 class="m-0 text-2xl font-semibold text-slate-800">发布管理</h1>
-                <p class="mt-2 text-sm text-slate-500">统一处理发布计划、章节发布进度和导出任务。</p>
+                <p class="mt-2 text-sm text-slate-500">
+                  统一处理发布计划、章节发布进度和导出任务。
+                </p>
               </div>
               <div class="flex flex-wrap gap-2">
-                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">总章节 {{ stats.total_chapters }}</span>
-                <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">已发布 {{ stats.published_chapters }}</span>
-                <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">审核中 {{ stats.pending_review_chapters }}</span>
+                <span
+                  class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                  >总章节 {{ stats.total_chapters }}</span
+                >
+                <span
+                  class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700"
+                  >已发布 {{ stats.published_chapters }}</span
+                >
+                <span
+                  class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700"
+                  >审核中 {{ stats.pending_review_chapters }}</span
+                >
               </div>
             </div>
           </div>
         </el-col>
 
-      <!-- 左侧：发布统计 -->
+        <!-- 左侧：发布统计 -->
         <el-col :span="5">
           <el-card shadow="never" class="stats-card">
-          <template #header>
-            <h3>发布统计</h3>
-          </template>
-          <div v-loading="loadingStats" class="stats-grid">
-            <div class="stat-tile">
-              <span class="label">总章节</span>
-              <span class="value">{{ stats.total_chapters }}</span>
+            <template #header>
+              <h3>发布统计</h3>
+            </template>
+            <div v-loading="loadingStats" class="stats-grid">
+              <div class="stat-tile">
+                <span class="label">总章节</span>
+                <span class="value">{{ stats.total_chapters }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">已发布</span>
+                <span class="value success">{{ stats.published_chapters }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">草稿</span>
+                <span class="value info">{{ stats.draft_chapters }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">审核中</span>
+                <span class="value warning">{{ stats.pending_review_chapters }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">定时发布</span>
+                <span class="value info">{{ stats.scheduled_chapters }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">总字数</span>
+                <span class="value">{{ formatNumber(stats.total_words) }}</span>
+              </div>
+              <div class="stat-tile">
+                <span class="label">已发布字数</span>
+                <span class="value success">{{ formatNumber(stats.published_words) }}</span>
+              </div>
             </div>
-            <div class="stat-tile">
-              <span class="label">已发布</span>
-              <span class="value success">{{ stats.published_chapters }}</span>
-            </div>
-            <div class="stat-tile">
-              <span class="label">草稿</span>
-              <span class="value info">{{ stats.draft_chapters }}</span>
-            </div>
-            <div class="stat-tile">
-              <span class="label">审核中</span>
-              <span class="value warning">{{ stats.pending_review_chapters }}</span>
-            </div>
-            <div class="stat-tile">
-              <span class="label">定时发布</span>
-              <span class="value info">{{ stats.scheduled_chapters }}</span>
-            </div>
-            <div class="stat-tile">
-              <span class="label">总字数</span>
-              <span class="value">{{ formatNumber(stats.total_words) }}</span>
-            </div>
-            <div class="stat-tile">
-              <span class="label">已发布字数</span>
-              <span class="value success">{{ formatNumber(stats.published_words) }}</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
+          </el-card>
+        </el-col>
 
-      <!-- 右侧：发布管理 -->
+        <!-- 右侧：发布管理 -->
         <el-col :span="19">
           <el-card shadow="never" class="main-card">
-          <template #header>
-            <div class="card-header">
-              <h3>发布管理</h3>
-              <div class="header-actions">
-                <el-button @click="showExportDialog = true">
-                  <QyIcon name="Download"  />
-                  导出
-                </el-button>
-                <el-button type="primary" @click="showPublishPlanDialog = true">
-                  <QyIcon name="Setting"  />
-                  发布计划
-                </el-button>
-              </div>
-            </div>
-          </template>
-
-          <div class="internal-tab-nav">
-            <button
-              v-for="item in internalNavItems"
-              :key="item.key"
-              type="button"
-              class="internal-nav-item"
-              :class="{ 'is-active': activeTab === item.key }"
-              @click="activeTab = item.key"
-            >
-              <span class="nav-title">{{ item.label }}</span>
-              <span class="nav-meta">{{ item.meta }}</span>
-            </button>
-          </div>
-
-          <el-tabs v-model="activeTab" class="publish-tabs">
-            <!-- 发布计划 -->
-            <el-tab-pane label="发布计划" name="plan">
-              <div v-if="!publishPlan" class="empty-plan">
-                <el-empty description="暂无发布计划">
+            <template #header>
+              <div class="card-header">
+                <h3>发布管理</h3>
+                <div class="header-actions">
+                  <el-button @click="showExportDialog = true">
+                    <QyIcon name="Download" />
+                    导出
+                  </el-button>
                   <el-button type="primary" @click="showPublishPlanDialog = true">
-                    创建发布计划
+                    <QyIcon name="Setting" />
+                    发布计划
                   </el-button>
-                </el-empty>
+                </div>
               </div>
-              <div v-else class="plan-detail">
-                <el-descriptions :column="2" border>
-                  <el-descriptions-item label="计划名称">
-                    {{ publishPlan.name }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发布类型">
-                    <el-tag :type="getTypeTagType(publishPlan.type)">
-                      {{ getTypeLabel(publishPlan.type) }}
-                    </el-tag>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发布状态">
-                    <el-tag :type="getStatusTagType(publishPlan.status)">
-                      {{ publishPlan.status }}
-                    </el-tag>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发布平台">
-                    <el-tag
-                      v-for="platform in publishPlan.platforms"
-                      :key="platform"
-                      style="margin-right: 4px"
+            </template>
+
+            <div class="internal-tab-nav">
+              <button
+                v-for="item in internalNavItems"
+                :key="item.key"
+                type="button"
+                class="internal-nav-item"
+                :class="{ 'is-active': activeTab === item.key }"
+                @click="activeTab = item.key"
+              >
+                <span class="nav-title">{{ item.label }}</span>
+                <span class="nav-meta">{{ item.meta }}</span>
+              </button>
+            </div>
+
+            <el-tabs v-model="activeTab" class="publish-tabs">
+              <!-- 发布计划 -->
+              <el-tab-pane label="发布计划" name="plan">
+                <div v-if="!publishPlan" class="empty-plan">
+                  <el-empty description="暂无发布计划">
+                    <el-button type="primary" @click="showPublishPlanDialog = true">
+                      创建发布计划
+                    </el-button>
+                  </el-empty>
+                </div>
+                <div v-else class="plan-detail">
+                  <el-descriptions :column="2" border>
+                    <el-descriptions-item label="计划名称">
+                      {{ publishPlan.name }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="发布类型">
+                      <el-tag :type="getTypeTagType(publishPlan.type)">
+                        {{ getTypeLabel(publishPlan.type) }}
+                      </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="发布状态">
+                      <el-tag :type="getStatusTagType(publishPlan.status)">
+                        {{ publishPlan.status }}
+                      </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="发布平台">
+                      <el-tag
+                        v-for="platform in publishPlan.platforms"
+                        :key="platform"
+                        style="margin-right: 4px"
+                      >
+                        {{ getPlatformLabel(platform) }}
+                      </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="发布方式">
+                      {{ getScheduleTypeLabel(publishPlan.schedule.type) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item
+                      label="发布间隔"
+                      v-if="publishPlan.schedule.interval_days"
                     >
-                      {{ getPlatformLabel(platform) }}
-                    </el-tag>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发布方式">
-                    {{ getScheduleTypeLabel(publishPlan.schedule.type) }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发布间隔" v-if="publishPlan.schedule.interval_days">
-                    每 {{ publishPlan.schedule.interval_days }} 天
-                  </el-descriptions-item>
-                  <el-descriptions-item label="每次发布" v-if="publishPlan.schedule.chapters_per_release">
-                    {{ publishPlan.schedule.chapters_per_release }} 章
-                  </el-descriptions-item>
-                  <el-descriptions-item label="定价" v-if="!publishPlan.pricing.is_free">
-                    {{ publishPlan.pricing.price }} 书币/章
-                  </el-descriptions-item>
-                  <el-descriptions-item label="VIP折扣" v-if="publishPlan.pricing.vip_discount">
-                    {{ publishPlan.pricing.vip_discount }}%
-                  </el-descriptions-item>
-                </el-descriptions>
+                      每 {{ publishPlan.schedule.interval_days }} 天
+                    </el-descriptions-item>
+                    <el-descriptions-item
+                      label="每次发布"
+                      v-if="publishPlan.schedule.chapters_per_release"
+                    >
+                      {{ publishPlan.schedule.chapters_per_release }} 章
+                    </el-descriptions-item>
+                    <el-descriptions-item label="定价" v-if="!publishPlan.pricing.is_free">
+                      {{ publishPlan.pricing.price }} 书币/章
+                    </el-descriptions-item>
+                    <el-descriptions-item label="VIP折扣" v-if="publishPlan.pricing.vip_discount">
+                      {{ publishPlan.pricing.vip_discount }}%
+                    </el-descriptions-item>
+                  </el-descriptions>
 
-                <div class="plan-actions">
-                  <el-button @click="editPublishPlan">编辑计划</el-button>
-                  <el-button
-                    v-if="publishPlan.status === 'active'"
-                    type="warning"
-                    @click="pausePlan"
-                  >
-                    暂停
-                  </el-button>
-                  <el-button
-                    v-else
-                    type="success"
-                    @click="resumePlan"
-                  >
-                    恢复
-                  </el-button>
-                  <el-button type="primary" @click="submitReview">
-                    提交审核
-                  </el-button>
+                  <div class="plan-actions">
+                    <el-button @click="editPublishPlan">编辑计划</el-button>
+                    <el-button
+                      v-if="publishPlan.status === 'active'"
+                      type="warning"
+                      @click="pausePlan"
+                    >
+                      暂停
+                    </el-button>
+                    <el-button v-else type="success" @click="resumePlan"> 恢复 </el-button>
+                    <el-button type="primary" @click="submitReview"> 提交审核 </el-button>
+                  </div>
                 </div>
-              </div>
-            </el-tab-pane>
+              </el-tab-pane>
 
-            <!-- 章节发布 -->
-            <el-tab-pane label="章节发布" name="chapters">
-              <div class="chapter-publish">
-                <div class="filter-bar">
-                  <el-select v-model="chapterFilter.status" placeholder="状态筛选" clearable>
-                    <el-option label="全部" value="" />
-                    <el-option label="草稿" value="draft" />
-                    <el-option label="审核中" value="pending_review" />
-                    <el-option label="已发布" value="published" />
-                    <el-option label="定时发布" value="scheduled" />
-                  </el-select>
-                  <el-button @click="loadPublishRecords">刷新</el-button>
-                </div>
+              <!-- 章节发布 -->
+              <el-tab-pane label="章节发布" name="chapters">
+                <div class="chapter-publish">
+                  <div class="filter-bar">
+                    <el-select v-model="chapterFilter.status" placeholder="状态筛选" clearable>
+                      <el-option label="全部" value="" />
+                      <el-option label="草稿" value="draft" />
+                      <el-option label="审核中" value="pending_review" />
+                      <el-option label="已发布" value="published" />
+                      <el-option label="定时发布" value="scheduled" />
+                    </el-select>
+                    <el-button @click="loadPublishRecords">刷新</el-button>
+                  </div>
 
-                <el-table :data="publishRecords" v-loading="loadingRecords" stripe>
-                  <el-table-column prop="chapter_number" label="章节号" width="80" />
-                  <el-table-column prop="chapter_title" label="章节标题" />
-                  <el-table-column label="状态" width="100">
-                    <template #default="{ row }">
-                      <el-tag :type="getStatusTagType(row.status)">
-                        {{ getStatusLabel(row.status) }}
-                      </el-tag>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="发布时间" width="180">
-                    <template #default="{ row }">
-                      {{ row.published_at ? formatDate(row.published_at) : '-' }}
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="200" fixed="right">
-                    <template #default="{ row }">
-                      <el-button
-                        v-if="row.status === 'draft'"
-                        size="small"
-                        type="primary"
-                        @click="publishChapter(row)"
-                      >
-                        发布
-                      </el-button>
-                      <el-button
-                        v-if="row.status === 'draft'"
-                        size="small"
-                        @click="scheduleChapter(row)"
-                      >
-                        定时
-                      </el-button>
-                      <el-button
-                        v-if="row.status === 'published'"
-                        size="small"
-                        type="danger"
-                        @click="unpublishChapter(row)"
-                      >
-                        下架
-                      </el-button>
-                      <el-button
-                        v-if="row.status === 'pending_review'"
-                        size="small"
-                        type="warning"
-                        @click="viewReview(row)"
-                      >
-                        查看审核
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-
-                <el-pagination
-                  v-if="recordTotal > 0"
-                  v-model:current-page="recordPage"
-                  v-model:page-size="recordPageSize"
-                  :total="recordTotal"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next"
-                  @current-change="loadPublishRecords"
-                  @size-change="loadPublishRecords"
-                  style="margin-top: 16px; justify-content: center"
-                />
-              </div>
-            </el-tab-pane>
-
-            <!-- 导出历史 -->
-            <el-tab-pane label="导出历史" name="export">
-              <div class="export-history">
-                <el-table :data="exportHistory" v-loading="loadingExport" stripe>
-                  <el-table-column label="格式" width="100">
-                    <template #default="{ row }">
-                      <el-tag>{{ row.format.toUpperCase() }}</el-tag>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="范围" width="100">
-                    <template #default="{ row }">
-                      {{ getScopeLabel(row.scope) }}
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="状态" width="100">
-                    <template #default="{ row }">
-                      <el-tag :type="getExportStatusType(row.status)">
-                        {{ getExportStatusLabel(row.status) }}
-                      </el-tag>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="进度" width="150">
-                    <template #default="{ row }">
-                      <el-progress :percentage="row.progress" :status="row.status === 'completed' ? 'success' : undefined" />
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="创建时间" width="180">
-                    <template #default="{ row }">
-                      {{ formatDate(row.created_at) }}
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="150">
-                    <template #default="{ row }">
-                      <el-button
-                        v-if="row.status === 'completed'"
-                        size="small"
-                        type="primary"
-                        @click="downloadExport(row)"
-                      >
-                        下载
-                      </el-button>
-                      <el-button
-                        v-if="row.status === 'pending' || row.status === 'processing'"
-                        size="small"
-                        @click="cancelExport(row)"
-                      >
-                        取消
-                      </el-button>
-                      <el-button
-                        size="small"
-                        type="danger"
-                        @click="deleteExport(row)"
-                      >
-                        删除
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-
-                <el-pagination
-                  v-if="exportTotal > 0"
-                  v-model:current-page="exportPage"
-                  v-model:page-size="exportPageSize"
-                  :total="exportTotal"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next"
-                  @current-change="loadExportHistory"
-                  @size-change="loadExportHistory"
-                  style="margin-top: 16px; justify-content: center"
-                />
-              </div>
-            </el-tab-pane>
-
-            <!-- 审核历史 -->
-            <el-tab-pane label="审核历史" name="review">
-              <div class="review-history">
-                <!-- 审核统计 -->
-                <el-row :gutter="20" class="review-stats">
-                  <el-col :span="6">
-                    <el-card shadow="hover">
-                      <el-statistic title="总审核数" :value="reviewStats.total" />
-                    </el-card>
-                  </el-col>
-                  <el-col :span="6">
-                    <el-card shadow="hover">
-                      <el-statistic title="通过" :value="reviewStats.approved">
-                        <template #suffix>
-                          <span style="color: #67c23a">({{ reviewStats.approvedRate }}%)</span>
-                        </template>
-                      </el-statistic>
-                    </el-card>
-                  </el-col>
-                  <el-col :span="6">
-                    <el-card shadow="hover">
-                      <el-statistic title="拒绝" :value="reviewStats.rejected">
-                        <template #suffix>
-                          <span style="color: #f56c6c">({{ reviewStats.rejectedRate }}%)</span>
-                        </template>
-                      </el-statistic>
-                    </el-card>
-                  </el-col>
-                  <el-col :span="6">
-                    <el-card shadow="hover">
-                      <el-statistic title="审核中" :value="reviewStats.pending" />
-                    </el-card>
-                  </el-col>
-                </el-row>
-
-                <!-- 审核趋势图表 -->
-                <el-card shadow="never" style="margin-top: 20px">
-                  <template #header>
-                    <div class="card-header">
-                      <h3>审核趋势</h3>
-                      <el-radio-group v-model="reviewTrendPeriod" size="small">
-                        <el-radio-button label="7d">近7天</el-radio-button>
-                        <el-radio-button label="30d">近30天</el-radio-button>
-                        <el-radio-button label="90d">近90天</el-radio-button>
-                      </el-radio-group>
-                    </div>
-                  </template>
-                  <div ref="reviewTrendChartRef" style="height: 300px"></div>
-                </el-card>
-
-                <!-- 审核历史列表 -->
-                <el-card shadow="never" style="margin-top: 20px">
-                  <template #header>
-                    <div class="card-header">
-                      <h3>审核记录</h3>
-                      <div class="header-actions">
-                        <el-select v-model="reviewFilter.status" placeholder="状态筛选" clearable size="small">
-                          <el-option label="全部" value="" />
-                          <el-option label="审核中" value="pending" />
-                          <el-option label="已通过" value="approved" />
-                          <el-option label="已拒绝" value="rejected" />
-                        </el-select>
-                        <el-button size="small" @click="loadReviewHistory">
-                          <el-icon><Refresh /></el-icon>
-                          刷新
-                        </el-button>
-                      </div>
-                    </div>
-                  </template>
-
-                  <el-table :data="reviewHistory" v-loading="loadingReview" stripe>
-                    <el-table-column prop="chapter_title" label="章节标题" min-width="200" />
-                    <el-table-column prop="chapter_number" label="章节号" width="100" />
-                    <el-table-column label="审核状态" width="100">
+                  <el-table :data="publishRecords" v-loading="loadingRecords" stripe>
+                    <el-table-column prop="chapter_number" label="章节号" width="80" />
+                    <el-table-column prop="chapter_title" label="章节标题" />
+                    <el-table-column label="状态" width="100">
                       <template #default="{ row }">
-                        <el-tag :type="getReviewStatusType(row.status)">
-                          {{ getReviewStatusLabel(row.status) }}
+                        <el-tag :type="getStatusTagType(row.status)">
+                          {{ getStatusLabel(row.status) }}
                         </el-tag>
                       </template>
                     </el-table-column>
-                    <el-table-column label="提交时间" width="180">
+                    <el-table-column label="发布时间" width="180">
                       <template #default="{ row }">
-                        {{ formatDate(row.submitted_at) }}
+                        {{ row.published_at ? formatDate(row.published_at) : '-' }}
                       </template>
                     </el-table-column>
-                    <el-table-column label="审核时间" width="180">
-                      <template #default="{ row }">
-                        {{ row.reviewed_at ? formatDate(row.reviewed_at) : '-' }}
-                      </template>
-                    </el-table-column>
-                    <el-table-column label="审核人" width="120">
-                      <template #default="{ row }">
-                        {{ row.reviewer_name || '-' }}
-                      </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="150" fixed="right">
+                    <el-table-column label="操作" width="200" fixed="right">
                       <template #default="{ row }">
                         <el-button
+                          v-if="row.status === 'draft'"
                           size="small"
                           type="primary"
-                          @click="viewReviewDetail(row)"
+                          @click="publishChapter(row)"
                         >
-                          查看详情
+                          发布
+                        </el-button>
+                        <el-button
+                          v-if="row.status === 'draft'"
+                          size="small"
+                          @click="scheduleChapter(row)"
+                        >
+                          定时
+                        </el-button>
+                        <el-button
+                          v-if="row.status === 'published'"
+                          size="small"
+                          type="danger"
+                          @click="unpublishChapter(row)"
+                        >
+                          下架
+                        </el-button>
+                        <el-button
+                          v-if="row.status === 'pending_review'"
+                          size="small"
+                          type="warning"
+                          @click="viewReview(row)"
+                        >
+                          查看审核
                         </el-button>
                       </template>
                     </el-table-column>
                   </el-table>
 
                   <el-pagination
-                    v-if="reviewTotal > 0"
-                    v-model:current-page="reviewPage"
-                    v-model:page-size="reviewPageSize"
-                    :total="reviewTotal"
+                    v-if="recordTotal > 0"
+                    v-model:current-page="recordPage"
+                    v-model:page-size="recordPageSize"
+                    :total="recordTotal"
                     :page-sizes="[10, 20, 50]"
                     layout="total, sizes, prev, pager, next"
-                    @current-change="loadReviewHistory"
-                    @size-change="loadReviewHistory"
+                    @current-change="loadPublishRecords"
+                    @size-change="loadPublishRecords"
                     style="margin-top: 16px; justify-content: center"
                   />
-                </el-card>
-              </div>
-            </el-tab-pane>
-          </el-tabs>
-        </el-card>
-      </el-col>
+                </div>
+              </el-tab-pane>
+
+              <!-- 导出历史 -->
+              <el-tab-pane label="导出历史" name="export">
+                <div class="export-history">
+                  <el-table :data="exportHistory" v-loading="loadingExport" stripe>
+                    <el-table-column label="格式" width="100">
+                      <template #default="{ row }">
+                        <el-tag>{{ row.format.toUpperCase() }}</el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="范围" width="100">
+                      <template #default="{ row }">
+                        {{ getScopeLabel(row.scope) }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="状态" width="100">
+                      <template #default="{ row }">
+                        <el-tag :type="getExportStatusType(row.status)">
+                          {{ getExportStatusLabel(row.status) }}
+                        </el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="进度" width="150">
+                      <template #default="{ row }">
+                        <el-progress
+                          :percentage="row.progress"
+                          :status="row.status === 'completed' ? 'success' : undefined"
+                        />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="创建时间" width="180">
+                      <template #default="{ row }">
+                        {{ formatDate(row.created_at) }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="150">
+                      <template #default="{ row }">
+                        <el-button
+                          v-if="row.status === 'completed'"
+                          size="small"
+                          type="primary"
+                          @click="downloadExport(row)"
+                        >
+                          下载
+                        </el-button>
+                        <el-button
+                          v-if="row.status === 'pending' || row.status === 'processing'"
+                          size="small"
+                          @click="cancelExport(row)"
+                        >
+                          取消
+                        </el-button>
+                        <el-button size="small" type="danger" @click="deleteExport(row)">
+                          删除
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+
+                  <el-pagination
+                    v-if="exportTotal > 0"
+                    v-model:current-page="exportPage"
+                    v-model:page-size="exportPageSize"
+                    :total="exportTotal"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next"
+                    @current-change="loadExportHistory"
+                    @size-change="loadExportHistory"
+                    style="margin-top: 16px; justify-content: center"
+                  />
+                </div>
+              </el-tab-pane>
+
+              <!-- 审核历史 -->
+              <el-tab-pane label="审核历史" name="review">
+                <div class="review-history">
+                  <!-- 审核统计 -->
+                  <el-row :gutter="20" class="review-stats">
+                    <el-col :span="6">
+                      <el-card shadow="hover">
+                        <el-statistic title="总审核数" :value="reviewStats.total" />
+                      </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-card shadow="hover">
+                        <el-statistic title="通过" :value="reviewStats.approved">
+                          <template #suffix>
+                            <span style="color: #67c23a">({{ reviewStats.approvedRate }}%)</span>
+                          </template>
+                        </el-statistic>
+                      </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-card shadow="hover">
+                        <el-statistic title="拒绝" :value="reviewStats.rejected">
+                          <template #suffix>
+                            <span style="color: #f56c6c">({{ reviewStats.rejectedRate }}%)</span>
+                          </template>
+                        </el-statistic>
+                      </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-card shadow="hover">
+                        <el-statistic title="审核中" :value="reviewStats.pending" />
+                      </el-card>
+                    </el-col>
+                  </el-row>
+
+                  <!-- 审核趋势图表 -->
+                  <el-card shadow="never" style="margin-top: 20px">
+                    <template #header>
+                      <div class="card-header">
+                        <h3>审核趋势</h3>
+                        <el-radio-group v-model="reviewTrendPeriod" size="small">
+                          <el-radio-button label="7d">近7天</el-radio-button>
+                          <el-radio-button label="30d">近30天</el-radio-button>
+                          <el-radio-button label="90d">近90天</el-radio-button>
+                        </el-radio-group>
+                      </div>
+                    </template>
+                    <div ref="reviewTrendChartRef" style="height: 300px"></div>
+                  </el-card>
+
+                  <!-- 审核历史列表 -->
+                  <el-card shadow="never" style="margin-top: 20px">
+                    <template #header>
+                      <div class="card-header">
+                        <h3>审核记录</h3>
+                        <div class="header-actions">
+                          <el-select
+                            v-model="reviewFilter.status"
+                            placeholder="状态筛选"
+                            clearable
+                            size="small"
+                          >
+                            <el-option label="全部" value="" />
+                            <el-option label="审核中" value="pending" />
+                            <el-option label="已通过" value="approved" />
+                            <el-option label="已拒绝" value="rejected" />
+                          </el-select>
+                          <el-button size="small" @click="loadReviewHistory">
+                            <el-icon><Refresh /></el-icon>
+                            刷新
+                          </el-button>
+                        </div>
+                      </div>
+                    </template>
+
+                    <el-table :data="reviewHistory" v-loading="loadingReview" stripe>
+                      <el-table-column prop="chapter_title" label="章节标题" min-width="200" />
+                      <el-table-column prop="chapter_number" label="章节号" width="100" />
+                      <el-table-column label="审核状态" width="100">
+                        <template #default="{ row }">
+                          <el-tag :type="getReviewStatusType(row.status)">
+                            {{ getReviewStatusLabel(row.status) }}
+                          </el-tag>
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="提交时间" width="180">
+                        <template #default="{ row }">
+                          {{ formatDate(row.submitted_at) }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="审核时间" width="180">
+                        <template #default="{ row }">
+                          {{ row.reviewed_at ? formatDate(row.reviewed_at) : '-' }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="审核人" width="120">
+                        <template #default="{ row }">
+                          {{ row.reviewer_name || '-' }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="操作" width="150" fixed="right">
+                        <template #default="{ row }">
+                          <el-button size="small" type="primary" @click="viewReviewDetail(row)">
+                            查看详情
+                          </el-button>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+
+                    <el-pagination
+                      v-if="reviewTotal > 0"
+                      v-model:current-page="reviewPage"
+                      v-model:page-size="reviewPageSize"
+                      :total="reviewTotal"
+                      :page-sizes="[10, 20, 50]"
+                      layout="total, sizes, prev, pager, next"
+                      @current-change="loadReviewHistory"
+                      @size-change="loadReviewHistory"
+                      style="margin-top: 16px; justify-content: center"
+                    />
+                  </el-card>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
+          </el-card>
+        </el-col>
       </el-row>
 
-    <!-- 发布计划对话框 -->
-    <el-dialog v-model="showPublishPlanDialog" title="发布计划" width="600px">
-      <el-form :model="planForm" label-width="100px">
-        <el-form-item label="计划名称">
-          <el-input v-model="planForm.name" placeholder="请输入计划名称" />
-        </el-form-item>
-        <el-form-item label="发布类型">
-          <el-select v-model="planForm.type" style="width: 100%">
-            <el-option
-              v-for="option in publishTypeOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            >
-              <div>
-                <div>{{ option.label }}</div>
-                <div style="font-size: 12px; color: var(--el-text-color-secondary)">
-                  {{ option.description }}
+      <!-- 发布计划对话框 -->
+      <el-dialog v-model="showPublishPlanDialog" title="发布计划" width="600px">
+        <el-form :model="planForm" label-width="100px">
+          <el-form-item label="计划名称">
+            <el-input v-model="planForm.name" placeholder="请输入计划名称" />
+          </el-form-item>
+          <el-form-item label="发布类型">
+            <el-select v-model="planForm.type" style="width: 100%">
+              <el-option
+                v-for="option in publishTypeOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              >
+                <div>
+                  <div>{{ option.label }}</div>
+                  <div style="font-size: 12px; color: var(--el-text-color-secondary)">
+                    {{ option.description }}
+                  </div>
                 </div>
-              </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="发布平台">
-          <el-checkbox-group v-model="planForm.platforms">
-            <el-checkbox
-              v-for="option in publishPlatformOptions"
-              :key="option.value"
-              :label="option.value"
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="发布平台">
+            <el-checkbox-group v-model="planForm.platforms">
+              <el-checkbox
+                v-for="option in publishPlatformOptions"
+                :key="option.value"
+                :label="option.value"
+              >
+                {{ option.label }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="发布方式">
+            <el-radio-group v-model="planForm.scheduleType">
+              <el-radio value="immediate">立即发布</el-radio>
+              <el-radio value="scheduled">定时发布</el-radio>
+              <el-radio value="manual">手动发布</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="发布间隔">
+            <el-input-number v-model="planForm.intervalDays" :min="1" :max="30" />
+            <span style="margin-left: 8px">天</span>
+          </el-form-item>
+          <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="每次发布">
+            <el-input-number v-model="planForm.chaptersPerRelease" :min="1" :max="10" />
+            <span style="margin-left: 8px">章</span>
+          </el-form-item>
+          <el-form-item label="定价设置">
+            <el-radio-group v-model="planForm.isFree">
+              <el-radio :label="true">免费</el-radio>
+              <el-radio :label="false">付费</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item v-if="!planForm.isFree" label="章节价格">
+            <el-input-number v-model="planForm.price" :min="1" :max="1000" />
+            <span style="margin-left: 8px">书币</span>
+          </el-form-item>
+          <el-form-item v-if="!planForm.isFree" label="VIP折扣">
+            <el-input-number v-model="planForm.vipDiscount" :min="0" :max="100" />
+            <span style="margin-left: 8px">%</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showPublishPlanDialog = false">取消</el-button>
+          <el-button type="primary" @click="savePublishPlan">保存</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 导出对话框 -->
+      <el-dialog v-model="showExportDialog" title="导出作品" width="500px">
+        <el-form :model="exportForm" label-width="100px">
+          <el-form-item label="导出格式">
+            <el-select v-model="exportForm.format" style="width: 100%">
+              <el-option
+                v-for="option in exportFormatOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="导出范围">
+            <el-select v-model="exportForm.scope" style="width: 100%">
+              <el-option
+                v-for="option in exportScopeOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="包含选项">
+            <el-checkbox-group v-model="exportForm.options">
+              <el-checkbox label="include_metadata">包含元数据</el-checkbox>
+              <el-checkbox label="include_comments">包含评论</el-checkbox>
+              <el-checkbox label="include_toc">包含目录</el-checkbox>
+              <el-checkbox label="page_breaks">分页符</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showExportDialog = false">取消</el-button>
+          <el-button type="primary" @click="startExport">开始导出</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 审核详情对话框 -->
+      <el-dialog v-model="reviewDetailDialogVisible" title="审核详情" width="600px">
+        <div v-if="currentReviewDetail" class="review-detail">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="章节标题" :span="2">
+              {{ currentReviewDetail.chapter_title }}
+            </el-descriptions-item>
+            <el-descriptions-item label="章节号">
+              {{ currentReviewDetail.chapter_number }}
+            </el-descriptions-item>
+            <el-descriptions-item label="审核状态">
+              <el-tag :type="getReviewStatusType(currentReviewDetail.status)">
+                {{ getReviewStatusLabel(currentReviewDetail.status) }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="提交时间">
+              {{ formatDate(currentReviewDetail.submitted_at) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="审核时间">
+              {{
+                currentReviewDetail.reviewed_at ? formatDate(currentReviewDetail.reviewed_at) : '-'
+              }}
+            </el-descriptions-item>
+            <el-descriptions-item label="审核人" :span="2">
+              {{ currentReviewDetail.reviewer_name || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item
+              label="审核意见"
+              :span="2"
+              v-if="currentReviewDetail.review_comment"
             >
-              {{ option.label }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-        <el-form-item label="发布方式">
-          <el-radio-group v-model="planForm.scheduleType">
-            <el-radio value="immediate">立即发布</el-radio>
-            <el-radio value="scheduled">定时发布</el-radio>
-            <el-radio value="manual">手动发布</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="发布间隔">
-          <el-input-number v-model="planForm.intervalDays" :min="1" :max="30" />
-          <span style="margin-left: 8px">天</span>
-        </el-form-item>
-        <el-form-item v-if="planForm.scheduleType === 'scheduled'" label="每次发布">
-          <el-input-number v-model="planForm.chaptersPerRelease" :min="1" :max="10" />
-          <span style="margin-left: 8px">章</span>
-        </el-form-item>
-        <el-form-item label="定价设置">
-          <el-radio-group v-model="planForm.isFree">
-            <el-radio :label="true">免费</el-radio>
-            <el-radio :label="false">付费</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="!planForm.isFree" label="章节价格">
-          <el-input-number v-model="planForm.price" :min="1" :max="1000" />
-          <span style="margin-left: 8px">书币</span>
-        </el-form-item>
-        <el-form-item v-if="!planForm.isFree" label="VIP折扣">
-          <el-input-number v-model="planForm.vipDiscount" :min="0" :max="100" />
-          <span style="margin-left: 8px">%</span>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showPublishPlanDialog = false">取消</el-button>
-        <el-button type="primary" @click="savePublishPlan">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 导出对话框 -->
-    <el-dialog v-model="showExportDialog" title="导出作品" width="500px">
-      <el-form :model="exportForm" label-width="100px">
-        <el-form-item label="导出格式">
-          <el-select v-model="exportForm.format" style="width: 100%">
-            <el-option
-              v-for="option in exportFormatOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="导出范围">
-          <el-select v-model="exportForm.scope" style="width: 100%">
-            <el-option
-              v-for="option in exportScopeOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="包含选项">
-          <el-checkbox-group v-model="exportForm.options">
-            <el-checkbox label="include_metadata">包含元数据</el-checkbox>
-            <el-checkbox label="include_comments">包含评论</el-checkbox>
-            <el-checkbox label="include_toc">包含目录</el-checkbox>
-            <el-checkbox label="page_breaks">分页符</el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showExportDialog = false">取消</el-button>
-        <el-button type="primary" @click="startExport">开始导出</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 审核详情对话框 -->
-    <el-dialog
-      v-model="reviewDetailDialogVisible"
-      title="审核详情"
-      width="600px"
-    >
-      <div v-if="currentReviewDetail" class="review-detail">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="章节标题" :span="2">
-            {{ currentReviewDetail.chapter_title }}
-          </el-descriptions-item>
-          <el-descriptions-item label="章节号">
-            {{ currentReviewDetail.chapter_number }}
-          </el-descriptions-item>
-          <el-descriptions-item label="审核状态">
-            <el-tag :type="getReviewStatusType(currentReviewDetail.status)">
-              {{ getReviewStatusLabel(currentReviewDetail.status) }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="提交时间">
-            {{ formatDate(currentReviewDetail.submitted_at) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="审核时间">
-            {{ currentReviewDetail.reviewed_at ? formatDate(currentReviewDetail.reviewed_at) : '-' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="审核人" :span="2">
-            {{ currentReviewDetail.reviewer_name || '-' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="审核意见" :span="2" v-if="currentReviewDetail.review_comment">
-            <div class="review-comment">
-              {{ currentReviewDetail.review_comment }}
-            </div>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <el-button @click="reviewDetailDialogVisible = false">关闭</el-button>
-        <el-button
-          v-if="currentReviewDetail?.status === 'rejected'"
-          type="primary"
-          @click="resubmitReview"
-        >
-          重新提交
-        </el-button>
-      </template>
-    </el-dialog>
+              <div class="review-comment">
+                {{ currentReviewDetail.review_comment }}
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
+        <template #footer>
+          <el-button @click="reviewDetailDialogVisible = false">关闭</el-button>
+          <el-button
+            v-if="currentReviewDetail?.status === 'rejected'"
+            type="primary"
+            @click="resubmitReview"
+          >
+            重新提交
+          </el-button>
+        </template>
+      </el-dialog>
     </div>
   </WriterPageShell>
 </template>
@@ -629,7 +642,7 @@ import {
   type PublishStatus,
   type PublishStats,
   publishTypeOptions,
-  publishPlatformOptions
+  publishPlatformOptions,
 } from '@/modules/writer/api'
 import { request as apiRequest } from '@/utils/request-adapter'
 import {
@@ -640,7 +653,7 @@ import {
   deleteExportTask as apiDeleteExportTask,
   exportFormatOptions,
   exportScopeOptions,
-  type ExportTask
+  type ExportTask,
 } from '@/modules/writer/api'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { syncPublishedBookFromRecords } from '@/modules/workflow/publishedBridge'
@@ -663,7 +676,7 @@ const stats = reactive<PublishStats>({
   pending_review_chapters: 0,
   scheduled_chapters: 0,
   total_words: 0,
-  published_words: 0
+  published_words: 0,
 })
 
 const publishPlan = ref<PublishPlan | null>(null)
@@ -681,23 +694,25 @@ const internalNavItems = computed(() => [
   {
     key: 'plan',
     label: '发布计划',
-    meta: publishPlan.value ? `状态：${publishPlan.value.status === 'active' ? '进行中' : '已暂停'}` : '待创建'
+    meta: publishPlan.value
+      ? `状态：${publishPlan.value.status === 'active' ? '进行中' : '已暂停'}`
+      : '待创建',
   },
   {
     key: 'chapters',
     label: '章节发布',
-    meta: `${recordTotal.value || stats.total_chapters} 章`
+    meta: `${recordTotal.value || stats.total_chapters} 章`,
   },
   {
     key: 'export',
     label: '导出历史',
-    meta: `${exportTotal.value} 条`
+    meta: `${exportTotal.value} 条`,
   },
   {
     key: 'review',
     label: '审核历史',
-    meta: `待审 ${reviewStats.pending || stats.pending_review_chapters}`
-  }
+    meta: `待审 ${reviewStats.pending || stats.pending_review_chapters}`,
+  },
 ])
 
 const showPublishPlanDialog = ref(false)
@@ -712,13 +727,13 @@ const planForm = reactive({
   chaptersPerRelease: 1,
   isFree: true,
   price: 10,
-  vipDiscount: 80
+  vipDiscount: 80,
 })
 
 const exportForm = reactive({
   format: 'pdf' as const,
   scope: 'book' as const,
-  options: ['include_metadata', 'include_toc']
+  options: ['include_metadata', 'include_toc'],
 })
 
 // 审核历史相关状态
@@ -741,7 +756,7 @@ const reviewStats = reactive({
   approvedRate: 0,
   rejected: 0,
   rejectedRate: 0,
-  pending: 0
+  pending: 0,
 })
 
 const mockPlanMap = reactive<Record<string, PublishPlan>>({})
@@ -749,7 +764,7 @@ const mockRecordMap = reactive<Record<string, PublishRecord[]>>({})
 const mockExportMap = reactive<Record<string, any[]>>({})
 
 const currentLocalProject = computed(() =>
-  (writerStore.projectList || []).find((p: any) => (p.projectId || p.id) === bookId.value)
+  (writerStore.projectList || []).find((p: any) => (p.projectId || p.id) === bookId.value),
 )
 
 const isMockProjectContext = computed(() => {
@@ -769,7 +784,8 @@ const ensureMockRecords = (projectId: string) => {
       .sort((a, b) => a.chapterNum - b.chapterNum)
       .map((chapter, idx) => {
         const chapterNo = chapter.chapterNum || idx + 1
-        const status: PublishStatus = chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
+        const status: PublishStatus =
+          chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
         return {
           id: `${projectId}-record-${chapterNo}`,
           book_id: projectId,
@@ -777,8 +793,9 @@ const ensureMockRecords = (projectId: string) => {
           chapter_title: chapter.title,
           chapter_number: chapterNo,
           status,
-          published_at: status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
-          created_at: new Date(now - chapterNo * 3600000).toISOString()
+          published_at:
+            status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
+          created_at: new Date(now - chapterNo * 3600000).toISOString(),
         }
       })
     mockRecordMap[projectId] = records
@@ -789,7 +806,8 @@ const ensureMockRecords = (projectId: string) => {
   const now = Date.now()
   const records: PublishRecord[] = Array.from({ length: chapterCount }, (_, idx) => {
     const chapterNo = idx + 1
-    const status: PublishStatus = chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
+    const status: PublishStatus =
+      chapterNo <= 2 ? 'published' : chapterNo === 3 ? 'pending_review' : 'draft'
     return {
       id: `${projectId}-record-${chapterNo}`,
       book_id: projectId,
@@ -797,8 +815,9 @@ const ensureMockRecords = (projectId: string) => {
       chapter_title: `第${chapterNo}章`,
       chapter_number: chapterNo,
       status,
-      published_at: status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
-      created_at: new Date(now - chapterNo * 3600000).toISOString()
+      published_at:
+        status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
+      created_at: new Date(now - chapterNo * 3600000).toISOString(),
     }
   })
   mockRecordMap[projectId] = records
@@ -809,7 +828,7 @@ const persistMockPublication = (projectId: string) => {
   const records = ensureMockRecords(projectId)
   const mockProject = getWorkspaceMockProject(projectId)
   syncPublishedBookFromRecords(projectId, records, {
-    title: currentLocalProject.value?.title || mockProject?.project.title || '未命名作品'
+    title: currentLocalProject.value?.title || mockProject?.project.title || '未命名作品',
   })
 }
 
@@ -826,7 +845,7 @@ const ensureMockPlan = (projectId: string) => {
     schedule: { type: 'manual', interval_days: 1, chapters_per_release: 1 },
     pricing: { is_free: true, price: 0, vip_discount: 100 },
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   }
   mockPlanMap[projectId] = plan
   return plan
@@ -835,9 +854,9 @@ const ensureMockPlan = (projectId: string) => {
 const computeMockStats = (projectId: string): PublishStats => {
   const records = ensureMockRecords(projectId)
   const total = records.length
-  const published = records.filter(r => r.status === 'published').length
-  const pending = records.filter(r => r.status === 'pending_review').length
-  const scheduled = records.filter(r => r.status === 'scheduled').length
+  const published = records.filter((r) => r.status === 'published').length
+  const pending = records.filter((r) => r.status === 'pending_review').length
+  const scheduled = records.filter((r) => r.status === 'scheduled').length
   const draft = total - published - pending - scheduled
   const totalWords = Number((currentLocalProject.value as any)?.wordCount || total * 1800)
   const publishedWords = Math.floor(totalWords * (published / Math.max(total, 1)))
@@ -848,7 +867,7 @@ const computeMockStats = (projectId: string): PublishStats => {
     pending_review_chapters: pending,
     scheduled_chapters: scheduled,
     total_words: totalWords,
-    published_words: publishedWords
+    published_words: publishedWords,
   }
 }
 
@@ -892,7 +911,7 @@ const loadPublishRecords = async () => {
     if (isMockProjectContext.value) {
       const allRecords = ensureMockRecords(bookId.value)
       const filtered = chapterFilter.status
-        ? allRecords.filter(r => r.status === chapterFilter.status)
+        ? allRecords.filter((r) => r.status === chapterFilter.status)
         : allRecords
       const start = (recordPage.value - 1) * recordPageSize.value
       const end = start + recordPageSize.value
@@ -903,7 +922,7 @@ const loadPublishRecords = async () => {
     const res = await getPublishRecords(bookId.value, {
       page: recordPage.value,
       page_size: recordPageSize.value,
-      status: chapterFilter.status as PublishStatus || undefined
+      status: (chapterFilter.status as PublishStatus) || undefined,
     })
     publishRecords.value = res.items
     recordTotal.value = res.total
@@ -931,7 +950,7 @@ const loadExportHistory = async () => {
     }
     const res = await getExportHistory(bookId.value, {
       page: exportPage.value,
-      page_size: exportPageSize.value
+      page_size: exportPageSize.value,
     })
     exportHistory.value = res.items as unknown as ExportTask[]
     exportTotal.value = res.total
@@ -958,15 +977,15 @@ const savePublishPlan = async () => {
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
-          chapters_per_release: planForm.chaptersPerRelease
+          chapters_per_release: planForm.chaptersPerRelease,
         },
         pricing: {
           is_free: planForm.isFree,
           price: planForm.price,
-          vip_discount: planForm.vipDiscount
+          vip_discount: planForm.vipDiscount,
         },
         created_at: publishPlan.value?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }
       mockPlanMap[bookId.value] = plan
       publishPlan.value = { ...plan }
@@ -983,13 +1002,13 @@ const savePublishPlan = async () => {
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
-          chapters_per_release: planForm.chaptersPerRelease
+          chapters_per_release: planForm.chaptersPerRelease,
         },
         pricing: {
           is_free: planForm.isFree,
           price: planForm.price,
-          vip_discount: planForm.vipDiscount
-        }
+          vip_discount: planForm.vipDiscount,
+        },
       })
       message.success('更新成功')
     } else {
@@ -1000,13 +1019,13 @@ const savePublishPlan = async () => {
         schedule: {
           type: planForm.scheduleType,
           interval_days: planForm.intervalDays,
-          chapters_per_release: planForm.chaptersPerRelease
+          chapters_per_release: planForm.chaptersPerRelease,
         },
         pricing: {
           is_free: planForm.isFree,
           price: planForm.price,
-          vip_discount: planForm.vipDiscount
-        }
+          vip_discount: planForm.vipDiscount,
+        },
       })
       message.success('创建成功')
     }
@@ -1029,7 +1048,7 @@ const editPublishPlan = () => {
     chaptersPerRelease: publishPlan.value.schedule.chapters_per_release || 1,
     isFree: publishPlan.value.pricing.is_free,
     price: publishPlan.value.pricing.price || 10,
-    vipDiscount: publishPlan.value.pricing.vip_discount || 80
+    vipDiscount: publishPlan.value.pricing.vip_discount || 80,
   })
   showPublishPlanDialog.value = true
 }
@@ -1077,7 +1096,7 @@ const publishChapter = async (record: PublishRecord) => {
   try {
     if (isMockProjectContext.value) {
       const records = ensureMockRecords(bookId.value)
-      const target = records.find(r => r.chapter_id === record.chapter_id)
+      const target = records.find((r) => r.chapter_id === record.chapter_id)
       if (target) {
         target.status = 'published'
         target.published_at = new Date().toISOString()
@@ -1092,7 +1111,7 @@ const publishChapter = async (record: PublishRecord) => {
     await apiPublishChapter(record.chapter_id, {
       chapter_id: record.chapter_id,
       chapter_number: record.chapter_number,
-      project_id: bookId.value
+      project_id: bookId.value,
     } as any)
     authStore.promoteToAuthorByPublishing(false)
     // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
@@ -1110,7 +1129,7 @@ const unpublishChapter = async (record: PublishRecord) => {
   try {
     if (isMockProjectContext.value) {
       const records = ensureMockRecords(bookId.value)
-      const target = records.find(r => r.chapter_id === record.chapter_id)
+      const target = records.find((r) => r.chapter_id === record.chapter_id)
       if (target) {
         target.status = 'draft'
         target.published_at = undefined
@@ -1134,7 +1153,7 @@ const unpublishChapter = async (record: PublishRecord) => {
 const scheduleChapter = (record: PublishRecord) => {
   if (isMockProjectContext.value) {
     const records = ensureMockRecords(bookId.value)
-    const target = records.find(r => r.chapter_id === record.chapter_id)
+    const target = records.find((r) => r.chapter_id === record.chapter_id)
     if (target) {
       target.status = 'scheduled'
       target.published_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
@@ -1158,8 +1177,8 @@ const submitReview = async () => {
   try {
     if (isMockProjectContext.value) {
       const records = ensureMockRecords(bookId.value)
-      const draft = records.filter(r => r.status === 'draft')
-      draft.slice(0, 2).forEach(r => {
+      const draft = records.filter((r) => r.status === 'draft')
+      draft.slice(0, 2).forEach((r) => {
         r.status = 'pending_review'
       })
       persistMockPublication(bookId.value)
@@ -1187,7 +1206,7 @@ const startExport = async () => {
         scope: exportForm.scope,
         status: 'processing',
         progress: 25,
-        created_at: now
+        created_at: now,
       }
       if (!mockExportMap[bookId.value]) mockExportMap[bookId.value] = []
       mockExportMap[bookId.value].unshift(task)
@@ -1211,7 +1230,7 @@ const startExport = async () => {
       include_metadata: exportForm.options.includes('include_metadata'),
       include_comments: exportForm.options.includes('include_comments'),
       include_toc: exportForm.options.includes('include_toc'),
-      page_breaks: exportForm.options.includes('page_breaks')
+      page_breaks: exportForm.options.includes('page_breaks'),
     })
     message.success('导出任务已创建')
     showExportDialog.value = false
@@ -1334,7 +1353,7 @@ const loadReviewHistory = async () => {
         submitted_at: new Date(Date.now() - 86400000).toISOString(),
         reviewed_at: new Date(Date.now() - 72000000).toISOString(),
         reviewer_name: '审核员A',
-        review_comment: '内容质量良好，符合平台规范'
+        review_comment: '内容质量良好，符合平台规范',
       },
       {
         id: '2',
@@ -1344,7 +1363,7 @@ const loadReviewHistory = async () => {
         submitted_at: new Date(Date.now() - 172800000).toISOString(),
         reviewed_at: new Date(Date.now() - 158400000).toISOString(),
         reviewer_name: '审核员B',
-        review_comment: '章节结构合理'
+        review_comment: '章节结构合理',
       },
       {
         id: '3',
@@ -1354,7 +1373,7 @@ const loadReviewHistory = async () => {
         submitted_at: new Date(Date.now() - 259200000).toISOString(),
         reviewed_at: new Date(Date.now() - 244800000).toISOString(),
         reviewer_name: '审核员C',
-        review_comment: '部分内容需修改，请重新提交'
+        review_comment: '部分内容需修改，请重新提交',
       },
       {
         id: '4',
@@ -1364,8 +1383,8 @@ const loadReviewHistory = async () => {
         submitted_at: new Date(Date.now() - 43200000).toISOString(),
         reviewed_at: null,
         reviewer_name: null,
-        review_comment: null
-      }
+        review_comment: null,
+      },
     ]
     reviewTotal.value = 4
   } catch (error: any) {
@@ -1394,7 +1413,7 @@ const getReviewStatusLabel = (status: string) => {
   const map: Record<string, string> = {
     pending: '审核中',
     approved: '已通过',
-    rejected: '已拒绝'
+    rejected: '已拒绝',
   }
   return map[status] || status
 }
@@ -1404,7 +1423,7 @@ const getReviewStatusType = (status: string) => {
   const map: Record<string, any> = {
     pending: 'warning',
     approved: 'success',
-    rejected: 'danger'
+    rejected: 'danger',
   }
   return map[status] || ''
 }
@@ -1417,24 +1436,24 @@ const initReviewTrendChart = () => {
 
   const option = {
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
     },
     legend: {
-      data: ['提交审核', '审核通过', '审核拒绝']
+      data: ['提交审核', '审核通过', '审核拒绝'],
     },
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
-      containLabel: true
+      containLabel: true,
     },
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
     },
     series: [
       {
@@ -1442,23 +1461,23 @@ const initReviewTrendChart = () => {
         type: 'line',
         data: [5, 8, 6, 9, 7, 4, 6],
         smooth: true,
-        itemStyle: { color: '#409eff' }
+        itemStyle: { color: '#409eff' },
       },
       {
         name: '审核通过',
         type: 'line',
         data: [4, 7, 5, 8, 6, 4, 5],
         smooth: true,
-        itemStyle: { color: '#67c23a' }
+        itemStyle: { color: '#67c23a' },
       },
       {
         name: '审核拒绝',
         type: 'line',
         data: [1, 1, 1, 1, 1, 0, 1],
         smooth: true,
-        itemStyle: { color: '#f56c6c' }
-      }
-    ]
+        itemStyle: { color: '#f56c6c' },
+      },
+    ],
   }
 
   reviewTrendChart.value.setOption(option)
@@ -1491,7 +1510,7 @@ const formatDate = (date: string) => {
 }
 
 const getTypeLabel = (type: string) => {
-  return publishTypeOptions.find(o => o.value === type)?.label || type
+  return publishTypeOptions.find((o) => o.value === type)?.label || type
 }
 
 const getTypeTagType = (type: string) => {
@@ -1499,7 +1518,7 @@ const getTypeTagType = (type: string) => {
     free: 'success',
     paid: 'warning',
     vip: 'danger',
-    limited: 'info'
+    limited: 'info',
   }
   return map[type] || ''
 }
@@ -1511,7 +1530,7 @@ const getStatusLabel = (status: string) => {
     scheduled: '定时发布',
     published: '已发布',
     rejected: '已驳回',
-    unpublished: '已下架'
+    unpublished: '已下架',
   }
   return map[status] || status
 }
@@ -1523,26 +1542,26 @@ const getStatusTagType = (status: string) => {
     scheduled: 'info',
     published: 'success',
     rejected: 'danger',
-    unpublished: 'info'
+    unpublished: 'info',
   }
   return map[status] || ''
 }
 
 const getPlatformLabel = (platform: string) => {
-  return publishPlatformOptions.find(o => o.value === platform)?.label || platform
+  return publishPlatformOptions.find((o) => o.value === platform)?.label || platform
 }
 
 const getScheduleTypeLabel = (type: string) => {
   const map: Record<string, string> = {
     immediate: '立即发布',
     scheduled: '定时发布',
-    manual: '手动发布'
+    manual: '手动发布',
   }
   return map[type] || type
 }
 
 const getScopeLabel = (scope: string) => {
-  return exportScopeOptions.find(o => o.value === scope)?.label || scope
+  return exportScopeOptions.find((o) => o.value === scope)?.label || scope
 }
 
 const getExportStatusType = (status: string) => {
@@ -1550,7 +1569,7 @@ const getExportStatusType = (status: string) => {
     pending: 'info',
     processing: 'warning',
     completed: 'success',
-    failed: 'danger'
+    failed: 'danger',
   }
   return map[status] || ''
 }
@@ -1560,7 +1579,7 @@ const getExportStatusLabel = (status: string) => {
     pending: '等待中',
     processing: '处理中',
     completed: '已完成',
-    failed: '失败'
+    failed: '失败',
   }
   return map[status] || status
 }
@@ -1591,7 +1610,7 @@ onMounted(() => {
           const result: any = await apiRequest({
             url: '/api/v1/writer/projects',
             method: 'get',
-            params: { page: 1, pageSize: 1 }
+            params: { page: 1, pageSize: 1 },
           })
           bookId.value =
             result?.projects?.[0]?.id ||
@@ -1849,5 +1868,4 @@ onMounted(() => {
 :deep(.publish-tabs .el-tabs__content) {
   padding: 4px 8px 8px;
 }
-
 </style>

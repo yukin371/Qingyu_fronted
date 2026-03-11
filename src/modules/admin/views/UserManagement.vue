@@ -77,7 +77,13 @@
 
       <div class="filter-group">
         <span class="filter-label">角色</span>
-        <el-select popper-class="admin-select-popper" v-model="filters.role" placeholder="全部角色" clearable @change="handleFilterChange">
+        <el-select
+          popper-class="admin-select-popper"
+          v-model="filters.role"
+          placeholder="全部角色"
+          clearable
+          @change="handleFilterChange"
+        >
           <el-option label="全部" value="" />
           <el-option label="管理员" value="admin" />
           <el-option label="作者" value="author" />
@@ -87,7 +93,13 @@
 
       <div class="filter-group">
         <span class="filter-label">状态</span>
-        <el-select popper-class="admin-select-popper" v-model="filters.status" placeholder="全部状态" clearable @change="handleFilterChange">
+        <el-select
+          popper-class="admin-select-popper"
+          v-model="filters.status"
+          placeholder="全部状态"
+          clearable
+          @change="handleFilterChange"
+        >
           <el-option label="全部" value="" />
           <el-option label="正常" value="active" />
           <el-option label="未激活" value="inactive" />
@@ -111,7 +123,9 @@
     <div v-if="selectedUsers.length > 0" class="batch-actions-card">
       <div class="batch-info">
         <el-icon color="#3b82f6"><InfoFilled /></el-icon>
-        <span>已选择 <strong>{{ selectedUsers.length }}</strong> 个用户</span>
+        <span
+          >已选择 <strong>{{ selectedUsers.length }}</strong> 个用户</span
+        >
       </div>
       <div class="batch-btns">
         <el-button type="success" size="small" @click="handleBatchActivate">
@@ -126,9 +140,7 @@
           <el-icon><Delete /></el-icon>
           批量删除
         </el-button>
-        <el-button size="small" @click="clearSelection">
-          取消选择
-        </el-button>
+        <el-button size="small" @click="clearSelection"> 取消选择 </el-button>
       </div>
     </div>
 
@@ -217,20 +229,11 @@
                 <el-icon><Lock /></el-icon>
                 封禁
               </el-button>
-              <el-button
-                v-else
-                type="success"
-                size="small"
-                @click="handleUnban(row)"
-              >
+              <el-button v-else type="success" size="small" @click="handleUnban(row)">
                 <el-icon><Unlock /></el-icon>
                 解封
               </el-button>
-              <el-button
-                type="danger"
-                size="small"
-                @click="handleDelete(row)"
-              >
+              <el-button type="danger" size="small" @click="handleDelete(row)">
                 <el-icon><Delete /></el-icon>
                 删除
               </el-button>
@@ -298,7 +301,11 @@
         </el-form-item>
 
         <el-form-item label="角色" prop="role">
-          <el-select popper-class="admin-select-popper" v-model="userForm.role" placeholder="请选择角色">
+          <el-select
+            popper-class="admin-select-popper"
+            v-model="userForm.role"
+            placeholder="请选择角色"
+          >
             <el-option label="管理员" value="admin" />
             <el-option label="作者" value="author" />
             <el-option label="读者" value="reader" />
@@ -306,7 +313,11 @@
         </el-form-item>
 
         <el-form-item label="状态" prop="status">
-          <el-select popper-class="admin-select-popper" v-model="userForm.status" placeholder="请选择状态">
+          <el-select
+            popper-class="admin-select-popper"
+            v-model="userForm.status"
+            placeholder="请选择状态"
+          >
             <el-option label="正常" value="active" />
             <el-option label="未激活" value="inactive" />
             <el-option label="已封禁" value="banned" />
@@ -318,12 +329,7 @@
         </el-form-item>
 
         <el-form-item label="个人简介">
-          <el-input
-            v-model="userForm.bio"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入个人简介"
-          />
+          <el-input v-model="userForm.bio" type="textarea" :rows="3" placeholder="请输入个人简介" />
         </el-form-item>
 
         <el-form-item v-if="dialogMode === 'view'" label="注册时间">
@@ -390,12 +396,27 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
-  Plus, User, CircleCheck, EditPen, TrendCharts, Search, Refresh,
-  View, Edit, Lock, Unlock, CircleCheckFilled, WarningFilled,
-  UserFilled, InfoFilled, Delete
+  Plus,
+  User,
+  CircleCheck,
+  EditPen,
+  TrendCharts,
+  Search,
+  Refresh,
+  View,
+  Edit,
+  Lock,
+  Unlock,
+  CircleCheckFilled,
+  WarningFilled,
+  UserFilled,
+  InfoFilled,
+  Delete,
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
-import { ElTable, FormInstance } from 'element-plus'
+import type { FormInstance } from 'element-plus';
+import { ElTable } from 'element-plus'
+import { getUserList, updateUserStatus } from '../api'
 
 // 检查是否为测试模式
 const isTestMode = computed(() => {
@@ -407,13 +428,13 @@ const isTestMode = computed(() => {
 const filters = reactive({
   keyword: '',
   role: '',
-  status: ''
+  status: '',
 })
 
 // 分页
 const pagination = reactive({
   page: 1,
-  pageSize: 20
+  pageSize: 20,
 })
 
 // 统计数据
@@ -421,7 +442,7 @@ const stats = reactive({
   total: 156,
   active: 142,
   authors: 38,
-  newToday: 5
+  newToday: 5,
 })
 
 // 数据
@@ -437,7 +458,7 @@ const batchAddForm = reactive({
   count: 10,
   role: 'reader',
   status: 'active',
-  prefix: 'batch_user'
+  prefix: 'batch_user',
 })
 
 // 对话框
@@ -459,22 +480,20 @@ const userForm = reactive({
   bio: '',
   avatar: '',
   createdAt: '',
-  lastLoginAt: ''
+  lastLoginAt: '',
 })
 
 // 用户表单验证规则
 const userRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 50, message: '用户名长度在3-50个字符', trigger: 'blur' }
+    { min: 3, max: 50, message: '用户名长度在3-50个字符', trigger: 'blur' },
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' }
+    { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' },
   ],
-  role: [
-    { required: true, message: '请选择角色', trigger: 'change' }
-  ]
+  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
 }
 
 // 生成模拟用户数据
@@ -482,9 +501,26 @@ const createMockUsers = () => {
   const roles = ['admin', 'author', 'reader', 'reader', 'reader']
   const statuses = ['active', 'active', 'active', 'inactive', 'banned']
   const names = [
-    '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
-    '郑十一', '王小明', '李小红', '刘大强', '陈美丽', '杨光', '黄海',
-    '林峰', '何雨', '高山', '罗兰', '梁子'
+    '张三',
+    '李四',
+    '王五',
+    '赵六',
+    '钱七',
+    '孙八',
+    '周九',
+    '吴十',
+    '郑十一',
+    '王小明',
+    '李小红',
+    '刘大强',
+    '陈美丽',
+    '杨光',
+    '黄海',
+    '林峰',
+    '何雨',
+    '高山',
+    '罗兰',
+    '梁子',
   ]
 
   return Array.from({ length: 50 }, (_, i) => {
@@ -501,7 +537,7 @@ const createMockUsers = () => {
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
       bio: `这是${name}的个人简介`,
       createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-      lastLoginAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      lastLoginAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
     }
   })
 }
@@ -519,19 +555,20 @@ const loadUsers = async () => {
       // 应用筛选
       if (filters.keyword) {
         const kw = filters.keyword.toLowerCase()
-        filtered = filtered.filter(u =>
-          u.username.toLowerCase().includes(kw) ||
-          u.email.toLowerCase().includes(kw) ||
-          u.nickname.includes(kw)
+        filtered = filtered.filter(
+          (u) =>
+            u.username.toLowerCase().includes(kw) ||
+            u.email.toLowerCase().includes(kw) ||
+            u.nickname.includes(kw),
         )
       }
 
       if (filters.role) {
-        filtered = filtered.filter(u => u.role === filters.role)
+        filtered = filtered.filter((u) => u.role === filters.role)
       }
 
       if (filters.status) {
-        filtered = filtered.filter(u => u.status === filters.status)
+        filtered = filtered.filter((u) => u.status === filters.status)
       }
 
       total.value = filtered.length
@@ -542,13 +579,39 @@ const loadUsers = async () => {
 
       // 更新统计
       stats.total = mockUsersPool.length
-      stats.active = mockUsersPool.filter(u => u.status === 'active').length
-      stats.authors = mockUsersPool.filter(u => u.role === 'author').length
+      stats.active = mockUsersPool.filter((u) => u.status === 'active').length
+      stats.authors = mockUsersPool.filter((u) => u.role === 'author').length
       stats.newToday = Math.floor(Math.random() * 10) + 1
     } else {
-      // TODO: 调用真实API
-      users.value = []
-      total.value = 0
+      // 调用真实API
+      const response = await getUserList({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        keyword: filters.keyword || undefined,
+        role: filters.role || undefined,
+        status: filters.status || undefined,
+      })
+
+      if (response.data) {
+        // 将API返回的数据格式转换为表格使用的格式
+        users.value = response.data.items.map((item) => ({
+          userId: item.id,
+          username: item.username,
+          email: item.email || '',
+          nickname: item.username, // API没有nickname字段，使用username
+          role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
+          status: item.status,
+          emailVerified: false, // API没有此字段
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
+          bio: '',
+          createdAt: new Date(item.registerTime).toISOString(),
+          lastLoginAt: item.lastLoginTime ? new Date(item.lastLoginTime).toISOString() : '',
+        }))
+        total.value = response.data.total
+
+        // 更新统计 - 目前使用返回的total，后续可调用count-by-status API获取详细统计
+        stats.total = response.data.total
+      }
     }
   } catch (error) {
     console.error('加载用户列表失败:', error)
@@ -619,7 +682,7 @@ const confirmBatchAdd = async () => {
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=batch${id}`,
           bio: '批量创建的用户',
           createdAt: new Date().toISOString(),
-          lastLoginAt: ''
+          lastLoginAt: '',
         })
       }
     }
@@ -649,12 +712,12 @@ const handleBatchActivate = async () => {
     await messageBox.confirm(
       `确定要激活选中的 ${selectedUsers.value.length} 个用户吗？`,
       '批量激活',
-      { type: 'info' }
+      { type: 'info' },
     )
 
     if (isTestMode.value) {
-      selectedUsers.value.forEach(user => {
-        const u = mockUsersPool.find(m => m.userId === user.userId)
+      selectedUsers.value.forEach((user) => {
+        const u = mockUsersPool.find((m) => m.userId === user.userId)
         if (u) u.status = 'active'
       })
     }
@@ -675,12 +738,12 @@ const handleBatchBan = async () => {
     await messageBox.confirm(
       `确定要封禁选中的 ${selectedUsers.value.length} 个用户吗？`,
       '批量封禁',
-      { type: 'warning' }
+      { type: 'warning' },
     )
 
     if (isTestMode.value) {
-      selectedUsers.value.forEach(user => {
-        const u = mockUsersPool.find(m => m.userId === user.userId)
+      selectedUsers.value.forEach((user) => {
+        const u = mockUsersPool.find((m) => m.userId === user.userId)
         if (u) u.status = 'banned'
       })
     }
@@ -701,12 +764,12 @@ const handleBatchDelete = async () => {
     await messageBox.confirm(
       `确定要删除选中的 ${selectedUsers.value.length} 个用户吗？此操作不可恢复！`,
       '批量删除',
-      { type: 'error', confirmButtonText: '确认删除' }
+      { type: 'error', confirmButtonText: '确认删除' },
     )
 
     if (isTestMode.value) {
-      const deleteIds = selectedUsers.value.map(u => u.userId)
-      const index = mockUsersPool.findIndex(u => deleteIds.includes(u.userId))
+      const deleteIds = selectedUsers.value.map((u) => u.userId)
+      const index = mockUsersPool.findIndex((u) => deleteIds.includes(u.userId))
       if (index > -1) {
         mockUsersPool.splice(index, 1)
       }
@@ -741,21 +804,23 @@ const handleEdit = (row: any) => {
 // 封禁用户
 const handleBan = async (row: any) => {
   try {
-    await messageBox.confirm(
-      `确定要封禁用户 "${row.nickname || row.username}" 吗？`,
-      '确认封禁',
-      { type: 'warning' }
-    )
+    await messageBox.confirm(`确定要封禁用户 "${row.nickname || row.username}" 吗？`, '确认封禁', {
+      type: 'warning',
+    })
 
     if (isTestMode.value) {
-      const user = mockUsersPool.find(u => u.userId === row.userId)
+      const user = mockUsersPool.find((u) => u.userId === row.userId)
       if (user) user.status = 'banned'
+    } else {
+      // 调用真实API
+      await updateUserStatus(row.userId, { status: 'banned' })
     }
 
     message.success('封禁成功')
     loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
+      console.error('封禁失败:', error)
       message.error('封禁失败')
     }
   }
@@ -764,21 +829,23 @@ const handleBan = async (row: any) => {
 // 解封用户
 const handleUnban = async (row: any) => {
   try {
-    await messageBox.confirm(
-      `确定要解封用户 "${row.nickname || row.username}" 吗？`,
-      '确认解封',
-      { type: 'info' }
-    )
+    await messageBox.confirm(`确定要解封用户 "${row.nickname || row.username}" 吗？`, '确认解封', {
+      type: 'info',
+    })
 
     if (isTestMode.value) {
-      const user = mockUsersPool.find(u => u.userId === row.userId)
+      const user = mockUsersPool.find((u) => u.userId === row.userId)
       if (user) user.status = 'active'
+    } else {
+      // 调用真实API
+      await updateUserStatus(row.userId, { status: 'active' })
     }
 
     message.success('解封成功')
     loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
+      console.error('解封失败:', error)
       message.error('解封失败')
     }
   }
@@ -790,20 +857,24 @@ const handleDelete = async (row: any) => {
     await messageBox.confirm(
       `确定要删除用户 "${row.nickname || row.username}" 吗？此操作不可恢复！`,
       '确认删除',
-      { type: 'error', confirmButtonText: '确认删除' }
+      { type: 'error', confirmButtonText: '确认删除' },
     )
 
     if (isTestMode.value) {
-      const index = mockUsersPool.findIndex(u => u.userId === row.userId)
+      const index = mockUsersPool.findIndex((u) => u.userId === row.userId)
       if (index > -1) {
         mockUsersPool.splice(index, 1)
       }
+    } else {
+      // 调用真实API
+      await deleteUserAPI(row.userId)
     }
 
     message.success('删除成功')
     loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
+      console.error('删除失败:', error)
       message.error('删除失败')
     }
   }
@@ -818,14 +889,14 @@ const handleSubmit = async () => {
   try {
     if (isTestMode.value) {
       if (dialogMode.value === 'edit') {
-        const user = mockUsersPool.find(u => u.userId === userForm.userId)
+        const user = mockUsersPool.find((u) => u.userId === userForm.userId)
         if (user) {
           Object.assign(user, {
             nickname: userForm.nickname,
             role: userForm.role,
             status: userForm.status,
             emailVerified: userForm.emailVerified,
-            bio: userForm.bio
+            bio: userForm.bio,
           })
         }
       }
@@ -866,7 +937,7 @@ const getRoleText = (role: string): string => {
   const texts: Record<string, string> = {
     admin: '管理员',
     author: '作者',
-    reader: '读者'
+    reader: '读者',
   }
   return texts[role] || role
 }
@@ -876,7 +947,7 @@ const getStatusText = (status: string): string => {
   const texts: Record<string, string> = {
     active: '正常',
     inactive: '未激活',
-    banned: '已封禁'
+    banned: '已封禁',
   }
   return texts[status] || status
 }
@@ -957,23 +1028,43 @@ onMounted(() => {
   }
 
   &.total {
-    .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-    .stat-value { color: #3b82f6; }
+    .stat-icon {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+    .stat-value {
+      color: #3b82f6;
+    }
   }
 
   &.active {
-    .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    .stat-value { color: #10b981; }
+    .stat-icon {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+    .stat-value {
+      color: #10b981;
+    }
   }
 
   &.author {
-    .stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-    .stat-value { color: #f59e0b; }
+    .stat-icon {
+      background: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+    }
+    .stat-value {
+      color: #f59e0b;
+    }
   }
 
   &.new {
-    .stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-    .stat-value { color: #8b5cf6; }
+    .stat-icon {
+      background: rgba(139, 92, 246, 0.1);
+      color: #8b5cf6;
+    }
+    .stat-value {
+      color: #8b5cf6;
+    }
   }
 }
 
