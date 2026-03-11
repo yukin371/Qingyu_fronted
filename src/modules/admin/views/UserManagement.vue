@@ -596,14 +596,14 @@ const loadUsers = async () => {
         userId: item.id,
         username: item.username,
         email: item.email || '',
-        nickname: item.username,
+        nickname: item.nickname || item.username,
         role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
         status: item.status,
-        emailVerified: false,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
-        bio: '',
-        createdAt: new Date(item.registerTime).toISOString(),
-        lastLoginAt: item.lastLoginTime ? new Date(item.lastLoginTime).toISOString() : '',
+        emailVerified: item.emailVerified || false,
+        avatar: item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
+        bio: item.bio || '',
+        createdAt: item.createdAt || new Date().toISOString(),
+        lastLoginAt: item.lastLoginAt || '',
       }))
       total.value = response.total
 
