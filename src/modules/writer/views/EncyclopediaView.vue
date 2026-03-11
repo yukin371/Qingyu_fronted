@@ -22,36 +22,7 @@
     </div>
 
     <!-- 主内容区 -->
-    <div class="encyclopedia-content">
-      <!-- 左侧分类导航 -->
-      <div class="category-nav">
-        <el-menu
-          :default-active="activeCategory"
-          @select="handleCategoryChange"
-        >
-          <el-menu-item index="characters">
-            <QyIcon name="User"  />
-            <span>角色</span>
-            <el-badge v-if="characters.length > 0" :value="characters.length" class="nav-badge" />
-          </el-menu-item>
-          <el-menu-item index="locations">
-            <QyIcon name="LocationInformation"  />
-            <span>地点</span>
-            <el-badge v-if="locations.length > 0" :value="locations.length" class="nav-badge" />
-          </el-menu-item>
-          <el-menu-item index="items" disabled>
-            <QyIcon name="Box"  />
-            <span>物品</span>
-            <el-tag size="small" type="info" style="margin-left: auto;">待开发</el-tag>
-          </el-menu-item>
-          <el-menu-item index="other" disabled>
-            <QyIcon name="Document"  />
-            <span>其他</span>
-            <el-tag size="small" type="info" style="margin-left: auto;">待开发</el-tag>
-          </el-menu-item>
-        </el-menu>
-      </div>
-
+    <div class="encyclopedia-content" :class="{ 'has-detail': !!(selectedItem && selectedType) }">
       <!-- 中间列表区 -->
       <div class="list-panel">
         <div class="list-stats">
@@ -247,17 +218,28 @@ import { QyIcon } from '@/design-system/components'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import { message } from '@/design-system/services'
 const writerStore = useWriterStore()
+type EncyclopediaCategory = 'characters' | 'locations'
+
 interface Props {
   embedded?: boolean
   projectId?: string
+  activeCategory?: EncyclopediaCategory
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   projectId: '',
+  activeCategory: 'characters',
 })
 
-const activeCategory = ref('characters')
+const emit = defineEmits<{
+  'update:activeCategory': [value: EncyclopediaCategory]
+}>()
+
+const activeCategory = computed<EncyclopediaCategory>({
+  get: () => props.activeCategory,
+  set: (value) => emit('update:activeCategory', value),
+})
 const searchKeyword = ref('')
 const selectedItem = ref<Character | Location | null>(null)
 const selectedType = ref<'character' | 'location' | null>(null)
@@ -282,13 +264,8 @@ const filteredLocations = computed(() => {
 const activeCategoryLabel = computed(() => (activeCategory.value === 'locations' ? '地点' : '角色'))
 const searchHint = computed(() => (searchKeyword.value ? `关键词：${searchKeyword.value}` : '未启用关键词'))
 
-const handleCategoryChange = (index: string) => {
-  activeCategory.value = index
-  selectedItem.value = null
-}
-
 const handleSelectItem = (item: Character | Location, type: 'character' | 'location') => {
-  selectedItem.value = item as any
+  selectedItem.value = item
   selectedType.value = type
 }
 
@@ -321,6 +298,14 @@ watch(
     loadWorldData(projectId)
   },
   { immediate: true }
+)
+
+watch(
+  () => activeCategory.value,
+  () => {
+    selectedItem.value = null
+    selectedType.value = null
+  },
 )
 
 </script>
@@ -366,22 +351,12 @@ watch(
 .encyclopedia-content {
   flex: 1;
   display: grid;
-  grid-template-columns: 200px 1fr 400px;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
 }
 
-.category-nav {
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  overflow-y: auto;
-
-  .el-menu {
-    border: none;
-  }
-
-  .nav-badge {
-    margin-left: auto;
-  }
+.encyclopedia-content.has-detail {
+  grid-template-columns: minmax(0, 1fr) 400px;
 }
 
 .list-panel {
@@ -565,18 +540,12 @@ watch(
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .encyclopedia-content {
-    grid-template-columns: 180px 1fr;
+  .encyclopedia-content.has-detail {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
 
-    .detail-panel {
-      position: fixed;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 400px;
-      z-index: 1000;
-      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
-    }
+  .detail-panel {
+    width: 360px;
   }
 
   .list-stats {
@@ -585,16 +554,13 @@ watch(
 }
 
 @media (max-width: 768px) {
-  .encyclopedia-content {
+  .encyclopedia-content,
+  .encyclopedia-content.has-detail {
     grid-template-columns: 1fr;
+  }
 
-    .category-nav {
-      display: none;
-    }
-
-    .detail-panel {
-      width: 100%;
-    }
+  .detail-panel {
+    width: 100%;
   }
 
   .list-stats {
@@ -617,7 +583,6 @@ watch(
     color: #e5e5e5;
   }
 
-  .category-nav,
   .list-header,
   .detail-panel {
     background: #1a1a1a;
