@@ -54,6 +54,7 @@ export default defineConfig([
       '@typescript-eslint': tseslint,
     },
     rules: {
+      'no-unused-vars': 'off',
       // 类型安全规则
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -75,6 +76,13 @@ export default defineConfig([
           disallowTypeAnnotations: false,
         },
       ],
+    },
+  },
+
+  {
+    files: ['**/*.vue'],
+    rules: {
+      'no-useless-assignment': 'off',
     },
   },
 

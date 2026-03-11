@@ -73,35 +73,24 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     return panelId === 'left' ? panelStore.leftWidth : panelStore.rightWidth
   })
 
-  // 检查是否有保存的宽度（通过检查localStorage）
-  const hasSavedWidth = computed(() => {
+  const readPersistedWidth = (): number | null => {
     try {
       const saved = localStorage.getItem('qingyu_editor_panel_layout')
-      if (saved) {
-        const data = JSON.parse(saved)
-        const width = panelId === 'left' ? data.leftWidth : data.rightWidth
-        return width !== undefined && width !== null
+      if (!saved) return null
+      const data = JSON.parse(saved) as { leftWidth?: unknown; rightWidth?: unknown }
+      const width = panelId === 'left' ? data.leftWidth : data.rightWidth
+      if (typeof width === 'number' && Number.isFinite(width)) {
+        return width
       }
     } catch {
-      // 忽略错误
+      // 忽略读取异常，回退到 store/default
     }
-    return false
-  })
+    return null
+  }
 
   // 当前面板宽度（本地状态，用于拖拽过程中避免频繁更新store）
-  // 如果没有保存的宽度，使用defaultWidth；否则使用保存的宽度
-  const localWidth = ref(clampWidth(hasSavedWidth.value ? savedWidth.value : defaultWidth))
-
-  // 监听store变化，同步到本地
-  watch(
-    savedWidth,
-    (newWidth) => {
-      if (!isDragging.value) {
-        localWidth.value = clampWidth(newWidth)
-      }
-    },
-    { flush: 'sync' }
-  )
+  const initialWidth = readPersistedWidth() ?? savedWidth.value ?? defaultWidth
+  const localWidth = ref(clampWidth(initialWidth))
 
   // 对于可折叠的右侧面板，监听折叠状态
   const isCollapsed = computed(() => {
@@ -120,9 +109,52 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   // 拖拽状态
   const isDragging = ref(false)
   const dragStartX = ref(0)
+  const dragSwitchLineX = ref<number | null>(null)
+  const dragLastX = ref(0)
   const dragStartWidth = ref(0)
+  const dragCurrentRawWidth = ref(0)
   const dragSource = ref<'mouse' | 'touch'>('mouse')
   const currentTouchId = ref<number | null>(null)
+  const computeSwitchLine = (clientX: number, widthAtClientX: number) => {
+    const collapseThreshold = minWidth / 2
+    const offsetToLine = widthAtClientX - collapseThreshold
+    return panelId === 'left'
+      ? clientX - offsetToLine
+      : clientX + offsetToLine
+  }
+
+  const detachGlobalListeners = () => {
+    window.removeEventListener('mousemove', handleMouseMove)
+    window.removeEventListener('mouseup', handleMouseUp)
+    window.removeEventListener('blur', handleMouseUp)
+    document.removeEventListener('mouseup', handleMouseUp, true)
+
+    window.removeEventListener('touchmove', handleTouchMove)
+    window.removeEventListener('touchend', handleTouchEnd)
+    window.removeEventListener('touchcancel', handleTouchEnd)
+    document.removeEventListener('touchend', handleTouchEnd, true)
+    document.removeEventListener('touchcancel', handleTouchEnd, true)
+
+    // 始终恢复全局鼠标样式，避免拖拽异常中断后光标残留
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+  }
+
+  // 监听store变化，同步到本地
+  watch(
+    savedWidth,
+    (newWidth) => {
+      if (!isDragging.value) {
+        localWidth.value = clampWidth(newWidth)
+      }
+    },
+    { flush: 'sync', immediate: true },
+  )
+
+  const resolveEffectiveWidth = () => {
+    const preferred = localWidth.value || savedWidth.value || defaultWidth
+    return clampWidth(preferred)
+  }
 
   /**
    * 开始拖拽
@@ -139,17 +171,37 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
 
     isDragging.value = true
     dragStartX.value = event.startX
-    dragStartWidth.value = currentWidth.value
+    dragLastX.value = event.startX
+    dragStartWidth.value = isCollapsed.value ? 0 : resolveEffectiveWidth()
+    dragCurrentRawWidth.value = dragStartWidth.value
     dragSource.value = event.source || 'mouse'
+
+    // 同步切换中线：
+    // 展开态每次拖拽按当前宽度重算；折叠态优先复用上次中线，首次缺失时估算一个。
+    if (!isCollapsed.value) {
+      dragSwitchLineX.value = computeSwitchLine(event.startX, dragStartWidth.value)
+    } else if (dragSwitchLineX.value === null) {
+      dragSwitchLineX.value = panelId === 'left'
+        ? event.startX + (minWidth / 2)
+        : event.startX - (minWidth / 2)
+    }
 
     // 添加全局事件监听器（根据来源选择事件类型）
     if (event.source === 'touch') {
+      detachGlobalListeners()
       window.addEventListener('touchmove', handleTouchMove, { passive: !preventDefault })
       window.addEventListener('touchend', handleTouchEnd)
       window.addEventListener('touchcancel', handleTouchEnd)
+      document.addEventListener('touchend', handleTouchEnd, true)
+      document.addEventListener('touchcancel', handleTouchEnd, true)
     } else {
+      detachGlobalListeners()
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mouseup', handleMouseUp, true)
+      window.addEventListener('blur', handleMouseUp)
     }
   }
 
@@ -158,25 +210,16 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
    */
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging.value) return
+    if (event.buttons !== 1) {
+      stopDrag()
+      return
+    }
 
     // 计算鼠标移动距离
     const deltaX = event.clientX - dragStartX.value
+    dragLastX.value = event.clientX
 
-    // 根据面板位置计算新宽度
-    let newWidth: number
-    if (panelId === 'left') {
-      // 左侧面板：向右拖拽增加宽度
-      newWidth = dragStartWidth.value + deltaX
-    } else {
-      // 右侧面板：向左拖拽增加宽度
-      newWidth = dragStartWidth.value - deltaX
-    }
-
-    // 应用宽度约束
-    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
-
-    // 更新本地宽度（拖拽过程中不更新store，避免频繁保存localStorage）
-    localWidth.value = newWidth
+    handleDragProgress(event.clientX, deltaX)
   }
 
   /**
@@ -190,22 +233,9 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
 
     // 计算触摸移动距离
     const deltaX = touch.clientX - dragStartX.value
+    dragLastX.value = touch.clientX
 
-    // 根据面板位置计算新宽度
-    let newWidth: number
-    if (panelId === 'left') {
-      // 左侧面板：向右拖拽增加宽度
-      newWidth = dragStartWidth.value + deltaX
-    } else {
-      // 右侧面板：向左拖拽增加宽度
-      newWidth = dragStartWidth.value - deltaX
-    }
-
-    // 应用宽度约束
-    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
-
-    // 更新本地宽度（拖拽过程中不更新store，避免频繁保存localStorage）
-    localWidth.value = newWidth
+    handleDragProgress(touch.clientX, deltaX)
 
     // 阻止默认行为（如滚动）
     if (preventDefault) {
@@ -235,26 +265,83 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
   const stopDrag = () => {
     if (!isDragging.value) return
 
-    // 在停止拖拽前，将最终宽度保存到store（触发localStorage保存）
-    const finalWidth = localWidth.value
     if (panelId === 'left') {
-      panelStore.setLeftWidth(finalWidth)
+      if (!panelStore.leftCollapsed) {
+        panelStore.setLeftWidth(localWidth.value)
+      }
     } else {
-      panelStore.setRightWidth(finalWidth)
+      if (!panelStore.rightCollapsed) {
+        panelStore.setRightWidth(localWidth.value)
+      }
     }
 
     isDragging.value = false
     currentTouchId.value = null
 
-    // 移除事件监听器（根据来源移除）
-    if (dragSource.value === 'touch') {
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchend', handleTouchEnd)
-      window.removeEventListener('touchcancel', handleTouchEnd)
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
+    detachGlobalListeners()
+  }
+
+  const setCollapsedState = (collapsed: boolean) => {
+    if (!collapsible) return
+    if (panelId === 'left') {
+      if (panelStore.leftCollapsed !== collapsed) {
+        panelStore.setLeftCollapsed(collapsed)
+      }
+      return
     }
+    if (panelStore.rightCollapsed !== collapsed) {
+      panelStore.setRightCollapsed(collapsed)
+    }
+  }
+
+  const handleDragProgress = (clientX: number, deltaX: number) => {
+    const collapseThreshold = minWidth / 2
+    const hysteresis = 2
+    const switchLine = dragSwitchLineX.value ?? clientX
+
+    // 折叠态下：跨过同一条中线即展开到 min（与隐藏共享同一条线）
+    if (isCollapsed.value) {
+      const shouldExpand = panelId === 'left'
+        ? clientX >= switchLine + hysteresis
+        : clientX <= switchLine - hysteresis
+
+      if (shouldExpand) {
+        setCollapsedState(false)
+        localWidth.value = minWidth
+        dragStartWidth.value = minWidth
+        dragStartX.value = clientX
+        dragSwitchLineX.value = switchLine
+      }
+      return
+    }
+
+    // 展开态：正常计算宽度
+    let rawWidth: number
+    if (panelId === 'left') {
+      rawWidth = dragStartWidth.value + deltaX
+    } else {
+      rawWidth = dragStartWidth.value - deltaX
+    }
+    dragCurrentRawWidth.value = rawWidth
+
+    const shouldCollapseByLine = panelId === 'left'
+      ? clientX <= switchLine - hysteresis
+      : clientX >= switchLine + hysteresis
+    const shouldCollapseByWidth = rawWidth <= collapseThreshold
+
+    // 展开态下：跨过中线（或首次达到 min/2）即隐藏
+    if (collapsible && (shouldCollapseByLine || shouldCollapseByWidth)) {
+      dragSwitchLineX.value = shouldCollapseByWidth
+        ? computeSwitchLine(clientX, rawWidth)
+        : switchLine
+      setCollapsedState(true)
+      dragStartWidth.value = 0
+      dragStartX.value = clientX
+      return
+    }
+
+    const newWidth = Math.max(minWidth, Math.min(maxWidth, rawWidth))
+    localWidth.value = newWidth
   }
 
   /**
@@ -283,11 +370,7 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     if (isDragging.value) {
       stopDrag()
     }
-    window.removeEventListener('mousemove', handleMouseMove)
-    window.removeEventListener('mouseup', handleMouseUp)
-    window.removeEventListener('touchmove', handleTouchMove)
-    window.removeEventListener('touchend', handleTouchEnd)
-    window.removeEventListener('touchcancel', handleTouchEnd)
+    detachGlobalListeners()
   }
 
   // 组件卸载时清理（仅在组件上下文中）

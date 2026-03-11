@@ -75,49 +75,72 @@
 
     <div v-show="isTreeExpanded" class="sidebar-list">
       <div
-        v-for="chapter in displayChapters"
-        :key="chapter.id"
+        v-for="row in visibleRows"
+        :key="row.chapter.id"
         class="chapter-item"
         :class="{
-          'is-active': chapter.id === modelChapterId,
-          'is-draft': chapter.status === 'draft',
-          'is-directory': chapter.nodeType === 'directory',
+          'is-active': row.chapter.id === modelChapterId,
+          'is-draft': row.chapter.status === 'draft',
+          'is-directory': row.chapter.nodeType === 'directory',
+          'is-child': row.depth > 0,
         }"
-        @click="handleSelectChapter(chapter)"
+        :style="{ '--tree-depth': row.depth }"
       >
-        <QyIcon
-          :name="chapter.nodeType === 'directory' ? 'FolderOpened' : 'DocumentCopy'"
-          :size="14"
-          class="item-file-icon"
-        />
+        <button
+          type="button"
+          class="chapter-main-zone"
+          :title="row.chapter.nodeType === 'directory' ? '打开细纲' : '打开章节'"
+          @click="handleRowMainClick(row)"
+        >
+          <QyIcon
+            :name="row.chapter.nodeType === 'directory' ? (isDirectoryCollapsed(row.chapter.id) ? 'Folder' : 'FolderOpened') : 'DocumentCopy'"
+            :size="14"
+            class="item-file-icon"
+          />
 
-        <div class="item-content">
-          <div class="item-title">
-            <span
-              class="chapter-index"
-              v-if="chapter.nodeType !== 'directory' && chapter.chapterNum"
-            >
-              {{ chapter.chapterNum }}.
-            </span>
-            <!-- 搜索高亮处理 -->
-            <span v-html="highlightText(getDisplayTitle(chapter), searchKeyword)"></span>
-          </div>
+          <div class="item-content">
+            <div class="item-title">
+              <span
+                class="chapter-index"
+                v-if="row.chapter.nodeType !== 'directory' && row.chapter.chapterNum"
+              >
+                {{ row.chapter.chapterNum }}.
+              </span>
+              <!-- 搜索高亮处理 -->
+              <span v-html="highlightText(getDisplayTitle(row.chapter), searchKeyword)"></span>
+            </div>
 
-          <div class="item-meta" v-if="chapter.nodeType !== 'directory'">
-            <span>{{ formatCount(chapter.wordCount) }}字</span>
-            <span class="dot">·</span>
-            <span>{{ fromNow(chapter.updatedAt) }}</span>
+            <div class="item-meta" v-if="row.chapter.nodeType !== 'directory'">
+              <span>{{ formatCount(row.chapter.wordCount) }}字</span>
+              <span class="dot">·</span>
+              <span>{{ fromNow(row.chapter.updatedAt) }}</span>
+            </div>
+            <div class="item-meta item-meta--directory" v-else>
+              <span>{{ row.childrenCount }} 个章节 · 点击左侧查看细纲</span>
+            </div>
           </div>
-          <div class="item-meta item-meta--directory" v-else>
-            <span>目录分组</span>
-          </div>
-        </div>
+        </button>
+
+        <QyGhostButton
+          v-if="row.chapter.nodeType === 'directory'"
+          class="directory-collapse-zone"
+          :active="!isDirectoryCollapsed(row.chapter.id)"
+          :title="isDirectoryCollapsed(row.chapter.id) ? '展开目录' : '折叠目录'"
+          :aria-label="isDirectoryCollapsed(row.chapter.id) ? '展开目录' : '折叠目录'"
+          @click.stop="toggleDirectoryCollapse(row.chapter.id)"
+        >
+          <QyIcon
+            name="ArrowRight"
+            :size="12"
+            :class="isDirectoryCollapsed(row.chapter.id) ? 'directory-triangle is-collapsed' : 'directory-triangle'"
+          />
+        </QyGhostButton>
 
         <!-- 操作菜单 -->
         <div class="item-actions" @click.stop>
           <el-dropdown
             trigger="click"
-            @command="(cmd: 'edit' | 'delete') => handleAction(cmd, chapter)"
+            @command="(cmd: 'edit' | 'delete') => handleAction(cmd, row.chapter)"
           >
             <div class="action-btn">
               <QyIcon name="MoreFilled" :size="14" />
@@ -138,7 +161,7 @@
 
       <!-- 空状态 -->
       <el-empty
-        v-if="displayChapters.length === 0"
+        v-if="visibleRows.length === 0"
         :image-size="60"
         description="暂无章节"
         class="list-empty"
@@ -149,7 +172,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import { QyGhostButton, QyIcon } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { sanitizeText } from '@/utils/sanitize'
@@ -174,6 +197,17 @@ interface ChapterSummary {
   status: 'draft' | 'published'
   nodeType?: 'directory' | 'chapter'
   sortOrder?: number
+}
+
+interface DirectoryGroup {
+  directory: ChapterSummary
+  children: ChapterSummary[]
+}
+
+interface ExplorerRow {
+  chapter: ChapterSummary
+  depth: number
+  childrenCount: number
 }
 
 interface KeywordSuggestion {
@@ -202,6 +236,7 @@ const emit = defineEmits<{
   'update:chapterId': [id: string]
   'add-chapter': []
   'add-volume': []
+  'open-directory-outline': [id: string]
   'edit-chapter': [chapter: ChapterSummary]
   'delete-chapter': [id: string]
 }>()
@@ -210,6 +245,7 @@ const emit = defineEmits<{
 const searchKeyword = ref('')
 const isTreeExpanded = ref(true)
 const writerStore = useWriterStore()
+const collapsedDirectoryIds = ref<Set<string>>(new Set())
 let suggestionTimer: ReturnType<typeof setTimeout> | null = null
 const chevronClass = computed(() => (isTreeExpanded.value ? 'tree-chevron expanded' : 'tree-chevron'))
 
@@ -317,7 +353,7 @@ const handleSuggestionSelect = (item: KeywordSuggestion) => {
   }
 }
 
-// 章节列表逻辑
+// 章节列表逻辑（筛选项目 + 排序，不含目录折叠）
 const displayChapters = computed(() => {
   // 1. 筛选项目
   let list = props.chapters.filter((c) => c.projectId === internalProjectId.value)
@@ -334,9 +370,128 @@ const displayChapters = computed(() => {
   return list.sort((a, b) => (a.sortOrder || a.chapterNum) - (b.sortOrder || b.chapterNum))
 })
 
+const normalizedKeyword = computed(() => searchKeyword.value.trim().toLowerCase())
+
+const groupedChapters = computed<DirectoryGroup[]>(() => {
+  const groups: DirectoryGroup[] = []
+  let currentDirectory: DirectoryGroup | null = null
+
+  for (const chapter of displayChapters.value) {
+    if (chapter.nodeType === 'directory') {
+      currentDirectory = { directory: chapter, children: [] }
+      groups.push(currentDirectory)
+      continue
+    }
+
+    if (currentDirectory) {
+      currentDirectory.children.push(chapter)
+      continue
+    }
+
+    groups.push({
+      directory: chapter,
+      children: [],
+    })
+  }
+
+  return groups
+})
+
+const filteredGroups = computed<DirectoryGroup[]>(() => {
+  const keyword = normalizedKeyword.value
+  if (!keyword) {
+    return groupedChapters.value
+  }
+
+  return groupedChapters.value
+    .map((group) => {
+      const directoryMatched = getDisplayTitle(group.directory).toLowerCase().includes(keyword)
+      if (group.directory.nodeType !== 'directory') {
+        return directoryMatched ? group : null
+      }
+
+      const matchedChildren = group.children.filter((child) => {
+        return (
+          getDisplayTitle(child).toLowerCase().includes(keyword) ||
+          child.chapterNum.toString().includes(keyword)
+        )
+      })
+
+      if (directoryMatched) {
+        return {
+          directory: group.directory,
+          children: group.children,
+        }
+      }
+
+      if (matchedChildren.length === 0) {
+        return null
+      }
+
+      return {
+        directory: group.directory,
+        children: matchedChildren,
+      }
+    })
+    .filter((group): group is DirectoryGroup => group !== null)
+})
+
+const visibleRows = computed<ExplorerRow[]>(() => {
+  const rows: ExplorerRow[] = []
+  const forceExpandForSearch = normalizedKeyword.value.length > 0
+
+  for (const group of filteredGroups.value) {
+    const isDirectory = group.directory.nodeType === 'directory'
+    const childrenCount = isDirectory ? group.children.length : 0
+    rows.push({
+      chapter: group.directory,
+      depth: 0,
+      childrenCount,
+    })
+
+    if (!isDirectory || group.children.length === 0) {
+      continue
+    }
+
+    const collapsed = collapsedDirectoryIds.value.has(group.directory.id)
+    if (collapsed && !forceExpandForSearch) {
+      continue
+    }
+
+    for (const child of group.children) {
+      rows.push({
+        chapter: child,
+        depth: 1,
+        childrenCount: 0,
+      })
+    }
+  }
+
+  return rows
+})
+
 // 操作处理
 const handleSelectChapter = (chapter: ChapterSummary) => {
   modelChapterId.value = chapter.id
+}
+
+const handleRowMainClick = (row: ExplorerRow) => {
+  handleSelectChapter(row.chapter)
+  if (row.chapter.nodeType === 'directory') {
+    emit('open-directory-outline', row.chapter.id)
+  }
+}
+
+const toggleDirectoryCollapse = (directoryId: string) => {
+  if (collapsedDirectoryIds.value.has(directoryId)) {
+    collapsedDirectoryIds.value.delete(directoryId)
+    return
+  }
+  collapsedDirectoryIds.value.add(directoryId)
+}
+
+const isDirectoryCollapsed = (directoryId: string) => {
+  return collapsedDirectoryIds.value.has(directoryId)
 }
 
 const handleAction = async (cmd: 'edit' | 'delete', chapter: ChapterSummary) => {
@@ -402,6 +557,20 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => displayChapters.value,
+  (chapters) => {
+    const directoryIds = new Set(
+      chapters.filter((chapter) => chapter.nodeType === 'directory').map((chapter) => chapter.id),
+    )
+
+    collapsedDirectoryIds.value = new Set(
+      Array.from(collapsedDirectoryIds.value).filter((id) => directoryIds.has(id)),
+    )
+  },
+  { immediate: true },
+)
+
 onBeforeUnmount(() => {
   if (suggestionTimer) {
     clearTimeout(suggestionTimer)
@@ -411,14 +580,14 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .sidebar-container {
-  width: 260px;
+  width: 100%;
+  min-width: 0;
   height: 100%;
   min-height: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
   background: #f8fafc;
-  border-right: 1px solid #e2e8f0;
   transition: width 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
   position: relative;
 }
@@ -542,7 +711,34 @@ onBeforeUnmount(() => {
 
   .search-input {
     flex: 1;
+    min-width: 0;
   }
+}
+
+.sidebar-toolbar :deep(.el-input__wrapper) {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.sidebar-toolbar :deep(.el-input__prefix) {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sidebar-toolbar :deep(.el-input__prefix-inner) {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.sidebar-toolbar :deep(.el-input__inner) {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // 3. 目录树
@@ -624,9 +820,8 @@ onBeforeUnmount(() => {
 
   .chapter-item {
     position: relative;
-    padding: 10px 10px 10px 12px;
+    padding: 4px;
     margin-bottom: 6px;
-    cursor: pointer;
     transition: all 0.16s ease;
     border: 1px solid #e2e8f0;
     border-left: 2px solid #cbd5e1;
@@ -634,8 +829,9 @@ onBeforeUnmount(() => {
     background: #ffffff;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: stretch;
     box-shadow: none;
+    margin-left: calc(var(--tree-depth, 0) * 16px);
 
     &:hover {
       border-color: #93c5fd;
@@ -659,6 +855,26 @@ onBeforeUnmount(() => {
       }
     }
 
+    .chapter-main-zone {
+      border: none;
+      background: transparent;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: flex-start;
+      text-align: left;
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: inherit;
+      cursor: pointer;
+      transition: background-color 0.16s ease;
+      min-height: 36px;
+
+      &:hover {
+        background: rgba(148, 163, 184, 0.12);
+      }
+    }
+
     .item-file-icon {
       margin-right: 8px;
       margin-top: 2px;
@@ -669,6 +885,7 @@ onBeforeUnmount(() => {
     .item-content {
       flex: 1;
       overflow: hidden;
+      min-width: 0;
     }
 
     .item-title {
@@ -691,9 +908,20 @@ onBeforeUnmount(() => {
       color: #64748b;
       display: flex;
       align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       .dot {
         margin: 0 4px;
+        flex-shrink: 0;
+      }
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       &.item-meta--directory {
@@ -704,7 +932,8 @@ onBeforeUnmount(() => {
     .item-actions {
       opacity: 0.45;
       transition: opacity 0.2s;
-      margin-left: 8px;
+      margin-left: 6px;
+      align-self: center;
 
       .action-btn {
         padding: 4px;
@@ -736,7 +965,36 @@ onBeforeUnmount(() => {
         color: #d97706;
       }
     }
+
+    &.is-child {
+      border-left-color: #bfdbfe;
+      background: #fbfdff;
+      margin-left: 14px;
+    }
   }
+}
+
+.directory-collapse-zone {
+  width: 44px;
+  min-width: 44px;
+  height: auto;
+  margin-left: 6px;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.directory-triangle {
+  width: 12px;
+  height: 12px;
+  color: #64748b;
+  transform: rotate(90deg);
+  transition: transform 0.16s ease;
+  flex-shrink: 0;
+}
+
+.directory-triangle.is-collapsed {
+  transform: rotate(0deg);
 }
 
 .section-count {

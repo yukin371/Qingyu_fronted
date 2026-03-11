@@ -129,11 +129,9 @@ defineSlots<{
  * - AI助手：AI辅助面板
  */
 const defaultTools: EditorTool[] = [
-  { id: 'chapters', label: '章节', icon: 'Document', shortcut: 'Alt+1' },
-  { id: 'writing', label: '写作', icon: 'Edit', shortcut: 'Alt+2' },
-  { id: 'immersive', label: '沉浸', icon: 'FullScreen', shortcut: 'Alt+3' },
-  { id: 'ai-assistant', label: 'AI助手', icon: 'MagicStick', shortcut: 'Alt+4' },
-  { id: 'encyclopedia', label: '设定', icon: 'Location', shortcut: 'Alt+5' }
+  { id: 'writing', label: '写作', icon: 'Edit', shortcut: 'Alt+1' },
+  { id: 'immersive', label: '沉浸', icon: 'FullScreen', shortcut: 'Alt+2' },
+  { id: 'encyclopedia', label: '设定', icon: 'Location', shortcut: 'Alt+3' }
 ]
 
 /**

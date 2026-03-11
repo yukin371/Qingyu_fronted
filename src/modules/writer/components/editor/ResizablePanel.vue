@@ -4,32 +4,36 @@
     :class="[
       'resizable-panel--' + position,
       isCollapsed ? 'resizable-panel--collapsed' : '',
+      isCollapsed && panelId === 'left' ? 'resizable-panel--collapsed-left' : '',
+      isCollapsed && panelId === 'right' ? 'resizable-panel--collapsed-right' : '',
       isDragging ? 'resizable-panel--dragging' : ''
     ]"
     :style="panelStyle"
     :data-testid="`resizable-panel-${panelId}`"
   >
-    <!-- 折叠按钮（仅collapsible为true时显示） -->
-    <button
-      v-if="collapsible"
-      class="panel-collapse-button"
-      :class="{ 'panel-collapse-button--collapsed': isCollapsed }"
-      :aria-label="isCollapsed ? `展开${panelId}面板` : `折叠${panelId}面板`"
-      @click="handleCollapseClick"
-    >
-      <QyIcon :name="collapseIcon" />
-    </button>
+    <!-- 左侧面板: 内容在前，手柄在后 -->
+    <template v-if="position === 'left'">
+      <div class="panel-content">
+        <slot />
+      </div>
+      <DragHandle
+        v-if="resizable"
+        :position="position"
+        @drag-start="handleDragStart"
+      />
+    </template>
 
-    <!-- 面板内容插槽 -->
-    <div class="panel-content" :class="{ 'panel-content--collapsed': isCollapsed }">
-      <slot />
-    </div>
-
-    <!-- 拖拽手柄 -->
-    <DragHandle
-      :position="position"
-      @drag-start="handleDragStart"
-    />
+    <!-- 右侧面板: 手柄在前，内容在后（手柄贴近编辑区） -->
+    <template v-else>
+      <DragHandle
+        v-if="resizable"
+        :position="position"
+        @drag-start="handleDragStart"
+      />
+      <div class="panel-content">
+        <slot />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -57,7 +61,6 @@
 import { computed, watch } from 'vue'
 import { usePanelResize, type DragStartEvent } from '@/modules/writer/composables/usePanelResize'
 import DragHandle from '@/modules/writer/components/DragHandle.vue'
-import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 
 // ============================================
 // Props 定义
@@ -76,12 +79,15 @@ interface Props {
   position: 'left' | 'right'
   /** 是否可折叠 */
   collapsible?: boolean
+  /** 是否启用拖拽调宽 */
+  resizable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   minWidth: 200,
   maxWidth: 600,
-  collapsible: false
+  collapsible: false,
+  resizable: true,
 })
 
 // ============================================
@@ -92,10 +98,7 @@ const {
   currentWidth,
   isDragging,
   isCollapsed,
-  startDrag,
-  onDrag,
-  stopDrag,
-  toggleCollapse
+  startDrag
 } = usePanelResize({
   panelId: props.panelId,
   defaultWidth: props.defaultWidth,
@@ -120,17 +123,6 @@ const panelStyle = computed(() => {
   }
 })
 
-/**
- * 折叠按钮图标
- */
-const collapseIcon = computed(() => {
-  if (props.position === 'right') {
-    return isCollapsed.value ? 'ArrowLeft' : 'ArrowRight'
-  }
-  // 左侧面板
-  return isCollapsed.value ? 'ArrowRight' : 'ArrowLeft'
-})
-
 // ============================================
 // 事件处理
 // ============================================
@@ -145,35 +137,6 @@ const handleDragStart = (event: DragStartEvent) => {
     position: props.position
   }
   startDrag(updatedEvent)
-
-  // 添加全局鼠标事件监听器
-  document.addEventListener('mousemove', handleGlobalMouseMove)
-  document.addEventListener('mouseup', handleGlobalMouseUp)
-}
-
-/**
- * 处理全局鼠标移动事件
- */
-const handleGlobalMouseMove = (event: MouseEvent) => {
-  onDrag(event)
-}
-
-/**
- * 处理全局鼠标松开事件
- */
-const handleGlobalMouseUp = () => {
-  stopDrag()
-
-  // 移除全局事件监听器
-  document.removeEventListener('mousemove', handleGlobalMouseMove)
-  document.removeEventListener('mouseup', handleGlobalMouseUp)
-}
-
-/**
- * 处理折叠按钮点击
- */
-const handleCollapseClick = () => {
-  toggleCollapse()
 }
 
 // ============================================
@@ -235,11 +198,23 @@ defineExpose({
 }
 
 /* 折叠状态 */
-.resizable-panel--collapsed {
-  width: 28px !important;
-  min-width: 28px !important;
+.resizable-panel--collapsed-right {
+  width: 66px !important;
+  min-width: 66px !important;
   overflow: visible;
   border: none;
+}
+
+.resizable-panel--collapsed-left {
+  width: 66px !important;
+  min-width: 66px !important;
+  overflow: visible;
+  border: none;
+}
+
+.resizable-panel--collapsed-left .panel-content,
+.resizable-panel--collapsed-right .panel-content {
+  overflow: visible;
 }
 
 /* 拖拽状态 */
@@ -249,70 +224,6 @@ defineExpose({
 
   /* 视觉反馈 */
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
-}
-
-/* 折叠按钮 */
-.panel-collapse-button {
-  position: absolute;
-  top: 8px;
-  z-index: 10;
-
-  /* 样式 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-
-  /* VSCode 主题变量 */
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  color: #64748b;
-
-  /* 交互样式 - 使用快速过渡 */
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  /* 无障碍 */
-  outline: none;
-
-  &:hover {
-    background-color: #eff6ff;
-    border-color: #93c5fd;
-    color: #2563eb;
-  }
-
-  &:active {
-    background-color: #e2e8f0;
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.28);
-  }
-
-  /* 左侧面板折叠按钮位置 */
-  .resizable-panel--left & {
-    right: -12px;
-  }
-
-  /* 右侧面板折叠按钮位置 */
-  .resizable-panel--right & {
-    left: -12px;
-  }
-
-  /* 折叠状态下的按钮位置 */
-  &--collapsed {
-    /* 当面板折叠时，按钮移动到可见区域 */
-    .resizable-panel--left & {
-      right: 2px;
-    }
-
-    .resizable-panel--right & {
-      left: 2px;
-    }
-  }
 }
 
 /* 面板内容 */
@@ -359,12 +270,6 @@ defineExpose({
   overflow: hidden;
 }
 
-/* 图标样式 */
-.panel-collapse-button .qy-icon {
-  width: 16px;
-  height: 16px;
-}
-
 /* 响应式适配 */
 @media (max-width: 768px) {
   .resizable-panel {
@@ -374,10 +279,5 @@ defineExpose({
     }
   }
 
-  .panel-collapse-button {
-    /* 移动端增大触摸区域 */
-    width: 32px;
-    height: 32px;
-  }
 }
 </style>
