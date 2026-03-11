@@ -259,7 +259,7 @@
                       <p class="text-xs text-slate-500 mt-1 truncate">{{ book.book.author }}</p>
                       <div class="flex items-center justify-between mt-2 text-xs text-slate-400">
                         <span>{{ formatReadingTime(book.progress * 0.5) }}</span>
-                        <span>{{ formatRelativeTime(book.updateTime) }}</span>
+                        <span>{{ formatRelativeTime(book.updateTime || '') }}</span>
                       </div>
                     </div>
                   </div>

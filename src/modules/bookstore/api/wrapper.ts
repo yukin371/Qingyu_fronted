@@ -297,8 +297,13 @@ export const getBookVipChapters = api.getApiV1BookstoreBooksIdVipChapters
 /**
  * 按分类获取书籍
  */
-export async function getBooksByCategory(categoryId: string, params?: any) {
-  const response = await api.getApiV1BookstoreBooksCategory(categoryId, params)
+export async function getBooksByCategory(categoryIdOrParams: string | Record<string, any>, params?: any) {
+  const requestParams =
+    typeof categoryIdOrParams === 'string'
+      ? { categoryId: categoryIdOrParams, ...(params || {}) }
+      : { ...(categoryIdOrParams || {}) }
+
+  const response = await api.getApiV1BookstoreBooksCategory(requestParams as any)
 
   if (Array.isArray(response)) {
     return normalizeBookList(response)

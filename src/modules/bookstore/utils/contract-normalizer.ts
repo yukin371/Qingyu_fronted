@@ -1,5 +1,6 @@
 import type { Book as LegacyBook } from '@/types/bookstore'
-import type { Book as ModuleBook, BookStatus } from '../types/book'
+import type { Book as ModuleBook } from '../types/book'
+import type { BookStatus } from '../types/bookstore.types'
 
 type AnyRecord = Record<string, any>
 

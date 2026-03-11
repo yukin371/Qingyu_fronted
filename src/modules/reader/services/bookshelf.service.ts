@@ -7,6 +7,14 @@ import * as bookshelfAPI from '@/modules/reader/api'
 import type { BookshelfItem } from '../types/reader.types'
 
 class BookshelfService {
+  private toTimestamp(value?: string | number | null): number {
+    if (typeof value === 'number') return value
+    if (!value) return 0
+
+    const parsed = new Date(value).getTime()
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
   /**
    * Get bookshelf items
    */
@@ -71,7 +79,7 @@ class BookshelfService {
         case 'addTime':
           return (b.addTime || 0) - (a.addTime || 0)
         case 'updateTime':
-          return (b.book.updateTime || 0) - (a.book.updateTime || 0)
+          return this.toTimestamp(b.book.updateTime) - this.toTimestamp(a.book.updateTime)
         case 'lastReadTime':
           return (b.lastReadTime || 0) - (a.lastReadTime || 0)
         default:
@@ -111,4 +119,3 @@ class BookshelfService {
 
 export const bookshelfService = new BookshelfService()
 export default bookshelfService
-

@@ -5,11 +5,8 @@
  * 青羽写作平台后端服务API文档，提供AI辅助写作、阅读社区、书城管理等核心功能。
  * OpenAPI spec version: 1.0
  */
-import * as axios from 'axios'
+import axios from 'axios'
 import type { AxiosInstance } from 'axios'
-
-// Re-export AxiosInstance for consumers that need it
-export type { AxiosInstance }
 
 import type {
   ApiV1AdminAssignRoleRequest,
@@ -255,8 +252,6 @@ import type {
   GetApiV1WriterProjectsProjectIdPublicationsParams,
   GetApiV1WriterSearchDocumentsParams,
   GetApiV1WriterTemplatesParams,
-  GetWsMessagesParams,
-  GetWsNotificationsParams,
   PostApiV1AdminAnnouncementsBody,
   PostApiV1AdminAuditIdAppealReviewBody,
   PostApiV1AdminAuditIdReviewBody,
@@ -366,7 +361,7 @@ import type {
 } from '../../../../api/generated'
 
 import { orvalMutator } from '../../../../core/config/orval-mutator'
-export const getApi = (_axiosInstance: AxiosInstance = axios.default) => {
+export const getApi = (_axiosInstance: AxiosInstance = axios) => {
   /**
    * 管理员获取公告列表
    * @summary 获取公告列表
@@ -7266,66 +7261,6 @@ export const getApi = (_axiosInstance: AxiosInstance = axios.default) => {
     })
   }
 
-  /**
-   * 检查系统整体健康状态
-   * @summary 系统健康检查
-   */
-  const getSystemHealth = () => {
-    return orvalMutator<QingyuBackendApiV1SharedAPIResponse>({
-      url: `/system/health`,
-      method: 'GET',
-    })
-  }
-
-  /**
-   * 检查指定服务的健康状态
-   * @summary 特定服务健康检查
-   */
-  const getSystemHealthService = (service: string) => {
-    return orvalMutator<QingyuBackendApiV1SharedAPIResponse>({
-      url: `/system/health/${service}`,
-      method: 'GET',
-    })
-  }
-
-  /**
-   * 获取所有服务的运行指标
-   * @summary 获取所有服务指标
-   */
-  const getSystemMetrics = () => {
-    return orvalMutator<QingyuBackendApiV1SharedAPIResponse>({
-      url: `/system/metrics`,
-      method: 'GET',
-    })
-  }
-
-  /**
-   * 获取指定服务的运行指标
-   * @summary 获取特定服务指标
-   */
-  const getSystemMetricsService = (service: string) => {
-    return orvalMutator<QingyuBackendApiV1SharedAPIResponse>({
-      url: `/system/metrics/${service}`,
-      method: 'GET',
-    })
-  }
-
-  /**
-   * 实时接收会话消息，需要在URL中传递token参数
-   * @summary WebSocket消息端点
-   */
-  const getWsMessages = (params: GetWsMessagesParams) => {
-    return orvalMutator<unknown>({ url: `/ws/messages`, method: 'GET', params })
-  }
-
-  /**
-   * 实时接收用户通知，需要在URL中传递token参数
-   * @summary WebSocket通知端点
-   */
-  const getWsNotifications = (params: GetWsNotificationsParams) => {
-    return orvalMutator<unknown>({ url: `/ws/notifications`, method: 'GET', params })
-  }
-
   return {
     getApiV1AdminAnnouncements,
     postApiV1AdminAnnouncements,
@@ -7877,12 +7812,6 @@ export const getApi = (_axiosInstance: AxiosInstance = axios.default) => {
     getApiV1WriterTemplatesId,
     putApiV1WriterTemplatesId,
     postApiV1WriterTemplatesIdApply,
-    getSystemHealth,
-    getSystemHealthService,
-    getSystemMetrics,
-    getSystemMetricsService,
-    getWsMessages,
-    getWsNotifications,
   }
 }
 export type GetApiV1AdminAnnouncementsResult = NonNullable<
@@ -9558,22 +9487,4 @@ export type PutApiV1WriterTemplatesIdResult = NonNullable<
 >
 export type PostApiV1WriterTemplatesIdApplyResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getApi>['postApiV1WriterTemplatesIdApply']>>
->
-export type GetSystemHealthResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getSystemHealth']>>
->
-export type GetSystemHealthServiceResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getSystemHealthService']>>
->
-export type GetSystemMetricsResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getSystemMetrics']>>
->
-export type GetSystemMetricsServiceResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getSystemMetricsService']>>
->
-export type GetWsMessagesResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getWsMessages']>>
->
-export type GetWsNotificationsResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getApi>['getWsNotifications']>>
 >
