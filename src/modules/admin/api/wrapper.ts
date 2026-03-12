@@ -9,6 +9,7 @@
 
 import { getApi } from './generated/admin'
 import type { APIResponse } from '@/types/api'
+import { httpService } from '@/core/services/http.service'
 import type {
   DashboardStats,
   Announcement,
@@ -23,6 +24,55 @@ const api = getApi()
 type AdminListResult<T> = {
   items: T[]
   total: number
+}
+
+type AdminCategory = {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  parentId?: string
+  level: number
+  sortOrder: number
+  bookCount: number
+  isActive: boolean
+  children?: AdminCategory[]
+}
+
+export type AdminWithdrawalItem = {
+  id: string
+  user_id: string
+  username?: string
+  email?: string
+  display_name?: string
+  source: 'wallet' | 'author' | string
+  status: string
+  amount: number
+  fee: number
+  actual_amount: number
+  method?: string
+  account?: string
+  account_type?: string
+  account_name?: string
+  bank_name?: string
+  order_no?: string
+  reviewed_by?: string
+  reviewed_at?: string
+  reject_reason?: string
+  processed_at?: string
+  transaction_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export type AdminWithdrawalStats = {
+  total_count: number
+  pending_count: number
+  approved_count: number
+  rejected_count: number
+  approved_today_count: number
+  pending_amount: number
+  approved_amount: number
 }
 
 function unwrapPayload<T>(response: unknown): T {
@@ -70,6 +120,22 @@ function normalizeBanner(item: Record<string, any>): Banner {
   }
 }
 
+function normalizeCategory(item: Record<string, any>): AdminCategory {
+  const rawChildren = Array.isArray(item.children) ? item.children : []
+  return {
+    id: item.id || item._id || '',
+    name: item.name || '',
+    description: item.description || '',
+    icon: item.icon || '',
+    parentId: item.parentId || item.parent_id,
+    level: Number(item.level ?? 0),
+    sortOrder: Number(item.sortOrder ?? item.sort_order ?? 0),
+    bookCount: Number(item.bookCount ?? item.book_count ?? 0),
+    isActive: item.isActive ?? item.is_active ?? true,
+    children: rawChildren.map((child: Record<string, any>) => normalizeCategory(child)),
+  }
+}
+
 // ==================== 仪表盘相关 API ====================
 
 /**
@@ -112,38 +178,77 @@ export const reviewContent = reviewAudit
 
 /**
  * 获取提现申请列表
- * @deprecated 提现功能已移至 finance 模块
- * 请使用: import { getAuthorWithdrawals, getWalletWithdrawals } from '@/modules/finance/api'
  */
-export const getWithdrawalList = (..._args: any[]) => {
-  throw new Error(
-    '[DEPRECATED] getWithdrawalList 已移至 finance 模块。' +
-      '请使用:\n' +
-      '  - financeAPI.getAuthorWithdrawals() 获取作者提现记录\n' +
-      '  - financeAPI.getWalletWithdrawals() 获取钱包提现记录',
-  )
+export async function getWithdrawalList(params?: {
+  page?: number
+  pageSize?: number
+  status?: string
+  source?: string
+  start_date?: string
+  end_date?: string
+}): Promise<AdminListResult<AdminWithdrawalItem>> {
+  const response = await httpService.get<{
+    code: number
+    data: AdminWithdrawalItem[]
+    pagination?: { total?: number }
+  }>('/admin/withdrawals', {
+    params: {
+      page: params?.page,
+      page_size: params?.pageSize,
+      status: params?.status,
+      source: params?.source,
+      start_date: params?.start_date,
+      end_date: params?.end_date,
+    },
+  })
+
+  return {
+    items: Array.isArray(response?.data) ? response.data : [],
+    total: Number(response?.pagination?.total ?? response?.data?.length ?? 0),
+  }
 }
 
 /**
  * 处理提现申请
- * @deprecated 请使用 reviewWithdrawRequest 代替
- * 提现功能已移至 finance 模块
  */
-export const handleWithdrawal = (..._args: any[]) => {
-  throw new Error(
-    '[DEPRECATED] handleWithdrawal 已移至 finance 模块。\n' +
-      '请使用:\n' +
-      '  - financeAPI.reviewAuthorWithdrawal() 审核作者提现申请\n' +
-      '  - financeAPI.reviewWalletWithdrawal() 审核钱包提现申请',
-  )
+export async function handleWithdrawal(params: {
+  withdraw_id: string
+  approved: boolean
+  reason?: string
+}): Promise<APIResponse<void>> {
+  return api.postApiV1AdminWithdrawReview(params as any) as any
 }
 
 /**
  * 审核提现申请（别名）
- * @deprecated 请使用 reviewWithdrawRequest 代替
- * 提现功能已移至 finance 模块
  */
 export const reviewWithdraw = handleWithdrawal
+
+export async function getWithdrawalStats(params?: {
+  status?: string
+  source?: string
+  start_date?: string
+  end_date?: string
+}): Promise<AdminWithdrawalStats> {
+  const response = await httpService.get<AdminWithdrawalStats>('/admin/withdrawals/stats', {
+    params: {
+      status: params?.status,
+      source: params?.source,
+      start_date: params?.start_date,
+      end_date: params?.end_date,
+    },
+  })
+
+  return {
+    total_count: Number(response?.total_count ?? 0),
+    pending_count: Number(response?.pending_count ?? 0),
+    approved_count: Number(response?.approved_count ?? 0),
+    rejected_count: Number(response?.rejected_count ?? 0),
+    approved_today_count: Number(response?.approved_today_count ?? 0),
+    pending_amount: Number(response?.pending_amount ?? 0),
+    approved_amount: Number(response?.approved_amount ?? 0),
+  }
+}
 
 // ==================== 用户管理相关 API ====================
 
@@ -161,7 +266,34 @@ export async function getUserList(params?: {
   role?: string
   status?: string
 }): Promise<{ users: UserManagementItem[]; total: number; page: number; size: number }> {
-  return api.getApiV1AdminUsers(params as any) as any
+  const response = await api.getApiV1AdminUsers(params as any)
+  return unwrapPayload(response)
+}
+
+export async function getUserCountsByStatus(): Promise<Record<string, number>> {
+  const response = await api.getApiV1AdminUsersCountByStatus()
+  return unwrapPayload(response)
+}
+
+export async function createUser(data: {
+  username: string
+  email: string
+  password?: string
+  nickname?: string
+  role: string
+  status?: string
+  bio?: string
+}): Promise<APIResponse<any>> {
+  return httpService.post('/admin/users', data) as any
+}
+
+export async function batchCreateUsers(data: {
+  count: number
+  prefix?: string
+  role: string
+  status?: string
+}): Promise<APIResponse<{ users: any[]; count: number }>> {
+  return httpService.post('/admin/users/batch-create', data) as any
 }
 
 /**
@@ -232,6 +364,53 @@ export async function batchDeleteUsers(params: {
   reason?: string
 }): Promise<APIResponse<void>> {
   return api.postApiV1AdminUsersBatchDelete(params as any) as any
+}
+
+export async function batchUpdateUserStatus(params: {
+  userIds: string[]
+  status: string
+}): Promise<APIResponse<void>> {
+  return api.postApiV1AdminUsersBatchUpdateStatus(params as any) as any
+}
+
+// ==================== 分类管理相关 API ====================
+
+export async function getCategoryTree(): Promise<AdminCategory[]> {
+  const response = await httpService.get<Record<string, any>[] | { items?: Record<string, any>[] }>(
+    '/admin/categories/tree',
+  )
+  const rawItems = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.items)
+      ? response.items
+      : []
+  return rawItems.map((item) => normalizeCategory(item))
+}
+
+export async function createCategory(data: {
+  name: string
+  description?: string
+  icon?: string
+  parent_id?: string
+  sort_order?: number
+}): Promise<APIResponse<any>> {
+  return httpService.post('/admin/categories', data) as any
+}
+
+export async function updateCategory(
+  id: string,
+  data: {
+    name?: string
+    description?: string
+    icon?: string
+    sort_order?: number
+  },
+): Promise<APIResponse<any>> {
+  return httpService.put(`/admin/categories/${id}`, data) as any
+}
+
+export async function deleteCategory(id: string): Promise<APIResponse<void>> {
+  return httpService.delete(`/admin/categories/${id}`) as any
 }
 
 // ==================== 操作日志相关 API ====================
@@ -698,17 +877,26 @@ export default {
   reviewAppeal,
   // 提现相关
   getWithdrawalList,
+  getWithdrawalStats,
   handleWithdrawal,
   reviewWithdraw,
   reviewWithdrawRequest,
+  getCategoryTree,
+  createCategory,
+  updateCategory,
+  deleteCategory,
   // 用户管理相关
   getUserList,
+  getUserCountsByStatus,
+  createUser,
+  batchCreateUsers,
   updateUser,
   deleteUser,
   updateUserStatus,
   assignRole,
   updateUserRole,
   batchDeleteUsers,
+  batchUpdateUserStatus,
   // 操作日志相关
   getOperationLogs,
   // 配额管理相关
@@ -777,12 +965,16 @@ const adminAPIExport = {
   reviewAppeal,
   // 用户管理
   getUserList,
+  getUserCountsByStatus,
+  createUser,
+  batchCreateUsers,
   updateUser,
   deleteUser,
   updateUserStatus,
   assignRole,
   updateUserRole,
   batchDeleteUsers,
+  batchUpdateUserStatus,
   // 操作日志
   getOperationLogs,
   // 配额管理
@@ -790,6 +982,11 @@ const adminAPIExport = {
   updateUserQuota,
   suspendUserQuota,
   activateUserQuota,
+  // 分类管理
+  getCategoryTree,
+  createCategory,
+  updateCategory,
+  deleteCategory,
   // 公告管理
   getAnnouncements,
   createAnnouncement,
@@ -828,6 +1025,10 @@ const adminAPIExport = {
   updatePermission,
   deletePermission,
   // 提现审核
+  getWithdrawalList,
+  getWithdrawalStats,
+  handleWithdrawal,
+  reviewWithdraw,
   reviewWithdrawRequest,
   // 工具函数
   getApi,
