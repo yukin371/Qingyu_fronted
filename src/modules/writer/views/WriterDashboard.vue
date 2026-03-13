@@ -106,9 +106,14 @@
                   </el-tag>
                 </div>
                 <div class="item-meta">
-                  <span><QyIcon name="Document" /> {{ formatNumber(project.totalWords) }} 字</span>
+                  <span
+                    ><QyIcon name="Document" /> {{ formatNumber(project.totalWords ?? 0) }} 字</span
+                  >
                   <el-divider direction="vertical" />
-                  <span><QyIcon name="Clock" /> {{ formatTime(project.lastUpdateTime) }}</span>
+                  <span
+                    ><QyIcon name="Clock" />
+                    {{ formatTime(project.lastUpdateTime || project.updatedAt || '') }}</span
+                  >
                 </div>
               </div>
 
@@ -261,10 +266,9 @@ onMounted(async () => {
     // 更新统计 (这部分逻辑最好在后端有个专门的 dashboard API)
     stats.value.bookCount = projectStore.total
     const projects = projectStore.projects || []
-    stats.value.totalWords = projects.reduce(
-      (acc: number, cur: { totalWords: number }) => acc + (cur.totalWords || 0),
-      0,
-    )
+    stats.value.totalWords = projects.reduce((acc: number, cur: ProjectSummary) => {
+      return acc + (cur.totalWords ?? cur.wordCount ?? 0)
+    }, 0)
     stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
     stats.value.todayWords = 1200 // Mock Data
   } catch (error) {
@@ -276,7 +280,7 @@ onMounted(async () => {
 
 // 辅助函数
 const formatNumber = (n: number) => (n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n)
-const formatTime = (t: string) => dayjs(t).fromNow()
+const formatTime = (t: string) => (t ? dayjs(t).fromNow() : '未知时间')
 
 const getStatusType = (status: string) => {
   const map: Record<string, string> = {

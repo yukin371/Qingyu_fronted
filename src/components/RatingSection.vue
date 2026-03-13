@@ -243,8 +243,8 @@ const submitRating = async () => {
 
   submitting.value = true
   try {
-    if (userRating.value) {
-      await updateRating(props.bookId, draft.value.score, draft.value.review)
+    if (userRating.value?.id) {
+      await updateRating(userRating.value.id, draft.value.score, draft.value.review)
       message.success('评分已更新')
     } else {
       await rateBook(props.bookId, draft.value.score, draft.value.review)
@@ -260,9 +260,14 @@ const submitRating = async () => {
 }
 
 const removeRating = async () => {
+  if (!userRating.value?.id) {
+    message.error('评分记录不存在')
+    return
+  }
+
   deleting.value = true
   try {
-    await deleteRating(props.bookId)
+    await deleteRating(userRating.value.id)
     userRating.value = null
     draft.value = { score: 0, review: '' }
     editing.value = false

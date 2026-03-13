@@ -61,20 +61,29 @@ export interface ProjectDetailResponse {
 export interface ProjectSummary {
   id: string
   title: string
-  coverImage: string
-  genre: string
+  summary?: string
+  coverUrl?: string
+  coverImage?: string
+  genre?: string
+  category?: string
+  tags?: string[]
   status: string
-  totalWords: number
-  chapterCount: number
-  lastUpdateTime: string
+  totalWords?: number
+  wordCount?: number
+  chapterCount?: number
+  lastUpdateTime?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 // 项目列表响应 (对应 ProjectListResponse)
 export interface ProjectListResponse {
-  projects: ProjectSummary[]
+  projects?: ProjectSummary[]
+  items?: ProjectSummary[]
   total: number
   page: number
-  size: number
+  size?: number
+  pageSize?: number
 }
 
 // ==========================================
@@ -161,8 +170,14 @@ export const projectApi = {
    * @security BearerAuth
    */
   list(params?: ProjectListParams) {
+    const query = params
+      ? {
+          ...params,
+          ...(params.pageSize !== undefined ? { page_size: params.pageSize } : {}),
+        }
+      : undefined
     return httpService.get<ProjectListResponse>(BASE_URL, {
-      params
+      params: query,
     })
   },
 

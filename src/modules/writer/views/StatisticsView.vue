@@ -145,9 +145,9 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
-import { useWriterStore } from '@/stores/writer'
-import * as echarts from 'echarts'
-import type { ECharts } from 'echarts'
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
+import { echarts, graphic } from '@/utils/echarts'
+import type { ECharts, EChartsOption } from '@/utils/echarts'
 import {
   getBookStats,
   getDailyStats,
@@ -580,7 +580,7 @@ function initViewsChart(): void {
 function updateViewsChart(dates: string[], views: number[]): void {
   if (!viewsChart) return
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -599,7 +599,7 @@ function updateViewsChart(dates: string[], views: number[]): void {
         data: views,
         smooth: true,
         areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
             { offset: 1, color: 'rgba(64, 158, 255, 0.1)' },
           ]),
@@ -630,7 +630,7 @@ function initSubscribersChart(): void {
 function updateSubscribersChart(dates: string[], subscribers: number[]): void {
   if (!subscribersChart) return
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -673,7 +673,7 @@ function initChaptersChart(): void {
   const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
   const views = Array.from({ length: 10 }, () => Math.floor(Math.random() * 5000 + 1000))
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -693,7 +693,7 @@ function initChaptersChart(): void {
         type: 'bar',
         data: views.reverse(),
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+          color: new graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: '#E6A23C' },
             { offset: 1, color: '#F56C6C' },
           ]),
@@ -735,7 +735,7 @@ function initReaderActivityChart(): void {
     echarts.getInstanceByDom(readerActivityChartRef.value) ||
     echarts.init(readerActivityChartRef.value)
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'item',
     },
@@ -796,7 +796,7 @@ function initHeatmapChart(): void {
     }
   }
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       position: 'top',
     },

@@ -368,9 +368,9 @@
                       <div class="card-header">
                         <h3>审核趋势</h3>
                         <el-radio-group v-model="reviewTrendPeriod" size="small">
-                          <el-radio-button label="7d">近7天</el-radio-button>
-                          <el-radio-button label="30d">近30天</el-radio-button>
-                          <el-radio-button label="90d">近90天</el-radio-button>
+                          <el-radio-button value="7d">近7天</el-radio-button>
+                          <el-radio-button value="30d">近30天</el-radio-button>
+                          <el-radio-button value="90d">近90天</el-radio-button>
                         </el-radio-group>
                       </div>
                     </template>
@@ -506,8 +506,8 @@
           </el-form-item>
           <el-form-item label="定价设置">
             <el-radio-group v-model="planForm.isFree">
-              <el-radio :label="true">免费</el-radio>
-              <el-radio :label="false">付费</el-radio>
+              <el-radio :value="true">免费</el-radio>
+              <el-radio :value="false">付费</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item v-if="!planForm.isFree" label="章节价格">
@@ -622,10 +622,11 @@ import { ElMessage } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth'
-import { useWriterStore } from '@/stores/writer'
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
-import * as echarts from 'echarts'
+import { echarts } from '@/utils/echarts'
+import type { ECharts } from '@/utils/echarts'
 import {
   getPublishPlan,
   createPublishPlan,
@@ -745,7 +746,7 @@ const reviewTotal = ref(0)
 const reviewFilter = reactive({ status: '' })
 const reviewTrendPeriod = ref('7d')
 const reviewTrendChartRef = ref<HTMLElement | null>(null)
-const reviewTrendChart = ref<echarts.ECharts | null>(null)
+const reviewTrendChart = ref<ECharts | null>(null)
 const reviewDetailDialogVisible = ref(false)
 const currentReviewDetail = ref<any>(null)
 
@@ -1425,7 +1426,7 @@ const getReviewStatusType = (status: string) => {
     approved: 'success',
     rejected: 'danger',
   }
-  return map[status] || ''
+  return map[status] || 'info'
 }
 
 // 初始化审核趋势图表
@@ -1520,7 +1521,7 @@ const getTypeTagType = (type: string) => {
     vip: 'danger',
     limited: 'info',
   }
-  return map[type] || ''
+  return map[type] || 'info'
 }
 
 const getStatusLabel = (status: string) => {
@@ -1544,7 +1545,7 @@ const getStatusTagType = (status: string) => {
     rejected: 'danger',
     unpublished: 'info',
   }
-  return map[status] || ''
+  return map[status] || 'info'
 }
 
 const getPlatformLabel = (platform: string) => {
@@ -1571,7 +1572,7 @@ const getExportStatusType = (status: string) => {
     completed: 'success',
     failed: 'danger',
   }
-  return map[status] || ''
+  return map[status] || 'info'
 }
 
 const getExportStatusLabel = (status: string) => {

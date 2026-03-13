@@ -95,13 +95,13 @@ export const ratingAPI = {
   },
 }
 
-// 向后兼容：导出旧的函数名
+// 向后兼容：导出便捷函数。update/delete 参数为 ratingId，不是 bookId。
 export const getBookRating = (bookId: string) => ratingAPI.getBookRating(bookId)
 export const rateBook = (bookId: string, score: number, review?: string) =>
   ratingAPI.rateBook(bookId, score, review)
 export const getUserBookRating = (bookId: string) => ratingAPI.getUserBookRating(bookId)
-export const updateRating = (bookId: string, score: number, review?: string) =>
-  ratingAPI.updateRating(bookId, score, review)
-export const deleteRating = (bookId: string) => ratingAPI.deleteRating(bookId)
+export const updateRating = (ratingId: string, score: number, review?: string) =>
+  ratingAPI.updateRating(ratingId, score, review)
+export const deleteRating = (ratingId: string) => ratingAPI.deleteRating(ratingId)
 
 export default ratingAPI
