@@ -3,23 +3,24 @@
  */
 
 export interface BaseModel {
-  id: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ChapterListItem extends BaseModel {
-  title: string;
-  isFree: boolean;
-  wordCount: number;
-  isRead?: boolean;
+  title: string
+  isFree: boolean
+  wordCount: number
+  isRead?: boolean
 }
 
 export interface BookBrief extends BaseModel {
-  title: string;
-  author: string;
-  cover: string;
-  rating?: number;
+  title: string
+  author: string
+  cover: string
+  rating?: number
+  tags?: string[]
 }
 
 // Re-export browse types

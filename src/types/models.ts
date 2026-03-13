@@ -34,12 +34,14 @@ export interface Book {
   publishedAt?: string
   updateTime?: string
   updatedAt?: string
-  latestChapter?: {
-    id: string
-    title: string
-    updateTime?: string
-    updatedAt?: string
-  } | string
+  latestChapter?:
+    | {
+        id: string
+        title: string
+        updateTime?: string
+        updatedAt?: string
+      }
+    | string
 }
 
 /** 书籍简要信息（列表用） */
@@ -50,6 +52,7 @@ export interface BookBrief {
   cover: string
   categoryName?: string
   category?: string
+  tags?: string[]
   rating: number
   ratingCount?: number
   wordCount: number

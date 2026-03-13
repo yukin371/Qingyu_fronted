@@ -56,6 +56,7 @@ export interface BookBrief {
   author: string
   cover: string
   categoryName: string
+  tags?: string[]
   rating: number
   wordCount: number
   viewCount: number
@@ -78,6 +79,14 @@ export interface HomepageData {
   newBooks?: BookBrief[]
   hotBooks?: BookBrief[]
   completedBooks?: BookBrief[]
+  recommendedBooks: BookBrief[]
+  featuredBooks: BookBrief[]
+  categories: Category[]
+  rankings?: {
+    realtime: RankingItem[]
+    weekly: RankingItem[]
+    monthly: RankingItem[]
+  }
 }
 
 // ==================== 分类相关 ====================
@@ -202,23 +211,6 @@ export interface SearchResult {
   page: number
   size: number
   hasMore: boolean
-}
-
-// ==================== 首页数据 ====================
-
-/**
- * 首页数据
- */
-export interface HomepageData {
-  banners: Banner[]
-  recommendedBooks: BookBrief[]
-  featuredBooks: BookBrief[]
-  categories: Category[]
-  rankings?: {
-    realtime: RankingItem[]
-    weekly: RankingItem[]
-    monthly: RankingItem[]
-  }
 }
 
 // ==================== 推荐相关 ====================
