@@ -185,6 +185,27 @@ const authStore = useAuthStore()
 
 const commentId = computed(() => route.params.commentId as string)
 
+// 评论类型定义
+interface CommentType {
+  id: string
+  content: string
+  userId: string
+  userName: string
+  userAvatar?: string
+  bookId: string
+  chapterId?: string
+  likeCount: number
+  replyCount: number
+  isLiked: boolean
+  createdAt: string
+  replies?: CommentType[]
+}
+
+interface ReplyType extends CommentType {
+  replyToId?: string
+  replyToName?: string
+}
+
 // 面包屑
 const breadcrumbs = computed(() => [
   { title: '首页', path: '/' },
@@ -198,8 +219,8 @@ const loadingMore = ref(false)
 const submitting = ref(false)
 
 // 评论数据
-const comment = ref<any>(null)
-const replies = ref<any[]>([])
+const comment = ref<CommentType | null>(null)
+const replies = ref<ReplyType[]>([])
 const sortBy = ref('latest')
 const hasMore = ref(false)
 const currentPage = ref(1)
@@ -214,7 +235,7 @@ const loadComment = async () => {
   try {
     const response = await httpService.get(`/reader/comments/${commentId.value}`)
     comment.value = response.data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载评论失败:', error)
     message.error('加载评论失败')
   } finally {
@@ -236,7 +257,7 @@ const loadReplies = async () => {
     })
     replies.value = response.data.replies || []
     hasMore.value = response.data.total > currentPage.value * 20
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载回复失败:', error)
     message.error('加载回复失败')
   } finally {
@@ -258,7 +279,7 @@ const loadMoreReplies = async () => {
     })
     replies.value.push(...(response.data.replies || []))
     hasMore.value = response.data.total > currentPage.value * 20
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载回复失败:', error)
     message.error('加载回复失败')
   } finally {
@@ -285,7 +306,7 @@ const handleLike = async () => {
       comment.value.likeCount = (comment.value.likeCount || 0) + 1
       message.success('点赞成功')
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('点赞操作失败:', error)
     message.error('操作失败')
   }
@@ -318,7 +339,7 @@ const handleReply = async () => {
     if (comment.value) {
       comment.value.replyCount = (comment.value.replyCount || 0) + 1
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('回复失败:', error)
     message.error('回复失败')
   } finally {
@@ -341,7 +362,7 @@ const handleReplySubmit = async (replyCommentId: string, content: string) => {
 
     // 刷新回复列表
     loadReplies()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('回复失败:', error)
     message.error('回复失败')
   }
@@ -361,7 +382,7 @@ const handleDeleteComment = async (deleteCommentId: string) => {
 
     // 刷新回复列表
     loadReplies()
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
       message.error('删除失败')
@@ -384,7 +405,7 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
     }
 
     // 更新本地数据
-    const updateCommentLike = (comments: any[]) => {
+    const updateCommentLike = (comments: ReplyType[]) => {
       for (const c of comments) {
         if (c.id === likeCommentId) {
           c.isLiked = isLike
@@ -396,7 +417,7 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
       }
     }
     updateCommentLike(replies.value)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('点赞操作失败:', error)
     message.error('操作失败')
   }

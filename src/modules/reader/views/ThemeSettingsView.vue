@@ -315,7 +315,7 @@ const createCustomTheme = async () => {
     customThemes.value.push(res)
     message.success('主题创建成功')
     showCreateThemeDialog.value = false
-  } catch (error: any) {
+  } catch (error: unknown) {
     message.error(error.message || '创建失败')
   }
 }
@@ -335,7 +335,7 @@ const deleteCustomTheme = async (themeId: string) => {
     await apiDeleteTheme(themeId)
     customThemes.value = customThemes.value.filter(t => t.id !== themeId)
     message.success('删除成功')
-  } catch (error: any) {
+  } catch (error: unknown) {
     message.error(error.message || '删除失败')
   }
 }
@@ -352,7 +352,7 @@ const saveAllSettings = async () => {
     await updateFontSettings(fontSettings)
 
     message.success('设置保存成功')
-  } catch (error: any) {
+  } catch (error: unknown) {
     message.error(error.message || '保存失败')
   } finally {
     saving.value = false

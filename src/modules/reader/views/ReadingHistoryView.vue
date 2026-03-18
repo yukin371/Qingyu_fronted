@@ -169,13 +169,13 @@ function formatDuration(seconds: number): string {
   }
 }
 
-async function hydrateHistories(items: any[]): Promise<ReadingHistory[]> {
+async function hydrateHistories(items: Record<string, unknown>[]): Promise<ReadingHistory[]> {
   const uniqueBookIds = [...new Set(items.map((item) => item.bookId).filter(Boolean))]
   const detailEntries = await Promise.all(
     uniqueBookIds.map(async (id) => {
       try {
         const response = await getBookDetail(String(id))
-        return [String(id), (response as any)?.data ?? response] as const
+        return [String(id), (response as { data?: unknown })?.data ?? response] as const
       } catch {
         return [String(id), null] as const
       }
@@ -210,11 +210,11 @@ async function loadHistory(): Promise<void> {
   loading.value = true
   try {
     const response = await getReadingHistory(currentPage.value, pageSize.value)
-    const payload = (response as any)?.data ?? response
+    const payload = (response as { data?: unknown })?.data ?? response
     const rawList = payload?.histories || payload?.items || payload?.list || []
     histories.value = await hydrateHistories(Array.isArray(rawList) ? rawList : [])
     total.value = Number(payload?.pagination?.total ?? payload?.total ?? histories.value.length)
-  } catch (error: any) {
+  } catch (error: unknown) {
     ElMessage.error(error.message || '加载历史记录失败')
   } finally {
     loading.value = false
@@ -243,7 +243,7 @@ async function removeHistory(id: string): Promise<void> {
     histories.value = histories.value.filter(h => h.id !== id)
     total.value = Math.max(0, total.value - 1)
     message.success('删除成功')
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
       ElMessage.error(error.message || '删除失败')
     }
@@ -266,7 +266,7 @@ async function clearAll(): Promise<void> {
     histories.value = []
     total.value = 0
     message.success('已清空阅读历史')
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
       ElMessage.error(error.message || '清空失败')
     }
