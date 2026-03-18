@@ -1,234 +1,211 @@
 <template>
   <div class="book-detail-view">
-    <div class="detail-container">
-      <!-- 加载状态 -->
+    <div class="page-shell">
       <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
-      <template v-else>
-        <!-- 返回按钮 -->
-        <div class="back-button">
+      <template v-else-if="book">
+        <div class="back-row">
           <Button @click="router.back()">
             <Icon name="arrow-left" size="sm" class="mr-1" />
             返回
           </Button>
         </div>
 
-        <!-- 书籍信息区 -->
-        <div v-if="book" class="book-header" data-testid="book-detail">
-          <div class="container">
-            <Row :gutter="40">
-              <!-- 封面 -->
-              <Col :span="6" :xs="24" :sm="8">
-                <div class="book-cover">
-                  <Image :src="book.cover" fit="cover" :alt="book.title">
-                    <template #error>
-                      <div class="image-slot">
-                        <Icon name="photo" size="md" />
-                      </div>
-                    </template>
-                  </Image>
-                </div>
-              </Col>
-
-              <!-- 书籍信息 -->
-              <Col :span="18" :xs="24" :sm="16">
-                <div class="book-info">
-                  <h1 class="book-title" data-testid="book-title">{{ book.title }}</h1>
-
-                  <div class="book-meta">
-                    <span class="author">
-                      <Icon name="user" size="sm" />
-                      <span v-if="book.author" class="author-name">
-                        {{ book.author }}
-                      </span>
-                      <span v-else class="author-name"> 未知作者 </span>
-                    </span>
-                    <span class="category">
-                      <Icon name="folder" size="sm" />
-                      {{ book.categoryName || book.category || '未分类' }}
-                    </span>
-                    <Tag :variant="statusType">{{ statusText }}</Tag>
-                  </div>
-
-                  <div class="book-stats">
-                    <div class="stat-item">
-                      <Rate :model-value="book.rating ?? 0" disabled size="sm" />
-                      <span class="rating-count">({{ book.ratingCount || 0 }}人评分)</span>
-                    </div>
-                    <div class="stat-item">
-                      <Icon name="eye" size="md" />
-                      {{ formatNumber(book.viewCount) }} 阅读
-                    </div>
-                    <div class="stat-item">
-                      <Icon name="star" size="md" />
-                      {{ formatNumber(book.favoriteCount) }} 收藏
-                    </div>
-                    <div class="stat-item">
-                      <Icon name="document" size="md" />
-                      {{ formatNumber(book.wordCount) }}字 · {{ book.chapterCount || 0 }}章
-                    </div>
-                  </div>
-
-                  <!-- 标签 -->
-                  <div v-if="book.tags && book.tags.length" class="book-tags">
-                    <Tag v-for="tag in book.tags" :key="tag" size="sm">
-                      {{ tag }}
-                    </Tag>
-                  </div>
-
-                  <!-- 操作按钮 -->
-                  <div class="book-actions">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
-                      @click="startReading"
-                    >
-                      <Icon name="book-open" size="md" class="mr-1" />
-                      {{ hasProgress ? '继续阅读' : '开始阅读' }}
-                    </Button>
-                    <Button size="lg" @click="addToShelf">
-                      <Icon name="folder-plus" size="md" class="mr-1" />
-                      加入书架
-                    </Button>
-                    <Button
-                      size="lg"
-                      @click="toggleFavorite"
-                      :loading="checkingFavorite"
-                      :data-testid="isFavorited ? 'unfavorite-button' : 'favorite-button'"
-                    >
-                      <Icon name="star" size="md" class="mr-1" />
-                      {{ isFavorited ? '已收藏' : '收藏' }}
-                    </Button>
-                  </div>
-                </div>
-              </Col>
-            </Row>
+        <section class="panel intro-panel" data-testid="book-detail">
+          <div class="cover-block">
+            <img :src="coverSrc" :alt="book.title" class="book-cover" @error="handleCoverError" />
           </div>
-        </div>
+
+          <div class="info-block">
+            <div class="title-row">
+              <h1 class="title" data-testid="book-title">{{ book.title }}</h1>
+              <span class="author">{{ book.author || '未知作者' }} 著</span>
+            </div>
+
+            <div class="tags-row">
+              <Tag class="meta-tag" size="sm">{{ book.categoryName || book.category || '未分类' }}</Tag>
+              <Tag class="meta-tag" size="sm">{{ statusText }}</Tag>
+              <Tag v-for="tag in displayTags" :key="tag" class="meta-tag" size="sm">{{ tag }}</Tag>
+            </div>
+
+            <div class="meta-row">
+              <span class="status">{{ statusText }}{{ bookSourceText }}</span>
+              <span class="updated">最后更新：{{ lastUpdateText }}</span>
+            </div>
+
+            <div class="stat-row">
+              <span>总点击：<b>{{ formatNumber(book.viewCount) }}</b></span>
+              <span>总收藏：<b>{{ formatNumber(book.favoriteCount) }}</b></span>
+              <span>总字数：<b>{{ formatRawNumber(book.wordCount) }}</b></span>
+            </div>
+
+            <div class="chapter-info-row">
+              <span>章节总数：{{ book.chapterCount || chapters.length || 0 }} 章</span>
+              <span>最新章节：{{ latestChapterTitle }}</span>
+            </div>
+
+            <div class="rating-row">
+              <span class="rating-label">评分概览</span>
+              <Rate :model-value="book.rating ?? 0" disabled allow-half size="sm" />
+              <span class="rating-value">{{ Number(book.rating ?? 0).toFixed(1) }}</span>
+              <span class="rating-count">{{ book.ratingCount || 0 }} 人评分</span>
+            </div>
+
+            <div class="action-row">
+              <Button
+                variant="primary"
+                size="lg"
+                :data-testid="hasProgress ? 'continue-reading' : 'start-reading'"
+                @click="startReading"
+              >
+                <Icon name="book-open" size="md" class="mr-1" />
+                {{ hasProgress ? '继续阅读' : '立即阅读' }}
+              </Button>
+              <Button size="lg" @click="addToShelf">
+                <Icon name="folder-plus" size="md" class="mr-1" />
+                放入书架
+              </Button>
+              <Button
+                size="lg"
+                :loading="checkingFavorite"
+                :data-testid="isFavorited ? 'unfavorite-button' : 'favorite-button'"
+                @click="toggleFavorite"
+              >
+                <Icon name="star" size="md" class="mr-1" />
+                {{ isFavorited ? '已收藏' : '收藏作品' }}
+              </Button>
+              <Button size="lg" @click="jumpToRating">去评分</Button>
+              <Button size="lg" @click="jumpToComment">写评论</Button>
+            </div>
+
+            <div class="intro-text">
+              <h3>作品简介</h3>
+              <p>{{ displayDescription }}</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel chapter-panel">
+          <div class="panel-title-row">
+            <h2>章节目录</h2>
+            <Button variant="text" @click="reverseChapterOrder">
+              {{ isReversed ? '正序' : '倒序' }}
+            </Button>
+          </div>
+
+          <div class="chapter-grid">
+            <button
+              v-for="chapter in visibleChapters"
+              :key="chapter.id"
+              class="chapter-item"
+              type="button"
+              @click="readChapter(chapter.id)"
+            >
+              <span class="chapter-title">{{ chapter.title }}</span>
+              <span class="chapter-meta">
+                <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
+                {{ formatRawNumber(chapter.wordCount || 0) }}字
+              </span>
+            </button>
+          </div>
+
+          <div v-if="canExpandChapters" class="more-row">
+            <Button variant="text" @click="expandedChapters = true">展开更多目录</Button>
+          </div>
+        </section>
+
+        <section ref="ratingSectionRef" class="panel rating-panel">
+          <div class="panel-title-row">
+            <h2>评分区</h2>
+            <span>评分与评价会实时同步到详情头部</span>
+          </div>
+          <RatingSection :book-id="bookId" />
+        </section>
+
+        <section class="panel comment-panel">
+          <div class="panel-title-row">
+            <h2>书评区</h2>
+            <span>书评总数量：{{ commentCountText }} 条</span>
+          </div>
+
+          <div ref="commentEditorRef" class="comment-editor">
+            <template v-if="authStore.isLoggedIn">
+              <Textarea
+                v-model="newComment"
+                :rows="5"
+                placeholder="快来吐槽这本书吧，注意文明用语哦"
+                :maxlength="1000"
+                show-word-limit
+              />
+              <div class="editor-action">
+                <Button variant="primary" :loading="submittingComment" @click="submitComment">
+                  发表
+                </Button>
+              </div>
+            </template>
+            <div v-else class="login-hint">
+              <p>登录后可查看并发表书评。</p>
+              <Button variant="primary" @click="goToLogin">前往登录</Button>
+            </div>
+          </div>
+
+          <div class="comment-list">
+            <Spinner v-if="commentsLoading" size="md" class="loading-spinner" />
+            <template v-else>
+              <div v-if="comments.length === 0" class="empty-comments">
+                <Empty :title="authStore.isLoggedIn ? '暂无评论，来发表第一条评论吧' : '登录后查看书评内容'" />
+              </div>
+              <CommentItem
+                v-for="comment in comments"
+                :key="comment.id"
+                :comment="comment"
+                @delete="handleDeleteComment"
+                @update="onCommentUpdated"
+              />
+              <div v-if="hasMoreComments" class="load-more">
+                <Button :loading="loadingMore" @click="loadMoreComments">加载更多</Button>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <section v-if="recommendedBooks.length" class="panel recommend-panel">
+          <div class="panel-title-row">
+            <h2>相似推荐</h2>
+          </div>
+          <div class="recommend-grid">
+            <button
+              v-for="item in recommendedBooks"
+              :key="item.id"
+              type="button"
+              class="recommend-card"
+              @click="goToBook(item.id)"
+            >
+              <Image :src="item.cover" fit="cover" class="recommend-cover">
+                <template #error>
+                  <div class="cover-fallback compact">
+                    <Icon name="photo" size="md" />
+                  </div>
+                </template>
+              </Image>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.author || '未知作者' }}</p>
+            </button>
+          </div>
+        </section>
       </template>
-
-      <!-- 内容区 -->
-      <div v-if="book" class="book-content">
-        <div class="container">
-          <Tabs v-model:active-tab="activeTab">
-            <!-- 简介 -->
-            <TabPane label="简介" name="intro">
-              <div class="book-description">
-                <p>{{ book.description || '暂无简介' }}</p>
-              </div>
-            </TabPane>
-
-            <!-- 章节列表 -->
-            <TabPane label="目录" name="chapters">
-              <div class="chapter-list">
-                <div class="chapter-header">
-                  <span>共 {{ book.chapterCount }} 章</span>
-                  <Button variant="text" @click="reverseChapterOrder">
-                    {{ isReversed ? '正序' : '倒序' }}
-                  </Button>
-                </div>
-
-                <div class="chapter-scroll" style="max-height: 600px; overflow-y: auto">
-                  <div
-                    v-for="chapter in displayedChapters"
-                    :key="chapter.id"
-                    class="chapter-item"
-                    :class="{ 'is-read': chapter.isRead }"
-                    @click="readChapter(chapter.id)"
-                  >
-                    <span class="chapter-title">{{ chapter.title }}</span>
-                    <span class="chapter-info">
-                      <Icon v-if="!chapter.isFree" name="lock-closed" size="xs" />
-                      {{ chapter.wordCount }}字
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </TabPane>
-
-            <!-- 评分 -->
-            <TabPane label="评分与评价" name="rating">
-              <RatingSection :book-id="bookId" />
-            </TabPane>
-
-            <!-- 评论 -->
-            <TabPane label="书评" name="comments">
-              <div class="comments-container">
-                <!-- 发表评论 -->
-                <div class="comment-post">
-                  <Textarea
-                    v-model="newComment"
-                    :rows="4"
-                    placeholder="写下你的看法..."
-                    :maxlength="1000"
-                    show-word-limit
-                  />
-                  <div class="comment-actions">
-                    <Button variant="primary" @click="submitComment" :loading="submittingComment">
-                      发表
-                    </Button>
-                  </div>
-                </div>
-
-                <!-- 评论列表 -->
-                <div class="comments-list">
-                  <Spinner v-if="commentsLoading" size="md" class="loading-spinner" />
-                  <template v-else>
-                    <div v-if="comments.length === 0" class="empty-comments">
-                      <Empty title="暂无评论，来发表第一条评论吧" />
-                    </div>
-                    <CommentItem
-                      v-for="comment in comments"
-                      :key="comment.id"
-                      :comment="comment"
-                      @delete="handleDeleteComment"
-                      @update="onCommentUpdated"
-                    />
-                    <div v-if="hasMoreComments" class="load-more">
-                      <Button @click="loadMoreComments" :loading="loadingMore"> 加载更多 </Button>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </TabPane>
-          </Tabs>
-        </div>
-      </div>
-
-      <!-- 推荐书籍 -->
-      <div v-if="recommendedBooks.length" class="recommended-section">
-        <div class="container">
-          <h2 class="section-title">相似推荐</h2>
-          <Row :gutter="20">
-            <Col v-for="item in recommendedBooks" :key="item.id" :xs="12" :sm="8" :md="6" :lg="4">
-              <div class="book-card" @click="goToBook(item.id)">
-                <Image :src="item.cover" fit="cover">
-                  <template #error>
-                    <div class="image-slot">
-                      <Icon name="photo" size="md" />
-                    </div>
-                  </template>
-                </Image>
-                <h4>{{ item.title }}</h4>
-                <p>{{ item.author }}</p>
-              </div>
-            </Col>
-          </Row>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookstoreStore } from '@/stores/bookstore'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'
-import { Button, Tabs, Rate, Empty, Image, Tag, Spinner, Row, Col } from '@/design-system'
+import { Button, Rate, Empty, Image, Tag, Spinner } from '@/design-system'
 import { Icon } from '@/design-system'
 import { Textarea } from '@/design-system'
 import RatingSection from '@/components/RatingSection.vue'
@@ -238,12 +215,13 @@ import { addToBookshelf } from '@/modules/reader/api'
 import { getBookRating as getBookRatingSummary } from '@/modules/reader/api/manual/rating'
 import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
 import type { ChapterListItem, BookBrief } from '@/types/models'
+import { getBookChapters as getBookChaptersApi } from '@/modules/bookstore/api/wrapper'
 import {
   getPublishedBookDetail,
   type PublishedBridgeBookDetail,
 } from '@/modules/workflow/publishedBridge'
+import defaultBookCover from '@/assets/default-book-cover.svg'
 
-// Proper TypeScript interfaces
 interface Comment {
   id: string
   userId: string
@@ -259,7 +237,8 @@ interface Book {
   title: string
   author: string
   cover: string
-  description: string
+  description?: string
+  introduction?: string
   categoryName?: string
   category?: string
   status: string
@@ -267,9 +246,13 @@ interface Book {
   ratingCount?: number
   viewCount: number
   favoriteCount: number
+  collectCount?: number
   wordCount: number
   chapterCount: number
   tags?: string[]
+  lastUpdateAt?: string
+  updatedAt?: string
+  publishedAt?: string
 }
 
 const route = useRoute()
@@ -280,16 +263,18 @@ const authStore = useAuthStore()
 
 const bookId = route.params.id as string
 const loading = ref(false)
-const activeTab = ref('intro')
 const isReversed = ref(false)
+const expandedChapters = ref(false)
 const isFavorited = ref(false)
-const collectionId = ref<string | null>(null) // 收藏记录ID，用于删除收藏
-const checkingFavorite = ref(false) // 检查收藏状态loading
+const collectionId = ref<string | null>(null)
+const checkingFavorite = ref(false)
 const chapters = ref<ChapterListItem[]>([])
 const recommendedBooks = ref<BookBrief[]>([])
 const publishedBookDetail = ref<PublishedBridgeBookDetail | null>(null)
+const commentEditorRef = ref<HTMLElement | null>(null)
+const ratingSectionRef = ref<HTMLElement | null>(null)
+const coverErrored = ref(false)
 
-// 评论相关
 const comments = ref<Comment[]>([])
 const commentsLoading = ref(false)
 const newComment = ref('')
@@ -299,9 +284,7 @@ const commentPageSize = ref(20)
 const commentTotal = ref(0)
 const loadingMore = ref(false)
 
-const hasMoreComments = computed(() => {
-  return comments.value.length < commentTotal.value
-})
+const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
 
 const book = computed(() => {
   if (publishedBookDetail.value) {
@@ -311,11 +294,6 @@ const book = computed(() => {
     } as unknown as Book
   }
   return bookstoreStore.currentBook ? ({ ...bookstoreStore.currentBook } as unknown as Book) : null
-})
-
-const statusType = computed(() => {
-  if (!book.value) return 'info'
-  return book.value.status === 'completed' ? 'success' : 'warning'
 })
 
 const statusText = computed(() => {
@@ -330,30 +308,105 @@ const statusText = computed(() => {
   return statusMap[key] || key
 })
 
-const hasProgress = computed(() => {
-  return false
+const displayTags = computed(() => (book.value?.tags || []).slice(0, 5))
+
+const displayDescription = computed(() => {
+  const description = book.value?.description || book.value?.introduction
+  return description || '暂无简介'
 })
 
-const displayedChapters = computed(() => {
+const showcaseCoverAliases: Record<string, string> = {
+  '/images/covers/showcase-yunhai.jpg': '/images/covers/yunlan-cover.png',
+}
+
+const coverSrc = computed(() => {
+  if (coverErrored.value) return defaultBookCover
+  const source = book.value?.cover
+  if (!source) return defaultBookCover
+  return showcaseCoverAliases[source] || source
+})
+
+const latestChapterTitle = computed(() => {
+  const chapterList = displayedChaptersSource.value
+  return chapterList[chapterList.length - 1]?.title || '暂无章节'
+})
+
+const lastUpdateText = computed(() => {
+  const target = book.value?.lastUpdateAt || book.value?.updatedAt || book.value?.publishedAt
+  return formatDateTime(target)
+})
+
+const bookSourceText = computed(() => {
+  return publishedBookDetail.value ? ' · 发布预览' : ''
+})
+
+const hasProgress = computed(() => false)
+
+const displayedChaptersSource = computed(() => {
   return isReversed.value ? [...chapters.value].reverse() : chapters.value
 })
 
-// 格式化数字
+const visibleChapters = computed(() => {
+  return expandedChapters.value
+    ? displayedChaptersSource.value
+    : displayedChaptersSource.value.slice(0, 18)
+})
+
+const canExpandChapters = computed(() => {
+  return !expandedChapters.value && displayedChaptersSource.value.length > 18
+})
+
+const commentCountText = computed(() => {
+  return commentTotal.value || comments.value.length
+})
+
 const formatNumber = (num?: number): string => {
   const safeNumber = typeof num === 'number' && !Number.isNaN(num) ? num : 0
   if (safeNumber >= 10000) {
-    return (safeNumber / 10000).toFixed(1) + '万'
+    return `${(safeNumber / 10000).toFixed(1)}万`
   }
   return safeNumber.toString()
 }
 
-// 开始阅读
+const formatRawNumber = (num?: number): string => {
+  const safeNumber = typeof num === 'number' && !Number.isNaN(num) ? num : 0
+  return safeNumber.toString()
+}
+
+const formatDateTime = (value?: string): string => {
+  if (!value) return '暂无更新'
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return '暂无更新'
+  return parsed.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+}
+
+const handleCoverError = () => {
+  coverErrored.value = true
+}
+
+const normalizeChapterItem = (chapter: any): ChapterListItem => ({
+  id: String(chapter?.id ?? ''),
+  title: String(chapter?.title ?? '未命名章节'),
+  chapterNum: Number(chapter?.chapterNum ?? chapter?.chapter_num ?? 0),
+  isFree: Boolean(chapter?.isFree ?? chapter?.is_free ?? false),
+  wordCount: Number(chapter?.wordCount ?? chapter?.word_count ?? 0),
+  price: Number(chapter?.price ?? 0),
+  publishTime: String(chapter?.publishedAt ?? chapter?.publishTime ?? chapter?.publish_time ?? new Date().toISOString()),
+  isRead: Boolean(chapter?.isRead ?? chapter?.is_read ?? false),
+} as any)
+
 const startReading = async () => {
   try {
-    // 从第一章开始
     if (chapters.value.length > 0) {
-      // 设置当前bookId到readerStore，以便reader页面可以加载章节
-      readerStore.currentBookId.value = bookId
+      ;(readerStore as any).setCurrentBookId(bookId)
       if (publishedBookDetail.value) {
         router.push({
           path: `/reader/${chapters.value[0].id}`,
@@ -370,10 +423,8 @@ const startReading = async () => {
   }
 }
 
-// 阅读章节
 const readChapter = (chapterId: string) => {
-  // 设置当前bookId到readerStore
-  readerStore.currentBookId.value = bookId
+  ;(readerStore as any).setCurrentBookId(bookId)
   if (publishedBookDetail.value) {
     router.push({ path: `/reader/${chapterId}`, query: { source: 'published', bookId } })
     return
@@ -381,11 +432,10 @@ const readChapter = (chapterId: string) => {
   router.push(`/reader/${chapterId}`)
 }
 
-// 加入书架
 const addToShelf = async () => {
   if (!authStore.isLoggedIn) {
     message.warning('请先登录')
-    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    goToLogin()
     return
   }
 
@@ -397,49 +447,39 @@ const addToShelf = async () => {
   }
 }
 
-// 切换收藏
 const toggleFavorite = async () => {
   if (!authStore.isLoggedIn) {
     message.warning('请先登录')
-    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    goToLogin()
     return
   }
 
   try {
     if (isFavorited.value) {
-      // 取消收藏
       if (collectionId.value) {
         await collectionsAPI.deleteCollection(collectionId.value)
-        // 立即更新状态
         isFavorited.value = false
         collectionId.value = null
         message.success('取消收藏')
       }
     } else {
-      // 添加收藏
       const response = await collectionsAPI.addCollection(bookId)
       if (response) {
-        // 立即更新状态 - 使用返回的数据
         isFavorited.value = true
-        // response 应该包含收藏记录的完整信息，包括 id
         collectionId.value = response.id || (response as any).collection_id || null
         message.success('收藏成功')
       }
     }
   } catch (error) {
-    console.error('收藏操作失败:', error)
     const errorMsg =
       (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data
         ?.message ||
       (error as Error).message ||
       '操作失败'
-    // 如果是"已经收藏"的错误，视为成功
     if (errorMsg.includes('已经收藏') || errorMsg.includes('already')) {
       if (!isFavorited.value) {
-        // 立即更新状态，避免等待API调用
         isFavorited.value = true
         message.success('已收藏')
-        // 异步获取收藏ID
         checkFavoriteStatus().catch((err) => console.error('获取收藏状态失败:', err))
       }
     } else {
@@ -448,7 +488,6 @@ const toggleFavorite = async () => {
   }
 }
 
-// 检查收藏状态
 const checkFavoriteStatus = async () => {
   if (!authStore.isLoggedIn) {
     isFavorited.value = false
@@ -461,13 +500,11 @@ const checkFavoriteStatus = async () => {
     const response = await collectionsAPI.checkCollected(bookId)
     if (response.is_collected) {
       isFavorited.value = true
-      // 如果还没有 collectionId，获取收藏列表以找到收藏ID
       if (!collectionId.value) {
         const collections = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
         if (Array.isArray(collections)) {
           const currentBookCollection = collections.find(
-            (c: Collection) =>
-              c.bookId === bookId || (c as { book_id?: string }).book_id === bookId,
+            (c: Collection) => c.bookId === bookId || (c as { book_id?: string }).book_id === bookId,
           )
           if (currentBookCollection) {
             collectionId.value = currentBookCollection.id
@@ -487,8 +524,16 @@ const checkFavoriteStatus = async () => {
   }
 }
 
-// 加载评论
 const loadComments = async (reset = false) => {
+  if (!authStore.isLoggedIn) {
+    if (reset) {
+      comments.value = []
+      commentTotal.value = 0
+      commentPage.value = 1
+    }
+    return
+  }
+
   if (reset) {
     commentPage.value = 1
     comments.value = []
@@ -502,45 +547,40 @@ const loadComments = async (reset = false) => {
       size: commentPageSize.value,
     })
 
-    const data =
-      (
-        response as {
-          data?: Comment[] | { data?: Comment[]; comments?: Comment[]; total?: number }
-          total?: number
-        }
-      )?.data || response
-    if (data) {
-      const commentList = Array.isArray(data)
-        ? data
-        : (data as { data?: Comment[] }).data || (data as { comments?: Comment[] }).comments || []
-      if (reset) {
-        comments.value = commentList
-      } else {
-        comments.value.push(...commentList)
-      }
-      const totalData = data as { total?: number }
-      commentTotal.value = totalData.total || 0
+    const payload = response as any
+    const commentList = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload)
+        ? payload
+        : payload?.data?.comments || payload?.comments || []
+
+    if (reset) {
+      comments.value = commentList
+    } else {
+      comments.value.push(...commentList)
     }
-  } catch {
-    message.error('加载评论失败')
+
+    commentTotal.value = Number(payload?.pagination?.total ?? payload?.total ?? commentList.length)
+  } catch (error: any) {
+    if (error?.response?.status !== 401) {
+      message.error('加载评论失败')
+    }
   } finally {
     commentsLoading.value = false
   }
 }
 
-// 加载更多评论
 const loadMoreComments = async () => {
   loadingMore.value = true
-  commentPage.value++
+  commentPage.value += 1
   await loadComments()
   loadingMore.value = false
 }
 
-// 提交评论
 const submitComment = async () => {
   if (!authStore.isLoggedIn) {
     message.warning('请先登录')
-    router.push({ path: '/auth', query: { redirect: route.fullPath } })
+    goToLogin()
     return
   }
 
@@ -554,7 +594,6 @@ const submitComment = async () => {
     await createComment({ bookId, content: newComment.value })
     message.success('发表成功')
     newComment.value = ''
-    // 重新加载评论列表
     await loadComments(true)
   } catch {
     message.error('发表失败')
@@ -563,14 +602,12 @@ const submitComment = async () => {
   }
 }
 
-// 删除评论
 const handleDeleteComment = async (commentId: string) => {
   try {
     await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
     })
-
     await deleteComment(commentId)
     message.success('删除成功')
     await loadComments(true)
@@ -581,20 +618,18 @@ const handleDeleteComment = async (commentId: string) => {
   }
 }
 
-// 反转章节顺序
 const reverseChapterOrder = () => {
   isReversed.value = !isReversed.value
 }
 
-// 跳转到其他书籍
 const goToBook = (id: string) => {
   router.push({ name: 'book-detail', params: { id } })
 }
 
-// 加载书籍详情
 const loadBookDetail = async () => {
   loading.value = true
   try {
+    coverErrored.value = false
     const localDetail = getPublishedBookDetail(bookId)
     if (localDetail) {
       publishedBookDetail.value = localDetail
@@ -613,8 +648,18 @@ const loadBookDetail = async () => {
     }
 
     publishedBookDetail.value = null
-    console.log('[BookDetailView] Loading book detail for ID:', bookId)
     await bookstoreStore.fetchBookDetail(bookId)
+
+    if (bookstoreStore.currentBook) {
+      bookstoreStore.currentBook = {
+        ...bookstoreStore.currentBook,
+        favoriteCount: Number(
+          (bookstoreStore.currentBook as any).favoriteCount ??
+            (bookstoreStore.currentBook as any).collectCount ??
+            0
+        ),
+      } as any
+    }
 
     try {
       const ratingResponse = await getBookRatingSummary(bookId)
@@ -622,68 +667,76 @@ const loadBookDetail = async () => {
       if (bookstoreStore.currentBook) {
         bookstoreStore.currentBook = {
           ...bookstoreStore.currentBook,
-          rating: Number(
-            (ratingData as any).averageRating ?? (ratingData as any).averageScore ?? 0,
-          ),
-          ratingCount: Number(
-            (ratingData as any).totalRatings ?? (ratingData as any).totalCount ?? 0,
-          ),
+          rating: Number((ratingData as any).averageRating ?? (ratingData as any).averageScore ?? 0),
+          ratingCount: Number((ratingData as any).totalRatings ?? (ratingData as any).totalCount ?? 0),
         } as any
       }
     } catch {
-      // 评分摘要失败不影响详情主体展示
+      // ignore rating failure
     }
 
-    console.log('[BookDetailView] Book loaded, currentBook:', bookstoreStore.currentBook)
-
-    // 加载章节列表
     await loadChapters()
-
-    // 加载推荐书籍
     await loadRecommendations()
-
-    // 加载阅读进度
-    // 调整：当前 readerStore 未提供对应方法
-  } catch {
-    message.error('加载失败')
+  } catch (error: any) {
+    const status = error?.response?.status
+    if (status === 404) {
+      message.error('书籍不存在或数据已刷新，请返回列表页重新进入')
+    } else {
+      message.error('加载失败')
+    }
   } finally {
     loading.value = false
   }
 }
 
-// 加载章节列表
 const loadChapters = async () => {
   if (publishedBookDetail.value) {
-    chapters.value = publishedBookDetail.value.chapters.map((chapter) => ({
-      id: chapter.id,
-      title: chapter.title,
-      chapterNum: chapter.chapterNum || 0,
-      isFree: chapter.isFree,
-      wordCount: chapter.wordCount,
-      price: 0,
-      publishTime: chapter.publishedAt || new Date().toISOString(),
-      isRead: false,
-    }))
+    chapters.value = publishedBookDetail.value.chapters.map(normalizeChapterItem)
     return
   }
 
   try {
-    // 使用公开的bookstore API（不需要认证）
-    const response = await fetch(
-      `http://localhost:8080/api/v1/bookstore/books/${bookId}/chapters?page=1&size=1000`,
-    )
-    const data = await response.json()
-    if (data.code === 0 && Array.isArray(data.data)) {
-      chapters.value = data.data
-    } else {
+    const initialResponse = await getBookChaptersApi(bookId)
+    const initialPayload = initialResponse as any
+    const initialList = Array.isArray(initialPayload?.data)
+      ? initialPayload.data
+      : Array.isArray(initialPayload)
+        ? initialPayload
+        : []
+
+    const totalCount = Number(book.value?.chapterCount || initialList.length)
+    if (initialList.length === 0) {
       chapters.value = []
+      return
     }
+
+    if (initialList.length >= totalCount || totalCount <= 20) {
+      chapters.value = initialList.map(normalizeChapterItem)
+      return
+    }
+
+    const pageSize = 100
+    const totalPages = Math.ceil(totalCount / pageSize)
+    const merged = [...initialList]
+
+    for (let page = 2; page <= totalPages; page += 1) {
+      const response = await fetch(
+        `/api/v1/bookstore/books/${bookId}/chapters?page=${page}&size=${pageSize}`,
+      )
+      if (!response.ok) break
+      const payload = await response.json()
+      const pageItems = Array.isArray(payload?.data) ? payload.data : []
+      if (pageItems.length === 0) break
+      merged.push(...pageItems)
+    }
+
+    chapters.value = merged.map(normalizeChapterItem)
   } catch {
     message.error('加载章节失败')
+    chapters.value = []
   }
 }
 
-// 加载推荐书籍
 const loadRecommendations = async () => {
   try {
     const { getSimilarBooks } = await import('@/modules/bookstore/api')
@@ -694,310 +747,418 @@ const loadRecommendations = async () => {
   }
 }
 
+const jumpToComment = async () => {
+  await nextTick()
+  commentEditorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const jumpToRating = async () => {
+  await nextTick()
+  ratingSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+const goToLogin = () => {
+  router.push({ path: '/auth', query: { redirect: route.fullPath } })
+}
+
+const onCommentUpdated = async (): Promise<void> => {
+  await loadComments(true)
+}
+
 onMounted(() => {
   loadBookDetail()
   loadComments(true)
   checkFavoriteStatus()
 })
-
-const onCommentUpdated = async (): Promise<void> => {
-  await loadComments(true)
-}
 </script>
 
 <style scoped lang="scss">
 .book-detail-view {
   min-height: 100vh;
-  background-color: #f5f5f5;
-
-  :deep(.container) {
-    flex-direction: column !important;
-  }
+  background: #f3f4f6;
+  padding: 20px 0 28px;
 }
 
-.detail-container {
-  position: relative;
+.page-shell {
+  width: min(1120px, calc(100vw - 32px));
+  margin: 0 auto;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 14px;
 }
 
 .loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
 }
 
-.back-button {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+.back-row {
+  margin-bottom: 14px;
 }
 
-.book-header {
-  background: white;
-  padding: 40px 0;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  width: 100%;
+.intro-panel {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
 }
 
 .book-cover {
-  .image-wrapper {
-    width: 100%;
-    aspect-ratio: 3/4;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  }
+  width: 220px;
+  height: 310px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #dcdfe6;
+  background: #f5f7fa;
 }
 
-.book-info {
-  .book-title {
-    font-size: 32px;
-    font-weight: bold;
-    margin: 0 0 16px 0;
-    color: #303133;
-  }
-
-  .book-meta {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 16px;
-    color: #606266;
-    flex-wrap: wrap;
-
-    span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .author-link {
-      color: #409eff;
-      text-decoration: none;
-      transition: color 0.2s;
-
-      &:hover {
-        color: #66b1ff;
-        text-decoration: underline;
-      }
-    }
-  }
-
-  .book-stats {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #909399;
-
-      .rating-count {
-        margin-left: 8px;
-      }
-    }
-  }
-
-  .book-tags {
-    margin-bottom: 24px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .book-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+.cover-fallback {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  height: 100%;
+  color: #909399;
+  background: #f5f7fa;
 }
 
-.book-content {
-  background: white;
-  padding: 24px 0;
-  margin-bottom: 20px;
-  width: 100%;
+.cover-fallback.compact {
+  gap: 0;
 }
 
-.book-description {
-  padding: 20px;
-  line-height: 1.8;
+.title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.author {
+  color: #409eff;
+  font-size: 22px;
+}
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.meta-tag {
+  background: #fff7e6;
+  border-color: #f3d19e;
+  color: #8a5a00;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
   color: #606266;
+  margin-bottom: 12px;
+}
+
+.status {
+  color: #e6a23c;
+  font-weight: 700;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  color: #606266;
+  margin-bottom: 12px;
+}
+
+.stat-row b {
+  color: #f56c6c;
+  font-size: 28px;
+  font-style: italic;
+}
+
+.chapter-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: #606266;
+  margin-bottom: 10px;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 16px;
+}
+
+.rating-label {
+  color: #606266;
+  min-width: 64px;
+}
+
+.rating-value {
+  color: #303133;
+  font-weight: 600;
+}
+
+.rating-count {
+  color: #909399;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.intro-text h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.intro-text p {
+  margin: 0;
+  color: #303133;
+  line-height: 1.75;
   white-space: pre-wrap;
 }
 
-.chapter-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #dcdfe6 #f5f5f5;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f5f5f5;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #dcdfe6;
-    border-radius: 4px;
-
-    &:hover {
-      background: #c0c4cc;
-    }
-  }
+.panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.chapter-list {
-  .chapter-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    border-bottom: 1px solid #ebeef5;
-  }
-
-  .chapter-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f5f5f5;
-    cursor: pointer;
-    transition: background 0.2s;
-
-    &:hover {
-      background-color: #f5f7fa;
-    }
-
-    &.is-read {
-      color: #909399;
-    }
-
-    .chapter-title {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .chapter-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #909399;
-      font-size: 14px;
-    }
-  }
+.panel-title-row h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #111827;
 }
 
-.comments-container {
-  padding: 20px;
+.panel-title-row span {
+  color: #909399;
+  font-size: 14px;
 }
 
-.comment-post {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: #f5f7fa;
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 18px;
+}
+
+.chapter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #303133;
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.chapter-item:hover .chapter-title {
+  color: #e6a23c;
+}
+
+.chapter-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapter-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #909399;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.more-row {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.rating-panel :deep(.rating-section) {
+  padding: 0;
+}
+
+.comment-editor {
+  width: min(100%, 1040px);
+  margin: 0 auto 14px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-
-  .comment-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 12px;
-  }
+  background: #ffffff;
 }
 
-.comments-list {
-  min-height: 200px;
+.editor-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.login-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.login-hint p {
+  margin: 0;
+  color: #606266;
+}
+
+.comment-list {
+  border-top: 1px solid #ebeef5;
 }
 
 .empty-comments {
-  padding: 40px 0;
+  padding: 32px 0;
 }
 
 .load-more {
   text-align: center;
-  padding: 20px 0;
+  padding: 20px 0 8px;
 }
 
-.recommended-section {
-  background: white;
-  padding: 40px 0;
+.recommend-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.recommend-card {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.recommend-card:hover h4 {
+  color: #e6a23c;
+}
+
+.recommend-cover {
   width: 100%;
-
-  .section-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 24px;
-  }
-
-  .book-card {
-    cursor: pointer;
-    transition: transform 0.2s;
-
-    &:hover {
-      transform: translateY(-4px);
-    }
-
-    .image-wrapper {
-      width: 100%;
-      aspect-ratio: 3/4;
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-
-    h4 {
-      margin: 8px 0 4px 0;
-      font-size: 14px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    p {
-      margin: 0;
-      font-size: 12px;
-      color: #909399;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  background: #f5f7fa;
+  margin-bottom: 8px;
 }
 
-.image-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  background-color: #f5f7fa;
+.recommend-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommend-card p {
+  margin: 0;
   color: #909399;
-  font-size: 30px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-  .book-info .book-title {
-    font-size: 24px;
+@media (max-width: 1080px) {
+  .recommend-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .intro-panel {
+    grid-template-columns: 1fr;
   }
 
-  .book-actions {
-    width: 100%;
+  .book-cover {
+    width: 180px;
+    height: 250px;
+  }
 
-    .button {
-      flex: 1;
-    }
+  .title {
+    font-size: 26px;
+  }
+
+  .author {
+    font-size: 20px;
+  }
+
+  .panel-title-row h2 {
+    font-size: 22px;
+  }
+
+  .chapter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommend-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100vw - 20px, 100%);
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .title-row,
+  .meta-row,
+  .stat-row,
+  .chapter-info-row,
+  .rating-row,
+  .action-row,
+  .panel-title-row,
+  .login-hint {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-row :deep(.button),
+  .action-row :deep(button) {
+    width: 100%;
+  }
+
+  .recommend-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
 }
 </style>

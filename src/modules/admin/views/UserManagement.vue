@@ -261,6 +261,9 @@
       v-model="dialogVisible"
       :title="dialogTitle"
       width="600px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
       @close="handleDialogClose"
     >
       <el-form
@@ -297,7 +300,11 @@
         </el-form-item>
 
         <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="userForm.nickname" placeholder="请输入昵称" />
+          <el-input
+            v-model="userForm.nickname"
+            :disabled="dialogMode !== 'add'"
+            placeholder="新增时可设置昵称，编辑模式暂不支持修改"
+          />
         </el-form-item>
 
         <el-form-item label="角色" prop="role">
@@ -325,12 +332,28 @@
         </el-form-item>
 
         <el-form-item label="邮箱验证">
-          <el-switch v-model="userForm.emailVerified" />
+          <el-switch v-model="userForm.emailVerified" disabled />
+          <span class="form-hint">当前由注册/验证流程控制，管理端暂不支持修改</span>
         </el-form-item>
 
         <el-form-item label="个人简介">
-          <el-input v-model="userForm.bio" type="textarea" :rows="3" placeholder="请输入个人简介" />
+          <el-input
+            v-model="userForm.bio"
+            type="textarea"
+            :rows="3"
+            :disabled="dialogMode !== 'add'"
+            placeholder="新增时可设置简介，编辑模式暂不支持修改"
+          />
         </el-form-item>
+
+        <el-alert
+          v-if="dialogMode === 'edit'"
+          type="info"
+          :closable="false"
+          title="当前后端仅支持修改用户角色和状态"
+          description="用户名、邮箱、昵称、邮箱验证和个人简介暂不提供管理员编辑接口。"
+          show-icon
+        />
 
         <el-form-item v-if="dialogMode === 'view'" label="注册时间">
           <span>{{ formatDate(userForm.createdAt) }}</span>
@@ -357,7 +380,14 @@
     </el-dialog>
 
     <!-- 批量添加对话框 -->
-    <el-dialog v-model="batchAddDialogVisible" title="批量添加用户" width="500px">
+    <el-dialog
+      v-model="batchAddDialogVisible"
+      title="批量添加用户"
+      width="500px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <el-form :model="batchAddForm" label-width="100px">
         <el-form-item label="添加数量" required>
           <el-input-number v-model="batchAddForm.count" :min="1" :max="100" />
@@ -393,7 +423,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   Plus,
@@ -416,41 +446,40 @@ import {
 import { formatDate } from '@/utils/format'
 import type { FormInstance } from 'element-plus'
 import { ElTable } from 'element-plus'
-import { getUserList, updateUserStatus, assignRole, deleteUser as deleteUserAPI } from '../api'
+import {
+  assignRole,
+  batchCreateUsers,
+  batchDeleteUsers,
+  batchUpdateUserStatus,
+  createUser,
+  deleteUser as deleteUserAPI,
+  getUserCountsByStatus,
+  getUserList,
+  updateUserStatus,
+} from '../api'
 
-// 检查是否为测试模式
-const isTestMode = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('test') === 'true'
-})
-
-// 筛选器
 const filters = reactive({
   keyword: '',
   role: '',
   status: '',
 })
 
-// 分页
 const pagination = reactive({
   page: 1,
   pageSize: 20,
 })
 
-// 统计数据
 const stats = reactive({
-  total: 156,
-  active: 142,
-  authors: 38,
-  newToday: 5,
+  total: 0,
+  active: 0,
+  authors: 0,
+  newToday: 0,
 })
 
-// 数据
 const loading = ref(false)
 const users = ref<any[]>([])
 const total = ref(0)
 
-// 批量操作
 const tableRef = ref<InstanceType<typeof ElTable> | null>(null)
 const selectedUsers = ref<any[]>([])
 const batchAddDialogVisible = ref(false)
@@ -461,14 +490,12 @@ const batchAddForm = reactive({
   prefix: 'batch_user',
 })
 
-// 对话框
 const dialogVisible = ref(false)
-const dialogMode = ref('view') // view / edit / add
+const dialogMode = ref<'view' | 'edit' | 'add'>('view')
 const dialogTitle = ref('')
 const submitting = ref(false)
 const userFormRef = ref<FormInstance | null>(null)
 
-// 用户表单
 const userForm = reactive({
   userId: '',
   username: '',
@@ -483,7 +510,6 @@ const userForm = reactive({
   lastLoginAt: '',
 })
 
-// 用户表单验证规则
 const userRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -496,150 +522,82 @@ const userRules = {
   role: [{ required: true, message: '请选择角色', trigger: 'change' }],
 }
 
-// 生成模拟用户数据
-const createMockUsers = () => {
-  const roles = ['admin', 'author', 'reader', 'reader', 'reader']
-  const statuses = ['active', 'active', 'active', 'inactive', 'banned']
-  const names = [
-    '张三',
-    '李四',
-    '王五',
-    '赵六',
-    '钱七',
-    '孙八',
-    '周九',
-    '吴十',
-    '郑十一',
-    '王小明',
-    '李小红',
-    '刘大强',
-    '陈美丽',
-    '杨光',
-    '黄海',
-    '林峰',
-    '何雨',
-    '高山',
-    '罗兰',
-    '梁子',
-  ]
-
-  return Array.from({ length: 50 }, (_, i) => {
-    const name = names[i % names.length]
-    const role = roles[i % roles.length]
-    return {
-      userId: `user_${String(i + 1).padStart(4, '0')}`,
-      username: `user${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      nickname: name,
-      role,
-      status: statuses[i % statuses.length],
-      emailVerified: i % 3 !== 0,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
-      bio: `这是${name}的个人简介`,
-      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-      lastLoginAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-    }
-  })
+const loadStats = async () => {
+  try {
+    const [statusCounts, authorResponse] = await Promise.all([
+      getUserCountsByStatus(),
+      getUserList({ page: 1, pageSize: 1, role: 'author' }),
+    ])
+    stats.active = Number(statusCounts.active || 0)
+    stats.authors = Number(authorResponse.total || 0)
+    stats.newToday = 0
+  } catch (error) {
+    console.error('加载用户统计失败:', error)
+    stats.active = 0
+    stats.authors = 0
+    stats.newToday = 0
+  }
 }
 
-const mockUsersPool = createMockUsers()
-
-// 加载用户列表
 const loadUsers = async () => {
   loading.value = true
   try {
-    if (isTestMode.value) {
-      // 使用模拟数据
-      let filtered = [...mockUsersPool]
+    const response = await getUserList({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      keyword: filters.keyword || undefined,
+      role: filters.role || undefined,
+      status: filters.status || undefined,
+    })
 
-      // 应用筛选
-      if (filters.keyword) {
-        const kw = filters.keyword.toLowerCase()
-        filtered = filtered.filter(
-          (u) =>
-            u.username.toLowerCase().includes(kw) ||
-            u.email.toLowerCase().includes(kw) ||
-            u.nickname.includes(kw),
-        )
-      }
-
-      if (filters.role) {
-        filtered = filtered.filter((u) => u.role === filters.role)
-      }
-
-      if (filters.status) {
-        filtered = filtered.filter((u) => u.status === filters.status)
-      }
-
-      total.value = filtered.length
-
-      // 分页
-      const start = (pagination.page - 1) * pagination.pageSize
-      users.value = filtered.slice(start, start + pagination.pageSize)
-
-      // 更新统计
-      stats.total = mockUsersPool.length
-      stats.active = mockUsersPool.filter((u) => u.status === 'active').length
-      stats.authors = mockUsersPool.filter((u) => u.role === 'author').length
-      stats.newToday = Math.floor(Math.random() * 10) + 1
-    } else {
-      // 调用真实API
-      const response = await getUserList({
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        keyword: filters.keyword || undefined,
-        role: filters.role || undefined,
-        status: filters.status || undefined,
-      })
-
-      users.value = response.users.map((item: any) => ({
-        userId: item.id,
-        username: item.username,
-        email: item.email || '',
-        nickname: item.nickname || item.username,
-        role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
-        status: item.status,
-        emailVerified: item.emailVerified || false,
-        avatar: item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
-        bio: item.bio || '',
-        createdAt: item.createdAt || new Date().toISOString(),
-        lastLoginAt: item.lastLoginAt || '',
-      }))
-      total.value = response.total
-
-      // 更新统计 - 目前使用返回的total，后续可调用count-by-status API获取详细统计
-      stats.total = response.total
-    }
+    users.value = response.users.map((item: any) => ({
+      userId: item.id,
+      username: item.username,
+      email: item.email || '',
+      nickname: item.nickname || item.username,
+      role: item.roles && item.roles.length > 0 ? item.roles[0] : 'reader',
+      status: item.status,
+      emailVerified: item.emailVerified || false,
+      avatar: item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.username}`,
+      bio: item.bio || '',
+      createdAt: item.createdAt || new Date().toISOString(),
+      lastLoginAt: item.lastLoginAt || '',
+    }))
+    total.value = response.total
+    stats.total = response.total
+    await loadStats()
   } catch (error) {
     console.error('加载用户列表失败:', error)
+    users.value = []
+    total.value = 0
+    stats.total = 0
+    stats.active = 0
+    stats.authors = 0
+    stats.newToday = 0
     message.error('加载用户列表失败')
   } finally {
     loading.value = false
   }
 }
 
-// 搜索
 const handleSearch = () => {
   pagination.page = 1
-  loadUsers()
+  void loadUsers()
 }
 
-// 筛选变化
 const handleFilterChange = () => {
   pagination.page = 1
-  loadUsers()
+  void loadUsers()
 }
 
-// 重置搜索
 const handleReset = () => {
   filters.keyword = ''
   filters.role = ''
   filters.status = ''
   pagination.page = 1
-  loadUsers()
+  void loadUsers()
 }
 
-// 添加用户
 const handleAdd = () => {
   dialogMode.value = 'add'
   dialogTitle.value = '添加用户'
@@ -647,7 +605,6 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-// 批量添加用户
 const handleBatchAdd = () => {
   batchAddForm.count = 10
   batchAddForm.role = 'reader'
@@ -656,7 +613,6 @@ const handleBatchAdd = () => {
   batchAddDialogVisible.value = true
 }
 
-// 确认批量添加
 const confirmBatchAdd = async () => {
   if (batchAddForm.count < 1 || batchAddForm.count > 100) {
     message.warning('批量添加数量应在1-100之间')
@@ -664,46 +620,29 @@ const confirmBatchAdd = async () => {
   }
 
   try {
-    if (isTestMode.value) {
-      const startId = mockUsersPool.length + 1
-      for (let i = 0; i < batchAddForm.count; i++) {
-        const id = startId + i
-        mockUsersPool.push({
-          userId: `user_${String(id).padStart(4, '0')}`,
-          username: `${batchAddForm.prefix}${id}`,
-          email: `${batchAddForm.prefix}${id}@example.com`,
-          nickname: `批量用户${id}`,
-          role: batchAddForm.role,
-          status: batchAddForm.status,
-          emailVerified: false,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=batch${id}`,
-          bio: '批量创建的用户',
-          createdAt: new Date().toISOString(),
-          lastLoginAt: '',
-        })
-      }
-    }
-
+    await batchCreateUsers({
+      count: batchAddForm.count,
+      prefix: batchAddForm.prefix || undefined,
+      role: batchAddForm.role,
+      status: batchAddForm.status,
+    })
     message.success(`成功批量添加 ${batchAddForm.count} 个用户`)
     batchAddDialogVisible.value = false
-    loadUsers()
+    void loadUsers()
   } catch (error) {
     console.error('批量添加失败:', error)
     message.error('批量添加失败')
   }
 }
 
-// 选择变化
 const handleSelectionChange = (selection: any[]) => {
   selectedUsers.value = selection
 }
 
-// 清除选择
 const clearSelection = () => {
   tableRef.value?.clearSelection()
 }
 
-// 批量激活
 const handleBatchActivate = async () => {
   try {
     await messageBox.confirm(
@@ -712,16 +651,14 @@ const handleBatchActivate = async () => {
       { type: 'info' },
     )
 
-    if (isTestMode.value) {
-      selectedUsers.value.forEach((user) => {
-        const u = mockUsersPool.find((m) => m.userId === user.userId)
-        if (u) u.status = 'active'
-      })
-    }
+    await batchUpdateUserStatus({
+      userIds: selectedUsers.value.map((user) => user.userId),
+      status: 'active',
+    })
 
     message.success('批量激活成功')
     clearSelection()
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('操作失败')
@@ -729,7 +666,6 @@ const handleBatchActivate = async () => {
   }
 }
 
-// 批量封禁
 const handleBatchBan = async () => {
   try {
     await messageBox.confirm(
@@ -738,16 +674,14 @@ const handleBatchBan = async () => {
       { type: 'warning' },
     )
 
-    if (isTestMode.value) {
-      selectedUsers.value.forEach((user) => {
-        const u = mockUsersPool.find((m) => m.userId === user.userId)
-        if (u) u.status = 'banned'
-      })
-    }
+    await batchUpdateUserStatus({
+      userIds: selectedUsers.value.map((user) => user.userId),
+      status: 'banned',
+    })
 
     message.success('批量封禁成功')
     clearSelection()
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('操作失败')
@@ -755,7 +689,6 @@ const handleBatchBan = async () => {
   }
 }
 
-// 批量删除
 const handleBatchDelete = async () => {
   try {
     await messageBox.confirm(
@@ -764,17 +697,13 @@ const handleBatchDelete = async () => {
       { type: 'error', confirmButtonText: '确认删除' },
     )
 
-    if (isTestMode.value) {
-      const deleteIds = selectedUsers.value.map((u) => u.userId)
-      const index = mockUsersPool.findIndex((u) => deleteIds.includes(u.userId))
-      if (index > -1) {
-        mockUsersPool.splice(index, 1)
-      }
-    }
+    await batchDeleteUsers({
+      userIds: selectedUsers.value.map((user) => user.userId),
+    })
 
     message.success('批量删除成功')
     clearSelection()
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('操作失败')
@@ -782,7 +711,6 @@ const handleBatchDelete = async () => {
   }
 }
 
-// 查看用户
 const handleView = (row: any) => {
   dialogMode.value = 'view'
   dialogTitle.value = '查看用户'
@@ -790,7 +718,6 @@ const handleView = (row: any) => {
   dialogVisible.value = true
 }
 
-// 编辑用户
 const handleEdit = (row: any) => {
   dialogMode.value = 'edit'
   dialogTitle.value = '编辑用户'
@@ -798,23 +725,15 @@ const handleEdit = (row: any) => {
   dialogVisible.value = true
 }
 
-// 封禁用户
 const handleBan = async (row: any) => {
   try {
     await messageBox.confirm(`确定要封禁用户 "${row.nickname || row.username}" 吗？`, '确认封禁', {
       type: 'warning',
     })
 
-    if (isTestMode.value) {
-      const user = mockUsersPool.find((u) => u.userId === row.userId)
-      if (user) user.status = 'banned'
-    } else {
-      // 调用真实API
-      await updateUserStatus(row.userId, { status: 'banned' })
-    }
-
+    await updateUserStatus(row.userId, { status: 'banned' })
     message.success('封禁成功')
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('封禁失败:', error)
@@ -823,23 +742,15 @@ const handleBan = async (row: any) => {
   }
 }
 
-// 解封用户
 const handleUnban = async (row: any) => {
   try {
     await messageBox.confirm(`确定要解封用户 "${row.nickname || row.username}" 吗？`, '确认解封', {
       type: 'info',
     })
 
-    if (isTestMode.value) {
-      const user = mockUsersPool.find((u) => u.userId === row.userId)
-      if (user) user.status = 'active'
-    } else {
-      // 调用真实API
-      await updateUserStatus(row.userId, { status: 'active' })
-    }
-
+    await updateUserStatus(row.userId, { status: 'active' })
     message.success('解封成功')
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('解封失败:', error)
@@ -848,7 +759,6 @@ const handleUnban = async (row: any) => {
   }
 }
 
-// 删除用户
 const handleDelete = async (row: any) => {
   try {
     await messageBox.confirm(
@@ -857,18 +767,9 @@ const handleDelete = async (row: any) => {
       { type: 'error', confirmButtonText: '确认删除' },
     )
 
-    if (isTestMode.value) {
-      const index = mockUsersPool.findIndex((u) => u.userId === row.userId)
-      if (index > -1) {
-        mockUsersPool.splice(index, 1)
-      }
-    } else {
-      // 调用真实API
-      await deleteUserAPI(row.userId)
-    }
-
+    await deleteUserAPI(row.userId)
     message.success('删除成功')
-    loadUsers()
+    void loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
@@ -877,38 +778,29 @@ const handleDelete = async (row: any) => {
   }
 }
 
-// 提交表单
 const handleSubmit = async () => {
   const valid = await userFormRef.value?.validate()
   if (!valid) return
 
   submitting.value = true
   try {
-    if (isTestMode.value) {
-      if (dialogMode.value === 'edit') {
-        const user = mockUsersPool.find((u) => u.userId === userForm.userId)
-        if (user) {
-          Object.assign(user, {
-            nickname: userForm.nickname,
-            role: userForm.role,
-            status: userForm.status,
-            emailVerified: userForm.emailVerified,
-            bio: userForm.bio,
-          })
-        }
-      }
-    } else {
-      // 调用真实API
-      if (dialogMode.value === 'edit') {
-        // 更新状态
-        await updateUserStatus(userForm.userId, { status: userForm.status })
-        // 更新角色
-        await assignRole(userForm.userId, { role: userForm.role })
-      }
+    if (dialogMode.value === 'add') {
+      await createUser({
+        username: userForm.username,
+        email: userForm.email,
+        nickname: userForm.nickname || undefined,
+        role: userForm.role,
+        status: userForm.status,
+        bio: userForm.bio || undefined,
+      })
+    } else if (dialogMode.value === 'edit') {
+      await updateUserStatus(userForm.userId, { status: userForm.status })
+      await assignRole(userForm.userId, { role: userForm.role })
     }
+
     message.success(dialogMode.value === 'add' ? '添加成功' : '更新成功')
     dialogVisible.value = false
-    loadUsers()
+    void loadUsers()
   } catch (error) {
     console.error('操作失败:', error)
     message.error('操作失败')
@@ -917,13 +809,11 @@ const handleSubmit = async () => {
   }
 }
 
-// 对话框关闭
 const handleDialogClose = () => {
   resetUserForm()
   userFormRef.value?.clearValidate()
 }
 
-// 重置用户表单
 const resetUserForm = () => {
   userForm.userId = ''
   userForm.username = ''
@@ -938,7 +828,6 @@ const resetUserForm = () => {
   userForm.lastLoginAt = ''
 }
 
-// 获取角色文本
 const getRoleText = (role: string): string => {
   const texts: Record<string, string> = {
     admin: '管理员',
@@ -948,7 +837,6 @@ const getRoleText = (role: string): string => {
   return texts[role] || role
 }
 
-// 获取状态文本
 const getStatusText = (status: string): string => {
   const texts: Record<string, string> = {
     active: '正常',
@@ -959,7 +847,7 @@ const getStatusText = (status: string): string => {
 }
 
 onMounted(() => {
-  loadUsers()
+  void loadUsers()
 })
 </script>
 
@@ -1346,51 +1234,49 @@ onMounted(() => {
     white-space: nowrap;
   }
 
-  .el-pagination {
-    display: flex !important;
-    flex-direction: row !important;
+  :deep(.el-pagination) {
+    display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    flex-wrap: nowrap !important;
+    flex-wrap: nowrap;
     gap: 8px;
     font-size: 14px;
     color: #475569;
+  }
 
-    .el-pagination__total,
-    .el-pagination__sizes,
-    .btn-prev,
-    .btn-next,
-    .el-pager,
-    .el-pagination__jump {
-      margin: 0 !important;
-      display: inline-flex !important;
-      flex-direction: row !important;
-      align-items: center;
-    }
+  :deep(.el-pagination__total),
+  :deep(.el-pagination__sizes),
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager),
+  :deep(.el-pagination__jump) {
+    margin: 0 !important;
+    display: inline-flex;
+    align-items: center;
+  }
 
-    .btn-prev,
-    .btn-next,
-    .el-pager li {
-      display: inline-flex !important;
-      flex-direction: row !important;
-      align-items: center;
-      justify-content: center;
-      min-width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-    }
+  :deep(.btn-prev),
+  :deep(.btn-next),
+  :deep(.el-pager li) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
 
-    .el-pager li.is-active {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      border-color: transparent;
-      color: #fff;
-      font-weight: 500;
-    }
+  :deep(.el-pager li.is-active) {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 500;
+  }
 
-    .el-pagination__sizes .el-select {
-      width: 100px;
-    }
+  :deep(.el-pagination__sizes .el-select) {
+    width: 100px;
   }
 }
 

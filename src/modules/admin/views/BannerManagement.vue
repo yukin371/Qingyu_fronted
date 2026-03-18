@@ -189,6 +189,9 @@
       v-model="dialogVisible"
       :title="editingBanner ? '编辑Banner' : '新建Banner'"
       width="600px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
     >
       <el-form :model="bannerForm" label-width="100px">
         <el-form-item label="标题" required>
@@ -260,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   Plus,
@@ -276,12 +279,6 @@ import {
 } from '@element-plus/icons-vue'
 import { getBanners, createBanner, updateBanner, deleteBanner } from '../api'
 
-// 检查是否为测试模式
-const isTestMode = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('test') === 'true'
-})
-
 // 筛选器
 const filters = reactive({
   targetType: '',
@@ -296,9 +293,9 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  total: 8,
-  active: 6,
-  totalClicks: 15823,
+  total: 0,
+  active: 0,
+  totalClicks: 0,
 })
 
 // 数据
@@ -319,89 +316,31 @@ const bannerForm = reactive({
   isActive: true,
 })
 
-// 生成模拟Banner数据
-const createMockBanners = () => {
-  const images = [
-    'https://picsum.photos/seed/banner1/800/400',
-    'https://picsum.photos/seed/banner2/800/400',
-    'https://picsum.photos/seed/banner3/800/400',
-    'https://picsum.photos/seed/banner4/800/400',
-    'https://picsum.photos/seed/banner5/800/400',
-    'https://picsum.photos/seed/banner6/800/400',
-    'https://picsum.photos/seed/banner7/800/400',
-    'https://picsum.photos/seed/banner8/800/400',
-  ]
-
-  const titles = [
-    { title: '云岚纪事', desc: '热门玄幻小说推荐', type: 'book' },
-    { title: '仙侠精选', desc: '本周最受欢迎仙侠作品', type: 'category' },
-    { title: '新作上架', desc: '查看最新发布的作品', type: 'url' },
-    { title: '都市言情', desc: '甜蜜都市爱情故事', type: 'category' },
-    { title: '科幻世界', desc: '探索未来科幻宇宙', type: 'category' },
-    { title: '历史军事', desc: '金戈铁马征战沙场', type: 'category' },
-    { title: '活动公告', desc: '参与赢取丰厚奖励', type: 'url' },
-    { title: '限量推荐', desc: '编辑精选优质内容', type: 'book' },
-  ]
-
-  return titles.map((item, i) => ({
-    id: `banner_${i + 1}`,
-    title: item.title,
-    description: item.desc,
-    image: images[i],
-    target: item.type === 'url' ? 'https://example.com/promo' : `target_${i + 1}`,
-    targetType: item.type,
-    sortOrder: 100 - i * 10,
-    isActive: i < 6,
-    clickCount: Math.floor(Math.random() * 5000) + 500,
-    createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-  }))
-}
-
-const mockBannersPool = createMockBanners()
-
 // 加载Banner列表
 const loadBanners = async () => {
   loading.value = true
   try {
-    if (isTestMode.value) {
-      let filtered = [...mockBannersPool]
-
-      if (filters.targetType) {
-        filtered = filtered.filter((b) => b.targetType === filters.targetType)
-      }
-
-      if (filters.status) {
-        filtered = filtered.filter((b) => (filters.status === 'active' ? b.isActive : !b.isActive))
-      }
-
-      total.value = filtered.length
-
-      const start = (pagination.page - 1) * pagination.pageSize
-      banners.value = filtered.slice(start, start + pagination.pageSize)
-
-      // 更新统计
-      stats.total = mockBannersPool.length
-      stats.active = mockBannersPool.filter((b) => b.isActive).length
-      stats.totalClicks = mockBannersPool.reduce((sum, b) => sum + (b.clickCount || 0), 0)
-    } else {
-      // 调用真实API
-      const response = await getBanners({
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        targetType: filters.targetType || undefined,
-        status: filters.status || undefined,
-      })
-      banners.value = response.items
-      total.value = response.total || 0
-      stats.total = total.value
-      stats.active = response.items.filter((b: any) => b.isActive).length
-      stats.totalClicks = response.items.reduce(
-        (sum: number, b: any) => sum + (b.clickCount || 0),
-        0,
-      )
-    }
+    const response = await getBanners({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      targetType: filters.targetType || undefined,
+      status: filters.status || undefined,
+    })
+    banners.value = response.items
+    total.value = response.total || 0
+    stats.total = total.value
+    stats.active = response.items.filter((banner) => banner.isActive).length
+    stats.totalClicks = response.items.reduce(
+      (sum, banner) => sum + Number(banner.clickCount || 0),
+      0,
+    )
   } catch (error) {
     console.error('加载Banner列表失败:', error)
+    banners.value = []
+    total.value = 0
+    stats.total = 0
+    stats.active = 0
+    stats.totalClicks = 0
     message.error('加载Banner列表失败')
   } finally {
     loading.value = false
@@ -459,34 +398,15 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    if (isTestMode.value) {
-      if (editingBanner.value) {
-        const banner = mockBannersPool.find((b) => b.id === editingBanner.value.id)
-        if (banner) {
-          Object.assign(banner, bannerForm)
-        }
-        message.success('更新成功')
-      } else {
-        mockBannersPool.unshift({
-          id: `banner_${Date.now()}`,
-          ...bannerForm,
-          clickCount: 0,
-          createdAt: new Date().toISOString(),
-        })
-        message.success('创建成功')
-      }
+    if (editingBanner.value) {
+      await updateBanner(editingBanner.value.id, bannerForm)
+      message.success('更新成功')
     } else {
-      // 调用真实API
-      if (editingBanner.value) {
-        await updateBanner(editingBanner.value.id, bannerForm)
-        message.success('更新成功')
-      } else {
-        await createBanner(bannerForm)
-        message.success('创建成功')
-      }
+      await createBanner(bannerForm)
+      message.success('创建成功')
     }
     dialogVisible.value = false
-    loadBanners()
+    void loadBanners()
   } catch (error) {
     message.error('操作失败')
   } finally {
@@ -496,15 +416,9 @@ const handleSubmit = async () => {
 
 const handleStatusChange = async (banner: any) => {
   try {
-    if (isTestMode.value) {
-      const b = mockBannersPool.find((item) => item.id === banner.id)
-      if (b) b.isActive = banner.isActive
-    } else {
-      // 调用真实API
-      await updateBanner(banner.id, { isActive: banner.isActive })
-    }
+    await updateBanner(banner.id, { isActive: banner.isActive })
     message.success(banner.isActive ? '已启用' : '已禁用')
-    loadBanners()
+    void loadBanners()
   } catch (error) {
     message.error('状态更新失败')
     banner.isActive = !banner.isActive
@@ -517,16 +431,10 @@ const handleDelete = async (banner: any) => {
       type: 'warning',
     })
 
-    if (isTestMode.value) {
-      const index = mockBannersPool.findIndex((b) => b.id === banner.id)
-      if (index > -1) mockBannersPool.splice(index, 1)
-    } else {
-      // 调用真实API
-      await deleteBanner(banner.id)
-    }
+    await deleteBanner(banner.id)
 
     message.success('删除成功')
-    loadBanners()
+    void loadBanners()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('删除失败')
@@ -535,7 +443,7 @@ const handleDelete = async (banner: any) => {
 }
 
 onMounted(() => {
-  loadBanners()
+  void loadBanners()
 })
 </script>
 

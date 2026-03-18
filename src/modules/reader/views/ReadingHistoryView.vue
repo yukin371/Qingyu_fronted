@@ -101,8 +101,10 @@ import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
+import { getBookDetail } from '@/modules/bookstore/api'
 import type { ReadingHistory } from '@/types/models'
 import { ElMessage } from 'element-plus'
+import defaultBookCover from '@/assets/default-book-cover.svg'
 
 const router = useRouter()
 
@@ -167,16 +169,51 @@ function formatDuration(seconds: number): string {
   }
 }
 
+async function hydrateHistories(items: any[]): Promise<ReadingHistory[]> {
+  const uniqueBookIds = [...new Set(items.map((item) => item.bookId).filter(Boolean))]
+  const detailEntries = await Promise.all(
+    uniqueBookIds.map(async (id) => {
+      try {
+        const response = await getBookDetail(String(id))
+        return [String(id), (response as any)?.data ?? response] as const
+      } catch {
+        return [String(id), null] as const
+      }
+    }),
+  )
+  const details = new Map(detailEntries)
+
+  return items.map((item) => {
+    const detail = details.get(String(item.bookId))
+    const progressValue = Number(item.progress ?? 0)
+    const progress = progressValue <= 1 ? Math.round(progressValue * 100) : Math.round(progressValue)
+    const timestamp = item.readAt || item.readTime || item.endTime || item.createdAt || item.startTime || ''
+
+    return {
+      ...item,
+      id: String(item.id ?? `${item.bookId}-${item.chapterId}-${timestamp}`),
+      bookId: String(item.bookId ?? ''),
+      chapterId: String(item.chapterId ?? ''),
+      bookTitle: detail?.title || `作品 ${String(item.bookId ?? '').slice(-6)}`,
+      chapterTitle: item.chapterTitle || `章节 ${String(item.chapterId ?? '').slice(-6)}`,
+      bookCover: detail?.cover || defaultBookCover,
+      progress,
+      duration: Number(item.duration ?? item.readDuration ?? 0),
+      readAt: timestamp,
+      readTime: timestamp,
+    } as ReadingHistory
+  })
+}
+
 // 加载历史记录
 async function loadHistory(): Promise<void> {
   loading.value = true
   try {
     const response = await getReadingHistory(currentPage.value, pageSize.value)
-
-    // PaginatedResponse结构: { code, message, data: T[], pagination: { total, ... }, timestamp }
-    // 使用类型断言处理API返回数据与类型定义不匹配的问题
-    histories.value = (response.data || []) as unknown as ReadingHistory[]
-    total.value = response.pagination?.total || 0
+    const payload = (response as any)?.data ?? response
+    const rawList = payload?.histories || payload?.items || payload?.list || []
+    histories.value = await hydrateHistories(Array.isArray(rawList) ? rawList : [])
+    total.value = Number(payload?.pagination?.total ?? payload?.total ?? histories.value.length)
   } catch (error: any) {
     ElMessage.error(error.message || '加载历史记录失败')
   } finally {
@@ -403,4 +440,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -138,7 +138,14 @@
     </div>
 
     <!-- 审核详情对话框 -->
-    <el-dialog v-model="dialogVisible" :title="`审核详情 - ${currentItem?.title || '无标题'}`" width="800px">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="`审核详情 - ${currentItem?.title || '无标题'}`"
+      width="800px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <div v-if="currentItem" class="review-detail">
         <div class="detail-header">
           <div class="detail-type" :class="currentItem.contentType">
@@ -178,7 +185,14 @@
     </el-dialog>
 
     <!-- 拒绝原因对话框 -->
-    <el-dialog v-model="rejectDialogVisible" title="拒绝原因" width="500px">
+    <el-dialog
+      v-model="rejectDialogVisible"
+      title="拒绝原因"
+      width="500px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <el-form :model="rejectForm" label-width="80px">
         <el-form-item label="拒绝原因" required>
           <el-input

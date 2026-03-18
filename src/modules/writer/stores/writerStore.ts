@@ -35,6 +35,7 @@ import type {
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
 import { syncService, type SyncStatus } from '@/utils/syncService'
+import type { LocationTreeNode, StatisticsCacheItem, RawProjectData, ProjectListResponse } from '@/types/models/project'
 
 /**
  * 自动保存任务
@@ -104,7 +105,7 @@ export interface WriterState {
   locations: {
     list: Location[]
     relations: LocationRelation[]
-    tree: any[]
+    tree: LocationTreeNode[]
     currentLocation: Location | null
     loading: boolean
   }
@@ -127,7 +128,7 @@ export interface WriterState {
   }
 
   // 统计缓存
-  statisticsCache: Record<string, any>
+  statisticsCache: Record<string, StatisticsCacheItem>
 
   // 同步状态
   sync: SyncStatus
@@ -136,7 +137,11 @@ export interface WriterState {
   error: string | null
 }
 
-function normalizeProject(raw: any): Project {
+function normalizeProject(raw: RawProjectData): Project {
+  const rawRecord = raw as Record<string, unknown>
+  const rawStats = rawRecord.statistics as Record<string, unknown> | undefined
+  const rawSettings = rawRecord.settings as Record<string, unknown> | undefined
+
   return {
     ...raw,
     projectId: raw?.projectId || raw?.id,
@@ -151,18 +156,44 @@ function normalizeProject(raw: any): Project {
     totalWords: raw?.totalWords ?? raw?.wordCount ?? 0,
     chapterCount: raw?.chapterCount ?? 0,
     updatedAt: raw?.updatedAt || raw?.lastUpdateTime || raw?.createdAt || '',
+    // 提供默认值以满足 Project 类型要求
+    authorId: (rawRecord.authorId as string) || '',
+    visibility: (rawRecord.visibility as string) || 'private',
+    status: (rawRecord.status as string) || 'draft',
+    statistics: {
+      totalWords: raw?.totalWords ?? raw?.wordCount ?? (rawStats?.totalWords as number) ?? 0,
+      chapterCount: raw?.chapterCount ?? (rawStats?.chapterCount as number) ?? 0,
+      documentCount: (rawStats?.documentCount as number) ?? 0,
+      lastUpdateAt: raw?.updatedAt || raw?.lastUpdateTime || (rawStats?.lastUpdateAt as string) || '',
+    },
+    settings: {
+      autoBackup: (rawSettings?.autoBackup as boolean) ?? true,
+      backupInterval: (rawSettings?.backupInterval as number) ?? 300000,
+      wordCountGoal: rawSettings?.wordCountGoal as number | undefined,
+    },
   } as Project
 }
 
-function normalizeProjectListResponse(response: any): Project[] {
+function normalizeProjectListResponse(response: ProjectListResponse | RawProjectData[]): Project[] {
+  // 直接是数组的情况
+  if (Array.isArray(response)) {
+    return response.map(normalizeProject)
+  }
+
+  // 对象格式的情况
   const candidates = [
     response?.projects,
     response?.items,
-    response?.data?.projects,
-    response?.data?.items,
-    response?.data,
+    response?.data && typeof response.data === 'object' && !Array.isArray(response.data)
+      ? (response.data as { projects?: RawProjectData[]; items?: RawProjectData[] }).projects
+      : undefined,
+    response?.data && typeof response.data === 'object' && !Array.isArray(response.data)
+      ? (response.data as { projects?: RawProjectData[]; items?: RawProjectData[] }).items
+      : undefined,
+    Array.isArray(response?.data) ? response.data : undefined,
   ]
-  const list = candidates.find((item) => Array.isArray(item))
+
+  const list = candidates.find((item): item is RawProjectData[] => Array.isArray(item))
   return Array.isArray(list) ? list.map(normalizeProject) : []
 }
 

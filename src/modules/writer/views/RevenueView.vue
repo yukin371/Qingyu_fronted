@@ -215,8 +215,8 @@ import { ref, onMounted, onUnmounted, nextTick, reactive } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
-import * as echarts from 'echarts'
-import type { ECharts } from 'echarts'
+import { echarts, graphic } from '@/utils/echarts'
+import type { ECharts, EChartsOption } from '@/utils/echarts'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
   getRevenueStats,
@@ -575,7 +575,7 @@ function initTrendChart(): void {
 function updateTrendChart(dates: string[], revenues: number[]): void {
   if (!trendChart) return
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
@@ -600,7 +600,7 @@ function updateTrendChart(dates: string[], revenues: number[]): void {
         data: revenues,
         smooth: true,
         areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(103, 194, 58, 0.5)' },
             { offset: 1, color: 'rgba(103, 194, 58, 0.1)' },
           ]),
@@ -639,7 +639,7 @@ function initSourceChart(): void {
 function updateSourceChart(data: Array<{ value: number; name: string; itemStyle?: any }>): void {
   if (!sourceChart) return
 
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'item',
       formatter: '{b}: ¥{c} ({d}%)',

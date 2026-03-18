@@ -284,9 +284,10 @@ const loadBooks = async () => {
     } else {
       // API返回错误状态码 - 静默处理，只显示UI错误状态
       const appError = handleApiError(response, { showMessage: false })
+      const details = appError.details as Record<string, unknown> | undefined
       error.value = {
         title: appError.message,
-        message: appError.details?.message || appError.message,
+        message: (details?.message as string) || appError.message,
         type: isNetworkError(response) ? 'network' :
               isPermissionError(response) ? 'permission' :
               isServerError(response) ? 'server' : 'not_found'
@@ -304,9 +305,10 @@ const loadBooks = async () => {
     const appError = handleApiError(err, { showMessage: false })
 
     // 根据错误类型设置UI状态
+    const details = appError.details as Record<string, unknown> | undefined
     error.value = {
       title: appError.message,
-      message: appError.details?.message || appError.message,
+      message: (details?.message as string) || appError.message,
       type: isNetworkError(err) ? 'network' :
             isPermissionError(err) ? 'permission' :
             isServerError(err) ? 'server' : 'not_found'

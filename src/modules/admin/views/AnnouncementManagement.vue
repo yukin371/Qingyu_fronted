@@ -200,6 +200,9 @@
       v-model="dialogVisible"
       :title="editingAnnouncement ? '编辑公告' : '新建公告'"
       width="700px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
     >
       <el-form :model="announcementForm" label-width="100px">
         <el-form-item label="标题" required>
@@ -282,7 +285,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   Plus,
@@ -303,12 +306,6 @@ import {
   deleteAnnouncement,
 } from '../api'
 
-// 检查是否为测试模式
-const isTestMode = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('test') === 'true'
-})
-
 // 筛选器
 const filters = reactive({
   type: '',
@@ -324,9 +321,9 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  total: 12,
-  active: 8,
-  totalViews: 25680,
+  total: 0,
+  active: 0,
+  totalViews: 0,
 })
 
 // 数据
@@ -344,125 +341,36 @@ const announcementForm = reactive({
   targetRole: 'all' as 'all' | 'reader' | 'writer' | 'admin',
   priority: 0,
   isActive: true,
-  startTime: null as any,
-  endTime: null as any,
+  startTime: undefined as string | undefined,
+  endTime: undefined as string | undefined,
 })
-
-// 生成模拟公告数据
-const createMockAnnouncements = () => {
-  const types = ['info', 'warning', 'notice', 'info', 'notice']
-  const targets = ['all', 'reader', 'author', 'admin', 'all']
-  const titles = [
-    {
-      title: '系统维护公告',
-      content:
-        '系统将于本周六凌晨2:00-4:00进行例行维护，届时将暂停服务，请提前做好相关准备。给您带来的不便敬请谅解。',
-    },
-    {
-      title: '新功能上线通知',
-      content: '我们新增了书籍推荐功能，系统将根据您的阅读历史为您推荐感兴趣的书籍。',
-    },
-    {
-      title: '版权保护提醒',
-      content: '请各位作者注意保护自己的作品版权，如发现侵权行为请及时举报。',
-    },
-    {
-      title: '春节放假通知',
-      content: '春节期间平台将安排值班人员，审核工作可能会有延迟，敬请谅解。',
-    },
-    {
-      title: '作家福利计划',
-      content: '凡是在本平台发布作品满3万字的作者，均可申请加入作家福利计划，享受更多权益。',
-    },
-    {
-      title: '阅读活动开启',
-      content: '春节阅读活动正式开启，完成任务即可获得丰厚奖励，活动时间截至2月底。',
-    },
-    {
-      title: '平台规则更新',
-      content: '为营造良好的阅读环境，我们对平台规则进行了部分调整，请查阅详情。',
-    },
-    {
-      title: '签约作者招募',
-      content: '本平台现招募签约作者，提供保底稿费和推广资源，详情请查看作家后台。',
-    },
-    {
-      title: '提现规则调整',
-      content: '自即日起，提现最低金额调整为50元，到账时间缩短至1-3个工作日。',
-    },
-    {
-      title: '新书上架通知',
-      content: '本周有多部热门新作上架，包括玄幻、都市、仙侠等多种类型，欢迎阅读。',
-    },
-    {
-      title: '会员权益升级',
-      content: 'VIP会员现可享受更多专属权益，包括提前阅读、无广告、专属客服等。',
-    },
-    { title: '评论规范公告', content: '请文明评论，禁止发布违法违规内容，违规者将被封禁账号。' },
-  ]
-
-  return titles.map((item, i) => ({
-    id: `ann_${i + 1}`,
-    title: item.title,
-    content: item.content,
-    type: types[i % types.length],
-    targetRole: targets[i % targets.length],
-    priority: Math.floor(Math.random() * 100),
-    isActive: i < 8,
-    viewCount: Math.floor(Math.random() * 5000) + 500,
-    createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-    startTime: null,
-    endTime: null,
-  }))
-}
-
-const mockAnnouncementsPool = createMockAnnouncements()
 
 // 加载公告列表
 const loadAnnouncements = async () => {
   loading.value = true
   try {
-    if (isTestMode.value) {
-      let filtered = [...mockAnnouncementsPool]
-
-      if (filters.type) {
-        filtered = filtered.filter((a) => a.type === filters.type)
-      }
-
-      if (filters.targetRole) {
-        filtered = filtered.filter((a) => a.targetRole === filters.targetRole)
-      }
-
-      if (filters.status) {
-        filtered = filtered.filter((a) => (filters.status === 'active' ? a.isActive : !a.isActive))
-      }
-
-      total.value = filtered.length
-
-      const start = (pagination.page - 1) * pagination.pageSize
-      announcements.value = filtered.slice(start, start + pagination.pageSize)
-
-      // 更新统计
-      stats.total = mockAnnouncementsPool.length
-      stats.active = mockAnnouncementsPool.filter((a) => a.isActive).length
-      stats.totalViews = mockAnnouncementsPool.reduce((sum, a) => sum + (a.viewCount || 0), 0)
-    } else {
-      // 调用真实API
-      const response = await getAnnouncements({
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        type: filters.type || undefined,
-        targetRole: filters.targetRole || undefined,
-        status: filters.status || undefined,
-      })
-      announcements.value = response.items
-      total.value = response.total || 0
-      stats.total = total.value
-      stats.active = response.items.filter((a: any) => a.isActive).length
-      stats.totalViews = response.items.reduce((sum: number, a: any) => sum + (a.viewCount || 0), 0)
-    }
+    const response = await getAnnouncements({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      type: filters.type || undefined,
+      targetRole: filters.targetRole || undefined,
+      status: filters.status || undefined,
+    })
+    announcements.value = response.items
+    total.value = response.total || 0
+    stats.total = total.value
+    stats.active = response.items.filter((announcement) => announcement.isActive).length
+    stats.totalViews = response.items.reduce(
+      (sum, announcement) => sum + Number(announcement.viewCount || 0),
+      0,
+    )
   } catch (error) {
     console.error('加载公告列表失败:', error)
+    announcements.value = []
+    total.value = 0
+    stats.total = 0
+    stats.active = 0
+    stats.totalViews = 0
     message.error('加载公告列表失败')
   } finally {
     loading.value = false
@@ -488,7 +396,7 @@ const getTargetLabel = (target: string): string => {
   const labels: Record<string, string> = {
     all: '所有用户',
     reader: '读者',
-    author: '作者',
+    writer: '作者',
     admin: '管理员',
   }
   return labels[target] || target
@@ -509,8 +417,8 @@ const handleCreate = () => {
     targetRole: 'all',
     priority: 0,
     isActive: true,
-    startTime: null,
-    endTime: null,
+    startTime: undefined,
+    endTime: undefined,
   })
   dialogVisible.value = true
 }
@@ -521,11 +429,11 @@ const handleEdit = (announcement: any) => {
     title: announcement.title,
     content: announcement.content,
     type: announcement.type,
-    targetRole: announcement.targetRole,
+    targetRole: announcement.targetRole || 'all',
     priority: announcement.priority,
-    isActive: announcement.isActive,
-    startTime: announcement.startTime,
-    endTime: announcement.endTime,
+    isActive: Boolean(announcement.isActive),
+    startTime: announcement.startTime || undefined,
+    endTime: announcement.endTime || undefined,
   })
   dialogVisible.value = true
 }
@@ -538,36 +446,20 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    if (isTestMode.value) {
-      if (editingAnnouncement.value) {
-        const announcement = mockAnnouncementsPool.find(
-          (a) => a.id === editingAnnouncement.value.id,
-        )
-        if (announcement) {
-          Object.assign(announcement, announcementForm)
-        }
-        message.success('更新成功')
-      } else {
-        mockAnnouncementsPool.unshift({
-          id: `ann_${Date.now()}`,
-          ...announcementForm,
-          viewCount: 0,
-          createdAt: new Date().toISOString(),
-        })
-        message.success('创建成功')
-      }
+    const payload = {
+      ...announcementForm,
+      startTime: announcementForm.startTime || undefined,
+      endTime: announcementForm.endTime || undefined,
+    }
+    if (editingAnnouncement.value) {
+      await updateAnnouncement(editingAnnouncement.value.id, payload)
+      message.success('更新成功')
     } else {
-      // 调用真实API
-      if (editingAnnouncement.value) {
-        await updateAnnouncement(editingAnnouncement.value.id, announcementForm)
-        message.success('更新成功')
-      } else {
-        await createAnnouncement(announcementForm)
-        message.success('创建成功')
-      }
+      await createAnnouncement(payload)
+      message.success('创建成功')
     }
     dialogVisible.value = false
-    loadAnnouncements()
+    void loadAnnouncements()
   } catch (error) {
     message.error('操作失败')
   } finally {
@@ -577,15 +469,9 @@ const handleSubmit = async () => {
 
 const handleStatusChange = async (announcement: any) => {
   try {
-    if (isTestMode.value) {
-      const a = mockAnnouncementsPool.find((item) => item.id === announcement.id)
-      if (a) a.isActive = announcement.isActive
-    } else {
-      // 调用真实API
-      await updateAnnouncement(announcement.id, { isActive: announcement.isActive })
-    }
+    await updateAnnouncement(announcement.id, { isActive: announcement.isActive })
     message.success(announcement.isActive ? '已启用' : '已禁用')
-    loadAnnouncements()
+    void loadAnnouncements()
   } catch (error) {
     message.error('状态更新失败')
     announcement.isActive = !announcement.isActive
@@ -598,16 +484,10 @@ const handleDelete = async (announcement: any) => {
       type: 'warning',
     })
 
-    if (isTestMode.value) {
-      const index = mockAnnouncementsPool.findIndex((a) => a.id === announcement.id)
-      if (index > -1) mockAnnouncementsPool.splice(index, 1)
-    } else {
-      // 调用真实API
-      await deleteAnnouncement(announcement.id)
-    }
+    await deleteAnnouncement(announcement.id)
 
     message.success('删除成功')
-    loadAnnouncements()
+    void loadAnnouncements()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('删除失败')
@@ -616,7 +496,7 @@ const handleDelete = async (announcement: any) => {
 }
 
 onMounted(() => {
-  loadAnnouncements()
+  void loadAnnouncements()
 })
 </script>
 

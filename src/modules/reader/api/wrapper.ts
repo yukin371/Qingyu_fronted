@@ -335,10 +335,10 @@ export async function getBookComments(params: {
   sort?: 'latest' | 'hot'
 }): Promise<any> {
   return api.getApiV1ReaderComments({
-    bookId: params.bookId,
+    book_id: params.bookId,
     page: params.page || 1,
     size: params.size || 20,
-    sort: params.sort || 'latest',
+    sortBy: params.sort || 'latest',
   } as any)
 }
 
@@ -351,7 +351,12 @@ export async function createComment(data: {
   content: string
   rating?: number
 }): Promise<any> {
-  return api.postApiV1ReaderComments(data as any)
+  return api.postApiV1ReaderComments({
+    book_id: data.bookId,
+    chapter_id: data.chapterId,
+    content: data.content,
+    rating: data.rating,
+  } as any)
 }
 
 /**
@@ -413,7 +418,7 @@ export const batchUpdateBookStatus = api.putApiV1ReaderBooksBatchStatus
 /**
  * 获取书架（别名）
  */
-export const getBookshelf = getRecentBooks
+export const getBookshelf = getBooks
 
 /**
  * 从书架移除（别名）
@@ -486,7 +491,7 @@ export default {
   saveSettings,
   updateSettings,
   // 书架便捷方法（别名）
-  getBookshelf: getRecentBooks,
+  getBookshelf: getBooks,
   addToBookshelf: addBookToShelf,
   removeFromBookshelf: removeBookFromShelf,
   // 工具函数

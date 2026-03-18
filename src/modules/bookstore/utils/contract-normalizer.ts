@@ -35,15 +35,24 @@ export function normalizeBookContract<T extends AnyRecord>(input: T): T {
   const publishedAt = input.publishedAt ?? input.publishTime ?? input.published_at
   const updatedAt = input.updatedAt ?? input.updateTime ?? input.updated_at ?? input.lastUpdateAt
 
+  // 确保 tags 字段存在且为数组
+  const tags = Array.isArray(input.tags) ? input.tags : []
+
   return {
     ...input,
     status: normalizeBookStatus(input.status),
     categoryIds,
     categoryId: input.categoryId ?? categoryIds[0],
+    tags,
     publishedAt,
     publishTime: input.publishTime ?? publishedAt,
     updatedAt,
     updateTime: input.updateTime ?? updatedAt,
+    // 兼容 snake_case 字段名
+    cover: input.cover ?? input.cover_url,
+    coverUrl: input.coverUrl ?? input.cover_url ?? input.cover,
+    introduction: input.introduction ?? input.description,
+    description: input.description ?? input.introduction,
   }
 }
 
@@ -54,7 +63,14 @@ export function normalizeBookList<T extends AnyRecord>(items: T[] | undefined | 
 
 export function normalizeBookDetail<T extends AnyRecord>(item: T | undefined | null): T | null {
   if (!item || typeof item !== 'object') return null
-  return normalizeBookContract(item)
+  const normalized = normalizeBookContract(item)
+  // 确保 BookDetail 特有的字段也被处理
+  return {
+    ...normalized,
+    // 兼容 cover_url 和 cover 字段
+    cover: item.cover ?? item.coverUrl ?? item.cover_url,
+    coverUrl: item.coverUrl ?? item.cover_url ?? item.cover,
+  } as T
 }
 
 export type CompatibleBook = LegacyBook & Partial<ModuleBook>

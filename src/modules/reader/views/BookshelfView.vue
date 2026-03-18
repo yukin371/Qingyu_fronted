@@ -50,9 +50,7 @@
                             <el-button @click="goToBookstore">开始阅读</el-button>
                         </template>
                         <template #image>
-                            <el-icon :size="100" color="#909399">
-                                <Collection />
-                            </el-icon>
+                            <QyIcon name="Collection" :size="100" />
                         </template>
                     </el-empty>
 
@@ -205,11 +203,13 @@ import { QyIcon } from '@/design-system/components'
 import { formatDate, formatReadingTime } from '@/utils/format.ts'
 import { message, messageBox } from '@/design-system/services'
 import {
-    getBookshelf,
     removeFromBookshelf
 } from '@/modules/reader/api'
 import { getReadingHistory } from '@/modules/reader/api'
 import { bookshelfService } from '@/modules/reader/services/bookshelf.service'
+import { getBookDetail } from '@/modules/bookstore/api'
+import defaultBookCover from '@/assets/default-book-cover.svg'
+import { getBookshelf } from '@/modules/reader/api/manual/books'
 
 const router = useRouter()
 
@@ -262,36 +262,60 @@ async function loadData(): Promise<void> {
 // 加载书架数据
 async function loadBooks(): Promise<void> {
     try {
-        // 将前端的 status 映射到后端 API 期望的值
-        let apiStatus: 'reading' | 'finished' | 'all' = 'all'
-        if (activeTab.value === 'reading') {
-            apiStatus = 'reading'
-        } else if (activeTab.value === 'completed') {
-            apiStatus = 'finished'
-        } else {
-            apiStatus = 'all'
-        }
-
         const response = await getBookshelf({
             page: 1,
             size: 100
         } as any)
 
-        const payload = response as any
-        const bookList = payload?.books || payload?.items || payload?.data?.books || payload?.data?.items || []
-        books.value = Array.isArray(bookList) ? bookList : []
+        const payload = (response as any)?.data ?? response
+        const rawList = payload?.books || payload?.items || payload?.data?.books || payload?.data?.items || []
+        const uniqueBookIds = [...new Set((Array.isArray(rawList) ? rawList : []).map((item: any) => item.bookId || item.book_id).filter(Boolean))]
+        const detailEntries = await Promise.all(
+            uniqueBookIds.map(async (id) => {
+                try {
+                    const detailResponse = await getBookDetail(String(id))
+                    return [String(id), (detailResponse as any)?.data ?? detailResponse] as const
+                } catch {
+                    return [String(id), null] as const
+                }
+            })
+        )
+        const details = new Map(detailEntries)
 
-        if (apiStatus !== 'all') {
-            books.value = books.value.filter(b => b?.status === apiStatus)
-        }
+        const normalizedBooks = (Array.isArray(rawList) ? rawList : []).map((item: any) => {
+            const bookId = String(item.bookId || item.book_id || item.id || '')
+            const detail = details.get(bookId)
+            const progressValue = Number(item.progress ?? 0)
+            const progress = progressValue <= 1 ? Math.round(progressValue * 100) : Math.round(progressValue)
+            const status = item.status === 'finished'
+                ? 'completed'
+                : (item.status === 'want_read' ? 'want_to_read' : 'reading')
 
-        // 更新状态计数
-        if (payload?.total !== undefined || Array.isArray(books.value)) {
-            statusCounts.value = {
-                reading: books.value.filter(b => b.status === 'reading').length,
-                want_to_read: books.value.filter(b => b.status === 'want_to_read').length,
-                completed: books.value.filter(b => b.status === 'completed').length
+            return {
+                id: bookId,
+                shelfId: String(item.id || `${bookId}-shelf`),
+                status,
+                title: detail?.title || `作品 ${bookId.slice(-6)}`,
+                author: detail?.author || '未知作者',
+                cover: detail?.cover || detail?.cover_url || defaultBookCover,
+                progress,
+                lastChapterId: String(item.lastReadChapterId || item.last_read_chapter_id || item.chapterId || item.chapter_id || ''),
+                lastChapterTitle: item.lastReadChapterTitle || item.last_read_chapter_title || item.chapterTitle || `章节 ${String(item.chapterId || item.chapter_id || '').slice(-6)}`,
+                lastReadTime: item.lastReadAt || item.updatedAt || item.createdAt || item.addTime || '',
+                updateTime: detail?.updatedAt || detail?.lastUpdateAt || item.updatedAt || item.createdAt || item.addTime || '',
             }
+        })
+
+        books.value = normalizedBooks.filter((item) => {
+            if (activeTab.value === 'completed') return item.status === 'completed'
+            if (activeTab.value === 'want_to_read') return item.status === 'want_to_read'
+            return item.status === 'reading'
+        })
+
+        statusCounts.value = {
+            reading: normalizedBooks.filter(b => b.status === 'reading').length,
+            want_to_read: normalizedBooks.filter(b => b.status === 'want_to_read').length,
+            completed: normalizedBooks.filter(b => b.status === 'completed').length
         }
     } catch (error: any) {
         message.error(error.message || '加载书架失败')
@@ -301,10 +325,10 @@ async function loadBooks(): Promise<void> {
 async function loadHistory(): Promise<void> {
     try {
         const response = await getReadingHistory(historyPage.value, historyPageSize.value)
-        const payload = response as any
-        const list = payload?.items || payload?.list || payload?.data || []
+        const payload = (response as any)?.data ?? response
+        const list = payload?.histories || payload?.items || payload?.list || payload?.data?.histories || payload?.data || []
         histories.value = Array.isArray(list) ? list : []
-        historyTotal.value = payload?.total || histories.value.length
+        historyTotal.value = Number(payload?.pagination?.total || payload?.data?.pagination?.total || payload?.total || histories.value.length)
     } catch (error: any) {
         message.error(error.message || '加载历史记录失败')
     }

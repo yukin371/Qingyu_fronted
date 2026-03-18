@@ -108,6 +108,8 @@ export interface Announcement {
   isActive?: boolean // = status === 'active'
   startTime?: string // = effectiveStartTime
   endTime?: string // = effectiveEndTime
+  targetRole?: 'all' | 'reader' | 'writer' | 'admin'
+  viewCount?: number
 }
 
 /**
@@ -132,6 +134,7 @@ export interface Banner {
   image?: string // = imageUrl
   target?: string
   targetType?: string
+  clickCount?: number
 }
 
 /**
@@ -165,4 +168,3 @@ export interface UpdateConfigRequest {
   key: string
   value: any
 }
-

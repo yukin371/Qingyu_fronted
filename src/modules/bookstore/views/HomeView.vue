@@ -97,7 +97,7 @@
             </div>
 
             <div class="ranking-content">
-              <RankingList :type="activeRankingTab" :items="rankings[activeRankingTab] || []" :loading="loading"
+              <RankingList :type="activeRankingTab" :items="rankings?.[activeRankingTab] || []" :loading="loading"
                 :max-items="6" layout="premium" @view-more="handleViewRanking(activeRankingTab)"
                 @item-click="handleBookClick" />
             </div>
@@ -232,12 +232,19 @@ export default {
     const activeRankingTab = ref('realtime')
 
     // 数据从 store 获取，支持测试模式和真实 API 模式
+    // 添加默认值保护，防止 store 未初始化时访问 undefined 属性
     const announcements = ref([])
-    const banners = computed(() => bookstoreStore.banners)
-    const recommendedBooks = computed(() => bookstoreStore.books.recommended)
-    const featuredBooks = computed(() => bookstoreStore.books.featured)
-    const rankings = computed(() => bookstoreStore.rankings)
-    const stats = computed(() => bookstoreStore.homepageData?.stats)
+    // 使用可选链和安全访问，确保即使 store 未初始化也不会报错
+    const banners = computed(() => bookstoreStore?.banners || [])
+    const recommendedBooks = computed(() => bookstoreStore?.books?.recommended || [])
+    const featuredBooks = computed(() => bookstoreStore?.books?.featured || [])
+    const rankings = computed(() => bookstoreStore?.rankings || {
+      realtime: [],
+      weekly: [],
+      monthly: [],
+      newbie: []
+    })
+    const stats = computed(() => bookstoreStore?.homepageData?.stats || null)
 
     // 无限滚动逻辑保持不变
     const {
@@ -280,7 +287,12 @@ export default {
       // TODO: Implement banner click handler
     }
     const handleBookClick = (book) => {
-      router.push({ name: 'book-detail', params: { id: book.id || book._id } })
+      // 处理榜单数据结构：item.book.id / item.bookId / item.id / item._id
+      // 注意：榜单项的 item.id 是榜单条目ID，不是书籍ID
+      const bookId = book.book?.id || book.bookId || book.id || book._id
+      if (bookId) {
+        router.push({ name: 'book-detail', params: { id: bookId } })
+      }
     }
     const handleViewRanking = () => {
       // TODO: Implement ranking view handler
@@ -293,7 +305,18 @@ export default {
     const loadHomepageData = async () => {
       loading.value = true
       try {
-        await bookstoreStore.fetchHomepageData()
+        // 确保 store 方法存在后再调用
+        if (typeof bookstoreStore.fetchHomepageData === 'function') {
+          await bookstoreStore.fetchHomepageData()
+        } else {
+          console.warn('[HomeView] fetchHomepageData 方法不存在，尝试单独获取数据')
+          // 尝试单独获取各项数据
+          if (typeof bookstoreStore.fetchRankings === 'function') {
+            await bookstoreStore.fetchRankings()
+          }
+        }
+      } catch (error) {
+        console.error('[HomeView] 加载首页数据失败:', error)
       } finally {
         loading.value = false
       }

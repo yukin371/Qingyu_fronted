@@ -275,6 +275,7 @@ import {
   createYunlanReaderChapters
 } from '@/modules/bookstore/yunlanDemo.mock'
 import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
+import * as readerAPI from '@/modules/reader/api'
 
 interface ReaderSettings {
   fontSize: number
@@ -429,11 +430,13 @@ const settings = computed((): ReaderSettings => {
 
 
 const hasPreviousChapter = computed(() => {
-  return !!currentChapter.value?.prevChapterId
+  // 优先检查导航ID，否则使用后端返回的布尔标志
+  return !!currentChapter.value?.prevChapterId || !!(currentChapter.value as any)?.hasPrevious
 })
 
 const hasNextChapter = computed(() => {
-  return !!currentChapter.value?.nextChapterId
+  // 优先检查导航ID，否则使用后端返回的布尔标志
+  return !!currentChapter.value?.nextChapterId || !!(currentChapter.value as any)?.hasNext
 })
 
 const progressText = computed(() => {
@@ -477,11 +480,43 @@ const toggleSettings = () => {
 const previousChapter = async () => {
   if (!hasPreviousChapter.value) return
   await saveCurrentProgress()
+
+  // 如果有导航ID，直接使用
+  if (currentChapter.value?.prevChapterId) {
+    chapterId.value = currentChapter.value.prevChapterId
+    await loadChapter()
+    scrollToTop()
+    return
+  }
+
+  // Demo/Published模式且有导航ID
   if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.prevChapterId) {
     chapterId.value = currentChapter.value.prevChapterId
     await loadChapter()
-  } else {
-    await readerStore.loadPreviousChapter()
+    scrollToTop()
+    return
+  }
+
+  // 没有导航ID时，调用后端API获取上一章信息
+  try {
+    const bookId = currentChapter.value?.bookId || publishedBookId.value
+    if (!bookId || !chapterId.value) {
+      console.warn('无法获取上一章：缺少bookId或chapterId')
+      return
+    }
+
+    // 调用后端API获取上一章
+    const prevChapterInfo = await readerAPI.getPreviousChapter(bookId, chapterId.value)
+    const prevData = (prevChapterInfo as any)?.data ?? prevChapterInfo
+
+    if (prevData?.chapterId || prevData?.id) {
+      chapterId.value = prevData.chapterId || prevData.id
+      await loadChapter()
+    } else {
+      console.warn('没有上一章')
+    }
+  } catch (error) {
+    console.error('获取上一章失败:', error)
   }
   scrollToTop()
 }
@@ -489,11 +524,43 @@ const previousChapter = async () => {
 const nextChapter = async () => {
   if (!hasNextChapter.value) return
   await saveCurrentProgress()
+
+  // 如果有导航ID，直接使用
+  if (currentChapter.value?.nextChapterId) {
+    chapterId.value = currentChapter.value.nextChapterId
+    await loadChapter()
+    scrollToTop()
+    return
+  }
+
+  // Demo/Published模式且有导航ID
   if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.nextChapterId) {
     chapterId.value = currentChapter.value.nextChapterId
     await loadChapter()
-  } else {
-    await readerStore.loadNextChapter()
+    scrollToTop()
+    return
+  }
+
+  // 没有导航ID时，调用后端API获取下一章信息
+  try {
+    const bookId = currentChapter.value?.bookId || publishedBookId.value
+    if (!bookId || !chapterId.value) {
+      console.warn('无法获取下一章：缺少bookId或chapterId')
+      return
+    }
+
+    // 调用后端API获取下一章
+    const nextChapterInfo = await readerAPI.getNextChapter(bookId, chapterId.value)
+    const nextData = (nextChapterInfo as any)?.data ?? nextChapterInfo
+
+    if (nextData?.chapterId || nextData?.id) {
+      chapterId.value = nextData.chapterId || nextData.id
+      await loadChapter()
+    } else {
+      console.warn('没有下一章')
+    }
+  } catch (error) {
+    console.error('获取下一章失败:', error)
   }
   scrollToTop()
 }

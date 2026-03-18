@@ -183,7 +183,8 @@ import {
   Document,
   Picture,
 } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import { echarts } from '@/utils/echarts'
+import type { ECharts } from '@/utils/echarts'
 import { getAuditStatistics, getDashboardStats, getOperationLogs } from '../api'
 import type { OperationLog } from '../types/admin.types'
 
@@ -228,8 +229,8 @@ const recentActivities = ref<ActivityItem[]>([])
 const userChartRef = ref<HTMLElement>()
 const auditChartRef = ref<HTMLElement>()
 
-let userChart: echarts.ECharts | null = null
-let auditChart: echarts.ECharts | null = null
+let userChart: ECharts | null = null
+let auditChart: ECharts | null = null
 
 const formatNumber = (num: number) => {
   if (num >= 10000) {

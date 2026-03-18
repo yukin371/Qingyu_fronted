@@ -141,13 +141,28 @@ const statuses = ref([
   { value: 'completed', label: '已完结' }
 ])
 
-// 可用标签（从 metaStore 获取，或使用默认值）
+// 可用标签（优先从 metaStore 获取，// 如果 metaStore 为空，则从当前书籍列表中提取实际使用的标签
 const availableTags = computed(() => {
+  // 1. 优先使用 metaStore 中的标签
   if (metaStore.tags.length > 0) {
     return metaStore.tags.map((t: string | { name: string }) =>
       typeof t === 'string' ? t : t.name
     )
   }
+
+  // 2. 从当前书籍列表中提取实际使用的标签
+  const tagSet = new Set<string>()
+  browseStore.books.forEach(book => {
+    if (Array.isArray(book.tags)) {
+      book.tags.forEach((tag: string) => tagSet.add(tag))
+    }
+  })
+
+  if (tagSet.size > 0) {
+    return Array.from(tagSet).sort()
+  }
+
+  // 3. 使用硬编码默认值作为兜底
   return ['热血', '穿越', '系统', '爽文']
 })
 

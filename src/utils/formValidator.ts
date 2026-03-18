@@ -5,14 +5,34 @@
 
 import { message } from '@/design-system/services'
 import { log, LogCategory } from './logger'
+import type {
+  ValidationValue,
+  ValidatorFunction,
+  FormValidationRules,
+  FormValidationErrors,
+  ElFormRule
+} from '@/types/validation'
 
-export type ValidationRule = 'required' | 'email' | 'phone' | 'username' | 'password' | 'url' | 'number' | 'min' | 'max' | 'minLength' | 'maxLength' | 'pattern' | 'custom'
+export type ValidationRule =
+  | 'required'
+  | 'email'
+  | 'phone'
+  | 'username'
+  | 'password'
+  | 'url'
+  | 'number'
+  | 'min'
+  | 'max'
+  | 'minLength'
+  | 'maxLength'
+  | 'pattern'
+  | 'custom'
 
 export interface ValidationRuleConfig {
   type: ValidationRule
   message?: string
-  value?: any
-  validator?: (value: any) => boolean | string | Promise<boolean | string>
+  value?: number | RegExp
+  validator?: ValidatorFunction
   trigger?: 'blur' | 'change'
 }
 
@@ -84,7 +104,7 @@ export class FormValidator {
   /**
    * 验证单个值
    */
-  static validate(value: any, rules: ValidationRuleConfig[]): ValidationResult {
+  static validate(value: ValidationValue, rules: ValidationRuleConfig[]): ValidationResult {
     for (const rule of rules) {
       const result = this.validateByRule(value, rule)
       if (!result.valid) {
@@ -97,7 +117,7 @@ export class FormValidator {
   /**
    * 根据规则验证
    */
-  private static validateByRule(value: any, rule: ValidationRuleConfig): ValidationResult {
+  private static validateByRule(value: ValidationValue, rule: ValidationRuleConfig): ValidationResult {
     const { type, message, value: ruleValue } = rule
 
     try {
@@ -124,19 +144,19 @@ export class FormValidator {
           return this.validateNumber(value, message)
 
         case 'min':
-          return this.validateMin(value, ruleValue, message)
+          return this.validateMin(value, ruleValue as number, message)
 
         case 'max':
-          return this.validateMax(value, ruleValue, message)
+          return this.validateMax(value, ruleValue as number, message)
 
         case 'minLength':
-          return this.validateMinLength(value, ruleValue, message)
+          return this.validateMinLength(value, ruleValue as number, message)
 
         case 'maxLength':
-          return this.validateMaxLength(value, ruleValue, message)
+          return this.validateMaxLength(value, ruleValue as number, message)
 
         case 'pattern':
-          return this.validatePattern(value, ruleValue, message)
+          return this.validatePattern(value, ruleValue as RegExp, message)
 
         case 'custom':
           return { valid: true } // custom validation should be handled separately with async validateCustom
@@ -156,7 +176,7 @@ export class FormValidator {
   /**
    * 验证必填
    */
-  static validateRequired(value: any, message?: string): ValidationResult {
+  static validateRequired(value: ValidationValue, message?: string): ValidationResult {
     if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       return {
         valid: false,
@@ -169,9 +189,9 @@ export class FormValidator {
   /**
    * 验证邮箱
    */
-  static validateEmail(value: any, message?: string): ValidationResult {
+  static validateEmail(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
-    if (!RegexPatterns.email.test(value)) {
+    if (typeof value !== 'string' || !RegexPatterns.email.test(value)) {
       return {
         valid: false,
         message: message || DefaultMessages.email
@@ -183,9 +203,9 @@ export class FormValidator {
   /**
    * 验证手机号
    */
-  static validatePhone(value: any, message?: string): ValidationResult {
+  static validatePhone(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
-    if (!RegexPatterns.phone.test(value)) {
+    if (typeof value !== 'string' || !RegexPatterns.phone.test(value)) {
       return {
         valid: false,
         message: message || DefaultMessages.phone
@@ -197,9 +217,9 @@ export class FormValidator {
   /**
    * 验证用户名
    */
-  static validateUsername(value: any, message?: string): ValidationResult {
+  static validateUsername(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
-    if (!RegexPatterns.username.test(value)) {
+    if (typeof value !== 'string' || !RegexPatterns.username.test(value)) {
       return {
         valid: false,
         message: message || DefaultMessages.username
@@ -211,9 +231,9 @@ export class FormValidator {
   /**
    * 验证密码
    */
-  static validatePassword(value: any, message?: string): ValidationResult {
+  static validatePassword(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
-    if (!RegexPatterns.password.test(value)) {
+    if (typeof value !== 'string' || !RegexPatterns.password.test(value)) {
       return {
         valid: false,
         message: message || DefaultMessages.password
@@ -225,9 +245,9 @@ export class FormValidator {
   /**
    * 验证URL
    */
-  static validateUrl(value: any, message?: string): ValidationResult {
+  static validateUrl(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
-    if (!RegexPatterns.url.test(value)) {
+    if (typeof value !== 'string' || !RegexPatterns.url.test(value)) {
       return {
         valid: false,
         message: message || DefaultMessages.url
@@ -239,7 +259,7 @@ export class FormValidator {
   /**
    * 验证数字
    */
-  static validateNumber(value: any, message?: string): ValidationResult {
+  static validateNumber(value: ValidationValue, message?: string): ValidationResult {
     if (!value) return { valid: true }
     if (!RegexPatterns.number.test(String(value))) {
       return {
@@ -253,7 +273,7 @@ export class FormValidator {
   /**
    * 验证最小值
    */
-  static validateMin(value: any, min: number, message?: string): ValidationResult {
+  static validateMin(value: ValidationValue, min: number, message?: string): ValidationResult {
     if (!value) return { valid: true }
     const numValue = Number(value)
     if (isNaN(numValue) || numValue < min) {
@@ -268,7 +288,7 @@ export class FormValidator {
   /**
    * 验证最大值
    */
-  static validateMax(value: any, max: number, message?: string): ValidationResult {
+  static validateMax(value: ValidationValue, max: number, message?: string): ValidationResult {
     if (!value) return { valid: true }
     const numValue = Number(value)
     if (isNaN(numValue) || numValue > max) {
@@ -283,7 +303,7 @@ export class FormValidator {
   /**
    * 验证最小长度
    */
-  static validateMinLength(value: any, minLength: number, message?: string): ValidationResult {
+  static validateMinLength(value: ValidationValue, minLength: number, message?: string): ValidationResult {
     if (!value) return { valid: true }
     const strValue = String(value)
     if (strValue.length < minLength) {
@@ -298,7 +318,7 @@ export class FormValidator {
   /**
    * 验证最大长度
    */
-  static validateMaxLength(value: any, maxLength: number, message?: string): ValidationResult {
+  static validateMaxLength(value: ValidationValue, maxLength: number, message?: string): ValidationResult {
     if (!value) return { valid: true }
     const strValue = String(value)
     if (strValue.length > maxLength) {
@@ -313,7 +333,7 @@ export class FormValidator {
   /**
    * 验证正则表达式
    */
-  static validatePattern(value: any, pattern: RegExp, message?: string): ValidationResult {
+  static validatePattern(value: ValidationValue, pattern: RegExp, message?: string): ValidationResult {
     if (!value) return { valid: true }
     if (!pattern.test(String(value))) {
       return {
@@ -328,8 +348,8 @@ export class FormValidator {
    * 自定义验证
    */
   static async validateCustom(
-    value: any,
-    validator: (value: any) => boolean | string | Promise<boolean | string>,
+    value: ValidationValue,
+    validator: ValidatorFunction | undefined,
     message?: string
   ): Promise<ValidationResult> {
     if (!validator) return { valid: true }
@@ -356,10 +376,10 @@ export class FormValidator {
    * 验证整个表单
    */
   static async validateForm(
-    formData: Record<string, any>,
-    rules: Record<string, ValidationRuleConfig[]>
-  ): Promise<{ valid: boolean; errors: Record<string, string> }> {
-    const errors: Record<string, string> = {}
+    formData: Record<string, ValidationValue>,
+    rules: FormValidationRules
+  ): Promise<{ valid: boolean; errors: FormValidationErrors }> {
+    const errors: FormValidationErrors = {}
 
     for (const [field, fieldRules] of Object.entries(rules)) {
       const value = formData[field]
@@ -473,7 +493,7 @@ export class ElFormRuleBuilder {
    * 添加自定义规则
    */
   custom(
-    validator: (value: any) => boolean | string | Promise<boolean | string>,
+    validator: ValidatorFunction,
     message?: string,
     trigger: 'blur' | 'change' = 'blur'
   ): this {
@@ -489,17 +509,19 @@ export class ElFormRuleBuilder {
   /**
    * 构建 Element Plus 规则
    */
-  build(): any[] {
+  build(): ElFormRule[] {
     return this.rules.map(rule => ({
       required: rule.type === 'required',
-      validator: rule.validator ? async (rule: any, value: any, callback: any) => {
+      validator: rule.validator ? async (_rule: ElFormRule, value: ValidationValue, callback: (error?: Error) => void) => {
         if (rule.type === 'custom' && rule.validator) {
           const result = await FormValidator.validateCustom(value, rule.validator, rule.message)
           if (!result.valid) {
-            callback(new Error(result.message))
+            callback(new Error(result.message || DefaultMessages.custom))
           } else {
             callback()
           }
+        } else {
+          callback()
         }
       } : undefined,
       message: rule.message || DefaultMessages[rule.type],
@@ -554,8 +576,8 @@ export class FormErrorHelper {
   /**
    * 清除表单错误
    */
-  static clearErrors(formRef: any) {
-    if (formRef && formRef.clearValidate) {
+  static clearErrors(formRef: { clearValidate?: () => void } | null | undefined): void {
+    if (formRef && typeof formRef.clearValidate === 'function') {
       formRef.clearValidate()
     }
   }

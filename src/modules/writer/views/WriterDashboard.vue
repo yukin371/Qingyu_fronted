@@ -270,7 +270,9 @@ onMounted(async () => {
       return acc + (cur.totalWords ?? cur.wordCount ?? 0)
     }, 0)
     stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
-    stats.value.todayWords = 1200 // Mock Data
+    // TODO: 等待后端实现今日写作字数API (GET /api/v1/writer/dashboard/today-words)
+    // 当前使用本地存储的写作目标进度作为临时方案
+    stats.value.todayWords = 0
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
   } finally {

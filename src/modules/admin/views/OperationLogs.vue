@@ -186,7 +186,14 @@
     </div>
 
     <!-- 日志详情对话框 -->
-    <el-dialog v-model="dialogVisible" title="日志详情" width="600px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="日志详情"
+      width="600px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <div v-if="currentItem" class="log-detail">
         <div class="detail-header">
           <el-icon class="detail-icon" :class="getOperationClass(currentItem.operation)">
