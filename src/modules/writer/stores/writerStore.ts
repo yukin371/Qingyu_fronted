@@ -1297,12 +1297,17 @@ export const useWriterStore = defineStore('writer', {
      */
     async createOutlineNode(projectId: string, nodeData: any): Promise<OutlineNode> {
       try {
-        // TODO: 调用后端API创建节点
-        // const response = await apiClient.post(`/projects/${projectId}/outline`, nodeData)
-        // return response.data
-        console.log('创建大纲节点:', projectId, nodeData)
+        // 调用文档创建API创建节点
+        const response = await createDocument(projectId, {
+          projectId,
+          parentId: nodeData.parentId || undefined,
+          title: nodeData.title || '新节点',
+          type: nodeData.type || 'section',
+          order: nodeData.order,
+        })
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
-        return {} as OutlineNode
+        return response as unknown as OutlineNode
       } catch (error: any) {
         console.error('创建大纲节点失败:', error)
         throw error
@@ -1318,12 +1323,16 @@ export const useWriterStore = defineStore('writer', {
       nodeData: any,
     ): Promise<OutlineNode> {
       try {
-        // TODO: 调用后端API更新节点
-        // const response = await apiClient.put(`/projects/${projectId}/outline/${nodeId}`, nodeData)
-        // return response.data
-        console.log('更新大纲节点:', nodeId, nodeData)
+        // 调用文档更新API
+        const response = await updateDocument(nodeId, {
+          title: nodeData.title,
+          status: nodeData.status,
+          tags: nodeData.tags,
+          notes: nodeData.notes,
+        })
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
-        return {} as OutlineNode
+        return response as unknown as OutlineNode
       } catch (error: any) {
         console.error('更新大纲节点失败:', error)
         throw error
@@ -1335,9 +1344,9 @@ export const useWriterStore = defineStore('writer', {
      */
     async deleteOutlineNode(nodeId: string, projectId: string): Promise<void> {
       try {
-        // TODO: 调用后端API删除节点
-        // await apiClient.delete(`/projects/${projectId}/outline/${nodeId}`)
-        console.log('删除大纲节点:', nodeId)
+        // 调用文档删除API
+        await deleteDocument(nodeId)
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
       } catch (error: any) {
         console.error('删除大纲节点失败:', error)

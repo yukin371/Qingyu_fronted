@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { getDocumentTree } from '../api/document'
+import type { DocumentStatus } from '../types/document'
 
 /**
  * 章节状态类型
@@ -74,16 +76,42 @@ export const useChapterStore = defineStore('writer-chapter', () => {
 
   /**
    * 加载项目的章节列表
-   * TODO: 对接后端 API
+   * 从文档树API获取数据并转换为章节节点格式
    */
-  async function loadChapters(_projectId: string) {
+  async function loadChapters(projectId: string) {
     loading.value = true
     try {
-      // TODO: 调用 API 获取章节列表
-      // const res = await chapterApi.getList(_projectId)
-      // chapters.value = res.chapters
-
-      // 暂时清空，等待 API 对接
+      // 调用文档树API
+      const treeData = await getDocumentTree(projectId)
+      
+      // 将文档树扁平化为章节列表
+      const flattenTree = (nodes: Record<string, unknown>[], parentId: string | null = null): ChapterNode[] => {
+        const result: ChapterNode[] = []
+        for (const node of nodes) {
+          const chapter: ChapterNode = {
+            id: node.id || node.documentId || node._id,
+            parentId,
+            projectId,
+            title: node.title || '未命名',
+            order: node.order ?? 0,
+            wordCount: node.wordCount ?? 0,
+            status: mapDocumentStatusToChapterStatus(node.status),
+          }
+          result.push(chapter)
+          
+          // 递归处理子节点
+          if (node.children && node.children.length > 0) {
+            result.push(...flattenTree(node.children, chapter.id))
+          }
+        }
+        return result
+      }
+      
+      // 处理返回的数据结构
+      const nodes = Array.isArray(treeData) ? treeData : (treeData as Record<string, unknown>)?.tree || []
+      chapters.value = flattenTree(nodes)
+    } catch (error) {
+      console.error('加载章节列表失败:', error)
       chapters.value = []
     } finally {
       loading.value = false
@@ -139,6 +167,22 @@ export const useChapterStore = defineStore('writer-chapter', () => {
   }
 
   // ==================== Helper Functions ====================
+
+  /**
+   * 将文档状态映射为章节状态
+   */
+  function mapDocumentStatusToChapterStatus(status: DocumentStatus | string): ChapterStatus {
+    switch (status) {
+      case 'completed':
+        return 'completed'
+      case 'writing':
+        return 'writing'
+      case 'planned':
+      case 'draft':
+      default:
+        return 'draft'
+    }
+  }
 
   /**
    * 构建章节树

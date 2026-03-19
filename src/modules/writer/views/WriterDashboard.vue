@@ -184,6 +184,7 @@ import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
+import { getTodayWordsStats } from '@/modules/writer/api/dashboard'
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -270,9 +271,14 @@ onMounted(async () => {
       return acc + (cur.totalWords ?? cur.wordCount ?? 0)
     }, 0)
     stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
-    // TODO: 等待后端实现今日写作字数API (GET /api/v1/writer/dashboard/today-words)
-    // 当前使用本地存储的写作目标进度作为临时方案
-    stats.value.todayWords = 0
+    // 调用今日写作字数API
+    try {
+      const todayStats = await getTodayWordsStats()
+      stats.value.todayWords = todayStats.todayWords
+    } catch {
+      console.warn('[WriterDashboard] 获取今日字数失败，使用默认值0')
+      stats.value.todayWords = 0
+    }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
   } finally {
