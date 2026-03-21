@@ -27,7 +27,7 @@ const drawerVariants = cva(
     defaultVariants: {
       direction: 'right',
     },
-  }
+  },
 )
 
 // 组件 Props
@@ -60,7 +60,7 @@ const drawerClasses = computed(() => {
     drawerVariants({
       direction: direction as DrawerDirection,
     }),
-    props.class
+    props.class,
   )
 })
 
@@ -88,7 +88,7 @@ const sizeStyle = computed(() => {
 const transformStyle = computed(() => {
   const direction = props.rtl && props.direction === 'right' ? 'left' : props.direction
 
-  if (isVisible.value && !isAnimating) {
+  if (isVisible.value && !isAnimating.value) {
     return {}
   }
 
@@ -108,24 +108,24 @@ const transformStyle = computed(() => {
 
 // 计算遮罩层样式类名
 const modalClasses = computed(() =>
-  cn(
-    'fixed inset-0 bg-black/50 z-40 transition-opacity duration-300',
-    props.modalClass
-  )
+  cn('fixed inset-0 bg-black/50 z-40 transition-opacity duration-300', props.modalClass),
 )
 
 // 监听 modelValue 变化
-watch(() => props.modelValue, (newVal) => {
-  if (newVal) {
-    open()
-  } else {
-    close()
-  }
-})
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal) {
+      open()
+    } else {
+      close()
+    }
+  },
+)
 
 // 监听内部状态变化同步到父组件
 watch(isVisible, (newVal) => {
-  if (!isAnimating) {
+  if (!isAnimating.value) {
     emit('update:modelValue', newVal)
   }
 })
@@ -306,9 +306,7 @@ defineExpose({
         <!-- 内容区域 -->
         <div class="flex-1 overflow-auto px-6 py-4">
           <slot v-if="!destroyOnClose || modelValue">
-            <p class="text-neutral-600 dark:text-neutral-400">
-              抽屉内容
-            </p>
+            <p class="text-neutral-600 dark:text-neutral-400">抽屉内容</p>
           </slot>
         </div>
 

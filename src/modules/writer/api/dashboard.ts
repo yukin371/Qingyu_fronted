@@ -189,7 +189,10 @@ export function getReviewHistory(params?: {
  * @response {{success: boolean}} 200 - 成功重新提交
  * @security BearerAuth
  */
-export function resubmitReview(reviewId: string, data?: { comment?: string }): Promise<{ success: boolean }> {
+export function resubmitReview(
+  reviewId: string,
+  data?: { comment?: string },
+): Promise<{ success: boolean }> {
   return request<{ success: boolean }>({
     url: `/api/v1/writer/reviews/${reviewId}/resubmit`,
     method: 'post',
@@ -200,6 +203,23 @@ export function resubmitReview(reviewId: string, data?: { comment?: string }): P
 // ==================== 兼容旧API（使用publish API模拟）====================
 
 /**
+ * 发布状态响应接口
+ */
+export interface PublicationStatusResponse {
+  pendingChapters?: number
+  publishedChapters?: number
+  totalChapters?: number
+}
+
+/**
+ * 发布历史响应接口
+ */
+export interface PublicationHistoryResponse {
+  data?: Array<Record<string, unknown>>
+  pagination?: { total?: number }
+}
+
+/**
  * 获取审核统计（兼容函数）
  * @description 使用发布统计API获取审核相关数据
  * @deprecated 请使用 getReviewStatistics
@@ -207,7 +227,12 @@ export function resubmitReview(reviewId: string, data?: { comment?: string }): P
 export async function getReviewStatsCompat(projectId: string): Promise<ReviewStats> {
   try {
     // 使用发布统计API
-    const status = await httpService.get<Record<string, unknown>>(`/api/v1/writer/projects/${projectId}/publication-status`)
+    // httpService 返回的是 AxiosResponse，需要提取 data
+    const response = await httpService.get<PublicationStatusResponse>(
+      `/api/v1/writer/projects/${projectId}/publication-status`,
+    )
+    // 处理可能的 AxiosResponse 包装
+    const status = (response as any)?.data ?? response
     const pending = Number(status?.pendingChapters || 0)
     const published = Number(status?.publishedChapters || 0)
     const total = pending + published + Number(status?.totalChapters || 0)
@@ -238,21 +263,26 @@ export async function getReviewStatsCompat(projectId: string): Promise<ReviewSta
  * @description 使用发布记录API获取审核历史
  * @deprecated 请使用 getReviewHistory
  */
-export async function getReviewHistoryCompat(projectId: string, params?: {
-  page?: number
-  pageSize?: number
-  status?: string
-}): Promise<ReviewHistoryResponse> {
+export async function getReviewHistoryCompat(
+  projectId: string,
+  params?: {
+    page?: number
+    pageSize?: number
+    status?: string
+  },
+): Promise<ReviewHistoryResponse> {
   try {
-    const res = await httpService.get<{
-      data?: Array<Record<string, unknown>>
-      pagination?: { total?: number }
-    }>(`/api/v1/writer/projects/${projectId}/publications`, {
-      params: {
-        page: params?.page || 1,
-        pageSize: params?.pageSize || 20,
+    const response = await httpService.get<PublicationHistoryResponse>(
+      `/api/v1/writer/projects/${projectId}/publications`,
+      {
+        params: {
+          page: params?.page || 1,
+          pageSize: params?.pageSize || 20,
+        },
       },
-    })
+    )
+    // 处理可能的 AxiosResponse 包装
+    const res = (response as any)?.data ?? response
 
     const rawItems = Array.isArray(res?.data) ? res.data : []
     const items: ReviewRecord[] = rawItems.map((item: any) => ({

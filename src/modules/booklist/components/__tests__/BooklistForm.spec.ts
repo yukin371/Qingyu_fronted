@@ -2,7 +2,6 @@
  * BooklistForm组件测试
  */
 // @ts-nocheck - Test file with flexible type assertions
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { mount } from '@vue/test-utils'
 import { createMockBooklist } from '../../../../tests/fixtures'
@@ -41,31 +40,32 @@ vi.mock('@/design-system/components', () => {
         emit('focus')
       }
 
-      return () => h(
-        props.type === 'textarea' ? 'textarea' : 'input',
-        {
-          class: 'qy-input',
-          type: props.type === 'textarea' ? undefined : props.type,
-          placeholder: props.placeholder,
-          disabled: props.disabled,
-          readonly: props.readonly,
-          rows: props.rows,
-          maxlength: props.maxlength,
-          value: props.modelValue,
-          onInput: handleInput,
-          onBlur: handleBlur,
-          onFocus: handleFocus,
-          'data-testid': 'qy-input',
-        },
-        []
-      )
+      return () =>
+        h(
+          props.type === 'textarea' ? 'textarea' : 'input',
+          {
+            class: 'qy-input',
+            type: props.type === 'textarea' ? undefined : props.type,
+            placeholder: props.placeholder,
+            disabled: props.disabled,
+            readonly: props.readonly,
+            rows: props.rows,
+            maxlength: props.maxlength,
+            value: props.modelValue,
+            onInput: handleInput,
+            onBlur: handleBlur,
+            onFocus: handleFocus,
+            'data-testid': 'qy-input',
+          },
+          [],
+        )
     },
     methods: {
       // 添加 focus 方法以支持组件测试中的 tagInputRef.value?.focus() 调用
       focus() {
         // Mock implementation
-      }
-    }
+      },
+    },
   })
 
   const MockQyButton = defineComponent({
@@ -79,24 +79,21 @@ vi.mock('@/design-system/components', () => {
     },
     emits: ['click'],
     setup(props: any, { emit, slots }: any) {
-      const classes = [
-        'qy-button',
-        `qy-button--${props.variant}`,
-        `qy-button--${props.size}`,
-      ]
+      const classes = ['qy-button', `qy-button--${props.variant}`, `qy-button--${props.size}`]
       if (props.disabled) classes.push('is-disabled')
       if (props.loading) classes.push('is-loading')
 
-      return () => h(
-        'button',
-        {
-          class: classes,
-          disabled: props.disabled,
-          type: props.type,
-          onClick: (e: any) => emit('click', e),
-        },
-        slots.default ? slots.default() : []
-      )
+      return () =>
+        h(
+          'button',
+          {
+            class: classes,
+            disabled: props.disabled,
+            type: props.type,
+            onClick: (e: any) => emit('click', e),
+          },
+          slots.default ? slots.default() : [],
+        )
     },
   })
 
@@ -109,28 +106,31 @@ vi.mock('@/design-system/components', () => {
     },
     emits: ['click', 'close'],
     setup(props: any, { emit, slots }: any) {
-      const children = [
-        slots.default ? slots.default() : '',
-      ]
+      const children = [slots.default ? slots.default() : '']
       if (props.closable) {
         children.push(
-          h('span', {
-            class: 'close-btn',
-            onClick: (e: any) => {
-              e.stopPropagation()
-              emit('close')
+          h(
+            'span',
+            {
+              class: 'close-btn',
+              onClick: (e: any) => {
+                e.stopPropagation()
+                emit('close')
+              },
             },
-          }, '×')
+            '×',
+          ),
         )
       }
-      return () => h(
-        'span',
-        {
-          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
-          onClick: () => emit('click'),
-        },
-        children
-      )
+      return () =>
+        h(
+          'span',
+          {
+            class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+            onClick: () => emit('click'),
+          },
+          children,
+        )
     },
   })
 
@@ -141,7 +141,8 @@ vi.mock('@/design-system/components', () => {
       size: { type: Number, default: 16 },
     },
     setup(props: any) {
-      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+      return () =>
+        h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
     },
   })
 

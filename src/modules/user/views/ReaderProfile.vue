@@ -45,23 +45,19 @@
                   >
                     全选
                   </QyCheckbox>
-                  <span class="selected-count">
-                    已选择 {{ selectedBooks.length }} 本
-                  </span>
+                  <span class="selected-count"> 已选择 {{ selectedBooks.length }} 本 </span>
                 </div>
                 <div class="toolbar-right">
-                  <QyButton
-                    :disabled="selectedBooks.length === 0"
-                    @click="openMoveDialog"
-                  >
-                    <QyIcon name="FolderOpened" slot="icon" />
+                  <QyButton :disabled="selectedBooks.length === 0" @click="openMoveDialog">
+                    <template v-slot:icon>
+                      <QyIcon name="FolderOpened" />
+                    </template>
                     移动分类
                   </QyButton>
-                  <QyButton
-                    :disabled="selectedBooks.length === 0"
-                    @click="openExportDialog"
-                  >
-                    <QyIcon name="Download" slot="icon" />
+                  <QyButton :disabled="selectedBooks.length === 0" @click="openExportDialog">
+                    <template v-slot:icon>
+                      <QyIcon name="Download" />
+                    </template>
                     导出书单
                   </QyButton>
                   <QyButton
@@ -69,7 +65,9 @@
                     :disabled="selectedBooks.length === 0"
                     @click="handleBatchRemove"
                   >
-                    <QyIcon name="Delete" slot="icon" />
+                    <template v-slot:icon>
+                      <QyIcon name="Delete" />
+                    </template>
                     移出书架
                   </QyButton>
                 </div>
@@ -87,7 +85,9 @@
                   <div class="book-checkbox">
                     <QyCheckbox
                       :model-value="selectedBooks.includes(item.book_id)"
-                      @change="(val: boolean | string[]) => handleSelectBook(item.book_id, val as boolean)"
+                      @change="
+                        (val: boolean | string[]) => handleSelectBook(item.book_id, val as boolean)
+                      "
                       @click.stop
                     />
                   </div>
@@ -145,7 +145,7 @@
                 <el-col :span="12">
                   <QyCard class="stat-card">
                     <div class="stat-item">
-                      <div class="stat-icon" style="background-color: #409eff20;">
+                      <div class="stat-icon" style="background-color: #409eff20">
                         <QyIcon name="Reading" :size="32" color="#409eff" />
                       </div>
                       <div class="stat-info">
@@ -159,7 +159,7 @@
                 <el-col :span="12">
                   <QyCard class="stat-card">
                     <div class="stat-item">
-                      <div class="stat-icon" style="background-color: #67c23a20;">
+                      <div class="stat-icon" style="background-color: #67c23a20">
                         <QyIcon name="Clock" :size="32" color="#67c23a" />
                       </div>
                       <div class="stat-info">
@@ -173,7 +173,7 @@
                 <el-col :span="12">
                   <QyCard class="stat-card">
                     <div class="stat-item">
-                      <div class="stat-icon" style="background-color: #e6a23c20;">
+                      <div class="stat-icon" style="background-color: #e6a23c20">
                         <QyIcon name="Document" :size="32" color="#e6a23c" />
                       </div>
                       <div class="stat-info">
@@ -187,7 +187,7 @@
                 <el-col :span="12">
                   <QyCard class="stat-card">
                     <div class="stat-item">
-                      <div class="stat-icon" style="background-color: #f5622120;">
+                      <div class="stat-icon" style="background-color: #f5622120">
                         <QyIcon name="Star" :size="32" color="#f56221" />
                       </div>
                       <div class="stat-info">
@@ -200,7 +200,7 @@
               </el-row>
 
               <!-- 最近阅读 -->
-              <QyCard class="recent-reading-card" style="margin-top: 20px;">
+              <QyCard class="recent-reading-card" style="margin-top: 20px">
                 <template #header>
                   <div class="card-header">
                     <h3>最近阅读</h3>
@@ -218,11 +218,7 @@
                     class="recent-item"
                     @click="goToReader(item.book_id, item.chapter_id)"
                   >
-                    <QyImage
-                      :src="item.book?.cover"
-                      fit="cover"
-                      class="recent-cover"
-                    >
+                    <QyImage :src="item.book?.cover" fit="cover" class="recent-cover">
                       <template #error>
                         <div class="image-slot-small">
                           <QyIcon name="Picture" />
@@ -250,18 +246,10 @@
       </QyCard>
 
       <!-- 批量移动分类对话框 -->
-      <QyModal
-        v-model:visible="moveDialogVisible"
-        title="移动到分类"
-        width="400px"
-      >
+      <QyModal v-model:visible="moveDialogVisible" title="移动到分类" width="400px">
         <QyForm :modelValue="{ selectedCategory }">
           <QyFormItem label="选择分类">
-            <el-select
-              v-model="selectedCategory"
-              placeholder="请选择分类"
-              style="width: 100%"
-            >
+            <el-select v-model="selectedCategory" placeholder="请选择分类" style="width: 100%">
               <el-option
                 v-for="cat in bookCategories"
                 :key="cat.value"
@@ -284,11 +272,7 @@
       </QyModal>
 
       <!-- 导出书单对话框 -->
-      <QyModal
-        v-model:visible="exportDialogVisible"
-        title="导出书单"
-        width="400px"
-      >
+      <QyModal v-model:visible="exportDialogVisible" title="导出书单" width="400px">
         <QyAlert
           :title="`将导出 ${selectedBooks.length} 本书籍的信息`"
           type="info"
@@ -296,18 +280,16 @@
           style="margin-bottom: 20px"
         />
         <el-space direction="vertical" style="width: 100%">
-          <QyButton
-            style="width: 100%"
-            @click="handleExport('json')"
-          >
-            <QyIcon name="Document" slot="icon" />
+          <QyButton style="width: 100%" @click="handleExport('json')">
+            <template v-slot:icon>
+              <QyIcon name="Document" />
+            </template>
             导出为 JSON
           </QyButton>
-          <QyButton
-            style="width: 100%"
-            @click="handleExport('csv')"
-          >
-            <QyIcon name="Document" slot="icon" />
+          <QyButton style="width: 100%" @click="handleExport('csv')">
+            <template v-slot:icon>
+              <QyIcon name="Document" />
+            </template>
             导出为 CSV
           </QyButton>
         </el-space>
@@ -323,11 +305,26 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyImage, QyEmpty, QyLoading, QyProgress, QyPagination, QyButton, QyCheckbox, QyCard, QyForm, QyFormItem, QyModal, QyAlert } from '@/design-system/components'
+import {
+  QyIcon,
+  QyImage,
+  QyEmpty,
+  QyLoading,
+  QyProgress,
+  QyPagination,
+  QyButton,
+  QyCheckbox,
+  QyCard,
+  QyForm,
+  QyFormItem,
+  QyModal,
+  QyAlert,
+} from '@/design-system/components'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'
-import * as bookshelfAPI from '@/modules/reader/api'
+import { bookshelfAPI as batchAPI } from '@/modules/reader/api/manual/bookshelf'
+import { getRecentReading } from '@/modules/reader/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -351,7 +348,7 @@ const bookshelfList = ref<any[]>([])
 const bookshelfPagination = ref({
   page: 1,
   size: 12,
-  total: 0
+  total: 0,
 })
 
 // 批量操作状态
@@ -364,7 +361,7 @@ const bookCategories = ref([
   { value: 'reading', label: '正在阅读' },
   { value: 'completed', label: '已完成' },
   { value: 'want_to_read', label: '想读' },
-  { value: 'abandoned', label: '已弃书' }
+  { value: 'abandoned', label: '已弃书' },
 ])
 
 // 计算属性
@@ -379,7 +376,7 @@ const readingStats = ref({
   totalBooks: 0,
   totalReadingTime: 0,
   totalChapters: 0,
-  totalComments: 0
+  totalComments: 0,
 })
 
 // 最近阅读
@@ -403,13 +400,13 @@ const loadUserProfile = async () => {
       level: 5,
       exp: 2580,
       follower_count: 128,
-      following_count: 45
+      following_count: 45,
     }
 
     // 模拟统计数据
     userStats.value = {
       followerCount: 128,
-      totalBooks: 45
+      totalBooks: 45,
     }
 
     // 模拟阅读统计
@@ -417,7 +414,7 @@ const loadUserProfile = async () => {
       totalBooks: 45,
       totalReadingTime: 128,
       totalChapters: 567,
-      totalComments: 89
+      totalComments: 89,
     }
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
@@ -451,8 +448,8 @@ const loadBookshelf = async () => {
           cover: 'https://picsum.photos/seed/book1/200/280',
           author: '张三',
           category: '玄幻',
-          total_chapters: 100
-        }
+          total_chapters: 100,
+        },
       },
       {
         book_id: '2',
@@ -464,8 +461,8 @@ const loadBookshelf = async () => {
           cover: 'https://picsum.photos/seed/book2/200/280',
           author: '李四',
           category: '都市',
-          total_chapters: 200
-        }
+          total_chapters: 200,
+        },
       },
       {
         book_id: '3',
@@ -477,8 +474,8 @@ const loadBookshelf = async () => {
           cover: 'https://picsum.photos/seed/book3/200/280',
           author: '王五',
           category: '科幻',
-          total_chapters: 150
-        }
+          total_chapters: 150,
+        },
       },
       {
         book_id: '4',
@@ -490,9 +487,9 @@ const loadBookshelf = async () => {
           cover: 'https://picsum.photos/seed/book4/200/280',
           author: '赵六',
           category: '历史',
-          total_chapters: 300
-        }
-      }
+          total_chapters: 300,
+        },
+      },
     ]
     bookshelfPagination.value.total = 4
   } catch (error: any) {
@@ -510,26 +507,26 @@ const loadRecentReadings = async () => {
   try {
     if (isCurrentUser.value) {
       // 查看自己的阅读历史：使用reader API
-      const response = await bookshelfAPI.getRecentReading(5)
+      const response = await getRecentReading(5)
       const data = response.data || response
-      const history = Array.isArray(data) ? data : (data.data || [])
+      const history = Array.isArray(data) ? data : data.data || []
 
       recentReadings.value = history.map((item: any) => ({
         id: item.id || item._id,
         book: {
           id: item.bookId || item.book?.id,
           title: item.title || item.book?.title,
-          cover: item.cover || item.book?.coverUrl
+          cover: item.cover || item.book?.coverUrl,
         },
         chapterTitle: item.chapterTitle || item.last_read_chapter || '未知章节',
         progress: (item.progress || 0) * 100,
-        lastReadAt: item.lastReadAt || item.last_read_at || item.updated_at
+        lastReadAt: item.lastReadAt || item.last_read_at || item.updated_at,
       }))
     } else {
       // 查看他人的阅读历史：使用user API（如果后端支持）
       try {
         const response = await httpService.get(`/user/users/${userId.value}/recent-readings`, {
-          params: { limit: 5 }
+          params: { limit: 5 },
         })
 
         const history = response.data || []
@@ -538,11 +535,11 @@ const loadRecentReadings = async () => {
           book: {
             id: item.bookId || item.book?.id,
             title: item.book?.title,
-            cover: item.book?.cover
+            cover: item.book?.cover,
           },
           chapterTitle: item.chapterTitle || '未知章节',
           progress: (item.progress || 0) * 100,
-          lastReadAt: item.lastReadAt
+          lastReadAt: item.lastReadAt,
         }))
       } catch (err) {
         // 如果后端不支持获取他人的阅读历史，返回空数组
@@ -594,7 +591,7 @@ const handleFollow = async () => {
     if (isMockToken) {
       // 测试模式：直接更新状态，不调用API
       console.log('[测试模式] 关注操作')
-      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
+      await new Promise((resolve) => setTimeout(resolve, 300)) // 模拟网络延迟
       isFollowing.value = true
       message.success('关注成功')
       if (userStats.value) {
@@ -624,7 +621,7 @@ const handleUnfollow = async () => {
     if (isMockToken) {
       // 测试模式：直接更新状态，不调用API
       console.log('[测试模式] 取消关注操作')
-      await new Promise(resolve => setTimeout(resolve, 300)) // 模拟网络延迟
+      await new Promise((resolve) => setTimeout(resolve, 300)) // 模拟网络延迟
       isFollowing.value = false
       message.success('已取消关注')
       if (userStats.value && userStats.value.followerCount > 0) {
@@ -650,7 +647,7 @@ const handleUnfollow = async () => {
 // 全选/取消全选
 const handleSelectAll = (checked: boolean) => {
   if (checked) {
-    selectedBooks.value = bookshelfList.value.map(item => item.book_id)
+    selectedBooks.value = bookshelfList.value.map((item) => item.book_id)
   } else {
     selectedBooks.value = []
   }
@@ -702,19 +699,16 @@ const handleBatchMove = async () => {
 
   try {
     await messageBox.confirm(
-      `确定要将选中的 ${selectedBooks.value.length} 本书籍移动到"${bookCategories.value.find(c => c.value === selectedCategory.value)?.label}"吗？`,
+      `确定要将选中的 ${selectedBooks.value.length} 本书籍移动到"${bookCategories.value.find((c) => c.value === selectedCategory.value)?.label}"吗？`,
       '移动确认',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }
+        cancelButtonText: '取消',
+      },
     )
 
-    // TODO: 调用批量移动 API
-    // await httpService.put('/reader/bookshelf/batch-move', {
-    //   book_ids: selectedBooks.value,
-    //   category: selectedCategory.value
-    // })
+    // 调用批量更新状态API
+    await batchAPI.batchUpdateStatus(selectedBooks.value, selectedCategory.value)
 
     message.success('移动成功')
     moveDialogVisible.value = false
@@ -737,16 +731,17 @@ const handleBatchRemove = async () => {
       '移出确认',
       {
         confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }
+        cancelButtonText: '取消',
+      },
     )
 
-    // TODO: 调用批量删除 API
-    // await httpService.delete('/reader/bookshelf/batch', {
-    //   data: { book_ids: selectedBooks.value }
-    // })
-
-    message.success('已移出书架')
+    // 调用批量删除API
+    const result = await batchAPI.batchRemove(selectedBooks.value)
+    if (!result.success && result.message) {
+      message.warning(result.message)
+    } else {
+      message.success('已移出书架')
+    }
     selectedBooks.value = []
     selectAll.value = false
     loadBookshelf()
@@ -770,26 +765,18 @@ const openExportDialog = () => {
 // 导出书单
 const handleExport = async (format: string) => {
   try {
-    // TODO: 调用导出 API
-    // const response = await httpService.post('/reader/bookshelf/export', {
-    //   book_ids: selectedBooks.value,
-    //   format
-    // }, {
-    //   responseType: 'blob'
-    // })
-
-    // 模拟导出
-    const selectedBooksData = bookshelfList.value.filter(item =>
-      selectedBooks.value.includes(item.book_id)
+    // 客户端导出
+    const selectedBooksData = bookshelfList.value.filter((item) =>
+      selectedBooks.value.includes(item.book_id),
     )
 
-    const exportData = selectedBooksData.map(item => ({
+    const exportData = selectedBooksData.map((item) => ({
       title: item.book?.title,
       author: item.book?.author,
       category: item.book?.category,
       totalChapters: item.book?.total_chapters,
       currentChapter: item.current_chapter,
-      progress: calculateProgress(item) + '%'
+      progress: calculateProgress(item) + '%',
     }))
 
     let content = ''
@@ -802,8 +789,9 @@ const handleExport = async (format: string) => {
       type = 'application/json'
     } else if (format === 'csv') {
       const headers = ['书名', '作者', '分类', '总章节数', '当前章节', '进度']
-      const rows = exportData.map(d =>
-        `${d.title},${d.author},${d.category},${d.totalChapters},${d.currentChapter},${d.progress}`
+      const rows = exportData.map(
+        (d) =>
+          `${d.title},${d.author},${d.category},${d.totalChapters},${d.currentChapter},${d.progress}`,
       )
       content = [headers.join(','), ...rows].join('\n')
       filename = `书单_${new Date().toLocaleDateString()}.csv`
@@ -1148,4 +1136,3 @@ onMounted(() => {
   }
 }
 </style>
-

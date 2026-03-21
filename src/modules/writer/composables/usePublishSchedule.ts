@@ -11,6 +11,7 @@ import {
   resumePublishPlan,
   submitForReview,
   type PublishPlan,
+  type PublishPlatform,
   publishTypeOptions,
   publishPlatformOptions,
 } from '@/modules/writer/api'
@@ -136,7 +137,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
           description: '',
           type: planForm.type,
           status: publishPlan.value?.status || 'active',
-          platforms: [...planForm.platforms] as ('all' | 'web' | 'app' | 'wechat')[],
+          platforms: [...planForm.platforms] as PublishPlatform[],
           schedule: {
             type: planForm.scheduleType,
             interval_days: planForm.intervalDays,
@@ -161,7 +162,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
         await updatePublishPlan(publishPlan.value.id, {
           name: planForm.name,
           type: planForm.type,
-          platforms: planForm.platforms as ('all' | 'web' | 'app' | 'wechat')[],
+          platforms: planForm.platforms as PublishPlatform[],
           schedule: {
             type: planForm.scheduleType,
             interval_days: planForm.intervalDays,
@@ -178,7 +179,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
         await createPublishPlan(bookId.value, {
           name: planForm.name,
           type: planForm.type,
-          platforms: planForm.platforms as ('all' | 'web' | 'app' | 'wechat')[],
+          platforms: planForm.platforms as PublishPlatform[],
           schedule: {
             type: planForm.scheduleType,
             interval_days: planForm.intervalDays,
@@ -245,7 +246,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
     ensureMockRecords: (projectId: string) => PublishRecordItem[],
     persistMockPublication: (projectId: string) => void,
     loadPublishRecords: () => void,
-    loadStats: () => void
+    loadStats: () => void,
   ) => {
     try {
       if (isMockProjectContext.value) {

@@ -39,10 +39,10 @@ export function calculateWordCount(text: string, filterMarkdown: boolean = false
   // 排除掉纯标点符号
   const nonCjkContent = content.replace(
     /\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/gu,
-    ' '
+    ' ',
   )
   const wordMatch = nonCjkContent.match(
-    /[a-zA-Z0-9\u00C0-\u00FF]+(?:['_-][a-zA-Z0-9\u00C0-\u00FF]+)*/g
+    /[a-zA-Z0-9\u00C0-\u00FF]+(?:['_-][a-zA-Z0-9\u00C0-\u00FF]+)*/g,
   )
   const wordCount = wordMatch ? wordMatch.length : 0
 
@@ -162,7 +162,7 @@ export function toggleLinePrefix(element: HTMLTextAreaElement, prefix: string): 
     const value = element.value
 
     // 1. 扩充选区到完整的行（从第一行行首到最后一行行尾）
-    let lineStart = value.lastIndexOf('\n', start - 1) + 1
+    const lineStart = value.lastIndexOf('\n', start - 1) + 1
     let lineEnd = value.indexOf('\n', end)
     if (lineEnd === -1) lineEnd = value.length
 
@@ -273,7 +273,7 @@ export function detectVersionConflict(localVersion: number, serverVersion: numbe
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return function (this: any, ...args: Parameters<T>) {
@@ -289,7 +289,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle = false
   return function (this: any, ...args: Parameters<T>) {

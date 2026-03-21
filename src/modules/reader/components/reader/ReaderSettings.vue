@@ -1,5 +1,10 @@
 <template>
-  <div v-if="visible" class="settings-overlay" data-testid="settings-overlay" @click.self="$emit('close')">
+  <div
+    v-if="visible"
+    class="settings-overlay"
+    data-testid="settings-overlay"
+    @click.self="$emit('close')"
+  >
     <section class="settings-modal" data-testid="settings-modal">
       <div class="settings-modal-header">
         <h3>阅读设置</h3>
@@ -11,9 +16,13 @@
         <div class="setting-item" data-testid="font-size-setting">
           <label>字体大小</label>
           <div class="setting-control">
-            <QyButton @click="$emit('decrease-font')" circle data-testid="decrease-font-btn">-</QyButton>
+            <QyButton @click="$emit('decrease-font')" circle data-testid="decrease-font-btn"
+              >-</QyButton
+            >
             <span class="font-size-value">{{ settings.fontSize }}px</span>
-            <QyButton @click="$emit('increase-font')" circle data-testid="increase-font-btn">+</QyButton>
+            <QyButton @click="$emit('increase-font')" circle data-testid="increase-font-btn"
+              >+</QyButton
+            >
           </div>
         </div>
 
@@ -76,7 +85,11 @@
         <!-- 字体选择 -->
         <div class="setting-item" data-testid="font-family-setting">
           <label>字体</label>
-          <QySelect v-model="localFontFamily" placeholder="选择字体" data-testid="font-family-select">
+          <QySelect
+            v-model="localFontFamily"
+            placeholder="选择字体"
+            data-testid="font-family-select"
+          >
             <el-option label="系统默认" value="system-ui, -apple-system, sans-serif" />
             <el-option label="宋体" value="SimSun, serif" />
             <el-option label="黑体" value="SimHei, sans-serif" />
@@ -87,7 +100,9 @@
         <!-- 翻页模式 -->
         <div class="setting-item" data-testid="page-mode-setting">
           <label>翻页模式</label>
-          <QyRadio v-model="localPageMode" value="scroll" data-testid="page-mode-scroll">滚动</QyRadio>
+          <QyRadio v-model="localPageMode" value="scroll" data-testid="page-mode-scroll"
+            >滚动</QyRadio
+          >
           <QyRadio v-model="localPageMode" value="page" data-testid="page-mode-page">翻页</QyRadio>
         </div>
 
@@ -128,17 +143,19 @@ const emit = defineEmits<{
   (e: 'update:line-height', value: number): void
   (e: 'update:page-width', value: number): void
   (e: 'update:theme', theme: string): void
+  (e: 'update:font-family', fontFamily: string): void
+  (e: 'update:page-mode', pageMode: string): void
   (e: 'reset'): void
 }>()
 
 const localFontFamily = computed({
   get: () => props.settings.fontFamily,
-  set: (value: string) => emit('update:font-family', value)
+  set: (value: string) => emit('update:font-family', value),
 })
 
 const localPageMode = computed({
   get: () => props.settings.pageMode,
-  set: (value: string) => emit('update:page-mode', value)
+  set: (value: string) => emit('update:page-mode', value),
 })
 </script>
 

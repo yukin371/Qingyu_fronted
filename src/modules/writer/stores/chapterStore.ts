@@ -32,6 +32,20 @@ export interface ChapterNode {
 }
 
 /**
+ * 文档树节点接口（API 返回格式）
+ */
+interface DocumentTreeNode {
+  id?: string
+  documentId?: string
+  _id?: string
+  title?: string
+  order?: number
+  wordCount?: number
+  status?: DocumentStatus | string
+  children?: DocumentTreeNode[]
+}
+
+/**
  * 章节管理 Store
  * 负责章节树的加载、展示和操作
  */
@@ -83,13 +97,16 @@ export const useChapterStore = defineStore('writer-chapter', () => {
     try {
       // 调用文档树API
       const treeData = await getDocumentTree(projectId)
-      
+
       // 将文档树扁平化为章节列表
-      const flattenTree = (nodes: Record<string, unknown>[], parentId: string | null = null): ChapterNode[] => {
+      const flattenTree = (
+        nodes: DocumentTreeNode[],
+        parentId: string | null = null,
+      ): ChapterNode[] => {
         const result: ChapterNode[] = []
         for (const node of nodes) {
           const chapter: ChapterNode = {
-            id: node.id || node.documentId || node._id,
+            id: node.id || node.documentId || node._id || '',
             parentId,
             projectId,
             title: node.title || '未命名',
@@ -98,7 +115,7 @@ export const useChapterStore = defineStore('writer-chapter', () => {
             status: mapDocumentStatusToChapterStatus(node.status),
           }
           result.push(chapter)
-          
+
           // 递归处理子节点
           if (node.children && node.children.length > 0) {
             result.push(...flattenTree(node.children, chapter.id))
@@ -106,9 +123,11 @@ export const useChapterStore = defineStore('writer-chapter', () => {
         }
         return result
       }
-      
+
       // 处理返回的数据结构
-      const nodes = Array.isArray(treeData) ? treeData : (treeData as Record<string, unknown>)?.tree || []
+      const nodes = Array.isArray(treeData)
+        ? treeData
+        : (treeData as { tree?: DocumentTreeNode[] })?.tree || []
       chapters.value = flattenTree(nodes)
     } catch (error) {
       console.error('加载章节列表失败:', error)
@@ -171,7 +190,9 @@ export const useChapterStore = defineStore('writer-chapter', () => {
   /**
    * 将文档状态映射为章节状态
    */
-  function mapDocumentStatusToChapterStatus(status: DocumentStatus | string): ChapterStatus {
+  function mapDocumentStatusToChapterStatus(
+    status: DocumentStatus | string | undefined,
+  ): ChapterStatus {
     switch (status) {
       case 'completed':
         return 'completed'

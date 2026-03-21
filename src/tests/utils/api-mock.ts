@@ -3,8 +3,6 @@
  * 提供API测试的mock辅助函数
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * API响应结构
  */
@@ -49,14 +47,14 @@ export const createErrorResponse = (message: string, code: number = -1): ApiResp
  */
 export const mockApiCall = <T>(
   responseData: ApiResponse<T>,
-  delay: number = 0
+  delay: number = 0,
 ): (() => Promise<ApiResponse<T>>) => {
   // vitest globals are enabled
   const vi = (globalThis as any).vi
   const mockFn = vi?.fn || (() => () => {})
   return mockFn(async () => {
     if (delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, delay))
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
     return responseData
   })
@@ -67,16 +65,13 @@ export const mockApiCall = <T>(
  * @param data 响应数据
  * @param delay 延迟毫秒数 (默认0)
  */
-export const mockSuccessApiCall = <T>(
-  data: T,
-  delay: number = 0
-): (() => Promise<T>) => {
+export const mockSuccessApiCall = <T>(data: T, delay: number = 0): (() => Promise<T>) => {
   // vitest globals are enabled
   const vi = (globalThis as any).vi
   const mockFn = vi?.fn || (() => () => {})
   return mockFn(async () => {
     if (delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, delay))
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
     return data
   })
@@ -91,14 +86,14 @@ export const mockSuccessApiCall = <T>(
 export const mockErrorApiCall = (
   message: string,
   code: number = -1,
-  delay: number = 0
+  delay: number = 0,
 ): (() => Promise<never>) => {
   // vitest globals are enabled
   const vi = (globalThis as any).vi
   const mockFn = vi?.fn || (() => () => {})
   return mockFn(async () => {
     if (delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, delay))
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
     const error: any = new Error(message)
     error.code = code
@@ -111,7 +106,7 @@ export const mockErrorApiCall = (
  * @param mockConfig mock配置对象
  */
 export const mockHttpService = <T extends Record<string, (...args: any[]) => Promise<any>>>(
-  mockConfig: T
+  mockConfig: T,
 ): T => {
   // vitest globals are enabled
   const vi = (globalThis as any).vi
@@ -140,8 +135,8 @@ export const createPaginatedResponse = <T>(
   items: T[],
   total?: number,
   page: number = 1,
-  pageSize: number = 10
-): { items: T[], total: number, page: number, pageSize: number, totalPages: number } => {
+  pageSize: number = 10,
+): { items: T[]; total: number; page: number; pageSize: number; totalPages: number } => {
   const actualTotal = total ?? items.length
   const totalPages = Math.ceil(actualTotal / pageSize)
 
@@ -159,10 +154,7 @@ export const createPaginatedResponse = <T>(
  * @param mockFn mock的API函数
  * @param expectedArgs 期望的调用参数
  */
-export const expectApiCalledWith = (
-  mockFn: any,
-  ...expectedArgs: any[]
-): void => {
+export const expectApiCalledWith = (mockFn: any, ...expectedArgs: any[]): void => {
   expect(mockFn).toHaveBeenCalledWith(...expectedArgs)
 }
 
@@ -171,10 +163,7 @@ export const expectApiCalledWith = (
  * @param mockFn mock的API函数
  * @param times 期望调用次数
  */
-export const expectApiCalledTimes = (
-  mockFn: any,
-  times: number
-): void => {
+export const expectApiCalledTimes = (mockFn: any, times: number): void => {
   expect(mockFn).toHaveBeenCalledTimes(times)
 }
 

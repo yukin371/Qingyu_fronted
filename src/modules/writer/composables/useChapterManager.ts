@@ -11,6 +11,7 @@ import {
   type PublishRecord,
   type PublishStatus,
   type PublishStats,
+  type ChapterPublishConfig,
 } from '@/modules/writer/api'
 import { syncPublishedBookFromRecords } from '@/modules/workflow/publishedBridge'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
@@ -30,7 +31,7 @@ interface LocalProject {
 export function useChapterManager(
   bookId: Ref<string>,
   isMockProjectContext: Ref<boolean>,
-  currentLocalProject: ComputedRef<LocalProject>
+  currentLocalProject: ComputedRef<LocalProject>,
 ) {
   const authStore = useAuthStore()
 
@@ -66,7 +67,9 @@ export function useChapterManager(
             chapter_number: chapterNo,
             status,
             published_at:
-              status === 'published' ? new Date(now - chapterNo * 86400000).toISOString() : undefined,
+              status === 'published'
+                ? new Date(now - chapterNo * 86400000).toISOString()
+                : undefined,
             created_at: new Date(now - chapterNo * 3600000).toISOString(),
           }
         })
@@ -155,9 +158,8 @@ export function useChapterManager(
       }
       await apiPublishChapter(record.chapter_id, {
         chapter_id: record.chapter_id,
-        chapter_number: record.chapter_number,
         project_id: bookId.value,
-      })
+      } as ChapterPublishConfig & { project_id: string })
       authStore.promoteToAuthorByPublishing(false)
       // 发布成功后刷新用户信息，若后端已自动升级作者角色可立即生效
       await authStore.getUserInfo().catch(() => undefined)

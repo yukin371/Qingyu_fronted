@@ -7,7 +7,11 @@ import { createPollingService } from '@/core/services/polling.service'
 import { httpService } from '@/core/services/http.service'
 import type { AxiosInstance } from 'axios'
 import { getWebSocketEndpoint } from '../api'
-import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
+import type {
+  NotificationMessage,
+  NotificationQuery,
+  NotificationStats,
+} from '@/types/notification'
 import { API_PATHS } from '@/config/apiPaths'
 import { useWebSocketStore } from '@/stores/websocket.store'
 import { WebSocketMessageType } from '@/core/types/websocket.types'
@@ -17,7 +21,7 @@ export type ConnectionMode = 'websocket' | 'polling'
 export class NotificationService {
   private pollingService: PollingService | null = null
   private currentMode: ConnectionMode = 'websocket'
-  // eslint-disable-next-line no-unused-vars
+
   private messageHandlers: Set<(message: NotificationMessage) => void> = new Set()
   private unsubscribeHandler: (() => void) | null = null
 
@@ -46,7 +50,7 @@ export class NotificationService {
 
     try {
       // 尝试从后端获取WebSocket端点
-      const response = await getWebSocketEndpoint() as unknown
+      const response = (await getWebSocketEndpoint()) as unknown
       // 处理可能的响应格式
       if (typeof response === 'string') {
         url = response
@@ -110,17 +114,16 @@ export class NotificationService {
       maxInterval: 120000,
       adaptive: true,
       onMessage: (messages: NotificationMessage[]) => {
-        messages.forEach(msg => this.notifyHandlers(msg))
+        messages.forEach((msg) => this.notifyHandlers(msg))
       },
       onError: () => {
         console.error('[NotificationService] 轮询错误')
-      }
+      },
     })
 
     this.pollingService.start()
     this.currentMode = 'polling'
   }
-
 
   /**
    * 处理接收到的消息
@@ -138,7 +141,7 @@ export class NotificationService {
    * 通知所有消息处理器
    */
   private notifyHandlers(message: NotificationMessage): void {
-    this.messageHandlers.forEach(handler => {
+    this.messageHandlers.forEach((handler) => {
       try {
         handler(message)
       } catch (error) {
@@ -150,7 +153,7 @@ export class NotificationService {
   /**
    * 订阅消息
    */
-  // eslint-disable-next-line no-unused-vars
+
   onMessage(handler: (msg: NotificationMessage) => void): () => void {
     this.messageHandlers.add(handler)
 

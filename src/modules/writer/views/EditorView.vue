@@ -1,9 +1,6 @@
 <template>
   <div class="editor-page" data-testid="editor-page">
-    <EditorLayout
-      v-model:activeTool="activeTool"
-      @toolChange="handleToolChange"
-    >
+    <EditorLayout v-model:activeTool="activeTool" @toolChange="handleToolChange">
       <!-- 左侧面板：章节树 -->
       <template #left-panel>
         <ChapterTree
@@ -31,9 +28,7 @@
 
       <!-- 右侧面板：AI助手 -->
       <template #right-panel>
-        <AIPanel
-          :session-id="aiSessionId"
-        />
+        <AIPanel :session-id="aiSessionId" />
       </template>
     </EditorLayout>
   </div>
@@ -94,7 +89,7 @@ const activeTool = ref<ActiveTool>('writing')
 
 // MarkdownEditor 组件引用（保留供将来使用，如需要调用编辑器方法）
 const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null)
-void markdownEditorRef // 避免未使用变量的警告
+void markdownEditorRef.value // 避免未使用变量的警告
 
 // 当前章节字数
 const currentWordCount = ref(0)
@@ -108,7 +103,7 @@ const chapterContents: Record<string, string> = {
   '1': '# 第一章 开端\n\n这是一个关于命运的故事。\n\n故事从那个雨夜开始，当时的他并不知道，自己的人生即将发生翻天覆地的变化。\n\n窗外的雨声淅淅沥沥，他独自坐在昏暗的房间里，手中握着那封来自远方的信。\n\n"你被选中了。"\n\n简短的四个字，却彻底改变了他的命运。',
   '2': '# 第二章 相遇\n\n第二天的清晨，阳光透过云层洒向大地。\n\n他按照信中的指引，来到了那座古老的图书馆。推开沉重的木门，一股陈旧的书香扑面而来。\n\n"你来了。"\n\n一个温和的声音从身后响起。他转过身，看到了她——那个将改变他一生的人。',
   '3': '## 2.1 初次见面\n\n她站在窗边，阳光勾勒出她的轮廓。\n\n"欢迎来到守望者协会，"她微笑着说，"我是你的引导者，名为艾琳。"\n\n他愣了愣，一时不知该如何回应。',
-  '4': '# 第三章 转折\n\n（暂无内容）'
+  '4': '# 第三章 转折\n\n（暂无内容）',
 }
 
 // =======================
@@ -124,7 +119,7 @@ const mockChapters: ChapterNode[] = [
     title: '第一章 开端',
     order: 1,
     wordCount: 3500,
-    status: 'completed'
+    status: 'completed',
   },
   {
     id: '2',
@@ -133,7 +128,7 @@ const mockChapters: ChapterNode[] = [
     title: '第二章 相遇',
     order: 2,
     wordCount: 2800,
-    status: 'writing'
+    status: 'writing',
   },
   {
     id: '3',
@@ -142,7 +137,7 @@ const mockChapters: ChapterNode[] = [
     title: '2.1 初次见面',
     order: 1,
     wordCount: 1500,
-    status: 'draft'
+    status: 'draft',
   },
   {
     id: '4',
@@ -151,8 +146,8 @@ const mockChapters: ChapterNode[] = [
     title: '第三章 转折',
     order: 3,
     wordCount: 0,
-    status: 'draft'
-  }
+    status: 'draft',
+  },
 ]
 
 // =======================
@@ -160,11 +155,21 @@ const mockChapters: ChapterNode[] = [
 // =======================
 
 const currentProjectId = computed(() => {
-  return route.params.projectId as string || route.query.projectId as string || projectStore.currentProjectId || ''
+  return (
+    (route.params.projectId as string) ||
+    (route.query.projectId as string) ||
+    projectStore.currentProjectId ||
+    ''
+  )
 })
 
 const currentChapterId = computed(() => {
-  return route.params.chapterId as string || route.query.chapterId as string || documentStore.currentDocMeta?.id || ''
+  return (
+    (route.params.chapterId as string) ||
+    (route.query.chapterId as string) ||
+    documentStore.currentDocMeta?.id ||
+    ''
+  )
 })
 
 // AI会话ID
@@ -282,7 +287,7 @@ function handleEditorSave(content: string) {
   // 更新当前章节的字数
   if (selectedChapterId.value) {
     chapterStore.updateChapter(selectedChapterId.value, {
-      wordCount: currentWordCount.value
+      wordCount: currentWordCount.value,
     })
   }
 
@@ -312,7 +317,7 @@ function saveCurrentChapterContent() {
 
   // 更新章节字数
   chapterStore.updateChapter(currentId, {
-    wordCount: currentWordCount.value
+    wordCount: currentWordCount.value,
   })
 }
 
@@ -343,7 +348,7 @@ provide('currentChapterId', currentChapterId)
 onMounted(async () => {
   console.log('[EditorView] Mounted', {
     projectId: currentProjectId.value,
-    chapterId: currentChapterId.value
+    chapterId: currentChapterId.value,
   })
 
   // 初始化 mock 数据到 chapterStore
@@ -402,7 +407,7 @@ watch(
       // 加载新章节内容
       loadChapterContent(chapterId)
     }
-  }
+  },
 )
 
 // 监听章节切换，保存内容
@@ -413,7 +418,7 @@ watch(
       // 切换前保存旧章节内容
       saveCurrentChapterContent()
     }
-  }
+  },
 )
 </script>
 

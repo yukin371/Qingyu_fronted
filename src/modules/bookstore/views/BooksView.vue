@@ -11,14 +11,32 @@
       <div class="filter-bar" data-testid="bookstore-filter-bar">
         <Row :gutter="16">
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange" data-testid="category-filter">
+            <Select
+              v-model="filters.categoryId"
+              placeholder="选择分类"
+              clearable
+              @change="handleFilterChange"
+              data-testid="category-filter"
+            >
               <option value="">全部分类</option>
-              <option v-for="cat in categories" :key="cat.id || (cat as any)._id" :value="cat.id || (cat as any)._id">{{ cat.name }}</option>
+              <option
+                v-for="cat in categories"
+                :key="cat.id || (cat as any)._id"
+                :value="cat.id || (cat as any)._id"
+              >
+                {{ cat.name }}
+              </option>
             </Select>
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange" data-testid="status-filter">
+            <Select
+              v-model="filters.status"
+              placeholder="连载状态"
+              clearable
+              @change="handleFilterChange"
+              data-testid="status-filter"
+            >
               <option value="">全部状态</option>
               <option value="ongoing">连载中</option>
               <option value="completed">已完结</option>
@@ -26,7 +44,12 @@
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange" data-testid="sort-filter">
+            <Select
+              v-model="filters.sortBy"
+              placeholder="排序方式"
+              @change="handleFilterChange"
+              data-testid="sort-filter"
+            >
               <option value="updateTime">最新更新</option>
               <option value="rating">最高评分</option>
               <option value="viewCount">最多阅读</option>
@@ -63,7 +86,12 @@
                     </div>
                   </template>
                 </Image>
-                <Tag v-if="book.status === 'completed'" class="status-tag" variant="success" size="sm">
+                <Tag
+                  v-if="book.status === 'completed'"
+                  class="status-tag"
+                  variant="success"
+                  size="sm"
+                >
                   完结
                 </Tag>
               </div>
@@ -84,7 +112,13 @@
 
         <!-- 列表视图 -->
         <div v-else class="books-list">
-          <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)" data-testid="book-card">
+          <div
+            v-for="book in books"
+            :key="book.id"
+            class="book-list-item"
+            @click="goToDetail(book.id)"
+            data-testid="book-card"
+          >
             <div class="item-cover">
               <Image :src="book.coverUrl" fit="cover">
                 <template #error>
@@ -105,12 +139,8 @@
                 </span>
                 <span>{{ formatNumber(book.wordCount) }}字</span>
                 <span>{{ formatNumber(book.viewCount) }}阅读</span>
-                <Tag v-if="book.status === 'completed'" variant="success" size="sm">
-                  完结
-                </Tag>
-                <Tag v-else variant="warning" size="sm">
-                  连载
-                </Tag>
+                <Tag v-if="book.status === 'completed'" variant="success" size="sm"> 完结 </Tag>
+                <Tag v-else variant="warning" size="sm"> 连载 </Tag>
               </div>
             </div>
             <div class="item-action">
@@ -165,16 +195,33 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBookList } from '@/modules/bookstore/api'
 import { getAllCategories } from '@/modules/bookstore/api'
-import { Button, Select, Radio, Pagination, Empty, Image, Tag, Spinner, Row, Col } from '@/design-system'
+import {
+  Button,
+  Select,
+  Radio,
+  Pagination,
+  Empty,
+  Image,
+  Tag,
+  Spinner,
+  Row,
+  Col,
+} from '@/design-system'
 import { Icon } from '@/design-system'
 import type { Category } from '@/types/models'
 import type { Book } from '@/types/bookstore'
-import { isEmptyData, handleError as handleApiError, isNetworkError, isPermissionError, isServerError } from '@/utils/errorHandler'
+import {
+  isEmptyData,
+  handleError as handleApiError,
+  isNetworkError,
+  isPermissionError,
+  isServerError,
+} from '@/utils/errorHandler'
 
 const router = useRouter()
 
 const loading = ref(false)
-const books = ref<Book[]>([])  // 后端返回完整的 Book 对象
+const books = ref<Book[]>([]) // 后端返回完整的 Book 对象
 const categories = ref<Category[]>([])
 const total = ref(0)
 const currentPage = ref(1)
@@ -191,7 +238,7 @@ const error = ref<{
 const filters = reactive({
   categoryId: '',
   status: '' as '' | 'ongoing' | 'completed',
-  sortBy: 'updateTime' as 'updateTime' | 'rating' | 'viewCount' | 'wordCount'
+  sortBy: 'updateTime' as 'updateTime' | 'rating' | 'viewCount' | 'wordCount',
 })
 
 // 格式化数字
@@ -225,7 +272,7 @@ const loadBooks = async () => {
       category: filters.categoryId,
       status: filters.status,
       sort: filters.sortBy,
-      order: 'desc' as 'desc'
+      order: 'desc' as const,
     }
 
     console.log('[BooksView] Loading books with params:', params)
@@ -260,11 +307,13 @@ const loadBooks = async () => {
             console.log('[BooksView] First book data:', response.data[0])
           }
           books.value = response.data
-          total.value = (response as any).pagination?.total || (response as any).total || response.data.length
+          total.value =
+            (response as any).pagination?.total || (response as any).total || response.data.length
         } else if (response.data && (response.data as any).list) {
           // 兼容 { data: { list: [...], total? } }
           books.value = (response.data as any).list
-          total.value = (response.data as any).total || response.total || (response.data as any).list.length
+          total.value =
+            (response.data as any).total || response.total || (response.data as any).list.length
         } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
           console.log('[BooksView] Found nested items format')
@@ -288,9 +337,13 @@ const loadBooks = async () => {
       error.value = {
         title: appError.message,
         message: (details?.message as string) || appError.message,
-        type: isNetworkError(response) ? 'network' :
-              isPermissionError(response) ? 'permission' :
-              isServerError(response) ? 'server' : 'not_found'
+        type: isNetworkError(response)
+          ? 'network'
+          : isPermissionError(response)
+            ? 'permission'
+            : isServerError(response)
+              ? 'server'
+              : 'not_found',
       }
     }
   } catch (err: any) {
@@ -298,7 +351,7 @@ const loadBooks = async () => {
     console.error('[BooksView] Error details:', {
       message: err.message,
       code: err.code,
-      response: err.response?.data
+      response: err.response?.data,
     })
 
     // 使用统一的错误处理 - 静默处理，只显示UI错误状态，避免重复提示
@@ -309,9 +362,13 @@ const loadBooks = async () => {
     error.value = {
       title: appError.message,
       message: (details?.message as string) || appError.message,
-      type: isNetworkError(err) ? 'network' :
-            isPermissionError(err) ? 'permission' :
-            isServerError(err) ? 'server' : 'not_found'
+      type: isNetworkError(err)
+        ? 'network'
+        : isPermissionError(err)
+          ? 'permission'
+          : isServerError(err)
+            ? 'server'
+            : 'not_found',
     }
   } finally {
     loading.value = false
@@ -343,7 +400,7 @@ const loadCategories = async () => {
           for (const cat of cats as any[]) {
             result.push({
               ...cat,
-              id: cat.id || cat._id || ''
+              id: cat.id || cat._id || '',
             })
             if (cat.children && cat.children.length > 0) {
               result.push(...flattenCategories(cat.children))
@@ -664,7 +721,6 @@ onMounted(() => {
     margin-top: 16px;
   }
 }
-
 
 .pagination {
   display: flex;

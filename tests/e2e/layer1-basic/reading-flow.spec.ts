@@ -15,14 +15,15 @@
  * @version 1.0.0
  */
 
-/* eslint-disable no-undef */
+ 
 
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
 import { testUsers } from '../../helpers/test-data'
 
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
-const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
+const getBaseURL = () =>
+  process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 阅读流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
@@ -41,7 +42,7 @@ test.describe('Layer 1: 阅读流程', () => {
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
 
-    testUserData = { ...testUsers.reader }
+    testUserData = { ...testUsers.reader2 } // 使用reader2避免与其他测试冲突
     const userResult = await apiValidators.createTestUser(testUserData)
     userID = userResult.userID
     token = userResult.token
@@ -66,25 +67,34 @@ test.describe('Layer 1: 阅读流程', () => {
       await page.goto(`${getBaseURL()}/auth?mode=login`)
 
       // 填写登录表单
-      await page.locator('[data-testid="login-username"] input').first()
+      await page
+        .locator('[data-testid="login-username"] input')
+        .first()
         .or(page.locator('[data-testid="login-username-input"]').first())
-        .or(page.locator('input[placeholder*="用户名"], input[name="username"]')).first()
+        .or(page.locator('input[placeholder*="用户名"], input[name="username"]'))
+        .first()
         .fill(testUserData.username)
-      await page.locator('[data-testid="login-password"] input').first()
+      await page
+        .locator('[data-testid="login-password"] input')
+        .first()
         .or(page.locator('[data-testid="login-password-input"]').first())
-        .or(page.locator('input[type="password"]')).first()
+        .or(page.locator('input[type="password"]'))
+        .first()
         .fill(testUserData.password)
 
       // 拦截登录API
       const loginPromise = page.waitForResponse(
-        response =>
+        (response) =>
           response.url().includes('/api/v1/shared/auth/login') &&
-          response.request().method() === 'POST'
+          response.request().method() === 'POST',
       )
 
       // 点击登录
-      await page.locator('[data-testid="login-submit"]').first()
-        .or(page.locator('button:has-text("登录"), button:has-text("立即登录")')).first()
+      await page
+        .locator('[data-testid="login-submit"]')
+        .first()
+        .or(page.locator('button:has-text("登录"), button:has-text("立即登录")'))
+        .first()
         .click()
 
       const loginResponse = await loginPromise
@@ -106,7 +116,7 @@ test.describe('Layer 1: 阅读流程', () => {
       const bookData = {
         title: `测试书籍_${Date.now()}`,
         description: '这是一本E2E测试书籍',
-        category: '玄幻'
+        category: '玄幻',
       }
 
       // 直接调用后端API创建书籍
@@ -114,9 +124,9 @@ test.describe('Layer 1: 阅读流程', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authorToken}`
+          Authorization: `Bearer ${authorToken}`,
         },
-        body: JSON.stringify(bookData)
+        body: JSON.stringify(bookData),
       })
 
       const createBookResult = await createBookResponse.json()
@@ -145,7 +155,7 @@ test.describe('Layer 1: 阅读流程', () => {
       const chapterData = {
         title: `第一章_${Date.now()}`,
         content: '# 第一章内容\n\n这是第一章的详细测试内容...',
-        order: 1
+        order: 1,
       }
 
       const createChapterResponse = await fetch(
@@ -154,10 +164,10 @@ test.describe('Layer 1: 阅读流程', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authorToken}`
+            Authorization: `Bearer ${authorToken}`,
           },
-          body: JSON.stringify(chapterData)
-        }
+          body: JSON.stringify(chapterData),
+        },
       )
 
       const createChapterResult = await createChapterResponse.json()
@@ -168,7 +178,7 @@ test.describe('Layer 1: 阅读流程', () => {
       } else {
         // 如果创建失败，获取现有章节
         const chaptersResponse = await fetch(
-          `${getBackendURL()}/api/v1/bookstore/books/${bookID}/chapters`
+          `${getBackendURL()}/api/v1/bookstore/books/${bookID}/chapters`,
         )
         const chaptersResult = await chaptersResponse.json()
 
@@ -196,7 +206,7 @@ test.describe('Layer 1: 阅读流程', () => {
     await test.step('3.2 验证首页内容加载', async () => {
       // 验证推荐书籍区域
       const recommendedSection = page.locator('.recommended-section')
-      const hasRecommended = await recommendedSection.count() > 0
+      const hasRecommended = (await recommendedSection.count()) > 0
 
       if (hasRecommended) {
         await expect(recommendedSection.first()).toBeVisible()
@@ -228,9 +238,9 @@ test.describe('Layer 1: 阅读流程', () => {
     await test.step('4.1 点击书籍进入详情页', async () => {
       // 拦截书籍详情API
       const bookDetailPromise = page.waitForResponse(
-        response =>
+        (response) =>
           response.url().includes(`/api/v1/bookstore/books/${bookID}`) &&
-          response.request().method() === 'GET'
+          response.request().method() === 'GET',
       )
 
       // 直接导航到书籍详情页
@@ -249,32 +259,37 @@ test.describe('Layer 1: 阅读流程', () => {
       await expect(page).toHaveURL(new RegExp(`/bookstore/books/${bookID}`))
 
       // 验证书籍标题
-      const bookTitle = page.locator('h1.book-title, .book-title')
+      const bookTitle = page
+        .locator('h1.book-title, .book-title')
         .or(page.locator('[data-testid="book-title"]'))
       await expect(bookTitle.first()).toBeVisible()
       console.log('  ✓ 书籍标题显示')
 
       // 验证书籍封面
       const bookCover = page.locator('.book-cover img, .el-image')
-      if (await bookCover.count() > 0) {
+      if ((await bookCover.count()) > 0) {
         await expect(bookCover.first()).toBeVisible()
         console.log('  ✓ 书籍封面显示')
       }
 
       // 验证书籍简介
       const bookDesc = page.locator('.book-description, .book-intro')
-      if (await bookDesc.count() > 0) {
+      if ((await bookDesc.count()) > 0) {
         console.log('  ✓ 书籍简介显示')
       }
     })
 
     await test.step('4.3 验证书籍详情数据', async () => {
       // 前端显示的书籍信息
-      const frontendTitle = await page.locator('[data-testid="book-title"]').textContent()
+      const frontendTitle = await page
+        .locator('[data-testid="book-title"]')
+        .textContent()
         .catch(() => null)
 
       // 后端API返回的书籍信息
-      const backendBookData = await apiValidators.fetchBackendData(`/api/v1/bookstore/books/${bookID}`)
+      const backendBookData = await apiValidators.fetchBackendData(
+        `/api/v1/bookstore/books/${bookID}`,
+      )
 
       // 验证数据一致性
       if (frontendTitle) {
@@ -290,9 +305,11 @@ test.describe('Layer 1: 阅读流程', () => {
 
     await test.step('5.1 切换到目录Tab', async () => {
       // 点击目录Tab
-      const chapterTab = page.locator('text=目录, text=章节').or(page.locator('[data-testid="chapters-tab"]'))
+      const chapterTab = page
+        .locator('text=目录, text=章节')
+        .or(page.locator('[data-testid="chapters-tab"]'))
 
-      if (await chapterTab.count() > 0) {
+      if ((await chapterTab.count()) > 0) {
         await chapterTab.first().click()
         await page.waitForTimeout(500)
 
@@ -302,7 +319,8 @@ test.describe('Layer 1: 阅读流程', () => {
 
     await test.step('5.2 验证章节列表显示', async () => {
       // 验证章节列表
-      const chapterList = page.locator('.chapter-item, .chapter-list-item')
+      const chapterList = page
+        .locator('.chapter-item, .chapter-list-item')
         .or(page.locator('[data-testid="chapter-list"]'))
 
       await expect(chapterList.first()).toBeVisible()
@@ -315,7 +333,9 @@ test.describe('Layer 1: 阅读流程', () => {
 
     await test.step('5.3 验证章节列表API', async () => {
       // 验证章节列表API已调用
-      const chaptersData = await apiValidators.fetchBackendData(`/api/v1/bookstore/books/${bookID}/chapters`)
+      const chaptersData = await apiValidators.fetchBackendData(
+        `/api/v1/bookstore/books/${bookID}/chapters`,
+      )
 
       expect(chaptersData).toHaveProperty('chapters')
       expect(Array.isArray(chaptersData.chapters)).toBe(true)
@@ -331,13 +351,13 @@ test.describe('Layer 1: 阅读流程', () => {
     await test.step('6.1 点击章节开始阅读', async () => {
       // 拦截章节内容API
       const chapterContentPromise = page.waitForResponse(
-        response =>
-          response.url().includes('/chapter/') &&
-          response.request().method() === 'GET'
+        (response) => response.url().includes('/chapter/') && response.request().method() === 'GET',
       )
 
       // 点击第一章
-      const firstChapter = page.locator('.chapter-item').first()
+      const firstChapter = page
+        .locator('.chapter-item')
+        .first()
         .or(page.locator('[data-testid="chapter-item"]').first())
 
       await firstChapter.click()
@@ -355,7 +375,8 @@ test.describe('Layer 1: 阅读流程', () => {
       await expect(page).toHaveURL(/\/reader\//)
 
       // 验证章节标题
-      const chapterTitle = page.locator('h1.chapter-title')
+      const chapterTitle = page
+        .locator('h1.chapter-title')
         .or(page.locator('[data-testid="chapter-title"]'))
       await expect(chapterTitle.first()).toBeVisible()
 
@@ -363,7 +384,8 @@ test.describe('Layer 1: 阅读流程', () => {
       console.log(`  ✓ 章节标题: ${titleText}`)
 
       // 验证章节内容
-      const chapterContent = page.locator('.chapter-content')
+      const chapterContent = page
+        .locator('.chapter-content')
         .or(page.locator('[data-testid="chapter-content"]'))
       await expect(chapterContent.first()).toBeVisible()
 
@@ -373,7 +395,7 @@ test.describe('Layer 1: 阅读流程', () => {
     await test.step('6.3 测试阅读器功能', async () => {
       // 测试字体调整
       const fontSizeButton = page.locator('button:has-text("字体"), button:has-text("A+")')
-      if (await fontSizeButton.count() > 0) {
+      if ((await fontSizeButton.count()) > 0) {
         await fontSizeButton.first().click()
         await page.waitForTimeout(500)
         console.log('  ✓ 字体大小可调')
@@ -381,18 +403,18 @@ test.describe('Layer 1: 阅读流程', () => {
 
       // 测试主题切换
       const themeButton = page.locator('button:has-text("主题"), .theme-selector')
-      if (await themeButton.count() > 0) {
+      if ((await themeButton.count()) > 0) {
         console.log('  ✓ 主题切换功能可用')
       }
 
       // 测试目录导航
       const tocButton = page.locator('button:has-text("目录"), .toc-button')
-      if (await tocButton.count() > 0) {
+      if ((await tocButton.count()) > 0) {
         await tocButton.first().click()
         await page.waitForTimeout(500)
 
         const tocPanel = page.locator('.toc-panel, .chapter-list')
-        if (await tocPanel.count() > 0) {
+        if ((await tocPanel.count()) > 0) {
           console.log('  ✓ 目录导航功能正常')
         }
       }
@@ -418,9 +440,8 @@ test.describe('Layer 1: 阅读流程', () => {
     await test.step('7.2 验证阅读进度保存', async () => {
       // 拦截进度保存API
       const progressPromise = page.waitForResponse(
-        response =>
-          response.url().includes('/reading/progress') &&
-          response.request().method() === 'POST'
+        (response) =>
+          response.url().includes('/reading/progress') && response.request().method() === 'POST',
       )
 
       // 再次滚动触发进度保存
@@ -432,7 +453,7 @@ test.describe('Layer 1: 阅读流程', () => {
       try {
         const progressResponse = await Promise.race([
           progressPromise,
-          new Promise(resolve => setTimeout(resolve, 3000))
+          new Promise((resolve) => setTimeout(resolve, 3000)),
         ])
 
         if (progressResponse && (progressResponse as Response).status) {
@@ -449,13 +470,15 @@ test.describe('Layer 1: 阅读流程', () => {
 
       // 从后端获取阅读进度
       const progressData = await apiValidators.fetchBackendData(
-        `/api/v1/reading/progress/${userID}/${bookID}`
+        `/api/v1/reading/progress/${userID}/${bookID}`,
       )
 
       expect(progressData).toHaveProperty('chapter_id')
       expect(progressData).toHaveProperty('position')
 
-      console.log(`  ✓ 后端阅读进度: 章节=${progressData.chapter_id}, 位置=${progressData.position}`)
+      console.log(
+        `  ✓ 后端阅读进度: 章节=${progressData.chapter_id}, 位置=${progressData.position}`,
+      )
     })
 
     await test.step('7.4 刷新页面验证进度恢复', async () => {

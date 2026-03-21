@@ -5,7 +5,7 @@ import type {
   InternalAxiosRequestConfig,
   AxiosInstance,
   CancelTokenSource,
-} from 'axios';
+} from 'axios'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import type { ErrorResponse } from '@/types/error.types'
@@ -17,7 +17,7 @@ import { isInTestMode as checkTestMode, handleMockRequest } from './mock-data-ma
 /**
  * Promise回调对
  */
- 
+
 interface PromiseCallbacks {
   resolve: (_value?: unknown) => void
   reject: (_reason?: unknown) => void
@@ -26,7 +26,7 @@ interface PromiseCallbacks {
 /**
  * 扩展AxiosInstance接口，添加自定义方法
  */
- 
+
 interface ExtendedAxiosInstance extends AxiosInstance {
   /** 设置认证Token */
   setAuthToken(_token: string): void
@@ -324,7 +324,10 @@ apiClient.interceptors.response.use(
   },
 )
 
-// 处理认证错误
+/**
+ * 触发认证失效事件
+ * 清除本地存储并跳转到登录页
+ */
 function handleAuthError() {
   // E2E场景下避免自动登出和跳转，防止测试过程被401中断
   if (typeof navigator !== 'undefined' && navigator.webdriver) {
@@ -332,8 +335,44 @@ function handleAuthError() {
     return
   }
 
-  // 只显示提示消息，不自动清除token或跳转
+  // 防止重复处理
+  if (sessionStorage.getItem('auth_expired_handling')) {
+    return
+  }
+  sessionStorage.setItem('auth_expired_handling', 'true')
+
+  console.log('[Auth] Token expired, clearing auth state...')
+
+  // 清除本地存储中的认证信息
+  const authKeys = [
+    'qingyu_token',
+    'qingyu_refreshToken',
+    'qingyu_user',
+    'qingyu_roles',
+    'token',
+    'refreshToken',
+    'user',
+    'roles',
+  ]
+  authKeys.forEach((key) => {
+    localStorage.removeItem(key)
+  })
+
+  // 显示提示
   ElMessage.warning('登录已过期，请重新登录')
+
+  // 跳转到登录页（保留当前路径用于登录后跳回）
+  const currentPath = window.location.pathname
+  const loginPath =
+    currentPath !== '/auth' && currentPath !== '/'
+      ? `/auth?redirect=${encodeURIComponent(currentPath)}`
+      : '/auth'
+
+  // 使用 setTimeout 确保消息显示后再跳转
+  setTimeout(() => {
+    sessionStorage.removeItem('auth_expired_handling')
+    window.location.href = loginPath
+  }, 500)
 }
 
 // ==================== 自定义方法 ====================

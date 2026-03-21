@@ -42,10 +42,7 @@ const createDefaultExportForm = (): ExportForm => ({
   options: ['include_metadata', 'include_toc'],
 })
 
-export function useExport(
-  bookId: Ref<string>,
-  isMockProjectContext: Ref<boolean>
-) {
+export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean>) {
   // 导出状态
   const loadingExport = ref(false)
   const exportHistory = ref<ExportTask[]>([])
@@ -144,7 +141,7 @@ export function useExport(
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `export_${task.id}.${(task as MockExportTask).format || 'txt'}`
+        a.download = `export_${task.id}.${(task as unknown as MockExportTask).format || 'txt'}`
         a.click()
         URL.revokeObjectURL(url)
         message.success('下载成功（Mock）')

@@ -228,7 +228,10 @@ import ReviewDetailDialog from '@/modules/writer/components/publish/ReviewDetail
 
 // Composables
 import { usePublishSchedule } from '@/modules/writer/composables/usePublishSchedule'
-import { useChapterManager, type PublishRecord } from '@/modules/writer/composables/useChapterManager'
+import {
+  useChapterManager,
+  type PublishRecord,
+} from '@/modules/writer/composables/useChapterManager'
 import { useExport } from '@/modules/writer/composables/useExport'
 import type { ReviewRecord } from '@/modules/writer/components/publish/ReviewPanel.vue'
 
@@ -276,12 +279,12 @@ const stats = reactive<PublishStats>({
 })
 
 // 计算属性
-const currentLocalProject = computed<LocalProject>(() =>
-  (writerStore.projectList || []).find((p) => (p.projectId || p.id) === bookId.value) || {},
+const currentLocalProject = computed<LocalProject>(
+  () => (writerStore.projectList || []).find((p) => (p.projectId || p.id) === bookId.value) || {},
 )
 
 const isMockProjectContext = computed(() => {
-  const typedStore = writerStore as WriterStoreType
+  const typedStore = writerStore as unknown as WriterStoreType
   if (typedStore.storageMode === 'offline') return true
   return !!currentLocalProject.value
 })

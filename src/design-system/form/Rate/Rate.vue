@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/* eslint-disable vue/multi-word-component-names */
 /**
  * Rate 组件
  *
@@ -13,21 +12,66 @@ import { rateVariants, starSizeVariants } from './variants'
 
 // Heroicons Star 图标组件
 const StarIcon = {
-  filled: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' }, [
-    h('path', { 'fill-rule': 'evenodd', d: 'M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z', 'clip-rule': 'evenodd' })
-  ]),
-  half: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': 'true' }, [
-    h('defs', {}, [
-      h('linearGradient', { id: 'half-gradient', x1: '0%', y1: '0%', x2: '100%', y2: '0%' }, [
-        h('stop', { offset: '50%', 'stop-color': 'currentColor' }),
-        h('stop', { offset: '50%', 'stop-color': 'currentColor', 'stop-opacity': '0.3' })
-      ])
-    ]),
-    h('path', { fill: 'url(#half-gradient)', 'fill-rule': 'evenodd', d: 'M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z', 'clip-rule': 'evenodd' })
-  ]),
-  outline: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5', 'aria-hidden': 'true' }, [
-    h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z' })
-  ]),
+  filled: () =>
+    h(
+      'svg',
+      {
+        xmlns: 'http://www.w3.org/2000/svg',
+        viewBox: '0 0 24 24',
+        fill: 'currentColor',
+        'aria-hidden': 'true',
+      },
+      [
+        h('path', {
+          'fill-rule': 'evenodd',
+          d: 'M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z',
+          'clip-rule': 'evenodd',
+        }),
+      ],
+    ),
+  half: () =>
+    h(
+      'svg',
+      {
+        xmlns: 'http://www.w3.org/2000/svg',
+        viewBox: '0 0 24 24',
+        fill: 'none',
+        'aria-hidden': 'true',
+      },
+      [
+        h('defs', {}, [
+          h('linearGradient', { id: 'half-gradient', x1: '0%', y1: '0%', x2: '100%', y2: '0%' }, [
+            h('stop', { offset: '50%', 'stop-color': 'currentColor' }),
+            h('stop', { offset: '50%', 'stop-color': 'currentColor', 'stop-opacity': '0.3' }),
+          ]),
+        ]),
+        h('path', {
+          fill: 'url(#half-gradient)',
+          'fill-rule': 'evenodd',
+          d: 'M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z',
+          'clip-rule': 'evenodd',
+        }),
+      ],
+    ),
+  outline: () =>
+    h(
+      'svg',
+      {
+        xmlns: 'http://www.w3.org/2000/svg',
+        fill: 'none',
+        viewBox: '0 0 24 24',
+        stroke: 'currentColor',
+        'stroke-width': '1.5',
+        'aria-hidden': 'true',
+      },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z',
+        }),
+      ],
+    ),
 }
 
 // 组件 Props
@@ -137,8 +181,8 @@ const classes = computed(() =>
     }),
     props.disabled && 'opacity-50 cursor-not-allowed',
     !props.disabled && !props.readonly && 'cursor-pointer',
-    props.class
-  )
+    props.class,
+  ),
 )
 
 // 计算星星图标类名
@@ -147,7 +191,7 @@ const getStarClasses = (index: number) => {
   const sizeClasses = starSizeVariants[props.size]
 
   const baseClasses = `${sizeClasses.container} transition-colors duration-150 ease-in-out`
-  
+
   if (state === 'full') {
     return cn(baseClasses, `text-${props.color}`)
   } else if (state === 'half') {
@@ -181,28 +225,30 @@ const currentText = computed(() => {
     >
       <!-- 自定义插槽 -->
       <slot v-if="$slots.default" :state="getStarState(index - 1)" :index="index - 1" />
-      
+
       <!-- 默认星星图标 -->
       <component
         v-else
-        :is="StarIcon[getStarState(index - 1) === 'full' ? 'filled' : getStarState(index - 1) === 'half' ? 'half' : 'outline']()"
+        :is="
+          StarIcon[
+            getStarState(index - 1) === 'full'
+              ? 'filled'
+              : getStarState(index - 1) === 'half'
+                ? 'half'
+                : 'outline'
+          ]()
+        "
         :class="getStarClasses(index - 1)"
       />
     </div>
 
     <!-- 显示分数 -->
-    <span
-      v-if="showScore"
-      class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300"
-    >
+    <span v-if="showScore" class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">
       {{ currentValue }}
     </span>
 
     <!-- 显示文字 -->
-    <span
-      v-if="currentText"
-      class="ml-2 text-sm text-slate-600 dark:text-slate-400"
-    >
+    <span v-if="currentText" class="ml-2 text-sm text-slate-600 dark:text-slate-400">
       {{ currentText }}
     </span>
   </div>

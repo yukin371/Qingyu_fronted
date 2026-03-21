@@ -1,7 +1,6 @@
 /**
  * Community API测试
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as communityApi from '../index'
 import {
@@ -278,7 +277,10 @@ describe('communityApi', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(http.post).toHaveBeenCalledWith(`/api/v1/community/posts/${postId}/comments`, newComment)
+      expect(http.post).toHaveBeenCalledWith(
+        `/api/v1/community/posts/${postId}/comments`,
+        newComment,
+      )
     })
 
     it('should create comment without replyTo', async () => {
@@ -295,7 +297,10 @@ describe('communityApi', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(http.post).toHaveBeenCalledWith(`/api/v1/community/posts/${postId}/comments`, newComment)
+      expect(http.post).toHaveBeenCalledWith(
+        `/api/v1/community/posts/${postId}/comments`,
+        newComment,
+      )
     })
   })
 

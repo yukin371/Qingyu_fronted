@@ -14,14 +14,15 @@
  * @version 1.0.0
  */
 
-/* eslint-disable no-undef */
+ 
 
 import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
 import { testUsers } from '../../helpers/test-data'
 
 const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
-const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
+const getBaseURL = () =>
+  process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 社交流程', () => {
   let apiValidators: ReturnType<typeof createAPIValidators>
@@ -34,7 +35,7 @@ test.describe('Layer 1: 社交流程', () => {
     const backendURL = getBackendURL()
     console.log(`后端服务: ${backendURL}`)
     apiValidators = createAPIValidators(backendURL)
-    testUserData = { ...testUsers.reader }
+    testUserData = { ...testUsers.reader3 } // 使用reader3避免与其他测试冲突
     const result = await apiValidators.createTestUser(testUserData)
     token = result.token
     apiValidators.setAuthToken(token)
@@ -70,20 +71,23 @@ test.describe('Layer 1: 社交流程', () => {
     await page.waitForTimeout(1000)
 
     // 发表评论
-    const commentInput = page.locator('textarea[placeholder*="评论"], .comment-input')
+    const commentInput = page
+      .locator('textarea[placeholder*="评论"], .comment-input')
       .or(page.locator('[data-testid="comment-input"]'))
 
-    if (await commentInput.count() > 0) {
+    if ((await commentInput.count()) > 0) {
       const commentText = `E2E测试评论_${Date.now()}`
       await commentInput.fill(commentText)
 
       // 拦截评论API
       const commentPromise = page.waitForResponse(
-        response => response.url().includes('/comments') && response.request().method() === 'POST'
+        (response) =>
+          response.url().includes('/comments') && response.request().method() === 'POST',
       )
 
       // 提交评论
-      const submitButton = page.locator('button:has-text("发表"), button:has-text("提交")')
+      const submitButton = page
+        .locator('button:has-text("发表"), button:has-text("提交")')
         .or(page.locator('[data-testid="submit-comment"]'))
       await submitButton.click()
 
@@ -111,12 +115,14 @@ test.describe('Layer 1: 社交流程', () => {
     await page.waitForLoadState('networkidle')
 
     // 点击收藏按钮
-    const favoriteButton = page.locator('button:has-text("收藏")')
+    const favoriteButton = page
+      .locator('button:has-text("收藏")')
       .or(page.locator('[data-testid="favorite-btn"]'))
 
-    if (await favoriteButton.count() > 0) {
+    if ((await favoriteButton.count()) > 0) {
       const favoritePromise = page.waitForResponse(
-        response => response.url().includes('/favorite') && response.request().method() === 'POST'
+        (response) =>
+          response.url().includes('/favorite') && response.request().method() === 'POST',
       )
 
       await favoriteButton.click()
@@ -144,12 +150,13 @@ test.describe('Layer 1: 社交流程', () => {
     await page.waitForLoadState('networkidle')
 
     // 点击点赞按钮
-    const likeButton = page.locator('button:has-text("点赞")')
+    const likeButton = page
+      .locator('button:has-text("点赞")')
       .or(page.locator('[data-testid="like-btn"]'))
 
-    if (await likeButton.count() > 0) {
+    if ((await likeButton.count()) > 0) {
       const likePromise = page.waitForResponse(
-        response => response.url().includes('/like') && response.request().method() === 'POST'
+        (response) => response.url().includes('/like') && response.request().method() === 'POST',
       )
 
       await likeButton.click()

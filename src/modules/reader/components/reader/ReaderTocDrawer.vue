@@ -9,7 +9,7 @@
         :data-testid="`catalog-chapter-${chapter.id}`"
         @click="$emit('jump', chapter.id)"
       >
-        <span class="chapter-num">{{ chapter.chapterNum }}</span>
+        <span class="chapter-num">{{ chapter.chapterNum ?? '' }}</span>
         <span class="chapter-name">{{ chapter.title }}</span>
         <el-icon v-if="!chapter.isFree" class="lock-icon">
           <QyIcon name="Lock" />
@@ -25,7 +25,7 @@ import { QyDrawer, QyScrollbar, QyIcon } from '@/design-system/components'
 
 export interface ChapterItem {
   id: string
-  chapterNum: number
+  chapterNum?: number
   title: string
   isRead?: boolean
   isFree?: boolean
@@ -44,7 +44,7 @@ const emit = defineEmits<{
 
 const drawerVisible = computed({
   get: () => props.visible,
-  set: (value: boolean) => emit('update:visible', value)
+  set: (value: boolean) => emit('update:visible', value),
 })
 </script>
 

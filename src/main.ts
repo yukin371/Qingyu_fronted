@@ -8,17 +8,17 @@ import { message, messageBox, notification } from '@/design-system/services'
 
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
-initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
+initTheme() // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
 
 // 测试模式 API 拦截器
 import { initTestModeApiInterceptor } from '@/utils/test-mode-api-interceptor'
-initTestModeApiInterceptor()  // 初始化测试模式 API 拦截器
+initTestModeApiInterceptor() // 初始化测试模式 API 拦截器
 
 // 全局样式
-import './style.css'  // Tailwind CSS - MUST be imported first
+import './style.css' // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
-import '@/styles/reader-variables.scss'  // TDD Phase 2: 阅读器设计系统变量
-import '@/design-system/themes/vscode-dark.scss'  // VSCode 深色主题
+import '@/styles/reader-variables.scss' // TDD Phase 2: 阅读器设计系统变量
+import '@/design-system/themes/vscode-dark.scss' // VSCode 深色主题
 import '@/styles/common.scss'
 
 // 全局指令
@@ -82,10 +82,11 @@ declare module 'vue' {
 
 // 空闲时补齐全量组件注册，避免后续页面因未注册组件报错
 const runWhenIdle = (task: () => void) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const requestIdle = (window as Window & {
-    requestIdleCallback?: (_cb: () => void) => number
-  }).requestIdleCallback
+  const requestIdle = (
+    window as Window & {
+      requestIdleCallback?: (_cb: () => void) => number
+    }
+  ).requestIdleCallback
 
   if (requestIdle) {
     requestIdle(task)

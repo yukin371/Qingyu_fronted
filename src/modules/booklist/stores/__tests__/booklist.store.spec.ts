@@ -2,7 +2,6 @@
  * Booklist Store测试
  */
 // @ts-nocheck - Test file with flexible type assertions
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createPinia, setActivePinia } from 'pinia'
 import { createMockBooklist, createMockBooklists } from '../../../../tests/fixtures'
@@ -24,7 +23,19 @@ vi.mock('../../api', () => ({
 }))
 
 // 导入mock后的API函数
-import { getBookLists, getBookListDetail, createBookList, updateBookList, deleteBookList, favoriteBookList, unfavoriteBookList, addBookToList, removeBookFromList, getMyBookListStats, getPopularTags } from '../../api'
+import {
+  getBookLists,
+  getBookListDetail,
+  createBookList,
+  updateBookList,
+  deleteBookList,
+  favoriteBookList,
+  unfavoriteBookList,
+  addBookToList,
+  removeBookFromList,
+  getMyBookListStats,
+  getPopularTags,
+} from '../../api'
 import { useBooklistStore } from '../booklist.store'
 
 describe('useBooklistStore', () => {
@@ -75,9 +86,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(getBookLists).mockImplementation(
-        mockSuccessApiCall(mockData)
-      )
+      vi.mocked(getBookLists).mockImplementation(mockSuccessApiCall(mockData))
       const store = useBooklistStore()
 
       // Act
@@ -94,9 +103,7 @@ describe('useBooklistStore', () => {
     it('should handle fetch booklists error', async () => {
       // Arrange
       const error = new Error('Network error')
-      vi.mocked(getBookLists).mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      vi.mocked(getBookLists).mockImplementation(mockErrorApiCall(error.message))
       const store = useBooklistStore()
 
       // Act
@@ -118,9 +125,10 @@ describe('useBooklistStore', () => {
         size: 10,
       }
       vi.mocked(getBookLists).mockImplementation(
-        () => new Promise((resolve) => {
-          setTimeout(() => resolve(mockData), 100)
-        })
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve(mockData), 100)
+          }),
       )
       const store = useBooklistStore()
 
@@ -142,9 +150,7 @@ describe('useBooklistStore', () => {
     it('should fetch booklist detail successfully', async () => {
       // Arrange
       const mockBooklist = createMockBooklist()
-      vi.mocked(getBookListDetail).mockImplementation(
-        mockSuccessApiCall(mockBooklist)
-      )
+      vi.mocked(getBookListDetail).mockImplementation(mockSuccessApiCall(mockBooklist))
       const store = useBooklistStore()
 
       // Act
@@ -160,9 +166,7 @@ describe('useBooklistStore', () => {
     it('should handle fetch booklist detail error', async () => {
       // Arrange
       const error = new Error('Booklist not found')
-      vi.mocked(getBookListDetail).mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      vi.mocked(getBookListDetail).mockImplementation(mockErrorApiCall(error.message))
       const store = useBooklistStore()
 
       // Act
@@ -185,9 +189,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(getBookLists).mockImplementation(
-        mockSuccessApiCall(mockData)
-      )
+      vi.mocked(getBookLists).mockImplementation(mockSuccessApiCall(mockData))
       const store = useBooklistStore()
 
       // Act
@@ -209,9 +211,7 @@ describe('useBooklistStore', () => {
         page: 1,
         size: 10,
       }
-      vi.mocked(getBookLists).mockImplementation(
-        mockSuccessApiCall(mockData)
-      )
+      vi.mocked(getBookLists).mockImplementation(mockSuccessApiCall(mockData))
       const store = useBooklistStore()
 
       // Act
@@ -234,9 +234,7 @@ describe('useBooklistStore', () => {
         created: 8,
         favorited: 2,
       }
-      vi.mocked(getMyBookListStats).mockImplementation(
-        mockSuccessApiCall(mockStats) as any
-      )
+      vi.mocked(getMyBookListStats).mockImplementation(mockSuccessApiCall(mockStats) as any)
       const store = useBooklistStore()
 
       // Act
@@ -255,9 +253,7 @@ describe('useBooklistStore', () => {
         { tag: '玄幻', count: 100 },
         { tag: '仙侠', count: 80 },
       ]
-      vi.mocked(getPopularTags).mockImplementation(
-        mockSuccessApiCall(mockTags)
-      )
+      vi.mocked(getPopularTags).mockImplementation(mockSuccessApiCall(mockTags))
       const store = useBooklistStore()
 
       // Act
@@ -279,9 +275,7 @@ describe('useBooklistStore', () => {
         tags: ['玄幻'],
       }
       const mockBooklist = createMockBooklist(newBooklist)
-      vi.mocked(createBookList).mockImplementation(
-        mockSuccessApiCall(mockBooklist)
-      )
+      vi.mocked(createBookList).mockImplementation(mockSuccessApiCall(mockBooklist))
       const store = useBooklistStore()
 
       // Act
@@ -301,9 +295,7 @@ describe('useBooklistStore', () => {
         isPublic: true,
       }
       const error = new Error('Create failed')
-      vi.mocked(createBookList).mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      vi.mocked(createBookList).mockImplementation(mockErrorApiCall(error.message))
       const store = useBooklistStore()
 
       // Act & Assert
@@ -320,9 +312,7 @@ describe('useBooklistStore', () => {
         title: '更新后的标题',
       }
       const updatedBooklist = createMockBooklist(updateData)
-      vi.mocked(updateBookList).mockImplementation(
-        mockSuccessApiCall(updatedBooklist)
-      )
+      vi.mocked(updateBookList).mockImplementation(mockSuccessApiCall(updatedBooklist))
       const store = useBooklistStore()
 
       // Act
@@ -341,9 +331,7 @@ describe('useBooklistStore', () => {
       const booklistId = 'booklist_123'
       const mockBooklists = createMockBooklists(3)
       const mockResponse = { success: true }
-      vi.mocked(deleteBookList).mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      vi.mocked(deleteBookList).mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useBooklistStore()
       store.booklists = mockBooklists
       store.myBooklists = mockBooklists
@@ -353,12 +341,8 @@ describe('useBooklistStore', () => {
 
       // Assert
       expect(result).toBe(true)
-      expect(store.booklists).not.toContainEqual(
-        expect.objectContaining({ id: booklistId })
-      )
-      expect(store.myBooklists).not.toContainEqual(
-        expect.objectContaining({ id: booklistId })
-      )
+      expect(store.booklists).not.toContainEqual(expect.objectContaining({ id: booklistId }))
+      expect(store.myBooklists).not.toContainEqual(expect.objectContaining({ id: booklistId }))
       expect(deleteBookList).toHaveBeenCalledWith(booklistId)
     })
   })
@@ -373,9 +357,7 @@ describe('useBooklistStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true }
-      vi.mocked(favoriteBookList).mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      vi.mocked(favoriteBookList).mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useBooklistStore()
       store.booklists = [mockBooklist]
 
@@ -400,9 +382,7 @@ describe('useBooklistStore', () => {
         likeCount: 10,
       })
       const mockResponse = { success: true }
-      vi.mocked(unfavoriteBookList).mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      vi.mocked(unfavoriteBookList).mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useBooklistStore()
       store.booklists = [mockBooklist]
 
@@ -429,9 +409,7 @@ describe('useBooklistStore', () => {
         note,
         addedAt: new Date().toISOString(),
       }
-      vi.mocked(addBookToList).mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      vi.mocked(addBookToList).mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useBooklistStore()
 
       // Act
@@ -470,9 +448,7 @@ describe('useBooklistStore', () => {
         bookCount: 2,
       })
       const mockResponse = { success: true }
-      vi.mocked(removeBookFromList).mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      vi.mocked(removeBookFromList).mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useBooklistStore()
       store.currentBooklist = mockBooklist
 

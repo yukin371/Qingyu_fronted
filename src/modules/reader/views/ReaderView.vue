@@ -2,7 +2,13 @@
   <div class="reader-page">
     <!-- 页面过渡动画 -->
     <transition name="reader-fade" mode="out-in">
-      <div v-show="true" class="reader-view" :class="themeClass" key="reader" data-testid="reader-view">
+      <div
+        v-show="true"
+        class="reader-view"
+        :class="themeClass"
+        key="reader"
+        data-testid="reader-view"
+      >
         <el-container v-loading="loading" data-testid="reader-container">
           <!-- 顶部导航栏 -->
           <ReaderHeader
@@ -116,7 +122,7 @@ import { QyButton } from '@/design-system/components'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
 import {
   YUNLAN_TOTAL_CHAPTERS,
-  createYunlanReaderChapters
+  createYunlanReaderChapters,
 } from '@/modules/bookstore/yunlanDemo.mock'
 import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
 import * as readerAPI from '@/modules/reader/api'
@@ -159,19 +165,33 @@ const {
   themeClass,
   containerStyle,
   themes,
+  lineHeightMin,
+  lineHeightMax,
+  lineHeightStep,
+  lineHeightMarks,
+  pageWidthMin,
+  pageWidthMax,
+  pageWidthStep,
+  pageWidthMarks,
   increaseFontSize,
   decreaseFontSize,
   changeTheme,
   setLineHeight,
   setPageWidth,
-  resetSettings
+  resetSettings,
 } = useReaderSettings()
 
 // 基础状态
 const chapterId = ref(route.params.chapterId as string)
 const isDemoMode = computed(() => route.query.demo === 'yunlan')
-const publishedBookId = computed(() => String(route.query.bookId || (readerStore as unknown as { currentBookId: string }).currentBookId || ''))
-const isPublishedMode = computed(() => route.query.source === 'published' && !!publishedBookId.value)
+const publishedBookId = computed(() =>
+  String(
+    route.query.bookId || (readerStore as unknown as { currentBookId: string }).currentBookId || '',
+  ),
+)
+const isPublishedMode = computed(
+  () => route.query.source === 'published' && !!publishedBookId.value,
+)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
@@ -187,7 +207,9 @@ const isInBookshelf = ref(false)
 const readingDuration = ref(0)
 const readingDurationTimer = ref<number | null>(null)
 const hasAddedToBookshelfThisSession = ref(false)
-const recommendedBooks = ref<Array<{ id: string; title: string; author: string; cover: string }>>([])
+const recommendedBooks = ref<Array<{ id: string; title: string; author: string; cover: string }>>(
+  [],
+)
 const demoChapterList = ref(createYunlanReaderChapters())
 const demoCurrentChapter = ref<Chapter | null>(null)
 const publishedChapterList = ref<Chapter[]>([])
@@ -205,7 +227,7 @@ const splitContentToParagraphs = (content?: string): ReaderParagraph[] => {
       paragraphOrder: index + 1,
       content: paragraph.trim(),
       format: 'markdown',
-      wordCount: paragraph.trim().length
+      wordCount: paragraph.trim().length,
     }))
     .filter((paragraph) => paragraph.content.length > 0)
 }
@@ -214,14 +236,14 @@ const splitContentToParagraphs = (content?: string): ReaderParagraph[] => {
 const currentChapter = computed(() => {
   if (isDemoMode.value) return demoCurrentChapter.value
   if (isPublishedMode.value) return publishedCurrentChapter.value
-  return readerStore.currentChapter as Chapter | null
+  return readerStore.currentChapter as unknown as Chapter | null
 })
 
 // 章节列表
 const chapterList = computed(() => {
   if (isDemoMode.value) return demoChapterList.value
   if (isPublishedMode.value) return publishedChapterList.value
-  return readerStore.chapterList
+  return readerStore.chapterList as unknown as Chapter[]
 })
 
 // 显示的段落
@@ -245,10 +267,10 @@ const {
   handleCommentBadgeClick,
   handleCommentSubmit,
   loadChapterCommentSummaries,
-  clearCommentSelection
+  clearCommentSelection,
 } = useReaderComments({
   currentChapter,
-  displayParagraphs
+  displayParagraphs,
 })
 
 // 导航计算属性
@@ -310,13 +332,13 @@ const saveCurrentProgress = async () => {
   if (!currentChapter.value) return
   try {
     const scrollPercent = Math.round(
-      (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
+      (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100,
     )
     await readerStore.saveProgress(
       currentChapter.value.bookId || '',
       chapterId.value,
       scrollPercent,
-      window.scrollY
+      window.scrollY,
     )
     const duration = Math.floor((Date.now() - startTime.value) / 1000)
     if (duration > 0 && currentChapter.value.bookId) {
@@ -343,10 +365,13 @@ const handlePreviousChapter = async () => {
     if (!bookId || !chapterId.value) return
 
     const prevChapterInfo = await readerAPI.getPreviousChapter(bookId, chapterId.value)
-    const prevData = (prevChapterInfo as { data?: { chapterId?: string; id?: string } }).data ?? prevChapterInfo
+    const prevData = ((prevChapterInfo as { data?: unknown }).data ?? prevChapterInfo) as {
+      chapterId?: string
+      id?: string
+    }
 
     if (prevData?.chapterId || prevData?.id) {
-      chapterId.value = prevData.chapterId || prevData.id
+      chapterId.value = prevData.chapterId || prevData.id || ''
       await loadChapter()
     }
   } catch (error) {
@@ -371,10 +396,13 @@ const handleNextChapter = async () => {
     if (!bookId || !chapterId.value) return
 
     const nextChapterInfo = await readerAPI.getNextChapter(bookId, chapterId.value)
-    const nextData = (nextChapterInfo as { data?: { chapterId?: string; id?: string } }).data ?? nextChapterInfo
+    const nextData = ((nextChapterInfo as { data?: unknown }).data ?? nextChapterInfo) as {
+      chapterId?: string
+      id?: string
+    }
 
     if (nextData?.chapterId || nextData?.id) {
-      chapterId.value = nextData.chapterId || nextData.id
+      chapterId.value = nextData.chapterId || nextData.id || ''
       await loadChapter()
     }
   } catch (error) {
@@ -419,7 +447,7 @@ const goToBook = (bookId: string) => {
 const addToBookshelf = async () => {
   if (hasAddedToBookshelfThisSession.value || isInBookshelf.value) return
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
     hasAddedToBookshelfThisSession.value = true
     isInBookshelf.value = true
     message.success('已添加到书架')
@@ -440,9 +468,24 @@ const checkBookshelfStatus = async () => {
 const loadRecommendedBooks = async () => {
   try {
     recommendedBooks.value = [
-      { id: 'rec1', title: '玄幻巅峰', author: '天蚕', cover: 'https://picsum.photos/seed/rec1/80/120' },
-      { id: 'rec2', title: '都市修仙', author: '我吃西红柿', cover: 'https://picsum.photos/seed/rec2/80/120' },
-      { id: 'rec3', title: '科幻世界', author: '刘慈欣', cover: 'https://picsum.photos/seed/rec3/80/120' }
+      {
+        id: 'rec1',
+        title: '玄幻巅峰',
+        author: '天蚕',
+        cover: 'https://picsum.photos/seed/rec1/80/120',
+      },
+      {
+        id: 'rec2',
+        title: '都市修仙',
+        author: '我吃西红柿',
+        cover: 'https://picsum.photos/seed/rec2/80/120',
+      },
+      {
+        id: 'rec3',
+        title: '科幻世界',
+        author: '刘慈欣',
+        cover: 'https://picsum.photos/seed/rec3/80/120',
+      },
     ]
   } catch {
     console.error('加载推荐书籍失败')
@@ -470,7 +513,7 @@ const ensureDemoChapterList = () => {
 
 const loadDemoChapter = (id: string) => {
   ensureDemoChapterList()
-  const target = demoChapterList.value.find(ch => ch.id === id) || demoChapterList.value[0]
+  const target = demoChapterList.value.find((ch) => ch.id === id) || demoChapterList.value[0]
   demoCurrentChapter.value = target || null
 }
 
@@ -504,7 +547,7 @@ const loadChapter = async () => {
           isRead: false,
           isFree: chapter.isFree,
           prevChapterId: index > 0 ? list[index - 1].id : '',
-          nextChapterId: index < list.length - 1 ? list[index + 1].id : ''
+          nextChapterId: index < list.length - 1 ? list[index + 1].id : '',
         }))
 
       publishedChapterList.value = mapped
@@ -575,10 +618,14 @@ onMounted(async () => {
 
   if (isMobile.value && readerContainerRef.value) {
     useTouch(readerContainerRef, {
-      onSwipeLeft: () => { if (hasNextChapter.value) handleNextChapter() },
-      onSwipeRight: () => { if (hasPreviousChapter.value) handlePreviousChapter() },
+      onSwipeLeft: () => {
+        if (hasNextChapter.value) handleNextChapter()
+      },
+      onSwipeRight: () => {
+        if (hasPreviousChapter.value) handlePreviousChapter()
+      },
       onTap: toggleHeaderFooter,
-      threshold: 100
+      threshold: 100,
     })
   }
 })
@@ -594,12 +641,15 @@ onUnmounted(() => {
   readerStore.clearCurrentChapter()
 })
 
-watch(() => route.params.chapterId, (newId) => {
-  if (newId && newId !== chapterId.value) {
-    chapterId.value = newId as string
-    loadChapter()
-  }
-})
+watch(
+  () => route.params.chapterId,
+  (newId) => {
+    if (newId && newId !== chapterId.value) {
+      chapterId.value = newId as string
+      loadChapter()
+    }
+  },
+)
 
 watch(commentDrawerVisible, (visible) => {
   if (!visible) {
@@ -611,7 +661,9 @@ watch(commentDrawerVisible, (visible) => {
 <style scoped lang="scss">
 .reader-view {
   min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 
   &.theme-light {
     background-color: var(--reader-light-bg, #ffffff);

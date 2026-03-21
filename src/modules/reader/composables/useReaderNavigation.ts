@@ -17,6 +17,39 @@ export interface ChapterInfo {
   hasNext?: boolean
 }
 
+/**
+ * 章节导航响应数据类型
+ */
+interface ChapterNavigationData {
+  chapterId?: string
+  id?: string
+}
+
+/**
+ * 从 API 响应中提取章节导航数据
+ * 处理 API 返回的包装格式
+ */
+function extractChapterData(response: unknown): ChapterNavigationData | null {
+  if (!response) return null
+
+  // 如果响应本身就有 chapterId 或 id，直接返回
+  const directData = response as ChapterNavigationData
+  if (directData.chapterId || directData.id) {
+    return directData
+  }
+
+  // 如果响应有 data 字段，尝试从 data 中提取
+  const wrappedResponse = response as { data?: unknown }
+  if (wrappedResponse.data) {
+    const data = wrappedResponse.data as ChapterNavigationData
+    if (data.chapterId || data.id) {
+      return data
+    }
+  }
+
+  return null
+}
+
 export interface UseReaderNavigationOptions {
   currentChapter: ComputedRef<ChapterInfo | null>
   chapterId: Ref<string>
@@ -39,7 +72,9 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
 
   // 是否有上一章
   const hasPreviousChapter = computed(() => {
-    return !!currentChapter.value?.prevChapterId || !!(currentChapter.value as ChapterInfo)?.hasPrevious
+    return (
+      !!currentChapter.value?.prevChapterId || !!(currentChapter.value as ChapterInfo)?.hasPrevious
+    )
   })
 
   // 是否有下一章
@@ -67,14 +102,14 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
 
     try {
       const scrollPercent = Math.round(
-        (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
+        (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100,
       )
 
       await readerStore.saveProgress(
         currentChapter.value.bookId || '',
         chapterId.value,
         scrollPercent,
-        window.scrollY
+        window.scrollY,
       )
 
       // 保存阅读时长
@@ -117,10 +152,11 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
       }
 
       const prevChapterInfo = await readerAPI.getPreviousChapter(bookId, chapterId.value)
-      const prevData = (prevChapterInfo as { data?: { chapterId?: string; id?: string } })?.data ?? prevChapterInfo
+      const prevData = extractChapterData(prevChapterInfo)
+      const targetChapterId = prevData?.chapterId || prevData?.id
 
-      if (prevData?.chapterId || prevData?.id) {
-        chapterId.value = prevData.chapterId || prevData.id
+      if (targetChapterId) {
+        chapterId.value = targetChapterId
         await loadChapter()
       } else {
         console.warn('没有上一章')
@@ -161,10 +197,11 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
       }
 
       const nextChapterInfo = await readerAPI.getNextChapter(bookId, chapterId.value)
-      const nextData = (nextChapterInfo as { data?: { chapterId?: string; id?: string } })?.data ?? nextChapterInfo
+      const nextData = extractChapterData(nextChapterInfo)
+      const targetChapterId = nextData?.chapterId || nextData?.id
 
-      if (nextData?.chapterId || nextData?.id) {
-        chapterId.value = nextData.chapterId || nextData.id
+      if (targetChapterId) {
+        chapterId.value = targetChapterId
         await loadChapter()
       } else {
         console.warn('没有下一章')
@@ -229,7 +266,11 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
   }
 
   // 键盘快捷键处理
-  const handleKeyPress = (e: KeyboardEvent, settingsVisible: Ref<boolean>, loadChapter: () => Promise<void>) => {
+  const handleKeyPress = (
+    e: KeyboardEvent,
+    settingsVisible: Ref<boolean>,
+    loadChapter: () => Promise<void>,
+  ) => {
     if (settingsVisible.value) return
 
     switch (e.key) {
@@ -283,7 +324,11 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
     goBackToBookDetail,
     goHome,
     goToBook,
-    jumpToChapter: async (id: string, loadChapter: () => Promise<void>, catalogVisible: Ref<boolean>) => {
+    jumpToChapter: async (
+      id: string,
+      loadChapter: () => Promise<void>,
+      catalogVisible: Ref<boolean>,
+    ) => {
       if (id === chapterId.value) return
       await saveCurrentProgress()
       chapterId.value = id
@@ -302,6 +347,6 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
 
     // 定时器方法
     startAutoSave,
-    stopAutoSave
+    stopAutoSave,
   }
 }

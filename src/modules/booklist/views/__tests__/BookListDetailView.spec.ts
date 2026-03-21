@@ -1,7 +1,6 @@
 /**
  * BookListDetailView视图测试
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -69,7 +68,7 @@ const mockUnfavoriteBookList = booklistApi.unfavoriteBookList as any
 const mockGetPopularTags = booklistApi.getPopularTags as any
 
 // 辅助函数：等待所有Promise完成
-const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('BookListDetailView', () => {
   let router: any
@@ -104,7 +103,10 @@ describe('BookListDetailView', () => {
       // Arrange - 让API调用延迟返回，这样可以捕获loading状态
       let resolveApi: any
       mockGetBookListDetail.mockImplementation(
-        () => new Promise(resolve => { resolveApi = resolve })
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve
+          }),
       )
 
       // 先获取store实例，设置loading状态

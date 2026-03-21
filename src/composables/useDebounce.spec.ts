@@ -12,8 +12,8 @@ describe('useDebounce - P0 Fix: this上下文保存', () => {
 
   it('应该正确保存this上下文', async () => {
     const context = { value: 'test' }
-    // eslint-disable-next-line no-unused-vars
-    const mockFn = vi.fn(function(this: any) {
+
+    const mockFn = vi.fn(function (this: any) {
       return this.value
     })
 
@@ -29,8 +29,8 @@ describe('useDebounce - P0 Fix: this上下文保存', () => {
 
   it('flush方法应该保留正确的this上下文', () => {
     const context = { value: 'flush-test' }
-    // eslint-disable-next-line no-unused-vars
-    const mockFn = vi.fn(function(this: any) {
+
+    const mockFn = vi.fn(function (this: any) {
       return this.value
     })
 
@@ -45,8 +45,8 @@ describe('useDebounce - P0 Fix: this上下文保存', () => {
 
   it('flush时应该使用lastThis作为fallback', () => {
     const context1 = { value: 'original' }
-    // eslint-disable-next-line no-unused-vars
-    const mockFn = vi.fn(function(this: any) {
+
+    const mockFn = vi.fn(function (this: any) {
       return this.value
     })
 
