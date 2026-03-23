@@ -35,7 +35,12 @@ import type {
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
 import { syncService, type SyncStatus } from '@/utils/syncService'
-import type { LocationTreeNode, StatisticsCacheItem, RawProjectData, ProjectListResponse } from '@/types/models/project'
+import type {
+  LocationTreeNode,
+  StatisticsCacheItem,
+  RawProjectData,
+  ProjectListResponse,
+} from '@/types/models/project'
 
 /**
  * 自动保存任务
@@ -164,7 +169,8 @@ function normalizeProject(raw: RawProjectData): Project {
       totalWords: raw?.totalWords ?? raw?.wordCount ?? (rawStats?.totalWords as number) ?? 0,
       chapterCount: raw?.chapterCount ?? (rawStats?.chapterCount as number) ?? 0,
       documentCount: (rawStats?.documentCount as number) ?? 0,
-      lastUpdateAt: raw?.updatedAt || raw?.lastUpdateTime || (rawStats?.lastUpdateAt as string) || '',
+      lastUpdateAt:
+        raw?.updatedAt || raw?.lastUpdateTime || (rawStats?.lastUpdateAt as string) || '',
     },
     settings: {
       autoBackup: (rawSettings?.autoBackup as boolean) ?? true,
@@ -1162,6 +1168,49 @@ export const useWriterStore = defineStore('writer', {
      */
     setCurrentCharacter(character: Character | null): void {
       this.characters.currentCharacter = character
+    },
+
+    /**
+     * 创建角色关系
+     */
+    async createCharacterRelation(
+      projectId: string,
+      data: { fromId: string; toId: string; type: string; strength: number; notes?: string },
+    ): Promise<CharacterRelation | null> {
+      try {
+        const { characterApi } = await import('../api/character')
+        const relation = (await characterApi.createRelation(projectId, {
+          fromId: data.fromId,
+          toId: data.toId,
+          type: data.type as any, // 类型断言处理 RelationType
+          strength: data.strength,
+          notes: data.notes,
+        })) as unknown as CharacterRelation
+        if (relation) {
+          this.characters.relations.push(relation)
+          return relation
+        }
+        return null
+      } catch (error: any) {
+        console.error('创建角色关系失败:', error)
+        this.error = error.message
+        throw error
+      }
+    },
+
+    /**
+     * 删除角色关系
+     */
+    async deleteCharacterRelation(relationId: string, projectId: string): Promise<void> {
+      try {
+        const { characterApi } = await import('../api/character')
+        await characterApi.deleteRelation(relationId, projectId)
+        this.characters.relations = this.characters.relations.filter((r) => r.id !== relationId)
+      } catch (error: any) {
+        console.error('删除角色关系失败:', error)
+        this.error = error.message
+        throw error
+      }
     },
 
     // ==================== 地点管理 ====================
