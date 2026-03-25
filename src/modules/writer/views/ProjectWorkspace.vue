@@ -14,6 +14,7 @@
       @save="handleTipTapSave"
       @export="handleExportDraft"
       @share="handleShareDraft"
+      @back="handleBackToDashboard"
     />
 
     <EditorLayout class="workspace-editor-layout">
@@ -21,7 +22,7 @@
       <template #left-panel>
         <WorkspaceLeftPanel
           v-model:project-id="currentProjectId"
-          v-model:chapter-id="currentChapterId"
+          v-model:chapter-id="displayChapterId"
           :collapsed="panelStore.leftCollapsed"
           :is-immersive-mode="isImmersiveMode"
           :active-tool-for-dock="activeToolForDock"
@@ -34,10 +35,11 @@
           :chapters="flatChapters"
           @dock-select="handleDockSelect"
           @set-encyclopedia-category="setEncyclopediaCategory"
-          @add-chapter="handleAddChapterQuick"
-          @add-volume="handleAddVolumeQuick"
+          @add-doc="handleAddDoc"
           @open-directory-outline="handleOpenDirectoryOutline"
           @delete-chapter="handleDeleteChapter"
+          @global-graph-click="handleGlobalGraphClick"
+          @update:chapter-id="handleChapterIdUpdate"
         />
       </template>
 
@@ -49,10 +51,16 @@
           :sub-view="encyclopediaSubView"
           :category="encyclopediaCategory"
           :project-id="currentProjectId"
-          :chapter-id="currentChapterId"
+          :chapter-id="displayChapterId"
+          :chapter-title="displayChapterTitle"
+          :chapters="flatChapters"
           v-model:content="tipTapContent"
           @update:category="setEncyclopediaCategory"
+          @trigger-ai-action="handleAIStageAction"
+          @open-graph="handleOpenGraph"
+          @jump-to-chapter="handleChapterIdUpdate"
           @save="handleTipTapSave"
+          @add-doc="handleAddDoc"
         />
       </template>
 
@@ -63,7 +71,11 @@
           :is-immersive-mode="isImmersiveMode"
           :active-right-dock-tool="activeRightDockTool"
           :project-id="currentProjectId"
+          :chapter-id="displayChapterId"
+          :chapter-title="displayChapterTitle"
+          :source-text="currentChapterPlainText"
           :ai-action-trigger="aiActionTrigger"
+          :ai-apply-feedback="aiApplyFeedback"
           @dock-select="handleRightDockSelect"
           @ai-send="handleAISend"
           @ai-apply="handleAIApplyGeneratedText"
@@ -83,27 +95,18 @@
   </div>
 
   <!-- 新建文档对话框 -->
-  <el-dialog v-model="showCreateDocDialog" title="新建文档" width="400px">
-    <el-form :model="newDocForm">
-      <el-form-item label="标题">
-        <el-input v-model="newDocForm.title" placeholder="请输入文档标题" />
-      </el-form-item>
-      <el-form-item label="类型">
-        <el-select v-model="newDocForm.type">
-          <el-option label="章节" value="chapter" />
-          <el-option label="卷/分卷" value="volume" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="showCreateDocDialog = false">取消</el-button>
-      <el-button type="primary" @click="handleCreateDoc">创建</el-button>
-    </template>
-  </el-dialog>
+  <QyFormModal
+    v-model:visible="showCreateDocDialog"
+    title="新建文档"
+    :fields="createDocFields"
+    :loading="createDocLoading"
+    @submit="handleCreateDocSubmit"
+    @cancel="showCreateDocDialog = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, unref } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 // 引入 Store 体系
@@ -124,10 +127,19 @@ import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOu
 // 引入子组件
 import WorkspaceTopbar from '@/modules/writer/components/workspace/WorkspaceTopbar.vue'
 import WorkspaceLeftPanel from '@/modules/writer/components/workspace/WorkspaceLeftPanel.vue'
-import WorkspaceRightPanel, { type AIApplyPayload } from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
+import WorkspaceRightPanel, {
+  type AIApplyPayload,
+} from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
 import WorkspaceStatusbar from '@/modules/writer/components/workspace/WorkspaceStatusbar.vue'
 import WorkspaceEditorContent from '@/modules/writer/components/workspace/WorkspaceEditorContent.vue'
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
+import QyFormModal from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
+import type { FormField } from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
+import {
+  appendPlainTextToEditorContent,
+  buildEditorContentFromPlainText,
+  extractPlainTextFromEditorContent,
+} from '@/modules/writer/utils/editorContent'
 
 // =======================
 // Props 定义
@@ -156,7 +168,8 @@ const mockProject = computed(() =>
 )
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
-const activeTool = computed(() => editorStore.activeTool)
+const resolvedActiveTool = computed<ActiveTool>(() => unref(editorStore.activeTool) as ActiveTool)
+const activeTool = computed(() => resolvedActiveTool.value)
 
 // =======================
 // 使用 Composables
@@ -180,13 +193,11 @@ const {
   mockProject,
 })
 
-const isImmersiveMode = computed(() => editorStore.activeTool === 'immersive')
+const isImmersiveMode = computed(() => resolvedActiveTool.value === 'immersive')
 
-const {
-  immersiveTimerText,
-  startImmersiveTimer,
-  stopImmersiveTimer,
-} = useImmersiveTimer({ isImmersiveMode })
+const { immersiveTimerText, startImmersiveTimer, stopImmersiveTimer } = useImmersiveTimer({
+  isImmersiveMode,
+})
 
 const {
   isEncyclopediaTool,
@@ -205,26 +216,87 @@ const { buildDirectoryOutline } = useDirectoryOutline({ availableDocMap, mockPro
 import type { LeftDockTool } from '@/modules/writer/composables/types'
 
 const activeToolForDock = computed<LeftDockTool>(() => {
-  const tool = editorStore.activeTool
+  const tool = resolvedActiveTool.value
   if (tool === 'encyclopedia') return encyclopediaSubView.value
   return tool === 'ai' || tool === 'chapters' ? 'writing' : tool
 })
 
 const activeRightDockTool = computed<'ai'>(() => 'ai')
+const currentChapterPlainText = computed(() =>
+  extractPlainTextFromEditorContent(tipTapContent.value),
+)
+const isGlobalRelationsView = computed(
+  () =>
+    isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value,
+)
+const displayChapterId = computed({
+  get: () => (isGlobalRelationsView.value ? '' : currentChapterId.value),
+  set: (value: string) => {
+    currentChapterId.value = value
+  },
+})
+const displayChapterTitle = computed(() =>
+  isGlobalRelationsView.value ? '' : currentChapterTitle.value,
+)
 
 // =======================
 // UI 状态
 // =======================
 const showCreateDocDialog = ref(false)
-const newDocForm = ref({ title: '', type: 'chapter' })
-const aiActionTrigger = ref<{ id: number; action: string; text: string; instructions?: string } | null>(null)
+const createDocLoading = ref(false)
+const aiActionTrigger = ref<{
+  id: number
+  action: string
+  text: string
+  instructions?: string
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
+} | null>(null)
+const aiApplyFeedback = ref<{
+  status: 'idle' | 'success' | 'fallback'
+  title: string
+  detail: string
+  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  updatedAt: number
+} | null>(null)
+const latestSelectionContext = ref<{ text: string; from: number; to: number } | null>(null)
+
+// 新建文档表单字段配置
+const createDocFields: FormField[] = [
+  {
+    key: 'title',
+    label: '文档标题',
+    type: 'text',
+    placeholder: '请输入文档标题',
+    required: true,
+  },
+  {
+    key: 'type',
+    label: '文档类型',
+    type: 'select',
+    defaultValue: 'chapter',
+    options: [
+      { label: '章节', value: 'chapter' },
+      { label: '卷', value: 'volume' },
+    ],
+  },
+]
 
 // =======================
 // 事件处理
 // =======================
 const handleDockSelect = async (tool: LeftDockTool) => {
   const nextQuery = { ...route.query } as LocationQueryRaw
-  if (tool === 'relations' || tool === 'encyclopedia' || tool === 'timeline' || tool === 'branches') {
+  if (
+    tool === 'structure' ||
+    tool === 'relations' ||
+    tool === 'encyclopedia' ||
+    tool === 'timeline' ||
+    tool === 'branches'
+  ) {
     editorStore.setActiveTool('encyclopedia')
     nextQuery.tool = 'encyclopedia'
     nextQuery.encyclopediaView = tool
@@ -256,18 +328,19 @@ const toggleRightPanel = () => {
   panelStore.setRightCollapsed(!panelStore.rightCollapsed)
 }
 
-const handleAddChapterQuick = () => {
-  newDocForm.value.type = 'chapter'
-  showCreateDocDialog.value = true
-}
-
-const handleAddVolumeQuick = () => {
-  newDocForm.value.type = 'volume'
+const handleAddDoc = () => {
   showCreateDocDialog.value = true
 }
 
 const handleOpenDirectoryOutline = async (directoryId: string) => {
   if (!directoryId) return
+
+  // 如果在百科/关系图谱视图，点击卷不切换到编辑器，只更新选中
+  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+    currentChapterId.value = directoryId
+    return
+  }
+
   editorStore.setActiveTool('writing')
   if (currentChapterId.value !== directoryId) {
     currentChapterId.value = directoryId
@@ -282,9 +355,28 @@ const handleOpenDirectoryOutline = async (directoryId: string) => {
   }
 }
 
-const handleTipTapSave = async () => {
-  editorStore.markSaved()
-  message.success('已保存（TipTap）')
+const handleTipTapSave = async (contents?: unknown[]) => {
+  if (!currentChapterId.value) {
+    message.warning('请先选择要保存的章节')
+    return
+  }
+  try {
+    if (contents && Array.isArray(contents)) {
+      // 调用 editorStore.saveParagraphs 保存到后端
+      await editorStore.saveParagraphs(
+        contents as Array<{
+          paragraphId?: string
+          order: number
+          content: string
+          contentType?: string
+        }>,
+      )
+    }
+    message.success('保存成功')
+  } catch (error) {
+    console.error('[ProjectWorkspace] 保存失败:', error)
+    message.error('保存失败，请重试')
+  }
 }
 
 const handleExportDraft = () => {
@@ -305,19 +397,33 @@ const handleShareDraft = async () => {
   }
 }
 
-const handleCreateDoc = async () => {
-  if (!newDocForm.value.title) return
+const handleBackToDashboard = () => {
+  router.push('/writer/dashboard')
+}
+
+const handleCreateDocSubmit = async (formData: Record<string, unknown>) => {
+  const title = formData.title as string
+  if (!title) return
+
+  createDocLoading.value = true
   try {
+    // 确定父节点：如果当前选中的是目录类型，则作为父节点
+    const currentDoc = availableDocMap.value.get(currentChapterId.value)
+    const parentId = currentDoc?.type === DocumentType.VOLUME ? currentChapterId.value : undefined
+
     await documentStore.create(currentProjectId.value, {
-      title: newDocForm.value.title,
-      type: newDocForm.value.type as unknown as DocumentType,
+      title,
+      type: formData.type as DocumentType,
       projectId: currentProjectId.value,
+      parentId, // 传递父节点ID
     })
     showCreateDocDialog.value = false
-    newDocForm.value.title = ''
-    newDocForm.value.type = 'chapter'
-  } catch {
+    message.success('创建成功')
+  } catch (error) {
+    console.error('[ProjectWorkspace] Create failed:', error)
     message.error('创建失败')
+  } finally {
+    createDocLoading.value = false
   }
 }
 
@@ -333,37 +439,210 @@ const handleDeleteChapter = async (docId: string) => {
   }
 }
 
+// 处理章节 ID 更新（从侧边栏选择章节）
+const handleChapterIdUpdate = async (chapterId: string) => {
+  if (!chapterId) return
+
+  // 如果在百科/关系图谱视图，保持在该视图
+  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+    // 更新路由 query 中的 chapterId，但不切换工具
+    const nextQuery = { ...route.query } as LocationQueryRaw
+    nextQuery.chapterId = chapterId
+    await router.replace({ query: nextQuery })
+    return
+  }
+
+  // 其他视图切换到写作模式
+  const nextQuery = { ...route.query } as LocationQueryRaw
+  nextQuery.chapterId = chapterId
+  nextQuery.tool = 'writing'
+  delete nextQuery.encyclopediaView
+  await router.replace({ query: nextQuery })
+}
+
+// 处理全局图谱点击 - 切换到关系图谱视图，显示全局图谱
+const handleGlobalGraphClick = async () => {
+  // 切换到百科模式，并设置子视图为 relations
+  const nextQuery = { ...route.query } as LocationQueryRaw
+  nextQuery.tool = 'encyclopedia'
+  nextQuery.encyclopediaView = 'relations'
+  delete nextQuery.chapterId
+  await router.replace({ query: nextQuery })
+  // 清除章节选择，显示全局图谱
+  currentChapterId.value = ''
+}
+
+const handleOpenGraph = async (chapterId: string) => {
+  const nextQuery = { ...route.query } as LocationQueryRaw
+  nextQuery.tool = 'encyclopedia'
+  nextQuery.encyclopediaView = 'relations'
+
+  if (chapterId) {
+    nextQuery.chapterId = chapterId
+  } else {
+    delete nextQuery.chapterId
+  }
+
+  await router.replace({ query: nextQuery })
+}
+
 const handleAISend = (msg: string) => {
-  console.log('[ProjectWorkspace] AI send message:', msg)
+  void msg
+}
+
+const handleAIStageAction = (payload: {
+  action: string
+  text: string
+  instructions?: string
+  from?: number
+  to?: number
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
+}) => {
+  panelStore.setRightCollapsed(false)
+  latestSelectionContext.value =
+    typeof payload.from === 'number' && typeof payload.to === 'number'
+      ? {
+          text: payload.text,
+          from: payload.from,
+          to: payload.to,
+        }
+      : null
+  aiActionTrigger.value = {
+    id: Date.now(),
+    action: payload.action,
+    text: payload.text || currentChapterPlainText.value,
+    instructions: payload.instructions,
+    applyMode: payload.applyMode,
+  }
+}
+
+const setAIApplyFeedback = (
+  status: 'idle' | 'success' | 'fallback',
+  title: string,
+  detail: string,
+  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document',
+) => {
+  aiApplyFeedback.value = {
+    status,
+    title,
+    detail,
+    mode,
+    updatedAt: Date.now(),
+  }
 }
 
 const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
   const generatedText = (payload.generatedText || '').trim()
   if (!generatedText) return
 
-  const sourceText = payload.sourceText || ''
-  const currentContent = editorStore.content || ''
-  let nextContent = currentContent
+  const tiptapEditor = editorStore.tipTapEditor
+  const selectionContext = latestSelectionContext.value
+  const requestedApplyMode = payload.applyMode || aiActionTrigger.value?.applyMode
 
-  if (sourceText) {
-    const sourceIndex = currentContent.indexOf(sourceText)
-    if (sourceIndex >= 0) {
-      if (payload.action === 'continue') {
-        const insertPos = sourceIndex + sourceText.length
-        nextContent = `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
-      } else {
-        nextContent = `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
+  if (
+    tiptapEditor &&
+    selectionContext &&
+    (requestedApplyMode === 'replace_selection' || requestedApplyMode === 'insert_after_selection')
+  ) {
+    try {
+      const docSize = tiptapEditor.state.doc.content.size
+      const from = Math.min(selectionContext.from, selectionContext.to)
+      const to = Math.max(selectionContext.from, selectionContext.to)
+      const latestSelectedText = tiptapEditor.state.doc.textBetween(from, to, '\n').trim()
+      const selectionStillMatches =
+        !selectionContext.text.trim() || latestSelectedText === selectionContext.text.trim()
+
+      if (from >= 0 && to <= docSize && from <= to && selectionStillMatches) {
+        const insertionDoc = JSON.parse(buildEditorContentFromPlainText(generatedText)) as {
+          content?: unknown[]
+        }
+        const insertionContent =
+          insertionDoc.content && insertionDoc.content.length > 0
+            ? insertionDoc.content
+            : [{ type: 'paragraph' }]
+
+        if (requestedApplyMode === 'replace_selection') {
+          tiptapEditor.chain().focus().insertContentAt({ from, to }, insertionContent).run()
+        } else {
+          tiptapEditor.chain().focus().insertContentAt(to, insertionContent).run()
+        }
+
+        const nextJson = JSON.stringify(tiptapEditor.getJSON())
+        tipTapContent.value = nextJson
+        editorStore.editorContent = nextJson
+        latestSelectionContext.value = null
+        writerStore.setSelectedText('')
+        setAIApplyFeedback(
+          'success',
+          '已按选区回填',
+          requestedApplyMode === 'insert_after_selection'
+            ? 'AI 结果已插入到原选区后方。'
+            : 'AI 结果已替换当前选区。',
+          requestedApplyMode,
+        )
+        message.success('AI 结果已应用到当前选区')
+        return
       }
+
+      if (!selectionStillMatches) {
+        setAIApplyFeedback(
+          'fallback',
+          '选区已失效，改为安全回填',
+          '原选区内容已变化，系统改为按段落/全文模式写回，避免覆盖错误位置。',
+          requestedApplyMode,
+        )
+        message.info('原选区内容已发生变化，已改为按整段结果安全回填。')
+      }
+    } catch (error) {
+      console.warn(
+        '[ProjectWorkspace] failed to apply AI result to selection, fallback to document mode:',
+        error,
+      )
+      setAIApplyFeedback(
+        'fallback',
+        '定位选区失败，改为安全回填',
+        '系统未能稳定定位原选区，已切换为文档级写回以避免内容损坏。',
+        requestedApplyMode,
+      )
     }
   }
 
-  if (nextContent === currentContent) {
-    const separator = currentContent && !currentContent.endsWith('\n') ? '\n\n' : ''
-    nextContent = `${currentContent}${separator}${generatedText}`
-  }
+  const sourceText = payload.sourceText || ''
+  const currentEditorContent =
+    tipTapContent.value || editorStore.editorContent || editorStore.content || ''
+  const shouldReplaceWholeChapter =
+    requestedApplyMode === 'replace_document' ||
+    (!!sourceText.trim() && sourceText.trim() === currentChapterPlainText.value.trim())
 
-  editorStore.setContent(nextContent)
+  const nextEditorContent =
+    requestedApplyMode === 'append_paragraph' ||
+    payload.action === 'continue' ||
+    payload.action === 'expand'
+      ? appendPlainTextToEditorContent(currentEditorContent, generatedText)
+      : shouldReplaceWholeChapter
+        ? buildEditorContentFromPlainText(generatedText)
+        : appendPlainTextToEditorContent(currentEditorContent, generatedText)
+
+  tipTapContent.value = nextEditorContent
+  editorStore.editorContent = nextEditorContent
+  latestSelectionContext.value = null
   writerStore.setSelectedText('')
+  setAIApplyFeedback(
+    requestedApplyMode === 'replace_document' ? 'success' : 'fallback',
+    requestedApplyMode === 'replace_document' ? '已整章替换' : '已按安全模式写回',
+    requestedApplyMode === 'append_paragraph' ||
+      payload.action === 'continue' ||
+      payload.action === 'expand'
+      ? 'AI 结果已追加为新的正文段落。'
+      : requestedApplyMode === 'replace_document'
+        ? 'AI 结果已完整替换当前章节正文。'
+        : 'AI 结果已写回编辑器，但未直接覆盖原选区。',
+    requestedApplyMode,
+  )
   message.success('AI 结果已应用到编辑器')
 }
 
@@ -387,6 +666,14 @@ onMounted(async () => {
 watch(
   () => flatChapters.value,
   (chapters) => {
+    const shouldStayOnGlobalRelations =
+      isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value
+
+    if (shouldStayOnGlobalRelations) {
+      currentChapterId.value = ''
+      return
+    }
+
     if (!currentChapterId.value && chapters.length > 0) {
       const firstChapter = chapters.find((chapter) => chapter.nodeType !== 'directory')
       const targetChapter = firstChapter || chapters[0]
@@ -439,9 +726,7 @@ watch(
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(circle at 12% -24%, rgba(19, 91, 236, 0.2) 0%, transparent 36%),
-    radial-gradient(circle at 88% -30%, rgba(15, 23, 42, 0.24) 0%, transparent 42%), #eef3fb;
+  background: #f8f9fa;
 }
 
 .workspace-editor-layout {
