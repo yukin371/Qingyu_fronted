@@ -23,52 +23,41 @@
       >
         <QyIcon name="Memo" :size="18" />
       </button>
-      <!-- 更多工具下拉菜单 -->
-      <div class="more-tools-dropdown" v-click-outside="closeMoreMenu">
-        <button
-          type="button"
-          class="dock-item dock-more-btn"
-          :class="{ active: moreMenuOpen }"
-          :title="'更多工具'"
-          @click="moreMenuOpen = !moreMenuOpen"
-        >
-          <QyIcon name="MoreFilled" :size="18" />
-        </button>
-        <div v-if="moreMenuOpen" class="dropdown-menu dropdown-menu--dock">
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('relations')"
-          >
-            <QyIcon name="Share" :size="14" />
-            <span>关系图谱</span>
-          </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('timeline')"
-          >
-            <QyIcon name="Clock" :size="14" />
-            <span>时间线</span>
-          </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('branches')"
-          >
-            <QyIcon name="Connection" :size="14" />
-            <span>故事分支</span>
-          </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('structure')"
-          >
-            <QyIcon name="Memo" :size="14" />
-            <span>结构舞台</span>
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        class="dock-item"
+        :title="'关系图谱'"
+        @click="openTool('relations')"
+      >
+        <QyIcon name="Share" :size="18" />
+      </button>
+      <button
+        type="button"
+        class="dock-item"
+        :title="'时间线'"
+        @click="openTool('timeline')"
+      >
+        <QyIcon name="Clock" :size="18" />
+      </button>
+      <button
+        type="button"
+        class="dock-item"
+        :title="'故事分支'"
+        @click="openTool('branches')"
+      >
+        <QyIcon name="Connection" :size="18" />
+      </button>
+      <button
+        type="button"
+        class="dock-item"
+        :title="'结构舞台'"
+        @click="openTool('structure')"
+      >
+        <QyIcon name="Grid" :size="18" />
+      </button>
+
+      <!-- 分隔线 -->
+      <div class="dock-divider"></div>
 
       <!-- 展开按钮 -->
       <button
@@ -560,16 +549,13 @@ const localChapterId = computed({
     background: var(--editor-accent-soft, #ecfeff);
     color: var(--editor-accent, #06b6d4);
   }
-
-  &.dock-more-btn {
-    font-size: 18px;
-  }
 }
 
-.dropdown-menu--dock {
-  left: calc(100% + 6px);
-  right: auto;
-  top: 0;
+.dock-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--editor-border, #e2e8f0);
+  margin: 4px 0;
 }
 
 // =======================
