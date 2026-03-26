@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
 import { TestDataGenerator } from '../../helpers/test-data'
 
-const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:9090'
 const getBaseURL = () => process.env.BASE_URL || 'http://localhost:5173'
 
 test.describe('Layer 2: 书籍章节一致性', () => {

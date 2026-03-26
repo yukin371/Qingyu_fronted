@@ -16,7 +16,7 @@
 /* global process */
 import { test, expect } from '@playwright/test'
 
-const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:9090'
 
 test.describe('Layer 3: 边界数据测试（简化版）', () => {
   /**

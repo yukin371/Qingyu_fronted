@@ -20,7 +20,7 @@ import { TestDataGenerator, testBooks } from '../../helpers/test-data'
  */
 const TEST_CONFIG = {
   baseURL: 'http://localhost:5173',
-  apiBaseURL: 'http://localhost:8080',
+  apiBaseURL: 'http://localhost:9090',
   timeout: 30000,
   navigationTimeout: 15000,
   screenshotPath: 'test-results/screenshots/scenario1',

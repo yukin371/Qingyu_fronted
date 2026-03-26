@@ -12,7 +12,7 @@
 import { test, expect, skip } from '@playwright/test'
 
 // 检查后端是否可用
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080'
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:9090'
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5174'
 
 // 条件执行：检查后端服务

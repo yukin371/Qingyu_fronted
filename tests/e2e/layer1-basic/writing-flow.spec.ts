@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test'
 import { createAPIValidators } from '../../helpers'
 import { testUsers } from '../../helpers/test-data'
 
-const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:9090'
 const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 写作流程', () => {

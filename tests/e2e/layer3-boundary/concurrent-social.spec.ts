@@ -16,7 +16,7 @@
 /* global process */
 import { test, expect } from '@playwright/test'
 
-const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:9090'
 
 test.describe('Layer 3: 并发社交互动（简化版）', () => {
   let testBookId: string

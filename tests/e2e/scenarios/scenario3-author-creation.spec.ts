@@ -21,7 +21,7 @@ import { testFixtures, TestDataGenerator } from '../../helpers/test-data'
 // 测试配置
 const TEST_CONFIG = {
   baseURL: 'http://localhost:5173',
-  apiURL: 'http://localhost:8080',
+  apiURL: 'http://localhost:9090',
   timeout: 30000,
   retry: 2
 }

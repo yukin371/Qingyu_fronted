@@ -13,7 +13,7 @@
 import { test, expect } from '@playwright/test'
 
 // 环境配置
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080'
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:9090'
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5174'
 
 // 后端服务状态
