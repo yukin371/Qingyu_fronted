@@ -345,6 +345,27 @@ export const useWriterStore = defineStore('writer', {
     documentCount: (state): number => {
       return state.documents.length
     },
+
+    /**
+     * 获取章节顺序映射（用于时序过滤）
+     */
+    chapterOrderMap: (state): Map<string, number> => {
+      const tree = state.documentTree || []
+      const map = new Map<string, number>()
+
+      function traverse(nodes: any[], order: number = 0): number {
+        nodes.forEach(node => {
+          map.set(node.id, ++order)
+          if (node.children && node.children.length > 0) {
+            traverse(node.children, order)
+          }
+        })
+        return order
+      }
+
+      traverse(tree)
+      return map
+    },
   },
 
   actions: {
@@ -1157,9 +1178,12 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.characters.relations = await (writerModule.listCharacterRelations?.(pid) ?? [])
+        const relations = await (writerModule.listCharacterRelations?.(pid) ?? [])
+        // 确保relations永远不是null
+        this.characters.relations = relations || []
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
+        this.characters.relations = []
       }
     },
 
