@@ -18,8 +18,8 @@ import { ActorRole, UserCredentials } from './actor-factory'
  *
  * 运行后端填充命令: go run cmd/seeder/main.go e2e
  */
-// 统一测试密码：符合后端验证规则（必须包含数字）
-const TEST_PASSWORD = 'Password123'
+// 统一测试密码：与后端 seeder_users.go 保持一致（password）
+const TEST_PASSWORD = 'password'
 
 export const testUsers = {
   guest: {
