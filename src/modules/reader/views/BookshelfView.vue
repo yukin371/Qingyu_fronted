@@ -1,5 +1,5 @@
 <template>
-    <div class="bookshelf-view">
+    <div class="bookshelf-view" data-testid="bookshelf-view">
         <div class="bookshelf-header">
             <h2>我的书架</h2>
 
@@ -43,7 +43,7 @@
         <el-skeleton :loading="loading" :rows="5" animated>
             <div class="bookshelf-content">
                 <!-- 书架列表 -->
-                <div class="bookshelf-list">
+                <div class="bookshelf-list" data-testid="bookshelf-list">
                     <el-empty v-if="books.length === 0 && !loading" description="书架空空如也">
                         <template #extra>
                             <el-button type="primary" @click="goToBookstore">去书城逛逛</el-button>
@@ -54,7 +54,7 @@
                         </template>
                     </el-empty>
 
-                    <div v-for="book in books" :key="book.id" class="book-item" :class="{ 'selected': selectedBooks.includes(book.id) }">
+                    <div v-for="book in books" :key="book.id" class="book-item" :class="{ 'selected': selectedBooks.includes(book.id) }" :data-testid="`bookshelf-item-${book.id}`">
                         <el-checkbox
                             v-if="batchMode"
                             v-model="selectedBooks"
@@ -93,16 +93,16 @@
                             <el-button type="primary" size="small" @click.stop="continueReading(book)">
                                 继续阅读
                             </el-button>
-                            <el-dropdown @command="handleAction($event, book)">
-                                <el-button size="small" text>
+                            <el-dropdown @command="handleAction($event, book)" data-testid="book-actions-menu">
+                                <el-button size="small" text data-testid="book-actions-trigger">
                                     <QyIcon name="MoreFilled"  />
                                 </el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item command="reading">移至在读</el-dropdown-item>
-                                        <el-dropdown-item command="want_to_read">移至想读</el-dropdown-item>
-                                        <el-dropdown-item command="completed">移至读完</el-dropdown-item>
-                                        <el-dropdown-item divided command="remove">移出书架</el-dropdown-item>
+                                        <el-dropdown-item command="reading" data-testid="status-reading">移至在读</el-dropdown-item>
+                                        <el-dropdown-item command="want_to_read" data-testid="status-want-read">移至想读</el-dropdown-item>
+                                        <el-dropdown-item command="completed" data-testid="status-completed">移至读完</el-dropdown-item>
+                                        <el-dropdown-item divided command="remove" data-testid="remove-button">移出书架</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>

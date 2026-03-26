@@ -400,6 +400,18 @@ const demoPages = ref<DemoPage[]>([
 
   // ===== 风格展示 Demo =====
   {
+    key: 'digital-atelier',
+    title: 'Digital Atelier 深空编辑器',
+    description: '深空科幻风格的写作编辑器主题，玻璃拟态面板、羊皮纸手稿区、星空背景粒子效果，按 F11 进入沉浸模式。',
+    icon: 'sparkles',
+    color: 'linear-gradient(135deg, #7de9ff 0%, #cebdff 100%)',
+    category: 'style',
+    componentCount: 12,
+    lastUpdated: '2026-03-22',
+    new: true,
+    route: '/writer/atelier'
+  },
+  {
     key: 'tailwind-v4-design-system',
     title: 'Tailwind v4 组件库',
     description: '基于 Tailwind v4 CSS-First 配置的新一代组件库，包含完整的设计令牌系统和 CVA 变体管理。',

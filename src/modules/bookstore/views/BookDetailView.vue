@@ -61,7 +61,7 @@
                 <Icon name="book-open" size="md" class="mr-1" />
                 {{ hasProgress ? '继续阅读' : '立即阅读' }}
               </Button>
-              <Button size="lg" @click="addToShelf">
+              <Button size="lg" data-testid="add-to-bookshelf" @click="addToShelf">
                 <Icon name="folder-plus" size="md" class="mr-1" />
                 放入书架
               </Button>
@@ -286,6 +286,9 @@ const loadingMore = ref(false)
 
 const hasMoreComments = computed(() => comments.value.length < commentTotal.value)
 
+// 检查是否是 mock/本地数据（不需要调用后端 API）
+const isMockBook = computed(() => publishedBookDetail.value !== null)
+
 const book = computed(() => {
   if (publishedBookDetail.value) {
     return {
@@ -495,6 +498,13 @@ const checkFavoriteStatus = async () => {
     return
   }
 
+  // Mock 数据不需要调用后端 API
+  if (isMockBook.value) {
+    isFavorited.value = false
+    collectionId.value = null
+    return
+  }
+
   try {
     checkingFavorite.value = true
     const response = await collectionsAPI.checkCollected(bookId)
@@ -526,6 +536,16 @@ const checkFavoriteStatus = async () => {
 
 const loadComments = async (reset = false) => {
   if (!authStore.isLoggedIn) {
+    if (reset) {
+      comments.value = []
+      commentTotal.value = 0
+      commentPage.value = 1
+    }
+    return
+  }
+
+  // Mock 数据不需要调用后端 API
+  if (isMockBook.value) {
     if (reset) {
       comments.value = []
       commentTotal.value = 0
@@ -765,8 +785,8 @@ const onCommentUpdated = async (): Promise<void> => {
   await loadComments(true)
 }
 
-onMounted(() => {
-  loadBookDetail()
+onMounted(async () => {
+  await loadBookDetail()
   loadComments(true)
   checkFavoriteStatus()
 })
