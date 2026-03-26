@@ -18,31 +18,14 @@
 
         <!-- 工具内容区域 -->
         <div class="fullscreen-overlay__content">
-          <KeepAlive :include="['CharacterGraphView', 'TimelineOutlineView', 'StoryBranchView', 'StructureStageView']">
-            <!-- 关系图谱 -->
-            <CharacterGraphView
-              v-if="toolComponent === 'relations'"
+          <KeepAlive>
+            <component
+              :is="toolComponentMap[toolComponent]"
               :chapter-id="chapterId"
+              :chapter-title="chapterTitle"
               :chapters="chapters"
+              :project-id="projectId"
               @status-change="$emit('status-change', $event)"
-            />
-            <!-- 时间线 -->
-            <TimelineOutlineView
-              v-else-if="toolComponent === 'timeline'"
-              :project-id="projectId"
-            />
-            <!-- 故事分支 -->
-            <StoryBranchView
-              v-else-if="toolComponent === 'branches'"
-              :project-id="projectId"
-            />
-            <!-- 结构舞台 -->
-            <StructureStageView
-              v-else-if="toolComponent === 'structure'"
-              :project-id="projectId"
-              :chapters="chapters"
-              :current-chapter-id="chapterId"
-              :current-chapter-title="chapterTitle"
               @open-graph="$emit('open-graph', $event)"
               @jump-to-chapter="$emit('jump-to-chapter', $event)"
             />
@@ -54,6 +37,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, markRaw } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
@@ -93,6 +77,16 @@ const emit = defineEmits<{
   (e: 'open-graph', chapterId: string): void
   (e: 'jump-to-chapter', chapterId: string): void
 }>()
+
+// =======================
+// 工具组件映射
+// =======================
+const toolComponentMap = {
+  relations: markRaw(CharacterGraphView),
+  timeline: markRaw(TimelineOutlineView),
+  branches: markRaw(StoryBranchView),
+  structure: markRaw(StructureStageView),
+}
 
 // =======================
 // 事件处理
