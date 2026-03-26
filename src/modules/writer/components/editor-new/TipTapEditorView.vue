@@ -4,7 +4,7 @@
     :class="{ 'tiptap-editor-view--without-ref': !showReferencePanel }"
     data-testid="tiptap-editor-view"
   >
-    <div class="tiptap-editor-view__main-wrap">
+    <div class="tiptap-editor-view__main">
       <header class="editor-toolbar" v-if="showReferencePanel">
         <div class="editor-toolbar__meta">
           <span class="keyword-badge">🔑 {{ referenceSummary.length }}</span>
@@ -22,8 +22,8 @@
       </div>
 
       <div
-        class="tiptap-editor-view__main"
-        :class="{ 'tiptap-editor-view__main--empty': isDocumentEmpty }"
+        class="tiptap-editor-view__content"
+        :class="{ 'tiptap-editor-view__content--empty': isDocumentEmpty }"
       >
         <QyTipTapEditor
           :model-value="modelValue"
@@ -217,41 +217,31 @@ function emitSelectionAction(action: string) {
 
 <style scoped>
 .tiptap-editor-view {
-  --line: #d7deeb;
-  --text-main: #1a2340;
-  --text-secondary: #5d6782;
-  --brand: #2f6fff;
-  --mint: #02b48b;
-  --warm: #e48c2d;
-
   height: 100%;
-  display: grid;
-  grid-template-columns: 1fr 320px;
+  display: flex;
   gap: 14px;
   padding: 12px;
-  background:
-    radial-gradient(circle at 8% 8%, rgba(47, 111, 255, 0.11) 0%, transparent 26%),
-    radial-gradient(circle at 92% 26%, rgba(2, 180, 139, 0.09) 0%, transparent 28%),
-    #f5f7fb;
+  background: var(--editor-bg-surface, #f8fafc);
 }
 
 .tiptap-editor-view--without-ref {
-  grid-template-columns: 1fr;
+  display: block;
 }
 
-.tiptap-editor-view__main-wrap {
+.tiptap-editor-view__main {
+  flex: 1;
   min-width: 0;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 14px 30px rgba(19, 35, 74, 0.08);
   display: flex;
   flex-direction: column;
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  overflow: hidden;
+  background: var(--editor-bg-base, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .editor-toolbar {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--editor-border, #e2e8f0);
   background: linear-gradient(102deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 255, 0.92));
   padding: 8px 14px;
   display: flex;
@@ -342,40 +332,29 @@ function emitSelectionAction(action: string) {
 }
 
 .tiptap-editor-view__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  overflow: hidden;
+  background: var(--editor-bg-base, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tiptap-editor-view__content {
+  flex: 1;
   min-width: 0;
   min-height: 0;
-  flex: 1;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(47, 111, 255, 0.08) 0%, transparent 24%),
-    linear-gradient(180deg, #fefcf8 0%, #f9f5ef 100%);
-  position: relative;
   padding: 12px;
+  background: var(--editor-bg-base, #ffffff);
+  position: relative;
 }
 
-.tiptap-editor-view__main::before {
-  content: '';
-  position: absolute;
-  inset: 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(215, 222, 235, 0.9);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(252, 248, 242, 0.92)),
-    repeating-linear-gradient(
-      180deg,
-      transparent 0,
-      transparent 33px,
-      rgba(108, 126, 168, 0.05) 34px
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    0 20px 40px rgba(34, 39, 54, 0.08);
-  pointer-events: none;
-}
-
-.tiptap-editor-view__main--empty::before {
-  border-style: dashed;
-  border-color: rgba(194, 171, 140, 0.65);
+.tiptap-editor-view__content--empty {
+  background: var(--editor-bg-muted, #f9fafb);
 }
 
 .selection-toolbar {
@@ -406,12 +385,14 @@ function emitSelectionAction(action: string) {
 }
 
 .tiptap-editor-view__ref {
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  width: 320px;
+  flex-shrink: 0;
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0);
   padding: 14px;
   overflow: auto;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 30px rgba(19, 35, 74, 0.08);
+  background: var(--editor-bg-base, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .ref-header {
@@ -423,12 +404,12 @@ function emitSelectionAction(action: string) {
   margin: 2px 0 4px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-main);
+  color: var(--editor-text-primary, #1e293b);
 }
 
 .hint {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--editor-text-secondary, #64748b);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -500,15 +481,15 @@ function emitSelectionAction(action: string) {
 }
 
 .ref-list li.is-character {
-  border-left: 3px solid var(--brand);
+  border-left: 3px solid var(--editor-color-brand, #2f6fff);
 }
 
 .ref-list li.is-location {
-  border-left: 3px solid var(--mint);
+  border-left: 3px solid var(--editor-color-mint, #02b48b);
 }
 
 .ref-list li.is-item {
-  border-left: 3px solid var(--warm);
+  border-left: 3px solid var(--editor-color-warm, #e48c2d);
 }
 
 .type {
@@ -521,7 +502,7 @@ function emitSelectionAction(action: string) {
 .name {
   flex: 1;
   min-width: 0;
-  color: var(--text-main);
+  color: var(--editor-text-primary, #1e293b);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -620,11 +601,12 @@ function emitSelectionAction(action: string) {
 
 @media (max-width: 1200px) {
   .tiptap-editor-view {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
   .tiptap-editor-view__ref {
     max-height: 280px;
+    width: 100%;
   }
 }
 
@@ -642,13 +624,8 @@ function emitSelectionAction(action: string) {
     grid-template-columns: 1fr;
   }
 
-  .tiptap-editor-view__main {
+  .tiptap-editor-view__content {
     padding: 8px;
-  }
-
-  .tiptap-editor-view__main::before {
-    inset: 8px;
-    border-radius: 16px;
   }
 
   .editor-empty-banner {
