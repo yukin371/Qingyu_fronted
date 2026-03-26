@@ -7,7 +7,7 @@
  * - 统计数据 (章节数、目录节点数)
  * - 工具标签、保存状态等 UI 状态
  */
-import { computed, type ComputedRef, type WritableComputedRef } from 'vue'
+import { computed, unref, type ComputedRef, type WritableComputedRef } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
@@ -81,7 +81,9 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
   // =======================
 
   /** 从 store 获取的文档列表 */
-  const docsFromStore = computed(() => (documentStore.flatDocs || []) as Document[])
+  const docsFromStore = computed(() => {
+    return (documentStore.flatDocs || []) as Document[]
+  })
 
   /** 可用文档映射 (合并 store 和 mock 数据) */
   const availableDocMap = computed(() => {
@@ -177,14 +179,26 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
   /** 从文档列表转换的章节摘要 */
   const chaptersFromDocs = computed<SidebarChapterSummary[]>(() => {
     const docs = docsForTree.value
+
+    // LexoRank 字符串比较函数
+    const compareByOrderKey = (a: Document, b: Document) => {
+      const keyA = a.orderKey || ''
+      const keyB = b.orderKey || ''
+      // LexoRank 是字符串，直接按字典序比较
+      if (keyA < keyB) return -1
+      if (keyA > keyB) return 1
+      // 如果 orderKey 相同，回退到 order 字段
+      return (a.order || 0) - (b.order || 0)
+    }
+
     // 按文档类型分类
     const sceneDocs = docs
       .filter((doc) => doc.type === DocumentType.SCENE || doc.type === DocumentType.VOLUME)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .sort(compareByOrderKey)
 
     const chapterDocs = docs
       .filter((doc) => doc.type === DocumentType.CHAPTER)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .sort(compareByOrderKey)
 
     // 无目录结构时直接返回章节列表
     if (sceneDocs.length === 0) {
@@ -198,44 +212,80 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
         status: doc.status === 'completed' ? 'published' : 'draft',
         nodeType: 'chapter' as const,
         sortOrder: index + 1,
+        orderKey: doc.orderKey,
       }))
     }
 
     // 构建带目录的章节列表
     const list: SidebarChapterSummary[] = []
     let runningIndex = 1
+
+    // 辅助函数：检查 parentId 是否为空（根级别）
+    const isRootLevel = (parentId: string | undefined) =>
+      !parentId || parentId === '000000000000000000000000'
+
+    // 计算基于 orderKey 的排序索引（用于 sortOrder）
+    let dirIndex = 0
+    const dirOrderMap = new Map<string, number>()
     for (const scene of sceneDocs) {
+      dirOrderMap.set(scene.id, dirIndex++)
+    }
+
+    for (const scene of sceneDocs) {
+      const dirSortOrder = (dirOrderMap.get(scene.id) || 0) * 1000
+
       // 添加目录节点
       list.push({
         id: scene.id,
         projectId: scene.projectId,
+        parentId: scene.parentId,
         chapterNum: 0,
         title: scene.title,
         wordCount: 0,
         updatedAt: scene.updatedAt || new Date().toISOString(),
         status: scene.status === 'completed' ? 'published' : 'draft',
         nodeType: 'directory' as const,
-        sortOrder: (scene.order || 0) * 100,
+        sortOrder: dirSortOrder,
+        orderKey: scene.orderKey,
       })
 
-      // 添加目录下的章节
-      const children = chapterDocs
-        .filter((chapter) => chapter.parentId === scene.id)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      // 添加目录下的章节（已在 chapterDocs 中按 orderKey 排序）
+      const children = chapterDocs.filter((chapter) => chapter.parentId === scene.id)
 
       for (const chapter of children) {
         list.push({
           id: chapter.id,
           projectId: chapter.projectId,
+          parentId: chapter.parentId,
           chapterNum: runningIndex++,
           title: chapter.title,
           wordCount: Number(chapter.wordCount || 0),
           updatedAt: chapter.updatedAt || new Date().toISOString(),
           status: chapter.status === 'completed' ? 'published' : 'draft',
           nodeType: 'chapter' as const,
-          sortOrder: (scene.order || 0) * 100 + (chapter.order || 0),
+          sortOrder: dirSortOrder + runningIndex,
+          orderKey: chapter.orderKey,
         })
       }
+    }
+
+    // 添加根级别的章节（不属于任何目录的章节）
+    const rootChapters = chapterDocs.filter((chapter) => isRootLevel(chapter.parentId))
+
+    for (const chapter of rootChapters) {
+      list.push({
+        id: chapter.id,
+        projectId: chapter.projectId,
+        parentId: chapter.parentId,
+        chapterNum: runningIndex++,
+        title: chapter.title,
+        wordCount: Number(chapter.wordCount || 0),
+        updatedAt: chapter.updatedAt || new Date().toISOString(),
+        status: chapter.status === 'completed' ? 'published' : 'draft',
+        nodeType: 'chapter' as const,
+        sortOrder: 100000 + runningIndex, // 根级别章节放在最后
+        orderKey: chapter.orderKey,
+      })
     }
 
     return list
@@ -287,6 +337,7 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
 
   /** 当前工具标签 */
   const activeToolLabel = computed(() => {
+    const currentTool = unref(editorStore.activeTool) as ActiveTool
     const labels: Record<ActiveTool, string> = {
       chapters: '章节模式',
       writing: '写作模式',
@@ -294,7 +345,7 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
       ai: 'AI助手',
       encyclopedia: '设定百科',
     }
-    return labels[editorStore.activeTool]
+    return labels[currentTool] || '工作台'
   })
 
   /** 保存状态标签 */
