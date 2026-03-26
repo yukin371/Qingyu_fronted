@@ -10,10 +10,10 @@
     </div>
     <!-- 工具提示 -->
     <div class="graph-toolbar">
-      <el-tooltip content="按住 Shift 从节点拖拽可创建关系" placement="top">
+      <el-tooltip content="拖拽节点移动位置，双击节点释放回布局" placement="top">
         <el-tag size="small" type="info">
           <el-icon><QuestionFilled /></el-icon>
-          Shift+拖拽连线
+          拖拽移动 | 双击释放
         </el-tag>
       </el-tooltip>
     </div>
@@ -28,14 +28,18 @@ import { Connection, QuestionFilled } from '@element-plus/icons-vue'
 export interface GraphNode {
   id: string
   name: string
+  avatar?: string
   importance?: number
+  isInherited?: boolean      // 是否继承自父图谱
 }
 
 export interface GraphLink {
+  id?: string
   source: string
   target: string
   type: string
   strength: number
+  isInherited?: boolean      // 是否继承自父图谱
 }
 
 // 内部节点类型（包含D3计算的位置属性）
@@ -49,6 +53,8 @@ interface InternalNode extends GraphNode {
 interface Props {
   nodes: GraphNode[]
   links: GraphLink[]
+  inheritedNodes?: GraphNode[]
+  inheritedLinks?: GraphLink[]
 }
 
 const props = defineProps<Props>()
@@ -57,6 +63,10 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'create-link', fromId: string, toId: string): void
   (e: 'node-click', nodeId: string): void
+  (e: 'delete-node', nodeId: string): void
+  (e: 'delete-link', linkId: string): void
+  (e: 'remove-graph'): void
+  (e: 'add-node', x: number, y: number): void
 }>()
 
 const containerRef = ref<HTMLElement>()
@@ -110,6 +120,17 @@ function initGraph() {
   svg.call(zoom as any)
 
   g = svg.append('g')
+
+  // 右键画布添加节点
+  svg!.on('contextmenu', (event: MouseEvent) => {
+    event.preventDefault()
+    // 获取相对于SVG的坐标
+    const svgElement = svg!.node() as SVGSVGElement
+    const rect = svgElement.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    emit('add-node', x, y)
+  })
 
   // 创建箭头标记
   svg
@@ -208,6 +229,19 @@ function initGraph() {
     }
   })
 
+  // 节点双击事件 - 释放节点回力导向布局
+  node.on('dblclick', (_event: MouseEvent, d: any) => {
+    d.fx = null
+    d.fy = null
+    simulation!.alphaTarget(0.3).restart()
+  })
+
+  // 节点右键事件 - 删除节点
+  node.on('contextmenu', (event: MouseEvent, d: any) => {
+    event.preventDefault()
+    emit('delete-node', d.id)
+  })
+
   // 节点悬停效果
   node.on('mouseenter', function (this: any, _event: MouseEvent, d: any) {
     if (isDrawingLine.value && sourceNode && sourceNode.id !== d.id) {
@@ -267,8 +301,9 @@ function initGraph() {
 
   function dragEnded(event: any, d: InternalNode) {
     if (!event.active) simulation!.alphaTarget(0)
-    d.fx = null
-    d.fy = null
+    // 保持节点在拖拽后的位置，不让力导向布局干扰
+    d.fx = event.x
+    d.fy = event.y
   }
 
   // 连线拖拽开始

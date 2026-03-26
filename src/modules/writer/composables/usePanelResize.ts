@@ -88,8 +88,10 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
     return null
   }
 
+  const persistedWidth = readPersistedWidth()
+
   // 当前面板宽度（本地状态，用于拖拽过程中避免频繁更新store）
-  const initialWidth = readPersistedWidth() ?? savedWidth.value ?? defaultWidth
+  const initialWidth = persistedWidth ?? defaultWidth
   const localWidth = ref(clampWidth(initialWidth))
 
   // 对于可折叠的右侧面板，监听折叠状态
@@ -148,7 +150,7 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
         localWidth.value = clampWidth(newWidth)
       }
     },
-    { flush: 'sync', immediate: true },
+    { flush: 'sync' },
   )
 
   const resolveEffectiveWidth = () => {
@@ -348,7 +350,12 @@ export function usePanelResize(options: UsePanelResizeOptions, touchOptions?: To
    * 拖拽处理函数（供组件调用）
    */
   const onDrag = (event: MouseEvent) => {
-    handleMouseMove(event)
+    if (!isDragging.value) return
+
+    const deltaX = event.clientX - dragStartX.value
+    dragLastX.value = event.clientX
+
+    handleDragProgress(event.clientX, deltaX)
   }
 
   /**

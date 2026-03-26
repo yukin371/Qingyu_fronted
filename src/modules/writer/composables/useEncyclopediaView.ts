@@ -2,7 +2,7 @@
  * useEncyclopediaView - 百科视图状态管理 Composable
  *
  * 从 ProjectWorkspace.vue 提取的百科视图相关逻辑，包括：
- * - 百科子视图状态 (relations, encyclopedia, timeline, branches)
+ * - 百科子视图状态 (relations, structure, encyclopedia, timeline, branches)
  * - 百科分类状态 (characters, locations)
  * - 侧边栏标题和提示计算
  * - 分类设置方法
@@ -62,22 +62,25 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
   /** 百科子视图 */
   const encyclopediaSubView = computed<EncyclopediaSubView>(() => {
     const raw = String(route.query.encyclopediaView || route.query.worldView || '').toLowerCase()
+    if (['structure', 'outline', 'board'].includes(raw)) return 'structure'
     if (['encyclopedia', 'cards', 'list'].includes(raw)) return 'encyclopedia'
     if (['relations', 'relation', 'graph', 'relationship'].includes(raw)) return 'relations'
     if (['timeline', 'timelines'].includes(raw)) return 'timeline'
     if (['branch', 'branches', 'outline'].includes(raw)) return 'branches'
-    return 'relations'
+    return 'encyclopedia'
   })
 
   /** 百科分类 */
   const encyclopediaCategory = computed<EncyclopediaCategory>(() => {
     const raw = String(route.query.worldCategory || '').toLowerCase()
+    if (raw === 'items') return 'items'
     return raw === 'locations' ? 'locations' : 'characters'
   })
 
   /** 百科侧边栏标题 */
   const worldSidebarTitle = computed(() => {
     if (encyclopediaSubView.value === 'relations') return '关系图谱工具'
+    if (encyclopediaSubView.value === 'structure') return '结构舞台工具'
     if (encyclopediaSubView.value === 'timeline') return '时间线工具'
     if (encyclopediaSubView.value === 'branches') return '分支工具'
     return '设定百科工具'
@@ -86,9 +89,10 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
   /** 百科侧边栏提示 */
   const worldSidebarHint = computed(() => {
     if (encyclopediaSubView.value === 'relations') return '当前视图聚焦角色关系，选择角色即可查看关系链路与强度。'
+    if (encyclopediaSubView.value === 'structure') return '当前视图聚焦大纲、鱼骨与节拍结构，可直接调整节点与章节绑定。'
     if (encyclopediaSubView.value === 'timeline') return '当前视图聚焦事件推进，切换时间线并校准事件顺序。'
     if (encyclopediaSubView.value === 'branches') return '当前视图聚焦主支线结构，建议从根节点逐层推进。'
-    return '在左侧选择角色或地点分类以切换百科卡片列表。'
+    return '在左侧选择角色、地点或物品分类以切换百科卡片列表。'
   })
 
   // =======================

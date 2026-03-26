@@ -12,6 +12,7 @@
 export type LeftDockTool =
   | 'writing'
   | 'immersive'
+  | 'structure'
   | 'relations'
   | 'encyclopedia'
   | 'timeline'
@@ -27,12 +28,13 @@ export type RightDockTool = 'ai'
 /** 百科子视图类型 */
 export type EncyclopediaSubView =
   | 'relations'
+  | 'structure'
   | 'encyclopedia'
   | 'timeline'
   | 'branches'
 
 /** 百科分类类型 */
-export type EncyclopediaCategory = 'characters' | 'locations'
+export type EncyclopediaCategory = 'characters' | 'locations' | 'items'
 
 // =======================
 // 侧边栏数据类型
@@ -52,6 +54,7 @@ export interface SidebarProjectSummary {
 export interface SidebarChapterSummary {
   id: string
   projectId: string
+  parentId?: string
   chapterNum: number
   title: string
   wordCount: number
@@ -59,6 +62,7 @@ export interface SidebarChapterSummary {
   status: 'draft' | 'published'
   nodeType?: 'directory' | 'chapter'
   sortOrder?: number
+  orderKey?: string // LexoRank 排序键
 }
 
 // =======================
