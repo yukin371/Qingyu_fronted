@@ -5,12 +5,6 @@
     role="application"
     :aria-label="`编辑器，${layoutModeLabel}`"
   >
-    <!-- 顶部导航栏 -->
-    <MiniNavbar
-      v-model:model-value="activeToolModel"
-      @tool-change="handleToolChange"
-    />
-
     <!-- 移动端tab导航 -->
     <div v-if="layout.mode === 'mobile'" class="mobile-tabs" role="tablist">
       <button
@@ -47,7 +41,7 @@
           position="left"
           :collapsible="true"
           :resizable="!isImmersiveMode"
-          :class="leftPanelClasses"
+          :class="[leftPanelClasses, 'editor-layout__left-panel', { 'panel-visible': leftPanelVisible }]"
           :style="leftPanelStyle"
         >
           <SidePanel
@@ -79,8 +73,10 @@
         ]"
       >
         <slot name="editor" :active-tool="activeTool">
-          <!-- 默认内容 -->
-          <EditorPanel :active-tool="activeTool" />
+          <div class="editor-layout__placeholder" data-testid="editor-layout-editor-placeholder">
+            <strong>Editor Slot Required</strong>
+            <span>请在 `EditorLayout` 中传入编辑器内容插槽。</span>
+          </div>
         </slot>
       </div>
 
@@ -95,7 +91,7 @@
           position="right"
           :collapsible="true"
           :resizable="!isImmersiveMode"
-          :class="rightPanelClasses"
+          :class="[rightPanelClasses, 'editor-layout__right-panel', { 'panel-visible': rightPanelVisible }]"
           :style="rightPanelStyle"
         >
           <SidePanel
@@ -104,8 +100,10 @@
             :class="{ 'panel-visible': rightPanelVisible }"
           >
             <slot name="right-panel">
-              <!-- 默认内容 -->
-              <AIPanel />
+              <div class="editor-layout__placeholder" data-testid="editor-layout-right-placeholder">
+                <strong>Right Panel Slot Required</strong>
+                <span>请在 `EditorLayout` 中传入右侧面板插槽。</span>
+              </div>
             </slot>
           </SidePanel>
         </ResizablePanel>
@@ -121,11 +119,8 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
-import MiniNavbar from './MiniNavbar.vue'
 import ResizablePanel from './ResizablePanel.vue'
 import SidePanel from './SidePanel.vue'
-import EditorPanel from './EditorPanel.vue'
-import AIPanel from './AIPanel.vue'
 import ProjectTree from '../ProjectTree.vue'
 import ChapterTree from '../DocumentTree.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
@@ -177,23 +172,6 @@ watch(
     }
   }
 )
-
-// MiniNavbar v-model 绑定（string 类型，需要转换）
-// MiniNavbar 使用的工具 ID: 'chapters' | 'writing' | 'immersive' | 'ai-assistant'
-const activeToolModel = computed<string>({
-  get: () => {
-    const tool = activeTool.value
-    if (tool === 'ai' || tool === 'chapters') return 'writing'
-    return tool
-  },
-  set: (value: string) => {
-    const validTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
-    const tool: ActiveTool = validTools.includes(value as ActiveTool)
-      ? (value as ActiveTool)
-      : 'writing'
-    activeTool.value = tool
-  }
-})
 
 // 监听 store 中 activeTool 的变化
 watch(
@@ -248,18 +226,13 @@ const {
   handleTouchGesture: handleGesture,
 } = useResponsiveLayout()
 
-// 移动端tab配置 - 根据面板可见性动态调整
-const showRightPanel = computed(() => rightPanelVisible.value)
-
 const mobileTabs = computed(() => {
   type TabKey = 'left' | 'editor' | 'right'
   const base: Array<{ key: TabKey; label: string; icon: string }> = [
     { key: 'left', label: '目录', icon: 'List' },
     { key: 'editor', label: '编辑', icon: 'Edit' },
+    { key: 'right', label: 'AI', icon: 'MagicStick' },
   ]
-  if (showRightPanel.value) {
-    base.push({ key: 'right', label: 'AI', icon: 'MagicStick' })
-  }
   return base
 })
 
@@ -380,11 +353,6 @@ function handleToolChange(toolId: string) {
   activeTool.value = normalizedTool
   emit('toolChange', normalizedTool)
 
-  // 移动端：如果右侧面板不可见且当前在右侧tab，切换到编辑器
-  if (!showRightPanel.value && layout.value.activeTab === 'right') {
-    switchTab('editor')
-  }
-
   // AR通知
   const toolLabels: Record<ActiveTool, string> = {
     chapters: '章节模式',
@@ -399,23 +367,19 @@ function handleToolChange(toolId: string) {
   }, 1000)
 }
 
-onMounted(() => {
-  console.log('[EditorLayout] Mounted', {
-    mode: layout.value.mode,
-    leftPanel: layout.value.leftPanel,
-    rightPanel: layout.value.rightPanel,
-  })
-})
+onMounted(() => {})
 </script>
 
 <style scoped lang="scss">
 .editor-layout {
-  --editor-navbar-height: 52px;
+  --editor-navbar-height: 0px; // 移除顶部导航栏高度
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: #f1f5f9;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(143, 63, 47, 0.08), transparent 20%),
+    linear-gradient(180deg, #f3ebdf, #ede2d3);
   color: #0f172a;
   overflow: hidden;
 }
@@ -423,13 +387,13 @@ onMounted(() => {
 .editor-layout__content {
   display: flex;
   flex: 1;
-  height: calc(100% - var(--editor-navbar-height));
+  height: 100%; // 占满全部高度
   min-height: 0;
   overflow: hidden;
   position: relative;
   gap: 10px;
   padding: 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, rgba(250, 246, 240, 0.92) 0%, rgba(241, 232, 220, 0.9) 100%);
 
   :deep(.side-panel) {
     background: #ffffff;
@@ -463,6 +427,32 @@ onMounted(() => {
     border-radius: 0;
     margin: 0;
   }
+}
+
+.editor-layout__placeholder {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #685d53;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(247, 238, 226, 0.9));
+}
+
+.editor-layout__placeholder strong {
+  color: #2d241d;
+  font-size: 15px;
+}
+
+.editor-layout__placeholder span {
+  max-width: 240px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 // ==================== 面板过渡动画 ====================
@@ -531,13 +521,14 @@ onMounted(() => {
   .editor-layout__content {
     flex-direction: column;
     height: auto;
+    gap: 8px;
   }
 
   .mobile-tabs {
     display: flex;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0 8px;
+    background: rgba(255, 251, 245, 0.96);
+    border-bottom: 1px solid rgba(117, 93, 67, 0.14);
+    padding: 0 8px 8px;
     gap: 6px;
 
     .mobile-tab {
@@ -555,45 +546,45 @@ onMounted(() => {
       transition: all 0.2s ease;
 
       &.active {
-        color: #1d4ed8;
-        border-color: #60a5fa;
-        background: #eff6ff;
+        color: #7b3123;
+        border-color: rgba(143, 63, 47, 0.24);
+        background: linear-gradient(180deg, #fff7ee, #f7e5d0);
       }
 
       &:hover:not(.active) {
-        background: #eef2ff;
+        background: #f8eee2;
       }
     }
   }
 
-  .panel-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
-    background: #f8fafc;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-
-    &.panel-visible {
-      transform: translateX(0);
-    }
+  .editor-layout__left-panel,
+  .editor-layout__right-panel,
+  .editor-layout__main {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: none;
+    border-radius: 16px;
   }
 
-  .left-panel,
-  .right-panel,
-  .editor-layout__main {
-    display: none;
+  .editor-layout__left-panel.panel-visible,
+  .editor-layout__right-panel.panel-visible,
+  .editor-layout__main.panel-visible {
+    display: flex;
+  }
 
-    &.panel-visible {
-      display: block;
+  .editor-layout__left-panel,
+  .editor-layout__right-panel {
+    height: min(68vh, 760px);
+
+    :deep(.panel-content) {
+      height: 100%;
     }
   }
 
   .editor-layout__main.panel-visible {
     position: relative;
+    min-height: 58vh;
   }
 
   // 移动端沉浸模式
