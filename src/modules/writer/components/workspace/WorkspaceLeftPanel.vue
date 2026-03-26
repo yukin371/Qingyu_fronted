@@ -3,8 +3,86 @@
     class="workspace-left-panel-shell"
     :class="{ 'is-collapsed': collapsed, 'is-immersive-focus': isImmersiveMode }"
   >
-    <!-- 顶部 Tab 栏 -->
-    <header class="workspace-left-tabs">
+    <!-- 折叠状态：Dock 图标栏 -->
+    <aside v-if="collapsed" class="workspace-left-dock" aria-label="左侧工具栏">
+      <button
+        type="button"
+        class="dock-item"
+        :class="{ active: activeTab === 'chapters' }"
+        :title="'章节'"
+        @click="handleDockClick('chapters')"
+      >
+        <QyIcon name="Document" :size="18" />
+      </button>
+      <button
+        type="button"
+        class="dock-item"
+        :class="{ active: activeTab === 'outline' }"
+        :title="'大纲'"
+        @click="handleDockClick('outline')"
+      >
+        <QyIcon name="Memo" :size="18" />
+      </button>
+      <!-- 更多工具下拉菜单 -->
+      <div class="more-tools-dropdown" v-click-outside="closeMoreMenu">
+        <button
+          type="button"
+          class="dock-item dock-more-btn"
+          :class="{ active: moreMenuOpen }"
+          :title="'更多工具'"
+          @click="moreMenuOpen = !moreMenuOpen"
+        >
+          <QyIcon name="MoreFilled" :size="18" />
+        </button>
+        <div v-if="moreMenuOpen" class="dropdown-menu dropdown-menu--dock">
+          <button
+            type="button"
+            class="dropdown-item"
+            @click="openTool('relations')"
+          >
+            <QyIcon name="Share" :size="14" />
+            <span>关系图谱</span>
+          </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            @click="openTool('timeline')"
+          >
+            <QyIcon name="Clock" :size="14" />
+            <span>时间线</span>
+          </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            @click="openTool('branches')"
+          >
+            <QyIcon name="Connection" :size="14" />
+            <span>故事分支</span>
+          </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            @click="openTool('structure')"
+          >
+            <QyIcon name="Memo" :size="14" />
+            <span>结构舞台</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 展开按钮 -->
+      <button
+        type="button"
+        class="dock-item"
+        :title="'展开面板'"
+        @click="$emit('toggle')"
+      >
+        <QyIcon name="ArrowRight" :size="18" />
+      </button>
+    </aside>
+
+    <!-- 展开状态：顶部 Tab 栏 -->
+    <header v-else class="workspace-left-tabs">
       <div class="tab-group">
         <button
           type="button"
@@ -74,10 +152,10 @@
       <button
         type="button"
         class="collapse-btn"
-        :title="collapsed ? '展开面板' : '折叠面板'"
+        :title="'折叠面板'"
         @click="$emit('toggle')"
       >
-        <QyIcon :name="collapsed ? 'ArrowRight' : 'ArrowLeft'" :size="14" />
+        <QyIcon name="ArrowLeft" :size="14" />
       </button>
     </header>
 
@@ -199,6 +277,20 @@ const vClickOutside = {
       document.removeEventListener('click', el.clickOutsideEvent)
     }
   },
+}
+
+// =======================
+// Dock 点击处理
+// =======================
+function handleDockClick(tab: LeftTab) {
+  if (activeTab.value === tab) {
+    // 点击已激活图标 → 展开面板
+    emit('toggle')
+  } else {
+    // 切换到其他 tab
+    activeTab.value = tab
+    emit('toggle')
+  }
 }
 
 // =======================
@@ -430,6 +522,54 @@ const localChapterId = computed({
     background: var(--editor-bg-elevated, #f1f5f9);
     color: var(--editor-text-secondary, #334155);
   }
+}
+
+// =======================
+// Dock 图标栏（折叠状态）
+// =======================
+.workspace-left-dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 4px;
+  height: 100%;
+  background: var(--editor-bg-actbar, #f1f5f9);
+  border-right: 1px solid var(--editor-border, #e2e8f0);
+}
+
+.dock-item {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--editor-radius-md, 6px);
+  background: transparent;
+  color: var(--editor-actbar-icon, #64748b);
+  cursor: pointer;
+  transition: background 120ms ease-out, color 120ms ease-out;
+
+  &:hover {
+    background: var(--editor-bg-elevated, #e8edf2);
+    color: var(--editor-text-primary, #0f172a);
+  }
+
+  &.active {
+    background: var(--editor-accent-soft, #ecfeff);
+    color: var(--editor-accent, #06b6d4);
+  }
+
+  &.dock-more-btn {
+    font-size: 18px;
+  }
+}
+
+.dropdown-menu--dock {
+  left: calc(100% + 6px);
+  right: auto;
+  top: 0;
 }
 
 // =======================
