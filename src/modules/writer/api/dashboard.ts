@@ -29,6 +29,19 @@ export interface TodayWordsStats {
 }
 
 /**
+ * 后端 /stats/today 接口返回格式
+ */
+interface StatsTodayResponse {
+  bookId?: string
+  todayViews?: number
+  todaySubscribers?: number
+  todayWords?: number
+  views?: number
+  subscribers?: number
+  words?: number
+}
+
+/**
  * 仪表盘概览统计
  */
 export interface DashboardOverview {
@@ -103,17 +116,26 @@ export interface ReviewHistoryResponse {
 /**
  * 获取今日写作统计
  * @description 获取当前用户今日的写作统计数据
- * @endpoint GET /api/v1/writer/dashboard/today-words
+ * @endpoint GET /api/v1/writer/stats/today
  * @category writer
  * @tags 仪表盘
  * @response {TodayWordsStats} 200 - 成功返回今日统计
  * @security BearerAuth
  */
-export function getTodayWordsStats(): Promise<TodayWordsStats> {
-  return request<TodayWordsStats>({
-    url: '/api/v1/writer/dashboard/today-words',
+export async function getTodayWordsStats(): Promise<TodayWordsStats> {
+  const response = await request<StatsTodayResponse>({
+    url: '/api/v1/writer/stats/today',
     method: 'get',
   })
+  // 适配后端返回的数据结构
+  return {
+    todayWords: response.todayWords ?? response.words ?? 0,
+    weekTotal: 0,
+    monthTotal: 0,
+    writingMinutes: 0,
+    updatedChapters: 0,
+    date: new Date().toISOString().split('T')[0],
+  }
 }
 
 /**

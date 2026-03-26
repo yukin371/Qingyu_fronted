@@ -115,3 +115,98 @@ export interface CharacterGraph {
   characters: Character[] // 节点
   relations: CharacterRelation[] // 边
 }
+
+// ==========================================
+// 章节图谱相关类型
+// ==========================================
+
+/**
+ * 章节关系图谱
+ * 记录某个章节创建的关系图谱
+ */
+export interface ChapterGraph {
+  id: string
+  projectId: string
+  chapterId: string           // 关联的文档ID
+  chapterTitle?: string      // 章节标题（方便显示）
+  parentGraphId?: string     // 继承的父图谱ID（全局图谱ID或章节图谱ID）
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 卷关系图谱
+ * 记录某个卷创建的关系图谱
+ */
+export interface VolumeGraph {
+  id: string
+  projectId: string
+  volumeId: string
+  volumeTitle?: string
+  parentGraphId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 章节特有关系
+ * 章节图谱中该章节特有的关系（不包括继承的关系）
+ */
+export interface ChapterRelation extends BaseEntity {
+  graphId: string           // 关联的章节图谱ID
+  fromId: string            // 源角色ID
+  toId: string              // 目标角色ID
+  type: RelationType | string
+  strength: number          // 0-100
+  notes?: string
+}
+
+/**
+ * 卷特有关系
+ * 卷图谱中该卷特有的关系（不包括继承的关系）
+ */
+export interface VolumeRelation extends BaseEntity {
+  graphId: string
+  fromId: string
+  toId: string
+  type: RelationType | string
+  strength: number
+  notes?: string
+}
+
+/**
+ * 图谱节点（用于前端展示）
+ */
+export interface GraphNode {
+  id: string
+  name: string
+  avatar?: string
+  importance?: number
+  isInherited?: boolean      // 是否继承自父图谱
+}
+
+/**
+ * 图谱关系（用于前端展示）
+ */
+export interface GraphLink {
+  id?: string
+  source: string | GraphNode
+  target: string | GraphNode
+  type: string
+  strength: number
+  isInherited?: boolean      // 是否继承自父图谱
+}
+
+/**
+ * 创建章节图谱请求
+ */
+export interface CreateChapterGraphRequest {
+  chapterId: string
+  parentGraphId?: string     // 可选，继承的图谱ID
+  inheritCharacterIds?: string[] // 如果继承，可指定只继承这些角色
+}
+
+/**
+ * 图谱模式
+ */
+export type GraphMode = 'global' | 'chapter'

@@ -240,6 +240,7 @@ export const useEditorStore = defineStore('writer-editor', () => {
           id: pid,
           documentId: currentChapterId.value,
           content: item.content || '',
+          contentType: item.contentType || 'tiptap', // 添加 contentType 字段，默认为 tiptap
           version: Number(item.version || 1),
           updatedAt: item.updatedAt || new Date().toISOString(),
         } as DocumentContent)

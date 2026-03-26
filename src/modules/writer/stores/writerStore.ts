@@ -1378,6 +1378,7 @@ export const useWriterStore = defineStore('writer', {
           status: nodeData.status,
           tags: nodeData.tags,
           notes: nodeData.notes,
+          plotThreads: nodeData.plotThreads,
         })
         // 刷新大纲树
         await this.loadOutlineTree(projectId)
@@ -1399,6 +1400,26 @@ export const useWriterStore = defineStore('writer', {
         await this.loadOutlineTree(projectId)
       } catch (error: any) {
         console.error('删除大纲节点失败:', error)
+        throw error
+      }
+    },
+
+    /**
+     * 移动/重排大纲节点
+     */
+    async moveOutlineNode(
+      nodeId: string,
+      projectId: string,
+      payload: { parentId?: string; order: number },
+    ): Promise<void> {
+      try {
+        await moveDocument(nodeId, {
+          parentId: payload.parentId,
+          order: payload.order,
+        })
+        await this.loadOutlineTree(projectId)
+      } catch (error: any) {
+        console.error('移动大纲节点失败:', error)
         throw error
       }
     },
@@ -1438,7 +1459,6 @@ export const useWriterStore = defineStore('writer', {
     initSyncService(): void {
       // 注册同步回调 - 网络恢复时刷新项目列表
       syncService.onSync(async () => {
-        console.log('[WriterStore] 执行同步回调')
         await this.loadProjects()
       })
 
@@ -1449,8 +1469,6 @@ export const useWriterStore = defineStore('writer', {
 
       // 启动健康检查
       syncService.startHealthCheck()
-
-      console.log('[WriterStore] 同步服务已初始化')
     },
 
     /**
@@ -1458,7 +1476,6 @@ export const useWriterStore = defineStore('writer', {
      */
     stopSyncService(): void {
       syncService.stopHealthCheck()
-      console.log('[WriterStore] 同步服务已停止')
     },
 
     /**
