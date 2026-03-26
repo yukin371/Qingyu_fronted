@@ -113,7 +113,9 @@ apiClient.interceptors.request.use(
 
       // 使用统一的 Mock 数据管理器
       const mockData = await handleMockRequest(config.url, {
+        method: config.method,
         params: config.params as Record<string, any> | undefined,
+        data: config.data,
       })
 
       // 将 mock 数据包装成响应格式，直接 reject

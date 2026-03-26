@@ -19,6 +19,7 @@ import './style.css' // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
 import '@/styles/reader-variables.scss' // TDD Phase 2: 阅读器设计系统变量
 import '@/design-system/themes/vscode-dark.scss' // VSCode 深色主题
+import '@/design-system/themes/editor-light.css' // 编辑器浅色主题 token
 import '@/styles/common.scss'
 
 // 全局指令
