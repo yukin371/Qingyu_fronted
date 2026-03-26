@@ -57,16 +57,34 @@
     @selection-action="emit('trigger-ai-action', $event)"
     @save="(contents: unknown[]) => $emit('save', contents)"
   />
+
+  <!-- 全屏覆盖层 -->
+  <WorkspaceFullscreenOverlay
+    v-if="fullscreenTool"
+    :visible="!!fullscreenTool"
+    :tool-name="fullscreenTool.name"
+    :tool-icon="fullscreenTool.icon"
+    :tool-component="fullscreenTool.component"
+    :project-id="projectId"
+    :chapter-id="chapterId"
+    :chapter-title="chapterTitle"
+    :chapters="chapters"
+    @close="handleCloseFullscreen"
+    @status-change="emit('status-change', $event)"
+    @open-graph="emit('open-graph', $event)"
+    @jump-to-chapter="emit('jump-to-chapter', $event)"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
 import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
 import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
 import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
+import WorkspaceFullscreenOverlay from '@/modules/writer/components/workspace/WorkspaceFullscreenOverlay.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import type {
@@ -133,6 +151,10 @@ const emit = defineEmits<{
   (e: 'open-graph', chapterId: string): void
   /** 工作区底部状态栏扩展状态 */
   (e: 'status-change', chips: string[]): void
+  /** 打开全屏工具 */
+  (e: 'open-fullscreen-tool', tool: string): void
+  /** 关闭全屏覆盖层 */
+  (e: 'close-fullscreen'): void
 }>()
 
 // =======================
@@ -142,6 +164,62 @@ const emit = defineEmits<{
 const modelContent = computed({
   get: () => props.content,
   set: (value: string) => emit('update:content', value),
+})
+
+// =======================
+// 全屏工具状态
+// =======================
+/** 全屏工具状态 */
+const fullscreenTool = ref<{
+  name: string
+  icon: string
+  component: string
+} | null>(null)
+
+/** 工具名称映射 */
+const TOOL_NAMES = {
+  relations: { name: '关系图谱', icon: 'Share' },
+  timeline: { name: '时间线', icon: 'Clock' },
+  branches: { name: '故事分支', icon: 'Connection' },
+  structure: { name: '结构舞台', icon: 'Grid' },
+} as const
+
+/** 打开全屏工具 */
+function handleOpenFullscreenTool(tool: string) {
+  const toolInfo = TOOL_NAMES[tool as keyof typeof TOOL_NAMES]
+  if (toolInfo) {
+    fullscreenTool.value = {
+      name: toolInfo.name,
+      icon: toolInfo.icon,
+      component: tool,
+    }
+  }
+}
+
+/** 关闭全屏覆盖层 */
+function handleCloseFullscreen() {
+  fullscreenTool.value = null
+}
+
+// ESC 键监听
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && fullscreenTool.value) {
+    handleCloseFullscreen()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
+
+// 暴露方法给父组件
+defineExpose({
+  openFullscreenTool: handleOpenFullscreenTool,
+  closeFullscreen: handleCloseFullscreen,
 })
 </script>
 

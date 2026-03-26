@@ -36,6 +36,7 @@
       <!-- 主编辑器插槽 -->
       <template #editor="{ activeTool }">
         <WorkspaceEditorContent
+          ref="workspaceEditorContentRef"
           :active-tool="activeTool"
           :is-encyclopedia="isEncyclopediaTool"
           :sub-view="encyclopediaSubView"
@@ -52,6 +53,8 @@
           @save="handleTipTapSave"
           @add-doc="handleAddDoc"
           @status-change="handleWorkspaceStatusChange"
+          @open-fullscreen-tool="handleOpenFullscreenTool"
+          @close-fullscreen="handleCloseFullscreen"
         />
       </template>
 
@@ -455,11 +458,19 @@ const handleCreateOutlineChild = () => {
 }
 
 // 处理打开全屏工具
-const handleOpenFullscreenTool = async (tool: string) => {
-  // TODO: 后续 P2 阶段实现全屏覆盖层系统
-  console.log('打开全屏工具:', tool)
-  message.info(`${tool} 全屏视图功能开发中`)
+const workspaceEditorContentRef = ref<InstanceType<typeof WorkspaceEditorContent> | null>(null)
+
+const handleOpenFullscreenTool = (tool: string) => {
+  workspaceEditorContentRef.value?.openFullscreenTool(tool)
 }
+
+/** 关闭全屏覆盖层 */
+const handleCloseFullscreen = () => {
+  workspaceEditorContentRef.value?.closeFullscreen()
+}
+
+// 不再需要的 emit 定义，删除
+void handleCloseFullscreen
 
 const handleAISend = (msg: string) => {
   void msg
