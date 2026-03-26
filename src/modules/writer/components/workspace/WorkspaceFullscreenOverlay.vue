@@ -18,33 +18,35 @@
 
         <!-- 工具内容区域 -->
         <div class="fullscreen-overlay__content">
-          <!-- 关系图谱 -->
-          <CharacterGraphView
-            v-if="toolComponent === 'relations'"
-            :chapter-id="chapterId"
-            :chapters="chapters"
-            @status-change="$emit('status-change', $event)"
-          />
-          <!-- 时间线 -->
-          <TimelineOutlineView
-            v-else-if="toolComponent === 'timeline'"
-            :project-id="projectId"
-          />
-          <!-- 故事分支 -->
-          <StoryBranchView
-            v-else-if="toolComponent === 'branches'"
-            :project-id="projectId"
-          />
-          <!-- 结构舞台 -->
-          <StructureStageView
-            v-else-if="toolComponent === 'structure'"
-            :project-id="projectId"
-            :chapters="chapters"
-            :current-chapter-id="chapterId"
-            :current-chapter-title="chapterTitle"
-            @open-graph="$emit('open-graph', $event)"
-            @jump-to-chapter="$emit('jump-to-chapter', $event)"
-          />
+          <KeepAlive :include="['CharacterGraphView', 'TimelineOutlineView', 'StoryBranchView', 'StructureStageView']">
+            <!-- 关系图谱 -->
+            <CharacterGraphView
+              v-if="toolComponent === 'relations'"
+              :chapter-id="chapterId"
+              :chapters="chapters"
+              @status-change="$emit('status-change', $event)"
+            />
+            <!-- 时间线 -->
+            <TimelineOutlineView
+              v-else-if="toolComponent === 'timeline'"
+              :project-id="projectId"
+            />
+            <!-- 故事分支 -->
+            <StoryBranchView
+              v-else-if="toolComponent === 'branches'"
+              :project-id="projectId"
+            />
+            <!-- 结构舞台 -->
+            <StructureStageView
+              v-else-if="toolComponent === 'structure'"
+              :project-id="projectId"
+              :chapters="chapters"
+              :current-chapter-id="chapterId"
+              :current-chapter-title="chapterTitle"
+              @open-graph="$emit('open-graph', $event)"
+              @jump-to-chapter="$emit('jump-to-chapter', $event)"
+            />
+          </KeepAlive>
         </div>
       </div>
     </div>

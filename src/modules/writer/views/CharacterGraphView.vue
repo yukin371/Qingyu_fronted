@@ -1190,13 +1190,12 @@ async function handleRefresh() {
 watch(
   () => activeProjectId.value,
   async (projectId, previousProjectId) => {
+    if (!projectId || projectId === previousProjectId) return
+
     reloadGraphDraftState()
     reloadAssetRefState()
-
-    if (!projectId || projectId === previousProjectId) return
     await handleRefresh()
   },
-  { immediate: true },
 )
 
 watch(
