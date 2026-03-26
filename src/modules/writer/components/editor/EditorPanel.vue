@@ -51,6 +51,16 @@
 
         <button
           class="toolbar-button"
+          :aria-label="'角色图谱'"
+          :title="'角色关系图谱'"
+          :class="{ 'toolbar-button--active': showCharacterGraphView }"
+          @click="toggleCharacterGraph"
+        >
+          <QyIcon name="User" />
+        </button>
+
+        <button
+          class="toolbar-button"
           :aria-label="t('editor.focusMode', '专注模式 (F11)')"
           :title="t('editor.focusMode', '专注模式 (F11)')"
           @click="toggleFocusMode"
@@ -61,19 +71,27 @@
     </div>
 
     <div class="editor-main" :style="editorStyle">
-      <section class="chapter-header-card" v-if="!isFocusMode">
-        <div class="chapter-title-row">
-          <QyIcon name="Document" class="chapter-icon" />
-          <h2 class="chapter-title">{{ chapterTitle || '新章节' }}</h2>
-        </div>
-        <div class="chapter-meta-row">
-          <span class="meta-chip">{{ t('editor.wordCount', '字数') }} {{ wordCount }}</span>
-          <span class="meta-chip">{{ t('editor.readTime', '阅读时间') }} {{ readTime }}</span>
-          <span class="meta-chip" :class="saveStatusClass">{{ saveStatusText }}</span>
-        </div>
-      </section>
+      <!-- 横向大纲导航 -->
+      <FishboneNav
+        v-if="!isFocusMode && showFishbone"
+        :volumes="volumesData"
+        :current-volume-id="currentVolumeId"
+        :current-chapter-id="currentChapterId"
+        @volume-click="handleVolumeClick"
+        @chapter-click="handleChapterClick"
+      />
 
-      <section v-if="isBoardMode && !isFocusMode" class="story-board">
+      <!-- 角色关系图谱 -->
+      <CharacterGraph
+        v-if="showCharacterGraphView && !isFocusMode"
+        :nodes="props.characters"
+        :links="props.characterRelations"
+        @node-click="(node) => emit('characterGraphNodeClick', node.id)"
+        @refresh="emit('characterGraphRefresh')"
+        @add-character="emit('characterGraphAddCharacter')"
+      />
+
+      <section v-if="isBoardMode && !isFocusMode && !showCharacterGraphView" class="story-board">
         <div class="story-board__grid">
           <article
             v-for="item in boardItems"
@@ -92,7 +110,7 @@
         </div>
       </section>
 
-      <div v-else class="editor-workspace" :class="{ 'editor-workspace--focus': isFocusMode }">
+      <div v-else-if="!showCharacterGraphView" class="editor-workspace" :class="{ 'editor-workspace--focus': isFocusMode }">
         <section class="editor-writing-card" :class="{ 'dual-view': showPreview }">
           <section class="editor-pane editor-pane--editor">
             <header class="section-title">场景正文</header>
@@ -170,6 +188,8 @@ import { useI18n } from '@/composables/useI18n'
 import { useBreakpoints } from '@/composables/useBreakpoints'
 import EditorToolbar from '@/modules/writer/components/EditorToolbar.vue'
 import TimelineBar from '@/modules/writer/components/TimelineBar.vue'
+import FishboneNav from './FishboneNav.vue'
+import CharacterGraph from './CharacterGraph.vue'
 import { renderMarkdown } from '@/modules/writer/utils/markdown'
 import { calculateWordCount } from '@/modules/writer/utils/editor'
 
@@ -184,6 +204,34 @@ interface Props {
   showPreview?: boolean
   showTimeline?: boolean
   timelineId?: string
+  showFishbone?: boolean
+  showCharacterGraph?: boolean
+  volumes?: Array<{
+    id: string
+    title: string
+    wordCount: number
+    status: 'done' | 'active' | 'pending'
+    chapters: Array<{
+      id: string
+      title: string
+      wordCount: number
+      status: 'done' | 'active' | 'pending'
+    }>
+  }>
+  currentVolumeId?: string
+  currentChapterId?: string
+  characters?: Array<{
+    id: string
+    name: string
+    avatar?: string
+    importance?: number
+  }>
+  characterRelations?: Array<{
+    source: string
+    target: string
+    type: string
+    strength: number
+  }>
 }
 
 interface Emits {
@@ -196,6 +244,11 @@ interface Emits {
   (e: 'formatCommand', _command: string): void
   (e: 'contextmenu', _event: MouseEvent, _selectedText: string): void
   (e: 'addToAIContext', _selectedText: string): void
+  (e: 'volumeClick', _volumeId: string): void
+  (e: 'chapterClick', _chapterId: string): void
+  (e: 'characterGraphNodeClick', _nodeId: string): void
+  (e: 'characterGraphRefresh'): void
+  (e: 'characterGraphAddCharacter'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -209,6 +262,13 @@ const props = withDefaults(defineProps<Props>(), {
   showPreview: false,
   showTimeline: false,
   timelineId: '',
+  showFishbone: true,
+  showCharacterGraph: false,
+  volumes: () => [],
+  currentVolumeId: '',
+  currentChapterId: '',
+  characters: () => [],
+  characterRelations: () => [],
 })
 
 const emit = defineEmits<Emits>()
@@ -216,6 +276,7 @@ const { t } = useI18n()
 
 const editorContentRef = ref<HTMLDivElement>()
 const isFocusMode = ref(false)
+const showCharacterGraphView = ref(false)
 const saveStatus = ref<'saved' | 'saving' | 'unsaved'>('saved')
 const cursorPosition = ref({ line: 1, column: 1 })
 const selectionAddButton = ref({
@@ -264,6 +325,17 @@ const renderedContent = computed(() => {
 })
 
 const isBoardMode = computed(() => props.activeTool === 'outline')
+
+// 大纲导航数据
+const volumesData = computed(() => props.volumes || [])
+
+function handleVolumeClick(volume: { id: string }) {
+  emit('volumeClick', volume.id)
+}
+
+function handleChapterClick(chapter: { id: string }) {
+  emit('chapterClick', chapter.id)
+}
 
 const boardItems = computed(() => {
   const summary = (props.content || '').trim().replace(/\s+/g, ' ')
@@ -481,12 +553,11 @@ const toggleFocusMode = () => {
   isFocusMode.value = !isFocusMode.value
 }
 
+const toggleCharacterGraph = () => {
+  showCharacterGraphView.value = !showCharacterGraphView.value
+}
+
 onMounted(() => {
-  console.log('[EditorPanel] Mounted', {
-    showPreview: props.showPreview,
-    showTimeline: props.showTimeline,
-    timelineId: props.timelineId,
-  })
   document.addEventListener('selectionchange', updateSelectionAddButton)
   window.addEventListener('resize', updateSelectionAddButton)
   window.addEventListener('scroll', updateSelectionAddButton, true)
@@ -669,6 +740,16 @@ function restoreCaretPosition(
         background: #eff6ff;
         color: #1d4ed8;
       }
+
+      &--active {
+        border-color: #c9a962;
+        background: linear-gradient(135deg, #c9a962 0%, #e8b54a 100%);
+        color: #fff;
+        
+        &:hover {
+          background: linear-gradient(135deg, #e8b54a 0%, #c9a962 100%);
+        }
+      }
     }
   }
 }
@@ -682,50 +763,6 @@ function restoreCaretPosition(
   overflow: hidden;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   padding: 14px;
-}
-
-.chapter-header-card {
-  flex-shrink: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  padding: 4px 2px 6px;
-  margin-bottom: 4px;
-
-  .chapter-title-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-
-    .chapter-icon {
-      color: #2563eb;
-      font-size: 16px;
-    }
-
-    .chapter-title {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-  }
-
-  .chapter-meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-
-    .meta-chip {
-      border: 1px solid #dbe3ef;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
-      color: #475569;
-      background: #f8fafc;
-    }
-  }
 }
 
 .editor-workspace {

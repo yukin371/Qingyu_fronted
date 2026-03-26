@@ -108,6 +108,7 @@ interface Props {
     action: string
     text: string
     instructions?: string
+    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
   } | null
 }
 
@@ -115,7 +116,12 @@ interface Emits {
   (e: 'send', msg: string): void
   (
     e: 'applyGeneratedText',
-    payload: { action: string; sourceText: string; generatedText: string },
+    payload: {
+      action: string
+      sourceText: string
+      generatedText: string
+      applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+    },
   ): void
 }
 
@@ -412,6 +418,10 @@ async function runSelectionAction(action: string, selectedText: string, instruct
       action,
       sourceText: selectedText,
       generatedText,
+      applyMode:
+        action === 'continue' || action === 'expand'
+          ? 'insert_after_selection'
+          : 'replace_selection',
     })
     updateSelectionNotice(action, selectedText, instructions, 'done')
     await scrollToBottom()
@@ -467,8 +477,6 @@ onMounted(() => {
   if (messages.value.length > 0) {
     scrollToBottom()
   }
-
-  console.log('[AIPanel] Mounted')
 })
 
 onBeforeUnmount(() => {

@@ -6,6 +6,7 @@
         v-if="isEncyclopedia && subView === 'relations'"
         :chapter-id="chapterId"
         :chapters="chapters"
+        @status-change="emit('status-change', $event)"
       />
       <!-- 百科视图 - 时间线 -->
       <TimelineOutlineView
@@ -134,6 +135,8 @@ const emit = defineEmits<{
   (e: 'jump-to-chapter', chapterId: string): void
   /** 从结构舞台打开关系图谱 */
   (e: 'open-graph', chapterId: string): void
+  /** 工作区底部状态栏扩展状态 */
+  (e: 'status-change', chips: string[]): void
 }>()
 
 // =======================
@@ -153,7 +156,7 @@ const modelContent = computed({
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #fdfdfd;
+  background: transparent;
 }
 
 .creative-stage__body {
@@ -161,7 +164,9 @@ const modelContent = computed({
   z-index: 1;
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 24px;
 }
 
@@ -170,9 +175,9 @@ const modelContent = computed({
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #fff9f1 0%, #f6ead9 100%);
-  border: 1px solid rgba(117, 93, 67, 0.12);
+  border-radius: var(--editor-radius-lg, 8px);
+  background: var(--editor-bg-surface, #f8fafc);
+  border: 1px solid var(--editor-border, #e2e8f0);
 }
 
 .empty-content {
@@ -200,30 +205,9 @@ const modelContent = computed({
   line-height: 1.5;
 }
 
-@media (max-width: 960px) {
-  .chapter-context-bar {
-    position: static;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .chapter-context-bar__meta,
-  .chapter-context-bar__actions {
-    width: 100%;
-  }
-
-  .chapter-context-bar__actions {
-    justify-content: flex-start;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .context-action {
+  .empty-icon {
     transition: none;
-  }
-
-  .context-action:hover {
-    transform: none;
   }
 }
 </style>

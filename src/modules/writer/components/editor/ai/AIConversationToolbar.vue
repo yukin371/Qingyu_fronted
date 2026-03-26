@@ -14,15 +14,11 @@
         {{ conversation.title }}
       </option>
     </select>
-    <button class="conversation-action-btn" :disabled="disabled" @click="$emit('rename')">
+    <button class="conversation-action-btn" :disabled="disabled" title="重命名对话" @click="$emit('rename')">
       <QyIcon name="Edit" />
     </button>
-    <button class="conversation-action-btn" :disabled="disabled" @click="$emit('delete')">
-      <QyIcon name="Delete" />
-    </button>
-    <button class="conversation-new-btn" :disabled="disabled" @click="$emit('create')">
+    <button class="conversation-new-btn" :disabled="disabled" title="新对话" @click="$emit('create')">
       <QyIcon name="Plus" />
-      新对话
     </button>
   </div>
 </template>
@@ -74,17 +70,18 @@ function handleChange(event: Event) {
   }
 
   .conversation-new-btn {
+    width: 32px;
     height: 32px;
-    padding: 0 10px;
+    padding: 0;
     border: 1px solid #93c5fd;
     border-radius: 8px;
     background: #eff6ff;
     color: #1d4ed8;
-    font-size: 12px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .conversation-action-btn {
