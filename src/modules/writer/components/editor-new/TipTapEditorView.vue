@@ -5,22 +5,16 @@
     data-testid="tiptap-editor-view"
   >
     <div class="tiptap-editor-view__main-wrap">
-      <header class="editor-toolbar">
-        <div class="editor-toolbar__title">
-          <p class="kicker">Writing Studio</p>
-          <h3>正文编辑区</h3>
-        </div>
-        <div v-if="showReferencePanel" class="editor-toolbar__meta">
-          <span class="meta-chip">关键词 {{ referenceSummary.length }}</span>
-          <span class="meta-chip meta-chip--soft">智能引用已启用</span>
+      <header class="editor-toolbar" v-if="showReferencePanel">
+        <div class="editor-toolbar__meta">
+          <span class="keyword-badge">🔑 {{ referenceSummary.length }}</span>
         </div>
       </header>
 
       <div v-if="isDocumentEmpty" class="editor-empty-banner">
         <div class="editor-empty-banner__copy">
-          <p class="editor-empty-banner__eyebrow">Blank Canvas</p>
-          <strong>这一章还没有正文，直接点进下方开始写即可。</strong>
-          <span>先写一句开场画面，或用 <code>@角色</code> / <code>#地点</code> / <code>%物品</code> 建立上下文。</span>
+          <strong>开始写作这一章</strong>
+          <span>用 @角色、#地点、%物品 建立上下文</span>
         </div>
         <button type="button" class="editor-empty-banner__action" @click="focusEditor">
           开始输入
@@ -259,27 +253,12 @@ function emitSelectionAction(action: string) {
 .editor-toolbar {
   border-bottom: 1px solid var(--line);
   background: linear-gradient(102deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 255, 0.92));
-  padding: 12px 14px;
+  padding: 8px 14px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
-}
-
-.editor-toolbar__title h3 {
-  margin: 2px 0 0;
-  font-size: 18px;
-  line-height: 1.2;
-  color: var(--text-main);
-}
-
-.kicker {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: #7280a0;
-  text-transform: uppercase;
-  font-weight: 700;
+  min-height: 36px;
 }
 
 .editor-toolbar__meta {
@@ -304,24 +283,14 @@ function emitSelectionAction(action: string) {
   gap: 4px;
 }
 
-.editor-empty-banner__eyebrow {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #9a6740;
-}
-
 .editor-empty-banner__copy strong {
   color: #2a2f3a;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .editor-empty-banner__copy span {
   color: #655b51;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -357,6 +326,19 @@ function emitSelectionAction(action: string) {
 .meta-chip--soft {
   color: #087f61;
   background: #e7fbf5;
+}
+
+.keyword-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand, #2f6fff);
+  border-radius: var(--editor-radius-sm, 4px);
+  padding: 3px 8px;
+  background: #e8efff;
+  white-space: nowrap;
 }
 
 .tiptap-editor-view__main {
