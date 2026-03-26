@@ -1,16 +1,12 @@
 <template>
-  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }">
+  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }" data-editor-theme="light">
     <!-- 顶部工具栏 -->
     <WorkspaceTopbar
       :project-display-name="projectDisplayName"
       :current-chapter-title="currentChapterTitle"
       :active-tool-label="activeToolLabel"
       :save-status-label="saveStatusLabel"
-      :left-panel-collapsed="panelStore.leftCollapsed"
-      :right-panel-collapsed="panelStore.rightCollapsed"
       :is-immersive-mode="isImmersiveMode"
-      @toggle-left-panel="toggleLeftPanel"
-      @toggle-right-panel="toggleRightPanel"
       @save="handleTipTapSave"
       @export="handleExportDraft"
       @share="handleShareDraft"
@@ -25,21 +21,15 @@
           v-model:chapter-id="displayChapterId"
           :collapsed="panelStore.leftCollapsed"
           :is-immersive-mode="isImmersiveMode"
-          :active-tool-for-dock="activeToolForDock"
-          :is-encyclopedia-tool="isEncyclopediaTool"
-          :encyclopedia-sub-view="encyclopediaSubView"
-          :encyclopedia-category="encyclopediaCategory"
-          :world-sidebar-title="worldSidebarTitle"
-          :world-sidebar-hint="worldSidebarHint"
           :projects="projects"
           :chapters="flatChapters"
-          @dock-select="handleDockSelect"
-          @set-encyclopedia-category="setEncyclopediaCategory"
           @add-doc="handleAddDoc"
           @open-directory-outline="handleOpenDirectoryOutline"
           @delete-chapter="handleDeleteChapter"
-          @global-graph-click="handleGlobalGraphClick"
-          @update:chapter-id="handleChapterIdUpdate"
+          @create-outline-root="handleCreateOutlineRoot"
+          @create-outline-child="handleCreateOutlineChild"
+          @open-graph="handleOpenGraph"
+          @open-fullscreen-tool="handleOpenFullscreenTool"
         />
       </template>
 
@@ -61,6 +51,7 @@
           @jump-to-chapter="handleChapterIdUpdate"
           @save="handleTipTapSave"
           @add-doc="handleAddDoc"
+          @status-change="handleWorkspaceStatusChange"
         />
       </template>
 
@@ -76,7 +67,7 @@
           :source-text="currentChapterPlainText"
           :ai-action-trigger="aiActionTrigger"
           :ai-apply-feedback="aiApplyFeedback"
-          @dock-select="handleRightDockSelect"
+          @toggle="toggleRightPanel"
           @ai-send="handleAISend"
           @ai-apply="handleAIApplyGeneratedText"
         />
@@ -89,6 +80,7 @@
       :directory-count="directoryCount"
       :active-tool-label="activeToolLabel"
       :save-status-label="saveStatusLabel"
+      :extra-status-chips="workspaceExtraStatusChips"
       :is-immersive-mode="isImmersiveMode"
       :immersive-timer-text="immersiveTimerText"
     />
@@ -170,6 +162,7 @@ const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
 const resolvedActiveTool = computed<ActiveTool>(() => unref(editorStore.activeTool) as ActiveTool)
 const activeTool = computed(() => resolvedActiveTool.value)
+const workspaceExtraStatusChips = ref<string[]>([])
 
 // =======================
 // 使用 Composables
@@ -203,23 +196,24 @@ const {
   isEncyclopediaTool,
   encyclopediaSubView,
   encyclopediaCategory,
-  worldSidebarTitle,
-  worldSidebarHint,
   setEncyclopediaCategory,
 } = useEncyclopediaView({ activeTool })
 
 const { buildDirectoryOutline } = useDirectoryOutline({ availableDocMap, mockProject })
 
-// =======================
-// Dock 状态
-// =======================
-import type { LeftDockTool } from '@/modules/writer/composables/types'
+const handleWorkspaceStatusChange = (chips: string[]) => {
+  workspaceExtraStatusChips.value = chips
+}
 
-const activeToolForDock = computed<LeftDockTool>(() => {
-  const tool = resolvedActiveTool.value
-  if (tool === 'encyclopedia') return encyclopediaSubView.value
-  return tool === 'ai' || tool === 'chapters' ? 'writing' : tool
-})
+watch(
+  [isEncyclopediaTool, encyclopediaSubView],
+  ([isEncyclopedia, subView]) => {
+    if (!isEncyclopedia || subView !== 'relations') {
+      workspaceExtraStatusChips.value = []
+    }
+  },
+  { immediate: true },
+)
 
 const activeRightDockTool = computed<'ai'>(() => 'ai')
 const currentChapterPlainText = computed(() =>
@@ -288,36 +282,6 @@ const createDocFields: FormField[] = [
 // =======================
 // 事件处理
 // =======================
-const handleDockSelect = async (tool: LeftDockTool) => {
-  const nextQuery = { ...route.query } as LocationQueryRaw
-  if (
-    tool === 'structure' ||
-    tool === 'relations' ||
-    tool === 'encyclopedia' ||
-    tool === 'timeline' ||
-    tool === 'branches'
-  ) {
-    editorStore.setActiveTool('encyclopedia')
-    nextQuery.tool = 'encyclopedia'
-    nextQuery.encyclopediaView = tool
-  } else {
-    const normalizedTool: ActiveTool = tool
-    editorStore.setActiveTool(normalizedTool)
-    nextQuery.tool = normalizedTool
-    delete nextQuery.encyclopediaView
-    delete nextQuery.worldView
-    delete nextQuery.worldCategory
-  }
-  await router.replace({ query: nextQuery as LocationQueryRaw })
-}
-
-const handleRightDockSelect = (tool: string) => {
-  if (isImmersiveMode.value) return
-  if (tool === 'ai') {
-    panelStore.setRightCollapsed(false)
-  }
-}
-
 const toggleLeftPanel = () => {
   if (isImmersiveMode.value) return
   panelStore.setLeftCollapsed(!panelStore.leftCollapsed)
@@ -327,6 +291,8 @@ const toggleRightPanel = () => {
   if (isImmersiveMode.value) return
   panelStore.setRightCollapsed(!panelStore.rightCollapsed)
 }
+void toggleLeftPanel
+void toggleRightPanel
 
 const handleAddDoc = () => {
   showCreateDocDialog.value = true
@@ -460,18 +426,6 @@ const handleChapterIdUpdate = async (chapterId: string) => {
   await router.replace({ query: nextQuery })
 }
 
-// 处理全局图谱点击 - 切换到关系图谱视图，显示全局图谱
-const handleGlobalGraphClick = async () => {
-  // 切换到百科模式，并设置子视图为 relations
-  const nextQuery = { ...route.query } as LocationQueryRaw
-  nextQuery.tool = 'encyclopedia'
-  nextQuery.encyclopediaView = 'relations'
-  delete nextQuery.chapterId
-  await router.replace({ query: nextQuery })
-  // 清除章节选择，显示全局图谱
-  currentChapterId.value = ''
-}
-
 const handleOpenGraph = async (chapterId: string) => {
   const nextQuery = { ...route.query } as LocationQueryRaw
   nextQuery.tool = 'encyclopedia'
@@ -484,6 +438,27 @@ const handleOpenGraph = async (chapterId: string) => {
   }
 
   await router.replace({ query: nextQuery })
+}
+
+// 处理创建大纲根节点
+const handleCreateOutlineRoot = () => {
+  // TODO: 实现创建大纲根节点的逻辑
+  console.log('创建大纲根节点')
+  message.info('创建大纲根节点功能开发中')
+}
+
+// 处理创建大纲子节点
+const handleCreateOutlineChild = () => {
+  // TODO: 实现创建大纲子节点的逻辑
+  console.log('创建大纲子节点')
+  message.info('创建大纲子节点功能开发中')
+}
+
+// 处理打开全屏工具
+const handleOpenFullscreenTool = async (tool: string) => {
+  // TODO: 后续 P2 阶段实现全屏覆盖层系统
+  console.log('打开全屏工具:', tool)
+  message.info(`${tool} 全屏视图功能开发中`)
 }
 
 const handleAISend = (msg: string) => {
