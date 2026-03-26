@@ -1,66 +1,62 @@
 <template>
-  <div class="creative-stage">
-    <div class="creative-stage__body">
-      <!-- 百科视图 - 关系图谱 -->
-      <CharacterGraphView
-        v-if="isEncyclopedia && subView === 'relations'"
-        :chapter-id="chapterId"
-        :chapters="chapters"
-        @status-change="emit('status-change', $event)"
-      />
-      <!-- 百科视图 - 时间线 -->
-      <TimelineOutlineView
-        v-else-if="isEncyclopedia && subView === 'timeline'"
-        :project-id="projectId"
-      />
-      <!-- 百科视图 - 分支 -->
-      <StoryBranchView
-        v-else-if="isEncyclopedia && subView === 'branches'"
-        :project-id="projectId"
-      />
-      <!-- 结构舞台 -->
-      <StructureStageView
-        v-else-if="isEncyclopedia && subView === 'structure'"
-        :project-id="projectId"
-        :chapters="chapters"
-        :current-chapter-id="chapterId"
-        :current-chapter-title="chapterTitle"
-        @open-graph="$emit('open-graph', $event)"
-        @jump-to-chapter="$emit('jump-to-chapter', $event)"
-      />
-      <!-- 百科视图 - 主页 -->
-      <EncyclopediaView
-        v-else-if="isEncyclopedia"
-        :project-id="projectId"
-        :embedded="true"
-        :active-category="category"
-        @update:active-category="$emit('update:category', $event)"
-      />
-      <!-- 空状态 - 未选择章节 -->
-      <div v-else-if="!chapterId" class="editor-empty-state">
-        <div class="empty-content">
-          <QyIcon name="Document" :size="48" class="empty-icon" />
-          <h3>请选择章节</h3>
-          <p>从左侧目录中选择一个章节开始写作</p>
-          <QyGhostButton @click="$emit('add-doc')">
-            <QyIcon name="Plus" :size="14" />
-            新建章节
-          </QyGhostButton>
-        </div>
-      </div>
-      <!-- 写作编辑器 -->
-      <TipTapEditorView
-        v-else
-        v-model="modelContent"
-        :project-id="projectId"
-        :document-id="chapterId"
-        :readonly="false"
-        :show-reference-panel="false"
-        @selection-action="emit('trigger-ai-action', $event)"
-        @save="(contents: unknown[]) => $emit('save', contents)"
-      />
+  <!-- 百科视图 - 关系图谱 -->
+  <CharacterGraphView
+    v-if="isEncyclopedia && subView === 'relations'"
+    :chapter-id="chapterId"
+    :chapters="chapters"
+    @status-change="emit('status-change', $event)"
+  />
+  <!-- 百科视图 - 时间线 -->
+  <TimelineOutlineView
+    v-else-if="isEncyclopedia && subView === 'timeline'"
+    :project-id="projectId"
+  />
+  <!-- 百科视图 - 分支 -->
+  <StoryBranchView
+    v-else-if="isEncyclopedia && subView === 'branches'"
+    :project-id="projectId"
+  />
+  <!-- 结构舞台 -->
+  <StructureStageView
+    v-else-if="isEncyclopedia && subView === 'structure'"
+    :project-id="projectId"
+    :chapters="chapters"
+    :current-chapter-id="chapterId"
+    :current-chapter-title="chapterTitle"
+    @open-graph="$emit('open-graph', $event)"
+    @jump-to-chapter="$emit('jump-to-chapter', $event)"
+  />
+  <!-- 百科视图 - 主页 -->
+  <EncyclopediaView
+    v-else-if="isEncyclopedia"
+    :project-id="projectId"
+    :embedded="true"
+    :active-category="category"
+    @update:active-category="$emit('update:category', $event)"
+  />
+  <!-- 空状态 - 未选择章节 -->
+  <div v-else-if="!chapterId" class="editor-empty-state">
+    <div class="empty-content">
+      <QyIcon name="Document" :size="48" class="empty-icon" />
+      <h3>请选择章节</h3>
+      <p>从左侧目录中选择一个章节开始写作</p>
+      <QyGhostButton @click="$emit('add-doc')">
+        <QyIcon name="Plus" :size="14" />
+        新建章节
+      </QyGhostButton>
     </div>
   </div>
+  <!-- 写作编辑器 -->
+  <TipTapEditorView
+    v-else
+    v-model="modelContent"
+    :project-id="projectId"
+    :document-id="chapterId"
+    :readonly="false"
+    :show-reference-panel="false"
+    @selection-action="emit('trigger-ai-action', $event)"
+    @save="(contents: unknown[]) => $emit('save', contents)"
+  />
 </template>
 
 <script setup lang="ts">
@@ -150,26 +146,6 @@ const modelContent = computed({
 </script>
 
 <style scoped lang="scss">
-.creative-stage {
-  position: relative;
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: transparent;
-}
-
-.creative-stage__body {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 24px;
-}
-
 .editor-empty-state {
   height: 100%;
   display: flex;
@@ -178,6 +154,7 @@ const modelContent = computed({
   border-radius: var(--editor-radius-lg, 8px);
   background: var(--editor-bg-surface, #f8fafc);
   border: 1px solid var(--editor-border, #e2e8f0);
+  padding: 24px;
 }
 
 .empty-content {

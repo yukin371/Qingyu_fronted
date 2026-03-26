@@ -4,7 +4,7 @@
     :class="{ 'tiptap-editor-view--without-ref': !showReferencePanel }"
     data-testid="tiptap-editor-view"
   >
-    <div class="tiptap-editor-view__main">
+    <div class="tiptap-editor-view__body">
       <header class="editor-toolbar" v-if="showReferencePanel">
         <div class="editor-toolbar__meta">
           <span class="keyword-badge">🔑 {{ referenceSummary.length }}</span>
@@ -228,7 +228,7 @@ function emitSelectionAction(action: string) {
   display: block;
 }
 
-.tiptap-editor-view__main {
+.tiptap-editor-view__body {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -238,6 +238,7 @@ function emitSelectionAction(action: string) {
   overflow: hidden;
   background: var(--editor-bg-base, #ffffff);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: 100%;
 }
 
 .editor-toolbar {
@@ -331,7 +332,7 @@ function emitSelectionAction(action: string) {
   white-space: nowrap;
 }
 
-.tiptap-editor-view__main {
+.tiptap-editor-view__body {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -341,6 +342,7 @@ function emitSelectionAction(action: string) {
   overflow: hidden;
   background: var(--editor-bg-base, #ffffff);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: 100%;
 }
 
 .tiptap-editor-view__content {
@@ -348,9 +350,11 @@ function emitSelectionAction(action: string) {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
+  padding: 0;
   background: var(--editor-bg-base, #ffffff);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .tiptap-editor-view__content--empty {
@@ -540,13 +544,16 @@ function emitSelectionAction(action: string) {
 }
 
 :deep(.qy-tiptap-toolbar) {
-  margin: 14px 14px 0;
+  margin: 14px auto 0;
+  width: fit-content;
   border: 1px solid rgba(214, 221, 235, 0.92);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 246, 251, 0.94));
   padding: 7px 8px;
   gap: 4px;
   box-shadow: 0 10px 22px rgba(29, 43, 78, 0.06);
+  display: flex;
+  justify-content: center;
 }
 
 :deep(.qy-tiptap-toolbar button) {
