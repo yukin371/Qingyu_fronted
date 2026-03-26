@@ -14,9 +14,22 @@
       <button type="button" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')">无序</button>
       <button type="button" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')">有序</button>
       <span class="sep" />
+      <button type="button" :class="{ active: isActive('image') }" @click="run('insertImage')" :disabled="isUploadingImage">
+        {{ isUploadingImage ? '上传中...' : '图片' }}
+      </button>
+      <span class="sep" />
       <button type="button" @click="run('undo')">撤销</button>
       <button type="button" @click="run('redo')">重做</button>
     </div>
+
+    <!-- 隐藏的文件输入框 -->
+    <input
+      ref="imageInputRef"
+      type="file"
+      accept="image/*"
+      style="display: none"
+      @change="handleImageSelect"
+    />
 
     <EditorContent v-if="editor" class="qy-tiptap-editor__content" :editor="editor" />
 
@@ -40,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch, onBeforeUnmount } from 'vue'
+import { reactive, ref, watch, onBeforeUnmount } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import type { Editor as CoreEditor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
@@ -54,6 +67,7 @@ import QyCompletionPopover from '../QySmartKeyword/QyCompletionPopover.vue'
 import { SmartKeyword, type KeywordInfo } from '../QySmartKeyword/extensions/SmartKeyword'
 import { ParagraphWithId } from '../QySmartKeyword/extensions/ParagraphWithId'
 import { searchProjectKeywords, type ParagraphContent } from '@/modules/writer/api/wrapper'
+import { storageAPI } from '@/modules/shared/api/storage'
 
 const props = withDefaults(
   defineProps<{
@@ -75,6 +89,10 @@ const emit = defineEmits<{
   (e: 'save', contents: ParagraphContent[]): void
   (e: 'keyword-click', keyword: KeywordInfo): void
   (e: 'ready', editor: CoreEditor): void
+  (
+    e: 'selection-change',
+    payload: { text: string; from: number; to: number; x: number; y: number; visible: boolean },
+  ): void
 }>()
 
 type ToolbarCommand =
@@ -88,8 +106,13 @@ type ToolbarCommand =
   | 'toggleCodeBlock'
   | 'toggleBulletList'
   | 'toggleOrderedList'
+  | 'insertImage'
   | 'undo'
   | 'redo'
+
+// 图片上传相关
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingImage = ref(false)
 
 function parseInitialContent() {
   if (!props.modelValue) return '<p></p>'
@@ -135,12 +158,69 @@ function run(command: ToolbarCommand) {
     case 'toggleOrderedList':
       chain.toggleOrderedList().run()
       break
+    case 'insertImage':
+      // 触发文件选择
+      imageInputRef.value?.click()
+      break
     case 'undo':
       chain.undo().run()
       break
     case 'redo':
       chain.redo().run()
       break
+  }
+}
+
+/**
+ * 处理图片选择
+ */
+async function handleImageSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // 验证文件类型
+  if (!file.type.startsWith('image/')) {
+    alert('请选择图片文件')
+    return
+  }
+
+  // 验证文件大小（限制10MB）
+  const maxSize = 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    alert('图片大小不能超过10MB')
+    return
+  }
+
+  isUploadingImage.value = true
+
+  try {
+    // 上传图片到服务器
+    const response = await storageAPI.uploadFile(file, `writer/${props.projectId}/images`, 'image')
+    const uploadData = response.data
+
+    if (!uploadData?.file?.fileId) {
+      throw new Error('上传失败：未获取到文件ID')
+    }
+
+    // 获取文件访问URL
+    const urlResponse = await storageAPI.getFileURL(uploadData.file.fileId, 86400 * 365) // 1年有效期
+    const imageUrl = urlResponse.data?.url
+
+    if (!imageUrl) {
+      throw new Error('获取图片URL失败')
+    }
+
+    // 在编辑器中插入图片
+    editor.value?.chain().focus().setImage({ src: imageUrl, alt: file.name }).run()
+
+    // 清空 input 以便重复选择同一文件
+    input.value = ''
+  } catch (error) {
+    console.error('图片上传失败:', error)
+    alert('图片上传失败，请重试')
+  } finally {
+    isUploadingImage.value = false
   }
 }
 
@@ -226,6 +306,7 @@ const editor = useEditor({
   },
   onSelectionUpdate({ editor: currentEditor }: { editor: CoreEditor }) {
     scheduleCompletionUpdate(currentEditor)
+    emitSelectionChange(currentEditor)
   },
 })
 
@@ -397,6 +478,25 @@ function handleEditorClick(event: MouseEvent) {
   keywordCard.visible = true
   keywordCard.x = event.clientX + 12
   keywordCard.y = event.clientY + 12
+}
+
+function emitSelectionChange(currentEditor: CoreEditor) {
+  const { from, to } = currentEditor.state.selection
+  const text = currentEditor.state.doc.textBetween(from, to, '\n').trim()
+  if (!text || from === to) {
+    emit('selection-change', { text: '', from, to, x: 0, y: 0, visible: false })
+    return
+  }
+
+  const coords = currentEditor.view.coordsAtPos(to)
+  emit('selection-change', {
+    text,
+    from,
+    to,
+    x: coords.left,
+    y: coords.top - 8,
+    visible: true,
+  })
 }
 
 function extractParagraphs(doc: unknown): ParagraphContent[] {
