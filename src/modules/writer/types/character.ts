@@ -61,6 +61,10 @@ export interface CharacterRelation extends BaseEntity {
   type: RelationType | string // 允许字符串以兼容未知类型
   strength: number // 0-100 强度
   notes?: string
+
+  // 新增：时序控制字段
+  validFromChapterId?: string  // 关系生效的起始章节ID
+  validUntilChapterId?: string // 关系失效的章节ID
 }
 
 // ==========================================
@@ -210,3 +214,97 @@ export interface CreateChapterGraphRequest {
  * 图谱模式
  */
 export type GraphMode = 'global' | 'chapter'
+
+// ==========================================
+// 项目设置相关类型
+// ==========================================
+
+/**
+ * 关系时序变化事件
+ * 对应后端 RelationTimelineEvent
+ */
+export interface RelationTimelineEvent {
+  id?: string
+  relationId: string
+  chapterId: string
+  chapterTitle: string
+  oldType?: RelationType | string
+  newType: RelationType | string
+  oldStrength?: number
+  newStrength: number
+  notes: string
+  createdAt: string
+}
+
+/**
+ * 角色类型定义
+ */
+export interface CharacterRole {
+  id: string
+  projectId: string
+  name: string          // 如"主角"、"配角"
+  color?: string        // 显示颜色
+  icon?: string         // 图标
+  order: number         // 排序权重
+  isDefault: boolean    // 是否系统预设
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 预设角色类型常量
+ */
+export const DEFAULT_CHARACTER_ROLES: Omit<CharacterRole, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>[] = [
+  {
+    name: '主角',
+    color: '#ff6b6b',
+    icon: 'star',
+    order: 1,
+    isDefault: true,
+  },
+  {
+    name: '配角',
+    color: '#4ecdc4',
+    icon: 'user',
+    order: 2,
+    isDefault: true,
+  },
+  {
+    name: '龙套',
+    color: '#95e1d3',
+    icon: 'users',
+    order: 3,
+    isDefault: true,
+  },
+]
+
+/**
+ * 角色图谱项目设置
+ * 对应后端 ProjectSettings 模型（角色图谱专用）
+ * 重命名为 CharacterGraphSettings 以避免与 project.ts 中的 ProjectSettings 冲突
+ */
+export interface CharacterGraphSettings {
+  id: string
+  projectId: string
+  characterRoles: CharacterRole[]
+  createdAt: string
+  updatedAt: string
+}
+
+// ==========================================
+// 角色登场信息相关类型
+// ==========================================
+
+/**
+ * 角色登场信息
+ * 对应后端 CharacterAppearance
+ */
+export interface CharacterAppearance extends BaseEntity {
+  documentId: string      // 大纲节点ID
+  characterId: string     // 角色ID
+  characterName: string   // 冗余存储，方便查询
+  roleId: string          // 引用CharacterRole
+  roleName: string        // 冗余存储角色类型名称
+  firstAppearance: boolean // 是否首次登场
+  notes?: string          // 如"第1卷男二号"
+}
