@@ -1,215 +1,236 @@
 <template>
   <header class="workspace-topbar">
     <div class="workspace-topbar__left">
-      <QyButton
-        variant="secondary"
-        size="sm"
-        class="workspace-back-btn"
-        title="返回创作中心"
-        @click="$emit('back')"
-      >
-        <template #default>
-          <QyIcon name="ArrowLeft" :size="16" />
-        </template>
-      </QyButton>
-      <div class="workspace-topbar__project-info">
-        <h1 class="workspace-topbar__project-name">{{ projectDisplayName }}</h1>
-      </div>
+      <button class="topbar-back-btn" :title="'返回工作台'" @click="$emit('back')">
+        <QyIcon name="ArrowLeft" :size="14" />
+        <span>{{ projectDisplayName }}</span>
+      </button>
     </div>
 
     <div class="workspace-topbar__center">
-      <div class="workspace-topbar__chapter-status">
-        <span class="chapter-title">{{ currentChapterTitle || '未选择章节' }}</span>
-        <span class="status-divider" v-if="saveStatusLabel">·</span>
-        <span class="status-text">{{ saveStatusLabel }}</span>
-      </div>
+      <span class="chapter-title">{{ currentChapterTitle || '未选择章节' }}</span>
+      <span v-if="saveStatusLabel" class="status-text">· {{ saveStatusLabel }}</span>
     </div>
 
     <div class="workspace-topbar__right">
-      <div class="workspace-topbar__actions">
-        <QyButton
-          variant="secondary"
-          size="sm"
-          :class="!leftPanelCollapsed ? 'active' : ''"
-          title="切换左侧边栏"
-          :disabled="isImmersiveMode"
-          @click="$emit('toggle-left-panel')"
-        >
-          <QyIcon name="List" :size="14" />
-          <span class="workspace-action-btn__mobile-label">目录</span>
-        </QyButton>
-        <QyButton
-          variant="secondary"
-          size="sm"
-          :class="!rightPanelCollapsed ? 'active' : ''"
-          title="切换右侧边栏"
-          :disabled="isImmersiveMode"
-          @click="$emit('toggle-right-panel')"
-        >
-          <QyIcon name="MagicStick" :size="14" />
-          <span class="workspace-action-btn__mobile-label">AI</span>
-        </QyButton>
-
-        <div class="action-divider"></div>
-
-        <QyButton variant="secondary" size="sm" @click="$emit('save')">保存</QyButton>
-        <QyButton variant="secondary" size="sm" @click="$emit('export')">导出</QyButton>
-        <QyButton variant="primary" size="sm" @click="$emit('share')">分享</QyButton>
+      <button class="topbar-btn" :title="'保存'" @click="$emit('save')">
+        <QyIcon name="DocumentChecked" :size="14" />
+        <span>保存</span>
+      </button>
+      <button class="topbar-btn" :title="'导出'" @click="$emit('export')">
+        <QyIcon name="Download" :size="14" />
+        <span>导出</span>
+      </button>
+      <div class="topbar-divider"></div>
+      <!-- 溢出菜单 -->
+      <div class="topbar-overflow" @click.stop>
+        <button class="topbar-btn topbar-btn--icon" :title="'更多操作'" @click="overflowOpen = !overflowOpen">
+          <QyIcon name="MoreFilled" :size="16" />
+        </button>
+        <div v-if="overflowOpen" class="topbar-overflow__menu">
+          <button class="topbar-overflow__item" @click="$emit('share'); overflowOpen = false">
+            <QyIcon name="Share" :size="14" />
+            <span>分享</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
-import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
 
-// =======================
-// Props 定义
-// =======================
 defineProps<{
-  /** 项目显示名称 */
   projectDisplayName: string
-  /** 当前章节标题 */
   currentChapterTitle: string
-  /** 当前工具标签 */
   activeToolLabel: string
-  /** 保存状态标签 */
   saveStatusLabel: string
-  /** 左侧面板是否折叠 */
-  leftPanelCollapsed: boolean
-  /** 右侧面板是否折叠 */
-  rightPanelCollapsed: boolean
-  /** 是否处于沉浸模式 */
   isImmersiveMode: boolean
 }>()
 
-// =======================
-// Emits 定义
-// =======================
 defineEmits<{
-  /** 切换左侧面板 */
-  (e: 'toggle-left-panel'): void
-  /** 切换右侧面板 */
-  (e: 'toggle-right-panel'): void
-  /** 返回 */
   (e: 'back'): void
-  /** 保存 */
   (e: 'save'): void
-  /** 导出 */
   (e: 'export'): void
-  /** 分享 */
   (e: 'share'): void
 }>()
+
+const overflowOpen = ref(false)
+
+function closeOverflow() {
+  overflowOpen.value = false
+}
+
+onMounted(() => document.addEventListener('click', closeOverflow))
+onUnmounted(() => document.removeEventListener('click', closeOverflow))
 </script>
 
 <style scoped lang="scss">
 .workspace-topbar {
-  position: relative;
-  height: 56px;
+  height: 44px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  gap: 12px;
+  background: var(--editor-bg-surface, #f8fafc);
+  border-bottom: 1px solid var(--editor-border, #e2e8f0);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
-.workspace-topbar__left,
-.workspace-topbar__right {
+// ── Left: back + project name ──
+.workspace-topbar__left {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.topbar-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--editor-radius-md, 6px);
+  background: transparent;
+  color: var(--editor-text-muted, #64748b);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--editor-bg-elevated, #f1f5f9);
+    color: var(--editor-text-primary, #0f172a);
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ── Center: chapter title + save status ──
+.workspace-topbar__center {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  flex: 1;
-}
-
-.workspace-topbar__right {
-  justify-content: flex-end;
-}
-
-.workspace-topbar__center {
-  flex: 2;
-  display: flex;
   justify-content: center;
-  min-width: 0;
+  gap: 6px;
+  overflow: hidden;
 }
 
-.workspace-back-btn {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  padding: 0 !important;
-  min-height: 0 !important;
-  margin-right: 12px;
-}
-
-.workspace-topbar__project-name {
-  margin: 0;
-  font-size: 15px;
+.chapter-title {
+  font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--editor-text-primary, #0f172a);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 260px;
 }
 
-.workspace-topbar__chapter-status {
+.status-text {
+  font-size: 11px;
+  color: var(--editor-text-ghost, #94a3b8);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ── Right: action buttons ──
+.workspace-topbar__right {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 20px;
-  font-size: 13px;
-  color: #4a4a4a;
-  max-width: 100%;
-
-  .chapter-title {
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .status-divider {
-    color: #999;
-  }
-
-  .status-text {
-    font-size: 12px;
-    color: #888;
-    white-space: nowrap;
-  }
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.workspace-topbar__actions {
-  display: flex;
+.topbar-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--editor-border, #e2e8f0);
+  border-radius: var(--editor-radius-md, 6px);
+  background: var(--editor-bg-base, #ffffff);
+  color: var(--editor-text-muted, #64748b);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  white-space: nowrap;
 
-  :deep(.qy-button) {
-    min-height: 32px;
-    height: 32px;
-    padding: 0 12px;
+  &:hover {
+    background: var(--editor-bg-elevated, #f1f5f9);
+    border-color: var(--editor-border-focus, #06b6d4);
+    color: var(--editor-text-primary, #0f172a);
+  }
+
+  &--icon {
+    padding: 0 6px;
+    border: none;
+    background: transparent;
+
+    &:hover {
+      background: var(--editor-bg-elevated, #f1f5f9);
+      border: none;
+    }
   }
 }
 
-.action-divider {
+.topbar-divider {
   width: 1px;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 0 4px;
+  height: 18px;
+  background: var(--editor-border, #e2e8f0);
+  margin: 0 2px;
 }
 
-@media (max-width: 768px) {
-  .workspace-topbar__project-info {
-    display: none;
-  }
+// ── Overflow menu ──
+.topbar-overflow {
+  position: relative;
+}
 
-  .workspace-topbar__center {
-    display: none;
+.topbar-overflow__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--editor-bg-base, #ffffff);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  border-radius: var(--editor-radius-lg, 8px);
+  box-shadow: var(--editor-shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+  padding: 4px;
+  z-index: 100;
+  min-width: 120px;
+}
+
+.topbar-overflow__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--editor-radius-md, 6px);
+  background: transparent;
+  color: var(--editor-text-muted, #64748b);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+
+  &:hover {
+    background: var(--editor-bg-elevated, #f1f5f9);
+    color: var(--editor-text-primary, #0f172a);
   }
 }
 </style>

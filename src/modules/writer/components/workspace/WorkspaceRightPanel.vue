@@ -3,87 +3,128 @@
     class="workspace-right-panel-shell"
     :class="{ 'is-collapsed': collapsed, 'is-immersive-hidden': isImmersiveMode }"
   >
+    <!-- 面板内容区 -->
     <div class="workspace-right-panel-body">
-      <AIPanel
-        :session-id="projectId"
+      <!-- AI 助手 -->
+      <AIWorkbench
+        v-if="activeDockTool === 'ai'"
+        :project-id="projectId"
+        :chapter-id="chapterId"
+        :chapter-title="chapterTitle"
+        :source-text="sourceText"
         :action-trigger="aiActionTrigger"
+        :ai-apply-feedback="aiApplyFeedback"
         @send="(msg: string) => $emit('ai-send', msg)"
         @apply-generated-text="(payload: AIApplyPayload) => $emit('ai-apply', payload)"
       />
+      <!-- 角色百科 -->
+      <EncyclopediaView
+        v-else-if="activeDockTool === 'characters'"
+        :embedded="true"
+        :project-id="projectId"
+      />
+      <!-- 写作统计（占位） -->
+      <div v-else-if="activeDockTool === 'stats'" class="panel-placeholder">
+        <QyIcon name="DataAnalysis" :size="32" />
+        <span>写作统计</span>
+        <p>即将推出</p>
+      </div>
     </div>
-    <aside class="workspace-right-dock" aria-label="右侧工具栏">
+
+    <!-- Activity Bar（右侧竖排图标） -->
+    <nav class="workspace-activity-bar" aria-label="右侧工具栏">
       <button
-        v-for="item in dockItems"
+        v-for="item in activityItems"
         :key="item.tool"
-        type="button"
-        class="workspace-right-dock__item"
-        :class="{ active: activeRightDockTool === item.tool }"
+        class="workspace-activity-bar__item"
+        :class="{ active: activeDockTool === item.tool && !collapsed }"
         :title="item.label"
-        @click="$emit('dock-select', item.tool)"
+        type="button"
+        @click="handleActivityClick(item.tool)"
       >
-        <QyIcon :name="item.icon" :size="16" />
-        <span class="workspace-right-dock__label">{{ item.label }}</span>
+        <QyIcon :name="item.icon" :size="18" />
       </button>
-    </aside>
+    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
-import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
+import AIWorkbench from '@/modules/writer/components/workspace/AIWorkbench.vue'
+import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 
 // =======================
 // Types
 // =======================
-export type RightDockTool = 'ai'
+export type RightDockTool = 'ai' | 'characters' | 'stats'
 
 export interface AIActionTrigger {
   id: number
   action: string
   text: string
   instructions?: string
+  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
 }
 
 export interface AIApplyPayload {
   action: string
   sourceText: string
   generatedText: string
+  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+}
+
+export interface AIApplyFeedback {
+  status: 'idle' | 'success' | 'fallback'
+  title: string
+  detail: string
+  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  updatedAt: number
 }
 
 // =======================
-// Props 定义
+// Props & Emits
 // =======================
-defineProps<{
-  /** 面板是否折叠 */
+const props = defineProps<{
   collapsed: boolean
-  /** 是否处于沉浸模式 */
   isImmersiveMode: boolean
-  /** 当前选中的右侧工具 */
-  activeRightDockTool: RightDockTool
-  /** 当前项目 ID */
+  activeRightDockTool?: RightDockTool
   projectId: string
-  /** AI 动作触发器 */
+  chapterId: string
+  chapterTitle: string
+  sourceText: string
   aiActionTrigger: AIActionTrigger | null
+  aiApplyFeedback: AIApplyFeedback | null
 }>()
 
-// =======================
-// Emits 定义
-// =======================
-defineEmits<{
-  /** Dock 工具选择 */
-  (e: 'dock-select', tool: RightDockTool): void
-  /** AI 发送消息 */
+const emit = defineEmits<{
+  (e: 'toggle'): void
   (e: 'ai-send', message: string): void
-  /** AI 应用生成的文本 */
   (e: 'ai-apply', payload: AIApplyPayload): void
 }>()
 
 // =======================
-// Dock 配置
+// Activity Bar
 // =======================
-const dockItems: Array<{ tool: RightDockTool; label: string; icon: string }> = [
-  { tool: 'ai', label: 'AI 助手', icon: 'MagicStick' },
+const activityItems = [
+  { tool: 'ai' as RightDockTool, label: 'AI 助手', icon: 'MagicStick' },
+  { tool: 'characters' as RightDockTool, label: '角色百科', icon: 'User' },
+  { tool: 'stats' as RightDockTool, label: '写作统计', icon: 'DataAnalysis' },
 ]
+
+const activeDockTool = ref<RightDockTool>(props.activeRightDockTool ?? 'ai')
+
+function handleActivityClick(tool: RightDockTool) {
+  if (activeDockTool.value === tool && !props.collapsed) {
+    // 点击已激活图标 → 折叠面板
+    emit('toggle')
+  } else {
+    activeDockTool.value = tool
+    if (props.collapsed) {
+      emit('toggle')
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -91,8 +132,12 @@ const dockItems: Array<{ tool: RightDockTool; label: string; icon: string }> = [
   height: 100%;
   min-height: 0;
   display: flex;
+  flex-direction: row;
   width: 100%;
   min-width: 0;
+  position: relative;
+  background: var(--editor-bg-surface, #f8fafc);
+  border-left: 1px solid var(--editor-border, #e2e8f0);
 }
 
 .workspace-right-panel-body {
@@ -100,113 +145,81 @@ const dockItems: Array<{ tool: RightDockTool; label: string; icon: string }> = [
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-}
-
-.workspace-right-panel-shell.is-collapsed .workspace-right-panel-body {
-  width: 0;
-  min-width: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workspace-right-panel-shell.is-collapsed :deep(.side-panel),
-.workspace-right-panel-shell.is-collapsed :deep(.side-panel__content) {
-  overflow: visible !important;
-}
-
-.workspace-right-panel-shell.is-immersive-hidden {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.workspace-right-panel-shell.is-immersive-hidden .workspace-right-dock,
-.workspace-right-panel-shell.is-immersive-hidden .workspace-right-panel-body {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workspace-right-dock {
-  width: 56px;
-  flex: 0 0 56px;
-  border-left: 1px solid #d7deeb;
-  background: linear-gradient(180deg, #ffffff, #f2f7ff);
   position: relative;
-  z-index: 40;
+  background: var(--editor-bg-base, #ffffff);
+  transition: opacity 200ms ease-out, width 200ms ease-out;
+}
+
+// Activity Bar
+.workspace-activity-bar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
+  padding: 8px 0;
+  width: 44px;
+  min-width: 44px;
+  background: var(--editor-bg-actbar, #f1f5f9);
+  border-left: 1px solid var(--editor-border, #e2e8f0);
+  gap: 2px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--editor-radius-md, 6px);
+    border: none;
+    background: transparent;
+    color: var(--editor-actbar-icon, #64748b);
+    cursor: pointer;
+    transition: background 120ms ease-out, color 120ms ease-out;
+
+    &:hover {
+      background: var(--editor-bg-elevated, #e8edf2);
+      color: var(--editor-text-primary, #0f172a);
+    }
+
+    &.active {
+      background: var(--editor-accent-soft, #ecfeff);
+      color: var(--editor-accent, #06b6d4);
+    }
+  }
 }
 
-.workspace-right-dock__item {
-  width: 100%;
-  border: 1px solid #d8e1f2;
-  border-radius: 10px;
-  padding: 7px 4px;
-  background: #fff;
-  color: #314360;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
+// 折叠状态：内容区收起，Activity Bar 保持可见
+.workspace-right-panel-shell.is-collapsed {
+  .workspace-right-panel-body {
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+}
+
+.workspace-right-panel-shell.is-immersive-hidden {
+  display: none;
+}
+
+// 占位面板
+.panel-placeholder {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
-}
+  height: 100%;
+  gap: 8px;
+  color: var(--editor-text-ghost, #94a3b8);
 
-.workspace-right-dock__item:hover {
-  border-color: #95b3f8;
-  background: #eff5ff;
-}
-
-.workspace-right-dock__item.active {
-  border-color: #2f6fff;
-  background: linear-gradient(140deg, #eaf1ff, #dce9ff);
-  color: #1f4ec2;
-  box-shadow: 0 8px 14px rgba(47, 111, 255, 0.14);
-}
-
-.workspace-right-dock__label {
-  position: absolute;
-  right: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #0f1e3a;
-  color: #fff;
-  border-radius: 6px;
-  padding: 3px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.16s ease;
-  z-index: 120;
-}
-
-.workspace-right-dock__item:hover .workspace-right-dock__label,
-.workspace-right-dock__item:focus-visible .workspace-right-dock__label {
-  opacity: 1;
-}
-
-.workspace-right-dock__item :deep(.qy-icon) {
-  color: currentColor;
-}
-
-@media (max-width: 1024px) {
-  .workspace-right-dock {
-    width: 50px;
-    flex-basis: 50px;
-    padding: 8px 6px;
+  span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--editor-text-muted, #64748b);
   }
 
-  .workspace-right-dock__label {
-    display: none;
+  p {
+    font-size: 12px;
+    margin: 0;
   }
 }
 </style>
