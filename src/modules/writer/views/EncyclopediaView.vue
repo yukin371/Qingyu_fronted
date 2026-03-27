@@ -189,6 +189,18 @@
                   </el-descriptions-item>
                 </el-descriptions>
               </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as Character).id"
+                  :entity-name="(selectedItem as Character).name"
+                  entity-type="character"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
             </el-scrollbar>
           </div>
 
@@ -242,6 +254,18 @@
                   </el-descriptions-item>
                 </el-descriptions>
               </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as Location).id"
+                  :entity-name="(selectedItem as Location).name"
+                  entity-type="location"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
             </el-scrollbar>
           </div>
 
@@ -282,6 +306,18 @@
                 <h4>分类</h4>
                 <p>{{ (selectedItem as WriterItem).category || '未分类' }}</p>
               </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as WriterItem).id"
+                  :entity-name="(selectedItem as WriterItem).name"
+                  entity-type="item"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
             </el-scrollbar>
           </div>
         </div>
@@ -292,11 +328,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Search, Plus, Edit, Close } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Close, Collection } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import { QyIcon } from '@/design-system/components'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
+import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
 import { message, messageBox } from '@/design-system/services'
 import { characterApi } from '../api/character'
 import { locationApi } from '../api/location'
@@ -334,8 +371,8 @@ const selectedItem = ref<Character | Location | WriterItem | null>(null)
 const selectedType = ref<'character' | 'location' | 'item' | null>(null)
 const items = ref<WriterItem[]>([])
 
-const characters = computed<Character[]>(() => writerStore.characters.list)
-const locations = computed<Location[]>(() => writerStore.locations.list)
+const characters = computed<Character[]>(() => writerStore.characters.list ?? [])
+const locations = computed<Location[]>(() => writerStore.locations.list ?? [])
 
 const filteredCharacters = computed(() => {
   if (!searchKeyword.value) return characters.value

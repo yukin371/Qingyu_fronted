@@ -34,6 +34,7 @@ import type {
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import type {
   LocationTreeNode,
@@ -979,7 +980,11 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await continueWriting(this.currentProjectId, text, length)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1500 })
+        const contextInstructions = contextStr ? `请根据以下作品设定续写：\n${contextStr}` : undefined
+        const response = await continueWriting(this.currentProjectId, text, length, contextInstructions)
         const result = response.generated_text || ''
         this.ai.lastResult = result
 
@@ -1016,7 +1021,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await polishText(this.currentProjectId, text, instructions)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1000 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行润色，保持角色性格和世界观的统一：\n${contextStr}`
+          : instructions
+        const response = await polishText(this.currentProjectId, text, mergedInstructions)
         const result = response.polished_text || response.rewritten_text || ''
         this.ai.lastResult = result
 
@@ -1057,7 +1068,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await expandText(this.currentProjectId, text, instructions, targetLength)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1500 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行扩写，保持与故事世界的一致性：\n${contextStr}`
+          : instructions
+        const response = await expandText(this.currentProjectId, text, mergedInstructions, targetLength)
         const result = response.expanded_text || response.rewritten_text || ''
         this.ai.lastResult = result
 
@@ -1098,7 +1115,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await rewriteText(this.currentProjectId, text, mode, instructions)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1000 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行改写，保持角色性格一致性：\n${contextStr}`
+          : instructions
+        const response = await rewriteText(this.currentProjectId, text, mode, mergedInstructions)
         const result = response.rewritten_text || response.polished_text || ''
         this.ai.lastResult = result
 
@@ -1160,7 +1183,7 @@ export const useWriterStore = defineStore('writer', {
       this.characters.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.characters.list = await (writerModule.listCharacters?.(pid) ?? [])
+        this.characters.list = (await (writerModule.listCharacters?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载角色列表失败:', error)
         this.error = error.message
@@ -1178,7 +1201,7 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        const relations = await (writerModule.listCharacterRelations?.(pid) ?? [])
+        const relations = (await (writerModule.listCharacterRelations?.(pid) ?? [])) || []
         // 确保relations永远不是null
         this.characters.relations = relations || []
       } catch (error: any) {
@@ -1249,7 +1272,7 @@ export const useWriterStore = defineStore('writer', {
       this.locations.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.locations.list = await (writerModule.listLocations?.(pid) ?? [])
+        this.locations.list = (await (writerModule.listLocations?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载地点列表失败:', error)
         this.error = error.message
@@ -1267,7 +1290,7 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.locations.tree = await (writerModule.getLocationTree?.(pid) ?? [])
+        this.locations.tree = (await (writerModule.getLocationTree?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载地点树失败:', error)
       }
@@ -1292,7 +1315,7 @@ export const useWriterStore = defineStore('writer', {
       this.timeline.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.timeline.list = await (writerModule.listTimelines?.(pid) ?? [])
+        this.timeline.list = (await (writerModule.listTimelines?.(pid) ?? [])) || []
         // 默认选择第一个时间线
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
           this.timeline.currentTimeline = this.timeline.list[0]
@@ -1314,7 +1337,7 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.timeline.events = await (writerModule.listTimelineEvents?.(tid) ?? [])
+        this.timeline.events = (await (writerModule.listTimelineEvents?.(tid) ?? [])) || []
       } catch (error: any) {
         console.error('加载时间线事件失败:', error)
       }
@@ -1349,7 +1372,7 @@ export const useWriterStore = defineStore('writer', {
       this.outline.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.outline.tree = await (writerModule.getOutlineTree?.(pid) ?? [])
+        this.outline.tree = (await (writerModule.getOutlineTree?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = error.message
