@@ -6,9 +6,11 @@
  * - 百科分类状态 (characters, locations)
  * - 侧边栏标题和提示计算
  * - 分类设置方法
+ * - 事件订阅（图谱同步）
  */
-import { computed, type ComputedRef } from 'vue'
+import { computed, onMounted, onUnmounted, type ComputedRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { entityEventBus } from '../events/entityEvents'
 import type { EncyclopediaSubView, EncyclopediaCategory } from './types'
 
 // 重新导出类型以保持向后兼容
@@ -35,6 +37,8 @@ export interface UseEncyclopediaViewReturn {
   worldSidebarHint: ComputedRef<string>
   // 方法
   setEncyclopediaCategory: (category: EncyclopediaCategory) => Promise<void>
+  // 事件相关
+  notifyGraphViewChanged: (viewType: 'project' | 'chapter', scopeId?: string) => void
 }
 
 // =======================
@@ -51,6 +55,40 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
   const { activeTool } = options
   const route = useRoute()
   const router = useRouter()
+
+  // =======================
+  // 事件订阅
+  // =======================
+  const unsubscribers: Array<() => void> = []
+
+  onMounted(() => {
+    // 订阅关系创建事件，刷新图谱
+    unsubscribers.push(
+      entityEventBus.on('relation:created', () => {
+        // 通知图谱刷新 - 具体实现依赖于图谱组件的刷新机制
+        console.debug('[EncyclopediaView] 关系创建事件，刷新图谱')
+      })
+    )
+
+    // 订阅关系时序变化事件
+    unsubscribers.push(
+      entityEventBus.on('relation:timeline-changed', () => {
+        console.debug('[EncyclopediaView] 关系时序变化事件')
+      })
+    )
+
+    // 订阅图谱视图变化事件
+    unsubscribers.push(
+      entityEventBus.on('graph:view-changed', ((event: any) => {
+        console.debug('[EncyclopediaView] 图谱视图变化:', event.payload)
+      }) as any)
+    )
+  })
+
+  onUnmounted(() => {
+    unsubscribers.forEach(unsub => unsub())
+    unsubscribers.length = 0
+  })
 
   // =======================
   // 计算属性
@@ -106,6 +144,11 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
     })
   }
 
+  /** 通知图谱视图已切换 */
+  function notifyGraphViewChanged(viewType: 'project' | 'chapter', scopeId?: string) {
+    entityEventBus.emit('graph:view-changed', { viewType, scopeId })
+  }
+
   return {
     isEncyclopediaTool,
     encyclopediaSubView,
@@ -113,5 +156,6 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
     worldSidebarTitle,
     worldSidebarHint,
     setEncyclopediaCategory,
+    notifyGraphViewChanged,
   }
 }
