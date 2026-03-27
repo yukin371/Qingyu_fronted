@@ -13,8 +13,8 @@
           <button type="button" class="outline-action" :disabled="!selectedNodeId" @click="emit('createChild')">新增子节点</button>
           <button type="button" class="outline-action" :disabled="!canMoveUp" @click="emit('moveUp')">上移</button>
           <button type="button" class="outline-action" :disabled="!canMoveDown" @click="emit('moveDown')">下移</button>
-          <button type="button" class="outline-action" :disabled="!selectedNodeId" @click="emit('editSelected')">编辑</button>
-          <button type="button" class="outline-action outline-action--danger" :disabled="!selectedNodeId" @click="emit('deleteSelected')">删除</button>
+          <button type="button" class="outline-action" :disabled="!selectedNodeId" @click="handleEdit">编辑</button>
+          <button type="button" class="outline-action outline-action--danger" :disabled="!selectedNodeId" @click="handleDelete">删除</button>
         </div>
       </div>
     </div>
@@ -35,12 +35,13 @@
           :drop-target-node-id="dragState.targetNodeId"
           :drop-position="dragState.position"
           @toggle="emit('toggle', $event)"
-          @select="emit('select', $event)"
+          @select="handleSelect"
           @open-graph="emit('openGraph', $event)"
           @drag-start="handleDragStart"
           @drag-over="handleDragOver"
           @drag-end="handleDragEnd"
           @drop-node="handleDrop"
+          @contextmenu="handleContextMenu"
         />
       </div>
       <div v-else-if="loading" class="outline-tree-panel__empty outline-tree-panel__empty--loading">
@@ -48,16 +49,43 @@
       </div>
       <div v-else class="outline-tree-panel__empty">还没有结构节点，先从章节目录或 AI 生成大纲进入。</div>
     </div>
+
+    <!-- 右键菜单 -->
+    <OutlineContextMenu
+      ref="contextMenuRef"
+      :visible="contextMenuVisible"
+      :can-create-child="!!selectedNodeId"
+      :can-move-up="canMoveUp"
+      :can-move-down="canMoveDown"
+      @create-child="handleCreateChild"
+      @move-up="emit('moveUp')"
+      @move-down="emit('moveDown')"
+      @edit="handleEdit"
+      @delete="handleDelete"
+      @close="contextMenuVisible = false"
+    />
+
+    <!-- 编辑对话框 -->
+    <OutlineNodeDialog
+      v-model:visible="dialogVisible"
+      :is-edit="isEditDialog"
+      :node="selectedNodeData"
+      :chapters="chapters"
+      @confirm="handleDialogConfirm"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
 import type { OutlineNode } from '@/types/writer'
 import type { WriterAssetSummary } from '@/modules/writer/utils/writerAssetRefs'
 import OutlineTreeRow from './OutlineTreeRow.vue'
+import OutlineContextMenu from './OutlineContextMenu.vue'
+import OutlineNodeDialog from './OutlineNodeDialog.vue'
+import type { CreateOutlineRequest, UpdateOutlineRequest } from '@/modules/writer/api/outline'
 
 type TreeDropPosition = 'before' | 'after'
 
@@ -79,10 +107,10 @@ const emit = defineEmits<{
   (e: 'select', node: OutlineNode): void
   (e: 'openGraph', chapterId: string): void
   (e: 'createRoot'): void
-  (e: 'createChild'): void
+  (e: 'createChild', data: CreateOutlineRequest): void
   (e: 'moveUp'): void
   (e: 'moveDown'): void
-  (e: 'editSelected'): void
+  (e: 'editSelected', data: UpdateOutlineRequest): void
   (e: 'deleteSelected'): void
   (e: 'reorder', payload: { draggedNodeId: string; targetNodeId: string; position: TreeDropPosition }): void
 }>()
@@ -169,11 +197,75 @@ function handleDrop(payload: { node: OutlineNode; event: DragEvent }) {
 
   resetDragState()
 }
+
+// =======================
+// 右键菜单和编辑对话框
+// =======================
+const contextMenuRef = ref<InstanceType<typeof OutlineContextMenu> | null>(null)
+const contextMenuVisible = ref(false)
+const dialogVisible = ref(false)
+const isEditDialog = ref(false)
+
+const selectedNodeData = computed(() => {
+  const findNode = (nodes: OutlineNode[], id: string): OutlineNode | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) return node
+      if (node.children?.length) {
+        const found = findNode(node.children, id)
+        if (found) return found
+      }
+    }
+    return undefined
+  }
+  return findNode(props.nodes, props.selectedNodeId)
+})
+
+function handleSelect(node: OutlineNode) {
+  emit('select', node)
+}
+
+function handleContextMenu(payload: { node: OutlineNode; event: MouseEvent }) {
+  emit('select', payload.node)
+  contextMenuVisible.value = true
+
+  // 延迟显示菜单以确保状态已更新
+  setTimeout(() => {
+    contextMenuRef.value?.show(payload.event.clientX, payload.event.clientY)
+  }, 0)
+}
+
+function handleCreateChild() {
+  contextMenuVisible.value = false
+  emit('createChild')
+}
+
+function handleEdit() {
+  contextMenuVisible.value = false
+  isEditDialog.value = true
+  dialogVisible.value = true
+}
+
+function handleDelete() {
+  contextMenuVisible.value = false
+  emit('deleteSelected')
+}
+
+function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) {
+  if (isEditDialog.value) {
+    // 编辑模式：将数据传递给父组件进行API调用
+    emit('editSelected', data as UpdateOutlineRequest)
+  } else {
+    // 新增模式：将数据传递给父组件进行API调用
+    emit('createChild', data as CreateOutlineRequest)
+  }
+  dialogVisible.value = false
+}
 </script>
 
 <style scoped lang="scss">
 .outline-tree-panel {
   position: relative;
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;

@@ -14,6 +14,7 @@
       @dragover="handleDragOver"
       @drop="handleDrop"
       @dragend="emit('dragEnd')"
+      @contextmenu.prevent="handleContextMenu"
     >
       <span class="outline-tree-row__depth" />
       <button
@@ -26,6 +27,7 @@
       </button>
       <button type="button" class="outline-tree-row__select" @click="emit('select', node)">
         <span class="outline-tree-row__level">L{{ node.level || depth + 1 }}</span>
+        <span class="outline-tree-row__type-icon" :style="{ color: nodeTypeInfo.color }">{{ nodeTypeInfo.icon }}</span>
         <span class="outline-tree-row__title">{{ node.title }}</span>
         <span class="outline-tree-row__meta">
           <span class="outline-tree-row__binding" :class="bindingClass">{{ bindingText }}</span>
@@ -86,6 +88,7 @@ import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
 import type { OutlineNode } from '@/types/writer'
 import type { WriterAssetSummary } from '@/modules/writer/utils/writerAssetRefs'
+import { getOutlineNodeTypeInfo } from '@/modules/writer/api/outline'
 import {
   getBoundChapterId,
   getBoundChapterLabel,
@@ -125,9 +128,11 @@ const emit = defineEmits<{
   (e: 'dragOver', payload: { node: OutlineNode; event: DragEvent }): void
   (e: 'dragEnd'): void
   (e: 'dropNode', payload: { node: OutlineNode; event: DragEvent }): void
+  (e: 'contextmenu', payload: { node: OutlineNode; event: MouseEvent }): void
 }>()
 
 const hasChildren = computed(() => Array.isArray(props.node.children) && props.node.children.length > 0)
+const nodeTypeInfo = computed(() => getOutlineNodeTypeInfo((props.node as any)?.type))
 const isExpanded = computed(() => props.expandedNodeIds.includes(props.node.id))
 const bindingState = computed(() => getStructureNodeBindingState(props.node))
 const bindingText = computed(() => bindingState.value.label)
@@ -177,6 +182,13 @@ function handleDragOver(event: DragEvent) {
 
 function handleDrop(event: DragEvent) {
   emit('dropNode', {
+    node: props.node,
+    event,
+  })
+}
+
+function handleContextMenu(event: MouseEvent) {
+  emit('contextmenu', {
     node: props.node,
     event,
   })
@@ -303,6 +315,12 @@ function handleDrop(event: DragEvent) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.outline-tree-row__type-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-right: 4px;
 }
 
 .outline-tree-row__meta {

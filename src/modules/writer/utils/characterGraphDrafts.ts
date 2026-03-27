@@ -73,10 +73,11 @@ export function createChapterGraphDraft(params: {
   chapterId: string
   chapterTitle?: string
   parentGraphId?: string
+  globalRelations?: ChapterRelation[]
 }) {
-  const { projectId, chapterId, chapterTitle, parentGraphId } = params
+  const { projectId, chapterId, chapterTitle, parentGraphId, globalRelations } = params
 
-  return createScopedGraphDraft(projectId, 'chapter', chapterId, chapterTitle, parentGraphId)
+  return createScopedGraphDraft(projectId, 'chapter', chapterId, chapterTitle, parentGraphId, globalRelations)
 }
 
 export function createVolumeGraphDraft(params: {
@@ -84,10 +85,11 @@ export function createVolumeGraphDraft(params: {
   volumeId: string
   volumeTitle?: string
   parentGraphId?: string
+  globalRelations?: VolumeRelation[]
 }) {
-  const { projectId, volumeId, volumeTitle, parentGraphId } = params
+  const { projectId, volumeId, volumeTitle, parentGraphId, globalRelations } = params
 
-  return createScopedGraphDraft(projectId, 'volume', volumeId, volumeTitle, parentGraphId)
+  return createScopedGraphDraft(projectId, 'volume', volumeId, volumeTitle, parentGraphId, globalRelations)
 }
 
 function createScopedGraphDraft(
@@ -96,11 +98,26 @@ function createScopedGraphDraft(
   scopeId: string,
   scopeTitle?: string,
   parentGraphId?: string,
+  globalRelations?: ChapterRelation[] | VolumeRelation[],
 ) {
   return updateCharacterGraphDraftState(projectId, (state) => {
     const now = new Date().toISOString()
     if (scopeType === 'volume') {
       const existing = state.volumeGraphs.find((graph) => graph.volumeId === scopeId)
+      
+      // 获取父图谱的关系数据用于继承
+      let inheritedRelations: VolumeRelation[] = []
+      const needsInheritance = parentGraphId && (!existing || existing.parentGraphId !== parentGraphId)
+      if (needsInheritance) {
+        if (parentGraphId === 'global' && globalRelations) {
+          // 继承全局关系
+          inheritedRelations = globalRelations as VolumeRelation[]
+        } else if (parentGraphId !== 'global') {
+          // 继承章节/卷图谱的关系
+          inheritedRelations = getInheritedVolumeRelations(state, parentGraphId)
+        }
+      }
+      
       const nextGraph: VolumeGraph = existing
         ? {
             ...existing,
@@ -125,12 +142,28 @@ function createScopedGraphDraft(
           : [...state.volumeGraphs, nextGraph],
         volumeRelations: {
           ...state.volumeRelations,
-          [scopeId]: state.volumeRelations[scopeId] || [],
+          [scopeId]: (!existing || needsInheritance)
+            ? [...inheritedRelations]
+            : state.volumeRelations[scopeId] || [],
         },
       }
     }
 
     const existing = state.chapterGraphs.find((graph) => graph.chapterId === scopeId)
+    
+    // 获取父图谱的关系数据用于继承
+    let inheritedRelations: ChapterRelation[] = []
+    const needsInheritance = parentGraphId && (!existing || existing.parentGraphId !== parentGraphId)
+    if (needsInheritance) {
+      if (parentGraphId === 'global' && globalRelations) {
+        // 继承全局关系
+        inheritedRelations = globalRelations as ChapterRelation[]
+      } else if (parentGraphId !== 'global') {
+        // 继承章节/卷图谱的关系
+        inheritedRelations = getInheritedChapterRelations(state, parentGraphId)
+      }
+    }
+    
     const nextGraph: ChapterGraph = existing
       ? {
           ...existing,
@@ -155,10 +188,67 @@ function createScopedGraphDraft(
         : [...state.chapterGraphs, nextGraph],
       chapterRelations: {
         ...state.chapterRelations,
-        [scopeId]: state.chapterRelations[scopeId] || [],
+        [scopeId]: (!existing || needsInheritance)
+          ? [...inheritedRelations]
+          : state.chapterRelations[scopeId] || [],
       },
     }
   })
+}
+
+/**
+ * 递归获取章节图谱继承的关系数据
+ */
+function getInheritedChapterRelations(
+  state: CharacterGraphDraftState,
+  parentGraphId: string,
+): ChapterRelation[] {
+  // 查找父章节图谱
+  const parentChapterGraph = state.chapterGraphs.find(g => g.chapterId === parentGraphId)
+  if (parentChapterGraph) {
+    const parentRelations = state.chapterRelations[parentGraphId] || []
+    // 如果父图谱也有parentGraphId，递归查找
+    if (parentChapterGraph.parentGraphId && parentChapterGraph.parentGraphId !== 'global') {
+      const grandParentRelations = getInheritedChapterRelations(state, parentChapterGraph.parentGraphId)
+      return [...grandParentRelations, ...parentRelations]
+    }
+    return parentRelations
+  }
+  
+  // 尝试查找卷图谱
+  const parentVolumeGraph = state.volumeGraphs.find(g => g.volumeId === parentGraphId)
+  if (parentVolumeGraph) {
+    const volumeRelations = state.volumeRelations[parentGraphId] || []
+    // 如果卷图谱也有parentGraphId，递归查找
+    if (parentVolumeGraph.parentGraphId && parentVolumeGraph.parentGraphId !== 'global') {
+      const grandParentRelations = getInheritedVolumeRelations(state, parentVolumeGraph.parentGraphId)
+      return [...grandParentRelations, ...volumeRelations]
+    }
+    return volumeRelations as ChapterRelation[]
+  }
+  
+  return []
+}
+
+/**
+ * 递归获取卷图谱继承的关系数据
+ */
+function getInheritedVolumeRelations(
+  state: CharacterGraphDraftState,
+  parentGraphId: string,
+): VolumeRelation[] {
+  const parentVolumeGraph = state.volumeGraphs.find(g => g.volumeId === parentGraphId)
+  if (parentVolumeGraph) {
+    const parentRelations = state.volumeRelations[parentGraphId] || []
+    // 如果父图谱也有parentGraphId，递归查找
+    if (parentVolumeGraph.parentGraphId && parentVolumeGraph.parentGraphId !== 'global') {
+      const grandParentRelations = getInheritedVolumeRelations(state, parentVolumeGraph.parentGraphId)
+      return [...grandParentRelations, ...parentRelations]
+    }
+    return parentRelations
+  }
+  
+  return []
 }
 
 export function setGlobalGraphInitialized(projectId: string, initialized = true) {

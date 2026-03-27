@@ -27,6 +27,7 @@ export interface UseOutlineTreeStateReturn {
   selectedNode: ComputedRef<OutlineNode | null>
   canMoveUp: ComputedRef<boolean>
   canMoveDown: ComputedRef<boolean>
+  siblingContext: ComputedRef<{ siblings: OutlineNode[]; index: number; targetNode: OutlineNode | null }>
   // 方法
   selectNode: (node: OutlineNode) => void
   toggleNode: (nodeId: string) => void
@@ -55,10 +56,10 @@ export function useOutlineTreeState(): UseOutlineTreeStateReturn {
     () => flattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
   )
 
-  const selectedSiblingContext = computed(() => {
+  const siblingContext = computed(() => {
     const current = selectedNode.value
     if (!current) {
-      return { siblings: [] as OutlineNode[], index: -1 }
+      return { siblings: [] as OutlineNode[], index: -1, targetNode: null as OutlineNode | null }
     }
 
     const siblings = current.parentId
@@ -66,24 +67,29 @@ export function useOutlineTreeState(): UseOutlineTreeStateReturn {
       : rootNodes.value
     const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
 
+    const currentIndex = orderedSiblings.findIndex((node) => node.id === current.id)
+
     return {
       siblings: orderedSiblings,
-      index: orderedSiblings.findIndex((node) => node.id === current.id),
+      index: currentIndex,
+      targetNode: current,
     }
   })
 
   const canMoveUp = computed(
-    () => !!selectedNode.value && selectedSiblingContext.value.index > 0,
+    () => !!selectedNode.value && siblingContext.value.index > 0,
   )
 
   const canMoveDown = computed(() => {
-    const { siblings, index } = selectedSiblingContext.value
+    const { siblings, index } = siblingContext.value
     return !!selectedNode.value && index >= 0 && index < siblings.length - 1
   })
 
   // 方法
-  function selectNode(node: OutlineNode) {
+  function selectNode(node: OutlineNode): OutlineNode {
     selectedNodeId.value = node.id
+    writerStore.setCurrentOutlineNode(node)
+    return node
   }
 
   function toggleNode(nodeId: string) {
@@ -106,6 +112,7 @@ export function useOutlineTreeState(): UseOutlineTreeStateReturn {
     selectedNode,
     canMoveUp,
     canMoveDown,
+    siblingContext,
     // 方法
     selectNode,
     toggleNode,

@@ -1,11 +1,13 @@
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
-import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import type { CharacterRelation, GraphNode, GraphLink } from '@/modules/writer/types/character'
+
+// 视图范围类型
+export type ScopeType = 'project' | 'volume' | 'chapter'
 
 // 图谱视图过滤条件
 export interface GraphViewFilter {
-  scopeType: 'project' | 'volume' | 'chapter'
+  scopeType: ScopeType
   scopeId?: string
   showOnly?: Set<string>
 }
@@ -23,7 +25,20 @@ export interface GraphViewState {
 
 export function useGraphViewFilter() {
   const writerStore = useWriterStore()
-  const projectStore = useProjectStore()
+
+  // 当前视图过滤条件（可写）
+  const viewFilter = ref<GraphViewFilter>({
+    scopeType: 'project',
+  })
+
+  // 当前编辑的章节ID
+  const currentChapterId = computed(() => writerStore.currentDocumentId)
+
+  // 获取章节所属的卷
+  const currentVolumeId = computed(() => {
+    if (!currentChapterId.value) return undefined
+    return findParentVolumeId(currentChapterId.value)
+  })
 
   // 获取章节顺序映射（用于时序过滤）
   const chapterOrderMap = computed(() => {
@@ -45,107 +60,203 @@ export function useGraphViewFilter() {
     return map
   })
 
+  // 监听章节切换，自动更新视图
+  watch(currentChapterId, (newChapterId, oldChapterId) => {
+    if (newChapterId === oldChapterId) return
+    updateViewFilter(newChapterId)
+  }, { immediate: true })
+
+  // 更新视图过滤
+  function updateViewFilter(chapterId: string | null | undefined) {
+    if (!chapterId) {
+      // 全局视图
+      viewFilter.value = {
+        scopeType: 'project',
+      }
+      return
+    }
+
+    // 获取当前章节所属的卷
+    const volumeId = findParentVolumeId(chapterId)
+
+    // 获取该卷和章节的登场角色列表
+    const volumeCharacters = getDocumentCharacterIds(volumeId)
+    const chapterCharacters = getDocumentCharacterIds(chapterId)
+
+    // 合并去重
+    const visibleCharacterIds = new Set([
+      ...volumeCharacters,
+      ...chapterCharacters,
+    ])
+
+    viewFilter.value = {
+      scopeType: 'chapter',
+      scopeId: chapterId,
+      showOnly: visibleCharacterIds,
+    }
+  }
+
+  // 查找父卷ID
+  function findParentVolumeId(nodeId: string): string | undefined {
+    const tree = writerStore.documentTree || []
+    return findNodeParent(tree, nodeId)
+  }
+
+  function findNodeParent(nodes: any[], targetId: string, parentId?: string): string | undefined {
+    for (const node of nodes) {
+      if (node.id === targetId) {
+        return parentId
+      }
+      if (node.children?.length) {
+        const found = findNodeParent(node.children, targetId, node.id)
+        if (found !== undefined) return found
+      }
+    }
+    return undefined
+  }
+
+  // 获取大纲节点的登场角色ID列表
+  function getDocumentCharacterIds(documentId?: string): string[] {
+    if (!documentId) return []
+
+    const doc = findDocument(writerStore.documentTree || [], documentId)
+    if (!doc) return []
+
+    // 优先使用 characterIds 字段
+    if (doc.characterIds?.length) {
+      return doc.characterIds
+    }
+
+    // 回退到 characterAppearances
+    if (doc.characterAppearances?.length) {
+      return doc.characterAppearances.map((a: any) => a.characterId)
+    }
+
+    return []
+  }
+
+  function findDocument(nodes: any[], id: string): any | null {
+    for (const node of nodes) {
+      if (node.id === id) return node
+      if (node.children?.length) {
+        const found = findDocument(node.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   // 判断关系在指定章节是否有效
   function isRelationValidAtChapter(
     relation: CharacterRelation,
     chapterId: string
   ): boolean {
-    const chapterOrder = chapterOrderMap.value.get(chapterId)
-    if (chapterOrder === undefined) return false
+    if (!relation.validFromChapterId && !relation.validUntilChapterId) {
+      return true // 全局关系始终有效
+    }
 
-    // 如果没有设置生效章节，默认从第1章开始
-    const fromOrder = relation.validFromChapterId
-      ? (chapterOrderMap.value.get(relation.validFromChapterId) || 1)
-      : 1
+    const targetOrder = chapterOrderMap.value.get(chapterId)
+    if (targetOrder === undefined) return false
 
-    // 如果没有设置失效章节，默认持续到故事结束
-    const toOrder = relation.validUntilChapterId
-      ? (chapterOrderMap.value.get(relation.validUntilChapterId) || Infinity)
-      : Infinity
+    // 检查生效起始
+    if (relation.validFromChapterId) {
+      const fromOrder = chapterOrderMap.value.get(relation.validFromChapterId) || 1
+      if (targetOrder < fromOrder) return false
+    }
 
-    return chapterOrder >= fromOrder && chapterOrder < toOrder
+    // 检查失效章节
+    if (relation.validUntilChapterId) {
+      const toOrder = chapterOrderMap.value.get(relation.validUntilChapterId) || Infinity
+      if (targetOrder >= toOrder) return false
+    }
+
+    return true
   }
 
-  // 获取项目级完整图谱
-  const baseGraph = computed(() => {
+  // 可见的节点
+  const visibleNodes = computed(() => {
     const characters = writerStore.characters?.list || []
-    const relations = writerStore.characters?.relations || []
+    const { showOnly } = viewFilter.value
 
-    const nodes: GraphNode[] = characters.map(char => ({
+    if (!showOnly || showOnly.size === 0) {
+      return characters.map(char => toGraphNode(char))
+    }
+
+    return characters
+      .filter(char => showOnly.has(char.id))
+      .map(char => toGraphNode(char))
+  })
+
+  // 可见的链接
+  const visibleLinks = computed(() => {
+    const relations = writerStore.characters?.relations || []
+    const { scopeType, scopeId } = viewFilter.value
+
+    // 过滤：两端节点都可见
+    const visibleNodeIds = new Set(visibleNodes.value.map(n => n.id))
+
+    let filteredLinks = relations.filter(rel => {
+      return visibleNodeIds.has(rel.fromId) && visibleNodeIds.has(rel.toId)
+    })
+
+    // 如果是章节视图，应用时序过滤
+    if (scopeType === 'chapter' && scopeId) {
+      filteredLinks = filteredLinks.filter(rel =>
+        isRelationValidAtChapter(rel as CharacterRelation, scopeId)
+      )
+    }
+
+    return filteredLinks.map(rel => toGraphLink(rel as CharacterRelation))
+  })
+
+  // 转换为图谱节点
+  function toGraphNode(char: any): GraphNode {
+    return {
       id: char.id,
       name: char.name,
       avatar: char.avatarUrl,
       importance: char.traits?.length || 0,
-    }))
+    }
+  }
 
-    const links: GraphLink[] = relations.map(rel => ({
+  // 转换为图谱链接
+  function toGraphLink(rel: CharacterRelation): GraphLink {
+    return {
       id: rel.id,
       source: rel.fromId,
       target: rel.toId,
-      type: typeof rel.type === 'string' ? rel.type : rel.type,
+      type: typeof rel.type === 'string' ? rel.type : '未定义',
       strength: rel.strength,
-    }))
-
-    return { nodes, links }
-  })
-
-  // 当前视图过滤条件（暂时默认为项目级视图）
-  const viewFilter = computed<GraphViewFilter>(() => {
-    return {
-      scopeType: 'project', // 默认项目级视图
     }
-  })
+  }
 
-  // 应用过滤条件
-  const filteredGraph = computed(() => {
-    const currentProjectId = projectStore.currentProjectId
-    if (!currentProjectId) {
-      return { nodes: [], links: [] }
+  // 手动设置视图类型
+  function setViewType(type: ScopeType) {
+    if (type === 'project') {
+      viewFilter.value = { scopeType: 'project' }
+    } else if (type === 'chapter' && currentChapterId.value) {
+      updateViewFilter(currentChapterId.value)
     }
+  }
 
-    let nodes = baseGraph.value.nodes
-    let links = baseGraph.value.links
-
-    // 如果设置了showOnly过滤
-    if (viewFilter.value.showOnly && viewFilter.value.showOnly.size > 0) {
-      const visibleIds = new Set<string>()
-      viewFilter.value.showOnly.forEach(id => visibleIds.add(id))
-
-      // 过滤节点
-      nodes = nodes.filter(node => visibleIds.has(node.id))
-
-      // 过滤关系（只保留两端都可见的关系）
-      links = links.filter(link => {
-        const sourceId = typeof link.source === 'string' ? link.source : link.source.id
-        const targetId = typeof link.target === 'string' ? link.target : link.target.id
-        return visibleIds.has(sourceId) && visibleIds.has(targetId)
-      })
-    }
-
-    // 如果是章节视图，还需要根据时序过滤关系
-    if (viewFilter.value.scopeType === 'chapter' && viewFilter.value.scopeId) {
-      const chapterId = viewFilter.value.scopeId
-      const relations = writerStore.characters?.relations || []
-
-      links = links.filter(link => {
-        const relation = relations.find(r => r.id === link.id)
-        if (!relation) return false
-        return isRelationValidAtChapter(relation as CharacterRelation, chapterId)
-      })
-    }
-
-    return { nodes, links }
-  })
-
-  // 可见的节点和链接
-  const visibleNodes = computed(() => filteredGraph.value.nodes)
-  const visibleLinks = computed(() => filteredGraph.value.links)
+  // 获取章节标题
+  function getChapterTitle(chapterId: string): string {
+    const doc = findDocument(writerStore.documentTree || [], chapterId)
+    return doc?.title || doc?.name || '未命名'
+  }
 
   return {
-    baseGraph,
     viewFilter,
     visibleNodes,
     visibleLinks,
+    currentChapterId,
+    currentVolumeId,
+    chapterOrderMap,
     isRelationValidAtChapter,
+    updateViewFilter,
+    setViewType,
+    getChapterTitle,
+    findParentVolumeId,
+    getDocumentCharacterIds,
   }
 }

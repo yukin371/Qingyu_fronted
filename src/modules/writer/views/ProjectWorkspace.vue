@@ -28,8 +28,13 @@
           @delete-chapter="handleDeleteChapter"
           @create-outline-root="handleCreateOutlineRoot"
           @create-outline-child="handleCreateOutlineChild"
+          @edit-selected="handleEditOutlineNode"
+          @delete-selected="handleDeleteOutlineNode"
+          @move-up="() => handleMoveOutlineNode('up')"
+          @move-down="() => handleMoveOutlineNode('down')"
           @open-graph="handleOpenGraph"
           @open-fullscreen-tool="handleOpenFullscreenTool"
+          @outline-select="handleOutlineSelect"
         />
       </template>
 
@@ -112,12 +117,17 @@ import { usePanelStore } from '@/modules/writer/stores/panelStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { DocumentType } from '@/modules/writer/types/document'
+import type { OutlineNode } from '@/types/writer'
 
 // 引入 Composables
 import { useWorkspaceState } from '@/modules/writer/composables/useWorkspaceState'
 import { useImmersiveTimer } from '@/modules/writer/composables/useImmersiveTimer'
 import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopediaView'
 import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
+
+// 引入 API
+import { outlineApi, type CreateOutlineRequest, type UpdateOutlineRequest } from '@/modules/writer/api/outline'
+import { createDocument } from '@/modules/writer/api/document'
 
 // 引入子组件
 import WorkspaceTopbar from '@/modules/writer/components/workspace/WorkspaceTopbar.vue'
@@ -443,18 +453,240 @@ const handleOpenGraph = async (chapterId: string) => {
   await router.replace({ query: nextQuery })
 }
 
+// 处理大纲节点选择 - 加载关联文档内容
+const handleOutlineSelect = async (node: OutlineNode) => {
+  // 如果节点关联了文档，切换到该文档
+  if (node.documentId) {
+    // 如果在百科/关系图谱视图，保持在该视图
+    if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+      currentChapterId.value = node.documentId
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.chapterId = node.documentId
+      await router.replace({ query: nextQuery })
+      return
+    }
+
+    // 切换到写作模式并加载文档
+    editorStore.setActiveTool('writing')
+    currentChapterId.value = node.documentId
+    const nextQuery = { ...route.query } as LocationQueryRaw
+    nextQuery.chapterId = node.documentId
+    nextQuery.tool = 'writing'
+    delete nextQuery.encyclopediaView
+    await router.replace({ query: nextQuery })
+  }
+}
+
 // 处理创建大纲根节点
-const handleCreateOutlineRoot = () => {
-  // TODO: 实现创建大纲根节点的逻辑
-  console.log('创建大纲根节点')
-  message.info('创建大纲根节点功能开发中')
+const handleCreateOutlineRoot = async () => {
+  try {
+    // 生成默认标题
+    const volumeCount = flatChapters.value.filter((ch) => ch.nodeType === 'directory').length
+    const defaultTitle = `卷 ${volumeCount + 1}`
+
+    // 1. 先创建卷（volume）
+    const volumeResponse = (await createDocument(currentProjectId.value, {
+      projectId: currentProjectId.value,
+      title: defaultTitle,
+      type: DocumentType.VOLUME,
+      order: volumeCount,
+    })) as any
+
+    const volumeId = volumeResponse.documentId
+
+    // 2. 创建对应的1级细纲
+    await outlineApi.create(currentProjectId.value, {
+      title: defaultTitle,
+      type: 'arc', // 1级细纲使用 "arc" 类型
+      tension: 5,
+      documentId: volumeId, // 绑定到卷
+      order: volumeCount,
+    })
+
+    // 3. 重新加载数据
+    await Promise.all([
+      documentStore.loadTree(currentProjectId.value),
+      loadOutlineTree(),
+    ])
+
+    message.success(`已创建 ${defaultTitle}`)
+  } catch (error) {
+    console.error('[ProjectWorkspace] 创建大纲根节点失败:', error)
+    message.error('创建失败，请重试')
+  }
 }
 
 // 处理创建大纲子节点
-const handleCreateOutlineChild = () => {
-  // TODO: 实现创建大纲子节点的逻辑
-  console.log('创建大纲子节点')
-  message.info('创建大纲子节点功能开发中')
+const handleCreateOutlineChild = async (data?: CreateOutlineRequest) => {
+  try {
+    const currentNode = writerStore.outline.currentNode
+    if (!currentNode) {
+      message.warning('请先选择父节点')
+      return
+    }
+
+    // 如果没有传入数据，使用默认值创建
+    const createData: CreateOutlineRequest = data || {
+      title: '新节点',
+      parentId: currentNode.id,
+    }
+
+    // 确保 parentId 设置正确
+    if (!createData.parentId) {
+      createData.parentId = currentNode.id
+    }
+
+    await outlineApi.create(currentProjectId.value, createData)
+    message.success('创建成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 创建大纲子节点失败:', error)
+    message.error('创建失败')
+  }
+}
+
+// 处理编辑选中节点
+const handleEditOutlineNode = async (data?: UpdateOutlineRequest) => {
+  try {
+    const currentNode = writerStore.outline.currentNode
+    if (!currentNode) {
+      message.warning('请先选择要编辑的节点')
+      return
+    }
+
+    // 如果没有传入数据，不执行更新
+    if (!data) {
+      message.warning('没有修改数据')
+      return
+    }
+
+    await outlineApi.update(currentNode.id, currentProjectId.value, data)
+    message.success('保存成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 编辑大纲节点失败:', error)
+    message.error('编辑失败')
+  }
+}
+
+// 处理删除选中节点
+const handleDeleteOutlineNode = async () => {
+  try {
+    const currentNodeId = writerStore.outline.currentNode?.id
+    if (!currentNodeId) {
+      message.warning('请先选择要删除的节点')
+      return
+    }
+
+    await messageBox.confirm('确定删除该大纲节点吗？此操作不可恢复', '警告', { type: 'warning' })
+
+    await outlineApi.delete(currentNodeId, currentProjectId.value)
+    message.success('删除成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[ProjectWorkspace] 删除大纲节点失败:', error)
+      message.error('删除失败')
+    }
+  }
+}
+
+// 处理节点移动（上移/下移）
+const handleMoveOutlineNode = async (direction: 'up' | 'down') => {
+  // 获取选中的大纲节点
+  const currentNode = writerStore.outline.currentNode
+  if (!currentNode) {
+    message.warning('请先选择要移动的节点')
+    return
+  }
+
+  // 获取同级节点列表
+  const siblings = currentNode.parentId
+    ? writerStore.outline.tree.find((node) => node.id === currentNode.parentId)?.children || []
+    : writerStore.outline.tree
+
+  const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+  const currentIndex = orderedSiblings.findIndex((node) => node.id === currentNode.id)
+
+  if (currentIndex < 0) {
+    message.warning('无法找到节点位置')
+    return
+  }
+
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+  const swapNode = orderedSiblings[targetIndex]
+
+  if (!swapNode) {
+    message.warning(direction === 'up' ? '已经是第一个' : '已经是最后一个')
+    return
+  }
+
+  try {
+    // 交换两个节点的 order 值
+    const currentOrder = currentNode.order ?? currentIndex
+    const swapOrder = swapNode.order ?? targetIndex
+
+    // 并行更新两个节点
+    await Promise.all([
+      outlineApi.update(currentNode.id, currentProjectId.value, { order: swapOrder }),
+      outlineApi.update(swapNode.id, currentProjectId.value, { order: currentOrder }),
+    ])
+
+    message.success(`节点已${direction === 'up' ? '上移' : '下移'}`)
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 移动大纲节点失败:', error)
+    message.error('移动失败')
+  }
+}
+
+// 加载大纲树
+const loadOutlineTree = async () => {
+  try {
+    writerStore.outline.loading = true
+    const response = await outlineApi.getTree(currentProjectId.value)
+
+    console.log('[ProjectWorkspace] 大纲树API返回:', response)
+
+    // 处理后端返回的响应格式
+    if (Array.isArray(response)) {
+      // 直接是数组
+      writerStore.outline.tree = response
+      console.log('[ProjectWorkspace] 设置大纲树（直接数组）:', response)
+    } else if (response && typeof response === 'object') {
+      // 后端返回包装格式：{ projects, list, total }
+      if ('list' in response && Array.isArray(response.list)) {
+        writerStore.outline.tree = response.list
+        console.log('[ProjectWorkspace] 设置大纲树（list字段）:', response.list)
+      } else if ('data' in response && Array.isArray(response.data)) {
+        // 标准响应格式：{ data: [...] }
+        writerStore.outline.tree = response.data
+        console.log('[ProjectWorkspace] 设置大纲树（data字段）:', response.data)
+      } else {
+        console.warn('[ProjectWorkspace] 大纲树API返回格式未知:', response)
+        writerStore.outline.tree = []
+      }
+    } else {
+      console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
+      writerStore.outline.tree = []
+    }
+
+    console.log('[ProjectWorkspace] store中的大纲树:', writerStore.outline.tree)
+  } catch (error) {
+    console.error('[ProjectWorkspace] 加载大纲树失败:', error)
+    message.error('加载大纲树失败')
+    writerStore.outline.tree = []
+  } finally {
+    writerStore.outline.loading = false
+  }
 }
 
 // 处理打开全屏工具
@@ -642,7 +874,13 @@ onMounted(async () => {
       projectStore.loadList(),
       projectStore.loadDetail(pId),
       documentStore.loadTree(pId),
+      loadOutlineTree(),
+      writerStore.loadTimelines(pId),
     ])
+    // 时间线列表加载完成后，如果有当前时间线则加载事件
+    if (writerStore.timeline.currentTimeline) {
+      await writerStore.loadTimelineEvents(writerStore.timeline.currentTimeline.id)
+    }
   }
 })
 
@@ -674,8 +912,16 @@ watch(
 watch(
   [queryChapterId, availableDocMap],
   ([chapterId, docMap]) => {
-    if (!chapterId) return
-    if (!docMap.has(chapterId)) return
+    console.log('[ProjectWorkspace] watch triggered:', { chapterId, docMapSize: docMap.size })
+    if (!chapterId) {
+      console.log('[ProjectWorkspace] chapterId is empty, skipping')
+      return
+    }
+    if (!docMap.has(chapterId)) {
+      console.log('[ProjectWorkspace] chapterId not in docMap, skipping')
+      return
+    }
+    console.log('[ProjectWorkspace] 设置 currentChapterId 为:', chapterId)
     currentChapterId.value = chapterId
   },
   { immediate: true },

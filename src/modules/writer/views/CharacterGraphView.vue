@@ -123,6 +123,28 @@
 
         <!-- 角色关系图谱画布 -->
         <div class="graph-visualization">
+          <!-- 视图模式切换 -->
+          <div class="view-mode-tabs" data-testid="view-mode-tabs">
+            <button
+              class="view-mode-tab"
+              :class="{ 'is-active': viewMode === 'graph' }"
+              @click="viewMode = 'graph'"
+            >
+              <el-icon><Connection /></el-icon>
+              图谱
+            </button>
+            <button
+              class="view-mode-tab"
+              :class="{ 'is-active': viewMode === 'storyline' }"
+              @click="viewMode = 'storyline'"
+            >
+              <el-icon><Document /></el-icon>
+              故事线
+            </button>
+          </div>
+
+          <!-- 图谱视图 -->
+          <div v-if="viewMode === 'graph'" class="graph-view-content">
           <!-- 全局图谱（无数据 - 创建引导） -->
           <div v-if="shouldShowGlobalCreationGuide" class="graph-creation-guide">
             <div class="guide-content">
@@ -244,6 +266,19 @@
               </div>
             </div>
           </div>
+          </div>
+
+          <!-- 故事线视图 -->
+          <CharacterStoryLine
+            v-if="viewMode === 'storyline'"
+            :outline-tree="writerStore.outline.tree"
+            :characters="writerStore.characters.list"
+            :relations="writerStore.characters.relations"
+            :scope-type="currentScopeType"
+            :scope-id="currentChapterId ?? ''"
+            :loading="writerStore.characters.loading"
+            @chapter-click="handleOutlineNodeClick"
+          />
         </div>
       </div>
 
@@ -612,7 +647,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { Close, Delete, Connection, Document } from '@element-plus/icons-vue'
 import { useProjectStore } from '../stores/projectStore'
 import { useWriterStore } from '../stores/writerStore'
@@ -634,6 +669,7 @@ import RelationshipGraph, {
   type GraphNode,
   type GraphLink,
 } from '../components/RelationshipGraph.vue'
+import CharacterStoryLine from '../components/editor/CharacterStoryLine.vue'
 import {
   appendChapterRelationDraft,
   appendVolumeRelationDraft,
@@ -682,6 +718,7 @@ const emit = defineEmits<{
 
 const selectedCharacter = ref<Character | null>(null)
 const dialogVisible = ref(false)
+const viewMode = ref<'graph' | 'storyline'>('graph')
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref()
@@ -738,6 +775,9 @@ const assetRefState = ref<WriterAssetRefState>({
 const bindingAllCandidates = ref(false)
 const showBoundAssetsPanel = ref(false)
 const showCandidatePanel = ref(false)
+
+// 已自动绑定过的章节ID集合，防止重复自动绑定
+const autoBoundChapterIds = ref(new Set<string>())
 
 const activeProjectId = computed(() => projectStore.currentProjectId || '')
 
@@ -963,14 +1003,25 @@ const handleCreateVolumeGraph = (mode: 'empty' | 'inherit') => {
   const projectId = activeProjectId.value
   if (!volumeId || !projectId) return
 
+  let parentGraphId: string | undefined = undefined
+  if (mode === 'inherit') {
+    // 继承模式：直接继承全局
+    parentGraphId = 'global'
+  }
+
+  // 获取全局关系数据（仅当需要继承全局时）
+  const globalRelations = parentGraphId === 'global' ? (writerStore.characters.relations || []) : undefined
+  
   graphDraftState.value = createVolumeGraphDraft({
     projectId,
     volumeId,
     volumeTitle: currentScopeTitle.value,
-    parentGraphId: mode === 'inherit' ? 'global' : undefined,
+    parentGraphId,
+    globalRelations,
   })
   currentGraphId.value = volumeId
-  ElMessage.success(mode === 'empty' ? '已创建卷级空白图谱' : '已创建继承全局的卷级图谱')
+  const inheritSource = parentGraphId === 'global' ? '全局' : `卷 ${parentGraphId.slice(0, 8)}...`
+  ElMessage.success(mode === 'empty' ? '已创建卷级空白图谱' : `已创建继承自${inheritSource}的卷级图谱`)
 }
 
 const handleCreateChapterGraph = (mode: 'empty' | 'inherit') => {
@@ -978,14 +1029,26 @@ const handleCreateChapterGraph = (mode: 'empty' | 'inherit') => {
   const projectId = activeProjectId.value
   if (!chapterId || !projectId) return
 
+  let parentGraphId: string | undefined = undefined
+  if (mode === 'inherit') {
+    // 继承模式：直接继承全局
+    // 这样可以确保获取最新的全局关系数据（54条）
+    parentGraphId = 'global'
+  }
+
+  // 获取全局关系数据（仅当需要继承全局时）
+  const globalRelations = parentGraphId === 'global' ? (writerStore.characters.relations || []) : undefined
+  
   graphDraftState.value = createChapterGraphDraft({
     projectId,
     chapterId,
     chapterTitle: getChapterInfo(chapterId)?.chapter || chapterId,
-    parentGraphId: mode === 'inherit' ? 'global' : undefined,
+    parentGraphId,
+    globalRelations,
   })
   currentGraphId.value = chapterId
-  ElMessage.success(mode === 'empty' ? '已创建章节空白图谱' : '已创建继承全局的章节图谱')
+  const inheritSource = parentGraphId === 'global' ? '全局' : `章节 ${parentGraphId.slice(0, 8)}...`
+  ElMessage.success(mode === 'empty' ? '已创建章节空白图谱' : `已创建继承自${inheritSource}的章节图谱`)
 }
 
 const handleCreateGlobalGraph = (mode: 'empty' | 'inherit') => {
@@ -1035,6 +1098,7 @@ const handleImportFromCharacters = async () => {
         chapterId: currentChapterId.value,
         chapterTitle: getChapterInfo(currentChapterId.value)?.chapter || currentChapterId.value,
         parentGraphId: globalRelations.value.length > 0 ? 'global' : undefined,
+        globalRelations: globalRelations.value.length > 0 ? globalRelations.value : undefined,
       })
     }
 
@@ -1044,6 +1108,7 @@ const handleImportFromCharacters = async () => {
         volumeId: currentChapterId.value,
         volumeTitle: currentScopeTitle.value,
         parentGraphId: globalRelations.value.length > 0 ? 'global' : undefined,
+        globalRelations: globalRelations.value.length > 0 ? globalRelations.value : undefined,
       })
     }
 
@@ -1167,6 +1232,49 @@ const graphLinks = computed<GraphLink[]>(() => {
   }))
 })
 
+/**
+ * 自动绑定：当切换到新章节时，静默将正文中已识别的已建档资产绑定到该章节的图谱scope。
+ * 仅在章节级模式下生效，且每个章节只自动绑定一次。
+ */
+function autoBindChapterAssets() {
+  const projectId = activeProjectId.value
+  const scopeId = currentChapterId.value
+  if (!projectId || !scopeId) return
+  if (currentScopeType.value !== 'chapter') return
+  if (autoBoundChapterIds.value.has(scopeId)) return
+  if (editorStore.currentChapterId !== scopeId) return
+
+  // 获取所有可绑定的已建档候选（排除未建档和已绑定的）
+  const candidates = bindableScopeAssetCandidates.value
+  if (candidates.length === 0) {
+    // 即使没有候选也标记为已处理，避免反复检测
+    autoBoundChapterIds.value.add(scopeId)
+    return
+  }
+
+  ensureScopeGraphForBinding()
+
+  let boundCount = 0
+  for (const candidate of candidates) {
+    assetRefState.value = upsertScopeAssetRef({
+      projectId,
+      scopeType: 'chapter',
+      scopeId,
+      assetType: candidate.assetType,
+      assetId: candidate.assetId,
+      assetName: candidate.assetName,
+      source: candidate.source,
+      evidence: candidate.evidence,
+      unresolved: candidate.unresolved,
+    })
+    boundCount += 1
+  }
+
+  if (boundCount > 0) {
+    autoBoundChapterIds.value.add(scopeId)
+  }
+}
+
 onMounted(async () => {
   await handleRefresh()
   reloadGraphDraftState()
@@ -1176,10 +1284,13 @@ onMounted(async () => {
 async function handleRefresh() {
   const projectId = activeProjectId.value
   if (projectId) {
-    await writerStore.loadCharacters(projectId)
-    await writerStore.loadCharacterRelations(projectId)
-    await writerStore.loadLocations(projectId)
-    if (writerStore.characters.relations.length > 0) {
+    await Promise.all([
+      writerStore.loadCharacters(projectId),
+      writerStore.loadCharacterRelations(projectId),
+      writerStore.loadLocations(projectId),
+      writerStore.loadOutlineTree(projectId),
+    ])
+    if (writerStore.characters.relations?.length > 0) {
       graphDraftState.value = setGlobalGraphInitialized(projectId, true)
     } else {
       reloadGraphDraftState()
@@ -1204,6 +1315,26 @@ watch(
     emit('status-change', chips)
   },
   { immediate: true },
+)
+
+// 监听章节切换，自动绑定已建档资产
+watch(
+  currentChapterId,
+  (newChapterId) => {
+    if (newChapterId) {
+      nextTick(() => autoBindChapterAssets())
+    }
+  },
+)
+
+// 监听编辑器内容加载完成（处理异步加载正文的场景）
+watch(
+  currentEditorPlainText,
+  () => {
+    if (currentChapterId.value && currentScopeType.value === 'chapter') {
+      autoBindChapterAssets()
+    }
+  },
 )
 
 const formatAssetType = (type: WriterAssetCandidate['assetType']) => {
@@ -1711,6 +1842,14 @@ const handleAddNodeAt = (x: number, y: number) => {
   openCreateCharacterDialog()
 }
 
+// 处理故事线章节点击事件
+const handleOutlineNodeClick = (node: any) => {
+  if (node.id && node.nodeType !== 'directory') {
+    currentChapterId.value = node.id
+    viewMode.value = 'graph'
+  }
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -1888,12 +2027,57 @@ const handleAddNodeAt = (x: number, y: number) => {
 // 图谱可视化区域
 .graph-visualization {
   flex: 1;
-  min-height: 500px;
+  min-height: 0;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   background: #ffffff;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-mode-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin: 8px 8px 0 8px;
+  align-self: flex-start;
+}
+
+.view-mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #606266;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-mode-tab:hover {
+  color: #409eff;
+  background: rgba(64, 158, 255, 0.08);
+}
+
+.view-mode-tab.is-active {
+  background: #fff;
+  color: #409eff;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.graph-view-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
 }
 
 // 章节图谱头部

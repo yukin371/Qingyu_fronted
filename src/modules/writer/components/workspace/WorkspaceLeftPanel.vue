@@ -174,7 +174,7 @@
         :can-move-up="outlineTreeState.canMoveUp.value"
         :can-move-down="outlineTreeState.canMoveDown.value"
         @toggle="outlineTreeState.toggleNode"
-        @select="outlineTreeState.selectNode"
+        @select="handleOutlineSelect"
         @create-root="emit('create-outline-root')"
         @create-child="emit('create-outline-child')"
         @open-graph="(chapterId: string) => $emit('open-graph', chapterId)"
@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
 import OutlineTreePanel from '@/modules/writer/components/workspace/structure/OutlineTreePanel.vue'
@@ -229,6 +229,7 @@ const emit = defineEmits<{
   (e: 'create-outline-child'): void
   (e: 'open-graph', chapterId: string): void
   (e: 'open-fullscreen-tool', tool: string): void
+  (e: 'outline-select', node: OutlineNode): void
 }>()
 
 // =======================
@@ -282,6 +283,11 @@ function handleDockClick(tab: LeftTab) {
   }
 }
 
+function handleOutlineSelect(node: OutlineNode) {
+  outlineTreeState.selectNode(node)
+  emit('outline-select', node)
+}
+
 // =======================
 // 数据准备
 // =======================
@@ -289,8 +295,32 @@ const chapterOptions = computed<SidebarChapterSummary[]>(() =>
   props.chapters.filter((chapter) => chapter.nodeType !== 'directory'),
 )
 
-const outlineTreeNodes = computed<OutlineNode[]>(() => writerStore.outline.tree || [])
+const outlineTreeNodes = computed<OutlineNode[]>(() => {
+  const tree = writerStore.outline.tree
+  console.log('[WorkspaceLeftPanel] 获取大纲树:', tree)
+
+  // 确保 tree 是数组
+  if (Array.isArray(tree)) {
+    console.log('[WorkspaceLeftPanel] 大纲树是数组，长度:', tree.length)
+    return tree
+  }
+  // 如果不是数组，返回空数组
+  console.warn('[WorkspaceLeftPanel] outline.tree is not an array:', tree)
+  return []
+})
 const isOutlineLoading = computed(() => writerStore.outline.loading)
+
+// 自动展开根节点
+watch(
+  () => writerStore.outline.tree,
+  (tree) => {
+    if (tree && tree.length > 0 && outlineTreeState.expandedNodeIds.value.length === 0) {
+      console.log('[WorkspaceLeftPanel] 自动展开根节点')
+      outlineTreeState.expandRootNodes()
+    }
+  },
+  { immediate: true }
+)
 
 const graphDraftState = computed(() => loadCharacterGraphDraftState(props.projectId))
 const chapterGraphs = computed<ChapterGraph[]>(() => graphDraftState.value.chapterGraphs)
