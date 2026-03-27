@@ -1137,7 +1137,7 @@ const relations = computed<VisibleRelation[]>(() => {
   }
 
   const localRelations = currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
-  const inherited = currentScopeGraph.value.parentGraphId === 'global'
+  const inherited = currentScopeGraph.value.parentGraphId
     ? globalRelations.value.map((relation) => ({ ...relation, isInherited: true }))
     : []
   const local = localRelations.map((relation) => ({ ...relation, isInherited: false }))
@@ -1370,6 +1370,8 @@ const ensureScopeGraphForBinding = () => {
     projectId,
     chapterId: scopeId,
     chapterTitle: getChapterInfo(scopeId)?.chapter || scopeId,
+    parentGraphId: 'global',
+    globalRelations: writerStore.characters?.relations || [],
   })
   currentGraphId.value = scopeId
 }
