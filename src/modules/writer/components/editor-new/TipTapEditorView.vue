@@ -14,7 +14,7 @@
       <div v-if="isDocumentEmpty" class="editor-empty-banner">
         <div class="editor-empty-banner__copy">
           <strong>开始写作这一章</strong>
-          <span>用 @角色、#地点、%物品 建立上下文</span>
+          <span>用 @ 建立上下文关联</span>
         </div>
         <button type="button" class="editor-empty-banner__action" @click="focusEditor">
           开始输入
@@ -36,6 +36,7 @@
           @keyword-click="(kw) => $emit('keyword-click', kw)"
           @ready="handleEditorReady"
           @selection-change="handleSelectionChange"
+          @entity-scan="handleEntityScan"
         />
 
         <div
@@ -57,6 +58,16 @@
         <h4 class="title">智能引用库</h4>
         <p class="hint">本文档已识别 {{ referenceSummary.length }} 个关键词，按频次排序显示。</p>
       </div>
+
+      <!-- 实体扫描面板 -->
+      <QyEntityScanPanel
+        v-if="showEntityScan"
+        :entities="scannedEntities"
+        :is-scanning="isScanning"
+        class="entity-scan-section"
+        @ignore="handleIgnoreEntity"
+        @ignore-all="ignoreAll"
+      />
 
       <div class="ref-stats">
         <div class="stat">
@@ -80,16 +91,19 @@
           <span class="count">x{{ item.count }}</span>
         </li>
       </ul>
-      <div v-else class="ref-empty">还没有识别到关键词，输入 <code>@角色</code>、<code>#地点</code> 或 <code>%物品</code> 试试。</div>
+      <div v-else class="ref-empty">还没有识别到关键词，输入 <code>@</code> 试试。</div>
     </aside>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import type { Editor } from '@tiptap/core'
 import { QyTipTapEditor } from '@/design-system/components/editor'
 import type { KeywordInfo } from '@/design-system/components/editor'
+import { QyEntityScanPanel } from '@/design-system/components/editor'
+import type { ScannedEntity } from '@/modules/writer/composables/useEntityScanner'
+import { useEntityScanner } from '@/modules/writer/composables/useEntityScanner'
 import type { ParagraphContent } from '@/modules/writer/api/wrapper'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
@@ -102,12 +116,14 @@ const props = withDefaults(
     readonly?: boolean
     placeholder?: string
     showReferencePanel?: boolean
+    showEntityScan?: boolean
   }>(),
   {
     documentId: '',
     readonly: false,
-    placeholder: '输入 @角色 / #地点 / %物品 触发智能关键词',
+    placeholder: '输入 @ 触发实体补全…',
     showReferencePanel: true,
+    showEntityScan: true,
   },
 )
 
@@ -128,8 +144,22 @@ const emit = defineEmits<{
 }>()
 
 const editorStore = useEditorStore()
+const {
+  scannedEntities,
+  isScanning,
+  scheduleScan,
+  ignoreEntity,
+  ignoreAll,
+} = useEntityScanner()
 const plainTextContent = computed(() => extractPlainTextFromEditorContent(props.modelValue || ''))
 const isDocumentEmpty = computed(() => plainTextContent.value.trim().length === 0)
+
+// 监听内容变化，触发实体扫描
+watch(plainTextContent, (text) => {
+  if (text.length > 0) {
+    scheduleScan(text)
+  }
+})
 const selectionState = reactive({
   text: '',
   from: 0,
@@ -212,6 +242,21 @@ function emitSelectionAction(action: string) {
     applyMode: action === 'continue' ? 'insert_after_selection' : 'replace_selection',
   })
   selectionState.visible = false
+}
+
+function handleIgnoreEntity(entity: ScannedEntity) {
+  ignoreEntity(entity.name)
+}
+
+function handleEntityScan(refs: Array<{ id?: string; name: string; type: string }>) {
+  // 更新引用摘要 - 使用扫描结果刷新右侧面板
+  // refs 是从 entityParser 解析出的实体引用列表
+  // 直接更新 scannedEntities 或 referenceSummary
+  if (refs.length > 0) {
+    // 触发侧边栏更新
+    // 调用已有的 scheduleScan 刷新
+    scheduleScan(plainTextContent.value)
+  }
 }
 </script>
 
@@ -402,6 +447,13 @@ function emitSelectionAction(action: string) {
 .ref-header {
   padding-bottom: 10px;
   border-bottom: 1px dashed #d3ddf0;
+}
+
+.entity-scan-section {
+  margin-top: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 .title {
