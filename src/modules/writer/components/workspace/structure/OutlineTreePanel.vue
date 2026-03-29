@@ -307,11 +307,11 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border-radius: 24px;
-  border: 1px solid rgba(91, 72, 50, 0.14);
+  border-radius: var(--editor-radius-lg);
+  border: 1px solid var(--editor-border);
   background:
-    radial-gradient(circle at 0% 0%, rgba(143, 63, 47, 0.08), transparent 26%),
-    linear-gradient(180deg, rgba(255, 251, 246, 0.98), rgba(245, 235, 222, 0.96));
+    radial-gradient(circle at 0% 0%, var(--editor-bg-surface), transparent 26%),
+    linear-gradient(180deg, var(--editor-bg-base), var(--editor-bg-surface));
   box-shadow: 0 16px 32px rgba(80, 49, 26, 0.08);
   overflow: hidden;
 }
@@ -339,7 +339,7 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(91, 72, 50, 0.1);
+  border-bottom: 1px solid var(--editor-border);
 }
 
 .outline-tree-panel__eyebrow {
@@ -347,22 +347,22 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8f3f2f;
+  color: var(--editor-accent);
   font-weight: 800;
 }
 
 .outline-tree-panel__title {
   margin: 6px 0 0;
   font-size: 22px;
-  color: #2e2b27;
+  color: var(--editor-text-primary);
 }
 
 .outline-tree-panel__count {
   padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(143, 63, 47, 0.1);
-  border: 1px solid rgba(143, 63, 47, 0.14);
-  color: #7b3123;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--editor-accent-soft);
+  border: 1px solid var(--editor-border);
+  color: var(--editor-accent);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -375,7 +375,7 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
 }
 
 .outline-tree-panel__hint {
-  color: #8b7a6c;
+  color: var(--editor-text-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -389,10 +389,10 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
 }
 
 .outline-action {
-  border: 1px solid rgba(117, 93, 67, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.94);
-  color: #5b4f43;
+  border: 1px solid var(--editor-border);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--editor-bg-base);
+  color: var(--editor-text-secondary);
   font-size: 12px;
   font-weight: 700;
   padding: 7px 10px;
@@ -406,13 +406,13 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
 
 .outline-action--primary {
   border-color: transparent;
-  background: linear-gradient(135deg, #8f3f2f, #b76d38);
+  background: linear-gradient(135deg, var(--editor-accent), #b76d38);
   color: #fff9f3;
   box-shadow: 0 10px 18px rgba(99, 60, 30, 0.12);
 }
 
 .outline-action--danger {
-  color: #8f3f2f;
+  color: var(--editor-accent);
 }
 
 .outline-action:not(:disabled):hover {
@@ -442,10 +442,10 @@ function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) 
 
 .outline-tree-panel__empty {
   border-radius: 16px;
-  border: 1px dashed rgba(117, 93, 67, 0.2);
-  background: rgba(255, 252, 247, 0.9);
+  border: 1px dashed var(--editor-border);
+  background: var(--editor-bg-base);
   padding: 18px;
-  color: #74675d;
+  color: var(--editor-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }

@@ -1939,7 +1939,7 @@ const handleOutlineNodeClick = (node: any) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f9fafb;
+  background: var(--editor-bg-surface);
 }
 
 // 主内容区样式
@@ -1975,10 +1975,10 @@ const handleOutlineNodeClick = (node: any) => {
 }
 
 .asset-binding-card {
-  border: 1px solid #e6ebf5;
+  border: 1px solid var(--editor-border);
   border-radius: 12px;
   padding: 8px 10px;
-  background: rgba(251, 253, 255, 0.96);
+  background: var(--editor-bg-elevated);
   box-shadow: none;
 }
 
@@ -1992,7 +1992,7 @@ const handleOutlineNodeClick = (node: any) => {
     margin: 0;
     font-size: 13px;
     font-weight: 600;
-    color: #28324f;
+    color: var(--editor-text-primary);
   }
 }
 
@@ -2012,8 +2012,8 @@ const handleOutlineNodeClick = (node: any) => {
 
   span {
     font-size: 11px;
-    color: #62708f;
-    background: #f1f4fa;
+    color: var(--editor-text-secondary);
+    background: var(--editor-bg-surface);
     border-radius: 999px;
     padding: 3px 8px;
     line-height: 1.4;
@@ -2035,12 +2035,12 @@ const handleOutlineNodeClick = (node: any) => {
   gap: 10px;
   border-radius: 10px;
   padding: 7px 9px;
-  border: 1px solid #e3e8f3;
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--editor-border);
+  background: var(--editor-bg-base);
 }
 
 .asset-binding-chip.is-character {
-  border-left: 3px solid #3f6fe8;
+  border-left: 3px solid var(--editor-accent);
 }
 
 .asset-binding-chip.is-location {
@@ -2059,7 +2059,7 @@ const handleOutlineNodeClick = (node: any) => {
   gap: 6px;
 
   strong {
-    color: #23304d;
+    color: var(--editor-text-primary);
     font-size: 13px;
   }
 }
@@ -2068,8 +2068,8 @@ const handleOutlineNodeClick = (node: any) => {
 .asset-binding-chip__source {
   font-size: 11px;
   line-height: 1;
-  color: #7280a0;
-  background: #eff3fb;
+  color: var(--editor-text-secondary);
+  background: var(--editor-bg-surface);
   border-radius: 999px;
   padding: 4px 7px;
 }
@@ -2092,16 +2092,16 @@ const handleOutlineNodeClick = (node: any) => {
   width: 100%;
   margin: 0;
   font-size: 11px;
-  color: #60708f;
+  color: var(--editor-text-secondary);
 }
 
 .asset-binding-empty {
   margin-top: 8px;
   border-radius: 10px;
   padding: 10px;
-  border: 1px dashed #d7deed;
-  background: #f8faff;
-  color: #6c7896;
+  border: 1px dashed var(--editor-border);
+  background: var(--editor-bg-elevated);
+  color: var(--editor-text-secondary);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -2113,7 +2113,7 @@ const handleOutlineNodeClick = (node: any) => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  background: #ffffff;
+  background: var(--editor-bg-base);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2123,7 +2123,7 @@ const handleOutlineNodeClick = (node: any) => {
   display: flex;
   gap: 2px;
   padding: 6px;
-  background: #f5f7fa;
+  background: var(--editor-bg-surface);
   border-radius: 8px;
   margin: 8px 8px 0 8px;
   align-self: flex-start;
@@ -2137,20 +2137,20 @@ const handleOutlineNodeClick = (node: any) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #606266;
+  color: var(--editor-text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .view-mode-tab:hover {
-  color: #409eff;
+  color: var(--editor-accent);
   background: rgba(64, 158, 255, 0.08);
 }
 
 .view-mode-tab.is-active {
-  background: #fff;
-  color: #409eff;
+  background: var(--editor-bg-base);
+  color: var(--editor-accent);
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -2160,7 +2160,7 @@ const handleOutlineNodeClick = (node: any) => {
   display: flex;
   gap: 2px;
   padding: 4px;
-  background: #f0f2f5;
+  background: var(--editor-bg-surface);
   border-radius: 6px;
   margin: 8px 8px 0 8px;
   align-self: flex-start;
@@ -2171,19 +2171,19 @@ const handleOutlineNodeClick = (node: any) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #606266;
+  color: var(--editor-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    color: #409eff;
+    color: var(--editor-accent);
     background: rgba(64, 158, 255, 0.06);
   }
 
   &.is-active {
-    background: #fff;
-    color: #409eff;
+    background: var(--editor-bg-base);
+    color: var(--editor-accent);
     font-weight: 500;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   }
@@ -2202,7 +2202,7 @@ const handleOutlineNodeClick = (node: any) => {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #909399;
+  color: var(--editor-text-muted);
 
   .legend-dot {
     width: 8px;
@@ -2233,13 +2233,13 @@ const handleOutlineNodeClick = (node: any) => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--editor-bg-surface);
+  border-bottom: 1px solid var(--editor-border);
 
   .chapter-name {
     font-size: 14px;
     font-weight: 500;
-    color: #303133;
+    color: var(--editor-text-primary);
   }
 }
 
@@ -2258,18 +2258,18 @@ const handleOutlineNodeClick = (node: any) => {
   gap: 12px;
   padding: 12px 16px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--editor-border);
 
   .graph-title {
     font-size: 14px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--editor-bg-base);
   }
 
   :deep(.el-tag) {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
-    color: #ffffff;
+    color: var(--editor-bg-base);
   }
 }
 
@@ -2287,7 +2287,7 @@ const handleOutlineNodeClick = (node: any) => {
 
     .guide-icon {
       font-size: 64px;
-      color: #c0c4cc;
+      color: var(--editor-text-muted);
       margin-bottom: 16px;
     }
 
@@ -2295,13 +2295,13 @@ const handleOutlineNodeClick = (node: any) => {
       margin: 0 0 8px 0;
       font-size: 18px;
       font-weight: 600;
-      color: #303133;
+      color: var(--editor-text-primary);
     }
 
     p {
       margin: 0 0 24px 0;
       font-size: 14px;
-      color: #909399;
+      color: var(--editor-text-muted);
     }
 
     .guide-actions {
@@ -2325,7 +2325,7 @@ const handleOutlineNodeClick = (node: any) => {
   background:
     radial-gradient(circle at top, rgba(102, 126, 234, 0.08), transparent 35%),
     linear-gradient(180deg, #fbfcff 0%, #f6f8fc 100%);
-  color: #909399;
+  color: var(--editor-text-muted);
 
   .empty-icon {
     font-size: 52px;
@@ -2337,7 +2337,7 @@ const handleOutlineNodeClick = (node: any) => {
     margin: 0 0 10px;
     font-size: 18px;
     font-weight: 600;
-    color: #303133;
+    color: var(--editor-text-primary);
   }
 
   p {
@@ -2358,8 +2358,8 @@ const handleOutlineNodeClick = (node: any) => {
 
 .detail-sidebar {
   width: 400px;
-  background: #ffffff;
-  border-left: 1px solid #e5e7eb;
+  background: var(--editor-bg-base);
+  border-left: 1px solid var(--editor-border);
   display: flex;
   flex-direction: column;
 }
@@ -2369,7 +2369,7 @@ const handleOutlineNodeClick = (node: any) => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--editor-border);
 
   h3 {
     margin: 0;
@@ -2390,7 +2390,7 @@ const handleOutlineNodeClick = (node: any) => {
     margin: 0 0 12px 0;
     font-size: 14px;
     font-weight: 600;
-    color: #303133;
+    color: var(--editor-text-primary);
   }
 }
 
@@ -2403,14 +2403,14 @@ const handleOutlineNodeClick = (node: any) => {
 .background-text {
   margin: 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--editor-text-secondary);
   line-height: 1.6;
 }
 
 .relations-list {
   .relation-item {
     padding: 12px;
-    background: #f9fafb;
+    background: var(--editor-bg-surface);
     border-radius: 4px;
     margin-bottom: 8px;
   }
@@ -2430,7 +2430,7 @@ const handleOutlineNodeClick = (node: any) => {
 
 .sidebar-actions {
   padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--editor-border);
   display: flex;
   gap: 8px;
 
@@ -2481,15 +2481,6 @@ const handleOutlineNodeClick = (node: any) => {
 @media (prefers-color-scheme: dark) {
   .character-graph-view {
     background: #0d0d0d;
-  }
-
-  .graph-header {
-    background: #1a1a1a;
-    border-bottom-color: #2d2d2d;
-  }
-
-  .header-title {
-    color: #e5e5e5;
   }
 
   .detail-sidebar {
@@ -2557,7 +2548,7 @@ const handleOutlineNodeClick = (node: any) => {
       }
 
       &.is-focus {
-        border-color: #409eff;
+        border-color: var(--editor-accent);
         box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
       }
     }
@@ -2572,7 +2563,7 @@ const handleOutlineNodeClick = (node: any) => {
       }
 
       &:focus {
-        border-color: #409eff;
+        border-color: var(--editor-accent);
       }
     }
 
@@ -2585,7 +2576,7 @@ const handleOutlineNodeClick = (node: any) => {
       }
 
       &.is-focus {
-        border-color: #409eff;
+        border-color: var(--editor-accent);
         box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
       }
     }
@@ -2637,7 +2628,7 @@ const handleOutlineNodeClick = (node: any) => {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: #303133;
+      color: var(--editor-text-primary);
     }
   }
 }
@@ -2652,7 +2643,7 @@ const handleOutlineNodeClick = (node: any) => {
 
   :deep(.el-form-item) {
     margin-bottom: 24px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--editor-border);
     padding-bottom: 16px;
     width: 100%;
     display: flex;
@@ -2661,7 +2652,7 @@ const handleOutlineNodeClick = (node: any) => {
 
   :deep(.el-form-item__label) {
     font-weight: 500;
-    color: #303133;
+    color: var(--editor-text-primary);
     padding-right: 16px;
     min-width: 100px;
     flex-shrink: 0;
@@ -2680,47 +2671,47 @@ const handleOutlineNodeClick = (node: any) => {
   :deep(.el-input__wrapper),
   :deep(.el-textarea__inner) {
     width: 100%;
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--editor-border);
     border-radius: 4px;
     box-shadow: none;
     transition: border-color 0.2s;
 
     &:hover {
-      border-color: #c0c4cc;
+      border-color: var(--editor-text-muted);
     }
   }
 
   :deep(.el-input__wrapper) {
-    background-color: #ffffff;
+    background-color: var(--editor-bg-base);
     height: 32px;
 
     &.is-focus {
-      border-color: #409eff;
+      border-color: var(--editor-accent);
       box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
     }
   }
 
   :deep(.el-textarea__inner) {
     padding: 8px 12px;
-    background-color: #ffffff;
+    background-color: var(--editor-bg-base);
 
     &:focus {
-      border-color: #409eff;
+      border-color: var(--editor-accent);
       outline: none;
     }
   }
 
   :deep(.el-input--small .el-input__wrapper) {
-    border: 1px solid #dcdfe6;
+    border: 1px solid var(--editor-border);
     border-radius: 4px;
-    background-color: #ffffff;
+    background-color: var(--editor-bg-base);
 
     &:hover {
-      border-color: #c0c4cc;
+      border-color: var(--editor-text-muted);
     }
 
     &.is-focus {
-      border-color: #409eff;
+      border-color: var(--editor-accent);
       box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
     }
   }
@@ -2800,7 +2791,7 @@ const handleOutlineNodeClick = (node: any) => {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--editor-text-primary);
 }
 
 .relations-list-dialog {
@@ -2813,7 +2804,7 @@ const handleOutlineNodeClick = (node: any) => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: #f9fafb;
+  background: var(--editor-bg-surface);
   border-radius: 6px;
   margin-bottom: 8px;
 }
@@ -2835,7 +2826,7 @@ const handleOutlineNodeClick = (node: any) => {
 
 .strength-value {
   font-size: 12px;
-  color: #909399;
+  color: var(--editor-text-muted);
   min-width: 24px;
 }
 
@@ -2849,7 +2840,7 @@ const handleOutlineNodeClick = (node: any) => {
 .strength-display {
   font-size: 14px;
   font-weight: 500;
-  color: #409eff;
+  color: var(--editor-accent);
   min-width: 30px;
 }
 </style>

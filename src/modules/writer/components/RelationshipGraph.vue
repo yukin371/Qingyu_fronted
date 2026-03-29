@@ -425,7 +425,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 400px;
-  background: #fafafa;
+  background: var(--editor-bg-surface);
   border-radius: 8px;
   overflow: hidden;
   position: relative;
@@ -462,8 +462,8 @@ onUnmounted(() => {
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: color-mix(in srgb, var(--editor-bg-surface) 95%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--editor-border) 40%, transparent);
   }
 }
 
@@ -477,7 +477,7 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.9);
+    background: color-mix(in srgb, var(--editor-bg-surface) 90%, transparent);
   }
 }
 </style>
