@@ -56,37 +56,37 @@
     :show-reference-panel="false"
     @selection-action="emit('trigger-ai-action', $event)"
     @save="(contents: unknown[]) => $emit('save', contents)"
+    @open-tool-overlay="toolOverlay.open()"
   />
 
-  <!-- 全屏覆盖层 -->
-  <WorkspaceFullscreenOverlay
-    v-if="fullscreenTool"
-    :visible="!!fullscreenTool"
-    :tool-name="fullscreenTool.name"
-    :tool-icon="fullscreenTool.icon"
-    :tool-component="fullscreenTool.component"
+  <!-- 全屏工具面板 -->
+  <WorkspaceToolOverlay
+    :visible="toolOverlay.visible.value"
+    :active-tool="toolOverlay.activeTool.value"
     :project-id="projectId"
     :chapter-id="chapterId"
     :chapter-title="chapterTitle"
     :chapters="chapters"
-    @close="handleCloseFullscreen"
+    @close="toolOverlay.close"
+    @tool-change="toolOverlay.switchTool"
     @status-change="emit('status-change', $event)"
-    @open-graph="emit('open-graph', $event)"
-    @jump-to-chapter="emit('jump-to-chapter', $event)"
+    @open-graph="(chapterId: string) => emit('open-graph', chapterId)"
+    @jump-to-chapter="(chapterId: string) => emit('jump-to-chapter', chapterId)"
   />
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
 import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
 import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
 import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
-import WorkspaceFullscreenOverlay from '@/modules/writer/components/workspace/WorkspaceFullscreenOverlay.vue'
+import WorkspaceToolOverlay from '@/modules/writer/components/workspace/WorkspaceToolOverlay.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
+import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
 import type {
   EncyclopediaSubView,
   EncyclopediaCategory,
@@ -167,44 +167,40 @@ const modelContent = computed({
 })
 
 // =======================
-// 全屏工具状态
+// 工具面板状态
 // =======================
-/** 全屏工具状态 */
-const fullscreenTool = ref<{
-  name: string
-  icon: string
-  component: string
-} | null>(null)
+const toolOverlay = useToolOverlay()
 
-/** 工具名称映射 */
-const TOOL_NAMES = {
-  relations: { name: '关系图谱', icon: 'Share' },
-  timeline: { name: '时间线', icon: 'Clock' },
-  branches: { name: '故事分支', icon: 'Connection' },
-  structure: { name: '结构舞台', icon: 'Grid' },
-} as const
+// 工具映射：数字键 -> 工具ID
+const toolIndexMap: Record<string, ToolType> = {
+  '1': 'relations',
+  '2': 'timeline',
+  '3': 'branches',
+  '4': 'structure',
+}
 
-/** 打开全屏工具 */
-function handleOpenFullscreenTool(tool: string) {
-  const toolInfo = TOOL_NAMES[tool as keyof typeof TOOL_NAMES]
-  if (toolInfo) {
-    fullscreenTool.value = {
-      name: toolInfo.name,
-      icon: toolInfo.icon,
-      component: tool,
+// 键盘快捷键处理
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Ctrl+G: 打开/关闭工具面板
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'g') {
+    event.preventDefault()
+    toolOverlay.toggle()
+    return
+  }
+
+  // Ctrl+1/2/3/4: 切换工具（仅在工具面板打开时生效）
+  if (toolOverlay.visible.value && (event.ctrlKey || event.metaKey)) {
+    const tool = toolIndexMap[event.key]
+    if (tool) {
+      event.preventDefault()
+      toolOverlay.switchTool(tool)
     }
   }
-}
 
-/** 关闭全屏覆盖层 */
-function handleCloseFullscreen() {
-  fullscreenTool.value = null
-}
-
-// ESC 键监听
-const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && fullscreenTool.value) {
-    handleCloseFullscreen()
+  // Escape: 关闭工具面板
+  if (event.key === 'Escape' && toolOverlay.visible.value) {
+    event.preventDefault()
+    toolOverlay.close()
   }
 }
 
@@ -218,8 +214,15 @@ onUnmounted(() => {
 
 // 暴露方法给父组件
 defineExpose({
-  openFullscreenTool: handleOpenFullscreenTool,
-  closeFullscreen: handleCloseFullscreen,
+  openFullscreenTool: (tool: string) => {
+    toolOverlay.open(tool as ToolType)
+  },
+  closeFullscreen: () => {
+    toolOverlay.close()
+  },
+  openToolOverlay: () => {
+    toolOverlay.open()
+  },
 })
 </script>
 

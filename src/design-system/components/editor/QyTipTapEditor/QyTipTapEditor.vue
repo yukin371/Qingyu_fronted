@@ -120,6 +120,7 @@ const emit = defineEmits<{
     payload: { text: string; from: number; to: number; x: number; y: number; visible: boolean },
   ): void
   (e: 'entity-scan', refs: Array<{ id?: string; name: string; type: string }>): void
+  (e: 'open-tool-overlay'): void
 }>()
 
 type ToolbarCommand =
@@ -309,6 +310,9 @@ const entityCreateDialog = reactive({
   initialName: '',
 })
 
+// 跟踪 @query 在编辑器中的位置，用于创建实体后替换
+const entityCreateRange = reactive({ from: 0, to: 0 })
+
 let completionTimer: ReturnType<typeof setTimeout> | undefined
 
 const editor = useEditor({
@@ -335,13 +339,10 @@ const editor = useEditor({
         return true
       }
 
-      // Ctrl+G: 打开/关闭全屏图谱
+      // Ctrl+G: 打开全屏工具面板
       if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'g') {
         event.preventDefault()
-        graphOverlay.visible = !graphOverlay.visible
-        if (graphOverlay.visible) {
-          loadGraphData()
-        }
+        emit('open-tool-overlay')
         return true
       }
 
@@ -439,6 +440,9 @@ function handleCompletionKeydown(event: KeyboardEvent): boolean {
       event.preventDefault()
       entityCreateDialog.initialName = match[1] || ''
       entityCreateDialog.visible = true
+      // 保存 @query 的位置，以便创建后替换
+      entityCreateRange.from = from - match[0].length + (match[0].startsWith(' ') ? 1 : 0)
+      entityCreateRange.to = from
       completion.visible = false
       return true
     }
@@ -574,7 +578,7 @@ async function searchAllEntities(query: string): Promise<KeywordInfo[]> {
 }
 
 function normalizeKeywordType(rawType: string | undefined, fallback: KeywordInfo['type']): KeywordInfo['type'] {
-  if (rawType === 'character' || rawType === 'location' || rawType === 'item') {
+  if (rawType === 'character' || rawType === 'location' || rawType === 'item' || rawType === 'concept') {
     return rawType
   }
   return fallback
@@ -604,13 +608,25 @@ function buildMockAllEntities(query: string): KeywordInfo[] {
 function insertCompletion(item: KeywordInfo) {
   if (!editor.value) return
 
-  // 统一使用 @ 格式
-  const insertText = `@${item.name} `
-
   const from = completion.from || editor.value.state.selection.from
   const to = completion.to || editor.value.state.selection.from
 
-  editor.value.chain().focus().insertContentAt({ from, to }, insertText).run()
+  // 插入带 SmartKeyword mark 的内容
+  editor.value.chain().focus().insertContentAt({ from, to }, [
+    {
+      type: 'text',
+      text: `@${item.name}`,
+      marks: [{
+        type: 'smartKeyword',
+        attrs: {
+          keywordId: item.id || null,
+          keywordType: item.type,
+          keywordName: item.name,
+        },
+      }],
+    },
+    { type: 'text', text: ' ' },
+  ]).run()
   completion.visible = false
 }
 
@@ -702,23 +718,106 @@ function getSelectedText(): string {
 
 // 处理补全中的创建请求
 function handleCompletionCreate(query: string) {
+  // 保存 @query 的位置，以便创建后替换
+  entityCreateRange.from = completion.from
+  entityCreateRange.to = completion.to
   completion.visible = false
   entityCreateDialog.initialName = query
   entityCreateDialog.visible = true
 }
 
 // 处理实体创建
-function handleEntityCreate(entity: { name: string; type: string; summary?: string }) {
+async function handleEntityCreate(entity: {
+  name: string
+  type: string
+  summary?: string
+  alias?: string[]
+  traits?: string[]
+  roleTag?: string
+  category?: string
+}) {
   entityCreateDialog.visible = false
+  if (!editor.value) return
 
-  // 在编辑器中插入标记
-  if (editor.value) {
-    const insertText = `@${entity.name} `
-    editor.value.chain().focus().insertContent(insertText).run()
+  let createdId: string | undefined
+
+  try {
+    switch (entity.type) {
+      case 'character': {
+        const { characterApi } = await import('@/modules/writer/api/character')
+        const resp = await characterApi.create(props.projectId, {
+          projectId: props.projectId,
+          name: entity.name,
+          alias: entity.alias,
+          traits: [...(entity.traits || []), ...(entity.roleTag ? [entity.roleTag] : [])],
+          summary: entity.summary,
+        })
+        createdId = (resp as any)?.data?.id || (resp as any)?.id
+        break
+      }
+      case 'location': {
+        const { locationApi } = await import('@/modules/writer/api/location')
+        const resp = await locationApi.create(props.projectId, {
+          projectId: props.projectId,
+          name: entity.name,
+          description: entity.summary,
+        })
+        createdId = (resp as any)?.data?.id || (resp as any)?.id
+        break
+      }
+      case 'concept': {
+        const { conceptApi } = await import('@/modules/writer/api/concept')
+        const resp = await conceptApi.create(props.projectId, {
+          projectId: props.projectId,
+          name: entity.name,
+          summary: entity.summary,
+          category: entity.category,
+          alias: entity.alias,
+        })
+        createdId = (resp as any)?.data?.id || (resp as any)?.id
+        break
+      }
+      default:
+        console.warn('[QyTipTapEditor] 不支持的实体类型:', entity.type)
+    }
+  } catch (err) {
+    console.error('[QyTipTapEditor] 创建实体失败:', err)
+    // toast 提示
+    try {
+      const { message } = await import('@/design-system/services')
+      message.error(`创建实体「${entity.name}」失败`)
+    } catch { /* ignore */ }
   }
 
-  // TODO: 实际调用 API 创建实体
-  console.log('[QyTipTapEditor] 创建实体:', entity)
+  // 插入带 mark 的内容
+  insertEntityMark(entity.name, entity.type, createdId)
+}
+
+function insertEntityMark(name: string, type: string, id?: string) {
+  if (!editor.value) return
+
+  const insertFrom = entityCreateRange.from
+  const insertTo = entityCreateRange.to
+
+  const markAttrs: Record<string, unknown> = {
+    keywordType: type,
+    keywordName: name,
+  }
+  if (id) markAttrs.keywordId = id
+
+  const content = [
+    { type: 'text' as const, text: `@${name}`, marks: [{ type: 'smartKeyword', attrs: markAttrs }] },
+    { type: 'text' as const, text: ' ' },
+  ]
+
+  if (insertFrom > 0 && insertTo > insertFrom) {
+    editor.value.chain().focus()
+      .deleteRange({ from: insertFrom, to: insertTo })
+      .insertContentAt({ from: insertFrom, to: insertFrom }, content)
+      .run()
+  } else {
+    editor.value.chain().focus().insertContent(content).run()
+  }
 }
 
 async function loadGraphData() {

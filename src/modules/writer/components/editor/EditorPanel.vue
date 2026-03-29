@@ -51,16 +51,6 @@
 
         <button
           class="toolbar-button"
-          :aria-label="'角色图谱'"
-          :title="'角色关系图谱'"
-          :class="{ 'toolbar-button--active': showCharacterGraphView }"
-          @click="toggleCharacterGraph"
-        >
-          <QyIcon name="User" />
-        </button>
-
-        <button
-          class="toolbar-button"
           :aria-label="t('editor.focusMode', '专注模式 (F11)')"
           :title="t('editor.focusMode', '专注模式 (F11)')"
           @click="toggleFocusMode"
@@ -81,17 +71,9 @@
         @chapter-click="handleChapterClick"
       />
 
-      <!-- 角色关系图谱 -->
-      <CharacterGraph
-        v-if="showCharacterGraphView && !isFocusMode"
-        :nodes="props.characters"
-        :links="props.characterRelations"
-        @node-click="(node) => emit('characterGraphNodeClick', node.id)"
-        @refresh="emit('characterGraphRefresh')"
-        @add-character="emit('characterGraphAddCharacter')"
-      />
+      <!-- 角色关系图谱已移除，使用全屏工具面板 (Ctrl+G) -->
 
-      <section v-if="isBoardMode && !isFocusMode && !showCharacterGraphView" class="story-board">
+      <section v-if="isBoardMode && !isFocusMode" class="story-board">
         <div class="story-board__grid">
           <article
             v-for="item in boardItems"
@@ -110,7 +92,7 @@
         </div>
       </section>
 
-      <div v-else-if="!showCharacterGraphView" class="editor-workspace" :class="{ 'editor-workspace--focus': isFocusMode }">
+      <div v-else class="editor-workspace" :class="{ 'editor-workspace--focus': isFocusMode }">
         <section class="editor-writing-card" :class="{ 'dual-view': showPreview }">
           <section class="editor-pane editor-pane--editor">
             <header class="section-title">场景正文</header>
@@ -189,7 +171,6 @@ import { useBreakpoints } from '@/composables/useBreakpoints'
 import EditorToolbar from '@/modules/writer/components/EditorToolbar.vue'
 import TimelineBar from '@/modules/writer/components/TimelineBar.vue'
 import FishboneNav from './FishboneNav.vue'
-import CharacterGraph from './CharacterGraph.vue'
 import { renderMarkdown } from '@/modules/writer/utils/markdown'
 import { calculateWordCount } from '@/modules/writer/utils/editor'
 
@@ -205,7 +186,6 @@ interface Props {
   showTimeline?: boolean
   timelineId?: string
   showFishbone?: boolean
-  showCharacterGraph?: boolean
   volumes?: Array<{
     id: string
     title: string
@@ -246,9 +226,6 @@ interface Emits {
   (e: 'addToAIContext', _selectedText: string): void
   (e: 'volumeClick', _volumeId: string): void
   (e: 'chapterClick', _chapterId: string): void
-  (e: 'characterGraphNodeClick', _nodeId: string): void
-  (e: 'characterGraphRefresh'): void
-  (e: 'characterGraphAddCharacter'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -263,7 +240,6 @@ const props = withDefaults(defineProps<Props>(), {
   showTimeline: false,
   timelineId: '',
   showFishbone: true,
-  showCharacterGraph: false,
   volumes: () => [],
   currentVolumeId: '',
   currentChapterId: '',
@@ -276,7 +252,6 @@ const { t } = useI18n()
 
 const editorContentRef = ref<HTMLDivElement>()
 const isFocusMode = ref(false)
-const showCharacterGraphView = ref(false)
 const saveStatus = ref<'saved' | 'saving' | 'unsaved'>('saved')
 const cursorPosition = ref({ line: 1, column: 1 })
 const selectionAddButton = ref({
@@ -551,10 +526,6 @@ const handleAIAssistant = () => {
 
 const toggleFocusMode = () => {
   isFocusMode.value = !isFocusMode.value
-}
-
-const toggleCharacterGraph = () => {
-  showCharacterGraphView.value = !showCharacterGraphView.value
 }
 
 onMounted(() => {
