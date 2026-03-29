@@ -453,8 +453,11 @@ const handleOpenGraph = async (chapterId: string) => {
   await router.replace({ query: nextQuery })
 }
 
-// 处理大纲节点选择 - 加载关联文档内容
+// 处理大纲节点选择 - 设置当前节点并加载关联文档内容
 const handleOutlineSelect = async (node: OutlineNode) => {
+  // 设置当前选中的大纲节点
+  writerStore.setCurrentOutlineNode(node)
+
   // 如果节点关联了文档，切换到该文档
   if (node.documentId) {
     // 如果在百科/关系图谱视图，保持在该视图
@@ -484,26 +487,15 @@ const handleCreateOutlineRoot = async () => {
     const volumeCount = flatChapters.value.filter((ch) => ch.nodeType === 'directory').length
     const defaultTitle = `卷 ${volumeCount + 1}`
 
-    // 1. 先创建卷（volume）
-    const volumeResponse = (await createDocument(currentProjectId.value, {
+    // 创建卷（volume），后端会自动同步创建对应的大纲节点
+    await createDocument(currentProjectId.value, {
       projectId: currentProjectId.value,
       title: defaultTitle,
       type: DocumentType.VOLUME,
       order: volumeCount,
-    })) as any
-
-    const volumeId = volumeResponse.documentId
-
-    // 2. 创建对应的1级细纲
-    await outlineApi.create(currentProjectId.value, {
-      title: defaultTitle,
-      type: 'arc', // 1级细纲使用 "arc" 类型
-      tension: 5,
-      documentId: volumeId, // 绑定到卷
-      order: volumeCount,
     })
 
-    // 3. 重新加载数据
+    // 重新加载数据
     await Promise.all([
       documentStore.loadTree(currentProjectId.value),
       loadOutlineTree(),

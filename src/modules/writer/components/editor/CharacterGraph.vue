@@ -9,6 +9,25 @@
           {{ nodes.length }} 位角色
         </el-tag>
       </div>
+
+      <!-- 视图切换器 -->
+      <div v-if="showViewSwitcher" class="view-switcher">
+        <button
+          class="view-btn"
+          :class="{ active: viewMode === 'project' }"
+          @click="setViewMode('project')"
+        >
+          全局视图
+        </button>
+        <button
+          class="view-btn"
+          :class="{ active: viewMode === 'chapter' }"
+          @click="setViewMode('chapter')"
+        >
+          当前章节
+        </button>
+      </div>
+
       <div class="header-actions">
         <el-tooltip content="刷新图谱" placement="bottom">
           <button class="action-btn" @click="handleRefresh">
@@ -26,6 +45,17 @@
           </button>
         </el-tooltip>
       </div>
+    </div>
+
+    <!-- 章节上下文提示（仅章节视图显示） -->
+    <div v-if="viewMode === 'chapter' && chapterTitle" class="chapter-context">
+      <span class="context-icon">📖</span>
+      <span class="context-text">
+        正在查看：{{ chapterTitle }}
+      </span>
+      <button class="context-btn" @click="setViewMode('project')">
+        切换到全局
+      </button>
     </div>
 
     <!-- 图谱画布 -->
@@ -229,6 +259,9 @@ interface Props {
   links: GraphLink[]
   loading?: boolean
   showLinkLabels?: boolean
+  showViewSwitcher?: boolean
+  viewMode?: 'project' | 'chapter'
+  chapterTitle?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -236,6 +269,9 @@ const props = withDefaults(defineProps<Props>(), {
   links: () => [],
   loading: false,
   showLinkLabels: true,
+  showViewSwitcher: false,
+  viewMode: 'project',
+  chapterTitle: '',
 })
 
 const emit = defineEmits<{
@@ -244,6 +280,7 @@ const emit = defineEmits<{
   (e: 'createLink', fromId: string, toId: string): void
   (e: 'refresh'): void
   (e: 'addCharacter'): void
+  (e: 'viewModeChange', mode: 'project' | 'chapter'): void
 }>()
 
 // Refs
@@ -401,6 +438,10 @@ function handleAddCharacter() {
   emit('addCharacter')
 }
 
+function setViewMode(mode: 'project' | 'chapter') {
+  emit('viewModeChange', mode)
+}
+
 // 初始化力导向图
 function initSimulation() {
   if (!canvasRef.value || !svgRef.value) return
@@ -541,30 +582,89 @@ watch(() => [props.nodes, props.links], () => {
   padding: 14px 20px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  
+
   .header-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    
+
     .header-icon {
       font-size: 20px;
       color: var(--color-primary);
     }
-    
+
     .header-title {
       font-size: 16px;
       font-weight: 600;
       font-family: 'Noto Serif SC', Georgia, serif;
     }
-    
+
     .node-count {
       background: rgba(201, 169, 98, 0.15);
       color: var(--color-primary);
       border-color: var(--color-primary);
     }
   }
-  
+
+  .view-switcher {
+    display: flex;
+    gap: 4px;
+    background: rgba(201, 169, 98, 0.1);
+    padding: 3px;
+    border-radius: 6px;
+  }
+
+  .view-btn {
+    padding: 4px 12px;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    &.active {
+      background: var(--color-primary);
+      color: var(--color-bg);
+    }
+  }
+
+  .chapter-context {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(201, 169, 98, 0.1);
+    border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+    font-size: 12px;
+
+    .context-icon {
+      font-size: 14px;
+    }
+
+    .context-text {
+      color: var(--color-primary);
+    }
+
+    .context-btn {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--color-primary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
   .header-actions {
     display: flex;
     gap: 8px;
