@@ -24,7 +24,6 @@
 
     <!-- 操作按钮 -->
     <div class="popover-actions">
-      <button class="popover-btn" @click="emit('view-in-graph', keyword!)">在图谱中查看</button>
       <button class="popover-btn popover-btn--primary" @click="emit('jump', keyword!)">编辑设定</button>
     </div>
   </div>
@@ -52,7 +51,6 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'jump', keyword: KeywordInfo): void
-  (e: 'view-in-graph', keyword: KeywordInfo): void
 }>()
 
 const popoverStyle = computed(() => ({

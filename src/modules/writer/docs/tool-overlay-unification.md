@@ -84,5 +84,5 @@ toolOverlay.handleKeyboardEvent(event) // 处理键盘事件
 
 ## 待清理
 
-- [ ] TipTapEditor 中的 QyGraphOverlay 相关代码
-- [ ] CharacterGraph.vue 废弃（QyGraphOverlay 仍有引用）
+- [x] TipTapEditor 中的 QyGraphOverlay 相关代码 ✅
+- [x] CharacterGraph.vue 废弃 ✅

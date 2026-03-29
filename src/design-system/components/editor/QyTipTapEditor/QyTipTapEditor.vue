@@ -60,19 +60,6 @@
       @close="entityCreateDialog.visible = false"
       @create="handleEntityCreate"
     />
-
-    <!-- 全屏图谱浮层 -->
-    <QyGraphOverlay
-      :visible="graphOverlay.visible"
-      :project-id="projectId"
-      :chapter-id="documentId || ''"
-      :loading="graphOverlay.loading"
-      :nodes="graphOverlay.nodes"
-      :links="graphOverlay.links"
-      @close="graphOverlay.visible = false"
-      @scope-change="handleGraphScopeChange"
-      @view-encyclopedia="handleViewEncyclopedia"
-    />
   </div>
 </template>
 
@@ -89,7 +76,6 @@ import Image from '@tiptap/extension-image'
 import QyKeywordPopover from '../QySmartKeyword/QyKeywordPopover.vue'
 import QyCompletionPopover from '../QySmartKeyword/QyCompletionPopover.vue'
 import QyEntityCreateDialog from '../QySmartKeyword/QyEntityCreateDialog.vue'
-import QyGraphOverlay from '../QySmartKeyword/QyGraphOverlay.vue'
 import { SmartKeyword, type KeywordInfo } from '../QySmartKeyword/extensions/SmartKeyword'
 import { ParagraphWithId } from '../QySmartKeyword/extensions/ParagraphWithId'
 import { searchProjectKeywords, type ParagraphContent } from '@/modules/writer/api/wrapper'
@@ -293,13 +279,6 @@ const keywordCard = reactive<{ visible: boolean; x: number; y: number; keyword: 
   x: 0,
   y: 0,
   keyword: null,
-})
-
-const graphOverlay = reactive({
-  visible: false,
-  loading: false,
-  nodes: [] as Array<{ id: string; name: string; avatar?: string; importance?: number; summary?: string }>,
-  links: [] as Array<{ source: string; target: string; type: string; strength: number; id?: string }>,
 })
 
 const keywordCardRelations = ref<Array<{ targetName: string; type: string; strength: number }>>([])
@@ -651,20 +630,6 @@ function handleEditorClick(event: MouseEvent) {
   keywordCard.visible = true
   keywordCard.x = event.clientX + 12
   keywordCard.y = event.clientY + 12
-
-  // 查找该实体的关系
-  const entityId = keywordEl.getAttribute('data-keyword-id')
-  if (entityId) {
-    keywordCardRelations.value = graphOverlay.links
-      .filter(l => l.source === entityId || l.target === entityId)
-      .map(l => ({
-        targetName: l.source === entityId
-          ? graphOverlay.nodes.find(n => n.id === l.target)?.name || l.target
-          : graphOverlay.nodes.find(n => n.id === l.source)?.name || l.source,
-        type: l.type,
-        strength: l.strength,
-      }))
-  }
 }
 
 function emitSelectionChange(currentEditor: CoreEditor) {
@@ -818,55 +783,6 @@ function insertEntityMark(name: string, type: string, id?: string) {
   } else {
     editor.value.chain().focus().insertContent(content).run()
   }
-}
-
-async function loadGraphData() {
-  if (!props.projectId) return
-  graphOverlay.loading = true
-  try {
-    const { characterApi } = await import('@/modules/writer/api/character')
-    const resp = await characterApi.getGraph(props.projectId)
-    const payload = resp as any
-    const data = payload?.data || payload
-    const chars = data?.characters || data?.nodes || []
-    const rels = data?.relations || data?.links || []
-    graphOverlay.nodes = chars.map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      avatar: c.avatarUrl,
-      importance: 1,
-      summary: c.summary,
-    }))
-    graphOverlay.links = rels.map((r: any) => ({
-      source: r.fromId || r.source,
-      target: r.toId || r.target,
-      type: r.type,
-      strength: r.strength,
-      id: r.id,
-    }))
-  } catch (err) {
-    console.error('[QyTipTapEditor] 加载图谱数据失败:', err)
-  } finally {
-    graphOverlay.loading = false
-  }
-}
-
-function handleGraphScopeChange(scope: string) {
-  // TODO: 根据 scope 重新加载对应范围的图谱数据
-  console.log('[QyTipTapEditor] Graph scope changed:', scope)
-}
-
-function handleKeywordViewInGraph(_keyword: { id?: string; type: string; name: string; summary?: string }) {
-  keywordCard.visible = false
-  graphOverlay.visible = true
-  if (!graphOverlay.nodes.length) {
-    loadGraphData()
-  }
-}
-
-function handleViewEncyclopedia(nodeId: string) {
-  // TODO: 导航到百科页面
-  console.log('[QyTipTapEditor] View in encyclopedia:', nodeId)
 }
 
 onBeforeUnmount(() => {
