@@ -145,6 +145,43 @@
 
           <!-- 图谱视图 -->
           <div v-if="viewMode === 'graph'" class="graph-view-content">
+          <!-- 实体作用域 tab（仅在卷/章节模式下显示） -->
+          <div v-if="currentChapterId" class="entity-scope-tabs" data-testid="entity-scope-tabs">
+            <button
+              class="entity-scope-tab"
+              :class="{ 'is-active': entityScopeTab === 'all' }"
+              @click="entityScopeTab = 'all'"
+            >
+              全部
+            </button>
+            <button
+              class="entity-scope-tab"
+              :class="{ 'is-active': entityScopeTab === 'volume' }"
+              @click="entityScopeTab = 'volume'"
+            >
+              卷级
+            </button>
+            <button
+              class="entity-scope-tab"
+              :class="{ 'is-active': entityScopeTab === 'chapter' }"
+              @click="entityScopeTab = 'chapter'"
+            >
+              章节级
+            </button>
+          </div>
+
+          <!-- 实体登场状态图例 -->
+          <div v-if="!isGlobalGraph" class="entity-legend">
+            <span class="entity-legend-item">
+              <span class="legend-dot is-appeared"></span>
+              已登场
+            </span>
+            <span class="entity-legend-item">
+              <span class="legend-dot is-unappeared"></span>
+              未登场
+            </span>
+          </div>
+
           <!-- 全局图谱（无数据 - 创建引导） -->
           <div v-if="shouldShowGlobalCreationGuide" class="graph-creation-guide">
             <div class="guide-content">
@@ -719,6 +756,7 @@ const emit = defineEmits<{
 const selectedCharacter = ref<Character | null>(null)
 const dialogVisible = ref(false)
 const viewMode = ref<'graph' | 'storyline'>('graph')
+const entityScopeTab = ref<'all' | 'volume' | 'chapter'>('all') // 实体作用域 tab：全部 / 卷级 / 章节级
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref()
@@ -1173,14 +1211,55 @@ const graphStatusChips = computed(() => {
   return chips
 })
 
+// 当前卷内各章节已@引用（已绑定）的角色 ID 集合
+const volumeAppearedCharacterIds = computed<Set<string>>(() => {
+  const result = new Set<string>()
+  if (!currentScopeVolumeId.value) return result
+  for (const chapterId of currentVolumeChapterIds.value) {
+    for (const asset of assetRefState.value.chapterRefs[chapterId] || []) {
+      if (asset.assetType === 'character' && asset.assetId) {
+        result.add(asset.assetId)
+      }
+    }
+  }
+  return result
+})
+
+// 当前章节已@引用（已绑定）的角色 ID 集合
+const chapterAppearedCharacterIds = computed<Set<string>>(() => {
+  const result = new Set<string>()
+  if (!currentChapterId.value || currentScopeType.value !== 'chapter') return result
+  for (const asset of chapterBoundAssetRefs.value) {
+    if (asset.assetType === 'character' && asset.assetId) {
+      result.add(asset.assetId)
+    }
+  }
+  return result
+})
+
+// 当前作用域下已登场的角色 ID 集合（根据 entityScopeTab 切换）
+const currentScopeAppearedIds = computed<Set<string>>(() => {
+  if (entityScopeTab.value === 'chapter') {
+    return chapterAppearedCharacterIds.value
+  }
+  if (entityScopeTab.value === 'volume') {
+    return volumeAppearedCharacterIds.value
+  }
+  // 'all': 合并卷级和章节级
+  return new Set([...volumeAppearedCharacterIds.value, ...chapterAppearedCharacterIds.value])
+})
+
 // 转换角色数据为图谱节点
 const graphNodes = computed<GraphNode[]>(() => {
+  const appearedIds = currentScopeAppearedIds.value
+
   if (isGlobalGraph.value) {
     return characters.value.map((character) => ({
       id: character.id,
       name: character.name,
       importance: character.traits?.length || 0,
-      }))
+      isAppeared: appearedIds.has(character.id),
+    }))
   }
 
   const chapterCharIds = new Set([
@@ -1217,6 +1296,7 @@ const graphNodes = computed<GraphNode[]>(() => {
         !chapterCharIds.has(character.id) &&
         !localBoundCharIds.has(character.id) &&
         (inheritedCharIds.has(character.id) || inheritedBoundCharIds.has(character.id)),
+      isAppeared: appearedIds.has(character.id),
     }))
 })
 
@@ -2073,6 +2153,71 @@ const handleOutlineNodeClick = (node: any) => {
   color: #409eff;
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+// 实体作用域切换 tabs
+.entity-scope-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: #f0f2f5;
+  border-radius: 6px;
+  margin: 8px 8px 0 8px;
+  align-self: flex-start;
+}
+
+.entity-scope-tab {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #606266;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #409eff;
+    background: rgba(64, 158, 255, 0.06);
+  }
+
+  &.is-active {
+    background: #fff;
+    color: #409eff;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// 图谱实体状态图例
+.entity-legend {
+  display: flex;
+  gap: 14px;
+  margin: 6px 8px 0 8px;
+  align-self: flex-start;
+}
+
+.entity-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #909399;
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &.is-appeared {
+      background: #5b8cff;
+    }
+
+    &.is-unappeared {
+      background: #c4c8d4;
+      border: 1px dashed #a0a4b0;
+    }
+  }
 }
 
 .graph-view-content {

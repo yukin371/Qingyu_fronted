@@ -31,6 +31,7 @@ export interface GraphNode {
   avatar?: string
   importance?: number
   isInherited?: boolean      // 是否继承自父图谱
+  isAppeared?: boolean       // 是否已通过@引用登场（true=已登场高亮，false/undefined=未登场灰显）
 }
 
 export interface GraphLink {
@@ -176,14 +177,24 @@ function initGraph() {
     .attr('class', 'node')
     .attr('data-id', (d: GraphNode) => d.id)
 
-  // 节点圆形
+  // 节点圆形 — 已登场/未登场视觉区分
   node
     .append('circle')
     .attr('r', (d: GraphNode) => 15 + (d.importance || 3) * 2)
-    .attr('fill', '#5b8cff')
-    .attr('stroke', '#fff')
+    .attr('fill', (d: GraphNode) =>
+      d.isAppeared === false ? '#c4c8d4' : (d.isInherited ? '#a0b4f0' : '#5b8cff'),
+    )
+    .attr('stroke', (d: GraphNode) =>
+      d.isAppeared === false ? '#d0d4de' : '#fff',
+    )
     .attr('stroke-width', 2)
+    .attr('stroke-dasharray', (d: GraphNode) =>
+      d.isAppeared === false ? '4,3' : 'none',
+    )
     .style('cursor', 'pointer')
+    .style('opacity', (d: GraphNode) =>
+      d.isAppeared === false ? 0.55 : 1,
+    )
 
   // 节点标签
   node
@@ -193,7 +204,9 @@ function initGraph() {
     .attr('y', (d: GraphNode) => 20 + (d.importance || 3) * 2)
     .attr('text-anchor', 'middle')
     .attr('font-size', '12px')
-    .attr('fill', '#333')
+    .attr('fill', (d: GraphNode) =>
+      d.isAppeared === false ? '#9ca3af' : '#333',
+    )
     .style('pointer-events', 'none')
 
   // 添加拖拽行为（移动节点）
@@ -250,9 +263,14 @@ function initGraph() {
     }
   })
 
-  node.on('mouseleave', function (this: any) {
+  node.on('mouseleave', function (this: any, _event: MouseEvent, d: GraphNode) {
     hoveredNodeId = null
-    d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', 2)
+    const circle = d3.select(this).select('circle')
+    const isUnappeared = d.isAppeared === false
+    circle
+      .attr('stroke', isUnappeared ? '#d0d4de' : '#fff')
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', isUnappeared ? '4,3' : 'none')
   })
 
   // 力导向布局
@@ -344,11 +362,14 @@ function initGraph() {
   function lineDragEnded(_event: any) {
     // 重置源节点高亮
     if (sourceNode) {
+      const srcNode = sourceNode as unknown as GraphNode
+      const isUnappeared = srcNode.isAppeared === false
       node
         .filter((n: GraphNode) => n.id === sourceNode!.id)
         .select('circle')
-        .attr('stroke', '#fff')
+        .attr('stroke', isUnappeared ? '#d0d4de' : '#fff')
         .attr('stroke-width', 2)
+        .attr('stroke-dasharray', isUnappeared ? '4,3' : 'none')
     }
 
     // 检查是否落在某个节点上

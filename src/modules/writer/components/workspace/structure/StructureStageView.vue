@@ -161,7 +161,30 @@
           @jump-to-chapter="emit('jumpToChapter', $event)"
         />
 
-        <!-- 模式 3: 节拍卡片 -->
+        <!-- 模式 3: 自由画布 -->
+        <CanvasOutlineBoard
+          v-if="stageViewMode === 'canvas'"
+          :nodes="filteredRootNodes"
+          :selected-node-id="selectedNodeId"
+          :chapters="chapterOptions"
+          :chapter-graphs="chapterGraphs"
+          :asset-summary-by-chapter-id="assetSummaryByChapterId"
+          :current-chapter-id="currentChapterId"
+          :loading="isOutlineLoading"
+          :can-move-up="canMoveNodeUp"
+          :can-move-down="canMoveNodeDown"
+          @select="selectNode"
+          @edit-node="handleCanvasEditNode"
+          @move-up="moveNodeUp"
+          @move-down="moveNodeDown"
+          @create-child-node="openCreateChildForNode"
+          @delete-node="handleCanvasDeleteNode"
+          @update-status="updateNodeStatus"
+          @open-graph="emit('openGraph', $event)"
+          @jump-to-chapter="emit('jumpToChapter', $event)"
+        />
+
+        <!-- 模式 4: 节拍卡片 -->
         <BeatBoardPanel
           v-if="stageViewMode === 'beats'"
           :beats="filteredFlattenedNodes"
@@ -230,6 +253,7 @@ import { DocumentStatus } from '@/modules/writer/types/document'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import FishboneOutlineBoard from './FishboneOutlineBoard.vue'
+import CanvasOutlineBoard from './CanvasOutlineBoard.vue'
 import BeatBoardPanel from './BeatBoardPanel.vue'
 import StructureInspectorPanel from './StructureInspectorPanel.vue'
 import StructureNodeEditorDialog, { type StructureNodeFormValue } from './StructureNodeEditorDialog.vue'
@@ -258,7 +282,7 @@ type StructureFilterMode =
   | 'graph-missing'
   | 'graph-ready'
   | 'graph-inherit'
-type StageViewMode = 'overview' | 'fishbone' | 'beats'
+type StageViewMode = 'overview' | 'fishbone' | 'canvas' | 'beats'
 
 type TreeDropPosition = 'before' | 'after'
 
@@ -327,6 +351,7 @@ const stageViewMode = ref<StageViewMode>('overview')
 const viewModeOptions: Array<{ value: StageViewMode; label: string; icon: string }> = [
   { value: 'overview', label: '分叉总览', icon: 'Connection' },
   { value: 'fishbone', label: '鱼骨聚焦', icon: 'Workflow' },
+  { value: 'canvas', label: '自由画布', icon: 'Grid' },
   { value: 'beats', label: '节拍卡片', icon: 'Card' },
 ]
 const draftBindingChapterId = ref('')
@@ -802,6 +827,31 @@ async function submitNodeEditor(value: StructureNodeFormValue) {
   } finally {
     editorSubmitting.value = false
   }
+}
+
+/**
+ * 画布编辑节点：双击改名时，直接更新标题（不走编辑弹窗）
+ */
+async function handleCanvasEditNode(node: OutlineNode) {
+  if (!effectiveProjectId.value) return
+  // 画布双击编辑时，打开编辑弹窗以保留完整表单能力
+  openEditNode(node)
+}
+
+/**
+ * 画布删除节点
+ */
+async function handleCanvasDeleteNode(node: OutlineNode) {
+  if (!effectiveProjectId.value) return
+  await messageBox.confirm(`确定删除结构节点"${node.title}"吗？`, '删除节点', {
+    type: 'warning',
+  })
+  await writerStore.deleteOutlineNode(node.id, effectiveProjectId.value)
+  if (selectedNodeId.value === node.id) {
+    selectedNodeId.value = ''
+    draftBindingChapterId.value = ''
+  }
+  message.success('结构节点已删除')
 }
 
 async function handleRefresh() {
