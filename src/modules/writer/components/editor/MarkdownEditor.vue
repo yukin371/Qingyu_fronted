@@ -166,13 +166,13 @@ function handleChange(value: string) {
   saveStatus.value = 'unsaved'
   editorStore.markDirty()
 
-  // 防抖自动保存
+  // 防抖自动保存（300ms debounce）
   if (saveTimeout) {
     clearTimeout(saveTimeout)
   }
   saveTimeout = setTimeout(() => {
     handleSave(value)
-  }, 3000)
+  }, 300)
 }
 
 // 处理保存

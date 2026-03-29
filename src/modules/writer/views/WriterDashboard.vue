@@ -185,6 +185,7 @@ import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
 import { getTodayWordsStats } from '@/modules/writer/api/dashboard'
+import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -271,13 +272,20 @@ onMounted(async () => {
       return acc + (cur.totalWords ?? cur.wordCount ?? 0)
     }, 0)
     stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
-    // 调用今日写作字数API
+
+    // 今日码字：后端API优先，无则前端本地计算
     try {
       const todayStats = await getTodayWordsStats()
-      stats.value.todayWords = todayStats.todayWords
+      if (todayStats && todayStats.todayWords > 0) {
+        stats.value.todayWords = todayStats.todayWords
+      } else {
+        // 后端无数据，使用本地计算
+        stats.value.todayWords = getGlobalTodayWords()
+      }
     } catch {
-      console.warn('[WriterDashboard] 获取今日字数失败，使用默认值0')
-      stats.value.todayWords = 0
+      // API 调用失败，使用本地计算
+      console.warn('[WriterDashboard] 获取今日字数失败，使用本地计算')
+      stats.value.todayWords = getGlobalTodayWords()
     }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)

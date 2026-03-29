@@ -713,6 +713,13 @@ async function unbindChapterForNode(node: OutlineNode) {
 async function bindChapterForNode(node: OutlineNode, chapterId: string) {
   if (!effectiveProjectId.value) return
 
+  // 只有 volume 类型的大纲节点才能自动映射到章节
+  const nodeWithType = node as OutlineNode & { type?: string }
+  if (nodeWithType.type && nodeWithType.type !== 'volume') {
+    message.warning('只有卷级别的大纲节点才能绑定章节')
+    return
+  }
+
   await writerStore.updateOutlineNode(node.id, effectiveProjectId.value, {
     title: node.title,
     status:
@@ -732,6 +739,14 @@ async function bindChapterForNode(node: OutlineNode, chapterId: string) {
 
 async function bindCurrentChapterForNode(node: OutlineNode) {
   if (!props.currentChapterId) return
+
+  // 只有 volume 类型的大纲节点才能自动映射到章节
+  const nodeWithType = node as OutlineNode & { type?: string }
+  if (nodeWithType.type && nodeWithType.type !== 'volume') {
+    message.warning('只有卷级别的大纲节点才能绑定章节')
+    return
+  }
+
   await bindChapterForNode(node, props.currentChapterId)
 }
 

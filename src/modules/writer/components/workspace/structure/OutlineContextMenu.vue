@@ -40,6 +40,41 @@
 
         <div class="context-menu__divider"></div>
 
+        <!-- 转为章节菜单 -->
+        <div
+          v-if="canConvertToChapter && volumeNodes.length > 0"
+          class="context-menu__group context-menu__group--submenu"
+          @mouseenter="showSubmenu = true"
+          @mouseleave="showSubmenu = false"
+        >
+          <button
+            type="button"
+            class="context-menu__item context-menu__item--submenu"
+            :disabled="volumeNodes.length === 0"
+          >
+            <QyIcon name="FileText" :size="14" />
+            <span>转为章节</span>
+            <QyIcon name="ChevronRight" :size="12" class="submenu-arrow" />
+          </button>
+          <!-- 子菜单：卷列表 -->
+          <Transition name="submenu">
+            <div v-if="showSubmenu && volumeNodes.length > 0" class="context-menu__submenu">
+              <button
+                v-for="volume in volumeNodes"
+                :key="volume.id"
+                type="button"
+                class="context-menu__item context-menu__item--submenu-item"
+                @click="handleConvertToChapter(volume)"
+              >
+                <span class="volume-icon">📁</span>
+                <span class="volume-title">{{ volume.title }}</span>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <div class="context-menu__divider"></div>
+
         <div class="context-menu__group">
           <button
             type="button"
@@ -64,8 +99,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
+import type { OutlineNode } from '@/types/writer'
 
 // =======================
 // Props 定义
@@ -75,6 +111,8 @@ const props = defineProps<{
   canCreateChild: boolean
   canMoveUp: boolean
   canMoveDown: boolean
+  volumeNodes?: OutlineNode[] // 所有卷级别节点
+  canConvertToChapter?: boolean // 是否可以转为章节（非 volume 类型节点）
 }>()
 
 // =======================
@@ -87,6 +125,7 @@ const emit = defineEmits<{
   (e: 'edit'): void
   (e: 'delete'): void
   (e: 'close'): void
+  (e: 'convertToChapter', volumeNode: OutlineNode): void
 }>()
 
 // =======================
@@ -94,6 +133,10 @@ const emit = defineEmits<{
 // =======================
 const menuRef = ref<HTMLElement | null>(null)
 const position = ref({ x: 0, y: 0 })
+const showSubmenu = ref(false)
+
+// 默认为空数组
+const volumeNodes = computed(() => props.volumeNodes || [])
 
 // =======================
 // 菜单位置计算
@@ -121,6 +164,7 @@ function adjustPosition() {
 // =======================
 function show(x: number, y: number) {
   position.value = { x, y }
+  showSubmenu.value = false
   nextTick(() => {
     adjustPosition()
   })
@@ -147,6 +191,12 @@ function handleEscape(event: KeyboardEvent) {
   if (event.key === 'Escape' && props.visible) {
     emit('close')
   }
+}
+
+// 转为章节处理
+function handleConvertToChapter(volumeNode: OutlineNode) {
+  emit('convertToChapter', volumeNode)
+  emit('close')
 }
 
 // =======================
@@ -189,6 +239,10 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 2px;
+
+  &--submenu {
+    position: relative;
+  }
 }
 
 .context-menu__divider {
@@ -240,9 +294,54 @@ defineExpose({
     }
   }
 
+  &--submenu {
+    justify-content: flex-start;
+
+    .submenu-arrow {
+      margin-left: auto;
+      opacity: 0.5;
+    }
+  }
+
+  &--submenu-item {
+    padding-left: 20px;
+
+    .volume-icon {
+      font-size: 12px;
+    }
+
+    .volume-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--editor-bg-elevated, #f1f5f9);
+    }
+  }
+
   span {
     flex: 1;
   }
+}
+
+// 子菜单
+.context-menu__submenu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 160px;
+  background: var(--editor-bg-base, #ffffff);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  border-radius: var(--editor-radius-lg, 8px);
+  box-shadow: var(--editor-shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.15));
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10000;
+  margin-left: 4px;
 }
 
 // 过渡动画
@@ -255,6 +354,18 @@ defineExpose({
 .context-menu-leave-to {
   opacity: 0;
   transform: scale(0.95);
+}
+
+// 子菜单过渡动画
+.submenu-enter-active,
+.submenu-leave-active {
+  transition: opacity 100ms ease-out, transform 100ms ease-out;
+}
+
+.submenu-enter-from,
+.submenu-leave-to {
+  opacity: 0;
+  transform: translateX(-4px);
 }
 
 @media (prefers-reduced-motion: reduce) {

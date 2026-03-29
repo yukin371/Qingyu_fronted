@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, watch, ref } from 'vue'
 import type { Editor } from '@tiptap/core'
 import { QyTipTapEditor } from '@/design-system/components/editor'
 import type { KeywordInfo } from '@/design-system/components/editor'
@@ -107,6 +107,10 @@ import { useEntityScanner } from '@/modules/writer/composables/useEntityScanner'
 import type { ParagraphContent } from '@/modules/writer/api/wrapper'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
+
+// 内容变化检测常量
+const CONTENT_CHANGE_THRESHOLD = 5 // 变化超过5个字符才标记为未保存
+const AUTOSAVE_DEBOUNCE = 300 // 300ms debounce
 
 const props = withDefaults(
   defineProps<{
@@ -154,12 +158,87 @@ const {
 const plainTextContent = computed(() => extractPlainTextFromEditorContent(props.modelValue || ''))
 const isDocumentEmpty = computed(() => plainTextContent.value.trim().length === 0)
 
+// 内容变化检测状态
+const lastSavedContent = ref<string>('') // 上一次保存的内容（纯文本）
+let contentChangeTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 检测内容是否有实质性变化
+ * @param newContent 新内容（纯文本）
+ * @returns 是否有实质性变化
+ */
+function hasSubstantialChange(newContent: string): boolean {
+  if (!lastSavedContent.value) {
+    // 首次加载，不需要标记为未保存
+    return false
+  }
+  const diff = Math.abs(newContent.length - lastSavedContent.value.length)
+  return diff >= CONTENT_CHANGE_THRESHOLD
+}
+
+/**
+ * 处理内容变化 - 标记为未保存但延迟保存
+ */
+function handleContentChange(newContent: string) {
+  const plainText = extractPlainTextFromEditorContent(newContent)
+
+  // 检测是否有实质性变化
+  if (!hasSubstantialChange(plainText)) {
+    return // 变化太小，忽略
+  }
+
+  // 标记为未保存
+  editorStore.markDirty()
+
+  // 清除之前的定时器
+  if (contentChangeTimer) {
+    clearTimeout(contentChangeTimer)
+  }
+
+  // 设置新的定时器，debounce 300ms
+  contentChangeTimer = setTimeout(() => {
+    // 触发保存
+    triggerAutoSave()
+  }, AUTOSAVE_DEBOUNCE)
+}
+
+/**
+ * 触发自动保存
+ */
+function triggerAutoSave() {
+  if (!editorStore.tipTapEditor) return
+
+  const doc = editorStore.tipTapEditor.getJSON()
+  const contents: ParagraphContent[] = [{
+    paragraphId: 'main',
+    order: 0,
+    content: JSON.stringify(doc),
+    contentType: 'tiptap_json',
+  }]
+
+  // 更新上一次保存的内容
+  lastSavedContent.value = extractPlainTextFromEditorContent(JSON.stringify(doc))
+
+  // 执行保存
+  editorStore.saveParagraphs(contents)
+}
+
 // 监听内容变化，触发实体扫描
 watch(plainTextContent, (text) => {
   if (text.length > 0) {
     scheduleScan(text)
   }
 })
+
+// 监听 modelValue 变化，检测内容变化
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue) {
+      handleContentChange(newValue)
+    }
+  }
+)
 const selectionState = reactive({
   text: '',
   from: 0,
@@ -178,6 +257,17 @@ function focusEditor() {
 }
 
 async function handleSave(contents: ParagraphContent[]) {
+  if (!contents || !contents[0]?.content) return
+
+  const currentContent = extractPlainTextFromEditorContent(contents[0].content)
+
+  // 检查是否有实质性变化，如果没有则跳过保存
+  if (lastSavedContent.value && Math.abs(currentContent.length - lastSavedContent.value.length) < CONTENT_CHANGE_THRESHOLD) {
+    return // 变化太小，跳过保存
+  }
+
+  // 保存成功后更新上一次保存的内容
+  lastSavedContent.value = currentContent
   await editorStore.saveParagraphs(contents)
   emit('save', contents)
 }

@@ -1,6 +1,10 @@
 <template>
   <footer class="workspace-statusbar" :class="{ 'workspace-statusbar--immersive': isImmersiveMode }">
     <div class="workspace-statusbar__stats">
+      <!-- 写作统计 -->
+      <WritingStatsChip v-if="displayTotalWords > 0" label="总字数" :value="displayTotalWords" />
+      <WritingStatsChip v-if="displayTodayWords > 0" label="今日" :value="displayTodayWords" class="today-chip" />
+
       <span class="status-chip">{{ chapterCount }} 章节</span>
       <span class="status-chip">{{ directoryCount }} 目录</span>
       <span v-if="activeToolLabel" class="status-chip">{{ activeToolLabel }}</span>
@@ -13,7 +17,7 @@
       </span>
       <span v-if="isImmersiveMode" class="status-chip status-chip--warm">沉浸 {{ immersiveTimerText }}</span>
     </div>
-    <div class="workspace-statusbar__state">
+    <div class="workspace-statusbar__state" :class="saveStatusClass">
       <span class="workspace-statusbar__dot" />
       <span>{{ isImmersiveMode ? '沉浸写作进行中' : (saveStatusLabel || '等待同步') }}</span>
     </div>
@@ -21,7 +25,11 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed, onMounted } from 'vue'
+import WritingStatsChip from '@/modules/writer/components/WritingStatsChip.vue'
+import { useWritingStats, getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
+
+export interface Props {
   chapterCount: number
   directoryCount: number
   activeToolLabel: string
@@ -29,7 +37,45 @@ defineProps<{
   extraStatusChips?: string[]
   isImmersiveMode: boolean
   immersiveTimerText: string
-}>()
+  /** 项目总字数（可选） */
+  projectWordCount?: number
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  extraStatusChips: () => [],
+  isImmersiveMode: false,
+  immersiveTimerText: '',
+  projectWordCount: 0,
+})
+
+// 写作统计 Composable
+const { todayStats, initTodayStats } = useWritingStats()
+
+// 今日码字（优先使用本地计算的值）
+const displayTodayWords = computed(() => {
+  const localToday = getGlobalTodayWords()
+  const statsToday = todayStats.value.todayWords || 0
+  return localToday > 0 ? localToday : statsToday
+})
+
+// 总字数（优先使用传入的项目字数，否则使用今日统计）
+const displayTotalWords = computed(() => {
+  return props.projectWordCount || todayStats.value.todayWords || 0
+})
+
+// 根据保存状态计算样式类
+const saveStatusClass = computed(() => {
+  const label = props.saveStatusLabel
+  if (label === '已保存') return 'status-saved'
+  if (label === '保存中...') return 'status-saving'
+  if (label === '未保存') return 'status-unsaved'
+  return ''
+})
+
+// 初始化统计
+onMounted(() => {
+  initTodayStats()
+})
 </script>
 
 <style scoped lang="scss">
@@ -95,6 +141,19 @@ defineProps<{
   gap: 5px;
   flex-shrink: 0;
   color: var(--editor-text-ghost, #94a3b8);
+  transition: color 0.3s ease;
+
+  &.status-saved {
+    color: #67c23a;
+  }
+
+  &.status-saving {
+    color: #409eff;
+  }
+
+  &.status-unsaved {
+    color: #e6a23c;
+  }
 }
 
 .workspace-statusbar__dot {

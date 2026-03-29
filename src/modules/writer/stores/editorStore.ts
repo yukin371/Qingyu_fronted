@@ -77,13 +77,9 @@ export const useEditorStore = defineStore('writer-editor', () => {
    * 保存状态文本
    */
   const saveStatusText = computed(() => {
-    if (isSaving.value) return '正在保存...'
-    if (isDirty.value) return '有未保存的更改'
-    if (lastSavedAt.value) {
-      const date = new Date(lastSavedAt.value)
-      return `上次保存: ${date.toLocaleTimeString()}`
-    }
-    return ''
+    if (isSaving.value) return '保存中...'
+    if (isDirty.value) return '未保存'
+    return '已保存'
   })
 
   // ==================== Actions ====================

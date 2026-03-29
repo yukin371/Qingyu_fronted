@@ -54,12 +54,15 @@
       :can-create-child="!!selectedNodeId"
       :can-move-up="canMoveUp"
       :can-move-down="canMoveDown"
+      :volume-nodes="volumeNodes"
+      :can-convert-to-chapter="canConvertToChapter"
       @create-child="handleCreateChild"
       @move-up="emit('moveUp')"
       @move-down="emit('moveDown')"
       @edit="handleEdit"
       @delete="handleDelete"
       @close="contextMenuVisible = false"
+      @convert-to-chapter="handleConvertToChapter"
     />
 
     <!-- 编辑对话框 -->
@@ -110,6 +113,7 @@ const emit = defineEmits<{
   (e: 'editSelected', data: UpdateOutlineRequest): void
   (e: 'deleteSelected'): void
   (e: 'reorder', payload: { draggedNodeId: string; targetNodeId: string; position: TreeDropPosition }): void
+  (e: 'convertToChapter', payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }): void
 }>()
 
 const dragState = reactive<{
@@ -217,6 +221,34 @@ const selectedNodeData = computed(() => {
   return findNode(props.nodes, props.selectedNodeId)
 })
 
+// 从大纲树中提取所有 volume 类型的节点
+const volumeNodes = computed<OutlineNode[]>(() => {
+  const result: OutlineNode[] = []
+  const walk = (nodes: OutlineNode[]) => {
+    for (const node of nodes) {
+      // 检查 type 字段（OutlineNode 可能通过扩展属性包含 type）
+      const nodeWithType = node as OutlineNode & { type?: string }
+      if (nodeWithType.type === 'volume') {
+        result.push(node)
+      }
+      if (node.children?.length) {
+        walk(node.children)
+      }
+    }
+  }
+  walk(props.nodes)
+  return result
+})
+
+// 当前选中节点是否可以转为章节（非 volume 类型的大纲节点可以转换）
+const canConvertToChapter = computed(() => {
+  const node = selectedNodeData.value
+  if (!node) return false
+  const nodeWithType = node as OutlineNode & { type?: string }
+  // 只有非 volume 类型的节点可以转为章节
+  return nodeWithType.type !== 'volume'
+})
+
 function handleSelect(node: OutlineNode) {
   emit('select', node)
 }
@@ -245,6 +277,15 @@ function handleEdit() {
 function handleDelete() {
   contextMenuVisible.value = false
   emit('deleteSelected')
+}
+
+// 转为章节处理
+function handleConvertToChapter(volumeNode: OutlineNode) {
+  contextMenuVisible.value = false
+  const outlineNode = selectedNodeData.value
+  if (outlineNode) {
+    emit('convertToChapter', { outlineNode, volumeNode })
+  }
 }
 
 function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) {

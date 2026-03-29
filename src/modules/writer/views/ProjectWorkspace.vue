@@ -35,6 +35,7 @@
           @open-graph="handleOpenGraph"
           @open-fullscreen-tool="handleOpenFullscreenTool"
           @outline-select="handleOutlineSelect"
+          @convert-to-chapter="handleConvertToChapter"
         />
       </template>
 
@@ -91,6 +92,7 @@
       :extra-status-chips="workspaceExtraStatusChips"
       :is-immersive-mode="isImmersiveMode"
       :immersive-timer-text="immersiveTimerText"
+      :project-word-count="currentProjectWordCount"
     />
   </div>
 
@@ -197,6 +199,12 @@ const {
   projectIdProp: props.projectId,
   isTestMode,
   mockProject,
+})
+
+// 当前项目总字数
+const currentProjectWordCount = computed(() => {
+  const project = projects.value.find((p) => p.id === currentProjectId.value)
+  return project?.wordCount || 0
 })
 
 const isImmersiveMode = computed(() => resolvedActiveTool.value === 'immersive')
@@ -351,7 +359,7 @@ const handleTipTapSave = async (contents?: unknown[]) => {
         }>,
       )
     }
-    message.success('保存成功')
+    // 保存成功静默处理，不显示弹窗，状态栏会显示保存状态
   } catch (error) {
     console.error('[ProjectWorkspace] 保存失败:', error)
     message.error('保存失败，请重试')
@@ -536,6 +544,48 @@ const handleCreateOutlineChild = async (data?: CreateOutlineRequest) => {
   } catch (error) {
     console.error('[ProjectWorkspace] 创建大纲子节点失败:', error)
     message.error('创建失败')
+  }
+}
+
+// 处理大纲节点转为章节
+const handleConvertToChapter = async (payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }) => {
+  try {
+    const { outlineNode, volumeNode } = payload
+
+    // 获取目标卷下已有章节数量，用于生成"第X章"标题
+    const volumeChildren = flatChapters.value.filter((ch) => ch.parentId === volumeNode.documentId)
+    const chapterCount = volumeChildren.length + 1
+    const defaultTitle = `第${chapterCount}章`
+
+    // 在对应卷下创建新章节
+    const newDoc = await createDocument(currentProjectId.value, {
+      projectId: currentProjectId.value,
+      parentId: volumeNode.documentId,
+      title: defaultTitle,
+      type: DocumentType.CHAPTER,
+      order: chapterCount - 1,
+    })
+
+    // 标记原大纲节点为已转换（通过更新 summary 或添加标记）
+    // 这里我们添加一个标记表明已转换
+    await outlineApi.update(outlineNode.id, currentProjectId.value, {
+      summary: `[已转换为章节] ${outlineNode.title}`,
+      // 可以考虑添加一个 converted 标记字段
+    })
+
+    // 重新加载数据
+    await Promise.all([
+      documentStore.loadTree(currentProjectId.value),
+      loadOutlineTree(),
+    ])
+
+    message.success(`已在"${volumeNode.title}"下生成"${defaultTitle}"`)
+
+    // TODO: 如果需要让用户立即编辑新章节标题，可以在这里打开编辑态
+    // 或者通过选中新建的章节来触发编辑
+  } catch (error) {
+    console.error('[ProjectWorkspace] 转为章节失败:', error)
+    message.error('转为章节失败，请重试')
   }
 }
 

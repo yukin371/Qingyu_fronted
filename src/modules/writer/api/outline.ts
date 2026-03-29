@@ -42,6 +42,7 @@ export const OUTLINE_NODE_TYPE_CONFIG: Record<string, {
   icon: string
   color: string
 }> = {
+  volume:  { label: '卷', icon: '📚', color: '#8B5CF6' },
   plot:    { label: '情节', icon: '📖', color: '#409EFF' },
   idea:    { label: '灵感', icon: '💡', color: '#E6A23C' },
   draft:   { label: '草稿', icon: '📝', color: '#909399' },

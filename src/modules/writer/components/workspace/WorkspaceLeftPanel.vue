@@ -178,6 +178,7 @@
         @create-root="emit('create-outline-root')"
         @create-child="emit('create-outline-child')"
         @open-graph="(chapterId: string) => $emit('open-graph', chapterId)"
+        @convert-to-chapter="handleConvertToChapter"
       />
     </div>
   </div>
@@ -230,6 +231,7 @@ const emit = defineEmits<{
   (e: 'open-graph', chapterId: string): void
   (e: 'open-fullscreen-tool', tool: string): void
   (e: 'outline-select', node: OutlineNode): void
+  (e: 'convert-to-chapter', payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }): void
 }>()
 
 // =======================
@@ -286,6 +288,11 @@ function handleDockClick(tab: LeftTab) {
 function handleOutlineSelect(node: OutlineNode) {
   outlineTreeState.selectNode(node)
   emit('outline-select', node)
+}
+
+// 转为章节处理
+function handleConvertToChapter(payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }) {
+  emit('convert-to-chapter', payload)
 }
 
 // =======================
