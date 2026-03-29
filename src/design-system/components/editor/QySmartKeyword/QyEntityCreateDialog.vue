@@ -222,7 +222,6 @@ const emit = defineEmits<{
 const entityTypes: Array<{ value: KeywordType; label: string; icon: string }> = [
   { value: 'character', label: '角色', icon: '👤' },
   { value: 'location', label: '地点', icon: '📍' },
-  { value: 'item', label: '物品', icon: '🎁' },
   { value: 'concept', label: '概念', icon: '💡' },
 ]
 

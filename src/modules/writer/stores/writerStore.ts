@@ -36,6 +36,7 @@ import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
+import { outlineApi } from '../api/outline'
 import type {
   LocationTreeNode,
   StatisticsCacheItem,
@@ -1371,11 +1372,20 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const writerModule = (await import('..')) as any
-        this.outline.tree = (await (writerModule.getOutlineTree?.(pid) ?? [])) || []
+        const response = await outlineApi.getTree(pid)
+        // 处理后端返回的响应格式（HTTP拦截器已提取data字段）
+        if (Array.isArray(response)) {
+          this.outline.tree = response
+        } else if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
+          this.outline.tree = (response as any).data
+        } else {
+          console.warn('[writerStore] 大纲树API返回格式未知:', response)
+          this.outline.tree = []
+        }
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = error.message
+        this.outline.tree = []
       } finally {
         this.outline.loading = false
       }
@@ -1393,9 +1403,8 @@ export const useWriterStore = defineStore('writer', {
      */
     async createOutlineNode(projectId: string, nodeData: any): Promise<OutlineNode> {
       try {
-        // 调用文档创建API创建节点
-        const response = await createDocument(projectId, {
-          projectId,
+        // 调用大纲API创建节点
+        const response = await outlineApi.create(projectId, {
           parentId: nodeData.parentId || undefined,
           title: nodeData.title || '新节点',
           type: nodeData.type || 'section',
@@ -1419,14 +1428,8 @@ export const useWriterStore = defineStore('writer', {
       nodeData: any,
     ): Promise<OutlineNode> {
       try {
-        // 调用文档更新API
-        const response = await updateDocument(nodeId, {
-          title: nodeData.title,
-          status: nodeData.status,
-          tags: nodeData.tags,
-          notes: nodeData.notes,
-          plotThreads: nodeData.plotThreads,
-        })
+        // 调用大纲更新API
+        const response = await outlineApi.update(nodeId, projectId, nodeData)
         // 刷新大纲树
         await this.loadOutlineTree(projectId)
         return response as unknown as OutlineNode
@@ -1441,8 +1444,8 @@ export const useWriterStore = defineStore('writer', {
      */
     async deleteOutlineNode(nodeId: string, projectId: string): Promise<void> {
       try {
-        // 调用文档删除API
-        await deleteDocument(nodeId)
+        // 调用大纲删除API
+        await outlineApi.delete(nodeId, projectId)
         // 刷新大纲树
         await this.loadOutlineTree(projectId)
       } catch (error: any) {

@@ -124,12 +124,17 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
       documentStore.currentDocMeta?.id ||
       '',
     set: async (id) => {
+      console.log('[useWorkspaceState] currentChapterId setter called with:', id)
       if (!id) return
       const selectedDoc = availableDocMap.value.get(id)
       if (selectedDoc) {
+        console.log('[useWorkspaceState] 选择文档:', selectedDoc.title)
         await documentStore.selectDocument(selectedDoc)
       }
-      editorStore.setCurrentChapter(id)
+      // 加载文档内容而不是仅设置ID
+      console.log('[useWorkspaceState] 开始加载文档内容')
+      await editorStore.loadDocument(id)
+      console.log('[useWorkspaceState] 文档内容加载完成')
     },
   })
 

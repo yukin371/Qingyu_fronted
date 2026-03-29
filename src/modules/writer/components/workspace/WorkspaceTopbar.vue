@@ -32,15 +32,33 @@
             <QyIcon name="Share" :size="14" />
             <span>分享</span>
           </button>
+          <button class="topbar-overflow__item" @click="showShortcutSettings = true; overflowOpen = false">
+            <QyIcon name="SetUp" :size="14" />
+            <span>快捷键设置</span>
+          </button>
         </div>
       </div>
     </div>
+
+    <!-- 快捷键设置弹窗 -->
+    <el-dialog
+      v-model="showShortcutSettings"
+      title="快捷键设置"
+      width="560px"
+      :close-on-click-modal="true"
+      :append-to-body="true"
+      class="shortcut-settings-dialog"
+    >
+      <ShortcutSettingsPanel />
+    </el-dialog>
   </header>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { ElDialog } from 'element-plus'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
+import ShortcutSettingsPanel from '../settings/ShortcutSettingsPanel.vue'
 
 defineProps<{
   projectDisplayName: string
@@ -58,6 +76,7 @@ defineEmits<{
 }>()
 
 const overflowOpen = ref(false)
+const showShortcutSettings = ref(false)
 
 function closeOverflow() {
   overflowOpen.value = false

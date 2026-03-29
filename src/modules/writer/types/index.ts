@@ -8,3 +8,18 @@ export * from './timeline'
 export * from './location'
 export * from './wike'
 export * from './export'
+export type {
+  EntityType,
+  EntityReference,
+  EntitySearchResult,
+  EntityMention,
+  UnifiedEntity,
+  CreateEntityRequest,
+} from './entity'
+export {
+  ENTITY_TYPE_CONFIG,
+  ENTITY_TYPE_OPTIONS,
+  inferEntityTypeFromSymbol,
+  getEntitySymbol,
+  formatEntityReference,
+} from './entity'

@@ -17,9 +17,9 @@
         @send="(msg: string) => $emit('ai-send', msg)"
         @apply-generated-text="(payload: AIApplyPayload) => $emit('ai-apply', payload)"
       />
-      <!-- 角色百科 -->
+      <!-- 设定百科 -->
       <EncyclopediaView
-        v-else-if="activeDockTool === 'characters'"
+        v-else-if="activeDockTool === 'encyclopedia'"
         :embedded="true"
         :project-id="projectId"
       />
@@ -57,7 +57,7 @@ import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 // =======================
 // Types
 // =======================
-export type RightDockTool = 'ai' | 'characters' | 'stats'
+export type RightDockTool = 'ai' | 'encyclopedia' | 'stats'
 
 export interface AIActionTrigger {
   id: number
@@ -108,7 +108,7 @@ const emit = defineEmits<{
 // =======================
 const activityItems = [
   { tool: 'ai' as RightDockTool, label: 'AI 助手', icon: 'MagicStick' },
-  { tool: 'characters' as RightDockTool, label: '角色百科', icon: 'User' },
+  { tool: 'encyclopedia' as RightDockTool, label: '设定百科', icon: 'Reading' },
   { tool: 'stats' as RightDockTool, label: '写作统计', icon: 'DataAnalysis' },
 ]
 

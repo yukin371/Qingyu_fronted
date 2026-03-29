@@ -1,29 +1,27 @@
-﻿import { Mark, mergeAttributes, markInputRule, markPasteRule } from '@tiptap/core'
+﻿import { Mark, mergeAttributes, markPasteRule } from '@tiptap/core'
 
-export type KeywordType = 'character' | 'location' | 'item'
+export type KeywordType = 'character' | 'location' | 'item' | 'concept'
 
 export interface KeywordInfo {
   id?: string
   type: KeywordType
   name: string
   summary?: string
+  isUnified?: boolean
+  suggestedType?: KeywordType
 }
 
 export interface SmartKeywordOptions {
   projectId?: string
 }
 
-const keywordPattern = /(?:^|\s)([@#%])([\u4e00-\u9fa5\w-]{1,30})%?$/
-const pasteKeywordPattern = /([@#%])([\u4e00-\u9fa5\w-]{1,30})%?/g
-
-function toKeywordType(prefix: string): KeywordType {
-  if (prefix === '@') return 'character'
-  if (prefix === '#') return 'location'
-  return 'item'
-}
+const pasteUnifiedKeywordPattern = /@([\u4e00-\u9fa5\w-]{1,30})/g
 
 export const SmartKeyword = Mark.create<SmartKeywordOptions>({
   name: 'smartKeyword',
+
+  // 防止光标在 mark 边界时后续输入继承该 mark
+  inclusive: false,
 
   addAttributes() {
     return {
@@ -53,34 +51,15 @@ export const SmartKeyword = Mark.create<SmartKeywordOptions>({
     ]
   },
 
-  addInputRules() {
-    return [
-      markInputRule({
-        find: keywordPattern,
-        type: this.type,
-        getAttributes: (match: string[]) => {
-          const prefix = match[1]
-          const name = match[2]
-          return {
-            keywordType: toKeywordType(prefix),
-            keywordName: name,
-            projectId: this.options.projectId || null,
-          }
-        },
-      }),
-    ]
-  },
-
   addPasteRules() {
     return [
       markPasteRule({
-        find: pasteKeywordPattern,
+        find: pasteUnifiedKeywordPattern,
         type: this.type,
         getAttributes: (match: string[]) => {
-          const prefix = match[1]
-          const name = match[2]
+          const name = match[1]
           return {
-            keywordType: toKeywordType(prefix),
+            keywordType: 'character',
             keywordName: name,
             projectId: this.options.projectId || null,
           }

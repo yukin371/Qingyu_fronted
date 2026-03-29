@@ -34,7 +34,7 @@ export type EncyclopediaSubView =
   | 'branches'
 
 /** 百科分类类型 */
-export type EncyclopediaCategory = 'characters' | 'locations' | 'items'
+export type EncyclopediaCategory = 'characters' | 'locations' | 'concepts'
 
 // =======================
 // 侧边栏数据类型

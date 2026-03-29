@@ -51,7 +51,6 @@
       :keyword="keywordCard.keyword"
       :relations="keywordCardRelations"
       @jump="(kw: any) => emit('keyword-click', kw)"
-      @view-in-graph="handleKeywordViewInGraph"
     />
 
     <QyEntityCreateDialog

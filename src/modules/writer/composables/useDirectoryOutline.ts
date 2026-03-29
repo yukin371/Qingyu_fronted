@@ -39,10 +39,76 @@ export function useDirectoryOutline(options: UseDirectoryOutlineOptions): UseDir
   const { availableDocMap, mockProject } = options
 
   /**
+   * 将 Markdown 文本转换为 tiptap JSON 格式
+   */
+  const markdownToTipTap = (markdown: string): string => {
+    const lines = markdown.split('\n')
+    const content: any[] = []
+
+    for (const line of lines) {
+      if (line.trim() === '') {
+        // 空行
+        content.push({
+          type: 'paragraph',
+          content: [{ type: 'text', text: '' }]
+        })
+      } else if (line.startsWith('# ')) {
+        // 一级标题
+        const text = line.substring(2)
+        content.push({
+          type: 'heading',
+          attrs: { level: 1 },
+          content: [{ type: 'text', text }]
+        })
+      } else if (line.startsWith('## ')) {
+        // 二级标题
+        const text = line.substring(3)
+        content.push({
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text }]
+        })
+      } else if (line.startsWith('### ')) {
+        // 三级标题
+        const text = line.substring(4)
+        content.push({
+          type: 'heading',
+          attrs: { level: 3 },
+          content: [{ type: 'text', text }]
+        })
+      } else if (line.startsWith('- ')) {
+        // 列表项
+        const text = line.substring(2)
+        content.push({
+          type: 'bulletList',
+          content: [{
+            type: 'listItem',
+            content: [{
+              type: 'paragraph',
+              content: [{ type: 'text', text }]
+            }]
+          }]
+        })
+      } else {
+        // 普通段落
+        content.push({
+          type: 'paragraph',
+          content: [{ type: 'text', text: line }]
+        })
+      }
+    }
+
+    return JSON.stringify({
+      type: 'doc',
+      content
+    })
+  }
+
+  /**
    * 构建目录大纲内容
    *
    * @param directoryId 目录 ID
-   * @returns 大纲文本内容
+   * @returns 大纲内容（tiptap JSON 格式）
    */
   const buildDirectoryOutline = (directoryId: string): string => {
     const directory = availableDocMap.value.get(directoryId)
@@ -50,7 +116,15 @@ export function useDirectoryOutline(options: UseDirectoryOutlineOptions): UseDir
 
     // 优先使用 mock 数据
     if (mockProject.value?.contentByDocId?.[directoryId]) {
-      return mockProject.value.contentByDocId[directoryId]
+      const mockContent = mockProject.value.contentByDocId[directoryId]
+      // 如果 mock 内容已经是 JSON 格式，直接返回
+      try {
+        JSON.parse(mockContent)
+        return mockContent
+      } catch {
+        // 否则转换为 tiptap JSON
+        return markdownToTipTap(mockContent)
+      }
     }
 
     // 获取目录下的章节
@@ -59,10 +133,18 @@ export function useDirectoryOutline(options: UseDirectoryOutlineOptions): UseDir
       .sort((a, b) => (a.order || 0) - (b.order || 0))
 
     const chapterLines = children.length > 0
-      ? children.map((chapter, index) => `${index + 1}. ${chapter.title}`).join('\n')
+      ? children.map((chapter, index) => `- ${index + 1}. ${chapter.title}`).join('\n')
       : '- 暂无章节，请在右上角新增章节。'
 
-    return `# ${directory.title} 细纲\n\n## 目录目标\n- 待补充此目录核心冲突与推进目标。\n\n## 章节推进\n${chapterLines}\n`
+    const markdown = `# ${directory.title} 细纲
+
+## 目录目标
+- 待补充此目录核心冲突与推进目标。
+
+## 章节推进
+${chapterLines}`
+
+    return markdownToTipTap(markdown)
   }
 
   return {

@@ -111,7 +111,7 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
   /** 百科分类 */
   const encyclopediaCategory = computed<EncyclopediaCategory>(() => {
     const raw = String(route.query.worldCategory || '').toLowerCase()
-    if (raw === 'items') return 'items'
+    if (raw === 'concepts') return 'concepts'
     return raw === 'locations' ? 'locations' : 'characters'
   })
 
@@ -130,7 +130,7 @@ export function useEncyclopediaView(options: UseEncyclopediaViewOptions): UseEnc
     if (encyclopediaSubView.value === 'structure') return '当前视图聚焦大纲、鱼骨与节拍结构，可直接调整节点与章节绑定。'
     if (encyclopediaSubView.value === 'timeline') return '当前视图聚焦事件推进，切换时间线并校准事件顺序。'
     if (encyclopediaSubView.value === 'branches') return '当前视图聚焦主支线结构，建议从根节点逐层推进。'
-    return '在左侧选择角色、地点或物品分类以切换百科卡片列表。'
+    return '在左侧选择角色、地点或概念分类以切换百科卡片列表。'
   })
 
   // =======================

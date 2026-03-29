@@ -1,31 +1,29 @@
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useShortcutConfig } from './useShortcutConfig'
 
 /**
  * 工作区快捷键管理
- * 提供 ESC 键等全局快捷键功能
+ * 集成 useShortcutConfig 提供统一的快捷键管理
  */
 export function useWorkspaceShortcuts() {
   const shortcutsEnabled = ref(true)
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    // ESC 键关闭全屏覆盖层
-    if (event.key === 'Escape') {
-      const overlay = document.querySelector('.fullscreen-overlay')
-      if (overlay && overlay instanceof HTMLElement) {
-        // 触发自定义事件，让组件处理关闭
-        overlay.dispatchEvent(new CustomEvent('close-overlay'))
-      }
-    }
-  }
+  const { registerHandler, loadShortcuts } = useShortcutConfig()
 
-  onMounted(() => {
-    if (shortcutsEnabled.value) {
-      document.addEventListener('keydown', handleKeyDown)
+  // 注册 ESC 关闭覆盖层
+  const unregisterEsc = registerHandler('workspace.closeOverlay', (_event: KeyboardEvent) => {
+    const overlay = document.querySelector('.fullscreen-overlay')
+    if (overlay && overlay instanceof HTMLElement) {
+      overlay.dispatchEvent(new CustomEvent('close-overlay'))
     }
   })
 
+  onMounted(() => {
+    loadShortcuts()
+  })
+
   onUnmounted(() => {
-    document.removeEventListener('keydown', handleKeyDown)
+    unregisterEsc()
   })
 
   return {

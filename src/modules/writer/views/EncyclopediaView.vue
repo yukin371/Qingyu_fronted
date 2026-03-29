@@ -28,7 +28,7 @@
         <div class="list-stats">
           <SystemStatCard label="角色" :value="characters.length" hint="设定人物总数" tone="info" />
           <SystemStatCard label="地点" :value="locations.length" hint="世界空间节点" tone="success" />
-          <SystemStatCard label="物品" :value="items.length" hint="道具与关键资产" tone="warning" />
+          <SystemStatCard label="概念" :value="concepts.length" hint="世界观与设定概念" tone="warning" />
           <SystemStatCard label="当前筛选" :value="activeCategoryLabel" :hint="searchHint" tone="warning" />
         </div>
         <!-- 角色列表 -->
@@ -93,33 +93,34 @@
           </el-scrollbar>
         </div>
 
-        <div v-show="activeCategory === 'items'" class="list-container">
+        <div v-show="activeCategory === 'concepts'" class="list-container">
           <div class="list-header">
-            <h3>物品列表</h3>
-            <el-button type="primary" size="small" @click="handleAddItem">
+            <h3>概念列表</h3>
+            <el-button type="primary" size="small" @click="handleAddConcept">
               <el-icon><Plus /></el-icon>
-              添加物品
+              添加概念
             </el-button>
           </div>
           <el-scrollbar class="list-content">
             <div class="items-grid">
               <div
-                v-for="item in filteredItems"
-                :key="item.id"
+                v-for="concept in filteredConcepts"
+                :key="concept.id"
                 class="item-card"
-                :class="{ 'is-selected': selectedItem?.id === item.id }"
-                @click="handleSelectItem(item, 'item')"
+                :class="{ 'is-selected': selectedItem?.id === concept.id }"
+                @click="handleSelectItem(concept, 'concept')"
               >
                 <el-avatar :size="50" shape="square">
-                  <QyIcon name="CollectionTag" />
+                  <QyIcon name="PriceTag" />
                 </el-avatar>
                 <div class="item-info">
-                  <div class="item-name">{{ item.name }}</div>
-                  <div v-if="item.summary" class="item-desc">{{ item.summary }}</div>
+                  <div class="item-name">{{ concept.name }}</div>
+                  <div v-if="concept.category" class="item-desc" style="color: #722ED1;">{{ concept.category }}</div>
+                  <div v-if="concept.summary" class="item-desc">{{ concept.summary }}</div>
                 </div>
               </div>
             </div>
-            <el-empty v-if="filteredItems.length === 0" description="暂无物品" />
+            <el-empty v-if="filteredConcepts.length === 0" description="暂无概念" />
           </el-scrollbar>
         </div>
       </div>
@@ -269,15 +270,15 @@
             </el-scrollbar>
           </div>
 
-          <div v-if="selectedType === 'item'" class="detail-content">
+          <div v-if="selectedType === 'concept'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
                 <el-avatar :size="60" shape="square">
-                  <QyIcon name="CollectionTag" />
+                  <QyIcon name="PriceTag" />
                 </el-avatar>
                 <div class="header-text">
-                  <h2>{{ (selectedItem as WriterItem).name }}</h2>
-                  <p v-if="(selectedItem as WriterItem).alias?.length">{{ (selectedItem as WriterItem).alias?.join('、') }}</p>
+                  <h2>{{ (selectedItem as Concept).name }}</h2>
+                  <p v-if="(selectedItem as Concept).alias?.length">{{ (selectedItem as Concept).alias?.join('、') }}</p>
                 </div>
               </div>
               <div class="header-actions">
@@ -299,20 +300,25 @@
             <el-scrollbar class="detail-body">
               <div class="detail-section">
                 <h4>简介</h4>
-                <p>{{ (selectedItem as WriterItem).summary || '暂无简介' }}</p>
+                <p>{{ (selectedItem as Concept).summary || '暂无简介' }}</p>
               </div>
 
               <div class="detail-section">
                 <h4>分类</h4>
-                <p>{{ (selectedItem as WriterItem).category || '未分类' }}</p>
+                <p>{{ (selectedItem as Concept).category || '未分类' }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h4>详细描述</h4>
+                <p>{{ (selectedItem as Concept).description || '暂无详细描述' }}</p>
               </div>
 
               <div class="detail-section">
                 <h4>故事线追溯</h4>
                 <EntityTracePanel
-                  :entity-id="(selectedItem as WriterItem).id"
-                  :entity-name="(selectedItem as WriterItem).name"
-                  entity-type="item"
+                  :entity-id="(selectedItem as Concept).id"
+                  :entity-name="(selectedItem as Concept).name"
+                  entity-type="concept"
                   :outline-tree="writerStore.outline.tree"
                   :relations="writerStore.characters.relations"
                   :all-characters="characters"
@@ -331,20 +337,16 @@ import { ref, computed, watch } from 'vue'
 import { Search, Plus, Edit, Close, Collection } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
+import type { Concept } from '../types/entity'
 import { QyIcon } from '@/design-system/components'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
 import { message, messageBox } from '@/design-system/services'
 import { characterApi } from '../api/character'
 import { locationApi } from '../api/location'
-import {
-  deleteWriterItem,
-  loadWriterItems,
-  upsertWriterItem,
-  type WriterItem,
-} from '../utils/writerItems'
+import { conceptApi } from '../api/concept'
 const writerStore = useWriterStore()
-type EncyclopediaCategory = 'characters' | 'locations' | 'items'
+type EncyclopediaCategory = 'characters' | 'locations' | 'concepts'
 
 interface Props {
   embedded?: boolean
@@ -367,9 +369,9 @@ const activeCategory = computed<EncyclopediaCategory>({
   set: (value) => emit('update:activeCategory', value),
 })
 const searchKeyword = ref('')
-const selectedItem = ref<Character | Location | WriterItem | null>(null)
-const selectedType = ref<'character' | 'location' | 'item' | null>(null)
-const items = ref<WriterItem[]>([])
+const selectedItem = ref<Character | Location | Concept | null>(null)
+const selectedType = ref<'character' | 'location' | 'concept' | null>(null)
+const concepts = ref<Concept[]>([])
 
 const characters = computed<Character[]>(() => writerStore.characters.list ?? [])
 const locations = computed<Location[]>(() => writerStore.locations.list ?? [])
@@ -388,24 +390,25 @@ const filteredLocations = computed(() => {
   )
 })
 
-const filteredItems = computed(() => {
-  if (!searchKeyword.value) return items.value
+const filteredConcepts = computed(() => {
+  if (!searchKeyword.value) return concepts.value
   const keyword = searchKeyword.value.toLowerCase()
-  return items.value.filter(item =>
-    item.name.toLowerCase().includes(keyword)
-    || (item.alias || []).some(alias => alias.toLowerCase().includes(keyword))
-    || (item.summary || '').toLowerCase().includes(keyword)
+  return concepts.value.filter(concept =>
+    concept.name.toLowerCase().includes(keyword)
+    || (concept.alias || []).some(alias => alias.toLowerCase().includes(keyword))
+    || (concept.summary || '').toLowerCase().includes(keyword)
+    || (concept.category || '').toLowerCase().includes(keyword)
   )
 })
 
 const activeCategoryLabel = computed(() => {
   if (activeCategory.value === 'locations') return '地点'
-  if (activeCategory.value === 'items') return '物品'
+  if (activeCategory.value === 'concepts') return '概念'
   return '角色'
 })
 const searchHint = computed(() => (searchKeyword.value ? `关键词：${searchKeyword.value}` : '未启用关键词'))
 
-const handleSelectItem = (item: Character | Location | WriterItem, type: 'character' | 'location' | 'item') => {
+const handleSelectItem = (item: Character | Location | Concept, type: 'character' | 'location' | 'concept') => {
   selectedItem.value = item
   selectedType.value = type
 }
@@ -466,23 +469,33 @@ const handleAddLocation = async () => {
   }
 }
 
-const handleAddItem = async () => {
+const handleAddConcept = async () => {
   if (!effectiveProjectId.value) return
 
   try {
-    const nameResult = await messageBox.prompt('请输入物品名称', '添加物品')
+    const nameResult = await messageBox.prompt('请输入概念名称', '添加概念')
     const name = String(nameResult.value || '').trim()
     if (!name) return
-    const summaryResult = await messageBox.prompt('请输入物品简介（可选）', '添加物品')
+    const summaryResult = await messageBox.prompt('请输入概念简介（可选）', '添加概念')
     const summary = String(summaryResult.value || '').trim()
-    items.value = upsertWriterItem(effectiveProjectId.value, {
+    const created = await conceptApi.create(effectiveProjectId.value, {
+      projectId: effectiveProjectId.value,
       name,
       summary,
-    })
-    message.success(`已添加物品「${name}」`)
+    }) as any
+    const payload = created?.data || created
+    await refreshSelectedConcept(payload?.id || '')
+    message.success(`已添加概念「${payload?.name || name}」`)
   } catch {
     return
   }
+}
+
+async function refreshSelectedConcept(conceptId: string) {
+  const res = await conceptApi.list(effectiveProjectId.value) as any
+  concepts.value = res?.data || res || []
+  selectedItem.value = concepts.value.find(item => item.id === conceptId) || null
+  selectedType.value = selectedItem.value ? 'concept' : null
 }
 
 const handleEditItem = async () => {
@@ -529,19 +542,21 @@ const handleEditItem = async () => {
       return
     }
 
-    const item = selectedItem.value as WriterItem
-    const name = window.prompt('请输入物品名称', item.name)?.trim() || ''
+    const concept = selectedItem.value as Concept
+    const name = window.prompt('请输入概念名称', concept.name)?.trim() || ''
     if (!name) return
-    const summary = window.prompt('请输入物品简介（可选）', item.summary || '')?.trim() || ''
-    items.value = upsertWriterItem(effectiveProjectId.value, {
-      id: item.id,
+    const summary = window.prompt('请输入概念简介（可选）', concept.summary || '')?.trim() || ''
+    const category = window.prompt('请输入概念分类（可选）', concept.category || '')?.trim() || ''
+    const description = window.prompt('请输入详细描述（可选）', concept.description || '')?.trim() || ''
+    await conceptApi.update(concept.id, effectiveProjectId.value, {
       name,
-      alias: item.alias,
-      category: item.category,
       summary,
+      category: category || undefined,
+      description: description || undefined,
+      alias: concept.alias,
     })
-    selectedItem.value = items.value.find(entry => entry.id === item.id) || null
-    message.success(`已更新物品「${name}」`)
+    await refreshSelectedConcept(concept.id)
+    message.success(`已更新概念「${name}」`)
   } catch {
     return
   }
@@ -563,10 +578,12 @@ const handleDeleteItem = async () => {
       await writerStore.loadLocations(effectiveProjectId.value)
       message.success(`已删除地点「${location.name}」`)
     } else {
-      const item = selectedItem.value as WriterItem
-      await messageBox.confirm(`确定删除物品“${item.name}”吗？`, '删除物品', { type: 'warning' })
-      items.value = deleteWriterItem(effectiveProjectId.value, item.id)
-      message.success(`已删除物品「${item.name}」`)
+      const concept = selectedItem.value as Concept
+      await messageBox.confirm(`确定删除概念”${concept.name}”吗？`, '删除概念', { type: 'warning' })
+      await conceptApi.delete(concept.id, effectiveProjectId.value)
+      const res = await conceptApi.list(effectiveProjectId.value) as any
+      concepts.value = res?.data || res || []
+      message.success(`已删除概念「${concept.name}」`)
     }
 
     selectedItem.value = null
@@ -580,11 +597,13 @@ const effectiveProjectId = computed(() => props.projectId || writerStore.current
 
 async function loadWorldData(projectId: string) {
   if (!projectId) return
-  await Promise.all([
+  const [, , conceptRes] = await Promise.all([
     writerStore.loadCharacters(projectId),
     writerStore.loadLocations(projectId),
+    conceptApi.list(projectId),
   ])
-  items.value = loadWriterItems(projectId)
+  const conceptData = conceptRes as any
+  concepts.value = conceptData?.data || conceptData || []
 }
 
 watch(
