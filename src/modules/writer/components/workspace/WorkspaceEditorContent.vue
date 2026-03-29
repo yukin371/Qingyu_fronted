@@ -171,37 +171,9 @@ const modelContent = computed({
 // =======================
 const toolOverlay = useToolOverlay()
 
-// 工具映射：数字键 -> 工具ID
-const toolIndexMap: Record<string, ToolType> = {
-  '1': 'relations',
-  '2': 'timeline',
-  '3': 'branches',
-  '4': 'structure',
-}
-
-// 键盘快捷键处理
+// 键盘快捷键处理（委托给 toolOverlay）
 const handleKeyDown = (event: KeyboardEvent) => {
-  // Ctrl+G: 打开/关闭工具面板
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'g') {
-    event.preventDefault()
-    toolOverlay.toggle()
-    return
-  }
-
-  // Ctrl+1/2/3/4: 切换工具（仅在工具面板打开时生效）
-  if (toolOverlay.visible.value && (event.ctrlKey || event.metaKey)) {
-    const tool = toolIndexMap[event.key]
-    if (tool) {
-      event.preventDefault()
-      toolOverlay.switchTool(tool)
-    }
-  }
-
-  // Escape: 关闭工具面板
-  if (event.key === 'Escape' && toolOverlay.visible.value) {
-    event.preventDefault()
-    toolOverlay.close()
-  }
+  toolOverlay.handleKeyboardEvent(event)
 }
 
 onMounted(() => {

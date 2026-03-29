@@ -1,10 +1,11 @@
 /**
  * 工具面板状态管理
- * 
+ *
  * 提供统一的工具面板状态管理，支持：
  * - 打开/关闭工具面板
  * - 切换工具
  * - 记住上次使用的工具
+ * - 快捷键映射
  */
 
 import { readonly, ref } from 'vue'
@@ -13,6 +14,14 @@ const LAST_TOOL_KEY = 'qingyu_last_tool'
 const DEFAULT_TOOL = 'relations'
 
 export type ToolType = 'relations' | 'timeline' | 'branches' | 'structure'
+
+// 快捷键到工具的映射（默认配置）
+const DEFAULT_TOOL_SHORTCUTS: Record<string, ToolType> = {
+  '1': 'relations',
+  '2': 'timeline',
+  '3': 'branches',
+  '4': 'structure',
+}
 
 // 单例状态
 const visible = ref(false)
@@ -104,6 +113,51 @@ export function useToolOverlay() {
     return toolIcons[toolId] || 'Tools'
   }
 
+  /**
+   * 根据键盘事件获取对应的工具 ID
+   * @param event 键盘事件
+   * @returns 对应的工具 ID，如果没有匹配返回 null
+   */
+  function getToolFromKeyboardEvent(event: KeyboardEvent): ToolType | null {
+    // Ctrl+1/2/3/4 切换工具
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey) {
+      const tool = DEFAULT_TOOL_SHORTCUTS[event.key]
+      return tool || null
+    }
+    return null
+  }
+
+  /**
+   * 处理工具切换键盘事件
+   * @param event 键盘事件
+   * @returns 是否处理了该事件
+   */
+  function handleKeyboardEvent(event: KeyboardEvent): boolean {
+    // Ctrl+G: 打开/关闭工具面板
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'g') {
+      event.preventDefault()
+      toggle()
+      return true
+    }
+
+    // Ctrl+1/2/3/4: 切换工具
+    const tool = getToolFromKeyboardEvent(event)
+    if (tool && visible.value) {
+      event.preventDefault()
+      switchTool(tool)
+      return true
+    }
+
+    // Escape: 关闭工具面板
+    if (event.key === 'Escape' && visible.value) {
+      event.preventDefault()
+      close()
+      return true
+    }
+
+    return false
+  }
+
   return {
     // 只读状态
     visible: readonly(visible),
@@ -118,5 +172,8 @@ export function useToolOverlay() {
     getToolIcon,
     toolNames,
     toolIcons,
+    // 键盘事件处理
+    getToolFromKeyboardEvent,
+    handleKeyboardEvent,
   }
 }

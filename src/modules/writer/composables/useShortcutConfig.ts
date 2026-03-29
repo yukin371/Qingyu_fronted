@@ -13,7 +13,7 @@ const SYSTEM_SHORTCUT_IDS = ['workspace.closeOverlay']
 
 /**
  * 默认快捷键列表
- * @description 包含导航、编辑器、AI 三大分类的默认快捷键
+ * @description 包含导航、编辑器、AI、工具四大分类的默认快捷键
  */
 export const DEFAULT_SHORTCUTS: Shortcut[] = [
   // Navigation
@@ -33,6 +33,12 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
   { id: 'ai.ask', keys: ['Ctrl', 'K'], description: 'AI 对话', category: 'ai' },
   { id: 'ai.continue', keys: ['Ctrl', 'Shift', 'K'], description: 'AI 续写', category: 'ai' },
   { id: 'ai.polish', keys: ['Ctrl', 'Shift', 'P'], description: 'AI 润色', category: 'ai' },
+  // Tool
+  { id: 'tool.open', keys: ['Ctrl', 'G'], description: '打开工具面板', category: 'tool' },
+  { id: 'tool.switchRelations', keys: ['Ctrl', '1'], description: '切换到关系图谱', category: 'tool' },
+  { id: 'tool.switchTimeline', keys: ['Ctrl', '2'], description: '切换到时间线', category: 'tool' },
+  { id: 'tool.switchBranches', keys: ['Ctrl', '3'], description: '切换到故事分支', category: 'tool' },
+  { id: 'tool.switchStructure', keys: ['Ctrl', '4'], description: '切换到结构舞台', category: 'tool' },
 ]
 
 // =======================
@@ -335,6 +341,7 @@ export function useShortcutConfig() {
       navigation: '导航',
       editor: '编辑器',
       ai: 'AI',
+      tool: '工具',
       other: '其他',
     }
 
