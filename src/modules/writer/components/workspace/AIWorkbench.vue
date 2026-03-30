@@ -2,7 +2,6 @@
   <section class="ai-workbench">
     <header class="ai-workbench__header">
       <span class="ai-workbench__title">AI 助手</span>
-      <div class="ai-workbench__badge">{{ headerBadgeText }}</div>
     </header>
 
     <nav class="ai-workbench__tabs" aria-label="AI 工具标签">
@@ -122,7 +121,6 @@ const tabs: Array<{ id: WorkbenchTab; label: string; description: string }> = [
 ]
 
 const sourceWordCount = computed(() => props.sourceText.trim().length)
-const headerBadgeText = computed(() => props.projectId ? `项目 ${props.projectId}` : '未选择项目')
 const sourcePreview = computed(() => {
   const text = props.sourceText.replace(/\s+/g, ' ').trim()
   if (!text) return '正文为空，可直接从结构舞台、章节摘要或对话开始。'
@@ -197,17 +195,6 @@ function applyModeText(mode: NonNullable<AIActionTrigger['applyMode']>) {
   font-weight: 700;
   color: var(--editor-text-primary, #0f172a);
   letter-spacing: 0.01em;
-}
-
-.ai-workbench__badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--editor-accent-soft, rgba(6, 182, 212, 0.08));
-  border: 1px solid var(--editor-accent, rgba(6, 182, 212, 0.2));
-  color: var(--editor-accent, #06b6d4);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 .ai-workbench__tabs {
