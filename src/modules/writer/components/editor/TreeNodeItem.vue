@@ -20,10 +20,7 @@
     @mouseleave="handleMouseLeave"
   >
     <!-- 缩进占位 -->
-    <span
-      class="tree-node-indent"
-      :style="{ width: `${level * 20}px` }"
-    />
+    <span class="tree-node-indent" :style="{ width: `${level * 20}px` }" />
 
     <!-- 展开/折叠图标 -->
     <span
@@ -57,11 +54,7 @@
     </span>
 
     <!-- 拖拽指示器 - VSCode蓝色插入线 -->
-    <div
-      v-if="showDropIndicator"
-      class="drop-indicator"
-      :class="dropIndicatorClasses"
-    />
+    <div v-if="showDropIndicator" class="drop-indicator" :class="dropIndicatorClasses" />
   </div>
 </template>
 
@@ -85,7 +78,6 @@ interface Props {
   draggingNodeId?: string | number | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Emits {
   (e: 'select', node: TreeNode): void
   (e: 'toggle', node: TreeNode): void
@@ -99,7 +91,7 @@ const props = withDefaults(defineProps<Props>(), {
   icon: '',
   selected: false,
   expanded: false,
-  draggingNodeId: null
+  draggingNodeId: null,
 })
 
 const emit = defineEmits<Emits>()
@@ -117,20 +109,20 @@ const displayIcon = computed(() => props.node.icon || props.icon)
 const nodeClasses = computed(() => [
   'tree-node',
   {
-    'selected': props.selected,
-    'expanded': props.expanded,
-    'leaf': isLeaf.value,
-    'hover': isHovered.value,
-    'dragging': props.draggingNodeId === props.node.id
-  }
+    selected: props.selected,
+    expanded: props.expanded,
+    leaf: isLeaf.value,
+    hover: isHovered.value,
+    dragging: props.draggingNodeId === props.node.id,
+  },
 ])
 
 // 展开图标样式类
 const expandIconClasses = computed(() => [
   'transition-transform duration-200',
   {
-    'rotate-90': props.expanded
-  }
+    'rotate-90': props.expanded,
+  },
 ])
 
 // 节点样式（行高32px）
@@ -145,7 +137,7 @@ const nodeStyle = computed(() => ({
       : 'transparent',
   color: props.selected
     ? 'var(--vscode-inactiveSelectionForeground)'
-    : 'var(--vscode-sideBar-foreground)'
+    : 'var(--vscode-sideBar-foreground)',
 }))
 
 // 是否悬停
@@ -156,23 +148,28 @@ const dropPosition = ref<'before' | 'after' | 'inner' | null>(null)
 
 // 是否显示拖拽放置指示器
 const showDropIndicator = computed(() => {
-  return isHovered.value &&
+  return (
+    isHovered.value &&
     props.draggingNodeId !== null &&
     props.draggingNodeId !== props.node.id &&
     !isDescendant(props.draggingNodeId, props.node.id) &&
     dropPosition.value !== null
+  )
 })
 
 // 拖拽指示器样式类
 const dropIndicatorClasses = computed(() => ({
   'drop-indicator-before': dropPosition.value === 'before',
   'drop-indicator-after': dropPosition.value === 'after',
-  'drop-indicator-inner': dropPosition.value === 'inner'
+  'drop-indicator-inner': dropPosition.value === 'inner',
 }))
 
 // 检查是否是后代节点
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const isDescendant = (ancestorId: string | number | null | undefined, _nodeId: string | number): boolean => {
+ 
+const isDescendant = (
+  ancestorId: string | number | null | undefined,
+  _nodeId: string | number,
+): boolean => {
   if (!ancestorId || !props.node.children) return false
 
   const checkNode = (nodes: TreeNode[]): boolean => {
@@ -246,14 +243,14 @@ const handleDragEnd = () => {
 // 放置
 const handleDrop = (event: DragEvent) => {
   event.preventDefault()
-  
+
   // 根据鼠标位置确定放置位置
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const y = event.clientY - rect.top
   const height = rect.height
-  
+
   let position: 'before' | 'after' | 'inner' = 'after'
-  
+
   if (y < height * 0.25) {
     position = 'before'
   } else if (y > height * 0.75) {
@@ -261,7 +258,7 @@ const handleDrop = (event: DragEvent) => {
   } else if (!isLeaf.value) {
     position = 'inner'
   }
-  
+
   emit('drop', props.node, position)
 }
 
@@ -292,9 +289,11 @@ const handleKeydown = (event: KeyboardEvent) => {
   width: 100%;
   padding: 0 8px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
   outline: none;
-  
+
   &:focus-visible {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: -1px;
@@ -329,15 +328,15 @@ const handleKeydown = (event: KeyboardEvent) => {
   color: var(--vscode-sideBar-foreground);
   opacity: 0.7;
   transition: opacity 0.15s ease;
-  
+
   &:hover {
     opacity: 1;
   }
-  
+
   &.rotate-90 {
     transform: rotate(90deg);
   }
-  
+
   &-placeholder {
     width: 16px;
     margin-right: 4px;
@@ -368,11 +367,13 @@ const handleKeydown = (event: KeyboardEvent) => {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #007ACC; // VSCode品牌蓝
+  background-color: #007acc; // VSCode品牌蓝
   pointer-events: none;
   opacity: 0;
   transform: scaleY(0);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   z-index: 10;
 
   &.drop-indicator-before {

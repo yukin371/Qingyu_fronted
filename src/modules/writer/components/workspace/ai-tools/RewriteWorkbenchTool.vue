@@ -1,0 +1,223 @@
+<template>
+  <section class="tool-panel">
+    <header class="tool-panel__header">
+      <div>
+        <p class="tool-panel__eyebrow">Rewrite</p>
+        <h3>改写工作台</h3>
+      </div>
+      <button
+        type="button"
+        class="tool-panel__primary"
+        :disabled="loading || !draftText.trim() || !projectId"
+        @click="handleRun"
+      >
+        {{ loading ? '处理中…' : '执行改写' }}
+      </button>
+    </header>
+
+    <div class="tool-panel__controls">
+      <label class="field">
+        <span>模式</span>
+        <select v-model="mode">
+          <option value="polish">润色</option>
+          <option value="expand">扩写</option>
+          <option value="shorten">缩写</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>附加要求</span>
+        <input v-model="instructions" type="text" placeholder="例如：保留人物语气，降低重复表达" />
+      </label>
+    </div>
+
+    <div
+      class="tool-panel__status"
+      :class="{
+        'tool-panel__status--running': loading,
+        'tool-panel__status--success': !!resultText && !loading,
+        'tool-panel__status--warning': !!props.actionTrigger && !resultText && !loading,
+      }"
+    >
+      <strong>{{ statusTitle }}</strong>
+      <span>{{ statusDescription }}</span>
+    </div>
+
+    <label class="field field--stacked">
+      <span>输入文本</span>
+      <textarea
+        v-model="draftText"
+        rows="8"
+        placeholder="输入或粘贴要加工的文本。后续可自动绑定编辑器选区。"
+      />
+    </label>
+
+    <div v-if="!resultText && !errorText" class="tool-panel__empty">
+      <strong>结果卡会显示在这里</strong>
+      <p>可直接处理当前选区，也可手动粘贴文本。润色会回填选区，扩写会插入到选区后方。</p>
+    </div>
+
+    <article v-if="resultText" class="result-card">
+      <div class="result-card__header">
+        <div>
+          <strong>改写结果</strong>
+          <p class="result-card__caption">{{ applyModeDescription }}</p>
+        </div>
+        <button type="button" class="result-card__action" @click="handleApply">应用到正文</button>
+      </div>
+      <div class="result-card__meta-row">
+        <span class="result-chip">{{ modeLabel }}</span>
+        <span class="result-chip result-chip--soft">{{ applyModeLabel }}</span>
+        <span v-if="instructions.trim()" class="result-chip result-chip--ghost">附加要求已启用</span>
+      </div>
+      <div class="result-card__body">
+        <div class="result-card__section">
+          <span class="result-card__section-label">输入上下文</span>
+          <p class="result-card__section-text">{{ inputPreview }}</p>
+        </div>
+        <div class="result-card__section">
+          <span class="result-card__section-label">生成结果</span>
+          <p class="result-card__section-text">{{ resultText }}</p>
+        </div>
+      </div>
+    </article>
+
+    <p v-if="errorText" class="tool-error">{{ errorText }}</p>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { rewriteWithWorkbench } from '@/modules/ai/api/workbench'
+
+const props = defineProps<{
+  projectId: string
+  chapterId: string
+  chapterTitle: string
+  seedText: string
+  actionTrigger: {
+    id: number
+    action: string
+    text: string
+    instructions?: string
+    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  } | null
+}>()
+
+const emit = defineEmits<{
+  (
+    e: 'apply',
+    payload: {
+      action: string
+      sourceText: string
+      generatedText: string
+      applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+    },
+  ): void
+}>()
+
+const mode = ref<'polish' | 'expand' | 'shorten'>('polish')
+const draftText = ref('')
+const instructions = ref('')
+const resultText = ref('')
+const loading = ref(false)
+const errorText = ref('')
+const currentApplyMode = computed(() =>
+  mode.value === 'expand' ? 'insert_after_selection' : 'replace_selection',
+)
+const inputPreview = computed(() => {
+  const text = draftText.value.trim()
+  if (!text) return '等待输入或选区触发。'
+  return text.length > 220 ? `${text.slice(0, 220)}…` : text
+})
+const modeLabel = computed(() => {
+  if (mode.value === 'expand') return '扩写'
+  if (mode.value === 'shorten') return '缩写'
+  return '润色'
+})
+const applyModeLabel = computed(() => {
+  if (currentApplyMode.value === 'insert_after_selection') return '应用方式: 插入选区后'
+  return '应用方式: 替换当前选区'
+})
+const applyModeDescription = computed(() =>
+  currentApplyMode.value === 'insert_after_selection'
+    ? '适合续写、扩写。AI 结果会追加到当前选中片段之后。'
+    : '适合润色、改写。AI 结果会覆盖当前选中的内容。',
+)
+const statusTitle = computed(() => {
+  if (loading.value) return '正在生成改写结果'
+  if (resultText.value.trim()) return '结果已准备好'
+  if (props.actionTrigger) return '已同步编辑器意图'
+  return '等待改写任务'
+})
+const statusDescription = computed(() => {
+  if (loading.value) return '保留当前工作台上下文中，请稍候。'
+  if (resultText.value.trim()) return `可直接按“${applyModeLabel.value.replace('应用方式: ', '')}”回填正文。`
+  if (props.actionTrigger) return '来自编辑器选区的动作已注入，可继续调整模式或补充要求。'
+  return '可以直接处理当前章节，也可以先在正文中选中片段后触发。'
+})
+
+watch(
+  () => props.seedText,
+  (value) => {
+    if (!draftText.value.trim() && value.trim()) {
+      draftText.value = value
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.actionTrigger?.id,
+  async () => {
+    const trigger = props.actionTrigger
+    if (!trigger || !['continue', 'polish', 'expand', 'rewrite'].includes(trigger.action)) return
+
+    draftText.value = trigger.text?.trim() || props.seedText || ''
+    instructions.value = trigger.instructions || ''
+    mode.value =
+      trigger.action === 'expand' || trigger.action === 'continue'
+        ? 'expand'
+        : 'polish'
+
+    if (draftText.value.trim()) {
+      await handleRun()
+    }
+  },
+)
+
+async function handleRun() {
+  if (!props.projectId || !draftText.value.trim()) return
+  loading.value = true
+  errorText.value = ''
+  try {
+    const result = await rewriteWithWorkbench({
+      projectId: props.projectId,
+      chapterId: props.chapterId || undefined,
+      originalText: draftText.value,
+      mode: mode.value,
+      instructions: instructions.value.trim() || undefined,
+    })
+    resultText.value = result.rewrittenText
+  } catch (error) {
+    console.error('[RewriteWorkbenchTool] run failed:', error)
+    errorText.value = '改写失败，请稍后重试。'
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleApply() {
+  if (!resultText.value.trim()) return
+  emit('apply', {
+    action: mode.value === 'expand' ? 'expand' : 'rewrite',
+    sourceText: draftText.value,
+    generatedText: resultText.value,
+    applyMode: currentApplyMode.value,
+  })
+}
+</script>
+
+<style scoped lang="scss">
+@use './shared.scss';
+</style>

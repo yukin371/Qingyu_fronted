@@ -15,7 +15,7 @@ export interface SyncStatus {
 }
 
 export type SyncCallback = () => Promise<void>
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export type StatusChangeCallback = (status: SyncStatus) => void
 
 // ==================== 同步服务 ====================

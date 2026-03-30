@@ -35,9 +35,7 @@
         />
         <div class="edit-actions">
           <el-button @click="cancelEdit">取消</el-button>
-          <el-button type="primary" @click="submitEdit" :loading="submitting">
-            保存
-          </el-button>
+          <el-button type="primary" @click="submitEdit" :loading="submitting"> 保存 </el-button>
         </div>
       </div>
 
@@ -90,9 +88,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import { useAuthStore } from '@/stores/auth'
+import { commentsAPI } from '@/modules/reader/api/manual/comments'
 
 interface Comment {
   id: string
@@ -120,11 +120,14 @@ const props = defineProps<{
 const emit = defineEmits<Emits>()
 
 // 状态
+const authStore = useAuthStore()
 const isEditing = ref(false)
 const editContent = ref('')
 const submitting = ref(false)
-const isOwner = ref(false) // TODO: 从 auth store 获取
-const isAdmin = ref(false) // TODO: 从 auth store 获取
+
+// 从 auth store 获取用户身份
+const isOwner = computed(() => authStore.user?.id === props.comment.userId)
+const isAdmin = computed(() => authStore.isAdmin)
 
 // 方法
 const formatTime = (date: Date | string): string => {
@@ -153,18 +156,18 @@ const handleEdit = () => {
 }
 
 const handleDelete = () => {
-  messageBox.confirm('确定要删除评论吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消'
-  })
+  messageBox
+    .confirm('确定要删除评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+    })
     .then(async () => {
       try {
-        // TODO: 调用 API 删除评论
-        // await deleteComment(props.comment.id)
+        await commentsAPI.deleteComment(props.comment.id)
         emit('delete', props.comment.id)
         message.success('评论已删除')
-      } catch (error) {
-        message.error('删除失败，请重试')
+      } catch (error: any) {
+        message.error(error.message || '删除失败，请重试')
       }
     })
     .catch(() => {})
@@ -178,13 +181,14 @@ const submitEdit = async () => {
 
   submitting.value = true
   try {
-    // TODO: 调用 API 更新评论
-    // await updateComment(props.comment.id, editContent.value)
+    await commentsAPI.updateComment(props.comment.id, {
+      content: editContent.value,
+    })
     emit('update', props.comment.id, editContent.value)
     isEditing.value = false
     message.success('评论已更新')
-  } catch (error) {
-    message.error('更新失败，请重试')
+  } catch (error: any) {
+    message.error(error.message || '更新失败，请重试')
   } finally {
     submitting.value = false
   }

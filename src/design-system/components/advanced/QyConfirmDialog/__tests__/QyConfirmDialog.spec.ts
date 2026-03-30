@@ -2,7 +2,6 @@
  * QyConfirmDialog 组件单元测试
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import QyConfirmDialog from '../QyConfirmDialog.vue'
@@ -11,9 +10,10 @@ import QyModal from '../../QyModal/QyModal.vue'
 vi.mock('../../QyModal/QyModal.vue', () => ({
   default: {
     name: 'QyModal',
-    template: '<div v-if="visible" class="qy-modal"><slot name="header"></slot><slot></slot><slot name="footer"></slot></div>',
-    props: ['visible', 'width', 'closable', 'maskClosable']
-  }
+    template:
+      '<div v-if="visible" class="qy-modal"><slot name="header"></slot><slot></slot><slot name="footer"></slot></div>',
+    props: ['visible', 'width', 'closable', 'maskClosable'],
+  },
 }))
 
 describe('QyConfirmDialog', () => {
@@ -22,8 +22,8 @@ describe('QyConfirmDialog', () => {
       props: {
         visible: true,
         title: '确认操作',
-        message: '确定要执行此操作吗？'
-      }
+        message: '确定要执行此操作吗？',
+      },
     })
 
     expect(wrapper.find('.qy-confirm-dialog__title').text()).toBe('确认操作')
@@ -37,8 +37,8 @@ describe('QyConfirmDialog', () => {
       const wrapper = mount(QyConfirmDialog, {
         props: {
           visible: true,
-          type
-        }
+          type,
+        },
       })
 
       expect(wrapper.find(`.qy-confirm-dialog__icon--${type}`).exists()).toBe(true)
@@ -48,14 +48,14 @@ describe('QyConfirmDialog', () => {
   it('应该显示详细信息列表', () => {
     const details = [
       { label: '金额', value: '¥100.00' },
-      { label: '支付方式', value: '支付宝' }
+      { label: '支付方式', value: '支付宝' },
     ]
 
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        details
-      }
+        details,
+      },
     })
 
     const detailItems = wrapper.findAll('.detail-item')
@@ -70,8 +70,8 @@ describe('QyConfirmDialog', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        showIcon: false
-      }
+        showIcon: false,
+      },
     })
 
     expect(wrapper.find('.qy-confirm-dialog__icon').exists()).toBe(false)
@@ -82,8 +82,8 @@ describe('QyConfirmDialog', () => {
       props: {
         visible: true,
         confirmText: '确定',
-        cancelText: '返回'
-      }
+        cancelText: '返回',
+      },
     })
 
     const buttons = wrapper.findAll('.qy-confirm-dialog__footer button')
@@ -95,8 +95,8 @@ describe('QyConfirmDialog', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        loading: true
-      }
+        loading: true,
+      },
     })
 
     const confirmButton = wrapper.findAll('.qy-confirm-dialog__footer button')[1]
@@ -106,8 +106,8 @@ describe('QyConfirmDialog', () => {
   it('点击确认按钮应该触发confirm事件', async () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
-        visible: true
-      }
+        visible: true,
+      },
     })
 
     const confirmButton = wrapper.findAll('.qy-confirm-dialog__footer button')[1]
@@ -119,8 +119,8 @@ describe('QyConfirmDialog', () => {
   it('点击取消按钮应该触发cancel事件并关闭对话框', async () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
-        visible: true
-      }
+        visible: true,
+      },
     })
 
     const cancelButton = wrapper.findAll('.qy-confirm-dialog__footer button')[0]
@@ -135,8 +135,8 @@ describe('QyConfirmDialog', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        type: 'danger'
-      }
+        type: 'danger',
+      },
     })
 
     // 验证confirmButtonType计算属性
@@ -147,8 +147,8 @@ describe('QyConfirmDialog', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        type: 'warning'
-      }
+        type: 'warning',
+      },
     })
 
     expect((wrapper.vm as any).confirmButtonType).toBe('primary')
@@ -161,8 +161,8 @@ describe('QyConfirmDialog', () => {
       const wrapper = mount(QyConfirmDialog, {
         props: {
           visible: true,
-          size
-        }
+          size,
+        },
       })
 
       const buttons = wrapper.findAll('.qy-confirm-dialog__footer button')
@@ -175,8 +175,8 @@ describe('QyConfirmDialog', () => {
   it('应该在visible为false时不渲染对话框', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
-        visible: false
-      }
+        visible: false,
+      },
     })
 
     expect(wrapper.find('.qy-modal').exists()).toBe(false)
@@ -186,8 +186,8 @@ describe('QyConfirmDialog', () => {
     const wrapper = mount(QyConfirmDialog, {
       props: {
         visible: true,
-        width: '600px'
-      }
+        width: '600px',
+      },
     })
 
     // 验证width属性传递给QyModal

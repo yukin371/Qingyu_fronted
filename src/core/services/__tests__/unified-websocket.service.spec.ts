@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { UnifiedWebSocketService } from '../unified-websocket.service'
 import { WebSocketMessageType, WebSocketConnectionState } from '../../types/websocket.types'
@@ -40,7 +39,7 @@ class MockWebSocket {
   // Helper method to trigger events
   triggerEvent(event: string, data?: unknown) {
     const handlers = this.eventHandlers.get(event) || []
-    handlers.forEach(handler => handler(data))
+    handlers.forEach((handler) => handler(data))
   }
 }
 

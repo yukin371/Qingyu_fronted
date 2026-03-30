@@ -63,7 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   title: '',
   placeholder: '开始创作...',
-  readonly: false
+  readonly: false,
 })
 
 // Emits 定义
@@ -87,7 +87,7 @@ const editorTheme = ref<'light' | 'dark'>('light')
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
 // 工具栏配置（精简版）
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const toolbars: any[] = [
   'bold',
   'italic',
@@ -99,7 +99,7 @@ const toolbars: any[] = [
   'orderedList',
   '-',
   'undo',
-  'redo'
+  'redo',
 ]
 
 // 计算属性
@@ -148,7 +148,7 @@ function calculateWordCount(text: string): number {
   const englishWords = cleanText
     .replace(/[\u4e00-\u9fa5]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length > 0).length
+    .filter((word) => word.length > 0).length
 
   return chineseChars + englishWords
 }
@@ -166,13 +166,13 @@ function handleChange(value: string) {
   saveStatus.value = 'unsaved'
   editorStore.markDirty()
 
-  // 防抖自动保存
+  // 防抖自动保存（300ms debounce）
   if (saveTimeout) {
     clearTimeout(saveTimeout)
   }
   saveTimeout = setTimeout(() => {
     handleSave(value)
-  }, 3000)
+  }, 300)
 }
 
 // 处理保存
@@ -228,7 +228,7 @@ watch(
       wordCount.value = count
       emit('wordCountChange', count)
     }
-  }
+  },
 )
 
 // 生命周期
@@ -252,7 +252,7 @@ defineExpose({
   getContent,
   setContent,
   focus,
-  setSaveStatus
+  setSaveStatus,
 })
 </script>
 
@@ -364,7 +364,7 @@ defineExpose({
   background: var(--el-fill-color-light, #f5f7fa);
   border-radius: 8px;
 
-    .count-value {
+  .count-value {
     font-size: 12px;
     font-weight: 600;
     color: var(--el-text-color-primary, #303133);

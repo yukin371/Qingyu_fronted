@@ -184,6 +184,8 @@ import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
+import { getTodayWordsStats } from '@/modules/writer/api/dashboard'
+import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -270,9 +272,21 @@ onMounted(async () => {
       return acc + (cur.totalWords ?? cur.wordCount ?? 0)
     }, 0)
     stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
-    // TODO: 等待后端实现今日写作字数API (GET /api/v1/writer/dashboard/today-words)
-    // 当前使用本地存储的写作目标进度作为临时方案
-    stats.value.todayWords = 0
+
+    // 今日码字：后端API优先，无则前端本地计算
+    try {
+      const todayStats = await getTodayWordsStats()
+      if (todayStats && todayStats.todayWords > 0) {
+        stats.value.todayWords = todayStats.todayWords
+      } else {
+        // 后端无数据，使用本地计算
+        stats.value.todayWords = getGlobalTodayWords()
+      }
+    } catch {
+      // API 调用失败，使用本地计算
+      console.warn('[WriterDashboard] 获取今日字数失败，使用本地计算')
+      stats.value.todayWords = getGlobalTodayWords()
+    }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
   } finally {

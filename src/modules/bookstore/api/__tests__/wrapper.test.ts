@@ -3,8 +3,6 @@
  * 测试wrapper层是否可以正常工作
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
   orvalMutator: vi.fn((config: any) => {

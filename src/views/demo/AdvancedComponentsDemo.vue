@@ -1,9 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[var(--gradient-from)] via-white to-[var(--gradient-to)] py-12 px-4 sm:px-6 lg:px-8">
+  <div
+    class="min-h-screen bg-gradient-to-br from-[var(--gradient-from)] via-white to-[var(--gradient-to)] py-12 px-4 sm:px-6 lg:px-8"
+  >
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] bg-clip-text text-transparent mb-4">
+        <h1
+          class="text-4xl font-bold bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] bg-clip-text text-transparent mb-4"
+        >
           Qingyu Advanced Components
         </h1>
         <p class="text-slate-600 text-lg">Phase 3: Advanced Components Demo</p>
@@ -68,7 +72,9 @@
 
         <!-- Modal Demos -->
         <QyModal v-model:visible="modalVisible" title="基础模态框">
-          <p class="text-slate-600">这是一个基础的模态框示例。您可以点击关闭按钮、按 ESC 键或点击遮罩层来关闭它。</p>
+          <p class="text-slate-600">
+            这是一个基础的模态框示例。您可以点击关闭按钮、按 ESC 键或点击遮罩层来关闭它。
+          </p>
         </QyModal>
 
         <QyModal v-model:visible="modalCustom" title="自定义底部">
@@ -84,9 +90,21 @@
         <QyModal v-model:visible="modalHeader">
           <template #header>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-secondary-500)] rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div
+                class="w-10 h-10 bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-secondary-500)] rounded-lg flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div>
@@ -98,7 +116,12 @@
           <p class="text-slate-600">使用 header 插槽可以完全自定义标题区域的样式和内容。</p>
         </QyModal>
 
-        <QyModal v-model:visible="modalNonClosable" :closable="false" :maskClosable="false" title="不可关闭模态框">
+        <QyModal
+          v-model:visible="modalNonClosable"
+          :closable="false"
+          :maskClosable="false"
+          title="不可关闭模态框"
+        >
           <p class="text-slate-600 mb-4">这个模态框不可通过常规方式关闭。</p>
           <p class="text-slate-600">适用于需要用户必须完成某个操作的场景。</p>
           <div class="mt-6 flex justify-end">
@@ -107,7 +130,10 @@
         </QyModal>
 
         <QyModal v-model:visible="modalWidthVisible" :width="modalWidthValue" title="不同宽度示例">
-          <p class="text-slate-600">当前模态框宽度: <span class="font-semibold text-[var(--color-primary-600)]">{{ modalWidthValue }}</span></p>
+          <p class="text-slate-600">
+            当前模态框宽度:
+            <span class="font-semibold text-[var(--color-primary-600)]">{{ modalWidthValue }}</span>
+          </p>
         </QyModal>
       </section>
 
@@ -176,9 +202,7 @@
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">全屏加载</h3>
               <div class="flex items-center justify-center py-6">
-                <QyButton @click="showFullscreenLoading">
-                  显示全屏加载 (3秒后自动关闭)
-                </QyButton>
+                <QyButton @click="showFullscreenLoading"> 显示全屏加载 (3秒后自动关闭) </QyButton>
               </div>
               <QyLoading v-if="loadingFullscreen" fullscreen text="加载中，请稍候..." />
             </div>
@@ -195,9 +219,7 @@
                 </QyCard>
                 <QyCard class="bg-slate-50">
                   <div class="flex flex-col items-center justify-center py-8">
-                    <QyButton @click="triggerFullscreenLoading2">
-                      触发全屏加载
-                    </QyButton>
+                    <QyButton @click="triggerFullscreenLoading2"> 触发全屏加载 </QyButton>
                     <p class="mt-4 text-sm text-slate-500">覆盖整个视口</p>
                   </div>
                 </QyCard>
@@ -225,11 +247,7 @@
             <template #title>
               <h3 class="text-xl font-bold text-slate-800">自定义图标</h3>
             </template>
-            <QyEmpty
-              :icon="emptyIcon"
-              title="暂无通知"
-              description="您还没有收到任何通知消息"
-            />
+            <QyEmpty :icon="emptyIcon" title="暂无通知" description="您还没有收到任何通知消息" />
           </QyCard>
 
           <!-- Custom Title & Description -->
@@ -237,10 +255,7 @@
             <template #title>
               <h3 class="text-xl font-bold text-slate-800">自定义标题和描述</h3>
             </template>
-            <QyEmpty
-              title="搜索结果为空"
-              description="没有找到匹配的内容，请尝试其他关键词"
-            />
+            <QyEmpty title="搜索结果为空" description="没有找到匹配的内容，请尝试其他关键词" />
           </QyCard>
 
           <!-- With Action Button -->
@@ -265,11 +280,7 @@
               <!-- No Data -->
               <div class="bg-slate-50 rounded-xl p-6">
                 <p class="text-sm font-medium text-slate-700 mb-4">无数据</p>
-                <QyEmpty
-                  :icon="documentIcon"
-                  title="暂无数据"
-                  description="还没有任何数据"
-                />
+                <QyEmpty :icon="documentIcon" title="暂无数据" description="还没有任何数据" />
               </div>
 
               <!-- No Search Results -->
@@ -287,11 +298,7 @@
               <!-- No Notifications -->
               <div class="bg-slate-50 rounded-xl p-6">
                 <p class="text-sm font-medium text-slate-700 mb-4">无通知</p>
-                <QyEmpty
-                  :icon="bellIcon"
-                  title="暂无通知"
-                  description="您没有新的通知消息"
-                />
+                <QyEmpty :icon="bellIcon" title="暂无通知" description="您没有新的通知消息" />
               </div>
             </div>
           </QyCard>
@@ -327,7 +334,10 @@
                 </div>
               </QyFormItem>
             </QyForm>
-            <div v-if="formSubmitted" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div
+              v-if="formSubmitted"
+              class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg"
+            >
               <p class="text-sm text-green-700">表单提交成功！数据已记录到控制台。</p>
             </div>
           </QyCard>
@@ -381,7 +391,11 @@
               </QyFormItem>
 
               <QyFormItem prop="email" label="邮箱" required>
-                <QyInput v-model="validationForm.email" type="text" placeholder="example@domain.com" />
+                <QyInput
+                  v-model="validationForm.email"
+                  type="text"
+                  placeholder="example@domain.com"
+                />
               </QyFormItem>
 
               <QyFormItem prop="age" label="年龄">
@@ -389,15 +403,30 @@
               </QyFormItem>
 
               <QyFormItem prop="website" label="个人网站">
-                <QyInput v-model="validationForm.website" type="text" placeholder="https://example.com" />
+                <QyInput
+                  v-model="validationForm.website"
+                  type="text"
+                  placeholder="https://example.com"
+                />
               </QyFormItem>
 
               <QyFormItem>
                 <QyButton @click="validateForm">验证表单</QyButton>
               </QyFormItem>
             </QyForm>
-            <div v-if="validationResult" class="mt-4 p-4" :class="validationResult.valid ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
-              <p class="text-sm" :class="validationResult.valid ? 'text-green-700' : 'text-red-700'">
+            <div
+              v-if="validationResult"
+              class="mt-4 p-4"
+              :class="
+                validationResult.valid
+                  ? 'bg-green-50 border border-green-200'
+                  : 'bg-red-50 border border-red-200'
+              "
+            >
+              <p
+                class="text-sm"
+                :class="validationResult.valid ? 'text-green-700' : 'text-red-700'"
+              >
                 {{ validationResult.message }}
               </p>
             </div>
@@ -411,11 +440,19 @@
             <p class="text-slate-600 mb-4">使用自定义 validator 函数进行复杂验证。</p>
             <QyForm v-model="customForm" :rules="customRules">
               <QyFormItem prop="password" label="密码" required>
-                <QyInput v-model="customForm.password" type="text" placeholder="至少8个字符，包含字母和数字" />
+                <QyInput
+                  v-model="customForm.password"
+                  type="text"
+                  placeholder="至少8个字符，包含字母和数字"
+                />
               </QyFormItem>
 
               <QyFormItem prop="confirmPassword" label="确认密码" required>
-                <QyInput v-model="customForm.confirmPassword" type="text" placeholder="再次输入密码" />
+                <QyInput
+                  v-model="customForm.confirmPassword"
+                  type="text"
+                  placeholder="再次输入密码"
+                />
               </QyFormItem>
 
               <QyFormItem>
@@ -447,9 +484,7 @@
             <p class="text-slate-600 mb-4">切换空状态和加载状态。</p>
             <div class="flex gap-3">
               <QyButton @click="showEmptyState = true">显示空状态</QyButton>
-              <QyButton @click="triggerLoadingDemo">
-                模拟加载
-              </QyButton>
+              <QyButton @click="triggerLoadingDemo"> 模拟加载 </QyButton>
             </div>
           </QyCard>
         </div>
@@ -495,18 +530,22 @@ import {
   QyFormItem,
   QyButton,
   QyInput,
-  QyCard
+  QyCard,
 } from '@/design-system/components'
 import { ThemeSwitcher } from '@/design-system/other'
 
 // Icons for Empty states
-const emptyIcon = '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>'
+const emptyIcon =
+  '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>'
 
-const documentIcon = '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
+const documentIcon =
+  '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
 
-const searchIcon = '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>'
+const searchIcon =
+  '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>'
 
-const bellIcon = '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>'
+const bellIcon =
+  '<svg class="w-full h-full text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>'
 
 // QyModal state
 const modalVisible = ref(false)
@@ -559,22 +598,22 @@ const handleClearSearch = () => {
 const formData = ref({
   name: '',
   email: '',
-  password: ''
+  password: '',
 })
 
 const formRules = {
   name: [
     { required: true, message: '姓名不能为空' },
-    { min: 2, message: '姓名至少2个字符' }
+    { min: 2, message: '姓名至少2个字符' },
   ],
   email: [
     { required: true, message: '邮箱不能为空' },
-    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' }
+    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' },
   ],
   password: [
     { required: true, message: '密码不能为空' },
-    { min: 6, message: '密码至少6个字符' }
-  ]
+    { min: 6, message: '密码至少6个字符' },
+  ],
 }
 
 const formSubmitted = ref(false)
@@ -591,7 +630,7 @@ const handleReset = () => {
   formData.value = {
     name: '',
     email: '',
-    password: ''
+    password: '',
   }
 }
 
@@ -604,31 +643,31 @@ const validationForm = ref({
   username: '',
   email: '',
   age: '',
-  website: ''
+  website: '',
 })
 
 const validationRules = {
   username: [
     { required: true, message: '用户名不能为空' },
-    { min: 2, message: '用户名至少2个字符' }
+    { min: 2, message: '用户名至少2个字符' },
   ],
   email: [
     { required: true, message: '邮箱不能为空' },
-    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' }
+    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' },
   ],
   age: [
     { pattern: /^\d+$/, message: '年龄必须是数字' },
-    { validator: (_rule: any, value: string) => {
-      const age = parseInt(value)
-      if (value && (age < 18 || age > 120)) {
-        return '年龄必须在18-120之间'
-      }
-      return true
-    }}
+    {
+      validator: (_rule: any, value: string) => {
+        const age = parseInt(value)
+        if (value && (age < 18 || age > 120)) {
+          return '年龄必须在18-120之间'
+        }
+        return true
+      },
+    },
   ],
-  website: [
-    { pattern: /^https?:\/\/.+/, message: '请输入有效的网址（以http://或https://开头）' }
-  ]
+  website: [{ pattern: /^https?:\/\/.+/, message: '请输入有效的网址（以http://或https://开头）' }],
 } as Record<string, any>
 
 const validationResult = ref<{ valid: boolean; message: string } | null>(null)
@@ -636,14 +675,17 @@ const validationResult = ref<{ valid: boolean; message: string } | null>(null)
 const validateForm = () => {
   // Simulate validation
   let isValid = true
-  let messages: string[] = []
+  const messages: string[] = []
 
   if (!validationForm.value.username || validationForm.value.username.length < 2) {
     isValid = false
     messages.push('用户名验证失败')
   }
 
-  if (!validationForm.value.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(validationForm.value.email)) {
+  if (
+    !validationForm.value.email ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(validationForm.value.email)
+  ) {
     isValid = false
     messages.push('邮箱验证失败')
   }
@@ -662,29 +704,33 @@ const validateForm = () => {
 // QyForm - Custom Validation Form
 const customForm = ref({
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
 })
 
 const customRules = {
   password: [
     { required: true, message: '密码不能为空' },
     { min: 8, message: '密码至少8个字符' },
-    { validator: (_rule: any, value: string) => {
-      if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
-        return '密码必须包含字母和数字'
-      }
-      return true
-    }}
+    {
+      validator: (_rule: any, value: string) => {
+        if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
+          return '密码必须包含字母和数字'
+        }
+        return true
+      },
+    },
   ],
   confirmPassword: [
     { required: true, message: '请确认密码' },
-    { validator: (_rule: any, value: string) => {
-      if (value !== customForm.value.password) {
-        return '两次输入的密码不一致'
-      }
-      return true
-    }}
-  ]
+    {
+      validator: (_rule: any, value: string) => {
+        if (value !== customForm.value.password) {
+          return '两次输入的密码不一致'
+        }
+        return true
+      },
+    },
+  ],
 } as Record<string, any>
 
 const validateCustomForm = () => {
@@ -695,22 +741,22 @@ const validateCustomForm = () => {
 const registerForm = ref({
   username: '',
   email: '',
-  password: ''
+  password: '',
 })
 
 const registerRules = {
   username: [
     { required: true, message: '用户名不能为空' },
-    { min: 3, message: '用户名至少3个字符' }
+    { min: 3, message: '用户名至少3个字符' },
   ],
   email: [
     { required: true, message: '邮箱不能为空' },
-    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' }
+    { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '邮箱格式不正确' },
   ],
   password: [
     { required: true, message: '密码不能为空' },
-    { min: 6, message: '密码至少6个字符' }
-  ]
+    { min: 6, message: '密码至少6个字符' },
+  ],
 }
 
 const registerLoading = ref(false)

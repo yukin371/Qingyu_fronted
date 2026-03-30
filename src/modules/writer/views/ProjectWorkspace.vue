@@ -1,244 +1,152 @@
 <template>
-  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }">
-    <header class="workspace-topbar">
-      <div class="workspace-topbar__title-group">
-        <div class="workspace-topbar__logo">QY</div>
-        <div class="workspace-topbar__title-block">
-          <h1 class="workspace-topbar__title">{{ projectDisplayName }}</h1>
-          <div class="workspace-topbar__meta">
-            <span class="workspace-pill">{{ activeToolLabel }}</span>
-            <span class="workspace-meta-text">当前章节：{{ currentChapterTitle }}</span>
-            <span class="workspace-meta-text">{{ saveStatusLabel }}</span>
-          </div>
-        </div>
-      </div>
-      <div class="workspace-topbar__actions">
-        <button
-          type="button"
-          class="workspace-action-btn workspace-action-btn--icon"
-          :class="{ active: !panelStore.leftCollapsed }"
-          title="切换左侧边栏"
-          :disabled="isImmersiveMode"
-          @click="toggleLeftPanel"
-        >
-          <QyIcon name="List" :size="14" />
-        </button>
-        <button
-          type="button"
-          class="workspace-action-btn workspace-action-btn--icon"
-          :class="{ active: !panelStore.rightCollapsed }"
-          title="切换右侧边栏"
-          :disabled="isImmersiveMode"
-          @click="toggleRightPanel"
-        >
-          <QyIcon name="MagicStick" :size="14" />
-        </button>
-        <button type="button" class="workspace-action-btn" @click="handleTipTapSave">保存</button>
-        <button type="button" class="workspace-action-btn" @click="handleExportDraft">导出</button>
-        <button
-          type="button"
-          class="workspace-action-btn workspace-action-btn--primary"
-          @click="handleShareDraft"
-        >
-          分享
-        </button>
-      </div>
-    </header>
+  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }" data-editor-theme="light">
+    <!-- 顶部工具栏 -->
+    <WorkspaceTopbar
+      :project-display-name="projectDisplayName"
+      :current-chapter-title="currentChapterTitle"
+      :active-tool-label="activeToolLabel"
+      :save-status-label="saveStatusLabel"
+      :is-immersive-mode="isImmersiveMode"
+      @save="handleTipTapSave"
+      @export="handleExportDraft"
+      @share="handleShareDraft"
+      @back="handleBackToDashboard"
+    />
 
     <EditorLayout class="workspace-editor-layout">
       <!-- 左侧面板插槽 -->
       <template #left-panel>
-        <div
-          class="workspace-left-panel-shell"
-          :class="{ 'is-collapsed': panelStore.leftCollapsed, 'is-immersive-focus': isImmersiveMode }"
-        >
-          <aside class="workspace-left-dock" aria-label="左侧工具栏">
-            <button
-              v-for="item in leftDockItems"
-              :key="item.tool"
-              type="button"
-              class="workspace-left-dock__item"
-              :class="{ active: activeToolForDock === item.tool }"
-              :title="item.label"
-              @click="handleDockSelect(item.tool)"
-            >
-              <QyIcon :name="item.icon" :size="16" />
-              <span class="workspace-left-dock__label">{{ item.label }}</span>
-            </button>
-          </aside>
-
-          <div class="workspace-left-panel-body">
-            <div v-if="isEncyclopediaTool" class="world-sidebar">
-              <div class="world-sidebar__header">{{ worldSidebarTitle }}</div>
-              <template v-if="encyclopediaSubView === 'encyclopedia'">
-                <QyGhostButton
-                  class="world-sidebar__item"
-                  :active="encyclopediaCategory === 'characters'"
-                  @click="setEncyclopediaCategory('characters')"
-                >
-                  <span class="world-sidebar__icon">
-                    <QyIcon name="User" :size="14" />
-                  </span>
-                  <span class="world-sidebar__copy">
-                    <strong>角色卡片</strong>
-                    <em>人物设定与关键标签</em>
-                  </span>
-                </QyGhostButton>
-                <QyGhostButton
-                  class="world-sidebar__item"
-                  :active="encyclopediaCategory === 'locations'"
-                  @click="setEncyclopediaCategory('locations')"
-                >
-                  <span class="world-sidebar__icon">
-                    <QyIcon name="LocationInformation" :size="14" />
-                  </span>
-                  <span class="world-sidebar__copy">
-                    <strong>地点卡片</strong>
-                    <em>空间信息与世界观锚点</em>
-                  </span>
-                </QyGhostButton>
-              </template>
-              <div v-else class="world-sidebar__hint">
-                <p>{{ worldSidebarHint }}</p>
-              </div>
-            </div>
-            <ProjectSidebar
-              v-else
-              v-model:projectId="currentProjectId"
-              v-model:chapterId="currentChapterId"
-              :projects="projects"
-              :chapters="flatChapters"
-              @add-chapter="handleAddChapterQuick"
-              @add-volume="handleAddVolumeQuick"
-              @open-directory-outline="handleOpenDirectoryOutline"
-              @delete-chapter="handleDeleteChapter"
-            />
-          </div>
-        </div>
+        <WorkspaceLeftPanel
+          v-model:project-id="currentProjectId"
+          v-model:chapter-id="displayChapterId"
+          :collapsed="panelStore.leftCollapsed"
+          :is-immersive-mode="isImmersiveMode"
+          :projects="projects"
+          :chapters="flatChapters"
+          @add-doc="handleAddDoc"
+          @open-directory-outline="handleOpenDirectoryOutline"
+          @delete-chapter="handleDeleteChapter"
+          @create-outline-root="handleCreateOutlineRoot"
+          @create-outline-child="handleCreateOutlineChild"
+          @edit-selected="handleEditOutlineNode"
+          @delete-selected="handleDeleteOutlineNode"
+          @move-up="() => handleMoveOutlineNode('up')"
+          @move-down="() => handleMoveOutlineNode('down')"
+          @open-graph="handleOpenGraph"
+          @open-fullscreen-tool="handleOpenFullscreenTool"
+          @outline-select="handleOutlineSelect"
+          @convert-to-chapter="handleConvertToChapter"
+        />
       </template>
 
       <!-- 主编辑器插槽 -->
       <template #editor="{ activeTool }">
-        <CharacterGraphView
-          v-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'relations'"
-        />
-        <TimelineOutlineView
-          v-else-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'timeline'"
+        <WorkspaceEditorContent
+          ref="workspaceEditorContentRef"
+          :active-tool="activeTool"
+          :is-encyclopedia="isEncyclopediaTool"
+          :sub-view="encyclopediaSubView"
+          :category="encyclopediaCategory"
           :project-id="currentProjectId"
-        />
-        <StoryBranchView
-          v-else-if="activeTool === 'encyclopedia' && encyclopediaSubView === 'branches'"
-          :project-id="currentProjectId"
-        />
-        <EncyclopediaView
-          v-else-if="activeTool === 'encyclopedia'"
-          :project-id="currentProjectId"
-          :embedded="true"
-          :active-category="encyclopediaCategory"
-          @update:active-category="setEncyclopediaCategory"
-        />
-        <TipTapEditorView
-          v-else
-          v-model="tipTapContent"
-          :project-id="currentProjectId"
-          :document-id="currentChapterId"
-          :readonly="false"
-          :show-reference-panel="false"
+          :chapter-id="displayChapterId"
+          :chapter-title="displayChapterTitle"
+          :chapters="flatChapters"
+          v-model:content="tipTapContent"
+          @update:category="setEncyclopediaCategory"
+          @trigger-ai-action="handleAIStageAction"
+          @open-graph="handleOpenGraph"
+          @jump-to-chapter="handleChapterIdUpdate"
           @save="handleTipTapSave"
+          @add-doc="handleAddDoc"
+          @status-change="handleWorkspaceStatusChange"
+          @open-fullscreen-tool="handleOpenFullscreenTool"
+          @close-fullscreen="handleCloseFullscreen"
         />
       </template>
 
       <!-- 右侧AI面板插槽 -->
       <template #right-panel>
-        <div
-          class="workspace-right-panel-shell"
-          :class="{ 'is-collapsed': panelStore.rightCollapsed, 'is-immersive-hidden': isImmersiveMode }"
-        >
-          <div class="workspace-right-panel-body">
-            <AIPanel
-              :session-id="currentProjectId"
-              :action-trigger="aiActionTrigger"
-              @send="handleAISend"
-              @apply-generated-text="handleAIApplyGeneratedText"
-            />
-          </div>
-          <aside class="workspace-right-dock" aria-label="右侧工具栏">
-            <button
-              v-for="item in rightDockItems"
-              :key="item.tool"
-              type="button"
-              class="workspace-right-dock__item"
-              :class="{ active: activeRightDockTool === item.tool }"
-              :title="item.label"
-              @click="handleRightDockSelect(item.tool)"
-            >
-              <QyIcon :name="item.icon" :size="16" />
-              <span class="workspace-right-dock__label">{{ item.label }}</span>
-            </button>
-          </aside>
-        </div>
+        <WorkspaceRightPanel
+          :collapsed="panelStore.rightCollapsed"
+          :is-immersive-mode="isImmersiveMode"
+          :active-right-dock-tool="activeRightDockTool"
+          :project-id="currentProjectId"
+          :chapter-id="displayChapterId"
+          :chapter-title="displayChapterTitle"
+          :source-text="currentChapterPlainText"
+          :ai-action-trigger="aiActionTrigger"
+          :ai-apply-feedback="aiApplyFeedback"
+          @toggle="toggleRightPanel"
+          @ai-send="handleAISend"
+          @ai-apply="handleAIApplyGeneratedText"
+        />
       </template>
     </EditorLayout>
 
-    <footer class="workspace-statusbar" :class="{ 'workspace-statusbar--immersive': isImmersiveMode }">
-      <div class="workspace-statusbar__stats">
-        <span>章节数：{{ chapterCount }}</span>
-        <span>目录节点：{{ directoryCount }}</span>
-        <span>当前工具：{{ activeToolLabel }}</span>
-        <span v-if="isImmersiveMode">沉浸计时：{{ immersiveTimerText }}</span>
-      </div>
-      <div class="workspace-statusbar__state">
-        <span class="workspace-statusbar__dot" />
-        <span>{{ isImmersiveMode ? '沉浸写作进行中' : saveStatusLabel }}</span>
-      </div>
-    </footer>
+    <!-- 底部状态栏 -->
+    <WorkspaceStatusbar
+      :chapter-count="chapterCount"
+      :directory-count="directoryCount"
+      :active-tool-label="activeToolLabel"
+      :save-status-label="saveStatusLabel"
+      :extra-status-chips="workspaceExtraStatusChips"
+      :is-immersive-mode="isImmersiveMode"
+      :immersive-timer-text="immersiveTimerText"
+      :project-word-count="currentProjectWordCount"
+    />
   </div>
 
   <!-- 新建文档对话框 -->
-  <el-dialog v-model="showCreateDocDialog" title="新建文档" width="400px">
-    <el-form :model="newDocForm">
-      <el-form-item label="标题">
-        <el-input v-model="newDocForm.title" placeholder="请输入文档标题" />
-      </el-form-item>
-      <el-form-item label="类型">
-        <el-select v-model="newDocForm.type">
-          <el-option label="章节" value="chapter" />
-          <el-option label="卷/分卷" value="volume" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="showCreateDocDialog = false">取消</el-button>
-      <el-button type="primary" @click="handleCreateDoc">创建</el-button>
-    </template>
-  </el-dialog>
+  <QyFormModal
+    v-model:visible="showCreateDocDialog"
+    title="新建文档"
+    :fields="createDocFields"
+    :loading="createDocLoading"
+    @submit="handleCreateDocSubmit"
+    @cancel="showCreateDocDialog = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch, unref } from 'vue'
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
-import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
-// 引入新的 Store 体系
+// 引入 Store 体系
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
-import { useEditorStore } from '@/modules/writer/stores/editorStore'
+import { useEditorStore, type ActiveTool } from '@/modules/writer/stores/editorStore'
 import { usePanelStore } from '@/modules/writer/stores/panelStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
-import { DocumentType, type Document } from '@/modules/writer/types/document'
-import type { ActiveTool } from '@/modules/writer/stores/editorStore'
+import { DocumentType } from '@/modules/writer/types/document'
+import type { OutlineNode } from '@/types/writer'
 
-// 引入组件
+// 引入 Composables
+import { useWorkspaceState } from '@/modules/writer/composables/useWorkspaceState'
+import { useImmersiveTimer } from '@/modules/writer/composables/useImmersiveTimer'
+import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopediaView'
+import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
+
+// 引入 API
+import { outlineApi, type CreateOutlineRequest, type UpdateOutlineRequest } from '@/modules/writer/api/outline'
+import { createDocument } from '@/modules/writer/api/document'
+
+// 引入子组件
+import WorkspaceTopbar from '@/modules/writer/components/workspace/WorkspaceTopbar.vue'
+import WorkspaceLeftPanel from '@/modules/writer/components/workspace/WorkspaceLeftPanel.vue'
+import WorkspaceRightPanel, {
+  type AIApplyPayload,
+} from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
+import WorkspaceStatusbar from '@/modules/writer/components/workspace/WorkspaceStatusbar.vue'
+import WorkspaceEditorContent from '@/modules/writer/components/workspace/WorkspaceEditorContent.vue'
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
-import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
-import ProjectSidebar from '@/modules/writer/components/ProjectSidebar.vue'
-import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
-import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
-import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
-import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
-import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
+import QyFormModal from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
+import type { FormField } from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
+import {
+  appendPlainTextToEditorContent,
+  buildEditorContentFromPlainText,
+  extractPlainTextFromEditorContent,
+} from '@/modules/writer/utils/editorContent'
 
 // =======================
 // Props 定义
@@ -248,7 +156,7 @@ const props = defineProps<{
 }>()
 
 // =======================
-// 状态初始化
+// Store 初始化
 // =======================
 const route = useRoute()
 const router = useRouter()
@@ -258,445 +166,782 @@ const editorStore = useEditorStore()
 const panelStore = usePanelStore()
 const writerStore = useWriterStore()
 
-// UI Flags
-const showCreateDocDialog = ref(false)
-
-// Forms
-const newDocForm = ref({ title: '', type: 'chapter' })
-const aiActionTrigger = ref<{
-  id: number
-  action: string
-  text: string
-  instructions?: string
-} | null>(null)
-
 // =======================
-// 数据绑定 (核心)
+// 计算属性
 // =======================
-
-// 1. 项目 ID - 优先使用 props，然后是 route.params
-const currentProjectId = computed({
-  get: () => props.projectId || projectStore.currentProjectId || (route.params.projectId as string),
-  set: (id) => {
-    if (id) {
-      projectStore.loadDetail(id)
-      documentStore.loadTree(id)
-    }
-  },
-})
-
 const isTestMode = computed(() => route.query.test === 'true')
 const mockProject = computed(() =>
   isTestMode.value ? getWorkspaceMockProject(currentProjectId.value) : null,
 )
 const queryChapterId = computed(() => String(route.query.chapterId || ''))
 const queryTool = computed(() => String(route.query.tool || ''))
-const isEncyclopediaTool = computed(() => editorStore.activeTool === 'encyclopedia')
-type EncyclopediaSubView = 'relations' | 'encyclopedia' | 'timeline' | 'branches'
-type EncyclopediaInnerCategory = 'characters' | 'locations'
-type LeftDockTool = 'writing' | 'immersive' | EncyclopediaSubView
+const resolvedActiveTool = computed<ActiveTool>(() => unref(editorStore.activeTool) as ActiveTool)
+const activeTool = computed(() => resolvedActiveTool.value)
+const workspaceExtraStatusChips = ref<string[]>([])
 
-const encyclopediaSubView = computed<EncyclopediaSubView>(() => {
-  const raw = String(route.query.encyclopediaView || route.query.worldView || '').toLowerCase()
-  if (['encyclopedia', 'cards', 'list'].includes(raw)) return 'encyclopedia'
-  if (['relations', 'relation', 'graph', 'relationship'].includes(raw)) return 'relations'
-  if (['timeline', 'timelines'].includes(raw)) return 'timeline'
-  if (['branch', 'branches', 'outline'].includes(raw)) return 'branches'
-  return 'relations'
+// =======================
+// 使用 Composables
+// =======================
+const {
+  currentProjectId,
+  currentChapterId,
+  projectDisplayName,
+  currentChapterTitle,
+  chapterCount,
+  directoryCount,
+  activeToolLabel,
+  saveStatusLabel,
+  tipTapContent,
+  projects,
+  flatChapters,
+  availableDocMap,
+} = useWorkspaceState({
+  projectIdProp: props.projectId,
+  isTestMode,
+  mockProject,
 })
 
-const encyclopediaCategory = computed<EncyclopediaInnerCategory>(() => {
-  const raw = String(route.query.worldCategory || '').toLowerCase()
-  return raw === 'locations' ? 'locations' : 'characters'
+// 当前项目总字数
+const currentProjectWordCount = computed(() => {
+  const project = projects.value.find((p) => p.id === currentProjectId.value)
+  return project?.wordCount || 0
 })
 
-const setEncyclopediaCategory = async (category: EncyclopediaInnerCategory) => {
-  await router.replace({
-    query: {
-      ...route.query,
-      worldCategory: category,
-    },
-  })
+const isImmersiveMode = computed(() => resolvedActiveTool.value === 'immersive')
+
+const { immersiveTimerText, startImmersiveTimer, stopImmersiveTimer } = useImmersiveTimer({
+  isImmersiveMode,
+})
+
+const {
+  isEncyclopediaTool,
+  encyclopediaSubView,
+  encyclopediaCategory,
+  setEncyclopediaCategory,
+} = useEncyclopediaView({ activeTool })
+
+const { buildDirectoryOutline } = useDirectoryOutline({ availableDocMap, mockProject })
+
+const handleWorkspaceStatusChange = (chips: string[]) => {
+  workspaceExtraStatusChips.value = chips
 }
 
-const leftDockItems: Array<{ tool: LeftDockTool; label: string; icon: string }> = [
-  { tool: 'writing', label: '写作', icon: 'Edit' },
-  { tool: 'immersive', label: '沉浸', icon: 'FullScreen' },
-  { tool: 'relations', label: '关系', icon: 'Share' },
-  { tool: 'encyclopedia', label: '百科', icon: 'Collection' },
-  { tool: 'timeline', label: '时间', icon: 'Clock' },
-  { tool: 'branches', label: '分支', icon: 'Connection' },
-]
-
-type RightDockTool = 'ai'
-
-const rightDockItems: Array<{ tool: RightDockTool; label: string; icon: string }> = [
-  { tool: 'ai', label: 'AI 助手', icon: 'MagicStick' },
-]
-
-const activeToolForDock = computed<LeftDockTool>(() => {
-  const tool = editorStore.activeTool
-  if (tool === 'encyclopedia') return encyclopediaSubView.value
-  return tool === 'ai' || tool === 'chapters' ? 'writing' : tool
-})
-
-const activeRightDockTool = computed<RightDockTool>(() => 'ai')
-const isImmersiveMode = computed(() => editorStore.activeTool === 'immersive')
-
-const immersiveStartedAt = ref<number | null>(null)
-const immersiveAccumulatedSeconds = ref(0)
-const immersiveTickNow = ref(Date.now())
-const immersiveTickId = ref<ReturnType<typeof setInterval> | null>(null)
-const immersivePrevLeftCollapsed = ref<boolean | null>(null)
-const immersivePrevRightCollapsed = ref<boolean | null>(null)
-
-const immersiveElapsedSeconds = computed(() => {
-  if (!isImmersiveMode.value || immersiveStartedAt.value === null) {
-    return immersiveAccumulatedSeconds.value
-  }
-  const ongoing = Math.max(0, Math.floor((immersiveTickNow.value - immersiveStartedAt.value) / 1000))
-  return immersiveAccumulatedSeconds.value + ongoing
-})
-
-const immersiveTimerText = computed(() => {
-  const total = immersiveElapsedSeconds.value
-  const hours = Math.floor(total / 3600)
-  const minutes = Math.floor((total % 3600) / 60)
-  const seconds = total % 60
-  if (hours > 0) {
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  }
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-})
-
-const startImmersiveTimer = () => {
-  if (immersiveStartedAt.value !== null) return
-  immersiveStartedAt.value = Date.now()
-  immersiveTickNow.value = immersiveStartedAt.value
-  if (immersiveTickId.value) return
-  immersiveTickId.value = setInterval(() => {
-    immersiveTickNow.value = Date.now()
-  }, 1000)
-}
-
-const stopImmersiveTimer = () => {
-  if (immersiveStartedAt.value !== null) {
-    const delta = Math.max(0, Math.floor((Date.now() - immersiveStartedAt.value) / 1000))
-    immersiveAccumulatedSeconds.value += delta
-    immersiveStartedAt.value = null
-  }
-  if (immersiveTickId.value) {
-    clearInterval(immersiveTickId.value)
-    immersiveTickId.value = null
-  }
-}
-
-const handleDockSelect = async (tool: LeftDockTool) => {
-  const nextQuery = { ...route.query } as Record<string, unknown>
-  if (tool === 'relations' || tool === 'encyclopedia' || tool === 'timeline' || tool === 'branches') {
-    editorStore.setActiveTool('encyclopedia')
-    nextQuery.tool = 'encyclopedia'
-    nextQuery.encyclopediaView = tool
-  } else {
-    const normalizedTool: ActiveTool = tool
-    editorStore.setActiveTool(normalizedTool)
-    nextQuery.tool = normalizedTool
-    delete nextQuery.encyclopediaView
-    delete nextQuery.worldView
-    delete nextQuery.worldCategory
-  }
-
-  await router.replace({ query: nextQuery as any })
-}
-
-const worldSidebarTitle = computed(() => {
-  if (encyclopediaSubView.value === 'relations') return '关系图谱工具'
-  if (encyclopediaSubView.value === 'timeline') return '时间线工具'
-  if (encyclopediaSubView.value === 'branches') return '分支工具'
-  return '设定百科工具'
-})
-
-const worldSidebarHint = computed(() => {
-  if (encyclopediaSubView.value === 'relations') return '当前视图聚焦角色关系，选择角色即可查看关系链路与强度。'
-  if (encyclopediaSubView.value === 'timeline') return '当前视图聚焦事件推进，切换时间线并校准事件顺序。'
-  if (encyclopediaSubView.value === 'branches') return '当前视图聚焦主支线结构，建议从根节点逐层推进。'
-  return '在左侧选择角色或地点分类以切换百科卡片列表。'
-})
-
-const handleRightDockSelect = (tool: RightDockTool) => {
-  if (isImmersiveMode.value) return
-  if (tool === 'ai') {
-    panelStore.setRightCollapsed(false)
-  }
-}
-
-const buildDirectoryOutline = (directoryId: string): string => {
-  const directory = availableDocMap.value.get(directoryId)
-  if (!directory) return ''
-
-  if (mockProject.value?.contentByDocId?.[directoryId]) {
-    return mockProject.value.contentByDocId[directoryId]
-  }
-
-  const children = Array.from(availableDocMap.value.values())
-    .filter((doc) => doc.parentId === directoryId && doc.type === DocumentType.CHAPTER)
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
-
-  const chapterLines = children.length > 0
-    ? children.map((chapter, index) => `${index + 1}. ${chapter.title}`).join('\n')
-    : '- 暂无章节，请在右上角新增章节。'
-
-  return `# ${directory.title} 细纲\n\n## 目录目标\n- 待补充此目录核心冲突与推进目标。\n\n## 章节推进\n${chapterLines}\n`
-}
-
-// 2. 文档 ID (切换文档的核心逻辑)
-const currentChapterId = computed({
-  get: () => (route.query.chapterId as string) || documentStore.currentDocMeta?.id || '',
-  set: async (id) => {
-    if (!id) return
-    const selectedDoc = availableDocMap.value.get(id)
-    if (selectedDoc) {
-      await documentStore.selectDocument(selectedDoc)
-    }
-    editorStore.setCurrentChapter(id)
-
-    // 目录节点展示细纲
-    if (
-      selectedDoc &&
-      (selectedDoc.type === DocumentType.SCENE || selectedDoc.type === DocumentType.VOLUME)
-    ) {
-      const outlineContent = buildDirectoryOutline(id)
-      editorStore.setContent(outlineContent, false)
-      editorStore.editorContent = outlineContent
-      editorStore.markSaved()
-      return
-    }
-
-    // 真实内容 API 未就绪时，测试模式优先用统一 mock 文本填充
-    if (mockProject.value?.contentByDocId[id]) {
-      editorStore.setContent(mockProject.value.contentByDocId[id], false)
-      editorStore.editorContent = mockProject.value.contentByDocId[id]
-      editorStore.markSaved()
-      return
-    }
-
-    // 真实文档走段落内容加载链路
-    try {
-      await editorStore.loadDocument(id)
-      return
-    } catch {
-      // 非 mock 文档默认不覆盖已有内容，仅在首次无内容时清空
-    }
-
-    if (!editorStore.content) {
-      editorStore.setContent('', false)
-      editorStore.editorContent = ''
-      editorStore.markSaved()
+watch(
+  [isEncyclopediaTool, encyclopediaSubView],
+  ([isEncyclopedia, subView]) => {
+    if (!isEncyclopedia || subView !== 'relations') {
+      workspaceExtraStatusChips.value = []
     }
   },
-})
+  { immediate: true },
+)
 
-interface SidebarProjectSummary {
-  id: string
+const activeRightDockTool = computed<'ai'>(() => 'ai')
+const currentChapterPlainText = computed(() =>
+  extractPlainTextFromEditorContent(tipTapContent.value),
+)
+const isGlobalRelationsView = computed(
+  () =>
+    isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value,
+)
+const displayChapterId = computed({
+  get: () => (isGlobalRelationsView.value ? '' : currentChapterId.value),
+  set: (value: string) => {
+    currentChapterId.value = value
+  },
+})
+const displayChapterTitle = computed(() =>
+  isGlobalRelationsView.value ? '' : currentChapterTitle.value,
+)
+
+// =======================
+// UI 状态
+// =======================
+const showCreateDocDialog = ref(false)
+const createDocLoading = ref(false)
+const aiActionTrigger = ref<{
+  id: number
+  action: string
+  text: string
+  instructions?: string
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
+} | null>(null)
+const aiApplyFeedback = ref<{
+  status: 'idle' | 'success' | 'fallback'
   title: string
-  status: string
-  wordCount: number
-  chapterCount: number
-  updatedAt: string
+  detail: string
+  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  updatedAt: number
+} | null>(null)
+const latestSelectionContext = ref<{ text: string; from: number; to: number } | null>(null)
+
+// 新建文档表单字段配置
+const createDocFields: FormField[] = [
+  {
+    key: 'title',
+    label: '文档标题',
+    type: 'text',
+    placeholder: '请输入文档标题',
+    required: true,
+  },
+  {
+    key: 'type',
+    label: '文档类型',
+    type: 'select',
+    defaultValue: 'chapter',
+    options: [
+      { label: '章节', value: 'chapter' },
+      { label: '卷', value: 'volume' },
+    ],
+  },
+]
+
+// =======================
+// 事件处理
+// =======================
+const toggleLeftPanel = () => {
+  if (isImmersiveMode.value) return
+  panelStore.setLeftCollapsed(!panelStore.leftCollapsed)
 }
 
-interface SidebarChapterSummary {
-  id: string
-  projectId: string
-  chapterNum: number
-  title: string
-  wordCount: number
-  updatedAt: string
-  status: 'draft' | 'published'
-  nodeType?: 'directory' | 'chapter'
-  sortOrder?: number
+const toggleRightPanel = () => {
+  if (isImmersiveMode.value) return
+  panelStore.setRightCollapsed(!panelStore.rightCollapsed)
+}
+void toggleLeftPanel
+void toggleRightPanel
+
+const handleAddDoc = () => {
+  showCreateDocDialog.value = true
 }
 
-const docsFromStore = computed(() => (documentStore.flatDocs || []) as Document[])
+const handleOpenDirectoryOutline = async (directoryId: string) => {
+  if (!directoryId) return
 
-const availableDocMap = computed(() => {
-  const map = new Map<string, Document>()
-  for (const doc of docsFromStore.value) {
-    map.set(doc.id, doc)
+  // 如果在百科/关系图谱视图，点击卷不切换到编辑器，只更新选中
+  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+    currentChapterId.value = directoryId
+    return
   }
-  for (const doc of mockProject.value?.docs || []) {
-    if (!map.has(doc.id)) {
-      map.set(doc.id, doc)
+
+  editorStore.setActiveTool('writing')
+  if (currentChapterId.value !== directoryId) {
+    currentChapterId.value = directoryId
+    return
+  }
+  const outlineContent = buildDirectoryOutline(directoryId)
+  editorStore.setContent(outlineContent, false)
+  editorStore.editorContent = outlineContent
+  editorStore.markSaved()
+  if (route.query.tool !== 'writing') {
+    await router.replace({ query: { ...route.query, tool: 'writing' } as LocationQueryRaw })
+  }
+}
+
+const handleTipTapSave = async (contents?: unknown[]) => {
+  if (!currentChapterId.value) {
+    message.warning('请先选择要保存的章节')
+    return
+  }
+  try {
+    if (contents && Array.isArray(contents)) {
+      // 调用 editorStore.saveParagraphs 保存到后端
+      await editorStore.saveParagraphs(
+        contents as Array<{
+          paragraphId?: string
+          order: number
+          content: string
+          contentType?: string
+        }>,
+      )
     }
+    // 保存成功静默处理，不显示弹窗，状态栏会显示保存状态
+  } catch (error) {
+    console.error('[ProjectWorkspace] 保存失败:', error)
+    message.error('保存失败，请重试')
   }
-  return map
-})
+}
 
-// 3. 供 Sidebar 使用的数据源
-const projects = computed<SidebarProjectSummary[]>(() => {
-  const normalized = (projectStore.projects || []).map((p: any) => ({
-    id: p.id,
-    title: p.title,
-    status: p.status || 'writing',
-    wordCount: Number(p.wordCount ?? p.totalWords ?? 0),
-    chapterCount: Number(p.chapterCount ?? 0),
-    updatedAt: p.updatedAt || p.lastUpdateTime || new Date().toISOString(),
-  }))
+const handleExportDraft = () => {
+  message.info('导出功能已接入入口，后续可绑定实际导出流程')
+}
 
-  const mock = mockProject.value?.project
-  if (mock && !normalized.some((p) => p.id === mock.id)) {
-    normalized.unshift(mock)
+const handleShareDraft = async () => {
+  const shareUrl = window.location.href
+  if (!navigator?.clipboard?.writeText) {
+    message.info('当前环境不支持自动复制，请手动复制地址栏链接')
+    return
   }
+  try {
+    await navigator.clipboard.writeText(shareUrl)
+    message.success('分享链接已复制到剪贴板')
+  } catch {
+    message.error('复制失败，请手动复制地址栏链接')
+  }
+}
 
-  return normalized
-})
+const handleBackToDashboard = () => {
+  router.push('/writer/dashboard')
+}
 
-const docsForTree = computed<Document[]>(() => {
-  const docs = [...docsFromStore.value]
-  if (!isTestMode.value || !mockProject.value?.docs?.length) return docs
-  const seen = new Set(docs.map((doc) => doc.id))
-  for (const doc of mockProject.value.docs) {
-    if (!seen.has(doc.id)) {
-      docs.push(doc)
+const handleCreateDocSubmit = async (formData: Record<string, unknown>) => {
+  const title = formData.title as string
+  if (!title) return
+
+  createDocLoading.value = true
+  try {
+    // 确定父节点：如果当前选中的是目录类型，则作为父节点
+    const currentDoc = availableDocMap.value.get(currentChapterId.value)
+    const parentId = currentDoc?.type === DocumentType.VOLUME ? currentChapterId.value : undefined
+
+    await documentStore.create(currentProjectId.value, {
+      title,
+      type: formData.type as DocumentType,
+      projectId: currentProjectId.value,
+      parentId, // 传递父节点ID
+    })
+    showCreateDocDialog.value = false
+    message.success('创建成功')
+  } catch (error) {
+    console.error('[ProjectWorkspace] Create failed:', error)
+    message.error('创建失败')
+  } finally {
+    createDocLoading.value = false
+  }
+}
+
+const handleDeleteChapter = async (docId: string) => {
+  try {
+    await messageBox.confirm('确定删除该章节吗？此操作不可恢复', '警告', { type: 'warning' })
+    await documentStore.remove(docId)
+    if (docId === currentChapterId.value) {
+      editorStore.reset()
     }
+  } catch {
+    // cancel
   }
-  return docs
-})
+}
 
-const chaptersFromDocs = computed<SidebarChapterSummary[]>(() => {
-  const docs = docsForTree.value
-  const sceneDocs = docs
-    .filter((doc) => doc.type === DocumentType.SCENE || doc.type === DocumentType.VOLUME)
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
+// 处理章节 ID 更新（从侧边栏选择章节）
+const handleChapterIdUpdate = async (chapterId: string) => {
+  if (!chapterId) return
 
-  const chapterDocs = docs
-    .filter((doc) => doc.type === DocumentType.CHAPTER)
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
-
-  if (sceneDocs.length === 0) {
-    return chapterDocs.map((doc, index) => ({
-      id: doc.id,
-      projectId: doc.projectId,
-      chapterNum: index + 1,
-      title: doc.title,
-      wordCount: Number(doc.wordCount || 0),
-      updatedAt: doc.updatedAt || new Date().toISOString(),
-      status: doc.status === 'completed' ? 'published' : 'draft',
-      nodeType: 'chapter',
-      sortOrder: index + 1,
-    }))
+  // 如果在百科/关系图谱视图，保持在该视图
+  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+    // 更新路由 query 中的 chapterId，但不切换工具
+    const nextQuery = { ...route.query } as LocationQueryRaw
+    nextQuery.chapterId = chapterId
+    await router.replace({ query: nextQuery })
+    return
   }
 
-  const list: SidebarChapterSummary[] = []
-  let runningIndex = 1
-  for (const scene of sceneDocs) {
-    list.push({
-      id: scene.id,
-      projectId: scene.projectId,
-      chapterNum: 0,
-      title: scene.title,
-      wordCount: 0,
-      updatedAt: scene.updatedAt || new Date().toISOString(),
-      status: scene.status === 'completed' ? 'published' : 'draft',
-      nodeType: 'directory',
-      sortOrder: (scene.order || 0) * 100,
+  // 其他视图切换到写作模式
+  const nextQuery = { ...route.query } as LocationQueryRaw
+  nextQuery.chapterId = chapterId
+  nextQuery.tool = 'writing'
+  delete nextQuery.encyclopediaView
+  await router.replace({ query: nextQuery })
+}
+
+const handleOpenGraph = async (chapterId: string) => {
+  const nextQuery = { ...route.query } as LocationQueryRaw
+  nextQuery.tool = 'encyclopedia'
+  nextQuery.encyclopediaView = 'relations'
+
+  if (chapterId) {
+    nextQuery.chapterId = chapterId
+  } else {
+    delete nextQuery.chapterId
+  }
+
+  await router.replace({ query: nextQuery })
+}
+
+// 处理大纲节点选择 - 设置当前节点并加载关联文档内容
+const handleOutlineSelect = async (node: OutlineNode) => {
+  // 设置当前选中的大纲节点
+  writerStore.setCurrentOutlineNode(node)
+
+  // 如果节点关联了文档，切换到该文档
+  if (node.documentId) {
+    // 如果在百科/关系图谱视图，保持在该视图
+    if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
+      currentChapterId.value = node.documentId
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.chapterId = node.documentId
+      await router.replace({ query: nextQuery })
+      return
+    }
+
+    // 切换到写作模式并加载文档
+    editorStore.setActiveTool('writing')
+    currentChapterId.value = node.documentId
+    const nextQuery = { ...route.query } as LocationQueryRaw
+    nextQuery.chapterId = node.documentId
+    nextQuery.tool = 'writing'
+    delete nextQuery.encyclopediaView
+    await router.replace({ query: nextQuery })
+  }
+}
+
+// 处理创建大纲根节点
+const handleCreateOutlineRoot = async () => {
+  try {
+    // 生成默认标题
+    const volumeCount = flatChapters.value.filter((ch) => ch.nodeType === 'directory').length
+    const defaultTitle = `卷 ${volumeCount + 1}`
+
+    // 创建卷（volume），后端会自动同步创建对应的大纲节点
+    await createDocument(currentProjectId.value, {
+      projectId: currentProjectId.value,
+      title: defaultTitle,
+      type: DocumentType.VOLUME,
+      order: volumeCount,
     })
 
-    const children = chapterDocs
-      .filter((chapter) => chapter.parentId === scene.id)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+    // 重新加载数据
+    await Promise.all([
+      documentStore.loadTree(currentProjectId.value),
+      loadOutlineTree(),
+    ])
 
-    for (const chapter of children) {
-      list.push({
-        id: chapter.id,
-        projectId: chapter.projectId,
-        chapterNum: runningIndex++,
-        title: chapter.title,
-        wordCount: Number(chapter.wordCount || 0),
-        updatedAt: chapter.updatedAt || new Date().toISOString(),
-        status: chapter.status === 'completed' ? 'published' : 'draft',
-        nodeType: 'chapter',
-        sortOrder: (scene.order || 0) * 100 + (chapter.order || 0),
-      })
+    message.success(`已创建 ${defaultTitle}`)
+  } catch (error) {
+    console.error('[ProjectWorkspace] 创建大纲根节点失败:', error)
+    message.error('创建失败，请重试')
+  }
+}
+
+// 处理创建大纲子节点
+const handleCreateOutlineChild = async (data?: CreateOutlineRequest) => {
+  try {
+    const currentNode = writerStore.outline.currentNode
+    if (!currentNode) {
+      message.warning('请先选择父节点')
+      return
+    }
+
+    // 如果没有传入数据，使用默认值创建
+    const createData: CreateOutlineRequest = data || {
+      title: '新节点',
+      parentId: currentNode.id,
+    }
+
+    // 确保 parentId 设置正确
+    if (!createData.parentId) {
+      createData.parentId = currentNode.id
+    }
+
+    await outlineApi.create(currentProjectId.value, createData)
+    message.success('创建成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 创建大纲子节点失败:', error)
+    message.error('创建失败')
+  }
+}
+
+// 处理大纲节点转为章节
+const handleConvertToChapter = async (payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }) => {
+  try {
+    const { outlineNode, volumeNode } = payload
+
+    // 获取目标卷下已有章节数量，用于生成"第X章"标题
+    const volumeChildren = flatChapters.value.filter((ch) => ch.parentId === volumeNode.documentId)
+    const chapterCount = volumeChildren.length + 1
+    const defaultTitle = `第${chapterCount}章`
+
+    // 在对应卷下创建新章节
+    const newDoc = await createDocument(currentProjectId.value, {
+      projectId: currentProjectId.value,
+      parentId: volumeNode.documentId,
+      title: defaultTitle,
+      type: DocumentType.CHAPTER,
+      order: chapterCount - 1,
+    })
+
+    // 标记原大纲节点为已转换（通过更新 summary 或添加标记）
+    // 这里我们添加一个标记表明已转换
+    await outlineApi.update(outlineNode.id, currentProjectId.value, {
+      summary: `[已转换为章节] ${outlineNode.title}`,
+      // 可以考虑添加一个 converted 标记字段
+    })
+
+    // 重新加载数据
+    await Promise.all([
+      documentStore.loadTree(currentProjectId.value),
+      loadOutlineTree(),
+    ])
+
+    message.success(`已在"${volumeNode.title}"下生成"${defaultTitle}"`)
+
+    // TODO: 如果需要让用户立即编辑新章节标题，可以在这里打开编辑态
+    // 或者通过选中新建的章节来触发编辑
+  } catch (error) {
+    console.error('[ProjectWorkspace] 转为章节失败:', error)
+    message.error('转为章节失败，请重试')
+  }
+}
+
+// 处理编辑选中节点
+const handleEditOutlineNode = async (data?: UpdateOutlineRequest) => {
+  try {
+    const currentNode = writerStore.outline.currentNode
+    if (!currentNode) {
+      message.warning('请先选择要编辑的节点')
+      return
+    }
+
+    // 如果没有传入数据，不执行更新
+    if (!data) {
+      message.warning('没有修改数据')
+      return
+    }
+
+    await outlineApi.update(currentNode.id, currentProjectId.value, data)
+    message.success('保存成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 编辑大纲节点失败:', error)
+    message.error('编辑失败')
+  }
+}
+
+// 处理删除选中节点
+const handleDeleteOutlineNode = async () => {
+  try {
+    const currentNodeId = writerStore.outline.currentNode?.id
+    if (!currentNodeId) {
+      message.warning('请先选择要删除的节点')
+      return
+    }
+
+    await messageBox.confirm('确定删除该大纲节点吗？此操作不可恢复', '警告', { type: 'warning' })
+
+    await outlineApi.delete(currentNodeId, currentProjectId.value)
+    message.success('删除成功')
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[ProjectWorkspace] 删除大纲节点失败:', error)
+      message.error('删除失败')
+    }
+  }
+}
+
+// 处理节点移动（上移/下移）
+const handleMoveOutlineNode = async (direction: 'up' | 'down') => {
+  // 获取选中的大纲节点
+  const currentNode = writerStore.outline.currentNode
+  if (!currentNode) {
+    message.warning('请先选择要移动的节点')
+    return
+  }
+
+  // 获取同级节点列表
+  const siblings = currentNode.parentId
+    ? writerStore.outline.tree.find((node) => node.id === currentNode.parentId)?.children || []
+    : writerStore.outline.tree
+
+  const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+  const currentIndex = orderedSiblings.findIndex((node) => node.id === currentNode.id)
+
+  if (currentIndex < 0) {
+    message.warning('无法找到节点位置')
+    return
+  }
+
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+  const swapNode = orderedSiblings[targetIndex]
+
+  if (!swapNode) {
+    message.warning(direction === 'up' ? '已经是第一个' : '已经是最后一个')
+    return
+  }
+
+  try {
+    // 交换两个节点的 order 值
+    const currentOrder = currentNode.order ?? currentIndex
+    const swapOrder = swapNode.order ?? targetIndex
+
+    // 并行更新两个节点
+    await Promise.all([
+      outlineApi.update(currentNode.id, currentProjectId.value, { order: swapOrder }),
+      outlineApi.update(swapNode.id, currentProjectId.value, { order: currentOrder }),
+    ])
+
+    message.success(`节点已${direction === 'up' ? '上移' : '下移'}`)
+
+    // 重新加载大纲树
+    await loadOutlineTree()
+  } catch (error) {
+    console.error('[ProjectWorkspace] 移动大纲节点失败:', error)
+    message.error('移动失败')
+  }
+}
+
+// 加载大纲树
+const loadOutlineTree = async () => {
+  try {
+    writerStore.outline.loading = true
+    const response = await outlineApi.getTree(currentProjectId.value)
+
+    console.log('[ProjectWorkspace] 大纲树API返回:', response)
+
+    // 处理后端返回的响应格式
+    if (Array.isArray(response)) {
+      // 直接是数组
+      writerStore.outline.tree = response
+      console.log('[ProjectWorkspace] 设置大纲树（直接数组）:', response)
+    } else if (response && typeof response === 'object') {
+      // 后端返回包装格式：{ projects, list, total }
+      if ('list' in response && Array.isArray(response.list)) {
+        writerStore.outline.tree = response.list
+        console.log('[ProjectWorkspace] 设置大纲树（list字段）:', response.list)
+      } else if ('data' in response && Array.isArray(response.data)) {
+        // 标准响应格式：{ data: [...] }
+        writerStore.outline.tree = response.data
+        console.log('[ProjectWorkspace] 设置大纲树（data字段）:', response.data)
+      } else {
+        console.warn('[ProjectWorkspace] 大纲树API返回格式未知:', response)
+        writerStore.outline.tree = []
+      }
+    } else {
+      console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
+      writerStore.outline.tree = []
+    }
+
+    console.log('[ProjectWorkspace] store中的大纲树:', writerStore.outline.tree)
+  } catch (error) {
+    console.error('[ProjectWorkspace] 加载大纲树失败:', error)
+    message.error('加载大纲树失败')
+    writerStore.outline.tree = []
+  } finally {
+    writerStore.outline.loading = false
+  }
+}
+
+// 处理打开全屏工具
+const workspaceEditorContentRef = ref<InstanceType<typeof WorkspaceEditorContent> | null>(null)
+
+const handleOpenFullscreenTool = (tool: string) => {
+  workspaceEditorContentRef.value?.openFullscreenTool(tool)
+}
+
+/** 关闭全屏覆盖层 */
+const handleCloseFullscreen = () => {
+  workspaceEditorContentRef.value?.closeFullscreen()
+}
+
+// 不再需要的 emit 定义，删除
+void handleCloseFullscreen
+
+const handleAISend = (msg: string) => {
+  void msg
+}
+
+const handleAIStageAction = (payload: {
+  action: string
+  text: string
+  instructions?: string
+  from?: number
+  to?: number
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
+}) => {
+  panelStore.setRightCollapsed(false)
+  latestSelectionContext.value =
+    typeof payload.from === 'number' && typeof payload.to === 'number'
+      ? {
+          text: payload.text,
+          from: payload.from,
+          to: payload.to,
+        }
+      : null
+  aiActionTrigger.value = {
+    id: Date.now(),
+    action: payload.action,
+    text: payload.text || currentChapterPlainText.value,
+    instructions: payload.instructions,
+    applyMode: payload.applyMode,
+  }
+}
+
+const setAIApplyFeedback = (
+  status: 'idle' | 'success' | 'fallback',
+  title: string,
+  detail: string,
+  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document',
+) => {
+  aiApplyFeedback.value = {
+    status,
+    title,
+    detail,
+    mode,
+    updatedAt: Date.now(),
+  }
+}
+
+const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
+  const generatedText = (payload.generatedText || '').trim()
+  if (!generatedText) return
+
+  const tiptapEditor = editorStore.tipTapEditor
+  const selectionContext = latestSelectionContext.value
+  const requestedApplyMode = payload.applyMode || aiActionTrigger.value?.applyMode
+
+  if (
+    tiptapEditor &&
+    selectionContext &&
+    (requestedApplyMode === 'replace_selection' || requestedApplyMode === 'insert_after_selection')
+  ) {
+    try {
+      const docSize = tiptapEditor.state.doc.content.size
+      const from = Math.min(selectionContext.from, selectionContext.to)
+      const to = Math.max(selectionContext.from, selectionContext.to)
+      const latestSelectedText = tiptapEditor.state.doc.textBetween(from, to, '\n').trim()
+      const selectionStillMatches =
+        !selectionContext.text.trim() || latestSelectedText === selectionContext.text.trim()
+
+      if (from >= 0 && to <= docSize && from <= to && selectionStillMatches) {
+        const insertionDoc = JSON.parse(buildEditorContentFromPlainText(generatedText)) as {
+          content?: unknown[]
+        }
+        const insertionContent =
+          insertionDoc.content && insertionDoc.content.length > 0
+            ? insertionDoc.content
+            : [{ type: 'paragraph' }]
+
+        if (requestedApplyMode === 'replace_selection') {
+          tiptapEditor.chain().focus().insertContentAt({ from, to }, insertionContent).run()
+        } else {
+          tiptapEditor.chain().focus().insertContentAt(to, insertionContent).run()
+        }
+
+        const nextJson = JSON.stringify(tiptapEditor.getJSON())
+        tipTapContent.value = nextJson
+        editorStore.editorContent = nextJson
+        latestSelectionContext.value = null
+        writerStore.setSelectedText('')
+        setAIApplyFeedback(
+          'success',
+          '已按选区回填',
+          requestedApplyMode === 'insert_after_selection'
+            ? 'AI 结果已插入到原选区后方。'
+            : 'AI 结果已替换当前选区。',
+          requestedApplyMode,
+        )
+        message.success('AI 结果已应用到当前选区')
+        return
+      }
+
+      if (!selectionStillMatches) {
+        setAIApplyFeedback(
+          'fallback',
+          '选区已失效，改为安全回填',
+          '原选区内容已变化，系统改为按段落/全文模式写回，避免覆盖错误位置。',
+          requestedApplyMode,
+        )
+        message.info('原选区内容已发生变化，已改为按整段结果安全回填。')
+      }
+    } catch (error) {
+      console.warn(
+        '[ProjectWorkspace] failed to apply AI result to selection, fallback to document mode:',
+        error,
+      )
+      setAIApplyFeedback(
+        'fallback',
+        '定位选区失败，改为安全回填',
+        '系统未能稳定定位原选区，已切换为文档级写回以避免内容损坏。',
+        requestedApplyMode,
+      )
     }
   }
 
-  return list
-})
+  const sourceText = payload.sourceText || ''
+  const currentEditorContent =
+    tipTapContent.value || editorStore.editorContent || editorStore.content || ''
+  const shouldReplaceWholeChapter =
+    requestedApplyMode === 'replace_document' ||
+    (!!sourceText.trim() && sourceText.trim() === currentChapterPlainText.value.trim())
 
-const flatChapters = computed(() => {
-  if (chaptersFromDocs.value.length > 0) return chaptersFromDocs.value
-  return mockProject.value?.chapters || []
-})
+  const nextEditorContent =
+    requestedApplyMode === 'append_paragraph' ||
+    payload.action === 'continue' ||
+    payload.action === 'expand'
+      ? appendPlainTextToEditorContent(currentEditorContent, generatedText)
+      : shouldReplaceWholeChapter
+        ? buildEditorContentFromPlainText(generatedText)
+        : appendPlainTextToEditorContent(currentEditorContent, generatedText)
 
-const projectDisplayName = computed(() => {
-  return (
-    mockProject.value?.project?.title ||
-    (projectStore.currentProject as { title?: string } | null)?.title ||
-    projects.value.find((item) => item.id === currentProjectId.value)?.title ||
-    '未命名项目'
+  tipTapContent.value = nextEditorContent
+  editorStore.editorContent = nextEditorContent
+  latestSelectionContext.value = null
+  writerStore.setSelectedText('')
+  setAIApplyFeedback(
+    requestedApplyMode === 'replace_document' ? 'success' : 'fallback',
+    requestedApplyMode === 'replace_document' ? '已整章替换' : '已按安全模式写回',
+    requestedApplyMode === 'append_paragraph' ||
+      payload.action === 'continue' ||
+      payload.action === 'expand'
+      ? 'AI 结果已追加为新的正文段落。'
+      : requestedApplyMode === 'replace_document'
+        ? 'AI 结果已完整替换当前章节正文。'
+        : 'AI 结果已写回编辑器，但未直接覆盖原选区。',
+    requestedApplyMode,
   )
-})
-
-const currentChapterTitle = computed(() => {
-  const target = flatChapters.value.find((item) => item.id === currentChapterId.value)
-  return target?.title || '未选择章节'
-})
-
-const chapterCount = computed(() => {
-  return flatChapters.value.filter((item) => item.nodeType !== 'directory').length
-})
-
-const directoryCount = computed(() => {
-  return flatChapters.value.filter((item) => item.nodeType === 'directory').length
-})
-
-const activeToolLabel = computed(() => {
-  const labels: Record<ActiveTool, string> = {
-    chapters: '章节模式',
-    writing: '写作模式',
-    immersive: '沉浸模式',
-    ai: 'AI助手',
-    encyclopedia: '设定百科',
-  }
-  return labels[editorStore.activeTool]
-})
-
-const saveStatusLabel = computed(() => editorStore.saveStatusText || '系统就绪')
-
-// 4. 编辑器内容绑定 (双向绑定到 Store，Store 内处理自动保存)
-const tipTapContent = computed({
-  get: () => editorStore.editorContent || editorStore.content,
-  set: (val: string) => {
-    editorStore.editorContent = val
-    // 保持旧内容链路兼容：写作统计/AI 上下文仍可读取 content
-    editorStore.setContent(val)
-  },
-})
+  message.success('AI 结果已应用到编辑器')
+}
 
 // =======================
-// 业务逻辑方法
+// 生命周期
 // =======================
-
-// 初始化
 onMounted(async () => {
   const pId = currentProjectId.value
   if (pId) {
-    // 并行加载数据
     await Promise.all([
       projectStore.loadList(),
       projectStore.loadDetail(pId),
       documentStore.loadTree(pId),
+      loadOutlineTree(),
+      writerStore.loadTimelines(pId),
     ])
+    // 时间线列表加载完成后，如果有当前时间线则加载事件
+    if (writerStore.timeline.currentTimeline) {
+      await writerStore.loadTimelineEvents(writerStore.timeline.currentTimeline.id)
+    }
   }
 })
 
+// =======================
+// Watchers
+// =======================
 watch(
   () => flatChapters.value,
   (chapters) => {
+    const shouldStayOnGlobalRelations =
+      isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value
+
+    if (shouldStayOnGlobalRelations) {
+      currentChapterId.value = ''
+      return
+    }
+
     if (!currentChapterId.value && chapters.length > 0) {
       const firstChapter = chapters.find((chapter) => chapter.nodeType !== 'directory')
-      // 添加数组长度检查，解决 TS2493 错误
       const targetChapter = firstChapter || chapters[0]
       if (targetChapter) {
         currentChapterId.value = targetChapter.id
@@ -709,8 +954,16 @@ watch(
 watch(
   [queryChapterId, availableDocMap],
   ([chapterId, docMap]) => {
-    if (!chapterId) return
-    if (!docMap.has(chapterId)) return
+    console.log('[ProjectWorkspace] watch triggered:', { chapterId, docMapSize: docMap.size })
+    if (!chapterId) {
+      console.log('[ProjectWorkspace] chapterId is empty, skipping')
+      return
+    }
+    if (!docMap.has(chapterId)) {
+      console.log('[ProjectWorkspace] chapterId not in docMap, skipping')
+      return
+    }
+    console.log('[ProjectWorkspace] 设置 currentChapterId 为:', chapterId)
     currentChapterId.value = chapterId
   },
   { immediate: true },
@@ -732,162 +985,13 @@ watch(
   () => isImmersiveMode.value,
   (immersive) => {
     if (immersive) {
-      immersivePrevLeftCollapsed.value = panelStore.leftCollapsed
-      immersivePrevRightCollapsed.value = panelStore.rightCollapsed
-      panelStore.setLeftCollapsed(true)
-      panelStore.setRightCollapsed(true)
       startImmersiveTimer()
-      return
-    }
-
-    stopImmersiveTimer()
-    if (immersivePrevLeftCollapsed.value !== null) {
-      panelStore.setLeftCollapsed(immersivePrevLeftCollapsed.value)
-      immersivePrevLeftCollapsed.value = null
-    }
-    if (immersivePrevRightCollapsed.value !== null) {
-      panelStore.setRightCollapsed(immersivePrevRightCollapsed.value)
-      immersivePrevRightCollapsed.value = null
+    } else {
+      stopImmersiveTimer()
     }
   },
   { immediate: true },
 )
-
-const handleAddChapterQuick = () => {
-  newDocForm.value.type = 'chapter'
-  showCreateDocDialog.value = true
-}
-
-const handleAddVolumeQuick = () => {
-  newDocForm.value.type = 'volume'
-  showCreateDocDialog.value = true
-}
-
-const handleOpenDirectoryOutline = async (directoryId: string) => {
-  if (!directoryId) return
-  editorStore.setActiveTool('writing')
-  if (currentChapterId.value !== directoryId) {
-    currentChapterId.value = directoryId
-    return
-  }
-  const outlineContent = buildDirectoryOutline(directoryId)
-  editorStore.setContent(outlineContent, false)
-  editorStore.editorContent = outlineContent
-  editorStore.markSaved()
-  if (route.query.tool !== 'writing') {
-    await router.replace({ query: { ...route.query, tool: 'writing' } as any })
-  }
-}
-
-const handleTipTapSave = async () => {
-  editorStore.markSaved()
-  message.success('已保存（TipTap）')
-}
-
-const handleExportDraft = () => {
-  message.info('导出功能已接入入口，后续可绑定实际导出流程')
-}
-
-const handleShareDraft = async () => {
-  const shareUrl = window.location.href
-  if (!navigator?.clipboard?.writeText) {
-    message.info('当前环境不支持自动复制，请手动复制地址栏链接')
-    return
-  }
-  try {
-    await navigator.clipboard.writeText(shareUrl)
-    message.success('分享链接已复制到剪贴板')
-  } catch {
-    message.error('复制失败，请手动复制地址栏链接')
-  }
-}
-
-const toggleLeftPanel = () => {
-  if (isImmersiveMode.value) return
-  panelStore.setLeftCollapsed(!panelStore.leftCollapsed)
-}
-
-const toggleRightPanel = () => {
-  if (isImmersiveMode.value) return
-  panelStore.setRightCollapsed(!panelStore.rightCollapsed)
-}
-
-onBeforeUnmount(() => {
-  stopImmersiveTimer()
-})
-
-// 创建文档
-const handleCreateDoc = async () => {
-  if (!newDocForm.value.title) return
-  try {
-    // 使用类型断言解决 TS2322 错误
-    await documentStore.create(currentProjectId.value, {
-      title: newDocForm.value.title,
-      type: newDocForm.value.type as unknown as DocumentType,
-      projectId: currentProjectId.value,
-    })
-
-    showCreateDocDialog.value = false
-    newDocForm.value.title = ''
-    newDocForm.value.type = 'chapter'
-  } catch {
-    message.error('创建失败')
-  }
-}
-
-// 删除文档
-const handleDeleteChapter = async (docId: string) => {
-  try {
-    await messageBox.confirm('确定删除该章节吗？此操作不可恢复', '警告', { type: 'warning' })
-    await documentStore.remove(docId)
-    // 如果删除的是当前文档，清空编辑器
-    if (docId === currentChapterId.value) {
-      editorStore.reset() // 需要在 store 中实现 reset
-    }
-  } catch {
-    // cancel
-  }
-}
-
-const handleAISend = (message: string) => {
-  // 处理AI发送消息事件
-  console.log('[ProjectWorkspace] AI send message:', message)
-  // TODO: 集成到writerStore的AI功能
-}
-
-const handleAIApplyGeneratedText = (payload: {
-  action: string
-  sourceText: string
-  generatedText: string
-}) => {
-  const generatedText = (payload.generatedText || '').trim()
-  if (!generatedText) return
-
-  const sourceText = payload.sourceText || ''
-  const currentContent = editorStore.content || ''
-  let nextContent = currentContent
-
-  if (sourceText) {
-    const sourceIndex = currentContent.indexOf(sourceText)
-    if (sourceIndex >= 0) {
-      if (payload.action === 'continue') {
-        const insertPos = sourceIndex + sourceText.length
-        nextContent = `${currentContent.slice(0, insertPos)}${generatedText}${currentContent.slice(insertPos)}`
-      } else {
-        nextContent = `${currentContent.slice(0, sourceIndex)}${generatedText}${currentContent.slice(sourceIndex + sourceText.length)}`
-      }
-    }
-  }
-
-  if (nextContent === currentContent) {
-    const separator = currentContent && !currentContent.endsWith('\n') ? '\n\n' : ''
-    nextContent = `${currentContent}${separator}${generatedText}`
-  }
-
-  editorStore.setContent(nextContent)
-  writerStore.setSelectedText('')
-  message.success('AI 结果已应用到编辑器')
-}
 </script>
 
 <style scoped lang="scss">
@@ -896,569 +1000,11 @@ const handleAIApplyGeneratedText = (payload: {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(circle at 12% -24%, rgba(19, 91, 236, 0.2) 0%, transparent 36%),
-    radial-gradient(circle at 88% -30%, rgba(15, 23, 42, 0.24) 0%, transparent 42%), #eef3fb;
-}
-
-.workspace-topbar {
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #d5dfef;
-  background: linear-gradient(110deg, #ffffff 0%, #f6f9ff 100%);
-}
-
-.workspace-topbar__title-group {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.workspace-topbar__logo {
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: linear-gradient(145deg, #1f63f0, #083ca5);
-  box-shadow: 0 10px 18px rgba(31, 99, 240, 0.24);
-}
-
-.workspace-topbar__title-block {
-  min-width: 0;
-}
-
-.workspace-topbar__title {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.2;
-  font-weight: 800;
-  color: #13233f;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.workspace-topbar__meta {
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.workspace-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #2053c6;
-  background: #e5edff;
-  border: 1px solid #c8d8ff;
-}
-
-.workspace-meta-text {
-  font-size: 12px;
-  color: #63708b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.workspace-topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.workspace-action-btn {
-  border: 1px solid #d4deef;
-  background: #fff;
-  color: #24344f;
-  border-radius: 10px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.workspace-action-btn:hover {
-  border-color: #8cadf8;
-  color: #1246b3;
-  background: #f0f5ff;
-}
-
-.workspace-action-btn:disabled {
-  opacity: 0.46;
-  cursor: not-allowed;
-}
-
-.workspace-action-btn--primary {
-  background: linear-gradient(145deg, #2f6fff, #1a4fcb);
-  border-color: #2f6fff;
-  color: #fff;
-}
-
-.workspace-action-btn--icon {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.workspace-action-btn--icon.active {
-  border-color: #8cadf8;
-  color: #1246b3;
-  background: #f0f5ff;
-}
-
-.workspace-action-btn--primary:hover {
-  filter: brightness(1.06);
-  color: #fff;
+  background: #f8f9fa;
 }
 
 .workspace-editor-layout {
   flex: 1;
   min-height: 0;
-}
-
-.workspace-statusbar {
-  height: 30px;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: linear-gradient(90deg, #1f59d3, #1545a8);
-  color: #f8fbff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.workspace-statusbar.workspace-statusbar--immersive {
-  background: linear-gradient(90deg, #f0872f, #de6720);
-}
-
-.workspace-statusbar__stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.workspace-statusbar__state {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.workspace-statusbar__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #48e594;
-  box-shadow: 0 0 0 5px rgba(72, 229, 148, 0.15);
-}
-
-.workspace-left-panel-shell {
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  width: 100%;
-  min-width: 0;
-}
-
-.workspace-left-dock {
-  width: 56px;
-  flex: 0 0 56px;
-  border-right: 1px solid #d7deeb;
-  background: linear-gradient(180deg, #ffffff, #f2f7ff);
-  position: relative;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
-}
-
-.workspace-left-dock__item {
-  width: 100%;
-  border: 1px solid #d8e1f2;
-  border-radius: 10px;
-  padding: 7px 4px;
-  background: #fff;
-  color: #314360;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.workspace-left-dock__item:hover {
-  border-color: #95b3f8;
-  background: #eff5ff;
-}
-
-.workspace-left-dock__item.active {
-  border-color: #2f6fff;
-  background: linear-gradient(140deg, #eaf1ff, #dce9ff);
-  color: #1f4ec2;
-  box-shadow: 0 8px 14px rgba(47, 111, 255, 0.14);
-}
-
-.workspace-left-dock__label {
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #0f1e3a;
-  color: #fff;
-  border-radius: 6px;
-  padding: 3px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.16s ease;
-  z-index: 120;
-}
-
-.workspace-left-dock__item:hover .workspace-left-dock__label,
-.workspace-left-dock__item:focus-visible .workspace-left-dock__label {
-  opacity: 1;
-}
-
-.workspace-left-dock__item :deep(.qy-icon) {
-  color: currentColor;
-}
-
-.workspace-left-panel-body {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.workspace-left-panel-shell.is-collapsed .workspace-left-panel-body {
-  width: 0;
-  min-width: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workspace-left-panel-shell.is-collapsed :deep(.side-panel),
-.workspace-left-panel-shell.is-collapsed :deep(.side-panel__content) {
-  overflow: visible !important;
-}
-
-.workspace-left-panel-shell.is-immersive-focus {
-  width: 56px !important;
-  min-width: 56px !important;
-  max-width: 56px !important;
-}
-
-.workspace-left-panel-shell.is-immersive-focus .workspace-left-dock {
-  width: 56px !important;
-  min-width: 56px !important;
-}
-
-.workspace-left-panel-shell.is-immersive-focus .workspace-left-panel-body {
-  width: 0 !important;
-  min-width: 0 !important;
-  max-width: 0 !important;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.workspace-right-panel-shell {
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  width: 100%;
-  min-width: 0;
-}
-
-.workspace-right-panel-body {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.workspace-right-panel-shell.is-collapsed .workspace-right-panel-body {
-  width: 0;
-  min-width: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workspace-right-panel-shell.is-collapsed :deep(.side-panel),
-.workspace-right-panel-shell.is-collapsed :deep(.side-panel__content) {
-  overflow: visible !important;
-}
-
-.workspace-right-panel-shell.is-immersive-hidden {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.workspace-right-panel-shell.is-immersive-hidden .workspace-right-dock,
-.workspace-right-panel-shell.is-immersive-hidden .workspace-right-panel-body {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workspace-right-dock {
-  width: 56px;
-  flex: 0 0 56px;
-  border-left: 1px solid #d7deeb;
-  background: linear-gradient(180deg, #ffffff, #f2f7ff);
-  position: relative;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
-}
-
-.workspace-right-dock__item {
-  width: 100%;
-  border: 1px solid #d8e1f2;
-  border-radius: 10px;
-  padding: 7px 4px;
-  background: #fff;
-  color: #314360;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.workspace-right-dock__item:hover {
-  border-color: #95b3f8;
-  background: #eff5ff;
-}
-
-.workspace-right-dock__item.active {
-  border-color: #2f6fff;
-  background: linear-gradient(140deg, #eaf1ff, #dce9ff);
-  color: #1f4ec2;
-  box-shadow: 0 8px 14px rgba(47, 111, 255, 0.14);
-}
-
-.workspace-right-dock__label {
-  position: absolute;
-  right: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #0f1e3a;
-  color: #fff;
-  border-radius: 6px;
-  padding: 3px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.16s ease;
-  z-index: 120;
-}
-
-.workspace-right-dock__item:hover .workspace-right-dock__label,
-.workspace-right-dock__item:focus-visible .workspace-right-dock__label {
-  opacity: 1;
-}
-
-.workspace-right-dock__item :deep(.qy-icon) {
-  color: currentColor;
-}
-
-.world-sidebar {
-  height: 100%;
-  padding: 16px 12px;
-  border-right: 1px solid #d7deeb;
-  background: linear-gradient(180deg, #f8fbff, #f0f5ff);
-}
-
-.world-sidebar__header {
-  font-size: 11px;
-  color: #63708b;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-.world-sidebar__item {
-  width: 100%;
-  text-align: left;
-  border: 1px solid #d8e0ef;
-  color: #283452;
-  border-radius: 10px;
-  padding: 10px 10px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.world-sidebar__item:hover {
-  border-color: #3b82f6;
-  background: #f4f8ff;
-}
-
-.world-sidebar__item.active {
-  border-color: #2f6fff;
-  background: linear-gradient(130deg, #edf3ff, #e4eeff);
-  color: #1f4ec2;
-  font-weight: 700;
-  box-shadow: 0 8px 18px rgba(47, 111, 255, 0.14);
-}
-
-.world-sidebar__icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(47, 111, 255, 0.12);
-  color: currentColor;
-  flex: 0 0 20px;
-}
-
-.world-sidebar__copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.world-sidebar__copy strong {
-  font-size: 12px;
-  line-height: 1.1;
-  font-weight: 700;
-}
-
-.world-sidebar__copy em {
-  margin: 0;
-  font-style: normal;
-  font-size: 11px;
-  line-height: 1.2;
-  color: #677694;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.world-sidebar__hint {
-  border: 1px solid #dbe4f3;
-  border-radius: 10px;
-  background: #f8fbff;
-  padding: 10px 12px;
-  color: #5f7191;
-  font-size: 12px;
-  line-height: 1.65;
-}
-
-.world-sidebar__hint p {
-  margin: 0;
-}
-
-@media (max-width: 1024px) {
-  .workspace-topbar {
-    height: auto;
-    padding: 10px 12px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .workspace-topbar__actions {
-    width: 100%;
-  }
-
-  .workspace-action-btn {
-    flex: 1;
-  }
-
-  .workspace-statusbar {
-    height: auto;
-    min-height: 30px;
-    padding: 6px 10px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .workspace-statusbar__stats {
-    width: 100%;
-    gap: 10px;
-    overflow-x: auto;
-  }
-
-  .workspace-left-dock {
-    width: 50px;
-    flex-basis: 50px;
-    padding: 8px 6px;
-  }
-
-  .workspace-left-dock__label {
-    display: none;
-  }
-
-  .workspace-right-dock {
-    width: 50px;
-    flex-basis: 50px;
-    padding: 8px 6px;
-  }
-
-  .workspace-right-dock__label {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .workspace-topbar__meta {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .workspace-meta-text {
-    font-size: 11px;
-  }
 }
 </style>

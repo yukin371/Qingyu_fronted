@@ -3,13 +3,7 @@
  * 将 IndexedDB 中的本地项目数据迁移到后端数据库
  */
 
-import {
-  initDB,
-  getAllItems,
-  getItemsByIndex,
-  clearStore,
-  STORES,
-} from './indexedDB'
+import { initDB, getAllItems, getItemsByIndex, clearStore, STORES } from './indexedDB'
 import { httpService } from '@/core/services/http.service'
 import type { LocalProject, LocalDocument } from './localStorageAPI'
 
@@ -26,15 +20,12 @@ interface MigrationProgress {
   status: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ProgressCallback = (progress: MigrationProgress) => void
 
 /**
  * 迁移 IndexedDB 数据到后端
  */
-export async function migrateToBackend(
-  onProgress?: ProgressCallback
-): Promise<MigrationResult> {
+export async function migrateToBackend(onProgress?: ProgressCallback): Promise<MigrationResult> {
   const result: MigrationResult = {
     success: true,
     projectsMigrated: 0,
@@ -93,23 +84,22 @@ export async function migrateToBackend(
         const localDocs = await getItemsByIndex<LocalDocument>(
           STORES.DOCUMENTS,
           'projectId',
-          localProject.projectId
+          localProject.projectId,
         )
 
-        console.log(`[Migration] Found ${localDocs.length} documents for project ${localProject.title}`)
+        console.log(
+          `[Migration] Found ${localDocs.length} documents for project ${localProject.title}`,
+        )
 
         for (const localDoc of localDocs) {
           try {
             // 创建文档
-            await httpService.post(
-              `/writer/project/${newProjectId}/documents`,
-              {
-                title: localDoc.title,
-                content: localDoc.content || '',
-                chapterNumber: localDoc.chapterNum,
-                status: 'draft',
-              }
-            )
+            await httpService.post(`/writer/project/${newProjectId}/documents`, {
+              title: localDoc.title,
+              content: localDoc.content || '',
+              chapterNumber: localDoc.chapterNum,
+              status: 'draft',
+            })
             result.documentsMigrated++
             console.log(`[Migration] Document created: ${localDoc.title}`)
           } catch (docError: unknown) {

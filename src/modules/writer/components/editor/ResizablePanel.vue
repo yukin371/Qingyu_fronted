@@ -58,7 +58,7 @@
  * - 无障碍支持
  */
 
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { usePanelResize, type DragStartEvent } from '@/modules/writer/composables/usePanelResize'
 import DragHandle from '@/modules/writer/components/DragHandle.vue'
 
@@ -137,16 +137,6 @@ const handleDragStart = (event: DragStartEvent) => {
     position: props.position
   }
   startDrag(updatedEvent)
-}
-
-// ============================================
-// 监听宽度变化（用于调试）
-// ============================================
-
-if (import.meta.env.DEV) {
-  watch(currentWidth, (newWidth) => {
-    console.log(`[ResizablePanel] ${props.panelId} width changed to: ${newWidth}px`)
-  })
 }
 
 // ============================================

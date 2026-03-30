@@ -13,9 +13,7 @@
       <el-skeleton v-if="loading" :rows="5" animated />
 
       <el-empty v-else-if="histories.length === 0" description="暂无阅读历史">
-        <el-button type="primary" @click="$router.push('/bookstore/books')">
-          去书库看看
-        </el-button>
+        <el-button type="primary" @click="$router.push('/bookstore/books')"> 去书库看看 </el-button>
       </el-empty>
 
       <div v-else class="history-timeline">
@@ -27,20 +25,12 @@
             placement="top"
           >
             <div class="history-group">
-              <div
-                v-for="item in group.items"
-                :key="item.id"
-                class="history-item"
-              >
+              <div v-for="item in group.items" :key="item.id" class="history-item">
                 <div class="item-cover" @click="goToBook(item.bookId)">
-                  <el-image
-                    :src="item.bookCover"
-                    fit="cover"
-                    lazy
-                  >
+                  <el-image :src="item.bookCover" fit="cover" lazy>
                     <template #error>
                       <div class="image-slot">
-                        <QyIcon name="Picture"  />
+                        <QyIcon name="Picture" />
                       </div>
                     </template>
                   </el-image>
@@ -61,16 +51,16 @@
                     />
                     <span class="progress-text">{{ item.progress }}%</span>
                     <span class="read-time">阅读 {{ formatDuration(item.duration || 0) }}</span>
-                    <span class="timestamp">{{ formatTime(item.readAt || item.readTime || '') }}</span>
+                    <span class="timestamp">{{
+                      formatTime(item.readAt || item.readTime || '')
+                    }}</span>
                   </div>
                 </div>
 
                 <div class="item-actions">
-                  <el-button type="primary" @click="continueReading(item)">
-                    继续阅读
-                  </el-button>
+                  <el-button type="primary" @click="continueReading(item)"> 继续阅读 </el-button>
                   <el-button @click="removeHistory(item.id)" text>
-                    <QyIcon name="Close"  />
+                    <QyIcon name="Close" />
                   </el-button>
                 </div>
               </div>
@@ -106,6 +96,41 @@ import type { ReadingHistory } from '@/types/models'
 import { ElMessage } from 'element-plus'
 import defaultBookCover from '@/assets/default-book-cover.svg'
 
+// API 响应类型定义
+interface BookDetailResponse {
+  title?: string
+  cover?: string
+}
+
+interface PaginationInfo {
+  total?: number
+  page?: number
+  pageSize?: number
+}
+
+interface HistoryListResponse {
+  histories?: RawHistoryItem[]
+  items?: RawHistoryItem[]
+  list?: RawHistoryItem[]
+  pagination?: PaginationInfo
+  total?: number
+}
+
+interface RawHistoryItem {
+  id?: string
+  bookId?: string
+  chapterId?: string
+  chapterTitle?: string
+  progress?: number
+  duration?: number
+  readDuration?: number
+  readAt?: string
+  readTime?: string
+  endTime?: string
+  createdAt?: string
+  startTime?: string
+}
+
 const router = useRouter()
 
 const loading = ref(false)
@@ -118,7 +143,7 @@ const total = ref(0)
 const groupedHistories = computed(() => {
   const groups: Record<string, ReadingHistory[]> = {}
 
-  histories.value.forEach(item => {
+  histories.value.forEach((item) => {
     const dateStr = item.readAt || item.readTime || new Date().toISOString()
     const date = new Date(dateStr).toLocaleDateString('zh-CN')
     if (!groups[date]) {
@@ -130,7 +155,7 @@ const groupedHistories = computed(() => {
   return Object.entries(groups).map(([date, items]) => ({
     date,
     dateLabel: formatDateLabel(date),
-    items
+    items,
   }))
 })
 
@@ -169,13 +194,15 @@ function formatDuration(seconds: number): string {
   }
 }
 
-async function hydrateHistories(items: any[]): Promise<ReadingHistory[]> {
+async function hydrateHistories(items: RawHistoryItem[]): Promise<ReadingHistory[]> {
   const uniqueBookIds = [...new Set(items.map((item) => item.bookId).filter(Boolean))]
   const detailEntries = await Promise.all(
     uniqueBookIds.map(async (id) => {
       try {
         const response = await getBookDetail(String(id))
-        return [String(id), (response as any)?.data ?? response] as const
+        const data =
+          (response as { data?: BookDetailResponse })?.data ?? (response as BookDetailResponse)
+        return [String(id), data] as const
       } catch {
         return [String(id), null] as const
       }
@@ -186,8 +213,10 @@ async function hydrateHistories(items: any[]): Promise<ReadingHistory[]> {
   return items.map((item) => {
     const detail = details.get(String(item.bookId))
     const progressValue = Number(item.progress ?? 0)
-    const progress = progressValue <= 1 ? Math.round(progressValue * 100) : Math.round(progressValue)
-    const timestamp = item.readAt || item.readTime || item.endTime || item.createdAt || item.startTime || ''
+    const progress =
+      progressValue <= 1 ? Math.round(progressValue * 100) : Math.round(progressValue)
+    const timestamp =
+      item.readAt || item.readTime || item.endTime || item.createdAt || item.startTime || ''
 
     return {
       ...item,
@@ -210,12 +239,14 @@ async function loadHistory(): Promise<void> {
   loading.value = true
   try {
     const response = await getReadingHistory(currentPage.value, pageSize.value)
-    const payload = (response as any)?.data ?? response
+    const payload =
+      (response as { data?: HistoryListResponse })?.data ?? (response as HistoryListResponse)
     const rawList = payload?.histories || payload?.items || payload?.list || []
     histories.value = await hydrateHistories(Array.isArray(rawList) ? rawList : [])
     total.value = Number(payload?.pagination?.total ?? payload?.total ?? histories.value.length)
-  } catch (error: any) {
-    ElMessage.error(error.message || '加载历史记录失败')
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '加载历史记录失败'
+    ElMessage.error(message)
   } finally {
     loading.value = false
   }
@@ -236,16 +267,17 @@ async function removeHistory(id: string): Promise<void> {
   try {
     await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
     })
 
     await deleteHistory(id)
-    histories.value = histories.value.filter(h => h.id !== id)
+    histories.value = histories.value.filter((h) => h.id !== id)
     total.value = Math.max(0, total.value - 1)
     message.success('删除成功')
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+      const errorMessage = error instanceof Error ? error.message : '删除失败'
+      ElMessage.error(errorMessage)
     }
   }
 }
@@ -253,22 +285,19 @@ async function removeHistory(id: string): Promise<void> {
 // 清空所有历史
 async function clearAll(): Promise<void> {
   try {
-    await messageBox.confirm(
-      '确定要清空所有阅读历史吗？此操作不可恢复。',
-      '警告',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }
-    )
+    await messageBox.confirm('确定要清空所有阅读历史吗？此操作不可恢复。', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+    })
 
     await clearHistory()
     histories.value = []
     total.value = 0
     message.success('已清空阅读历史')
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '清空失败')
+      const errorMessage = error instanceof Error ? error.message : '清空失败'
+      ElMessage.error(errorMessage)
     }
   }
 }
@@ -375,7 +404,7 @@ onMounted(() => {
           transition: color 0.3s;
 
           &:hover {
-            color: #409EFF;
+            color: #409eff;
           }
         }
 
@@ -387,7 +416,7 @@ onMounted(() => {
           transition: color 0.3s;
 
           &:hover {
-            color: #409EFF;
+            color: #409eff;
           }
         }
 

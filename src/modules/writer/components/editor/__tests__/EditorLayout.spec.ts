@@ -24,7 +24,6 @@ describe('EditorLayout', () => {
       global: {
         plugins: [pinia],
         stubs: {
-          MiniNavbar: true,
           SidePanel: true,
           EditorPanel: true,
           AIPanel: true,
@@ -77,5 +76,22 @@ describe('EditorLayout', () => {
 
     expect(tabs[1].classes()).toContain('active')
   })
-})
 
+  it('移动端横向滑动应切换 pane', async () => {
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 })
+    window.dispatchEvent(new Event('resize'))
+    await nextTick()
+
+    const content = wrapper.find('.editor-layout__content')
+    await content.trigger('touchstart', {
+      touches: [{ clientX: 220, clientY: 120 }],
+    })
+    await content.trigger('touchend', {
+      changedTouches: [{ clientX: 80, clientY: 122 }],
+    })
+    await nextTick()
+
+    const tabs = wrapper.findAll('.mobile-tab')
+    expect(tabs[2].classes()).toContain('active')
+  })
+})

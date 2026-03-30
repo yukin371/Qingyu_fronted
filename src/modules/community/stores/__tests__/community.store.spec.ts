@@ -2,7 +2,6 @@
  * Community Store测试
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useCommunityStore } from '../community.store'
@@ -166,9 +165,10 @@ describe('useCommunityStore', () => {
         size: 10,
       }
       mockGetPosts.mockImplementation(
-        () => new Promise((resolve) => {
-          setTimeout(() => resolve(mockData), 100)
-        })
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve(mockData), 100)
+          }),
       )
       const store = useCommunityStore()
 
@@ -206,9 +206,7 @@ describe('useCommunityStore', () => {
     it('should handle fetch post detail error', async () => {
       // Arrange
       const error = new Error('Post not found')
-      mockGetPostDetail.mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      mockGetPostDetail.mockImplementation(mockErrorApiCall(error.message))
       const store = useCommunityStore()
 
       // Act
@@ -244,9 +242,7 @@ describe('useCommunityStore', () => {
     it('should handle fetch comments error silently', async () => {
       // Arrange
       const postId = 'post_123'
-      mockGetPostComments.mockImplementation(
-        mockErrorApiCall('Error')
-      )
+      mockGetPostComments.mockImplementation(mockErrorApiCall('Error'))
       const store = useCommunityStore()
 
       // Act - 应该不会抛出错误
@@ -286,9 +282,7 @@ describe('useCommunityStore', () => {
         content: '这是一个新动态',
       }
       const error = new Error('Create failed')
-      mockCreatePost.mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      mockCreatePost.mockImplementation(mockErrorApiCall(error.message))
       const store = useCommunityStore()
 
       // Act & Assert
@@ -303,9 +297,7 @@ describe('useCommunityStore', () => {
       const postId = 'post_123'
       const content = '这是一个新评论'
       const mockComment = createMockComment({ content })
-      mockCreatePostComment.mockImplementation(
-        mockSuccessApiCall(mockComment)
-      )
+      mockCreatePostComment.mockImplementation(mockSuccessApiCall(mockComment))
       const store = useCommunityStore()
       ;(store as any).currentPost = createMockPost({ id: postId, commentsCount: 5 } as any)
 
@@ -328,9 +320,7 @@ describe('useCommunityStore', () => {
       const content = '这是一个回复'
       const replyTo = 'comment_456'
       const mockComment = createMockComment({ content, replyToId: replyTo } as any)
-      mockCreatePostComment.mockImplementation(
-        mockSuccessApiCall(mockComment)
-      )
+      mockCreatePostComment.mockImplementation(mockSuccessApiCall(mockComment))
       const store = useCommunityStore()
 
       // Act
@@ -349,9 +339,7 @@ describe('useCommunityStore', () => {
       const postId = 'post_123'
       const content = '这是一个新评论'
       const error = new Error('Create failed')
-      mockCreatePostComment.mockImplementation(
-        mockErrorApiCall(error.message)
-      )
+      mockCreatePostComment.mockImplementation(mockErrorApiCall(error.message))
       const store = useCommunityStore()
 
       // Act & Assert
@@ -389,9 +377,7 @@ describe('useCommunityStore', () => {
         likesCount: 10,
       } as any)
       const mockResponse = { success: true, likesCount: 9 }
-      mockUnlikePost.mockImplementation(
-        mockSuccessApiCall(mockResponse)
-      )
+      mockUnlikePost.mockImplementation(mockSuccessApiCall(mockResponse))
       const store = useCommunityStore()
       ;(store as any).posts = [mockPost]
 
@@ -410,9 +396,7 @@ describe('useCommunityStore', () => {
         id: 'post_123',
         isLiked: false,
       })
-      mockLikePost.mockImplementation(
-        mockErrorApiCall('Error')
-      )
+      mockLikePost.mockImplementation(mockErrorApiCall('Error'))
       const store = useCommunityStore()
       ;(store as any).posts = [mockPost]
 
@@ -464,9 +448,7 @@ describe('useCommunityStore', () => {
 
     it('should handle fetch topics error silently', async () => {
       // Arrange
-      mockGetTopics.mockImplementation(
-        mockErrorApiCall('Error')
-      )
+      mockGetTopics.mockImplementation(mockErrorApiCall('Error'))
       const store = useCommunityStore()
 
       // Act - 应该不会抛出错误
@@ -500,9 +482,7 @@ describe('useCommunityStore', () => {
     it('should handle fetch topic posts error silently', async () => {
       // Arrange
       const topicId = 'topic_123'
-      mockGetTopicPosts.mockImplementation(
-        mockErrorApiCall('Error')
-      )
+      mockGetTopicPosts.mockImplementation(mockErrorApiCall('Error'))
       const store = useCommunityStore()
 
       // Act - 应该不会抛出错误

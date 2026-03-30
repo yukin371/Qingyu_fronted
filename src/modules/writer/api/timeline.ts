@@ -6,22 +6,21 @@ import type {
   SaveTimelineEventRequest,
 } from '../types/timeline'
 
-// 假设后端路由配置如下 (根据 Gin Handler 推断):
-// POST   /api/v1/projects/:projectId/timelines
-// GET    /api/v1/projects/:projectId/timelines
-// GET    /api/v1/timelines/:timelineId?projectId=...
-// DELETE /api/v1/timelines/:timelineId?projectId=...
-//
-// POST   /api/v1/timelines/:timelineId/events?projectId=...
-// GET    /api/v1/timelines/:timelineId/events
-// GET    /api/v1/events/:eventId?projectId=...
-// PUT    /api/v1/events/:eventId?projectId=...
-// DELETE /api/v1/events/:eventId?projectId=...
-// GET    /api/v1/timelines/:timelineId/visualization
+// 后端路由配置 (来自 timeline_router.go):
+// POST   /api/v1/writer/projects/:id/timelines
+// GET    /api/v1/writer/projects/:id/timelines
+// GET    /api/v1/writer/timelines/:timelineId
+// DELETE /api/v1/writer/timelines/:timelineId
+// POST   /api/v1/writer/timelines/:timelineId/events
+// GET    /api/v1/writer/timelines/:timelineId/events
+// GET    /api/v1/writer/timelines/:timelineId/visualization
+// GET    /api/v1/writer/timeline-events/:eventId
+// PUT    /api/v1/writer/timeline-events/:eventId
+// DELETE /api/v1/writer/timeline-events/:eventId
 
 const BASE_PROJECT_URL = '/writer/projects'
-const BASE_TIMELINE_URL = '/timelines'
-const BASE_EVENT_URL = '/events' // 假设独立事件操作在根 /events 路由下
+const BASE_TIMELINE_URL = '/writer/timelines'
+const BASE_EVENT_URL = '/writer/timeline-events'
 
 export const timelineApi = {
   // ==========================================
@@ -46,7 +45,7 @@ export const timelineApi = {
 
   /**
    * 获取时间线详情
-   * GET /api/v1/timelines/{timelineId}?projectId=...
+   * GET /api/v1/writer/timelines/{timelineId}
    */
   getDetail(timelineId: string, projectId: string) {
     return httpService.get<Timeline>(
@@ -57,7 +56,7 @@ export const timelineApi = {
 
   /**
    * 删除时间线
-   * DELETE /api/v1/timelines/{timelineId}?projectId=...
+   * DELETE /api/v1/writer/timelines/{timelineId}
    */
   delete(timelineId: string, projectId: string) {
     return httpService.delete<void>(
@@ -68,7 +67,7 @@ export const timelineApi = {
 
   /**
    * 获取时间线可视化数据
-   * GET /api/v1/timelines/{timelineId}/visualization
+   * GET /api/v1/writer/timelines/{timelineId}/visualization
    * 返回类型可能是复杂的图表数据，暂时用 any 或定义专门的 Visualization 类型
    */
   getVisualization(timelineId: string) {
@@ -81,7 +80,7 @@ export const timelineApi = {
 
   /**
    * 创建时间线事件
-   * POST /api/v1/timelines/{timelineId}/events?projectId=...
+   * POST /api/v1/writer/timelines/{timelineId}/events?projectId=...
    * 注意：后端要求 query 中带 projectId
    */
   createEvent(timelineId: string, projectId: string, data: SaveTimelineEventRequest) {
@@ -94,7 +93,7 @@ export const timelineApi = {
 
   /**
    * 获取时间线事件列表
-   * GET /api/v1/timelines/{timelineId}/events
+   * GET /api/v1/writer/timelines/{timelineId}/events
    */
   listEvents(timelineId: string) {
     return httpService.get<TimelineEvent[]>(`${BASE_TIMELINE_URL}/${timelineId}/events`)
@@ -102,7 +101,7 @@ export const timelineApi = {
 
   /**
    * 获取事件详情
-   * GET /api/v1/events/{eventId}?projectId=...
+   * GET /api/v1/writer/timeline-events/{eventId}
    */
   getEvent(eventId: string, projectId: string) {
     return httpService.get<TimelineEvent>(`${BASE_EVENT_URL}/${eventId}`, { params: { projectId } })
@@ -110,7 +109,7 @@ export const timelineApi = {
 
   /**
    * 更新事件
-   * PUT /api/v1/events/{eventId}?projectId=...
+   * PUT /api/v1/writer/timeline-events/{eventId}
    */
   updateEvent(eventId: string, projectId: string, data: SaveTimelineEventRequest) {
     return httpService.put<TimelineEvent>(`${BASE_EVENT_URL}/${eventId}`, data, {
@@ -120,7 +119,7 @@ export const timelineApi = {
 
   /**
    * 删除事件
-   * DELETE /api/v1/events/{eventId}?projectId=...
+   * DELETE /api/v1/writer/timeline-events/{eventId}
    */
   deleteEvent(eventId: string, projectId: string) {
     return httpService.delete<void>(`${BASE_EVENT_URL}/${eventId}`, { params: { projectId } })

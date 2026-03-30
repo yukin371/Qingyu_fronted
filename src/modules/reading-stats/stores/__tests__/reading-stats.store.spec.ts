@@ -1,7 +1,6 @@
 /**
  * Reading Stats Store测试
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createPinia, setActivePinia } from 'pinia'
 import { useReadingStatsStore } from '../reading-stats.store'

@@ -47,7 +47,7 @@
       </el-autocomplete>
     </div>
 
-    <!-- 3. VSCode风格目录树 -->
+    <!-- 4. VSCode风格目录树 -->
     <div class="explorer-header" @click="isTreeExpanded = !isTreeExpanded">
       <div class="explorer-title">
         <QyIcon
@@ -59,16 +59,14 @@
         <span class="section-count">{{ displayChapters.length }}</span>
       </div>
       <div class="explorer-actions" @click.stop>
-        <button class="explorer-action-btn" title="新增目录" @click="$emit('add-volume')">
-          +目录
-        </button>
         <button
           class="explorer-action-btn explorer-action-btn--primary"
-          title="新增章节"
+          title="新增文档"
           data-testid="add-document-button"
-          @click="$emit('add-chapter')"
+          @click="$emit('add-doc')"
         >
-          +章节
+          <QyIcon name="Plus" :size="12" style="margin-right: 2px" />
+          添加
         </button>
       </div>
     </div>
@@ -234,8 +232,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:projectId': [id: string]
   'update:chapterId': [id: string]
-  'add-chapter': []
-  'add-volume': []
+  'add-doc': []
   'open-directory-outline': [id: string]
   'edit-chapter': [chapter: ChapterSummary]
   'delete-chapter': [id: string]
@@ -587,7 +584,7 @@ onBeforeUnmount(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
+  background: transparent;
   transition: width 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
   position: relative;
 }
@@ -595,8 +592,8 @@ onBeforeUnmount(() => {
 // 1. 头部
 .sidebar-header {
   padding: 10px 12px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
 
   .project-bar {
     display: flex;
@@ -706,12 +703,60 @@ onBeforeUnmount(() => {
   padding: 10px 12px;
   display: flex;
   gap: 8px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
 
   .search-input {
     flex: 1;
     min-width: 0;
+  }
+}
+
+// 图谱模式：顶部全局图谱入口
+.graph-mode-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
+}
+
+.graph-entry {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+
+  &:hover {
+    background: #f5f7fa;
+    border-color: #93c5fd;
+  }
+
+  &.active {
+    background: #eff6ff;
+    border-color: #60a5fa;
+    border-left: 3px solid #2563eb;
+  }
+
+  .graph-entry-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  .graph-entry-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
   }
 }
 
@@ -747,9 +792,9 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-top: 1px solid #eef2f7;
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
 }
 
 .explorer-title {
@@ -807,14 +852,14 @@ onBeforeUnmount(() => {
   flex: 1;
   overflow-y: auto;
   padding: 8px 8px 10px;
-  background: #f8fafc;
+  background: transparent;
 
   &::-webkit-scrollbar {
     width: 6px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 999px;
   }
 

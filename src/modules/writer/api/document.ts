@@ -5,6 +5,7 @@ import type {
   UpdateDocumentMetaRequest,
   CreateDocumentResponse, // 假设你需要后端返回的新ID等
 } from '../types/document'
+import { outlineApi } from './outline'
 
 // 为了处理移动和排序，我们需要定义额外的请求接口
 // 这些接口通常比较简单，直接定义在 API 文件中即可，或者放在 types/document.ts 中
@@ -198,14 +199,23 @@ export const moveDocument = (documentId: string, data: MoveDocumentRequest) => {
  * 获取大纲树
  */
 export const getOutlineTree = (projectId: string) => {
-  return documentApi.getTree(projectId)
+  return outlineApi.getTree(projectId)
 }
 
 /**
  * 创建大纲节点
  */
-export const createOutlineNode = (projectId: string, data: CreateDocumentRequest) => {
-  return documentApi.create(projectId, data)
+export const createOutlineNode = (projectId: string, data: any) => {
+  return outlineApi.create(projectId, {
+    parentId: data.parentId,
+    title: data.title,
+    type: data.type,
+    order: data.order,
+    summary: data.summary,
+    documentId: data.documentId,
+    characters: data.characters,
+    items: data.items,
+  })
 }
 
 /**

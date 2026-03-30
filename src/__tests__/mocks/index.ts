@@ -4,19 +4,20 @@
  * 用于测试环境中的全局 Mock 设置
  */
 
-/* eslint-disable no-undef */
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-  get length() { return 0 },
-  key: vi.fn()
+  get length() {
+    return 0
+  },
+  key: vi.fn(),
 }
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 })
 
 // Mock sessionStorage
@@ -25,12 +26,14 @@ const sessionStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-  get length() { return 0 },
-  key: vi.fn()
+  get length() {
+    return 0
+  },
+  key: vi.fn(),
 }
 
 Object.defineProperty(window, 'sessionStorage', {
-  value: sessionStorageMock
+  value: sessionStorageMock,
 })
 
 // Mock matchMedia

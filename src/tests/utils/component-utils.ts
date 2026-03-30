@@ -7,7 +7,6 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import { ComponentPublicInstance, h, defineComponent } from 'vue'
 
 // vitest globals are enabled in vitest.config.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 创建完整的QyButton组件mock
@@ -23,24 +22,21 @@ export const MockQyButton = defineComponent({
   },
   emits: ['click'],
   setup(props, { emit }) {
-    const classes = [
-      'qy-button',
-      `qy-button--${props.variant}`,
-      `qy-button--${props.size}`,
-    ]
+    const classes = ['qy-button', `qy-button--${props.variant}`, `qy-button--${props.size}`]
     if (props.disabled) classes.push('is-disabled')
     if (props.loading) classes.push('is-loading')
 
-    return () => h(
-      'button',
-      {
-        class: classes,
-        disabled: props.disabled,
-        type: props.type,
-        onClick: (e: MouseEvent) => emit('click', e),
-      },
-      [h('slot')]
-    )
+    return () =>
+      h(
+        'button',
+        {
+          class: classes,
+          disabled: props.disabled,
+          type: props.type,
+          onClick: (e: MouseEvent) => emit('click', e),
+        },
+        [h('slot')],
+      )
   },
 })
 
@@ -67,20 +63,21 @@ export const MockQyInput = defineComponent({
       emit('update:modelValue', target.value)
       emit('change', target.value)
     }
-    return () => h(
-      props.type === 'textarea' ? 'textarea' : 'input',
-      {
-        class: 'qy-input',
-        placeholder: props.placeholder,
-        disabled: props.disabled,
-        readonly: props.readonly,
-        rows: props.rows,
-        maxlength: props.maxlength,
-        value: props.modelValue,
-        onInput: handleInput,
-      },
-      props.modelValue !== undefined ? [h('slot')] : []
-    )
+    return () =>
+      h(
+        props.type === 'textarea' ? 'textarea' : 'input',
+        {
+          class: 'qy-input',
+          placeholder: props.placeholder,
+          disabled: props.disabled,
+          readonly: props.readonly,
+          rows: props.rows,
+          maxlength: props.maxlength,
+          value: props.modelValue,
+          onInput: handleInput,
+        },
+        props.modelValue !== undefined ? [h('slot')] : [],
+      )
   },
 })
 
@@ -96,25 +93,30 @@ export const MockQyBadge = defineComponent({
   },
   emits: ['click', 'close'],
   setup(props, { emit }) {
-    return () => h(
-      'span',
-      {
-        class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
-        onClick: () => emit('click'),
-      },
-      [
-        h('slot'),
-        props.closable
-          ? h('span', {
-              class: 'close-btn',
-              onClick: (e: Event) => {
-                e.stopPropagation()
-                emit('close')
-              },
-            }, 'x')
-          : null,
-      ]
-    )
+    return () =>
+      h(
+        'span',
+        {
+          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+          onClick: () => emit('click'),
+        },
+        [
+          h('slot'),
+          props.closable
+            ? h(
+                'span',
+                {
+                  class: 'close-btn',
+                  onClick: (e: Event) => {
+                    e.stopPropagation()
+                    emit('close')
+                  },
+                },
+                'x',
+              )
+            : null,
+        ],
+      )
   },
 })
 
@@ -129,7 +131,12 @@ export const MockQyAvatar = defineComponent({
     size: { type: String, default: 'md' },
   },
   setup(props) {
-    return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || props.src ? [props.name || ''] : [])
+    return () =>
+      h(
+        'div',
+        { class: ['qy-avatar', `qy-avatar--${props.size}`] },
+        props.name || props.src ? [props.name || ''] : [],
+      )
   },
 })
 
@@ -143,7 +150,8 @@ export const MockQyIcon = defineComponent({
     size: { type: Number, default: 16 },
   },
   setup(props) {
-    return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    return () =>
+      h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
   },
 })
 
@@ -157,7 +165,10 @@ export const MockQyCard = defineComponent({
     bodyStyle: { type: Object },
   },
   setup(props, { slots }) {
-    return () => h('div', { class: ['qy-card', `qy-card--${props.shadow}`] }, [slots.default ? slots.default() : h('slot')])
+    return () =>
+      h('div', { class: ['qy-card', `qy-card--${props.shadow}`] }, [
+        slots.default ? slots.default() : h('slot'),
+      ])
   },
 })
 
@@ -179,13 +190,13 @@ export interface ComponentMountOptions {
  * @param component Vue组件
  * @param options 挂载选项
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export const createWrapper = <V extends ComponentPublicInstance = any>(
   component: unknown,
-  options: ComponentMountOptions = {}
+  options: ComponentMountOptions = {},
 ): VueWrapper<V> => {
   // vitest globals are enabled
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const vi = (globalThis as any).vi
   return mount(component as Parameters<typeof mount>[0], {
     props: options.props,
@@ -218,14 +229,13 @@ export const createWrapper = <V extends ComponentPublicInstance = any>(
  * @param wrapper 组件wrapper
  */
 export const waitForUpdate = async (
-  wrapper: VueWrapper<ComponentPublicInstance>
+  wrapper: VueWrapper<ComponentPublicInstance>,
 ): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vm = (wrapper as any).vm
   if (vm && typeof vm.$nextTick === 'function') {
     await vm.$nextTick()
   }
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 /**
@@ -235,7 +245,7 @@ export const waitForUpdate = async (
  */
 export const waitFor = async (
   callback: () => boolean | Promise<boolean>,
-  timeout: number = 1000
+  timeout: number = 1000,
 ): Promise<void> => {
   const startTime = Date.now()
 
@@ -244,7 +254,7 @@ export const waitFor = async (
     if (result) {
       return
     }
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await new Promise((resolve) => setTimeout(resolve, 10))
   }
 
   throw new Error(`waitFor timeout after ${timeout}ms`)
@@ -259,9 +269,8 @@ export const waitFor = async (
 export const emitEvent = <T = unknown>(
   wrapper: VueWrapper<ComponentPublicInstance>,
   eventName: string,
-  payload?: T
+  payload?: T,
 ): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vm = (wrapper as any).vm
   if (vm && typeof vm.$emit === 'function') {
     vm.$emit(eventName, payload)
@@ -277,7 +286,7 @@ export const emitEvent = <T = unknown>(
 export const expectTextContent = (
   wrapper: VueWrapper<ComponentPublicInstance>,
   text: string,
-  shouldContain: boolean = true
+  shouldContain: boolean = true,
 ): void => {
   const actual = wrapper.text()
   if (shouldContain) {
@@ -296,7 +305,7 @@ export const expectTextContent = (
 export const expectElementExists = (
   wrapper: VueWrapper<ComponentPublicInstance>,
   selector: string,
-  shouldExist: boolean = true
+  shouldExist: boolean = true,
 ): void => {
   const element = wrapper.find(selector)
   if (shouldExist) {
@@ -313,9 +322,8 @@ export const expectElementExists = (
  */
 export const getProp = <T = unknown>(
   wrapper: VueWrapper<ComponentPublicInstance>,
-  propName: string
+  propName: string,
 ): T | undefined => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (wrapper as any).props(propName) as T
 }
 
@@ -326,11 +334,9 @@ export const getProp = <T = unknown>(
  */
 export const setProps = async (
   wrapper: VueWrapper<ComponentPublicInstance>,
-  props: Record<string, unknown>
+  props: Record<string, unknown>,
 ): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof (wrapper as any).setProps === 'function') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (wrapper as any).setProps(props)
   }
 }
@@ -342,11 +348,9 @@ export const setProps = async (
  */
 export const getEmittedEvents = <T = unknown>(
   wrapper: VueWrapper<ComponentPublicInstance>,
-  eventName: string
+  eventName: string,
 ): T[] | undefined => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof (wrapper as any).emitted === 'function') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (wrapper as any).emitted(eventName) as T[]
   }
   return undefined
@@ -361,13 +365,10 @@ export const getEmittedEvents = <T = unknown>(
 export const expectEventEmitted = (
   wrapper: VueWrapper<ComponentPublicInstance>,
   eventName: string,
-  count?: number
+  count?: number,
 ): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const events = typeof (wrapper as any).emitted === 'function'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? (wrapper as any).emitted(eventName)
-    : undefined
+  const events =
+    typeof (wrapper as any).emitted === 'function' ? (wrapper as any).emitted(eventName) : undefined
   expect(events).toBeDefined()
 
   if (count !== undefined) {

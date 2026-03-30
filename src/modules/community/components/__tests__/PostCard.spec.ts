@@ -2,7 +2,6 @@
  * PostCard组件测试
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
@@ -18,7 +17,8 @@ vi.mock('@/design-system/components', () => {
       size: { type: String, default: 'md' },
     },
     setup(props: any) {
-      return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
+      return () =>
+        h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
     },
   })
 
@@ -31,35 +31,38 @@ vi.mock('@/design-system/components', () => {
     },
     emits: ['click', 'close'],
     setup(props: any, { emit, slots, attrs }: any) {
-      const children = [
-        slots.default ? slots.default() : '',
-      ]
+      const children = [slots.default ? slots.default() : '']
       if (props.closable) {
         children.push(
-          h('span', {
-            class: 'close-btn',
-            onClick: (e: any) => {
-              e.stopPropagation()
-              emit('close')
+          h(
+            'span',
+            {
+              class: 'close-btn',
+              onClick: (e: any) => {
+                e.stopPropagation()
+                emit('close')
+              },
             },
-          }, '×')
+            '×',
+          ),
         )
       }
-      return () => h(
-        'span',
-        {
-          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
-          onClick: (e: any) => {
-            // 先发出Vue事件
-            emit('click')
-            // 然后调用父组件传入的onClick处理器（如果有的话）
-            if (attrs.onClick) {
-              attrs.onClick(e)
-            }
+      return () =>
+        h(
+          'span',
+          {
+            class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+            onClick: (e: any) => {
+              // 先发出Vue事件
+              emit('click')
+              // 然后调用父组件传入的onClick处理器（如果有的话）
+              if (attrs.onClick) {
+                attrs.onClick(e)
+              }
+            },
           },
-        },
-        children
-      )
+          children,
+        )
     },
   })
 
@@ -70,7 +73,8 @@ vi.mock('@/design-system/components', () => {
       size: { type: Number, default: 16 },
     },
     setup(props: any) {
-      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+      return () =>
+        h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
     },
   })
 
@@ -96,7 +100,10 @@ describe('PostCard', () => {
       type: 'text',
       content: '这是一个测试动态',
       images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-      topics: [{ id: 'topic_1', name: '玄幻' }, { id: 'topic_2', name: '仙侠' }],
+      topics: [
+        { id: 'topic_1', name: '玄幻' },
+        { id: 'topic_2', name: '仙侠' },
+      ],
       likesCount: 10,
       commentsCount: 5,
       sharesCount: 2,

@@ -1,10 +1,6 @@
 import { ref } from 'vue'
 
-// eslint-disable-next-line no-unused-vars
-export function useDebounce<T extends (..._args: any[]) => any>(
-  fn: T,
-  delay: number
-) {
+export function useDebounce<T extends (..._args: any[]) => any>(fn: T, delay: number) {
   const timer = ref<number | null>(null)
   const lastArgs = ref<Parameters<T> | null>(null)
   const lastThis = ref<any>(null)
@@ -23,7 +19,6 @@ export function useDebounce<T extends (..._args: any[]) => any>(
     }, delay)
   }
 
-  // eslint-disable-next-line no-unused-vars
   const flush = function (this: any) {
     if (timer.value) clearTimeout(timer.value)
     if (lastArgs.value) {

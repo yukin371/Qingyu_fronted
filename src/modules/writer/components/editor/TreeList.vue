@@ -1,6 +1,6 @@
 <template>
-  <div 
-    class="tree-list" 
+  <div
+    class="tree-list"
     data-testid="tree-list"
     role="tree"
     :style="treeListStyle"
@@ -66,7 +66,6 @@ interface Props {
   selectedKey?: string | number | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Emits {
   (e: 'select', node: TreeNode): void
   (e: 'expand', node: TreeNode, expanded: boolean): void
@@ -79,7 +78,7 @@ const props = withDefaults(defineProps<Props>(), {
   data: null,
   icon: '',
   defaultExpandedKeys: () => [],
-  selectedKey: null
+  selectedKey: null,
 })
 
 // Emits
@@ -102,13 +101,17 @@ const flatNodes = computed<FlatNode[]>(() => {
 
   const result: FlatNode[] = []
 
-  const flatten = (nodes: TreeNode[], level: number = 0, parentId: string | number | null = null) => {
-    nodes.forEach(node => {
+  const flatten = (
+    nodes: TreeNode[],
+    level: number = 0,
+    parentId: string | number | null = null,
+  ) => {
+    nodes.forEach((node) => {
       // 添加当前节点
       result.push({
         ...node,
         level,
-        parentId
+        parentId,
       })
 
       // 如果节点展开且有子节点，递归处理
@@ -130,7 +133,7 @@ const treeListStyle = computed<CSSProperties>(() => ({
   '--vscode-tree-list-selected': 'var(--vscode-inactiveSelectionBackground)',
   '--vscode-tree-list-selected-fg': 'var(--vscode-inactiveSelectionForeground)',
   backgroundColor: 'var(--vscode-tree-list-bg)',
-  color: 'var(--vscode-tree-list-fg)'
+  color: 'var(--vscode-tree-list-fg)',
 }))
 
 // 处理节点选择
@@ -166,7 +169,7 @@ const handleDragEnd = () => {
 // 拖拽经过
 const handleDragOver = (targetNode: TreeNode, event: DragEvent) => {
   event.preventDefault()
-  
+
   // 不允许拖拽到自身或父节点到子节点
   if (draggingNodeId.value === targetNode.id) {
     return
@@ -221,7 +224,7 @@ const isDescendant = (ancestorId: string | number | null, nodeId: string | numbe
 
 // 安全的深拷贝方法
 // 避免structuredClone在循环引用、函数等情况下失败
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const deepClone = <T extends Record<string, any>>(obj: T): T => {
   // 处理基本类型和null/undefined
   if (obj === null || typeof obj !== 'object') {
@@ -235,12 +238,12 @@ const deepClone = <T extends Record<string, any>>(obj: T): T => {
 
   // 处理数组
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as unknown as T
+    return obj.map((item) => deepClone(item)) as unknown as T
   }
 
   // 处理普通对象
   const clonedObj = {} as T
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const seen = new WeakMap<object, any>() // 用于检测循环引用
 
   // 检查循环引用
@@ -268,7 +271,7 @@ const moveNode = (
   data: TreeNode[],
   sourceId: string | number,
   targetId: string | number,
-  position: 'before' | 'after' | 'inner'
+  position: 'before' | 'after' | 'inner',
 ): TreeNode[] => {
   // 深拷贝数据 - 使用自定义的deepClone方法
   // 比structuredClone更安全，可以处理循环引用和特殊类型
@@ -330,8 +333,8 @@ const handleKeydown = (event: KeyboardEvent) => {
   const nodes = flatNodes.value
   if (nodes.length === 0) return
 
-  const currentIndex = nodes.findIndex(n => n.id === props.selectedKey)
-  
+  const currentIndex = nodes.findIndex((n) => n.id === props.selectedKey)
+
   switch (event.key) {
     case 'ArrowDown':
       event.preventDefault()
@@ -352,7 +355,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     case 'Enter':
       event.preventDefault()
       if (props.selectedKey !== null) {
-        const node = nodes.find(n => n.id === props.selectedKey)
+        const node = nodes.find((n) => n.id === props.selectedKey)
         if (node) {
           emit('select', node)
         }
@@ -362,14 +365,17 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 // 监听selectedKey变化
-watch(() => props.selectedKey, (newKey) => {
-  if (newKey !== null && newKey !== undefined) {
-    const node = findNodeById(props.data, newKey)
-    if (node) {
-      emit('select', node)
+watch(
+  () => props.selectedKey,
+  (newKey) => {
+    if (newKey !== null && newKey !== undefined) {
+      const node = findNodeById(props.data, newKey)
+      if (node) {
+        emit('select', node)
+      }
     }
-  }
-})
+  },
+)
 
 // 根据ID查找节点
 const findNodeById = (nodes: TreeNode[] | null, id: string | number): TreeNode | null => {
@@ -391,17 +397,17 @@ const findNodeById = (nodes: TreeNode[] | null, id: string | number): TreeNode |
   height: 100%;
   overflow: auto;
   user-select: none;
-  
+
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: var(--vscode-scrollbarSlider-background);
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }

@@ -18,7 +18,7 @@
 ## 技术栈
 
 - **框架**: Vue 3 (Composition API)
-- **语言**: TypeScript + JavaScript (渐进式迁移)
+- **语言**: TypeScript
 - **构建工具**: Vite 7.x
 - **状态管理**: Pinia
 - **路由**: Vue Router 4
@@ -111,6 +111,7 @@ npm run preview
 ---
 
 📚 **更多文档：**
+
 - [快速开始指南](./docs/QUICK_START.md) - 5分钟上手
 - [使用指南](./docs/USER_GUIDE.md) - 完整功能说明
 - [API连接配置](./docs/api-connection-guide.md) - 环境配置
@@ -137,8 +138,8 @@ export default [
   {
     path: '/bookstore',
     component: () => import('@/modules/bookstore/views/BooksView.vue'),
-    meta: { requiresAuth: false }
-  }
+    meta: { requiresAuth: false },
+  },
 ]
 ```
 
@@ -159,6 +160,7 @@ export const getBookDetail = (bookId: string) => {
 ```
 
 每个模块都有自己的API文件，位于 `src/modules/{module}/api/`：
+
 ```typescript
 // 使用模块API
 import { getBookList, getBookDetail } from '@bookstore/api'
@@ -175,13 +177,13 @@ import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userInfo: null
+    userInfo: null,
   }),
   actions: {
     async fetchUserInfo() {
       // ...
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -190,6 +192,7 @@ export const useUserStore = defineStore('user', {
 项目已实现以下优化措施：
 
 ### 构建优化
+
 - **代码分割** - 手动配置 vendor chunks，分离 Vue、Element Plus、ECharts 等库
 - **路由懒加载** - 所有页面组件使用动态 import
 - **Tree Shaking** - 自动移除未使用的代码
@@ -197,6 +200,7 @@ export const useUserStore = defineStore('user', {
 - **Terser 压缩** - 生产环境自动移除 console 和 debugger
 
 ### 运行时优化
+
 - **图片懒加载** - 使用 v-lazy 指令
 - **虚拟滚动** - 长列表使用虚拟滚动
 - **防抖节流** - 搜索、滚动等操作使用防抖节流
@@ -206,6 +210,7 @@ export const useUserStore = defineStore('user', {
 ### 构建产物
 
 主 bundle 大小：
+
 - 未压缩: ~1,122 KB
 - Gzip: ~372 KB
 - 符合性能要求（< 500KB gzip）
@@ -229,6 +234,7 @@ VITE_WS_BASE_URL=/ws
 ```
 
 启动开发服务器：
+
 ```bash
 npm run dev
 ```
@@ -238,11 +244,13 @@ npm run dev
 根据部署平台修改 `.env.production`：
 
 **腾讯云 CloudBase：**
+
 ```bash
 VITE_API_BASE_URL=https://your-env-id.service.tcloudbase.com/api/v1
 ```
 
 **自有服务器：**
+
 ```bash
 VITE_API_BASE_URL=https://yourdomain.com/api/v1
 ```
@@ -275,6 +283,7 @@ npm run type-check
 ## 模块功能说明
 
 ### 书店模块 (Bookstore)
+
 - 图书列表与详情
 - 分类浏览
 - 搜索功能
@@ -282,6 +291,7 @@ npm run type-check
 - 推荐系统
 
 ### 阅读器模块 (Reader)
+
 - 章节阅读
 - 阅读设置（字体、行距、主题）
 - 目录导航
@@ -289,6 +299,7 @@ npm run type-check
 - AI阅读助手
 
 ### 作者模块 (Writer)
+
 - 作品管理
 - 章节创作
 - 富文本编辑器
@@ -296,6 +307,7 @@ npm run type-check
 - 收益管理
 
 ### 用户模块 (User)
+
 - 个人资料
 - 书架管理
 - 阅读历史
@@ -303,6 +315,7 @@ npm run type-check
 - 钱包充值
 
 ### 管理模块 (Admin)
+
 - 用户管理
 - 内容审核
 - 数据统计
@@ -324,6 +337,7 @@ A: 在 `src/modules` 下创建新模块目录，包含 api、views、components 
 
 **Q: 构建失败怎么办？**
 A:
+
 1. 检查 Node.js 版本（>= 18.0.0）
 2. 删除 `node_modules` 和 `package-lock.json`
 3. 重新安装依赖：`npm install`
@@ -339,6 +353,7 @@ A: 参考 [API连接配置指南](./docs/api-connection-guide.md) 和 [部署指
 
 **Q: 支持哪些部署平台？**
 A:
+
 - 腾讯云 CloudBase（推荐，国内访问快）
 - 阿里云 Serverless
 - Vercel（海外用户）

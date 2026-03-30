@@ -2,10 +2,7 @@
   <div class="comment-detail-view">
     <div class="container">
       <!-- 面包屑导航 -->
-      <BreadcrumbNav
-        :items="breadcrumbs"
-        :auto-generate="false"
-      />
+      <BreadcrumbNav :items="breadcrumbs" :auto-generate="false" />
 
       <!-- 加载状态 -->
       <SkeletonLoader :loading="loading" :rows="8">
@@ -15,11 +12,8 @@
 
         <div v-else class="content-wrapper">
           <!-- 返回按钮 -->
-          <el-button
-            class="back-button"
-            @click="goBack"
-          >
-            <QyIcon name="ArrowLeft"  />
+          <el-button class="back-button" @click="goBack">
+            <QyIcon name="ArrowLeft" />
             返回
           </el-button>
 
@@ -40,17 +34,10 @@
               <div class="comment-content">
                 <!-- 用户信息 -->
                 <div class="comment-header">
-                  <span
-                    class="user-name"
-                    @click="goToUserProfile(comment.user?.userId)"
-                  >
+                  <span class="user-name" @click="goToUserProfile(comment.user?.userId)">
                     {{ comment.user?.nickname || comment.user?.username || '匿名用户' }}
                   </span>
-                  <el-tag
-                    v-if="comment.user?.role === 'writer'"
-                    size="small"
-                    type="warning"
-                  >
+                  <el-tag v-if="comment.user?.role === 'writer'" size="small" type="warning">
                     作者
                   </el-tag>
                   <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
@@ -61,17 +48,13 @@
 
                 <!-- 评论统计 -->
                 <div class="comment-stats">
-                  <el-button
-                    text
-                    @click="handleLike"
-                    :class="{ 'is-liked': comment.isLiked }"
-                  >
-                    <QyIcon name="Star"  />
+                  <el-button text @click="handleLike" :class="{ 'is-liked': comment.isLiked }">
+                    <QyIcon name="Star" />
                     {{ comment.likeCount || 0 }} 点赞
                   </el-button>
 
                   <el-button text>
-                    <QyIcon name="ChatLineRound"  />
+                    <QyIcon name="ChatLineRound" />
                     {{ comment.replyCount || 0 }} 回复
                   </el-button>
                 </div>
@@ -87,9 +70,7 @@
                     show-word-limit
                   />
                   <div class="reply-actions">
-                    <el-button size="small" @click="showReplyBox = false">
-                      取消
-                    </el-button>
+                    <el-button size="small" @click="showReplyBox = false"> 取消 </el-button>
                     <el-button
                       type="primary"
                       size="small"
@@ -103,12 +84,8 @@
                 </div>
 
                 <!-- 回复按钮 -->
-                <el-button
-                  v-else
-                  class="reply-trigger"
-                  @click="showReplyBox = true"
-                >
-                  <QyIcon name="Edit"  />
+                <el-button v-else class="reply-trigger" @click="showReplyBox = true">
+                  <QyIcon name="Edit" />
                   回复这条评论
                 </el-button>
               </div>
@@ -120,12 +97,7 @@
             <template #header>
               <div class="card-header">
                 <h3>全部回复 ({{ replies.length }})</h3>
-                <el-select
-                  v-model="sortBy"
-                  size="small"
-                  @change="loadReplies"
-                  style="width: 120px;"
-                >
+                <el-select v-model="sortBy" size="small" @change="loadReplies" style="width: 120px">
                   <el-option label="最新" value="latest" />
                   <el-option label="最热" value="hot" />
                 </el-select>
@@ -153,10 +125,7 @@
 
               <!-- 加载更多 -->
               <div v-if="hasMore" class="load-more">
-                <el-button
-                  @click="loadMoreReplies"
-                  :loading="loadingMore"
-                >
+                <el-button @click="loadMoreReplies" :loading="loadingMore">
                   加载更多回复
                 </el-button>
               </div>
@@ -185,11 +154,39 @@ const authStore = useAuthStore()
 
 const commentId = computed(() => route.params.commentId as string)
 
+// 用户信息类型定义
+interface UserType {
+  userId: string
+  nickname?: string
+  username: string
+  avatar?: string
+  role?: string
+}
+
+// 评论类型定义
+interface CommentType {
+  id: string
+  content: string
+  userId: string
+  userName: string
+  userAvatar?: string
+  user?: UserType
+  bookId: string
+  chapterId?: string
+  likeCount: number
+  replyCount: number
+  isLiked: boolean
+  createdAt: string
+  replies?: CommentType[]
+}
+
+interface ReplyType extends CommentType {
+  replyToId?: string
+  replyToName?: string
+}
+
 // 面包屑
-const breadcrumbs = computed(() => [
-  { title: '首页', path: '/' },
-  { title: '评论详情' }
-])
+const breadcrumbs = computed(() => [{ title: '首页', path: '/' }, { title: '评论详情' }])
 
 // 状态
 const loading = ref(true)
@@ -198,8 +195,8 @@ const loadingMore = ref(false)
 const submitting = ref(false)
 
 // 评论数据
-const comment = ref<any>(null)
-const replies = ref<any[]>([])
+const comment = ref<CommentType | null>(null)
+const replies = ref<ReplyType[]>([])
 const sortBy = ref('latest')
 const hasMore = ref(false)
 const currentPage = ref(1)
@@ -214,7 +211,7 @@ const loadComment = async () => {
   try {
     const response = await httpService.get(`/reader/comments/${commentId.value}`)
     comment.value = response.data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载评论失败:', error)
     message.error('加载评论失败')
   } finally {
@@ -231,12 +228,12 @@ const loadReplies = async () => {
       params: {
         page: currentPage.value,
         size: 20,
-        sortBy: sortBy.value
-      }
+        sortBy: sortBy.value,
+      },
     })
     replies.value = response.data.replies || []
     hasMore.value = response.data.total > currentPage.value * 20
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载回复失败:', error)
     message.error('加载回复失败')
   } finally {
@@ -253,12 +250,12 @@ const loadMoreReplies = async () => {
       params: {
         page: currentPage.value,
         size: 20,
-        sortBy: sortBy.value
-      }
+        sortBy: sortBy.value,
+      },
     })
     replies.value.push(...(response.data.replies || []))
     hasMore.value = response.data.total > currentPage.value * 20
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('加载回复失败:', error)
     message.error('加载回复失败')
   } finally {
@@ -270,6 +267,10 @@ const loadMoreReplies = async () => {
 const handleLike = async () => {
   if (!authStore.isLoggedIn) {
     message.warning('请先登录')
+    return
+  }
+
+  if (!comment.value) {
     return
   }
 
@@ -285,7 +286,7 @@ const handleLike = async () => {
       comment.value.likeCount = (comment.value.likeCount || 0) + 1
       message.success('点赞成功')
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('点赞操作失败:', error)
     message.error('操作失败')
   }
@@ -305,7 +306,7 @@ const handleReply = async () => {
   submitting.value = true
   try {
     await httpService.post(`/reader/comments/${commentId.value}/reply`, {
-      content: replyContent.value.trim()
+      content: replyContent.value.trim(),
     })
     message.success('回复成功')
     replyContent.value = ''
@@ -318,7 +319,7 @@ const handleReply = async () => {
     if (comment.value) {
       comment.value.replyCount = (comment.value.replyCount || 0) + 1
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('回复失败:', error)
     message.error('回复失败')
   } finally {
@@ -335,13 +336,13 @@ const handleReplySubmit = async (replyCommentId: string, content: string) => {
 
   try {
     await httpService.post(`/reader/comments/${replyCommentId}/reply`, {
-      content
+      content,
     })
     message.success('回复成功')
 
     // 刷新回复列表
     loadReplies()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('回复失败:', error)
     message.error('回复失败')
   }
@@ -353,7 +354,7 @@ const handleDeleteComment = async (deleteCommentId: string) => {
     await messageBox.confirm('确定要删除这条评论吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     await httpService.delete(`/reader/comments/${deleteCommentId}`)
@@ -361,7 +362,7 @@ const handleDeleteComment = async (deleteCommentId: string) => {
 
     // 刷新回复列表
     loadReplies()
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
       message.error('删除失败')
@@ -384,7 +385,7 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
     }
 
     // 更新本地数据
-    const updateCommentLike = (comments: any[]) => {
+    const updateCommentLike = (comments: ReplyType[]) => {
       for (const c of comments) {
         if (c.id === likeCommentId) {
           c.isLiked = isLike
@@ -396,7 +397,7 @@ const handleLikeComment = async (likeCommentId: string, isLike: boolean) => {
       }
     }
     updateCommentLike(replies.value)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('点赞操作失败:', error)
     message.error('操作失败')
   }
@@ -654,4 +655,3 @@ onMounted(() => {
   }
 }
 </style>
-

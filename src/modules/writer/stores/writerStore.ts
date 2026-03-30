@@ -34,8 +34,15 @@ import type {
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
-import type { LocationTreeNode, StatisticsCacheItem, RawProjectData, ProjectListResponse } from '@/types/models/project'
+import { outlineApi } from '../api/outline'
+import type {
+  LocationTreeNode,
+  StatisticsCacheItem,
+  RawProjectData,
+  ProjectListResponse,
+} from '@/types/models/project'
 
 /**
  * 自动保存任务
@@ -164,7 +171,8 @@ function normalizeProject(raw: RawProjectData): Project {
       totalWords: raw?.totalWords ?? raw?.wordCount ?? (rawStats?.totalWords as number) ?? 0,
       chapterCount: raw?.chapterCount ?? (rawStats?.chapterCount as number) ?? 0,
       documentCount: (rawStats?.documentCount as number) ?? 0,
-      lastUpdateAt: raw?.updatedAt || raw?.lastUpdateTime || (rawStats?.lastUpdateAt as string) || '',
+      lastUpdateAt:
+        raw?.updatedAt || raw?.lastUpdateTime || (rawStats?.lastUpdateAt as string) || '',
     },
     settings: {
       autoBackup: (rawSettings?.autoBackup as boolean) ?? true,
@@ -338,6 +346,27 @@ export const useWriterStore = defineStore('writer', {
      */
     documentCount: (state): number => {
       return state.documents.length
+    },
+
+    /**
+     * 获取章节顺序映射（用于时序过滤）
+     */
+    chapterOrderMap: (state): Map<string, number> => {
+      const tree = state.documentTree || []
+      const map = new Map<string, number>()
+
+      function traverse(nodes: any[], order: number = 0): number {
+        nodes.forEach(node => {
+          map.set(node.id, ++order)
+          if (node.children && node.children.length > 0) {
+            traverse(node.children, order)
+          }
+        })
+        return order
+      }
+
+      traverse(tree)
+      return map
     },
   },
 
@@ -952,7 +981,11 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await continueWriting(this.currentProjectId, text, length)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1500 })
+        const contextInstructions = contextStr ? `请根据以下作品设定续写：\n${contextStr}` : undefined
+        const response = await continueWriting(this.currentProjectId, text, length, contextInstructions)
         const result = response.generated_text || ''
         this.ai.lastResult = result
 
@@ -989,7 +1022,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await polishText(this.currentProjectId, text, instructions)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1000 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行润色，保持角色性格和世界观的统一：\n${contextStr}`
+          : instructions
+        const response = await polishText(this.currentProjectId, text, mergedInstructions)
         const result = response.polished_text || response.rewritten_text || ''
         this.ai.lastResult = result
 
@@ -1030,7 +1069,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await expandText(this.currentProjectId, text, instructions, targetLength)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1500 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行扩写，保持与故事世界的一致性：\n${contextStr}`
+          : instructions
+        const response = await expandText(this.currentProjectId, text, mergedInstructions, targetLength)
         const result = response.expanded_text || response.rewritten_text || ''
         this.ai.lastResult = result
 
@@ -1071,7 +1116,13 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
-        const response = await rewriteText(this.currentProjectId, text, mode, instructions)
+        // 自动注入项目上下文
+        const { buildContextString } = useAIContext()
+        const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1000 })
+        const mergedInstructions = contextStr
+          ? `${instructions || ''}\n\n请参考以下作品设定进行改写，保持角色性格一致性：\n${contextStr}`
+          : instructions
+        const response = await rewriteText(this.currentProjectId, text, mode, mergedInstructions)
         const result = response.rewritten_text || response.polished_text || ''
         this.ai.lastResult = result
 
@@ -1133,7 +1184,7 @@ export const useWriterStore = defineStore('writer', {
       this.characters.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.characters.list = await (writerModule.listCharacters?.(pid) ?? [])
+        this.characters.list = (await (writerModule.listCharacters?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载角色列表失败:', error)
         this.error = error.message
@@ -1151,9 +1202,12 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.characters.relations = await (writerModule.listCharacterRelations?.(pid) ?? [])
+        const relations = (await (writerModule.listCharacterRelations?.(pid) ?? [])) || []
+        // 确保relations永远不是null
+        this.characters.relations = relations || []
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
+        this.characters.relations = []
       }
     },
 
@@ -1162,6 +1216,49 @@ export const useWriterStore = defineStore('writer', {
      */
     setCurrentCharacter(character: Character | null): void {
       this.characters.currentCharacter = character
+    },
+
+    /**
+     * 创建角色关系
+     */
+    async createCharacterRelation(
+      projectId: string,
+      data: { fromId: string; toId: string; type: string; strength: number; notes?: string },
+    ): Promise<CharacterRelation | null> {
+      try {
+        const { characterApi } = await import('../api/character')
+        const relation = (await characterApi.createRelation(projectId, {
+          fromId: data.fromId,
+          toId: data.toId,
+          type: data.type as any, // 类型断言处理 RelationType
+          strength: data.strength,
+          notes: data.notes,
+        })) as unknown as CharacterRelation
+        if (relation) {
+          this.characters.relations.push(relation)
+          return relation
+        }
+        return null
+      } catch (error: any) {
+        console.error('创建角色关系失败:', error)
+        this.error = error.message
+        throw error
+      }
+    },
+
+    /**
+     * 删除角色关系
+     */
+    async deleteCharacterRelation(relationId: string, projectId: string): Promise<void> {
+      try {
+        const { characterApi } = await import('../api/character')
+        await characterApi.deleteRelation(relationId, projectId)
+        this.characters.relations = this.characters.relations.filter((r) => r.id !== relationId)
+      } catch (error: any) {
+        console.error('删除角色关系失败:', error)
+        this.error = error.message
+        throw error
+      }
     },
 
     // ==================== 地点管理 ====================
@@ -1176,7 +1273,7 @@ export const useWriterStore = defineStore('writer', {
       this.locations.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.locations.list = await (writerModule.listLocations?.(pid) ?? [])
+        this.locations.list = (await (writerModule.listLocations?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载地点列表失败:', error)
         this.error = error.message
@@ -1194,7 +1291,7 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.locations.tree = await (writerModule.getLocationTree?.(pid) ?? [])
+        this.locations.tree = (await (writerModule.getLocationTree?.(pid) ?? [])) || []
       } catch (error: any) {
         console.error('加载地点树失败:', error)
       }
@@ -1219,7 +1316,7 @@ export const useWriterStore = defineStore('writer', {
       this.timeline.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.timeline.list = await (writerModule.listTimelines?.(pid) ?? [])
+        this.timeline.list = (await (writerModule.listTimelines?.(pid) ?? [])) || []
         // 默认选择第一个时间线
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
           this.timeline.currentTimeline = this.timeline.list[0]
@@ -1241,7 +1338,7 @@ export const useWriterStore = defineStore('writer', {
 
       try {
         const writerModule = (await import('..')) as any
-        this.timeline.events = await (writerModule.listTimelineEvents?.(tid) ?? [])
+        this.timeline.events = (await (writerModule.listTimelineEvents?.(tid) ?? [])) || []
       } catch (error: any) {
         console.error('加载时间线事件失败:', error)
       }
@@ -1275,11 +1372,20 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const writerModule = (await import('..')) as any
-        this.outline.tree = await (writerModule.getOutlineTree?.(pid) ?? [])
+        const response = await outlineApi.getTree(pid)
+        // 处理后端返回的响应格式（HTTP拦截器已提取data字段）
+        if (Array.isArray(response)) {
+          this.outline.tree = response
+        } else if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
+          this.outline.tree = (response as any).data
+        } else {
+          console.warn('[writerStore] 大纲树API返回格式未知:', response)
+          this.outline.tree = []
+        }
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = error.message
+        this.outline.tree = []
       } finally {
         this.outline.loading = false
       }
@@ -1297,12 +1403,16 @@ export const useWriterStore = defineStore('writer', {
      */
     async createOutlineNode(projectId: string, nodeData: any): Promise<OutlineNode> {
       try {
-        // TODO: 调用后端API创建节点
-        // const response = await apiClient.post(`/projects/${projectId}/outline`, nodeData)
-        // return response.data
-        console.log('创建大纲节点:', projectId, nodeData)
+        // 调用大纲API创建节点
+        const response = await outlineApi.create(projectId, {
+          parentId: nodeData.parentId || undefined,
+          title: nodeData.title || '新节点',
+          type: nodeData.type || 'section',
+          order: nodeData.order,
+        })
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
-        return {} as OutlineNode
+        return response as unknown as OutlineNode
       } catch (error: any) {
         console.error('创建大纲节点失败:', error)
         throw error
@@ -1318,12 +1428,11 @@ export const useWriterStore = defineStore('writer', {
       nodeData: any,
     ): Promise<OutlineNode> {
       try {
-        // TODO: 调用后端API更新节点
-        // const response = await apiClient.put(`/projects/${projectId}/outline/${nodeId}`, nodeData)
-        // return response.data
-        console.log('更新大纲节点:', nodeId, nodeData)
+        // 调用大纲更新API
+        const response = await outlineApi.update(nodeId, projectId, nodeData)
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
-        return {} as OutlineNode
+        return response as unknown as OutlineNode
       } catch (error: any) {
         console.error('更新大纲节点失败:', error)
         throw error
@@ -1335,12 +1444,32 @@ export const useWriterStore = defineStore('writer', {
      */
     async deleteOutlineNode(nodeId: string, projectId: string): Promise<void> {
       try {
-        // TODO: 调用后端API删除节点
-        // await apiClient.delete(`/projects/${projectId}/outline/${nodeId}`)
-        console.log('删除大纲节点:', nodeId)
+        // 调用大纲删除API
+        await outlineApi.delete(nodeId, projectId)
+        // 刷新大纲树
         await this.loadOutlineTree(projectId)
       } catch (error: any) {
         console.error('删除大纲节点失败:', error)
+        throw error
+      }
+    },
+
+    /**
+     * 移动/重排大纲节点
+     */
+    async moveOutlineNode(
+      nodeId: string,
+      projectId: string,
+      payload: { parentId?: string; order: number },
+    ): Promise<void> {
+      try {
+        await moveDocument(nodeId, {
+          parentId: payload.parentId,
+          order: payload.order,
+        })
+        await this.loadOutlineTree(projectId)
+      } catch (error: any) {
+        console.error('移动大纲节点失败:', error)
         throw error
       }
     },
@@ -1380,7 +1509,6 @@ export const useWriterStore = defineStore('writer', {
     initSyncService(): void {
       // 注册同步回调 - 网络恢复时刷新项目列表
       syncService.onSync(async () => {
-        console.log('[WriterStore] 执行同步回调')
         await this.loadProjects()
       })
 
@@ -1391,8 +1519,6 @@ export const useWriterStore = defineStore('writer', {
 
       // 启动健康检查
       syncService.startHealthCheck()
-
-      console.log('[WriterStore] 同步服务已初始化')
     },
 
     /**
@@ -1400,7 +1526,6 @@ export const useWriterStore = defineStore('writer', {
      */
     stopSyncService(): void {
       syncService.stopHealthCheck()
-      console.log('[WriterStore] 同步服务已停止')
     },
 
     /**

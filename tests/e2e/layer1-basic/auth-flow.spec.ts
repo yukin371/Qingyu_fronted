@@ -21,7 +21,7 @@ import { TestDataGenerator, testUsers } from '../../helpers/test-data'
 /**
  * 测试配置
  */
-const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:8080'
+const getBackendURL = () => process.env.BACKEND_URL || 'http://localhost:9090'
 const getBaseURL = () => process.env.BASE_URL || `http://localhost:${process.env.PLAYWRIGHT_PORT || 5174}`
 
 test.describe('Layer 1: 认证流程', () => {
@@ -487,7 +487,7 @@ test.describe('Layer 1: 认证流程', () => {
       // 让我们通过登录API获取有效token
       console.log(`  [DEBUG] 尝试通过登录获取有效token...`)
 
-      const loginResponse = await fetch(`${process.env.BACKEND_URL || 'http://localhost:8080'}/api/v1/shared/auth/login`, {
+      const loginResponse = await fetch(`${process.env.BACKEND_URL || 'http://localhost:9090'}/api/v1/shared/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

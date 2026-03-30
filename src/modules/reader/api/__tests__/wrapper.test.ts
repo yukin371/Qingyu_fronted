@@ -3,8 +3,6 @@
  * 测试wrapper层是否可以正常工作
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
   orvalMutator: vi.fn((config: any) => {
@@ -43,11 +41,14 @@ describe('Reader API Wrapper', () => {
 
       const result = await (wrapper as any).getBooks({ page: 1, size: 20 })
 
-      expect(orvalMutator).toHaveBeenCalledWith({
-        method: 'GET',
-        url: '/api/v1/reader/books',
-        params: { page: 1, size: 20 },
-      } as any, { page: 1, size: 20 } as any)
+      expect(orvalMutator).toHaveBeenCalledWith(
+        {
+          method: 'GET',
+          url: '/api/v1/reader/books',
+          params: { page: 1, size: 20 },
+        } as any,
+        { page: 1, size: 20 } as any,
+      )
       expect(result).toBeDefined()
     }, 30000)
 

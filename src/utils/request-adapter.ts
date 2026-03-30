@@ -85,12 +85,19 @@ export function request<T = unknown>(options: RequestOption) {
     }
 
     promise
-      .then((res: APIResponse<T>) => {
-        // 假设后端返回格式为 { code, message, data }
-        if (res.code === 200 || res.code === 0) {
-          resolve(res.data as T)
+      .then((res: APIResponse<T> | T) => {
+        // 检查是否是完整的 APIResponse（有 code 字段）
+        if (res && typeof res === 'object' && 'code' in res) {
+          const apiRes = res as APIResponse<T>
+          // 假设后端返回格式为 { code, message, data }
+          if (apiRes.code === 200 || apiRes.code === 0) {
+            resolve(apiRes.data as T)
+          } else {
+            reject(new Error(apiRes.message || '请求失败'))
+          }
         } else {
-          reject(new Error(res.message || '请求失败'))
+          // 响应已经被拦截器处理过，直接返回 data
+          resolve(res as T)
         }
       })
       .catch((error: AxiosError) => {

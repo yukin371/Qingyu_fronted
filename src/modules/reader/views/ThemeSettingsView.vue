@@ -5,7 +5,7 @@
         <div class="card-header">
           <h3>阅读器主题设置</h3>
           <el-button type="primary" @click="saveAllSettings" :loading="saving">
-            <QyIcon name="Check"  />
+            <QyIcon name="Check" />
             保存设置
           </el-button>
         </div>
@@ -28,7 +28,7 @@
                 </div>
                 <div class="theme-name">{{ theme.name }}</div>
                 <el-icon v-if="currentTheme.id === theme.id" class="check-icon">
-                  <QyIcon name="Check"  />
+                  <QyIcon name="Check" />
                 </el-icon>
               </div>
             </div>
@@ -48,12 +48,14 @@
                 <div class="theme-name">{{ theme.name }}</div>
                 <div class="theme-actions">
                   <el-button size="small" text @click="editCustomTheme(theme)">编辑</el-button>
-                  <el-button size="small" text type="danger" @click="deleteCustomTheme(theme.id)">删除</el-button>
+                  <el-button size="small" text type="danger" @click="deleteCustomTheme(theme.id)"
+                    >删除</el-button
+                  >
                 </div>
               </div>
               <div class="theme-card add-theme" @click="showCreateThemeDialog = true">
                 <div class="add-icon">
-                  <QyIcon name="Plus"  />
+                  <QyIcon name="Plus" />
                 </div>
                 <div class="theme-name">新建主题</div>
               </div>
@@ -78,7 +80,7 @@
                 </div>
                 <div class="font-name">{{ font.name }}</div>
                 <el-icon v-if="currentFont.id === font.id" class="check-icon">
-                  <QyIcon name="Check"  />
+                  <QyIcon name="Check" />
                 </el-icon>
               </div>
             </div>
@@ -165,10 +167,7 @@
 
             <div class="reading-preview">
               <h4>阅读预览</h4>
-              <div
-                class="preview-content"
-                :style="getPreviewContentStyle()"
-              >
+              <div class="preview-content" :style="getPreviewContentStyle()">
                 <p>这是一段预览文本，用于展示当前的阅读器主题和字体设置效果。</p>
                 <p>你可以通过上方的选项卡切换不同的主题和字体，实时预览效果。</p>
                 <p>阅读体验对于读者来说非常重要，合适的主题和字体可以让阅读更加舒适。</p>
@@ -201,7 +200,10 @@
           <el-color-picker v-model="customThemeForm.colors.border" />
         </el-form-item>
         <el-form-item label="阴影颜色">
-          <el-input v-model="customThemeForm.colors.shadow" placeholder="例如: rgba(0, 0, 0, 0.1)" />
+          <el-input
+            v-model="customThemeForm.colors.shadow"
+            placeholder="例如: rgba(0, 0, 0, 0.1)"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -222,7 +224,7 @@ import {
   setActiveTheme,
   createCustomTheme as apiCreateTheme,
   deleteCustomTheme as apiDeleteTheme,
-  type Theme
+  type Theme,
 } from '@/modules/reader/api'
 import {
   builtinFonts,
@@ -232,7 +234,7 @@ import {
   getFontSettings,
   updateFontSettings,
   type Font,
-  type FontSettings
+  type FontSettings,
 } from '@/modules/reader/api'
 
 const activeTab = ref('theme')
@@ -252,8 +254,8 @@ const customThemeForm = reactive({
     accent: '#409EFF',
     secondary: '#909399',
     border: '#DCDFE6',
-    shadow: 'rgba(0, 0, 0, 0.1)'
-  }
+    shadow: 'rgba(0, 0, 0, 0.1)',
+  },
 })
 
 // 字体相关
@@ -263,7 +265,7 @@ const fontSettings = reactive<FontSettings>({
   size: 18,
   line_height: 1.5,
   letter_spacing: 0,
-  weight: 'normal'
+  weight: 'normal',
 })
 
 // 选择主题
@@ -286,7 +288,7 @@ const updateFontSize = (size: number) => {
 const getPreviewStyle = (theme: Theme) => ({
   backgroundColor: theme.colors.background,
   color: theme.colors.foreground,
-  border: `1px solid ${theme.colors.border}`
+  border: `1px solid ${theme.colors.border}`,
 })
 
 // 获取预览内容样式
@@ -300,7 +302,7 @@ const getPreviewContentStyle = () => ({
   color: currentTheme.value.colors.foreground,
   padding: '20px',
   borderRadius: '8px',
-  minHeight: '150px'
+  minHeight: '150px',
 })
 
 // 创建自定义主题
@@ -315,8 +317,9 @@ const createCustomTheme = async () => {
     customThemes.value.push(res)
     message.success('主题创建成功')
     showCreateThemeDialog.value = false
-  } catch (error: any) {
-    message.error(error.message || '创建失败')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '创建失败'
+    message.error(errorMessage)
   }
 }
 
@@ -324,7 +327,7 @@ const createCustomTheme = async () => {
 const editCustomTheme = (theme: Theme) => {
   Object.assign(customThemeForm, {
     name: theme.name,
-    colors: theme.colors
+    colors: theme.colors,
   })
   showCreateThemeDialog.value = true
 }
@@ -333,10 +336,11 @@ const editCustomTheme = (theme: Theme) => {
 const deleteCustomTheme = async (themeId: string) => {
   try {
     await apiDeleteTheme(themeId)
-    customThemes.value = customThemes.value.filter(t => t.id !== themeId)
+    customThemes.value = customThemes.value.filter((t) => t.id !== themeId)
     message.success('删除成功')
-  } catch (error: any) {
-    message.error(error.message || '删除失败')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '删除失败'
+    message.error(errorMessage)
   }
 }
 
@@ -352,8 +356,9 @@ const saveAllSettings = async () => {
     await updateFontSettings(fontSettings)
 
     message.success('设置保存成功')
-  } catch (error: any) {
-    message.error(error.message || '保存失败')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '保存失败'
+    message.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -364,7 +369,7 @@ const loadUserSettings = async () => {
   try {
     // 加载自定义主题
     const themesRes = await getThemes()
-    customThemes.value = themesRes.filter(t => !t.is_builtin)
+    customThemes.value = themesRes.filter((t) => !t.is_builtin)
 
     // 加载字体设置
     const fontRes = await getFontSettings()
@@ -398,7 +403,8 @@ onMounted(() => {
   }
 }
 
-.theme-section, .font-section {
+.theme-section,
+.font-section {
   h4 {
     margin: 0 0 16px;
     font-size: 16px;
@@ -406,14 +412,16 @@ onMounted(() => {
   }
 }
 
-.theme-grid, .font-grid {
+.theme-grid,
+.font-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.theme-card, .font-card {
+.theme-card,
+.font-card {
   position: relative;
   border: 2px solid var(--el-border-color);
   border-radius: 8px;
@@ -432,7 +440,8 @@ onMounted(() => {
   }
 }
 
-.theme-preview, .font-preview {
+.theme-preview,
+.font-preview {
   height: 100px;
   display: flex;
   align-items: center;
@@ -455,7 +464,8 @@ onMounted(() => {
   }
 }
 
-.theme-name, .font-name {
+.theme-name,
+.font-name {
   padding: 8px 12px;
   text-align: center;
   font-size: 14px;
@@ -518,7 +528,8 @@ onMounted(() => {
   }
 }
 
-.size-selector, .line-height-selector {
+.size-selector,
+.line-height-selector {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;

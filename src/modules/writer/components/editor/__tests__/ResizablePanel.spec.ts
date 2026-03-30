@@ -290,7 +290,8 @@ describe('ResizablePanel', () => {
       // 模拟鼠标移动
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -368,7 +369,8 @@ describe('ResizablePanel', () => {
       // 模拟鼠标移动，使新宽度为150px
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 0,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -407,7 +409,8 @@ describe('ResizablePanel', () => {
       // 模拟鼠标移动，使新宽度为700px
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 300,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -447,7 +450,8 @@ describe('ResizablePanel', () => {
       // 尝试将宽度减少到250px以下
       const mouseMoveEvent1 = new MouseEvent('mousemove', {
         clientX: -100,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent1)
       await nextTick()
@@ -459,7 +463,8 @@ describe('ResizablePanel', () => {
       // 测试最大宽度约束
       const mouseMoveEvent2 = new MouseEvent('mousemove', {
         clientX: 300,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent2)
       await nextTick()
@@ -527,7 +532,8 @@ describe('ResizablePanel', () => {
       // 移动鼠标
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -571,7 +577,8 @@ describe('ResizablePanel', () => {
       // 移动鼠标
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 120,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
 
@@ -592,7 +599,9 @@ describe('ResizablePanel', () => {
   })
 
   describe('collapsible功能', () => {
-    it('应该在collapsible为true时显示折叠按钮', () => {
+    it('应该在collapsible为true时响应折叠状态类名', async () => {
+      const store = usePanelStore()
+
       const wrapper = mount(ResizablePanel, {
         props: {
           panelId: 'right',
@@ -608,10 +617,15 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.find('.panel-collapse-button').exists()).toBe(true)
+      store.setRightCollapsed(true)
+      await nextTick()
+
+      expect(wrapper.find('.resizable-panel--collapsed-right').exists()).toBe(true)
     })
 
-    it('应该在collapsible为false时不显示折叠按钮', () => {
+    it('应该在collapsible为false时忽略折叠状态', async () => {
+      const store = usePanelStore()
+
       const wrapper = mount(ResizablePanel, {
         props: {
           panelId: 'right',
@@ -627,36 +641,13 @@ describe('ResizablePanel', () => {
         }
       })
 
-      expect(wrapper.find('.panel-collapse-button').exists()).toBe(false)
-    })
-
-    it('应该点击折叠按钮切换折叠状态', async () => {
-      const store = usePanelStore()
-
-      const wrapper = mount(ResizablePanel, {
-        props: {
-          panelId: 'right',
-          defaultWidth: 320,
-          position: 'right',
-          collapsible: true
-        },
-        global: {
-          plugins: [pinia],
-          stubs: {
-            DragHandle: true
-          }
-        }
-      })
-
-      const collapseButton = wrapper.find('.panel-collapse-button')
-      await collapseButton.trigger('click')
+      store.setRightCollapsed(true)
       await nextTick()
 
-      // 验证panelStore的折叠状态已更新
-      expect(store.rightCollapsed).toBe(true)
+      expect(wrapper.find('.resizable-panel--collapsed-right').exists()).toBe(false)
     })
 
-    it('折叠时应该设置宽度为0', async () => {
+    it('应该在折叠时把面板宽度收为0', async () => {
       const store = usePanelStore()
 
       const wrapper = mount(ResizablePanel, {
@@ -674,17 +665,17 @@ describe('ResizablePanel', () => {
         }
       })
 
-      // 设置折叠状态
-      store.toggleRightCollapsed()
+      store.setRightCollapsed(true)
       await nextTick()
 
       const panel = wrapper.find('.resizable-panel')
       const style = panel.attributes('style') || ''
-      // 折叠时宽度应该为0
       expect(style).toContain('width: 0px')
     })
 
-    it('折叠状态改变时应该更新localStorage', async () => {
+    it('折叠时应该应用折叠宽度类', async () => {
+      const store = usePanelStore()
+
       const wrapper = mount(ResizablePanel, {
         props: {
           panelId: 'right',
@@ -700,8 +691,31 @@ describe('ResizablePanel', () => {
         }
       })
 
-      const collapseButton = wrapper.find('.panel-collapse-button')
-      await collapseButton.trigger('click')
+      store.setRightCollapsed(true)
+      await nextTick()
+
+      expect(wrapper.find('.resizable-panel--collapsed-right').exists()).toBe(true)
+    })
+
+    it('折叠状态改变时应该更新localStorage', async () => {
+      const store = usePanelStore()
+
+      const wrapper = mount(ResizablePanel, {
+        props: {
+          panelId: 'right',
+          defaultWidth: 320,
+          position: 'right',
+          collapsible: true
+        },
+        global: {
+          plugins: [pinia],
+          stubs: {
+            DragHandle: true
+          }
+        }
+      })
+
+      store.setRightCollapsed(true)
       await nextTick()
 
       const saved = localStorage.getItem('qingyu_editor_panel_layout')
@@ -738,7 +752,8 @@ describe('ResizablePanel', () => {
       // 向右拖拽
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -775,7 +790,8 @@ describe('ResizablePanel', () => {
       // 向左拖拽（减少clientX）
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 450,
-        clientY: 0
+        clientY: 0,
+        buttons: 1
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -815,7 +831,8 @@ describe('ResizablePanel', () => {
       for (let i = 0; i < 10; i++) {
         const mouseMoveEvent = new MouseEvent('mousemove', {
           clientX: 100 + i * 10,
-          clientY: 0
+          clientY: 0,
+          buttons: 1
         })
         window.dispatchEvent(mouseMoveEvent)
       }

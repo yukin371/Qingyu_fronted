@@ -28,6 +28,7 @@
         <div class="list-stats">
           <SystemStatCard label="角色" :value="characters.length" hint="设定人物总数" tone="info" />
           <SystemStatCard label="地点" :value="locations.length" hint="世界空间节点" tone="success" />
+          <SystemStatCard label="概念" :value="concepts.length" hint="世界观与设定概念" tone="warning" />
           <SystemStatCard label="当前筛选" :value="activeCategoryLabel" :hint="searchHint" tone="warning" />
         </div>
         <!-- 角色列表 -->
@@ -91,6 +92,37 @@
             <el-empty v-if="filteredLocations.length === 0" description="暂无地点" />
           </el-scrollbar>
         </div>
+
+        <div v-show="activeCategory === 'concepts'" class="list-container">
+          <div class="list-header">
+            <h3>概念列表</h3>
+            <el-button type="primary" size="small" @click="handleAddConcept">
+              <el-icon><Plus /></el-icon>
+              添加概念
+            </el-button>
+          </div>
+          <el-scrollbar class="list-content">
+            <div class="items-grid">
+              <div
+                v-for="concept in filteredConcepts"
+                :key="concept.id"
+                class="item-card"
+                :class="{ 'is-selected': selectedItem?.id === concept.id }"
+                @click="handleSelectItem(concept, 'concept')"
+              >
+                <el-avatar :size="50" shape="square">
+                  <QyIcon name="PriceTag" />
+                </el-avatar>
+                <div class="item-info">
+                  <div class="item-name">{{ concept.name }}</div>
+                  <div v-if="concept.category" class="item-desc" style="color: #722ED1;">{{ concept.category }}</div>
+                  <div v-if="concept.summary" class="item-desc">{{ concept.summary }}</div>
+                </div>
+              </div>
+            </div>
+            <el-empty v-if="filteredConcepts.length === 0" description="暂无概念" />
+          </el-scrollbar>
+        </div>
       </div>
 
       <!-- 右侧详情面板 -->
@@ -113,8 +145,13 @@
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
+                <el-button text @click="handleDeleteItem">
+                  <el-icon><Close /></el-icon>
+                  删除
+                </el-button>
                 <el-button text @click="selectedItem = null">
                   <el-icon><Close /></el-icon>
+                  关闭
                 </el-button>
               </div>
             </div>
@@ -153,6 +190,18 @@
                   </el-descriptions-item>
                 </el-descriptions>
               </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as Character).id"
+                  :entity-name="(selectedItem as Character).name"
+                  entity-type="character"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
             </el-scrollbar>
           </div>
 
@@ -172,8 +221,13 @@
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
+                <el-button text @click="handleDeleteItem">
+                  <el-icon><Close /></el-icon>
+                  删除
+                </el-button>
                 <el-button text @click="selectedItem = null">
                   <el-icon><Close /></el-icon>
+                  关闭
                 </el-button>
               </div>
             </div>
@@ -201,6 +255,75 @@
                   </el-descriptions-item>
                 </el-descriptions>
               </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as Location).id"
+                  :entity-name="(selectedItem as Location).name"
+                  entity-type="location"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
+            </el-scrollbar>
+          </div>
+
+          <div v-if="selectedType === 'concept'" class="detail-content">
+            <div class="detail-header">
+              <div class="header-info">
+                <el-avatar :size="60" shape="square">
+                  <QyIcon name="PriceTag" />
+                </el-avatar>
+                <div class="header-text">
+                  <h2>{{ (selectedItem as Concept).name }}</h2>
+                  <p v-if="(selectedItem as Concept).alias?.length">{{ (selectedItem as Concept).alias?.join('、') }}</p>
+                </div>
+              </div>
+              <div class="header-actions">
+                <el-button text @click="handleEditItem">
+                  <el-icon><Edit /></el-icon>
+                  编辑
+                </el-button>
+                <el-button text @click="handleDeleteItem">
+                  <el-icon><Close /></el-icon>
+                  删除
+                </el-button>
+                <el-button text @click="selectedItem = null">
+                  <el-icon><Close /></el-icon>
+                  关闭
+                </el-button>
+              </div>
+            </div>
+
+            <el-scrollbar class="detail-body">
+              <div class="detail-section">
+                <h4>简介</h4>
+                <p>{{ (selectedItem as Concept).summary || '暂无简介' }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h4>分类</h4>
+                <p>{{ (selectedItem as Concept).category || '未分类' }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h4>详细描述</h4>
+                <p>{{ (selectedItem as Concept).description || '暂无详细描述' }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h4>故事线追溯</h4>
+                <EntityTracePanel
+                  :entity-id="(selectedItem as Concept).id"
+                  :entity-name="(selectedItem as Concept).name"
+                  entity-type="concept"
+                  :outline-tree="writerStore.outline.tree"
+                  :relations="writerStore.characters.relations"
+                  :all-characters="characters"
+                />
+              </div>
             </el-scrollbar>
           </div>
         </div>
@@ -211,14 +334,19 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Search, Plus, Edit, Close } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Close, Collection } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
+import type { Concept } from '../types/entity'
 import { QyIcon } from '@/design-system/components'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
-import { message } from '@/design-system/services'
+import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
+import { message, messageBox } from '@/design-system/services'
+import { characterApi } from '../api/character'
+import { locationApi } from '../api/location'
+import { conceptApi } from '../api/concept'
 const writerStore = useWriterStore()
-type EncyclopediaCategory = 'characters' | 'locations'
+type EncyclopediaCategory = 'characters' | 'locations' | 'concepts'
 
 interface Props {
   embedded?: boolean
@@ -241,11 +369,12 @@ const activeCategory = computed<EncyclopediaCategory>({
   set: (value) => emit('update:activeCategory', value),
 })
 const searchKeyword = ref('')
-const selectedItem = ref<Character | Location | null>(null)
-const selectedType = ref<'character' | 'location' | null>(null)
+const selectedItem = ref<Character | Location | Concept | null>(null)
+const selectedType = ref<'character' | 'location' | 'concept' | null>(null)
+const concepts = ref<Concept[]>([])
 
-const characters = computed<Character[]>(() => writerStore.characters.list)
-const locations = computed<Location[]>(() => writerStore.locations.list)
+const characters = computed<Character[]>(() => writerStore.characters.list ?? [])
+const locations = computed<Location[]>(() => writerStore.locations.list ?? [])
 
 const filteredCharacters = computed(() => {
   if (!searchKeyword.value) return characters.value
@@ -261,34 +390,220 @@ const filteredLocations = computed(() => {
   )
 })
 
-const activeCategoryLabel = computed(() => (activeCategory.value === 'locations' ? '地点' : '角色'))
+const filteredConcepts = computed(() => {
+  if (!searchKeyword.value) return concepts.value
+  const keyword = searchKeyword.value.toLowerCase()
+  return concepts.value.filter(concept =>
+    concept.name.toLowerCase().includes(keyword)
+    || (concept.alias || []).some(alias => alias.toLowerCase().includes(keyword))
+    || (concept.summary || '').toLowerCase().includes(keyword)
+    || (concept.category || '').toLowerCase().includes(keyword)
+  )
+})
+
+const activeCategoryLabel = computed(() => {
+  if (activeCategory.value === 'locations') return '地点'
+  if (activeCategory.value === 'concepts') return '概念'
+  return '角色'
+})
 const searchHint = computed(() => (searchKeyword.value ? `关键词：${searchKeyword.value}` : '未启用关键词'))
 
-const handleSelectItem = (item: Character | Location, type: 'character' | 'location') => {
+const handleSelectItem = (item: Character | Location | Concept, type: 'character' | 'location' | 'concept') => {
   selectedItem.value = item
   selectedType.value = type
 }
 
-const handleAddCharacter = () => {
-  message.info('添加角色功能开发中...')
+async function refreshSelectedCharacter(characterId: string) {
+  await writerStore.loadCharacters(effectiveProjectId.value)
+  selectedItem.value = characters.value.find(item => item.id === characterId) || null
+  selectedType.value = selectedItem.value ? 'character' : null
 }
 
-const handleAddLocation = () => {
-  message.info('添加地点功能开发中...')
+async function refreshSelectedLocation(locationId: string) {
+  await writerStore.loadLocations(effectiveProjectId.value)
+  selectedItem.value = locations.value.find(item => item.id === locationId) || null
+  selectedType.value = selectedItem.value ? 'location' : null
 }
 
-const handleEditItem = () => {
-  message.info('编辑功能开发中...')
+const handleAddCharacter = async () => {
+  if (!effectiveProjectId.value) return
+
+  try {
+    const nameResult = await messageBox.prompt('请输入角色名称', '添加角色')
+    const name = String(nameResult.value || '').trim()
+    if (!name) return
+    const summaryResult = await messageBox.prompt('请输入角色简介（可选）', '添加角色')
+    const summary = String(summaryResult.value || '').trim()
+    const created = await characterApi.create(effectiveProjectId.value, {
+      projectId: effectiveProjectId.value,
+      name,
+      summary,
+    }) as any
+    const payload = created?.data || created
+    await refreshSelectedCharacter(payload?.id || '')
+    message.success(`已添加角色「${payload?.name || name}」`)
+  } catch {
+    return
+  }
+}
+
+const handleAddLocation = async () => {
+  if (!effectiveProjectId.value) return
+
+  try {
+    const nameResult = await messageBox.prompt('请输入地点名称', '添加地点')
+    const name = String(nameResult.value || '').trim()
+    if (!name) return
+    const summaryResult = await messageBox.prompt('请输入地点描述（可选）', '添加地点')
+    const description = String(summaryResult.value || '').trim()
+    const created = await locationApi.create(effectiveProjectId.value, {
+      projectId: effectiveProjectId.value,
+      name,
+      description,
+    }) as any
+    const payload = created?.data || created
+    await refreshSelectedLocation(payload?.id || '')
+    message.success(`已添加地点「${payload?.name || name}」`)
+  } catch {
+    return
+  }
+}
+
+const handleAddConcept = async () => {
+  if (!effectiveProjectId.value) return
+
+  try {
+    const nameResult = await messageBox.prompt('请输入概念名称', '添加概念')
+    const name = String(nameResult.value || '').trim()
+    if (!name) return
+    const summaryResult = await messageBox.prompt('请输入概念简介（可选）', '添加概念')
+    const summary = String(summaryResult.value || '').trim()
+    const created = await conceptApi.create(effectiveProjectId.value, {
+      projectId: effectiveProjectId.value,
+      name,
+      summary,
+    }) as any
+    const payload = created?.data || created
+    await refreshSelectedConcept(payload?.id || '')
+    message.success(`已添加概念「${payload?.name || name}」`)
+  } catch {
+    return
+  }
+}
+
+async function refreshSelectedConcept(conceptId: string) {
+  const res = await conceptApi.list(effectiveProjectId.value) as any
+  concepts.value = res?.data || res || []
+  selectedItem.value = concepts.value.find(item => item.id === conceptId) || null
+  selectedType.value = selectedItem.value ? 'concept' : null
+}
+
+const handleEditItem = async () => {
+  if (!selectedItem.value || !effectiveProjectId.value || !selectedType.value) return
+
+  try {
+    if (selectedType.value === 'character') {
+      const character = selectedItem.value as Character
+      const name = window.prompt('请输入角色名称', character.name)?.trim() || ''
+      if (!name) return
+      const summary = window.prompt('请输入角色简介（可选）', character.summary || '')?.trim() || ''
+      await characterApi.update(character.id, effectiveProjectId.value, {
+        name,
+        summary,
+        alias: character.alias,
+        traits: character.traits,
+        background: character.background,
+        personalityPrompt: character.personalityPrompt,
+        speechPattern: character.speechPattern,
+        currentState: character.currentState,
+      })
+      await refreshSelectedCharacter(character.id)
+      message.success(`已更新角色「${name}」`)
+      return
+    }
+
+    if (selectedType.value === 'location') {
+      const location = selectedItem.value as Location
+      const name = window.prompt('请输入地点名称', location.name)?.trim() || ''
+      if (!name) return
+      const description = window.prompt('请输入地点描述（可选）', location.description || '')?.trim() || ''
+      await locationApi.update(location.id, effectiveProjectId.value, {
+        projectId: effectiveProjectId.value,
+        name,
+        description,
+        climate: location.climate,
+        culture: location.culture,
+        geography: location.geography,
+        atmosphere: location.atmosphere,
+        imageUrl: location.imageUrl,
+      })
+      await refreshSelectedLocation(location.id)
+      message.success(`已更新地点「${name}」`)
+      return
+    }
+
+    const concept = selectedItem.value as Concept
+    const name = window.prompt('请输入概念名称', concept.name)?.trim() || ''
+    if (!name) return
+    const summary = window.prompt('请输入概念简介（可选）', concept.summary || '')?.trim() || ''
+    const category = window.prompt('请输入概念分类（可选）', concept.category || '')?.trim() || ''
+    const description = window.prompt('请输入详细描述（可选）', concept.description || '')?.trim() || ''
+    await conceptApi.update(concept.id, effectiveProjectId.value, {
+      name,
+      summary,
+      category: category || undefined,
+      description: description || undefined,
+      alias: concept.alias,
+    })
+    await refreshSelectedConcept(concept.id)
+    message.success(`已更新概念「${name}」`)
+  } catch {
+    return
+  }
+}
+
+const handleDeleteItem = async () => {
+  if (!selectedItem.value || !effectiveProjectId.value || !selectedType.value) return
+  try {
+    if (selectedType.value === 'character') {
+      const character = selectedItem.value as Character
+      await messageBox.confirm(`确定删除角色“${character.name}”吗？`, '删除角色', { type: 'warning' })
+      await characterApi.delete(character.id, effectiveProjectId.value)
+      await writerStore.loadCharacters(effectiveProjectId.value)
+      message.success(`已删除角色「${character.name}」`)
+    } else if (selectedType.value === 'location') {
+      const location = selectedItem.value as Location
+      await messageBox.confirm(`确定删除地点“${location.name}”吗？`, '删除地点', { type: 'warning' })
+      await locationApi.delete(location.id, effectiveProjectId.value)
+      await writerStore.loadLocations(effectiveProjectId.value)
+      message.success(`已删除地点「${location.name}」`)
+    } else {
+      const concept = selectedItem.value as Concept
+      await messageBox.confirm(`确定删除概念”${concept.name}”吗？`, '删除概念', { type: 'warning' })
+      await conceptApi.delete(concept.id, effectiveProjectId.value)
+      const res = await conceptApi.list(effectiveProjectId.value) as any
+      concepts.value = res?.data || res || []
+      message.success(`已删除概念「${concept.name}」`)
+    }
+
+    selectedItem.value = null
+    selectedType.value = null
+  } catch {
+    return
+  }
 }
 
 const effectiveProjectId = computed(() => props.projectId || writerStore.currentProjectId || '')
 
 async function loadWorldData(projectId: string) {
   if (!projectId) return
-  await Promise.all([
+  const [, , conceptRes] = await Promise.all([
     writerStore.loadCharacters(projectId),
     writerStore.loadLocations(projectId),
+    conceptApi.list(projectId),
   ])
+  const conceptData = conceptRes as any
+  concepts.value = conceptData?.data || conceptData || []
 }
 
 watch(

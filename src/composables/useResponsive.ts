@@ -21,7 +21,7 @@ export const breakpoints: Breakpoints = {
   md: 992,
   lg: 1200,
   xl: 1920,
-  xxl: 2560
+  xxl: 2560,
 }
 
 export function useResponsive() {
@@ -49,8 +49,8 @@ export function useResponsive() {
   const isMobile = computed(() => windowWidth.value < breakpoints.md)
 
   // 是否为平板
-  const isTablet = computed(() =>
-    windowWidth.value >= breakpoints.sm && windowWidth.value < breakpoints.lg
+  const isTablet = computed(
+    () => windowWidth.value >= breakpoints.sm && windowWidth.value < breakpoints.lg,
   )
 
   // 是否为桌面端
@@ -79,9 +79,8 @@ export function useResponsive() {
 
   // 在某个范围内
   const isBetween = (min: BreakpointKey, max: BreakpointKey) => {
-    return computed(() =>
-      windowWidth.value >= breakpoints[min] &&
-      windowWidth.value < breakpoints[max]
+    return computed(
+      () => windowWidth.value >= breakpoints[min] && windowWidth.value < breakpoints[max],
     )
   }
 
@@ -106,7 +105,7 @@ export function useResponsive() {
     isBreakpoint,
     isGreaterOrEqual,
     isLessThan,
-    isBetween
+    isBetween,
   }
 }
 
@@ -115,7 +114,7 @@ export function useResponsive() {
  */
 export function debounce<T extends (...args: any[]) => any>(
   fn: T,
-  delay: number = 300
+  delay: number = 300,
 ): (...args: Parameters<T>) => void {
   let timeoutId: number | null = null
   return function (...args: Parameters<T>) {
@@ -123,7 +122,7 @@ export function debounce<T extends (...args: any[]) => any>(
       clearTimeout(timeoutId)
     }
     timeoutId = window.setTimeout(() => {
-      fn.apply(null, args)
+      fn(...args)
     }, delay)
   }
 }
@@ -133,15 +132,14 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   fn: T,
-  delay: number = 300
+  delay: number = 300,
 ): (...args: Parameters<T>) => void {
   let lastTime = 0
   return function (...args: Parameters<T>) {
     const now = Date.now()
     if (now - lastTime >= delay) {
       lastTime = now
-      fn.apply(null, args)
+      fn(...args)
     }
   }
 }
-

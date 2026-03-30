@@ -2,7 +2,6 @@
  * Reading Report View测试
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
@@ -12,7 +11,8 @@ import ReadingReportView from '../ReadingReportView.vue'
 vi.mock('element-plus', () => ({
   ElEmpty: {
     name: 'ElEmpty',
-    template: '<div class="el-empty"><slot name="image"/><div class="el-empty__description">{{ description }}</div></div>',
+    template:
+      '<div class="el-empty"><slot name="image"/><div class="el-empty__description">{{ description }}</div></div>',
     props: ['description'],
   },
   ElIcon: {
@@ -37,7 +37,7 @@ vi.mock('element-plus', () => ({
 vi.mock('@/design-system/components', () => ({
   QyButton: { name: 'QyButton', template: '<button><slot /></button>' },
   QyIcon: { name: 'QyIcon', template: '<i />' },
-  QyEmpty: { name: 'QyEmpty', template: '<div><slot /></div>' }
+  QyEmpty: { name: 'QyEmpty', template: '<div><slot /></div>' },
 }))
 
 describe('ReadingReportView', () => {
