@@ -33,7 +33,7 @@ import type {
   OutlineNode,
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
-import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import { chatWithAI, continueWriting, polishText, expandText, rewriteText, storyGenerate } from '@/modules/ai/api'
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import { outlineApi } from '../api/outline'
@@ -1141,6 +1141,50 @@ export const useWriterStore = defineStore('writer', {
       } catch (error: any) {
         console.error('AI改写失败:', error)
         this.ai.error = error.message || '改写失败，请重试'
+        throw error
+      } finally {
+        this.ai.isProcessing = false
+      }
+    },
+
+    /**
+     * AI故事生成（上下文感知续写/改写/建议）
+     */
+    async storyGenerateAction(
+      mode: 'continue' | 'rewrite' | 'suggest',
+      instruction?: string,
+      selectedText?: string,
+    ): Promise<string> {
+      if (!this.currentProjectId || !this.currentDocumentId) return ''
+
+      this.ai.isProcessing = true
+      this.ai.error = null
+
+      try {
+        const response = (await storyGenerate({
+          projectId: this.currentProjectId,
+          documentId: this.currentDocumentId,
+          mode,
+          instruction,
+          selectedText,
+        })) as any
+        const result = response?.data?.content || response?.data?.prompt || response?.content || ''
+        this.ai.lastResult = result
+
+        // 保存到历史记录
+        this.ai.history.push({
+          id: Date.now().toString(),
+          tool: 'story-generate',
+          input: selectedText || instruction || '',
+          output: result,
+          timestamp: Date.now(),
+          projectId: this.currentProjectId,
+        })
+
+        return result
+      } catch (error: any) {
+        console.error('AI故事生成失败:', error)
+        this.ai.error = error.message || '生成失败'
         throw error
       } finally {
         this.ai.isProcessing = false

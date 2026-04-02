@@ -9,7 +9,7 @@ export interface ChatMessage {
   timestamp: number
 }
 
-export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite'
+export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'story-generate'
 
 export interface AIGenerateRequest {
   projectId?: string

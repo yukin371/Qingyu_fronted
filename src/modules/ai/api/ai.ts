@@ -470,6 +470,34 @@ export const updateSession = async (
   return response as unknown as APIResponse<ChatSession>
 }
 
+// ============ 故事上下文写作 ============
+
+/** 故事上下文生成 */
+export function storyGenerate(data: {
+  projectId: string
+  documentId: string
+  mode: 'continue' | 'rewrite' | 'suggest'
+  instruction?: string
+  selectedText?: string
+}) {
+  return httpService.post('/ai/story/generate', data)
+}
+
+/** 上下文预览（调试用） */
+export function contextPreview(projectId: string, documentId: string) {
+  return httpService.get('/ai/story/context-preview', {
+    params: { projectId, documentId },
+  })
+}
+
+/** 更新场景状态 */
+export function updateSceneState(documentId: string, data: {
+  sceneGoal?: string
+  activeConflict?: string
+}) {
+  return httpService.put(`/ai/story/documents/${documentId}/scene-state`, data)
+}
+
 export default {
   // 写作辅助
   chatWithAI,
@@ -491,6 +519,10 @@ export default {
   getSessionHistory,
   deleteSession,
   createSession,
-  updateSession
+  updateSession,
+  // 故事上下文写作
+  storyGenerate,
+  contextPreview,
+  updateSceneState
 }
 
