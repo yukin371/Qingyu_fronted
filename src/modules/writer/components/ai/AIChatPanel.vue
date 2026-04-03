@@ -25,7 +25,7 @@
             <span class="message-time">{{ formatTime(message.timestamp) }}</span>
           </div>
 
-          <div class="message-text" v-html="renderMarkdown(message.content)"></div>
+          <div class="message-text" v-safe-html="renderMarkdown(message.content)"></div>
         </div>
       </div>
 

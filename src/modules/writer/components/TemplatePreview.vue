@@ -209,7 +209,7 @@
               <div
                 v-else-if="!showRawContent"
                 class="prose prose-sm max-w-none"
-                v-html="renderedHtml"
+                v-safe-html="renderedHtml"
               />
 
               <!-- 原始内容 -->

@@ -105,7 +105,7 @@
                 {{ row.chapter.chapterNum }}.
               </span>
               <!-- 搜索高亮处理 -->
-              <span v-html="highlightText(getDisplayTitle(row.chapter), searchKeyword)"></span>
+              <span v-safe-html="highlightText(getDisplayTitle(row.chapter), searchKeyword)"></span>
             </div>
 
             <div class="item-meta" v-if="row.chapter.nodeType !== 'directory'">

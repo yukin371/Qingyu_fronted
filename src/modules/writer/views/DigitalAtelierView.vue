@@ -131,7 +131,6 @@ function handleContentUpdate(content: string) {
 }
 
 function handleSave() {
-  console.log('[DigitalAtelierView] Save triggered')
   markdownEditorRef.value?.setSaveStatus('saving')
 
   // 模拟保存
@@ -141,8 +140,7 @@ function handleSave() {
   }, 500)
 }
 
-function handleEditorSave(content: string) {
-  console.log('[DigitalAtelierView] Editor save:', content.length)
+function handleEditorSave(_content: string) {
   if (selectedChapterId.value) {
     chapterStore.updateChapter(selectedChapterId.value, {
       wordCount: currentWordCount.value,
@@ -155,17 +153,14 @@ function handleWordCountChange(count: number) {
 }
 
 function handleAIAssist() {
-  console.log('[DigitalAtelierView] AI assist triggered')
   ElMessage.info('AI 助手功能开发中')
 }
 
 function handleModeChange(mode: string) {
-  console.log('[DigitalAtelierView] Mode changed:', mode)
   isImmersiveMode.value = mode === 'immersive'
 }
 
-function handleToolChange(tool: string) {
-  console.log('[DigitalAtelierView] Tool changed:', tool)
+function handleToolChange(_tool: string) {
 }
 
 // ==================== Provide ====================
@@ -174,7 +169,6 @@ provide('currentChapterId', currentChapterId)
 
 // ==================== 生命周期 ====================
 onMounted(async () => {
-  console.log('[DigitalAtelierView] Mounted')
 
   // 初始化 mock 数据
   chapterStore.setChapters(mockChapters)

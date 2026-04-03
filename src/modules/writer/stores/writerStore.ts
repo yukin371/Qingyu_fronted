@@ -631,7 +631,7 @@ export const useWriterStore = defineStore('writer', {
             return
           }
         } catch (v2Error) {
-          console.warn('V2分段接口加载失败，回退到content接口:', v2Error)
+          if (import.meta.env.DEV) console.warn('V2分段接口加载失败，回退到content接口:', v2Error)
         }
 
         const fallback = await getDocumentContent(documentId)
@@ -713,7 +713,7 @@ export const useWriterStore = defineStore('writer', {
         try {
           await replaceDocumentContents(documentId, contents)
         } catch (v2Error) {
-          console.warn('V2分段保存失败，回退到content接口:', v2Error)
+          if (import.meta.env.DEV) console.warn('V2分段保存失败，回退到content接口:', v2Error)
           await updateDocumentContent(documentId, {
             content,
             version: this.editorVersion,
@@ -752,7 +752,7 @@ export const useWriterStore = defineStore('writer', {
 
           const newVersion = (response as any).newVersion
           if (newVersion && newVersion !== this.editorVersion) {
-            console.warn('检测到版本冲突')
+            if (import.meta.env.DEV) console.warn('检测到版本冲突')
           }
         }
       } catch (error: any) {
@@ -839,7 +839,7 @@ export const useWriterStore = defineStore('writer', {
         const response = await searchProjectKeywords(targetProjectId, query.trim(), limit)
         return Array.isArray((response as any)?.suggestions) ? (response as any).suggestions : []
       } catch (error) {
-        console.warn('关键词检索失败:', error)
+        if (import.meta.env.DEV) console.warn('关键词检索失败:', error)
         return []
       }
     },
@@ -1423,7 +1423,7 @@ export const useWriterStore = defineStore('writer', {
         } else if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
           this.outline.tree = (response as any).data
         } else {
-          console.warn('[writerStore] 大纲树API返回格式未知:', response)
+          if (import.meta.env.DEV) console.warn('[writerStore] 大纲树API返回格式未知:', response)
           this.outline.tree = []
         }
       } catch (error: any) {

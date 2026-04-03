@@ -102,11 +102,8 @@ export const useReaderStore = defineStore('reader', () => {
       const isMockToken =
         token && (typeof token === 'string' ? token : JSON.stringify(token)).includes('mock')
 
-      console.log('[DEBUG] token:', token, 'isMockToken:', isMockToken)
-
       if (isMockToken) {
         // 测试模式：使用模拟数据
-        console.log('[测试模式] 加载章节:', chapterId)
 
         // 模拟章节信息
         currentChapter.value = {
@@ -267,7 +264,6 @@ export const useReaderStore = defineStore('reader', () => {
 
       if (isMockToken) {
         // 测试模式：使用模拟数据
-        console.log('[测试模式] 加载章节列表:', bookId)
 
         const mockChapters = [
           { id: 'chapter-001', chapterNumber: 1, title: '第一章：初入江湖', wordCount: 2500 },
@@ -317,7 +313,6 @@ export const useReaderStore = defineStore('reader', () => {
 
       if (isMockToken) {
         // 测试模式：使用默认设置，不调用API
-        console.log('[测试模式] 使用默认阅读设置')
         return settings.value
       }
 
@@ -348,7 +343,6 @@ export const useReaderStore = defineStore('reader', () => {
 
       if (isMockToken) {
         // 测试模式：仅本地更新，不调用API
-        console.log('[测试模式] 更新阅读设置（仅本地）')
         return settings.value
       }
 
@@ -386,7 +380,6 @@ export const useReaderStore = defineStore('reader', () => {
 
       if (isMockToken) {
         // 测试模式：仅本地保存，不调用API
-        console.log('[测试模式] 保存阅读进度（仅本地）')
         return
       }
 
@@ -420,7 +413,6 @@ export const useReaderStore = defineStore('reader', () => {
 
       if (isMockToken) {
         // 测试模式：仅本地保存，不调用API
-        console.log('[测试模式] 保存进度（仅本地）')
         return
       }
 
@@ -438,10 +430,9 @@ export const useReaderStore = defineStore('reader', () => {
   /**
    * 更新阅读时长
    */
-  async function updateReadingTime(bookId: string, duration: number) {
+  async function updateReadingTime(_bookId: string, _duration: number) {
     try {
       // 这里可以调用相应的API更新阅读时长
-      console.log('更新阅读时长:', bookId, duration)
     } catch (error) {
       console.error('更新阅读时长失败:', error)
     }

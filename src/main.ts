@@ -24,6 +24,7 @@ import '@/styles/common.scss'
 
 // 全局指令
 import { vLazy } from '@/directives/lazy'
+import { vSafeHtml } from '@/directives/safeHtml'
 
 // 全局错误处理
 import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/errorHandler'
@@ -34,6 +35,7 @@ const app = createApp(App)
 
 // 注册全局指令
 app.directive('lazy', vLazy)
+app.directive('safe-html', vSafeHtml)
 
 // Vue错误处理
 app.config.errorHandler = createVueErrorHandler()

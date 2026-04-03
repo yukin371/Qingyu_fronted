@@ -28,7 +28,7 @@
           </el-avatar>
         </div>
         <div class="message-content">
-          <div class="message-text" v-html="formatMarkdown(msg.content)"></div>
+          <div class="message-text" v-safe-html="formatMarkdown(msg.content)"></div>
           <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
         </div>
       </div>
@@ -41,7 +41,7 @@
           </el-avatar>
         </div>
         <div class="message-content">
-          <div class="message-text" v-html="formatMarkdown(streamingContent)"></div>
+          <div class="message-text" v-safe-html="formatMarkdown(streamingContent)"></div>
           <div class="typing-indicator">
             <span></span><span></span><span></span>
           </div>

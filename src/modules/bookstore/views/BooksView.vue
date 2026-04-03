@@ -275,7 +275,6 @@ const loadBooks = async () => {
       order: 'desc' as const,
     }
 
-    console.log('[BooksView] Loading books with params:', params)
     const response: any = await getBookList(params)
 
     // 处理多种可能的响应格式
@@ -288,7 +287,6 @@ const loadBooks = async () => {
 
     // 格式2: 标准 APIResponse { code, message, data, total }
     if (response && typeof response === 'object') {
-      console.log('[BooksView] Response is object, keys:', Object.keys(response))
 
       // 检查是否为空数据（数据库中没有书籍）
       if (isEmptyData(response)) {
@@ -302,10 +300,6 @@ const loadBooks = async () => {
         // 后端返回格式: { code, message, data: [...], total, page, size }
         // data 直接是书籍数组，total/page/size 在根级别
         if (Array.isArray(response.data)) {
-          console.log('[BooksView] response.data is array with', response.data.length, 'items')
-          if (response.data.length > 0) {
-            console.log('[BooksView] First book data:', response.data[0])
-          }
           books.value = response.data
           total.value =
             (response as any).pagination?.total || (response as any).total || response.data.length
@@ -316,16 +310,14 @@ const loadBooks = async () => {
             (response.data as any).total || response.total || (response.data as any).list.length
         } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
-          console.log('[BooksView] Found nested items format')
           books.value = (response.data as any).items
           total.value = (response.data as any).total || 0
         } else if (response.data && (response.data as any).books) {
           // 兼容另一种格式 { data: { books: [...], total, ... } }
-          console.log('[BooksView] Found nested books format')
           books.value = (response.data as any).books
           total.value = (response.data as any).total || 0
         } else {
-          console.warn('[BooksView] Unexpected data structure:', response.data)
+          if (import.meta.env.DEV) console.warn('[BooksView] Unexpected data structure:', response.data)
           books.value = []
           total.value = 0
         }

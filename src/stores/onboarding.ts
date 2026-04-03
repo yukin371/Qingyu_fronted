@@ -79,19 +79,17 @@ export const OnboardingStore = defineStore('onboarding', () => {
   function startTour(tourId: string) {
     const tour = registeredTours.value.get(tourId)
     if (!tour) {
-      console.warn(`Tour "${tourId}" not found`)
+      if (import.meta.env.DEV) console.warn(`Tour "${tourId}" not found`)
       return
     }
 
     // 检查是否已完成
     if (completedTours.value.has(tourId)) {
-      console.log(`Tour "${tourId}" already completed`)
       return
     }
 
     // 检查前置条件
     if (tour.prerequisite && !completedTours.value.has(tour.prerequisite)) {
-      console.log(`Tour "${tourId}" prerequisite "${tour.prerequisite}" not completed`)
       return
     }
 

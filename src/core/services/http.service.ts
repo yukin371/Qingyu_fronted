@@ -89,7 +89,7 @@ function readStoredToken(): string | null {
 // 旧的 mock 数据函数已被 mock-data-manager.ts 替代
 // @deprecated 请使用 mock-data-manager.ts 中的函数
 async function _getMockDataForRequest(url: string | undefined): Promise<any> {
-  console.warn('[TestMode] _getMockDataForRequest 已废弃，请改用 mock-data-manager:', url)
+  if (import.meta.env.DEV) console.warn('[TestMode] _getMockDataForRequest 已废弃，请改用 mock-data-manager:', url)
   return { code: 200, message: 'success', data: {} }
 }
 
@@ -109,7 +109,6 @@ apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // 🧪 测试模式检测：如果处于测试模式，直接返回 mock 数据
     if (checkTestMode()) {
-      console.log('[TestMode] 拦截 API 请求:', config.url)
 
       // 使用统一的 Mock 数据管理器
       const mockData = await handleMockRequest(config.url, {
@@ -134,18 +133,12 @@ apiClient.interceptors.request.use(
     // 智能前缀检测：如果URL已经包含完整路径，临时覆盖baseURL
     if (hasFullApiPath(config.url)) {
       config.baseURL = '' // 使用空baseURL，避免重复前缀
-      console.log('[Request Interceptor] 检测到完整路径，使用空baseURL:', config.url)
-    } else {
-      console.log('[Request Interceptor] 使用相对路径，baseURL:', config.baseURL)
     }
 
     const token = readStoredToken()
 
-    console.log('[Request Interceptor] URL:', config.method?.toUpperCase(), config.url)
-    console.log('[Request Interceptor] Token found:', !!token, token?.substring(0, 20) + '...')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log('[Request Interceptor] Authorization header set')
     }
     return config
   },
@@ -192,7 +185,6 @@ apiClient.interceptors.response.use(
 
     // 🧪 测试模式：如果是 mock 数据，直接返回
     if (error && (error as any)._isMock) {
-      console.log('[TestMode] 返回 Mock 数据响应')
       const mockData = (error as any).data
 
       // 模拟标准响应格式
@@ -333,7 +325,7 @@ apiClient.interceptors.response.use(
 function handleAuthError() {
   // E2E场景下避免自动登出和跳转，防止测试过程被401中断
   if (typeof navigator !== 'undefined' && navigator.webdriver) {
-    console.warn('[Auth] Skip auto logout in E2E mode')
+    if (import.meta.env.DEV) console.warn('[Auth] Skip auto logout in E2E mode')
     return
   }
 
@@ -342,8 +334,6 @@ function handleAuthError() {
     return
   }
   sessionStorage.setItem('auth_expired_handling', 'true')
-
-  console.log('[Auth] Token expired, clearing auth state...')
 
   // 清除本地存储中的认证信息
   const authKeys = [

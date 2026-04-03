@@ -159,7 +159,6 @@ export const useCommentStore = defineStore('comment', () => {
 
     if (isMockMode) {
       // 返回模拟评论
-      console.log('[测试模式] 加载段落评论:', paragraphRef.paragraphId)
 
       const summaryCount = summaries.value.get(paragraphRef.paragraphId)?.commentCount
       const mockCount = summaryCount && summaryCount > 0 ? Math.min(summaryCount, 8) : 2
@@ -319,7 +318,6 @@ export const useCommentStore = defineStore('comment', () => {
     const isMockMode = Boolean(isMockToken) || isUrlTestMode()
 
     if (isMockMode) {
-      console.log('[测试模式] 加载章节评论摘要')
 
       const nextSummaries = new Map(summaries.value)
       const targets = Array.isArray(paragraphRefs) && paragraphRefs.length > 0

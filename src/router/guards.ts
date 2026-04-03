@@ -52,8 +52,6 @@ function createTitleGuard(router: Router) {
  */
 function createAuthGuard(router: Router) {
   router.beforeEach((to, from, next) => {
-    console.log('[Route Guard] Checking:', to.path)
-
     const authStore = useAuthStore()
     const routeTestFlag = to.query?.test
     const fromTestFlag = from.query?.test
@@ -68,18 +66,15 @@ function createAuthGuard(router: Router) {
       currentUrlTestMode ||
       to.hash.includes('test=true')
     authStore.ensureTestModeMockSession(routeHasTestMode)
-    console.log('[Route Guard] Auth status:', authStore.isLoggedIn)
 
     // 处理 guest 页面（登录、注册等）- 已登录用户访问 guest 页面时重定向
     if (authStore.isLoggedIn && to.meta.guest) {
-      console.log('[Route Guard] Redirecting guest page to /bookstore')
       next({ path: '/bookstore', replace: true })
       return
     }
 
     // 检查需要认证的页面
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-      console.log('[Route Guard] Auth required, redirecting to /auth')
       next({
         path: '/auth',
         query: { redirect: to.fullPath } as LocationQueryRaw,
@@ -90,7 +85,6 @@ function createAuthGuard(router: Router) {
 
     // 已登录用户访问登录/注册页面时重定向
     if (authStore.isLoggedIn && !to.meta.guest && ['/login', '/register'].includes(to.path)) {
-      console.log('[Route Guard] Redirecting logged-in user from login page')
       next({ path: '/bookstore', replace: true })
       return
     }

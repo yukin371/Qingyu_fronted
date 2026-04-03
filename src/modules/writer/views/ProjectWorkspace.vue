@@ -696,32 +696,26 @@ const loadOutlineTree = async () => {
     writerStore.outline.loading = true
     const response = await outlineApi.getTree(currentProjectId.value)
 
-    console.log('[ProjectWorkspace] 大纲树API返回:', response)
-
     // 处理后端返回的响应格式
     if (Array.isArray(response)) {
       // 直接是数组
       writerStore.outline.tree = response
-      console.log('[ProjectWorkspace] 设置大纲树（直接数组）:', response)
     } else if (response && typeof response === 'object') {
       // 后端返回包装格式：{ projects, list, total }
       if ('list' in response && Array.isArray(response.list)) {
         writerStore.outline.tree = response.list
-        console.log('[ProjectWorkspace] 设置大纲树（list字段）:', response.list)
       } else if ('data' in response && Array.isArray(response.data)) {
         // 标准响应格式：{ data: [...] }
         writerStore.outline.tree = response.data
-        console.log('[ProjectWorkspace] 设置大纲树（data字段）:', response.data)
       } else {
-        console.warn('[ProjectWorkspace] 大纲树API返回格式未知:', response)
+        if (import.meta.env.DEV) console.warn('[ProjectWorkspace] 大纲树API返回格式未知:', response)
         writerStore.outline.tree = []
       }
     } else {
-      console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
+      if (import.meta.env.DEV) console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
       writerStore.outline.tree = []
     }
 
-    console.log('[ProjectWorkspace] store中的大纲树:', writerStore.outline.tree)
   } catch (error) {
     console.error('[ProjectWorkspace] 加载大纲树失败:', error)
     message.error('加载大纲树失败')
@@ -858,7 +852,7 @@ const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
         message.info('原选区内容已发生变化，已改为按整段结果安全回填。')
       }
     } catch (error) {
-      console.warn(
+      if (import.meta.env.DEV) console.warn(
         '[ProjectWorkspace] failed to apply AI result to selection, fallback to document mode:',
         error,
       )
@@ -954,16 +948,12 @@ watch(
 watch(
   [queryChapterId, availableDocMap],
   ([chapterId, docMap]) => {
-    console.log('[ProjectWorkspace] watch triggered:', { chapterId, docMapSize: docMap.size })
     if (!chapterId) {
-      console.log('[ProjectWorkspace] chapterId is empty, skipping')
       return
     }
     if (!docMap.has(chapterId)) {
-      console.log('[ProjectWorkspace] chapterId not in docMap, skipping')
       return
     }
-    console.log('[ProjectWorkspace] 设置 currentChapterId 为:', chapterId)
     currentChapterId.value = chapterId
   },
   { immediate: true },

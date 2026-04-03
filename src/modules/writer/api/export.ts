@@ -152,7 +152,7 @@ export { exportApi as default }
  * 旧版本的创建导出任务方法
  */
 export function createExportTask(bookId: string, options: any) {
-  console.warn('[DEPRECATED] createExportTask 已废弃，请使用 exportApi.exportDocument 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] createExportTask 已废弃，请使用 exportApi.exportDocument 代替')
   return exportApi.exportProject(bookId, options)
 }
 
@@ -161,7 +161,7 @@ export function createExportTask(bookId: string, options: any) {
  * 旧版本的导出章节方法
  */
 export function exportChapter(chapterId: string, format: string) {
-  console.warn('[DEPRECATED] exportChapter 已废弃，请使用 exportApi.exportDocument 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] exportChapter 已废弃，请使用 exportApi.exportDocument 代替')
   return exportApi.exportDocument(chapterId, '', { format: format as any })
 }
 
@@ -170,7 +170,7 @@ export function exportChapter(chapterId: string, format: string) {
  * 旧版本的导出选中文本方法
  */
 export function exportSelection(_data: any) {
-  console.warn('[DEPRECATED] exportSelection 功能后端不支持，此方法将失效')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] exportSelection 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持导出选中内容'))
 }
 
@@ -179,7 +179,7 @@ export function exportSelection(_data: any) {
  * 旧版本的获取导出任务状态方法
  */
 export function getExportTaskStatus(taskId: string) {
-  console.warn('[DEPRECATED] getExportTaskStatus 已废弃，请使用 exportApi.getTask 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] getExportTaskStatus 已废弃，请使用 exportApi.getTask 代替')
   return exportApi.getTask(taskId)
 }
 
@@ -188,7 +188,7 @@ export function getExportTaskStatus(taskId: string) {
  * 旧版本的取消导出任务方法
  */
 export function cancelExportTask(taskId: string) {
-  console.warn('[DEPRECATED] cancelExportTask 已废弃，请使用 exportApi.cancelTask 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] cancelExportTask 已废弃，请使用 exportApi.cancelTask 代替')
   return exportApi.cancelTask(taskId)
 }
 
@@ -197,7 +197,7 @@ export function cancelExportTask(taskId: string) {
  * 旧版本的获取书籍导出历史方法
  */
 export function getExportHistory(bookId: string, params?: any) {
-  console.warn('[DEPRECATED] getExportHistory 已废弃，请使用 exportApi.listTasks 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] getExportHistory 已废弃，请使用 exportApi.listTasks 代替')
   return exportApi.listTasks(bookId, params?.page, params?.page_size)
 }
 
@@ -206,7 +206,7 @@ export function getExportHistory(bookId: string, params?: any) {
  * 旧版本的获取用户所有导出历史方法
  */
 export function getAllExportHistory(_params?: any) {
-  console.warn('[DEPRECATED] getAllExportHistory 功能后端不支持，此方法将失效')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] getAllExportHistory 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持全局导出历史查询'))
 }
 
@@ -215,7 +215,7 @@ export function getAllExportHistory(_params?: any) {
  * 旧版本的下载导出文件方法
  */
 export function downloadExportFile(taskId: string) {
-  console.warn('[DEPRECATED] downloadExportFile 已废弃，请使用 exportApi.downloadFile 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] downloadExportFile 已废弃，请使用 exportApi.downloadFile 代替')
   return exportApi.downloadFile(taskId)
 }
 
@@ -224,7 +224,7 @@ export function downloadExportFile(taskId: string) {
  * 旧版本的删除导出任务方法
  */
 export function deleteExportTask(taskId: string) {
-  console.warn('[DEPRECATED] deleteExportTask 已废弃，请使用 exportApi.deleteTask 代替')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] deleteExportTask 已废弃，请使用 exportApi.deleteTask 代替')
   return exportApi.deleteTask(taskId)
 }
 
@@ -233,7 +233,7 @@ export function deleteExportTask(taskId: string) {
  * 旧版本的获取导出模板列表方法
  */
 export function getExportTemplates() {
-  console.warn('[DEPRECATED] getExportTemplates 功能后端不支持，此方法将失效')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] getExportTemplates 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持导出模板管理'))
 }
 
@@ -242,7 +242,7 @@ export function getExportTemplates() {
  * 旧版本的保存导出模板方法
  */
 export function saveExportTemplate(_data: any) {
-  console.warn('[DEPRECATED] saveExportTemplate 功能后端不支持，此方法将失效')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] saveExportTemplate 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持导出模板管理'))
 }
 
@@ -251,6 +251,6 @@ export function saveExportTemplate(_data: any) {
  * 旧版本的批量导出方法
  */
 export function batchExport(_data: any) {
-  console.warn('[DEPRECATED] batchExport 功能后端不支持，此方法将失效')
+  if (import.meta.env.DEV) console.warn('[DEPRECATED] batchExport 功能后端不支持，此方法将失效')
   return Promise.reject(new Error('后端不支持批量导出'))
 }

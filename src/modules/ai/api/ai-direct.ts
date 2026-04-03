@@ -9,9 +9,6 @@ import type { ChatMessage, AIGenerateResponse } from './ai'
 const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000'
 const AI_DIRECT_MODE = import.meta.env.VITE_AI_DIRECT_MODE === 'true'
 
-// 调试日志
-console.log('[AI Direct] 配置:', { AI_SERVICE_URL, AI_DIRECT_MODE })
-
 const createDirectClient = (): AxiosInstance => {
   return axios.create({
     baseURL: AI_SERVICE_URL,
@@ -25,7 +22,6 @@ const createDirectClient = (): AxiosInstance => {
 const directClient = createDirectClient()
 
 export const isDirectModeEnabled = (): boolean => {
-  console.log('[AI Direct] isDirectModeEnabled:', AI_DIRECT_MODE)
   return AI_DIRECT_MODE
 }
 

@@ -127,7 +127,7 @@
             class="editor-pane editor-pane--preview preview-pane markdown-body"
           >
             <header class="section-title">预览</header>
-            <div class="preview-content" v-html="renderedContent"></div>
+            <div class="preview-content" v-safe-html="renderedContent"></div>
           </section>
         </section>
       </div>

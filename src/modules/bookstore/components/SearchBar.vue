@@ -21,7 +21,7 @@
             </el-icon>
 
             <!-- 支持高亮显示 -->
-            <span class="item-text" v-html="highlightText(item.value)"></span>
+            <span class="item-text" v-safe-html="highlightText(item.value)"></span>
           </div>
 
           <!-- 右侧标签或操作 -->

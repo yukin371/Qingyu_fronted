@@ -134,10 +134,10 @@
               </div>
 
               <div class="item-content">
-                <h3 class="item-title" v-html="highlightKeyword(book.title)"></h3>
+                <h3 class="item-title" v-safe-html="highlightKeyword(book.title)"></h3>
                 <p class="item-author">
                   <Icon name="user" size="sm" />
-                  <span v-html="highlightKeyword(book.author)"></span>
+                  <span v-safe-html="highlightKeyword(book.author)"></span>
                   <Tag size="sm" variant="info">{{ book.category || '未分类' }}</Tag>
                 </p>
 

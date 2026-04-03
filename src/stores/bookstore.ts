@@ -61,12 +61,9 @@ export const useBookstoreStore = defineStore('bookstore', () => {
   async function fetchBookDetail(bookId: string) {
     try {
       isLoading.value = true
-      console.log('[fetchBookDetail] Fetching book detail for ID:', bookId)
 
       // httpService会自动将snake_case转换为camelCase
       const response = await getBookDetail(bookId)
-
-      console.log('[fetchBookDetail] Received data from API:', response)
 
       // 数据可能被httpService自动转换，也可能需要手动处理
       // 兼容多种可能的数据结构
@@ -80,10 +77,6 @@ export const useBookstoreStore = defineStore('bookstore', () => {
           bookDetail = (response as any).book
         }
       }
-
-      console.log('[fetchBookDetail] Processed book detail:', bookDetail)
-      console.log('[fetchBookDetail] Book title:', bookDetail?.title)
-      console.log('[fetchBookDetail] Book cover:', bookDetail?.cover)
 
       currentBook.value = bookDetail as BookDetail
       return bookDetail as BookDetail

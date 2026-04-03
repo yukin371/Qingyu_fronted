@@ -29,9 +29,6 @@ function isTestMode(): boolean {
   const hashTest = window.location.hash.includes('#test') || window.location.hash.includes('?test')
 
   const isTestMode = queryTest || hashTest
-  if (isTestMode) {
-    console.log('[测试模式] URL检测到测试模式标识')
-  }
   return isTestMode
 }
 
@@ -153,12 +150,6 @@ export const useAuthStore = defineStore('auth', {
     const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
     const fallbackRoles = normalizeRoles(savedUser as unknown as RoleSource, null)
 
-    // 调试输出
-    console.log('[authStore] STORAGE_KEYS.ROLES:', STORAGE_KEYS.ROLES)
-    console.log('[authStore] savedRoles:', savedRoles)
-    console.log('[authStore] savedUser?.roles:', savedUser?.roles)
-    console.log('[authStore] localStorage raw:', localStorage.getItem('qingyu_' + STORAGE_KEYS.ROLES))
-
     return {
       // 用户信息
       user: savedUser,
@@ -232,7 +223,7 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // 发布作品后自动升级作者身份（前端状态兜底，避免等待下一次刷新）
-    promoteToAuthorByPublishing(showToast = true): void {
+    promoteToAuthorByPublishing(_showToast = true): void {
       const currentRoles = Array.isArray(this.roles) ? [...this.roles] : []
       const hasAuthor = currentRoles.includes('author') || currentRoles.includes('admin')
       if (hasAuthor) return
@@ -250,10 +241,6 @@ export const useAuthStore = defineStore('auth', {
 
       storage.set(STORAGE_KEYS.USER, this.user)
       storage.set(STORAGE_KEYS.ROLES, this.roles)
-
-      if (showToast) {
-        console.log('[auth] 用户已因发布作品自动获得作者身份')
-      }
     },
 
     ensureTestModeMockSession(forceTestMode = false): void {
@@ -275,7 +262,6 @@ export const useAuthStore = defineStore('auth', {
       storage.set(STORAGE_KEYS.USER, this.user)
       storage.set(STORAGE_KEYS.ROLES, this.roles)
       localStorage.setItem(STORAGE_KEYS.TOKEN, this.token)
-      console.log('[测试模式] 已自动注入 mock 登录用户，角色:', this.roles)
     },
 
     // 初始化认证状态
@@ -294,14 +280,13 @@ export const useAuthStore = defineStore('auth', {
 
         if (mockToken && !isTestModeEnabled) {
           // 发现mock token但URL没有测试模式标识，清空并要求真实登录
-          console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
+          if (import.meta.env.DEV) console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
           this.clearAuth()
           return
         }
 
         if (mockToken && isTestModeEnabled) {
           // 测试模式：直接使用localStorage中的用户数据，不调用API
-          console.log('[测试模式] 使用模拟登录状态')
           this.isLoggedIn = true
           // 从storage恢复user数据（如果还没有的话）
           if (!this.user) {
@@ -311,11 +296,9 @@ export const useAuthStore = defineStore('auth', {
           const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
-            console.log('[initAuth] 从localStorage恢复roles:', savedRoles)
           } else {
             // 测试模式默认拥有所有角色
             this.roles = this.user?.roles || ['admin', 'author', 'reader']
-            console.log('[initAuth] 使用默认测试角色:', this.roles)
           }
           this.permissions = this.user?.permissions || ['*']
           return
@@ -326,7 +309,6 @@ export const useAuthStore = defineStore('auth', {
           const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
-            console.log('[initAuth] 生产模式从localStorage恢复roles:', savedRoles)
           }
         }
 
@@ -338,15 +320,12 @@ export const useAuthStore = defineStore('auth', {
 
         // 生产模式：调用API获取用户信息
         try {
-          console.log('[initAuth] 开始调用getUserInfo获取用户信息...')
           await this.getUserInfo()
           this.isLoggedIn = true
-          console.log('[initAuth] getUserInfo成功，用户已登录')
         } catch (error) {
           console.error('[initAuth] getUserInfo失败:', error)
           // 认证错误（401/token失效）必须清空状态，避免“看起来已登录但接口一直401”
           if (isUnauthorizedAuthError(error)) {
-            console.warn('[initAuth] 检测到认证失效，清空本地登录态')
             this.clearAuth()
             return
           }
@@ -354,8 +333,6 @@ export const useAuthStore = defineStore('auth', {
           // 非认证错误（如短时网络问题）允许从本地恢复，减少误登出
           const hasTokenInStorage = storage.has(STORAGE_KEYS.TOKEN)
           const hasRolesInStorage = storage.has(STORAGE_KEYS.ROLES)
-
-          console.log('[initAuth] localStorage状态 - token:', hasTokenInStorage, 'roles:', hasRolesInStorage)
 
           if (hasTokenInStorage && hasRolesInStorage) {
             // 从 localStorage 恢复状态，保持登录
@@ -365,10 +342,8 @@ export const useAuthStore = defineStore('auth', {
             this.user = savedUser ?? null
             this.roles = savedRoles ?? []
             this.isLoggedIn = true
-            console.log('[initAuth] 从localStorage恢复状态，保持登录:', savedRoles)
           } else {
             // 只有在完全没有存储数据时才清空
-            console.log('[initAuth] localStorage中没有有效数据，清空状态')
             this.clearAuth()
           }
         }

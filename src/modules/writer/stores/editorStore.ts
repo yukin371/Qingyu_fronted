@@ -136,17 +136,11 @@ export const useEditorStore = defineStore('writer-editor', () => {
    * 重置编辑器状态
    */
   function resetEditor() {
-    console.log('[resetEditor] ========== 重置编辑器状态 ==========')
-    console.log('[resetEditor] 重置前 currentVersion:', currentVersion.value)
-
     content.value = ''
     isDirty.value = false
     lastSavedAt.value = null
     currentChapterId.value = null
     currentVersion.value = 0  // 重置版本号
-
-    console.log('[resetEditor] 重置后 currentVersion:', currentVersion.value)
-    console.log('[resetEditor] ===================')
   }
 
   /**
@@ -283,27 +277,15 @@ export const useEditorStore = defineStore('writer-editor', () => {
    * 加载文档（TipTap JSON主模式，支持Markdown向后兼容）
    */
   async function loadDocument(documentId: string) {
-    console.log('[loadDocument] ========== 开始加载文档 ==========')
-    console.log('[loadDocument] 文档ID:', documentId)
-    console.log('[loadDocument] 当前currentVersion:', currentVersion.value)
-
     setCurrentChapter(documentId)
     setSaving(true)
     try {
       const writerApi = await import('@/modules/writer/api/wrapper')
       const resp = await writerApi.getDocumentContents(documentId)
-      console.log('[loadDocument] ===== API响应详情 =====')
-      console.log('[loadDocument] 完整响应:', resp)
-      console.log('[loadDocument] 响应类型:', typeof resp)
-      console.log('[loadDocument] 是否有data字段:', 'data' in (resp as any))
 
       const payload = (resp as any)?.data || resp || {}
-      console.log('[loadDocument] payload:', payload)
 
       const contents = Array.isArray(payload.contents) ? payload.contents : []
-      console.log('[loadDocument] 内容数量:', contents.length)
-      console.log('[loadDocument] contents详情:', contents)
-      console.log('[loadDocument] ===================')
 
       // 如果有段落内容，检查第一个段落的 contentType
       if (contents.length > 0) {
@@ -311,26 +293,15 @@ export const useEditorStore = defineStore('writer-editor', () => {
         const apiContentType = firstContent.contentType || 'tiptap_json'
         const rawContent = firstContent.content || ''
 
-        console.log('[loadDocument] ===== 内容格式检测 =====')
-        console.log('[loadDocument] API返回的contentType:', apiContentType)
-        console.log('[loadDocument] rawContent长度:', rawContent.length)
-        console.log('[loadDocument] rawContent预览:', rawContent.substring(0, 200) + '...')
-
         // 智能检测：优先检测content是否为有效JSON，而不是依赖contentType
         let tipTapJson = ''
-        let actualContentType = 'tiptap_json'
 
         try {
           // 尝试解析为JSON
           const parsed = JSON.parse(rawContent)
-          console.log('[loadDocument] ✅ content是有效JSON')
-          console.log('[loadDocument] JSON类型:', parsed.type)
 
           if (parsed.type === 'doc' && Array.isArray(parsed.content)) {
             // 确认是TipTap JSON格式
-            console.log('[loadDocument] 确认为TipTap JSON格式')
-            console.log('[loadDocument] parsed.content.length:', parsed.content.length)
-            console.log('[loadDocument] parsed.content[0]:', parsed.content[0])
 
             // 检查是否是嵌套结构（损坏数据：TipTap JSON被当作markdown包装）
             // 不限制content.length，只检查第一个元素
@@ -346,9 +317,7 @@ export const useEditorStore = defineStore('writer-editor', () => {
                 try {
                   const innerParsed = JSON.parse(textContent)
                   if (innerParsed.type === 'doc' && Array.isArray(innerParsed.content)) {
-                    console.log('[loadDocument] 🔍 检测到嵌套TipTap JSON，提取内层')
                     tipTapJson = textContent  // 使用内层JSON
-                    actualContentType = 'tiptap_json'
                     isNested = true
                   }
                 } catch {
@@ -358,52 +327,33 @@ export const useEditorStore = defineStore('writer-editor', () => {
             }
 
             if (!isNested) {
-              console.log('[loadDocument] 直接使用TipTap JSON')
               tipTapJson = rawContent
-              actualContentType = 'tiptap_json'
             }
           } else {
-            console.log('[loadDocument] JSON格式不是TipTap，按markdown处理')
             throw new Error('Not TipTap JSON')
           }
         } catch {
           // 不是JSON，根据contentType处理
-          console.log('[loadDocument] ❌ content不是JSON，使用contentType标记:', apiContentType)
 
           if (apiContentType === 'markdown' || apiContentType === 'tiptap') {
             // markdown格式，需要转换
-            console.log('[loadDocument] 检测到markdown格式，开始转换')
             const fullMarkdown = contents
               .map((item: ParagraphContent) => item.content || '')
               .join('\n\n')
-            console.log('[loadDocument] 合并后的markdown:', fullMarkdown.substring(0, 200) + '...')
             tipTapJson = markdownToTipTapJson(fullMarkdown)
-            actualContentType = 'markdown'
           } else {
             // 其他格式，直接使用
-            console.log('[loadDocument] 直接使用rawContent')
             tipTapJson = rawContent
-            actualContentType = apiContentType
           }
         }
-
-        console.log('[loadDocument] 最终使用的格式:', actualContentType)
-        console.log('[loadDocument] TipTap JSON预览:', tipTapJson.substring(0, 200) + '...')
-        console.log('[loadDocument] ===================')
 
         // 设置编辑器内容
         setContent(tipTapJson, false)
         editorContent.value = tipTapJson
-        console.log('[loadDocument] editorContent已设置:', editorContent.value.substring(0, 200) + '...')
 
         // 保存当前版本号（用于乐观锁）
         const loadedVersion = Number(firstContent.version || 1)
         currentVersion.value = loadedVersion
-        console.log('[loadDocument] ===== 版本号信息 =====')
-        console.log('[loadDocument] API返回的version:', firstContent.version)
-        console.log('[loadDocument] 解析后的version:', loadedVersion)
-        console.log('[loadDocument] 保存到currentVersion:', currentVersion.value)
-        console.log('[loadDocument] ===================')
 
         markSaved()
 
@@ -424,10 +374,6 @@ export const useEditorStore = defineStore('writer-editor', () => {
         paragraphs.value = mapped
         paragraphOrder.value = order
       } else {
-        console.log('[loadDocument] ========== 没有找到内容 ==========')
-        console.log('[loadDocument] contents数组长度:', contents.length)
-        console.log('[loadDocument] 这是新章节或空章节')
-
         // 没有内容，设置为空
         const emptyContent = JSON.stringify({ type: 'doc', content: [] })
         setContent(emptyContent, false)
@@ -435,37 +381,29 @@ export const useEditorStore = defineStore('writer-editor', () => {
 
         // 新章节，版本号设为0
         currentVersion.value = 0
-        console.log('[loadDocument] 新章节，设置currentVersion = 0')
 
         markSaved()
-        console.log('[loadDocument] ===================')
       }
     } catch (error) {
       console.error('[loadDocument] 主API失败，尝试fallback:', error)
       const writerApi = await import('@/modules/writer/api/wrapper')
       const fallback = await writerApi.getDocumentContent(documentId)
-      console.log('[loadDocument] Fallback API响应:', fallback)
       const payload = (fallback as any)?.data || fallback || {}
       const text = String(payload.content || '')
-      console.log('[loadDocument] Fallback内容:', text.substring(0, 200) + '...')
 
       // 尝试解析是否为 JSON
       try {
-        const parsed = JSON.parse(text)
-        console.log('[loadDocument] Fallback: JSON解析成功，直接使用')
+        JSON.parse(text) // 仅验证是否为有效JSON
         setContent(text, false)
         editorContent.value = text
         // Fallback模式下，无法获取version，设置为0（下次保存时后端会处理）
         currentVersion.value = 0
-        console.log('[loadDocument] Fallback: 设置currentVersion = 0')
       } catch {
         // 不是 JSON，可能是纯文本或 Markdown
-        console.log('[loadDocument] Fallback: 不是JSON，转换为TipTap')
         const tipTapJson = markdownToTipTapJson(text)
         setContent(tipTapJson, false)
         editorContent.value = tipTapJson
         currentVersion.value = 0
-        console.log('[loadDocument] Fallback: 设置currentVersion = 0')
       }
       markSaved()
     } finally {
@@ -477,12 +415,9 @@ export const useEditorStore = defineStore('writer-editor', () => {
    * 保存文档内容（TipTap JSON主模式）
    */
   async function saveParagraphs(contents: ParagraphContent[]) {
-    console.log('[saveParagraphs] ========== 开始保存 ==========')
-    console.log('[saveParagraphs] 当前currentVersion:', currentVersion.value)
-    console.log('[saveParagraphs] 当前章节ID:', currentChapterId.value)
-
     if (!currentChapterId.value) return
     setSaving(true)
+    const versionToSave = currentVersion.value || 0
     try {
       const writerApi = await import('@/modules/writer/api/wrapper')
 
@@ -493,15 +428,6 @@ export const useEditorStore = defineStore('writer-editor', () => {
       }
 
       const tipTapJson = firstContent.content || ''
-      console.log('[saveParagraphs] TipTap JSON长度:', tipTapJson.length)
-      console.log('[saveParagraphs] TipTap JSON预览:', tipTapJson.substring(0, 200) + '...')
-
-      // 使用当前版本号进行乐观锁控制
-      const versionToSave = currentVersion.value || 0
-      console.log('[saveParagraphs] ===== 版本号信息 =====')
-      console.log('[saveParagraphs] currentVersion.value:', currentVersion.value)
-      console.log('[saveParagraphs] versionToSave:', versionToSave)
-      console.log('[saveParagraphs] ===================')
 
       // 直接保存TipTap JSON，包含contentType字段
       const saveRequest = {
@@ -509,31 +435,17 @@ export const useEditorStore = defineStore('writer-editor', () => {
         contentType: 'tiptap_json',
         version: versionToSave,
       }
-      console.log('[saveParagraphs] 发送保存请求:', {
-        documentId: currentChapterId.value,
-        contentType: saveRequest.contentType,
-        version: saveRequest.version,
-        contentLength: saveRequest.content.length,
-      })
 
       await writerApi.updateDocumentContent(currentChapterId.value, saveRequest)
-
-      console.log('[saveParagraphs] ✅ 保存成功！')
 
       // 更新本地状态（已经是TipTap JSON，无需转换）
       setContent(tipTapJson, false)
       editorContent.value = tipTapJson
 
       // 保存成功后，版本号+1
-      const oldVersion = currentVersion.value
       currentVersion.value = versionToSave + 1
-      console.log('[saveParagraphs] ===== 版本号更新 =====')
-      console.log('[saveParagraphs] 旧版本号:', oldVersion)
-      console.log('[saveParagraphs] 新版本号:', currentVersion.value)
-      console.log('[saveParagraphs] ===================')
 
       markSaved()
-      console.log('[saveParagraphs] ========== 保存完成 ==========')
     } catch (error) {
       console.error('[saveParagraphs] ❌ 保存失败！')
       console.error('[saveParagraphs] 错误详情:', error)

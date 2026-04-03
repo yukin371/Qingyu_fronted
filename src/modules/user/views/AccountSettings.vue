@@ -184,7 +184,6 @@ const userRoles = computed(() => {
     // 优先：从authStore获取（响应式数据源，确保UI自动更新）
     const storeRoles = authStore.roles || authStore.user?.roles
     if (storeRoles && storeRoles.length > 0) {
-        console.log('[AccountSettings] ✅ Using authStore roles:', storeRoles)
         return storeRoles
     }
 
@@ -194,7 +193,6 @@ const userRoles = computed(() => {
         if (stored) {
             const parsed = JSON.parse(stored) as string[]
             if (parsed && parsed.length > 0) {
-                console.log('[AccountSettings] ⚠️ Using localStorage roles as fallback:', parsed)
                 // 同步到authStore以保持一致
                 ;(authStore as { roles: string[] }).roles = parsed
                 return parsed
@@ -204,7 +202,6 @@ const userRoles = computed(() => {
         console.error('[AccountSettings] Failed to parse localStorage roles:', e)
     }
 
-    console.log('[AccountSettings] ❌ No roles found anywhere')
     return []
 })
 
@@ -282,7 +279,6 @@ const confirmDowngrade = async () => {
         downgrading.value = true
 
         const token = localStorage.getItem('qingyu_token')
-        console.log('[降级] 开始降级流程, token:', token?.substring(0, 20) + '...')
 
         const response = await fetch('/api/v1/user/role/downgrade', {
             method: 'POST',
@@ -296,39 +292,25 @@ const confirmDowngrade = async () => {
             })
         })
 
-        console.log('[降级] API响应状态:', response.status, response.statusText)
-
         if (response.ok) {
             const result = await response.json()
-            console.log('[降级] API完整响应:', result)
-            console.log('[降级] result.data:', result.data)
-            console.log('[降级] result.data.current_roles:', result.data?.current_roles)
 
             message.success('降级成功')
             downgradeDialogVisible.value = false
 
             // 更新 authStore 中的 roles（响应式，确保UI立即更新）
             const newRoles = result.data?.current_roles || ['reader']
-            console.log('[降级] 准备更新roles为:', newRoles)
 
             // 先更新响应式数据，确保UI立即响应
             authStore.roles = newRoles
             if (authStore.user) {
                 authStore.user.roles = newRoles
             }
-            console.log('[降级] authStore已更新, authStore.roles:', authStore.roles)
-            console.log('[降级] authStore.user.roles:', authStore.user?.roles)
 
             // 然后持久化到 localStorage
             localStorage.setItem('qingyu_roles', JSON.stringify(newRoles))
-            console.log('[降级] localStorage已更新')
-
-            // 验证更新是否成功
-            const storedRoles = localStorage.getItem('qingyu_roles')
-            console.log('[降级] 验证localStorage中的qingyu_roles:', storedRoles)
 
             // 跳转到首页
-            console.log('[降级] 准备跳转到首页')
             router.push('/bookstore')
         } else {
             const data = await response.json()
@@ -446,15 +428,12 @@ onMounted(async () => {
 
     // 添加：确保roles从localStorage恢复
     if (authStore.token && (!authStore.roles || authStore.roles.length === 0)) {
-        console.log('[AccountSettings] authStore.roles为空，尝试从localStorage恢复')
         const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
         if (savedRoles && savedRoles.length > 0) {
             authStore.roles = savedRoles
-            console.log('[AccountSettings] 恢复roles成功:', savedRoles)
         } else {
             // 如果localStorage也没有，调用initAuth
             await authStore.initAuth()
-            console.log('[AccountSettings] 调用initAuth后的roles:', authStore.roles)
         }
     }
 })
