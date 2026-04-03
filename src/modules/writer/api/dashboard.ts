@@ -147,11 +147,35 @@ export async function getTodayWordsStats(): Promise<TodayWordsStats> {
  * @response {DashboardOverview} 200 - 成功返回概览数据
  * @security BearerAuth
  */
-export function getDashboardOverview(): Promise<DashboardOverview> {
-  return request<DashboardOverview>({
-    url: '/api/v1/writer/dashboard/overview',
-    method: 'get',
-  })
+export async function getDashboardOverview(): Promise<DashboardOverview> {
+  // 优先调用 /stats 端点，若不可用降级到 /overview
+  try {
+    const statsResp = await request<{
+      totalWords: number
+      bookCount: number
+      todayWords: number
+      pending: number
+      streak: number
+    }>({
+      url: '/api/v1/writer/dashboard/stats',
+      method: 'get',
+    })
+    return {
+      totalProjects: statsResp.bookCount,
+      activeProjects: statsResp.pending,
+      totalWords: statsResp.totalWords,
+      totalChapters: 0,
+      totalRevenue: 0,
+      todayWords: statsResp.todayWords,
+      weekWords: 0,
+    }
+  } catch {
+    // stats 端点不可用，降级到 overview
+    return request<DashboardOverview>({
+      url: '/api/v1/writer/dashboard/overview',
+      method: 'get',
+    })
+  }
 }
 
 /**

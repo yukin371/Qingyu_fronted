@@ -33,7 +33,14 @@ import type {
   OutlineNode,
 } from '@/types/writer'
 import type { ChatMessage, AIToolType, AIConfig, AIHistory } from '@/types/ai'
-import { chatWithAI, continueWriting, polishText, expandText, rewriteText, storyGenerate } from '@/modules/ai/api'
+import {
+  chatWithAI,
+  continueWriting,
+  polishText,
+  expandText,
+  rewriteText,
+  storyGenerate,
+} from '@/modules/ai/api'
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import { outlineApi } from '../api/outline'
@@ -356,7 +363,7 @@ export const useWriterStore = defineStore('writer', {
       const map = new Map<string, number>()
 
       function traverse(nodes: any[], order: number = 0): number {
-        nodes.forEach(node => {
+        nodes.forEach((node) => {
           map.set(node.id, ++order)
           if (node.children && node.children.length > 0) {
             traverse(node.children, order)
@@ -984,8 +991,15 @@ export const useWriterStore = defineStore('writer', {
         // 自动注入项目上下文
         const { buildContextString } = useAIContext()
         const contextStr = buildContextString({ includeRelations: false, maxTokenEstimate: 1500 })
-        const contextInstructions = contextStr ? `请根据以下作品设定续写：\n${contextStr}` : undefined
-        const response = await continueWriting(this.currentProjectId, text, length, contextInstructions)
+        const contextInstructions = contextStr
+          ? `请根据以下作品设定续写：\n${contextStr}`
+          : undefined
+        const response = await continueWriting(
+          this.currentProjectId,
+          text,
+          length,
+          contextInstructions,
+        )
         const result = response.generated_text || ''
         this.ai.lastResult = result
 
@@ -1075,7 +1089,12 @@ export const useWriterStore = defineStore('writer', {
         const mergedInstructions = contextStr
           ? `${instructions || ''}\n\n请参考以下作品设定进行扩写，保持与故事世界的一致性：\n${contextStr}`
           : instructions
-        const response = await expandText(this.currentProjectId, text, mergedInstructions, targetLength)
+        const response = await expandText(
+          this.currentProjectId,
+          text,
+          mergedInstructions,
+          targetLength,
+        )
         const result = response.expanded_text || response.rewritten_text || ''
         this.ai.lastResult = result
 
@@ -1161,6 +1180,8 @@ export const useWriterStore = defineStore('writer', {
       this.ai.error = null
 
       try {
+        const historyTool: AIToolType =
+          mode === 'continue' ? 'continue' : mode === 'rewrite' ? 'rewrite' : 'chat'
         const response = (await storyGenerate({
           projectId: this.currentProjectId,
           documentId: this.currentDocumentId,
@@ -1174,7 +1195,7 @@ export const useWriterStore = defineStore('writer', {
         // 保存到历史记录
         this.ai.history.push({
           id: Date.now().toString(),
-          tool: 'story-generate',
+          tool: historyTool,
           input: selectedText || instruction || '',
           output: result,
           timestamp: Date.now(),
@@ -1420,7 +1441,12 @@ export const useWriterStore = defineStore('writer', {
         // 处理后端返回的响应格式（HTTP拦截器已提取data字段）
         if (Array.isArray(response)) {
           this.outline.tree = response
-        } else if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
+        } else if (
+          response &&
+          typeof response === 'object' &&
+          'data' in response &&
+          Array.isArray((response as any).data)
+        ) {
           this.outline.tree = (response as any).data
         } else {
           if (import.meta.env.DEV) console.warn('[writerStore] 大纲树API返回格式未知:', response)

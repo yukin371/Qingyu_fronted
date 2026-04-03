@@ -9,7 +9,6 @@ import {
   updatePublishPlan,
   pausePublishPlan,
   resumePublishPlan,
-  submitForReview,
   type PublishPlan,
   type PublishPlatform,
   publishTypeOptions,
@@ -247,6 +246,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
     persistMockPublication: (projectId: string) => void,
     loadPublishRecords: () => void,
     loadStats: () => void,
+    submitRealReview: () => Promise<void>,
   ) => {
     try {
       if (isMockProjectContext.value) {
@@ -261,8 +261,7 @@ export function usePublishSchedule(bookId: Ref<string>, isMockProjectContext: Re
         loadStats()
         return
       }
-      await submitForReview(bookId.value)
-      message.success('已提交审核')
+      await submitRealReview()
     } catch (error: unknown) {
       const err = error as Error
       message.error(err.message || '提交失败')

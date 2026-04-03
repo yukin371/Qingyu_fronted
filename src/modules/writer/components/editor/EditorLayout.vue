@@ -41,13 +41,14 @@
           position="left"
           :collapsible="true"
           :resizable="!isImmersiveMode"
-          :class="[leftPanelClasses, 'editor-layout__left-panel', { 'panel-visible': leftPanelVisible }]"
+          :class="[
+            leftPanelClasses,
+            'editor-layout__left-panel',
+            { 'panel-visible': leftPanelVisible },
+          ]"
           :style="leftPanelStyle"
         >
-          <SidePanel
-            position="left"
-            :class="{ 'panel-visible': leftPanelVisible }"
-          >
+          <SidePanel position="left" :class="{ 'panel-visible': leftPanelVisible }">
             <slot name="left-panel">
               <!-- 默认内容 -->
               <ProjectTree
@@ -55,10 +56,7 @@
                 :chapters="chapters"
                 :current-chapter-id="currentChapterId"
               />
-              <ChapterTree
-                :tree-data="treeData"
-                :project-id="projectId"
-              />
+              <ChapterTree :tree-data="treeData" :project-id="projectId" />
             </slot>
           </SidePanel>
         </ResizablePanel>
@@ -69,7 +67,7 @@
         class="editor-layout__main"
         :class="[
           { 'panel-visible': layout.activeTab === 'editor' },
-          { 'immersive-mode': isImmersiveMode }
+          { 'immersive-mode': isImmersiveMode },
         ]"
       >
         <slot name="editor" :active-tool="activeTool">
@@ -91,7 +89,11 @@
           position="right"
           :collapsible="true"
           :resizable="!isImmersiveMode"
-          :class="[rightPanelClasses, 'editor-layout__right-panel', { 'panel-visible': rightPanelVisible }]"
+          :class="[
+            rightPanelClasses,
+            'editor-layout__right-panel',
+            { 'panel-visible': rightPanelVisible },
+          ]"
           :style="rightPanelStyle"
         >
           <SidePanel
@@ -119,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import ResizablePanel from './ResizablePanel.vue'
 import SidePanel from './SidePanel.vue'
 import ProjectTree from '../ProjectTree.vue'
@@ -126,6 +129,7 @@ import ChapterTree from '../DocumentTree.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import { useEditorStore, type ActiveTool } from '../../stores/editorStore'
+import { useDocumentStore } from '../../stores/documentStore'
 
 // ==================== Props & Emits ====================
 interface Props {
@@ -144,12 +148,13 @@ const emit = defineEmits<Emits>()
 // ==================== 插槽类型定义 ====================
 defineSlots<{
   'left-panel'?: () => unknown
-  'editor'?: (props: { activeTool: ActiveTool }) => unknown
+  editor?: (props: { activeTool: ActiveTool }) => unknown
   'right-panel'?: () => unknown
 }>()
 
-// 使用 editorStore
+const route = useRoute()
 const editorStore = useEditorStore()
+const documentStore = useDocumentStore()
 
 // 内部 activeTool 状态（用于本地管理）
 const internalActiveTool = ref<ActiveTool>(props.activeTool ?? editorStore.activeTool ?? 'writing')
@@ -161,7 +166,7 @@ const activeTool = computed<ActiveTool>({
     internalActiveTool.value = value
     editorStore.setActiveTool(value)
     emit('update:activeTool', value)
-  }
+  },
 })
 
 watch(
@@ -170,7 +175,7 @@ watch(
     if (newTool && newTool !== internalActiveTool.value) {
       internalActiveTool.value = newTool
     }
-  }
+  },
 )
 
 // 监听 store 中 activeTool 的变化
@@ -180,7 +185,7 @@ watch(
     if (newTool !== internalActiveTool.value) {
       internalActiveTool.value = newTool
     }
-  }
+  },
 )
 
 // ==================== 面板可见性计算 ====================
@@ -211,20 +216,20 @@ const rightPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
 // 是否为沉浸模式
 const isImmersiveMode = computed(() => activeTool.value === 'immersive')
 
-// TODO: 从路由或store获取实际的项目ID和章节数据
-const projectId = ref('')
-const chapters = ref([])
-const currentChapterId = ref('')
+// 从路由参数获取项目ID
+const projectId = computed(() => (route.params.projectId as string) || '')
 
-// TODO: 从store获取文档树数据
-const treeData = ref([])
+// 从 documentStore 获取章节数据
+const chapters = computed(() => documentStore.flatDocs)
+
+// 从 documentStore 获取当前文档ID
+const currentChapterId = computed(() => documentStore.currentDocMeta?.id || '')
+
+// 从 documentStore 获取文档树数据
+const treeData = computed(() => documentStore.tree)
 
 // 响应式布局
-const {
-  layout,
-  switchTab,
-  handleTouchGesture: handleGesture,
-} = useResponsiveLayout()
+const { layout, switchTab, handleTouchGesture: handleGesture } = useResponsiveLayout()
 
 const mobileTabs = computed(() => {
   type TabKey = 'left' | 'editor' | 'right'
@@ -343,30 +348,6 @@ function handleContentTouchEnd(event: TouchEvent) {
   }
 }
 
-function handleToolChange(toolId: string) {
-  const validTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
-  const normalizedTool: ActiveTool = validTools.includes(toolId as ActiveTool)
-    ? (toolId as ActiveTool)
-    : 'writing'
-
-  // 更新内部状态和发出事件
-  activeTool.value = normalizedTool
-  emit('toolChange', normalizedTool)
-
-  // AR通知
-  const toolLabels: Record<ActiveTool, string> = {
-    chapters: '章节模式',
-    writing: '写作模式',
-    immersive: '沉浸模式',
-    ai: 'AI助手模式',
-    encyclopedia: '设定百科模式',
-  }
-  ariaAnnouncement.value = `已切换到${toolLabels[normalizedTool]}`
-  setTimeout(() => {
-    ariaAnnouncement.value = ''
-  }, 1000)
-}
-
 onMounted(() => {})
 </script>
 
@@ -440,8 +421,7 @@ onMounted(() => {})
   padding: 24px;
   text-align: center;
   color: #685d53;
-  background:
-    linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(247, 238, 226, 0.9));
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(247, 238, 226, 0.9));
 }
 
 .editor-layout__placeholder strong {
@@ -603,7 +583,9 @@ onMounted(() => {})
 .layout-mode-tablet {
   .left-panel,
   .right-panel {
-    transition: width 0.3s ease, opacity 0.3s ease;
+    transition:
+      width 0.3s ease,
+      opacity 0.3s ease;
   }
 
   .panel-collapsed {

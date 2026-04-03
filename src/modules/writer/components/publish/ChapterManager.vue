@@ -36,11 +36,7 @@
           >
             发布
           </el-button>
-          <el-button
-            v-if="row.status === 'draft'"
-            size="small"
-            @click="$emit('schedule', row)"
-          >
+          <el-button v-if="row.status === 'draft'" size="small" @click="$emit('schedule', row)">
             定时
           </el-button>
           <el-button
@@ -52,7 +48,7 @@
             下架
           </el-button>
           <el-button
-            v-if="row.status === 'pending_review'"
+            v-if="row.status === 'pending_review' || row.status === 'rejected'"
             size="small"
             type="warning"
             @click="$emit('view-review', row)"

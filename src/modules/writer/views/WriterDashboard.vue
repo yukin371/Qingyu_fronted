@@ -184,7 +184,7 @@ import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
-import { getTodayWordsStats } from '@/modules/writer/api/dashboard'
+import { getTodayWordsStats, getDashboardOverview } from '@/modules/writer/api/dashboard'
 import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
@@ -203,7 +203,7 @@ const loadingProjects = ref(false)
 const writingGoal = ref(2000)
 const userName = computed(() => authStore.user?.nickname || authStore.user?.username || '作家')
 
-// 统计数据 (模拟 + Store)
+// 统计数据
 const stats = ref({
   totalWords: 0,
   bookCount: 0,
@@ -262,30 +262,50 @@ const recentProjects = computed(() => (projectStore.projects || []).slice(0, 5))
 onMounted(async () => {
   loadingProjects.value = true
   try {
-    // 并行加载
-    await projectStore.loadList({ page: 1, pageSize: 5 })
-
-    // 更新统计 (这部分逻辑最好在后端有个专门的 dashboard API)
-    stats.value.bookCount = projectStore.total
-    const projects = projectStore.projects || []
-    stats.value.totalWords = projects.reduce((acc: number, cur: ProjectSummary) => {
-      return acc + (cur.totalWords ?? cur.wordCount ?? 0)
-    }, 0)
-    stats.value.pending = projects.filter((p: ProjectSummary) => p.status === 'serializing').length
-
-    // 今日码字：后端API优先，无则前端本地计算
+    // 尝试使用 dashboard overview API 获取统计数据
+    let overviewLoaded = false
     try {
-      const todayStats = await getTodayWordsStats()
-      if (todayStats && todayStats.todayWords > 0) {
-        stats.value.todayWords = todayStats.todayWords
-      } else {
-        // 后端无数据，使用本地计算
-        stats.value.todayWords = getGlobalTodayWords()
+      const overview = await getDashboardOverview()
+      if (overview && typeof overview.totalProjects === 'number') {
+        stats.value.totalWords = overview.totalWords || 0
+        stats.value.bookCount = overview.totalProjects || 0
+        stats.value.todayWords = overview.todayWords || 0
+        stats.value.pending = overview.activeProjects || 0
+        overviewLoaded = true
       }
     } catch {
-      // API 调用失败，使用本地计算
-      console.warn('[WriterDashboard] 获取今日字数失败，使用本地计算')
-      stats.value.todayWords = getGlobalTodayWords()
+      // dashboard overview API 不可用，使用项目列表计算
+    }
+
+    // 并行加载项目列表
+    await projectStore.loadList({ page: 1, pageSize: 5 })
+
+    if (!overviewLoaded) {
+      // 更新统计：从项目列表计算
+      stats.value.bookCount = projectStore.total
+      const projects = projectStore.projects || []
+      stats.value.totalWords = projects.reduce((acc: number, cur: ProjectSummary) => {
+        return acc + (cur.totalWords ?? cur.wordCount ?? 0)
+      }, 0)
+      stats.value.pending = projects.filter(
+        (p: ProjectSummary) => p.status === 'serializing',
+      ).length
+    }
+
+    // 今日码字：后端API优先，无则前端本地计算
+    if (!stats.value.todayWords) {
+      try {
+        const todayStats = await getTodayWordsStats()
+        if (todayStats && todayStats.todayWords > 0) {
+          stats.value.todayWords = todayStats.todayWords
+        } else {
+          // 后端无数据，使用本地计算
+          stats.value.todayWords = getGlobalTodayWords()
+        }
+      } catch {
+        // API 调用失败，使用本地计算
+        stats.value.todayWords = getGlobalTodayWords()
+      }
     }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
@@ -333,8 +353,8 @@ const quickWrite = () => {
     createProject()
   }
 }
-const goToPublish = () => {} // TODO
-const goToStatistics = () => {} // TODO
+const goToPublish = () => router.push({ name: 'writer-publish' })
+const goToStatistics = () => router.push({ name: 'writer-statistics' })
 const goToAllProjects = () => router.push({ name: 'writer-projects' })
 const openProject = (id: string) =>
   router.push({ name: 'writer-project', params: { projectId: id } })

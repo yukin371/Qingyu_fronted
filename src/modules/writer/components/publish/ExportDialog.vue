@@ -1,5 +1,10 @@
 <template>
-  <el-dialog :model-value="visible" title="导出作品" width="500px" @update:model-value="$emit('update:visible', $event)">
+  <el-dialog
+    :model-value="visible"
+    title="导出作品"
+    width="500px"
+    @update:model-value="$emit('update:visible', $event)"
+  >
     <el-form :model="localForm" label-width="100px">
       <el-form-item label="导出格式">
         <el-select v-model="localForm.format" style="width: 100%">
@@ -39,14 +44,11 @@
 
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import {
-  exportFormatOptions,
-  exportScopeOptions,
-} from '@/modules/writer/api'
+import { exportFormatOptions, exportScopeOptions } from '@/modules/writer/api'
 
 export interface ExportForm {
-  format: 'pdf' | 'epub' | 'txt' | 'docx'
-  scope: 'book' | 'chapter' | 'range'
+  format: 'txt' | 'md' | 'docx'
+  scope: 'all'
   options: string[]
 }
 
@@ -70,7 +72,7 @@ watch(
   (newForm) => {
     Object.assign(localForm, newForm)
   },
-  { deep: true }
+  { deep: true },
 )
 
 // 导出时同步本地表单到父组件

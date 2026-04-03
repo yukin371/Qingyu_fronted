@@ -14,7 +14,12 @@
             @click="toggleMultiSelectMode"
           >
             <svg class="toolbar-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
             </svg>
           </button>
           <button
@@ -25,18 +30,23 @@
             @click="toggleMultiSelectMode"
           >
             <svg class="toolbar-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
           <el-tooltip content="展开/折叠全部">
             <el-button link size="small" @click="toggleExpand">
-              <QyIcon name="Sort"  />
+              <QyIcon name="Sort" />
             </el-button>
           </el-tooltip>
           <el-tooltip content="新建文档">
             <el-button link type="primary" size="small" @click="emit('add')">
-              <QyIcon name="Plus"  />
+              <QyIcon name="Plus" />
             </el-button>
           </el-tooltip>
         </div>
@@ -62,12 +72,7 @@
         >
           批量删除
         </button>
-        <button
-          v-if="hasSelection"
-          type="button"
-          class="hint-btn"
-          @click="clearSelection"
-        >
+        <button v-if="hasSelection" type="button" class="hint-btn" @click="clearSelection">
           取消选择
         </button>
       </div>
@@ -75,16 +80,30 @@
 
     <!-- 树形控件 -->
     <div class="tree-content" @click.right.prevent @click="handleTreeClick">
-      <el-tree ref="treeRef" :data="treeData" node-key="id" :props="treeProps" :highlight-current="!isMultiSelectMode"
-        :expand-on-click-node="false" :default-expanded-keys="defaultExpandedKeys" :filter-node-method="filterNode"
-        :allow-drop="allowDrop" :allow-drag="allowDrag" draggable empty-text="暂无文档，点击右上角新建"
-        @node-click="handleNodeClick" @node-drop="handleNodeDrop" @node-drag-start="handleDragStart" @node-contextmenu="handleContextMenu">
+      <el-tree
+        ref="treeRef"
+        :data="treeData"
+        node-key="id"
+        :props="treeProps"
+        :highlight-current="!isMultiSelectMode"
+        :expand-on-click-node="false"
+        :default-expanded-keys="defaultExpandedKeys"
+        :filter-node-method="filterNode"
+        :allow-drop="allowDrop"
+        :allow-drag="allowDrag"
+        draggable
+        empty-text="暂无文档，点击右上角新建"
+        @node-click="handleNodeClick"
+        @node-drop="handleNodeDrop"
+        @node-drag-start="handleDragStart"
+        @node-contextmenu="handleContextMenu"
+      >
         <template #default="{ data }">
           <div
             class="custom-tree-node"
             :class="{
               'is-selected': isSelected(data.id),
-              'is-multi-select-mode': isMultiSelectMode
+              'is-multi-select-mode': isMultiSelectMode,
             }"
           >
             <!-- 多选复选框 -->
@@ -98,7 +117,7 @@
 
             <!-- 图标区分：卷用文件夹，章用文档 -->
             <el-icon class="node-icon" :class="data.type">
-              <QyIcon name="Folder" v-if="data.type === 'volume'"  />
+              <QyIcon name="Folder" v-if="data.type === 'volume'" />
               <DocumentIcon v-else />
             </el-icon>
 
@@ -133,24 +152,32 @@
 
     <!-- 自定义右键菜单 (Teleport 到 body 防止被遮挡) -->
     <teleport to="body">
-      <div v-show="contextMenu.visible" class="custom-context-menu"
-        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }" @click.stop>
+      <div
+        v-show="contextMenu.visible"
+        class="custom-context-menu"
+        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+        @click.stop
+      >
         <div class="menu-item" @click="handleMenuAction('add')">
-          <QyIcon name="Plus"  /> 新建子文档
+          <QyIcon name="Plus" /> 新建子文档
         </div>
         <div class="menu-item" @click="handleMenuAction('rename')">
-          <QyIcon name="Edit"  /> 重命名
+          <QyIcon name="Edit" /> 重命名
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item danger" @click="handleMenuAction('delete')">
-          <QyIcon name="Delete"  /> 删除
+          <QyIcon name="Delete" /> 删除
         </div>
       </div>
     </teleport>
 
     <!-- 用于点击外部关闭右键菜单的透明遮罩 -->
-    <div v-if="contextMenu.visible" class="context-menu-mask" @click="closeContextMenu"
-      @contextmenu.prevent="closeContextMenu"></div>
+    <div
+      v-if="contextMenu.visible"
+      class="context-menu-mask"
+      @click="closeContextMenu"
+      @contextmenu.prevent="closeContextMenu"
+    ></div>
   </div>
 </template>
 
@@ -162,13 +189,14 @@ import { QyIcon } from '@/design-system/components'
 import type { Document } from '@/modules/writer/types/document'
 import { useDocumentSelection } from '../composables/useDocumentSelection'
 import { useBatchOperationStore } from '../stores/batchOperationStore'
+import { useDocumentStore } from '../stores/documentStore'
 import { duplicateDocument, moveDocument } from '../api/document'
 import BatchOperationConfirmDialog from './BatchOperationConfirmDialog.vue'
 import BatchOperationProgressDialog from './BatchOperationProgressDialog.vue'
 
 // DocumentIcon 组件定义
 const DocumentIcon = {
-  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`
+  template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
 }
 
 // 拖拽数据类型定义
@@ -187,7 +215,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  projectId: ''
+  projectId: '',
 })
 
 const emit = defineEmits<{
@@ -208,7 +236,7 @@ const {
   hasSelection,
   toggleSelection,
   selectRange,
-  clearSelection
+  clearSelection,
 } = useDocumentSelection()
 
 // 扁平化文档列表（用于范围选择）
@@ -243,7 +271,7 @@ const filterText = ref('')
 // 树配置
 const treeProps = {
   children: 'children',
-  label: 'title'
+  label: 'title',
 }
 
 // 默认展开
@@ -257,9 +285,11 @@ watch(filterText, (val) => {
 // 过滤节点逻辑
 const filterNode = (value: string, data: any): boolean => {
   if (!value) return true
-  return 'title' in data &&
+  return (
+    'title' in data &&
     typeof data.title === 'string' &&
     data.title.toLowerCase().includes(value.toLowerCase())
+  )
 }
 
 // =======================
@@ -336,14 +366,14 @@ const handleDragStart = (node: any, evt: DragEvent) => {
   dragState.value = {
     isCopy,
     draggedNodeId: data.id,
-    sourceProjectId
+    sourceProjectId,
   }
 
   const payload: DragData = {
     kind: 'documents',
     sourceProjectId: sourceProjectId,
     ids: [data.id],
-    mode: isCopy ? 'copy' : 'move'
+    mode: isCopy ? 'copy' : 'move',
   }
 
   // 设置拖拽效果
@@ -384,7 +414,12 @@ function handleTreeClick(event: MouseEvent): void {
 }
 
 // el-tree node-drop 事件签名: (dragNode, dropNode, type, evt)
-const handleNodeDrop = async (dragNode: any, dropNode: any, type: 'inner' | 'before' | 'after', evt?: DragEvent) => {
+const handleNodeDrop = async (
+  dragNode: any,
+  dropNode: any,
+  type: 'inner' | 'before' | 'after',
+  evt?: DragEvent,
+) => {
   const dragData = dragNode.data as Document
   const dropData = dropNode.data as Document
 
@@ -422,7 +457,7 @@ async function executeDragOperation(
   dragData: Document,
   dropData: Document,
   type: 'inner' | 'before' | 'after',
-  dragMode: 'copy' | 'move'
+  dragMode: 'copy' | 'move',
 ): Promise<void> {
   try {
     if (dragMode === 'copy') {
@@ -430,7 +465,7 @@ async function executeDragOperation(
       await duplicateDocument(dragData.id, {
         targetParentId: dropData.id,
         position: type,
-        copyContent: true
+        copyContent: true,
       })
 
       message.success(`已复制 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
@@ -439,7 +474,7 @@ async function executeDragOperation(
       const newParentId = type === 'inner' ? dropData.id : dropData.parentId
 
       await moveDocument(dragData.id, {
-        parentId: newParentId
+        parentId: newParentId,
       })
 
       message.success(`已移动 "${dragData.title}" 到 "${dropData.title}"`, { duration: 2000 })
@@ -450,7 +485,9 @@ async function executeDragOperation(
   } catch (error) {
     console.error(`${dragMode === 'copy' ? 'Duplicate' : 'Move'} failed:`, error)
 
-    message.error(`${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`, { duration: 3000 })
+    message.error(`${dragMode === 'copy' ? '复制' : '移动'}失败: ${(error as Error).message}`, {
+      duration: 3000,
+    })
 
     // API失败后，刷新树节点以同步后端状态
     // 这会撤销ElTree的默认UI更新
@@ -479,7 +516,7 @@ const contextMenu = reactive({
   visible: false,
   x: 0,
   y: 0,
-  target: null as Document | null
+  target: null as Document | null,
 })
 
 // el-tree node-contextmenu 事件签名: (evt, data, node, nodeInstance)
@@ -511,6 +548,7 @@ const handleMenuAction = (action: 'add' | 'rename' | 'delete') => {
 // 批量操作
 // =======================
 const batchOpStore = useBatchOperationStore()
+const documentStore = useDocumentStore()
 const showConfirmDialog = ref(false)
 const showProgressDialog = ref(false)
 const pendingOperationType = ref<'delete' | 'move' | 'export'>('delete')
@@ -530,7 +568,7 @@ async function executeBatchOperation(): Promise<void> {
       type: pendingOperationType.value,
       targetIds: Array.from(selectedIds.value),
       atomic: true,
-      includeDescendants: true
+      includeDescendants: true,
     })
 
     activeOperationId.value = operation.batchId
@@ -547,7 +585,10 @@ async function executeBatchOperation(): Promise<void> {
 function handleOperationComplete(): void {
   showProgressDialog.value = false
   activeOperationId.value = null
-  // TODO: 刷新文档树
+  // 刷新文档树
+  if (props.projectId) {
+    documentStore.loadTree(props.projectId)
+  }
 }
 
 // =======================

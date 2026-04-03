@@ -3,16 +3,8 @@
  */
 import { ref, reactive, type Ref } from 'vue'
 import { message } from '@/design-system/services'
-import {
-  createExportTask,
-  getExportHistory,
-  downloadExportFile,
-  cancelExportTask,
-  deleteExportTask as apiDeleteExportTask,
-  exportFormatOptions,
-  exportScopeOptions,
-  type ExportTask,
-} from '@/modules/writer/api'
+import { exportApi } from '@/modules/writer/api/export'
+import { exportFormatOptions, exportScopeOptions, type ExportTask } from '@/modules/writer/api'
 
 // 导出类型和选项
 export type { ExportTask }
@@ -20,8 +12,8 @@ export { exportFormatOptions, exportScopeOptions }
 
 // 导出表单类型
 export interface ExportForm {
-  format: 'pdf' | 'epub' | 'txt' | 'docx'
-  scope: 'book' | 'chapter' | 'range'
+  format: 'txt' | 'md' | 'docx'
+  scope: 'all'
   options: string[]
 }
 
@@ -37,8 +29,8 @@ interface MockExportTask {
 
 // 创建默认导出表单
 const createDefaultExportForm = (): ExportForm => ({
-  format: 'pdf',
-  scope: 'book',
+  format: 'md',
+  scope: 'all',
   options: ['include_metadata', 'include_toc'],
 })
 
@@ -70,10 +62,7 @@ export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean
         exportTotal.value = all.length
         return
       }
-      const res = await getExportHistory(bookId.value, {
-        page: exportPage.value,
-        page_size: exportPageSize.value,
-      })
+      const res = await exportApi.listTasks(bookId.value, exportPage.value, exportPageSize.value)
       exportHistory.value = res.items as unknown as ExportTask[]
       exportTotal.value = res.total
     } catch (error) {
@@ -114,13 +103,15 @@ export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean
         loadExportHistory()
         return
       }
-      await createExportTask(bookId.value, {
-        format: exportForm.format,
-        scope: exportForm.scope,
-        include_metadata: exportForm.options.includes('include_metadata'),
-        include_comments: exportForm.options.includes('include_comments'),
-        include_toc: exportForm.options.includes('include_toc'),
-        page_breaks: exportForm.options.includes('page_breaks'),
+      await exportApi.exportProject(bookId.value, {
+        includeDocuments: true,
+        documentFormats: exportForm.format,
+        options: {
+          toc: exportForm.options.includes('include_toc'),
+          includeNotes: exportForm.options.includes('include_comments'),
+          includeTags: exportForm.options.includes('include_metadata'),
+          pageNumbers: exportForm.options.includes('page_breaks'),
+        },
       })
       message.success('导出任务已创建')
       showExportDialog.value = false
@@ -147,7 +138,7 @@ export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean
         message.success('下载成功（Mock）')
         return
       }
-      const blob = await downloadExportFile(task.id)
+      const blob = await exportApi.downloadFile(task.id)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -175,7 +166,7 @@ export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean
         loadExportHistory()
         return
       }
-      await cancelExportTask(task.id)
+      await exportApi.cancelTask(task.id)
       message.success('已取消')
       loadExportHistory()
     } catch (error) {
@@ -194,7 +185,7 @@ export function useExport(bookId: Ref<string>, isMockProjectContext: Ref<boolean
         loadExportHistory()
         return
       }
-      await apiDeleteExportTask(task.id)
+      await exportApi.deleteTask(task.id)
       message.success('删除成功')
       loadExportHistory()
     } catch (error) {

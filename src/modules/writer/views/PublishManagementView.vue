@@ -10,7 +10,7 @@
               <div>
                 <h1 class="m-0 text-2xl font-semibold text-slate-800">发布管理</h1>
                 <p class="mt-2 text-sm text-slate-500">
-                  统一处理发布计划、章节发布进度和导出任务。
+                  统一处理发布计划、章节发布进度和发布统计。
                 </p>
               </div>
               <div class="flex flex-wrap gap-2">
@@ -137,43 +137,9 @@
                 />
               </el-tab-pane>
 
-              <!-- 导出历史 -->
-              <el-tab-pane label="导出历史" name="export">
-                <ExportPanel
-                  :export-history="exportHistory"
-                  :loading="loadingExport"
-                  :total="exportTotal"
-                  :page="exportPage"
-                  :page-size="exportPageSize"
-                  @download="downloadExport"
-                  @cancel="cancelExport"
-                  @delete="deleteExport"
-                  @page-change="loadExportHistory"
-                  @update:page="exportPage = $event"
-                  @update:page-size="exportPageSize = $event"
-                />
-              </el-tab-pane>
-
-              <!-- 审核历史 -->
-              <el-tab-pane label="审核历史" name="review">
-                <ReviewPanel
-                  ref="reviewPanelRef"
-                  :review-history="reviewHistory"
-                  :review-stats="reviewStats"
-                  :loading="loadingReview"
-                  :total="reviewTotal"
-                  :page="reviewPage"
-                  :page-size="reviewPageSize"
-                  :filter-status-value="reviewFilter.status"
-                  :trend-period-value="reviewTrendPeriod"
-                  @refresh="loadReviewHistory"
-                  @view-detail="viewReviewDetail"
-                  @page-change="loadReviewHistory"
-                  @update:page="reviewPage = $event"
-                  @update:page-size="reviewPageSize = $event"
-                  @update:filter-status-value="reviewFilter.status = $event"
-                  @update:trend-period-value="reviewTrendPeriod = $event"
-                />
+              <!-- 发布统计 -->
+              <el-tab-pane label="发布统计" name="stats">
+                <PublishStatsPanel :chapters="[]" :stats="stats" />
               </el-tab-pane>
             </el-tabs>
           </el-card>
@@ -196,35 +162,41 @@
         @export="handleStartExport"
       />
 
-      <!-- 审核详情对话框 -->
       <ReviewDetailDialog
         v-model:visible="reviewDetailDialogVisible"
         :detail="currentReviewDetail"
-        @resubmit="resubmitReview"
+        @resubmit="handleResubmitReview"
       />
     </div>
   </WriterPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { message } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
+import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { QyIcon } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
-import { getPublishStats, type PublishStats } from '@/modules/writer/api'
+import {
+  getPublicationDetail,
+  getPublishRecords,
+  getPublishStats,
+  publishChapter as submitChapterForReview,
+  type PublishStats,
+} from '@/modules/writer/api'
 import { request as apiRequest } from '@/utils/request-adapter'
 
 // 子组件
 import PublishSchedule from '@/modules/writer/components/publish/PublishSchedule.vue'
 import ChapterManager from '@/modules/writer/components/publish/ChapterManager.vue'
-import ExportPanel from '@/modules/writer/components/publish/ExportPanel.vue'
-import ReviewPanel from '@/modules/writer/components/publish/ReviewPanel.vue'
+import PublishStatsPanel from '@/modules/writer/components/publish/PublishStats.vue'
 import PublishPlanDialog from '@/modules/writer/components/publish/PublishPlanDialog.vue'
 import ExportDialog from '@/modules/writer/components/publish/ExportDialog.vue'
-import ReviewDetailDialog from '@/modules/writer/components/publish/ReviewDetailDialog.vue'
+import ReviewDetailDialog, {
+  type ReviewDetail,
+} from '@/modules/writer/components/publish/ReviewDetailDialog.vue'
 
 // Composables
 import { usePublishSchedule } from '@/modules/writer/composables/usePublishSchedule'
@@ -233,7 +205,7 @@ import {
   type PublishRecord,
 } from '@/modules/writer/composables/useChapterManager'
 import { useExport } from '@/modules/writer/composables/useExport'
-import type { ReviewRecord } from '@/modules/writer/components/publish/ReviewPanel.vue'
+import { DocumentType } from '@/modules/writer/types/document'
 
 // 本地项目类型
 interface LocalProject {
@@ -244,25 +216,10 @@ interface LocalProject {
   wordCount?: number
 }
 
-// WriterStore 项目列表项类型
-interface WriterProjectItem {
-  projectId?: string
-  id?: string
-  title?: string
-  chapterCount?: number
-  wordCount?: number
-}
-
-// WriterStore 类型
-interface WriterStoreType {
-  projectList?: WriterProjectItem[]
-  fetchProjects: () => Promise<void>
-  storageMode?: string
-}
-
 // 基础状态
 const route = useRoute()
 const writerStore = useWriterStore()
+const documentStore = useDocumentStore()
 const bookId = ref('')
 const loadingStats = ref(false)
 const activeTab = ref('plan')
@@ -277,17 +234,16 @@ const stats = reactive<PublishStats>({
   total_words: 0,
   published_words: 0,
 })
+const reviewDetailDialogVisible = ref(false)
+const currentReviewDetail = ref<ReviewDetail | null>(null)
+const currentReviewRecord = ref<PublishRecord | null>(null)
 
 // 计算属性
 const currentLocalProject = computed<LocalProject>(
   () => (writerStore.projectList || []).find((p) => (p.projectId || p.id) === bookId.value) || {},
 )
 
-const isMockProjectContext = computed(() => {
-  const typedStore = writerStore as unknown as WriterStoreType
-  if (typedStore.storageMode === 'offline') return true
-  return !!currentLocalProject.value
-})
+const isMockProjectContext = computed(() => String(route.query.test || '').toLowerCase() === 'true')
 
 // 使用 Composables
 const {
@@ -320,41 +276,11 @@ const {
   computeMockStats,
 } = useChapterManager(bookId, isMockProjectContext, currentLocalProject)
 
-const {
-  loadingExport,
-  exportHistory,
-  exportPage,
-  exportPageSize,
-  exportTotal,
-  showExportDialog,
-  exportForm,
-  loadExportHistory,
-  startExport,
-  downloadExport,
-  cancelExport,
-  deleteExport,
-} = useExport(bookId, isMockProjectContext)
+const { showExportDialog, exportForm, startExport } = useExport(bookId, isMockProjectContext)
 
-// 审核历史状态
-const loadingReview = ref(false)
-const reviewHistory = ref<ReviewRecord[]>([])
-const reviewPage = ref(1)
-const reviewPageSize = ref(20)
-const reviewTotal = ref(0)
-const reviewFilter = reactive({ status: '' })
-const reviewTrendPeriod = ref('7d')
-const reviewDetailDialogVisible = ref(false)
-const currentReviewDetail = ref<ReviewRecord | null>(null)
-const reviewPanelRef = ref<InstanceType<typeof ReviewPanel> | null>(null)
-
-const reviewStats = reactive({
-  total: 0,
-  approved: 0,
-  approvedRate: 0,
-  rejected: 0,
-  rejectedRate: 0,
-  pending: 0,
-})
+const chapterDocs = computed(() =>
+  (documentStore.flatDocs || []).filter((doc) => doc.type === DocumentType.CHAPTER),
+)
 
 // 内部导航项
 const internalNavItems = computed(() => [
@@ -371,14 +297,9 @@ const internalNavItems = computed(() => [
     meta: `${recordTotal.value || stats.total_chapters} 章`,
   },
   {
-    key: 'export',
-    label: '导出历史',
-    meta: `${exportTotal.value} 条`,
-  },
-  {
-    key: 'review',
-    label: '审核历史',
-    meta: `待审 ${reviewStats.pending || stats.pending_review_chapters}`,
+    key: 'stats',
+    label: '发布统计',
+    meta: `已发布 ${stats.published_chapters} 章`,
   },
 ])
 
@@ -392,7 +313,31 @@ const loadStats = async () => {
       return
     }
     const res = await getPublishStats(bookId.value)
-    Object.assign(stats, res)
+    const fallbackTotalChapters =
+      chapterDocs.value.length || Number(currentLocalProject.value?.chapterCount || 0)
+    const fallbackTotalWords =
+      chapterDocs.value.reduce((sum, doc) => sum + Number(doc.wordCount || 0), 0) ||
+      Number(currentLocalProject.value?.wordCount || 0)
+
+    Object.assign(stats, {
+      ...res,
+      total_chapters: Number(res.total_chapters || fallbackTotalChapters),
+      total_words: Number(res.total_words || fallbackTotalWords),
+      published_words:
+        Number(res.published_words || 0) ||
+        Math.floor(
+          fallbackTotalWords *
+            (Number(res.published_chapters || 0) /
+              Math.max(Number(res.total_chapters || fallbackTotalChapters), 1)),
+        ),
+      draft_chapters: Math.max(
+        0,
+        Number(res.total_chapters || fallbackTotalChapters) -
+          Number(res.published_chapters || 0) -
+          Number(res.pending_review_chapters || 0) -
+          Number(res.scheduled_chapters || 0),
+      ),
+    } satisfies PublishStats)
   } catch (error: unknown) {
     console.error('加载统计失败', error)
   } finally {
@@ -400,87 +345,15 @@ const loadStats = async () => {
   }
 }
 
-// 审核历史方法
-const loadReviewStats = async () => {
-  try {
-    reviewStats.total = 45
-    reviewStats.approved = 38
-    reviewStats.approvedRate = Math.round((reviewStats.approved / reviewStats.total) * 100)
-    reviewStats.rejected = 4
-    reviewStats.rejectedRate = Math.round((reviewStats.rejected / reviewStats.total) * 100)
-    reviewStats.pending = 3
-  } catch (error: unknown) {
-    console.error('加载审核统计失败', error)
-  }
-}
-
-const loadReviewHistory = async () => {
-  loadingReview.value = true
-  try {
-    reviewHistory.value = [
-      {
-        id: '1',
-        chapter_title: '第一章：初入江湖',
-        chapter_number: 1,
-        status: 'approved',
-        submitted_at: new Date(Date.now() - 86400000).toISOString(),
-        reviewed_at: new Date(Date.now() - 72000000).toISOString(),
-        reviewer_name: '审核员A',
-        review_comment: '内容质量良好，符合平台规范',
-      },
-      {
-        id: '2',
-        chapter_title: '第二章：意外发现',
-        chapter_number: 2,
-        status: 'approved',
-        submitted_at: new Date(Date.now() - 172800000).toISOString(),
-        reviewed_at: new Date(Date.now() - 158400000).toISOString(),
-        reviewer_name: '审核员B',
-        review_comment: '章节结构合理',
-      },
-      {
-        id: '3',
-        chapter_title: '第三章：神秘人物',
-        chapter_number: 3,
-        status: 'rejected',
-        submitted_at: new Date(Date.now() - 259200000).toISOString(),
-        reviewed_at: new Date(Date.now() - 244800000).toISOString(),
-        reviewer_name: '审核员C',
-        review_comment: '部分内容需修改，请重新提交',
-      },
-      {
-        id: '4',
-        chapter_title: '第四章：危机四伏',
-        chapter_number: 4,
-        status: 'pending',
-        submitted_at: new Date(Date.now() - 43200000).toISOString(),
-        reviewed_at: null,
-        reviewer_name: null,
-        review_comment: null,
-      },
-    ]
-    reviewTotal.value = 4
-  } catch (error: unknown) {
-    console.error('加载审核历史失败', error)
-    ElMessage.error('加载审核历史失败')
-  } finally {
-    loadingReview.value = false
-  }
-}
-
-const viewReviewDetail = (row: ReviewRecord) => {
-  currentReviewDetail.value = row
-  reviewDetailDialogVisible.value = true
-}
-
-const resubmitReview = () => {
-  reviewDetailDialogVisible.value = false
-  ElMessage.info('重新提交功能开发中')
-}
-
 // 事件处理
 const handleSubmitReview = () => {
-  submitReview(ensureMockRecords, persistMockPublication, loadPublishRecords, loadStats)
+  submitReview(
+    ensureMockRecords,
+    persistMockPublication,
+    loadPublishRecords,
+    loadStats,
+    submitProjectReview,
+  )
 }
 
 const handlePublishChapter = (record: PublishRecord) => {
@@ -495,13 +368,55 @@ const handleUnpublishChapter = (record: PublishRecord) => {
   doUnpublishChapter(record, loadStats)
 }
 
-const handleViewReview = () => {
+const mapReviewDetailStatus = (status: PublishRecord['status']): ReviewDetail['status'] => {
+  if (status === 'published') return 'approved'
+  if (status === 'rejected') return 'rejected'
+  return 'pending'
+}
+
+const createFallbackReviewDetail = (record: PublishRecord): ReviewDetail => ({
+  id: record.id,
+  chapter_title: record.chapter_title,
+  chapter_number: record.chapter_number,
+  status: mapReviewDetailStatus(record.status),
+  submitted_at: record.created_at,
+  reviewed_at: record.status === 'published' ? record.published_at || null : null,
+  reviewer_name: null,
+  review_comment:
+    record.status === 'pending_review' || record.status === 'scheduled'
+      ? '章节已进入待审核队列，等待平台审核。'
+      : record.status === 'published'
+        ? '章节已通过审核并发布。'
+        : '当前暂无更多审核详情。',
+})
+
+const handleViewReview = async (record: PublishRecord) => {
+  currentReviewRecord.value = record
+  currentReviewDetail.value = createFallbackReviewDetail(record)
+  reviewDetailDialogVisible.value = true
+
+  try {
+    const detail = await getPublicationDetail(record.id)
+    currentReviewDetail.value = {
+      id: detail.id || record.id,
+      chapter_title: detail.chapter_title || record.chapter_title,
+      chapter_number: detail.chapter_number || record.chapter_number,
+      status: mapReviewDetailStatus(detail.status),
+      submitted_at: detail.created_at || record.created_at,
+      reviewed_at: detail.reviewed_at,
+      reviewer_name: detail.reviewer_name,
+      review_comment: detail.review_comment || createFallbackReviewDetail(record).review_comment,
+    }
+  } catch (error: unknown) {
+    console.warn('加载审核详情失败，使用兜底详情', error)
+  }
+
   doViewReview()
 }
 
 const handleStartExport = () => {
   startExport(() => {
-    activeTab.value = 'export'
+    activeTab.value = 'stats'
   })
 }
 
@@ -510,16 +425,70 @@ const formatNumber = (num: number) => {
   return num.toLocaleString()
 }
 
-// 监听 tab 切换
-watch(activeTab, (newTab) => {
-  if (newTab === 'review') {
-    loadReviewStats()
-    loadReviewHistory()
-    nextTick(() => {
-      reviewPanelRef.value?.initChart()
-    })
+const submitProjectReview = async () => {
+  const docs = [...chapterDocs.value].sort((left, right) => (left.order || 0) - (right.order || 0))
+  if (docs.length === 0) {
+    message.warning('当前项目暂无可提交审核的章节')
+    return
   }
-})
+
+  const { items } = await getPublishRecords(bookId.value, { page: 1, page_size: 1000 })
+  const existingMap = new Map(items.map((item) => [item.chapter_id, item]))
+  const candidates = docs.filter((doc) => {
+    const record = existingMap.get(doc.id)
+    return !record || record.status === 'draft' || record.status === 'rejected'
+  })
+
+  if (candidates.length === 0) {
+    message.info('当前没有需要提交审核的章节')
+    return
+  }
+
+  const results = await Promise.allSettled(
+    candidates.map((doc, index) =>
+      submitChapterForReview(doc.id, {
+        chapter_id: doc.id,
+        chapter_title: doc.title,
+        chapter_number: Number(doc.order || index + 1),
+        project_id: bookId.value,
+      } as Parameters<typeof submitChapterForReview>[1] & { project_id: string }),
+    ),
+  )
+
+  const successCount = results.filter((result) => result.status === 'fulfilled').length
+  const failCount = results.length - successCount
+
+  if (successCount > 0) {
+    message.success(
+      failCount > 0
+        ? `已提交 ${successCount} 章审核，${failCount} 章失败`
+        : `已提交 ${successCount} 章进入审核`,
+    )
+    await Promise.all([loadPublishRecords(), loadStats()])
+    return
+  }
+
+  const firstError = results.find((result) => result.status === 'rejected')
+  if (firstError && firstError.status === 'rejected') {
+    throw firstError.reason instanceof Error ? firstError.reason : new Error('提交审核失败')
+  }
+}
+
+const handleResubmitReview = async () => {
+  const record = currentReviewRecord.value
+  if (!record) return
+
+  await submitChapterForReview(record.chapter_id, {
+    chapter_id: record.chapter_id,
+    chapter_title: record.chapter_title,
+    chapter_number: record.chapter_number,
+    project_id: bookId.value,
+  } as Parameters<typeof submitChapterForReview>[1] & { project_id: string })
+
+  reviewDetailDialogVisible.value = false
+  message.success('已重新提交审核')
+  await Promise.all([loadPublishRecords(), loadStats()])
+}
 
 // 初始化
 onMounted(() => {
@@ -578,12 +547,13 @@ onMounted(() => {
 
     if (isMockProjectContext.value) {
       persistMockPublication(bookId.value)
+    } else {
+      await documentStore.loadTree(bookId.value).catch(() => undefined)
     }
 
     loadStats()
     loadPublishPlan()
     loadPublishRecords()
-    loadExportHistory()
   })()
 })
 </script>
@@ -618,7 +588,7 @@ onMounted(() => {
 
 .internal-tab-nav {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }

@@ -8,6 +8,7 @@ import {
   getPublishRecords,
   publishChapter as apiPublishChapter,
   unpublishChapter as apiUnpublishChapter,
+  scheduleChapter as apiScheduleChapter,
   type PublishRecord,
   type PublishStatus,
   type PublishStats,
@@ -158,6 +159,8 @@ export function useChapterManager(
       }
       await apiPublishChapter(record.chapter_id, {
         chapter_id: record.chapter_id,
+        chapter_title: record.chapter_title,
+        chapter_number: record.chapter_number,
         project_id: bookId.value,
       } as ChapterPublishConfig & { project_id: string })
       authStore.promoteToAuthorByPublishing(false)
@@ -188,7 +191,7 @@ export function useChapterManager(
         loadStats()
         return
       }
-      await apiUnpublishChapter(record.chapter_id)
+      await apiUnpublishChapter(record.chapter_id, bookId.value)
       message.success('下架成功')
       loadPublishRecords()
       loadStats()
@@ -199,7 +202,7 @@ export function useChapterManager(
   }
 
   // 定时发布
-  const scheduleChapter = (record: PublishRecord, loadStats: () => void) => {
+  const scheduleChapter = async (record: PublishRecord, loadStats: () => void) => {
     if (isMockProjectContext.value) {
       const records = ensureMockRecords(bookId.value)
       const target = records.find((r) => r.chapter_id === record.chapter_id)
@@ -213,12 +216,27 @@ export function useChapterManager(
       loadStats()
       return
     }
-    message.info('定时发布功能开发中')
+    try {
+      const publishAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      await apiScheduleChapter(record.chapter_id, bookId.value, {
+        chapter_id: record.chapter_id,
+        chapter_title: record.chapter_title,
+        chapter_number: record.chapter_number,
+        is_free: true,
+        publish_at: publishAt,
+      })
+      message.success('已设为次日定时发布')
+      loadPublishRecords()
+      loadStats()
+    } catch (error: unknown) {
+      const err = error as Error
+      message.error(err.message || '定时发布失败')
+    }
   }
 
   // 查看审核
   const viewReview = () => {
-    message.info('审核详情功能开发中')
+    return
   }
 
   // 计算 Mock 统计

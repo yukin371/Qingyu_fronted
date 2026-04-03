@@ -53,12 +53,7 @@
         <div class="card-header">
           <h3>审核记录</h3>
           <div class="header-actions">
-            <el-select
-              v-model="filterStatus"
-              placeholder="状态筛选"
-              clearable
-              size="small"
-            >
+            <el-select v-model="filterStatus" placeholder="状态筛选" clearable size="small">
               <el-option label="全部" value="" />
               <el-option label="审核中" value="pending" />
               <el-option label="已通过" value="approved" />
@@ -128,26 +123,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { Refresh } from '@element-plus/icons-vue'
 import { echarts } from '@/utils/echarts'
 import type { ECharts } from '@/utils/echarts'
-
-export interface ReviewStats {
-  total: number
-  approved: number
-  approvedRate: number
-  rejected: number
-  rejectedRate: number
-  pending: number
-}
-
-export interface ReviewRecord {
-  id: string
-  chapter_title: string
-  chapter_number: number
-  status: string
-  submitted_at: string
-  reviewed_at: string | null
-  reviewer_name: string | null
-  review_comment: string | null
-}
+import type { ReviewRecord, ReviewStats } from '@/modules/writer/api/dashboard'
 
 const props = defineProps<{
   reviewHistory: ReviewRecord[]
