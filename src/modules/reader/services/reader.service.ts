@@ -8,7 +8,7 @@ import type {
   Chapter,
   ChapterContent,
   ReadingProgress,
-  ReadingSettings
+  ReadingSettings,
 } from '../types/reader.types'
 import { storageService } from '@/core/services/storage.service'
 import { STORAGE_KEYS } from '@/core/config/constants'
@@ -36,14 +36,15 @@ class ReaderService {
   async saveReadingProgress(
     bookId: string,
     chapterId: string,
-    progress: number
+    progress: number,
+    readDuration: number = 0,
   ): Promise<void> {
     try {
       await readerAPI.saveReadingProgress({
         bookId,
         chapterId,
         progressPercent: progress,
-        readDuration: 0 // TODO: Track actual duration
+        readDuration,
       } as any)
     } catch (error) {
       console.error('Failed to save reading progress:', error)
@@ -56,7 +57,7 @@ class ReaderService {
   async getReadingProgress(bookId: string): Promise<ReadingProgress | null> {
     try {
       const response = await readerAPI.getReadingProgress(bookId)
-      return (response as any).data as ReadingProgress || null
+      return ((response as any).data as ReadingProgress) || null
     } catch (error) {
       console.error('Failed to get reading progress:', error)
       return null
@@ -72,7 +73,7 @@ class ReaderService {
       lineHeight: 1.8,
       theme: 'light',
       fontFamily: 'default',
-      pageWidth: 800
+      pageWidth: 800,
     }
 
     return storageService.get<ReadingSettings>(STORAGE_KEYS.READING_SETTINGS) || defaultSettings
@@ -89,7 +90,7 @@ class ReaderService {
    * Calculate next chapter
    */
   getNextChapter(chapters: Chapter[], currentChapterId: string): Chapter | null {
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapterId)
+    const currentIndex = chapters.findIndex((ch) => ch.id === currentChapterId)
     if (currentIndex === -1 || currentIndex === chapters.length - 1) {
       return null
     }
@@ -100,7 +101,7 @@ class ReaderService {
    * Calculate previous chapter
    */
   getPreviousChapter(chapters: Chapter[], currentChapterId: string): Chapter | null {
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapterId)
+    const currentIndex = chapters.findIndex((ch) => ch.id === currentChapterId)
     if (currentIndex <= 0) {
       return null
     }
@@ -130,4 +131,3 @@ class ReaderService {
 
 export const readerService = new ReaderService()
 export default readerService
-

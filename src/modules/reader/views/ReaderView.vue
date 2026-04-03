@@ -201,6 +201,10 @@ const readingTimer = ref<number | null>(null)
 const startTime = ref(Date.now())
 const readerContainerRef = ref()
 
+// 阅读时长累加追踪（用于向后端发送增量秒数）
+let lastReadingSyncTime = 0 // 上次同步时的累加秒数
+const READING_SYNC_INTERVAL = 30000 // 30秒同步一次
+
 // 阅读流程优化相关状态
 const showChapterEndRecommendation = ref(false)
 const isInBookshelf = ref(false)
@@ -340,9 +344,12 @@ const saveCurrentProgress = async () => {
       scrollPercent,
       window.scrollY,
     )
-    const duration = Math.floor((Date.now() - startTime.value) / 1000)
-    if (duration > 0 && currentChapter.value.bookId) {
-      await readerStore.updateReadingTime(currentChapter.value.bookId, duration)
+    // 计算自上次同步以来的增量秒数
+    const totalSeconds = Math.floor((Date.now() - startTime.value) / 1000)
+    const deltaSeconds = totalSeconds - lastReadingSyncTime
+    lastReadingSyncTime = totalSeconds
+    if (deltaSeconds > 0 && currentChapter.value.bookId) {
+      await readerStore.updateReadingTime(currentChapter.value.bookId, deltaSeconds)
     }
   } catch {
     // 静默失败
@@ -506,6 +513,50 @@ const stopReadingTimer = () => {
   }
 }
 
+// 进度自动保存计时器
+const startProgressTimer = () => {
+  stopProgressTimer()
+  readingTimer.value = setInterval(saveCurrentProgress, READING_SYNC_INTERVAL) as unknown as number
+}
+
+const stopProgressTimer = () => {
+  if (readingTimer.value) {
+    clearInterval(readingTimer.value)
+    readingTimer.value = null
+  }
+}
+
+// 页面可见性变化处理
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    // 页面不可见：暂停计时器，立即保存当前进度
+    stopProgressTimer()
+    stopReadingTimer()
+    saveCurrentProgress()
+  } else {
+    // 页面可见：恢复计时器
+    startReadingTimer()
+    startProgressTimer()
+  }
+}
+
+// 页面关闭前最后一次保存
+const handleBeforeUnload = () => {
+  if (!currentChapter.value?.bookId) return
+  const totalSeconds = Math.floor((Date.now() - startTime.value) / 1000)
+  const deltaSeconds = totalSeconds - lastReadingSyncTime
+  if (deltaSeconds > 0) {
+    // 使用 sendBeacon 发送最后的阅读时长
+    const payload = JSON.stringify({
+      book_id: currentChapter.value.bookId,
+      chapter_id: chapterId.value,
+      duration: deltaSeconds,
+    })
+    navigator.sendBeacon('/api/v1/reader/progress/reading-time', payload)
+    lastReadingSyncTime = totalSeconds
+  }
+}
+
 const ensureDemoChapterList = () => {
   if (demoChapterList.value.length > 0) return
   demoChapterList.value = createYunlanReaderChapters(YUNLAN_TOTAL_CHAPTERS)
@@ -524,6 +575,7 @@ const loadChapter = async () => {
       loadDemoChapter(chapterId.value)
       readProgress.value = 0
       startTime.value = Date.now()
+      lastReadingSyncTime = 0
       return
     }
     if (isPublishedMode.value) {
@@ -558,12 +610,14 @@ const loadChapter = async () => {
       }
       readProgress.value = 0
       startTime.value = Date.now()
+      lastReadingSyncTime = 0
       return
     }
 
     await readerStore.loadChapter(chapterId.value)
     readProgress.value = 0
     startTime.value = Date.now()
+    lastReadingSyncTime = 0
 
     const chapterListValue = Array.isArray(chapterList.value)
       ? chapterList.value
@@ -612,9 +666,11 @@ onMounted(async () => {
   }
 
   startReadingTimer()
+  startProgressTimer()
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('keydown', handleKeyPress)
-  readingTimer.value = setInterval(saveCurrentProgress, 30000) as unknown as number
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('beforeunload', handleBeforeUnload)
 
   if (isMobile.value && readerContainerRef.value) {
     useTouch(readerContainerRef, {
@@ -633,11 +689,11 @@ onMounted(async () => {
 onUnmounted(() => {
   saveCurrentProgress()
   stopReadingTimer()
+  stopProgressTimer()
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('keydown', handleKeyPress)
-  if (readingTimer.value) {
-    clearInterval(readingTimer.value)
-  }
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
   readerStore.clearCurrentChapter()
 })
 

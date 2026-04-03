@@ -430,9 +430,14 @@ export const useReaderStore = defineStore('reader', () => {
   /**
    * 更新阅读时长
    */
-  async function updateReadingTime(_bookId: string, _duration: number) {
+  async function updateReadingTime(bookId: string, duration: number) {
+    if (!bookId || duration <= 0) return
     try {
-      // 这里可以调用相应的API更新阅读时长
+      await readerAPI.updateReadingTime({
+        bookId,
+        chapterId: currentChapter.value?.id || '',
+        duration,
+      } as any)
     } catch (error) {
       console.error('更新阅读时长失败:', error)
     }
