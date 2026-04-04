@@ -27,7 +27,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Run tests
-        run: npm run test:run
+        run: npm run test:vitest:run
 
       - name: Generate coverage
         run: npm run test:coverage

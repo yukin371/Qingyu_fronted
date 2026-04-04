@@ -12,6 +12,7 @@ const toastMocks = vi.hoisted(() => ({
 const loadCharacters = vi.fn().mockResolvedValue(undefined)
 const loadCharacterRelations = vi.fn().mockResolvedValue(undefined)
 const loadLocations = vi.fn().mockResolvedValue(undefined)
+const loadOutlineTree = vi.fn().mockResolvedValue(undefined)
 
 const writerStoreState = {
   characters: {
@@ -33,6 +34,7 @@ const writerStoreState = {
   loadCharacters,
   loadCharacterRelations,
   loadLocations,
+  loadOutlineTree,
   locations: {
     list: [
       {
