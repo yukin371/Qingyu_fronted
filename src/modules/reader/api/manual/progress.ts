@@ -30,6 +30,26 @@ export interface ReadingStats {
 }
 
 /**
+ * 设备阅读进度
+ */
+export interface DeviceProgress {
+  deviceId: string
+  deviceName: string
+  deviceType: string
+  lastSyncAt: string
+  currentBook?: string
+  progress?: number
+}
+
+/**
+ * 设备阅读进度响应
+ */
+export interface DevicesProgressResponse {
+  devices: DeviceProgress[]
+  count: number
+}
+
+/**
  * 阅读进度 API 接口 (v1.0)
  * @description 对接后端 /api/v1/reader/progress 路由
  * @endpoint /api/v1/reader/progress
@@ -125,7 +145,7 @@ export const progressAPI = {
     pageSize?: number
   }): Promise<PaginatedResponse<ReadingProgress>> {
     return httpService.get<PaginatedResponse<ReadingProgress>>('/reader/progress/history', {
-      params
+      params,
     })
   },
 
@@ -166,7 +186,20 @@ export const progressAPI = {
    */
   async getFinishedBooks(): Promise<APIResponse<ReadingProgress[]>> {
     return httpService.get<APIResponse<ReadingProgress[]>>('/reader/progress/finished')
-  }
+  },
+
+  /**
+   * 获取跨设备阅读记录
+   * @description 获取用户在多个设备上的阅读进度记录
+   * @endpoint GET /api/v1/reader/progress/devices
+   * @category reader
+   * @tags 阅读进度
+   * @response {APIResponse<DevicesProgressResponse>} 200 - 成功返回设备列表
+   * @security BearerAuth
+   */
+  async getDevicesProgress(): Promise<APIResponse<DevicesProgressResponse>> {
+    return httpService.get<APIResponse<DevicesProgressResponse>>('/reader/progress/devices')
+  },
 }
 
 // 向后兼容：导出旧的函数名
@@ -178,5 +211,6 @@ export const getReadingHistory = (params?: any) => progressAPI.getReadingHistory
 export const getReadingStats = () => progressAPI.getReadingStats()
 export const getUnfinishedBooks = () => progressAPI.getUnfinishedBooks()
 export const getFinishedBooks = () => progressAPI.getFinishedBooks()
+export const getDevicesProgress = () => progressAPI.getDevicesProgress()
 
 export default progressAPI

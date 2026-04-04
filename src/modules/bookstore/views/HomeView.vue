@@ -339,8 +339,10 @@ export default {
     const handleViewRanking = (type) => {
       router.push({ path: '/bookstore/rankings', query: type ? { type } : {} })
     }
-    const handleViewBooks = () => {
-      // TODO: Implement books view handler
+    const handleViewBooks = (type) => {
+      // 导航到浏览书籍页面，可选携带筛选类型
+      const query = type ? { filter: type } : {}
+      router.push({ path: '/bookstore/browse', query })
     }
     const goToReaderDemo = () => router.push('/bookstore/reader-demo')
 
