@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.27.3",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.0",
     "@pinia/testing": "^0.1.3",
     "@playwright/test": "^1.58.0",
     "@storybook/addon-essentials": "^8.6.15",
