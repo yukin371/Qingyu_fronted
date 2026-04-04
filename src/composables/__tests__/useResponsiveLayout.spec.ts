@@ -10,9 +10,9 @@
  * 5. 触摸手势处理
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
-import { useResponsiveLayout, LayoutMode, PanelState, PanelPosition } from '../useResponsiveLayout'
+import { useResponsiveLayout } from '../useResponsiveLayout'
 
 // Mock localStorage
 const localStorageMock = {
@@ -28,7 +28,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock useBreakpoints
 vi.mock('../useBreakpoints', () => ({
-  useBreakpoints: (breakpoints: any) => ({
+  useBreakpoints: (_breakpoints: unknown) => ({
     isMobile: ref(false),
     isTablet: ref(false),
     isDesktop: ref(true),
@@ -69,9 +69,9 @@ describe('useResponsiveLayout', () => {
 
   describe('布局模式切换', () => {
     it('应该正确识别移动端模式', () => {
-      const { useResponsiveLayout: mockUseResponsiveLayout } = require('../useResponsiveLayout')
       // 这里需要mock useBreakpoints返回isMobile=true
       // 由于模块已加载，实际测试中可能需要使用mockImplementation
+      void 0 // Placeholder
     })
 
     it('应该正确识别平板模式', () => {
@@ -107,30 +107,29 @@ describe('useResponsiveLayout', () => {
     })
 
     it('应该可以更新面板宽度', () => {
-      const { leftPanel, updatePanelWidth } = useResponsiveLayout()
-      
-      const originalWidth = leftPanel.value.width
+      const { updatePanelWidth } = useResponsiveLayout()
+
       updatePanelWidth('left', 350)
-      
+
       // 验证宽度已更新并保存到localStorage
       expect(localStorageMock.setItem).toHaveBeenCalled()
     })
 
     it('应该限制面板宽度在最小和最大值之间', () => {
       const { updatePanelWidth } = useResponsiveLayout()
-      
+
       // 测试小于最小值
       updatePanelWidth('left', 150)
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'editor-layout-settings',
-        expect.stringContaining('"leftPanelWidth":200')
+        (expect as any).stringContaining('"leftPanelWidth":200')
       )
-      
+
       // 测试大于最大值
       updatePanelWidth('left', 700)
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'editor-layout-settings',
-        expect.stringContaining('"leftPanelWidth":600')
+        (expect as any).stringContaining('"leftPanelWidth":600')
       )
     })
   })
@@ -154,23 +153,23 @@ describe('useResponsiveLayout', () => {
 
     it('应该保存面板宽度到localStorage', () => {
       const { updatePanelWidth } = useResponsiveLayout()
-      
+
       updatePanelWidth('left', 350)
-      
+
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'editor-layout-settings',
-        expect.stringContaining('"leftPanelWidth":350')
+        (expect as any).stringContaining('"leftPanelWidth":350')
       )
     })
 
     it('应该保存面板折叠状态到localStorage', () => {
       const { togglePanel } = useResponsiveLayout()
-      
+
       togglePanel('left')
-      
+
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'editor-layout-settings',
-        expect.stringContaining('"leftPanelCollapsed":true')
+        (expect as any).stringContaining('"leftPanelCollapsed":true')
       )
     })
 
@@ -267,13 +266,13 @@ describe('useResponsiveLayout', () => {
 
   describe('重置布局', () => {
     it('应该重置所有设置到默认值', () => {
-      const { leftPanel, rightPanel, activeTab, resetLayout } = useResponsiveLayout()
-      
+      const { activeTab, resetLayout } = useResponsiveLayout()
+
       // 修改一些设置
       activeTab.value = 'left'
-      
+
       resetLayout()
-      
+
       // 验证已重置
       // 注意：这里需要重新获取useResponsiveLayout实例
       // 实际测试中可能需要使用fresh实例
@@ -340,10 +339,10 @@ describe('useResponsiveLayout', () => {
       localStorageMock.getItem.mockReturnValue(
         JSON.stringify({ leftPanelWidth: 'invalid' })
       )
-      
+
       // 不应该抛出错误
       expect(() => {
-        const { leftPanel } = useResponsiveLayout()
+        useResponsiveLayout()
       }).not.toThrow()
     })
   })

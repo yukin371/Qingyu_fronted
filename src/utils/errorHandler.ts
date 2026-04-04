@@ -28,12 +28,12 @@ export interface ErrorOptions {
 export interface AppError {
   code: FrontendErrorCode
   message: string
-  details?: any
+  details?: unknown
   statusCode?: number
-  requestId?: string  // 添加requestId字段，用于错误追踪
+  requestId?: string
   timestamp: number
-  backendCode?: number // 原始后端错误码
-  errorInfo?: ErrorMessage // 完整的错误信息
+  backendCode?: number
+  errorInfo?: ErrorMessage
 }
 
 /**
@@ -51,7 +51,7 @@ export class ErrorHandler {
   /**
    * 处理错误
    */
-  static handle(error: any, options: ErrorOptions = {}): AppError {
+  static handle(error: unknown, options: ErrorOptions = {}): AppError {
     const opts = { ...this.defaultOptions, ...options }
     const appError = this.parseError(error, opts.locale)
 
@@ -76,7 +76,7 @@ export class ErrorHandler {
   /**
    * 解析错误
    */
-  private static parseError(error: any, locale?: string): AppError {
+  private static parseError(error: unknown, locale?: string): AppError {
     const timestamp = Date.now()
 
     // null 或 undefined
@@ -140,7 +140,7 @@ export class ErrorHandler {
     locale?: string
   ): AppError {
     const statusCode = error.response?.status
-    const responseData = error.response?.data as any
+    const responseData = error.response?.data as Record<string, unknown> | undefined
 
     // 网络错误
     if (!error.response) {
@@ -162,9 +162,9 @@ export class ErrorHandler {
 
       return {
         code: frontendCode,
-        message: responseData?.message || errorInfo.message,
+        message: (responseData?.message as string) || errorInfo.message,
         statusCode,
-        requestId: responseData?.requestId,  // 添加requestId提取
+        requestId: responseData?.requestId as string | undefined,
         backendCode,
         details: responseData,
         timestamp,
@@ -181,7 +181,7 @@ export class ErrorHandler {
    */
   private static parseByHttpStatus(
     statusCode: number | undefined,
-    responseData: any,
+    responseData: Record<string, unknown> | undefined,
     timestamp: number,
     locale?: string
   ): AppError {
@@ -190,10 +190,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.BAD_REQUEST, locale)
         return {
           code: FrontendErrorCode.BAD_REQUEST,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -202,10 +202,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.UNAUTHORIZED, locale)
         return {
           code: FrontendErrorCode.UNAUTHORIZED,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -214,10 +214,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.FORBIDDEN, locale)
         return {
           code: FrontendErrorCode.FORBIDDEN,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -226,10 +226,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.NOT_FOUND, locale)
         return {
           code: FrontendErrorCode.NOT_FOUND,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -238,10 +238,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.CONFLICT, locale)
         return {
           code: FrontendErrorCode.CONFLICT,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -250,10 +250,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.VALIDATION_ERROR, locale)
         return {
           code: FrontendErrorCode.VALIDATION_ERROR,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -262,10 +262,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.RATE_LIMITED, locale)
         return {
           code: FrontendErrorCode.RATE_LIMITED,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -274,10 +274,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.SERVER_ERROR, locale)
         return {
           code: FrontendErrorCode.SERVER_ERROR,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -287,10 +287,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.SERVICE_UNAVAILABLE, locale)
         return {
           code: FrontendErrorCode.SERVICE_UNAVAILABLE,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -299,10 +299,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.TIMEOUT, locale)
         return {
           code: FrontendErrorCode.TIMEOUT,
-          message: responseData?.message || errorInfo.message,
+          message: (responseData?.message as string) || errorInfo.message,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -311,10 +311,10 @@ export class ErrorHandler {
         const errorInfo = getErrorMessage(FrontendErrorCode.UNKNOWN_ERROR, locale)
         return {
           code: FrontendErrorCode.UNKNOWN_ERROR,
-          message: responseData?.message || `请求失败 (${statusCode})`,
+          message: (responseData?.message as string) || `请求失败 (${statusCode})`,
           statusCode,
           details: responseData,
-          requestId: responseData?.requestId,  // 添加requestId提取
+          requestId: responseData?.requestId as string | undefined,
           timestamp,
           errorInfo
         }
@@ -365,20 +365,16 @@ export class ErrorHandler {
    * 显示错误消息
    */
   private static showError(appError: AppError, type: 'message' | 'notification') {
-    const message = this.getErrorMessage(appError)
+    const errorMessage = this.getErrorMessage(appError)
     const title = appError.errorInfo?.title || '错误'
 
     if (type === 'notification') {
-      notification.error({
+      notification.error(errorMessage, {
         title,
-        message,
         duration: 4000
       })
     } else {
-      message.error({
-        message,
-        duration: 3000
-      })
+      message.error(errorMessage)
     }
   }
 

@@ -8,21 +8,23 @@ import { message, messageBox, notification } from '@/design-system/services'
 
 // 主题系统 - 必须在样式之前初始化
 import { initTheme } from '@/design-system/tokens/theme'
-initTheme()  // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
+initTheme() // 自动从 localStorage 读取保存的主题，如果没有则使用默认的青羽主题
 
 // 测试模式 API 拦截器
 import { initTestModeApiInterceptor } from '@/utils/test-mode-api-interceptor'
-initTestModeApiInterceptor()  // 初始化测试模式 API 拦截器
+initTestModeApiInterceptor() // 初始化测试模式 API 拦截器
 
 // 全局样式
-import './style.css'  // Tailwind CSS - MUST be imported first
+import './style.css' // Tailwind CSS - MUST be imported first
 import '@/styles/variables.scss'
-import '@/styles/reader-variables.scss'  // TDD Phase 2: 阅读器设计系统变量
-import '@/design-system/themes/vscode-dark.scss'  // VSCode 深色主题
+import '@/styles/reader-variables.scss' // TDD Phase 2: 阅读器设计系统变量
+import '@/design-system/themes/vscode-dark.scss' // VSCode 深色主题
+import '@/design-system/themes/editor-light.css' // 编辑器浅色主题 token
 import '@/styles/common.scss'
 
 // 全局指令
 import { vLazy } from '@/directives/lazy'
+import { vSafeHtml } from '@/directives/safeHtml'
 
 // 全局错误处理
 import { createVueErrorHandler, createPromiseRejectionHandler } from './utils/errorHandler'
@@ -33,6 +35,7 @@ const app = createApp(App)
 
 // 注册全局指令
 app.directive('lazy', vLazy)
+app.directive('safe-html', vSafeHtml)
 
 // Vue错误处理
 app.config.errorHandler = createVueErrorHandler()
@@ -72,7 +75,7 @@ app.config.globalProperties.$MessageBox = messageBox
 app.config.globalProperties.$notify = notification
 
 // 添加类型声明
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   export interface ComponentCustomProperties {
     $message: typeof message
     $MessageBox: typeof messageBox
@@ -82,9 +85,11 @@ declare module '@vue/runtime-core' {
 
 // 空闲时补齐全量组件注册，避免后续页面因未注册组件报错
 const runWhenIdle = (task: () => void) => {
-  const requestIdle = (window as Window & {
-    requestIdleCallback?: (cb: () => void) => number
-  }).requestIdleCallback
+  const requestIdle = (
+    window as Window & {
+      requestIdleCallback?: (_cb: () => void) => number
+    }
+  ).requestIdleCallback
 
   if (requestIdle) {
     requestIdle(task)

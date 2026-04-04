@@ -2,7 +2,9 @@
  * Notification 组件 Storybook 故事
  */
 
+// @ts-nocheck - Storybook stories with flexible component types
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { ref, h, onMounted, onUnmounted } from 'vue'
 import Notification from './Notification.vue'
 import useNotification from './useNotification'
 

@@ -64,7 +64,7 @@ describe('Social API Wrapper', () => {
         isPublic: true,
       }
 
-      await wrapper.createBookList(bookListData)
+      await wrapper.createBookList(bookListData as any)
 
       expect(orvalMutator).toHaveBeenCalled()
     })
@@ -73,7 +73,7 @@ describe('Social API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getReviews({ bookId: 'book-123' })
+      const result = await wrapper.getReviews({ book_id: 'book-123' } as any)
 
       expect(orvalMutator).toHaveBeenCalled()
       expect(result).toBeDefined()
@@ -83,7 +83,7 @@ describe('Social API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      await wrapper.followUser({ targetUserId: 'user-123' })
+      await wrapper.followUser('user-123' as any)
 
       expect(orvalMutator).toHaveBeenCalled()
     })

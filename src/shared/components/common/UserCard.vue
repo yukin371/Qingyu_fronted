@@ -1,10 +1,10 @@
 <template>
-  <QyCard class="user-card" :class="{ compact }" hoverable>
+  <QyCard class="user-card" :class="compact ? 'compact' : ''">
     <template #title v-if="!compact"></template>
     <div class="user-card-content">
       <!-- 用户头像 -->
       <QyAvatar
-        :size="avatarSize"
+        size="lg"
         :src="user.avatar"
         type="image"
         class="user-avatar"
@@ -49,19 +49,14 @@
           <QyButton
             v-if="showFollow && !isCurrentUser"
             :variant="isFollowing ? 'ghost' : 'primary'"
-            :icon="isFollowing ? checkIcon : plusIcon"
             @click="handleFollow"
           >
-            <el-icon>
-              <component :is="isFollowing ? Check : Plus" />
-            </el-icon>
             {{ isFollowing ? '已关注' : '关注' }}
           </QyButton>
 
           <QyButton
             v-if="showMessage && !isCurrentUser"
             variant="ghost"
-            :icon="chatIcon"
             @click="handleMessage"
           >
             私信
@@ -81,13 +76,6 @@ import QyCard from '@/design-system/components/basic/QyCard/QyCard.vue'
 import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
 import { useAuthStore } from '@/stores/auth'
-
-// SVG 图标
-const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
-
-const plusIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'
-
-const chatIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>'
 
 interface User {
   user_id?: string

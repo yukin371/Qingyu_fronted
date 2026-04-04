@@ -115,8 +115,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { Input, Select } from '@/design-system/form'
-import type { Collection } from '@/modules/reader/api/manual/collections'
+import { collectionsAPI, type Collection } from '@/modules/reader/api/manual/collections'
 import CollectionBookCard from '@/modules/reader/components/CollectionBookCard.vue'
+import { getBookDetail } from '@/modules/bookstore/api'
+import defaultBookCover from '@/assets/default-book-cover.svg'
 
 type SortBy = 'latest' | 'oldest' | 'title' | 'author'
 type NoteMode = 'replace' | 'append'
@@ -245,42 +247,52 @@ watch(allCollections, () => {
 
 async function loadCollections() {
   loading.value = true
-  await new Promise((resolve) => setTimeout(resolve, 100))
-  const raw = buildMockCollections()
-  rawCollectionCount.value = raw.length
-  allCollections.value = mergeCollections(raw)
-  loading.value = false
-}
+  try {
+    const response = await collectionsAPI.getCollections({ page: 1, pageSize: 100 })
+    const payload = (response as any)?.data ?? response
+    const rawList = Array.isArray(payload)
+      ? payload
+      : (payload?.collections || payload?.items || payload?.list || payload?.data || [])
 
-function buildMockCollections(): Collection[] {
-  const baseDate = Date.now()
-  const authors = ['青砚', '临川', '北山客', '宋野', '南渡']
-  const tagMatrix = [
-    ['玄幻', '连载'],
-    ['剧情', '成长'],
-    ['轻小说', '冒险'],
-    ['治愈', '都市'],
-    ['悬疑', '反转']
-  ]
+    const uniqueBookIds = [...new Set((Array.isArray(rawList) ? rawList : []).map((item: any) => item.bookId || item.book_id).filter(Boolean))]
+    const detailEntries = await Promise.all(
+      uniqueBookIds.map(async (id) => {
+        try {
+          const detailResponse = await getBookDetail(String(id))
+          return [String(id), (detailResponse as any)?.data ?? detailResponse] as const
+        } catch {
+          return [String(id), null] as const
+        }
+      }),
+    )
+    const details = new Map(detailEntries)
 
-  return Array.from({ length: 34 }, (_, i) => {
-    const bookNo = 1000 + (i % 20)
-    const id = `col-${i + 1}`
-    const createdAt = new Date(baseDate - i * 1000 * 60 * 60 * 24 * 4).toISOString()
-    const tags = tagMatrix[i % tagMatrix.length]
-    return {
-      id,
-      bookId: `book-${bookNo}`,
-      title: `云岚纪事·卷${(bookNo % 9) + 1}`,
-      author: authors[i % authors.length],
-      cover: `https://picsum.photos/seed/collection-${bookNo}/180/240`,
-      description: i % 3 === 0 ? '人物刻画细腻，冲突推进自然。\n关键章节张力较强。' : '',
-      tags,
-      isPublic: false,
-      createdAt,
-      updatedAt: createdAt
-    }
-  })
+    const normalized = (Array.isArray(rawList) ? rawList : []).map((item: any) => {
+      const bookId = String(item.bookId || item.book_id || '')
+      const detail = details.get(bookId)
+      return {
+        id: String(item.id || item.collection_id || `${bookId}-collection`),
+        bookId,
+        title: detail?.title || item.title || `作品 ${bookId.slice(-6)}`,
+        author: detail?.author || item.author || '未知作者',
+        cover: detail?.cover || item.cover || defaultBookCover,
+        description: item.description || item.note || '',
+        tags: item.tags || detail?.tags || [],
+        isPublic: Boolean(item.isPublic ?? item.is_public ?? false),
+        createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+        updatedAt: item.updatedAt || item.updated_at || item.createdAt || new Date().toISOString(),
+      } satisfies Collection
+    })
+
+    rawCollectionCount.value = Number((response as any)?.pagination?.total ?? payload?.pagination?.total ?? normalized.length)
+    allCollections.value = mergeCollections(normalized)
+  } catch (error: any) {
+    message.error(error.message || '加载收藏失败')
+    rawCollectionCount.value = 0
+    allCollections.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 function mergeCollections(list: Collection[]): Collection[] {
@@ -355,10 +367,17 @@ function saveSingleNote() {
   if (!noteDialogItemId.value) return
   const target = allCollections.value.find((x) => x.id === noteDialogItemId.value)
   if (!target) return
-  target.description = noteDialogValue.value.trim()
-  target.updatedAt = new Date().toISOString()
-  noteDialogVisible.value = false
-  message.success('备注已保存')
+  collectionsAPI.updateCollection(target.id, {
+    description: noteDialogValue.value.trim(),
+    note: noteDialogValue.value.trim(),
+  } as any).then(() => {
+    target.description = noteDialogValue.value.trim()
+    target.updatedAt = new Date().toISOString()
+    noteDialogVisible.value = false
+    message.success('备注已保存')
+  }).catch((error: any) => {
+    message.error(error.message || '备注保存失败')
+  })
 }
 
 async function handleRemove(item: Collection) {
@@ -367,6 +386,7 @@ async function handleRemove(item: Collection) {
       confirmButtonText: '确认',
       cancelButtonText: '保留'
     })
+    await collectionsAPI.deleteCollection(item.id)
     allCollections.value = allCollections.value.filter((x) => x.id !== item.id)
     selectedIds.value = selectedIds.value.filter((id) => id !== item.id)
     message.success('已取消收藏')
@@ -381,13 +401,21 @@ function applyBatchTags() {
     return
   }
   const idSet = new Set(selectedIds.value)
-  allCollections.value.forEach((item) => {
-    if (!idSet.has(item.id)) return
-    item.tags = [...new Set([...(item.tags || []), ...batchTagValues.value])]
-    item.updatedAt = new Date().toISOString()
+  const tasks = allCollections.value
+    .filter((item) => idSet.has(item.id))
+    .map((item) => {
+      const tags = [...new Set([...(item.tags || []), ...batchTagValues.value])]
+      return collectionsAPI.updateCollection(item.id, { tags } as any).then(() => {
+        item.tags = tags
+        item.updatedAt = new Date().toISOString()
+      })
+    })
+  Promise.all(tasks).then(() => {
+    openBatchTagDialog.value = false
+    message.success(`已为 ${selectedIds.value.length} 项添加标签`)
+  }).catch((error: any) => {
+    message.error(error.message || '批量打标签失败')
   })
-  openBatchTagDialog.value = false
-  message.success(`已为 ${selectedIds.value.length} 项添加标签`)
 }
 
 function openBatchNoteEditor() {
@@ -408,19 +436,27 @@ function applyBatchNote() {
   }
 
   const idSet = new Set(selectedIds.value)
-  allCollections.value.forEach((item) => {
-    if (!idSet.has(item.id)) return
-    if (batchNoteMode.value === 'append') {
-      const current = item.description?.trim() || ''
-      item.description = current ? `${current}\n${text}` : text
-    } else {
-      item.description = text
-    }
-    item.updatedAt = new Date().toISOString()
-  })
+  const tasks = allCollections.value
+    .filter((item) => idSet.has(item.id))
+    .map((item) => {
+      const nextDescription = batchNoteMode.value === 'append'
+        ? (item.description?.trim() ? `${item.description.trim()}\n${text}` : text)
+        : text
+      return collectionsAPI.updateCollection(item.id, {
+        description: nextDescription,
+        note: nextDescription,
+      } as any).then(() => {
+        item.description = nextDescription
+        item.updatedAt = new Date().toISOString()
+      })
+    })
 
-  batchNoteDialogVisible.value = false
-  message.success(`已更新 ${selectedIds.value.length} 项备注`)
+  Promise.all(tasks).then(() => {
+    batchNoteDialogVisible.value = false
+    message.success(`已更新 ${selectedIds.value.length} 项备注`)
+  }).catch((error: any) => {
+    message.error(error.message || '批量备注失败')
+  })
 }
 
 async function batchRemoveSelected() {
@@ -431,6 +467,7 @@ async function batchRemoveSelected() {
       cancelButtonText: '保留'
     })
     const set = new Set(selectedIds.value)
+    await Promise.all(allCollections.value.filter((x) => set.has(x.id)).map((item) => collectionsAPI.deleteCollection(item.id)))
     allCollections.value = allCollections.value.filter((x) => !set.has(x.id))
     selectedIds.value = []
     message.success('批量取消收藏成功')

@@ -8,36 +8,67 @@ import { ActorRole, UserCredentials } from './actor-factory'
 /**
  * 用户测试数据
  */
+/**
+ * 统一测试账号体系 - 与后端 seeder_users.go 保持一致
+ *
+ * 后端Seeder创建的固定测试账号:
+ * - testuser001-004 (读者) / password
+ * - testauthor001 (作者) / password
+ * - testadmin001 (管理员) / password
+ *
+ * 运行后端填充命令: go run cmd/seeder/main.go e2e
+ */
+// 统一测试密码：与后端 seeder_users.go 保持一致（password）
+const TEST_PASSWORD = 'password'
+
 export const testUsers = {
   guest: {
     username: 'guest_user',
     email: 'guest@example.com',
-    password: 'Guest123456'
+    password: TEST_PASSWORD,
   },
   reader: {
-    username: 'test_reader',
-    email: 'reader@example.com',
-    password: 'Reader123456',
-    role: ActorRole.READER
+    username: 'testuser001',
+    email: 'testuser001@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.READER,
+  },
+  reader2: {
+    username: 'testuser002',
+    email: 'testuser002@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.READER,
+  },
+  reader3: {
+    username: 'testuser003',
+    email: 'testuser003@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.READER,
+  },
+  reader4: {
+    username: 'testuser004',
+    email: 'testuser004@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.READER,
   },
   author: {
-    username: 'test_author',
-    email: 'author@example.com',
-    password: 'Author123456',
-    role: ActorRole.AUTHOR
+    username: 'testauthor001',
+    email: 'testauthor001@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.AUTHOR,
   },
   admin: {
-    username: 'admin',
-    email: 'admin@example.com',
-    password: 'Admin123456',
-    role: ActorRole.ADMIN
+    username: 'testadmin001',
+    email: 'testadmin001@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.ADMIN,
   },
   vipMember: {
-    username: 'vip_member',
-    email: 'vip@example.com',
-    password: 'Vip123456',
-    role: ActorRole.VIP_MEMBER
-  }
+    username: 'testuser001', // 使用reader账号模拟VIP
+    email: 'testuser001@example.com',
+    password: TEST_PASSWORD,
+    role: ActorRole.VIP_MEMBER,
+  },
 } as const
 
 /**
@@ -60,7 +91,7 @@ export const testBooks = {
     isFree: true,
     isRecommended: true,
     isFeatured: false,
-    isHot: true
+    isHot: true,
   },
   completedBook: {
     id: 'test-book-002',
@@ -78,7 +109,7 @@ export const testBooks = {
     isFree: false,
     isRecommended: true,
     isFeatured: true,
-    isHot: true
+    isHot: true,
   },
   freeBook: {
     id: 'test-book-003',
@@ -96,8 +127,8 @@ export const testBooks = {
     isFree: true,
     isRecommended: false,
     isFeatured: false,
-    isHot: false
-  }
+    isHot: false,
+  },
 } as const
 
 /**
@@ -112,7 +143,7 @@ export const testChapters = {
     wordCount: 2000,
     order: 1,
     isPublished: true,
-    publishedAt: new Date().toISOString()
+    publishedAt: new Date().toISOString(),
   },
   chapter2: {
     id: 'chapter-002',
@@ -122,7 +153,7 @@ export const testChapters = {
     wordCount: 2500,
     order: 2,
     isPublished: true,
-    publishedAt: new Date().toISOString()
+    publishedAt: new Date().toISOString(),
   },
   draftChapter: {
     id: 'chapter-003',
@@ -132,8 +163,8 @@ export const testChapters = {
     wordCount: 1000,
     order: 3,
     isPublished: false,
-    publishedAt: null
-  }
+    publishedAt: null,
+  },
 } as const
 
 /**
@@ -148,7 +179,7 @@ export const testComments = {
     content: '这本书太好看了，强烈推荐！',
     rating: 5,
     likeCount: 10,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   },
   neutral: {
     id: 'comment-002',
@@ -158,7 +189,7 @@ export const testComments = {
     content: '还可以，有一些地方需要改进',
     rating: 3,
     likeCount: 2,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   },
   negative: {
     id: 'comment-003',
@@ -168,8 +199,8 @@ export const testComments = {
     content: '不太喜欢这个风格',
     rating: 2,
     likeCount: 0,
-    createdAt: new Date().toISOString()
-  }
+    createdAt: new Date().toISOString(),
+  },
 } as const
 
 /**
@@ -182,7 +213,7 @@ export const testCategories = {
     description: '玄幻魔法类小说',
     icon: 'fantasy-icon',
     parentId: null,
-    order: 1
+    order: 1,
   },
   urban: {
     id: 'cat-002',
@@ -190,7 +221,7 @@ export const testCategories = {
     description: '都市生活类小说',
     icon: 'urban-icon',
     parentId: null,
-    order: 2
+    order: 2,
   },
   scifi: {
     id: 'cat-003',
@@ -198,7 +229,7 @@ export const testCategories = {
     description: '科幻未来类小说',
     icon: 'scifi-icon',
     parentId: null,
-    order: 3
+    order: 3,
   },
   xianxia: {
     id: 'cat-004',
@@ -206,8 +237,8 @@ export const testCategories = {
     description: '修仙类小说',
     icon: 'xianxia-icon',
     parentId: 'cat-001',
-    order: 1
-  }
+    order: 1,
+  },
 } as const
 
 /**
@@ -222,7 +253,7 @@ export const testProjects = {
     status: 'draft',
     wordCount: 0,
     chapterCount: 0,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   },
   ongoingProject: {
     id: 'project-002',
@@ -232,8 +263,8 @@ export const testProjects = {
     status: 'ongoing',
     wordCount: 50000,
     chapterCount: 20,
-    createdAt: new Date().toISOString()
-  }
+    createdAt: new Date().toISOString(),
+  },
 } as const
 
 /**
@@ -244,38 +275,38 @@ export const apiResponses = {
     code: 200,
     message: '成功',
     data: {},
-    request_id: 'test-request-001'
+    request_id: 'test-request-001',
   },
   created: {
     code: 201,
     message: '创建成功',
     data: {},
-    request_id: 'test-request-002'
+    request_id: 'test-request-002',
   },
   unauthorized: {
     code: 401,
     message: '未授权',
     data: null,
-    request_id: 'test-request-003'
+    request_id: 'test-request-003',
   },
   forbidden: {
     code: 403,
     message: '无权限',
     data: null,
-    request_id: 'test-request-004'
+    request_id: 'test-request-004',
   },
   notFound: {
     code: 404,
     message: '资源不存在',
     data: null,
-    request_id: 'test-request-005'
+    request_id: 'test-request-005',
   },
   serverError: {
     code: 500,
     message: '服务器错误',
     data: null,
-    request_id: 'test-request-006'
-  }
+    request_id: 'test-request-006',
+  },
 } as const
 
 /**
@@ -317,7 +348,10 @@ export class TestDataGenerator {
     }
 
     // 打乱密码顺序
-    return password.split('').sort(() => Math.random() - 0.5).join('')
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('')
   }
 
   /**
@@ -338,10 +372,7 @@ export class TestDataGenerator {
    * 生成随机文本
    */
   static randomText(wordCount: number = 10): string {
-    const words = [
-      '测试', '数据', '生成', '随机', '内容',
-      '示例', '文本', '字段', '值', '对象'
-    ]
+    const words = ['测试', '数据', '生成', '随机', '内容', '示例', '文本', '字段', '值', '对象']
     let text = ''
     for (let i = 0; i < wordCount; i++) {
       text += words[Math.floor(Math.random() * words.length)]
@@ -358,7 +389,7 @@ export class TestDataGenerator {
       username: this.randomUsername(),
       email: this.randomEmail(),
       password: this.randomPassword(),
-      ...overrides
+      ...overrides,
     }
   }
 
@@ -369,18 +400,20 @@ export class TestDataGenerator {
     return {
       ...testBooks.novel,
       id: this.randomBookId(),
-      ...overrides
+      ...overrides,
     }
   }
 
   /**
    * 创建章节数据
    */
-  static createChapterData(overrides?: Partial<typeof testChapters.chapter1>): typeof testChapters.chapter1 {
+  static createChapterData(
+    overrides?: Partial<typeof testChapters.chapter1>,
+  ): typeof testChapters.chapter1 {
     return {
       ...testChapters.chapter1,
       id: `chapter_${Date.now()}`,
-      ...overrides
+      ...overrides,
     }
   }
 
@@ -393,7 +426,7 @@ export class TestDataGenerator {
     start.setDate(start.getDate() - daysAgo)
     return {
       start: start.toISOString(),
-      end: end.toISOString()
+      end: end.toISOString(),
     }
   }
 }
@@ -404,16 +437,16 @@ export class TestDataGenerator {
 export const testBookshelves = {
   default: {
     name: '我的书架',
-    description: '收藏我喜欢的书籍'
+    description: '收藏我喜欢的书籍',
   },
   favorites: {
     name: '最爱收藏',
-    description: '我最喜欢的小说'
+    description: '我最喜欢的小说',
   },
   toRead: {
     name: '待看书单',
-    description: '计划阅读的书籍'
-  }
+    description: '计划阅读的书籍',
+  },
 } as const
 
 /**
@@ -429,5 +462,5 @@ export const testFixtures = {
   bookshelves: testBookshelves,
   bookshelf: testBookshelves.default, // 添加默认书架
   apiResponses: apiResponses,
-  generator: TestDataGenerator
+  generator: TestDataGenerator,
 }

@@ -57,7 +57,7 @@ export const RANKING_TYPES = {
 
 // Book Status
 export const BOOK_STATUS = {
-  SERIALIZING: 'serializing',
+  ONGOING: 'ongoing',
   COMPLETED: 'completed',
   PAUSED: 'paused'
 } as const
@@ -137,4 +137,3 @@ export default {
   PAGINATION,
   FILE_UPLOAD
 }
-

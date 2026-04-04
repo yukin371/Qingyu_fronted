@@ -91,6 +91,8 @@ import { message } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, Grid, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
+import { Refresh, Monitor } from '@element-plus/icons-vue'
+
 const aiStore = useAIAdminStore()
 
 // 状态

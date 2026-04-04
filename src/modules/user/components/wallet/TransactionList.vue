@@ -25,7 +25,7 @@
     <div v-else class="list-content">
       <div
         v-for="transaction in transactions"
-        :key="transaction.transactionId"
+        :key="transaction.id"
         class="transaction-item"
       >
         <div class="transaction-icon" :class="`type-${transaction.type}`">
@@ -60,7 +60,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { QyIcon } from '@/design-system/components'
 import type { Transaction } from '@/types/shared'
 import { formatRelativeTime } from '@/utils/format.ts'
 import { formatTransactionAmount } from '@/utils/currency'

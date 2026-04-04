@@ -1,7 +1,7 @@
 import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useWebSocketStore } from '../websocket.store'
-import { WebSocketConnectionState } from '@/core/types/websocket.types'
+import { WebSocketConnectionState, WebSocketMessageType } from '@/core/types/websocket.types'
 
 // Mock WebSocket service
 const mockWebSocketService = {
@@ -64,14 +64,14 @@ describe('WebSocketStore', () => {
     await store.connect('test-token')
 
     store.sendMessage({
-      type: 'message',
+      type: WebSocketMessageType.MESSAGE,
       data: { text: 'test' },
     })
 
     // 验证send被调用 - 如果没有抛出异常，说明调用成功
     expect(() => {
       store.sendMessage({
-        type: 'message',
+        type: WebSocketMessageType.MESSAGE,
         data: { text: 'test' },
       })
     }).not.toThrow()

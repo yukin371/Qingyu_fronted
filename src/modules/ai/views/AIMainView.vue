@@ -14,7 +14,7 @@
       </template>
 
       <!-- 统计卡片 -->
-      <Grid :cols="{ md: 4, sm: 2, xs: 1 }" gap="lg" class="stats-grid">
+      <Grid :cols="{ md: 4, sm: 2 }" gap="lg" class="stats-grid">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon providers-icon">
@@ -161,6 +161,8 @@ import { useRouter } from 'vue-router'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, Grid, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
+import { Refresh, Plus, OfficeBuilding, Cpu } from '@element-plus/icons-vue'
+
 const router = useRouter()
 const aiStore = useAIAdminStore()
 

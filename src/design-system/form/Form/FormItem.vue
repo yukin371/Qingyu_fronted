@@ -19,7 +19,7 @@ const emit = defineEmits<FormItemEmits>()
 const formContext = inject<FormContext>('FormContext', null as any)
 
 // 验证状态
-const validateState = ref<'success' | 'error' | 'validating'>('')
+const validateState = ref<'success' | 'error' | 'validating' | ''>('')
 const validateMessage = ref('')
 
 // 是否正在进行验证
@@ -46,11 +46,6 @@ const computedLabelWidth = computed(() => {
 // 计算标签位置
 const labelPosition = computed(() => {
   return formContext?.labelPosition || 'right'
-})
-
-// 计算表单尺寸
-const formSize = computed(() => {
-  return props.size || formContext?.size || 'md'
 })
 
 // 计算是否禁用

@@ -7,7 +7,7 @@
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
-  orvalMutator: vi.fn((config) => {
+  orvalMutator: vi.fn((_config) => {
     // 模拟返回数据
     return Promise.resolve({
       data: {},
@@ -60,7 +60,7 @@ describe('Finance API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getWalletTransactions({ page: 1, size: 20 })
+      const result = await wrapper.getWalletTransactions({ page: 1 } as any)
 
       expect(orvalMutator).toHaveBeenCalled()
       expect(result).toBeDefined()
@@ -94,7 +94,7 @@ describe('Finance API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getAuthorEarnings({ page: 1, size: 20 })
+      const result = await wrapper.getAuthorEarnings({ page: 1 } as any)
 
       expect(orvalMutator).toHaveBeenCalled()
       expect(result).toBeDefined()
@@ -104,7 +104,7 @@ describe('Finance API Wrapper', () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
 
-      const result = await wrapper.getAuthorSettlements({ page: 1, size: 20 })
+      const result = await wrapper.getAuthorSettlements({ page: 1 } as any)
 
       expect(orvalMutator).toHaveBeenCalled()
       expect(result).toBeDefined()

@@ -8,7 +8,6 @@
  */
 
 import { getApi } from './generated/finance'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
 
 // 获取生成的API对象
 const api = getApi()

@@ -36,7 +36,7 @@ export function getSimilarRecommendations(params: {
 export function recordBehavior(data: {
   itemId: string
   itemType?: string
-  behaviorType: 'view' | 'click' | 'favorite' | 'read'
+  behaviorType: 'view' | 'click' | 'collect' | 'read' | 'finish'
   duration?: number
   metadata?: Record<string, any>
 }) {
@@ -73,4 +73,3 @@ export function getCategoryRecommendations(params: {
 }) {
   return httpService.get<Book[]>('/recommendation/category', { params })
 }
-

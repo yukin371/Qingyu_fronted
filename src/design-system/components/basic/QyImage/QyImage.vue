@@ -268,7 +268,7 @@ const isPreviewOpen = ref(false)
 const currentPreviewIndex = ref(props.initialIndex)
 const scale = ref(1)
 
-// 图片引用
+// 图片引用（用于后续扩展）
 const imageRef = ref<HTMLImageElement>()
 
 // 实际显示的图片源
@@ -443,6 +443,7 @@ watch(() => props.src, () => {
 
 // 暴露方法给父组件
 defineExpose({
+  imageRef,
   openPreview: handlePreview,
   closePreview,
   togglePreview: () => {

@@ -95,7 +95,7 @@
             </div>
 
             <div class="project-description">
-              {{ project.description || '暂无描述' }}
+              {{ project.summary || project.description || '暂无描述' }}
             </div>
 
             <div class="project-stats">
@@ -127,26 +127,53 @@
       <CenteredModalCard
         v-model="showCreateDialog"
         title="创建新项目"
-        width="min(760px, 92vw)"
+        width="min(560px, 92vw)"
         :show-close="true"
         :close-on-click-modal="true"
       >
         <el-form :model="newProject" label-position="top" class="create-form">
-          <el-form-item label="项目名称" required>
-            <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
-          </el-form-item>
+          <div class="form-row">
+            <el-form-item label="项目名称" required class="flex-1">
+              <el-input v-model="newProject.title" placeholder="请输入项目名称" maxlength="50" />
+            </el-form-item>
 
-          <el-form-item label="项目类型">
-            <div class="native-select-wrap">
-              <select v-model="newProject.type" class="native-select" aria-label="项目类型">
-                <option value="novel">小说</option>
-                <option value="essay">散文随笔</option>
-                <option value="script">剧本</option>
-                <option value="notes">笔记</option>
-                <option value="poetry">诗歌</option>
-                <option value="others">其他</option>
-              </select>
-              <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
+            <el-form-item label="项目类型" class="type-select">
+              <div class="native-select-wrap">
+                <select v-model="newProject.type" class="native-select" aria-label="项目类型">
+                  <option value="novel">小说</option>
+                  <option value="essay">散文随笔</option>
+                  <option value="script">剧本</option>
+                  <option value="notes">笔记</option>
+                  <option value="poetry">诗歌</option>
+                  <option value="others">其他</option>
+                </select>
+                <QyIcon name="ArrowDown" :size="14" class="native-select-caret" />
+              </div>
+            </el-form-item>
+          </div>
+
+          <el-form-item label="项目封面">
+            <div class="cover-upload-container">
+              <!-- 有预览图时显示预览和删除按钮 -->
+              <div v-if="coverPreviewUrl" class="cover-preview-wrapper">
+                <img :src="coverPreviewUrl" alt="封面预览" class="cover-preview-img" />
+                <button type="button" class="cover-remove-btn" @click="removeCover">
+                  <QyIcon name="Close" :size="14" />
+                </button>
+              </div>
+              <!-- 无预览图时显示上传按钮 -->
+              <button type="button" class="cover-upload-btn" @click="triggerCoverUpload">
+                <QyIcon name="Plus" :size="20" />
+                <span>上传封面</span>
+              </button>
+              <input
+                ref="coverInputRef"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style="display: none"
+                @change="handleCoverFileSelect"
+              />
+              <p class="cover-hint">支持 JPG、PNG，不超过 2MB</p>
             </div>
           </el-form-item>
 
@@ -154,7 +181,7 @@
             <el-input
               v-model="newProject.description"
               type="textarea"
-              :rows="4"
+              :rows="3"
               placeholder="请输入项目描述（可选）"
               maxlength="200"
               show-word-limit
@@ -209,7 +236,10 @@ const newProject = ref({
   title: '',
   description: '',
   type: 'novel' as 'novel' | 'essay' | 'script' | 'notes' | 'poetry' | 'others',
+  coverUrl: '',
 })
+const coverPreviewUrl = ref('')
+const coverInputRef = ref<HTMLInputElement | null>(null)
 const showPublishConfirmDialog = ref(false)
 const pendingPublishProject = ref<any | null>(null)
 
@@ -252,13 +282,19 @@ const handleCreate = async () => {
   try {
     const project = await writerStore.createNewProject({
       title: newProject.value.title,
-      description: newProject.value.description,
-      type: newProject.value.type,
+      summary: newProject.value.description, // 映射到后端的 summary 字段
+      coverUrl: newProject.value.coverUrl, // 封面图片URL
+      // type 字段暂时不使用，后端没有对应字段
+      // type: newProject.value.type,
     })
 
     if (project) {
+      // 关闭弹窗
       showCreateDialog.value = false
-      newProject.value = { title: '', description: '', type: 'novel' }
+      // 重置表单
+      newProject.value = { title: '', description: '', type: 'novel', coverUrl: '' }
+      // 清除封面预览
+      coverPreviewUrl.value = ''
 
       // 打开新创建的项目 - 兼容不同的字段名
       const projectId = project.projectId || project.id
@@ -269,8 +305,75 @@ const handleCreate = async () => {
       }
     }
   } catch (error: any) {
-    ElMessage.error('创建项目失败：' + (error.message || '未知错误'))
+    // 处理重复项目名称错误（后端返回 40901/HTTP 409）
+    const errorCode = error?.response?.data?.code || error?.code
+    const errorStatus = error?.response?.status
+    if (errorCode === 40901 || errorStatus === 409) {
+      ElMessage.error('项目名称已存在，请使用其他名称')
+    } else if (error.message) {
+      ElMessage.error('创建项目失败：' + error.message)
+    } else {
+      ElMessage.error('创建项目失败，请稍后重试')
+    }
   }
+}
+
+// 触发封面文件选择
+const triggerCoverUpload = () => {
+  coverInputRef.value?.click()
+}
+
+// 封面文件选择处理
+const handleCoverFileSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // 校验文件类型
+  if (!file.type.startsWith('image/')) {
+    ElMessage.error('只能上传图片文件')
+    input.value = ''
+    return
+  }
+
+  // 校验文件大小 (2MB)
+  if (file.size / 1024 / 1024 > 2) {
+    ElMessage.error('图片大小不能超过 2MB')
+    input.value = ''
+    return
+  }
+
+  try {
+    // 创建本地预览URL
+    const previewUrl = URL.createObjectURL(file)
+    coverPreviewUrl.value = previewUrl
+
+    // 将文件转换为 base64 Data URL（临时方案）
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      newProject.value.coverUrl = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+
+    ElMessage.success('封面上传成功')
+  } catch (error: any) {
+    ElMessage.error('封面上传失败：' + (error.message || '未知错误'))
+    coverPreviewUrl.value = ''
+    newProject.value.coverUrl = ''
+  }
+
+  // 清空 input 以允许重复选择同一文件
+  input.value = ''
+}
+
+// 移除封面
+const removeCover = () => {
+  // 释放预览URL
+  if (coverPreviewUrl.value && coverPreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(coverPreviewUrl.value)
+  }
+  coverPreviewUrl.value = ''
+  newProject.value.coverUrl = ''
 }
 
 const handleCommand = async (command: string, project: any) => {
@@ -285,8 +388,7 @@ const handleCommand = async (command: string, project: any) => {
     try {
       await messageBox.confirm(`确定要删除项目"${project.title}"吗？此操作不可恢复。`, '确认删除', {
         confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
+        cancelButtonText: '取消'
       })
 
       await writerStore.deleteProjectById(project.projectId)
@@ -366,7 +468,8 @@ const confirmPublish = async () => {
   }
 
   try {
-    await writerStore.publishProjectById(projectId)
+    // 使用类型断言解决 TS2339 错误
+    await (writerStore as any).publishProjectById(projectId)
     cancelPublish()
   } catch (error: any) {
     message.error('发布失败：' + (error.message || '未知错误'))
@@ -682,5 +785,105 @@ onMounted(async () => {
   color: #334155;
   line-height: 1.7;
   text-align: center;
+}
+
+/* 表单行布局 */
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.form-row .flex-1 {
+  flex: 1;
+}
+
+.form-row .type-select {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
+/* 封面上传样式 */
+.cover-upload-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cover-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 160px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #64748b;
+  gap: 6px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cover-upload-btn:hover {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.cover-upload-btn span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cover-preview-wrapper {
+  position: relative;
+  width: 120px;
+  height: 160px;
+}
+
+.cover-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+}
+
+.cover-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.cover-preview-wrapper:hover .cover-remove-btn {
+  opacity: 1;
+}
+
+.cover-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+  transform: scale(1.1);
+}
+
+.cover-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
 }
 </style>

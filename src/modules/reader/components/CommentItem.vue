@@ -86,9 +86,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { StarFilled, Star } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api'
+import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api/manual/comments'
 import { useAuthStore } from '@/stores/auth'
 
 interface Comment {

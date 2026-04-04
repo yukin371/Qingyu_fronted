@@ -3,8 +3,7 @@
  * 基于 doc/api/frontend/推荐系统API参考.md
  */
 
-import type { APIResponse } from './api'
-import type { Book, BookBrief } from './bookstore'
+import type { BookBrief } from './bookstore'
 
 // ==================== 推荐结果相关 ====================
 
@@ -48,7 +47,7 @@ export interface SimilarItem {
 /**
  * 行为类型
  */
-export type BehaviorType = 'view' | 'click' | 'like' | 'collect' | 'read' | 'search' | 'favorite' | 'purchase'
+export type BehaviorType = 'view' | 'click' | 'like' | 'collect' | 'read' | 'search' | 'finish' | 'share' | 'purchase'
 
 /**
  * 物品类型
@@ -169,5 +168,4 @@ export interface UserPreference {
     }
   }
 }
-
 

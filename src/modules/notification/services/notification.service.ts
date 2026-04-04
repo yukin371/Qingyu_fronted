@@ -5,8 +5,13 @@
 import type { PollingService } from '@/core/services/polling.service'
 import { createPollingService } from '@/core/services/polling.service'
 import { httpService } from '@/core/services/http.service'
+import type { AxiosInstance } from 'axios'
 import { getWebSocketEndpoint } from '../api'
-import type { NotificationMessage, NotificationQuery, NotificationStats } from '@/types/notification'
+import type {
+  NotificationMessage,
+  NotificationQuery,
+  NotificationStats,
+} from '@/types/notification'
 import { API_PATHS } from '@/config/apiPaths'
 import { useWebSocketStore } from '@/stores/websocket.store'
 import { WebSocketMessageType } from '@/core/types/websocket.types'
@@ -16,7 +21,7 @@ export type ConnectionMode = 'websocket' | 'polling'
 export class NotificationService {
   private pollingService: PollingService | null = null
   private currentMode: ConnectionMode = 'websocket'
-  // eslint-disable-next-line no-unused-vars
+
   private messageHandlers: Set<(message: NotificationMessage) => void> = new Set()
   private unsubscribeHandler: (() => void) | null = null
 
@@ -45,7 +50,7 @@ export class NotificationService {
 
     try {
       // 尝试从后端获取WebSocket端点
-      const response = await getWebSocketEndpoint() as unknown
+      const response = (await getWebSocketEndpoint()) as unknown
       // 处理可能的响应格式
       if (typeof response === 'string') {
         url = response
@@ -61,7 +66,7 @@ export class NotificationService {
 
       // 如果没有获取到端点，使用环境变量中的默认配置
       if (!url) {
-        const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+        const wsBaseUrl = import.meta.env.VITE_WS_URL || '/ws'
         url = `${wsBaseUrl}${API_PATHS.WEBSOCKET.NOTIFICATIONS}`
         console.warn('[NotificationService] 未获取到WebSocket端点，使用默认配置:', url)
       }
@@ -102,40 +107,22 @@ export class NotificationService {
    */
   private initializePolling(): void {
     this.pollingService = createPollingService({
-      axios: httpService,
+      axios: httpService as unknown as AxiosInstance,
       endpoint: '/api/v1/notifications/polling',
       interval: 30000,
       minInterval: 10000,
       maxInterval: 120000,
       adaptive: true,
       onMessage: (messages: NotificationMessage[]) => {
-        messages.forEach(msg => this.notifyHandlers(msg))
+        messages.forEach((msg) => this.notifyHandlers(msg))
       },
       onError: () => {
         console.error('[NotificationService] 轮询错误')
-      }
+      },
     })
 
     this.pollingService.start()
     this.currentMode = 'polling'
-  }
-
-  /**
-   * 降级到轮询
-   */
-  private fallbackToPolling(): void {
-    if (this.currentMode === 'websocket') {
-      this.currentMode = 'polling'
-
-      // 取消 WebSocket 消息订阅
-      if (this.unsubscribeHandler) {
-        this.unsubscribeHandler()
-        this.unsubscribeHandler = null
-      }
-
-      // 启动轮询
-      this.initializePolling()
-    }
   }
 
   /**
@@ -154,7 +141,7 @@ export class NotificationService {
    * 通知所有消息处理器
    */
   private notifyHandlers(message: NotificationMessage): void {
-    this.messageHandlers.forEach(handler => {
+    this.messageHandlers.forEach((handler) => {
       try {
         handler(message)
       } catch (error) {
@@ -166,7 +153,7 @@ export class NotificationService {
   /**
    * 订阅消息
    */
-  // eslint-disable-next-line no-unused-vars
+
   onMessage(handler: (msg: NotificationMessage) => void): () => void {
     this.messageHandlers.add(handler)
 

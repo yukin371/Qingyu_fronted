@@ -30,7 +30,6 @@ const emit = defineEmits<TableEmits>()
 // 内部状态
 const currentRow = ref<TableRowData | null>(null)
 const selectedRows = ref<TableRowData[]>([])
-const expandingRows = ref<Set<string | number>>(new Set())
 const sortProp = ref<string>('')
 const sortOrder = ref<SortOrder>(null)
 
@@ -284,13 +283,13 @@ const handleRowMouseLeave = (row: TableRowData, column: Column | undefined, even
 }
 
 // 处理单元格鼠标进入
-const handleCellMouseEnter = (row: TableRowData, column: Column, cell: EventTarget, event: Event) => {
-  emit('cellMouseEnter', row, column, cell, event)
+const handleCellMouseEnter = (row: TableRowData, column: Column, event: Event) => {
+  emit('cellMouseEnter', row, column, event.target as EventTarget, event)
 }
 
 // 处理单元格鼠标离开
-const handleCellMouseLeave = (row: TableRowData, column: Column, cell: EventTarget, event: Event) => {
-  emit('cellMouseLeave', row, column, cell, event)
+const handleCellMouseLeave = (row: TableRowData, column: Column, event: Event) => {
+  emit('cellMouseLeave', row, column, event.target as EventTarget, event)
 }
 
 // 处理排序点击
@@ -345,6 +344,17 @@ const renderCell = (row: TableRowData, column: Column, index: number) => {
   }
 
   return value
+}
+
+// 切换行选择状态
+const toggleRowSelection = (row: TableRowData) => {
+  const index = selectedRows.value.indexOf(row)
+  if (index > -1) {
+    selectedRows.value.splice(index, 1)
+  } else {
+    selectedRows.value.push(row)
+  }
+  emit('selectionChange', [...selectedRows.value])
 }
 
 // 是否为空数据
@@ -439,8 +449,8 @@ const displayColumns = computed(() => {
             :key="column.prop + columnIndex"
             :class="getCellClass(row, column, rowIndex, columnIndex)"
             :style="{ width: column.width ? `${column.width}px` : undefined, minWidth: column.minWidth ? `${column.minWidth}px` : undefined }"
-            @mouseenter="handleCellMouseEnter(row, column, $event.target, $event)"
-            @mouseleave="handleCellMouseLeave(row, column, $event.target, $event)"
+            @mouseenter="handleCellMouseEnter(row, column, $event)"
+            @mouseleave="handleCellMouseLeave(row, column, $event)"
           >
             <!-- 选择列 -->
             <template v-if="column.prop === '_selection'">

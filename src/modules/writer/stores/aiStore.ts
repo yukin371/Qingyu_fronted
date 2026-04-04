@@ -16,8 +16,7 @@ export const useAIStore = defineStore('writer-ai', () => {
 
     try {
       // 组装上下文（暂未使用，为将来API调用准备）
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _context = worldStore.getAIContext()
+      void worldStore.getAIContext()
 
       // 模拟调用 API
       // const res = await aiApi.chat(msg, context)

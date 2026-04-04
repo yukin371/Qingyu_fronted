@@ -56,7 +56,7 @@ const emit = defineEmits<DialogEmits>()
 // 内部状态
 const isVisible = ref(false)
 const isAnimating = ref(false)
-const dialogContent = ref<HTMLElement | null>(null)
+const dialogContent = ref<HTMLElement | null>(null) // 用于暴露给父组件的DOM引用
 const isInitialized = ref(false) // 标记是否已完成初始化
 
 // 计算对话框容器样式类名
@@ -78,14 +78,6 @@ const modalClasses = computed(() =>
     props.modalClass
   )
 )
-
-// 计算动画状态类名
-const animationClasses = computed(() => {
-  if (!isVisible.value) {
-    return 'opacity-0 scale-95'
-  }
-  return 'opacity-100 scale-100'
-})
 
 // 监听 visible 变化
 watch(() => props.visible, (newVal) => {
@@ -223,6 +215,7 @@ onUnmounted(() => {
 defineExpose({
   open,
   close,
+  dialogContent,
 })
 </script>
 
@@ -258,6 +251,7 @@ defineExpose({
         v-if="isVisible"
         ref="dialogContent"
         :class="dialogClasses"
+        :style="{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'scale(1)' : 'scale(0.95)' }"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="title ? 'dialog-title' : undefined"

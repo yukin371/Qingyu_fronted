@@ -4,7 +4,6 @@
  */
 
 import { httpService } from '@/core/services/http.service'
-import type { APIResponse } from '@/types/api'
 
 export interface UserProfile {
   id: string

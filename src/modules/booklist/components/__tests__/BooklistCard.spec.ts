@@ -2,9 +2,8 @@
  * BooklistCard组件测试
  */
 
-
 import { mount } from '@vue/test-utils'
-import { createMockBooklist } from '../../../../tests/fixtures'
+import type { BookList } from '@/types/booklist'
 
 // Mock设计系统组件 - 必须在导入组件之前
 vi.mock('@/design-system/components', () => {
@@ -20,25 +19,25 @@ vi.mock('@/design-system/components', () => {
       type: { type: String, default: 'button' },
     },
     emits: ['click'],
-    setup(props, { emit }) {
-      const classes = [
-        'qy-button',
-        `qy-button--${props.variant}`,
-        `qy-button--${props.size}`,
-      ]
+    setup(
+      props: { variant: string; size: string; disabled: boolean; loading: boolean; type: string },
+      { emit }: { emit: (event: string, ...args: unknown[]) => void },
+    ) {
+      const classes = ['qy-button', `qy-button--${props.variant}`, `qy-button--${props.size}`]
       if (props.disabled) classes.push('is-disabled')
       if (props.loading) classes.push('is-loading')
 
-      return () => h(
-        'button',
-        {
-          class: classes,
-          disabled: props.disabled,
-          type: props.type,
-          onClick: (e) => emit('click', e),
-        },
-        ['默认按钮']
-      )
+      return () =>
+        h(
+          'button',
+          {
+            class: classes,
+            disabled: props.disabled,
+            type: props.type,
+            onClick: (e: Event) => emit('click', e),
+          },
+          ['默认按钮'],
+        )
     },
   })
 
@@ -50,29 +49,41 @@ vi.mock('@/design-system/components', () => {
       closable: { type: Boolean, default: false },
     },
     emits: ['click', 'close'],
-    setup(props, { emit, slots }) {
-      const children = [
-        slots.default ? slots.default() : '',
-      ]
+    setup(
+      props: { variant: string; size: string; closable: boolean },
+      {
+        emit,
+        slots,
+      }: {
+        emit: (event: string, ...args: unknown[]) => void
+        slots: Record<string, (() => unknown) | undefined>
+      },
+    ) {
+      const children = [slots.default ? slots.default() : '']
       if (props.closable) {
         children.push(
-          h('span', {
-            class: 'close-btn',
-            onClick: (e) => {
-              e.stopPropagation()
-              emit('close')
+          h(
+            'span',
+            {
+              class: 'close-btn',
+              onClick: (e: Event) => {
+                e.stopPropagation()
+                emit('close')
+              },
             },
-          }, '×')
+            '×',
+          ),
         )
       }
-      return () => h(
-        'span',
-        {
-          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
-          onClick: () => emit('click'),
-        },
-        children
-      )
+      return () =>
+        h(
+          'span',
+          {
+            class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+            onClick: () => emit('click'),
+          },
+          children,
+        )
     },
   })
 
@@ -83,8 +94,9 @@ vi.mock('@/design-system/components', () => {
       name: { type: String, default: '' },
       size: { type: String, default: 'md' },
     },
-    setup(props) {
-      return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
+    setup(props: { src?: string; name: string; size: string }) {
+      return () =>
+        h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
     },
   })
 
@@ -94,8 +106,9 @@ vi.mock('@/design-system/components', () => {
       name: { type: String, required: true },
       size: { type: Number, default: 16 },
     },
-    setup(props) {
-      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    setup(props: { name: string; size: number }) {
+      return () =>
+        h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
     },
   })
 
@@ -109,9 +122,36 @@ vi.mock('@/design-system/components', () => {
 
 import BooklistCard from '../BooklistCard.vue'
 
+// Helper function to create booklist with correct type
+const createTestBooklist = (overrides: Record<string, unknown> = {}): BookList => {
+  return {
+    id: 'test-id',
+    title: '测试书单',
+    description: '这是一个测试书单的描述',
+    cover: 'https://example.com/cover.jpg',
+    creatorId: 'user_123',
+    creator: {
+      id: 'user_123',
+      username: 'testuser',
+      nickname: '测试用户',
+      avatar: 'https://example.com/avatar.jpg',
+    },
+    books: [],
+    bookCount: 10,
+    viewCount: 1000,
+    likeCount: 50,
+    isLiked: false,
+    isPublic: true,
+    tags: ['玄幻', '仙侠', '都市', '历史'],
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    ...overrides,
+  } as BookList
+}
+
 describe('BooklistCard', () => {
   const defaultProps = {
-    booklist: createMockBooklist({
+    booklist: createTestBooklist({
       title: '测试书单',
       description: '这是一个测试书单的描述',
       bookCount: 10,
@@ -121,6 +161,7 @@ describe('BooklistCard', () => {
       tags: ['玄幻', '仙侠', '都市', '历史'],
       creator: {
         id: 'user_123',
+        username: 'testuser',
         nickname: '测试用户',
         avatar: 'https://example.com/avatar.jpg',
       },
@@ -147,7 +188,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             cover: 'https://example.com/cover.jpg',
           }),
         },
@@ -155,16 +196,14 @@ describe('BooklistCard', () => {
 
       // Assert
       expect(wrapper.find('.cover-image').exists()).toBe(true)
-      expect(wrapper.find('.cover-image').attributes('src')).toBe(
-        'https://example.com/cover.jpg'
-      )
+      expect(wrapper.find('.cover-image').attributes('src')).toBe('https://example.com/cover.jpg')
     })
 
     it('should render cover placeholder when cover does not exist', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             cover: undefined,
           }),
         },
@@ -178,7 +217,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({ bookCount: 10 }),
+          booklist: createTestBooklist({ bookCount: 10 }),
         },
       })
 
@@ -191,7 +230,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             tags: ['玄幻', '仙侠', '都市', '历史'],
           }),
         },
@@ -209,7 +248,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             viewCount: 1000,
             likeCount: 50,
           }),
@@ -252,7 +291,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             viewCount: 15000,
             likeCount: 2500,
           }),
@@ -332,7 +371,7 @@ describe('BooklistCard', () => {
       })
 
       // Assert
-      expect(wrapper.props('booklist')).toEqual(defaultProps.booklist)
+      expect((wrapper.props() as any).booklist).toEqual(defaultProps.booklist)
     })
 
     it('should accept hoverable prop', () => {
@@ -345,7 +384,7 @@ describe('BooklistCard', () => {
       })
 
       // Assert
-      expect(wrapper.props('hoverable')).toBe(true)
+      expect((wrapper.props() as any).hoverable).toBe(true)
       expect(wrapper.find('.is-hoverable').exists()).toBe(true)
     })
 
@@ -359,17 +398,18 @@ describe('BooklistCard', () => {
       })
 
       // Assert
-      expect(wrapper.props('showActions')).toBe(false)
+      expect((wrapper.props() as any).showActions).toBe(false)
     })
   })
 
   describe('computed properties', () => {
     it('should truncate description when it is too long', () => {
       // Arrange
-      const longDescription = '这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常长非常长的描述，用来测试截断功能是否正常工作，这个描述已经超过了六十个字符的限制'
+      const longDescription =
+        '这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常非常非常长非常长的描述，用来测试截断功能是否正常工作，这个描述已经超过了六十个字符的限制'
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             description: longDescription,
           }),
         },
@@ -386,7 +426,7 @@ describe('BooklistCard', () => {
       const shortDescription = '短描述'
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             description: shortDescription,
           }),
         },
@@ -400,7 +440,7 @@ describe('BooklistCard', () => {
       // Arrange
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5'],
           }),
         },
@@ -418,7 +458,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             description: '',
           }),
         },
@@ -432,7 +472,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             tags: [],
           }),
         },
@@ -446,7 +486,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             creator: undefined,
           }),
         },
@@ -460,7 +500,7 @@ describe('BooklistCard', () => {
       // Act
       const wrapper = mount(BooklistCard, {
         props: {
-          booklist: createMockBooklist({
+          booklist: createTestBooklist({
             viewCount: 0,
             likeCount: 0,
           }),

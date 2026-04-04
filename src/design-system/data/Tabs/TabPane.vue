@@ -9,7 +9,7 @@ import { inject, computed, onMounted, onBeforeUnmount, getCurrentInstance } from
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import Icon from '../../base/Icon/Icon.vue'
-import type { TabPaneProps, TabsContext } from './types'
+import type { TabPaneProps, TabsContext, TabPaneInstance } from './types'
 
 // 注入 Tabs 上下文
 const tabs = inject<TabsContext>('tabs')
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<TabPaneProps>(), {
 
 // 标签名称（如果没有提供 name，使用 uid）
 const paneName = computed(() => {
-  return props.name !== undefined ? props.name : instance?.uid || 0
+  return props.name !== undefined ? props.name : (instance?.uid ?? 0)
 })
 
 // 是否激活
@@ -191,12 +191,12 @@ const handleClose = (event: MouseEvent) => {
 }
 
 // 创建 TabPane 实例
-const paneInstance = {
+const paneInstance: TabPaneInstance = {
   uid: instance?.uid || 0,
   props,
-  paneName,
-  active: isActive,
-  isClosable,
+  paneName: paneName.value,
+  active: isActive.value,
+  isClosable: isClosable.value,
 }
 
 // 组件挂载时注册到 Tabs

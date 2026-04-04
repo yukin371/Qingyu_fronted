@@ -9,7 +9,7 @@
 import { computed, watch } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { ProgressProps, ProgressStatus, ProgressType } from './types'
+import type { ProgressProps, ProgressStatus } from './types'
 
 // 使用 CVA 定义进度条变体
 const progressVariants = cva(

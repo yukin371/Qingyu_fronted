@@ -55,7 +55,7 @@
             </el-form-item>
 
             <el-form-item label="润色风格">
-              <el-select v-model="toolConfig.polish.style" placeholder="选择风格">
+              <el-select v-model="toolConfig.polish.style" placeholder="选择风格" popper-class="writer-select-popper">
                 <el-option label="提升文学性" value="literary" />
                 <el-option label="简洁明了" value="concise" />
                 <el-option label="专业正式" value="formal" />
@@ -133,6 +133,45 @@
         </div>
       </el-tab-pane>
 
+      <!-- AI智能续写（上下文感知） -->
+      <el-tab-pane label="智能续写" name="suggest">
+        <div class="tool-content">
+          <el-form label-position="top">
+            <el-form-item label="选中文本（可选）">
+              <el-input
+                v-model="toolConfig.suggest.text"
+                type="textarea"
+                :rows="4"
+                placeholder="选中文本将自动填充，也可手动输入参考文本..."
+                maxlength="5000"
+                show-word-limit
+              />
+            </el-form-item>
+
+            <el-form-item label="补充说明（可选）">
+              <el-input
+                v-model="toolConfig.suggest.instruction"
+                type="textarea"
+                :rows="2"
+                placeholder="例如：请给出接下来的情节发展建议..."
+                maxlength="500"
+              />
+            </el-form-item>
+
+            <el-button
+              type="primary"
+              :loading="isProcessing"
+              @click="handleGenerate('suggest')"
+              :disabled="!canSuggestGenerate"
+              class="generate-button"
+            >
+              <QyIcon name="MagicStick" />
+              AI智能续写
+            </el-button>
+          </el-form>
+        </div>
+      </el-tab-pane>
+
       <!-- 改写 -->
       <el-tab-pane label="改写" name="rewrite">
         <div class="tool-content">
@@ -149,7 +188,7 @@
             </el-form-item>
 
             <el-form-item label="改写模式">
-              <el-select v-model="toolConfig.rewrite.mode" placeholder="选择模式">
+              <el-select v-model="toolConfig.rewrite.mode" placeholder="选择模式" popper-class="writer-select-popper">
                 <el-option label="保持意思，换种说法" value="polish" />
                 <el-option label="简化表达" value="simplify" />
                 <el-option label="正式风格" value="formal" />
@@ -208,6 +247,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+import { DocumentCopy } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 interface Props {
@@ -228,7 +268,7 @@ const emit = defineEmits<Emits>()
 const activeTool = ref('continue')
 const usage = ref<any>(null)
 
-const toolConfig = reactive({
+const toolConfig: Record<string, { text: string; length?: number; style?: string; instructions?: string; instruction?: string; detailLevel?: string; mode?: string }> = reactive({
   continue: {
     text: '',
     length: 200
@@ -247,6 +287,10 @@ const toolConfig = reactive({
     text: '',
     mode: 'polish',
     instructions: ''
+  },
+  suggest: {
+    text: '',
+    instruction: ''
   }
 })
 
@@ -254,8 +298,13 @@ const canGenerate = computed(() => {
   return toolConfig.continue.text.trim().length > 0 || props.selectedText
 })
 
+const canSuggestGenerate = computed(() => {
+  // 智能续写不需要必填文本，只要能获取到当前文档即可
+  return true
+})
+
 // 工具切换
-const handleToolChange = (tab: any) => {
+const handleToolChange = (tab: { paneName: string }) => {
   // 如果有选中文本，自动填充到当前工具
   if (props.selectedText) {
     const toolName = tab.paneName
@@ -276,29 +325,26 @@ const handleGenerate = (tool: string) => {
 
   const text = config.text || props.selectedText || ''
 
-  let options: any = {}
+  const options: Record<string, unknown> = {}
 
   switch (tool) {
     case 'continue':
-      options = { length: config.length }
+      options.length = config.length
       break
     case 'polish':
-      options = {
-        style: config.style,
-        instructions: config.instructions
-      }
+      options.style = config.style
+      options.instructions = config.instructions
       break
     case 'expand':
-      options = {
-        detailLevel: config.detailLevel,
-        instructions: config.instructions
-      }
+      options.detailLevel = config.detailLevel
+      options.instructions = config.instructions
       break
     case 'rewrite':
-      options = {
-        mode: config.mode,
-        instructions: config.instructions
-      }
+      options.mode = config.mode
+      options.instructions = config.instructions
+      break
+    case 'suggest':
+      options.instruction = config.instruction
       break
   }
 

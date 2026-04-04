@@ -68,7 +68,6 @@ import {
   progressVariants,
   progressTrackVariants,
   progressFillVariants,
-  progressCircleVariants,
   progressTextVariants
 } from './variants'
 import type { QyProgressProps } from './types'

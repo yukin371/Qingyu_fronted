@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+import { Minus, Plus } from '@element-plus/icons-vue'
 import type { ReadingSettings } from '@/types/models'
 
 interface ThemeOption {

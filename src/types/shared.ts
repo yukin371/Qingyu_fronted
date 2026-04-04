@@ -3,7 +3,7 @@
  * 基于 doc/api/frontend/共享服务API参考.md
  */
 
-import type { APIResponse, PaginatedResponse } from './api'
+// 类型从 ./api 导出，这里不重复导入
 
 // ==================== 钱包相关 ====================
 
@@ -162,6 +162,7 @@ export interface UploadResponse {
  * 上传进度
  */
 export interface UploadProgress {
+  fileId?: string
   loaded: number
   total: number
   percentage: number

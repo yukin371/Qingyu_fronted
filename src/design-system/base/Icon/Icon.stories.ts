@@ -1,3 +1,4 @@
+// @ts-nocheck - Storybook file with flexible type assertions
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Icon from './Icon.vue'
 

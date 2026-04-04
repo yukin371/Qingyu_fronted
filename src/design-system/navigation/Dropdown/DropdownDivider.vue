@@ -9,14 +9,6 @@ import { computed } from 'vue'
 import { cn } from '../../utils/cn'
 import type { DropdownDividerProps } from './types'
 
-// 组件 Props
-interface DropdownDividerProps {
-  /**
-   * 自定义类名
-   */
-  class?: any
-}
-
 const props = defineProps<DropdownDividerProps>()
 
 // 计算分割线类名

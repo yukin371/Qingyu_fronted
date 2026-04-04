@@ -57,17 +57,18 @@ export function calculateProgress(
 /**
  * 格式化章节内容
  * @param content HTML内容
- * @param settings 阅读设置
+ * @param _settings 阅读设置 (预留参数，未来可能使用)
  */
 export function formatChapterContent(
   content: string,
-  settings?: {
+  _settings?: {
     fontSize?: number
     lineHeight?: number
     paragraphSpacing?: number
   }
 ): string {
   if (!content) return ''
+  void _settings
 
   // 移除空段落
   let formatted = content.replace(/<p>\s*<\/p>/g, '')
@@ -195,7 +196,7 @@ export function isLocalStorageAvailable(): boolean {
     localStorage.setItem(test, test)
     localStorage.removeItem(test)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -226,4 +227,3 @@ export function loadReadingSettingsFromLocal(): any | null {
     return null
   }
 }
-

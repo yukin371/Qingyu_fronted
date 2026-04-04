@@ -128,7 +128,14 @@
     </div>
 
     <!-- 备份管理对话框 -->
-    <el-dialog v-model="showBackupDialog" title="配置备份管理" width="600px">
+    <el-dialog
+      v-model="showBackupDialog"
+      title="配置备份管理"
+      width="600px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <el-alert type="info" :closable="false" style="margin-bottom: 20px">
         <template #title>
           <div style="display: flex; align-items: center; gap: 8px">
@@ -175,105 +182,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   Check, Refresh, FolderOpened, Setting, Edit, RefreshRight,
-  InfoFilled, Plus, Clock, User, Lock, Bell, CreditCard, Document
+  InfoFilled, Plus, Clock, User, Bell, CreditCard, Document
 } from '@element-plus/icons-vue'
+import * as adminAPI from '@/modules/admin/api'
 
-// 检查是否为测试模式
-const isTestMode = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('test') === 'true'
-})
+type ConfigItem = {
+  key: string
+  value: string | number | boolean | null
+  type: 'string' | 'number' | 'boolean'
+  description: string
+  editable: boolean
+  sensitive?: boolean
+}
+
+type ConfigGroup = {
+  name: string
+  description: string
+  items: ConfigItem[]
+}
+
+type BackupItem = {
+  id: string
+  name: string
+  time: string
+}
 
 const loading = ref(false)
 const saving = ref(false)
-const configGroups = ref<any[]>([])
+const configGroups = ref<ConfigGroup[]>([])
 const configValues = reactive<Record<string, any>>({})
+const initialValues = ref<Record<string, string | number | boolean | null>>({})
 const activeGroups = ref<string[]>([])
 const showBackupDialog = ref(false)
-const backups = ref<any[]>([])
+const backups = ref<BackupItem[]>([])
 const loadingBackups = ref(false)
 
 // 统计数据
 const stats = reactive({
-  groups: 5,
-  configs: 20,
-  editable: 15
+  groups: 0,
+  configs: 0,
+  editable: 0
 })
-
-// 生成模拟配置数据
-const createMockConfigGroups = () => {
-  return [
-    {
-      name: 'site',
-      description: '站点设置',
-      items: [
-        { key: 'site.name', description: '站点名称', type: 'string', value: '青云阅读', editable: true },
-        { key: 'site.description', description: '站点描述', type: 'string', value: '优质原创阅读平台', editable: true },
-        { key: 'site.keywords', description: 'SEO关键词', type: 'string', value: '小说,阅读,原创', editable: true },
-        { key: 'site.icp', description: 'ICP备案号', type: 'string', value: '京ICP备XXXXXXXX号', editable: true }
-      ]
-    },
-    {
-      name: 'user',
-      description: '用户设置',
-      items: [
-        { key: 'user.register_enabled', description: '开放注册', type: 'boolean', value: true, editable: true },
-        { key: 'user.email_verify_required', description: '邮箱验证必填', type: 'boolean', value: true, editable: true },
-        { key: 'user.max_login_attempts', description: '最大登录尝试次数', type: 'number', value: 5, editable: true },
-        { key: 'user.session_timeout', description: '会话超时时间(分钟)', type: 'number', value: 1440, editable: true }
-      ]
-    },
-    {
-      name: 'content',
-      description: '内容设置',
-      items: [
-        { key: 'content.audit_enabled', description: '开启内容审核', type: 'boolean', value: true, editable: true },
-        { key: 'content.auto_publish', description: '自动发布', type: 'boolean', value: false, editable: true },
-        { key: 'content.min_chapter_words', description: '章节最少字数', type: 'number', value: 1000, editable: true },
-        { key: 'content.max_chapter_words', description: '章节最多字数', type: 'number', value: 20000, editable: true }
-      ]
-    },
-    {
-      name: 'payment',
-      description: '支付设置',
-      items: [
-        { key: 'payment.alipay_enabled', description: '启用支付宝', type: 'boolean', value: true, editable: true },
-        { key: 'payment.wechat_enabled', description: '启用微信支付', type: 'boolean', value: true, editable: true },
-        { key: 'payment.min_withdraw', description: '最低提现金额', type: 'number', value: 50, editable: true },
-        { key: 'payment.alipay_appid', description: '支付宝AppID', type: 'string', value: '2021XXXXXX', editable: true, sensitive: true },
-        { key: 'payment.alipay_secret', description: '支付宝密钥', type: 'string', value: '****', editable: true, sensitive: true }
-      ]
-    },
-    {
-      name: 'notify',
-      description: '通知设置',
-      items: [
-        { key: 'notify.email_enabled', description: '启用邮件通知', type: 'boolean', value: true, editable: true },
-        { key: 'notify.sms_enabled', description: '启用短信通知', type: 'boolean', value: false, editable: true },
-        { key: 'notify.smtp_host', description: 'SMTP服务器', type: 'string', value: 'smtp.example.com', editable: true },
-        { key: 'notify.smtp_port', description: 'SMTP端口', type: 'number', value: 465, editable: true },
-        { key: 'notify.smtp_password', description: 'SMTP密码', type: 'string', value: '****', editable: true, sensitive: true }
-      ]
-    }
-  ]
-}
-
-const mockConfigGroups = createMockConfigGroups()
-
-// 生成模拟备份数据
-const createMockBackups = () => {
-  return [
-    { name: '自动备份 - 2025-02-19 10:00', time: '2025-02-19 10:00:00', id: 'backup_1' },
-    { name: '手动备份 - 2025-02-18 15:30', time: '2025-02-18 15:30:00', id: 'backup_2' },
-    { name: '自动备份 - 2025-02-17 10:00', time: '2025-02-17 10:00:00', id: 'backup_3' }
-  ]
-}
-
-const mockBackups = createMockBackups()
 
 // 获取分组图标
 const getGroupIcon = (name: string) => {
@@ -287,33 +240,41 @@ const getGroupIcon = (name: string) => {
   return icons[name] || Setting
 }
 
+const syncStats = (groups: ConfigGroup[]) => {
+  stats.groups = groups.length
+  stats.configs = groups.reduce((sum, group) => sum + (group.items?.length || 0), 0)
+  stats.editable = groups.reduce(
+    (sum, group) => sum + group.items.filter(item => item.editable).length,
+    0,
+  )
+}
+
+const applyConfigValues = (groups: ConfigGroup[]) => {
+  const nextValues: Record<string, string | number | boolean | null> = {}
+  groups.forEach(group => {
+    group.items.forEach(item => {
+      nextValues[item.key] = item.value ?? null
+      configValues[item.key] = item.value ?? null
+    })
+  })
+  initialValues.value = nextValues
+}
+
 // 加载配置
 const loadConfigs = async () => {
   loading.value = true
   try {
-    if (isTestMode.value) {
-      configGroups.value = mockConfigGroups
-
-      // 初始化配置值
-      mockConfigGroups.forEach(group => {
-        group.items.forEach((item: any) => {
-          configValues[item.key] = item.value
-        })
-      })
-
-      // 更新统计
-      stats.groups = mockConfigGroups.length
-      stats.configs = mockConfigGroups.reduce((sum, g) => sum + g.items.length, 0)
-      stats.editable = mockConfigGroups.reduce(
-        (sum, g) => sum + g.items.filter((i: any) => i.editable).length,
-        0
-      )
-
-      activeGroups.value = [mockConfigGroups[0]?.name]
-    } else {
-      configGroups.value = []
-    }
+    const response = await adminAPI.getAllConfigs() as any
+    const payload = response?.groups ? response : (response?.data ?? {})
+    const groups = Array.isArray(payload.groups) ? payload.groups as ConfigGroup[] : []
+    configGroups.value = groups
+    applyConfigValues(groups)
+    syncStats(groups)
+    activeGroups.value = groups[0]?.name ? [groups[0].name] : []
   } catch (error) {
+    configGroups.value = []
+    activeGroups.value = []
+    syncStats([])
     message.error('加载配置失败')
     console.error(error)
   } finally {
@@ -329,20 +290,18 @@ const handleSave = async () => {
     })
 
     saving.value = true
-
-    if (isTestMode.value) {
-      // 模拟保存
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // 更新模拟数据
-      mockConfigGroups.forEach(group => {
-        group.items.forEach((item: any) => {
-          item.value = configValues[item.key]
-        })
-      })
-    }
+    const updates = configGroups.value.flatMap(group =>
+      group.items
+        .filter(item => item.editable)
+        .map(item => ({
+          key: item.key,
+          value: configValues[item.key],
+        })),
+    )
+    await adminAPI.batchUpdateConfig({ updates } as any)
 
     message.success('配置保存成功')
+    await loadConfigs()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('保存配置失败')
@@ -361,17 +320,10 @@ const handleResetDefaults = async () => {
       confirmButtonText: '确定恢复',
       cancelButtonText: '取消'
     })
-
-    if (isTestMode.value) {
-      const defaults = createMockConfigGroups()
-      defaults.forEach(group => {
-        group.items.forEach((item: any) => {
-          configValues[item.key] = item.value
-        })
-      })
-    }
-
-    message.success('已恢复默认配置')
+    Object.entries(initialValues.value).forEach(([key, value]) => {
+      configValues[key] = value
+    })
+    message.success('已恢复到当前服务端配置')
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('恢复默认配置失败')
@@ -381,33 +333,20 @@ const handleResetDefaults = async () => {
 
 // 创建备份
 const handleCreateBackup = async () => {
-  try {
-    if (isTestMode.value) {
-      const now = new Date()
-      const timeStr = now.toLocaleString('zh-CN')
-      mockBackups.unshift({
-        name: `手动备份 - ${timeStr.split(' ')[0]}`,
-        time: timeStr,
-        id: `backup_${Date.now()}`
-      })
-      backups.value = [...mockBackups]
-    }
-    message.success('备份创建成功')
-  } catch (error) {
-    message.error('创建备份失败')
-  }
+  message.warning('当前后端未提供手动创建配置备份接口')
 }
 
 // 恢复备份
-const handleRestore = async (backup: any) => {
+const handleRestore = async (backup: BackupItem) => {
   try {
     await messageBox.confirm(`恢复备份 "${backup.name}" 将覆盖当前配置，确定继续吗？`, '警告', {
       type: 'warning'
     })
 
+    await adminAPI.restoreConfigBackup()
     message.success('配置恢复成功')
     showBackupDialog.value = false
-    loadConfigs()
+    await loadConfigs()
   } catch (error: any) {
     if (error !== 'cancel') {
       message.error('恢复配置失败')
@@ -416,41 +355,40 @@ const handleRestore = async (backup: any) => {
 }
 
 // 删除备份
-const handleDeleteBackup = async (backup: any) => {
+const handleDeleteBackup = async (_backup: BackupItem) => {
+  message.warning('当前后端未提供删除配置备份接口')
+}
+
+const loadBackups = async () => {
+  loadingBackups.value = true
   try {
-    await messageBox.confirm(`确定要删除备份 "${backup.name}" 吗？`, '确认', {
-      type: 'warning'
-    })
-
-    if (isTestMode.value) {
-      const index = mockBackups.findIndex(b => b.id === backup.id)
-      if (index > -1) mockBackups.splice(index, 1)
-      backups.value = [...mockBackups]
-    }
-
-    message.success('备份删除成功')
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      message.error('删除备份失败')
-    }
+    const response = await adminAPI.getConfigBackups() as any
+    const payload = response?.backups ? response : (response?.data ?? {})
+    const list = Array.isArray(payload.backups) ? payload.backups as string[] : []
+    backups.value = list.map((name, index) => ({
+      id: `backup_${index}_${name}`,
+      name,
+      time: name,
+    }))
+  } catch (error) {
+    backups.value = []
+    message.error('加载配置备份失败')
+    console.error(error)
+  } finally {
+    loadingBackups.value = false
   }
 }
 
-// 监听备份对话框打开
-const handleBackupDialogOpen = () => {
-  if (showBackupDialog.value) {
-    loadingBackups.value = true
-    setTimeout(() => {
-      if (isTestMode.value) {
-        backups.value = [...mockBackups]
-      }
-      loadingBackups.value = false
-    }, 300)
+watch(showBackupDialog, (visible) => {
+  if (visible) {
+    void loadBackups()
+  } else {
+    backups.value = []
   }
-}
+})
 
 onMounted(() => {
-  loadConfigs()
+  void loadConfigs()
 })
 </script>
 

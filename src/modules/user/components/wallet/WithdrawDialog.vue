@@ -157,7 +157,7 @@ const rules: FormRules = {
       trigger: 'blur'
     },
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (value > availableAmountDisplay.value) {
           callback(new Error('提现金额不能超过可用余额'))
         } else {

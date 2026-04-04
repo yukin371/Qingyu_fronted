@@ -49,11 +49,7 @@
 
           <!-- 转账金额 -->
           <QyFormItem label="转账金额" prop="amount">
-            <QyInput
-              v-model="transferForm.amount"
-              type="number"
-              placeholder="请输入转账金额"
-            >
+            <QyInput v-model="transferForm.amount" type="number" placeholder="请输入转账金额">
               <template #prefix>¥</template>
             </QyInput>
             <div class="quick-amounts">
@@ -131,7 +127,7 @@
 
           <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
-              <QyTag :type="getStatusType(row.status) as 'primary' | 'success' | 'warning' | 'info' | 'danger'">
+              <QyTag :type="getStatusTagType(row.status)">
                 {{ getStatusText(row.status) }}
               </QyTag>
             </template>
@@ -168,7 +164,9 @@
             </div>
             <div class="confirm-item">
               <span class="confirm-label">转账金额：</span>
-              <span class="confirm-value amount-highlight">¥{{ formatAmount(transferForm.amount) }}</span>
+              <span class="confirm-value amount-highlight"
+                >¥{{ formatAmount(transferForm.amount) }}</span
+              >
             </div>
             <div class="confirm-item" v-if="transferForm.reason">
               <span class="confirm-label">转账备注：</span>
@@ -221,7 +219,18 @@
 import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance } from '@/design-system/services'
 import type { FormRules } from '@/design-system/form/Form/types'
-import { QyIcon, QyButton, QyCard, QyTag, QyPagination, QyModal, QyInput, QyTextarea, QyForm, QyFormItem } from '@/design-system/components'
+import {
+  QyIcon,
+  QyButton,
+  QyCard,
+  QyTag,
+  QyPagination,
+  QyModal,
+  QyInput,
+  QyTextarea,
+  QyForm,
+  QyFormItem,
+} from '@/design-system/components'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
@@ -236,7 +245,7 @@ const walletInfo = ref<WalletInfo>({
   userId: '',
   balance: 0,
   totalIncome: 0,
-  totalExpense: 0
+  totalExpense: 0,
 })
 
 // 转账表单
@@ -244,13 +253,13 @@ const transferFormRef = ref<FormInstance>()
 const transferForm = reactive({
   targetUser: '',
   amount: 0,
-  reason: ''
+  reason: '',
 })
 
 const transferRules: FormRules = {
   targetUser: [
     { required: true, message: '请输入收款人', trigger: 'blur' },
-    { min: 2, max: 50, message: '收款人长度应在2-50个字符之间', trigger: 'blur' }
+    { min: 2, max: 50, message: '收款人长度应在2-50个字符之间', trigger: 'blur' },
   ],
   amount: [
     { required: true, message: '请输入转账金额', trigger: 'blur' },
@@ -262,7 +271,7 @@ const transferRules: FormRules = {
         return true
       },
       message: '转账金额不能小于0.01元',
-      trigger: 'blur'
+      trigger: 'blur',
     },
     {
       validator: (_rule, value) => {
@@ -273,9 +282,9 @@ const transferRules: FormRules = {
         }
         return true
       },
-      trigger: 'blur'
-    }
-  ]
+      trigger: 'blur',
+    },
+  ],
 }
 
 // 快捷金额
@@ -296,7 +305,7 @@ const showResultDialog = ref(false)
 const transferResult = ref({
   success: false,
   message: '',
-  transactionId: ''
+  transactionId: '',
 })
 
 // 格式化函数
@@ -312,16 +321,20 @@ function getStatusType(status: string): string {
   const typeMap: Record<string, string> = {
     success: 'success',
     pending: 'warning',
-    failed: 'danger'
+    failed: 'danger',
   }
   return typeMap[status] || 'info'
+}
+
+function getStatusTagType(status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' {
+  return getStatusType(status) as 'primary' | 'success' | 'warning' | 'info' | 'danger'
 }
 
 function getStatusText(status: string): string {
   const textMap: Record<string, string> = {
     success: '成功',
     pending: '处理中',
-    failed: '失败'
+    failed: '失败',
   }
   return textMap[status] || status
 }
@@ -332,14 +345,14 @@ function setAmount(amount: number) {
 }
 
 // 搜索用户（模拟）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function searchUsers(queryString: string, cb: (results: Array<{ value: string; nickname: string }>) => void) {
+
+async function searchUsers(
+  queryString: string,
+  cb: (results: Array<{ value: string; nickname: string }>) => void,
+) {
   // 这里应该调用API搜索用户
   // 暂时返回模拟数据
-  cb(queryString
-    ? [{ value: queryString, nickname: '' }]
-    : []
-  )
+  cb(queryString ? [{ value: queryString, nickname: '' }] : [])
 }
 
 // 选择用户
@@ -361,7 +374,7 @@ async function loadWalletInfo() {
         frozenAmount: response.data.frozenAmount,
         availableAmount: response.data.availableAmount,
         currency: response.data.currency,
-        updatedAt: response.data.updatedAt
+        updatedAt: response.data.updatedAt,
       }
     }
   } catch (error) {
@@ -376,12 +389,12 @@ async function loadTransferHistory() {
     const response = await walletAPI.getTransactions({
       page: currentPage.value,
       pageSize: pageSize.value,
-      type: 'transfer_out'
+      type: 'transfer_out',
     })
 
     if (response.code === 200) {
-      transferHistory.value = response.data?.data || []
-      total.value = response.data?.pagination?.total || 0
+      transferHistory.value = (response.data as any)?.data || []
+      total.value = (response.data as any)?.pagination?.total || 0
     }
   } catch (error) {
     console.error('加载转账记录失败:', error)
@@ -410,21 +423,18 @@ async function confirmTransfer() {
     const response = await walletAPI.transfer({
       toUserId: transferForm.targetUser,
       amount: transferForm.amount,
-      reason: transferForm.reason || '用户转账'
+      reason: transferForm.reason || '用户转账',
     })
 
     if (response.code === 200) {
       transferResult.value = {
         success: true,
         message: '转账成功',
-        transactionId: response.data?.id || ''
+        transactionId: response.data?.id || '',
       }
 
       // 刷新钱包信息和转账记录
-      await Promise.all([
-        loadWalletInfo(),
-        loadTransferHistory()
-      ])
+      await Promise.all([loadWalletInfo(), loadTransferHistory()])
 
       // 重置表单
       transferFormRef.value?.resetFields()
@@ -432,14 +442,14 @@ async function confirmTransfer() {
       transferResult.value = {
         success: false,
         message: response.message || '转账失败',
-        transactionId: ''
+        transactionId: '',
       }
     }
   } catch (error) {
     transferResult.value = {
       success: false,
       message: error instanceof Error ? error.message : '转账失败，请稍后重试',
-      transactionId: ''
+      transactionId: '',
     }
   } finally {
     transferring.value = false

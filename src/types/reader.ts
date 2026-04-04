@@ -3,7 +3,6 @@
  * 基于 doc/api/frontend/阅读器API参考.md
  */
 
-import type { APIResponse, PaginatedResponse } from './api'
 import type { BookBrief } from './bookstore'
 
 // ==================== 章节相关 ====================
@@ -19,11 +18,26 @@ export interface Chapter {
   wordCount: number
   isFree: boolean
   price: number
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
   updateTime?: string
+  updatedAt?: string
   locked?: boolean
   prevChapterId: string | null
   nextChapterId: string | null
+  content?: string
+  paragraphs?: ChapterParagraph[]
+}
+
+/**
+ * 章节内容
+ */
+export interface ChapterParagraph {
+  id: string
+  paragraphOrder: number
+  content: string
+  format?: string
+  wordCount?: number
 }
 
 /**
@@ -36,9 +50,11 @@ export interface ChapterContent {
   content: string
   chapterNum: number
   wordCount: number
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
   prevChapterId: string | null
   nextChapterId: string | null
+  paragraphs?: ChapterParagraph[]
 }
 
 /**
@@ -52,7 +68,8 @@ export interface ChapterListItem {
   isFree: boolean
   price: number
   isRead?: boolean
-  publishTime: string
+  publishTime?: string
+  publishedAt?: string
 }
 
 /**
@@ -158,7 +175,8 @@ export interface ReadingProgress {
   chapterTitle: string
   progress: number // 0-100
   scrollPosition: number
-  updateTime: string
+  updateTime?: string
+  updatedAt?: string
 }
 
 /**
@@ -225,6 +243,7 @@ export interface Annotation {
   color?: string
   createTime?: string
   updateTime?: string
+  updatedAt?: string
 }
 
 /**
@@ -288,7 +307,8 @@ export interface ShelfBook {
   lastReadChapterTitle?: string
   progress: number
   addTime: string
-  updateTime: string
+  updateTime?: string
+  updatedAt?: string
 }
 
 // ==================== 评分相关 ====================
@@ -304,7 +324,8 @@ export interface Rating {
   score: number // 1-5
   content?: string
   createTime: string
-  updateTime: string
+  updateTime?: string
+  updatedAt?: string
   likeCount: number
   isLiked?: boolean
 }

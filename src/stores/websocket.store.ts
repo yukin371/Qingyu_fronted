@@ -20,18 +20,14 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const messageHandlers = ref<Set<Function>>(new Set())
 
   // 状态
-  const connectionState = ref<WebSocketConnectionState>(
-    WebSocketConnectionState.DISCONNECTED
-  )
+  const connectionState = ref<WebSocketConnectionState>(WebSocketConnectionState.DISCONNECTED)
   const fallbackState = ref<FallbackState>({
     isActive: false,
     type: 'none',
   })
 
   // 计算属性
-  const isConnected = computed(
-    () => connectionState.value === WebSocketConnectionState.CONNECTED
-  )
+  const isConnected = computed(() => connectionState.value === WebSocketConnectionState.CONNECTED)
 
   const fallbackActive = computed(() => fallbackState.value.isActive)
 
@@ -50,7 +46,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     try {
       // 创建服务实例
       const wsConfig: WebSocketConfig = {
-        url: import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws',
+        url: import.meta.env.VITE_WS_URL || '/ws',
         token,
         ...config,
       }
@@ -99,7 +95,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   /**
    * 注册消息处理器
    */
-  // eslint-disable-next-line no-unused-vars
+
   function onMessage(handler: (message: WebSocketMessage) => void) {
     messageHandlers.value.add(handler)
 
@@ -112,7 +108,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   /**
    * 移除消息处理器
    */
-  // eslint-disable-next-line no-unused-vars
+
   function offMessage(handler: (message: WebSocketMessage) => void) {
     messageHandlers.value.delete(handler)
 

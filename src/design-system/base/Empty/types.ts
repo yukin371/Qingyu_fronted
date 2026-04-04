@@ -2,6 +2,8 @@
  * Empty 组件类型定义
  */
 
+import type { IconName } from '../Icon/types'
+
 // Empty 尺寸
 export type EmptySize = 'sm' | 'md' | 'lg' | 'xl'
 
@@ -21,7 +23,7 @@ export interface EmptyProps {
   /**
    * 图标名称（使用 Icon 组件）
    */
-  icon?: string
+  icon?: IconName
 
   /**
    * Empty 尺寸

@@ -2,6 +2,7 @@
  * Pagination 组件 Storybook 故事
  */
 
+// @ts-nocheck - Storybook file with flexible type assertions
 import { computed, ref } from 'vue'
 
 import type { Meta, StoryObj } from '@storybook/vue3'

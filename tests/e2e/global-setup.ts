@@ -5,7 +5,7 @@
  *
  * 环境变量:
  * - USE_EXISTING_BACKEND: 是否使用现有后端服务 (默认: true)
- * - BACKEND_URL: 后端服务URL (默认: http://localhost:8080)
+ * - BACKEND_URL: 后端服务URL (默认: http://localhost:9090)
  * - AUTO_START_BACKEND: 是否自动启动后端 (默认: false)
  */
 

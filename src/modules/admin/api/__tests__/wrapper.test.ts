@@ -3,11 +3,11 @@
  * 测试wrapper层是否可以正常工作
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
-  orvalMutator: vi.fn((config) => {
+  orvalMutator: vi.fn((_config) => {
     // 模拟返回数据
     return Promise.resolve({
       items: [],

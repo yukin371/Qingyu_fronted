@@ -78,7 +78,7 @@
               <el-button size="small" type="primary" @click="editProvider(row)">
                 编辑
               </el-button>
-              <el-dropdown @command="(cmd) => handleAction(cmd, row)">
+              <el-dropdown @command="(cmd: string) => handleAction(cmd, row)">
                 <el-button size="small" text>
                   <QyIcon name="MoreFilled"  />
                 </el-button>
@@ -163,21 +163,21 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, messageBox } from '@/design-system/services'
+import { messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from '@/design-system/form/Form/types'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { QyIcon } from '@/design-system/components'
 import { formatApiKeyDisplay } from '../utils/apikey'
 import type { AIProvider } from '../types/ai-admin.types'
-import { Refresh, Plus } from '@element-plus/icons-vue'
+import { Refresh as RefreshIcon, Plus as PlusIcon } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const aiStore = useAIAdminStore()
 
 // 图标
-const Refresh = Refresh as any
-const Plus = Plus as any
+const Refresh = RefreshIcon as any
+const Plus = PlusIcon as any
 
 // 状态
 const pageLoading = ref(false)
@@ -362,8 +362,7 @@ async function handleAction(command: string, provider: AIProvider) {
         '确认删除',
         {
           type: 'warning',
-          confirmButtonText: '删除',
-          confirmButtonClass: 'el-button--danger'
+          confirmButtonText: '删除'
         }
       )
 

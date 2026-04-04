@@ -123,7 +123,7 @@
           <div class="statistics-content">
             <div class="chart-container">
               <h4>收入趋势</h4>
-              <div ref="chartRef" style="height: 300px"></div>
+              <div style="height: 300px"></div>
             </div>
           </div>
         </el-tab-pane>
@@ -299,14 +299,12 @@
 import { ref, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import * as echarts from 'echarts'
 import {
   getRevenueOverview,
   getAuthorEarnings,
   getWithdrawalRequests,
   createWithdrawal,
   getSettlements,
-  getRevenueStatistics,
   type WithdrawalRequest
 } from '@/modules/finance/api'
 
@@ -346,13 +344,11 @@ const withdrawRules = {
 }
 const withdrawFormRef = ref()
 
-const chartRef = ref<HTMLElement>()
-
 // 获取收入总览
 const loadOverview = async () => {
   try {
     const res = await getRevenueOverview()
-    overview.value = res.data || {}
+    overview.value = (res as any) || {}
   } catch (error) {
     console.error('获取收入总览失败', error)
   }
@@ -366,8 +362,9 @@ const loadEarnings = async (page = earningsPage.value) => {
       page,
       page_size: earningsPageSize.value
     })
-    earningsData.value = res.data?.items || []
-    earningsTotal.value = res.data?.total || 0
+    const data = res as any
+    earningsData.value = data?.items || []
+    earningsTotal.value = data?.total || 0
     earningsPage.value = page
   } catch (error) {
     message.error('获取收入明细失败')
@@ -384,8 +381,9 @@ const loadWithdrawals = async (page = withdrawalsPage.value) => {
       page,
       page_size: withdrawalsPageSize.value
     })
-    withdrawalsData.value = res.data?.items || []
-    withdrawalsTotal.value = res.data?.total || 0
+    const data = res as any
+    withdrawalsData.value = data?.items || []
+    withdrawalsTotal.value = data?.total || 0
     withdrawalsPage.value = page
   } catch (error) {
     message.error('获取提现记录失败')
@@ -399,7 +397,8 @@ const loadSettlements = async () => {
   settlementsLoading.value = true
   try {
     const res = await getSettlements({ page: 1, page_size: 10 })
-    settlementsData.value = res.data?.items || []
+    const data = res as any
+    settlementsData.value = data?.items || []
   } catch (error) {
     message.error('获取结算记录失败')
   } finally {
@@ -437,7 +436,7 @@ const handleWithdraw = async () => {
 }
 
 // 取消提现
-const handleCancelWithdraw = async (id: string) => {
+const handleCancelWithdraw = async (_id: string) => {
   message.info('取消提现功能待实现')
 }
 

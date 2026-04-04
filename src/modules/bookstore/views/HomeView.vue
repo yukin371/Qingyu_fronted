@@ -10,9 +10,7 @@
       <!-- 头部 Hero 区域：左侧文案，右侧轮播 -->
       <section class="hero-section">
         <div class="hero-content animate-up">
-          <div class="brand-tag">
-            <Icon name="book-open" size="sm" /> 沉浸式阅读体验
-          </div>
+          <div class="brand-tag"><Icon name="book-open" size="sm" /> 沉浸式阅读体验</div>
           <h1 class="hero-title">青羽书城<span class="highlight">.</span></h1>
           <p class="hero-subtitle">
             探索未知的世界，<br />
@@ -48,14 +46,28 @@
 
         <div class="hero-banner animate-up delay-1">
           <!-- Loading state -->
-          <div v-if="loading" class="banner-skeleton"
-               style="width: 100%; height: 320px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 24px;">
-          </div>
+          <div
+            v-if="loading"
+            class="banner-skeleton"
+            style="
+              width: 100%;
+              height: 320px;
+              background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+              background-size: 200% 100%;
+              animation: shimmer 1.5s infinite;
+              border-radius: 24px;
+            "
+          ></div>
 
           <!-- Content -->
           <div v-else class="banner-wrapper">
-            <BannerCarousel :banners="banners" height="320px" indicator-position="none"
-              @banner-click="handleBannerClick" class="premium-carousel" />
+            <BannerCarousel
+              :banners="banners"
+              height="320px"
+              indicator-position="none"
+              @banner-click="handleBannerClick"
+              class="premium-carousel"
+            />
             <!-- 装饰性光晕 -->
             <div class="glow-effect"></div>
           </div>
@@ -78,7 +90,6 @@
 
       <!-- 主要内容区域 -->
       <div class="content-wrapper">
-
         <!-- 榜单区域 -->
         <section class="section-block rankings-section animate-on-scroll">
           <!-- 将内容包裹在 card-container 中 -->
@@ -88,8 +99,12 @@
               <!-- 移动端优化：Tabs 容器 -->
               <div class="section-tabs-wrapper">
                 <div class="section-tabs">
-                  <span v-for="tab in ['realtime', 'weekly', 'monthly', 'newbie']" :key="tab"
-                    :class="{ active: activeRankingTab === tab }" @click="activeRankingTab = tab">
+                  <span
+                    v-for="tab in ['realtime', 'weekly', 'monthly', 'newbie']"
+                    :key="tab"
+                    :class="{ active: activeRankingTab === tab }"
+                    @click="activeRankingTab = tab"
+                  >
                     {{ rankingTabName(tab) }}
                   </span>
                 </div>
@@ -97,9 +112,15 @@
             </div>
 
             <div class="ranking-content">
-              <RankingList :type="activeRankingTab" :items="rankings[activeRankingTab] || []" :loading="loading"
-                :max-items="6" layout="premium" @view-more="handleViewRanking(activeRankingTab)"
-                @item-click="handleBookClick" />
+              <RankingList
+                :type="activeRankingTab"
+                :items="rankings?.[activeRankingTab] || []"
+                :loading="loading"
+                :max-items="6"
+                layout="premium"
+                @view-more="handleViewRanking(activeRankingTab)"
+                @item-click="handleBookClick"
+              />
             </div>
           </div>
         </section>
@@ -108,15 +129,20 @@
         <section class="section-block recommended-section animate-on-scroll">
           <div class="card-container">
             <div class="section-header flex-between">
-              <h2 class="section-title">
-                编辑甄选 <span class="title-en">Editors' Choice</span>
-              </h2>
-              <QyButton variant="outline" size="sm" @click="handleViewBooks('recommended')">全部</QyButton>
+              <h2 class="section-title">编辑甄选 <span class="title-en">Editors' Choice</span></h2>
+              <QyButton variant="outline" size="sm" @click="handleViewBooks('recommended')"
+                >全部</QyButton
+              >
             </div>
             <!-- 强制 Grid 组件响应式 -->
             <div class="responsive-grid-wrapper">
-              <BookGrid :books="recommendedBooks" :loading="loading" :max-items="8" card-style="premium"
-                @book-click="handleBookClick" />
+              <BookGrid
+                :books="recommendedBooks"
+                :loading="loading"
+                :max-items="8"
+                card-style="premium"
+                @book-click="handleBookClick"
+              />
             </div>
           </div>
         </section>
@@ -147,15 +173,17 @@
         <section class="section-block infinite-recommendations animate-on-scroll">
           <div class="card-container recommend-container">
             <div class="section-header center-align">
-              <h2 class="section-title">
-                <Icon name="star" solid size="md" /> 猜你喜欢
-              </h2>
+              <h2 class="section-title"><Icon name="star" solid size="md" /> 猜你喜欢</h2>
               <p class="section-desc">基于你的阅读偏好推荐</p>
             </div>
 
             <div class="masonry-grid">
-              <div v-for="book in recommendedItems" :key="book.id || book._id" class="premium-card"
-                @click="handleBookClick(book)">
+              <div
+                v-for="book in recommendedItems"
+                :key="book.id || book._id"
+                class="premium-card"
+                @click="handleBookClick(book)"
+              >
                 <div class="card-image-box">
                   <QyImage :src="book.cover" fit="cover" loading="lazy">
                     <template #error>
@@ -173,7 +201,8 @@
                   <div class="book-meta-row">
                     <span class="author">{{ book.author }}</span>
                     <span class="rating">
-                      <Icon name="star" size="sm" class="text-yellow-400" /> {{ formatRating(book.rating) }}
+                      <Icon name="star" size="sm" class="text-yellow-400" />
+                      {{ formatRating(book.rating) }}
                     </span>
                   </div>
                   <div class="tags-row" v-if="book.categoryName">
@@ -188,7 +217,10 @@
               <div v-if="loadingMore" class="loader-animation">
                 <span></span><span></span><span></span>
               </div>
-              <div v-if="!hasMoreRecommendations && recommendedItems.length > 0" class="no-more-text">
+              <div
+                v-if="!hasMoreRecommendations && recommendedItems.length > 0"
+                class="no-more-text"
+              >
                 - 到底了，去看看别的吧 -
               </div>
               <div ref="loadMoreElRef" class="load-trigger"></div>
@@ -222,7 +254,7 @@ export default {
     QyInput,
     Divider,
     QyImage,
-    Icon
+    Icon,
   },
   setup() {
     const router = useRouter()
@@ -232,12 +264,22 @@ export default {
     const activeRankingTab = ref('realtime')
 
     // 数据从 store 获取，支持测试模式和真实 API 模式
+    // 添加默认值保护，防止 store 未初始化时访问 undefined 属性
     const announcements = ref([])
-    const banners = computed(() => bookstoreStore.banners)
-    const recommendedBooks = computed(() => bookstoreStore.books.recommended)
-    const featuredBooks = computed(() => bookstoreStore.books.featured)
-    const rankings = computed(() => bookstoreStore.rankings)
-    const stats = computed(() => bookstoreStore.homepageData?.stats)
+    // 使用可选链和安全访问，确保即使 store 未初始化也不会报错
+    const banners = computed(() => bookstoreStore?.banners || [])
+    const recommendedBooks = computed(() => bookstoreStore?.books?.recommended || [])
+    const featuredBooks = computed(() => bookstoreStore?.books?.featured || [])
+    const rankings = computed(
+      () =>
+        bookstoreStore?.rankings || {
+          realtime: [],
+          weekly: [],
+          monthly: [],
+          newbie: [],
+        },
+    )
+    const stats = computed(() => bookstoreStore?.homepageData?.stats || null)
 
     // 无限滚动逻辑保持不变
     const {
@@ -246,18 +288,21 @@ export default {
       hasMore: hasMoreRecommendations,
       currentPage: recommendationPage,
       total: recommendationTotal,
-      setupScrollObserver
-    } = usePagination(async (page, pageSize) => {
-      try {
-        const result = await bookstoreStore.fetchRecommendedBooks(page, pageSize)
-        return {
-          items: result.items || [],
-          total: typeof result.total === 'number' ? result.total : 0
+      setupScrollObserver,
+    } = usePagination(
+      async (page, pageSize) => {
+        try {
+          const result = await bookstoreStore.fetchRecommendedBooks(page, pageSize)
+          return {
+            items: result.items || [],
+            total: typeof result.total === 'number' ? result.total : 0,
+          }
+        } catch {
+          return { items: [], total: 0 }
         }
-      } catch {
-        return { items: [], total: 0 }
-      }
-    }, { pageSize: 12, initialLoad: false, autoLoadOnScroll: true })
+      },
+      { pageSize: 12, initialLoad: false, autoLoadOnScroll: true },
+    )
 
     // 辅助函数
     const formatRating = (rating) => {
@@ -276,24 +321,46 @@ export default {
     }
 
     // Action Handlers 保持不变
-    const handleBannerClick = () => {
-      // TODO: Implement banner click handler
+    const handleBannerClick = (banner) => {
+      if (banner?.bookId) {
+        router.push(`/bookstore/books/${banner.bookId}`)
+      } else if (banner?.link) {
+        router.push(banner.link)
+      }
     }
     const handleBookClick = (book) => {
-      router.push({ name: 'book-detail', params: { id: book.id || book._id } })
+      // 处理榜单数据结构：item.book.id / item.bookId / item.id / item._id
+      // 注意：榜单项的 item.id 是榜单条目ID，不是书籍ID
+      const bookId = book.book?.id || book.bookId || book.id || book._id
+      if (bookId) {
+        router.push({ name: 'book-detail', params: { id: bookId } })
+      }
     }
-    const handleViewRanking = () => {
-      // TODO: Implement ranking view handler
+    const handleViewRanking = (type) => {
+      router.push({ path: '/bookstore/rankings', query: type ? { type } : {} })
     }
-    const handleViewBooks = () => {
-      // TODO: Implement books view handler
+    const handleViewBooks = (type) => {
+      // 导航到浏览书籍页面，可选携带筛选类型
+      const query = type ? { filter: type } : {}
+      router.push({ path: '/bookstore/browse', query })
     }
     const goToReaderDemo = () => router.push('/bookstore/reader-demo')
 
     const loadHomepageData = async () => {
       loading.value = true
       try {
-        await bookstoreStore.fetchHomepageData()
+        // 确保 store 方法存在后再调用
+        if (typeof bookstoreStore.fetchHomepageData === 'function') {
+          await bookstoreStore.fetchHomepageData()
+        } else {
+          console.warn('[HomeView] fetchHomepageData 方法不存在，尝试单独获取数据')
+          // 尝试单独获取各项数据
+          if (typeof bookstoreStore.fetchRankings === 'function') {
+            await bookstoreStore.fetchRankings()
+          }
+        }
+      } catch (error) {
+        console.error('[HomeView] 加载首页数据失败:', error)
       } finally {
         loading.value = false
       }
@@ -314,13 +381,16 @@ export default {
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
       // 添加简单的滚动显现动画观察器
-      scrollObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) entry.target.classList.add('visible')
-        })
-      }, { threshold: 0.1 })
+      scrollObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add('visible')
+          })
+        },
+        { threshold: 0.1 },
+      )
 
-      document.querySelectorAll('.animate-on-scroll').forEach(el => scrollObserver?.observe(el))
+      document.querySelectorAll('.animate-on-scroll').forEach((el) => scrollObserver?.observe(el))
     })
 
     onUnmounted(() => {
@@ -328,12 +398,28 @@ export default {
     })
 
     return {
-      loading, loadingMore, hasMoreRecommendations,
-      announcements, banners, recommendedBooks, featuredBooks, rankings, stats, recommendedItems,
-      loadMoreElRef, activeRankingTab,
-      formatNumber, formatRating, rankingTabName, handleBookClick, handleBannerClick, handleViewRanking, handleViewBooks, goToReaderDemo
+      loading,
+      loadingMore,
+      hasMoreRecommendations,
+      announcements,
+      banners,
+      recommendedBooks,
+      featuredBooks,
+      rankings,
+      stats,
+      recommendedItems,
+      loadMoreElRef,
+      activeRankingTab,
+      formatNumber,
+      formatRating,
+      rankingTabName,
+      handleBookClick,
+      handleBannerClick,
+      handleViewRanking,
+      handleViewBooks,
+      goToReaderDemo,
     }
-  }
+  },
 }
 </script>
 
@@ -362,7 +448,8 @@ export default {
   /* 柔和的灰白背景 */
   position: relative;
   overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .container {
@@ -384,7 +471,9 @@ export default {
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   /* 移动端调整内边距 */
   @media (max-width: 768px) {
@@ -479,7 +568,7 @@ export default {
     line-height: 1.1;
     color: #1a1a1a;
     margin-bottom: 20px;
-    font-family: "Playfair Display", serif;
+    font-family: 'Playfair Display', serif;
     /* 推荐引入衬线字体 */
 
     .highlight {
@@ -987,7 +1076,11 @@ export default {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

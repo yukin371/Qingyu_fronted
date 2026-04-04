@@ -4,19 +4,18 @@
 
 
 import { render, screen } from '@testing-library/vue'
-import { h } from 'vue'
 import Progress from '../Progress.vue'
 
 describe('Progress 组件', () => {
   describe('基础渲染', () => {
     it('应该正确渲染默认进度条', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
         },
       })
 
-      const progressEl = container.querySelector('.qy-progress')
+      const progressEl = document.querySelector('.qy-progress')
       expect(progressEl).toBeInTheDocument()
       expect(progressEl).toHaveClass('qy-progress')
     })
@@ -61,7 +60,7 @@ describe('Progress 组件', () => {
 
   describe('百分比显示', () => {
     it('应该正确显示 0%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 0,
         },
@@ -71,7 +70,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确显示 50%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
         },
@@ -81,7 +80,7 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确显示 100%', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 100,
         },
@@ -91,13 +90,13 @@ describe('Progress 组件', () => {
     })
 
     it('应该正确限制超出范围的百分比', () => {
-      const { container: container1 } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 150,
         },
       })
 
-      const { container: container2 } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: -10,
         },
@@ -111,7 +110,7 @@ describe('Progress 组件', () => {
     it('应该应用自定义格式', () => {
       const format = (percentage: number) => `${percentage} / 100`
 
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 60,
           format,
@@ -233,7 +232,7 @@ describe('Progress 组件', () => {
     })
 
     it('当 showText 为 false 时应该隐藏文字', () => {
-      const { container } = render(Progress, {
+      render(Progress, {
         props: {
           percentage: 50,
           showText: false,
@@ -493,7 +492,7 @@ describe('Progress 组件', () => {
     it('百分比变化时应该触发 change 事件', async () => {
       const onChange = vi.fn()
 
-      const { container, rerender } = render(Progress, {
+      const { rerender } = render(Progress, {
         props: {
           percentage: 50,
           onChange,

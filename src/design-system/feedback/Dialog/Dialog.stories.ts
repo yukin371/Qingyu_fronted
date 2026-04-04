@@ -55,6 +55,17 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+interface DialogArgs {
+  title?: string
+  visible?: boolean
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  center?: boolean
+  modal?: boolean
+  showClose?: boolean
+  closeOnClickModal?: boolean
+  closeOnPressEscape?: boolean
+}
+
 // 1. Default - 基础对话框
 export const Default: Story = {
   args: {
@@ -62,7 +73,7 @@ export const Default: Story = {
     visible: false,
     size: 'md',
   },
-  render: (args) => ({
+  render: (args: DialogArgs) => ({
     components: { Dialog, Button },
     setup() {
       const { visible: initialVisible, ...restArgs } = args
@@ -89,9 +100,7 @@ export const Sizes: Story = {
     components: { Dialog, Button },
     setup() {
       const sizes = ['sm', 'md', 'lg', 'xl', 'full'] as const
-      const dialogs = ref(
-        Object.fromEntries(sizes.map(s => [s, false]))
-      )
+      const dialogs = ref(Object.fromEntries(sizes.map((s) => [s, false])))
 
       return { sizes, dialogs }
     },
@@ -256,7 +265,7 @@ export const AsyncClose: Story = {
       const beforeClose = async () => {
         loading.value = true
         // 模拟异步操作
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise((resolve) => setTimeout(resolve, 1500))
         loading.value = false
         // 可以在这里添加验证逻辑
         const confirmed = confirm('确定要关闭吗？')

@@ -206,7 +206,8 @@ const updating = ref(false)
 // 计算属性
 const booklistId = computed(() => route.params.id as string)
 const isCreator = computed(() => {
-  return booklistStore.currentBooklist?.creatorId === userStore.userInfo?.id
+  const userInfo = userStore.userInfo as { id?: string } | null
+  return booklistStore.currentBooklist?.creatorId === userInfo?.id
 })
 
 // 格式化日期

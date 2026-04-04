@@ -129,7 +129,9 @@ import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import { getUserBookmarks, deleteBookmark, updateBookmark } from '@/modules/reader/api'
+import { getBookDetail } from '@/modules/bookstore/api'
 import type { Bookmark } from '@/types/models'
+import defaultBookCover from '@/assets/default-book-cover.svg'
 
 const router = useRouter()
 
@@ -184,6 +186,37 @@ function formatTime(dateStr: string): string {
   })
 }
 
+async function hydrateBookmarks(items: any[]): Promise<Bookmark[]> {
+  const uniqueBookIds = [...new Set(items.map((item) => item.bookId).filter(Boolean))]
+  const detailEntries = await Promise.all(
+    uniqueBookIds.map(async (id) => {
+      try {
+        const response = await getBookDetail(String(id))
+        return [String(id), (response as any)?.data ?? response] as const
+      } catch {
+        return [String(id), null] as const
+      }
+    }),
+  )
+  const details = new Map(detailEntries)
+
+  return items.map((item) => {
+    const detail = details.get(String(item.bookId))
+    return {
+      ...item,
+      id: String(item.id ?? `${item.bookId}-${item.chapterId}-${item.createdAt ?? ''}`),
+      bookId: String(item.bookId ?? ''),
+      chapterId: String(item.chapterId ?? ''),
+      bookTitle: detail?.title || `作品 ${String(item.bookId ?? '').slice(-6)}`,
+      chapterTitle: item.chapterTitle || `章节 ${String(item.chapterId ?? '').slice(-6)}`,
+      bookCover: detail?.cover || defaultBookCover,
+      content: item.content || item.note || item.quote || '',
+      progress: Number(item.progress ?? 0),
+      createdAt: item.createdAt || item.updatedAt || new Date().toISOString(),
+    } as Bookmark
+  })
+}
+
 // 加载书签列表
 async function loadBookmarks(): Promise<void> {
   loading.value = true
@@ -193,11 +226,14 @@ async function loadBookmarks(): Promise<void> {
       size: pageSize.value
     })
 
-    const data = response.data || response
-    bookmarks.value = Array.isArray(data) ? data : (data.data || [])
-    total.value = data.total || (response as any).total || 0
+    const data = (response as any).data || response
+    const rawBookmarks = Array.isArray(data)
+      ? data
+      : ((data as any).bookmarks || (data as any).data || (data as any).list || [])
+    bookmarks.value = await hydrateBookmarks(Array.isArray(rawBookmarks) ? rawBookmarks : [])
+    total.value = Number((data as any).total || (data as any).pagination?.total || (response as any).total || bookmarks.value.length)
   } catch (error: any) {
-    ElMessage.error(error.message || '加载书签失败')
+    message.error(error.message || '加载书签失败')
   } finally {
     loading.value = false
   }
@@ -235,9 +271,8 @@ async function saveNote(): Promise<void> {
   saving.value = true
   try {
     await updateBookmark(editingBookmark.value.id, {
-      note: noteContent.value,
-      highlightText: editingBookmark.value.highlightText
-    })
+      note: noteContent.value
+    } as any)
 
     const index = bookmarks.value.findIndex(b => b.id === editingBookmark.value!.id)
     if (index !== -1) {
@@ -247,7 +282,7 @@ async function saveNote(): Promise<void> {
     message.success('保存成功')
     showNoteDialog.value = false
   } catch (error: any) {
-    ElMessage.error(error.message || '保存失败')
+    message.error(error.message || '保存失败')
   } finally {
     saving.value = false
   }
@@ -473,4 +508,3 @@ onMounted(() => {
   }
 }
 </style>
-

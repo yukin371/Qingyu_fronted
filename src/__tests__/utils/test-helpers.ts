@@ -4,7 +4,6 @@
  * 提供通用的测试辅助函数
  */
 
-/* eslint-disable no-undef */
 import { mount, VueWrapper } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { ComponentPublicInstance } from 'vue'
@@ -25,14 +24,14 @@ import { ComponentPublicInstance } from 'vue'
  */
 export function createTestWrapper(
   component: unknown,
-  options: Record<string, unknown> = {}
+  options: Record<string, unknown> = {},
 ): VueWrapper<ComponentPublicInstance> {
   return mount(component, {
     global: {
       plugins: [createPinia()],
-      ...(options.global as Record<string, unknown>)
+      ...(options.global as Record<string, unknown>),
     },
-    ...options
+    ...options,
   })
 }
 
@@ -49,7 +48,7 @@ export function createTestWrapper(
  * ```
  */
 export async function waitForTick(ms: number = 0): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms))
+  await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
@@ -58,7 +57,7 @@ export async function waitForTick(ms: number = 0): Promise<void> {
  * @returns Promise
  */
 export async function nextTick(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 /**
@@ -87,14 +86,14 @@ export function createMockRouter(route: Record<string, unknown> = {}) {
         path: '/',
         params: {},
         query: {},
-        ...route
-      }
+        ...route,
+      },
     },
     push: vi.fn(),
     replace: vi.fn(),
     go: vi.fn(),
     back: vi.fn(),
-    forward: vi.fn()
+    forward: vi.fn(),
   }
 }
 

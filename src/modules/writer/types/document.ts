@@ -1,4 +1,5 @@
 import type { BaseEntity, ID, ISODate } from './core'
+import type { CharacterAppearance } from './character'
 
 // =======================
 // Enums
@@ -63,6 +64,7 @@ export interface Document extends BaseEntity {
 
   // 前端辅助字段（非后端返回，可选）
   children?: Document[] // 用于构建树形结构
+  characterAppearances?: CharacterAppearance[] // 该节点的角色登场详情
 }
 
 /**

@@ -221,20 +221,20 @@ export const useWalletStore = defineStore('wallet', {
       try {
         const queryParams = {
           page: params?.page || this.transactionsPage,
-          page_size: params?.page_size || this.transactionsPageSize,
+          pageSize: params?.page_size || this.transactionsPageSize,
           type: params?.type
         }
 
         const response = await walletAPI.getTransactions(queryParams)
 
-        // 处理分页响应数据
-        if (response.data) {
+        // 处理分页响应数据 - API直接返回 PaginatedResponse
+        if (response && response.data) {
           this.transactions = response.data
         }
-        if (response.pagination) {
+        if (response && response.pagination) {
           this.transactionsTotal = response.pagination.total || 0
           this.transactionsPage = response.pagination.page || queryParams.page
-          this.transactionsPageSize = response.pagination.page_size || queryParams.page_size
+          this.transactionsPageSize = response.pagination.pageSize || queryParams.pageSize
         }
       } catch (error: any) {
         this.error = error.message || '获取交易记录失败'
@@ -252,7 +252,8 @@ export const useWalletStore = defineStore('wallet', {
       this.error = null
 
       try {
-        const result = await walletAPI.requestWithdraw(request)
+        // 使用正确的API方法名
+        const result = await walletAPI.submitWithdraw(request)
         // 刷新余额和提现记录
         await this.fetchBalance()
         await this.fetchWithdrawals()
@@ -275,20 +276,20 @@ export const useWalletStore = defineStore('wallet', {
       try {
         const queryParams = {
           page: params?.page || this.withdrawalsPage,
-          page_size: params?.page_size || this.withdrawalsPageSize,
+          pageSize: params?.page_size || this.withdrawalsPageSize,
           status: params?.status
         }
 
         const response = await walletAPI.getWithdrawRequests(queryParams)
 
-        // 处理分页响应数据
-        if (response.data) {
+        // 处理分页响应数据 - API直接返回 PaginatedResponse
+        if (response && response.data) {
           this.withdrawals = response.data
         }
-        if (response.pagination) {
+        if (response && response.pagination) {
           this.withdrawalsTotal = response.pagination.total || 0
           this.withdrawalsPage = response.pagination.page || queryParams.page
-          this.withdrawalsPageSize = response.pagination.page_size || queryParams.page_size
+          this.withdrawalsPageSize = response.pagination.pageSize || queryParams.pageSize
         }
       } catch (error: any) {
         this.error = error.message || '获取提现记录失败'

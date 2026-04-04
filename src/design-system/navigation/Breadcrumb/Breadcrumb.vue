@@ -5,10 +5,10 @@
  * 面包屑导航容器组件，用于显示当前页面在层级结构中的位置
  */
 
-import { computed, provide, ref, useSlots } from 'vue'
+import { computed, provide, ref } from 'vue'
 import { cn } from '../../utils/cn'
-import type { BreadcrumbProps } from './types'
-import { BREADCRUMB_KEY, type BreadcrumbContext } from './constants'
+import type { BreadcrumbProps, BreadcrumbContext } from './types'
+import { BREADCRUMB_KEY } from './constants'
 
 // 组件 Props
 const props = withDefaults(defineProps<BreadcrumbProps>(), {
@@ -18,9 +18,6 @@ const props = withDefaults(defineProps<BreadcrumbProps>(), {
 // 响应式状态
 const items = ref<Array<{ id: string; hasChildren: boolean }>>([])
 const itemIdCounter = ref(0)
-
-// 获取插槽内容
-const slots = useSlots()
 
 // 计算子项数量
 const itemCount = computed(() => items.value.length)

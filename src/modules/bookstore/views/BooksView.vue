@@ -11,22 +11,45 @@
       <div class="filter-bar" data-testid="bookstore-filter-bar">
         <Row :gutter="16">
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.categoryId" placeholder="选择分类" clearable @change="handleFilterChange" data-testid="category-filter">
+            <Select
+              v-model="filters.categoryId"
+              placeholder="选择分类"
+              clearable
+              @change="handleFilterChange"
+              data-testid="category-filter"
+            >
               <option value="">全部分类</option>
-              <option v-for="cat in categories" :key="cat.id || (cat as any)._id" :value="cat.id || (cat as any)._id">{{ cat.name }}</option>
+              <option
+                v-for="cat in categories"
+                :key="cat.id || (cat as any)._id"
+                :value="cat.id || (cat as any)._id"
+              >
+                {{ cat.name }}
+              </option>
             </Select>
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange" data-testid="status-filter">
+            <Select
+              v-model="filters.status"
+              placeholder="连载状态"
+              clearable
+              @change="handleFilterChange"
+              data-testid="status-filter"
+            >
               <option value="">全部状态</option>
-              <option value="serializing">连载中</option>
+              <option value="ongoing">连载中</option>
               <option value="completed">已完结</option>
             </Select>
           </Col>
 
           <Col :xs="24" :sm="8" :md="6">
-            <Select v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange" data-testid="sort-filter">
+            <Select
+              v-model="filters.sortBy"
+              placeholder="排序方式"
+              @change="handleFilterChange"
+              data-testid="sort-filter"
+            >
               <option value="updateTime">最新更新</option>
               <option value="rating">最高评分</option>
               <option value="viewCount">最多阅读</option>
@@ -49,21 +72,26 @@
 
       <!-- 书籍列表 -->
       <div class="books-container" data-testid="books-list">
-        <Spinner v-if="loading" :size="48" class="loading-spinner" />
+        <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
         <!-- 网格视图 -->
         <Row v-else-if="viewMode === 'grid'" :gutter="20">
           <Col v-for="book in books" :key="book.id" :xs="12" :sm="8" :md="6" :lg="4">
             <div class="book-card" @click="goToDetail(book.id)" data-testid="book-card">
               <div class="book-cover">
-                <Image :src="book.cover" fit="cover">
+                <Image :src="book.coverUrl" fit="cover">
                   <template #error>
                     <div class="image-slot">
                       <Icon name="photo" size="md" />
                     </div>
                   </template>
                 </Image>
-                <Tag v-if="book.status === 'completed'" class="status-tag" variant="success" size="sm">
+                <Tag
+                  v-if="book.status === 'completed'"
+                  class="status-tag"
+                  variant="success"
+                  size="sm"
+                >
                   完结
                 </Tag>
               </div>
@@ -84,9 +112,15 @@
 
         <!-- 列表视图 -->
         <div v-else class="books-list">
-          <div v-for="book in books" :key="book.id" class="book-list-item" @click="goToDetail(book.id)" data-testid="book-card">
+          <div
+            v-for="book in books"
+            :key="book.id"
+            class="book-list-item"
+            @click="goToDetail(book.id)"
+            data-testid="book-card"
+          >
             <div class="item-cover">
-              <Image :src="book.cover" fit="cover">
+              <Image :src="book.coverUrl" fit="cover">
                 <template #error>
                   <div class="image-slot">
                     <Icon name="photo" size="lg" />
@@ -105,12 +139,8 @@
                 </span>
                 <span>{{ formatNumber(book.wordCount) }}字</span>
                 <span>{{ formatNumber(book.viewCount) }}阅读</span>
-                <Tag v-if="book.status === 'completed'" variant="success" size="sm">
-                  完结
-                </Tag>
-                <Tag v-else variant="warning" size="sm">
-                  连载
-                </Tag>
+                <Tag v-if="book.status === 'completed'" variant="success" size="sm"> 完结 </Tag>
+                <Tag v-else variant="warning" size="sm"> 连载 </Tag>
               </div>
             </div>
             <div class="item-action">
@@ -165,16 +195,33 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBookList } from '@/modules/bookstore/api'
 import { getAllCategories } from '@/modules/bookstore/api'
-import { Button, Select, Radio, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
+import {
+  Button,
+  Select,
+  Radio,
+  Pagination,
+  Empty,
+  Image,
+  Tag,
+  Spinner,
+  Row,
+  Col,
+} from '@/design-system'
 import { Icon } from '@/design-system'
-import type { BookBrief, Category } from '@/types/models'
+import type { Category } from '@/types/models'
 import type { Book } from '@/types/bookstore'
-import { isEmptyData, handleError as handleApiError, isNetworkError, isPermissionError, isServerError } from '@/utils/errorHandler'
+import {
+  isEmptyData,
+  handleError as handleApiError,
+  isNetworkError,
+  isPermissionError,
+  isServerError,
+} from '@/utils/errorHandler'
 
 const router = useRouter()
 
 const loading = ref(false)
-const books = ref<Book[]>([])  // 后端返回完整的 Book 对象
+const books = ref<Book[]>([]) // 后端返回完整的 Book 对象
 const categories = ref<Category[]>([])
 const total = ref(0)
 const currentPage = ref(1)
@@ -190,8 +237,8 @@ const error = ref<{
 
 const filters = reactive({
   categoryId: '',
-  status: '' as '' | 'serializing' | 'completed',
-  sortBy: 'updateTime' as 'updateTime' | 'rating' | 'viewCount' | 'wordCount'
+  status: '' as '' | 'ongoing' | 'completed',
+  sortBy: 'updateTime' as 'updateTime' | 'rating' | 'viewCount' | 'wordCount',
 })
 
 // 格式化数字
@@ -225,11 +272,10 @@ const loadBooks = async () => {
       category: filters.categoryId,
       status: filters.status,
       sort: filters.sortBy,
-      order: 'desc' as 'desc'
+      order: 'desc' as const,
     }
 
-    console.log('[BooksView] Loading books with params:', params)
-    const response = await getBookList(params)
+    const response: any = await getBookList(params)
 
     // 处理多种可能的响应格式
     // 格式1: response 直接是书籍数组 (httpService 默认行为)
@@ -241,7 +287,6 @@ const loadBooks = async () => {
 
     // 格式2: 标准 APIResponse { code, message, data, total }
     if (response && typeof response === 'object') {
-      console.log('[BooksView] Response is object, keys:', Object.keys(response))
 
       // 检查是否为空数据（数据库中没有书籍）
       if (isEmptyData(response)) {
@@ -255,28 +300,24 @@ const loadBooks = async () => {
         // 后端返回格式: { code, message, data: [...], total, page, size }
         // data 直接是书籍数组，total/page/size 在根级别
         if (Array.isArray(response.data)) {
-          console.log('[BooksView] response.data is array with', response.data.length, 'items')
-          if (response.data.length > 0) {
-            console.log('[BooksView] First book data:', response.data[0])
-          }
           books.value = response.data
-          total.value = (response as any).total || response.data.length
-        } else if (response.data && response.data.list) {
+          total.value =
+            (response as any).pagination?.total || (response as any).total || response.data.length
+        } else if (response.data && (response.data as any).list) {
           // 兼容 { data: { list: [...], total? } }
-          books.value = response.data.list
-          total.value = response.data.total || (response as any).total || response.data.list.length
-        } else if (response.data && response.data.items) {
+          books.value = (response.data as any).list
+          total.value =
+            (response.data as any).total || response.total || (response.data as any).list.length
+        } else if (response.data && (response.data as any).items) {
           // 兼容可能的嵌套格式 { data: { items: [...], total, ... } }
-          console.log('[BooksView] Found nested items format')
-          books.value = response.data.items
-          total.value = response.data.total || 0
-        } else if (response.data && response.data.books) {
+          books.value = (response.data as any).items
+          total.value = (response.data as any).total || 0
+        } else if (response.data && (response.data as any).books) {
           // 兼容另一种格式 { data: { books: [...], total, ... } }
-          console.log('[BooksView] Found nested books format')
-          books.value = response.data.books
-          total.value = response.data.total || 0
+          books.value = (response.data as any).books
+          total.value = (response.data as any).total || 0
         } else {
-          console.warn('[BooksView] Unexpected data structure:', response.data)
+          if (import.meta.env.DEV) console.warn('[BooksView] Unexpected data structure:', response.data)
           books.value = []
           total.value = 0
         }
@@ -284,12 +325,17 @@ const loadBooks = async () => {
     } else {
       // API返回错误状态码 - 静默处理，只显示UI错误状态
       const appError = handleApiError(response, { showMessage: false })
+      const details = appError.details as Record<string, unknown> | undefined
       error.value = {
         title: appError.message,
-        message: appError.details?.message || appError.message,
-        type: isNetworkError(response) ? 'network' :
-              isPermissionError(response) ? 'permission' :
-              isServerError(response) ? 'server' : 'not_found'
+        message: (details?.message as string) || appError.message,
+        type: isNetworkError(response)
+          ? 'network'
+          : isPermissionError(response)
+            ? 'permission'
+            : isServerError(response)
+              ? 'server'
+              : 'not_found',
       }
     }
   } catch (err: any) {
@@ -297,19 +343,24 @@ const loadBooks = async () => {
     console.error('[BooksView] Error details:', {
       message: err.message,
       code: err.code,
-      response: err.response?.data
+      response: err.response?.data,
     })
 
     // 使用统一的错误处理 - 静默处理，只显示UI错误状态，避免重复提示
     const appError = handleApiError(err, { showMessage: false })
 
     // 根据错误类型设置UI状态
+    const details = appError.details as Record<string, unknown> | undefined
     error.value = {
       title: appError.message,
-      message: appError.details?.message || appError.message,
-      type: isNetworkError(err) ? 'network' :
-            isPermissionError(err) ? 'permission' :
-            isServerError(err) ? 'server' : 'not_found'
+      message: (details?.message as string) || appError.message,
+      type: isNetworkError(err)
+        ? 'network'
+        : isPermissionError(err)
+          ? 'permission'
+          : isServerError(err)
+            ? 'server'
+            : 'not_found',
     }
   } finally {
     loading.value = false
@@ -341,7 +392,7 @@ const loadCategories = async () => {
           for (const cat of cats as any[]) {
             result.push({
               ...cat,
-              id: cat.id || cat._id || ''
+              id: cat.id || cat._id || '',
             })
             if (cat.children && cat.children.length > 0) {
               result.push(...flattenCategories(cat.children))
@@ -370,15 +421,13 @@ const handleFilterChange = () => {
 }
 
 // 页码变化
-const handlePageChange = (page: number) => {
-  currentPage.value = page
+const handlePageChange = () => {
   loadBooks()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 每页数量变化
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
+const handleSizeChange = () => {
   currentPage.value = 1
   loadBooks()
 }
@@ -664,7 +713,6 @@ onMounted(() => {
     margin-top: 16px;
   }
 }
-
 
 .pagination {
   display: flex;

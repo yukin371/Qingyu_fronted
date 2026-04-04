@@ -145,7 +145,7 @@ export const ExportFormats = {
   TXT: 'txt' as ExportFormat,
   MD: 'md' as ExportFormat,
   DOCX: 'docx' as ExportFormat,
-  ZIP: 'zip' as ExportFormat
+  ZIP: 'zip' as ExportFormat,
 } as const
 
 /**
@@ -156,7 +156,7 @@ export const ExportTaskStatuses = {
   PROCESSING: 'processing' as ExportTaskStatus,
   COMPLETED: 'completed' as ExportTaskStatus,
   FAILED: 'failed' as ExportTaskStatus,
-  CANCELLED: 'cancelled' as ExportTaskStatus
+  CANCELLED: 'cancelled' as ExportTaskStatus,
 } as const
 
 /**
@@ -164,7 +164,7 @@ export const ExportTaskStatuses = {
  */
 export const ExportTypes = {
   DOCUMENT: 'document' as ExportType,
-  PROJECT: 'project' as ExportType
+  PROJECT: 'project' as ExportType,
 } as const
 
 /**
@@ -174,14 +174,9 @@ export const exportFormatOptions = [
   { label: 'TXT 文本', value: ExportFormats.TXT, icon: 'Document' },
   { label: 'Markdown', value: ExportFormats.MD, icon: 'Document' },
   { label: 'Word 文档', value: ExportFormats.DOCX, icon: 'Document' },
-  { label: 'ZIP 压缩包', value: ExportFormats.ZIP, icon: 'FolderOpened' }
 ]
 
 /**
  * 导出范围选项（用于UI展示）
  */
-export const exportScopeOptions = [
-  { label: '全部章节', value: 'all' },
-  { label: '已发布章节', value: 'published' },
-  { label: '指定章节', value: 'custom' }
-]
+export const exportScopeOptions = [{ label: '全部章节', value: 'all' }]

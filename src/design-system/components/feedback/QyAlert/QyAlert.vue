@@ -142,7 +142,7 @@ const iconComponents = {
 
 // 当前图标组件
 const iconComponent = computed(() => {
-  return iconComponents[props.type] || iconComponents.info
+  return iconComponents[props.type ?? 'info'] || iconComponents.info
 })
 
 // 计算警告容器类名

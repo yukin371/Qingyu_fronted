@@ -174,6 +174,16 @@ export interface Message {
 }
 
 /**
+ * 消息类型
+ */
+export type MessageType = 'text' | 'image' | 'voice' | 'file' | 'system'
+
+/**
+ * 消息状态
+ */
+export type MessageStatus = 'sending' | 'sent' | 'read' | 'failed'
+
+/**
  * 会话
  */
 export interface Conversation {
@@ -183,9 +193,29 @@ export interface Conversation {
   participant_avatar?: string
   last_message?: string
   last_message_time?: string
+  last_message_type?: MessageType
   unread_count: number
   created_at: string
   updated_at: string
+}
+
+/**
+ * 消息
+ */
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  sender_name: string
+  sender_avatar?: string
+  type: MessageType
+  content: string
+  file_url?: string
+  file_name?: string
+  file_size?: number
+  status?: MessageStatus
+  is_read: boolean
+  created_at: string
 }
 
 // ==================== 书单相关 API ====================
@@ -435,19 +465,48 @@ export const getConversations = api.getApiV1SocialMessagesConversations
 export const createConversation = api.postApiV1SocialMessagesConversations
 
 /**
+ * 删除会话
+ * @description 使用 message.ts 中的手动实现
+ */
+
+/**
  * 获取会话消息
  */
-export const getConversationMessagesList = api.getApiV1SocialMessagesConversationsConversationIdMessages
+export const getConversationMessagesList =
+  api.getApiV1SocialMessagesConversationsConversationIdMessages
 
 /**
  * 发送会话消息
  */
-export const sendConversationMessage = api.postApiV1SocialMessagesConversationsConversationIdMessages
+export const sendConversationMessage =
+  api.postApiV1SocialMessagesConversationsConversationIdMessages
 
 /**
  * 标记会话为已读
  */
 export const markConversationAsRead = api.postApiV1SocialMessagesConversationsConversationIdRead
+
+// 从 message.ts 导入手动实现的API（generated API中不存在）
+import {
+  searchConversations,
+  uploadMessageFile,
+  recallMessage,
+  sendImageMessage,
+  sendFileMessage,
+  getConversationStats,
+  deleteConversation,
+} from './message'
+
+// 重新导出这些API
+export {
+  searchConversations,
+  uploadMessageFile,
+  recallMessage,
+  sendImageMessage,
+  sendFileMessage,
+  getConversationStats,
+  deleteConversation,
+}
 
 // ==================== 其他便捷方法 ====================
 
@@ -512,6 +571,13 @@ export default {
   getConversationMessagesList,
   sendConversationMessage,
   markConversationAsRead,
+  getConversationStats,
+  deleteConversation,
+  searchConversations,
+  uploadMessageFile,
+  recallMessage,
+  sendImageMessage,
+  sendFileMessage,
   // 工具函数
   getApi,
 }

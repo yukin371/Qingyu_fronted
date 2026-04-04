@@ -6,7 +6,7 @@
 export type CalendarSize = 'sm' | 'md' | 'lg'
 
 // Calendar 日期值类型
-export type CalendarValue = Date | string | [Date, Date] | [string, string] | null
+export type CalendarValue = Date | string | [Date | null, Date | null] | [string | null, string | null] | null
 
 // Calendar 禁用日期函数类型
 export type DisabledDateFunction = (date: Date) => boolean
@@ -164,7 +164,7 @@ export const calendarDefaults: Partial<CalendarProps> = {
 // Calendar Events 接口
 export interface CalendarEmits {
   'update:modelValue': [value: CalendarValue]
-  select: [date: Date | [Date, Date]]
+  select: [date: Date | [Date, Date | null]]
   'panel-change': [date: Date]
   'month-change': [date: Date]
   'year-change': [date: Date]

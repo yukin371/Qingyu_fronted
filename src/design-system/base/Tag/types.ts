@@ -2,6 +2,8 @@
  * Tag 组件类型定义
  */
 
+import type { IconName } from '../Icon/types'
+
 // Tag 变体
 export type TagVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger'
 
@@ -31,7 +33,7 @@ export interface TagProps {
   /**
    * 图标名称（前缀图标）
    */
-  icon?: string
+  icon?: IconName
 
   /**
    * 自定义类名

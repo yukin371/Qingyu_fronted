@@ -8,7 +8,7 @@ import type {
   Chapter,
   ChapterContent,
   ReadingProgress,
-  ReadingSettings
+  ReadingSettings,
 } from '../types/reader.types'
 import { storageService } from '@/core/services/storage.service'
 import { STORAGE_KEYS } from '@/core/config/constants'
@@ -18,14 +18,16 @@ class ReaderService {
    * Get chapter content
    */
   async getChapterContent(bookId: string, chapterId: string): Promise<ChapterContent> {
-    return await readerAPI.getChapterContent(bookId, chapterId)
+    const response = await readerAPI.getChapterContent(bookId, chapterId)
+    return (response as any).data as ChapterContent
   }
 
   /**
    * Get book chapters
    */
   async getBookChapters(bookId: string, page = 1, size = 50): Promise<Chapter[]> {
-    return await readerAPI.getBookChapters(bookId, page, size)
+    const response = await readerAPI.getBookChapters({ bookId, page, size } as any)
+    return (response as any).data?.items || (response as any).items || []
   }
 
   /**
@@ -34,15 +36,16 @@ class ReaderService {
   async saveReadingProgress(
     bookId: string,
     chapterId: string,
-    progress: number
+    progress: number,
+    readDuration: number = 0,
   ): Promise<void> {
     try {
       await readerAPI.saveReadingProgress({
-        book_id: bookId,
-        chapter_id: chapterId,
-        progress_percent: progress,
-        read_duration: 0 // TODO: Track actual duration
-      })
+        bookId,
+        chapterId,
+        progressPercent: progress,
+        readDuration,
+      } as any)
     } catch (error) {
       console.error('Failed to save reading progress:', error)
     }
@@ -53,7 +56,8 @@ class ReaderService {
    */
   async getReadingProgress(bookId: string): Promise<ReadingProgress | null> {
     try {
-      return await readerAPI.getReadingProgress(bookId)
+      const response = await readerAPI.getReadingProgress(bookId)
+      return ((response as any).data as ReadingProgress) || null
     } catch (error) {
       console.error('Failed to get reading progress:', error)
       return null
@@ -69,7 +73,7 @@ class ReaderService {
       lineHeight: 1.8,
       theme: 'light',
       fontFamily: 'default',
-      pageWidth: 800
+      pageWidth: 800,
     }
 
     return storageService.get<ReadingSettings>(STORAGE_KEYS.READING_SETTINGS) || defaultSettings
@@ -86,7 +90,7 @@ class ReaderService {
    * Calculate next chapter
    */
   getNextChapter(chapters: Chapter[], currentChapterId: string): Chapter | null {
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapterId)
+    const currentIndex = chapters.findIndex((ch) => ch.id === currentChapterId)
     if (currentIndex === -1 || currentIndex === chapters.length - 1) {
       return null
     }
@@ -97,7 +101,7 @@ class ReaderService {
    * Calculate previous chapter
    */
   getPreviousChapter(chapters: Chapter[], currentChapterId: string): Chapter | null {
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapterId)
+    const currentIndex = chapters.findIndex((ch) => ch.id === currentChapterId)
     if (currentIndex <= 0) {
       return null
     }
@@ -127,4 +131,3 @@ class ReaderService {
 
 export const readerService = new ReaderService()
 export default readerService
-

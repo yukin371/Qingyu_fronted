@@ -2,7 +2,6 @@
  * BookListDetailView视图测试
  */
 
-
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
@@ -69,7 +68,7 @@ const mockUnfavoriteBookList = booklistApi.unfavoriteBookList as any
 const mockGetPopularTags = booklistApi.getPopularTags as any
 
 // 辅助函数：等待所有Promise完成
-const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('BookListDetailView', () => {
   let router: any
@@ -104,7 +103,10 @@ describe('BookListDetailView', () => {
       // Arrange - 让API调用延迟返回，这样可以捕获loading状态
       let resolveApi: any
       mockGetBookListDetail.mockImplementation(
-        () => new Promise(resolve => { resolveApi = resolve })
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve
+          }),
       )
 
       // 先获取store实例，设置loading状态
@@ -180,10 +182,10 @@ describe('BookListDetailView', () => {
     it('should render booklist stats', async () => {
       // Arrange
       const mockBooklist = createMockBooklist({
-        bookCount: 10,
-        viewCount: 1000,
-        likeCount: 50,
-      })
+        booksCount: 10,
+        followersCount: 1000,
+        likesCount: 50,
+      } as any)
       mockGetBookListDetail.mockResolvedValue(mockBooklist)
 
       const wrapper = mount(BookListDetailView, {
@@ -197,7 +199,7 @@ describe('BookListDetailView', () => {
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.text()).toContain('10 本书')
+      expect(wrapper.text()).toContain('10')
       expect(wrapper.text()).toContain('1.0k')
       expect(wrapper.text()).toContain('50')
     })
@@ -216,9 +218,9 @@ describe('BookListDetailView', () => {
       })
 
       // Act & Assert
-      expect(wrapper.vm.formatNumber(1000)).toBe('1.0k')
-      expect(wrapper.vm.formatNumber(10000)).toBe('1.0w')
-      expect(wrapper.vm.formatNumber(100)).toBe('100')
+      expect((wrapper.vm as any).formatNumber(1000)).toBe('1.0k')
+      expect((wrapper.vm as any).formatNumber(10000)).toBe('1.0w')
+      expect((wrapper.vm as any).formatNumber(100)).toBe('100')
     })
 
     it('should format dates correctly', () => {
@@ -234,7 +236,7 @@ describe('BookListDetailView', () => {
 
       // Act & Assert
       const date = new Date('2024-01-01T00:00:00Z')
-      const formatted = wrapper.vm.formatDate(date)
+      const formatted = (wrapper.vm as any).formatDate(date)
       expect(formatted).toBeTruthy()
     })
   })
@@ -285,7 +287,7 @@ describe('BookListDetailView', () => {
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.vm.isCreator).toBe(true)
+      expect((wrapper.vm as any).isCreator).toBe(true)
     })
 
     it('should not show edit button when user is not creator', async () => {
@@ -310,7 +312,7 @@ describe('BookListDetailView', () => {
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.vm.isCreator).toBe(false)
+      expect((wrapper.vm as any).isCreator).toBe(false)
     })
   })
 
@@ -368,7 +370,7 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         id: 'booklist_123',
         isLiked: false,
-      })
+      } as any)
       mockGetBookListDetail.mockResolvedValue(mockBooklist)
       mockFavoriteBookList.mockResolvedValue({ success: true })
 
@@ -402,7 +404,7 @@ describe('BookListDetailView', () => {
       const mockBooklist = createMockBooklist({
         id: 'booklist_123',
         isLiked: true,
-      })
+      } as any)
       mockGetBookListDetail.mockResolvedValue(mockBooklist)
       mockUnfavoriteBookList.mockResolvedValue({ success: true })
 

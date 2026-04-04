@@ -10,7 +10,7 @@
         @input="handleSearch"
       >
         <template #prefix>
-          <QyIcon name="Search"  />
+          <QyIcon name="Search" />
         </template>
       </el-input>
       <div class="action-buttons">
@@ -21,12 +21,15 @@
           <el-button :type="viewMode === 'my' ? 'primary' : ''" @click="switchView('my')">
             我的书单
           </el-button>
-          <el-button :type="viewMode === 'official' ? 'primary' : ''" @click="switchView('official')">
+          <el-button
+            :type="viewMode === 'official' ? 'primary' : ''"
+            @click="switchView('official')"
+          >
             官方书单
           </el-button>
         </el-button-group>
         <el-button type="primary" @click="showCreateDialog = true">
-          <QyIcon name="Plus"  />
+          <QyIcon name="Plus" />
           创建书单
         </el-button>
       </div>
@@ -57,6 +60,7 @@
         v-for="booklist in booklists"
         :key="booklist.id"
         class="booklist-card"
+        data-testid="booklist-card"
         @click="viewBooklistDetail(booklist.id)"
       >
         <div class="booklist-cover">
@@ -70,28 +74,25 @@
           <p class="booklist-desc">{{ booklist.description }}</p>
           <div class="booklist-meta">
             <span class="meta-item">
-              <QyIcon name="Collection"  />
+              <QyIcon name="Collection" />
               {{ booklist.book_count }} 本书
             </span>
             <span class="meta-item">
-              <QyIcon name="User"  />
+              <QyIcon name="User" />
               {{ booklist.follower_count }} 关注
             </span>
           </div>
           <div v-if="booklist.tags && booklist.tags.length" class="booklist-tags">
-            <el-tag
-              v-for="tag in booklist.tags.slice(0, 3)"
-              :key="tag"
-              size="small"
-              type="info"
-            >
+            <el-tag v-for="tag in booklist.tags.slice(0, 3)" :key="tag" size="small" type="info">
               {{ tag }}
             </el-tag>
           </div>
         </div>
         <div v-if="viewMode === 'my'" class="booklist-actions">
           <el-button size="small" @click.stop="editBooklist(booklist)">编辑</el-button>
-          <el-button size="small" type="danger" @click.stop="confirmDelete(booklist)">删除</el-button>
+          <el-button size="small" type="danger" @click.stop="confirmDelete(booklist)"
+            >删除</el-button
+          >
         </div>
       </div>
     </div>
@@ -115,7 +116,12 @@
       :title="editingBooklist ? '编辑书单' : '创建书单'"
       width="600px"
     >
-      <el-form :model="booklistForm" :rules="booklistRules" ref="booklistFormRef" label-width="100px">
+      <el-form
+        :model="booklistForm"
+        :rules="booklistRules"
+        ref="booklistFormRef"
+        label-width="100px"
+      >
         <el-form-item label="书单名称" prop="name">
           <el-input v-model="booklistForm.name" placeholder="请输入书单名称" />
         </el-form-item>
@@ -139,12 +145,7 @@
             placeholder="请选择或创建标签"
             style="width: 100%"
           >
-            <el-option
-              v-for="tag in commonTags"
-              :key="tag"
-              :label="tag"
-              :value="tag"
-            />
+            <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
           </el-select>
         </el-form-item>
         <el-form-item label="公开设置" prop="is_public">
@@ -175,22 +176,15 @@
           </div>
         </div>
         <div class="detail-actions">
-          <el-button
-            :type="isFollowing ? 'primary' : 'default'"
-            @click="toggleFollow"
-          >
-            {{ isFollowing ? '已关注' : '关注' }}
+          <el-button :type="isLiked ? 'primary' : 'default'" @click="toggleLike">
+            {{ isLiked ? '已点赞' : '点赞' }}
           </el-button>
-          <el-button @click="showAddBookDialog = true">添加书籍</el-button>
+          <el-button v-if="viewMode === 'my'" @click="showAddBookDialog = true">添加书籍</el-button>
         </div>
         <div class="detail-books">
           <h3>书单内容</h3>
           <div v-loading="loadingBooks" class="books-grid">
-            <div
-              v-for="item in booklistItems"
-              :key="item.id"
-              class="book-item"
-            >
+            <div v-for="item in booklistItems" :key="item.id" class="book-item">
               <img :src="item.book_cover" :alt="item.book_title" class="book-cover" />
               <div class="book-info">
                 <h4>{{ item.book_title }}</h4>
@@ -236,23 +230,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getBooklists,
   getBooklistDetail,
+  getBookListBooks,
   createBooklist,
   updateBooklist,
   deleteBooklist,
-  addBookToBooklist,
-  removeBookFromBooklist,
-  followBooklist,
-  unfollowBooklist,
-  getOfficialBooklists,
-  getHotBooklists,
+  likeBookList,
   type Booklist,
-  type BooklistItem
+  type BooklistItem,
 } from '@/modules/social/api'
 
 const loading = ref(false)
@@ -263,6 +253,8 @@ const pageSize = ref(12)
 const searchKeyword = ref('')
 const viewMode = ref<'all' | 'my' | 'official'>('all')
 const selectedTag = ref('')
+const currentUsername = ref('')
+const currentUserId = ref('')
 
 const commonTags = ['玄幻', '都市', '仙侠', '科幻', '历史', '军事', '游戏', '悬疑', '武侠', '奇幻']
 
@@ -273,7 +265,7 @@ const editingBooklist = ref<Booklist | null>(null)
 const currentBooklist = ref<Booklist | null>(null)
 const booklistItems = ref<BooklistItem[]>([])
 const loadingBooks = ref(false)
-const isFollowing = ref(false)
+const isLiked = ref(false)
 
 const submitting = ref(false)
 const addingBook = ref(false)
@@ -285,17 +277,46 @@ const booklistForm = reactive({
   description: '',
   cover_url: '',
   tags: [] as string[],
-  is_public: true
+  is_public: true,
 })
 
 const booklistRules = {
   name: [{ required: true, message: '请输入书单名称', trigger: 'blur' }],
-  description: [{ required: true, message: '请输入书单描述', trigger: 'blur' }]
+  description: [{ required: true, message: '请输入书单描述', trigger: 'blur' }],
 }
 
 const addBookForm = reactive({
   book_id: '',
-  note: ''
+  note: '',
+})
+
+const normalizeBooklist = (raw: any): Booklist => ({
+  id: raw?.id || '',
+  creator_id: raw?.creator_id || raw?.userId || raw?.user_id || '',
+  creator_name: raw?.creator_name || raw?.userName || '',
+  creator_avatar: raw?.creator_avatar || raw?.user_avatar || '',
+  name: raw?.name || raw?.title || '',
+  description: raw?.description || '',
+  cover_url: raw?.cover_url || raw?.cover || '',
+  book_count: Number(raw?.book_count ?? raw?.bookCount ?? raw?.books?.length ?? 0),
+  follower_count: Number(raw?.follower_count ?? raw?.likeCount ?? raw?.like_count ?? 0),
+  is_public: Boolean(raw?.is_public ?? raw?.isPublic ?? false),
+  is_official: Boolean(raw?.is_official ?? false),
+  tags: Array.isArray(raw?.tags) ? raw.tags : [],
+  created_at: raw?.created_at || raw?.createdAt || '',
+  updated_at: raw?.updated_at || raw?.updatedAt || '',
+})
+
+const normalizeBooklistItem = (raw: any): BooklistItem => ({
+  id: raw?.id || raw?.book_id || raw?.bookId || '',
+  booklist_id: raw?.booklist_id || '',
+  book_id: raw?.book_id || raw?.bookId || '',
+  book_title: raw?.book_title || raw?.bookTitle || '',
+  book_cover: raw?.book_cover || raw?.bookCover || '',
+  book_author: raw?.book_author || raw?.author_name || raw?.bookAuthor || '',
+  note: raw?.note || raw?.comment || '',
+  order: Number(raw?.order ?? 0),
+  added_at: raw?.added_at || raw?.addTime || '',
 })
 
 // 加载书单列表
@@ -304,26 +325,58 @@ const loadBooklists = async () => {
   try {
     const params: any = {
       page: currentPage.value,
-      page_size: pageSize.value
+      size: pageSize.value,
     }
 
     if (viewMode.value === 'my') {
       // 获取我的书单
-    } else if (viewMode.value === 'official') {
-      const res = await getOfficialBooklists()
-      booklists.value = res
-      total.value = res.length
-      loading.value = false
-      return
     }
 
     if (selectedTag.value) {
       params.tag = selectedTag.value
     }
 
-    const res = await getBooklists(params)
-    booklists.value = res.items
-    total.value = res.total
+    const res: any = await getBooklists(params)
+    const rootPayload = res || {}
+    const payload = Array.isArray(rootPayload?.data) ? rootPayload : res?.data || res || {}
+    const list =
+      payload.items || payload.list || payload.data || (Array.isArray(payload) ? payload : [])
+    const allList = Array.isArray(list) ? list.map(normalizeBooklist) : []
+    const keyword = searchKeyword.value.trim().toLowerCase()
+    const filteredList = allList.filter((item: any) => {
+      if (viewMode.value === 'official' && !item?.is_official) {
+        return false
+      }
+
+      if (viewMode.value === 'my') {
+        const isMyBooklist = Boolean(
+          (currentUserId.value && item?.creator_id === currentUserId.value) ||
+          (currentUsername.value && item?.creator_name === currentUsername.value),
+        )
+        if (!isMyBooklist) {
+          return false
+        }
+      }
+
+      if (selectedTag.value && !(item?.tags || []).includes(selectedTag.value)) {
+        return false
+      }
+
+      if (keyword) {
+        const haystack = [item?.name, item?.description, ...(item?.tags || [])]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        if (!haystack.includes(keyword)) {
+          return false
+        }
+      }
+
+      return true
+    })
+
+    booklists.value = filteredList
+    total.value = payload.pagination?.total || rootPayload.pagination?.total || filteredList.length
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -336,10 +389,13 @@ const viewBooklistDetail = async (id: string) => {
   showDetailDialog.value = true
   loadingBooks.value = true
   try {
-    const res = await getBooklistDetail(id)
-    currentBooklist.value = res
-    booklistItems.value = res.items || []
-    isFollowing.value = false // 需要从后端返回
+    const res: any = await getBooklistDetail(id)
+    currentBooklist.value = res?.data || res ? normalizeBooklist(res?.data || res) : null
+    const itemsRes: any = await getBookListBooks(id)
+    const itemsPayload = itemsRes?.data || itemsRes || {}
+    const items = itemsPayload.list || itemsPayload.items || itemsPayload.data || []
+    booklistItems.value = Array.isArray(items) ? items.map(normalizeBooklistItem) : []
+    isLiked.value = false
   } catch (error: any) {
     message.error(error.message || '加载详情失败')
   } finally {
@@ -367,6 +423,7 @@ const filterByTag = (tag: string) => {
   loadBooklists()
 }
 
+ 
 const clearTagFilter = () => {
   selectedTag.value = ''
   loadBooklists()
@@ -387,16 +444,14 @@ const editBooklist = (booklist: Booklist) => {
     description: booklist.description,
     cover_url: booklist.cover_url || '',
     tags: booklist.tags || [],
-    is_public: booklist.is_public
+    is_public: booklist.is_public,
   })
   showCreateDialog.value = true
 }
 
 // 删除书单
 const confirmDelete = (booklist: Booklist) => {
-  messageBox.confirm(`确定要删除书单"${booklist.name}"吗？`, '确认删除', {
-    type: 'warning'
-  }).then(async () => {
+  messageBox.confirm(`确定要删除书单"${booklist.name}"吗？`, '确认删除', {}).then(async () => {
     try {
       await deleteBooklist(booklist.id)
       message.success('删除成功')
@@ -412,19 +467,19 @@ const submitBooklist = async () => {
   await booklistFormRef.value?.validate()
   submitting.value = true
   try {
-    const data = {
-      name: booklistForm.name,
+    const data: any = {
+      title: booklistForm.name,
       description: booklistForm.description,
-      cover_url: booklistForm.cover_url || undefined,
+      cover: booklistForm.cover_url || undefined,
       tags: booklistForm.tags,
-      is_public: booklistForm.is_public
+      is_public: booklistForm.is_public,
     }
 
     if (editingBooklist.value) {
       await updateBooklist(editingBooklist.value.id, data)
       message.success('更新成功')
     } else {
-      await createBooklist(data)
+      await createBooklist(data as any)
       message.success('创建成功')
     }
 
@@ -438,21 +493,19 @@ const submitBooklist = async () => {
 }
 
 // 关注/取消关注
-const toggleFollow = async () => {
+const toggleLike = async () => {
   if (!currentBooklist.value) return
 
   try {
-    if (isFollowing.value) {
-      await unfollowBooklist(currentBooklist.value.id)
-      isFollowing.value = false
-      message.success('已取消关注')
+    if (isLiked.value) {
+      message.info('当前版本暂未开放取消点赞接口')
     } else {
-      await followBooklist(currentBooklist.value.id)
-      isFollowing.value = true
-      message.success('关注成功')
+      await likeBookList(currentBooklist.value.id)
+      isLiked.value = true
+      message.success('点赞成功')
     }
     if (currentBooklist.value) {
-      currentBooklist.value.follower_count += isFollowing.value ? 1 : -1
+      currentBooklist.value.follower_count += isLiked.value ? 1 : 0
     }
   } catch (error: any) {
     message.error(error.message || '操作失败')
@@ -468,11 +521,7 @@ const addBook = async () => {
 
   addingBook.value = true
   try {
-    await addBookToBooklist(currentBooklist.value.id, {
-      book_id: addBookForm.book_id,
-      note: addBookForm.note
-    })
-    message.success('添加成功')
+    message.info('当前版本暂未开放书单内添加书籍接口')
     showAddBookDialog.value = false
     addBookForm.book_id = ''
     addBookForm.note = ''
@@ -490,9 +539,8 @@ const removeBook = async (itemId: string) => {
   if (!currentBooklist.value) return
 
   try {
-    await removeBookFromBooklist(currentBooklist.value.id, itemId)
-    message.success('移除成功')
-    booklistItems.value = booklistItems.value.filter(item => item.id !== itemId)
+    message.info('当前版本暂未开放书单内移除书籍接口')
+    booklistItems.value = booklistItems.value.filter((item) => item.id !== itemId)
     if (currentBooklist.value) {
       currentBooklist.value.book_count--
     }
@@ -502,6 +550,15 @@ const removeBook = async (itemId: string) => {
 }
 
 onMounted(() => {
+  try {
+    const storedUser = localStorage.getItem('qingyu_user') || localStorage.getItem('user')
+    const parsedUser = storedUser ? JSON.parse(storedUser) : null
+    currentUsername.value = parsedUser?.username || ''
+    currentUserId.value = parsedUser?.id || parsedUser?.userId || ''
+  } catch {
+    currentUsername.value = ''
+    currentUserId.value = ''
+  }
   loadBooklists()
 })
 </script>

@@ -3,7 +3,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { FollowStats, UserBrief } from '@/types/social'
+import type { FollowStats } from '@/types/social'
 import { followAPI } from '@/modules/social/api/follow'
 
 export const useSocialStore = defineStore('social', () => {
@@ -34,9 +34,7 @@ export const useSocialStore = defineStore('social', () => {
   async function fetchFollowStats(userId: string) {
     try {
       const response = await followAPI.getFollowStats(userId)
-      if (response.code === 200) {
-        followStats.value.set(userId, response.data)
-      }
+      followStats.value.set(userId, response as unknown as FollowStats)
     } catch (error) {
       console.error('[SocialStore] 获取关注统计失败:', error)
     }
@@ -45,20 +43,15 @@ export const useSocialStore = defineStore('social', () => {
   async function followUser(userId: string) {
     isLoading.value = true
     try {
-      const response = await followAPI.followUser(userId)
-      if (response.code === 200) {
-        // 更新本地状态
-        followingList.value.add(userId)
+      await followAPI.followUser(userId)
+      // 更新本地状态
+      followingList.value.add(userId)
 
-        // 更新统计
-        const stats = followStats.value.get(userId)
-        if (stats) {
-          stats.followingCount++
-        }
-
-        return response
+      // 更新统计
+      const stats = followStats.value.get(userId)
+      if (stats) {
+        stats.followingCount++
       }
-      throw new Error(response.message || '关注失败')
     } finally {
       isLoading.value = false
     }
@@ -67,20 +60,15 @@ export const useSocialStore = defineStore('social', () => {
   async function unfollowUser(userId: string) {
     isLoading.value = true
     try {
-      const response = await followAPI.unfollowUser(userId)
-      if (response.code === 200) {
-        // 更新本地状态
-        followingList.value.delete(userId)
+      await followAPI.unfollowUser(userId)
+      // 更新本地状态
+      followingList.value.delete(userId)
 
-        // 更新统计
-        const stats = followStats.value.get(userId)
-        if (stats) {
-          stats.followingCount--
-        }
-
-        return response
+      // 更新统计
+      const stats = followStats.value.get(userId)
+      if (stats) {
+        stats.followingCount--
       }
-      throw new Error(response.message || '取消关注失败')
     } finally {
       isLoading.value = false
     }
@@ -89,14 +77,12 @@ export const useSocialStore = defineStore('social', () => {
   async function checkFollowStatus(userId: string) {
     try {
       const response = await followAPI.checkFollowStatus(userId)
-      if (response.code === 200) {
-        const { isFollowing } = response.data
+      const { is_following } = response as unknown as { is_following: boolean }
 
-        if (isFollowing) {
-          followingList.value.add(userId)
-        } else {
-          followingList.value.delete(userId)
-        }
+      if (is_following) {
+        followingList.value.add(userId)
+      } else {
+        followingList.value.delete(userId)
       }
     } catch (error) {
       console.error('[SocialStore] 检查关注状态失败:', error)
@@ -105,13 +91,13 @@ export const useSocialStore = defineStore('social', () => {
 
   async function fetchFollowingList(userId: string, page = 1, pageSize = 20) {
     try {
-      const response = await followAPI.getFollowing(userId, { page, pageSize })
-      if (response.code === 200 && response.data) {
+      const response = await followAPI.getFollowingList({ user_id: userId, page, page_size: pageSize })
+      const data = response as unknown as { items: { user_id: string }[] }
+      if (data?.items) {
         // 更新关注列表
-        const list = Array.isArray(response.data) ? response.data : response.data.list || []
-        list.forEach((item: any) => {
-          if (item.id) {
-            followingList.value.add(item.id)
+        data.items.forEach((item: { user_id: string }) => {
+          if (item.user_id) {
+            followingList.value.add(item.user_id)
           }
         })
 
@@ -125,13 +111,13 @@ export const useSocialStore = defineStore('social', () => {
 
   async function fetchFollowersList(userId: string, page = 1, pageSize = 20) {
     try {
-      const response = await followAPI.getFollowers(userId, { page, pageSize })
-      if (response.code === 200 && response.data) {
+      const response = await followAPI.getFollowersList({ user_id: userId, page, page_size: pageSize })
+      const data = response as unknown as { items: { user_id: string }[] }
+      if (data?.items) {
         // 更新粉丝列表
-        const list = Array.isArray(response.data) ? response.data : response.data.list || []
-        list.forEach((item: any) => {
-          if (item.id) {
-            followerList.value.add(item.id)
+        data.items.forEach((item: { user_id: string }) => {
+          if (item.user_id) {
+            followerList.value.add(item.user_id)
           }
         })
 

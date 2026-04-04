@@ -12,8 +12,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import * as echarts from 'echarts'
-import type { EChartsOption } from 'echarts'
+import { echarts } from '@/utils/echarts'
+import type { ECharts, EChartsOption } from '@/utils/echarts'
 
 interface Props {
   title: string
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chartRef = ref<HTMLElement>()
-let chartInstance: echarts.ECharts | null = null
+let chartInstance: ECharts | null = null
 
 // 初始化图表
 const initChart = () => {
@@ -107,4 +107,3 @@ onUnmounted(() => {
   width: 100%;
 }
 </style>
-

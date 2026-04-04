@@ -276,7 +276,7 @@ const scrollToElement = () => {
 }
 
 // 点击处理
-const handleClick = (e: MouseEvent) => {
+const handleClick = (e: MouseEvent | KeyboardEvent) => {
   e.preventDefault()
   if (props.targetElement) {
     scrollToElement()
@@ -288,7 +288,7 @@ const handleClick = (e: MouseEvent) => {
 // 组件挂载时添加滚动监听
 onMounted(() => {
   const target = getScrollTarget()
-  target.addEventListener('scroll', handleScroll, { passive: true })
+  target.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
   
   // 初始化滚动位置
   scrollTop.value = getCurrentScrollTop()
@@ -309,7 +309,7 @@ watch(() => props.target, () => {
   
   handleScroll()
   const newTarget = getScrollTarget()
-  newTarget.addEventListener('scroll', handleScroll, { passive: true })
+  newTarget.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
 })
 
 // 暴露方法给父组件
@@ -331,7 +331,7 @@ defineExpose({
   >
     <div
       v-if="visible"
-      :ref="backTopRef"
+      :ref="(el: any) => backTopRef = el"
       :class="classes"
       :style="style"
       @click="handleClick"

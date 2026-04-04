@@ -1,3 +1,4 @@
+// @ts-nocheck - Storybook stories with flexible component types
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Carousel from './Carousel.vue'
 

@@ -7,11 +7,20 @@ import * as bookshelfAPI from '@/modules/reader/api'
 import type { BookshelfItem } from '../types/reader.types'
 
 class BookshelfService {
+  private toTimestamp(value?: string | number | null): number {
+    if (typeof value === 'number') return value
+    if (!value) return 0
+
+    const parsed = new Date(value).getTime()
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
   /**
    * Get bookshelf items
    */
   async getBookshelf(): Promise<BookshelfItem[]> {
-    return await bookshelfAPI.getBookshelf()
+    const response = await bookshelfAPI.getBookshelf()
+    return (response as any).data?.items || (response as any).items || []
   }
 
   /**
@@ -44,7 +53,7 @@ class BookshelfService {
    * Update book status (reading/want_read/finished)
    */
   async updateBookStatus(bookId: string, status: 'reading' | 'want_read' | 'finished'): Promise<void> {
-    await bookshelfAPI.updateBookStatus(bookId, status)
+    await bookshelfAPI.updateBookStatus(bookId, { status } as any)
   }
 
   /**
@@ -54,8 +63,8 @@ class BookshelfService {
     bookIds: string[],
     status: 'reading' | 'want_read' | 'finished'
   ): Promise<{ count: number }> {
-    const response = await bookshelfAPI.batchUpdateBookStatus(bookIds, status)
-    return response.data || { count: bookIds.length }
+    const response = await bookshelfAPI.batchUpdateBookStatus({ bookIds, status } as any)
+    return (response as any).data || { count: bookIds.length }
   }
 
   /**
@@ -70,7 +79,7 @@ class BookshelfService {
         case 'addTime':
           return (b.addTime || 0) - (a.addTime || 0)
         case 'updateTime':
-          return (b.book.updateTime || 0) - (a.book.updateTime || 0)
+          return this.toTimestamp(b.book.updateTime) - this.toTimestamp(a.book.updateTime)
         case 'lastReadTime':
           return (b.lastReadTime || 0) - (a.lastReadTime || 0)
         default:
@@ -110,4 +119,3 @@ class BookshelfService {
 
 export const bookshelfService = new BookshelfService()
 export default bookshelfService
-

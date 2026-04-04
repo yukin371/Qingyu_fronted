@@ -2,240 +2,91 @@
   <div class="reader-page">
     <!-- 页面过渡动画 -->
     <transition name="reader-fade" mode="out-in">
-      <div v-show="true" class="reader-view" :class="themeClass" key="reader" data-testid="reader-view">
+      <div
+        v-show="true"
+        class="reader-view"
+        :class="themeClass"
+        key="reader"
+        data-testid="reader-view"
+      >
         <el-container v-loading="loading" data-testid="reader-container">
-        <!-- 顶部导航栏 -->
-        <el-header class="reader-header" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-header">
-          <div class="reader-nav-bar">
-            <QyButton class="nav-btn" variant="secondary" :disabled="!hasPreviousChapter" @click="previousChapter">上一章</QyButton>
-            <div class="nav-center">
-              <QyButton class="nav-btn" variant="secondary" @click="goBackToBookDetail">返回目录</QyButton>
-              <QyButton class="nav-btn" variant="secondary" @click="goHome">返回首页</QyButton>
-              <QyButton class="nav-btn" variant="secondary" @click="toggleSettings" data-testid="reader-settings-btn">阅读设置</QyButton>
-            </div>
-            <QyButton class="nav-btn" variant="secondary" :disabled="!hasNextChapter" @click="nextChapter">下一章</QyButton>
-          </div>
-        </el-header>
+          <!-- 顶部导航栏 -->
+          <ReaderHeader
+            :is-fullscreen="isFullscreen"
+            :has-previous-chapter="hasPreviousChapter"
+            :has-next-chapter="hasNextChapter"
+            @previous="handlePreviousChapter"
+            @next="handleNextChapter"
+            @back-to-catalog="goBackToBookDetail"
+            @go-home="goHome"
+            @toggle-settings="toggleSettings"
+          />
 
-        <!-- 阅读内容区 -->
-        <main class="reader-main" ref="readerContainerRef" @click="toggleHeaderFooter" @scroll="handleContentScroll" data-testid="reader-main">
-          <QyCard class="reader-container" variant="glass" shadow="always" padding="lg" :style="containerStyle" data-testid="reader-content">
-            <!-- 章节标题 -->
-            <h1 v-if="currentChapter" class="chapter-title" data-testid="chapter-title">
-              {{ currentChapter.title }}
-            </h1>
+          <!-- 阅读内容区 -->
+          <ReaderContent
+            :chapter-title="currentChapter?.title"
+            :paragraphs="displayParagraphs"
+            :container-style="containerStyle"
+            :highlighted-paragraph-index="highlightedParagraphIndex"
+            :show-recommendation="showChapterEndRecommendation"
+            :reading-time-text="formatReadingTime"
+            :is-in-bookshelf="isInBookshelf"
+            :recommended-books="recommendedBooks"
+            :get-comment-count="getParagraphCommentCount"
+            @toggle-fullscreen="toggleHeaderFooter"
+            @paragraph-click="handleParagraphClick"
+            @comment-badge-click="handleCommentBadgeClick"
+            @add-to-bookshelf="addToBookshelf"
+            @go-to-book="goToBook"
+            @scroll="handleScroll"
+          />
 
-            <!-- 章节内容 -->
-            <div v-if="currentChapter" class="chapter-content" data-testid="chapter-content">
-              <article
-                v-for="(paragraph, index) in parsedParagraphs"
-                :key="index"
-                class="paragraph-wrapper"
-                :class="{ 'is-highlighted': highlightedParagraphIndex === index }"
-                :data-testid="`paragraph-${index}`"
-                @click.stop="handleParagraphClick(index)"
-              >
-                <p class="paragraph-text">{{ paragraph }}</p>
-                <CommentBadge
-                  v-if="getParagraphCommentCount(index) > 0"
-                  :comment-count="getParagraphCommentCount(index)"
-                  @click="handleCommentBadgeClick(index)"
-                />
-              </article>
-            </div>
-
-            <!-- 空状态 -->
-            <QyEmpty v-else description="加载中..." data-testid="reader-loading-state" />
-
-            <!-- 章节结束推荐区 -->
-            <div v-if="showChapterEndRecommendation" class="chapter-end-recommendation" data-testid="chapter-end-recommendation">
-              <QyDivider>本章完</QyDivider>
-
-              <div class="recommendation-card">
-                <h3>📚 阅读完成！</h3>
-                <p class="read-time">本次阅读时长: {{ formatReadingTime }}</p>
-
-                <!-- 操作按钮 -->
-                <div class="action-buttons">
-                  <QyButton variant="primary" size="lg" class="action-btn" @click="addToBookshelf" data-testid="collect-book-btn">
-                    {{ isInBookshelf ? '已收藏本书' : '收藏本书' }}
-                  </QyButton>
-                </div>
-
-                <!-- 自动加入书架提示 -->
-                <div v-if="!isInBookshelf" class="add-to-bookshelf-tip">
-                  <QyAlert
-                    title="已自动添加到书架"
-                    type="success"
-                    :closable="false"
-                    show-icon
-                  >
-                    <template #default>
-                      <p>本书已添加到您的书架，方便继续阅读</p>
-                    </template>
-                  </QyAlert>
-                </div>
-
-                <!-- 相关推荐 -->
-                <div v-if="recommendedBooks.length > 0" class="recommended-books">
-                  <h4>你可能还喜欢</h4>
-                  <div class="book-list">
-                    <div
-                      v-for="book in recommendedBooks"
-                      :key="book.id"
-                      class="book-item"
-                      @click="goToBook(book.id)"
-                    >
-                      <el-image :src="book.cover" fit="cover" class="book-cover" />
-                      <div class="book-info">
-                        <div class="book-title">{{ book.title }}</div>
-                        <div class="book-author">{{ book.author }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </QyCard>
-        </main>
-
-        <!-- 底部导航栏 -->
-        <footer class="reader-footer" :class="{ 'is-hidden': isFullscreen }" data-testid="reader-footer">
-          <div class="footer-progress" data-testid="reader-progress-bar">
-            <span class="progress-text">{{ progressText }}</span>
-            <el-slider v-model="readProgress" :show-tooltip="false" @change="handleProgressChange" />
-          </div>
-          <div class="footer-nav">
-            <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasPreviousChapter" @click="previousChapter" data-testid="previous-chapter-btn">
-              上一章
-            </QyButton>
-            <QyButton class="footer-nav-btn" variant="secondary" @click="goBackToBookDetail">
-              返回目录
-            </QyButton>
-            <QyButton class="footer-nav-btn" variant="secondary" @click="goHome">
-              返回首页
-            </QyButton>
-            <QyButton class="footer-nav-btn" variant="secondary" :disabled="!hasNextChapter" @click="nextChapter" data-testid="next-chapter-nav-btn">
-              下一章
-            </QyButton>
-          </div>
-        </footer>
+          <!-- 底部导航栏 -->
+          <ReaderFooter
+            :is-fullscreen="isFullscreen"
+            :has-previous-chapter="hasPreviousChapter"
+            :has-next-chapter="hasNextChapter"
+            :progress-text="progressText"
+            :progress="readProgress"
+            @previous="handlePreviousChapter"
+            @next="handleNextChapter"
+            @back-to-catalog="goBackToBookDetail"
+            @go-home="goHome"
+            @progress-change="handleProgressChange"
+          />
         </el-container>
       </div>
     </transition>
 
     <!-- 目录抽屉 -->
-    <QyDrawer v-model="catalogVisible" title="目录" direction="rtl" size="400px">
-      <QyScrollbar>
-        <div v-for="chapter in chapterList" :key="chapter.id" class="catalog-item"
-          :class="{ 'is-active': chapter.id === chapterId, 'is-read': chapter.isRead }"
-          :data-testid="`catalog-chapter-${chapter.id}`"
-          @click="jumpToChapter(chapter.id)">
-          <span class="chapter-num">{{ chapter.chapterNum }}</span>
-          <span class="chapter-name">{{ chapter.title }}</span>
-          <el-icon v-if="!chapter.isFree" class="lock-icon">
-            <QyIcon name="Lock"  />
-          </el-icon>
-        </div>
-      </QyScrollbar>
-    </QyDrawer>
+    <ReaderTocDrawer
+      v-model:visible="catalogVisible"
+      :chapters="chapterList"
+      :current-chapter-id="chapterId"
+      @jump="handleJumpToChapter"
+    />
 
     <!-- 设置浮层卡片 -->
-    <div v-if="settingsVisible" class="settings-overlay" data-testid="settings-overlay" @click.self="settingsVisible = false">
-      <section class="settings-modal" data-testid="settings-modal">
-        <div class="settings-modal-header">
-          <h3>阅读设置</h3>
-          <QyButton variant="secondary" size="sm" @click="settingsVisible = false">关闭</QyButton>
-        </div>
-
-        <div class="settings-panel">
-        <!-- 字体大小 -->
-        <div class="setting-item" data-testid="font-size-setting">
-          <label>字体大小</label>
-          <div class="setting-control">
-            <QyButton @click="decreaseFontSize" circle data-testid="decrease-font-btn">-</QyButton>
-            <span class="font-size-value">{{ settings.fontSize }}px</span>
-            <QyButton @click="increaseFontSize" circle data-testid="increase-font-btn">+</QyButton>
-          </div>
-        </div>
-
-        <!-- 行距 -->
-        <div class="setting-item" data-testid="line-height-setting">
-          <div class="setting-title-row">
-            <label>行距</label>
-            <span class="setting-value">{{ settings.lineHeight.toFixed(1) }}</span>
-          </div>
-          <div class="setting-slider-wrap">
-            <el-slider
-              :model-value="settings.lineHeight"
-              :min="lineHeightMin"
-              :max="lineHeightMax"
-              :step="lineHeightStep"
-              :show-tooltip="false"
-              :marks="lineHeightMarks"
-              @update:model-value="setLineHeight"
-            />
-          </div>
-        </div>
-
-        <!-- 页面宽度 -->
-        <div class="setting-item" data-testid="page-width-setting">
-          <div class="setting-title-row">
-            <label>页面宽度</label>
-            <span class="setting-value">{{ settings.pageWidth }}px</span>
-          </div>
-          <div class="setting-slider-wrap">
-            <el-slider
-              :model-value="settings.pageWidth"
-              :min="pageWidthMin"
-              :max="pageWidthMax"
-              :step="pageWidthStep"
-              :show-tooltip="false"
-              :marks="pageWidthMarks"
-              @update:model-value="setPageWidth"
-            />
-          </div>
-        </div>
-
-        <!-- 主题选择 -->
-        <div class="setting-item" data-testid="theme-setting">
-          <label>阅读主题</label>
-          <div class="theme-selector">
-            <div v-for="theme in themes" :key="theme.value" class="theme-option"
-              :class="{ 'is-active': settings.theme === theme.value }"
-              :style="{ backgroundColor: theme.bg, color: theme.color }" :data-testid="`theme-${theme.value}`" @click="changeTheme(theme.value)">
-              {{ theme.label }}
-            </div>
-          </div>
-        </div>
-
-        <!-- 字体选择 -->
-        <div class="setting-item" data-testid="font-family-setting">
-          <label>字体</label>
-          <QySelect v-model="settings.fontFamily" placeholder="选择字体" data-testid="font-family-select">
-            <el-option label="系统默认" value="system-ui, -apple-system, sans-serif" />
-            <el-option label="宋体" value="SimSun, serif" />
-            <el-option label="黑体" value="SimHei, sans-serif" />
-            <el-option label="楷体" value="KaiTi, serif" />
-          </QySelect>
-        </div>
-
-        <!-- 翻页模式 -->
-        <div class="setting-item" data-testid="page-mode-setting">
-          <label>翻页模式</label>
-          <QyRadio v-model="settings.pageMode" value="scroll" data-testid="page-mode-scroll">滚动</QyRadio>
-          <QyRadio v-model="settings.pageMode" value="page" data-testid="page-mode-page">翻页</QyRadio>
-        </div>
-
-        <!-- 重置按钮 -->
-        <div class="setting-item">
-          <QyButton @click="resetSettings" style="width: 100%" data-testid="reset-settings-btn">
-            重置设置
-          </QyButton>
-        </div>
-        </div>
-      </section>
-      </div>
+    <ReaderSettings
+      :visible="settingsVisible"
+      :settings="settings"
+      :themes="themes"
+      :line-height-min="lineHeightMin"
+      :line-height-max="lineHeightMax"
+      :line-height-step="lineHeightStep"
+      :line-height-marks="lineHeightMarks"
+      :page-width-min="pageWidthMin"
+      :page-width-max="pageWidthMax"
+      :page-width-step="pageWidthStep"
+      :page-width-marks="pageWidthMarks"
+      @close="settingsVisible = false"
+      @increase-font="increaseFontSize"
+      @decrease-font="decreaseFontSize"
+      @update:line-height="setLineHeight"
+      @update:page-width="setPageWidth"
+      @update:theme="changeTheme"
+      @reset="resetSettings"
+    />
 
     <!-- 段落评论抽屉 -->
     <CommentDrawer
@@ -267,14 +118,40 @@ import { useCommentStore } from '@/stores/comment'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
 import { message } from '@/design-system/services'
-import { QyButton, QyCard, QyEmpty, QyDivider, QyDrawer, QyScrollbar, QySelect, QyRadio, QyAlert, QyIcon } from '@/design-system/components'
-import CommentBadge from '../components/comments/CommentBadge.vue'
+import { QyButton } from '@/design-system/components'
 import CommentDrawer from '../components/comments/CommentDrawer.vue'
 import {
   YUNLAN_TOTAL_CHAPTERS,
-  createYunlanReaderChapters
+  createYunlanReaderChapters,
 } from '@/modules/bookstore/yunlanDemo.mock'
 import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
+import * as readerAPI from '@/modules/reader/api'
+
+// 子组件
+import ReaderHeader from '../components/reader/ReaderHeader.vue'
+import ReaderContent from '../components/reader/ReaderContent.vue'
+import ReaderFooter from '../components/reader/ReaderFooter.vue'
+import ReaderTocDrawer from '../components/reader/ReaderTocDrawer.vue'
+import ReaderSettings from '../components/reader/ReaderSettings.vue'
+
+// Composables
+import { useReaderSettings } from '../composables/useReaderSettings'
+import { useReaderComments, type ReaderParagraph } from '../composables/useReaderComments'
+
+interface Chapter {
+  id: string
+  bookId?: string
+  title: string
+  chapterNum?: number
+  content?: string
+  paragraphs?: ReaderParagraph[]
+  isRead?: boolean
+  isFree?: boolean
+  prevChapterId?: string | null
+  nextChapterId?: string | null
+  hasPrevious?: boolean
+  hasNext?: boolean
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -282,10 +159,39 @@ const readerStore = useReaderStore()
 const commentStore = useCommentStore()
 const { isMobile } = useResponsive()
 
+// 使用设置 composable
+const {
+  settings,
+  themeClass,
+  containerStyle,
+  themes,
+  lineHeightMin,
+  lineHeightMax,
+  lineHeightStep,
+  lineHeightMarks,
+  pageWidthMin,
+  pageWidthMax,
+  pageWidthStep,
+  pageWidthMarks,
+  increaseFontSize,
+  decreaseFontSize,
+  changeTheme,
+  setLineHeight,
+  setPageWidth,
+  resetSettings,
+} = useReaderSettings()
+
+// 基础状态
 const chapterId = ref(route.params.chapterId as string)
 const isDemoMode = computed(() => route.query.demo === 'yunlan')
-const publishedBookId = computed(() => String(route.query.bookId || readerStore.currentBookId || ''))
-const isPublishedMode = computed(() => route.query.source === 'published' && !!publishedBookId.value)
+const publishedBookId = computed(() =>
+  String(
+    route.query.bookId || (readerStore as unknown as { currentBookId: string }).currentBookId || '',
+  ),
+)
+const isPublishedMode = computed(
+  () => route.query.source === 'published' && !!publishedBookId.value,
+)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
@@ -295,78 +201,89 @@ const readingTimer = ref<number | null>(null)
 const startTime = ref(Date.now())
 const readerContainerRef = ref()
 
+// 阅读时长累加追踪（用于向后端发送增量秒数）
+let lastReadingSyncTime = 0 // 上次同步时的累加秒数
+const READING_SYNC_INTERVAL = 30000 // 30秒同步一次
+
 // 阅读流程优化相关状态
 const showChapterEndRecommendation = ref(false)
 const isInBookshelf = ref(false)
 const readingDuration = ref(0)
 const readingDurationTimer = ref<number | null>(null)
 const hasAddedToBookshelfThisSession = ref(false)
-const recommendedBooks = ref<any[]>([])
+const recommendedBooks = ref<Array<{ id: string; title: string; author: string; cover: string }>>(
+  [],
+)
 const demoChapterList = ref(createYunlanReaderChapters())
-const demoCurrentChapter = ref<any | null>(null)
-const publishedChapterList = ref<any[]>([])
-const publishedCurrentChapter = ref<any | null>(null)
+const demoCurrentChapter = ref<Chapter | null>(null)
+const publishedChapterList = ref<Chapter[]>([])
+const publishedCurrentChapter = ref<Chapter | null>(null)
 
-// 段落评论相关状态
-const highlightedParagraphIndex = ref<number | null>(null)
-const commentDrawerVisible = ref(false)
-const parsedParagraphs = computed(() => {
-  if (!currentChapter.value?.content) return []
-  return currentChapter.value.content
-    .split('\n')
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
-})
-
-// 主题配置（与reader-variables.scss中的CSS变量保持一致）
-const themes = [
-  { label: '默认', value: 'light', bg: '#ffffff', color: '#2c3e50' },  // --reader-light-text
-  { label: '护眼', value: 'sepia', bg: '#f4ecd8', color: '#5c4a2f' },  // --reader-sepia-*
-  { label: '夜间', value: 'night', bg: '#1a1a1a', color: '#c9c9c9' }, // --reader-night-*
-  { label: '暗黑', value: 'dark', bg: '#121212', color: '#e0e0e0' }   // --reader-dark-*
-]
-const lineHeightMin = 1.6
-const lineHeightMax = 2.2
-const lineHeightStep = 0.1
-const lineHeightMarks: Record<number, string> = {
-  1.6: '紧凑',
-  1.8: '标准',
-  2.0: '舒适',
-  2.2: '宽松'
-}
-const pageWidthMin = 680
-const pageWidthMax = 980
-const pageWidthStep = 20
-const pageWidthMarks: Record<number, string> = {
-  680: '窄',
-  780: '标准',
-  880: '宽',
-  980: '超宽'
+// 段落处理函数
+const splitContentToParagraphs = (content?: string): ReaderParagraph[] => {
+  if (!content) return []
+  const normalized = content.replace(/\r\n/g, '\n').trim()
+  if (!normalized) return []
+  return normalized
+    .split(/\n\s*\n/)
+    .map((paragraph, index) => ({
+      id: `fallback-paragraph-${index + 1}`,
+      paragraphOrder: index + 1,
+      content: paragraph.trim(),
+      format: 'markdown',
+      wordCount: paragraph.trim().length,
+    }))
+    .filter((paragraph) => paragraph.content.length > 0)
 }
 
-// 计算属性
+// 当前章节
 const currentChapter = computed(() => {
   if (isDemoMode.value) return demoCurrentChapter.value
   if (isPublishedMode.value) return publishedCurrentChapter.value
-  return readerStore.currentChapter
+  return readerStore.currentChapter as unknown as Chapter | null
 })
+
+// 章节列表
 const chapterList = computed(() => {
   if (isDemoMode.value) return demoChapterList.value
   if (isPublishedMode.value) return publishedChapterList.value
-  return readerStore.chapterList
-})
-const settings = computed(() => readerStore.settings)
-
-const bookTitle = computed(() => {
-  return currentChapter.value?.bookTitle || '正在阅读'
+  return readerStore.chapterList as unknown as Chapter[]
 })
 
+// 显示的段落
+const displayParagraphs = computed<ReaderParagraph[]>(() => {
+  const paragraphs = currentChapter.value?.paragraphs
+  if (Array.isArray(paragraphs) && paragraphs.length > 0) {
+    return paragraphs
+      .filter((paragraph): paragraph is ReaderParagraph => !!paragraph?.content)
+      .slice()
+      .sort((a, b) => (a.paragraphOrder || 0) - (b.paragraphOrder || 0))
+  }
+  return splitContentToParagraphs(currentChapter.value?.content)
+})
+
+// 使用评论 composable
+const {
+  highlightedParagraphIndex,
+  commentDrawerVisible,
+  getParagraphCommentCount,
+  handleParagraphClick,
+  handleCommentBadgeClick,
+  handleCommentSubmit,
+  loadChapterCommentSummaries,
+  clearCommentSelection,
+} = useReaderComments({
+  currentChapter,
+  displayParagraphs,
+})
+
+// 导航计算属性
 const hasPreviousChapter = computed(() => {
-  return !!currentChapter.value?.prevChapterId
+  return !!currentChapter.value?.prevChapterId || !!currentChapter.value?.hasPrevious
 })
 
 const hasNextChapter = computed(() => {
-  return !!currentChapter.value?.nextChapterId
+  return !!currentChapter.value?.nextChapterId || !!currentChapter.value?.hasNext
 })
 
 const progressText = computed(() => {
@@ -374,19 +291,7 @@ const progressText = computed(() => {
   return `${readProgress.value}%`
 })
 
-const themeClass = computed(() => {
-  return `theme-${settings.value.theme}`
-})
 const showBackTop = computed(() => readProgress.value > 15)
-
-const containerStyle = computed(() => {
-  return {
-    fontSize: `${settings.value.fontSize}px`,
-    lineHeight: settings.value.lineHeight,
-    maxWidth: `${settings.value.pageWidth}px`,
-    fontFamily: settings.value.fontFamily
-  }
-})
 
 // 阅读时长格式化
 const formatReadingTime = computed(() => {
@@ -407,48 +312,121 @@ const toggleSettings = () => {
   settingsVisible.value = !settingsVisible.value
 }
 
-const previousChapter = async () => {
-  if (!hasPreviousChapter.value) return
-  await saveCurrentProgress()
-  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.prevChapterId) {
-    chapterId.value = currentChapter.value.prevChapterId
-    await loadChapter()
-  } else {
-    await readerStore.loadPreviousChapter()
-  }
-  scrollToTop()
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-const nextChapter = async () => {
-  if (!hasNextChapter.value) return
-  await saveCurrentProgress()
-  if ((isDemoMode.value || isPublishedMode.value) && currentChapter.value?.nextChapterId) {
-    chapterId.value = currentChapter.value.nextChapterId
-    await loadChapter()
-  } else {
-    await readerStore.loadNextChapter()
-  }
-  scrollToTop()
-}
-
-// ========== 阅读流程优化方法 ==========
-
-// 处理内容滚动，检测章节结束
-const handleContentScroll = () => {
+const handleScroll = () => {
   const scrollTop = window.scrollY
   const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-
   if (scrollHeight > 0) {
     readProgress.value = Math.round((scrollTop / scrollHeight) * 100)
-
-    // 检测是否滚动到底部（进度>=95%）
     if (readProgress.value >= 95 && !showChapterEndRecommendation.value) {
       showChapterEndRecommendation.value = true
     }
   }
 }
 
-// 返回书籍详情
+const handleProgressChange = (value: number) => {
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+  window.scrollTo(0, (scrollHeight * value) / 100)
+}
+
+const saveCurrentProgress = async () => {
+  if (!currentChapter.value) return
+  try {
+    const scrollPercent = Math.round(
+      (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100,
+    )
+    await readerStore.saveProgress(
+      currentChapter.value.bookId || '',
+      chapterId.value,
+      scrollPercent,
+      window.scrollY,
+    )
+    // 计算自上次同步以来的增量秒数
+    const totalSeconds = Math.floor((Date.now() - startTime.value) / 1000)
+    const deltaSeconds = totalSeconds - lastReadingSyncTime
+    lastReadingSyncTime = totalSeconds
+    if (deltaSeconds > 0 && currentChapter.value.bookId) {
+      await readerStore.updateReadingTime(currentChapter.value.bookId, deltaSeconds)
+    }
+  } catch {
+    // 静默失败
+  }
+}
+
+const handlePreviousChapter = async () => {
+  if (!hasPreviousChapter.value) return
+  await saveCurrentProgress()
+
+  if (currentChapter.value?.prevChapterId) {
+    chapterId.value = currentChapter.value.prevChapterId
+    await loadChapter()
+    scrollToTop()
+    return
+  }
+
+  try {
+    const bookId = currentChapter.value?.bookId || publishedBookId.value
+    if (!bookId || !chapterId.value) return
+
+    const prevChapterInfo = await readerAPI.getPreviousChapter(bookId, chapterId.value)
+    const prevData = ((prevChapterInfo as { data?: unknown }).data ?? prevChapterInfo) as {
+      chapterId?: string
+      id?: string
+    }
+
+    if (prevData?.chapterId || prevData?.id) {
+      chapterId.value = prevData.chapterId || prevData.id || ''
+      await loadChapter()
+    }
+  } catch (error) {
+    console.error('获取上一章失败:', error)
+  }
+  scrollToTop()
+}
+
+const handleNextChapter = async () => {
+  if (!hasNextChapter.value) return
+  await saveCurrentProgress()
+
+  if (currentChapter.value?.nextChapterId) {
+    chapterId.value = currentChapter.value.nextChapterId
+    await loadChapter()
+    scrollToTop()
+    return
+  }
+
+  try {
+    const bookId = currentChapter.value?.bookId || publishedBookId.value
+    if (!bookId || !chapterId.value) return
+
+    const nextChapterInfo = await readerAPI.getNextChapter(bookId, chapterId.value)
+    const nextData = ((nextChapterInfo as { data?: unknown }).data ?? nextChapterInfo) as {
+      chapterId?: string
+      id?: string
+    }
+
+    if (nextData?.chapterId || nextData?.id) {
+      chapterId.value = nextData.chapterId || nextData.id || ''
+      await loadChapter()
+    }
+  } catch (error) {
+    console.error('获取下一章失败:', error)
+  }
+  scrollToTop()
+}
+
+const handleJumpToChapter = async (id: string) => {
+  if (id === chapterId.value) return
+  await saveCurrentProgress()
+  chapterId.value = id
+  await loadChapter()
+  catalogVisible.value = false
+  scrollToTop()
+}
+
 const goBackToBookDetail = () => {
   if (isDemoMode.value) {
     router.push('/bookstore/books-demo')
@@ -469,96 +447,65 @@ const goHome = () => {
   router.push('/bookstore')
 }
 
-// 跳转到推荐书籍
 const goToBook = (bookId: string) => {
   router.push(`/bookstore/books/${bookId}`)
 }
 
-// 自动添加到书架
 const addToBookshelf = async () => {
-  if (hasAddedToBookshelfThisSession.value || isInBookshelf.value) {
-    return
-  }
-
+  if (hasAddedToBookshelfThisSession.value || isInBookshelf.value) return
   try {
-    // TODO: 调用添加到书架API
-    // await readerStore.addToBookshelf(currentChapter.value.bookId)
-
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
-
+    await new Promise((resolve) => setTimeout(resolve, 500))
     hasAddedToBookshelfThisSession.value = true
     isInBookshelf.value = true
-
-    // 显示轻提示
-    message.success({
-      message: '已添加到书架',
-      duration: 2000,
-      showClose: false
-    })
+    message.success('已添加到书架')
   } catch {
     console.error('添加到书架失败')
   }
 }
 
-// 检查是否在书架中
 const checkBookshelfStatus = async () => {
   if (!currentChapter.value?.bookId) return
-
   try {
-    // TODO: 调用检查书架API
-    // const inBookshelf = await readerStore.checkInBookshelf(currentChapter.value.bookId)
-    // isInBookshelf.value = inBookshelf
-
-    // 模拟：不在书架中
     isInBookshelf.value = false
   } catch {
     console.error('检查书架状态失败')
   }
 }
 
-// 加载推荐书籍
 const loadRecommendedBooks = async () => {
   try {
-    // TODO: 调用推荐API
-    // const books = await readerStore.getRecommendedBooks(currentChapter.value.bookId)
-    // recommendedBooks.value = books
-
-    // 模拟推荐数据
     recommendedBooks.value = [
       {
         id: 'rec1',
         title: '玄幻巅峰',
         author: '天蚕',
-        cover: 'https://picsum.photos/seed/rec1/80/120'
+        cover: 'https://picsum.photos/seed/rec1/80/120',
       },
       {
         id: 'rec2',
         title: '都市修仙',
         author: '我吃西红柿',
-        cover: 'https://picsum.photos/seed/rec2/80/120'
+        cover: 'https://picsum.photos/seed/rec2/80/120',
       },
       {
         id: 'rec3',
         title: '科幻世界',
         author: '刘慈欣',
-        cover: 'https://picsum.photos/seed/rec3/80/120'
-      }
+        cover: 'https://picsum.photos/seed/rec3/80/120',
+      },
     ]
   } catch {
     console.error('加载推荐书籍失败')
   }
 }
 
-// 启动阅读时长计时器
 const startReadingTimer = () => {
   readingDuration.value = 0
   readingDurationTimer.value = setInterval(() => {
     readingDuration.value++
-  }, 1000) as any
+  }, 1000) as unknown as number
 }
 
-// 停止阅读时长计时器
 const stopReadingTimer = () => {
   if (readingDurationTimer.value) {
     clearInterval(readingDurationTimer.value)
@@ -566,103 +513,48 @@ const stopReadingTimer = () => {
   }
 }
 
-// ========== 段落评论相关方法 ==========
-
-// 获取段落评论数量
-const getParagraphCommentCount = (paragraphIndex: number): number => {
-  if (!currentChapter.value) return 0
-  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
-  return commentStore.summaries.get(paragraphId)?.commentCount || 0
+// 进度自动保存计时器
+const startProgressTimer = () => {
+  stopProgressTimer()
+  readingTimer.value = setInterval(saveCurrentProgress, READING_SYNC_INTERVAL) as unknown as number
 }
 
-// 处理段落点击
-const handleParagraphClick = (index: number) => {
-  if (highlightedParagraphIndex.value === index) {
-    highlightedParagraphIndex.value = null
-    commentDrawerVisible.value = false
-    commentStore.clearSelection()
-    return
-  }
-
-  highlightedParagraphIndex.value = index
-}
-
-const handleCommentBadgeClick = async (index: number) => {
-  highlightedParagraphIndex.value = index
-  await openCommentDrawer(index)
-}
-
-// 打开评论抽屉
-const openCommentDrawer = async (paragraphIndex: number) => {
-  if (!currentChapter.value) return
-
-  const paragraphId = `${currentChapter.value.id}-${paragraphIndex}`
-  commentStore.selectParagraph(paragraphId)
-  await commentStore.loadParagraphComments(paragraphId)
-  commentDrawerVisible.value = true
-}
-
-// 处理评论提交
-const handleCommentSubmit = async (data: { content: string; emoji?: string; replyToCommentId?: string; replyToUsername?: string }) => {
-  if (highlightedParagraphIndex.value === null || !currentChapter.value) return
-
-  await commentStore.addComment({
-    paragraphId: `${currentChapter.value.id}-${highlightedParagraphIndex.value}`,
-    chapterId: currentChapter.value.id,
-    paragraphIndex: highlightedParagraphIndex.value,
-    content: data.content,
-    emoji: data.emoji,
-    replyToCommentId: data.replyToCommentId,
-    replyToUsername: data.replyToUsername
-  })
-}
-
-const jumpToChapter = async (id: string) => {
-  if (id === chapterId.value) return
-
-  await saveCurrentProgress()
-  chapterId.value = id
-  await loadChapter()
-  catalogVisible.value = false
-  scrollToTop()
-}
-
-const increaseFontSize = () => {
-  if (settings.value.fontSize < 24) {
-    readerStore.updateSettings({ fontSize: settings.value.fontSize + 1 })
+const stopProgressTimer = () => {
+  if (readingTimer.value) {
+    clearInterval(readingTimer.value)
+    readingTimer.value = null
   }
 }
 
-const decreaseFontSize = () => {
-  if (settings.value.fontSize > 14) {
-    readerStore.updateSettings({ fontSize: settings.value.fontSize - 1 })
+// 页面可见性变化处理
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    // 页面不可见：暂停计时器，立即保存当前进度
+    stopProgressTimer()
+    stopReadingTimer()
+    saveCurrentProgress()
+  } else {
+    // 页面可见：恢复计时器
+    startReadingTimer()
+    startProgressTimer()
   }
 }
 
-const changeTheme = (theme: string) => {
-  readerStore.updateSettings({ theme: theme as any })
-}
-const setLineHeight = (value: number) => {
-  readerStore.updateSettings({ lineHeight: value })
-}
-const setPageWidth = (value: number) => {
-  readerStore.updateSettings({ pageWidth: value })
-}
-
-const resetSettings = () => {
-  readerStore.resetSettings()
-  readerStore.updateSettings({ autoSave: true })
-  message.success('设置已重置')
-}
-
-const handleProgressChange = (value: number) => {
-  // 根据进度条跳转到对应位置
-  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-  window.scrollTo(0, (scrollHeight * value) / 100)
-}
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+// 页面关闭前最后一次保存
+const handleBeforeUnload = () => {
+  if (!currentChapter.value?.bookId) return
+  const totalSeconds = Math.floor((Date.now() - startTime.value) / 1000)
+  const deltaSeconds = totalSeconds - lastReadingSyncTime
+  if (deltaSeconds > 0) {
+    // 使用 sendBeacon 发送最后的阅读时长
+    const payload = JSON.stringify({
+      book_id: currentChapter.value.bookId,
+      chapter_id: chapterId.value,
+      duration: deltaSeconds,
+    })
+    navigator.sendBeacon('/api/v1/reader/progress/reading-time', payload)
+    lastReadingSyncTime = totalSeconds
+  }
 }
 
 const ensureDemoChapterList = () => {
@@ -672,11 +564,10 @@ const ensureDemoChapterList = () => {
 
 const loadDemoChapter = (id: string) => {
   ensureDemoChapterList()
-  const target = demoChapterList.value.find(ch => ch.id === id) || demoChapterList.value[0]
+  const target = demoChapterList.value.find((ch) => ch.id === id) || demoChapterList.value[0]
   demoCurrentChapter.value = target || null
 }
 
-// 加载章节
 const loadChapter = async () => {
   loading.value = true
   try {
@@ -684,6 +575,7 @@ const loadChapter = async () => {
       loadDemoChapter(chapterId.value)
       readProgress.value = 0
       startTime.value = Date.now()
+      lastReadingSyncTime = 0
       return
     }
     if (isPublishedMode.value) {
@@ -701,6 +593,7 @@ const loadChapter = async () => {
           chapterNum: chapter.chapterNum,
           title: chapter.title,
           content: chapter.content,
+          paragraphs: splitContentToParagraphs(chapter.content),
           bookId: detail.book.id,
           bookTitle: detail.book.title,
           isRead: false,
@@ -717,62 +610,37 @@ const loadChapter = async () => {
       }
       readProgress.value = 0
       startTime.value = Date.now()
+      lastReadingSyncTime = 0
       return
     }
 
     await readerStore.loadChapter(chapterId.value)
-
-    // 重置阅读进度
     readProgress.value = 0
     startTime.value = Date.now()
+    lastReadingSyncTime = 0
 
-    // 如果还没有加载章节列表，加载它
-    if (chapterList.value.length === 0 && currentChapter.value) {
-      await readerStore.loadChapterList(currentChapter.value.bookId)
+    const chapterListValue = Array.isArray(chapterList.value)
+      ? chapterList.value
+      : (chapterList.value as unknown as { value: Chapter[] }).value || []
+    if (chapterListValue.length === 0 && currentChapter.value) {
+      await readerStore.loadChapterList(currentChapter.value.bookId || '')
     }
-  } catch (error: any) {
-    message.error(error.message || '加载章节失败')
+  } catch (error: unknown) {
+    const err = error as { message?: string }
+    message.error(err.message || '加载章节失败')
   } finally {
     loading.value = false
   }
 }
 
-// 保存阅读进度
-const saveCurrentProgress = async () => {
-  if (!currentChapter.value) return
-
-  try {
-    const scrollPercent = Math.round(
-      (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
-    )
-
-    await readerStore.saveProgress(
-      currentChapter.value.bookId,
-      chapterId.value,
-      scrollPercent,
-      window.scrollY
-    )
-
-    // 保存阅读时长
-    const duration = Math.floor((Date.now() - startTime.value) / 1000)
-    if (duration > 0) {
-      await readerStore.updateReadingTime(currentChapter.value.bookId, duration)
-    }
-  } catch {
-    // 静默失败，避免影响阅读体验
-  }
-}
-
-// 键盘快捷键
 const handleKeyPress = (e: KeyboardEvent) => {
   if (settingsVisible.value) return
-
   switch (e.key) {
     case 'ArrowLeft':
-      previousChapter()
+      handlePreviousChapter()
       break
     case 'ArrowRight':
-      nextChapter()
+      handleNextChapter()
       break
     case 'ArrowUp':
       window.scrollBy({ top: -100, behavior: 'smooth' })
@@ -790,203 +658,87 @@ const handleKeyPress = (e: KeyboardEvent) => {
 onMounted(async () => {
   await loadChapter()
   await readerStore.loadSettings()
-
-  // 检查书架状态
   await checkBookshelfStatus()
-
-  // 加载推荐书籍
   await loadRecommendedBooks()
 
-  // 加载段落评论摘要
   if (currentChapter.value) {
-    await commentStore.loadChapterSummaries(currentChapter.value.id)
+    await loadChapterCommentSummaries()
   }
 
-  // 启动阅读时长计时器
   startReadingTimer()
-
-  // 监听滚动（使用新的处理函数）
-  window.addEventListener('scroll', handleContentScroll)
-
-  // 监听键盘
+  startProgressTimer()
+  window.addEventListener('scroll', handleScroll)
   window.addEventListener('keydown', handleKeyPress)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('beforeunload', handleBeforeUnload)
 
-  // 定时保存进度（每30秒）
-  readingTimer.value = setInterval(saveCurrentProgress, 30000) as any
-
-  // 集成触摸手势
   if (isMobile.value && readerContainerRef.value) {
     useTouch(readerContainerRef, {
       onSwipeLeft: () => {
-        if (hasNextChapter.value) {
-          nextChapter()
-        }
+        if (hasNextChapter.value) handleNextChapter()
       },
       onSwipeRight: () => {
-        if (hasPreviousChapter.value) {
-          previousChapter()
-        }
+        if (hasPreviousChapter.value) handlePreviousChapter()
       },
-      onTap: () => {
-        // 点击屏幕中间切换全屏
-        toggleHeaderFooter()
-      },
-      threshold: 100
+      onTap: toggleHeaderFooter,
+      threshold: 100,
     })
   }
 })
 
 onUnmounted(() => {
-  // 保存进度
   saveCurrentProgress()
-
-  // 停止阅读时长计时器
   stopReadingTimer()
-
-  // 清理监听器
-  window.removeEventListener('scroll', handleContentScroll)
+  stopProgressTimer()
+  window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('keydown', handleKeyPress)
-
-  // 清理定时器
-  if (readingTimer.value) {
-    clearInterval(readingTimer.value)
-  }
-
-  // 清除当前章节
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
   readerStore.clearCurrentChapter()
 })
 
-// 监听章节ID变化
-watch(() => route.params.chapterId, (newId) => {
-  if (newId && newId !== chapterId.value) {
-    chapterId.value = newId as string
-    loadChapter()
-  }
-})
+watch(
+  () => route.params.chapterId,
+  (newId) => {
+    if (newId && newId !== chapterId.value) {
+      chapterId.value = newId as string
+      loadChapter()
+    }
+  },
+)
 
 watch(commentDrawerVisible, (visible) => {
-  if (visible) return
-  highlightedParagraphIndex.value = null
-  commentStore.clearSelection()
+  if (!visible) {
+    clearCommentSelection()
+  }
 })
 </script>
 
 <style scoped lang="scss">
 .reader-view {
   min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 
   &.theme-light {
-    // ✅ TDD Phase 2: 统一使用CSS变量
     background-color: var(--reader-light-bg, #ffffff);
     color: var(--reader-light-text, #303133);
   }
 
   &.theme-sepia {
-    // ✅ TDD Phase 2: 统一使用CSS变量
     background-color: var(--reader-sepia-bg, #f4ecd8);
     color: var(--reader-sepia-text, #5c4a2f);
   }
 
   &.theme-night {
-    // ✅ TDD Phase 2 P0修复：使用CSS变量而非硬编码，避免纯黑
     background-color: var(--reader-night-bg, #1a1a1a);
     color: var(--reader-night-text, #c9c9c9);
   }
 
   &.theme-dark {
-    // ✅ TDD Phase 2 P0修复：使用CSS变量，Material Design推荐#121212
     background-color: var(--reader-dark-bg, #121212);
     color: var(--reader-dark-text, #e0e0e0);
-  }
-}
-
-.reader-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  min-height: 68px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  background: #f8fafc;
-  transition: transform 0.3s;
-
-  &.is-hidden {
-    transform: translateY(-100%);
-  }
-}
-
-.reader-nav-bar {
-  width: min(980px, 100%);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-center {
-  display: inline-flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.reader-nav-bar > .nav-btn:first-child {
-  justify-self: start;
-}
-
-.reader-nav-bar > .nav-btn:last-child {
-  justify-self: end;
-}
-
-.reader-main {
-  padding: 22px 20px 30px;
-  overflow-y: auto;
-}
-
-.reader-container {
-  margin: 0 auto;
-  padding: 0 20px;
-
-  .chapter-title {
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .chapter-content {
-    .paragraph-wrapper {
-      position: relative;
-      margin-bottom: 1em;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      border-radius: 4px;
-      padding: 4px;
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.02);
-      }
-
-      &.is-highlighted {
-        background-color: rgba(255, 235, 59, 0.3);
-      }
-
-      .paragraph-text {
-        margin: 0;
-        text-indent: 2em;
-        text-align: justify;
-        line-height: inherit;
-        padding-right: 56px;
-      }
-
-      :deep(.comment-badge) {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        margin-left: 0;
-        z-index: 1;
-      }
-    }
   }
 }
 
@@ -1012,276 +764,6 @@ watch(commentDrawerVisible, (visible) => {
   }
 }
 
-.comments-section-wrapper {
-  margin-top: 60px;
-  padding: 0 20px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-
-  .comments-container {
-    h3 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      color: #303133;
-    }
-
-    .comments-list {
-      .comment-item {
-        padding: 16px;
-        border-bottom: 1px solid #f0f0f0;
-
-        &:last-child {
-          border-bottom: none;
-        }
-
-        .comment-user {
-          font-weight: bold;
-          color: #606266;
-          margin-bottom: 8px;
-        }
-
-        .comment-content {
-          color: #303133;
-          line-height: 1.6;
-          margin-bottom: 8px;
-        }
-
-        .comment-time {
-          font-size: 12px;
-          color: #909399;
-        }
-      }
-    }
-  }
-}
-
-.reader-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-
-  &.is-hidden {
-    transform: translateY(100%);
-  }
-
-  .footer-progress {
-    margin-bottom: 16px;
-
-    .progress-text {
-      display: block;
-      text-align: center;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #909399;
-    }
-  }
-
-  .footer-nav {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-}
-
-:deep(.qy-slider__track) {
-  height: 8px !important;
-  max-height: 8px !important;
-  overflow: hidden !important;
-}
-
-:deep(.qy-slider__fill) {
-  height: 8px !important;
-  max-height: 8px !important;
-  border-radius: 9999px !important;
-}
-
-// 目录样式
-.catalog-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f5f7fa;
-  }
-
-  &.is-active {
-    background-color: #ecf5ff;
-    color: #409eff;
-  }
-
-  &.is-read {
-    color: #909399;
-  }
-
-  .chapter-num {
-    width: 60px;
-    flex-shrink: 0;
-    font-size: 14px;
-    color: #909399;
-  }
-
-  .chapter-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .lock-icon {
-    margin-left: 8px;
-    color: #f56c6c;
-  }
-}
-
-// 设置面板样式
-.settings-panel {
-  padding: 0 20px 18px;
-  max-height: min(70vh, 640px);
-  overflow: auto;
-
-  .setting-item {
-    margin-bottom: 32px;
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .setting-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      gap: 10px;
-    }
-
-    .setting-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: #2563eb;
-    }
-
-    .setting-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-
-      .font-size-value {
-        min-width: 50px;
-        text-align: center;
-        font-weight: bold;
-      }
-    }
-
-    .setting-slider-wrap {
-      padding: 0 4px;
-    }
-  }
-
-  .theme-selector {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-
-    .theme-option {
-      padding: 16px;
-      text-align: center;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      &.is-active {
-        border-color: #409eff;
-      }
-    }
-  }
-}
-
-.settings-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgb(15 23 42 / 30%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1600;
-}
-
-.settings-modal {
-  width: min(560px, calc(100vw - 32px));
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
-}
-
-.settings-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 14px 20px 10px;
-  border-bottom: 1px solid #eef2f7;
-  margin-bottom: 12px;
-}
-
-.settings-modal-header h3 {
-  margin: 0;
-  font-size: 16px;
-  color: #1f2937;
-}
-
-// 响应式
-@media (max-width: 768px) {
-  .reader-container {
-    .chapter-title {
-      font-size: 22px;
-    }
-  }
-
-  .reader-nav-bar {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .reader-nav-bar > .nav-btn:first-child,
-  .reader-nav-bar > .nav-btn:last-child {
-    justify-self: stretch;
-  }
-
-  .nav-center {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .reader-footer .footer-nav {
-    flex-direction: column;
-
-    .footer-nav-btn {
-      width: 100%;
-    }
-  }
-}
-
-// ========== 阅读流程优化样式 ==========
-
-// 页面过渡动画
 .reader-fade-enter-active,
 .reader-fade-leave-active {
   transition: all 0.3s ease;
@@ -1295,118 +777,5 @@ watch(commentDrawerVisible, (visible) => {
 .reader-fade-leave-to {
   opacity: 0;
   transform: translateY(-20px);
-}
-
-// 章节结束推荐区
-.chapter-end-recommendation {
-  margin-top: 32px;
-  padding: 22px 16px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  color: #1f2937;
-
-  .recommendation-card {
-    h3 {
-      font-size: 18px;
-      margin: 0 0 8px 0;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .read-time {
-      text-align: center;
-      font-size: 13px;
-      margin-bottom: 14px;
-      color: #4b5563;
-    }
-
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 14px;
-
-      .action-btn {
-        min-width: 140px;
-        height: 36px;
-        font-size: 14px;
-      }
-    }
-
-    .add-to-bookshelf-tip {
-      margin-bottom: 14px;
-
-      :deep(.qy-alert) {
-        background: #eef6ff;
-        border: 1px solid #dbeafe;
-
-        .qy-alert__title {
-          color: #1f2937;
-        }
-
-        .qy-alert__description {
-          color: #4b5563;
-        }
-      }
-    }
-
-    .recommended-books {
-      h4 {
-        font-size: 14px;
-        margin: 0 0 10px 0;
-        text-align: center;
-        color: #6b7280;
-      }
-
-      .book-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 10px;
-
-        .book-item {
-          display: flex;
-          gap: 12px;
-          padding: 12px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-
-          &:hover {
-            background: #f9fafb;
-          }
-
-          .book-cover {
-            width: 60px;
-            height: 80px;
-            border-radius: 4px;
-            flex-shrink: 0;
-          }
-
-          .book-info {
-            flex: 1;
-            min-width: 0;
-
-            .book-title {
-              font-size: 14px;
-              font-weight: 600;
-              color: #111827;
-              margin-bottom: 4px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-
-            .book-author {
-              font-size: 12px;
-              color: #6b7280;
-            }
-          }
-        }
-      }
-    }
-  }
 }
 </style>

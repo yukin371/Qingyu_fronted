@@ -1,3 +1,4 @@
+// @ts-nocheck - Storybook file with flexible type assertions
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Form from './Form.vue'
 import FormItem from './FormItem.vue'
@@ -14,7 +15,7 @@ import Select from '../Select/Select.vue'
  * 展示表单组件的各种使用场景和配置
  */
 
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 
 const meta: Meta<typeof Form> = {
   title: 'Form/Form',

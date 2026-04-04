@@ -4,15 +4,15 @@
       <template #extra>
         <div class="header-actions">
           <QyButton variant="primary" @click="showRechargeDialog = true">
-            <QyIcon name="Plus"  />
+            <QyIcon name="Plus" />
             充值
           </QyButton>
           <QyButton @click="goToTransfer">
-            <QyIcon name="Sort"  />
+            <QyIcon name="Sort" />
             转账
           </QyButton>
           <QyButton @click="showWithdrawDialog = true">
-            <QyIcon name="Minus"  />
+            <QyIcon name="Minus" />
             提现
           </QyButton>
         </div>
@@ -77,12 +77,7 @@
           </div>
         </template>
 
-        <el-table
-          :data="transactions"
-          v-loading="loading"
-          stripe
-          empty-text="暂无交易记录"
-        >
+        <el-table :data="transactions" v-loading="loading" stripe empty-text="暂无交易记录">
           <el-table-column prop="created_at" label="时间" width="180">
             <template #default="{ row }">
               {{ formatDate(row.created_at) }}
@@ -90,7 +85,7 @@
           </el-table-column>
           <el-table-column prop="type" label="类型" width="100">
             <template #default="{ row }">
-              <QyTag :type="getTypeColor(row.type) as 'primary' | 'success' | 'warning' | 'info' | 'danger'">
+              <QyTag :type="getTypeTagColor(row.type)">
                 {{ getTypeLabel(row.type) }}
               </QyTag>
             </template>
@@ -104,9 +99,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="balance_after" label="余额" width="150" align="right">
-            <template #default="{ row }">
-              ¥{{ formatAmount(row.balance_after || 0) }}
-            </template>
+            <template #default="{ row }"> ¥{{ formatAmount(row.balance_after || 0) }} </template>
           </el-table-column>
         </el-table>
 
@@ -144,15 +137,8 @@
         </div>
       </FormSection>
 
-      <FormSection
-        label="自定义金额"
-        hint="最低充值金额为10元"
-      >
-        <QyInput
-          v-model="customAmount"
-          placeholder="请输入充值金额"
-          type="number"
-        >
+      <FormSection label="自定义金额" hint="最低充值金额为10元">
+        <QyInput v-model="customAmount" placeholder="请输入充值金额" type="number">
           <template #prefix>¥</template>
         </QyInput>
       </FormSection>
@@ -196,21 +182,14 @@
 
         <QyFormItem prop="amount" label="提现金额" required>
           <div class="form-hint">单笔提现最低10元，最高10000元</div>
-          <QyInput
-            v-model="withdrawForm.amount"
-            placeholder="请输入提现金额"
-            type="number"
-          >
+          <QyInput v-model="withdrawForm.amount" placeholder="请输入提现金额" type="number">
             <template #prefix>¥</template>
           </QyInput>
         </QyFormItem>
 
         <QyFormItem prop="account" label="提现账号" required>
           <div class="form-hint">请填写您的支付宝账号或银行卡号</div>
-          <QyInput
-            v-model="withdrawForm.account"
-            placeholder="请输入提现账号"
-          />
+          <QyInput v-model="withdrawForm.account" placeholder="请输入提现账号" />
         </QyFormItem>
       </QyForm>
 
@@ -229,11 +208,29 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { FormInstance } from '@/design-system/services';
-import type { FormRules } from '@/design-system/form/Form/types';
+import type { FormInstance } from '@/design-system/services'
+import type { FormRules } from '@/design-system/form/Form/types'
 import { message } from '@/design-system/services'
-import { QyIcon, QyButton, QyCard, QyTag, QyPagination, QyModal, QyInput, QyForm, QyFormItem, QyRadioGroup, QyRadio } from '@/design-system/components'
-import { Container, Section, Grid, FormSection, LoadingOverlay } from '@/shared/components/design-system'
+import {
+  QyIcon,
+  QyButton,
+  QyCard,
+  QyTag,
+  QyPagination,
+  QyModal,
+  QyInput,
+  QyForm,
+  QyFormItem,
+  QyRadioGroup,
+  QyRadio,
+} from '@/design-system/components'
+import {
+  Container,
+  Section,
+  Grid,
+  FormSection,
+  LoadingOverlay,
+} from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'
 
@@ -254,7 +251,7 @@ const walletInfo = ref<WalletInfo>({
   userId: '',
   balance: 0,
   totalIncome: 0,
-  totalExpense: 0
+  totalExpense: 0,
 })
 
 // 交易记录
@@ -274,7 +271,7 @@ const paymentMethod = ref('alipay')
 const withdrawFormRef = ref<FormInstance>()
 const withdrawForm = reactive({
   amount: 0,
-  account: ''
+  account: '',
 })
 
 const withdrawRules: FormRules = {
@@ -288,13 +285,13 @@ const withdrawRules: FormRules = {
       validator: (_rule, value) => {
         if (typeof value !== 'number') return false
         return value >= 10 && value <= 10000
-      }
-    }
+      },
+    },
   ],
   account: [
     { required: true, message: '请输入提现账号', trigger: 'blur' },
-    { min: 5, max: 50, message: '账号长度应在5-50个字符之间', trigger: 'blur' }
-  ]
+    { min: 5, max: 50, message: '账号长度应在5-50个字符之间', trigger: 'blur' },
+  ],
 }
 
 // 格式化金额
@@ -312,7 +309,7 @@ function formatDate(date: string): string {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
+    second: '2-digit',
   })
 }
 
@@ -323,9 +320,14 @@ function getTypeColor(type: string): string {
     consume: 'danger',
     income: 'success',
     withdraw: 'warning',
-    transfer: 'info'
+    transfer: 'info',
   }
   return colorMap[type] || 'info'
+}
+
+// 获取交易类型标签颜色（带类型）
+function getTypeTagColor(type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' {
+  return getTypeColor(type) as 'primary' | 'success' | 'warning' | 'info' | 'danger'
 }
 
 // 获取交易类型标签
@@ -335,7 +337,7 @@ function getTypeLabel(type: string): string {
     consume: '消费',
     income: '收入',
     withdraw: '提现',
-    transfer: '转账'
+    transfer: '转账',
   }
   return labelMap[type] || type
 }
@@ -360,7 +362,7 @@ async function loadWalletInfo(): Promise<void> {
         frozenAmount: response.data.frozenAmount,
         availableAmount: response.data.availableAmount,
         currency: response.data.currency,
-        updatedAt: response.data.updatedAt
+        updatedAt: response.data.updatedAt,
       }
     }
   } catch (error) {
@@ -375,14 +377,14 @@ async function loadTransactions(): Promise<void> {
     const params = {
       page: currentPage.value,
       page_size: pageSize.value,
-      type: transactionType.value || undefined
+      type: transactionType.value || undefined,
     }
 
     const response = await walletAPI.getTransactions(params)
 
     if (response.code === 200) {
-      transactions.value = response.data?.data || []
-      total.value = response.data?.pagination?.total || 0
+      transactions.value = (response.data as any)?.data || []
+      total.value = (response.data as any)?.pagination?.total || 0
     }
   } catch (error) {
     message.error(error instanceof Error ? error.message : '加载交易记录失败')
@@ -415,7 +417,7 @@ async function submitRecharge(): Promise<void> {
   try {
     const response = await walletAPI.recharge({
       amount,
-      method: paymentMethod.value
+      method: paymentMethod.value,
     })
 
     if (response.code === 200) {
@@ -457,7 +459,7 @@ async function submitWithdraw(): Promise<void> {
     const response = await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
       account: withdrawForm.account,
-      accountType: 'bank'
+      accountType: 'bank',
     })
 
     if (response.code === 200) {
@@ -489,10 +491,7 @@ function goToTransfer() {
 onMounted(async () => {
   pageLoading.value = true
   try {
-    await Promise.all([
-      loadWalletInfo(),
-      loadTransactions()
-    ])
+    await Promise.all([loadWalletInfo(), loadTransactions()])
   } finally {
     pageLoading.value = false
   }
@@ -512,7 +511,9 @@ onMounted(async () => {
 }
 
 .stat-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-4px);
@@ -536,17 +537,17 @@ onMounted(async () => {
   border-radius: 12px;
 
   &.balance-icon {
-    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
     color: #fff;
   }
 
   &.income-icon {
-    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
     color: #fff;
   }
 
   &.expense-icon {
-    background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
     color: #fff;
   }
 }
@@ -566,15 +567,15 @@ onMounted(async () => {
   font-weight: 700;
 
   &.primary {
-    color: #2196F3;
+    color: #2196f3;
   }
 
   &.success {
-    color: #4CAF50;
+    color: #4caf50;
   }
 
   &.danger {
-    color: #F44336;
+    color: #f44336;
   }
 }
 
@@ -596,12 +597,12 @@ onMounted(async () => {
 }
 
 .amount-income {
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 600;
 }
 
 .amount-outcome {
-  color: #F44336;
+  color: #f44336;
   font-weight: 600;
 }
 
@@ -610,7 +611,7 @@ onMounted(async () => {
   justify-content: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid #e0e0e0;
 }
 
 // 充值对话框
@@ -624,24 +625,24 @@ onMounted(async () => {
 .amount-item {
   padding: 1rem;
   text-align: center;
-  border: 2px solid #E0E0E0;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #fff;
 
   &:hover {
-    border-color: #2196F3;
-    background: #F5F5F5;
+    border-color: #2196f3;
+    background: #f5f5f5;
     transform: translateY(-2px);
   }
 
   &.active {
-    border-color: #2196F3;
-    background: #E3F2FD;
+    border-color: #2196f3;
+    background: #e3f2fd;
 
     .amount-value {
-      color: #2196F3;
+      color: #2196f3;
     }
   }
 }
@@ -677,7 +678,7 @@ onMounted(async () => {
 .available-balance {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 // 响应式设计
@@ -697,4 +698,3 @@ onMounted(async () => {
   }
 }
 </style>
-

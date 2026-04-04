@@ -12,6 +12,22 @@ import type {
 // 类型别名用于 store 内部
 type ProjectDetail = ProjectDetailResponse
 
+function normalizeProjectSummary(raw: any): ProjectSummary {
+  return {
+    ...raw,
+    id: raw?.id || raw?.projectId || '',
+    summary: raw?.summary || raw?.description || '',
+    coverUrl: raw?.coverUrl || raw?.coverImage || '',
+    coverImage: raw?.coverImage || raw?.coverUrl || '',
+    genre: raw?.genre || raw?.category || '',
+    category: raw?.category || raw?.genre || '',
+    totalWords: raw?.totalWords ?? raw?.wordCount ?? 0,
+    wordCount: raw?.wordCount ?? raw?.totalWords ?? 0,
+    chapterCount: raw?.chapterCount ?? 0,
+    updatedAt: raw?.updatedAt || raw?.lastUpdateTime || raw?.createdAt || '',
+  }
+}
+
 export const useProjectStore = defineStore('writer-project', () => {
   // State
   const projects = ref<ProjectSummary[]>([])
@@ -27,8 +43,13 @@ export const useProjectStore = defineStore('writer-project', () => {
     loading.value = true
     try {
       // httpService 响应拦截器会自动解包返回 data
-      const res = await projectApi.list(params) as unknown as ProjectListResponse
-      projects.value = res.projects
+      const res = (await projectApi.list(params)) as unknown as ProjectListResponse
+      const list = Array.isArray(res.projects)
+        ? res.projects
+        : Array.isArray(res.items)
+          ? res.items
+          : []
+      projects.value = list.map(normalizeProjectSummary)
       total.value = res.total
     } finally {
       loading.value = false
@@ -38,7 +59,7 @@ export const useProjectStore = defineStore('writer-project', () => {
   async function loadDetail(id: string) {
     loading.value = true
     try {
-      currentProject.value = await projectApi.getDetail(id) as unknown as ProjectDetail
+      currentProject.value = (await projectApi.getDetail(id)) as unknown as ProjectDetail
     } finally {
       loading.value = false
     }

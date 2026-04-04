@@ -78,7 +78,7 @@ const emit = defineEmits<CheckboxEmits>()
 // 注入组上下文
 import type { CheckboxGroupContext } from './contextKey'
 
-const groupContext = inject<CheckboxGroupContext>(CHECKBOX_GROUP_KEY, undefined)
+const groupContext = inject<CheckboxGroupContext | undefined>(CHECKBOX_GROUP_KEY, undefined)
 
 // 是否在组中
 const isInGroup = computed(() => groupContext !== undefined)
@@ -100,11 +100,11 @@ const isArrayMode = computed(() => !isInGroup.value && Array.isArray(props.model
 
 // 计算当前是否选中
 const isChecked = computed(() => {
-  if (isInGroup.value && props.value !== undefined) {
-    return groupContext!.isChecked(props.value)
+  if (isInGroup.value && props.value !== undefined && groupContext) {
+    return groupContext.isChecked(props.value)
   }
   if (isArrayMode.value && props.value !== undefined) {
-    return props.modelValue.includes(String(props.value))
+    return (props.modelValue as string[]).includes(String(props.value))
   }
   return Boolean(props.modelValue)
 })

@@ -1,4 +1,3 @@
-/* eslint-disable */
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
   const component: DefineComponent<{}, {}, any>
@@ -16,6 +15,3 @@ declare module '@/modules/*'
 declare module '@/pages/*'
 declare module '@/utils/*'
 declare module '@/router/*'
-
-
-

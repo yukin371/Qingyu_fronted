@@ -30,11 +30,6 @@
       @touchmove="handleContentTouchMove"
       @touchend="handleContentTouchEnd"
     >
-      <ActivityBar
-        v-model="activityToolModel"
-        @tool-change="handleToolChange"
-      />
-
       <!-- 左侧面板 - 添加过渡动画 -->
       <Transition name="panel-slide-left">
         <ResizablePanel
@@ -45,13 +40,15 @@
           :max-width="layout.leftPanel.maxWidth"
           position="left"
           :collapsible="true"
-          :class="leftPanelClasses"
+          :resizable="!isImmersiveMode"
+          :class="[
+            leftPanelClasses,
+            'editor-layout__left-panel',
+            { 'panel-visible': leftPanelVisible },
+          ]"
           :style="leftPanelStyle"
         >
-          <SidePanel
-            position="left"
-            :class="{ 'panel-visible': leftPanelVisible }"
-          >
+          <SidePanel position="left" :class="{ 'panel-visible': leftPanelVisible }">
             <slot name="left-panel">
               <!-- 默认内容 -->
               <ProjectTree
@@ -59,10 +56,7 @@
                 :chapters="chapters"
                 :current-chapter-id="currentChapterId"
               />
-              <ChapterTree
-                :tree-data="treeData"
-                :project-id="projectId"
-              />
+              <ChapterTree :tree-data="treeData" :project-id="projectId" />
             </slot>
           </SidePanel>
         </ResizablePanel>
@@ -73,12 +67,14 @@
         class="editor-layout__main"
         :class="[
           { 'panel-visible': layout.activeTab === 'editor' },
-          { 'immersive-mode': isImmersiveMode }
+          { 'immersive-mode': isImmersiveMode },
         ]"
       >
         <slot name="editor" :active-tool="activeTool">
-          <!-- 默认内容 -->
-          <EditorPanel :active-tool="activeTool" />
+          <div class="editor-layout__placeholder" data-testid="editor-layout-editor-placeholder">
+            <strong>Editor Slot Required</strong>
+            <span>请在 `EditorLayout` 中传入编辑器内容插槽。</span>
+          </div>
         </slot>
       </div>
 
@@ -92,7 +88,12 @@
           :max-width="layout.rightPanel.maxWidth"
           position="right"
           :collapsible="true"
-          :class="rightPanelClasses"
+          :resizable="!isImmersiveMode"
+          :class="[
+            rightPanelClasses,
+            'editor-layout__right-panel',
+            { 'panel-visible': rightPanelVisible },
+          ]"
           :style="rightPanelStyle"
         >
           <SidePanel
@@ -101,8 +102,10 @@
             :class="{ 'panel-visible': rightPanelVisible }"
           >
             <slot name="right-panel">
-              <!-- 默认内容 -->
-              <AIPanel />
+              <div class="editor-layout__placeholder" data-testid="editor-layout-right-placeholder">
+                <strong>Right Panel Slot Required</strong>
+                <span>请在 `EditorLayout` 中传入右侧面板插槽。</span>
+              </div>
             </slot>
           </SidePanel>
         </ResizablePanel>
@@ -118,16 +121,15 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
-import ActivityBar from './ActivityBar.vue'
+import { useRoute } from 'vue-router'
 import ResizablePanel from './ResizablePanel.vue'
 import SidePanel from './SidePanel.vue'
-import EditorPanel from './EditorPanel.vue'
-import AIPanel from './AIPanel.vue'
 import ProjectTree from '../ProjectTree.vue'
 import ChapterTree from '../DocumentTree.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import { useEditorStore, type ActiveTool } from '../../stores/editorStore'
+import { useDocumentStore } from '../../stores/documentStore'
 
 // ==================== Props & Emits ====================
 interface Props {
@@ -146,12 +148,13 @@ const emit = defineEmits<Emits>()
 // ==================== 插槽类型定义 ====================
 defineSlots<{
   'left-panel'?: () => unknown
-  'editor'?: () => unknown
+  editor?: (props: { activeTool: ActiveTool }) => unknown
   'right-panel'?: () => unknown
 }>()
 
-// 使用 editorStore
+const route = useRoute()
 const editorStore = useEditorStore()
+const documentStore = useDocumentStore()
 
 // 内部 activeTool 状态（用于本地管理）
 const internalActiveTool = ref<ActiveTool>(props.activeTool ?? editorStore.activeTool ?? 'writing')
@@ -163,7 +166,7 @@ const activeTool = computed<ActiveTool>({
     internalActiveTool.value = value
     editorStore.setActiveTool(value)
     emit('update:activeTool', value)
-  }
+  },
 })
 
 watch(
@@ -172,15 +175,8 @@ watch(
     if (newTool && newTool !== internalActiveTool.value) {
       internalActiveTool.value = newTool
     }
-  }
+  },
 )
-
-const activityToolModel = computed<ActiveTool>({
-  get: () => activeTool.value,
-  set: (value: ActiveTool) => {
-    activeTool.value = value
-  }
-})
 
 // 监听 store 中 activeTool 的变化
 watch(
@@ -189,87 +185,59 @@ watch(
     if (newTool !== internalActiveTool.value) {
       internalActiveTool.value = newTool
     }
-  }
+  },
 )
 
 // ==================== 面板可见性计算 ====================
-// 根据 activeTool 计算左侧面板是否可见
-// chapters/writing: 展开 | immersive/ai: 隐藏
 const leftPanelVisible = computed(() => {
-  const tool = activeTool.value
-  return (
-    tool === 'chapters' ||
-    tool === 'writing' ||
-    tool === 'encyclopedia' ||
-    tool === 'relations' ||
-    tool === 'timeline'
-  )
+  if (layout.value.mode === 'mobile') {
+    return layout.value.activeTab === 'left'
+  }
+  return true
 })
 
-// 根据 activeTool 计算右侧面板是否可见
-// 仅 AI 页面展示右侧面板
 const rightPanelVisible = computed(() => {
-  const tool = activeTool.value
-  return tool === 'ai'
+  if (layout.value.mode === 'mobile') {
+    return layout.value.activeTab === 'right'
+  }
+  return true
 })
 
 // 左侧面板状态：'expanded' | 'collapsed' | 'hidden'
-const leftPanelState = computed(() => {
-  const tool = activeTool.value
-  if (tool === 'immersive' || tool === 'ai') return 'hidden'
-  if (tool === 'relations' || tool === 'timeline') return 'expanded'
-  if (tool === 'encyclopedia') return 'expanded'
-  // 写作模式保持正常宽度，避免侧栏过窄不可见
-  if (tool === 'writing') return 'expanded'
-  if (tool === 'chapters') return 'expanded'
-  return 'hidden'
+const leftPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
+  return 'expanded'
 })
 
 // 右侧面板状态：'expanded' | 'collapsed' | 'hidden'
-const rightPanelState = computed(() => {
-  const tool = activeTool.value
-  if (
-    tool === 'immersive' ||
-    tool === 'chapters' ||
-    tool === 'writing' ||
-    tool === 'encyclopedia' ||
-    tool === 'relations' ||
-    tool === 'timeline'
-  ) return 'hidden'
-  if (tool === 'ai') return 'expanded'
-  return 'hidden'
+const rightPanelState = computed((): 'expanded' | 'collapsed' | 'hidden' => {
+  return 'expanded'
 })
 
 // 是否为沉浸模式
 const isImmersiveMode = computed(() => activeTool.value === 'immersive')
 
-// TODO: 从路由或store获取实际的项目ID和章节数据
-const projectId = ref('')
-const chapters = ref([])
-const currentChapterId = ref('')
+// 从路由参数获取项目ID
+const projectId = computed(() => (route.params.projectId as string) || '')
 
-// TODO: 从store获取文档树数据
-const treeData = ref([])
+// 从 documentStore 获取章节数据
+const chapters = computed(() => documentStore.flatDocs)
+
+// 从 documentStore 获取当前文档ID
+const currentChapterId = computed(() => documentStore.currentDocMeta?.id || '')
+
+// 从 documentStore 获取文档树数据
+const treeData = computed(() => documentStore.tree)
 
 // 响应式布局
-const {
-  layout,
-  switchTab,
-  handleTouchGesture: handleGesture,
-} = useResponsiveLayout()
-
-// 移动端tab配置 - 根据面板可见性动态调整
-const showRightPanel = computed(() => rightPanelVisible.value)
+const { layout, switchTab, handleTouchGesture: handleGesture } = useResponsiveLayout()
 
 const mobileTabs = computed(() => {
   type TabKey = 'left' | 'editor' | 'right'
   const base: Array<{ key: TabKey; label: string; icon: string }> = [
     { key: 'left', label: '目录', icon: 'List' },
     { key: 'editor', label: '编辑', icon: 'Edit' },
+    { key: 'right', label: 'AI', icon: 'MagicStick' },
   ]
-  if (showRightPanel.value) {
-    base.push({ key: 'right', label: 'AI', icon: 'MagicStick' })
-  }
   return base
 })
 
@@ -305,11 +273,7 @@ const leftPanelStyle = computed(() => {
   if (leftPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 折叠状态
-  if (leftPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
-  }
-  // 展开状态交由 ResizablePanel 控制
+  // 展开状态由 ResizablePanel 内部宽度管理，避免覆盖拖拽结果
   return {}
 })
 
@@ -318,11 +282,7 @@ const rightPanelStyle = computed(() => {
   if (rightPanelState.value === 'hidden') {
     return { width: '0px', minWidth: '0px', overflow: 'hidden' }
   }
-  // 折叠状态
-  if (rightPanelState.value === 'collapsed') {
-    return { width: '48px', minWidth: '48px' }
-  }
-  // 展开状态交由 ResizablePanel 控制
+  // 展开状态由 ResizablePanel 内部宽度管理，避免覆盖拖拽结果
   return {}
 })
 
@@ -340,8 +300,8 @@ const layoutModeLabel = computed(() => {
     immersive: '沉浸模式',
     ai: 'AI助手模式',
     encyclopedia: '设定百科模式',
-    relations: '关系图谱模式',
-    timeline: '时间线模式',
+    relations: '角色关系',
+    timeline: '时间线',
   }
   return `${modeLabel} - ${toolLabels[activeTool.value]}`
 })
@@ -390,49 +350,19 @@ function handleContentTouchEnd(event: TouchEvent) {
   }
 }
 
-function handleToolChange(toolId: ActiveTool | string) {
-  const normalizedTool: ActiveTool = toolId as ActiveTool
-  // 更新内部状态和发出事件
-  activeTool.value = normalizedTool
-  emit('toolChange', normalizedTool)
-
-  // 移动端：如果右侧面板不可见且当前在右侧tab，切换到编辑器
-  if (!showRightPanel.value && layout.value.activeTab === 'right') {
-    switchTab('editor')
-  }
-
-  // AR通知
-  const toolLabels: Record<ActiveTool, string> = {
-    chapters: '章节模式',
-    writing: '写作模式',
-    immersive: '沉浸模式',
-    ai: 'AI助手模式',
-    encyclopedia: '设定百科模式',
-    relations: '关系图谱模式',
-    timeline: '时间线模式',
-  }
-  ariaAnnouncement.value = `已切换到${toolLabels[normalizedTool]}`
-  setTimeout(() => {
-    ariaAnnouncement.value = ''
-  }, 1000)
-}
-
-onMounted(() => {
-  console.log('[EditorLayout] Mounted', {
-    mode: layout.value.mode,
-    leftPanel: layout.value.leftPanel,
-    rightPanel: layout.value.rightPanel,
-  })
-})
+onMounted(() => {})
 </script>
 
 <style scoped lang="scss">
 .editor-layout {
+  --editor-navbar-height: 0px; // 移除顶部导航栏高度
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: #f1f5f9;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(143, 63, 47, 0.08), transparent 20%),
+    linear-gradient(180deg, #f3ebdf, #ede2d3);
   color: #0f172a;
   overflow: hidden;
 }
@@ -440,13 +370,13 @@ onMounted(() => {
 .editor-layout__content {
   display: flex;
   flex: 1;
-  height: 100%;
+  height: 100%; // 占满全部高度
   min-height: 0;
   overflow: hidden;
   position: relative;
   gap: 10px;
   padding: 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, rgba(250, 246, 240, 0.92) 0%, rgba(241, 232, 220, 0.9) 100%);
 
   :deep(.side-panel) {
     background: #ffffff;
@@ -480,6 +410,31 @@ onMounted(() => {
     border-radius: 0;
     margin: 0;
   }
+}
+
+.editor-layout__placeholder {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #685d53;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(247, 238, 226, 0.9));
+}
+
+.editor-layout__placeholder strong {
+  color: #2d241d;
+  font-size: 15px;
+}
+
+.editor-layout__placeholder span {
+  max-width: 240px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 // ==================== 面板过渡动画 ====================
@@ -548,13 +503,14 @@ onMounted(() => {
   .editor-layout__content {
     flex-direction: column;
     height: auto;
+    gap: 8px;
   }
 
   .mobile-tabs {
     display: flex;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0 8px;
+    background: rgba(255, 251, 245, 0.96);
+    border-bottom: 1px solid rgba(117, 93, 67, 0.14);
+    padding: 0 8px 8px;
     gap: 6px;
 
     .mobile-tab {
@@ -572,45 +528,45 @@ onMounted(() => {
       transition: all 0.2s ease;
 
       &.active {
-        color: #1d4ed8;
-        border-color: #60a5fa;
-        background: #eff6ff;
+        color: #7b3123;
+        border-color: rgba(143, 63, 47, 0.24);
+        background: linear-gradient(180deg, #fff7ee, #f7e5d0);
       }
 
       &:hover:not(.active) {
-        background: #eef2ff;
+        background: #f8eee2;
       }
     }
   }
 
-  .panel-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
-    background: #f8fafc;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-
-    &.panel-visible {
-      transform: translateX(0);
-    }
+  .editor-layout__left-panel,
+  .editor-layout__right-panel,
+  .editor-layout__main {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: none;
+    border-radius: 16px;
   }
 
-  .left-panel,
-  .right-panel,
-  .editor-layout__main {
-    display: none;
+  .editor-layout__left-panel.panel-visible,
+  .editor-layout__right-panel.panel-visible,
+  .editor-layout__main.panel-visible {
+    display: flex;
+  }
 
-    &.panel-visible {
-      display: block;
+  .editor-layout__left-panel,
+  .editor-layout__right-panel {
+    height: min(68vh, 760px);
+
+    :deep(.panel-content) {
+      height: 100%;
     }
   }
 
   .editor-layout__main.panel-visible {
     position: relative;
+    min-height: 58vh;
   }
 
   // 移动端沉浸模式
@@ -629,7 +585,9 @@ onMounted(() => {
 .layout-mode-tablet {
   .left-panel,
   .right-panel {
-    transition: width 0.3s ease, opacity 0.3s ease;
+    transition:
+      width 0.3s ease,
+      opacity 0.3s ease;
   }
 
   .panel-collapsed {

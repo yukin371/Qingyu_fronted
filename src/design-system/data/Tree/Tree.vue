@@ -7,10 +7,9 @@
  * 重构：使用reactive对象代替嵌套Ref，避免响应式追踪问题
  */
 
-import { computed, provide, reactive, ref, useSlots, watch, type Ref } from 'vue'
+import { computed, provide, reactive, ref, useSlots, watch } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import Icon from '../../base/Icon/Icon.vue'
 import TreeNodeItem from './TreeNodeItem.vue'
 import type { TreeNode, TreeEmits, TreeProps, TreeNodeState, TreeInstance } from './types'
 import { TREE_CONTEXT_KEY } from './constants'
@@ -154,8 +153,7 @@ const toggleExpand = (nodeState: TreeNodeState) => {
 const toggleCheck = (nodeState: TreeNodeState) => {
   if (nodeState.node.disabled || !props.checkable) return
 
-  const nodeId = nodeState.node.id || nodeState.node.label
-  const newChecked = !nodeState.checked.value
+  const newChecked = !nodeState.checked
 
   // 更新自身及所有子节点
   updateNodeCheckState(nodeState, newChecked)
@@ -230,7 +228,7 @@ const updateParentCheckState = (nodeState: TreeNodeState) => {
 }
 
 // 节点点击
-const handleNodeClick = (nodeState: TreeNodeState, event: MouseEvent) => {
+const handleNodeClick = (nodeState: TreeNodeState, _event: MouseEvent) => {
   if (nodeState.node.disabled) return
 
   currentNode.value = nodeState

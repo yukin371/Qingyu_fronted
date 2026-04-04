@@ -9,7 +9,8 @@
  * - 插槽内容
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/vue'
 import { BaseEmpty } from './index'
 

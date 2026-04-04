@@ -4,7 +4,10 @@
     <div class="dashboard-header">
       <div class="welcome-section">
         <h1 class="title">创作工作台</h1>
-        <p class="subtitle">欢迎回来，<span class="username">{{ userName }}</span>！继续你的创作之旅</p>
+        <p class="subtitle">
+          欢迎回来，<span class="username">{{ userName }}</span
+          >！继续你的创作之旅
+        </p>
       </div>
       <div class="header-actions">
         <!-- 可选：放置日期筛选或设置按钮 -->
@@ -34,26 +37,24 @@
         <el-card class="section-card quick-actions" shadow="hover">
           <template #header>
             <div class="card-header">
-              <span class="header-title">
-                <QyIcon name="Lightning"  /> 快捷操作
-              </span>
+              <span class="header-title"> <QyIcon name="Lightning" /> 快捷操作 </span>
             </div>
           </template>
           <div class="action-grid">
             <div class="action-item" @click="createProject">
-              <div class="icon-box primary"><QyIcon name="Plus"  /></div>
+              <div class="icon-box primary"><QyIcon name="Plus" /></div>
               <span>新建作品</span>
             </div>
             <div class="action-item" @click="quickWrite">
-              <div class="icon-box success"><QyIcon name="EditPen"  /></div>
+              <div class="icon-box success"><QyIcon name="EditPen" /></div>
               <span>快速写作</span>
             </div>
             <div class="action-item" @click="goToPublish">
-              <div class="icon-box warning"><QyIcon name="Upload"  /></div>
+              <div class="icon-box warning"><QyIcon name="Upload" /></div>
               <span>发布管理</span>
             </div>
             <div class="action-item" @click="goToStatistics">
-              <div class="icon-box info"><QyIcon name="DataAnalysis"  /></div>
+              <div class="icon-box info"><QyIcon name="DataAnalysis" /></div>
               <span>数据报表</span>
             </div>
           </div>
@@ -63,11 +64,9 @@
         <el-card class="section-card recent-projects" shadow="hover">
           <template #header>
             <div class="card-header">
-              <span class="header-title">
-                <QyIcon name="Timer"  /> 最近编辑
-              </span>
+              <span class="header-title"> <QyIcon name="Timer" /> 最近编辑 </span>
               <el-button link type="primary" @click="goToAllProjects">
-                全部项目 <QyIcon name="ArrowRight"  />
+                全部项目 <QyIcon name="ArrowRight" />
               </el-button>
             </div>
           </template>
@@ -83,10 +82,19 @@
           />
 
           <div v-else class="project-list">
-            <div v-for="project in recentProjects" :key="project.id" class="project-list-item"
-              @click="openProject(project.id)">
+            <div
+              v-for="project in recentProjects"
+              :key="project.id"
+              class="project-list-item"
+              @click="openProject(project.id)"
+            >
               <div class="item-cover" :style="getCoverStyle(project.title)">
-                <el-image v-if="project.coverImage" :src="project.coverImage" fit="cover" class="cover-img" />
+                <el-image
+                  v-if="project.coverImage"
+                  :src="project.coverImage"
+                  fit="cover"
+                  class="cover-img"
+                />
                 <span v-else class="cover-text">{{ project.title.charAt(0) }}</span>
               </div>
 
@@ -98,9 +106,14 @@
                   </el-tag>
                 </div>
                 <div class="item-meta">
-                  <span><QyIcon name="Document"  /> {{ formatNumber(project.totalWords) }} 字</span>
+                  <span
+                    ><QyIcon name="Document" /> {{ formatNumber(project.totalWords ?? 0) }} 字</span
+                  >
                   <el-divider direction="vertical" />
-                  <span><QyIcon name="Clock"  /> {{ formatTime(project.lastUpdateTime) }}</span>
+                  <span
+                    ><QyIcon name="Clock" />
+                    {{ formatTime(project.lastUpdateTime || project.updatedAt || '') }}</span
+                  >
                 </div>
               </div>
 
@@ -116,15 +129,18 @@
         <el-card class="section-card writing-goal" shadow="hover">
           <template #header>
             <div class="card-header">
-              <span class="header-title">
-                <QyIcon name="Trophy"  /> 今日目标
-              </span>
+              <span class="header-title"> <QyIcon name="Trophy" /> 今日目标 </span>
               <el-button link size="small" @click="editGoal">设置</el-button>
             </div>
           </template>
 
           <div class="goal-content">
-            <el-progress type="dashboard" :percentage="goalPercentage" :color="goalColors" :width="140">
+            <el-progress
+              type="dashboard"
+              :percentage="goalPercentage"
+              :color="goalColors"
+              :width="140"
+            >
               <template #default="{ percentage }">
                 <span class="progress-value">{{ percentage }}%</span>
                 <span class="progress-label">完成度</span>
@@ -143,16 +159,14 @@
             </div>
           </div>
 
-          <div class="goal-message" v-if="goalPercentage >= 100">
-            🎉 太棒了！今日目标已达成！
-          </div>
+          <div class="goal-message" v-if="goalPercentage >= 100">🎉 太棒了！今日目标已达成！</div>
         </el-card>
 
         <!-- 6. 每日灵感 (新增) -->
         <el-card class="section-card daily-quote" shadow="hover">
           <div class="quote-content">
             <el-icon class="quote-icon">
-              <QyIcon name="ChatDotRound"  />
+              <QyIcon name="ChatDotRound" />
             </el-icon>
             <p class="quote-text">“写作就是把原本不存在的事物变成存在。”</p>
             <p class="quote-author">—— 佚名</p>
@@ -168,8 +182,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
-import type { Project } from '@/modules/writer/types/project'
+import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
+import { getTodayWordsStats, getDashboardOverview } from '@/modules/writer/api/dashboard'
+import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
 import { QyIcon } from '@/design-system/components'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -187,12 +203,12 @@ const loadingProjects = ref(false)
 const writingGoal = ref(2000)
 const userName = computed(() => authStore.user?.nickname || authStore.user?.username || '作家')
 
-// 统计数据 (模拟 + Store)
+// 统计数据
 const stats = ref({
   totalWords: 0,
   bookCount: 0,
   todayWords: 0, // 需要后端支持今日新增接口
-  pending: 0
+  pending: 0,
 })
 
 // 统计卡片配置
@@ -202,29 +218,29 @@ const statCards = computed(() => [
     value: stats.value.totalWords,
     icon: Document,
     iconColor: '#409eff',
-    bgColor: 'var(--el-color-primary-light-9)'
+    bgColor: 'var(--el-color-primary-light-9)',
   },
   {
     label: '作品数',
     value: stats.value.bookCount,
     icon: Reading,
     iconColor: '#67c23a',
-    bgColor: 'var(--el-color-success-light-9)'
+    bgColor: 'var(--el-color-success-light-9)',
   },
   {
     label: '今日码字',
     value: stats.value.todayWords,
     icon: EditPen,
     iconColor: '#e6a23c',
-    bgColor: 'var(--el-color-warning-light-9)'
+    bgColor: 'var(--el-color-warning-light-9)',
   },
   {
     label: '连载中',
     value: stats.value.pending,
     icon: Clock,
     iconColor: '#f56c6c',
-    bgColor: 'var(--el-color-danger-light-9)'
-  }
+    bgColor: 'var(--el-color-danger-light-9)',
+  },
 ])
 
 // 目标进度
@@ -246,16 +262,51 @@ const recentProjects = computed(() => (projectStore.projects || []).slice(0, 5))
 onMounted(async () => {
   loadingProjects.value = true
   try {
-    // 并行加载
+    // 尝试使用 dashboard overview API 获取统计数据
+    let overviewLoaded = false
+    try {
+      const overview = await getDashboardOverview()
+      if (overview && typeof overview.totalProjects === 'number') {
+        stats.value.totalWords = overview.totalWords || 0
+        stats.value.bookCount = overview.totalProjects || 0
+        stats.value.todayWords = overview.todayWords || 0
+        stats.value.pending = overview.activeProjects || 0
+        overviewLoaded = true
+      }
+    } catch {
+      // dashboard overview API 不可用，使用项目列表计算
+    }
+
+    // 并行加载项目列表
     await projectStore.loadList({ page: 1, pageSize: 5 })
 
-    // 更新统计 (这部分逻辑最好在后端有个专门的 dashboard API)
-    stats.value.bookCount = projectStore.total
-    const projects = projectStore.projects || []
-    stats.value.totalWords = projects.reduce((acc: number, cur: { totalWords: number }) => acc + (cur.totalWords || 0), 0)
-    stats.value.pending = projects.filter((p: Project) => p.status === 'serializing').length
-    stats.value.todayWords = 1200 // Mock Data
+    if (!overviewLoaded) {
+      // 更新统计：从项目列表计算
+      stats.value.bookCount = projectStore.total
+      const projects = projectStore.projects || []
+      stats.value.totalWords = projects.reduce((acc: number, cur: ProjectSummary) => {
+        return acc + (cur.totalWords ?? cur.wordCount ?? 0)
+      }, 0)
+      stats.value.pending = projects.filter(
+        (p: ProjectSummary) => p.status === 'serializing',
+      ).length
+    }
 
+    // 今日码字：后端API优先，无则前端本地计算
+    if (!stats.value.todayWords) {
+      try {
+        const todayStats = await getTodayWordsStats()
+        if (todayStats && todayStats.todayWords > 0) {
+          stats.value.todayWords = todayStats.todayWords
+        } else {
+          // 后端无数据，使用本地计算
+          stats.value.todayWords = getGlobalTodayWords()
+        }
+      } catch {
+        // API 调用失败，使用本地计算
+        stats.value.todayWords = getGlobalTodayWords()
+      }
+    }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
   } finally {
@@ -264,15 +315,15 @@ onMounted(async () => {
 })
 
 // 辅助函数
-const formatNumber = (n: number) => n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n
-const formatTime = (t: string) => dayjs(t).fromNow()
+const formatNumber = (n: number) => (n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n)
+const formatTime = (t: string) => (t ? dayjs(t).fromNow() : '未知时间')
 
 const getStatusType = (status: string) => {
   const map: Record<string, string> = {
     draft: 'info',
     serializing: 'primary',
     completed: 'success',
-    suspended: 'danger'
+    suspended: 'danger',
   }
   return map[status] || 'info'
 }
@@ -282,7 +333,7 @@ const getStatusText = (status: string) => {
     draft: '草稿',
     serializing: '连载',
     completed: '完结',
-    suspended: '断更'
+    suspended: '断更',
   }
   return map[status] || status
 }
@@ -302,12 +353,14 @@ const quickWrite = () => {
     createProject()
   }
 }
-const goToPublish = () => { } // TODO
-const goToStatistics = () => { } // TODO
+const goToPublish = () => router.push({ name: 'writer-publish' })
+const goToStatistics = () => router.push({ name: 'writer-statistics' })
 const goToAllProjects = () => router.push({ name: 'writer-projects' })
-const openProject = (id: string) => router.push({ name: 'writer-project', params: { projectId: id } })
-const editGoal = () => { /* 打开 Dialog 修改 goal */ }
-
+const openProject = (id: string) =>
+  router.push({ name: 'writer-project', params: { projectId: id } })
+const editGoal = () => {
+  /* 打开 Dialog 修改 goal */
+}
 </script>
 
 <style scoped lang="scss">
@@ -353,8 +406,14 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
   .stat-card {
     border: 1px solid var(--el-border-color-lighter);
     border-radius: var(--card-radius);
-    background: linear-gradient(160deg, var(--el-bg-color) 0%, var(--el-fill-color-extra-light) 100%);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    background: linear-gradient(
+      160deg,
+      var(--el-bg-color) 0%,
+      var(--el-fill-color-extra-light) 100%
+    );
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
 
     &:hover {
       transform: translateY(-3px);
@@ -397,7 +456,9 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--card-radius);
   box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -640,7 +701,12 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
 
 // 6. 每日灵感
 .daily-quote {
-  background: linear-gradient(140deg, var(--el-color-primary-light-9) 0%, var(--el-bg-color) 58%, var(--el-color-info-light-9) 100%);
+  background: linear-gradient(
+    140deg,
+    var(--el-color-primary-light-9) 0%,
+    var(--el-bg-color) 58%,
+    var(--el-color-info-light-9) 100%
+  );
 
   .quote-content {
     position: relative;
@@ -693,6 +759,5 @@ const editGoal = () => { /* 打开 Dialog 修改 goal */ }
   .writer-dashboard {
     padding: 14px;
   }
-
 }
 </style>

@@ -51,6 +51,13 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 // 默认故事
+interface CheckboxArgs {
+  modelValue?: boolean
+  label?: string
+  size?: 'sm' | 'md' | 'lg'
+  color?: 'primary' | 'success' | 'warning' | 'danger'
+}
+
 export const Default: Story = {
   args: {
     modelValue: false,
@@ -58,7 +65,7 @@ export const Default: Story = {
     size: 'md',
     color: 'primary',
   },
-  render: (args) => ({
+  render: (args: CheckboxArgs) => ({
     components: { Checkbox },
     setup() {
       const checked = ref(args.modelValue ?? false)
@@ -260,14 +267,14 @@ export const SelectAll: Story = {
     setup() {
       const options = ['apple', 'banana', 'orange', 'grape']
       const selected = ref<string[]>([])
-      
-      const allSelected = computed(() => 
-        selected.value.length === options.length && options.length > 0
+
+      const allSelected = computed(
+        () => selected.value.length === options.length && options.length > 0,
       )
-      const indeterminate = computed(() =>
-        selected.value.length > 0 && selected.value.length < options.length
+      const indeterminate = computed(
+        () => selected.value.length > 0 && selected.value.length < options.length,
       )
-      
+
       const toggleAll = () => {
         if (allSelected.value) {
           selected.value = []
@@ -275,7 +282,7 @@ export const SelectAll: Story = {
           selected.value = [...options]
         }
       }
-      
+
       return { options, selected, allSelected, indeterminate, toggleAll }
     },
     template: `
@@ -311,7 +318,7 @@ export const Interactive: Story = {
         autoSave: true,
         analytics: false,
       })
-      
+
       return { preferences }
     },
     template: `

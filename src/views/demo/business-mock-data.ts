@@ -9,7 +9,6 @@
 import {
   getBookCoverUrl,
   getUserAvatarUrl,
-  getBannerUrl,
   BOOK_COVERS,
   USER_AVATARS,
   BANNER_IMAGES,
@@ -506,6 +505,455 @@ export const userWallet = {
   totalExpense: 85000, // 850元
 }
 
+// ==================== 管理员模块数据 ====================
+
+/**
+ * 管理员用户列表
+ */
+export const adminUsers = [
+  {
+    id: 'user-admin-1',
+    username: 'testadmin001',
+    nickname: '超级管理员',
+    email: 'admin@qingyu.com',
+    avatar: getUserAvatarUrl('admin1'),
+    role: 'admin',
+    status: 'active',
+    createdAt: '2023-01-01T00:00:00Z',
+    lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'user-001',
+    username: 'testuser001',
+    nickname: '普通读者',
+    email: 'reader@qingyu.com',
+    avatar: getUserAvatarUrl('user1'),
+    role: 'reader',
+    status: 'active',
+    createdAt: '2023-06-15T10:00:00Z',
+    lastLoginAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'user-002',
+    username: 'testauthor001',
+    nickname: '签约作者',
+    email: 'author@qingyu.com',
+    avatar: getUserAvatarUrl('author1'),
+    role: 'author',
+    status: 'active',
+    createdAt: '2023-03-20T08:00:00Z',
+    lastLoginAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'user-003',
+    username: 'banned_user',
+    nickname: '被封禁用户',
+    email: 'banned@qingyu.com',
+    avatar: getUserAvatarUrl('banned'),
+    role: 'reader',
+    status: 'banned',
+    createdAt: '2023-04-10T12:00:00Z',
+    lastLoginAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+/**
+ * 审核任务列表
+ */
+export const auditTasks = [
+  {
+    id: 'audit-1',
+    type: 'book',
+    targetId: 'book-new-1',
+    targetTitle: '新书发布申请',
+    submitter: 'testauthor001',
+    submitterId: 'user-002',
+    status: 'pending',
+    submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    content: '申请发布新书《玄幻世界》',
+  },
+  {
+    id: 'audit-2',
+    type: 'chapter',
+    targetId: 'chapter-new-1',
+    targetTitle: '章节审核',
+    submitter: 'testauthor002',
+    submitterId: 'user-005',
+    status: 'pending',
+    submittedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    content: '申请发布第50章',
+  },
+  {
+    id: 'audit-3',
+    type: 'withdraw',
+    targetId: 'withdraw-1',
+    targetTitle: '提现申请',
+    submitter: 'author_pro',
+    submitterId: 'user-006',
+    status: 'approved',
+    submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    reviewedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    reviewer: 'testadmin001',
+    content: '提现金额：500元',
+  },
+]
+
+/**
+ * 系统配置
+ */
+export const systemConfig = {
+  siteName: '青羽文学',
+  siteDescription: '发现最好的故事',
+  maintenance: false,
+  registrationEnabled: true,
+  emailVerificationRequired: true,
+  maxUploadSize: 10485760,
+  allowedFileTypes: ['jpg', 'png', 'gif', 'doc', 'docx', 'txt'],
+  defaultUserRole: 'reader',
+  vipPrice: 30,
+  chapterPrice: 5,
+}
+
+// ==================== 财务模块数据 ====================
+
+/**
+ * 钱包详情
+ */
+export const walletDetail = {
+  userId: 'user-current',
+  balance: 18250,
+  frozenBalance: 500,
+  totalIncome: 150000,
+  totalExpense: 85000,
+  availableBalance: 17750,
+  currency: 'CNY',
+}
+
+/**
+ * 提现记录
+ */
+export const withdrawRecords = [
+  {
+    id: 'withdraw-1',
+    userId: 'user-current',
+    amount: 50000,
+    status: 'completed',
+    bankName: '工商银行',
+    bankAccount: '****1234',
+    appliedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'withdraw-2',
+    userId: 'user-current',
+    amount: 30000,
+    status: 'pending',
+    bankName: '建设银行',
+    bankAccount: '****5678',
+    appliedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    completedAt: null,
+  },
+  {
+    id: 'withdraw-3',
+    userId: 'user-current',
+    amount: 20000,
+    status: 'rejected',
+    bankName: '招商银行',
+    bankAccount: '****9012',
+    appliedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    completedAt: null,
+    rejectReason: '账户信息有误',
+  },
+]
+
+/**
+ * 收入统计
+ */
+export const incomeStats = {
+  today: 1500,
+  yesterday: 2300,
+  thisWeek: 12500,
+  thisMonth: 45000,
+  lastMonth: 38000,
+  total: 150000,
+  chartData: Array.from({ length: 30 }, (_, i) => ({
+    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    income: Math.floor(Math.random() * 3000) + 500,
+  })),
+}
+
+/**
+ * 交易记录
+ */
+export const transactionRecords = [
+  {
+    id: 'txn-1',
+    type: 'income',
+    category: 'subscription',
+    amount: 3000,
+    description: 'VIP订阅收入',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'txn-2',
+    type: 'income',
+    category: 'chapter',
+    amount: 1500,
+    description: '章节付费收入',
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'txn-3',
+    type: 'expense',
+    category: 'withdraw',
+    amount: 50000,
+    description: '提现到工商银行',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'txn-4',
+    type: 'expense',
+    category: 'purchase',
+    amount: 500,
+    description: '购买章节：第五章',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+// ==================== 社交模块数据 ====================
+
+/**
+ * 关注列表
+ */
+export const followingList = [
+  {
+    id: 'follow-1',
+    userId: 'user-current',
+    targetId: 'user-002',
+    target: {
+      id: 'user-002',
+      username: 'testauthor001',
+      nickname: '签约作者',
+      avatar: getUserAvatarUrl('author1'),
+      bio: '专注玄幻小说创作',
+      followerCount: 1250,
+      isFollowing: true,
+    },
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'follow-2',
+    userId: 'user-current',
+    targetId: 'user-003',
+    target: {
+      id: 'user-003',
+      username: 'alice_wonder',
+      nickname: '爱丽丝',
+      avatar: getUserAvatarUrl('alice'),
+      bio: '热爱阅读的文艺青年',
+      followerCount: 856,
+      isFollowing: true,
+    },
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+/**
+ * 粉丝列表
+ */
+export const followersList = [
+  {
+    id: 'follower-1',
+    userId: 'user-101',
+    targetId: 'user-current',
+    follower: {
+      id: 'user-101',
+      username: 'fan_001',
+      nickname: '忠实粉丝',
+      avatar: getUserAvatarUrl('fan1'),
+      bio: '你的忠实读者',
+      followerCount: 120,
+      isFollowing: false,
+    },
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'follower-2',
+    userId: 'user-102',
+    targetId: 'user-current',
+    follower: {
+      id: 'user-102',
+      username: 'reader_2024',
+      nickname: '书虫',
+      avatar: getUserAvatarUrl('reader1'),
+      bio: '每天读一点',
+      followerCount: 45,
+      isFollowing: true,
+    },
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+/**
+ * 私信列表
+ */
+export const messagesList = [
+  {
+    id: 'msg-1',
+    fromUserId: 'user-002',
+    toUserId: 'user-current',
+    fromUser: {
+      id: 'user-002',
+      username: 'testauthor001',
+      nickname: '签约作者',
+      avatar: getUserAvatarUrl('author1'),
+    },
+    content: '感谢您的支持！新章节正在努力创作中~',
+    isRead: false,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'msg-2',
+    fromUserId: 'user-101',
+    toUserId: 'user-current',
+    fromUser: {
+      id: 'user-101',
+      username: 'fan_001',
+      nickname: '忠实粉丝',
+      avatar: getUserAvatarUrl('fan1'),
+    },
+    content: '期待您的下一部作品！',
+    isRead: true,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+/**
+ * 私信会话
+ */
+export const conversations = [
+  {
+    id: 'conv-1',
+    targetUser: {
+      id: 'user-002',
+      username: 'testauthor001',
+      nickname: '签约作者',
+      avatar: getUserAvatarUrl('author1'),
+    },
+    lastMessage: '感谢您的支持！新章节正在努力创作中~',
+    unreadCount: 1,
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'conv-2',
+    targetUser: {
+      id: 'user-101',
+      username: 'fan_001',
+      nickname: '忠实粉丝',
+      avatar: getUserAvatarUrl('fan1'),
+    },
+    lastMessage: '期待您的下一部作品！',
+    unreadCount: 0,
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+/**
+ * 通知列表
+ */
+export const notificationsList = [
+  {
+    id: 'notif-1',
+    type: 'system',
+    title: '系统维护通知',
+    content: '系统将于今晚23:00-次日02:00进行维护升级',
+    isRead: false,
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-2',
+    type: 'social',
+    title: '新增粉丝',
+    content: '用户"忠实粉丝"关注了你',
+    isRead: false,
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-3',
+    type: 'book',
+    title: '书籍更新',
+    content: '您关注的《星河骑士》更新了第157章',
+    isRead: true,
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-4',
+    type: 'income',
+    title: '收入到账',
+    content: '您的作品收入+30.00元已到账',
+    isRead: true,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
+// ==================== 发现模块数据 ====================
+
+/**
+ * 发现页推荐
+ */
+export const discoveryContent = {
+  featured: recommendedBooks.slice(0, 3),
+  categories: [
+    { id: 'cat-1', name: '玄幻', count: 12560, icon: '🌟' },
+    { id: 'cat-2', name: '言情', count: 8950, icon: '💕' },
+    { id: 'cat-3', name: '都市', count: 6780, icon: '🏙️' },
+    { id: 'cat-4', name: '科幻', count: 4520, icon: '🚀' },
+    { id: 'cat-5', name: '武侠', count: 3890, icon: '⚔️' },
+    { id: 'cat-6', name: '悬疑', count: 2340, icon: '🔍' },
+  ],
+  topics: [
+    { id: 'topic-1', title: '本周热门', books: recommendedBooks },
+    { id: 'topic-2', title: '新人推荐', books: rankings.newbie },
+    {
+      id: 'topic-3',
+      title: '完本精选',
+      books: recommendedBooks.filter((b) => b.status === 'completed'),
+    },
+  ],
+}
+
+// ==================== 阅读统计模块数据 ====================
+
+/**
+ * 阅读统计
+ */
+export const readingStats = {
+  totalReadingTime: 45600, // 分钟
+  totalWords: 12500000,
+  totalBooks: 89,
+  totalChapters: 2340,
+  dailyStats: Array.from({ length: 30 }, (_, i) => ({
+    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    readingTime: Math.floor(Math.random() * 180) + 30,
+    chapters: Math.floor(Math.random() * 10) + 1,
+    words: Math.floor(Math.random() * 50000) + 5000,
+  })),
+  weeklyStats: {
+    monday: 120,
+    tuesday: 95,
+    wednesday: 150,
+    thursday: 80,
+    friday: 110,
+    saturday: 200,
+    sunday: 180,
+  },
+  preferences: {
+    favoriteCategories: ['玄幻', '科幻', '都市'],
+    readingPeakHours: [21, 22, 23],
+    averageSessionDuration: 45,
+  },
+}
+
 // ==================== 导出 ====================
 
 export default {
@@ -526,4 +974,28 @@ export default {
   userProfile,
   userBookshelf,
   userWallet,
+
+  // 管理员模块
+  adminUsers,
+  auditTasks,
+  systemConfig,
+
+  // 财务模块
+  walletDetail,
+  withdrawRecords,
+  incomeStats,
+  transactionRecords,
+
+  // 社交模块
+  followingList,
+  followersList,
+  messagesList,
+  conversations,
+  notificationsList,
+
+  // 发现模块
+  discoveryContent,
+
+  // 阅读统计模块
+  readingStats,
 }

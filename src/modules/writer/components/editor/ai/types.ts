@@ -1,0 +1,107 @@
+/**
+ * AI Panel 子组件共享类型定义
+ * @module writer/components/editor/ai/types
+ */
+
+/**
+ * 对话元数据
+ */
+export interface ConversationMeta {
+  id: string
+  title: string
+  updatedAt: number
+}
+
+/**
+ * 选中提示状态
+ */
+export type SelectionNoticeStatus = 'pending' | 'running' | 'done' | 'error'
+
+/**
+ * 选中提示信息
+ */
+export interface SelectionNotice {
+  action: string
+  actionLabel: string
+  text: string
+  instructions?: string
+  status: SelectionNoticeStatus
+  statusText: string
+}
+
+/**
+ * 聊天上下文片段
+ */
+export interface ChatContextSnippet {
+  text: string
+  instructions?: string
+  addedAt: number
+}
+
+/**
+ * 聊天消息
+ */
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: number
+  typing?: boolean
+}
+
+/**
+ * 快捷操作
+ */
+export interface QuickAction {
+  id: string
+  icon: string
+  label: string
+  prompt: string
+}
+
+/**
+ * AI 触发动作
+ */
+export interface ActionTrigger {
+  id: number
+  action: string
+  text: string
+  instructions?: string
+}
+
+/**
+ * AI 输入区域 Props
+ */
+export interface AIInputAreaProps {
+  modelValue: string
+  context?: ChatContextSnippet | null
+  disabled?: boolean
+  placeholder?: string
+  hint?: string
+}
+
+/**
+ * AI 消息列表 Props
+ */
+export interface AIChatMessagesProps {
+  messages: ChatMessage[]
+  typingText?: string
+  isTyping?: boolean
+}
+
+/**
+ * AI 对话工具栏 Props
+ */
+export interface AIConversationToolbarProps {
+  conversationList: ConversationMeta[]
+  currentId: string
+  disabled?: boolean
+}
+
+/**
+ * AI 快捷操作 Props
+ */
+export interface AIQuickActionsProps {
+  actions: QuickAction[]
+  disabled?: boolean
+}

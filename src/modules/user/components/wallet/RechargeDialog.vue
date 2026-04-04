@@ -52,13 +52,7 @@
         </QyRadioGroup>
       </QyFormItem>
 
-      <QyAlert
-        title="充值说明"
-        type="info"
-        :closable="false"
-        show-icon
-        style="margin-bottom: 16px"
-      >
+      <QyAlert title="充值说明" type="info" :closable="false" show-icon style="margin-bottom: 16px">
         <template #default>
           <ul style="margin: 0; padding-left: 20px">
             <li>单笔充值金额：1-10000元</li>
@@ -71,9 +65,7 @@
 
     <template #footer>
       <QyButton @click="handleClose">取消</QyButton>
-      <QyButton variant="primary" :loading="loading" @click="handleSubmit">
-        确认充值
-      </QyButton>
+      <QyButton variant="primary" :loading="loading" @click="handleSubmit"> 确认充值 </QyButton>
     </template>
   </QyModal>
 
@@ -95,7 +87,17 @@ import type { FormInstance } from 'element-plus'
 import type { FormRules } from '@/design-system/form/Form/types'
 import type { RechargeParams } from '@/types/shared'
 import { yuanToCents } from '@/utils/currency'
-import { QyConfirmDialog, QyModal, QyForm, QyFormItem, QyTag, QyRadioGroup, QyRadio, QyAlert, QyButton } from '@/design-system/components'
+import {
+  QyConfirmDialog,
+  QyModal,
+  QyForm,
+  QyFormItem,
+  QyTag,
+  QyRadioGroup,
+  QyRadio,
+  QyAlert,
+  QyButton,
+} from '@/design-system/components'
 import type { ConfirmDetail } from '@/design-system/components'
 
 interface Props {
@@ -108,11 +110,10 @@ interface Emits {
   (_e: 'confirm', data: RechargeParams): void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<Emits>()
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 const dialogVisible = ref(false)
@@ -125,7 +126,7 @@ const quickAmounts = [10, 50, 100, 200, 500, 1000]
 // 表单数据（用户输入，单位：元）
 const form = ref<RechargeParams>({
   amount: 100,
-  method: 'alipay'
+  method: 'alipay',
 })
 
 // 表单验证规则
@@ -140,10 +141,10 @@ const rules: FormRules = {
       validator: (_rule, value) => {
         if (typeof value !== 'number') return false
         return value >= 1 && value <= 10000
-      }
-    }
+      },
+    },
   ],
-  method: [{ required: true, message: '请选择支付方式', trigger: 'change' }]
+  method: [{ required: true, message: '请选择支付方式', trigger: 'change' }],
 }
 
 // 监听 modelValue 变化
@@ -152,7 +153,7 @@ watch(
   (val) => {
     dialogVisible.value = val
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 选择快速金额
@@ -164,19 +165,19 @@ const selectAmount = (amount: number) => {
 const paymentMethodMap: Record<string, string> = {
   alipay: '支付宝',
   wechat: '微信支付',
-  bank: '银行卡'
+  bank: '银行卡',
 }
 
 // 确认详情
 const confirmDetails = computed<ConfirmDetail[]>(() => [
   {
     label: '充值金额',
-    value: `¥${form.value.amount.toFixed(2)}`
+    value: `¥${form.value.amount.toFixed(2)}`,
   },
   {
     label: '支付方式',
-    value: paymentMethodMap[form.value.method] || form.value.method
-  }
+    value: paymentMethodMap[form.value.method] || form.value.method,
+  },
 ])
 
 // 提交充值（显示二次确认）
@@ -195,7 +196,7 @@ const handleConfirm = () => {
   // 将元转换为分后再提交
   const data: RechargeParams = {
     amount: yuanToCents(form.value.amount),
-    method: form.value.method
+    method: form.value.method,
   }
   emit('confirm', data)
   confirmDialogVisible.value = false
@@ -233,4 +234,3 @@ const handleClose = () => {
   height: auto;
 }
 </style>
-

@@ -4,7 +4,7 @@
 
 export type RankingType = 'realtime' | 'weekly' | 'monthly' | 'newbie'
 
-export type BookStatus = 'serializing' | 'completed' | 'paused'
+export type BookStatus = 'ongoing' | 'completed' | 'paused'
 
 /**
  * Book Brief Information
@@ -17,6 +17,7 @@ export interface BookBrief {
   cover?: string
   category?: string
   categoryId?: string
+  categoryIds?: string[]
   description?: string
   tags?: string[]
   wordCount?: number
@@ -25,7 +26,8 @@ export interface BookBrief {
   rating?: number
   viewCount?: number
   favoriteCount?: number
-  updateTime?: number
+  updateTime?: number | string
+  updatedAt?: number | string
   latestChapter?: string
 }
 
@@ -35,8 +37,10 @@ export interface BookBrief {
 export interface Book extends BookBrief {
   introduction?: string
   authorIntro?: string
-  publishTime?: number
-  lastUpdateTime?: number
+  publishTime?: number | string
+  publishedAt?: number | string
+  lastUpdateTime?: number | string
+  updatedAt?: number | string
   isPaid?: boolean
   price?: number
   chapters?: Chapter[]
@@ -54,7 +58,8 @@ export interface Chapter {
   wordCount?: number
   isPaid?: boolean
   price?: number
-  publishTime?: number
+  publishTime?: number | string
+  publishedAt?: number | string
   isLocked?: boolean
 }
 
@@ -155,4 +160,3 @@ export interface HomepageData {
   newReleases?: BookBrief[]
   popularTags?: string[]
 }
-

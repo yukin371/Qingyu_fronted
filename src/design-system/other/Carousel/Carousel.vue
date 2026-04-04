@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 /**
  * Carousel 组件
@@ -8,7 +9,6 @@
 import { computed, provide, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import CarouselItem from './CarouselItem.vue'
 import type { CarouselProps, CarouselEmits } from './types'
 import { carouselDefaults } from './types'
 
@@ -36,9 +36,6 @@ const activeIndex = ref(props.initialIndex)
 
 // 子项名称列表
 const itemNames = ref<(string | number)[]>([])
-
-// 轮播容器引用
-const containerRef = ref<HTMLElement>()
 
 // 自动播放定时器
 let autoplayTimer: ReturnType<typeof setTimeout> | null = null
@@ -224,7 +221,7 @@ const containerClasses = computed(() => {
     classes.push('flex-row')
   }
 
-  return cn(classes, props.class)
+  return cn(classes)
 })
 
 // 计算指示器容器类名

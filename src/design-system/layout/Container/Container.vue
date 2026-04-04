@@ -8,7 +8,7 @@
 
 import { computed } from 'vue'
 import { cn } from '../../utils/cn'
-import type { ContainerProps } from './types'
+import type { ContainerProps, ContainerSize } from './types'
 
 // 组件 Props
 const props = withDefaults(defineProps<ContainerProps>(), {

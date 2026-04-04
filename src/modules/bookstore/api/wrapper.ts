@@ -8,19 +8,12 @@
  */
 
 import { getApi } from './generated/bookstore'
-import type { APIResponse, PaginatedResponse } from '@/types/api'
+import type { APIResponse } from '@/types/api'
 import type {
-  Banner,
-  BookBrief,
   BookDetail,
-  BookStatistics,
   Category,
-  Chapter,
-  HomepageData,
-  RankingItem,
-  SearchFilter,
-  SearchResult,
 } from '@/modules/bookstore/types'
+import { normalizeBookDetail, normalizeBookList } from '../utils/contract-normalizer'
 
 // 获取生成的API对象
 const api = getApi()
@@ -45,14 +38,75 @@ export const incrementBannerClick = api.postApiV1BookstoreBannersIdClick
 /**
  * 获取书籍列表
  */
-export const getBookList = api.getApiV1BookstoreBooks
+export async function getBookList(params?: any) {
+  const response = await api.getApiV1BookstoreBooks(params)
+
+  if (Array.isArray(response)) {
+    return normalizeBookList(response)
+  }
+
+  if (response && typeof response === 'object') {
+    const payload = response as any
+    if (Array.isArray(payload.data)) {
+      return { ...payload, data: normalizeBookList(payload.data) }
+    }
+    if (payload.data?.books && Array.isArray(payload.data.books)) {
+      return {
+        ...payload,
+        data: {
+          ...payload.data,
+          books: normalizeBookList(payload.data.books)
+        }
+      }
+    }
+  }
+
+  return response
+}
 
 /**
  * 获取书籍详情
  * 兼容旧API: getBookDetail(id)
  */
 export async function getBookDetail(id: string): Promise<APIResponse<BookDetail>> {
-  return api.getApiV1BookstoreBooksIdDetail(id) as any
+  try {
+    const response = await (api.getApiV1BookstoreBooksIdDetail(id) as any)
+
+    // 使用 normalizeBookDetail 处理数据
+    if (response?.data) {
+      return {
+        ...response,
+        data: normalizeBookDetail(response.data) ?? response.data
+      }
+    }
+
+    return response
+  } catch (error: any) {
+    const status = error?.response?.status
+    if (status === 404 || status === 400) {
+      const direct = await (api.getApiV1BookstoreBooksId(id) as any)
+      if (direct?.data) {
+        return {
+          ...direct,
+          data: normalizeBookDetail(direct.data) ?? direct.data
+        }
+      }
+
+      // 兼容部分后端实例详情接口不可用：从列表分页回捞指定ID
+      const pageSize = 100
+      for (let page = 1; page <= 20; page++) {
+        const listResp = await (api.getApiV1BookstoreBooks({ page, size: pageSize }) as any)
+        const list = Array.isArray(listResp?.data) ? listResp.data : []
+        const found = list.find((item: any) => String(item?.id) === String(id))
+        if (found) {
+          return { ...(direct || {}), code: 0, data: normalizeBookDetail(found) ?? found } as any
+        }
+        const hasNext = Boolean(listResp?.pagination?.has_next ?? listResp?.pagination?.hasNext)
+        if (!hasNext) break
+      }
+    }
+    throw error
+  }
 }
 
 /**
@@ -73,7 +127,15 @@ export const deleteBook = api.deleteApiV1BookstoreBooksId
 /**
  * 搜索书籍
  */
-export const searchBooks = api.getApiV1BookstoreBooksSearch
+export async function searchBooks(params?: any) {
+  const response = await api.getApiV1BookstoreBooksSearch(params as any)
+
+  if (response?.data && Array.isArray(response.data)) {
+    return { ...response, data: normalizeBookList(response.data) }
+  }
+
+  return response
+}
 
 /**
  * 按书名搜索
@@ -100,7 +162,8 @@ export const getBooksByTags = api.getApiV1BookstoreBooksTags
  * 适配器函数：将独立参数转换为对象参数以匹配Orval生成的API
  */
 export async function getRecommendedBooks(page: number = 1, size: number = 20) {
-  return api.getApiV1BookstoreBooksRecommended({ page, size })
+  const response = await api.getApiV1BookstoreBooksRecommended({ page, size })
+  return normalizeBookList(response as any)
 }
 
 /**
@@ -108,7 +171,8 @@ export async function getRecommendedBooks(page: number = 1, size: number = 20) {
  * 适配器函数：将独立参数转换为对象参数以匹配Orval生成的API
  */
 export async function getFeaturedBooks(page: number = 1, size: number = 20) {
-  return api.getApiV1BookstoreBooksFeatured({ page, size })
+  const response = await api.getApiV1BookstoreBooksFeatured({ page, size })
+  return normalizeBookList(response as any)
 }
 
 /**
@@ -233,7 +297,36 @@ export const getBookVipChapters = api.getApiV1BookstoreBooksIdVipChapters
 /**
  * 按分类获取书籍
  */
-export const getBooksByCategory = api.getApiV1BookstoreBooksCategory
+export async function getBooksByCategory(categoryIdOrParams: string | Record<string, any>, params?: any) {
+  const requestParams =
+    typeof categoryIdOrParams === 'string'
+      ? { categoryId: categoryIdOrParams, ...(params || {}) }
+      : { ...(categoryIdOrParams || {}) }
+
+  const response = await api.getApiV1BookstoreBooksCategory(requestParams as any)
+
+  if (Array.isArray(response)) {
+    return normalizeBookList(response)
+  }
+
+  if (response && typeof response === 'object') {
+    const payload = response as any
+    if (payload.data?.books && Array.isArray(payload.data.books)) {
+      return {
+        ...payload,
+        data: {
+          ...payload.data,
+          books: normalizeBookList(payload.data.books)
+        }
+      }
+    }
+    if (Array.isArray(payload.data)) {
+      return { ...payload, data: normalizeBookList(payload.data) }
+    }
+  }
+
+  return response
+}
 
 // ==================== Categories 相关 API ====================
 
@@ -321,7 +414,23 @@ export const getChapterAccess = api.getApiV1BookstoreChaptersIdAccess
 /**
  * 获取首页数据
  */
-export const getHomepage = api.getApiV1BookstoreHomepage
+export async function getHomepage() {
+  const response = await api.getApiV1BookstoreHomepage()
+
+  if (response && typeof response === 'object') {
+    const payload = response as any
+    return {
+      ...payload,
+      recommendedBooks: normalizeBookList(payload.recommendedBooks),
+      featuredBooks: normalizeBookList(payload.featuredBooks),
+      newBooks: normalizeBookList(payload.newBooks),
+      hotBooks: normalizeBookList(payload.hotBooks),
+      completedBooks: normalizeBookList(payload.completedBooks),
+    }
+  }
+
+  return response
+}
 
 // ==================== Rankings 相关 API ====================
 
@@ -391,3 +500,71 @@ export const getUserBookRating = api.getApiV1BookstoreRatingsUserId
  * 可以传入自定义axios实例
  */
 export { getApi }
+
+/**
+ * 导出 bookstoreAPI 对象（兼容 index.ts 导出）
+ */
+export const bookstoreAPI = {
+  getBanners,
+  incrementBannerClick,
+  getBookList,
+  getBookDetail,
+  createBook,
+  updateBook,
+  deleteBook,
+  searchBooks,
+  searchByTitle,
+  searchByAuthor,
+  getBooksByStatus,
+  getBooksByTags,
+  getRecommendedBooks,
+  getFeaturedBooks,
+  getPopularBooks,
+  getLatestBooks,
+  getSimilarBooks,
+  incrementBookView,
+  getBookStatistics,
+  likeBook,
+  unlikeBook,
+  getBookRatingDistribution,
+  getBookReviews,
+  rateBook,
+  updateBookRating,
+  deleteBookRating,
+  getBookAverageRating,
+  getBookChapters,
+  getBookFirstChapter,
+  getBookLastChapter,
+  getBookFreeChapters,
+  getBookPaidChapters,
+  getBookPublishedChapters,
+  getBookChapterStatistics,
+  getBookTrialChapters,
+  getBookVipChapters,
+  getBooksByCategory,
+  getAllCategories,
+  getCategories,
+  getCategoryTree,
+  getCategoryDetail,
+  getBooksByCategoryWithPagination,
+  getChapterDetail,
+  getChapterContent,
+  getNextChapter,
+  getPreviousChapter,
+  getChapterPrice,
+  searchChapters,
+  createChapter,
+  updateChapter,
+  deleteChapter,
+  getChapterAccess,
+  getHomepage,
+  getRealtimeRanking,
+  getWeeklyRanking,
+  getMonthlyRanking,
+  getNewbieRanking,
+  getRankingByType,
+  getBookChapterByNumber,
+  getBookChapterById,
+  getUserBookRating,
+  getApi,
+}

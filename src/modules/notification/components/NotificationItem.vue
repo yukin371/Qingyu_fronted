@@ -46,7 +46,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Bell, ChatDotRound, Star, User, Wallet, Trophy, Reading, Promotion } from '@element-plus/icons-vue'
-import { QyIcon, QyButton } from '@/design-system/components'
+import { QyButton } from '@/design-system/components'
 import type { NotificationMessage, NotificationType } from '@/types/notification'
 import { useNotificationStore } from '@/stores/notification'
 

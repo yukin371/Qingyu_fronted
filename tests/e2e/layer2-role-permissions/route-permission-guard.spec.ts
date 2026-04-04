@@ -25,7 +25,7 @@ import { ActorFactory, ActorRole } from '../../helpers'
  * 测试配置
  */
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080'
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:9090'
 
 /**
  * 测试辅助函数：通过后端API创建指定角色的用户

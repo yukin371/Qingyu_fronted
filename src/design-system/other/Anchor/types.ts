@@ -165,11 +165,11 @@ export interface AnchorLinkProps {
 }
 
 // Anchor 组件默认属性
-export const anchorDefaults: Partial<AnchorProps> = {
+export const anchorDefaults = {
   container: 'body',
   offset: 0,
   bounds: 5,
-  direction: 'vertical',
+  direction: 'vertical' as const,
   marker: true,
   showLine: true,
   affix: false,

@@ -12,8 +12,7 @@ import type {
   RankingItem,
   Category,
   HomepageData,
-  SearchFilter,
-  SearchParams
+  SearchFilter
 } from '../types/bookstore.types'
 
 export interface BookstoreState {

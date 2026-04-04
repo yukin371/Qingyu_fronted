@@ -29,6 +29,22 @@ const bookstoreRoutes: RouteRecordRaw[] = [
       {
         path: 'books/:id',
         name: 'book-detail',
+        beforeEnter: (to) => {
+          const routeTestFlag = to.query?.test
+          const isTestMode =
+            routeTestFlag === 'true' ||
+            String(routeTestFlag) === 'true' ||
+            (Array.isArray(routeTestFlag) && routeTestFlag.some((v) => String(v) === 'true'))
+          const isYunlanProject = String(to.params.id || '') === 'project-yljs-1'
+          if (isTestMode && isYunlanProject) {
+            return {
+              path: '/bookstore/books-demo',
+              query: to.query,
+              replace: true
+            }
+          }
+          return true
+        },
         component: () => import('./views/BookDetailView.vue'),
         meta: { title: '书籍详情' },
         props: true
@@ -74,4 +90,3 @@ const bookstoreRoutes: RouteRecordRaw[] = [
 ]
 
 export default bookstoreRoutes
-

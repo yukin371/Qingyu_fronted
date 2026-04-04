@@ -13,8 +13,7 @@ import {
   getErrorMessage,
   zhCNMessages,
   enUSMessages,
-  getErrorHandlingAdvice,
-  type ErrorMessage
+  getErrorHandlingAdvice
 } from '../errorCode'
 
 describe('Error Code Mapping Module', () => {

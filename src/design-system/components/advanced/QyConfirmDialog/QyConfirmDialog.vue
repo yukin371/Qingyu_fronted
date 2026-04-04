@@ -12,7 +12,7 @@
         <QyIcon
           v-if="showIcon"
           :name="iconName"
-          :class="['qy-confirm-dialog__icon', `qy-confirm-dialog__icon--${type}`]"
+          :class="`qy-confirm-dialog__icon qy-confirm-dialog__icon--${type}`"
         />
         <h3 class="qy-confirm-dialog__title">{{ title }}</h3>
       </div>
@@ -56,7 +56,7 @@
 import { computed } from 'vue'
 import QyModal from '../QyModal/QyModal.vue'
 import QyIcon from '../../basic/QyIcon/QyIcon.vue'
-import type { QyConfirmDialogProps, QyConfirmDialogEmits, ConfirmDetail } from './types'
+import type { QyConfirmDialogProps, QyConfirmDialogEmits } from './types'
 
 // Props
 const props = withDefaults(defineProps<QyConfirmDialogProps>(), {

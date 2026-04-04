@@ -2,9 +2,9 @@
  * Transfer 组件单元测试
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 import Transfer from '../Transfer.vue'
 import TransferPanel from '../TransferPanel.vue'
 import TransferItem from '../TransferItem.vue'

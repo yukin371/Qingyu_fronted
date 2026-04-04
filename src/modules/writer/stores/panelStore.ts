@@ -85,6 +85,16 @@ export const usePanelStore = defineStore('panel', () => {
     saveState()
   }
 
+  const setLeftCollapsed = (collapsed: boolean) => {
+    leftCollapsed.value = collapsed
+    saveState()
+  }
+
+  const setRightCollapsed = (collapsed: boolean) => {
+    rightCollapsed.value = collapsed
+    saveState()
+  }
+
   const resetToDefaults = () => {
     leftWidth.value = 280
     rightWidth.value = 320
@@ -102,6 +112,8 @@ export const usePanelStore = defineStore('panel', () => {
     setRightWidth,
     toggleLeftCollapsed,
     toggleRightCollapsed,
+    setLeftCollapsed,
+    setRightCollapsed,
     resetToDefaults
   }
 })

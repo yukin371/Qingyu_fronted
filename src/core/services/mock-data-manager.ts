@@ -51,7 +51,160 @@ interface PublishedChapter {
 interface MockState {
   pendingReviews: PendingReviewItem[]
   bookChapters: Map<string, PublishedChapter[]>
+  writerCharacters: Map<string, Array<Record<string, any>>>
+  writerCharacterRelations: Map<string, Array<Record<string, any>>>
+  writerLocations: Map<string, Array<Record<string, any>>>
   reviewCounter: number
+}
+
+function createSeedWriterCharacters(projectId: string) {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: `${projectId}-char-linyi`,
+      projectId,
+      name: '林逸',
+      alias: ['小逸'],
+      summary: '云岚宗外门出身的主角，正处于破境前夜。',
+      traits: ['克制', '坚韧'],
+      background: '自幼在云岚宗长大，对宗门与秘境都怀有强烈执念。',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: `${projectId}-char-suwan`,
+      projectId,
+      name: '苏晚晴',
+      alias: ['晚晴'],
+      summary: '负责接引新弟子的内门师姐，与主角早期互动密集。',
+      traits: ['冷静', '谨慎'],
+      background: '内门重点培养弟子，熟悉宗门规矩与山门布局。',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: `${projectId}-char-guchangfeng`,
+      projectId,
+      name: '顾长风',
+      alias: ['顾师兄'],
+      summary: '内门锋芒最盛的年轻弟子之一，是主角的重要竞争对手。',
+      traits: ['强势', '骄傲'],
+      background: '出身世家，在宗门里拥有稳固的人脉与资源。',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
+}
+
+function createSeedWriterCharacterRelations(projectId: string) {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: `${projectId}-rel-1`,
+      projectId,
+      fromId: `${projectId}-char-linyi`,
+      toId: `${projectId}-char-suwan`,
+      type: '盟友',
+      strength: 78,
+      notes: '苏晚晴在入门阶段多次给予林逸指点。',
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: `${projectId}-rel-2`,
+      projectId,
+      fromId: `${projectId}-char-linyi`,
+      toId: `${projectId}-char-guchangfeng`,
+      type: '敌人',
+      strength: 66,
+      notes: '两人在资源争夺与晋升考核中逐步对立。',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
+}
+
+function createSeedWriterLocations(projectId: string) {
+  return [
+    {
+      id: `${projectId}-loc-sect`,
+      projectId,
+      name: '云岚宗',
+      description: '主角最早修行的宗门，也是早期关系展开的核心空间。',
+      climate: '山地云雾',
+      culture: '宗门修行',
+      geography: '群峰环绕',
+      atmosphere: '清峻肃穆',
+      parentId: '',
+      imageUrl: '',
+      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `${projectId}-loc-peak`,
+      projectId,
+      name: '云岚峰',
+      description: '宗门主峰，重要对话和突破节点多发生于此。',
+      climate: '高山寒雾',
+      culture: '核心传承',
+      geography: '主峰绝壁',
+      atmosphere: '肃静庄严',
+      parentId: `${projectId}-loc-sect`,
+      imageUrl: '',
+      createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: `${projectId}-loc-market`,
+      projectId,
+      name: '青云坊市',
+      description: '弟子往来频繁的交易坊市，可作为宗门外部事件节点。',
+      climate: '平原温润',
+      culture: '商贸往来',
+      geography: '山门外围',
+      atmosphere: '热闹喧杂',
+      parentId: '',
+      imageUrl: '',
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ]
+}
+
+function ensureWriterCharacters(projectId: string) {
+  if (!mockState.writerCharacters.has(projectId)) {
+    mockState.writerCharacters.set(projectId, createSeedWriterCharacters(projectId))
+  }
+  return mockState.writerCharacters.get(projectId) || []
+}
+
+function ensureWriterCharacterRelations(projectId: string) {
+  if (!mockState.writerCharacterRelations.has(projectId)) {
+    mockState.writerCharacterRelations.set(projectId, createSeedWriterCharacterRelations(projectId))
+  }
+  return mockState.writerCharacterRelations.get(projectId) || []
+}
+
+function ensureWriterLocations(projectId: string) {
+  if (!mockState.writerLocations.has(projectId)) {
+    mockState.writerLocations.set(projectId, createSeedWriterLocations(projectId))
+  }
+  return mockState.writerLocations.get(projectId) || []
+}
+
+function parseMockBody(data: unknown) {
+  if (!data) return {}
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data)
+    } catch {
+      return {}
+    }
+  }
+  if (typeof data === 'object') {
+    return data as Record<string, any>
+  }
+  return {}
 }
 
 // 初始化内存状态
@@ -65,10 +218,11 @@ const mockState: MockState = {
       title: '第四章：剑气纵横',
       submittedBy: '云岚作者',
       submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      content: '晨曦微露，云岚峰顶云雾缭绕。林逸盘膝坐于悬崖之上，体内真气流转不息。自上次突破以来，他的修为已臻至筑基后期，距离结丹仅一步之遥...',
+      content:
+        '晨曦微露，云岚峰顶云雾缭绕。林逸盘膝坐于悬崖之上，体内真气流转不息。自上次突破以来，他的修为已臻至筑基后期，距离结丹仅一步之遥...',
       projectId: 'project-yljs-1',
       projectName: '云岚纪事',
-      status: 'pending'
+      status: 'pending',
     },
     {
       reviewId: 'review-yljs-5',
@@ -77,21 +231,61 @@ const mockState: MockState = {
       title: '第五章：秘境开启',
       submittedBy: '云岚作者',
       submittedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      content: '掌门召集众弟子于大殿，宣布了一个震惊所有人的消息——青云秘境即将开启！这是每百年才开放一次的上古遗迹...',
+      content:
+        '掌门召集众弟子于大殿，宣布了一个震惊所有人的消息——青云秘境即将开启！这是每百年才开放一次的上古遗迹...',
       projectId: 'project-yljs-1',
       projectName: '云岚纪事',
-      status: 'pending'
-    }
+      status: 'pending',
+    },
   ],
   bookChapters: new Map([
     // 云岚纪事的初始章节（读者端可见）
-    ['project-yljs-1', [
-      { _id: 'chapter-yljs-1', chapterNumber: 1, title: '第一章：云岚初遇', wordCount: 3200, isFree: true, price: 0, publishTime: '2024-01-15T08:00:00Z', stats: { views: 1520 } },
-      { _id: 'chapter-yljs-2', chapterNumber: 2, title: '第二章：入门修行', wordCount: 2800, isFree: true, price: 0, publishTime: '2024-01-18T08:00:00Z', stats: { views: 1230 } },
-      { _id: 'chapter-yljs-3', chapterNumber: 3, title: '第三章：突破筑基', wordCount: 3500, isFree: true, price: 0, publishTime: '2024-01-22T08:00:00Z', stats: { views: 980 } }
-    ]]
+    [
+      'project-yljs-1',
+      [
+        {
+          _id: 'chapter-yljs-1',
+          chapterNumber: 1,
+          title: '第一章：云岚初遇',
+          wordCount: 3200,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-15T08:00:00Z',
+          stats: { views: 1520 },
+        },
+        {
+          _id: 'chapter-yljs-2',
+          chapterNumber: 2,
+          title: '第二章：入门修行',
+          wordCount: 2800,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-18T08:00:00Z',
+          stats: { views: 1230 },
+        },
+        {
+          _id: 'chapter-yljs-3',
+          chapterNumber: 3,
+          title: '第三章：突破筑基',
+          wordCount: 3500,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-22T08:00:00Z',
+          stats: { views: 980 },
+        },
+      ],
+    ],
   ]),
-  reviewCounter: 6
+  writerCharacters: new Map([
+    ['project-yljs-1', createSeedWriterCharacters('project-yljs-1')],
+  ]),
+  writerCharacterRelations: new Map([
+    ['project-yljs-1', createSeedWriterCharacterRelations('project-yljs-1')],
+  ]),
+  writerLocations: new Map([
+    ['project-yljs-1', createSeedWriterLocations('project-yljs-1')],
+  ]),
+  reviewCounter: 6,
 }
 
 /**
@@ -109,15 +303,54 @@ export function resetMockState(): void {
       content: '晨曦微露，云岚峰顶云雾缭绕...',
       projectId: 'project-yljs-1',
       projectName: '云岚纪事',
-      status: 'pending'
-    }
+      status: 'pending',
+    },
   ]
   mockState.bookChapters = new Map([
-    ['project-yljs-1', [
-      { _id: 'chapter-yljs-1', chapterNumber: 1, title: '第一章：云岚初遇', wordCount: 3200, isFree: true, price: 0, publishTime: '2024-01-15T08:00:00Z', stats: { views: 1520 } },
-      { _id: 'chapter-yljs-2', chapterNumber: 2, title: '第二章：入门修行', wordCount: 2800, isFree: true, price: 0, publishTime: '2024-01-18T08:00:00Z', stats: { views: 1230 } },
-      { _id: 'chapter-yljs-3', chapterNumber: 3, title: '第三章：突破筑基', wordCount: 3500, isFree: true, price: 0, publishTime: '2024-01-22T08:00:00Z', stats: { views: 980 } }
-    ]]
+    [
+      'project-yljs-1',
+      [
+        {
+          _id: 'chapter-yljs-1',
+          chapterNumber: 1,
+          title: '第一章：云岚初遇',
+          wordCount: 3200,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-15T08:00:00Z',
+          stats: { views: 1520 },
+        },
+        {
+          _id: 'chapter-yljs-2',
+          chapterNumber: 2,
+          title: '第二章：入门修行',
+          wordCount: 2800,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-18T08:00:00Z',
+          stats: { views: 1230 },
+        },
+        {
+          _id: 'chapter-yljs-3',
+          chapterNumber: 3,
+          title: '第三章：突破筑基',
+          wordCount: 3500,
+          isFree: true,
+          price: 0,
+          publishTime: '2024-01-22T08:00:00Z',
+          stats: { views: 980 },
+        },
+      ],
+    ],
+  ])
+  mockState.writerCharacters = new Map([
+    ['project-yljs-1', createSeedWriterCharacters('project-yljs-1')],
+  ])
+  mockState.writerCharacterRelations = new Map([
+    ['project-yljs-1', createSeedWriterCharacterRelations('project-yljs-1')],
+  ])
+  mockState.writerLocations = new Map([
+    ['project-yljs-1', createSeedWriterLocations('project-yljs-1')],
   ])
   mockState.reviewCounter = 4
 }
@@ -137,7 +370,9 @@ export interface MockResponse {
 }
 
 interface MockRequestOptions {
+  method?: string
   params?: Record<string, any>
+  data?: unknown
 }
 
 // ==================== 工具函数 ====================
@@ -156,7 +391,7 @@ export function isInTestMode(): boolean {
  */
 function mockDelay(): Promise<void> {
   const delay = 100 + Math.random() * 200
-  return new Promise(resolve => setTimeout(resolve, delay))
+  return new Promise((resolve) => setTimeout(resolve, delay))
 }
 
 /**
@@ -167,7 +402,7 @@ function createMockResponse(data: any, code = 200, message = 'success'): MockRes
     code,
     message,
     data,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   }
 }
 
@@ -178,8 +413,8 @@ const MOCK_CATEGORY_TREE = [
     slug: 'scifi',
     children: [
       { _id: 'cat-1-1', name: '星际科幻', slug: 'interstellar' },
-      { _id: 'cat-1-2', name: '时空穿梭', slug: 'time-travel' }
-    ]
+      { _id: 'cat-1-2', name: '时空穿梭', slug: 'time-travel' },
+    ],
   },
   {
     _id: 'cat-2',
@@ -187,8 +422,8 @@ const MOCK_CATEGORY_TREE = [
     slug: 'fantasy',
     children: [
       { _id: 'cat-2-1', name: '东方玄幻', slug: 'eastern' },
-      { _id: 'cat-2-2', name: '西方奇幻', slug: 'western' }
-    ]
+      { _id: 'cat-2-2', name: '西方奇幻', slug: 'western' },
+    ],
   },
   {
     _id: 'cat-3',
@@ -196,8 +431,8 @@ const MOCK_CATEGORY_TREE = [
     slug: 'city',
     children: [
       { _id: 'cat-3-1', name: '都市生活', slug: 'life' },
-      { _id: 'cat-3-2', name: '都市异能', slug: 'ability' }
-    ]
+      { _id: 'cat-3-2', name: '都市异能', slug: 'ability' },
+    ],
   },
   {
     _id: 'cat-4',
@@ -205,8 +440,8 @@ const MOCK_CATEGORY_TREE = [
     slug: 'xianxia',
     children: [
       { _id: 'cat-4-1', name: '古典仙侠', slug: 'classic' },
-      { _id: 'cat-4-2', name: '现代修真', slug: 'modern' }
-    ]
+      { _id: 'cat-4-2', name: '现代修真', slug: 'modern' },
+    ],
   },
   {
     _id: 'cat-5',
@@ -214,9 +449,9 @@ const MOCK_CATEGORY_TREE = [
     slug: 'game',
     children: [
       { _id: 'cat-5-1', name: '虚拟网游', slug: 'online' },
-      { _id: 'cat-5-2', name: '游戏异界', slug: 'isekai' }
-    ]
-  }
+      { _id: 'cat-5-2', name: '游戏异界', slug: 'isekai' },
+    ],
+  },
 ] as const
 
 type MockLeafCategory = {
@@ -226,11 +461,20 @@ type MockLeafCategory = {
 }
 
 const MOCK_LEAF_CATEGORIES: MockLeafCategory[] = MOCK_CATEGORY_TREE.flatMap(
-  (item) => item.children as readonly MockLeafCategory[]
+  (item) => item.children as readonly MockLeafCategory[],
 )
 const MOCK_BOOK_POOL_SIZE = 360
 const MOCK_TAG_POOL = [
-  '热血', '玄幻', '修仙', '都市', '科幻', '冒险', '机甲', '悬疑', '言情', '治愈'
+  '热血',
+  '玄幻',
+  '修仙',
+  '都市',
+  '科幻',
+  '冒险',
+  '机甲',
+  '悬疑',
+  '言情',
+  '治愈',
 ]
 
 const CATEGORY_TAG_MAP: Record<string, string[]> = {
@@ -243,26 +487,128 @@ const CATEGORY_TAG_MAP: Record<string, string[]> = {
   'cat-4-1': ['修仙', '玄幻', '热血'],
   'cat-4-2': ['修仙', '都市', '悬疑'],
   'cat-5-1': ['冒险', '热血', '都市'],
-  'cat-5-2': ['冒险', '玄幻', '科幻']
+  'cat-5-2': ['冒险', '玄幻', '科幻'],
 }
 
 const CATEGORY_TITLE_CORES: Record<string, string[]> = {
-  'cat-1-1': ['星河骑士', '深空余烬', '银河哨兵', '天穹舰队', '零号跃迁', '黑域灯塔', '环轨遗民', '远星守望'],
-  'cat-1-2': ['逆时旅者', '钟摆尽头', '昨日回声', '时间褶皱', '裂隙档案', '平行归途', '未来备忘录', '因果边界'],
-  'cat-2-1': ['剑道独尊', '苍穹道印', '龙渊战歌', '九天神纹', '万象天书', '太古星宫', '灵墟剑主', '云荒圣域'],
-  'cat-2-2': ['龙血誓约', '银月王庭', '风暴巫歌', '黎明远征', '圣辉边境', '黑森林秘闻', '群岛法典', '王城余火'],
-  'cat-3-1': ['甜点日记', '雨巷旧梦', '烟火人间', '清晨地铁线', '微光咖啡馆', '日落便利店', '城市折页', '慢热心事'],
-  'cat-3-2': ['赛博侦探社', '都市仙尊', '夜行异闻录', '霓虹档案局', '零度共振', '超感回路', '异能法则', '城市暗面'],
-  'cat-4-1': ['青羽物语', '昆仑问道', '太乙山河', '剑开天门', '浮生道卷', '长生碑录', '灵霄古道', '青冥仙图'],
-  'cat-4-2': ['现代修真录', '灵气复苏后', '校园炼气士', '都市问道录', '地铁飞剑客', '公司有剑仙', '晨会御剑术', '高楼渡劫记'],
-  'cat-5-1': ['网游之神级牧师', '虚拟王座', '全服公告后', '神域开荒团', '终极副本线', '新手村传奇', '战术指挥官', '排行榜风云'],
-  'cat-5-2': ['异界龙骑', '开局降临异界', '游戏异世录', '存档重启后', '王都任务簿', '勇者补完计划', '地下城边疆', '传送门彼岸']
+  'cat-1-1': [
+    '星河骑士',
+    '深空余烬',
+    '银河哨兵',
+    '天穹舰队',
+    '零号跃迁',
+    '黑域灯塔',
+    '环轨遗民',
+    '远星守望',
+  ],
+  'cat-1-2': [
+    '逆时旅者',
+    '钟摆尽头',
+    '昨日回声',
+    '时间褶皱',
+    '裂隙档案',
+    '平行归途',
+    '未来备忘录',
+    '因果边界',
+  ],
+  'cat-2-1': [
+    '剑道独尊',
+    '苍穹道印',
+    '龙渊战歌',
+    '九天神纹',
+    '万象天书',
+    '太古星宫',
+    '灵墟剑主',
+    '云荒圣域',
+  ],
+  'cat-2-2': [
+    '龙血誓约',
+    '银月王庭',
+    '风暴巫歌',
+    '黎明远征',
+    '圣辉边境',
+    '黑森林秘闻',
+    '群岛法典',
+    '王城余火',
+  ],
+  'cat-3-1': [
+    '甜点日记',
+    '雨巷旧梦',
+    '烟火人间',
+    '清晨地铁线',
+    '微光咖啡馆',
+    '日落便利店',
+    '城市折页',
+    '慢热心事',
+  ],
+  'cat-3-2': [
+    '赛博侦探社',
+    '都市仙尊',
+    '夜行异闻录',
+    '霓虹档案局',
+    '零度共振',
+    '超感回路',
+    '异能法则',
+    '城市暗面',
+  ],
+  'cat-4-1': [
+    '青羽物语',
+    '昆仑问道',
+    '太乙山河',
+    '剑开天门',
+    '浮生道卷',
+    '长生碑录',
+    '灵霄古道',
+    '青冥仙图',
+  ],
+  'cat-4-2': [
+    '现代修真录',
+    '灵气复苏后',
+    '校园炼气士',
+    '都市问道录',
+    '地铁飞剑客',
+    '公司有剑仙',
+    '晨会御剑术',
+    '高楼渡劫记',
+  ],
+  'cat-5-1': [
+    '网游之神级牧师',
+    '虚拟王座',
+    '全服公告后',
+    '神域开荒团',
+    '终极副本线',
+    '新手村传奇',
+    '战术指挥官',
+    '排行榜风云',
+  ],
+  'cat-5-2': [
+    '异界龙骑',
+    '开局降临异界',
+    '游戏异世录',
+    '存档重启后',
+    '王都任务簿',
+    '勇者补完计划',
+    '地下城边疆',
+    '传送门彼岸',
+  ],
 }
 
 const TITLE_SUFFIXES = [
-  '黎明协议', '边境迷航', '灰烬纪元', '冰海坐标', '沉默法则',
-  '终局序章', '回响之城', '裂隙之外', '最后一站', '雾港来信',
-  '逆光远征', '失落航道', '风暴前夜', '白夜备忘', '群星见证'
+  '黎明协议',
+  '边境迷航',
+  '灰烬纪元',
+  '冰海坐标',
+  '沉默法则',
+  '终局序章',
+  '回响之城',
+  '裂隙之外',
+  '最后一站',
+  '雾港来信',
+  '逆光远征',
+  '失落航道',
+  '风暴前夜',
+  '白夜备忘',
+  '群星见证',
 ]
 
 function buildMockBookTitle(index: number, categoryId: string): string {
@@ -286,7 +632,7 @@ function getHomepageData(): MockResponse {
       totalBooks: 125680,
       ongoingBooks: 32850,
       totalAuthors: 15620,
-      todayUpdate: 2850
+      todayUpdate: 2850,
     },
     banners: [
       {
@@ -295,7 +641,7 @@ function getHomepageData(): MockResponse {
         subtitle: '发现最好的故事',
         image: '/images/banners/banner-1.svg',
         link: '/bookstore/browse?featured=true',
-        order: 1
+        order: 1,
       },
       {
         id: 'banner-2',
@@ -303,7 +649,7 @@ function getHomepageData(): MockResponse {
         subtitle: '下一个大神就是你',
         image: '/images/banners/banner-2.svg',
         link: '/writer',
-        order: 2
+        order: 2,
       },
       {
         id: 'banner-3',
@@ -311,18 +657,18 @@ function getHomepageData(): MockResponse {
         subtitle: '完成任务赢好礼',
         image: '/images/banners/banner-3.svg',
         link: '/reading-stats',
-        order: 3
-      }
+        order: 3,
+      },
     ],
     rankings: {
       realtime: generateRankingBooks('realtime'),
       weekly: generateRankingBooks('weekly'),
       monthly: generateRankingBooks('monthly'),
-      newbie: generateRankingBooks('newbie')
+      newbie: generateRankingBooks('newbie'),
     },
     recommendedBooks: generateRecommendedBooks(8),
     featuredBooks: generateFeaturedBooks(5),
-    categories: generateCategories()
+    categories: generateCategories(),
   })
 }
 
@@ -336,14 +682,18 @@ function getAnnouncements(): MockResponse {
       content: '青羽书城全新升级，欢迎体验沉浸式阅读！',
       type: 'info',
       priority: 'high',
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date().toISOString(),
+    },
   ])
 }
 
 // ==================== 书籍数据生成器 ====================
 
-function generateBook(index: number) {
+ 
+function generateBook(
+  index: number,
+  _type: 'recommended' | 'featured' | 'ranking' = 'recommended',
+) {
   const statuses = ['serializing', 'completed', 'paused']
   const authors = ['猫妖大人', '樱花飘落', '墨客', '糖豆豆', '龙傲天', '时光旅人']
   const category = MOCK_LEAF_CATEGORIES[index % MOCK_LEAF_CATEGORIES.length]
@@ -373,16 +723,16 @@ function generateBook(index: number) {
     description: `这是一本关于${title}的精彩故事，讲述了主人公在${category.name}世界中的冒险经历...`,
     tags: [baseTag, secondaryTag, extraTag].filter((tag, idx, arr) => arr.indexOf(tag) === idx),
     createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
   }
 }
 
 function generateRecommendedBooks(count: number) {
-  return Array.from({ length: count }, (_, i) => generateBook(i))
+  return Array.from({ length: count }, (_, i) => generateBook(i, 'recommended'))
 }
 
 function generateFeaturedBooks(count: number) {
-  return Array.from({ length: count }, (_, i) => generateBook(i + 10))
+  return Array.from({ length: count }, (_, i) => generateBook(i + 10, 'featured'))
 }
 
 function generateRankingBooks(type: string) {
@@ -391,7 +741,7 @@ function generateRankingBooks(type: string) {
     ...book,
     rank: index + 1,
     rankingType: type,
-    trend: Math.floor(Math.random() * 100) - 50
+    trend: Math.floor(Math.random() * 100) - 50,
   }))
 }
 
@@ -402,39 +752,46 @@ function generateCategories() {
 function filterAndPaginateBooks(
   source: ReturnType<typeof generateRecommendedBooks>,
   params: Record<string, any>,
-  parsedUrl: URL
+  parsedUrl: URL,
 ) {
-  const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '').trim().toLowerCase()
+  const q = String(params.q || params.keyword || parsedUrl.searchParams.get('q') || '')
+    .trim()
+    .toLowerCase()
   const categoryId = String(
     params.categoryId ||
-    params.category ||
-    parsedUrl.searchParams.get('categoryId') ||
-    parsedUrl.searchParams.get('category') ||
-    ''
+      params.category ||
+      parsedUrl.searchParams.get('categoryId') ||
+      parsedUrl.searchParams.get('category') ||
+      '',
   ).trim()
   const status = String(params.status || parsedUrl.searchParams.get('status') || '').trim()
   const rawTags = params.tags || parsedUrl.searchParams.get('tags') || []
   const tags = Array.isArray(rawTags)
     ? rawTags.map(String)
-    : String(rawTags).split(',').map(t => t.trim()).filter(Boolean)
+    : String(rawTags)
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
   const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
   const size = Number(
     params.size ||
-    params.pageSize ||
-    parsedUrl.searchParams.get('size') ||
-    parsedUrl.searchParams.get('pageSize') ||
-    12
+      params.pageSize ||
+      parsedUrl.searchParams.get('size') ||
+      parsedUrl.searchParams.get('pageSize') ||
+      12,
   )
 
   const filteredBooks = source.filter((book) => {
-    const keywordMatched = !q ||
+    const keywordMatched =
+      !q ||
       book.title.toLowerCase().includes(q) ||
-      String(book.author || '').toLowerCase().includes(q)
-    const categoryMatched = !categoryId ||
-      book.categoryId === categoryId ||
-      book.categoryId.startsWith(`${categoryId}-`)
+      String(book.author || '')
+        .toLowerCase()
+        .includes(q)
+    const categoryMatched =
+      !categoryId || book.categoryId === categoryId || book.categoryId.startsWith(`${categoryId}-`)
     const statusMatched = !status || book.status === status
-    const tagsMatched = tags.length === 0 || tags.every(tag => book.tags.includes(tag))
+    const tagsMatched = tags.length === 0 || tags.every((tag) => book.tags.includes(tag))
     return keywordMatched && categoryMatched && statusMatched && tagsMatched
   })
 
@@ -446,7 +803,7 @@ function filterAndPaginateBooks(
     total: filteredBooks.length,
     page,
     size,
-    hasNext: start + size < filteredBooks.length
+    hasNext: start + size < filteredBooks.length,
   }
 }
 
@@ -469,270 +826,138 @@ function getWriterProjects(): MockResponse {
     statistics: {
       totalWords: 9800,
       chapterCount: 3,
-      lastUpdateAt: new Date(Date.now() - 45 * 60 * 1000).toISOString()
-    }
+      lastUpdateAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    },
   }
 
   return createMockResponse({
     projects: [yunlanProject],
     list: [yunlanProject],
-    total: 1
+    total: 1,
   })
 }
 
 function getWriterProjectDetail(projectId: string): MockResponse {
-  const baseList = getWriterProjects().data?.list || []
-  const matched = baseList.find((item: any) => item.id === projectId || item.projectId === projectId)
-  if (matched) {
-    return createMockResponse(matched)
-  }
-  return createMockResponse({
+  const projectsPayload = getWriterProjects().data as Record<string, any>
+  const list = Array.isArray(projectsPayload.list)
+    ? projectsPayload.list
+    : Array.isArray(projectsPayload.projects)
+      ? projectsPayload.projects
+      : []
+  const matched = list.find((item) => item.id === projectId || item.projectId === projectId) || list[0] || {
     id: projectId,
     projectId,
     title: '未命名项目',
-    summary: '',
-    status: 'serializing',
-    category: '仙侠',
-    tags: [],
-    totalWords: 0,
-    chapterCount: 0,
-    lastUpdateTime: new Date().toISOString(),
-    statistics: {
-      totalWords: 0,
-      chapterCount: 0,
-      lastUpdateAt: new Date().toISOString()
-    }
+  }
+
+  return createMockResponse(matched)
+}
+
+function getWriterProjectDocuments(projectId: string): MockResponse {
+  const chapters = mockState.bookChapters.get(projectId) || []
+  const documents = chapters.map((chapter, index) => ({
+    id: chapter._id,
+    documentId: chapter._id,
+    projectId,
+    parentId: `${projectId}-volume-1`,
+    title: chapter.title,
+    type: 'chapter',
+    level: 1,
+    order: chapter.chapterNumber || index + 1,
+    status: 'completed',
+    wordCount: chapter.wordCount,
+    createdAt: chapter.publishTime,
+    updatedAt: chapter.publishTime,
+  }))
+
+  return createMockResponse({
+    documents,
+    list: documents,
+    total: documents.length,
   })
+}
+
+function getWriterProjectDocumentTree(projectId: string): MockResponse {
+  const chapters = mockState.bookChapters.get(projectId) || []
+  const rootNode = {
+    id: `${projectId}-volume-1`,
+    documentId: `${projectId}-volume-1`,
+    projectId,
+    parentId: '',
+    title: '正文卷',
+    type: 'volume',
+    level: 0,
+    order: 1,
+    status: 'writing',
+    wordCount: chapters.reduce((sum, chapter) => sum + (chapter.wordCount || 0), 0),
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    children: chapters.map((chapter, index) => ({
+      id: chapter._id,
+      documentId: chapter._id,
+      projectId,
+      parentId: `${projectId}-volume-1`,
+      title: chapter.title,
+      type: 'chapter',
+      level: 1,
+      order: chapter.chapterNumber || index + 1,
+      status: 'completed',
+      wordCount: chapter.wordCount,
+      createdAt: chapter.publishTime,
+      updatedAt: chapter.publishTime,
+    })),
+  }
+
+  return createMockResponse([rootNode])
+}
+
+function getWriterProjectLocations(projectId: string): MockResponse {
+  return createMockResponse(ensureWriterLocations(projectId))
+}
+
+function getWriterProjectCharacters(projectId: string): MockResponse {
+  return createMockResponse(ensureWriterCharacters(projectId))
+}
+
+function getWriterProjectCharacterRelations(projectId: string): MockResponse {
+  return createMockResponse(ensureWriterCharacterRelations(projectId))
+}
+
+function getWriterProjectLocationTree(projectId: string): MockResponse {
+  const locations = getWriterProjectLocations(projectId).data as Array<Record<string, any>>
+  const rootLocations = locations
+    .filter((location) => !location.parentId)
+    .map((location) => ({
+      ...location,
+      children: locations.filter((child) => child.parentId === location.id),
+    }))
+
+  return createMockResponse(rootLocations)
+}
+
+function getWriterProjectLocationRelations(projectId: string): MockResponse {
+  return createMockResponse([
+    {
+      id: `${projectId}-loc-rel-1`,
+      projectId,
+      fromId: `${projectId}-loc-sect`,
+      toId: `${projectId}-loc-market`,
+      type: 'connected',
+      distance: '半日路程',
+      notes: '宗门弟子常往返于宗门与坊市之间',
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ])
 }
 
 function getWriterRevenueStats(): MockResponse {
   return createMockResponse({
-    totalRevenue: 12580.50,
-    todayRevenue: 235.80,
-    availableBalance: 8650.30,
-    totalWithdrawn: 3930.20
+    totalRevenue: 12580.5,
+    todayRevenue: 235.8,
+    availableBalance: 8650.3,
+    totalWithdrawn: 3930.2,
   })
-}
-
-const WRITER_RELATION_CHARACTERS = [
-  {
-    id: 'char-yljs-linyi',
-    projectId: 'project-yljs-1',
-    name: '林逸',
-    alias: ['少主'],
-    summary: '云岚宗外门弟子，天资卓绝却行事谨慎。',
-    traits: ['隐忍', '果决', '护短'],
-    background: '出身边陲小镇，幼年意外觉醒灵根后踏入修行路。',
-    personalityPrompt: '说话克制、逻辑清晰，危机中优先保护同伴。',
-    speechPattern: '短句、重点明确，偶尔带冷幽默。',
-    currentState: '正在追查秘境异动源头。',
-    avatarUrl: ''
-  },
-  {
-    id: 'char-yljs-ningxue',
-    projectId: 'project-yljs-1',
-    name: '宁雪',
-    alias: ['小师姐'],
-    summary: '云岚宗内门弟子，擅阵法与情报分析。',
-    traits: ['冷静', '理性', '细致'],
-    background: '世家出身，为摆脱家族束缚主动加入宗门。',
-    personalityPrompt: '先分析后行动，喜欢用证据说话。',
-    speechPattern: '语速平稳，偶尔反问。',
-    currentState: '负责统筹秘境探索队的路线。',
-    avatarUrl: ''
-  },
-  {
-    id: 'char-yljs-huoyun',
-    projectId: 'project-yljs-1',
-    name: '霍云',
-    alias: ['霍师兄'],
-    summary: '执法堂弟子，战力强悍但性格强硬。',
-    traits: ['强势', '忠诚', '急躁'],
-    background: '执法堂培养体系出身，重视规则与秩序。',
-    personalityPrompt: '说话直接，不喜欢拐弯抹角。',
-    speechPattern: '语气偏硬，常用命令句。',
-    currentState: '对林逸持怀疑态度。',
-    avatarUrl: ''
-  },
-  {
-    id: 'char-yljs-qingli',
-    projectId: 'project-yljs-1',
-    name: '青璃',
-    alias: ['医师'],
-    summary: '药堂弟子，负责后勤与疗伤支持。',
-    traits: ['温和', '敏感', '坚定'],
-    background: '医修世家后人，对古籍医方有深度研究。',
-    personalityPrompt: '语气柔和但立场坚定，善于安抚。',
-    speechPattern: '偏口语化，常用安慰语句。',
-    currentState: '在前线营地维持伤员救治。',
-    avatarUrl: ''
-  }
-]
-
-const WRITER_RELATION_EDGES = [
-  {
-    id: 'rel-yljs-1',
-    projectId: 'project-yljs-1',
-    fromId: 'char-yljs-linyi',
-    toId: 'char-yljs-ningxue',
-    type: '盟友',
-    strength: 84,
-    notes: '共同执行秘境侦查任务。'
-  },
-  {
-    id: 'rel-yljs-2',
-    projectId: 'project-yljs-1',
-    fromId: 'char-yljs-linyi',
-    toId: 'char-yljs-huoyun',
-    type: '敌人',
-    strength: 63,
-    notes: '理念冲突，长期存在竞争。'
-  },
-  {
-    id: 'rel-yljs-3',
-    projectId: 'project-yljs-1',
-    fromId: 'char-yljs-ningxue',
-    toId: 'char-yljs-qingli',
-    type: '朋友',
-    strength: 76,
-    notes: '私下关系密切，常互通情报。'
-  },
-  {
-    id: 'rel-yljs-4',
-    projectId: 'project-yljs-1',
-    fromId: 'char-yljs-qingli',
-    toId: 'char-yljs-linyi',
-    type: '朋友',
-    strength: 68,
-    notes: '多次协作救援后建立信任。'
-  }
-]
-
-function getWriterProjectId(url: string): string {
-  return url.match(/\/writer\/projects\/([^/?]+)/)?.[1] || 'project-yljs-1'
-}
-
-function getWriterCharacters(projectId: string) {
-  if (projectId !== 'project-yljs-1') return []
-  return WRITER_RELATION_CHARACTERS
-}
-
-function getWriterCharacterRelations(projectId: string) {
-  if (projectId !== 'project-yljs-1') return []
-  return WRITER_RELATION_EDGES
-}
-
-function getWriterLocations(projectId: string) {
-  if (projectId !== 'project-yljs-1') return []
-  return [
-    {
-      id: 'loc-yljs-1',
-      projectId,
-      name: '云岚峰',
-      description: '宗门主峰，议事与授课核心区域。',
-      climate: '四季偏凉',
-      culture: '重礼法与师承',
-      geography: '山脉主峰',
-      atmosphere: '肃穆'
-    },
-    {
-      id: 'loc-yljs-2',
-      projectId,
-      name: '青云秘境',
-      description: '周期性开启的古代遗迹，危险与机缘并存。',
-      climate: '区域波动',
-      culture: '遗迹文明残留',
-      geography: '独立空间',
-      atmosphere: '诡谲'
-    },
-    {
-      id: 'loc-yljs-3',
-      projectId,
-      name: '药堂营地',
-      description: '秘境外围临时营地，承担补给与救治。',
-      climate: '湿润',
-      culture: '救治优先',
-      geography: '谷地营盘',
-      atmosphere: '紧张'
-    }
-  ]
-}
-
-function getWriterTimelines(projectId: string) {
-  if (projectId !== 'project-yljs-1') return []
-  return [
-    {
-      id: 'timeline-yljs-main',
-      projectId,
-      name: '云岚纪事主线',
-      description: '主角成长与秘境主事件推进线'
-    },
-    {
-      id: 'timeline-yljs-past',
-      projectId,
-      name: '宗门旧史',
-      description: '补完背景冲突与历史因果'
-    }
-  ]
-}
-
-function getWriterTimelineEvents(timelineId: string) {
-  if (timelineId === 'timeline-yljs-main') {
-    return [
-      {
-        id: 'event-yljs-1',
-        timelineId,
-        title: '外门试炼',
-        description: '林逸在试炼中暴露特殊灵力波动。',
-        eventType: 'plot',
-        importance: 8,
-        storyTime: { description: '第一卷·初春' }
-      },
-      {
-        id: 'event-yljs-2',
-        timelineId,
-        title: '秘境开启公告',
-        description: '掌门宣布青云秘境百年再启，各堂口集结。',
-        eventType: 'world',
-        importance: 9,
-        storyTime: { description: '第一卷·仲春' }
-      },
-      {
-        id: 'event-yljs-3',
-        timelineId,
-        title: '执法堂冲突',
-        description: '霍云质疑林逸行动，双方矛盾升级。',
-        eventType: 'character',
-        importance: 7,
-        storyTime: { description: '第一卷·仲春后段' }
-      }
-    ]
-  }
-
-  if (timelineId === 'timeline-yljs-past') {
-    return [
-      {
-        id: 'event-yljs-p1',
-        timelineId,
-        title: '旧盟约破裂',
-        description: '云岚宗与邻宗旧盟约在二十年前终止。',
-        eventType: 'background',
-        importance: 6,
-        storyTime: { description: '二十年前' }
-      },
-      {
-        id: 'event-yljs-p2',
-        timelineId,
-        title: '禁术封印',
-        description: '长老团封存秘境禁术，留下残卷线索。',
-        eventType: 'milestone',
-        importance: 8,
-        storyTime: { description: '十八年前' }
-      }
-    ]
-  }
-
-  return []
 }
 
 // ==================== 用户中心 Mock 数据 ====================
@@ -747,8 +972,8 @@ function getUserProfile(): MockResponse {
       bookCount: 2,
       followerCount: 128,
       followingCount: 56,
-      wordCount: 1000000
-    }
+      wordCount: 1000000,
+    },
   })
 }
 
@@ -764,17 +989,17 @@ function getCommunityPosts(): MockResponse {
         author: {
           _id: 'user-1',
           nickname: '爱丽丝',
-          avatar: 'https://picsum.photos/seed/user1/100/100'
+          avatar: 'https://picsum.photos/seed/user1/100/100',
         },
         stats: {
           views: 890,
           likes: 56,
-          comments: 23
+          comments: 23,
         },
-        createdAt: new Date().toISOString()
-      }
+        createdAt: new Date().toISOString(),
+      },
     ],
-    total: 1
+    total: 1,
   })
 }
 
@@ -785,11 +1010,13 @@ function getCommunityPosts(): MockResponse {
  */
 export async function getMockDataForRequest(
   url: string | undefined,
-  options: MockRequestOptions = {}
+  options: MockRequestOptions = {},
 ): Promise<MockResponse> {
   if (!url) return createMockResponse({})
 
   console.log('[MockDataManager] 获取 Mock 数据:', url)
+  const method = (options.method || 'get').toUpperCase()
+  const body = parseMockBody(options.data)
 
   // ==================== 书城模块 ====================
 
@@ -828,8 +1055,8 @@ export async function getMockDataForRequest(
         page,
         pageSize: size,
         total: allBooks.length,
-        has_next: start + size < allBooks.length
-      }
+        has_next: start + size < allBooks.length,
+      },
     })
   }
 
@@ -848,8 +1075,8 @@ export async function getMockDataForRequest(
         page,
         pageSize: size,
         total: allBooks.length,
-        has_next: start + size < allBooks.length
-      }
+        has_next: start + size < allBooks.length,
+      },
     })
   }
 
@@ -868,8 +1095,8 @@ export async function getMockDataForRequest(
         page: result.page,
         pageSize: result.size,
         total: result.total,
-        has_next: result.hasNext
-      }
+        has_next: result.hasNext,
+      },
     })
   }
 
@@ -886,8 +1113,8 @@ export async function getMockDataForRequest(
         page: result.page,
         pageSize: result.size,
         total: result.total,
-        has_next: result.hasNext
-      }
+        has_next: result.hasNext,
+      },
     })
   }
 
@@ -906,9 +1133,9 @@ export async function getMockDataForRequest(
         wordCount: Math.floor(Math.random() * 2000) + 1500,
         isFree: i < 10,
         price: i >= 10 ? Math.floor(Math.random() * 10) + 5 : 0,
-        publishTime: new Date(Date.now() - (50 - i) * 24 * 60 * 60 * 1000).toISOString()
+        publishTime: new Date(Date.now() - (50 - i) * 24 * 60 * 60 * 1000).toISOString(),
       })),
-      total: 50
+      total: 50,
     })
   }
 
@@ -933,7 +1160,7 @@ export async function getMockDataForRequest(
       .map(([name, count], idx) => ({
         _id: `tag-${idx + 1}`,
         name,
-        count
+        count,
       }))
 
     return createMockResponse(tagList)
@@ -942,72 +1169,136 @@ export async function getMockDataForRequest(
   // 年份列表
   if (url.includes('/books/years')) {
     const currentYear = new Date().getFullYear()
-    return createMockResponse(
-      Array.from({ length: 10 }, (_, i) => (currentYear - i).toString())
-    )
+    return createMockResponse(Array.from({ length: 10 }, (_, i) => (currentYear - i).toString()))
   }
 
   // ==================== 创作中心 ====================
 
-  // 角色关系图谱
-  if (url.match(/\/writer\/projects\/[^/]+\/characters\/graph(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
+  // 写作项目文档树（单数 project 路由）
+  if (/\/writer\/project\/[^/]+\/documents\/tree(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/project\/([^/]+)\/documents\/tree/)?.[1]
+    return getWriterProjectDocumentTree(projectId || 'project-yljs-1')
+  }
+
+  // 写作项目文档列表（单数 project 路由）
+  if (/\/writer\/project\/[^/]+\/documents(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/project\/([^/]+)\/documents/)?.[1]
+    return getWriterProjectDocuments(projectId || 'project-yljs-1')
+  }
+
+  if (/\/writer\/projects\/[^/]+\/characters\/graph(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/characters\/graph/)?.[1] || 'project-yljs-1'
     return createMockResponse({
-      characters: getWriterCharacters(projectId),
-      relations: getWriterCharacterRelations(projectId)
+      characters: ensureWriterCharacters(projectId),
+      relations: ensureWriterCharacterRelations(projectId),
     })
   }
 
-  // 角色关系列表
-  if (url.match(/\/writer\/projects\/[^/]+\/characters\/relations(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
-    return createMockResponse(getWriterCharacterRelations(projectId))
+  if (/\/writer\/projects\/[^/]+\/characters\/relations(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/characters\/relations/)?.[1] || 'project-yljs-1'
+    return getWriterProjectCharacterRelations(projectId)
   }
 
-  // 角色列表
-  if (url.match(/\/writer\/projects\/[^/]+\/characters(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
-    return createMockResponse(getWriterCharacters(projectId))
-  }
+  if (/\/writer\/projects\/[^/]+\/characters(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/characters/)?.[1] || 'project-yljs-1'
 
-  // 地点树
-  if (url.match(/\/writer\/projects\/[^/]+\/locations\/tree(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
-    const locations = getWriterLocations(projectId)
-    return createMockResponse([
-      {
-        ...locations[0],
-        children: [locations[1], locations[2]]
+    if (method === 'POST') {
+      const list = ensureWriterCharacters(projectId)
+      const now = new Date().toISOString()
+      const created = {
+        id: `${projectId}-char-${Date.now()}`,
+        projectId,
+        name: body.name || `新角色${list.length + 1}`,
+        alias: Array.isArray(body.alias) ? body.alias : [],
+        summary: body.summary || '',
+        traits: Array.isArray(body.traits) ? body.traits : [],
+        background: body.background || '',
+        avatarUrl: body.avatarUrl || '',
+        personalityPrompt: body.personalityPrompt || '',
+        speechPattern: body.speechPattern || '',
+        createdAt: now,
+        updatedAt: now,
       }
-    ])
+      mockState.writerCharacters.set(projectId, [...list, created])
+      return createMockResponse(created)
+    }
+
+    return getWriterProjectCharacters(projectId)
   }
 
-  // 地点关系（当前为空）
-  if (url.match(/\/writer\/projects\/[^/]+\/locations\/relations(\?.*)?$/)) {
-    return createMockResponse([])
+  if (url.includes('/characters/relations')) {
+    const relationId = url.match(/\/characters\/relations\/([^/?]+)/)?.[1]
+    const projectId = options.params?.projectId || body.projectId || 'project-yljs-1'
+    const list = ensureWriterCharacterRelations(projectId)
+
+    if (method === 'POST') {
+      const now = new Date().toISOString()
+      const created = {
+        id: `${projectId}-rel-${Date.now()}`,
+        projectId,
+        fromId: body.fromId,
+        toId: body.toId,
+        type: body.type || '其他',
+        strength: Number(body.strength ?? 50),
+        notes: body.notes || '',
+        createdAt: now,
+        updatedAt: now,
+      }
+      mockState.writerCharacterRelations.set(projectId, [...list, created])
+      return createMockResponse(created)
+    }
+
+    if (method === 'DELETE' && relationId) {
+      mockState.writerCharacterRelations.set(
+        projectId,
+        list.filter((item) => item.id !== relationId),
+      )
+      return createMockResponse(null)
+    }
   }
 
-  // 地点列表
-  if (url.match(/\/writer\/projects\/[^/]+\/locations(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
-    return createMockResponse(getWriterLocations(projectId))
+  // 写作项目地点关系
+  if (/\/writer\/projects\/[^/]+\/locations\/relations(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/locations\/relations/)?.[1]
+    return getWriterProjectLocationRelations(projectId || 'project-yljs-1')
   }
 
-  // 时间线列表
-  if (url.match(/\/writer\/projects\/[^/]+\/timelines(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
-    return createMockResponse(getWriterTimelines(projectId))
+  // 写作项目地点树
+  if (/\/writer\/projects\/[^/]+\/locations\/tree(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/locations\/tree/)?.[1]
+    return getWriterProjectLocationTree(projectId || 'project-yljs-1')
   }
 
-  // 时间线事件列表
-  if (url.match(/\/timelines\/[^/]+\/events(\?.*)?$/)) {
-    const timelineId = url.match(/\/timelines\/([^/?]+)\/events/)?.[1] || ''
-    return createMockResponse(getWriterTimelineEvents(timelineId))
+  // 写作项目地点列表
+  if (/\/writer\/projects\/[^/]+\/locations(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/]+)\/locations/)?.[1] || 'project-yljs-1'
+
+    if (method === 'POST') {
+      const list = ensureWriterLocations(projectId)
+      const now = new Date().toISOString()
+      const created = {
+        id: `${projectId}-loc-${Date.now()}`,
+        projectId,
+        name: body.name || `新地点${list.length + 1}`,
+        description: body.description || '',
+        climate: body.climate || '',
+        culture: body.culture || '',
+        geography: body.geography || '',
+        atmosphere: body.atmosphere || '',
+        parentId: body.parentId || '',
+        imageUrl: body.imageUrl || '',
+        createdAt: now,
+        updatedAt: now,
+      }
+      mockState.writerLocations.set(projectId, [...list, created])
+      return createMockResponse(created)
+    }
+
+    return getWriterProjectLocations(projectId)
   }
 
-  // 写作项目详情
-  if (url.match(/\/writer\/projects\/[^/?]+(\?.*)?$/)) {
-    const projectId = getWriterProjectId(url)
+  if (/\/writer\/projects\/[^/]+(\?.*)?$/.test(url)) {
+    const projectId = url.match(/\/writer\/projects\/([^/?]+)/)?.[1] || 'project-yljs-1'
     return getWriterProjectDetail(projectId)
   }
 
@@ -1027,8 +1318,8 @@ export async function getMockDataForRequest(
     return createMockResponse(
       Array.from({ length: days }, (_, i) => ({
         date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString(),
-        revenue: Math.floor(Math.random() * 500) + 100
-      }))
+        revenue: Math.floor(Math.random() * 500) + 100,
+      })),
     )
   }
 
@@ -1037,7 +1328,7 @@ export async function getMockDataForRequest(
     return createMockResponse([
       { type: 'subscription', label: '订阅收入', amount: 8580 },
       { type: 'tip', label: '打赏收入', amount: 2850 },
-      { type: 'ad', label: '广告收入', amount: 1150 }
+      { type: 'ad', label: '广告收入', amount: 1150 },
     ])
   }
 
@@ -1048,9 +1339,9 @@ export async function getMockDataForRequest(
         id: `chapter-revenue-${i + 1}`,
         chapterTitle: `第${i + 1}章`,
         views: Math.floor(Math.random() * 10000) + 1000,
-        revenue: Math.floor(Math.random() * 500) + 100
+        revenue: Math.floor(Math.random() * 500) + 100,
       })),
-      total: 10
+      total: 10,
     })
   }
 
@@ -1073,9 +1364,9 @@ export async function getMockDataForRequest(
   // 钱包余额
   if (url.includes('/wallet') && !url.includes('withdraw')) {
     return createMockResponse({
-      balance: 8650.30,
-      totalRevenue: 12580.50,
-      totalWithdrawn: 3930.20
+      balance: 8650.3,
+      totalRevenue: 12580.5,
+      totalWithdrawn: 3930.2,
     })
   }
 
@@ -1090,7 +1381,7 @@ export async function getMockDataForRequest(
           method: 'alipay',
           createdAt: '2024-01-20T10:30:00Z',
           processedAt: '2024-01-21T14:20:00Z',
-          remark: '提现成功'
+          remark: '提现成功',
         },
         {
           id: 'withdraw-2',
@@ -1099,10 +1390,10 @@ export async function getMockDataForRequest(
           method: 'wechat',
           createdAt: '2024-01-25T09:15:00Z',
           processedAt: null,
-          remark: '待审核'
-        }
+          remark: '待审核',
+        },
       ],
-      total: 2
+      total: 2,
     })
   }
 
@@ -1114,7 +1405,9 @@ export async function getMockDataForRequest(
     const params = options.params || {}
     const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
     const pageSize = Number(params.pageSize || parsedUrl.searchParams.get('pageSize') || 10)
-    const keyword = String(params.keyword || parsedUrl.searchParams.get('keyword') || '').toLowerCase()
+    const keyword = String(
+      params.keyword || parsedUrl.searchParams.get('keyword') || '',
+    ).toLowerCase()
     const role = String(params.role || parsedUrl.searchParams.get('role') || '')
     const status = String(params.status || parsedUrl.searchParams.get('status') || '')
 
@@ -1122,7 +1415,18 @@ export async function getMockDataForRequest(
     const allUsers = Array.from({ length: 50 }, (_, i) => {
       const roles = ['user', 'author', 'admin']
       const statuses = ['active', 'inactive', 'banned']
-      const names = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十', '云岚作者', '星辰写手']
+      const names = [
+        '张三',
+        '李四',
+        '王五',
+        '赵六',
+        '钱七',
+        '孙八',
+        '周九',
+        '吴十',
+        '云岚作者',
+        '星辰写手',
+      ]
       return {
         user_id: `user-${i + 1}`,
         username: `user_${i + 1}`,
@@ -1134,13 +1438,14 @@ export async function getMockDataForRequest(
         phone_verified: i % 5 === 0,
         avatar: `https://picsum.photos/seed/avatar${i + 1}/100/100`,
         created_at: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000).toISOString(),
-        last_login_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+        last_login_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       }
     })
 
     // 筛选
-    let filteredUsers = allUsers.filter(user => {
-      const keywordMatch = !keyword ||
+    const filteredUsers = allUsers.filter((user) => {
+      const keywordMatch =
+        !keyword ||
         user.username.toLowerCase().includes(keyword) ||
         user.nickname.toLowerCase().includes(keyword) ||
         user.email.toLowerCase().includes(keyword)
@@ -1156,7 +1461,7 @@ export async function getMockDataForRequest(
       items: list,
       total: filteredUsers.length,
       page,
-      pageSize
+      pageSize,
     })
   }
 
@@ -1166,12 +1471,14 @@ export async function getMockDataForRequest(
     const params = options.params || {}
     const page = Number(params.page || parsedUrl.searchParams.get('page') || 1)
     const pageSize = Number(params.pageSize || parsedUrl.searchParams.get('pageSize') || 20)
-    const contentType = String(params.contentType || parsedUrl.searchParams.get('contentType') || '')
+    const contentType = String(
+      params.contentType || parsedUrl.searchParams.get('contentType') || '',
+    )
 
     // 从内存状态获取待审核列表
-    let filteredReviews = mockState.pendingReviews.filter(r => r.status === 'pending')
+    let filteredReviews = mockState.pendingReviews.filter((r) => r.status === 'pending')
     if (contentType) {
-      filteredReviews = filteredReviews.filter(r => r.contentType === contentType)
+      filteredReviews = filteredReviews.filter((r) => r.contentType === contentType)
     }
 
     const start = Math.max(0, (page - 1) * pageSize)
@@ -1181,18 +1488,18 @@ export async function getMockDataForRequest(
       items: list,
       total: filteredReviews.length,
       page,
-      pageSize
+      pageSize,
     })
   }
 
   // 审核统计数据
   if (url.includes('/admin/audit/statistics')) {
-    const pending = mockState.pendingReviews.filter(r => r.status === 'pending').length
+    const pending = mockState.pendingReviews.filter((r) => r.status === 'pending').length
     return createMockResponse({
       pending,
       approved: 5,
       rejected: 2,
-      highRisk: 0
+      highRisk: 0,
     })
   }
 
@@ -1202,7 +1509,7 @@ export async function getMockDataForRequest(
     const body = options.params as { approved?: boolean; reason?: string } | undefined
 
     if (auditId && body) {
-      const reviewIndex = mockState.pendingReviews.findIndex(r => r.reviewId === auditId)
+      const reviewIndex = mockState.pendingReviews.findIndex((r) => r.reviewId === auditId)
 
       if (reviewIndex !== -1) {
         const review = mockState.pendingReviews[reviewIndex]
@@ -1223,11 +1530,13 @@ export async function getMockDataForRequest(
               isFree: newChapterNumber <= 5,
               price: newChapterNumber > 5 ? 5 : 0,
               publishTime: new Date().toISOString(),
-              stats: { views: 0 }
+              stats: { views: 0 },
             })
 
             mockState.bookChapters.set(review.projectId, chapters)
-            console.log(`[Mock联动] 审核通过: "${review.title}" 已发布到读者端，章节号: ${newChapterNumber}`)
+            console.log(
+              `[Mock联动] 审核通过: "${review.title}" 已发布到读者端，章节号: ${newChapterNumber}`,
+            )
           }
 
           // 从待审核队列移除
@@ -1263,7 +1572,7 @@ export async function getMockDataForRequest(
         content: body.content || '章节内容...',
         projectId,
         projectName: '云岚纪事',
-        status: 'pending'
+        status: 'pending',
       }
 
       mockState.pendingReviews.unshift(newReview)
@@ -1272,7 +1581,7 @@ export async function getMockDataForRequest(
 
     return createMockResponse({
       success: true,
-      message: '章节已提交审核，请等待管理员审批'
+      message: '章节已提交审核，请等待管理员审批',
     })
   }
 
@@ -1286,7 +1595,7 @@ export async function getMockDataForRequest(
       console.log(`[Mock联动] 读者端获取章节列表: 书籍 ${bookId}, 共 ${chapters.length} 章`)
       return createMockResponse({
         list: chapters,
-        total: chapters.length
+        total: chapters.length,
       })
     }
 
@@ -1299,9 +1608,9 @@ export async function getMockDataForRequest(
         wordCount: Math.floor(Math.random() * 2000) + 1500,
         isFree: i < 10,
         price: i >= 10 ? Math.floor(Math.random() * 10) + 5 : 0,
-        publishTime: new Date(Date.now() - (50 - i) * 24 * 60 * 60 * 1000).toISOString()
+        publishTime: new Date(Date.now() - (50 - i) * 24 * 60 * 60 * 1000).toISOString(),
       })),
-      total: 50
+      total: 50,
     })
   }
 
@@ -1331,5 +1640,5 @@ export const mockDataManagerConfig = {
 
   // 模拟延迟范围（毫秒）
   minDelay: 100,
-  maxDelay: 300
+  maxDelay: 300,
 }

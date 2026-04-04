@@ -18,8 +18,7 @@
                     <QyTag
                         v-for="role in userRoles"
                         :key="role"
-                        :type="getRoleTagType(role)"
-                        size="large"
+                        :variant="getRoleTagType(role)"
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
@@ -29,7 +28,6 @@
                 <QyButton
                     v-if="canDowngrade"
                     variant="danger"
-                    :icon="ArrowDown"
                     @click="showDowngradeDialog"
                 >
                     降级为读者
@@ -43,13 +41,13 @@
                 <QyFormItem label="头像">
                     <div class="avatar-upload-container">
                         <QyAvatar :size="100" :src="form.avatar || userStore.avatar">
-                            {{ userStore.displayName.charAt(0) }}
+                            {{ String(userStore.displayName || '').charAt(0) || 'U' }}
                         </QyAvatar>
                         <div class="avatar-actions">
                             <qy-upload :action="uploadUrl" :headers="uploadHeaders" :show-file-list="false"
                                 :before-upload="beforeAvatarUpload" :on-success="handleAvatarSuccess"
                                 :on-error="handleUploadError">
-                                <QyButton type="primary" :icon="Upload" :loading="uploading">
+                                <QyButton type="primary" :loading="uploading">
                                     上传头像
                                 </QyButton>
                             </qy-upload>
@@ -60,7 +58,7 @@
 
                 <!-- 昵称 -->
                 <QyFormItem label="昵称" prop="nickname">
-                    <QyInput v-model="form.nickname" placeholder="请输入昵称" maxlength="50" show-word-limit clearable />
+                    <QyInput v-model="form.nickname" placeholder="请输入昵称" :maxlength="50" show-word-limit clearable />
                 </QyFormItem>
 
                 <!-- 个人简介 -->
@@ -72,9 +70,9 @@
                 <!-- 性别 -->
                 <QyFormItem label="性别" prop="gender">
                     <QyRadioGroup v-model="form.gender">
-                        <QyRadio label="male">男</QyRadio>
-                        <QyRadio label="female">女</QyRadio>
-                        <QyRadio label="other">保密</QyRadio>
+                        <QyRadio value="male">男</QyRadio>
+                        <QyRadio value="female">女</QyRadio>
+                        <QyRadio value="other">保密</QyRadio>
                     </QyRadioGroup>
                 </QyFormItem>
 
@@ -86,25 +84,25 @@
 
                 <!-- 所在地 -->
                 <QyFormItem label="所在地" prop="location">
-                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" maxlength="100" clearable />
+                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" :maxlength="100" clearable />
                 </QyFormItem>
 
                 <!-- 个人网站 -->
                 <QyFormItem label="个人网站" prop="website">
-                    <QyInput v-model="form.website" placeholder="https://example.com" maxlength="200" clearable />
+                    <QyInput v-model="form.website" placeholder="https://example.com" :maxlength="200" clearable />
                 </QyFormItem>
 
                 <!-- 社交账号 -->
                 <QyFormItem label="微博">
-                    <QyInput v-model="form.social.weibo" placeholder="微博账号" maxlength="50" clearable />
+                    <QyInput v-model="form.social.weibo" placeholder="微博账号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="微信">
-                    <QyInput v-model="form.social.wechat" placeholder="微信号" maxlength="50" clearable />
+                    <QyInput v-model="form.social.wechat" placeholder="微信号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="QQ">
-                    <QyInput v-model="form.social.qq" placeholder="QQ号" maxlength="20" clearable />
+                    <QyInput v-model="form.social.qq" placeholder="QQ号" :maxlength="20" clearable />
                 </QyFormItem>
 
                 <!-- 提交按钮 -->
@@ -149,7 +147,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import type { FormInstance, UploadProps } from 'element-plus'
-import { Upload, ArrowDown, WarningFilled } from '@element-plus/icons-vue'
 import { QyCard, QyButton, QyTag, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
@@ -187,7 +184,6 @@ const userRoles = computed(() => {
     // 优先：从authStore获取（响应式数据源，确保UI自动更新）
     const storeRoles = authStore.roles || authStore.user?.roles
     if (storeRoles && storeRoles.length > 0) {
-        console.log('[AccountSettings] ✅ Using authStore roles:', storeRoles)
         return storeRoles
     }
 
@@ -197,7 +193,6 @@ const userRoles = computed(() => {
         if (stored) {
             const parsed = JSON.parse(stored) as string[]
             if (parsed && parsed.length > 0) {
-                console.log('[AccountSettings] ⚠️ Using localStorage roles as fallback:', parsed)
                 // 同步到authStore以保持一致
                 ;(authStore as { roles: string[] }).roles = parsed
                 return parsed
@@ -207,7 +202,6 @@ const userRoles = computed(() => {
         console.error('[AccountSettings] Failed to parse localStorage roles:', e)
     }
 
-    console.log('[AccountSettings] ❌ No roles found anywhere')
     return []
 })
 
@@ -250,8 +244,8 @@ const rules = {
 }
 
 // 获取角色标签颜色
-const getRoleTagType = (role: string) => {
-    const roleTypes: Record<string, string> = {
+const getRoleTagType = (role: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+    const roleTypes: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
         admin: 'danger',
         author: 'success',
         reader: 'info'
@@ -285,7 +279,6 @@ const confirmDowngrade = async () => {
         downgrading.value = true
 
         const token = localStorage.getItem('qingyu_token')
-        console.log('[降级] 开始降级流程, token:', token?.substring(0, 20) + '...')
 
         const response = await fetch('/api/v1/user/role/downgrade', {
             method: 'POST',
@@ -299,39 +292,25 @@ const confirmDowngrade = async () => {
             })
         })
 
-        console.log('[降级] API响应状态:', response.status, response.statusText)
-
         if (response.ok) {
             const result = await response.json()
-            console.log('[降级] API完整响应:', result)
-            console.log('[降级] result.data:', result.data)
-            console.log('[降级] result.data.current_roles:', result.data?.current_roles)
 
             message.success('降级成功')
             downgradeDialogVisible.value = false
 
             // 更新 authStore 中的 roles（响应式，确保UI立即更新）
             const newRoles = result.data?.current_roles || ['reader']
-            console.log('[降级] 准备更新roles为:', newRoles)
 
             // 先更新响应式数据，确保UI立即响应
             authStore.roles = newRoles
             if (authStore.user) {
                 authStore.user.roles = newRoles
             }
-            console.log('[降级] authStore已更新, authStore.roles:', authStore.roles)
-            console.log('[降级] authStore.user.roles:', authStore.user?.roles)
 
             // 然后持久化到 localStorage
             localStorage.setItem('qingyu_roles', JSON.stringify(newRoles))
-            console.log('[降级] localStorage已更新')
-
-            // 验证更新是否成功
-            const storedRoles = localStorage.getItem('qingyu_roles')
-            console.log('[降级] 验证localStorage中的qingyu_roles:', storedRoles)
 
             // 跳转到首页
-            console.log('[降级] 准备跳转到首页')
             router.push('/bookstore')
         } else {
             const data = await response.json()
@@ -348,7 +327,7 @@ const confirmDowngrade = async () => {
 
 // 初始化表单
 const initForm = () => {
-    const profile = userStore.profile as Record<string, unknown>
+    const profile = userStore.profile as unknown as Record<string, unknown> | undefined
     form.avatar = (profile?.avatar as string) || ''
     form.nickname = (profile?.nickname as string) || ''
     form.bio = (profile?.bio as string) || ''
@@ -449,15 +428,12 @@ onMounted(async () => {
 
     // 添加：确保roles从localStorage恢复
     if (authStore.token && (!authStore.roles || authStore.roles.length === 0)) {
-        console.log('[AccountSettings] authStore.roles为空，尝试从localStorage恢复')
         const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
         if (savedRoles && savedRoles.length > 0) {
             authStore.roles = savedRoles
-            console.log('[AccountSettings] 恢复roles成功:', savedRoles)
         } else {
             // 如果localStorage也没有，调用initAuth
             await authStore.initAuth()
-            console.log('[AccountSettings] 调用initAuth后的roles:', authStore.roles)
         }
     }
 })

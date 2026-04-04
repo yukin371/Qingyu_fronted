@@ -310,7 +310,7 @@ const avatar = computed(() => (userStore.avatar as unknown as string) || '')
 const avatarUrl = computed(() => avatar.value || profileForm.avatar)
 const profile = computed<any>(() => userStore.profile as any)
 const roleLabel = computed(() => {
-  const role = (profile.value?.role || userStore.userInfo?.role || '').toString().toLowerCase()
+  const role = (profile.value?.role || (userStore.userInfo as any)?.role || '').toString().toLowerCase()
   if (role === 'admin') return '管理员'
   if (role === 'writer') return '作者'
   return '读者'

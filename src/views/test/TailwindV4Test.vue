@@ -255,6 +255,10 @@ function setTheme(theme: ThemeName) {
   setThemeSystem(theme)
 }
 
+// Expose browser APIs for template usage
+const getComputedStyle = window.getComputedStyle.bind(window)
+const document = window.document
+
 onMounted(() => {
   // 从 localStorage 读取保存的主题
   const saved = localStorage.getItem('qingyu-theme')

@@ -244,6 +244,8 @@ onUnmounted(() => {
 
 // 暴露方法
 defineExpose({
+  selectRef,
+  dropdownRef,
   focus: () => inputRef.value?.focus(),
   blur: () => inputRef.value?.blur(),
 })

@@ -138,7 +138,14 @@
     </div>
 
     <!-- 审核详情对话框 -->
-    <el-dialog v-model="dialogVisible" :title="`审核详情 - ${currentItem?.title || '无标题'}`" width="800px">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="`审核详情 - ${currentItem?.title || '无标题'}`"
+      width="800px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <div v-if="currentItem" class="review-detail">
         <div class="detail-header">
           <div class="detail-type" :class="currentItem.contentType">
@@ -178,7 +185,14 @@
     </el-dialog>
 
     <!-- 拒绝原因对话框 -->
-    <el-dialog v-model="rejectDialogVisible" title="拒绝原因" width="500px">
+    <el-dialog
+      v-model="rejectDialogVisible"
+      title="拒绝原因"
+      width="500px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <el-form :model="rejectForm" label-width="80px">
         <el-form-item label="拒绝原因" required>
           <el-input
@@ -208,14 +222,11 @@ import ReviewCard from '@admin/components/ReviewCard.vue'
 import * as adminAPI from '@/modules/admin/api'
 import type { PendingReview } from '@/types/shared'
 
-// 统计数据
 const stats = reactive({
-  pending: 23,
-  approved: 156,
-  rejected: 12
+  pending: 0,
+  approved: 0,
+  rejected: 0
 })
-
-const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true'
 
 // 筛选器
 const filters = reactive({
@@ -234,11 +245,9 @@ const pagination = reactive({
 const loading = ref(false)
 const reviews = ref<any[]>([])
 const total = ref(0)
-const mockReviewsPool = ref<any[]>([])
 const authorOptions = computed<string[]>(() => {
-  const source = mockReviewsPool.value.length > 0 ? mockReviewsPool.value : createMockReviewsPool()
   const set = new Set<string>()
-  source.forEach((item) => {
+  reviews.value.forEach((item) => {
     const name = String(item.submittedBy || item.submitterName || '').trim()
     if (name) set.add(name)
   })
@@ -258,108 +267,6 @@ const rejectForm = reactive({
 
 type ReviewContentType = 'book' | 'chapter' | 'document' | 'comment'
 
-function createMockReviewsPool(): any[] {
-  const books = ['云岚纪事', '北境灯塔', '潮汐备忘录', '群星修补计划', '旧城电台']
-  const typeSequence: ReviewContentType[] = ['chapter', 'comment', 'book', 'document']
-  const titleByType: Record<ReviewContentType, string[]> = {
-    chapter: ['第12章 夜巡', '第28章 逆风信号', '第7章 雨巷回声', '第34章 终点站'],
-    comment: ['书评：节奏稍慢但设定很强', '评论：主角弧线清晰', '长评：后半段更精彩', '读者反馈：建议补充背景'],
-    book: ['新书《风暴前夜》提交审核', '作品《雪线之下》修订版', '《第七码头》封面与简介更新', '《碎片图书馆》上架申请'],
-    document: ['作者公告草稿', '活动说明文档', '章节大纲修订', '读者问答汇总']
-  }
-  const authors = ['林澈', '周岚', '顾野', '安若', '沈青', '夏川', '陆临']
-  const statusPlan: Array<'pending' | 'approved' | 'rejected'> = [
-    ...Array(23).fill('pending'),
-    ...Array(34).fill('approved'),
-    ...Array(11).fill('rejected')
-  ]
-  const now = Date.now()
-
-  return statusPlan.map((status, index) => {
-    const contentType = typeSequence[index % typeSequence.length]
-    const bookName = books[index % books.length]
-    const author = authors[index % authors.length]
-    const createdAt = new Date(now - index * 75 * 60 * 1000).toISOString()
-    const reviewedAt =
-      status === 'pending'
-        ? undefined
-        : new Date(new Date(createdAt).getTime() + (20 + (index % 40)) * 60 * 1000).toISOString()
-
-    return {
-      id: `rvw_${(index + 1).toString().padStart(4, '0')}`,
-      reviewId: `rvw_${(index + 1).toString().padStart(4, '0')}`,
-      targetId: `${contentType}_${1000 + index}`,
-      contentId: `${contentType}_${1000 + index}`,
-      title: titleByType[contentType][index % titleByType[contentType].length],
-      content: `来自《${bookName}》的${contentType === 'comment' ? '读者内容' : '提交内容'}，用于模拟审核列表展示与筛选行为。第 ${index + 1} 条记录。`,
-      submitterId: `user_${2000 + (index % 50)}`,
-      submittedBy: author,
-      submitterName: author,
-      projectName: bookName,
-      type: contentType,
-      contentType,
-      status,
-      createdAt,
-      submittedAt: createdAt,
-      reviewedAt
-    }
-  })
-}
-
-function applyMockFilters(source: any[]): any[] {
-  let filtered = source.filter((item) => item.status === 'pending')
-
-  if (filters.contentType) {
-    filtered = filtered.filter((item) => item.contentType === filters.contentType)
-  }
-
-  const keyword = filters.keyword.trim().toLowerCase()
-  if (keyword) {
-    filtered = filtered.filter((item) => {
-      const title = String(item.title || '').toLowerCase()
-      const content = String(item.content || '').toLowerCase()
-      const submitter = String(item.submittedBy || '').toLowerCase()
-      const projectName = String(item.projectName || '').toLowerCase()
-      return (
-        title.includes(keyword) ||
-        content.includes(keyword) ||
-        submitter.includes(keyword) ||
-        projectName.includes(keyword)
-      )
-    })
-  }
-
-  if (filters.author) {
-    filtered = filtered.filter((item) => {
-      const submitter = String(item.submittedBy || item.submitterName || '')
-      return submitter === filters.author
-    })
-  }
-
-  return filtered
-}
-
-function syncStatsWithMockPool(): void {
-  const source = mockReviewsPool.value
-  stats.pending = source.filter((item) => item.status === 'pending').length
-  stats.approved = source.filter((item) => item.status === 'approved').length
-  stats.rejected = source.filter((item) => item.status === 'rejected').length
-}
-
-function loadMockReviews(): void {
-  if (mockReviewsPool.value.length === 0) {
-    mockReviewsPool.value = createMockReviewsPool()
-  }
-
-  syncStatsWithMockPool()
-  const filtered = applyMockFilters(mockReviewsPool.value)
-  total.value = filtered.length
-
-  const start = (pagination.page - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  reviews.value = filtered.slice(start, end)
-}
-
 // 获取类型名称
 const getTypeName = (type?: string): string => {
   if (!type) return '-'
@@ -372,15 +279,70 @@ const getTypeName = (type?: string): string => {
   return typeMap[type] || type
 }
 
+const normalizeReviewItem = (item: any) => {
+  const reviewId = item.reviewId || item.id || item.auditId || item.targetId || item.contentId || ''
+  const contentType = (item.contentType || item.type || item.targetType || 'document') as ReviewContentType
+  const submittedAt = item.submittedAt || item.createdAt || item.submit_time || item.created_at || ''
+
+  return {
+    ...item,
+    reviewId,
+    contentId: item.contentId || item.targetId || item.resourceId || item.content_id || '',
+    targetId: item.targetId || item.contentId || item.resourceId || item.target_id || '',
+    title: item.title || item.name || item.contentTitle || '未命名内容',
+    content: item.content || item.preview || item.summary || '',
+    submittedBy: item.submittedBy || item.submitterName || item.authorName || item.submitter_name || '未知提交者',
+    submitterName: item.submitterName || item.submittedBy || item.authorName || item.submitter_name || '未知提交者',
+    contentType,
+    type: contentType,
+    submittedAt,
+    createdAt: item.createdAt || submittedAt,
+  }
+}
+
+const applyFrontendFilters = (source: any[]) => {
+  let filtered = [...source]
+
+  if (filters.contentType) {
+    filtered = filtered.filter(item => item.contentType === filters.contentType)
+  }
+
+  const keyword = filters.keyword.trim().toLowerCase()
+  if (keyword) {
+    filtered = filtered.filter(item => {
+      const title = String(item.title || '').toLowerCase()
+      const content = String(item.content || '').toLowerCase()
+      const submitter = String(item.submittedBy || item.submitterName || '').toLowerCase()
+      return title.includes(keyword) || content.includes(keyword) || submitter.includes(keyword)
+    })
+  }
+
+  if (filters.author) {
+    filtered = filtered.filter(item => String(item.submittedBy || item.submitterName || '') === filters.author)
+  }
+
+  return filtered
+}
+
+const loadReviewStats = async () => {
+  try {
+    const response = await adminAPI.getAuditStatistics()
+    const data = (response as any)?.data ?? response ?? {}
+    stats.pending = Number(data.pending ?? 0)
+    stats.approved = Number(data.approved ?? 0)
+    stats.rejected = Number(data.rejected ?? 0)
+  } catch (error) {
+    console.error('加载审核统计失败:', error)
+    stats.pending = 0
+    stats.approved = 0
+    stats.rejected = 0
+  }
+}
+
 // 加载审核列表
 const loadReviews = async () => {
   loading.value = true
   try {
-    if (isTestMode) {
-      loadMockReviews()
-      return
-    }
-
     const params: any = {
       page: pagination.page,
       page_size: pagination.pageSize
@@ -393,33 +355,19 @@ const loadReviews = async () => {
       params.submitter_name = filters.author
     }
 
-    const response = await adminAPI.getPendingReviews(params)
+    const response = await adminAPI.getPendingReviews(params) as any
+    const rawData = response?.data ?? response ?? []
+    const rawList = Array.isArray(rawData) ? rawData : (rawData.items || rawData.list || [])
+    const normalized = rawList.map(normalizeReviewItem)
+    const filtered = applyFrontendFilters(normalized)
 
-    if (response.data) {
-      if (Array.isArray(response.data)) {
-        const list = filters.author
-          ? response.data.filter((item: any) => String(item.submittedBy || item.submitterName || '') === filters.author)
-          : response.data
-        reviews.value = list
-        total.value = list.length
-        stats.pending = total.value
-      } else if (response.data.items) {
-        const list = filters.author
-          ? response.data.items.filter((item: any) => String(item.submittedBy || item.submitterName || '') === filters.author)
-          : response.data.items
-        reviews.value = list
-        total.value = filters.author ? list.length : (response.data.total || 0)
-        stats.pending = total.value
-      }
-    }
+    reviews.value = filtered
+    total.value = filters.keyword || filters.author ? filtered.length : Number(rawData.total ?? rawData.pagination?.total ?? filtered.length)
   } catch (error) {
     console.error('加载审核列表失败:', error)
-    if (!isTestMode) {
-      loadMockReviews()
-      message.warning('接口不可用，已切换为模拟审核数据')
-    } else {
-      message.error('加载审核列表失败')
-    }
+    reviews.value = []
+    total.value = 0
+    message.error('加载审核列表失败')
   } finally {
     loading.value = false
   }
@@ -449,29 +397,13 @@ const handleApprove = async (item: PendingReview) => {
       closeOnPressEscape: true
     })
 
-    if (isTestMode) {
-      const target = mockReviewsPool.value.find(
-        (row) =>
-          (row.contentId || row.targetId) === (item.contentId || item.targetId) &&
-          row.status === 'pending'
-      )
-      if (target) {
-        target.status = 'approved'
-        target.reviewedAt = new Date().toISOString()
-      }
-      message.success('批准成功，内容已发布（模拟）')
-      dialogVisible.value = false
-      loadReviews()
-      return
-    }
-
     await adminAPI.reviewContent(item.contentId || item.targetId, {
-      status: 'approved'
+      approved: true
     })
 
     message.success('批准成功，内容已发布')
     dialogVisible.value = false
-    loadReviews()
+    await Promise.all([loadReviewStats(), loadReviews()])
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('批准失败:', error)
@@ -498,33 +430,15 @@ const confirmReject = async () => {
 
   submitting.value = true
   try {
-    if (isTestMode) {
-      const target = mockReviewsPool.value.find(
-        (row) =>
-          (row.contentId || row.targetId) === (currentItem.value?.contentId || currentItem.value?.targetId) &&
-          row.status === 'pending'
-      )
-      if (target) {
-        target.status = 'rejected'
-        target.reason = rejectForm.reason
-        target.reviewedAt = new Date().toISOString()
-      }
-      message.success('已拒绝该内容（模拟）')
-      rejectDialogVisible.value = false
-      dialogVisible.value = false
-      loadReviews()
-      return
-    }
-
     await adminAPI.reviewContent(currentItem.value.contentId || currentItem.value.targetId, {
-      status: 'rejected',
+      approved: false,
       reason: rejectForm.reason
     })
 
     message.success('已拒绝该内容')
     rejectDialogVisible.value = false
     dialogVisible.value = false
-    loadReviews()
+    await Promise.all([loadReviewStats(), loadReviews()])
   } catch (error) {
     console.error('拒绝失败:', error)
     message.error('操作失败')
@@ -534,7 +448,7 @@ const confirmReject = async () => {
 }
 
 onMounted(() => {
-  loadReviews()
+  void Promise.all([loadReviewStats(), loadReviews()])
 })
 </script>
 

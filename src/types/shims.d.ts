@@ -95,6 +95,7 @@ declare module '@/stores/reader' {
   import type { Chapter, ChapterContent, ReaderSettings } from '@/types/reader'
 
   export interface ReaderStore {
+    currentBookId: import('vue').Ref<string | null>
     currentChapter: import('vue').Ref<Chapter | null>
     chapterContent: import('vue').Ref<ChapterContent | null>
     chapterList: import('vue').Ref<Chapter[]>
@@ -117,7 +118,7 @@ declare module '@/stores/reader' {
       bookId: string,
       chapterId: string,
       progress: number,
-      scrollPosition: number
+      scrollPosition: number,
     ): Promise<void>
     updateReadingTime(bookId: string, duration: number): Promise<void>
     updateProgress(progress: number): void
@@ -379,19 +380,20 @@ declare module '@/types/writer' {
     order: number
     wordCount?: number
     documentId?: string
+    type?: string
     children?: OutlineNode[]
   }
 }
 
 declare module '@/types/ai' {
   export interface ChatMessage {
-    id: string
+    id?: string
     role: 'user' | 'assistant' | 'system'
     content: string
-    timestamp: string
+    timestamp: number
   }
 
-  export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite'
+  export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'story-generate'
 
   export interface AIConfig {
     continueLength?: number
@@ -405,7 +407,13 @@ declare module '@/types/ai' {
     tool: AIToolType
     input: string
     output: string
-    timestamp: string
+    timestamp: number
+    projectId?: string
+    usage?: {
+      prompt_tokens: number
+      completion_tokens: number
+      total_tokens: number
+    }
   }
 }
 

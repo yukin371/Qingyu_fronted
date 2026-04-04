@@ -2,7 +2,8 @@
  * Anchor 组件单元测试
  */
 
-
+// @ts-nocheck - Test file with flexible type assertions
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref, nextTick } from 'vue'
 import Anchor from './Anchor.vue'

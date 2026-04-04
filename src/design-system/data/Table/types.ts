@@ -84,31 +84,31 @@ export interface TableProps {
 // Table Events 接口
 export interface TableEmits {
   /** 当用户手动勾选数据行的 Checkbox 时触发的事件 */
-  select: (selection: TableRowData[], row: TableRowData) => void
+  select: [selection: TableRowData[], row: TableRowData]
   /** 当选择项发生变化时会触发该事件 */
-  selectionChange: (selection: TableRowData[]) => void
+  selectionChange: [selection: TableRowData[]]
   /** 当表格的排序条件发生变化的时候触发的事件 */
-  sortChange: (sort: SortParams) => void
+  sortChange: [sort: SortParams]
   /** 当某一行被点击时会触发该事件 */
-  rowClick: (row: TableRowData, column: Column | undefined, event: Event) => void
+  rowClick: [row: TableRowData, column: Column | undefined, event: Event]
   /** 当某一行被鼠标右键点击时会触发该事件 */
-  rowContextmenu: (row: TableRowData, column: Column | undefined, event: Event) => void
+  rowContextmenu: [row: TableRowData, column: Column | undefined, event: Event]
   /** 当某一行被双击时会触发该事件 */
-  rowDblclick: (row: TableRowData, column: Column | undefined, event: Event) => void
+  rowDblclick: [row: TableRowData, column: Column | undefined, event: Event]
   /** 当单元格 hover 进入时会触发该事件 */
-  cellMouseEnter: (row: TableRowData, column: Column, cell: EventTarget, event: Event) => void
+  cellMouseEnter: [row: TableRowData, column: Column, cell: EventTarget, event: Event]
   /** 当单元格 hover 退出时会触发该事件 */
-  cellMouseLeave: (row: TableRowData, column: Column, cell: EventTarget, event: Event) => void
+  cellMouseLeave: [row: TableRowData, column: Column, cell: EventTarget, event: Event]
   /** 当某一行被 hover 进入时会触发该事件 */
-  rowMouseEnter: (row: TableRowData, column: Column | undefined, event: Event) => void
+  rowMouseEnter: [row: TableRowData, column: Column | undefined, event: Event]
   /** 当某一行被 hover 退出时会触发该事件 */
-  rowMouseLeave: (row: TableRowData, column: Column | undefined, event: Event) => void
+  rowMouseLeave: [row: TableRowData, column: Column | undefined, event: Event]
 }
 
 // Table 组件默认属性
 export const tableDefaults: Partial<TableProps> = {
-  data: () => [],
-  columns: () => [],
+  data: undefined,
+  columns: undefined,
   border: false,
   stripe: false,
   size: 'md',

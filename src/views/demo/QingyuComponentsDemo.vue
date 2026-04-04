@@ -97,7 +97,7 @@
           </QyCard>
 
           <!-- Card without Shadow -->
-          <QyCard :shadow="false">
+          <QyCard shadow="never">
             <h3 class="text-xl font-bold text-slate-800 mb-2">No Shadow</h3>
             <p class="text-slate-600">This card has shadow disabled.</p>
           </QyCard>
@@ -160,7 +160,7 @@
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Textarea</h3>
               <div class="max-w-md">
-                <QyInput
+                <el-input
                   v-model="textareaInput"
                   type="textarea"
                   placeholder="Write a message..."
@@ -210,24 +210,24 @@
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Count Badges</h3>
               <div class="flex flex-wrap items-center gap-6">
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="5" color="cyan" />
-                  <span class="text-sm text-slate-600">Cyan (5)</span>
+                  <QyBadge type="number" :value="5" color="primary" />
+                  <span class="text-sm text-slate-600">Primary (5)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="10" color="blue" />
-                  <span class="text-sm text-slate-600">Blue (10)</span>
+                  <QyBadge type="number" :value="10" color="info" />
+                  <span class="text-sm text-slate-600">Info (10)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="3" color="green" />
-                  <span class="text-sm text-slate-600">Green (3)</span>
+                  <QyBadge type="number" :value="3" color="success" />
+                  <span class="text-sm text-slate-600">Success (3)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="150" :max="99" color="red" />
-                  <span class="text-sm text-slate-600">Red (150+)</span>
+                  <QyBadge type="number" :value="150" :max="99" color="danger" />
+                  <span class="text-sm text-slate-600">Danger (150+)</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <QyBadge type="count" :value="7" color="yellow" />
-                  <span class="text-sm text-slate-600">Yellow (7)</span>
+                  <QyBadge type="number" :value="7" color="warning" />
+                  <span class="text-sm text-slate-600">Warning (7)</span>
                 </div>
               </div>
             </div>
@@ -236,12 +236,12 @@
             <div>
               <h3 class="text-lg font-semibold text-slate-700 mb-4">Status Badges</h3>
               <div class="flex flex-wrap gap-4">
-                <QyBadge type="status" text="Active" color="green" />
-                <QyBadge type="status" text="Pending" color="yellow" />
-                <QyBadge type="status" text="Inactive" color="red" />
-                <QyBadge type="status" text="Processing" color="blue" />
-                <QyBadge type="status" text="New" color="cyan" />
-                <QyBadge type="status" color="purple">
+                <QyBadge type="text" text="Active" color="success" />
+                <QyBadge type="text" text="Pending" color="warning" />
+                <QyBadge type="text" text="Inactive" color="danger" />
+                <QyBadge type="text" text="Processing" color="info" />
+                <QyBadge type="text" text="New" color="primary" />
+                <QyBadge type="text" color="primary">
                   Custom
                 </QyBadge>
               </div>
@@ -255,15 +255,15 @@
                   <p class="text-sm text-slate-600 mb-2">Different Sizes:</p>
                   <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="cyan" dotSize="sm" />
+                      <QyBadge type="dot" color="primary" dotSize="sm" />
                       <span class="text-sm text-slate-600">Small</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="blue" dotSize="md" />
+                      <QyBadge type="dot" color="info" dotSize="md" />
                       <span class="text-sm text-slate-600">Medium</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="green" dotSize="lg" />
+                      <QyBadge type="dot" color="success" dotSize="lg" />
                       <span class="text-sm text-slate-600">Large</span>
                     </div>
                   </div>
@@ -272,19 +272,19 @@
                   <p class="text-sm text-slate-600 mb-2">Different Colors:</p>
                   <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="cyan" />
+                      <QyBadge type="dot" color="success" />
                       <span class="text-sm text-slate-600">Online</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="yellow" />
+                      <QyBadge type="dot" color="warning" />
                       <span class="text-sm text-slate-600">Away</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="red" />
+                      <QyBadge type="dot" color="danger" />
                       <span class="text-sm text-slate-600">Offline</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <QyBadge type="dot" color="purple" />
+                      <QyBadge type="dot" color="info" />
                       <span class="text-sm text-slate-600">Busy</span>
                     </div>
                   </div>
@@ -299,13 +299,13 @@
                 <div class="relative inline-block">
                   <QyButton>Notifications</QyButton>
                   <div class="absolute -top-2 -right-2">
-                    <QyBadge type="count" :value="5" color="red" />
+                    <QyBadge type="number" :value="5" color="danger" />
                   </div>
                 </div>
                 <div class="relative inline-block">
                   <QyButton variant="secondary">Messages</QyButton>
                   <div class="absolute -top-2 -right-2">
-                    <QyBadge type="count" :value="99" :max="99" color="cyan" />
+                    <QyBadge type="number" :value="99" :max="99" color="primary" />
                   </div>
                 </div>
               </div>
@@ -759,15 +759,15 @@
             <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-slate-600">Status</span>
-                <QyBadge type="status" text="Active" color="green" />
+                <QyBadge type="text" text="Active" color="success" />
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-600">Projects</span>
-                <QyBadge type="count" :value="12" color="blue" />
+                <QyBadge type="number" :value="12" color="info" />
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-600">Tasks</span>
-                <QyBadge type="count" :value="5" color="cyan" />
+                <QyBadge type="number" :value="5" color="primary" />
               </div>
             </div>
             <template #footer>
@@ -789,7 +789,7 @@
                 </div>
               </div>
             </template>
-            <QyInput
+            <el-input
               v-model="commentText"
               type="textarea"
               placeholder="Write a comment..."
@@ -798,7 +798,7 @@
             <template #footer>
               <div class="flex justify-between items-center">
                 <div class="flex gap-2">
-                  <QyBadge type="dot" color="green" />
+                  <QyBadge type="dot" color="success" />
                   <span class="text-sm text-slate-500">Online</span>
                 </div>
                 <div class="flex gap-2">

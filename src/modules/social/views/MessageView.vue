@@ -1,10 +1,7 @@
 <template>
   <div class="message-view">
     <!-- WebSocket连接状态 -->
-    <div
-      class="connection-status"
-      :class="{ connected: wsConnected }"
-    >
+    <div class="connection-status" :class="{ connected: wsConnected }">
       {{ wsConnected ? '已连接' : '未连接' }}
     </div>
 
@@ -14,7 +11,7 @@
         <div class="panel-header">
           <h3>消息</h3>
           <el-badge :value="totalUnread" :hidden="totalUnread === 0" class="badge">
-            <QyIcon name="ChatDotRound"  />
+            <QyIcon name="ChatDotRound" />
           </el-badge>
         </div>
 
@@ -26,7 +23,7 @@
             @input="handleSearch"
           >
             <template #prefix>
-              <QyIcon name="Search"  />
+              <QyIcon name="Search" />
             </template>
           </el-input>
         </div>
@@ -56,10 +53,10 @@
               </div>
               <div class="conv-preview">
                 <span v-if="conv.last_message_type === 'image'" class="message-type-icon">
-                  <QyIcon name="Picture"  />
+                  <QyIcon name="Picture" />
                 </span>
                 <span v-else-if="conv.last_message_type === 'file'" class="message-type-icon">
-                  <QyIcon name="Document"  />
+                  <QyIcon name="Document" />
                 </span>
                 <span class="message-text">{{ conv.last_message }}</span>
               </div>
@@ -71,10 +68,10 @@
       <!-- 聊天区域 -->
       <div class="chat-panel">
         <div v-if="!selectedConversation" class="empty-state">
-          <el-icon size="80"><QyIcon name="ChatDotRound"  /></el-icon>
+          <el-icon size="80"><QyIcon name="ChatDotRound" /></el-icon>
           <p>选择一个对话开始聊天</p>
           <el-button type="primary" @click="showNewChatDialog = true">
-            <QyIcon name="Plus"  />
+            <QyIcon name="Plus" />
             新建对话
           </el-button>
         </div>
@@ -88,11 +85,11 @@
             </div>
             <div class="chat-actions">
               <el-button text @click="markAsRead">
-                <QyIcon name="Check"  />
+                <QyIcon name="Check" />
                 标为已读
               </el-button>
               <el-button text type="danger" @click="confirmDeleteConversation">
-                <QyIcon name="Delete"  />
+                <QyIcon name="Delete" />
                 删除对话
               </el-button>
             </div>
@@ -107,7 +104,11 @@
                 :class="['message-item', msg.sender_id === currentUserId ? 'sent' : 'received']"
               >
                 <img
-                  :src="msg.sender_id === currentUserId ? currentUserAvatar : selectedConversation.participant_avatar"
+                  :src="
+                    msg.sender_id === currentUserId
+                      ? currentUserAvatar
+                      : selectedConversation.participant_avatar
+                  "
                   class="message-avatar"
                 />
                 <div class="message-content">
@@ -126,7 +127,7 @@
                   </div>
                   <!-- 文件消息 -->
                   <div v-else-if="msg.type === 'file'" class="message-file">
-                    <QyIcon name="Document"  />
+                    <QyIcon name="Document" />
                     <div class="file-info">
                       <div class="file-name">{{ msg.file_name }}</div>
                       <div class="file-size">{{ formatFileSize(msg.file_size) }}</div>
@@ -136,16 +137,21 @@
                   <div class="message-time">
                     {{ formatMessageTime(msg.created_at) }}
                     <span v-if="msg.status === 'failed'" class="error-icon">
-                      <QyIcon name="Warning"  />
+                      <QyIcon name="Warning" />
                     </span>
                   </div>
                 </div>
-                <el-dropdown trigger="click" @command="(cmd) => handleMessageAction(cmd, msg)">
-                  <el-icon class="more-btn"><QyIcon name="MoreFilled"  /></el-icon>
+                <el-dropdown
+                  trigger="click"
+                  @command="(cmd: string) => handleMessageAction(cmd, msg)"
+                >
+                  <el-icon class="more-btn"><QyIcon name="MoreFilled" /></el-icon>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item command="copy">复制</el-dropdown-item>
-                      <el-dropdown-item command="recall" v-if="canRecall(msg)">撤回</el-dropdown-item>
+                      <el-dropdown-item command="recall" v-if="canRecall(msg)"
+                        >撤回</el-dropdown-item
+                      >
                       <el-dropdown-item command="delete">删除</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
@@ -163,15 +169,12 @@
                 accept="image/*"
               >
                 <el-button text>
-                  <QyIcon name="Picture"  />
+                  <QyIcon name="Picture" />
                 </el-button>
               </el-upload>
-              <el-upload
-                :show-file-list="false"
-                :before-upload="handleFileUpload"
-              >
+              <el-upload :show-file-list="false" :before-upload="handleFileUpload">
                 <el-button text>
-                  <QyIcon name="Folder"  />
+                  <QyIcon name="Folder" />
                 </el-button>
               </el-upload>
             </div>
@@ -201,11 +204,7 @@
 
     <!-- 新建对话对话框 -->
     <el-dialog v-model="showNewChatDialog" title="新建对话" width="400px">
-      <el-input
-        v-model="newChatUserId"
-        placeholder="输入用户ID"
-        clearable
-      />
+      <el-input v-model="newChatUserId" placeholder="输入用户ID" clearable />
       <template #footer>
         <el-button @click="showNewChatDialog = false">取消</el-button>
         <el-button type="primary" @click="createNewConversation" :loading="creating">
@@ -217,29 +216,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch as vueWatch } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import {
   getConversations,
-  getMessages,
-  sendTextMessage,
-  sendImageMessage,
-  sendFileMessage,
+  getConversationMessages,
+  sendMessage as sendMessageAPI,
   createConversation,
   markConversationAsRead,
-  deleteConversation,
   deleteMessage,
-  recallMessage,
-  uploadMessageFile,
-  searchConversations,
   getConversationStats,
+  deleteConversation,
+  uploadMessageFile,
+  recallMessage,
+  sendImageMessage,
+  sendFileMessage,
   type Conversation,
-  type Message
+  type Message,
 } from '@/modules/social/api'
 import { useWebSocketStore } from '@/stores/websocket.store'
 import { pollingService } from '@/services/polling'
-import { validateMessage } from '@/utils/validation'
+// 简单的消息验证函数
+const validateMessage = (content: string) => {
+  if (!content || !content.trim()) {
+    return { valid: false, error: '消息内容不能为空', sanitized: '' }
+  }
+  return { valid: true, error: null, sanitized: content.trim() }
+}
 
 const currentUserId = ref('') // 从用户状态获取
 const currentUserAvatar = ref('')
@@ -272,11 +276,11 @@ const creating = ref(false)
 const loadConversations = async () => {
   loadingConversations.value = true
   try {
-    const res = await getConversations({
+    const res = (await getConversations({
       page: 1,
-      page_size: 50
-    })
-    conversations.value = res.items
+      size: 50,
+    })) as any
+    conversations.value = res.items || []
   } catch (error: any) {
     message.error(error.message || '加载失败')
   } finally {
@@ -287,8 +291,8 @@ const loadConversations = async () => {
 // 加载未读统计
 const loadStats = async () => {
   try {
-    const res = await getConversationStats()
-    totalUnread.value = res.total_unread
+    const stats = await getConversationStats()
+    totalUnread.value = stats.total_unread
   } catch (error: any) {
     message.error(error.message || '加载统计失败')
   }
@@ -306,20 +310,20 @@ const loadMessages = async (loadMore = false) => {
 
   loadingMessages.value = true
   try {
-    const res = await getMessages(selectedConversation.value.id, {
+    const res = (await getConversationMessages(selectedConversation.value.id, {
       page: loadMore ? currentPage.value + 1 : 1,
-      page_size: pageSize.value
-    })
+      size: pageSize.value,
+    })) as any
 
     if (loadMore) {
-      messages.value = [...res.items, ...messages.value]
+      messages.value = [...(res.items || []), ...messages.value]
       currentPage.value++
     } else {
-      messages.value = res.items
+      messages.value = res.items || []
       currentPage.value = 1
     }
 
-    hasMore.value = res.items.length === pageSize.value
+    hasMore.value = (res.items || []).length === pageSize.value
 
     // 滚动到底部
     await nextTick()
@@ -346,15 +350,17 @@ const sendMessage = async () => {
 
   sending.value = true
   try {
-    const msg = await sendTextMessage(selectedConversation.value.id, {
-      content: result.sanitized!
-    })
+    const msg = (await sendMessageAPI({
+      receiver_id: selectedConversation.value.participant_id,
+      content: result.sanitized!,
+      message_type: 'text',
+    })) as any
     messages.value.push(msg)
     messageInput.value = ''
     scrollToBottom()
 
     // 更新对话列表中的最后一条消息
-    const conv = conversations.value.find(c => c.id === selectedConversation.value?.id)
+    const conv = conversations.value.find((c) => c.id === selectedConversation.value?.id)
     if (conv) {
       conv.last_message = msg.content
       conv.last_message_time = msg.created_at
@@ -369,13 +375,18 @@ const sendMessage = async () => {
 
 // 上传图片
 const handleImageUpload = async (file: File) => {
+  if (!selectedConversation.value) return false
+
   try {
-    const res = await uploadMessageFile(file)
-    await sendImageMessage(selectedConversation.value!.id, {
-      file_url: res.file_url,
-      file_name: res.file_name
+    // 先上传文件
+    const uploadRes = await uploadMessageFile(file)
+    // 再发送图片消息
+    await sendImageMessage(selectedConversation.value.id, {
+      file_url: uploadRes.file_url,
+      file_name: uploadRes.file_name,
     })
-    loadMessages()
+    loadMessages() // 刷新消息列表
+    message.success('图片发送成功')
   } catch (error: any) {
     message.error(error.message || '上传失败')
   }
@@ -384,14 +395,19 @@ const handleImageUpload = async (file: File) => {
 
 // 上传文件
 const handleFileUpload = async (file: File) => {
+  if (!selectedConversation.value) return false
+
   try {
-    const res = await uploadMessageFile(file)
-    await sendFileMessage(selectedConversation.value!.id, {
-      file_url: res.file_url,
-      file_name: res.file_name,
-      file_size: res.file_size
+    // 先上传文件
+    const uploadRes = await uploadMessageFile(file)
+    // 再发送文件消息
+    await sendFileMessage(selectedConversation.value.id, {
+      file_url: uploadRes.file_url,
+      file_name: uploadRes.file_name,
+      file_size: uploadRes.file_size,
     })
-    loadMessages()
+    loadMessages() // 刷新消息列表
+    message.success('文件发送成功')
   } catch (error: any) {
     message.error(error.message || '上传失败')
   }
@@ -403,8 +419,8 @@ const markAsRead = async () => {
   if (!selectedConversation.value) return
 
   try {
-    await markConversationAsRead(selectedConversation.value.id)
-    const conv = conversations.value.find(c => c.id === selectedConversation.value?.id)
+    await markConversationAsRead(selectedConversation.value.id, {})
+    const conv = conversations.value.find((c) => c.id === selectedConversation.value?.id)
     if (conv) {
       conv.unread_count = 0
     }
@@ -416,21 +432,26 @@ const markAsRead = async () => {
 
 // 删除对话
 const confirmDeleteConversation = () => {
-  messageBox.confirm('确定要删除此对话吗？', '确认删除', {
-    type: 'warning'
-  }).then(async () => {
-    if (!selectedConversation.value) return
+  messageBox
+    .confirm('确定要删除此对话吗？', '确认删除', {
+      type: 'warning',
+    })
+    .then(async () => {
+      if (!selectedConversation.value) return
 
-    try {
-      await deleteConversation(selectedConversation.value.id)
-      conversations.value = conversations.value.filter(c => c.id !== selectedConversation.value?.id)
-      selectedConversation.value = null
-      messages.value = []
-      message.success('删除成功')
-    } catch (error: any) {
-      message.error(error.message || '删除失败')
-    }
-  })
+      try {
+        await deleteConversation(selectedConversation.value.id)
+        conversations.value = conversations.value.filter(
+          (c) => c.id !== selectedConversation.value?.id,
+        )
+        selectedConversation.value = null
+        messages.value = []
+        loadStats() // 更新未读统计
+        message.success('删除成功')
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    })
 }
 
 // 消息操作
@@ -444,17 +465,19 @@ const handleMessageAction = async (command: string, msg: Message) => {
       if (canRecall(msg)) {
         try {
           await recallMessage(msg.id)
-          messages.value = messages.value.filter(m => m.id !== msg.id)
+          messages.value = messages.value.filter((m) => m.id !== msg.id)
           message.success('已撤回')
         } catch (error: any) {
           message.error(error.message || '撤回失败')
         }
+      } else {
+        message.warning('超过2分钟，无法撤回')
       }
       break
     case 'delete':
       try {
         await deleteMessage(msg.id)
-        messages.value = messages.value.filter(m => m.id !== msg.id)
+        messages.value = messages.value.filter((m) => m.id !== msg.id)
         message.success('删除成功')
       } catch (error: any) {
         message.error(error.message || '删除失败')
@@ -478,9 +501,9 @@ const createNewConversation = async () => {
 
   creating.value = true
   try {
-    const conv = await createConversation(newChatUserId.value)
-    conversations.value.unshift(conv)
-    selectedConversation.value = conv
+    const conv = await createConversation({ participantId: newChatUserId.value })
+    conversations.value.unshift(conv as any)
+    selectedConversation.value = conv as any
     showNewChatDialog.value = false
     newChatUserId.value = ''
     loadMessages()
@@ -499,8 +522,8 @@ const handleSearch = async () => {
   }
 
   try {
-    const res = await searchConversations(searchKeyword.value)
-    conversations.value = res
+    // TODO: 实现搜索对话功能
+    message.info('搜索功能暂未实现')
   } catch (error: any) {
     message.error(error.message || '搜索失败')
   }
@@ -522,7 +545,8 @@ const handleScroll = (e: Event) => {
 }
 
 // 时间格式化
-const formatTime = (time: string) => {
+const formatTime = (time: string | undefined) => {
+  if (!time) return ''
   const date = new Date(time)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -573,7 +597,7 @@ const handleNewMessage = (msg: any) => {
     scrollToBottom()
   } else {
     // 更新对话列表的最后消息
-    const conversation = conversations.value.find(c => c.id === msg.conversationId)
+    const conversation = conversations.value.find((c) => c.id === msg.conversationId)
     if (conversation) {
       conversation.last_message = msg.content
       conversation.unread_count = (conversation.unread_count || 0) + 1
@@ -596,24 +620,27 @@ onMounted(() => {
   websocketStore.onMessage(handleNewMessage)
 
   // 监听WebSocket降级状态变化，启动轮询降级
-  watch(() => websocketStore.fallbackActive, (isActive) => {
-    if (isActive) {
-      console.log('[MessageView] WebSocket连接失败，启动轮询降级')
-      pollingService.start(() => {
-        // 重新加载当前对话的消息
-        if (selectedConversation.value) {
-          loadMessages()
-        }
-        // 重新加载对话列表
-        loadConversations()
-        // 重新加载未读统计
-        loadStats()
-      }, 5000)
-    } else {
-      console.log('[MessageView] WebSocket连接恢复，停止轮询降级')
-      pollingService.stop()
-    }
-  })
+  vueWatch(
+    () => websocketStore.fallbackActive,
+    (isActive) => {
+      if (isActive) {
+        console.log('[MessageView] WebSocket连接失败，启动轮询降级')
+        pollingService.start(() => {
+          // 重新加载当前对话的消息
+          if (selectedConversation.value) {
+            loadMessages()
+          }
+          // 重新加载对话列表
+          loadConversations()
+          // 重新加载未读统计
+          loadStats()
+        }, 5000)
+      } else {
+        console.log('[MessageView] WebSocket连接恢复，停止轮询降级')
+        pollingService.stop()
+      }
+    },
+  )
 })
 
 onUnmounted(() => {

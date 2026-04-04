@@ -360,7 +360,7 @@ async function applyTemplateToDocument(
     })
 
     // 触发applied事件，传递渲染后的内容
-    emit('applied', result.renderedContent)
+    emit('applied', (result as unknown as { renderedContent: string }).renderedContent)
     message.success('模板应用成功')
 
     // 关闭面板
@@ -401,7 +401,7 @@ async function loadTemplates(): Promise<void> {
     const response = await templateApi.list({
       projectId: props.projectId
     })
-    templates.value = response.templates
+    templates.value = (response as unknown as { templates: Template[] }).templates
   } catch (error) {
     console.error('加载模板列表失败:', error)
     message.error('加载模板列表失败，请稍后重试')

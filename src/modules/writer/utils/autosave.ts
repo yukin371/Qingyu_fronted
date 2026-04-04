@@ -29,7 +29,7 @@ export class AutoSaveManager {
   constructor(options: AutoSaveOptions = {}) {
     this.options = {
       interval: options.interval ?? 30000, // 默认30秒
-      debounceDelay: options.debounceDelay ?? 1500, // 默认1.5秒
+      debounceDelay: options.debounceDelay ?? 300, // 默认300ms
       storageKey: options.storageKey ?? 'editor_draft',
       onSave: options.onSave ?? this.defaultSaveHandler,
       onConflict: options.onConflict ?? this.defaultConflictHandler

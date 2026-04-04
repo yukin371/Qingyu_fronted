@@ -3,8 +3,6 @@
  * 基于 doc/api/frontend/认证API参考.md
  */
 
-import type { APIResponse } from './api'
-
 // ==================== 登录注册 ====================
 
 /**

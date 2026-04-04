@@ -168,10 +168,10 @@
                 <QyIcon :name="demo.icon" size="md" />
               </div>
               <div class="card-badges">
-                <QyBadge v-if="demo.new" type="status" text="NEW" color="cyan" />
-                <QyBadge v-if="demo.updated" type="status" text="UPDATED" color="blue" />
-                <QyBadge v-if="demo.business" type="status" text="业务页面" color="purple" />
-                <QyBadge v-else type="status" :text="getCategoryName(demo.category)" color="green" />
+                <QyBadge v-if="demo.new" type="text" text="NEW" color="primary" />
+                <QyBadge v-if="demo.updated" type="text" text="UPDATED" color="info" />
+                <QyBadge v-if="demo.business" type="text" text="业务页面" color="warning" />
+                <QyBadge v-else type="text" :text="getCategoryName(demo.category)" color="success" />
               </div>
             </div>
             <div class="card-body">
@@ -399,6 +399,18 @@ const demoPages = ref<DemoPage[]>([
   },
 
   // ===== 风格展示 Demo =====
+  {
+    key: 'digital-atelier',
+    title: 'Digital Atelier 深空编辑器',
+    description: '深空科幻风格的写作编辑器主题，玻璃拟态面板、羊皮纸手稿区、星空背景粒子效果，按 F11 进入沉浸模式。',
+    icon: 'sparkles',
+    color: 'linear-gradient(135deg, #7de9ff 0%, #cebdff 100%)',
+    category: 'style',
+    componentCount: 12,
+    lastUpdated: '2026-03-22',
+    new: true,
+    route: '/writer/atelier'
+  },
   {
     key: 'tailwind-v4-design-system',
     title: 'Tailwind v4 组件库',

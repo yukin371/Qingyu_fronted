@@ -163,10 +163,7 @@ describe('usePanelResize', () => {
       })
 
       // 向右拖拽50px
-      onDrag({
-        clientX: 150,
-        clientY: 0
-      })
+      onDrag({ clientX: 150, clientY: 0 } as MouseEvent)
 
       // 新宽度 = 280 + (150 - 100) = 330
       expect(currentWidth.value).toBe(330)
@@ -187,10 +184,7 @@ describe('usePanelResize', () => {
       })
 
       // 向左拖拽30px
-      onDrag({
-        clientX: 70,
-        clientY: 0
-      })
+      onDrag({ clientX: 70, clientY: 0 } as MouseEvent)
 
       // 新宽度 = 280 + (70 - 100) = 250
       expect(currentWidth.value).toBe(250)
@@ -211,10 +205,7 @@ describe('usePanelResize', () => {
       })
 
       // 向左拖拽50px
-      onDrag({
-        clientX: 450,
-        clientY: 0
-      })
+      onDrag({ clientX: 450, clientY: 0 } as MouseEvent)
 
       // 新宽度 = 320 + (500 - 450) = 370
       expect(currentWidth.value).toBe(370)
@@ -235,10 +226,7 @@ describe('usePanelResize', () => {
       })
 
       // 向右拖拽30px
-      onDrag({
-        clientX: 530,
-        clientY: 0
-      })
+      onDrag({ clientX: 530, clientY: 0 } as MouseEvent)
 
       // 新宽度 = 320 + (500 - 530) = 290
       expect(currentWidth.value).toBe(290)
@@ -261,10 +249,7 @@ describe('usePanelResize', () => {
       })
 
       // 尝试向左拖拽超过最小宽度
-      onDrag({
-        clientX: -100,
-        clientY: 0
-      })
+      onDrag({ clientX: -100, clientY: 0 } as MouseEvent)
 
       // 宽度应该被限制在200px
       expect(currentWidth.value).toBe(200)
@@ -285,10 +270,7 @@ describe('usePanelResize', () => {
       })
 
       // 尝试向右拖拽超过最大宽度
-      onDrag({
-        clientX: 300,
-        clientY: 0
-      })
+      onDrag({ clientX: 300, clientY: 0 } as MouseEvent)
 
       // 宽度应该被限制在600px
       expect(currentWidth.value).toBe(600)
@@ -309,10 +291,7 @@ describe('usePanelResize', () => {
       })
 
       // 尝试向左拖拽超过自定义最小宽度
-      onDrag({
-        clientX: -100,
-        clientY: 0
-      })
+      onDrag({ clientX: -100, clientY: 0 } as MouseEvent)
 
       // 宽度应该被限制在250px
       expect(currentWidth.value).toBe(250)
@@ -333,10 +312,7 @@ describe('usePanelResize', () => {
       })
 
       // 尝试向右拖拽超过自定义最大宽度
-      onDrag({
-        clientX: 200,
-        clientY: 0
-      })
+      onDrag({ clientX: 200, clientY: 0 } as MouseEvent)
 
       // 宽度应该被限制在500px
       expect(currentWidth.value).toBe(500)
@@ -357,10 +333,7 @@ describe('usePanelResize', () => {
       })
 
       // 在约束范围内拖拽
-      onDrag({
-        clientX: 150,
-        clientY: 0
-      })
+      onDrag({ clientX: 150, clientY: 0 } as MouseEvent)
 
       // 宽度应该正常更新
       expect(currentWidth.value).toBe(350)
@@ -371,7 +344,7 @@ describe('usePanelResize', () => {
     it('应该更新panelStore的leftWidth', () => {
       const store = usePanelStore()
 
-      const { currentWidth, startDrag, onDrag, stopDrag } = usePanelResize({
+      const { startDrag, onDrag, stopDrag } = usePanelResize({
         panelId: 'left',
         defaultWidth: 280,
         minWidth: 200,
@@ -384,10 +357,7 @@ describe('usePanelResize', () => {
         startY: 0
       })
 
-      onDrag({
-        clientX: 150,
-        clientY: 0
-      })
+      onDrag({ clientX: 150, clientY: 0 } as MouseEvent)
 
       stopDrag()
 
@@ -411,10 +381,7 @@ describe('usePanelResize', () => {
         startY: 0
       })
 
-      onDrag({
-        clientX: 450,
-        clientY: 0
-      })
+      onDrag({ clientX: 450, clientY: 0 } as MouseEvent)
 
       stopDrag()
 
@@ -438,10 +405,7 @@ describe('usePanelResize', () => {
         startY: 0
       })
 
-      onDrag({
-        clientX: 120,
-        clientY: 0
-      })
+      onDrag({ clientX: 120, clientY: 0 } as MouseEvent)
 
       // 拖拽过程中，panelStore还未更新
       expect(store.leftWidth).toBe(280)
@@ -466,10 +430,7 @@ describe('usePanelResize', () => {
         startY: 0
       })
 
-      onDrag({
-        clientX: 120,
-        clientY: 0
-      })
+      onDrag({ clientX: 120, clientY: 0 } as MouseEvent)
 
       stopDrag()
 
@@ -519,10 +480,7 @@ describe('usePanelResize', () => {
         startY: 0
       })
 
-      onDrag({
-        clientX: 120,
-        clientY: 0
-      })
+      onDrag({ clientX: 120, clientY: 0 } as MouseEvent)
 
       stopDrag()
 
@@ -615,10 +573,7 @@ describe('usePanelResize', () => {
       })
 
       // 大幅向左拖拽
-      onDrag({
-        clientX: -200,
-        clientY: 0
-      })
+      onDrag({ clientX: -200, clientY: 0 } as MouseEvent)
 
       // 应该被限制在最小宽度
       expect(currentWidth.value).toBe(200)
@@ -639,10 +594,7 @@ describe('usePanelResize', () => {
       })
 
       // 大幅向右拖拽
-      onDrag({
-        clientX: 1000,
-        clientY: 0
-      })
+      onDrag({ clientX: 1000, clientY: 0 } as MouseEvent)
 
       // 应该被限制在最大宽度
       expect(currentWidth.value).toBe(600)
@@ -663,10 +615,7 @@ describe('usePanelResize', () => {
       })
 
       // 不移动鼠标
-      onDrag({
-        clientX: 100,
-        clientY: 0
-      })
+      onDrag({ clientX: 100, clientY: 0 } as MouseEvent)
 
       // 宽度应该保持不变
       expect(currentWidth.value).toBe(280)
@@ -681,10 +630,7 @@ describe('usePanelResize', () => {
       })
 
       // 未开始拖拽就调用onDrag
-      onDrag({
-        clientX: 150,
-        clientY: 0
-      })
+      onDrag({ clientX: 150, clientY: 0 } as MouseEvent)
 
       // 宽度应该保持不变
       expect(currentWidth.value).toBe(280)
@@ -705,13 +651,13 @@ describe('usePanelResize', () => {
       })
 
       // 连续多次拖拽
-      onDrag({ clientX: 120, clientY: 0 })
+      onDrag({ clientX: 120, clientY: 0 } as MouseEvent)
       expect(currentWidth.value).toBe(300)
 
-      onDrag({ clientX: 140, clientY: 0 })
+      onDrag({ clientX: 140, clientY: 0 } as MouseEvent)
       expect(currentWidth.value).toBe(320)
 
-      onDrag({ clientX: 160, clientY: 0 })
+      onDrag({ clientX: 160, clientY: 0 } as MouseEvent)
       expect(currentWidth.value).toBe(340)
     })
   })

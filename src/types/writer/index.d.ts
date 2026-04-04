@@ -155,6 +155,7 @@ export interface OutlineNode {
   content?: string
   wordCount?: number
   status?: 'draft' | 'writing' | 'completed' | 'reviewing'
+  type?: string // 节点类型：volume, plot, idea, draft, setting, chapter 等
   createdAt: string
   updatedAt: string
 }

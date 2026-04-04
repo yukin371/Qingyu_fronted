@@ -50,12 +50,19 @@ describe('useReadingStatsStore', () => {
     it('should return total reading time when stats exists', () => {
       const store = useReadingStatsStore()
       store.stats = {
+        userId: 'user1',
+        period: 'weekly',
         totalReadingTime: 3600,
         totalBooks: 10,
-        dailyStats: [],
-        weeklyStats: [],
-        monthlyStats: [],
-      }
+        totalChapters: 20,
+        totalWords: 10000,
+        averageDaily: 500,
+        longestStreak: 5,
+        currentStreak: 3,
+        dailyTrend: [],
+        weeklyTrend: [],
+        monthlyTrend: [],
+      } as any
       expect(store.totalReadingTime).toBe(3600)
     })
 
@@ -70,12 +77,19 @@ describe('useReadingStatsStore', () => {
     it('should return total books when stats exists', () => {
       const store = useReadingStatsStore()
       store.stats = {
+        userId: 'user1',
+        period: 'weekly',
         totalReadingTime: 3600,
         totalBooks: 10,
-        dailyStats: [],
-        weeklyStats: [],
-        monthlyStats: [],
-      }
+        totalChapters: 20,
+        totalWords: 10000,
+        averageDaily: 500,
+        longestStreak: 5,
+        currentStreak: 3,
+        dailyTrend: [],
+        weeklyTrend: [],
+        monthlyTrend: [],
+      } as any
       expect(store.totalBooks).toBe(10)
     })
 
@@ -89,13 +103,20 @@ describe('useReadingStatsStore', () => {
   describe('fetchStats', () => {
     it('should fetch stats successfully', async () => {
       const mockStats = {
+        userId: 'user1',
+        period: 'weekly',
         totalReadingTime: 3600,
         totalBooks: 10,
-        dailyStats: [],
-        weeklyStats: [],
-        monthlyStats: [],
+        totalChapters: 20,
+        totalWords: 10000,
+        averageDaily: 500,
+        longestStreak: 5,
+        currentStreak: 3,
+        dailyTrend: [],
+        weeklyTrend: [],
+        monthlyTrend: [],
       }
-      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue(mockStats)
+      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue(mockStats as any)
       const store = useReadingStatsStore()
 
       await store.fetchStats('weekly')
@@ -107,7 +128,7 @@ describe('useReadingStatsStore', () => {
     })
 
     it('should use weekly period as default', async () => {
-      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({})
+      vi.mocked(readingStatsApi.getReadingStats).mockResolvedValue({} as any)
       const store = useReadingStatsStore()
 
       await store.fetchStats()
@@ -154,7 +175,7 @@ describe('useReadingStatsStore', () => {
         dailyBreakdown: [],
         topBooks: [],
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport as any)
       const store = useReadingStatsStore()
 
       await store.fetchReport('weekly')
@@ -165,7 +186,7 @@ describe('useReadingStatsStore', () => {
     })
 
     it('should use weekly period as default', async () => {
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({})
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue({} as any)
       const store = useReadingStatsStore()
 
       await store.fetchReport()
@@ -203,7 +224,7 @@ describe('useReadingStatsStore', () => {
         period: 'weekly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport as any)
       const store = useReadingStatsStore()
 
       await store.fetchWeeklyReport()
@@ -231,7 +252,7 @@ describe('useReadingStatsStore', () => {
         period: 'monthly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport as any)
       const store = useReadingStatsStore()
 
       await store.fetchMonthlyReport()
@@ -259,7 +280,7 @@ describe('useReadingStatsStore', () => {
         period: 'yearly',
         summary: {},
       }
-      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport)
+      vi.mocked(readingStatsApi.getReadingReport).mockResolvedValue(mockReport as any)
       const store = useReadingStatsStore()
 
       await store.fetchYearlyReport()

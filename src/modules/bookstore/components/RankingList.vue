@@ -140,11 +140,13 @@ const formatNumber = (num: number) => {
 }
 
 const handleItemClick = async (item: any) => {
-  const bookId = item.book?.id || item.id
+  // 优先使用 book.id，其次使用 bookId（榜单数据中的书籍ID字段）
+  // 注意：不要使用 item.id，那是榜单条目ID，不是书籍ID
+  const bookId = item.book?.id || item.bookId
   if (bookId) {
     // 可以在这里调用 store 增加浏览量，或者交给详情页处理
     // await bookstoreStore.incrementBookView(bookId)
-    emit('item-click', item)
+    emit('item-click', { ...item, resolvedBookId: bookId })
   }
 }
 </script>

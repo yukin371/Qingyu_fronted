@@ -8,7 +8,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { NotificationProps, NotificationType, NotificationPosition } from './types'
+import type { NotificationProps, NotificationType } from './types'
 
 // 使用 CVA 定义通知变体
 const notificationVariants = cva(

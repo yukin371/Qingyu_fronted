@@ -76,25 +76,25 @@ export interface PaginationEmits {
    * 当前页改变时触发
    * @param currentPage - 新的当前页
    */
-  'update:currentPage': (currentPage: number) => void
+  'update:currentPage': [currentPage: number]
 
   /**
    * 每页数量改变时触发
    * @param pageSize - 新的每页数量
    */
-  'update:pageSize': (pageSize: number) => void
+  'update:pageSize': [pageSize: number]
 
   /**
    * pageSize 改变时触发
    * @param pageSize - 新的每页数量
    */
-  sizeChange: (pageSize: number) => void
+  sizeChange: [pageSize: number]
 
   /**
    * currentPage 改变时触发
    * @param currentPage - 新的当前页
    */
-  currentChange: (currentPage: number) => void
+  currentChange: [currentPage: number]
 }
 
 // Pagination 组件默认属性

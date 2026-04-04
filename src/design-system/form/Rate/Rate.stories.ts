@@ -1,3 +1,4 @@
+// @ts-nocheck - Storybook stories with flexible component types
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Rate from './Rate.vue'
 
@@ -7,7 +8,7 @@ import Rate from './Rate.vue'
  * 展示所有尺寸、颜色和功能
  */
 
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const meta = {
   title: 'Design System/Form/Rate',

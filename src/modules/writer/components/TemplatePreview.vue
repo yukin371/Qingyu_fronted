@@ -23,7 +23,12 @@
           @click="handleClose"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -32,24 +37,33 @@
       <div class="flex-1 overflow-hidden">
         <div class="h-full flex flex-col lg:flex-row">
           <!-- 左侧区域：变量输入 + 模板编辑 -->
-          <div class="w-full lg:w-1/2 xl:w-[45%] border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col h-full overflow-hidden">
+          <div
+            class="w-full lg:w-1/2 xl:w-[45%] border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col h-full overflow-hidden"
+          >
             <!-- 变量输入区 -->
             <div class="p-4 border-b border-gray-200 bg-gray-50">
               <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                  />
                 </svg>
                 变量输入
               </h4>
 
               <!-- 变量表单 -->
-              <div v-if="sortedVariables.length > 0" class="space-y-3 max-h-[200px] overflow-y-auto pr-2">
-                <div
-                  v-for="variable in sortedVariables"
-                  :key="variable.name"
-                  class="space-y-1"
-                >
-                  <label :for="`preview-field-${variable.name}`" class="block text-xs font-medium text-gray-600">
+              <div
+                v-if="sortedVariables.length > 0"
+                class="space-y-3 max-h-[200px] overflow-y-auto pr-2"
+              >
+                <div v-for="variable in sortedVariables" :key="variable.name" class="space-y-1">
+                  <label
+                    :for="`preview-field-${variable.name}`"
+                    class="block text-xs font-medium text-gray-600"
+                  >
                     {{ variable.label }}
                   </label>
 
@@ -80,7 +94,9 @@
                     v-model="formData[variable.name]"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1.5 focus:ring-secondary-500 focus:border-secondary-500 transition-colors bg-white"
                   >
-                    <option value="">{{ variable.placeholder || `请选择${variable.label}` }}</option>
+                    <option value="">
+                      {{ variable.placeholder || `请选择${variable.label}` }}
+                    </option>
                     <option
                       v-for="option in variable.options"
                       :key="option.value"
@@ -103,21 +119,26 @@
               </div>
 
               <!-- 无变量提示 -->
-              <div v-else class="text-center py-4 text-gray-400 text-xs">
-                此模板无需填写变量
-              </div>
+              <div v-else class="text-center py-4 text-gray-400 text-xs">此模板无需填写变量</div>
             </div>
 
             <!-- 模板编辑区 -->
             <div class="flex-1 flex flex-col overflow-hidden">
-              <div class="px-4 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div
+                class="px-4 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between"
+              >
                 <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                   模板内容
                 </h4>
-                <span class="text-xs text-gray-500">支持 {{'{{var:xxx}}'}} 语法</span>
+                <span class="text-xs text-gray-500">支持 &#123;&#123;var:xxx&#125;&#125; 语法</span>
               </div>
               <div class="flex-1 p-4 overflow-hidden">
                 <textarea
@@ -131,11 +152,23 @@
 
           <!-- 右侧区域：预览 -->
           <div class="w-full lg:w-1/2 xl:w-[55%] flex flex-col h-full overflow-hidden">
-            <div class="px-4 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <div
+              class="px-4 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between"
+            >
               <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
                 实时预览
               </h4>
@@ -145,33 +178,46 @@
                 @click="showRawContent = !showRawContent"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
                 {{ showRawContent ? '显示渲染' : '显示原文' }}
               </button>
             </div>
             <div class="flex-1 p-4 overflow-y-auto bg-white">
               <!-- 空状态 -->
-              <div v-if="!renderedContent" class="flex flex-col items-center justify-center h-full text-gray-400">
+              <div
+                v-if="!renderedContent"
+                class="flex flex-col items-center justify-center h-full text-gray-400"
+              >
                 <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <p class="text-sm">在左侧编辑模板内容以查看预览</p>
               </div>
 
               <!-- 渲染内容 -->
               <div
-                v-else
-                v-if="!showRawContent"
+                v-else-if="!showRawContent"
                 class="prose prose-sm max-w-none"
-                v-html="renderedHtml"
+                v-safe-html="renderedHtml"
               />
 
               <!-- 原始内容 -->
               <pre
                 v-else
                 class="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded border border-gray-200"
-              >{{ renderedContent }}</pre>
+                >{{ renderedContent }}</pre
+              >
             </div>
           </div>
         </div>
@@ -261,7 +307,7 @@ const renderedContent = computed(() => {
 
   // 收集变量值
   const vars: Record<string, string> = {}
-  props.template.variables?.forEach(v => {
+  props.template.variables?.forEach((v) => {
     vars[v.name] = formData.value[v.name] || v.defaultValue || ''
   })
 
@@ -289,7 +335,7 @@ function initData(): void {
   formData.value = {}
   editableContent.value = props.template.content || ''
 
-  props.template.variables?.forEach(v => {
+  props.template.variables?.forEach((v) => {
     formData.value[v.name] = v.defaultValue || ''
   })
 }
@@ -304,20 +350,26 @@ function handleClose(): void {
 /**
  * 监听对话框显示状态，初始化数据
  */
-watch(() => props.modelValue, (newValue) => {
-  if (newValue) {
-    initData()
-  }
-})
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue) {
+      initData()
+    }
+  },
+)
 
 /**
  * 监听模板内容变化
  */
-watch(() => props.template.content, (newContent) => {
-  if (newContent && newContent !== editableContent.value) {
-    editableContent.value = newContent
-  }
-})
+watch(
+  () => props.template.content,
+  (newContent) => {
+    if (newContent && newContent !== editableContent.value) {
+      editableContent.value = newContent
+    }
+  },
+)
 </script>
 
 <style scoped>

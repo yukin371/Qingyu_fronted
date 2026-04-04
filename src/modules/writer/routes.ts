@@ -16,6 +16,18 @@ const writerRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    // Digital Atelier 主题编辑器 - 深空科幻风格（独立路由，无需认证）
+    path: '/writer/atelier/:projectId?/:chapterId?',
+    name: 'writer-atelier',
+    component: () => import('./views/DigitalAtelierView.vue'),
+    meta: {
+      title: 'Digital Atelier',
+      layout: 'blank',
+      requiresAuth: false, // 不需要登录即可预览
+    },
+    props: true,
+  },
+  {
     path: '/writer',
     component: WriterLayout,
     meta: { requiresAuth: true }, // 登录用户均可进入，发布后自动升级作者身份

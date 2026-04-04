@@ -54,7 +54,7 @@
                         <span class="section-value">{{ settings.lineHeight }}</span>
                     </div>
                     <el-slider v-model="settings.lineHeight" :min="1.2" :max="2.5" :step="0.1"
-                        :format-tooltip="(val) => val.toFixed(1)" />
+                        :format-tooltip="(val: number) => val.toFixed(1)" />
                 </div>
 
                 <!-- 页面宽度 -->
@@ -64,7 +64,7 @@
                         <span class="section-value">{{ settings.pageWidth }}%</span>
                     </div>
                     <el-slider v-model="settings.pageWidth" :min="60" :max="100" :step="5"
-                        :format-tooltip="(val) => `${val}%`" />
+                        :format-tooltip="(val: number) => `${val}%`" />
                 </div>
 
                 <!-- 翻页模式 -->
@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
 import type { ReadingSettings as IReadingSettings } from '@/types/models'
@@ -221,7 +221,7 @@ const handleReset = () => {
 // 监听设置变化，实时预览
 watch(
     () => ({ ...settings }),
-    (newSettings) => {
+    (_newSettings) => {
         // 可以在这里实时应用设置，不需要点保存
         // emit('change', newSettings)
     },

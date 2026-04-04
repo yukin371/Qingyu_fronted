@@ -2,9 +2,8 @@
  * PostCard组件测试
  */
 
-
 import { mount } from '@vue/test-utils'
-import { createMockPost } from '../../../../tests/fixtures'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock设计系统组件 - 必须在导入组件之前
 vi.mock('@/design-system/components', () => {
@@ -17,8 +16,9 @@ vi.mock('@/design-system/components', () => {
       name: { type: String, default: '' },
       size: { type: String, default: 'md' },
     },
-    setup(props) {
-      return () => h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
+    setup(props: any) {
+      return () =>
+        h('div', { class: ['qy-avatar', `qy-avatar--${props.size}`] }, props.name || '头像')
     },
   })
 
@@ -30,36 +30,39 @@ vi.mock('@/design-system/components', () => {
       closable: { type: Boolean, default: false },
     },
     emits: ['click', 'close'],
-    setup(props, { emit, slots, attrs }) {
-      const children = [
-        slots.default ? slots.default() : '',
-      ]
+    setup(props: any, { emit, slots, attrs }: any) {
+      const children = [slots.default ? slots.default() : '']
       if (props.closable) {
         children.push(
-          h('span', {
-            class: 'close-btn',
-            onClick: (e) => {
-              e.stopPropagation()
-              emit('close')
+          h(
+            'span',
+            {
+              class: 'close-btn',
+              onClick: (e: any) => {
+                e.stopPropagation()
+                emit('close')
+              },
             },
-          }, '×')
+            '×',
+          ),
         )
       }
-      return () => h(
-        'span',
-        {
-          class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
-          onClick: (e: MouseEvent) => {
-            // 先发出Vue事件
-            emit('click')
-            // 然后调用父组件传入的onClick处理器（如果有的话）
-            if (attrs.onClick) {
-              attrs.onClick(e)
-            }
+      return () =>
+        h(
+          'span',
+          {
+            class: ['qy-badge', `qy-badge--${props.variant}`, `qy-badge--${props.size}`],
+            onClick: (e: any) => {
+              // 先发出Vue事件
+              emit('click')
+              // 然后调用父组件传入的onClick处理器（如果有的话）
+              if (attrs.onClick) {
+                attrs.onClick(e)
+              }
+            },
           },
-        },
-        children
-      )
+          children,
+        )
     },
   })
 
@@ -69,8 +72,9 @@ vi.mock('@/design-system/components', () => {
       name: { type: String, required: true },
       size: { type: Number, default: 16 },
     },
-    setup(props) {
-      return () => h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
+    setup(props: any) {
+      return () =>
+        h('i', { class: `qy-icon qy-icon--${props.name}`, style: { fontSize: `${props.size}px` } })
     },
   })
 
@@ -84,15 +88,36 @@ vi.mock('@/design-system/components', () => {
 import PostCard from '../PostCard.vue'
 
 describe('PostCard', () => {
-  const defaultProps = {
-    post: createMockPost({
+  const createTestPost = (overrides: any = {}) => {
+    return {
+      id: 'post_123',
+      userId: 'user_123',
+      user: {
+        id: 'user_123',
+        nickname: '测试用户',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      type: 'text',
       content: '这是一个测试动态',
-      likeCount: 10,
-      commentCount: 5,
-      isLiked: false,
-      topics: ['玄幻', '仙侠'],
       images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-    }),
+      topics: [
+        { id: 'topic_1', name: '玄幻' },
+        { id: 'topic_2', name: '仙侠' },
+      ],
+      likesCount: 10,
+      commentsCount: 5,
+      sharesCount: 2,
+      bookmarksCount: 1,
+      isLiked: false,
+      isBookmarked: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...overrides,
+    } as any
+  }
+
+  const defaultProps = {
+    post: createTestPost(),
   }
 
   describe('rendering', () => {
@@ -145,7 +170,7 @@ describe('PostCard', () => {
 
     it('should not render images when post has no images', () => {
       // Arrange
-      const post = createMockPost({ images: [] })
+      const post = createTestPost({ images: [] })
 
       // Act
       const wrapper = mount(PostCard, {
@@ -159,7 +184,7 @@ describe('PostCard', () => {
     it('should limit images to 9', () => {
       // Arrange
       const images = Array.from({ length: 15 }, (_, i) => `https://example.com/image${i}.jpg`)
-      const post = createMockPost({ images })
+      const post = createTestPost({ images })
 
       // Act
       const wrapper = mount(PostCard, {
@@ -173,7 +198,7 @@ describe('PostCard', () => {
 
     it('should render book card when post has book', () => {
       // Arrange
-      const post = createMockPost({
+      const post = createTestPost({
         book: {
           id: 'book_123',
           title: '测试书籍',
@@ -207,7 +232,7 @@ describe('PostCard', () => {
 
     it('should not render topics when post has no topics', () => {
       // Arrange
-      const post = createMockPost({ topics: [] })
+      const post = createTestPost({ topics: [] })
 
       // Act
       const wrapper = mount(PostCard, {
@@ -254,7 +279,7 @@ describe('PostCard', () => {
 
     it('should show active class when post is liked', () => {
       // Arrange
-      const post = createMockPost({ isLiked: true })
+      const post = createTestPost({ isLiked: true })
 
       // Act
       const wrapper = mount(PostCard, {
@@ -289,8 +314,8 @@ describe('PostCard', () => {
       await wrapper.find('.post-card').trigger('click')
 
       // Assert
-      expect(wrapper.emitted('click')).toBeTruthy()
-      expect(wrapper.emitted('click')?.[0]).toEqual([defaultProps.post])
+      expect((wrapper as any).emitted('click')).toBeTruthy()
+      expect((wrapper as any).emitted('click')?.[0]).toEqual([defaultProps.post])
     })
 
     it('should emit like event when like button is clicked', async () => {
@@ -304,8 +329,8 @@ describe('PostCard', () => {
       await likeButton.trigger('click')
 
       // Assert
-      expect(wrapper.emitted('like')).toBeTruthy()
-      expect(wrapper.emitted('like')?.[0]).toEqual([defaultProps.post])
+      expect((wrapper as any).emitted('like')).toBeTruthy()
+      expect((wrapper as any).emitted('like')?.[0]).toEqual([defaultProps.post])
     })
 
     it('should emit comment event when comment button is clicked', async () => {
@@ -319,8 +344,8 @@ describe('PostCard', () => {
       await commentButton.trigger('click')
 
       // Assert
-      expect(wrapper.emitted('comment')).toBeTruthy()
-      expect(wrapper.emitted('comment')?.[0]).toEqual([defaultProps.post])
+      expect((wrapper as any).emitted('comment')).toBeTruthy()
+      expect((wrapper as any).emitted('comment')?.[0]).toEqual([defaultProps.post])
     })
 
     it('should emit share event when share button is clicked', async () => {
@@ -334,10 +359,11 @@ describe('PostCard', () => {
       await shareButton.trigger('click')
 
       // Assert
-      expect(wrapper.emitted('share')).toBeTruthy()
-      expect(wrapper.emitted('share')?.[0]).toEqual([defaultProps.post])
+      expect((wrapper as any).emitted('share')).toBeTruthy()
+      expect((wrapper as any).emitted('share')?.[0]).toEqual([defaultProps.post])
     })
 
+    // eslint-disable-next-line vitest/no-disabled-tests
     it.skip('should emit topic event when topic badge is clicked', async () => {
       // Arrange
       const wrapper = mount(PostCard, {
@@ -347,10 +373,10 @@ describe('PostCard', () => {
       // Act - 直接调用组件的goToTopic方法
       const topicBadge = wrapper.findAll('.qy-badge')[0]
       await topicBadge.trigger('click')
-      await wrapper.vm.$nextTick()
+      await (wrapper.vm as any).$nextTick()
 
       // Assert
-      expect(wrapper.emitted('topic')).toBeDefined()
+      expect((wrapper as any).emitted('topic')).toBeDefined()
       // 由于mock组件的限制，我们只检查事件是否被发出，不检查参数
     })
 
@@ -366,10 +392,11 @@ describe('PostCard', () => {
 
       // Assert
       // click事件应该只触发like，不触发card的click
-      expect(wrapper.emitted('click')).toBeFalsy()
-      expect(wrapper.emitted('like')).toBeTruthy()
+      expect((wrapper as any).emitted('click')).toBeFalsy()
+      expect((wrapper as any).emitted('like')).toBeTruthy()
     })
 
+    // eslint-disable-next-line vitest/no-disabled-tests
     it.skip('should stop propagation when topic badge is clicked', async () => {
       // Arrange
       const wrapper = mount(PostCard, {
@@ -379,12 +406,12 @@ describe('PostCard', () => {
       // Act
       const topicBadge = wrapper.findAll('.qy-badge')[0]
       await topicBadge.trigger('click')
-      await wrapper.vm.$nextTick()
+      await (wrapper.vm as any).$nextTick()
 
       // Assert
       // topic badge的点击不应该触发card的click事件
       // 但由于mock组件的限制，我们只检查topic事件是否被发出
-      expect(wrapper.emitted('topic')).toBeDefined()
+      expect((wrapper as any).emitted('topic')).toBeDefined()
     })
   })
 
@@ -392,7 +419,7 @@ describe('PostCard', () => {
     it('should format time as "刚刚" for recent posts', () => {
       // Arrange
       const now = new Date()
-      const post = createMockPost({
+      const post = createTestPost({
         createdAt: new Date(now.getTime() - 30000).toISOString(), // 30秒前
       })
 
@@ -402,13 +429,13 @@ describe('PostCard', () => {
       })
 
       // Assert
-      expect(wrapper.vm.formatTime(post.createdAt)).toBe('刚刚')
+      expect((wrapper.vm as any).formatTime(post.createdAt)).toBe('刚刚')
     })
 
     it('should format time as "X分钟前" for posts within an hour', () => {
       // Arrange
       const now = new Date()
-      const post = createMockPost({
+      const post = createTestPost({
         createdAt: new Date(now.getTime() - 1800000).toISOString(), // 30分钟前
       })
 
@@ -418,13 +445,13 @@ describe('PostCard', () => {
       })
 
       // Assert
-      expect(wrapper.vm.formatTime(post.createdAt)).toBe('30分钟前')
+      expect((wrapper.vm as any).formatTime(post.createdAt)).toBe('30分钟前')
     })
 
     it('should format time as "X小时前" for posts within 24 hours', () => {
       // Arrange
       const now = new Date()
-      const post = createMockPost({
+      const post = createTestPost({
         createdAt: new Date(now.getTime() - 3600000 * 5).toISOString(), // 5小时前
       })
 
@@ -434,13 +461,13 @@ describe('PostCard', () => {
       })
 
       // Assert
-      expect(wrapper.vm.formatTime(post.createdAt)).toBe('5小时前')
+      expect((wrapper.vm as any).formatTime(post.createdAt)).toBe('5小时前')
     })
 
     it('should format time as "X天前" for posts within 7 days', () => {
       // Arrange
       const now = new Date()
-      const post = createMockPost({
+      const post = createTestPost({
         createdAt: new Date(now.getTime() - 86400000 * 3).toISOString(), // 3天前
       })
 
@@ -450,12 +477,12 @@ describe('PostCard', () => {
       })
 
       // Assert
-      expect(wrapper.vm.formatTime(post.createdAt)).toBe('3天前')
+      expect((wrapper.vm as any).formatTime(post.createdAt)).toBe('3天前')
     })
 
     it('should format time as date for older posts', () => {
       // Arrange
-      const post = createMockPost({
+      const post = createTestPost({
         createdAt: '2024-01-01T00:00:00Z',
       })
 
@@ -465,15 +492,15 @@ describe('PostCard', () => {
       })
 
       // Assert
-      expect(wrapper.vm.formatTime(post.createdAt)).toMatch(/\d{4}\/\d{1,2}\/\d{1,2}/)
+      expect((wrapper.vm as any).formatTime(post.createdAt)).toMatch(/\d{4}\/\d{1,2}\/\d{1,2}/)
     })
   })
 
   describe('edge cases', () => {
     it('should handle post with no likes', () => {
       // Arrange
-      const post = createMockPost({
-        likeCount: 0,
+      const post = createTestPost({
+        likesCount: 0,
       })
 
       // Act
@@ -488,8 +515,8 @@ describe('PostCard', () => {
 
     it('should handle post with no comments', () => {
       // Arrange
-      const post = createMockPost({
-        commentCount: 0,
+      const post = createTestPost({
+        commentsCount: 0,
       })
 
       // Act
@@ -504,8 +531,9 @@ describe('PostCard', () => {
 
     it('should handle post with no user', () => {
       // Arrange
-      const post = createMockPost({
-        user: undefined,
+      const post = createTestPost({
+        userId: '',
+        user: null,
       })
 
       // Act
@@ -519,7 +547,7 @@ describe('PostCard', () => {
 
     it('should handle empty content', () => {
       // Arrange
-      const post = createMockPost({
+      const post = createTestPost({
         content: '',
       })
 

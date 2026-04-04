@@ -17,9 +17,8 @@
     <!-- 描述 -->
     <div class="form-item">
       <label class="form-label">书单描述</label>
-      <QyInput
+      <QyTextarea
         v-model="formData.description"
-        type="textarea"
         placeholder="简单介绍一下这个书单..."
         :rows="4"
         :maxlength="200"
@@ -157,7 +156,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue'
-import { QyInput, QyButton, QyBadge, QyIcon } from '@/design-system/components'
+import { QyInput, QyButton, QyBadge, QyIcon, QyTextarea } from '@/design-system/components'
 import type { BookList } from '@/types/booklist'
 
 interface Props {

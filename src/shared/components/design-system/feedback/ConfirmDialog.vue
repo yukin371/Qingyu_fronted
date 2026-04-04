@@ -30,7 +30,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { QyIcon } from '@/design-system/components'
+import { WarningFilled, InfoFilled, SuccessFilled } from '@element-plus/icons-vue'
+
 interface Props {
   visible?: boolean
   title?: string

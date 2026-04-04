@@ -186,7 +186,14 @@
     </div>
 
     <!-- 日志详情对话框 -->
-    <el-dialog v-model="dialogVisible" title="日志详情" width="600px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="日志详情"
+      width="600px"
+      class="admin-modal-card"
+      append-to-body
+      align-center
+    >
       <div v-if="currentItem" class="log-detail">
         <div class="detail-header">
           <el-icon class="detail-icon" :class="getOperationClass(currentItem.operation)">
@@ -236,19 +243,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import {
   Download, Document, Clock, CircleCheck, Warning, Search, Refresh,
   CircleClose, Lock, Edit, View
 } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils/format'
-
-// 检查是否为测试模式
-const isTestMode = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('test') === 'true'
-})
+import { getOperationLogs as fetchOperationLogs } from '../api'
 
 // 筛选器
 const filters = reactive({
@@ -265,10 +267,10 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  total: 1256,
-  today: 48,
-  success: 1198,
-  warning: 58
+  total: 0,
+  today: 0,
+  success: 0,
+  warning: 0
 })
 
 // 数据
@@ -280,103 +282,66 @@ const total = ref(0)
 const dialogVisible = ref(false)
 const currentItem = ref<any | null>(null)
 
-// 生成模拟日志数据
-const createMockLogs = () => {
-  const operations = [
-    'approve_content', 'reject_content', 'approve_withdraw', 'reject_withdraw',
-    'update_user', 'ban_user', 'approve_book', 'delete_comment'
-  ]
-  const admins = [
-    { id: 'admin_001', name: '管理员A' },
-    { id: 'admin_002', name: '管理员B' },
-    { id: 'admin_003', name: '管理员C' }
-  ]
-  const targetTypes = ['book', 'chapter', 'user', 'withdrawal', 'comment']
-
-  const detailTemplates: Record<string, string[]> = {
-    approve_content: ['批准章节《{target}》发布', '批准书籍《{target}》上架'],
-    reject_content: ['拒绝章节审核：内容违规', '拒绝书籍发布：信息不完整'],
-    approve_withdraw: ['批准用户提现申请 ¥{amount}', '处理提现请求成功'],
-    reject_withdraw: ['拒绝提现申请：账户异常', '拒绝提现：信息不符'],
-    update_user: ['更新用户 {target} 信息', '修改用户角色'],
-    ban_user: ['封禁用户 {target}', '因违规封禁用户'],
-    approve_book: ['批准书籍《{target}》发布', '审核通过书籍上架申请'],
-    delete_comment: ['删除违规评论', '清理垃圾评论']
-  }
-
-  return Array.from({ length: 80 }, (_, i) => {
-    const operation = operations[i % operations.length]
-    const admin = admins[i % admins.length]
-    const targetType = targetTypes[i % targetTypes.length]
-    const detailsList = detailTemplates[operation] || ['执行操作']
-    const detailTemplate = detailsList[i % detailsList.length]
-
-    return {
-      logId: `log_${String(i + 1).padStart(6, '0')}`,
-      adminId: admin.id,
-      adminName: admin.name,
-      operation,
-      targetType,
-      targetId: `${targetType}_${String(i + 1).padStart(4, '0')}`,
-      target: `${targetType}_${i + 1}`,
-      details: {
-        message: detailTemplate
-          .replace('{target}', `测试${targetType}`)
-          .replace('{amount}', String(Math.floor(Math.random() * 1000) + 100))
-      },
-      ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      createdAt: new Date(Date.now() - i * 30 * 60 * 1000).toISOString()
-    }
-  })
+const isSameDay = (value?: string) => {
+  if (!value) return false
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return false
+  return date.toDateString() === new Date().toDateString()
 }
 
-const mockLogsPool = createMockLogs()
+const normalizeLog = (item: any) => ({
+  logId: item.id || item._id || item.logId || '',
+  adminId: item.admin_id || item.adminId || '',
+  adminName: item.admin_name || item.adminName || '未知管理员',
+  operation: item.operation || '',
+  targetType: item.target_type || item.resource_type || item.targetType || '',
+  targetId: item.target || item.resource_id || item.targetId || '',
+  target: item.target || item.targetName || '',
+  details: item.details || '',
+  createdAt: item.created_at || item.createdAt || '',
+  ip: item.ip || '',
+})
+
+const syncStats = (rows: any[]) => {
+  stats.today = rows.filter(row => isSameDay(row.createdAt)).length
+  stats.success = rows.filter(row => row.operation.includes('approve')).length
+  stats.warning = rows.filter(row => row.operation.includes('reject') || row.operation.includes('ban')).length
+}
 
 // 加载日志
 const loadLogs = async () => {
   loading.value = true
   try {
-    if (isTestMode.value) {
-      let filtered = [...mockLogsPool]
-
-      if (filters.operation) {
-        filtered = filtered.filter(l => l.operation === filters.operation)
-      }
-
-      if (filters.adminId) {
-        const kw = filters.adminId.toLowerCase()
-        filtered = filtered.filter(l =>
-          l.adminId.toLowerCase().includes(kw) ||
-          l.adminName.toLowerCase().includes(kw)
-        )
-      }
-
-      if (filters.dateRange && filters.dateRange.length === 2) {
-        const start = new Date(filters.dateRange[0]).getTime()
-        const end = new Date(filters.dateRange[1]).getTime()
-        filtered = filtered.filter(l => {
-          const t = new Date(l.createdAt).getTime()
-          return t >= start && t <= end
-        })
-      }
-
-      total.value = filtered.length
-
-      const startIdx = (pagination.page - 1) * pagination.pageSize
-      logs.value = filtered.slice(startIdx, startIdx + pagination.pageSize)
-
-      // 更新统计
-      stats.total = mockLogsPool.length
-      const today = new Date().toDateString()
-      stats.today = mockLogsPool.filter(l => new Date(l.createdAt).toDateString() === today).length
-      stats.success = mockLogsPool.filter(l => l.operation.includes('approve')).length
-      stats.warning = mockLogsPool.filter(l => l.operation.includes('reject') || l.operation.includes('ban')).length
-    } else {
-      logs.value = []
-      total.value = 0
+    const params: any = {
+      page: pagination.page,
+      page_size: pagination.pageSize,
     }
+
+    if (filters.operation) {
+      params.operation = filters.operation
+    }
+    if (filters.adminId) {
+      params.admin_id = filters.adminId
+    }
+    if (filters.dateRange && filters.dateRange.length === 2) {
+      params.start_date = new Date(filters.dateRange[0]).toISOString()
+      params.end_date = new Date(filters.dateRange[1]).toISOString()
+    }
+
+    const response = await fetchOperationLogs(params) as any
+    const rows = Array.isArray(response?.data) ? response.data.map(normalizeLog) : []
+    logs.value = rows
+    total.value = Number(response?.pagination?.total ?? rows.length)
+    stats.total = total.value
+    syncStats(rows)
   } catch (error) {
     console.error('加载日志失败:', error)
+    logs.value = []
+    total.value = 0
+    stats.total = 0
+    stats.today = 0
+    stats.success = 0
+    stats.warning = 0
     message.error('加载日志失败')
   } finally {
     loading.value = false
@@ -406,7 +371,7 @@ const handleView = (item: any) => {
 
 // 导出日志
 const exportLogs = () => {
-  message.success('日志导出功能开发中')
+  message.warning('当前后端未提供操作日志导出接口')
 }
 
 // 获取操作类型样式

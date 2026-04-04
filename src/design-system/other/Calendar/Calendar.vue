@@ -10,24 +10,16 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import {
   generateMonthView,
-  isSameDay,
   cloneDate,
-  addMonths,
-  addYears,
-  formatDate,
   stringToDate,
-  isValidDate,
   compareDates,
-  getMonthText,
-  getYearText,
   getWeekdayText,
   getPreviousMonth,
   getNextMonth,
   getPreviousYear,
   getNextYear,
-  isToday,
 } from './utils'
-import type { CalendarProps, CalendarEmits, CalendarValue, DateCell, WeekDay } from './types'
+import type { CalendarProps, CalendarEmits, DateCell, WeekDay } from './types'
 import { zhCN, locales } from './types'
 
 // 使用 CVA 定义 Calendar 变体
@@ -138,8 +130,8 @@ watch(
   (newValue) => {
     if (props.range) {
       if (Array.isArray(newValue) && newValue.length === 2) {
-        rangeStartDate.value = stringToDate(newValue[0])
-        rangeEndDate.value = stringToDate(newValue[1])
+        rangeStartDate.value = newValue[0] ? stringToDate(newValue[0]) : null
+        rangeEndDate.value = newValue[1] ? stringToDate(newValue[1]) : null
         // 更新当前显示的日期为开始日期
         if (rangeStartDate.value) {
           currentDate.value = cloneDate(rangeStartDate.value)
@@ -213,7 +205,7 @@ const handleDateClick = (cell: DateCell) => {
       // 开始新的范围选择
       rangeStartDate.value = clickedDate
       rangeEndDate.value = null
-      emit('update:modelValue', [clickedDate, null] as CalendarValue)
+      emit('update:modelValue', [clickedDate, null])
       emit('select', [clickedDate, null])
     } else {
       // 完成范围选择
@@ -224,13 +216,13 @@ const handleDateClick = (cell: DateCell) => {
       } else {
         rangeEndDate.value = clickedDate
       }
-      emit('update:modelValue', [rangeStartDate.value, rangeEndDate.value] as CalendarValue)
-      emit('select', [rangeStartDate.value, rangeEndDate.value])
+      emit('update:modelValue', [rangeStartDate.value!, rangeEndDate.value!])
+      emit('select', [rangeStartDate.value!, rangeEndDate.value!])
     }
   } else {
     // 单日期选择模式
     selectedDate.value = clickedDate
-    emit('update:modelValue', clickedDate as CalendarValue)
+    emit('update:modelValue', clickedDate)
     emit('select', clickedDate)
   }
 }
@@ -267,11 +259,11 @@ const handleToday = () => {
     if (props.range) {
       rangeStartDate.value = today
       rangeEndDate.value = null
-      emit('update:modelValue', [today, null] as CalendarValue)
+      emit('update:modelValue', [today, null])
       emit('select', [today, null])
     } else {
       selectedDate.value = today
-      emit('update:modelValue', today as CalendarValue)
+      emit('update:modelValue', today)
       emit('select', today)
     }
   }

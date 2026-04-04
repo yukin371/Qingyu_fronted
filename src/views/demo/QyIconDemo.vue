@@ -227,7 +227,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { QyIcon } from '@/design-system/components'
 
 // Navigation icons

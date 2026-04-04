@@ -17,7 +17,7 @@ class WalletService {
    */
   async getWalletBalance(): Promise<WalletBalance> {
     const response = await walletAPI.getBalance()
-    return response.data || { balance: 0 }
+    return (response.data as WalletBalance) || { balance: 0, userId: '', frozenBalance: 0 }
   }
 
   /**
@@ -41,7 +41,7 @@ class WalletService {
       throw new Error('单次充值金额不能超过10000')
     }
 
-    await walletAPI.recharge(params)
+    await walletAPI.recharge(params as any)
   }
 
   /**
@@ -58,7 +58,7 @@ class WalletService {
       throw new Error('提现金额不能超过可用余额')
     }
 
-    await walletAPI.submitWithdraw(params)
+    await walletAPI.submitWithdraw(params as any)
   }
 
   /**

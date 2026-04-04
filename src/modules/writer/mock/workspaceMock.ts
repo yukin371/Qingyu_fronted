@@ -168,7 +168,7 @@ const createYunlanContentByDocId = (projectId: string): Record<string, string> =
       `${projectId}-scene-2`,
       '# 目录二 灯下问卷（推进）\n\n这一目录承接前文线索，把叙事重心推进到书院内部谜团，并埋入后续冲突触发点。',
     ],
-    ...readerChapters.map((chapter) => [chapter.id, `# ${chapter.title}\n\n${chapter.content}`]),
+    ...readerChapters.map((chapter): [string, string] => [chapter.id, `# ${chapter.title}\n\n${chapter.content}`]),
   ]
   return Object.fromEntries(entries)
 }

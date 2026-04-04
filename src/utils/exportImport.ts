@@ -5,7 +5,7 @@
 
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
-import { httpService } from '@/core/services/http.service'
+import { http } from '@/core/http'
 
 // ==================== 类型定义 ====================
 
@@ -80,7 +80,7 @@ function buildDocumentTree(documents: ExportDocument[]): Map<string | undefined,
  * 递归添加文档到 ZIP
  */
 function addDocumentsToZip(
-  zip: JSZip,
+  zip: any,
   documents: ExportDocument[],
   tree: Map<string | undefined, ExportDocument[]>,
   parentPath: string,
@@ -128,10 +128,10 @@ function sanitizeFileName(name: string): string {
 export async function exportProjectToZip(projectId: string): Promise<void> {
   try {
     // 1. 获取项目详情
-    const project = await httpService.get<ProjectResponse>(`/writer/projects/${projectId}`)
+    const project = await http.get<ProjectResponse>(`/writer/projects/${projectId}`)
 
     // 2. 获取文档树
-    const documentsResponse = await httpService.get<DocumentNode[]>(
+    const documentsResponse = await http.get<DocumentNode[]>(
       `/writer/project/${projectId}/documents/tree`
     )
 
@@ -141,20 +141,24 @@ export async function exportProjectToZip(projectId: string): Promise<void> {
 
     for (const doc of documentList) {
       try {
-        const contentResponse = await httpService.get<ContentResponse>(
+        const contentResponse = await http.get<ContentResponse>(
           `/writer/documents/${doc.documentId || doc.id}/content`
         )
+        const currentDocId = doc.documentId || doc.id
+        if (!currentDocId) continue
         documents.push({
-          documentId: doc.documentId || doc.id,
+          documentId: currentDocId,
           title: doc.title,
           content: contentResponse?.content || '',
           parentId: doc.parentId,
           sortOrder: doc.sortOrder || 0,
         })
       } catch {
+        const currentDocId = doc.documentId || doc.id
+        if (!currentDocId) continue
         // 内容获取失败时添加空内容
         documents.push({
-          documentId: doc.documentId || doc.id,
+          documentId: currentDocId,
           title: doc.title,
           content: '',
           parentId: doc.parentId,
@@ -237,10 +241,10 @@ export async function importProjectFromZip(file: File): Promise<ImportResult> {
 /**
  * 查找 ZIP 根目录
  */
-function findRootFolder(zip: JSZip): string | null {
+function findRootFolder(zip: any): string | null {
   const folders = new Set<string>()
 
-  zip.forEach((relativePath) => {
+  zip.forEach((relativePath: string) => {
     const parts = relativePath.split('/')
     if (parts.length > 1) {
       folders.add(parts[0] + '/')
@@ -254,13 +258,13 @@ function findRootFolder(zip: JSZip): string | null {
 /**
  * 解析 ZIP 文件结构
  */
-async function parseZipStructure(zip: JSZip, rootFolder: string): Promise<ParsedDocument[]> {
+async function parseZipStructure(zip: any, rootFolder: string): Promise<ParsedDocument[]> {
   const documents: ParsedDocument[] = []
   const folderMap = new Map<string, ParsedDocument>()
 
   // 收集所有文件路径
   const filePaths: string[] = []
-  zip.forEach((relativePath) => {
+  zip.forEach((relativePath: string) => {
     if (relativePath.startsWith(rootFolder) && relativePath !== rootFolder) {
       filePaths.push(relativePath)
     }
@@ -345,7 +349,7 @@ async function createProjectWithDocuments(
 ): Promise<ImportResult> {
   try {
     // 1. 创建项目
-    const projectResponse = await httpService.post<ProjectResponse>('/writer/projects', {
+    const projectResponse = await http.post<ProjectResponse>('/writer/projects', {
       title: projectTitle,
       description: `从文件导入于 ${new Date().toLocaleString('zh-CN')}`,
     })
@@ -383,7 +387,7 @@ async function createDocumentsRecursive(
 ): Promise<void> {
   for (const doc of documents) {
     try {
-      const response = await httpService.post<{ id?: string }>(
+      const response = await http.post<{ id?: string }>(
         `/writer/project/${projectId}/documents`,
         {
           title: doc.title,

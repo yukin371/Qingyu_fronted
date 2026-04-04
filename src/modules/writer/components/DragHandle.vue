@@ -33,7 +33,7 @@
  * - 无障碍支持
  */
 
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 // ============================================
 // Props 定义
@@ -68,6 +68,14 @@ const emit = defineEmits<{
 
 const dragHandleRef = ref<HTMLElement | null>(null)
 const isActive = ref(false)
+
+const cleanupGlobalHandleListeners = () => {
+  window.removeEventListener('mouseup', handleGlobalMouseUp)
+  window.removeEventListener('blur', handleGlobalMouseUp)
+  document.removeEventListener('mouseup', handleGlobalMouseUp, true)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
 
 // ============================================
 // 计算属性
@@ -124,33 +132,21 @@ const handleMouseDown = (event: MouseEvent) => {
   }
 
   emit('drag-start', dragEvent)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
 
-  // 添加全局鼠标事件监听器
-  document.addEventListener('mousemove', handleMouseMove, { passive: false })
-  document.addEventListener('mouseup', handleGlobalMouseUp, { once: true })
-}
-
-/**
- * 处理鼠标移动事件
- */
-const handleMouseMove = (event: MouseEvent) => {
-  if (!isActive.value) return
-  
-  // 阻止默认行为
-  event.preventDefault()
+  cleanupGlobalHandleListeners()
+  window.addEventListener('mouseup', handleGlobalMouseUp)
+  window.addEventListener('blur', handleGlobalMouseUp)
+  document.addEventListener('mouseup', handleGlobalMouseUp, true)
 }
 
 /**
  * 处理全局鼠标松开事件
  */
 const handleGlobalMouseUp = () => {
-  if (!isActive.value) return
-
-  // 移除激活状态
   isActive.value = false
-
-  // 移除全局事件监听器
-  document.removeEventListener('mousemove', handleMouseMove)
+  cleanupGlobalHandleListeners()
 }
 
 /**
@@ -193,12 +189,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
 // 生命周期
 // ============================================
 
-onMounted(() => {
-  // 确保组件卸载时清理事件监听器
-  onUnmounted(() => {
-    document.removeEventListener('mousemove', handleMouseMove)
-    document.removeEventListener('mouseup', handleGlobalMouseUp)
-  })
+onUnmounted(() => {
+  cleanupGlobalHandleListeners()
 })
 </script>
 
@@ -215,10 +207,11 @@ onMounted(() => {
   position: relative;
   flex-shrink: 0;
   height: 100%;
+  z-index: 40;
   
   /* VSCode 主题变量 */
-  width: var(--drag-handle-width, 4px);
-  background-color: var(--color-border, #3c3c3c);
+  width: var(--drag-handle-width, 10px);
+  background-color: transparent;
   
   /* 交互样式 */
   cursor: col-resize;
@@ -233,16 +226,50 @@ onMounted(() => {
   outline: none;
 }
 
+.drag-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background-color: var(--drag-handle-idle-line, transparent);
+  transition: background-color var(--transition-fast, 100ms) ease-out,
+              width var(--transition-fast, 100ms) ease-out;
+}
+
 .drag-handle:hover {
   /* Hover 状态 */
+  opacity: 1;
+}
+
+.drag-handle:hover::before {
   background-color: var(--drag-handle-hover-bg, #007fd4);
-  opacity: 0.8;
+  width: 2px;
 }
 
 .drag-handle--active {
   /* 激活/拖拽状态 */
-  background-color: var(--drag-handle-hover-bg, #007fd4);
   opacity: 1;
+}
+
+.drag-handle--active::before {
+  background-color: var(--drag-handle-hover-bg, #007fd4);
+  width: 3px;
+}
+
+.drag-handle--active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.35);
+  pointer-events: none;
 }
 
 .drag-handle:focus-visible {
@@ -256,7 +283,7 @@ onMounted(() => {
 }
 
 .drag-handle--right {
-  order: 3;
+  order: 0;
 }
 
 /* 过渡动画 */

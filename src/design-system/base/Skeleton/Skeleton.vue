@@ -8,7 +8,7 @@
 import { computed } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { SkeletonProps, skeletonSizeMap } from './types'
+import type { SkeletonProps } from './types'
 
 // 使用 CVA 定义骨架变体
 const skeletonVariants = cva(

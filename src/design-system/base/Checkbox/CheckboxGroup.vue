@@ -7,7 +7,7 @@
 
 import { computed, provide, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
-import { CHECKBOX_GROUP_KEY, type CheckboxGroupContext } from './contextKey'
+import { CHECKBOX_GROUP_KEY } from './contextKey'
 import type { CheckboxGroupProps, CheckboxGroupEmits } from './types'
 
 // 组件 Props

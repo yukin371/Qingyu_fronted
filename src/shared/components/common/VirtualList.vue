@@ -17,7 +17,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ItemType = Record<string, any>
 
 interface VirtualListProps {
@@ -29,7 +28,7 @@ interface VirtualListProps {
 
 const props = withDefaults(defineProps<VirtualListProps>(), {
   bufferSize: 5,
-  itemKey: 'id'
+  itemKey: () => 'id' as keyof ItemType,
 })
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -56,22 +55,17 @@ const startIndex = computed(() => {
  */
 const endIndex = computed(() => {
   const visibleCount = Math.ceil(containerHeight.value / props.itemHeight)
-  return Math.min(
-    props.items.length,
-    startIndex.value + visibleCount + props.bufferSize * 2
-  )
+  return Math.min(props.items.length, startIndex.value + visibleCount + props.bufferSize * 2)
 })
 
 /**
  * 可见的项目列表
  */
 const visibleItems = computed(() => {
-  return props.items
-    .slice(startIndex.value, endIndex.value)
-    .map((item, index) => ({
-      ...item,
-      __index: startIndex.value + index
-    }))
+  return props.items.slice(startIndex.value, endIndex.value).map((item, index) => ({
+    ...item,
+    __index: startIndex.value + index,
+  }))
 })
 
 /**
@@ -134,18 +128,21 @@ const scrollToBottom = () => {
 defineExpose({
   scrollToIndex,
   scrollToTop,
-  scrollToBottom
+  scrollToBottom,
 })
 
 // 监听items变化，重置滚动位置
-watch(() => props.items.length, () => {
-  if (scrollTop.value > totalHeight.value) {
-    scrollTop.value = 0
-    if (containerRef.value) {
-      containerRef.value.scrollTop = 0
+watch(
+  () => props.items.length,
+  () => {
+    if (scrollTop.value > totalHeight.value) {
+      scrollTop.value = 0
+      if (containerRef.value) {
+        containerRef.value.scrollTop = 0
+      }
     }
-  }
-})
+  },
+)
 
 // 监听窗口大小变化
 const resizeObserver = new ResizeObserver(() => {
@@ -213,4 +210,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

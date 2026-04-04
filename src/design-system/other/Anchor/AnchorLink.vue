@@ -16,7 +16,6 @@ const props = withDefaults(defineProps<AnchorLinkProps>(), {
 
 // 内部状态
 const isActive = computed(() => false)
-const hasChildren = computed(() => false)
 
 // 计算链接样式类名
 const linkClasses = computed(() =>
@@ -32,9 +31,9 @@ const linkClasses = computed(() =>
 )
 
 // 点击处理
-const handleClick = (e: MouseEvent) => {
+const handleClick = (_e: MouseEvent) => {
   // 阻止默认跳转行为，由父组件处理滚动
-  // e.preventDefault()
+  // _e.preventDefault()
 }
 </script>
 

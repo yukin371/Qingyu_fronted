@@ -6,7 +6,7 @@
  */
 
 import { ref, computed } from 'vue'
-import { setTheme, currentTheme, themes, type ThemeName } from '../../tokens/theme'
+import { setTheme, themes, type ThemeName } from '../../tokens/theme'
 import type { ThemePreviewProps } from './types'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<ThemePreviewProps>(), {
 })
 
 // 当前选中的主题
-const selectedTheme = ref<ThemeName>(currentThemeName)
+const selectedTheme = ref<ThemeName>('qingyu')
 
 // 主题显示名称映射
 const themeDisplayNames: Record<ThemeName, string> = {

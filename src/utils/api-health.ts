@@ -3,10 +3,23 @@
  * 用于检测后端服务是否可用
  */
 
+import { ref } from 'vue'
+
 interface HealthCheckResult {
   healthy: boolean
   latency?: number
   error?: string
+}
+
+function getApiBaseUrl(): string {
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim()
+  if (!configured) {
+    return '/api/v1'
+  }
+  if (/^https?:\/\//.test(configured) || configured.startsWith('/')) {
+    return configured.replace(/\/$/, '')
+  }
+  return `/${configured.replace(/^\/+/, '').replace(/\/$/, '')}`
 }
 
 /**
@@ -14,11 +27,12 @@ interface HealthCheckResult {
  */
 export async function checkApiHealth(): Promise<HealthCheckResult> {
   const startTime = performance.now()
+  const apiBaseUrl = getApiBaseUrl()
 
   try {
     // 请求后端健康检查接口
     // 注意：后端 health 端点在 /api/v1/system/health
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/system/health`, {
+    const response = await fetch(`${apiBaseUrl}/system/health`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000)
     })
@@ -72,7 +86,7 @@ export function initApiHealthCheck() {
         'color: #e6a23c; font-weight: bold; padding: 4px 8px; border-radius: 4px;'
       )
       console.warn(
-        '%c提示: 请确保后端服务已启动在 ' + import.meta.env.VITE_API_BASE_URL,
+        '%c提示: 请确保后端服务已启动在 ' + getApiBaseUrl(),
         'color: #909399; padding: 4px 8px;'
       )
     }

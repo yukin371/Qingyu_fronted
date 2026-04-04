@@ -6,7 +6,7 @@
 
 import { createApp, h, reactive, type App, type VNode } from 'vue'
 import Message from './Message.vue'
-import type { MessageProps, MessageOptions, MessageHandler, MessageType } from './types'
+import type { MessageProps, MessageOptions, MessageHandler } from './types'
 
 // 消息容器
 let messageContainer: HTMLElement | null = null
@@ -103,8 +103,8 @@ const createMessage = (options: MessageOptions): MessageHandler => {
       // 触发组件的关闭逻辑
       // 由于组件是通过 render 方式创建的，我们需要通过 DOM 操作来触发关闭
       const messageComponent = app._instance?.proxy
-      if (messageComponent && typeof messageComponent.close === 'function') {
-        messageComponent.close()
+      if (messageComponent && typeof (messageComponent as unknown as { close: () => void }).close === 'function') {
+        (messageComponent as unknown as { close: () => void }).close()
       } else {
         // 如果无法访问 close 方法，直接卸载
         const index = instances.findIndex((instance) => instance.id === id)

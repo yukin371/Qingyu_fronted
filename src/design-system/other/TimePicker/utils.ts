@@ -2,7 +2,7 @@
  * TimePicker 时间工具函数
  */
 
-import type { TimeParts, TimeFormatType, DisabledTimeRange, TimePickerStep } from './types'
+import type { TimeParts, DisabledTimeRange, TimePickerStep } from './types'
 
 /**
  * 格式化时间为指定格式
@@ -339,7 +339,7 @@ export function formatTimeRange(
   startTime: string,
   endTime: string,
   separator: string = '-',
-  format: string = 'HH:mm:ss'
+  _format: string = 'HH:mm:ss'
 ): string {
   return `${startTime} ${separator} ${endTime}`
 }

@@ -9,13 +9,12 @@ export class PollingService {
    */
   start(callback: () => void, interval: number = 5000) {
     if (this.isPolling) {
-      console.warn('[Polling] 已经在轮询中')
+      if (import.meta.env.DEV) console.warn('[Polling] 已经在轮询中')
       return
     }
 
     this.isPolling = true
     this.timer = setInterval(callback, interval)
-    console.log(`[Polling] 开始轮询，间隔${interval}ms`)
   }
 
   /**
@@ -27,7 +26,6 @@ export class PollingService {
       this.timer = null
     }
     this.isPolling = false
-    console.log('[Polling] 停止轮询')
   }
 
   /**

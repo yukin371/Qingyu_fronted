@@ -1,14 +1,69 @@
 /**
  * 财务模块 API 统一导出
  */
-export * from './finance'
-export * from './wrapper'
 
-// 解决命名冲突：membership.ts的getMembershipPlans优先
-export { getMembershipPlans } from './membership'
-export { getMembershipPlans as getMembershipPlansFromWrapper } from './wrapper'
+// 导出 membership.ts 的类型（优先）
+export type {
+  MembershipPlan,
+  MembershipBenefit,
+  MembershipUsage,
+  MembershipCard,
+  UserMembership
+} from './membership'
 
-// 解决命名冲突：author-revenue.ts的函数优先
+// 导出 author-revenue.ts 的类型
+export type {
+  WithdrawalRequest,
+  AuthorEarning,
+  Settlement
+} from './author-revenue'
+
+// 导出 wrapper 中的函数（但不导出冲突的类型）
+export {
+  getWallet,
+  getWalletBalance,
+  getWalletTransactions,
+  rechargeWallet,
+  consumeWallet,
+  transferWallet,
+  withdrawWallet,
+  getWalletWithdrawals,
+  getMembershipStatus,
+  subscribeMembership as subscribeMembershipFromWrapper,
+  renewMembership as renewMembershipFromWrapper,
+  cancelMembership as cancelMembershipFromWrapper,
+  getMembershipBenefits as getMembershipBenefitsFromWrapper,
+  getMembershipUsage,
+  getMembershipCards as getMembershipCardsFromWrapper,
+  activateMembershipCard as activateMembershipCardFromWrapper,
+  getAuthorEarnings as getAuthorEarningsFromWrapper,
+  getAuthorBookEarnings,
+  getAuthorRevenueDetails,
+  getAuthorRevenueStatistics,
+  getAuthorSettlements,
+  getAuthorSettlementDetail,
+  getAuthorTaxInfo,
+  updateAuthorTaxInfo,
+  getAuthorWithdrawals,
+  authorWithdraw,
+  getBalance,
+  getTransactionHistory,
+  isMembershipActive
+} from './wrapper'
+
+// 导出 membership.ts 的函数（优先）
+export {
+  getMembershipPlans,
+  getUserMembership,
+  subscribeMembership,
+  cancelMembership,
+  renewMembership,
+  getMembershipBenefits,
+  getMembershipBenefitsUsage,
+  activateMembershipCard
+} from './membership'
+
+// 导出 author-revenue.ts 的函数（优先）
 export {
   getRevenueOverview,
   getAuthorEarnings,
@@ -18,27 +73,6 @@ export {
   getWithdrawalHistory,
   getWithdrawalRequests,
   createWithdrawal,
-  createWithdrawalRequest,
-  cancelWithdrawalRequest,
   getSettlements,
   getSettlementDetail
 } from './author-revenue'
-export {
-  getRevenueOverview as getRevenueOverviewFromWrapper,
-  getAuthorEarnings as getAuthorEarningsFromWrapper,
-  getDailyEarnings as getDailyEarningsFromWrapper,
-  getMonthlyEarnings as getMonthlyEarningsFromWrapper
-} from './wrapper'
-
-// 导出membership.ts的其他函数
-export {
-  getUserMembership,
-  subscribeMembership,
-  cancelMembership,
-  renewMembership,
-  getMembershipCards,
-  redeemMembershipCard,
-  getMembershipBenefits,
-  getMembershipUsage,
-  getMembershipBenefitsUsage
-} from './membership'

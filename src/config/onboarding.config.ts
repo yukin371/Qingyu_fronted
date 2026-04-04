@@ -3,7 +3,27 @@
  * 定义各个功能模块的引导流程
  */
 
-import type { TourConfig } from '@/stores/onboarding'
+// 本地定义类型以避免模块解析问题
+export interface TourStep {
+  target: string
+  title: string
+  content: string
+  placement?: 'top' | 'bottom' | 'left' | 'right'
+  action?: () => void
+  skipable?: boolean
+}
+
+export interface TourConfig {
+  id: string
+  name: string
+  description?: string
+  steps: TourStep[]
+  autoStart?: boolean
+  skippable?: boolean
+  showProgress?: boolean
+  prerequisite?: string
+  triggerOn?: string[]
+}
 
 // ==================== 欢迎引导 ====================
 export const welcomeTourConfig: TourConfig = {

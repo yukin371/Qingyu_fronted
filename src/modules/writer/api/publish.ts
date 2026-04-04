@@ -9,7 +9,15 @@ import { request } from '@/utils/request-adapter'
 import httpService from '@/core/services/http.service'
 
 // 发布状态
-export type PublishStatus = 'draft' | 'pending_review' | 'scheduled' | 'published' | 'rejected' | 'unpublished' | 'active' | 'paused'
+export type PublishStatus =
+  | 'draft'
+  | 'pending_review'
+  | 'scheduled'
+  | 'published'
+  | 'rejected'
+  | 'unpublished'
+  | 'active'
+  | 'paused'
 
 // 发布类型
 export type PublishType = 'free' | 'paid' | 'vip' | 'limited'
@@ -20,6 +28,8 @@ export type PublishPlatform = 'web' | 'mobile' | 'all'
 // 章节发布配置
 export interface ChapterPublishConfig {
   chapter_id: string
+  chapter_title?: string
+  chapter_number?: number
   is_free?: boolean
   price?: number
   vip_only?: boolean
@@ -62,6 +72,20 @@ export interface PublishRecord {
   created_at: string
 }
 
+export interface PublicationReviewDetail {
+  id: string
+  book_id: string
+  chapter_id: string
+  chapter_title: string
+  chapter_number: number
+  status: PublishStatus
+  published_at?: string
+  created_at: string
+  reviewed_at: string | null
+  reviewer_name: string | null
+  review_comment: string | null
+}
+
 // 发布统计
 export interface PublishStats {
   total_chapters: number
@@ -71,6 +95,37 @@ export interface PublishStats {
   scheduled_chapters: number
   total_words: number
   published_words: number
+  recent_trend?: Array<{
+    date: string
+    label: string
+    count: number
+  }>
+}
+
+function mapBackendPublicationStatus(item: any): PublishStatus {
+  const backendStatus = item?.status as string
+  const scheduledTime = item?.scheduledTime ? new Date(item.scheduledTime).getTime() : 0
+  const isScheduled = backendStatus === 'pending' && scheduledTime > Date.now()
+
+  if (backendStatus === 'published') return 'published'
+  if (isScheduled) return 'scheduled'
+  if (backendStatus === 'pending') return 'pending_review'
+  if (backendStatus === 'failed' || backendStatus === 'rejected') return 'rejected'
+  if (backendStatus === 'unpublished') return 'draft'
+  return 'draft'
+}
+
+function mapPublicationRecord(item: any, bookId: string): PublishRecord {
+  return {
+    id: item?.id || '',
+    book_id: bookId,
+    chapter_id: item?.resourceId || '',
+    chapter_title: item?.metadata?.chapterTitle || item?.resourceTitle || '未命名',
+    chapter_number: item?.metadata?.chapterNumber || 0,
+    status: mapBackendPublicationStatus(item),
+    published_at: item?.publishTime || item?.scheduledTime,
+    created_at: item?.createdAt || '',
+  }
 }
 
 /**
@@ -97,7 +152,7 @@ export function getPublishPlan(bookId: string) {
       schedule: { type: 'manual' as const },
       pricing: { is_free: true },
       created_at: status?.publishedAt || new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }))
 }
 
@@ -118,14 +173,17 @@ export function getPublishPlan(bookId: string) {
  * @response {PublishPlan} 201 - 成功创建发布计划
  * @security BearerAuth
  */
-export function createPublishPlan(bookId: string, data: {
-  name: string
-  description?: string
-  type: PublishType
-  platforms: PublishPlatform[]
-  schedule: PublishPlan['schedule']
-  pricing: PublishPlan['pricing']
-}) {
+export function createPublishPlan(
+  bookId: string,
+  data: {
+    name: string
+    description?: string
+    type: PublishType
+    platforms: PublishPlatform[]
+    schedule: PublishPlan['schedule']
+    pricing: PublishPlan['pricing']
+  },
+) {
   return httpService
     .post(`/api/v1/writer/projects/${bookId}/publish`, {
       bookstoreId: 'default-bookstore',
@@ -137,7 +195,7 @@ export function createPublishPlan(bookId: string, data: {
       freeChapters: data.pricing?.is_free ? 99999 : 0,
       authorNote: data.name || '发布计划',
       enableComment: true,
-      enableShare: true
+      enableShare: true,
     })
     .then(() => getPublishPlan(bookId))
 }
@@ -160,7 +218,7 @@ export function updatePublishPlan(planId: string, data: Partial<PublishPlan>) {
     type: (data.type || 'free') as PublishType,
     platforms: (data.platforms || ['all']) as PublishPlatform[],
     schedule: data.schedule || { type: 'manual' },
-    pricing: data.pricing || { is_free: true }
+    pricing: data.pricing || { is_free: true },
   })
 }
 
@@ -175,7 +233,9 @@ export function updatePublishPlan(planId: string, data: Partial<PublishPlan>) {
  * @security BearerAuth
  */
 export function deletePublishPlan(planId: string) {
-  return httpService.post(`/api/v1/writer/projects/${planId}/unpublish`).then(() => ({ success: true }))
+  return httpService
+    .post(`/api/v1/writer/projects/${planId}/unpublish`)
+    .then(() => ({ success: true }))
 }
 
 /**
@@ -196,11 +256,12 @@ export function publishChapter(chapterId: string, config: ChapterPublishConfig) 
     method: 'post',
     params: projectId ? { projectId } : undefined,
     data: {
-      chapterTitle: (config as any).chapter_title || '未命名章节',
-      chapterNumber: (config as any).chapter_number || 1,
+      chapterTitle: config.chapter_title || (config as any).chapterTitle || '未命名章节',
+      chapterNumber: config.chapter_number || (config as any).chapterNumber || 1,
       isFree: config.is_free ?? true,
-      authorNote: ''
-    }
+      authorNote: '',
+      publishTime: config.publish_at || undefined,
+    },
   })
 }
 
@@ -223,7 +284,7 @@ export function batchPublishChapters(data: {
   return request<PublishRecord[]>({
     url: '/api/v1/writer/publish/chapters/batch',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -237,8 +298,17 @@ export function batchPublishChapters(data: {
  * @response {{success: boolean}} 204 - 成功取消发布
  * @security BearerAuth
  */
-export function unpublishChapter(chapterId: string) {
-  return Promise.reject(new Error('后端暂未提供章节下架接口，请使用项目下架或管理端操作'))
+export function unpublishChapter(chapterId: string, projectId: string, reason = '作者主动下架') {
+  return request<{ success: boolean }>({
+    url: `/api/v1/writer/documents/${chapterId}/publish-status`,
+    method: 'put',
+    params: { projectId },
+    data: {
+      isPublished: false,
+      isFree: true,
+      unpublishReason: reason,
+    },
+  })
 }
 
 /**
@@ -252,8 +322,16 @@ export function unpublishChapter(chapterId: string) {
  * @response {PublishRecord} 201 - 成功设置定时发布
  * @security BearerAuth
  */
-export function scheduleChapter(chapterId: string, publishAt: string) {
-  return Promise.reject(new Error('后端暂未提供独立定时发布接口'))
+export function scheduleChapter(
+  chapterId: string,
+  projectId: string,
+  config: ChapterPublishConfig,
+) {
+  return publishChapter(chapterId, {
+    ...config,
+    chapter_id: chapterId,
+    ...(projectId ? { project_id: projectId } : {}),
+  } as ChapterPublishConfig)
 }
 
 /**
@@ -270,55 +348,49 @@ export function scheduleChapter(chapterId: string, publishAt: string) {
  * @response {{items: PublishRecord[], total: number}} 200 - 成功返回发布记录
  * @security BearerAuth
  */
-export function getPublishRecords(bookId: string, params?: {
-  page?: number
-  page_size?: number
-  status?: PublishStatus
-}) {
+export function getPublishRecords(
+  bookId: string,
+  params?: {
+    page?: number
+    page_size?: number
+    status?: PublishStatus
+  },
+) {
   return httpService
     .get<any>(`/api/v1/writer/projects/${bookId}/publications`, {
       params: {
         page: params?.page || 1,
-        pageSize: params?.page_size || 20
-      }
+        pageSize: params?.page_size || 20,
+      },
     })
     .then((res: any) => {
       const rawItems = Array.isArray(res?.data) ? res.data : []
-      const mappedItems: PublishRecord[] = rawItems.map((item: any) => {
-        const backendStatus = item?.status as string
-        const mappedStatus: PublishStatus =
-          backendStatus === 'published'
-            ? 'published'
-            : backendStatus === 'pending'
-              ? 'pending_review'
-              : backendStatus === 'failed'
-                ? 'rejected'
-                : backendStatus === 'unpublished'
-                  ? 'draft'
-                  : 'draft'
-
-        return {
-          id: item?.id || '',
-          book_id: bookId,
-          chapter_id: item?.resourceId || '',
-          chapter_title: item?.metadata?.chapterTitle || item?.resourceTitle || '未命名',
-          chapter_number: item?.metadata?.chapterNumber || 0,
-          status: mappedStatus,
-          published_at: item?.publishTime,
-          created_at: item?.createdAt || ''
-        }
-      })
+      const mappedItems: PublishRecord[] = rawItems.map((item: any) =>
+        mapPublicationRecord(item, bookId),
+      )
 
       const filtered =
         params?.status && params.status.length > 0
-          ? mappedItems.filter(item => item.status === params.status)
+          ? mappedItems.filter((item) => item.status === params.status)
           : mappedItems
 
       return {
         items: filtered,
-        total: Number(res?.pagination?.total || filtered.length)
+        total: Number(res?.pagination?.total || filtered.length),
       }
     })
+}
+
+export function getPublicationDetail(recordId: string): Promise<PublicationReviewDetail> {
+  return request<any>({
+    url: `/api/v1/writer/publications/${recordId}`,
+    method: 'get',
+  }).then((item: any) => ({
+    ...mapPublicationRecord(item, item?.projectId || item?.bookId || ''),
+    reviewed_at: item?.reviewedAt || item?.publishTime || null,
+    reviewer_name: item?.reviewedBy || null,
+    review_comment: item?.reviewNote || item?.reason || null,
+  }))
 }
 
 /**
@@ -332,20 +404,54 @@ export function getPublishRecords(bookId: string, params?: {
  * @security BearerAuth
  */
 export function getPublishStats(bookId: string) {
-  return httpService.get<any>(`/api/v1/writer/projects/${bookId}/publication-status`).then((status: any) => ({
-    total_chapters: Number(status?.totalChapters || 0),
-    published_chapters: Number(status?.publishedChapters || 0),
-    draft_chapters: Math.max(
-      0,
-      Number(status?.totalChapters || 0) -
-        Number(status?.publishedChapters || 0) -
-        Number(status?.pendingChapters || 0)
-    ),
-    pending_review_chapters: Number(status?.pendingChapters || 0),
-    scheduled_chapters: 0,
-    total_words: 0,
-    published_words: 0
-  }))
+  return Promise.all([
+    request<any>({
+      url: `/api/v1/writer/projects/${bookId}/publication-status`,
+      method: 'get',
+    }),
+    getPublishRecords(bookId, { page: 1, page_size: 1000 }),
+  ]).then(([status, records]) => {
+    const scheduledChapters = records.items.filter((item) => item.status === 'scheduled').length
+    const pendingReviewChapters = records.items.filter(
+      (item) => item.status === 'pending_review',
+    ).length
+    const publishedChapters = Number(status?.publishedChapters || 0)
+    const totalChapters = Number(status?.totalChapters || records.total || 0)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const recentTrend = Array.from({ length: 7 }, (_, index) => {
+      const currentDay = new Date(today)
+      currentDay.setDate(today.getDate() - (6 - index))
+      const nextDay = new Date(currentDay)
+      nextDay.setDate(currentDay.getDate() + 1)
+
+      const count = records.items.filter((item) => {
+        if (item.status !== 'published' || !item.published_at) return false
+        const publishedAt = new Date(item.published_at)
+        return publishedAt >= currentDay && publishedAt < nextDay
+      }).length
+
+      return {
+        date: currentDay.toISOString(),
+        label: `${currentDay.getMonth() + 1}/${currentDay.getDate()}`,
+        count,
+      }
+    })
+
+    return {
+      total_chapters: totalChapters,
+      published_chapters: publishedChapters,
+      draft_chapters: Math.max(
+        0,
+        totalChapters - publishedChapters - pendingReviewChapters - scheduledChapters,
+      ),
+      pending_review_chapters: pendingReviewChapters,
+      scheduled_chapters: scheduledChapters,
+      total_words: 0,
+      published_words: 0,
+      recent_trend: recentTrend,
+    }
+  })
 }
 
 /**
@@ -358,7 +464,7 @@ export function getPublishStats(bookId: string) {
  * @response {{success: boolean}} 200 - 成功提交审核
  * @security BearerAuth
  */
-export function submitForReview(bookId: string) {
+export function submitForReview(_bookId: string) {
   return Promise.reject(new Error('后端暂未提供提交审核接口'))
 }
 
@@ -380,7 +486,7 @@ export function getReviewStatus(bookId: string) {
     reviewed_at?: string
   }>({
     url: `/api/v1/writer/publish/books/${bookId}/review/status`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -398,15 +504,18 @@ export function getReviewStatus(bookId: string) {
  * @response {{success: boolean}} 200 - 成功设置付费
  * @security BearerAuth
  */
-export function setChapterPricing(chapterId: string, data: {
-  is_free: boolean
-  price?: number
-  vip_only?: boolean
-}) {
+export function setChapterPricing(
+  chapterId: string,
+  data: {
+    is_free: boolean
+    price?: number
+    vip_only?: boolean
+  },
+) {
   return request<{ success: boolean }>({
     url: `/api/v1/writer/publish/chapters/${chapterId}/pricing`,
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -429,7 +538,7 @@ export function getChapterPublishStatus(chapterId: string) {
     vip_only: boolean
   }>({
     url: `/api/v1/writer/publish/chapters/${chapterId}/status`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -448,7 +557,7 @@ export function updatePublishPlatforms(planId: string, platforms: PublishPlatfor
   return request<{ success: boolean }>({
     url: `/api/v1/writer/publish/plans/${planId}/platforms`,
     method: 'put',
-    data: { platforms }
+    data: { platforms },
   })
 }
 
@@ -463,7 +572,9 @@ export function updatePublishPlatforms(planId: string, platforms: PublishPlatfor
  * @security BearerAuth
  */
 export function pausePublishPlan(planId: string) {
-  return httpService.post(`/api/v1/writer/projects/${planId}/unpublish`).then(() => ({ success: true }))
+  return httpService
+    .post(`/api/v1/writer/projects/${planId}/unpublish`)
+    .then(() => ({ success: true }))
 }
 
 /**
@@ -488,7 +599,7 @@ export function resumePublishPlan(planId: string) {
       freeChapters: 99999,
       authorNote: '恢复发布',
       enableComment: true,
-      enableShare: true
+      enableShare: true,
     })
     .then(() => ({ success: true }))
 }
@@ -498,22 +609,27 @@ export const publishTypeOptions = [
   { label: '免费发布', value: 'free' as PublishType, description: '所有读者均可免费阅读' },
   { label: '付费阅读', value: 'paid' as PublishType, description: '读者需要付费才能阅读' },
   { label: 'VIP专享', value: 'vip' as PublishType, description: '仅VIP会员可阅读' },
-  { label: '限时免费', value: 'limited' as PublishType, description: '限时免费，之后转为付费' }
+  { label: '限时免费', value: 'limited' as PublishType, description: '限时免费，之后转为付费' },
 ]
 
 // 发布平台选项
 export const publishPlatformOptions = [
   { label: '网页端', value: 'web' as PublishPlatform },
   { label: '移动端', value: 'mobile' as PublishPlatform },
-  { label: '全平台', value: 'all' as PublishPlatform }
+  { label: '全平台', value: 'all' as PublishPlatform },
 ]
 
 // 发布状态映射
-export const publishStatusMap: Record<PublishStatus, { label: string; type: 'info' | 'success' | 'warning' | 'danger' }> = {
+export const publishStatusMap: Partial<
+  Record<PublishStatus, { label: string; type: 'info' | 'success' | 'warning' | 'danger' }>
+> = {
   draft: { label: '草稿', type: 'info' },
   pending_review: { label: '审核中', type: 'warning' },
   scheduled: { label: '定时发布', type: 'info' },
   published: { label: '已发布', type: 'success' },
   rejected: { label: '审核驳回', type: 'danger' },
-  unpublished: { label: '已下架', type: 'info' }
+  unpublished: { label: '已下架', type: 'info' },
+  // active 和 paused 是内部状态，映射到已有状态
+  active: { label: '活跃', type: 'success' },
+  paused: { label: '暂停', type: 'warning' },
 }

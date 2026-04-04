@@ -11,7 +11,7 @@
       :class="inputClasses"
       :value="value"
       :disabled="actualDisabled"
-      :indeterminate="indeterminate ? 'true' : undefined"
+      :indeterminate="indeterminate ? true : undefined"
       @change="handleChange"
     />
 
@@ -81,7 +81,7 @@ const emit = defineEmits<QyCheckboxEmits>()
 
 // 注入组上下文
 import { CHECKBOX_GROUP_KEY, type QyCheckboxGroupContext } from './contextKey'
-const groupContext = inject<QyCheckboxGroupContext>(CHECKBOX_GROUP_KEY, undefined)
+const groupContext = inject<QyCheckboxGroupContext | undefined>(CHECKBOX_GROUP_KEY, undefined)
 
 // 是否在组中
 const isInGroup = computed(() => groupContext !== undefined)

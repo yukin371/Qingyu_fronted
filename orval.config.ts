@@ -1,11 +1,13 @@
 import { defineConfig } from 'orval'
 
+const orvalInput = './.orval/swagger.yaml'
+
 export default defineConfig({
   reader: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
-        paths: ['^/api/v1/reader/'],
+        paths: ['^/api/v1/reader/', '^/api/v1/bookstore/'],
       },
     },
     output: {
@@ -28,7 +30,7 @@ export default defineConfig({
 
   bookstore: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
         paths: ['^/api/v1/bookstore/'],
       },
@@ -53,7 +55,7 @@ export default defineConfig({
 
   admin: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
         paths: ['^/api/v1/admin/'],
       },
@@ -78,9 +80,9 @@ export default defineConfig({
 
   writer: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
-        paths: ['^/api/v1/writer/'],
+        paths: ['^/api/v1/writer/', '^/api/v1/projects', '^/api/v1/documents', '^/api/v1/user/shortcuts'],
       },
     },
     output: {
@@ -103,7 +105,7 @@ export default defineConfig({
 
   social: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
         paths: ['^/api/v1/social/'],
       },
@@ -128,7 +130,7 @@ export default defineConfig({
 
   ai: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
         paths: ['^/api/v1/ai/'],
       },
@@ -153,7 +155,7 @@ export default defineConfig({
 
   finance: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
         paths: ['^/api/v1/finance/'],
       },
@@ -178,9 +180,9 @@ export default defineConfig({
 
   notification: {
     input: {
-      target: '../Qingyu_backend/docs/swagger.yaml',
+      target: orvalInput,
       filters: {
-        paths: ['^/api/v1/notification/'],
+        paths: ['^/api/v1/notifications'],
       },
     },
     output: {

@@ -38,6 +38,7 @@ export { default as QyScrollbar } from './basic/QyScrollbar'
 export { default as Scrollbar } from './basic/QyScrollbar'
 export { default as QyImage } from './basic/QyImage'
 export { default as Image } from './basic/QyImage'
+export { default as QyGhostButton } from './basic/QyGhostButton'
 
 // Navigation Components
 export { default as QyTopNav } from './navigation/QyTopNav'
@@ -83,6 +84,7 @@ export type * from './basic/QySelect/types'
 export type * from './basic/QyRate/types'
 export type * from './basic/QyScrollbar/types'
 export type * from './basic/QyImage/types'
+export type * from './basic/QyGhostButton/types'
 export type * from './navigation/QyTopNav/types'
 export type * from './navigation/QyBottomDock/types'
 export type * from './navigation/QyTabBar/types'
@@ -117,7 +119,7 @@ import type { QyTagProps } from './basic/QyTag/types'
 import type { QyIconProps } from './basic/QyIcon/types'
 import type { QyImageProps } from './basic/QyImage/types'
 import type { QyCardProps } from './basic/QyCard/types'
-import type { QyRateProps } from './basic/QyRate/types'
+import type { RateProps as QyRateProps } from './basic/QyRate/types'
 
 // Export backward compatibility type aliases
 export type ButtonProps = QyButtonProps

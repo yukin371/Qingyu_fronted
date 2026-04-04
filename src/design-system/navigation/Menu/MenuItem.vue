@@ -5,7 +5,7 @@
  * 菜单项组件
  */
 
-import { computed, inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { cn } from '../../utils/cn'
 import type { MenuItemProps } from './types'
 import { MENU_KEY, type MenuContext } from './constants'
@@ -17,15 +17,15 @@ const props = withDefaults(defineProps<MenuItemProps>(), {
 
 // 注入 Menu 上下文
 const menuContext = inject<MenuContext>(MENU_KEY, {
-  activeIndex: { value: '' },
-  openedMenus: { value: [] },
-  mode: { value: 'vertical' },
-  collapse: { value: false },
-  uniqueOpened: { value: false },
+  activeIndex: ref(''),
+  openedMenus: ref([]),
+  mode: ref('vertical'),
+  collapse: ref(false),
+  uniqueOpened: ref(false),
   handleSelect: () => {},
   handleOpen: () => {},
   handleClose: () => {},
-})
+} as MenuContext)
 
 // 计算是否激活
 const isActive = computed(() => menuContext.activeIndex.value === props.index)

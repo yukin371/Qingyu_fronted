@@ -63,6 +63,12 @@ const wrapStyle = computed(() => props.wrapStyle)
 
 // 视图样式
 const viewStyle = computed(() => props.viewStyle)
+
+// 暴露给父组件
+defineExpose({
+  scrollbarWrapper,
+  scrollbarView,
+})
 </script>
 
 <style scoped>

@@ -12,9 +12,9 @@
           <el-select v-model="selectedBook" placeholder="选择作品" clearable @change="loadChapters">
             <el-option
               v-for="book in bookList"
-              :key="book?.projectId || `book-${Math.random()}`"
-              :label="book?.title || '未命名作品'"
-              :value="book?.projectId"
+              :key="(book as any)?.projectId || (book as any)?.id || `book-${Math.random()}`"
+              :label="(book as any)?.title || (book as any)?.name || '未命名作品'"
+              :value="(book as any)?.projectId || (book as any)?.id"
             />
           </el-select>
         </el-col>
@@ -26,22 +26,15 @@
             @change="loadChapters"
           >
             <template #prefix>
-              <QyIcon name="Search"  />
+              <QyIcon name="Search" />
             </template>
           </el-input>
         </el-col>
         <el-col :xs="24" :sm="24" :md="8" class="action-col">
-          <el-button
-            type="primary"
-            :disabled="selectedChapters.length === 0"
-            @click="batchPublish"
-          >
+          <el-button type="primary" :disabled="selectedChapters.length === 0" @click="batchPublish">
             批量发布
           </el-button>
-          <el-button
-            :disabled="selectedChapters.length === 0"
-            @click="batchUnpublish"
-          >
+          <el-button :disabled="selectedChapters.length === 0" @click="batchUnpublish">
             批量下架
           </el-button>
         </el-col>
@@ -73,7 +66,11 @@
           <template #label>
             <span class="tab-label">
               待审核
-              <el-badge :value="statusCount.pending" :hidden="statusCount.pending === 0" type="warning" />
+              <el-badge
+                :value="statusCount.pending"
+                :hidden="statusCount.pending === 0"
+                type="warning"
+              />
             </span>
           </template>
         </el-tab-pane>
@@ -82,7 +79,11 @@
           <template #label>
             <span class="tab-label">
               已发布
-              <el-badge :value="statusCount.published" :hidden="statusCount.published === 0" type="success" />
+              <el-badge
+                :value="statusCount.published"
+                :hidden="statusCount.published === 0"
+                type="success"
+              />
             </span>
           </template>
         </el-tab-pane>
@@ -91,7 +92,11 @@
           <template #label>
             <span class="tab-label">
               已下架
-              <el-badge :value="statusCount.unpublished" :hidden="statusCount.unpublished === 0" type="danger" />
+              <el-badge
+                :value="statusCount.unpublished"
+                :hidden="statusCount.unpublished === 0"
+                type="danger"
+              />
             </span>
           </template>
         </el-tab-pane>
@@ -106,12 +111,7 @@
         <el-empty description="暂无章节数据" />
       </div>
 
-      <el-table
-        v-else
-        :data="filteredChapters"
-        stripe
-        @selection-change="handleSelectionChange"
-      >
+      <el-table v-else :data="filteredChapters" stripe @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
 
         <el-table-column prop="chapterNumber" label="章节号" width="80" />
@@ -170,19 +170,8 @@
             >
               下架
             </el-button>
-            <el-button
-              size="small"
-              @click="editChapter(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="deleteChapter(row)"
-            >
-              删除
-            </el-button>
+            <el-button size="small" @click="editChapter(row)"> 编辑 </el-button>
+            <el-button type="danger" size="small" @click="deleteChapter(row)"> 删除 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -228,13 +217,8 @@
         </el-form-item>
 
         <el-form-item v-if="!publishForm.isFree" label="章节价格">
-          <el-input-number
-            v-model="publishForm.price"
-            :min="0"
-            :max="100"
-            :step="1"
-          />
-          <span style="margin-left: 8px;">书币</span>
+          <el-input-number v-model="publishForm.price" :min="0" :max="100" :step="1" />
+          <span style="margin-left: 8px">书币</span>
         </el-form-item>
       </el-form>
 
@@ -247,7 +231,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
@@ -276,7 +260,7 @@ const selectedChapters = ref<any[]>([])
 const pagination = ref({
   page: 1,
   pageSize: 20,
-  total: 0
+  total: 0,
 })
 
 // 发布对话框
@@ -285,7 +269,7 @@ const publishForm = ref({
   timeType: 'now',
   scheduledTime: null,
   isFree: true,
-  price: 10
+  price: 10,
 })
 const currentChapter = ref<any>(null)
 
@@ -293,10 +277,10 @@ const currentChapter = ref<any>(null)
 const statusCount = computed(() => {
   return {
     all: chapters.value.length,
-    draft: chapters.value.filter(c => c.status === 'draft').length,
-    pending: chapters.value.filter(c => c.status === 'pending').length,
-    published: chapters.value.filter(c => c.status === 'published').length,
-    unpublished: chapters.value.filter(c => c.status === 'unpublished').length
+    draft: chapters.value.filter((c) => c.status === 'draft').length,
+    pending: chapters.value.filter((c) => c.status === 'pending').length,
+    published: chapters.value.filter((c) => c.status === 'published').length,
+    unpublished: chapters.value.filter((c) => c.status === 'unpublished').length,
   }
 })
 
@@ -306,31 +290,41 @@ const filteredChapters = computed(() => {
 
   // 按状态过滤
   if (activeTab.value !== 'all') {
-    result = result.filter(c => c.status === activeTab.value)
+    result = result.filter((c) => c.status === activeTab.value)
   }
 
   // 按关键词过滤
   if (searchKeyword.value) {
-    result = result.filter(c =>
-      c.title.toLowerCase().includes(searchKeyword.value.toLowerCase())
-    )
+    result = result.filter((c) => c.title.toLowerCase().includes(searchKeyword.value.toLowerCase()))
   }
 
-  pagination.value.total = result.length
   return result
 })
+
+// 使用 watch 更新 pagination.total，避免在 computed 中产生副作用
+watch(
+  filteredChapters,
+  (newValue) => {
+    pagination.value.total = newValue.length
+  },
+  { immediate: true },
+)
 
 // 加载书籍列表
 const loadBooks = async () => {
   try {
     const response = await getProjects({ page: 1, pageSize: 100 })
     // 过滤掉 null 或 undefined 的项目
-    bookList.value = (response.data || []).filter(item => item && item.projectId)
+    const responseAny = response as any
+    const projects = responseAny?.data || responseAny?.projects || []
+    bookList.value = (Array.isArray(projects) ? projects : []).filter(
+      (item: any) => item && (item.projectId || item.id),
+    )
 
     if (bookList.value.length > 0) {
-      const firstBook = bookList.value[0]
-      if (firstBook && firstBook.projectId) {
-        selectedBook.value = firstBook.projectId
+      const firstBook = bookList.value[0] as any
+      if (firstBook && (firstBook.projectId || firstBook.id)) {
+        selectedBook.value = firstBook.projectId || firstBook.id
         loadChapters()
       }
     }
@@ -350,7 +344,7 @@ const loadChapters = async () => {
   loading.value = true
   try {
     // 模拟数据（实际应该从API获取）
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
     chapters.value = generateMockChapters()
   } catch (error) {
     console.error('加载章节列表失败:', error)
@@ -382,8 +376,11 @@ const generateMockChapters = () => {
     wordCount: Math.floor(Math.random() * 3000) + 1000,
     status: statuses[Math.floor(Math.random() * statuses.length)],
     isFree: i < 5 || Math.random() > 0.5,
-    publishTime: Math.random() > 0.3 ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() : null,
-    readCount: Math.floor(Math.random() * 10000)
+    publishTime:
+      Math.random() > 0.3
+        ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+        : null,
+    readCount: Math.floor(Math.random() * 10000),
   }))
 }
 
@@ -417,12 +414,12 @@ const confirmPublish = async () => {
 }
 
 // 下架章节
-const unpublishChapter = async (chapter: any) => {
+const unpublishChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要下架该章节吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     // 实际应该调用API下架
@@ -436,11 +433,15 @@ const unpublishChapter = async (chapter: any) => {
 // 批量发布
 const batchPublish = async () => {
   try {
-    await messageBox.confirm(`确定要发布选中的 ${selectedChapters.value.length} 个章节吗？`, '批量发布', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await messageBox.confirm(
+      `确定要发布选中的 ${selectedChapters.value.length} 个章节吗？`,
+      '批量发布',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
 
     // 实际应该调用API批量发布
     message.success('批量发布成功')
@@ -453,11 +454,15 @@ const batchPublish = async () => {
 // 批量下架
 const batchUnpublish = async () => {
   try {
-    await messageBox.confirm(`确定要下架选中的 ${selectedChapters.value.length} 个章节吗？`, '批量下架', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await messageBox.confirm(
+      `确定要下架选中的 ${selectedChapters.value.length} 个章节吗？`,
+      '批量下架',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
 
     // 实际应该调用API批量下架
     message.success('批量下架成功')
@@ -476,17 +481,17 @@ const editChapter = (chapter: any) => {
   router.push({
     name: 'writer-project',
     params: { projectId: selectedBook.value },
-    query: { chapterId: chapter.id }
+    query: { chapterId: chapter.id },
   })
 }
 
 // 删除章节
-const deleteChapter = async (chapter: any) => {
+const deleteChapter = async (_chapter: any) => {
   try {
     await messageBox.confirm('确定要删除该章节吗？删除后无法恢复！', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'error'
+      type: 'error',
     })
 
     // 实际应该调用API删除
@@ -518,7 +523,7 @@ const formatDateTime = (dateStr: string): string => {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -528,7 +533,7 @@ const getStatusType = (status: string) => {
     draft: 'info',
     pending: 'warning',
     published: 'success',
-    unpublished: 'danger'
+    unpublished: 'danger',
   }
   return typeMap[status] || 'info'
 }
@@ -539,7 +544,7 @@ const getStatusText = (status: string) => {
     draft: '草稿',
     pending: '待审核',
     published: '已发布',
-    unpublished: '已下架'
+    unpublished: '已下架',
   }
   return textMap[status] || status
 }

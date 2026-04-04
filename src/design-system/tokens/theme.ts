@@ -388,8 +388,6 @@ export function setTheme(themeName: ThemeName): void {
       document.documentElement.classList.remove('theme-switching')
     })
   })
-
-  console.log(`Theme switched to: ${themeName}`)
 }
 
 /**
@@ -518,10 +516,8 @@ export function initTheme(defaultThemeName: ThemeName = 'qingyu'): void {
   const savedTheme = loadTheme()
 
   if (savedTheme) {
-    console.log(`[Theme] Loading saved theme: ${savedTheme}`)
     setTheme(savedTheme)
   } else {
-    console.log(`[Theme] No saved theme found, using default: ${defaultThemeName}`)
     setTheme(defaultThemeName)
   }
 }

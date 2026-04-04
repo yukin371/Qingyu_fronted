@@ -93,7 +93,7 @@
             <Col :xs="24" :sm="8" :md="6">
               <Select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
                 <option value="">全部状态</option>
-                <option value="serializing">连载中</option>
+                <option value="ongoing">连载中</option>
                 <option value="completed">已完结</option>
               </Select>
             </Col>
@@ -118,15 +118,13 @@
 
         <!-- 结果列表 -->
         <div class="results-list">
-          <Spinner v-if="loading" :size="48" class="loading-spinner" />
+          <Spinner v-if="loading" size="lg" class="loading-spinner" />
 
           <!-- 书籍搜索结果 -->
           <template v-else-if="searchType === 'book'">
-
-          <template v-else>
             <div v-for="book in searchResults" :key="book.id" class="result-item" data-testid="book-item" @click="goToDetail(book.id)">
               <div class="item-cover">
-                <Image :src="book.cover" fit="cover">
+                <Image :src="book.cover || ''" fit="cover">
                   <template #error>
                     <div class="image-slot">
                       <Icon name="photo" size="md" />
@@ -136,20 +134,20 @@
               </div>
 
               <div class="item-content">
-                <h3 class="item-title" v-html="highlightKeyword(book.title)"></h3>
+                <h3 class="item-title" v-safe-html="highlightKeyword(book.title)"></h3>
                 <p class="item-author">
                   <Icon name="user" size="sm" />
-                  <span v-html="highlightKeyword(book.author)"></span>
-                  <Tag size="sm" variant="info">{{ book.categoryName }}</Tag>
+                  <span v-safe-html="highlightKeyword(book.author)"></span>
+                  <Tag size="sm" variant="info">{{ book.category || '未分类' }}</Tag>
                 </p>
 
                 <div class="item-meta">
                   <span class="rating">
                     <Icon name="star" size="xs" class="text-yellow-400" />
-                    {{ book.rating.toFixed(1) }}
+                    {{ (book.rating ?? 0).toFixed(1) }}
                   </span>
-                  <span>{{ formatNumber(book.wordCount) }}字</span>
-                  <span>{{ formatNumber(book.viewCount) }}阅读</span>
+                  <span>{{ formatNumber(book.wordCount ?? 0) }}字</span>
+                  <span>{{ formatNumber(book.viewCount ?? 0) }}阅读</span>
                   <Tag v-if="book.status === 'completed'" size="sm" variant="success">
                     完结
                   </Tag>
@@ -205,13 +203,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { searchBooks } from '@/modules/bookstore/api'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getFirstChapter } from '@/modules/reader/api'
 import { message } from '@/design-system/services'
 import { Button, Select, Pagination, Empty, Image, Tag, Spinner, Row, Col, Input } from '@/design-system'
 import { Icon } from '@/design-system'
-import type { BookBrief, Category, SearchFilter } from '@/types/models'
+import type { BookBrief, CategoryTreeNode, SearchFilter } from '../types/bookstore.types'
 import { useBookstoreStore } from '../stores/bookstore.store'
 import { useAuthorsResultStore } from '../stores/authors-result.store'
 import AuthorList from '../components/AuthorList.vue'
@@ -230,7 +227,7 @@ const searchResults = ref<BookBrief[]>([])
 const totalResults = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
-const categories = ref<Category[]>([])
+const categories = ref<CategoryTreeNode[]>([])
 
 // 搜索类型
 const searchType = ref<SearchType>('book')
@@ -250,10 +247,16 @@ const hotSearches = ref([
   '神墓'
 ])
 
-const filters = reactive<Partial<SearchFilter>>({
+type SearchViewFilters = {
+  categoryId: string
+  status: SearchFilter['status'] | ''
+  sortBy: 'relevance' | 'updateTime' | 'rating' | 'viewCount'
+}
+
+const filters = reactive<SearchViewFilters>({
   categoryId: '',
-  status: '' as any,
-  sortBy: 'relevance' as any
+  status: '',
+  sortBy: 'relevance'
 })
 
 // 作者相关状态
@@ -311,8 +314,8 @@ const loadCategories = async () => {
 
     if (Array.isArray(response)) {
       // 展平分类树
-      const flatten = (cats: Category[]): Category[] => {
-        const result: Category[] = []
+      const flatten = (cats: CategoryTreeNode[]): CategoryTreeNode[] => {
+        const result: CategoryTreeNode[] = []
         for (const cat of cats) {
           result.push(cat)
           if (cat.children && cat.children.length > 0) {
@@ -395,19 +398,23 @@ const handleSearch = async () => {
 
       router.push({ path: '/bookstore/search', query })
 
-      const params: any = {
-        keyword,
-        ...filters,
-        page: currentPage.value,
-        size: pageSize.value
+      // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
+      const normalizedFilters: Partial<SearchFilter> = {
+        category: filters.categoryId || undefined,
+        status: filters.status || undefined,
+        sort_by:
+          filters.sortBy === 'updateTime'
+            ? 'update_time'
+            : filters.sortBy === 'rating'
+              ? 'rating'
+              : undefined,
       }
 
-      // 通过 bookstoreStore 与模块服务交互，内部已封装 searchBooks 逻辑
-      await bookstoreStore.searchBooks(keyword, filters)
+      await bookstoreStore.searchBooks(keyword, normalizedFilters)
 
       // 使用 store 中的搜索结果
       const resultList = bookstoreStore.books.searchResults || []
-      searchResults.value = Array.isArray(resultList) ? resultList : []
+      searchResults.value = Array.isArray(resultList) ? resultList as BookBrief[] : []
       totalResults.value = bookstoreStore.searchResultsCount || searchResults.value.length
     }
   } catch (error) {

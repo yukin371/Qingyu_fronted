@@ -29,24 +29,6 @@ const spinnerContainerVariants = cva(
   }
 )
 
-// 使用 CVA 定义 Spinner 元素变体
-const spinnerVariants = cva(
-  // 基础样式
-  'animate-spin rounded-full border-current border-t-transparent',
-  {
-    variants: {
-      size: {
-        sm: 'w-4 h-4 border-2',
-        md: 'w-6 h-6 border-3',
-        lg: 'w-8 h-8 border-4',
-      },
-    },
-    defaultVariants: {
-      size: 'md',
-    },
-  }
-)
-
 // 组件 Props
 const props = withDefaults(defineProps<SpinnerProps>(), {
   type: 'default',
@@ -72,28 +54,8 @@ const colorStyle = computed(() => {
   }
 })
 
-// 计算默认 Spinner 样式
-const defaultSpinnerClasses = computed(() => {
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-  }
-  const borderWidth = props.strokeWidth || 3
-  return cn(
-    'animate-spin rounded-full border-current border-t-transparent',
-    sizeClasses[props.size],
-    `border-[${borderWidth}px]`
-  )
-})
-
 // 计算点动画延迟
 const getDotDelay = (index: number) => {
-  const baseDelays = {
-    sm: '0ms',
-    md: '0ms',
-    lg: '0ms',
-  }
   const delays = {
     0: '0ms',
     1: '-200ms',

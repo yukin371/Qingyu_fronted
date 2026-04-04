@@ -116,6 +116,7 @@ export const BOOK_COVERS = {
   martial: {
     '剑道独尊': `${IMAGE_CONFIG.picsumBaseUrl}/seed/martial-sword/300/400.jpg`,
     '古剑传说': `${IMAGE_CONFIG.picsumBaseUrl}/seed/martial-ancient-sword/300/400.jpg`,
+    '云岚纪事': `${IMAGE_CONFIG.picsumBaseUrl}/seed/martial-yunlan/300/400.jpg`,
   },
   
   // 都市类

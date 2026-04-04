@@ -4,7 +4,11 @@
 
 // MessageBox 类型
 export type MessageBoxType = 'alert' | 'confirm' | 'prompt'
+// MessageBox 图标类型（用于显示不同样式的图标）
+export type MessageBoxIconType = 'success' | 'warning' | 'info' | 'error'
 
+// MessageBox type 属性可以是 MessageBoxType 或 MessageBoxIconType（向后兼容）
+export type MessageBoxTypeOrIcon = MessageBoxType | MessageBoxIconType
 // MessageBox 动作
 export type MessageBoxAction = 'confirm' | 'cancel'
 
@@ -34,8 +38,10 @@ export interface MessageBoxOptions {
   title?: string
   /** 对话框内容 */
   message: string
-  /** 对话框类型 */
-  type?: MessageBoxType
+  /** 对话框类型或图标类型（向后兼容 Element Plus） */
+  type?: MessageBoxTypeOrIcon
+  /** 图标类型（用于显示不同样式的图标） */
+  iconType?: MessageBoxIconType
   /** 是否显示图标 */
   showIcon?: boolean
   /** 是否显示关闭按钮 */

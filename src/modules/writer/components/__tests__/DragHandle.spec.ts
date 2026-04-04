@@ -46,7 +46,7 @@ describe('DragHandle', () => {
           position: 'left'
         }
       })
-      expect(wrapper.props('position')).toBe('left')
+      expect(wrapper.props()).toHaveProperty('position', 'left')
     })
 
     it('应该支持 left 和 right 位置', () => {
@@ -56,13 +56,13 @@ describe('DragHandle', () => {
       const rightWrapper = mount(DragHandle, {
         props: { position: 'right' }
       })
-      expect(leftWrapper.props('position')).toBe('left')
-      expect(rightWrapper.props('position')).toBe('right')
+      expect(leftWrapper.props()).toHaveProperty('position', 'left')
+      expect(rightWrapper.props()).toHaveProperty('position', 'right')
     })
 
     it('应该有默认的 position 值', () => {
       const wrapper = mount(DragHandle)
-      expect(wrapper.props('position')).toBeDefined()
+      expect(wrapper.props()).toBeDefined()
     })
   })
 
@@ -73,19 +73,19 @@ describe('DragHandle', () => {
           position: 'left'
         }
       })
-      
+
       const dragHandle = wrapper.find('.drag-handle')
-      
+
       // 模拟 mousedown 事件
       await dragHandle.trigger('mousedown', {
         clientX: 100,
         clientY: 200,
         button: 0 // 左键
       })
-      
+
       // 验证事件触发
       expect(wrapper.emitted('drag-start')).toBeTruthy()
-      const emittedEvent = wrapper.emitted('drag-start')![0]
+      const emittedEvent = wrapper.emitted('drag-start')![0] as unknown[]
       expect(emittedEvent).toBeDefined()
     })
 
@@ -95,21 +95,22 @@ describe('DragHandle', () => {
           position: 'left'
         }
       })
-      
+
       const dragHandle = wrapper.find('.drag-handle')
       const clientX = 100
       const clientY = 200
-      
+
       await dragHandle.trigger('mousedown', {
         clientX,
         clientY,
         button: 0
       })
-      
-      const emittedEvent = wrapper.emitted('drag-start')![0]
-      expect(emittedEvent[0]).toHaveProperty('position', 'left')
-      expect(emittedEvent[0]).toHaveProperty('startX', clientX)
-      expect(emittedEvent[0]).toHaveProperty('startY', clientY)
+
+      const emittedEvent = wrapper.emitted('drag-start')![0] as unknown[]
+      const eventData = emittedEvent[0] as Record<string, unknown>
+      expect(eventData).toHaveProperty('position', 'left')
+      expect(eventData).toHaveProperty('startX', clientX)
+      expect(eventData).toHaveProperty('startY', clientY)
     })
 
     it('应该只在鼠标左键时触发 drag-start', async () => {
@@ -206,12 +207,12 @@ describe('DragHandle', () => {
     it('应该设置正确的宽度为 4px', () => {
       const wrapper = mount(DragHandle)
       const dragHandle = wrapper.find('.drag-handle')
-      
+
       // 检查内联样式或计算样式
       const style = dragHandle.attributes('style') || ''
       // 如果内联样式没有 width，则检查 CSS 变量
-      const hasWidthVariable = style.includes('width') || 
-                               dragHandle.classes().some(c => c.includes('drag-handle'))
+      const hasWidthVariable = style.includes('width') ||
+                               dragHandle.classes().some((c: string) => c.includes('drag-handle'))
       expect(hasWidthVariable).toBe(true)
     })
 

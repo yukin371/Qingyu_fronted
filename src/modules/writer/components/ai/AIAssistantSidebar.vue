@@ -9,16 +9,21 @@
       <div class="header-actions">
         <el-button
           text
-          :icon="isCollapsed ? ArrowLeft : ArrowRight"
           @click="toggleCollapse"
           title="收起/展开"
-        />
+        >
+          <el-icon>
+            <svg v-if="isCollapsed" viewBox="0 0 1024 1024" width="1em" height="1em"><path fill="currentColor" d="M604.7 759.2l61.8-61.8L481.1 512l185.4-185.4-61.8-61.8-247.2 247.2z"></path></svg>
+            <svg v-else viewBox="0 0 1024 1024" width="1em" height="1em"><path fill="currentColor" d="M419.3 264.8l-61.8 61.8L542.9 512 357.5 697.4l61.8 61.8 247.2-247.2z"></path></svg>
+          </el-icon>
+        </el-button>
         <el-button
           text
-          :icon="Close"
           @click="handleClose"
           title="关闭"
-        />
+        >
+          <el-icon><Close /></el-icon>
+        </el-button>
       </div>
     </div>
 
@@ -66,17 +71,17 @@
     <div v-if="!isCollapsed && writerStore.ai?.lastResult" class="sidebar-footer">
       <el-button
         type="primary"
-        :icon="DocumentCopy"
         @click="handleInsert"
         :disabled="!writerStore.ai?.lastResult"
       >
+        <el-icon><DocumentCopy /></el-icon>
         插入到编辑器
       </el-button>
       <el-button
-        :icon="CopyDocument"
         @click="handleCopy"
         :disabled="!writerStore.ai?.lastResult"
       >
+        <el-icon><CopyDocument /></el-icon>
         复制
       </el-button>
     </div>
@@ -85,9 +90,9 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { Close, DocumentCopy, CopyDocument, MagicStick } from '@element-plus/icons-vue'
 import { useWriterStore } from '../../stores/writerStore'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
 import * as AIChatPanel from './AIChatPanel.vue'
 import * as AIToolsPanel from './AIToolsPanel.vue'
 import * as AIAgentPanel from './AIAgentPanel.vue'
@@ -132,7 +137,8 @@ const handleModeChange = (mode: 'chat' | 'tools' | 'agent') => {
   if (mode === 'chat') {
     writerStore.setAITool('chat')
   } else if (mode === 'agent') {
-    writerStore.setAITool('agent')
+    // agent 模式使用 chat 工具类型（因为 AIToolType 不包含 'agent'）
+    writerStore.setAITool('chat')
     // 加载 Agent 上下文
     writerStore.updateAgentContext()
   } else {
@@ -141,11 +147,12 @@ const handleModeChange = (mode: 'chat' | 'tools' | 'agent') => {
 }
 
 // 发送聊天消息
-const handleSendMessage = async (message: string) => {
+const handleSendMessage = async (msg: string) => {
   try {
-    await writerStore.sendChatMessage(message)
+    await writerStore.sendChatMessage(msg)
   } catch (error: any) {
-    message.error(error.message || '发送消息失败')
+    const errorMsg = error?.message || (typeof error === 'string' ? error : '发送消息失败')
+    message.error(errorMsg)
   }
 }
 
@@ -214,8 +221,9 @@ watch(() => writerStore.ai?.currentTool, (newTool) => {
   if (!newTool) return
   if (newTool === 'chat') {
     currentMode.value = 'chat'
-  } else if (newTool === 'agent') {
-    currentMode.value = 'agent'
+  } else if (newTool === 'continue' || newTool === 'polish' || newTool === 'expand' || newTool === 'rewrite') {
+    // 所有的写作工具都归类到 tools 模式
+    currentMode.value = 'tools'
   } else {
     currentMode.value = 'tools'
   }

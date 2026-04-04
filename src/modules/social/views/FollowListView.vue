@@ -8,12 +8,7 @@
           <span class="count">{{ totalCount }} 人</span>
         </div>
         <div class="header-actions">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索用户"
-            clearable
-            @input="handleSearch"
-          >
+          <el-input v-model="searchKeyword" placeholder="搜索用户" clearable @input="handleSearch">
             <template #prefix>
               <QyIcon name="Search" />
             </template>
@@ -40,14 +35,10 @@
       <!-- 列表内容 -->
       <div v-loading="loading" class="list-content">
         <div v-if="list.length > 0" class="user-list">
-          <div
-            v-for="item in list"
-            :key="item.id"
-            class="user-item"
-          >
+          <div v-for="item in list" :key="item.id" class="user-item">
             <div class="user-avatar" @click="goToUserPage(item.id)">
               <el-avatar :size="60" :src="item.avatar">
-                <QyIcon name="User"  />
+                <QyIcon name="User" />
               </el-avatar>
             </div>
 
@@ -79,14 +70,10 @@
         </div>
 
         <!-- 空状态 -->
-        <el-empty
-          v-else-if="!loading"
-          :description="emptyText"
-          :image-size="120"
-        >
+        <el-empty v-else-if="!loading" :description="emptyText" :image-size="120">
           <template #image>
             <el-icon :size="120" color="#ddd">
-              <QyIcon name="User"  />
+              <QyIcon name="User" />
             </el-icon>
           </template>
         </el-empty>
@@ -111,11 +98,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { QyIcon, QyIconName } from '@/design-system/components'
+import { QyIcon } from '@/design-system/components'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
+import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
-import { followAPI } from '@/modules/social/api'
+import * as socialAPI from '@/modules/social/api'
 
 interface UserItem {
   id: string
@@ -131,6 +119,7 @@ interface UserItem {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const socialStore = useSocialStore()
 
 const loading = ref(false)
@@ -144,29 +133,30 @@ const targetUserId = ref<string>('')
 const currentTab = ref<'followers' | 'following' | 'mutual'>('followers')
 
 // 标签配置
+type TabType = 'followers' | 'following' | 'mutual'
 const tabs = computed(() => [
   {
-    key: 'followers',
+    key: 'followers' as TabType,
     label: '粉丝',
-    count: socialStore.getStats(targetUserId.value)?.followersCount || 0
+    count: socialStore.getStats(targetUserId.value)?.followersCount || 0,
   },
   {
-    key: 'following',
+    key: 'following' as TabType,
     label: '关注',
-    count: socialStore.getStats(targetUserId.value)?.followingCount || 0
+    count: socialStore.getStats(targetUserId.value)?.followingCount || 0,
   },
   {
-    key: 'mutual',
+    key: 'mutual' as TabType,
     label: '互关',
-    count: 0 // 需要单独计算
-  }
+    count: 0, // 需要单独计算
+  },
 ])
 
 const pageTitle = computed(() => {
   const titleMap = {
     followers: '粉丝列表',
     following: '关注列表',
-    mutual: '互关列表'
+    mutual: '互关列表',
   }
   return titleMap[currentTab.value]
 })
@@ -175,7 +165,7 @@ const emptyText = computed(() => {
   const textMap = {
     followers: '暂无粉丝',
     following: '还没有关注任何人',
-    mutual: '暂无互相关注'
+    mutual: '暂无互相关注',
   }
   return textMap[currentTab.value]
 })
@@ -186,36 +176,32 @@ const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value))
 const loadUserList = async () => {
   loading.value = true
   try {
-    let response
+    let response: any
     const params = {
       page: currentPage.value,
       page_size: pageSize.value,
-      keyword: searchKeyword.value || undefined
+      keyword: searchKeyword.value || undefined,
     }
 
     if (currentTab.value === 'followers') {
-      response = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
+      response = await socialAPI.getFollowersList(targetUserId.value, params)
     } else if (currentTab.value === 'following') {
-      response = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
+      response = await socialAPI.getUserFollowing(targetUserId.value, params)
     } else {
       // 互关列表需要前端过滤
-      const followersRes = await followAPI.getFollowersList({ ...params, user_id: targetUserId.value })
-      const followingRes = await followAPI.getFollowingList({ ...params, user_id: targetUserId.value })
+      const followersRes = (await socialAPI.getFollowersList(targetUserId.value, params)) as any
+      const followingRes = (await socialAPI.getUserFollowing(targetUserId.value, params)) as any
 
       // API直接返回数据,不需要解包
-      const followersList = Array.isArray(followersRes)
-        ? followersRes
-        : followersRes?.items || []
-      const followingList = Array.isArray(followingRes)
-        ? followingRes
-        : followingRes?.items || []
+      const followersList = Array.isArray(followersRes) ? followersRes : followersRes?.items || []
+      const followingList = Array.isArray(followingRes) ? followingRes : followingRes?.items || []
 
       const followingIds = new Set(followingList.map((u: any) => u.id))
       const mutualUsers = followersList.filter((u: any) => followingIds.has(u.id))
 
       list.value = mutualUsers.map((u: any) => ({
         ...u,
-        isMutual: true
+        isMutual: true,
       }))
       totalCount.value = mutualUsers.length
       loading.value = false
@@ -223,14 +209,12 @@ const loadUserList = async () => {
     }
 
     // API直接返回数据,不需要解包
-    const data = Array.isArray(response)
-      ? response
-      : response?.items || []
+    const data = Array.isArray(response) ? response : (response as any)?.items || []
     list.value = data.map((u: any) => ({
       ...u,
-      isMutual: socialStore.isMutualFollow(u.id)
+      isMutual: socialStore.isMutualFollow(u.id),
     }))
-    totalCount.value = response?.total || data.length
+    totalCount.value = (response as any)?.total || data.length
   } catch (error) {
     console.error('[FollowListView] 加载列表失败:', error)
     message.error('加载失败，请稍后重试')
@@ -269,7 +253,7 @@ const handleSizeChange = (size: number) => {
 // 关注用户
 const handleFollow = (userId: string) => {
   // 更新列表中该用户的状态
-  const user = list.value.find(u => u.id === userId)
+  const user = list.value.find((u) => u.id === userId)
   if (user) {
     user.isFollowing = true
   }
@@ -277,13 +261,13 @@ const handleFollow = (userId: string) => {
 
 // 取消关注
 const handleUnfollow = (userId: string) => {
-  const user = list.value.find(u => u.id === userId)
+  const user = list.value.find((u) => u.id === userId)
   if (user) {
     user.isFollowing = false
 
     // 如果是互关列表，移除该用户
     if (currentTab.value === 'mutual') {
-      list.value = list.value.filter(u => u.id !== userId)
+      list.value = list.value.filter((u) => u.id !== userId)
       totalCount.value--
     }
   }
@@ -296,21 +280,25 @@ const goToUserPage = (userId: string) => {
 
 onMounted(async () => {
   // 从路由获取目标用户ID
-  targetUserId.value = (route.params.userId || route.query.userId) as string || ''
+  targetUserId.value = ((route.params.userId || route.query.userId) as string) || ''
 
   // 如果没有指定用户ID，使用当前登录用户的ID
   if (!targetUserId.value) {
-    // TODO: 从 auth store 获取当前用户ID
-    return
+    targetUserId.value = authStore.user?.id || ''
+    if (!targetUserId.value) {
+      message.warning('请先登录')
+      router.push('/login')
+      return
+    }
   }
 
   // 加载关注统计
   await socialStore.fetchFollowStats(targetUserId.value)
 
   // 从路由获取初始标签
-  const tab = route.params.tab as string || route.query.tab as string
+  const tab = (route.params.tab as string) || (route.query.tab as string)
   if (tab && ['followers', 'following', 'mutual'].includes(tab)) {
-    currentTab.value = tab as any
+    currentTab.value = tab as 'followers' | 'following' | 'mutual'
   }
 
   // 加载列表
@@ -318,12 +306,15 @@ onMounted(async () => {
 })
 
 // 监听路由变化
-watch(() => route.params.userId, (newUserId) => {
-  if (newUserId) {
-    targetUserId.value = newUserId as string
-    loadUserList()
-  }
-})
+watch(
+  () => route.params.userId,
+  (newUserId) => {
+    if (newUserId) {
+      targetUserId.value = newUserId as string
+      loadUserList()
+    }
+  },
+)
 </script>
 
 <style scoped lang="scss">

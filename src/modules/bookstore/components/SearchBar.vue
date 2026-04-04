@@ -21,7 +21,7 @@
             </el-icon>
 
             <!-- 支持高亮显示 -->
-            <span class="item-text" v-html="highlightText(item.value)"></span>
+            <span class="item-text" v-safe-html="highlightText(item.value)"></span>
           </div>
 
           <!-- 右侧标签或操作 -->
@@ -66,10 +66,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { QyIcon } from '@/design-system/components'
-import { message } from '@/design-system/services'
+import { Document, User, Collection, Search } from '@element-plus/icons-vue'
 // --- 类型定义 ---
 interface SearchSuggestion {
   value: string

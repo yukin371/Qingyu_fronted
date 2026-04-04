@@ -2,14 +2,12 @@
  * Community API测试
  */
 
-
 import * as communityApi from '../index'
 import {
   createMockPost,
   createMockPosts,
   createMockComment,
   createMockComments,
-  createMockTopic,
   createMockTopics,
 } from '../../../../tests/fixtures'
 import { mockSuccessApiCall, mockErrorApiCall } from '@/tests/utils/api-mock'
@@ -279,7 +277,10 @@ describe('communityApi', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(http.post).toHaveBeenCalledWith(`/api/v1/community/posts/${postId}/comments`, newComment)
+      expect(http.post).toHaveBeenCalledWith(
+        `/api/v1/community/posts/${postId}/comments`,
+        newComment,
+      )
     })
 
     it('should create comment without replyTo', async () => {
@@ -296,7 +297,10 @@ describe('communityApi', () => {
 
       // Assert
       expect(result).toEqual(mockComment)
-      expect(http.post).toHaveBeenCalledWith(`/api/v1/community/posts/${postId}/comments`, newComment)
+      expect(http.post).toHaveBeenCalledWith(
+        `/api/v1/community/posts/${postId}/comments`,
+        newComment,
+      )
     })
   })
 

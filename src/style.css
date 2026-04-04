@@ -168,6 +168,170 @@ body {
   font-size: inherit !important;
 }
 
+/* Element Plus 弹窗定位基线修复：
+   当前项目的全局布局和样式组合会导致 overlay 退化为普通文档流元素，
+   使 el-dialog 出现在页面底部而不是视口中央。这里恢复为固定定位。 */
+.el-overlay.el-modal-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.el-overlay.el-modal-dialog .el-overlay-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(100vh - 48px);
+}
+
+.el-overlay.el-modal-dialog .el-dialog {
+  margin: 0 auto !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card.el-dialog {
+  width: min(var(--el-dialog-width, 640px), calc(100vw - 48px)) !important;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 20px;
+  box-shadow:
+    0 24px 64px rgba(15, 23, 42, 0.18),
+    0 8px 24px rgba(15, 23, 42, 0.10);
+  color: #0f172a;
+  overflow: hidden;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-dialog__header {
+  padding: 22px 24px 18px;
+  background-color: #ffffff;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
+  border-bottom: 1px solid #e2e8f0;
+  margin-right: 0;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-dialog__title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #0f172a;
+  letter-spacing: 0.01em;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-dialog__headerbtn {
+  top: 18px;
+  right: 18px;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-dialog__body {
+  padding: 24px;
+  background: transparent;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-dialog__footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid #eef2f7;
+  background: rgba(248, 250, 252, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-form-item {
+  margin-bottom: 20px;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-form-item__label {
+  color: #475569;
+  font-weight: 600;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input__wrapper,
+.el-overlay.el-modal-dialog .admin-modal-card .el-select__wrapper,
+.el-overlay.el-modal-dialog .admin-modal-card .el-date-editor.el-input__wrapper,
+.el-overlay.el-modal-dialog .admin-modal-card .el-range-editor.el-input__wrapper {
+  min-height: 40px;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: inset 0 0 0 1px #cbd5e1 !important;
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input__wrapper:hover,
+.el-overlay.el-modal-dialog .admin-modal-card .el-select__wrapper:hover,
+.el-overlay.el-modal-dialog .admin-modal-card .el-date-editor.el-input__wrapper:hover,
+.el-overlay.el-modal-dialog .admin-modal-card .el-range-editor.el-input__wrapper:hover {
+  box-shadow: inset 0 0 0 1px #94a3b8 !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input__wrapper.is-focus,
+.el-overlay.el-modal-dialog .admin-modal-card .el-select__wrapper.is-focused,
+.el-overlay.el-modal-dialog .admin-modal-card .el-date-editor.el-input__wrapper.is-focus,
+.el-overlay.el-modal-dialog .admin-modal-card .el-range-editor.el-input__wrapper.is-active {
+  box-shadow: inset 0 0 0 1px #2563eb, 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input__inner,
+.el-overlay.el-modal-dialog .admin-modal-card .el-select__selected-item {
+  color: #0f172a;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-textarea__inner {
+  min-height: 96px;
+  border-radius: 14px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-textarea__inner:hover {
+  border-color: #94a3b8 !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-textarea__inner:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input-number {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input-number:hover {
+  box-shadow: inset 0 0 0 1px #94a3b8;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input-number .el-input__wrapper {
+  box-shadow: none !important;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .form-hint {
+  color: #94a3b8;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-input-number {
+  max-width: 180px;
+}
+
+.el-overlay.el-modal-dialog .admin-modal-card .el-switch {
+  flex-shrink: 0;
+}
+
 /* ============================================
    自定义组件样式
    ============================================ */

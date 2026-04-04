@@ -64,11 +64,14 @@
             <el-collapse v-model="activeCollapse" accordion>
               <el-collapse-item
                 v-for="category in categories"
-                :key="category._id"
-                :name="category._id"
+                :key="category.id"
+                :name="category.id"
               >
                 <template #title>
-                  <div class="category-header" @click.stop="selectCategory(category)">
+                  <div
+                    :class="['category-header', { active: selectedCategory?.id === category.id }]"
+                    @click.stop="selectCategory(category)"
+                  >
                     <el-icon class="folder-icon"><Folder /></el-icon>
                     <span class="category-name">{{ category.name }}</span>
                     <el-tag size="small" type="info" effect="plain">
@@ -107,13 +110,13 @@
                 <div class="children-list">
                   <div
                     v-for="child in category.children"
-                    :key="child._id"
-                    :class="['child-item', { active: selectedCategory?._id === child._id }]"
+                    :key="child.id"
+                    :class="['child-item', { active: selectedCategory?.id === child.id }]"
                     @click="selectCategory(child, category)"
                   >
                     <el-icon><Document /></el-icon>
                     <span class="child-name">{{ child.name }}</span>
-                    <span class="child-slug">{{ child.slug }}</span>
+                    <span class="child-slug">{{ child.description || '未设置描述' }}</span>
                     <div class="child-actions">
                       <el-button
                         type="primary"
@@ -127,7 +130,7 @@
                         type="danger"
                         size="small"
                         link
-                        @click.stop="handleDeleteCategory(child, category)"
+                        @click.stop="handleDeleteCategory(child)"
                       >
                         <el-icon><Delete /></el-icon>
                       </el-button>
@@ -165,11 +168,11 @@
                 分类详情
               </h3>
               <div class="detail-actions">
-                <el-button type="primary" size="small" @click="handleEditCategory(selectedCategory, parentCategory)">
+                <el-button type="primary" size="small" @click="handleEditCategory(selectedCategory!, parentCategory ?? undefined)">
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" size="small" @click="handleDeleteCategory(selectedCategory, parentCategory)">
+                <el-button type="danger" size="small" @click="handleDeleteCategory(selectedCategory!)">
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
@@ -180,15 +183,15 @@
               <div class="detail-card">
                 <div class="detail-item">
                   <span class="detail-label">分类ID</span>
-                  <span class="detail-value"><code>{{ selectedCategory._id }}</code></span>
+                  <span class="detail-value"><code>{{ selectedCategory.id }}</code></span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">分类名称</span>
                   <span class="detail-value">{{ selectedCategory.name }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">URL标识</span>
-                  <span class="detail-value"><code>{{ selectedCategory.slug }}</code></span>
+                  <span class="detail-label">分类描述</span>
+                  <span class="detail-value">{{ selectedCategory.description || '未设置描述' }}</span>
                 </div>
                 <div v-if="parentCategory" class="detail-item">
                   <span class="detail-label">父级分类</span>
@@ -200,7 +203,7 @@
                   <span class="detail-label">分类类型</span>
                   <span class="detail-value">
                     <el-tag :type="selectedCategory.children?.length ? 'primary' : 'success'">
-                      {{ selectedCategory.children?.length ? '父级分类' : '子级分类' }}
+                      {{ levelLabelMap[selectedCategory.level] || `${selectedCategory.level + 1}级分类` }}
                     </el-tag>
                   </span>
                 </div>
@@ -209,6 +212,14 @@
                   <span class="detail-value">
                     <el-badge :value="selectedCategory.children?.length || 0" type="primary" />
                   </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">作品数量</span>
+                  <span class="detail-value">{{ selectedCategory.bookCount }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">排序值</span>
+                  <span class="detail-value">{{ selectedCategory.sortOrder }}</span>
                 </div>
               </div>
 
@@ -219,12 +230,12 @@
                   子分类列表
                 </h4>
                 <div class="children-tags">
-                  <el-tag
-                    v-for="child in selectedCategory.children"
-                    :key="child._id"
-                    class="child-tag"
-                    effect="plain"
-                    @click="selectCategory(child, selectedCategory)"
+                    <el-tag
+                      v-for="child in selectedCategory.children"
+                      :key="child.id"
+                      class="child-tag"
+                      effect="plain"
+                      @click="selectCategory(child, selectedCategory)"
                   >
                     {{ child.name }}
                   </el-tag>
@@ -247,7 +258,7 @@
       v-model="dialogVisible"
       :title="isEditMode ? '编辑分类' : '添加分类'"
       width="500px"
-      class="admin-form-dialog"
+      class="admin-form-dialog admin-modal-card"
       align-center
       append-to-body
       :close-on-click-modal="false"
@@ -257,10 +268,18 @@
         <el-form-item label="分类名称" prop="name">
           <el-input v-model="categoryForm.name" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="URL标识" prop="slug">
-          <el-input v-model="categoryForm.slug" placeholder="请输入URL标识，如：xuanhuan" />
+        <el-form-item label="分类描述" prop="description">
+          <el-input
+            v-model="categoryForm.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入分类描述"
+          />
         </el-form-item>
-        <el-form-item v-if="!isEditMode || categoryForm.parentId" label="父级分类">
+        <el-form-item label="排序值" prop="sortOrder">
+          <el-input-number v-model="categoryForm.sortOrder" :min="0" :max="9999" style="width: 100%" />
+        </el-form-item>
+        <el-form-item v-if="!isEditMode" label="父级分类">
           <el-select
             v-model="categoryForm.parentId"
             placeholder="选择父级分类（可选）"
@@ -270,9 +289,9 @@
           >
             <el-option
               v-for="cat in categories"
-              :key="cat._id"
+              :key="cat.id"
               :label="cat.name"
-              :value="cat._id"
+              :value="cat.id"
             />
           </el-select>
         </el-form-item>
@@ -294,119 +313,102 @@ import {
   Plus, Refresh, Folder, FolderOpened, DataAnalysis, Share,
   Edit, Delete, Document, InfoFilled, List
 } from '@element-plus/icons-vue'
+import { createCategory, deleteCategory, getCategoryTree, updateCategory } from '../api'
 
-// 类型定义
 interface Category {
-  _id: string
+  id: string
   name: string
-  slug: string
+  description: string
+  level: number
+  sortOrder: number
+  bookCount: number
+  isActive: boolean
+  parentId?: string
   children?: Category[]
 }
 
-// Mock数据 - 使用ref使其可编辑
-const mockCategoriesData = ref<Category[]>([
-  {
-    _id: 'cat_001',
-    name: '玄幻奇幻',
-    slug: 'xuanhuan',
-    children: [
-      { _id: 'cat_001_001', name: '东方玄幻', slug: 'xuanhuan/dongfang' },
-      { _id: 'cat_001_002', name: '异世大陆', slug: 'xuanhuan/yishi' },
-      { _id: 'cat_001_003', name: '王朝争霸', slug: 'xuanhuan/zhengba' },
-      { _id: 'cat_001_004', name: '高武世界', slug: 'xuanhuan/gaowu' }
-    ]
-  },
-  {
-    _id: 'cat_002',
-    name: '都市生活',
-    slug: 'dushi',
-    children: [
-      { _id: 'cat_002_001', name: '都市异能', slug: 'dushi/yineng' },
-      { _id: 'cat_002_002', name: '商战职场', slug: 'dushi/shangzhan' },
-      { _id: 'cat_002_003', name: '娱乐明星', slug: 'dushi/yule' }
-    ]
-  },
-  {
-    _id: 'cat_003',
-    name: '历史军事',
-    slug: 'lishi',
-    children: [
-      { _id: 'cat_003_001', name: '架空历史', slug: 'lishi/jiakong' },
-      { _id: 'cat_003_002', name: '历史传记', slug: 'lishi/zhuanji' },
-      { _id: 'cat_003_003', name: '军旅生涯', slug: 'lishi/junlu' }
-    ]
-  },
-  {
-    _id: 'cat_004',
-    name: '科幻未来',
-    slug: 'kehuan',
-    children: [
-      { _id: 'cat_004_001', name: '星际文明', slug: 'kehuan/xingji' },
-      { _id: 'cat_004_002', name: '末世危机', slug: 'kehuan/moshi' },
-      { _id: 'cat_004_003', name: '时空穿梭', slug: 'kehuan/shikong' }
-    ]
-  },
-  {
-    _id: 'cat_005',
-    name: '悬疑推理',
-    slug: 'xuanyi',
-    children: [
-      { _id: 'cat_005_001', name: '侦探推理', slug: 'xuanyi/zhentan' },
-      { _id: 'cat_005_002', name: '恐怖惊悚', slug: 'xuanyi/kongbu' }
-    ]
-  },
-  {
-    _id: 'cat_006',
-    name: '浪漫青春',
-    slug: 'qingchun',
-    children: [
-      { _id: 'cat_006_001', name: '校园纯爱', slug: 'qingchun/xiaoyuan' },
-      { _id: 'cat_006_002', name: '青春成长', slug: 'qingchun/chengzhang' }
-    ]
-  }
-])
-
-// 状态
 const loading = ref(false)
 const categories = ref<Category[]>([])
 const selectedCategory = ref<Category | null>(null)
 const parentCategory = ref<Category | null>(null)
 const activeCollapse = ref<string[]>([])
+const levelLabelMap: Record<number, string> = {
+  0: '一级分类',
+  1: '二级分类',
+  2: '三级分类',
+}
 
-// 对话框
 const dialogVisible = ref(false)
 const isEditMode = ref(false)
 const formRef = ref<FormInstance>()
 const categoryForm = reactive({
-  _id: '',
+  id: '',
   name: '',
-  slug: '',
-  parentId: ''
+  description: '',
+  sortOrder: 0,
+  parentId: '',
 })
 
 const formRules: FormRules = {
   name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }],
-  slug: [{ required: true, message: '请输入URL标识', trigger: 'blur' }]
 }
 
-// 计算属性
 const totalChildrenCount = computed(() => {
-  return categories.value.reduce((sum, cat) => sum + (cat.children?.length || 0), 0)
+  return categories.value.reduce((sum, cat) => sum + countChildren(cat), 0)
 })
 
-// 方法
+function countChildren(category: Category): number {
+  return (category.children || []).reduce((sum, child) => sum + 1 + countChildren(child), 0)
+}
+
+function normalizeCategoryTree(category: any): Category {
+  return {
+    id: String(category.id || category._id || ''),
+    name: String(category.name || ''),
+    description: String(category.description || ''),
+    level: Number(category.level ?? 0),
+    sortOrder: Number(category.sortOrder ?? category.sort_order ?? 0),
+    bookCount: Number(category.bookCount ?? category.book_count ?? 0),
+    isActive: category.isActive ?? category.is_active ?? true,
+    parentId: category.parentId || category.parent_id || '',
+    children: Array.isArray(category.children)
+      ? category.children.map((child: any) => normalizeCategoryTree(child))
+      : [],
+  }
+}
+
+function findCategoryById(list: Category[], id: string, parent?: Category): { node: Category; parent?: Category } | null {
+  for (const item of list) {
+    if (item.id === id) {
+      return { node: item, parent }
+    }
+    if (item.children?.length) {
+      const found = findCategoryById(item.children, id, item)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 const loadCategories = async () => {
   loading.value = true
   try {
-    // 使用mock数据（可编辑）
-    categories.value = JSON.parse(JSON.stringify(mockCategoriesData.value))
-
-    // 默认展开第一个分类
+    const currentSelectedId = selectedCategory.value?.id
+    const tree = await getCategoryTree()
+    categories.value = tree.map((item) => normalizeCategoryTree(item))
     if (categories.value.length > 0) {
-      activeCollapse.value = [categories.value[0]._id]
+      activeCollapse.value = [categories.value[0].id]
+    }
+    if (currentSelectedId) {
+      const found = findCategoryById(categories.value, currentSelectedId)
+      if (found) {
+        selectedCategory.value = found.node
+        parentCategory.value = found.parent || null
+      }
     }
   } catch (error) {
     console.error('加载分类失败:', error)
+    ElMessage.error('加载分类失败')
   } finally {
     loading.value = false
   }
@@ -419,121 +421,89 @@ const selectCategory = (category: Category, parent?: Category) => {
 
 const handleAddCategory = () => {
   isEditMode.value = false
-  categoryForm._id = ''
+  categoryForm.id = ''
   categoryForm.name = ''
-  categoryForm.slug = ''
+  categoryForm.description = ''
+  categoryForm.sortOrder = categories.value.length
   categoryForm.parentId = ''
   dialogVisible.value = true
 }
 
 const handleAddChildCategory = (parent: Category) => {
   isEditMode.value = false
-  categoryForm._id = ''
+  categoryForm.id = ''
   categoryForm.name = ''
-  categoryForm.slug = ''
-  categoryForm.parentId = parent._id
+  categoryForm.description = ''
+  categoryForm.sortOrder = parent.children?.length || 0
+  categoryForm.parentId = parent.id
   dialogVisible.value = true
 }
 
 const handleEditCategory = (category: Category, parent?: Category) => {
   isEditMode.value = true
-  categoryForm._id = category._id
+  categoryForm.id = category.id
   categoryForm.name = category.name
-  categoryForm.slug = category.slug
-  categoryForm.parentId = parent?._id || ''
+  categoryForm.description = category.description || ''
+  categoryForm.sortOrder = category.sortOrder
+  categoryForm.parentId = parent?.id || ''
   dialogVisible.value = true
 }
 
-const handleDeleteCategory = async (category: Category, parent?: Category) => {
+const handleDeleteCategory = async (category: Category) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除分类"${category.name}"吗？${category.children?.length ? '其子分类也将被删除。' : ''}`,
       '确认删除',
       { type: 'warning', confirmButtonText: '确认删除' }
     )
-
-    if (parent) {
-      // 删除子分类
-      const parentCat = mockCategoriesData.value.find(c => c._id === parent._id)
-      if (parentCat?.children) {
-        const index = parentCat.children.findIndex(c => c._id === category._id)
-        if (index > -1) {
-          parentCat.children.splice(index, 1)
-        }
-      }
-    } else {
-      // 删除一级分类
-      const index = mockCategoriesData.value.findIndex(c => c._id === category._id)
-      if (index > -1) {
-        mockCategoriesData.value.splice(index, 1)
-      }
-    }
-
-    if (selectedCategory.value?._id === category._id) {
+    await deleteCategory(category.id)
+    if (selectedCategory.value?.id === category.id) {
       selectedCategory.value = null
       parentCategory.value = null
     }
-
     ElMessage.success('删除成功')
-    loadCategories()
-  } catch {
-    // 用户取消
+    await loadCategories()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除分类失败:', error)
+    }
   }
 }
 
 const handleSaveCategory = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEditMode.value) {
-        // 编辑模式
-        const updateCategory = (list: Category[]) => {
-          for (const cat of list) {
-            if (cat._id === categoryForm._id) {
-              cat.name = categoryForm.name
-              cat.slug = categoryForm.slug
-              return true
-            }
-            if (cat.children && updateCategory(cat.children)) {
-              return true
-            }
-          }
-          return false
-        }
-        updateCategory(mockCategoriesData.value)
-        ElMessage.success('修改成功')
-      } else {
-        // 添加模式
-        const newCategory: Category = {
-          _id: `cat_${Date.now()}`,
-          name: categoryForm.name,
-          slug: categoryForm.slug
-        }
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
 
-        if (categoryForm.parentId) {
-          // 添加子分类
-          const parent = mockCategoriesData.value.find(c => c._id === categoryForm.parentId)
-          if (parent) {
-            if (!parent.children) parent.children = []
-            parent.children.push(newCategory)
-          }
-        } else {
-          // 添加一级分类
-          mockCategoriesData.value.push({ ...newCategory, children: [] })
-        }
-        ElMessage.success('添加成功')
-      }
-
-      dialogVisible.value = false
-      loadCategories()
+  try {
+    if (isEditMode.value) {
+      await updateCategory(categoryForm.id, {
+        name: categoryForm.name,
+        description: categoryForm.description || undefined,
+        sort_order: categoryForm.sortOrder,
+      })
+      ElMessage.success('修改成功')
+    } else {
+      await createCategory({
+        name: categoryForm.name,
+        description: categoryForm.description || undefined,
+        parent_id: categoryForm.parentId || undefined,
+        sort_order: categoryForm.sortOrder,
+      })
+      ElMessage.success('添加成功')
     }
-  })
+
+    dialogVisible.value = false
+    await loadCategories()
+  } catch (error) {
+    console.error('保存分类失败:', error)
+    ElMessage.error('保存分类失败')
+  }
 }
 
-// 生命周期
 onMounted(() => {
-  loadCategories()
+  void loadCategories()
 })
 </script>
 

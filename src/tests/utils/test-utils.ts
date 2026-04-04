@@ -48,7 +48,7 @@ export const mockObjectMethods = <T extends Record<string, any>>(obj: T): T => {
 
   for (const key in obj) {
     if (typeof obj[key] === 'function') {
-      mocked[key] = vi.fn()
+      ;(mocked as any)[key] = vi.fn()
     } else {
       mocked[key] = obj[key]
     }

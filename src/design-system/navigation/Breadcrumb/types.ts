@@ -2,7 +2,7 @@
  * Breadcrumb 组件类型定义
  */
 
-import type { ComputedRef, InjectionKey } from 'vue'
+import type { ComputedRef } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
 // Breadcrumb 上下文接口

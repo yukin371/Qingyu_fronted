@@ -103,8 +103,8 @@ import { ref, computed, onMounted } from 'vue'
 import { message } from '@/design-system/services'
 import { useAIAdminStore } from '../stores/aiAdmin'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
-import { QyIcon } from '@/design-system/components'
-import type { AIModel, AIProvider } from '../types/ai-admin.types'
+import type { AIModel } from '../types/ai-admin.types'
+import { Refresh } from '@element-plus/icons-vue'
 
 const aiStore = useAIAdminStore()
 
@@ -132,12 +132,6 @@ const filteredModels = computed(() => {
   }
 
   return result
-})
-
-const paginatedModels = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredModels.value.slice(start, end)
 })
 
 // 格式化函数

@@ -5,7 +5,7 @@
  * 通用的下拉菜单组件，支持多种触发方式和位置
  */
 
-import { ref, computed, watch, onMounted, onUnmounted, provide, type Ref } from 'vue'
+import { ref, computed, watch, onUnmounted, provide } from 'vue'
 import { cn } from '../../utils/cn'
 import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
 
@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<DropdownProps>(), {
 const emit = defineEmits<DropdownEmits>()
 
 // 组件 Slots
-const slots = defineSlots<DropdownSlots>()
+const _slots = defineSlots<DropdownSlots>()
 
 // 状态管理
 const isVisible = ref(false)
@@ -48,8 +48,8 @@ const triggerClasses = computed(() =>
       'cursor-not-allowed opacity-50': props.disabled,
       'cursor-pointer': !props.disabled,
     },
-    props.triggerClass
-  )
+    props.triggerClass,
+  ),
 )
 
 // 计算下拉菜单位置样式
@@ -80,10 +80,10 @@ const dropdownStyle = computed(() => {
 // 获取计算样式
 function getComputedStyle(placementStyle: string, offset: number) {
   const style: Record<string, string> = {}
-  const styles = placementStyle.split(';').filter(s => s.trim())
+  const styles = placementStyle.split(';').filter((s) => s.trim())
 
-  styles.forEach(s => {
-    const [property, value] = s.split(':').map(p => p.trim())
+  styles.forEach((s) => {
+    const [property, value] = s.split(':').map((p) => p.trim())
     if (property && value) {
       // 添加偏移量
       if (property.includes('bottom') && value.includes('100%')) {
@@ -129,10 +129,8 @@ const handleShow = () => {
       }
 
       // 添加点击外部监听
-     (() => {
-        document.addEventListener('click', handleClickOutside)
-        document.addEventListener('contextmenu', handleContextMenuOutside)
-      })
+      document.addEventListener('click', handleClickOutside)
+      document.addEventListener('contextmenu', handleContextMenuOutside)
     }, props.showTimeout)
   } else {
     isVisible.value = true
@@ -143,10 +141,8 @@ const handleShow = () => {
     }
 
     // 添加点击外部监听
-   (() => {
-      document.addEventListener('click', handleClickOutside)
-      document.addEventListener('contextmenu', handleContextMenuOutside)
-    })
+    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('contextmenu', handleContextMenuOutside)
   }
 }
 
@@ -213,6 +209,13 @@ const handleTriggerHover = () => {
 const handleTriggerLeave = () => {
   if (triggerArray.value.includes('hover')) {
     handleHide()
+  }
+}
+
+const clearShowTimer = () => {
+  if (showTimer) {
+    clearTimeout(showTimer)
+    showTimer = null
   }
 }
 
@@ -296,21 +299,18 @@ provide(DROPDOWN_KEY, {
 // 监听可见性变化
 watch(isVisible, (newVal) => {
   if (newVal) {
-   (() => {
-      if (dropdownRef.value) {
-        // 确保下拉菜单在视口内
-        adjustPosition()
-      }
-    })
+    if (dropdownRef.value) {
+      // 确保下拉菜单在视口内
+      adjustPosition()
+    }
   }
 })
 
 // 调整位置以确保在视口内
 const adjustPosition = () => {
-  if (!dropdownRef.value || !triggerRef.value) return
+  if (!dropdownRef.value) return
 
   const dropdownRect = dropdownRef.value.getBoundingClientRect()
-  const triggerRect = triggerRef.value.getBoundingClientRect()
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
 
@@ -379,30 +379,37 @@ defineExpose({
         <div
           v-if="isVisible"
           ref="dropdownRef"
-          :class="cn(
-            'absolute z-50 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-            'focus:outline-none',
-            props.class
-          )"
+          :class="
+            cn(
+              'absolute z-50 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+              'focus:outline-none',
+              props.class,
+            )
+          "
           :style="dropdownStyle"
           role="menu"
           :aria-orientation="'vertical'"
           tabindex="-1"
-          @mouseenter="triggerArray.includes('hover') ? (showTimer && clearTimeout(showTimer)) : undefined"
+          @mouseenter="triggerArray.includes('hover') ? clearShowTimer() : undefined"
           @mouseleave="triggerArray.includes('hover') ? handleHide : undefined"
         >
           <!-- 箭头 -->
           <div
             v-if="showArrow"
-            :class="cn(
-              'absolute z-[-1] h-2 w-2 rotate-45 border bg-popover',
-              {
-                '-bottom-1 left-1/2 -translate-x-1/2 border-b-0 border-r-0': placement === 'bottom' || placement === 'bottom-start' || placement === 'bottom-end',
-                '-top-1 left-1/2 -translate-x-1/2 border-t-0 border-l-0': placement === 'top' || placement === 'top-start' || placement === 'top-end',
-                '-right-1 top-1/2 -translate-y-1/2 border-r-0 border-t-0': placement === 'left' || placement === 'left-start' || placement === 'left-end',
-                '-left-1 top-1/2 -translate-y-1/2 border-l-0 border-b-0': placement === 'right' || placement === 'right-start' || placement === 'right-end',
-              }
-            )"
+            :class="
+              cn('absolute z-[-1] h-2 w-2 rotate-45 border bg-popover', {
+                '-bottom-1 left-1/2 -translate-x-1/2 border-b-0 border-r-0':
+                  placement === 'bottom' ||
+                  placement === 'bottom-start' ||
+                  placement === 'bottom-end',
+                '-top-1 left-1/2 -translate-x-1/2 border-t-0 border-l-0':
+                  placement === 'top' || placement === 'top-start' || placement === 'top-end',
+                '-right-1 top-1/2 -translate-y-1/2 border-r-0 border-t-0':
+                  placement === 'left' || placement === 'left-start' || placement === 'left-end',
+                '-left-1 top-1/2 -translate-y-1/2 border-l-0 border-b-0':
+                  placement === 'right' || placement === 'right-start' || placement === 'right-end',
+              })
+            "
           />
 
           <!-- 默认插槽 - 菜单内容 -->

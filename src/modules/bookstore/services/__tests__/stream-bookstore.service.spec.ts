@@ -22,14 +22,15 @@ describe('StreamBookstoreService', () => {
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(mockNDJSON)
+                value: new TextEncoder().encode(mockNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       const result = await streamBookstoreService.streamSearchBooks('test')
@@ -43,24 +44,26 @@ describe('StreamBookstoreService', () => {
     it('应该处理跨chunk分割的不完整NDJSON行', async () => {
       // 模拟chunk被分割的情况
       const chunk1 = '{"type":"data","books":[{"id":"'
-      const chunk2 = '1","title":"Book 1"}]}\n{"type":"done","cursor":"end","total":1,"hasMore":false}'
+      const chunk2 =
+        '1","title":"Book 1"}]}\n{"type":"done","cursor":"end","total":1,"hasMore":false}'
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(chunk1)
+                value: new TextEncoder().encode(chunk1),
               })
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(chunk2)
+                value: new TextEncoder().encode(chunk2),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       const result = await streamBookstoreService.streamSearchBooks('test')
@@ -68,7 +71,7 @@ describe('StreamBookstoreService', () => {
       expect(result.items).toHaveLength(1)
       expect(result.items[0]).toEqual({
         id: '1',
-        title: 'Book 1'
+        title: 'Book 1',
       })
     })
 
@@ -82,14 +85,15 @@ describe('StreamBookstoreService', () => {
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(mockNDJSON)
+                value: new TextEncoder().encode(mockNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       const result = await streamBookstoreService.streamSearchBooks('test')
@@ -108,14 +112,15 @@ describe('StreamBookstoreService', () => {
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(mockNDJSON)
+                value: new TextEncoder().encode(mockNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       const result = await streamBookstoreService.streamSearchBooks('test')
@@ -128,23 +133,23 @@ describe('StreamBookstoreService', () => {
     it('应该处理HTTP错误', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
-        status: 500
+        status: 500,
       })
 
-      await expect(
-        streamBookstoreService.streamSearchBooks('test')
-      ).rejects.toThrow('HTTP error! status: 500')
+      await expect(streamBookstoreService.streamSearchBooks('test')).rejects.toThrow(
+        'HTTP error! status: 500',
+      )
     })
 
     it('应该处理404错误', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
-        status: 404
+        status: 404,
       })
 
-      await expect(
-        streamBookstoreService.streamSearchBooks('test')
-      ).rejects.toThrow('HTTP error! status: 404')
+      await expect(streamBookstoreService.streamSearchBooks('test')).rejects.toThrow(
+        'HTTP error! status: 404',
+      )
     })
 
     it('应该处理流式error类型消息', async () => {
@@ -154,19 +159,18 @@ describe('StreamBookstoreService', () => {
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(errorNDJSON)
+                value: new TextEncoder().encode(errorNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
-      await expect(
-        streamBookstoreService.streamSearchBooks('')
-      ).rejects.toThrow('Invalid keyword')
+      await expect(streamBookstoreService.streamSearchBooks('')).rejects.toThrow('Invalid keyword')
     })
 
     it('应该跳过无效的JSON行并继续处理', async () => {
@@ -179,14 +183,15 @@ invalid json line
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(invalidNDJSON)
+                value: new TextEncoder().encode(invalidNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       // 应该跳过无效行，继续处理有效数据
@@ -204,14 +209,15 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(invalidNDJSON)
+                value: new TextEncoder().encode(invalidNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       // 应该不抛出错误，返回空结果
@@ -227,19 +233,18 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(errorNDJSON)
+                value: new TextEncoder().encode(errorNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
-      await expect(
-        streamBookstoreService.streamSearchBooks('a')
-      ).rejects.toThrow('搜索关键词太短')
+      await expect(streamBookstoreService.streamSearchBooks('a')).rejects.toThrow('搜索关键词太短')
     })
   })
 
@@ -252,15 +257,18 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode('{"type":"done","cursor":"","total":0,"hasMore":false}')
+                value: new TextEncoder().encode(
+                  '{"type":"done","cursor":"","total":0,"hasMore":false}',
+                ),
               })
               .mockResolvedValueOnce({ done: true }),
-            releaseLock: vi.fn()
-          })
-        }
+            releaseLock: vi.fn(),
+          }),
+        },
       })
 
       streamBookstoreService.streamSearchBooks('test')
@@ -277,9 +285,9 @@ another invalid line`
 
       global.fetch = vi.fn().mockRejectedValue(abortError)
 
-      await expect(
-        streamBookstoreService.streamSearchBooks('test')
-      ).rejects.toThrow('Request was aborted')
+      await expect(streamBookstoreService.streamSearchBooks('test')).rejects.toThrow(
+        'Request was aborted',
+      )
     })
   })
 
@@ -296,14 +304,15 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(mockNDJSON)
+                value: new TextEncoder().encode(mockNDJSON),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       await streamBookstoreService.streamSearchBooks('test', {}, { onUpdate, onComplete })
@@ -312,19 +321,19 @@ another invalid line`
         type: 'meta',
         cursor: 'abc',
         total: 1,
-        hasMore: true
+        hasMore: true,
       })
 
       expect(onUpdate).toHaveBeenCalledWith({
         type: 'data',
-        books: [{ id: '1', title: 'Book 1' }]
+        books: [{ id: '1', title: 'Book 1' }],
       })
 
       expect(onComplete).toHaveBeenCalledWith({
         cursor: 'def',
         total: 1,
         hasMore: false,
-        items: [{ id: '1', title: 'Book 1' }]
+        items: [{ id: '1', title: 'Book 1' }],
       })
     })
 
@@ -337,15 +346,16 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode(errorNDJSON)
+                value: new TextEncoder().encode(errorNDJSON),
               })
               .mockResolvedValueOnce({ done: true }),
-            releaseLock: vi.fn()
-          })
-        }
+            releaseLock: vi.fn(),
+          }),
+        },
       })
 
       try {
@@ -365,46 +375,49 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode('{"type":"done","cursor":"","total":0,"hasMore":false}')
+                value: new TextEncoder().encode(
+                  '{"type":"done","cursor":"","total":0,"hasMore":false}',
+                ),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
       await streamBookstoreService.streamSearchBooks('test keyword', {
         category: 'fantasy',
         status: 'completed',
         sort_by: 'rating',
-        order: 'desc'
+        order: 'desc',
       })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('keyword=test+keyword'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('keyword=test+keyword'),
+        (expect as any).any(Object),
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('category=fantasy'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('category=fantasy'),
+        (expect as any).any(Object),
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('status=completed'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('status=completed'),
+        (expect as any).any(Object),
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('sort_by=rating'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('sort_by=rating'),
+        (expect as any).any(Object),
       )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('order=desc'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('order=desc'),
+        (expect as any).any(Object),
       )
     })
 
@@ -413,23 +426,30 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode('{"type":"done","cursor":"next","total":0,"hasMore":false}')
+                value: new TextEncoder().encode(
+                  '{"type":"done","cursor":"next","total":0,"hasMore":false}',
+                ),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
-      await streamBookstoreService.streamSearchBooks('test', {}, {
-        initialCursor: 'abc123'
-      })
+      await streamBookstoreService.streamSearchBooks(
+        'test',
+        {},
+        {
+          initialCursor: 'abc123',
+        },
+      )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('cursor=abc123'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('cursor=abc123'),
+        (expect as any).any(Object),
       )
     })
 
@@ -438,23 +458,30 @@ another invalid line`
         ok: true,
         body: {
           getReader: vi.fn().mockReturnValue({
-            read: vi.fn()
+            read: vi
+              .fn()
               .mockResolvedValueOnce({
                 done: false,
-                value: new TextEncoder().encode('{"type":"done","cursor":"","total":0,"hasMore":false}')
+                value: new TextEncoder().encode(
+                  '{"type":"done","cursor":"","total":0,"hasMore":false}',
+                ),
               })
-              .mockResolvedValueOnce({ done: true })
-          })
-        }
+              .mockResolvedValueOnce({ done: true }),
+          }),
+        },
       })
 
-      await streamBookstoreService.streamSearchBooks('test', {}, {
-        limit: 50
-      })
+      await streamBookstoreService.streamSearchBooks(
+        'test',
+        {},
+        {
+          limit: 50,
+        },
+      )
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=50'),
-        expect.any(Object)
+      expect(global.fetch as any).toHaveBeenCalledWith(
+        (expect as any).stringContaining('limit=50'),
+        (expect as any).any(Object),
       )
     })
   })

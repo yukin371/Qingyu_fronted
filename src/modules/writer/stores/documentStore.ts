@@ -24,9 +24,14 @@ export const useDocumentStore = defineStore('writer-document', () => {
         tree.value = convertDocumentTree(response)
         flatDocs.value = flattenDocuments(tree.value)
       } else {
+        console.warn('[documentStore] loadTree: unexpected response format', response)
         tree.value = []
         flatDocs.value = []
       }
+    } catch (error) {
+      console.error('[documentStore] loadTree error:', error)
+      tree.value = []
+      flatDocs.value = []
     } finally {
       loading.value = false
     }
@@ -103,10 +108,19 @@ export const useDocumentStore = defineStore('writer-document', () => {
   }
 
   async function remove(documentId: string) {
+    // 先保存 projectId，因为删除后可能清空 currentDocMeta
+    const projectId = currentDocMeta.value?.projectId
+
     await documentApi.delete(documentId)
-    // 刷新逻辑...
+
+    // 清除当前选中的文档
     if (currentDocMeta.value?.id === documentId) {
       currentDocMeta.value = null
+    }
+
+    // 刷新文档树
+    if (projectId) {
+      await loadTree(projectId)
     }
   }
 
