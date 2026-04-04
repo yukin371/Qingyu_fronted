@@ -16,34 +16,34 @@ const meta: Meta<typeof QyTag> = {
     type: {
       control: 'select',
       options: ['primary', 'success', 'warning', 'danger', 'info'],
-      description: '标签类型/颜色'
+      description: '标签类型/颜色',
     },
     size: {
       control: 'select',
       options: ['sm', 'md', 'lg'],
-      description: '标签尺寸'
+      description: '标签尺寸',
     },
     effect: {
       control: 'select',
       options: ['light', 'dark', 'plain'],
-      description: '视觉效果'
+      description: '视觉效果',
     },
     round: {
       control: 'boolean',
-      description: '是否为圆形'
+      description: '是否为圆形',
     },
     hit: {
       control: 'boolean',
-      description: '是否带边框效果'
+      description: '是否带边框效果',
     },
     closable: {
       control: 'boolean',
-      description: '是否可关闭'
+      description: '是否可关闭',
     },
     disabled: {
       control: 'boolean',
-      description: '是否禁用'
-    }
+      description: '是否禁用',
+    },
   },
   args: {
     type: 'primary',
@@ -52,26 +52,36 @@ const meta: Meta<typeof QyTag> = {
     round: true,
     hit: false,
     closable: false,
-    disabled: false
-  }
+    disabled: false,
+  },
 }
 
 export default meta
 type Story = StoryObj<typeof QyTag>
 
+interface QyTagArgs {
+  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
+  size?: 'sm' | 'md' | 'lg'
+  effect?: 'light' | 'dark' | 'plain'
+  round?: boolean
+  hit?: boolean
+  closable?: boolean
+  disabled?: boolean
+}
+
 /**
  * 默认标签
  */
 export const Default: Story = {
-  render: (args) => ({
+  render: (args: QyTagArgs) => ({
     components: { QyTag },
     setup() {
       return { args }
     },
     template: `
       <QyTag v-bind="args">默认标签</QyTag>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -89,8 +99,8 @@ export const Types: Story = {
         <QyTag type="danger">Danger</QyTag>
         <QyTag type="info">Info</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -106,8 +116,8 @@ export const Sizes: Story = {
         <QyTag size="md">中标签</QyTag>
         <QyTag size="lg">大标签</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -138,8 +148,8 @@ export const Effects: Story = {
           <QyTag type="danger" effect="plain">Danger Plain</QyTag>
         </div>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -157,8 +167,8 @@ export const Closable: Story = {
         <QyTag type="danger" closable>可关闭</QyTag>
         <QyTag type="info" closable>可关闭</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -175,8 +185,8 @@ export const Round: Story = {
         <QyTag type="warning" :round="true">圆形标签</QyTag>
         <QyTag type="danger" :round="false">方形标签</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -194,8 +204,8 @@ export const Hit: Story = {
         <QyTag type="danger" :hit="true">Danger</QyTag>
         <QyTag type="info" :hit="true">Info</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -211,8 +221,8 @@ export const Disabled: Story = {
         <QyTag type="success" disabled closable>禁用且可关闭</QyTag>
         <QyTag type="warning" disabled>禁用标签</QyTag>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -234,8 +244,8 @@ export const Combination: Story = {
           <QyTag type="info" effect="dark" closable>深色可关闭</QyTag>
         </div>
       </div>
-    `
-  })
+    `,
+  }),
 }
 
 /**
@@ -250,11 +260,11 @@ export const Interactive: Story = {
         { id: 1, text: 'Vue 3', type: 'primary' },
         { id: 2, text: 'TypeScript', type: 'success' },
         { id: 3, text: 'Tailwind CSS', type: 'info' },
-        { id: 4, text: 'Vite', type: 'warning' }
+        { id: 4, text: 'Vite', type: 'warning' },
       ])
 
       const handleClose = (id: number) => {
-        const index = tags.value.findIndex(tag => tag.id === id)
+        const index = tags.value.findIndex((tag) => tag.id === id)
         if (index > -1) {
           tags.value.splice(index, 1)
         }
@@ -277,6 +287,6 @@ export const Interactive: Story = {
           没有标签了
         </span>
       </div>
-    `
-  })
+    `,
+  }),
 }

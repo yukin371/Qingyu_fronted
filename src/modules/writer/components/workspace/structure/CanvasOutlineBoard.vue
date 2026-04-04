@@ -6,7 +6,9 @@
         <p class="canvas-outline-board__eyebrow">Canvas</p>
         <h3 class="canvas-outline-board__title">自由画布</h3>
       </div>
-      <div class="canvas-outline-board__hint">拖拽空白区域平移画布，滚轮缩放，双击节点改名，右键更多操作。</div>
+      <div class="canvas-outline-board__hint">
+        拖拽空白区域平移画布，滚轮缩放，双击节点改名，右键更多操作。
+      </div>
       <div class="canvas-outline-board__zoom">
         <button type="button" class="canvas-zoom-btn" @click="zoomIn">
           <QyIcon name="Plus" :size="14" />
@@ -23,7 +25,6 @@
 
     <!-- 画布主体 -->
     <div
-      ref="canvasContainerRef"
       class="canvas-outline-board__container"
       @mousedown="handleCanvasMouseDown"
       @mousemove="handleCanvasMouseMove"
@@ -127,7 +128,10 @@
         <p>暂无结构节点</p>
         <span>加载大纲树后，画布会自动展示节点图谱。</span>
       </div>
-      <div v-if="!nodes.length && loading" class="canvas-outline-board__empty canvas-outline-board__empty--loading">
+      <div
+        v-if="!nodes.length && loading"
+        class="canvas-outline-board__empty canvas-outline-board__empty--loading"
+      >
         正在计算节点布局...
       </div>
     </div>
@@ -154,17 +158,13 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { message, messageBox } from '@/design-system/services'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import OutlineContextMenu from './OutlineContextMenu.vue'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
 import type { WriterAssetSummary } from '@/modules/writer/utils/writerAssetRefs'
-import {
-  type StructureStatusValue,
-  getBoundChapterId,
-} from './structureNodeTypes'
+import { type StructureStatusValue } from './structureNodeTypes'
 
 // =========================================================================
 // Types
@@ -226,7 +226,6 @@ const emit = defineEmits<{
 // =========================================================================
 // Canvas State
 // =========================================================================
-const canvasContainerRef = ref<HTMLElement | null>(null)
 const panX = ref(40)
 const panY = ref(40)
 const zoom = ref(1)
@@ -357,7 +356,9 @@ const volumeNodes = computed<OutlineNode[]>(() => {
 const canConvertContextMenuNode = computed(() => {
   if (!contextMenuNode.value) return false
   const nodeWithType = contextMenuNode.value as OutlineNode & { type?: string }
-  return nodeWithType.type && nodeWithType.type !== 'volume' && nodeWithType.type !== 'chapter'
+  return Boolean(
+    nodeWithType.type && nodeWithType.type !== 'volume' && nodeWithType.type !== 'chapter',
+  )
 })
 
 // =========================================================================

@@ -17,8 +17,13 @@
       </div>
 
       <div class="tabs-actions">
-        <div class="structure-stage-view__status" :class="{ 'is-loading': isOutlineLoading, 'is-error': !!structureRefreshError }">
-          {{ isOutlineLoading ? '正在同步结构...' : structureRefreshError ? '同步失败' : '结构已就绪' }}
+        <div
+          class="structure-stage-view__status"
+          :class="{ 'is-loading': isOutlineLoading, 'is-error': !!structureRefreshError }"
+        >
+          {{
+            isOutlineLoading ? '正在同步结构...' : structureRefreshError ? '同步失败' : '结构已就绪'
+          }}
         </div>
         <button
           type="button"
@@ -95,10 +100,7 @@
     <div class="structure-stage-view__grid">
       <div class="structure-stage-view__stage-column">
         <!-- 模式 1: 分叉总览 -->
-        <section
-          v-if="stageViewMode === 'overview'"
-          class="structure-stage-view__branch-ribbon"
-        >
+        <section v-if="stageViewMode === 'overview'" class="structure-stage-view__branch-ribbon">
           <div class="structure-stage-view__branch-ribbon-header">
             <div>
               <p class="structure-stage-view__branch-eyebrow">Branch Ribbon</p>
@@ -127,13 +129,21 @@
               </span>
               <span class="structure-branch-card__chips">
                 <span class="structure-branch-card__chip">{{ branch.bindingLabel }}</span>
-                <span class="structure-branch-card__chip" :class="`is-${branch.graphTone}`">{{ branch.graphLabel }}</span>
-                <span v-if="branch.assetLabel" class="structure-branch-card__chip">{{ branch.assetLabel }}</span>
+                <span class="structure-branch-card__chip" :class="`is-${branch.graphTone}`">{{
+                  branch.graphLabel
+                }}</span>
+                <span v-if="branch.assetLabel" class="structure-branch-card__chip">{{
+                  branch.assetLabel
+                }}</span>
               </span>
             </button>
           </div>
           <div v-else class="structure-stage-view__branch-empty">
-            {{ isOutlineLoading ? '正在编排主干与分叉摘要…' : '还没有主干节点，先创建主线后再展开分叉。' }}
+            {{
+              isOutlineLoading
+                ? '正在编排主干与分叉摘要…'
+                : '还没有主干节点，先创建主线后再展开分叉。'
+            }}
           </div>
         </section>
 
@@ -256,7 +266,9 @@ import FishboneOutlineBoard from './FishboneOutlineBoard.vue'
 import CanvasOutlineBoard from './CanvasOutlineBoard.vue'
 import BeatBoardPanel from './BeatBoardPanel.vue'
 import StructureInspectorPanel from './StructureInspectorPanel.vue'
-import StructureNodeEditorDialog, { type StructureNodeFormValue } from './StructureNodeEditorDialog.vue'
+import StructureNodeEditorDialog, {
+  type StructureNodeFormValue,
+} from './StructureNodeEditorDialog.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import {
   type StructureStatusValue,
@@ -367,7 +379,9 @@ const emit = defineEmits<{
 
 const effectiveProjectId = computed(() => props.projectId || writerStore.currentProjectId || '')
 const isOutlineLoading = computed(() => writerStore.outline.loading)
-const chapterOptions = computed(() => props.chapters.filter((chapter) => chapter.nodeType !== 'directory'))
+const chapterOptions = computed(() =>
+  props.chapters.filter((chapter) => chapter.nodeType !== 'directory'),
+)
 const graphDraftState = computed(() => loadCharacterGraphDraftState(effectiveProjectId.value))
 const chapterGraphs = computed(() => graphDraftState.value.chapterGraphs)
 const assetSummaryByChapterId = computed<Record<string, WriterAssetSummary>>(() => {
@@ -375,9 +389,13 @@ const assetSummaryByChapterId = computed<Record<string, WriterAssetSummary>>(() 
 
   for (const chapter of chapterOptions.value) {
     const chapterRefs = assetRefState.value.chapterRefs[chapter.id] || []
-    const volumeRefs = chapter.parentId ? assetRefState.value.volumeRefs[chapter.parentId] || [] : []
+    const volumeRefs = chapter.parentId
+      ? assetRefState.value.volumeRefs[chapter.parentId] || []
+      : []
     const merged = [...chapterRefs]
-    const seen = new Set(chapterRefs.map((ref) => `${ref.assetType}:${ref.assetId || ref.assetName}`))
+    const seen = new Set(
+      chapterRefs.map((ref) => `${ref.assetType}:${ref.assetId || ref.assetName}`),
+    )
 
     for (const ref of volumeRefs) {
       const key = `${ref.assetType}:${ref.assetId || ref.assetName}`
@@ -434,29 +452,6 @@ const selectedNode = computed(
   () => filteredFlattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
 )
 const boundChapter = computed(() => findBoundChapter(selectedNode.value, chapterOptions.value))
-const selectedSiblingContext = computed(() => {
-  const current = selectedNode.value
-  if (!current) {
-    return { siblings: [] as OutlineNode[], index: -1 }
-  }
-
-  const siblings = current.parentId
-    ? filteredFlattenedNodes.value.find((node) => node.id === current.parentId)?.children || []
-    : filteredRootNodes.value
-  const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
-
-  return {
-    siblings: orderedSiblings,
-    index: orderedSiblings.findIndex((node) => node.id === current.id),
-  }
-})
-const canMoveUp = computed(
-  () => !!selectedNode.value && selectedSiblingContext.value.index > 0,
-)
-const canMoveDown = computed(() => {
-  const { siblings, index } = selectedSiblingContext.value
-  return !!selectedNode.value && index >= 0 && index < siblings.length - 1
-})
 
 function getNodeSiblingContext(node: OutlineNode | null | undefined) {
   if (!node) {
@@ -466,7 +461,9 @@ function getNodeSiblingContext(node: OutlineNode | null | undefined) {
   const siblings = node.parentId
     ? flattenedNodes.value.find((item) => item.id === node.parentId)?.children || []
     : rootNodes.value
-  const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+  const orderedSiblings = [...siblings].sort(
+    (left, right) => (left.order ?? 0) - (right.order ?? 0),
+  )
 
   return {
     siblings: orderedSiblings,
@@ -534,18 +531,6 @@ function selectNode(node: OutlineNode) {
   writerStore.setCurrentOutlineNode(node)
 }
 
-function toggleNode(nodeId: string) {
-  expandedNodeIds.value = expandedNodeIds.value.includes(nodeId)
-    ? expandedNodeIds.value.filter((id) => id !== nodeId)
-    : [...expandedNodeIds.value, nodeId]
-}
-
-function openCreateRoot() {
-  editorMode.value = 'create-root'
-  editorForm.value = { title: '', level: 1, status: 'planned', description: '' }
-  editorVisible.value = true
-}
-
 function openCreateChildForNode(node: OutlineNode) {
   selectNode(node)
   editorMode.value = 'create-child'
@@ -558,65 +543,16 @@ function openCreateChildForNode(node: OutlineNode) {
   editorVisible.value = true
 }
 
-function openCreateChild() {
-  if (!selectedNode.value) return
-  openCreateChildForNode(selectedNode.value)
-}
-
 function openEditNode(node: OutlineNode) {
   selectNode(node)
   editorMode.value = 'edit'
   editorForm.value = {
     title: node.title || '',
     level: node.level || 1,
-    status:
-      node.status === 'completed' || node.status === 'writing'
-        ? node.status
-        : 'planned',
+    status: node.status === 'completed' || node.status === 'writing' ? node.status : 'planned',
     description: node.description || '',
   }
   editorVisible.value = true
-}
-
-function openEditSelected() {
-  if (!selectedNode.value) return
-  openEditNode(selectedNode.value)
-}
-
-async function deleteSelectedNode() {
-  if (!selectedNode.value || !effectiveProjectId.value) return
-  await messageBox.confirm(`确定删除结构节点"${selectedNode.value.title}"吗？`, '删除节点', {
-    type: 'warning',
-  })
-  await writerStore.deleteOutlineNode(selectedNode.value.id, effectiveProjectId.value)
-  selectedNodeId.value = ''
-  draftBindingChapterId.value = ''
-  message.success('结构节点已删除')
-}
-
-async function moveSelectedNode(direction: 'up' | 'down') {
-  if (!selectedNode.value || !effectiveProjectId.value) return
-
-  const { siblings, index } = selectedSiblingContext.value
-  if (index < 0) return
-
-  const targetIndex = direction === 'up' ? index - 1 : index + 1
-  if (targetIndex < 0 || targetIndex >= siblings.length) return
-
-  const targetNode = siblings[targetIndex]
-  if (!targetNode) return
-
-  await writerStore.moveOutlineNode(selectedNode.value.id, effectiveProjectId.value, {
-    parentId: selectedNode.value.parentId,
-    order: targetNode.order,
-  })
-
-  await handleRefresh()
-  const refreshedNode = flattenedNodes.value.find((node) => node.id === selectedNodeId.value)
-  if (refreshedNode) {
-    selectNode(refreshedNode)
-  }
-  message.success(direction === 'up' ? '结构节点已上移' : '结构节点已下移')
 }
 
 function canMoveNodeUp(node: OutlineNode): boolean {
@@ -684,14 +620,6 @@ async function moveNodeUp(node: OutlineNode) {
 
 async function moveNodeDown(node: OutlineNode) {
   await moveNode(node, 'down')
-}
-
-async function moveSelectedNodeUp() {
-  await moveSelectedNode('up')
-}
-
-async function moveSelectedNodeDown() {
-  await moveSelectedNode('down')
 }
 
 async function handleTreeReorder(payload: {
@@ -890,9 +818,16 @@ watch(
 )
 
 watch(
-  () => [filterText.value, activeFilter.value, filteredFlattenedNodes.value.map((node) => node.id).join('|')],
+  () => [
+    filterText.value,
+    activeFilter.value,
+    filteredFlattenedNodes.value.map((node) => node.id).join('|'),
+  ],
   () => {
-    if (selectedNodeId.value && filteredFlattenedNodes.value.some((node) => node.id === selectedNodeId.value)) {
+    if (
+      selectedNodeId.value &&
+      filteredFlattenedNodes.value.some((node) => node.id === selectedNodeId.value)
+    ) {
       return
     }
 
@@ -917,7 +852,6 @@ watch(
 .structure-stage-view {
   --structure-warm: #8f3f2f;
   --structure-accent: #32536a;
-
 
   height: 100%;
   display: flex;

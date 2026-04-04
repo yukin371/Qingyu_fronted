@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { entityEventBus, emitCharacterCreated, emitRelationCreated, emitRelationTimelineChanged, type EntityEventType, type EntityEvent } from '../entityEvents'
+import { describe, it, expect, beforeEach } from 'vitest'
+import {
+  entityEventBus,
+  emitCharacterCreated,
+  emitRelationCreated,
+  emitRelationTimelineChanged,
+  type EntityEvent,
+} from '../entityEvents'
 
 describe('EntityEventBus', () => {
   beforeEach(() => {
@@ -72,9 +78,8 @@ describe('EntityEventBus', () => {
   describe('onTypes', () => {
     it('应该同时订阅多个事件类型', () => {
       const receivedEvents: EntityEvent[] = []
-      const unsubscribe = entityEventBus.onTypes(
-        ['character:created', 'character:updated'],
-        (e) => receivedEvents.push(e)
+      const unsubscribe = entityEventBus.onTypes(['character:created', 'character:updated'], (e) =>
+        receivedEvents.push(e),
       )
 
       emitCharacterCreated({ id: '1', name: '角色', projectId: 'p1' })
@@ -88,9 +93,8 @@ describe('EntityEventBus', () => {
 
     it('取消订阅应该停止接收事件', () => {
       const events: EntityEvent[] = []
-      const unsubscribe = entityEventBus.onTypes(
-        ['character:created', 'relation:created'],
-        (e) => events.push(e)
+      const unsubscribe = entityEventBus.onTypes(['character:created', 'relation:created'], (e) =>
+        events.push(e),
       )
 
       emitCharacterCreated({ id: '1', name: '角色', projectId: 'p1' })

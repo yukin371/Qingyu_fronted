@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { createSyncManager, createEventBatcher, resolveConflict, type ConflictResolution } from '../entitySync'
+import { createSyncManager, createEventBatcher, resolveConflict } from '../entitySync'
 
 describe('createSyncManager', () => {
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('createSyncManager', () => {
         expect.objectContaining({
           missingInStore: ['3', '4'], // 远程有但本地没有
           missingInRemote: [], // 本地有但远程没有
-        })
+        }),
       )
 
       manager.stopValidation()
@@ -142,7 +142,11 @@ describe('resolveConflict', () => {
     const local = { name: '本地' } // 没有 updatedAt
     const remote = { name: '远程', updatedAt: '2024-01-03' }
 
-    const result = resolveConflict(local, remote, 'newest-wins')
+    const result = resolveConflict(
+      local as { name: string; updatedAt?: string },
+      remote,
+      'newest-wins',
+    )
     expect(result).toEqual(remote)
   })
 
@@ -150,9 +154,13 @@ describe('resolveConflict', () => {
     const local = { name: '本地' }
     const remote = { name: '远程' }
 
-    expect(() => resolveConflict(local, remote, 'manual')).toThrow(
-      'Manual conflict resolution required'
-    )
+    expect(() =>
+      resolveConflict(
+        local as { name: string; updatedAt?: string },
+        remote as { name: string; updatedAt?: string },
+        'manual',
+      ),
+    ).toThrow('Manual conflict resolution required')
   })
 })
 
@@ -184,7 +192,7 @@ describe('createEventBatcher', () => {
 
     // 应该批量处理所有事件
     expect(processedEvents).toHaveLength(3)
-    expect(processedEvents.map(e => e.id)).toEqual([1, 2, 3])
+    expect(processedEvents.map((e) => e.id)).toEqual([1, 2, 3])
   })
 
   it('flush 应该立即处理待处理的事件', async () => {
@@ -224,10 +232,7 @@ describe('createEventBatcher', () => {
     vi.advanceTimersByTime(100)
     await Promise.resolve()
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '批量处理事件失败：',
-      expect.any(Error)
-    )
+    expect(consoleSpy).toHaveBeenCalledWith('批量处理事件失败：', expect.any(Error))
 
     consoleSpy.mockRestore()
   })

@@ -9,12 +9,53 @@
         <div class="outline-tree-panel__count">{{ flattenedCount }} 节点</div>
         <div class="outline-tree-panel__hint">支持同级拖拽排序</div>
         <div class="outline-tree-panel__actions">
-          <button type="button" class="outline-action outline-action--primary" @click="emit('createRoot')">新增主干</button>
-          <button type="button" class="outline-action" :disabled="!selectedNodeId" @click="emit('createChild')">新增子节点</button>
-          <button type="button" class="outline-action" :disabled="!canMoveUp" @click="emit('moveUp')">上移</button>
-          <button type="button" class="outline-action" :disabled="!canMoveDown" @click="emit('moveDown')">下移</button>
-          <button type="button" class="outline-action" :disabled="!selectedNodeId" @click="handleEdit">编辑</button>
-          <button type="button" class="outline-action outline-action--danger" :disabled="!selectedNodeId" @click="handleDelete">删除</button>
+          <button
+            type="button"
+            class="outline-action outline-action--primary"
+            @click="emit('createRoot')"
+          >
+            新增主干
+          </button>
+          <button
+            type="button"
+            class="outline-action"
+            :disabled="!selectedNodeId"
+            @click="emit('createChild')"
+          >
+            新增子节点
+          </button>
+          <button
+            type="button"
+            class="outline-action"
+            :disabled="!canMoveUp"
+            @click="emit('moveUp')"
+          >
+            上移
+          </button>
+          <button
+            type="button"
+            class="outline-action"
+            :disabled="!canMoveDown"
+            @click="emit('moveDown')"
+          >
+            下移
+          </button>
+          <button
+            type="button"
+            class="outline-action"
+            :disabled="!selectedNodeId"
+            @click="handleEdit"
+          >
+            编辑
+          </button>
+          <button
+            type="button"
+            class="outline-action outline-action--danger"
+            :disabled="!selectedNodeId"
+            @click="handleDelete"
+          >
+            删除
+          </button>
         </div>
       </div>
     </div>
@@ -44,7 +85,9 @@
       <div v-else-if="loading" class="outline-tree-panel__empty outline-tree-panel__empty--loading">
         正在加载结构树，请稍候。
       </div>
-      <div v-else class="outline-tree-panel__empty">还没有结构节点，先从章节目录或 AI 生成大纲进入。</div>
+      <div v-else class="outline-tree-panel__empty">
+        还没有结构节点，先从章节目录或 AI 生成大纲进入。
+      </div>
     </div>
 
     <!-- 右键菜单 -->
@@ -107,12 +150,16 @@ const emit = defineEmits<{
   (e: 'select', node: OutlineNode): void
   (e: 'openGraph', chapterId: string): void
   (e: 'createRoot'): void
+  (e: 'createChild'): void
   (e: 'createChild', data: CreateOutlineRequest): void
   (e: 'moveUp'): void
   (e: 'moveDown'): void
   (e: 'editSelected', data: UpdateOutlineRequest): void
   (e: 'deleteSelected'): void
-  (e: 'reorder', payload: { draggedNodeId: string; targetNodeId: string; position: TreeDropPosition }): void
+  (
+    e: 'reorder',
+    payload: { draggedNodeId: string; targetNodeId: string; position: TreeDropPosition },
+  ): void
   (e: 'convertToChapter', payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }): void
 }>()
 

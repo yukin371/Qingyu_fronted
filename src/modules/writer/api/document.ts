@@ -1,4 +1,4 @@
-import httpService from '@/core/services/http.service'
+import { httpService } from '@/core/services/http.service'
 import type {
   Document,
   CreateDocumentRequest,
@@ -47,7 +47,7 @@ export const documentApi = {
   create(projectId: string, data: CreateDocumentRequest) {
     return httpService.post<CreateDocumentResponse>(
       `${BASE_PROJECT_DOC_URL}/${projectId}/documents`,
-      data
+      data,
     )
   },
 
@@ -86,7 +86,7 @@ export const documentApi = {
   list(projectId: string, params?: { page?: number; pageSize?: number }) {
     return httpService.get<{ documents: Document[]; total: number }>(
       `${BASE_PROJECT_DOC_URL}/${projectId}/documents`,
-      params as any
+      params as any,
     )
   },
 
@@ -129,7 +129,10 @@ export const documentApi = {
    * POST /api/v1/writer/documents/{id}/duplicate
    */
   duplicate(documentId: string, data: DuplicateDocumentRequest) {
-    return httpService.post<DuplicateDocumentResponse>(`/writer/documents/${documentId}/duplicate`, data)
+    return httpService.post<DuplicateDocumentResponse>(
+      `/writer/documents/${documentId}/duplicate`,
+      data,
+    )
   },
 
   // ==========================================

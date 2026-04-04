@@ -44,10 +44,34 @@
           class="selection-toolbar"
           :style="{ left: `${selectionState.x}px`, top: `${selectionState.y}px` }"
         >
-          <button type="button" class="selection-toolbar__action" @click="emitSelectionAction('continue')">续写</button>
-          <button type="button" class="selection-toolbar__action" @click="emitSelectionAction('polish')">润色</button>
-          <button type="button" class="selection-toolbar__action" @click="emitSelectionAction('rewrite')">改写</button>
-          <button type="button" class="selection-toolbar__action" @click="emitSelectionAction('add_to_chat')">加入对话</button>
+          <button
+            type="button"
+            class="selection-toolbar__action"
+            @click="emitSelectionAction('continue')"
+          >
+            续写
+          </button>
+          <button
+            type="button"
+            class="selection-toolbar__action"
+            @click="emitSelectionAction('polish')"
+          >
+            润色
+          </button>
+          <button
+            type="button"
+            class="selection-toolbar__action"
+            @click="emitSelectionAction('rewrite')"
+          >
+            改写
+          </button>
+          <button
+            type="button"
+            class="selection-toolbar__action"
+            @click="emitSelectionAction('add_to_chat')"
+          >
+            加入对话
+          </button>
         </div>
       </div>
     </div>
@@ -85,7 +109,11 @@
       </div>
 
       <ul class="ref-list" v-if="referenceSummary.length > 0">
-        <li v-for="item in referenceSummary" :key="`${item.type}-${item.name}`" :class="`is-${item.type}`">
+        <li
+          v-for="item in referenceSummary"
+          :key="`${item.type}-${item.name}`"
+          :class="`is-${item.type}`"
+        >
           <span class="type">{{ typeLabel(item.type) }}</span>
           <span class="name">{{ item.name }}</span>
           <span class="count">x{{ item.count }}</span>
@@ -97,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, ref } from 'vue'
+import { computed, reactive, watch, ref, onUnmounted } from 'vue'
 import type { Editor } from '@tiptap/core'
 import { QyTipTapEditor } from '@/design-system/components/editor'
 import type { KeywordInfo } from '@/design-system/components/editor'
@@ -108,8 +136,6 @@ import type { ParagraphContent } from '@/modules/writer/api/wrapper'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
 
-// 内容变化检测常量
-const CONTENT_CHANGE_THRESHOLD = 5 // 变化超过5个字符才标记为未保存
 const AUTOSAVE_DEBOUNCE = 300 // 300ms debounce
 
 const props = withDefaults(
@@ -148,79 +174,80 @@ const emit = defineEmits<{
 }>()
 
 const editorStore = useEditorStore()
-const {
-  scannedEntities,
-  isScanning,
-  scheduleScan,
-  ignoreEntity,
-  ignoreAll,
-} = useEntityScanner()
+const { scannedEntities, isScanning, scheduleScan, ignoreEntity, ignoreAll } = useEntityScanner()
 const plainTextContent = computed(() => extractPlainTextFromEditorContent(props.modelValue || ''))
 const isDocumentEmpty = computed(() => plainTextContent.value.trim().length === 0)
 
-// 内容变化检测状态
-const lastSavedContent = ref<string>('') // 上一次保存的内容（纯文本）
+// 自动保存跟踪状态
+const trackedDocumentId = ref<string>('')
+const lastPersistedContent = ref<string>('')
 let contentChangeTimer: ReturnType<typeof setTimeout> | null = null
 
 /**
- * 检测内容是否有实质性变化
- * @param newContent 新内容（纯文本）
- * @returns 是否有实质性变化
+ * 清理待执行的自动保存任务
  */
-function hasSubstantialChange(newContent: string): boolean {
-  if (!lastSavedContent.value) {
-    // 首次加载，不需要标记为未保存
-    return false
+function clearPendingAutoSave() {
+  if (contentChangeTimer) {
+    clearTimeout(contentChangeTimer)
+    contentChangeTimer = null
   }
-  const diff = Math.abs(newContent.length - lastSavedContent.value.length)
-  return diff >= CONTENT_CHANGE_THRESHOLD
+}
+
+/**
+ * 同步最近一次已持久化的正文快照
+ */
+function syncPersistedSnapshot(serializedContent: string) {
+  lastPersistedContent.value = serializedContent || ''
+}
+
+/**
+ * 当前序列化内容是否与已保存版本不同
+ */
+function hasPersistedChange(serializedContent: string): boolean {
+  return serializedContent !== lastPersistedContent.value
 }
 
 /**
  * 处理内容变化 - 标记为未保存但延迟保存
  */
-function handleContentChange(newContent: string) {
-  const plainText = extractPlainTextFromEditorContent(newContent)
-
-  // 检测是否有实质性变化
-  if (!hasSubstantialChange(plainText)) {
-    return // 变化太小，忽略
-  }
-
+function handleContentChange(serializedContent: string) {
   // 标记为未保存
   editorStore.markDirty()
 
-  // 清除之前的定时器
-  if (contentChangeTimer) {
-    clearTimeout(contentChangeTimer)
+  if (!editorStore.autosaveEnabled) {
+    return
   }
+
+  // 清除之前的定时器
+  clearPendingAutoSave()
 
   // 设置新的定时器，debounce 300ms
   contentChangeTimer = setTimeout(() => {
-    // 触发保存
-    triggerAutoSave()
+    void triggerAutoSave(serializedContent)
   }, AUTOSAVE_DEBOUNCE)
 }
 
 /**
  * 触发自动保存
  */
-function triggerAutoSave() {
-  if (!editorStore.tipTapEditor) return
+async function triggerAutoSave(serializedContent: string) {
+  if (!hasPersistedChange(serializedContent)) return
 
-  const doc = editorStore.tipTapEditor.getJSON()
-  const contents: ParagraphContent[] = [{
-    paragraphId: 'main',
-    order: 0,
-    content: JSON.stringify(doc),
-    contentType: 'tiptap_json',
-  }]
+  const contents: ParagraphContent[] = [
+    {
+      paragraphId: 'main',
+      order: 0,
+      content: serializedContent,
+      contentType: 'tiptap_json',
+    },
+  ]
 
-  // 更新上一次保存的内容
-  lastSavedContent.value = extractPlainTextFromEditorContent(JSON.stringify(doc))
-
-  // 执行保存
-  editorStore.saveParagraphs(contents)
+  try {
+    await editorStore.saveParagraphs(contents)
+    syncPersistedSnapshot(serializedContent)
+  } catch (error) {
+    console.error('[TipTapEditorView] 自动保存失败:', error)
+  }
 }
 
 // 监听内容变化，触发实体扫描
@@ -230,14 +257,41 @@ watch(plainTextContent, (text) => {
   }
 })
 
+watch(
+  () => props.documentId,
+  (documentId) => {
+    trackedDocumentId.value = documentId || ''
+    syncPersistedSnapshot(props.modelValue || '')
+    clearPendingAutoSave()
+  },
+  { immediate: true },
+)
+
 // 监听 modelValue 变化，检测内容变化
 watch(
   () => props.modelValue,
   (newValue) => {
-    if (newValue) {
-      handleContentChange(newValue)
+    const serializedContent = newValue || ''
+
+    if (trackedDocumentId.value !== (props.documentId || '')) {
+      trackedDocumentId.value = props.documentId || ''
+      syncPersistedSnapshot(serializedContent)
+      clearPendingAutoSave()
+      return
     }
-  }
+
+    // 外部同步（加载文档、切换章节、手动标记已保存）只更新基线，不触发自动保存
+    if (!editorStore.isDirty) {
+      syncPersistedSnapshot(serializedContent)
+      return
+    }
+
+    if (!hasPersistedChange(serializedContent)) {
+      return
+    }
+
+    handleContentChange(serializedContent)
+  },
 )
 const selectionState = reactive({
   text: '',
@@ -259,18 +313,19 @@ function focusEditor() {
 async function handleSave(contents: ParagraphContent[]) {
   if (!contents || !contents[0]?.content) return
 
-  const currentContent = extractPlainTextFromEditorContent(contents[0].content)
+  const serializedContent = contents[0].content || ''
 
-  // 检查是否有实质性变化，如果没有则跳过保存
-  if (lastSavedContent.value && Math.abs(currentContent.length - lastSavedContent.value.length) < CONTENT_CHANGE_THRESHOLD) {
-    return // 变化太小，跳过保存
-  }
+  if (!hasPersistedChange(serializedContent)) return
 
-  // 保存成功后更新上一次保存的内容
-  lastSavedContent.value = currentContent
+  clearPendingAutoSave()
   await editorStore.saveParagraphs(contents)
+  syncPersistedSnapshot(serializedContent)
   emit('save', contents)
 }
+
+onUnmounted(() => {
+  clearPendingAutoSave()
+})
 
 const referenceSummary = computed(() => {
   try {
@@ -283,9 +338,9 @@ const referenceSummary = computed(() => {
 })
 
 const referenceStats = computed(() => ({
-  character: referenceSummary.value.filter(item => item.type === 'character').length,
-  location: referenceSummary.value.filter(item => item.type === 'location').length,
-  item: referenceSummary.value.filter(item => item.type === 'item').length,
+  character: referenceSummary.value.filter((item) => item.type === 'character').length,
+  location: referenceSummary.value.filter((item) => item.type === 'location').length,
+  item: referenceSummary.value.filter((item) => item.type === 'item').length,
 }))
 
 function collectKeywordSummary(text: string) {
@@ -304,7 +359,9 @@ function collectKeywordSummary(text: string) {
       else summary.set(key, { type: p.type, name, count: 1 })
     }
   }
-  return Array.from(summary.values()).sort((a, b) => b.count - a.count).slice(0, 30)
+  return Array.from(summary.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 30)
 }
 
 function typeLabel(type: KeywordInfo['type']) {
@@ -313,7 +370,14 @@ function typeLabel(type: KeywordInfo['type']) {
   return '物品'
 }
 
-function handleSelectionChange(payload: { text: string; from: number; to: number; x: number; y: number; visible: boolean }) {
+function handleSelectionChange(payload: {
+  text: string
+  from: number
+  to: number
+  x: number
+  y: number
+  visible: boolean
+}) {
   selectionState.text = payload.text
   selectionState.from = payload.from
   selectionState.to = payload.to

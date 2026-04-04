@@ -77,8 +77,10 @@ export function inferNodeCategory(
   childIndex: number,
   siblingCount: number,
 ): OrgNodeCategory {
+  const nodeWithType = node as OutlineNode & { type?: string }
+
   // 章节/卷类型优先
-  if (node.type === 'volume' || node.type === 'chapter') {
+  if (nodeWithType.type === 'volume' || nodeWithType.type === 'chapter') {
     return 'chapter'
   }
 
@@ -215,8 +217,8 @@ function buildLayoutNodes(
 
   // 先递归计算子树宽度
   const subtreeWidths = children.map((child) => calcSubtreeWidth(child))
-  const totalChildrenWidth = subtreeWidths.reduce((sum, w) => sum + w, 0)
-    + Math.max(0, children.length - 1) * HORIZONTAL_GAP
+  const totalChildrenWidth =
+    subtreeWidths.reduce((sum, w) => sum + w, 0) + Math.max(0, children.length - 1) * HORIZONTAL_GAP
 
   // 子节点从左到右排列，居中在父节点下方
   let childX = centerX - totalChildrenWidth / 2
@@ -335,8 +337,8 @@ export function useOrgTreeLayout(rootNodes: ComputedRef<OutlineNode[]>): UseOrgT
 
     // 计算所有根节点的子树宽度
     const subtreeWidths = roots.map((node) => calcSubtreeWidth(node))
-    const totalWidth = subtreeWidths.reduce((sum, w) => sum + w, 0)
-      + Math.max(0, roots.length - 1) * HORIZONTAL_GAP
+    const totalWidth =
+      subtreeWidths.reduce((sum, w) => sum + w, 0) + Math.max(0, roots.length - 1) * HORIZONTAL_GAP
 
     let currentX = -totalWidth / 2
 

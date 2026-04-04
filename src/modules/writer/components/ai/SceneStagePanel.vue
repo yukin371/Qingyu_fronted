@@ -2,9 +2,7 @@
   <div class="scene-stage-panel">
     <div class="panel-header">
       <h4>场景状态</h4>
-      <el-button text size="small" @click="refreshFromDocument">
-        同步
-      </el-button>
+      <el-button text size="small" @click="refreshFromDocument"> 同步 </el-button>
     </div>
 
     <el-form label-position="top" size="small">
@@ -34,17 +32,10 @@
 
       <el-form-item label="在场人物">
         <div class="entity-tags">
-          <el-tag
-            v-for="char in characters"
-            :key="char.id"
-            size="small"
-            class="entity-tag"
-          >
+          <el-tag v-for="char in characters" :key="char.id" size="small" class="entity-tag">
             {{ char.name }}
           </el-tag>
-          <span v-if="!characters.length" class="empty-hint">
-            由文档关联自动填充
-          </span>
+          <span v-if="!characters.length" class="empty-hint"> 由文档关联自动填充 </span>
         </div>
       </el-form-item>
 
@@ -59,9 +50,7 @@
           >
             {{ loc.name }}
           </el-tag>
-          <span v-if="!locations.length" class="empty-hint">
-            由文档关联自动填充
-          </span>
+          <span v-if="!locations.length" class="empty-hint"> 由文档关联自动填充 </span>
         </div>
       </el-form-item>
     </el-form>
@@ -69,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { updateSceneState } from '@/modules/ai/api/ai'
 
@@ -88,14 +77,22 @@ const props = defineProps<{
 
 const sceneGoal = ref(props.initialSceneGoal || '')
 const activeConflict = ref(props.initialActiveConflict || '')
+const characters = computed<Entity[]>(() => props.characters ?? [])
+const locations = computed<Entity[]>(() => props.locations ?? [])
 
 // 同步外部传入的初始值
-watch(() => props.initialSceneGoal, (val) => {
-  if (val !== undefined) sceneGoal.value = val
-})
-watch(() => props.initialActiveConflict, (val) => {
-  if (val !== undefined) activeConflict.value = val
-})
+watch(
+  () => props.initialSceneGoal,
+  (val) => {
+    if (val !== undefined) sceneGoal.value = val
+  },
+)
+watch(
+  () => props.initialActiveConflict,
+  (val) => {
+    if (val !== undefined) activeConflict.value = val
+  },
+)
 
 async function saveSceneState() {
   if (!props.documentId) return

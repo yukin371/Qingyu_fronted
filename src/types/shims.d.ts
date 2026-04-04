@@ -118,7 +118,7 @@ declare module '@/stores/reader' {
       bookId: string,
       chapterId: string,
       progress: number,
-      scrollPosition: number
+      scrollPosition: number,
     ): Promise<void>
     updateReadingTime(bookId: string, duration: number): Promise<void>
     updateProgress(progress: number): void
@@ -380,6 +380,7 @@ declare module '@/types/writer' {
     order: number
     wordCount?: number
     documentId?: string
+    type?: string
     children?: OutlineNode[]
   }
 }
@@ -392,7 +393,7 @@ declare module '@/types/ai' {
     timestamp: number
   }
 
-  export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite'
+  export type AIToolType = 'chat' | 'continue' | 'polish' | 'expand' | 'rewrite' | 'story-generate'
 
   export interface AIConfig {
     continueLength?: number

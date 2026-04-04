@@ -46,7 +46,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     try {
       // 创建服务实例
       const wsConfig: WebSocketConfig = {
-        url: import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws',
+        url: import.meta.env.VITE_WS_URL || '/ws',
         token,
         ...config,
       }

@@ -87,14 +87,22 @@ interface AIActionTrigger {
   action: string
   text: string
   instructions?: string
-  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
 }
 
 interface AIApplyPayload {
   action: string
   sourceText: string
   generatedText: string
-  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
 }
 
 const props = defineProps<{
@@ -119,30 +127,6 @@ const tabs: Array<{ id: WorkbenchTab; label: string; description: string }> = [
   { id: 'review', label: '审校', description: '校对 / 风险检查' },
   { id: 'chat', label: '对话', description: '开放式协作' },
 ]
-
-const sourceWordCount = computed(() => props.sourceText.trim().length)
-const sourcePreview = computed(() => {
-  const text = props.sourceText.replace(/\s+/g, ' ').trim()
-  if (!text) return '正文为空，可直接从结构舞台、章节摘要或对话开始。'
-  return text.length > 28 ? `${text.slice(0, 28)}…` : text
-})
-const activeIntentText = computed(() => {
-  const action = props.actionTrigger?.action
-  if (!action) return '待命'
-  const map: Record<string, string> = {
-    continue: '续写片段',
-    polish: '润色文本',
-    expand: '扩写片段',
-    rewrite: '改写文本',
-    summarize: '提炼摘要',
-    summarize_chapter: '章节总结',
-    proofread: '文本校对',
-    audit: '风险检测',
-    add_to_chat: '注入对话上下文',
-    chat: '开放协作',
-  }
-  return map[action] || '执行工作流'
-})
 
 const actionDrivenTab = computed<WorkbenchTab | null>(() => {
   const action = props.actionTrigger?.action

@@ -4,7 +4,11 @@
     <div class="graph-content">
       <!-- 图谱区域 -->
       <div class="graph-canvas" ref="graphCanvasRef" v-loading="writerStore.characters.loading">
-        <section v-if="!isGlobalGraph" class="asset-binding-strip" data-testid="asset-binding-strip">
+        <section
+          v-if="!isGlobalGraph"
+          class="asset-binding-strip"
+          data-testid="asset-binding-strip"
+        >
           <article class="asset-binding-card">
             <div class="asset-binding-card__header">
               <div>
@@ -29,7 +33,10 @@
               <span>已绑定 {{ boundScopeAssetRefs.length }}</span>
               <span>可补绑 {{ scopeBindableCharacters.length }}</span>
             </div>
-            <div v-if="showBoundAssetsPanel && boundScopeAssetRefs.length > 0" class="asset-binding-chip-list">
+            <div
+              v-if="showBoundAssetsPanel && boundScopeAssetRefs.length > 0"
+              class="asset-binding-chip-list"
+            >
               <div
                 v-for="asset in boundScopeAssetRefs"
                 :key="asset.id"
@@ -37,12 +44,20 @@
                 :class="`is-${asset.assetType}`"
               >
                 <div class="asset-binding-chip__meta">
-                  <span class="asset-binding-chip__type">{{ formatAssetType(asset.assetType) }}</span>
+                  <span class="asset-binding-chip__type">{{
+                    formatAssetType(asset.assetType)
+                  }}</span>
                   <strong>{{ asset.assetName }}</strong>
-                  <span v-if="asset.scopeType === 'chapter' && currentScopeType === 'chapter'" class="asset-binding-chip__source">
+                  <span
+                    v-if="asset.scopeType === 'chapter' && currentScopeType === 'chapter'"
+                    class="asset-binding-chip__source"
+                  >
                     {{ formatAssetSource(asset.source) }}
                   </span>
-                  <span v-else-if="asset.scopeType === 'volume' && currentScopeType === 'chapter'" class="asset-binding-chip__source">
+                  <span
+                    v-else-if="asset.scopeType === 'volume' && currentScopeType === 'chapter'"
+                    class="asset-binding-chip__source"
+                  >
                     卷级继承
                   </span>
                 </div>
@@ -57,7 +72,9 @@
               </div>
             </div>
             <div v-else-if="showBoundAssetsPanel" class="asset-binding-empty">
-              当前{{ currentScopeType === 'volume' ? '卷' : '章节' }}还没有确认过资产，可先从正文候选中绑定。
+              当前{{
+                currentScopeType === 'volume' ? '卷' : '章节'
+              }}还没有确认过资产，可先从正文候选中绑定。
             </div>
           </article>
 
@@ -79,16 +96,25 @@
                   :disabled="bindableScopeAssetCandidates.length === 0 || bindingAllCandidates"
                   @click="handleBindAllAssetCandidates"
                 >
-                  {{ bindingAllCandidates ? '绑定中...' : `全部绑定已建档 ${bindableScopeAssetCandidates.length}` }}
+                  {{
+                    bindingAllCandidates
+                      ? '绑定中...'
+                      : `全部绑定已建档 ${bindableScopeAssetCandidates.length}`
+                  }}
                 </el-button>
               </div>
             </div>
             <div class="asset-binding-card__summary">
-              <span>{{ currentScopeType === 'volume' ? '由章节确认资产自动汇总' : '从当前正文自动识别' }}</span>
+              <span>{{
+                currentScopeType === 'volume' ? '由章节确认资产自动汇总' : '从当前正文自动识别'
+              }}</span>
               <span>可绑定 {{ bindableScopeAssetCandidates.length }}</span>
               <span>待建档 {{ unresolvedScopeAssetCandidates.length }}</span>
             </div>
-            <div v-if="showCandidatePanel && scopeAssetCandidates.length > 0" class="asset-binding-chip-list">
+            <div
+              v-if="showCandidatePanel && scopeAssetCandidates.length > 0"
+              class="asset-binding-chip-list"
+            >
               <div
                 v-for="candidate in scopeAssetCandidates"
                 :key="candidate.key"
@@ -96,27 +122,41 @@
                 :class="`is-${candidate.assetType}`"
               >
                 <div class="asset-binding-chip__meta">
-                  <span class="asset-binding-chip__type">{{ formatAssetType(candidate.assetType) }}</span>
+                  <span class="asset-binding-chip__type">{{
+                    formatAssetType(candidate.assetType)
+                  }}</span>
                   <strong>{{ candidate.assetName }}</strong>
-                  <span class="asset-binding-chip__source">{{ formatAssetSource(candidate.source) }}</span>
-                  <span v-if="candidate.unresolved" class="asset-binding-chip__status is-unresolved">待建档</span>
+                  <span class="asset-binding-chip__source">{{
+                    formatAssetSource(candidate.source)
+                  }}</span>
+                  <span v-if="candidate.unresolved" class="asset-binding-chip__status is-unresolved"
+                    >待建档</span
+                  >
                   <span v-else class="asset-binding-chip__status">已匹配</span>
-                  <span v-if="candidate.evidence" class="asset-binding-chip__evidence">命中：{{ candidate.evidence }}</span>
+                  <span v-if="candidate.evidence" class="asset-binding-chip__evidence"
+                    >命中：{{ candidate.evidence }}</span
+                  >
                 </div>
                 <el-button
                   text
                   size="small"
                   :disabled="bindingAllCandidates"
-                  @click="candidate.unresolved ? handleCreateAndBindCandidate(candidate) : handleBindAssetCandidate(candidate)"
+                  @click="
+                    candidate.unresolved
+                      ? handleCreateAndBindCandidate(candidate)
+                      : handleBindAssetCandidate(candidate)
+                  "
                 >
                   {{ candidate.unresolved ? '建档并绑定' : '绑定' }}
                 </el-button>
               </div>
             </div>
             <div v-else-if="showCandidatePanel" class="asset-binding-empty">
-              {{ currentScopeType === 'volume'
-                ? '先在本卷章节里确认角色/地点资产，这里才会出现可提升的卷级候选。'
-                : chapterCandidateHint }}
+              {{
+                currentScopeType === 'volume'
+                  ? '先在本卷章节里确认角色/地点资产，这里才会出现可提升的卷级候选。'
+                  : chapterCandidateHint
+              }}
             </div>
           </article>
         </section>
@@ -145,164 +185,194 @@
 
           <!-- 图谱视图 -->
           <div v-if="viewMode === 'graph'" class="graph-view-content">
-          <!-- 实体作用域 tab（仅在卷/章节模式下显示） -->
-          <div v-if="currentChapterId" class="entity-scope-tabs" data-testid="entity-scope-tabs">
-            <button
-              class="entity-scope-tab"
-              :class="{ 'is-active': entityScopeTab === 'all' }"
-              @click="entityScopeTab = 'all'"
-            >
-              全部
-            </button>
-            <button
-              class="entity-scope-tab"
-              :class="{ 'is-active': entityScopeTab === 'volume' }"
-              @click="entityScopeTab = 'volume'"
-            >
-              卷级
-            </button>
-            <button
-              class="entity-scope-tab"
-              :class="{ 'is-active': entityScopeTab === 'chapter' }"
-              @click="entityScopeTab = 'chapter'"
-            >
-              章节级
-            </button>
-          </div>
-
-          <!-- 实体登场状态图例 -->
-          <div v-if="!isGlobalGraph" class="entity-legend">
-            <span class="entity-legend-item">
-              <span class="legend-dot is-appeared"></span>
-              已登场
-            </span>
-            <span class="entity-legend-item">
-              <span class="legend-dot is-unappeared"></span>
-              未登场
-            </span>
-          </div>
-
-          <!-- 全局图谱（无数据 - 创建引导） -->
-          <div v-if="shouldShowGlobalCreationGuide" class="graph-creation-guide">
-            <div class="guide-content">
-              <el-icon class="guide-icon"><Connection /></el-icon>
-              <h3>全局关系图谱</h3>
-              <p>尚未创建关系图谱，请选择创建方式</p>
-
-              <div class="guide-actions">
-                <el-button type="primary" @click="handleCreateGlobalGraph('empty')">
-                  从零开始
-                </el-button>
-                <el-button @click="showInheritDialog">
-                  继承其他图谱
-                </el-button>
-                <el-button @click="handleImportFromCharacters">
-                  从角色卡引入
-                </el-button>
-                <el-button @click="openCreateCharacterDialog">
-                  新建角色
-                </el-button>
-              </div>
+            <!-- 实体作用域 tab（仅在卷/章节模式下显示） -->
+            <div v-if="currentChapterId" class="entity-scope-tabs" data-testid="entity-scope-tabs">
+              <button
+                class="entity-scope-tab"
+                :class="{ 'is-active': entityScopeTab === 'all' }"
+                @click="entityScopeTab = 'all'"
+              >
+                全部
+              </button>
+              <button
+                class="entity-scope-tab"
+                :class="{ 'is-active': entityScopeTab === 'volume' }"
+                @click="entityScopeTab = 'volume'"
+              >
+                卷级
+              </button>
+              <button
+                class="entity-scope-tab"
+                :class="{ 'is-active': entityScopeTab === 'chapter' }"
+                @click="entityScopeTab = 'chapter'"
+              >
+                章节级
+              </button>
             </div>
-          </div>
 
-          <!-- 全局图谱（有数据） -->
-          <div v-else-if="!currentChapterId" class="global-graph-container">
-            <div class="global-graph-header">
-              <span class="graph-title">全局关系图谱</span>
-              <el-tag size="small" :type="isGlobalGraphCreatedEmpty ? 'warning' : 'info'">
-                {{ isGlobalGraphCreatedEmpty ? '空图谱' : `${characters.length} 个角色` }}
-              </el-tag>
-            </div>
-            <div v-if="isGlobalGraphCreatedEmpty" class="graph-empty-panel" data-testid="global-empty-graph-state">
-              <el-icon class="empty-icon"><Connection /></el-icon>
-              <h4>空白全局图谱已创建</h4>
-              <p>当前还没有角色关系。你可以先从角色卡引入，再继续补充关系。</p>
-              <div class="empty-actions">
-                <el-button type="primary" @click="handleImportFromCharacters">从角色卡引入</el-button>
-                <el-button @click="openCreateCharacterDialog">新建角色</el-button>
-              </div>
-            </div>
-            <RelationshipGraph
-              v-else
-              :nodes="graphNodes"
-              :links="graphLinks"
-              @create-link="handleGraphCreateLink"
-              @node-click="handleNodeClick"
-              @delete-node="handleDeleteNode"
-              @add-node="handleAddNodeAt"
-            />
-          </div>
-
-          <!-- 卷/章节图谱（已创建） -->
-          <template v-else-if="currentChapterId && hasCurrentScopeGraph">
-            <div class="chapter-graph-header" data-testid="chapter-graph-header">
-              <span class="chapter-name">
-                {{ currentScopeType === 'volume' ? `${currentScopeTitle} · 卷图谱` : getChapterInfo(currentChapterId)?.chapter }}
+            <!-- 实体登场状态图例 -->
+            <div v-if="!isGlobalGraph" class="entity-legend">
+              <span class="entity-legend-item">
+                <span class="legend-dot is-appeared"></span>
+                已登场
               </span>
-              <el-tag size="small" :type="currentChapterGraphTagType">
-                {{ currentChapterGraphTag }}
-              </el-tag>
+              <span class="entity-legend-item">
+                <span class="legend-dot is-unappeared"></span>
+                未登场
+              </span>
             </div>
-            <div v-if="isCurrentChapterGraphEmpty" class="graph-empty-panel" data-testid="chapter-empty-graph-state">
-              <el-icon class="empty-icon"><Document /></el-icon>
-              <h4>{{ currentScopeType === 'volume' ? '卷级空图谱已创建' : '章节空图谱已创建' }}</h4>
-              <p v-if="currentScopeGraph?.parentGraphId === 'global'">
-                当前{{ currentScopeType === 'volume' ? '卷' : '章节' }}图谱已接入全局继承链，但继承源里还没有可展示的关系。
-              </p>
-              <p v-else>
-                当前{{ currentScopeType === 'volume' ? '卷' : '章节' }}图谱已创建，但还没有角色或关系。你可以继续继承全局，或先补充角色关系。
-              </p>
-              <div class="empty-actions">
-                <el-button
-                  v-if="currentScopeGraph?.parentGraphId !== 'global'"
-                  :disabled="globalRelations.length === 0"
-                  @click="currentScopeType === 'volume' ? handleCreateVolumeGraph('inherit') : handleCreateChapterGraph('inherit')"
-                >
-                  继承全局
-                </el-button>
-                <el-button type="primary" @click="handleImportFromCharacters">
-                  从角色卡引入
-                </el-button>
-                <el-button
-                  :disabled="scopeBindableCharacters.length === 0"
-                  @click="handleBindExistingCharactersToScope"
-                >
-                  绑定角色卡
-                </el-button>
+
+            <!-- 全局图谱（无数据 - 创建引导） -->
+            <div v-if="shouldShowGlobalCreationGuide" class="graph-creation-guide">
+              <div class="guide-content">
+                <el-icon class="guide-icon"><Connection /></el-icon>
+                <h3>全局关系图谱</h3>
+                <p>尚未创建关系图谱，请选择创建方式</p>
+
+                <div class="guide-actions">
+                  <el-button type="primary" @click="handleCreateGlobalGraph('empty')">
+                    从零开始
+                  </el-button>
+                  <el-button @click="showInheritDialog"> 继承其他图谱 </el-button>
+                  <el-button @click="handleImportFromCharacters"> 从角色卡引入 </el-button>
+                  <el-button @click="openCreateCharacterDialog"> 新建角色 </el-button>
+                </div>
               </div>
             </div>
-            <RelationshipGraph
-              v-else
-              :nodes="graphNodes"
-              :links="graphLinks"
-              @create-link="handleGraphCreateLink"
-              @node-click="handleNodeClick"
-              @delete-node="handleDeleteNode"
-              @add-node="handleAddNodeAt"
-            />
-          </template>
 
-          <!-- 卷/章节图谱（未创建 - 创建引导） -->
-          <div v-else-if="currentChapterId" class="graph-creation-guide">
-            <div class="guide-content">
-              <el-icon class="guide-icon"><Document /></el-icon>
-              <h3>{{ currentScopeTitle || (currentScopeType === 'volume' ? '该卷' : '该章节') }}</h3>
-              <p>该{{ currentScopeType === 'volume' ? '卷' : '章节' }}尚未创建专属关系图谱</p>
+            <!-- 全局图谱（有数据） -->
+            <div v-else-if="!currentChapterId" class="global-graph-container">
+              <div class="global-graph-header">
+                <span class="graph-title">全局关系图谱</span>
+                <el-tag size="small" :type="isGlobalGraphCreatedEmpty ? 'warning' : 'info'">
+                  {{ isGlobalGraphCreatedEmpty ? '空图谱' : `${characters.length} 个角色` }}
+                </el-tag>
+              </div>
+              <div
+                v-if="isGlobalGraphCreatedEmpty"
+                class="graph-empty-panel"
+                data-testid="global-empty-graph-state"
+              >
+                <el-icon class="empty-icon"><Connection /></el-icon>
+                <h4>空白全局图谱已创建</h4>
+                <p>当前还没有角色关系。你可以先从角色卡引入，再继续补充关系。</p>
+                <div class="empty-actions">
+                  <el-button type="primary" @click="handleImportFromCharacters"
+                    >从角色卡引入</el-button
+                  >
+                  <el-button @click="openCreateCharacterDialog">新建角色</el-button>
+                </div>
+              </div>
+              <RelationshipGraph
+                v-else
+                :nodes="graphNodes"
+                :links="graphLinks"
+                @create-link="handleGraphCreateLink"
+                @node-click="handleNodeClick"
+                @delete-node="handleDeleteNode"
+                @add-node="handleAddNodeAt"
+              />
+            </div>
 
-              <div class="guide-actions">
-                <el-button
-                  type="primary"
-                  @click="currentScopeType === 'volume' ? handleCreateVolumeGraph('empty') : handleCreateChapterGraph('empty')"
-                >
-                  从零开始
-                </el-button>
-                <el-button @click="currentScopeType === 'volume' ? handleCreateVolumeGraph('inherit') : handleCreateChapterGraph('inherit')">
-                  继承全局
-                </el-button>
+            <!-- 卷/章节图谱（已创建） -->
+            <template v-else-if="currentChapterId && hasCurrentScopeGraph">
+              <div class="chapter-graph-header" data-testid="chapter-graph-header">
+                <span class="chapter-name">
+                  {{
+                    currentScopeType === 'volume'
+                      ? `${currentScopeTitle} · 卷图谱`
+                      : getChapterInfo(currentChapterId)?.chapter
+                  }}
+                </span>
+                <el-tag size="small" :type="currentChapterGraphTagType">
+                  {{ currentChapterGraphTag }}
+                </el-tag>
+              </div>
+              <div
+                v-if="isCurrentChapterGraphEmpty"
+                class="graph-empty-panel"
+                data-testid="chapter-empty-graph-state"
+              >
+                <el-icon class="empty-icon"><Document /></el-icon>
+                <h4>
+                  {{ currentScopeType === 'volume' ? '卷级空图谱已创建' : '章节空图谱已创建' }}
+                </h4>
+                <p v-if="currentScopeGraph?.parentGraphId === 'global'">
+                  当前{{
+                    currentScopeType === 'volume' ? '卷' : '章节'
+                  }}图谱已接入全局继承链，但继承源里还没有可展示的关系。
+                </p>
+                <p v-else>
+                  当前{{
+                    currentScopeType === 'volume' ? '卷' : '章节'
+                  }}图谱已创建，但还没有角色或关系。你可以继续继承全局，或先补充角色关系。
+                </p>
+                <div class="empty-actions">
+                  <el-button
+                    v-if="currentScopeGraph?.parentGraphId !== 'global'"
+                    :disabled="globalRelations.length === 0"
+                    @click="
+                      currentScopeType === 'volume'
+                        ? handleCreateVolumeGraph('inherit')
+                        : handleCreateChapterGraph('inherit')
+                    "
+                  >
+                    继承全局
+                  </el-button>
+                  <el-button type="primary" @click="handleImportFromCharacters">
+                    从角色卡引入
+                  </el-button>
+                  <el-button
+                    :disabled="scopeBindableCharacters.length === 0"
+                    @click="handleBindExistingCharactersToScope"
+                  >
+                    绑定角色卡
+                  </el-button>
+                </div>
+              </div>
+              <RelationshipGraph
+                v-else
+                :nodes="graphNodes"
+                :links="graphLinks"
+                @create-link="handleGraphCreateLink"
+                @node-click="handleNodeClick"
+                @delete-node="handleDeleteNode"
+                @add-node="handleAddNodeAt"
+              />
+            </template>
+
+            <!-- 卷/章节图谱（未创建 - 创建引导） -->
+            <div v-else-if="currentChapterId" class="graph-creation-guide">
+              <div class="guide-content">
+                <el-icon class="guide-icon"><Document /></el-icon>
+                <h3>
+                  {{ currentScopeTitle || (currentScopeType === 'volume' ? '该卷' : '该章节') }}
+                </h3>
+                <p>该{{ currentScopeType === 'volume' ? '卷' : '章节' }}尚未创建专属关系图谱</p>
+
+                <div class="guide-actions">
+                  <el-button
+                    type="primary"
+                    @click="
+                      currentScopeType === 'volume'
+                        ? handleCreateVolumeGraph('empty')
+                        : handleCreateChapterGraph('empty')
+                    "
+                  >
+                    从零开始
+                  </el-button>
+                  <el-button
+                    @click="
+                      currentScopeType === 'volume'
+                        ? handleCreateVolumeGraph('inherit')
+                        : handleCreateChapterGraph('inherit')
+                    "
+                  >
+                    继承全局
+                  </el-button>
+                </div>
               </div>
             </div>
-          </div>
           </div>
 
           <!-- 故事线视图 -->
@@ -736,8 +806,20 @@ import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
 const projectStore = useProjectStore()
 const editorStore = useEditorStore()
-type VisibleRelation = (CharacterRelation | ChapterRelation | VolumeRelation) & { isInherited?: boolean }
+type VisibleRelation = (CharacterRelation | ChapterRelation | VolumeRelation) & {
+  isInherited?: boolean
+}
 type GraphScopeType = 'global' | 'volume' | 'chapter'
+type RelationSeed = {
+  id: string
+  fromId: string
+  toId: string
+  type: RelationType | string
+  strength: number
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
 
 // Props
 interface Props {
@@ -764,6 +846,36 @@ const showAliasInput = ref(false)
 const showTraitInput = ref(false)
 const newAlias = ref('')
 const newTrait = ref('')
+
+const mapToScopedRelations = <TRelation extends ChapterRelation | VolumeRelation>(
+  relations: CharacterRelation[] | undefined,
+  graphId: string,
+): TRelation[] | undefined => {
+  if (!relations?.length) return undefined
+  return relations.map((relation) => {
+    const rawRelation = relation as CharacterRelation & {
+      description?: string
+      notes?: string
+      createdAt?: string
+      updatedAt?: string
+    }
+    const timestamp = new Date().toISOString()
+    const seeded: RelationSeed = {
+      id: relation.id,
+      fromId: relation.fromId,
+      toId: relation.toId,
+      type: relation.type,
+      strength: relation.strength,
+      notes: rawRelation.notes || rawRelation.description,
+      createdAt: rawRelation.createdAt || timestamp,
+      updatedAt: rawRelation.updatedAt || timestamp,
+    }
+    return {
+      ...seeded,
+      graphId,
+    } as TRelation
+  }) as TRelation[]
+}
 
 // 关系管理对话框状态
 const relationDialogVisible = ref(false)
@@ -837,7 +949,10 @@ const currentScopeType = computed<GraphScopeType>(() => {
 })
 const currentScopeTitle = computed(() => {
   if (!currentChapterId.value) return '全局关系图谱'
-  return props.chapters.find((item) => item.id === currentChapterId.value)?.title || currentChapterId.value
+  return (
+    props.chapters.find((item) => item.id === currentChapterId.value)?.title ||
+    currentChapterId.value
+  )
 })
 const currentScopeSummary = computed(() => {
   if (!currentChapterId.value) return null
@@ -866,7 +981,9 @@ watch(
   (newChapterId) => {
     if (newChapterId) {
       currentChapterId.value = newChapterId
-      currentGraphId.value = hasScopeGraph(newChapterId, currentScopeType.value) ? newChapterId : null
+      currentGraphId.value = hasScopeGraph(newChapterId, currentScopeType.value)
+        ? newChapterId
+        : null
     } else {
       currentChapterId.value = null
       currentGraphId.value = null
@@ -883,11 +1000,18 @@ const isGlobalGraph = computed(() => {
 const globalRelations = computed<CharacterRelation[]>(() => writerStore.characters.relations || [])
 const currentVolumeGraph = computed<VolumeGraph | null>(() => {
   if (currentScopeType.value !== 'volume' || !currentChapterId.value) return null
-  return graphDraftState.value.volumeGraphs.find((graph) => graph.volumeId === currentChapterId.value) || null
+  return (
+    graphDraftState.value.volumeGraphs.find((graph) => graph.volumeId === currentChapterId.value) ||
+    null
+  )
 })
 const currentChapterGraph = computed<ChapterGraph | null>(() => {
   if (currentScopeType.value !== 'chapter' || !currentChapterId.value) return null
-  return graphDraftState.value.chapterGraphs.find((graph) => graph.chapterId === currentChapterId.value) || null
+  return (
+    graphDraftState.value.chapterGraphs.find(
+      (graph) => graph.chapterId === currentChapterId.value,
+    ) || null
+  )
 })
 const currentScopeGraph = computed<ChapterGraph | VolumeGraph | null>(() => {
   if (currentScopeType.value === 'volume') return currentVolumeGraph.value
@@ -905,7 +1029,10 @@ const chapterDraftRelations = computed<ChapterRelation[]>(() => {
 
 const hasCurrentScopeGraph = computed(() => Boolean(currentScopeGraph.value))
 const shouldShowGlobalCreationGuide = computed(
-  () => !currentChapterId.value && !graphDraftState.value.globalGraphInitialized && globalRelations.value.length === 0,
+  () =>
+    !currentChapterId.value &&
+    !graphDraftState.value.globalGraphInitialized &&
+    globalRelations.value.length === 0,
 )
 const chapterBoundAssetRefs = computed<WriterAssetRef[]>(() => {
   if (!currentChapterId.value || currentScopeType.value !== 'chapter') return []
@@ -920,11 +1047,17 @@ const inheritedVolumeAssetRefs = computed<WriterAssetRef[]>(() => {
   if (currentScopeType.value !== 'chapter') return []
   return volumeBoundAssetRefs.value
 })
-const localScopeBoundCharacterIds = computed(() => new Set(
-  (currentScopeType.value === 'volume' ? volumeBoundAssetRefs.value : chapterBoundAssetRefs.value)
-    .filter((asset) => asset.assetType === 'character' && asset.assetId)
-    .map((asset) => asset.assetId as string),
-))
+const localScopeBoundCharacterIds = computed(
+  () =>
+    new Set(
+      (currentScopeType.value === 'volume'
+        ? volumeBoundAssetRefs.value
+        : chapterBoundAssetRefs.value
+      )
+        .filter((asset) => asset.assetType === 'character' && asset.assetId)
+        .map((asset) => asset.assetId as string),
+    ),
+)
 const boundScopeAssetRefs = computed<WriterAssetRef[]>(() => {
   if (currentScopeType.value === 'volume') {
     return volumeBoundAssetRefs.value
@@ -948,7 +1081,9 @@ const chapterDetectedAssetCandidates = computed<WriterAssetCandidate[]>(() => {
     items: writerItems.value,
   }).filter((candidate) => {
     return !boundScopeAssetRefs.value.some(
-      (asset) => asset.assetType === candidate.assetType && (asset.assetId || asset.assetName) === (candidate.assetId || candidate.assetName),
+      (asset) =>
+        asset.assetType === candidate.assetType &&
+        (asset.assetId || asset.assetName) === (candidate.assetId || candidate.assetName),
     )
   })
 })
@@ -976,20 +1111,26 @@ const volumeRollupAssetCandidates = computed<WriterAssetCandidate[]>(() => {
     }
   }
 
-  return Array.from(summary.values()).sort((a, b) => a.assetName.localeCompare(b.assetName, 'zh-CN'))
+  return Array.from(summary.values()).sort((a, b) =>
+    a.assetName.localeCompare(b.assetName, 'zh-CN'),
+  )
 })
 const scopeAssetCandidates = computed<WriterAssetCandidate[]>(() => {
-  return currentScopeType.value === 'volume' ? volumeRollupAssetCandidates.value : chapterDetectedAssetCandidates.value
+  return currentScopeType.value === 'volume'
+    ? volumeRollupAssetCandidates.value
+    : chapterDetectedAssetCandidates.value
 })
-const bindableScopeAssetCandidates = computed<WriterAssetCandidate[]>(() => (
-  scopeAssetCandidates.value.filter((candidate) => !candidate.unresolved)
-))
-const unresolvedScopeAssetCandidates = computed<WriterAssetCandidate[]>(() => (
-  scopeAssetCandidates.value.filter((candidate) => candidate.unresolved)
-))
+const bindableScopeAssetCandidates = computed<WriterAssetCandidate[]>(() =>
+  scopeAssetCandidates.value.filter((candidate) => !candidate.unresolved),
+)
+const unresolvedScopeAssetCandidates = computed<WriterAssetCandidate[]>(() =>
+  scopeAssetCandidates.value.filter((candidate) => candidate.unresolved),
+)
 const scopeBindableCharacters = computed(() => {
   if (!currentChapterId.value) return []
-  return characters.value.filter((character) => !localScopeBoundCharacterIds.value.has(character.id))
+  return characters.value.filter(
+    (character) => !localScopeBoundCharacterIds.value.has(character.id),
+  )
 })
 const chapterCandidateHint = computed(() => {
   if (!currentChapterId.value) return '当前没有可识别的候选资产。'
@@ -1001,15 +1142,18 @@ const chapterCandidateHint = computed(() => {
 
 const currentChapterGraphTag = computed(() => {
   if (!currentScopeGraph.value) return '未创建'
-  const draftRelations = currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
-  if (draftRelations.length > 0) return currentScopeType.value === 'volume' ? '卷已扩展' : '章节已扩展'
+  const draftRelations =
+    currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
+  if (draftRelations.length > 0)
+    return currentScopeType.value === 'volume' ? '卷已扩展' : '章节已扩展'
   if (currentScopeGraph.value.parentGraphId === 'global') return '继承全局'
   return '空图谱'
 })
 
 const currentChapterGraphTagType = computed<'info' | 'success' | 'warning'>(() => {
   if (!currentScopeGraph.value) return 'warning'
-  const draftRelations = currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
+  const draftRelations =
+    currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
   if (draftRelations.length > 0) return 'success'
   if (currentScopeGraph.value.parentGraphId === 'global') return 'info'
   return 'warning'
@@ -1048,18 +1192,28 @@ const handleCreateVolumeGraph = (mode: 'empty' | 'inherit') => {
   }
 
   // 获取全局关系数据（仅当需要继承全局时）
-  const globalRelations = parentGraphId === 'global' ? (writerStore.characters.relations || []) : undefined
-  
+  const inheritedRelations =
+    parentGraphId === 'global'
+      ? mapToScopedRelations<VolumeRelation>(writerStore.characters.relations || [], volumeId)
+      : undefined
+
   graphDraftState.value = createVolumeGraphDraft({
     projectId,
     volumeId,
     volumeTitle: currentScopeTitle.value,
     parentGraphId,
-    globalRelations,
+    globalRelations: inheritedRelations as VolumeRelation[] | undefined,
   })
   currentGraphId.value = volumeId
-  const inheritSource = parentGraphId === 'global' ? '全局' : `卷 ${parentGraphId.slice(0, 8)}...`
-  ElMessage.success(mode === 'empty' ? '已创建卷级空白图谱' : `已创建继承自${inheritSource}的卷级图谱`)
+  const inheritSource =
+    parentGraphId === 'global'
+      ? '全局'
+      : parentGraphId
+        ? `卷 ${parentGraphId.slice(0, 8)}...`
+        : '父图谱'
+  ElMessage.success(
+    mode === 'empty' ? '已创建卷级空白图谱' : `已创建继承自${inheritSource}的卷级图谱`,
+  )
 }
 
 const handleCreateChapterGraph = (mode: 'empty' | 'inherit') => {
@@ -1075,18 +1229,28 @@ const handleCreateChapterGraph = (mode: 'empty' | 'inherit') => {
   }
 
   // 获取全局关系数据（仅当需要继承全局时）
-  const globalRelations = parentGraphId === 'global' ? (writerStore.characters.relations || []) : undefined
-  
+  const inheritedRelations =
+    parentGraphId === 'global'
+      ? mapToScopedRelations<ChapterRelation>(writerStore.characters.relations || [], chapterId)
+      : undefined
+
   graphDraftState.value = createChapterGraphDraft({
     projectId,
     chapterId,
     chapterTitle: getChapterInfo(chapterId)?.chapter || chapterId,
     parentGraphId,
-    globalRelations,
+    globalRelations: inheritedRelations as ChapterRelation[] | undefined,
   })
   currentGraphId.value = chapterId
-  const inheritSource = parentGraphId === 'global' ? '全局' : `章节 ${parentGraphId.slice(0, 8)}...`
-  ElMessage.success(mode === 'empty' ? '已创建章节空白图谱' : `已创建继承自${inheritSource}的章节图谱`)
+  const inheritSource =
+    parentGraphId === 'global'
+      ? '全局'
+      : parentGraphId
+        ? `章节 ${parentGraphId.slice(0, 8)}...`
+        : '父图谱'
+  ElMessage.success(
+    mode === 'empty' ? '已创建章节空白图谱' : `已创建继承自${inheritSource}的章节图谱`,
+  )
 }
 
 const handleCreateGlobalGraph = (mode: 'empty' | 'inherit') => {
@@ -1130,23 +1294,37 @@ const handleImportFromCharacters = async () => {
 
     graphDraftState.value = setGlobalGraphInitialized(projectId, true)
 
-    if (currentChapterId.value && currentScopeType.value === 'chapter' && !hasChapterGraph(currentChapterId.value)) {
+    if (
+      currentChapterId.value &&
+      currentScopeType.value === 'chapter' &&
+      !hasChapterGraph(currentChapterId.value)
+    ) {
       graphDraftState.value = createChapterGraphDraft({
         projectId,
         chapterId: currentChapterId.value,
         chapterTitle: getChapterInfo(currentChapterId.value)?.chapter || currentChapterId.value,
         parentGraphId: globalRelations.value.length > 0 ? 'global' : undefined,
-        globalRelations: globalRelations.value.length > 0 ? globalRelations.value : undefined,
+        globalRelations: mapToScopedRelations<ChapterRelation>(
+          globalRelations.value,
+          currentChapterId.value,
+        ) as ChapterRelation[] | undefined,
       })
     }
 
-    if (currentChapterId.value && currentScopeType.value === 'volume' && !hasVolumeGraph(currentChapterId.value)) {
+    if (
+      currentChapterId.value &&
+      currentScopeType.value === 'volume' &&
+      !hasVolumeGraph(currentChapterId.value)
+    ) {
       graphDraftState.value = createVolumeGraphDraft({
         projectId,
         volumeId: currentChapterId.value,
         volumeTitle: currentScopeTitle.value,
         parentGraphId: globalRelations.value.length > 0 ? 'global' : undefined,
-        globalRelations: globalRelations.value.length > 0 ? globalRelations.value : undefined,
+        globalRelations: mapToScopedRelations<VolumeRelation>(
+          globalRelations.value,
+          currentChapterId.value,
+        ) as VolumeRelation[] | undefined,
       })
     }
 
@@ -1174,7 +1352,8 @@ const relations = computed<VisibleRelation[]>(() => {
     return []
   }
 
-  const localRelations = currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
+  const localRelations =
+    currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value
   const inherited = currentScopeGraph.value.parentGraphId
     ? globalRelations.value.map((relation) => ({ ...relation, isInherited: true }))
     : []
@@ -1192,7 +1371,8 @@ const isGlobalGraphCreatedEmpty = computed(
 )
 
 const isCurrentChapterGraphEmpty = computed(
-  () => hasCurrentScopeGraph.value && graphNodes.value.length === 0 && graphLinks.value.length === 0,
+  () =>
+    hasCurrentScopeGraph.value && graphNodes.value.length === 0 && graphLinks.value.length === 0,
 )
 
 const strongRelationsCount = computed(
@@ -1263,12 +1443,14 @@ const graphNodes = computed<GraphNode[]>(() => {
   }
 
   const chapterCharIds = new Set([
-    ...(currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value).map(
-      (relation) => relation.fromId,
-    ),
-    ...(currentScopeType.value === 'volume' ? volumeDraftRelations.value : chapterDraftRelations.value).map(
-      (relation) => relation.toId,
-    ),
+    ...(currentScopeType.value === 'volume'
+      ? volumeDraftRelations.value
+      : chapterDraftRelations.value
+    ).map((relation) => relation.fromId),
+    ...(currentScopeType.value === 'volume'
+      ? volumeDraftRelations.value
+      : chapterDraftRelations.value
+    ).map((relation) => relation.toId),
   ])
   const inheritedCharIds =
     currentScopeGraph.value?.parentGraphId === 'global'
@@ -1284,7 +1466,12 @@ const graphNodes = computed<GraphNode[]>(() => {
       .filter((asset) => asset.assetType === 'character' && asset.assetId)
       .map((asset) => asset.assetId as string),
   )
-  const visibleCharIds = new Set([...chapterCharIds, ...inheritedCharIds, ...localBoundCharIds, ...inheritedBoundCharIds])
+  const visibleCharIds = new Set([
+    ...chapterCharIds,
+    ...inheritedCharIds,
+    ...localBoundCharIds,
+    ...inheritedBoundCharIds,
+  ])
 
   return characters.value
     .filter((character) => visibleCharIds.has(character.id))
@@ -1398,24 +1585,18 @@ watch(
 )
 
 // 监听章节切换，自动绑定已建档资产
-watch(
-  currentChapterId,
-  (newChapterId) => {
-    if (newChapterId) {
-      nextTick(() => autoBindChapterAssets())
-    }
-  },
-)
+watch(currentChapterId, (newChapterId) => {
+  if (newChapterId) {
+    nextTick(() => autoBindChapterAssets())
+  }
+})
 
 // 监听编辑器内容加载完成（处理异步加载正文的场景）
-watch(
-  currentEditorPlainText,
-  () => {
-    if (currentChapterId.value && currentScopeType.value === 'chapter') {
-      autoBindChapterAssets()
-    }
-  },
-)
+watch(currentEditorPlainText, () => {
+  if (currentChapterId.value && currentScopeType.value === 'chapter') {
+    autoBindChapterAssets()
+  }
+})
 
 const formatAssetType = (type: WriterAssetCandidate['assetType']) => {
   if (type === 'character') return '角色'
@@ -1451,7 +1632,10 @@ const ensureScopeGraphForBinding = () => {
     chapterId: scopeId,
     chapterTitle: getChapterInfo(scopeId)?.chapter || scopeId,
     parentGraphId: 'global',
-    globalRelations: writerStore.characters?.relations || [],
+    globalRelations: mapToScopedRelations<ChapterRelation>(
+      writerStore.characters?.relations || [],
+      scopeId,
+    ) as ChapterRelation[] | undefined,
   })
   currentGraphId.value = scopeId
 }
@@ -1558,21 +1742,21 @@ const handleCreateAndBindCandidate = async (candidate: WriterAssetCandidate) => 
 
     if (candidate.assetType === 'character') {
       const { createCharacter } = await import('..')
-      const createdCharacter = await createCharacter(projectId, {
+      const createdCharacter = (await createCharacter(projectId, {
         projectId,
         name: candidate.assetName,
         summary,
-      }) as any
+      })) as any
       const characterPayload = createdCharacter?.data || createdCharacter
       createdAssetId = characterPayload?.id || ''
       createdAssetName = characterPayload?.name || candidate.assetName
       await writerStore.loadCharacters(projectId)
     } else if (candidate.assetType === 'location') {
-      const createdLocation = await locationApi.create(projectId, {
+      const createdLocation = (await locationApi.create(projectId, {
         projectId,
         name: candidate.assetName,
         description: summary,
-      }) as any
+      })) as any
       const locationPayload = createdLocation?.data || createdLocation
       createdAssetId = locationPayload?.id || ''
       createdAssetName = locationPayload?.name || candidate.assetName
@@ -1702,7 +1886,8 @@ const handleSubmit = async () => {
           speechPattern: characterForm.value.speechPattern,
         }
         const createdResult = await createCharacter(projectId, createData)
-        const createdCharacter = ((createdResult as any)?.data || createdResult) as unknown as Character
+        const createdCharacter = ((createdResult as any)?.data ||
+          createdResult) as unknown as Character
         if (currentChapterId.value) {
           ensureScopeGraphForBinding()
           assetRefState.value = upsertScopeAssetRef({
@@ -1769,34 +1954,34 @@ const handleCreateRelation = async () => {
     }
 
     relationSubmitting.value = true
-      try {
-        if (currentChapterId.value && currentScopeGraph.value) {
-          if (currentScopeType.value === 'volume' && currentVolumeGraph.value) {
-            graphDraftState.value = appendVolumeRelationDraft({
-              projectId,
-              volumeId: currentChapterId.value,
-              graphId: currentVolumeGraph.value.id,
-              fromId: relationForm.value.fromId,
-              toId: relationForm.value.toId,
-              type: relationForm.value.type,
-              strength: relationForm.value.strength,
-              notes: relationForm.value.notes,
-            })
-          } else if (currentChapterGraph.value) {
-            graphDraftState.value = appendChapterRelationDraft({
-              projectId,
-              chapterId: currentChapterId.value,
-              graphId: currentChapterGraph.value.id,
-              fromId: relationForm.value.fromId,
-              toId: relationForm.value.toId,
-              type: relationForm.value.type,
-              strength: relationForm.value.strength,
-              notes: relationForm.value.notes,
-            })
-          }
-        } else {
-          await writerStore.createCharacterRelation(projectId, {
+    try {
+      if (currentChapterId.value && currentScopeGraph.value) {
+        if (currentScopeType.value === 'volume' && currentVolumeGraph.value) {
+          graphDraftState.value = appendVolumeRelationDraft({
+            projectId,
+            volumeId: currentChapterId.value,
+            graphId: currentVolumeGraph.value.id,
             fromId: relationForm.value.fromId,
+            toId: relationForm.value.toId,
+            type: relationForm.value.type,
+            strength: relationForm.value.strength,
+            notes: relationForm.value.notes,
+          })
+        } else if (currentChapterGraph.value) {
+          graphDraftState.value = appendChapterRelationDraft({
+            projectId,
+            chapterId: currentChapterId.value,
+            graphId: currentChapterGraph.value.id,
+            fromId: relationForm.value.fromId,
+            toId: relationForm.value.toId,
+            type: relationForm.value.type,
+            strength: relationForm.value.strength,
+            notes: relationForm.value.notes,
+          })
+        }
+      } else {
+        await writerStore.createCharacterRelation(projectId, {
+          fromId: relationForm.value.fromId,
           toId: relationForm.value.toId,
           type: relationForm.value.type,
           strength: relationForm.value.strength,
@@ -1822,16 +2007,27 @@ const handleDeleteRelation = async (relation: VisibleRelation) => {
   if (!projectId) return
 
   try {
-    if ((relation as CharacterRelation & { isInherited?: boolean }).isInherited && currentChapterId.value) {
+    if (
+      (relation as CharacterRelation & { isInherited?: boolean }).isInherited &&
+      currentChapterId.value
+    ) {
       message.warning('继承自全局的关系需要在全局图谱中删除')
       return
     }
 
     if (currentChapterId.value && currentScopeGraph.value) {
       if (currentScopeType.value === 'volume') {
-        graphDraftState.value = deleteVolumeRelationDraft(projectId, currentChapterId.value, relation.id)
+        graphDraftState.value = deleteVolumeRelationDraft(
+          projectId,
+          currentChapterId.value,
+          relation.id,
+        )
       } else {
-        graphDraftState.value = deleteChapterRelationDraft(projectId, currentChapterId.value, relation.id)
+        graphDraftState.value = deleteChapterRelationDraft(
+          projectId,
+          currentChapterId.value,
+          relation.id,
+        )
       }
     } else {
       await writerStore.deleteCharacterRelation(relation.id, projectId)
@@ -1852,7 +2048,9 @@ const getCharacterName = (characterId: string): string => {
   return character?.name || '未知'
 }
 
-const getRelationTagType = (type: RelationType | string): 'success' | 'info' | 'warning' | 'danger' => {
+const getRelationTagType = (
+  type: RelationType | string,
+): 'success' | 'info' | 'warning' | 'danger' => {
   const typeMap: Record<string, 'success' | 'info' | 'warning' | 'danger'> = {
     朋友: 'success',
     家庭: 'info',
@@ -1904,12 +2102,20 @@ const handleNodeClick = (nodeId: string) => {
 const handleDeleteNode = (nodeId: string) => {
   if (currentChapterId.value && currentScopeGraph.value && activeProjectId.value) {
     if (currentScopeType.value === 'volume') {
-      graphDraftState.value = deleteVolumeRelationsByNode(activeProjectId.value, currentChapterId.value, nodeId)
+      graphDraftState.value = deleteVolumeRelationsByNode(
+        activeProjectId.value,
+        currentChapterId.value,
+        nodeId,
+      )
       ElMessage.success('该角色的卷级特有关联已移除')
       return
     }
 
-    graphDraftState.value = deleteChapterRelationsByNode(activeProjectId.value, currentChapterId.value, nodeId)
+    graphDraftState.value = deleteChapterRelationsByNode(
+      activeProjectId.value,
+      currentChapterId.value,
+      nodeId,
+    )
     ElMessage.success('该角色的章节特有关联已移除')
     return
   }
@@ -1931,7 +2137,6 @@ const handleOutlineNodeClick = (node: any) => {
     viewMode.value = 'graph'
   }
 }
-
 </script>
 
 <style scoped lang="scss">

@@ -27,7 +27,9 @@
       </button>
       <button type="button" class="outline-tree-row__select" @click="emit('select', node)">
         <span class="outline-tree-row__title">{{ node.title }}</span>
-        <span v-if="boundChapterLabel" class="outline-tree-row__chapter">{{ boundChapterLabel }}</span>
+        <span v-if="boundChapterLabel" class="outline-tree-row__chapter">{{
+          boundChapterLabel
+        }}</span>
       </button>
     </div>
 
@@ -59,8 +61,7 @@
 import { computed } from 'vue'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { OutlineNode } from '@/types/writer'
-import { getOutlineNodeTypeInfo } from '@/modules/writer/api/outline'
-import { getBoundChapterId, getBoundChapterLabel } from './structureNodeTypes'
+import { getBoundChapterLabel } from './structureNodeTypes'
 
 const props = withDefaults(
   defineProps<{
@@ -94,11 +95,11 @@ const emit = defineEmits<{
   (e: 'contextmenu', payload: { node: OutlineNode; event: MouseEvent }): void
 }>()
 
-const hasChildren = computed(() => Array.isArray(props.node.children) && props.node.children.length > 0)
-const nodeTypeInfo = computed(() => getOutlineNodeTypeInfo((props.node as any)?.type))
+const hasChildren = computed(
+  () => Array.isArray(props.node.children) && props.node.children.length > 0,
+)
 const isExpanded = computed(() => props.expandedNodeIds.includes(props.node.id))
 const boundChapterLabel = computed(() => getBoundChapterLabel(props.node, props.chapters))
-const boundChapterId = computed(() => getBoundChapterId(props.node))
 
 function handleDragStart(event: DragEvent) {
   if (event.dataTransfer) {
@@ -141,8 +142,7 @@ function handleContextMenu(event: MouseEvent) {
   position: relative;
   border: 1px solid rgba(117, 93, 67, 0.14);
   border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(255, 252, 248, 0.95), rgba(251, 245, 236, 0.9));
+  background: linear-gradient(135deg, rgba(255, 252, 248, 0.95), rgba(251, 245, 236, 0.9));
   min-height: 44px;
   padding: 10px 12px 10px calc(12px + var(--outline-level, 0) * 18px);
   display: grid;

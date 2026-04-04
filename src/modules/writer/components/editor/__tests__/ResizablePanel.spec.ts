@@ -32,9 +32,15 @@ describe('ResizablePanel', () => {
       let store: Record<string, string> = {}
       return {
         getItem: (key: string) => store[key] || null,
-        setItem: (key: string, value: string) => { store[key] = String(value) },
-        removeItem: (key: string) => { delete store[key] },
-        clear: () => { store = {} }
+        setItem: (key: string, value: string) => {
+          store[key] = String(value)
+        },
+        removeItem: (key: string) => {
+          delete store[key]
+        },
+        clear: () => {
+          store = {}
+        },
       }
     })()
     vi.stubGlobal('localStorage', localStorageMock)
@@ -46,14 +52,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.exists()).toBe(true)
@@ -65,14 +71,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       const panel = wrapper.find('.resizable-panel')
@@ -84,14 +90,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'right',
           defaultWidth: 320,
-          position: 'right'
+          position: 'right',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.find('.resizable-panel--right').exists()).toBe(true)
@@ -104,14 +110,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.props()).toHaveProperty('panelId', 'left')
@@ -122,14 +128,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.props()).toHaveProperty('position', 'left')
@@ -140,14 +146,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.props()).toHaveProperty('minWidth', 200)
@@ -161,14 +167,14 @@ describe('ResizablePanel', () => {
           defaultWidth: 280,
           position: 'left',
           minWidth: 250,
-          maxWidth: 500
+          maxWidth: 500,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.props()).toHaveProperty('minWidth', 250)
@@ -181,14 +187,14 @@ describe('ResizablePanel', () => {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: true
+          collapsible: true,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.props()).toHaveProperty('collapsible', true)
@@ -201,14 +207,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       expect(wrapper.findComponent(DragHandle).exists()).toBe(true)
@@ -219,14 +225,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -238,21 +244,21 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
       const dragStartEvent = {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       }
 
       await dragHandle.vm.$emit('drag-start', dragStartEvent)
@@ -268,14 +274,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -284,14 +290,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 模拟鼠标移动
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -308,14 +314,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -324,13 +330,13 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 鼠标松开
       const mouseUpEvent = new MouseEvent('mouseup', {
         clientX: 150,
-        clientY: 0
+        clientY: 0,
       })
       window.dispatchEvent(mouseUpEvent)
       await nextTick()
@@ -347,14 +353,14 @@ describe('ResizablePanel', () => {
           panelId: 'left',
           defaultWidth: 250,
           position: 'left',
-          minWidth: 200
+          minWidth: 200,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -363,14 +369,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 模拟鼠标移动，使新宽度为150px
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 0,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -387,14 +393,14 @@ describe('ResizablePanel', () => {
           panelId: 'left',
           defaultWidth: 500,
           position: 'left',
-          maxWidth: 600
+          maxWidth: 600,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -403,14 +409,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 模拟鼠标移动，使新宽度为700px
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 300,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -428,14 +434,14 @@ describe('ResizablePanel', () => {
           defaultWidth: 300,
           position: 'left',
           minWidth: 250,
-          maxWidth: 500
+          maxWidth: 500,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -444,14 +450,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 尝试将宽度减少到250px以下
       const mouseMoveEvent1 = new MouseEvent('mousemove', {
         clientX: -100,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent1)
       await nextTick()
@@ -464,7 +470,7 @@ describe('ResizablePanel', () => {
       const mouseMoveEvent2 = new MouseEvent('mousemove', {
         clientX: 300,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent2)
       await nextTick()
@@ -477,24 +483,27 @@ describe('ResizablePanel', () => {
   describe('panelStore集成', () => {
     it('应该从panelStore加载初始宽度', () => {
       // 预设localStorage
-      localStorage.setItem('qingyu_editor_panel_layout', JSON.stringify({
-        leftWidth: 350,
-        rightWidth: 400,
-        rightCollapsed: false
-      }))
+      localStorage.setItem(
+        'qingyu_editor_panel_layout',
+        JSON.stringify({
+          leftWidth: 350,
+          rightWidth: 400,
+          rightCollapsed: false,
+        }),
+      )
 
       const wrapper = mount(ResizablePanel, {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       // 面板应该使用存储的宽度
@@ -510,14 +519,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -526,14 +535,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 移动鼠标
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -541,7 +550,7 @@ describe('ResizablePanel', () => {
       // 停止拖拽
       const mouseUpEvent = new MouseEvent('mouseup', {
         clientX: 150,
-        clientY: 0
+        clientY: 0,
       })
       window.dispatchEvent(mouseUpEvent)
       await nextTick()
@@ -555,14 +564,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -571,21 +580,21 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 移动鼠标
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 120,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
 
       // 停止拖拽
       const mouseUpEvent = new MouseEvent('mouseup', {
         clientX: 120,
-        clientY: 0
+        clientY: 0,
       })
       window.dispatchEvent(mouseUpEvent)
       await nextTick()
@@ -607,14 +616,14 @@ describe('ResizablePanel', () => {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: true
+          collapsible: true,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       store.setRightCollapsed(true)
@@ -631,14 +640,14 @@ describe('ResizablePanel', () => {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: false
+          collapsible: false,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       store.setRightCollapsed(true)
@@ -655,14 +664,14 @@ describe('ResizablePanel', () => {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: true
+          collapsible: true,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       store.setRightCollapsed(true)
@@ -681,14 +690,14 @@ describe('ResizablePanel', () => {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: true
+          collapsible: true,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       store.setRightCollapsed(true)
@@ -700,19 +709,19 @@ describe('ResizablePanel', () => {
     it('折叠状态改变时应该更新localStorage', async () => {
       const store = usePanelStore()
 
-      const wrapper = mount(ResizablePanel, {
+      mount(ResizablePanel, {
         props: {
           panelId: 'right',
           defaultWidth: 320,
           position: 'right',
-          collapsible: true
+          collapsible: true,
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       store.setRightCollapsed(true)
@@ -731,14 +740,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -746,14 +755,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 向右拖拽
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 150,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -769,14 +778,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'right',
           defaultWidth: 320,
-          position: 'right'
+          position: 'right',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -784,14 +793,14 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'right' as const,
         startX: 500,
-        startY: 0
+        startY: 0,
       })
 
       // 向左拖拽（减少clientX）
       const mouseMoveEvent = new MouseEvent('mousemove', {
         clientX: 450,
         clientY: 0,
-        buttons: 1
+        buttons: 1,
       })
       window.dispatchEvent(mouseMoveEvent)
       await nextTick()
@@ -809,14 +818,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -824,7 +833,7 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 快速连续的鼠标移动
@@ -832,7 +841,7 @@ describe('ResizablePanel', () => {
         const mouseMoveEvent = new MouseEvent('mousemove', {
           clientX: 100 + i * 10,
           clientY: 0,
-          buttons: 1
+          buttons: 1,
         })
         window.dispatchEvent(mouseMoveEvent)
       }
@@ -847,14 +856,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -862,7 +871,7 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 组件通过 document 监听 mouseup 来结束拖拽
@@ -880,14 +889,14 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: false
-          }
-        }
+            DragHandle: false,
+          },
+        },
       })
 
       const dragHandle = wrapper.findComponent(DragHandle)
@@ -895,7 +904,7 @@ describe('ResizablePanel', () => {
       await dragHandle.vm.$emit('drag-start', {
         position: 'left' as const,
         startX: 100,
-        startY: 0
+        startY: 0,
       })
 
       // 卸载组件
@@ -914,17 +923,17 @@ describe('ResizablePanel', () => {
         props: {
           panelId: 'left',
           defaultWidth: 280,
-          position: 'left'
+          position: 'left',
         },
         slots: {
-          default: '<div class="test-content">Test Content</div>'
+          default: '<div class="test-content">Test Content</div>',
         },
         global: {
           plugins: [pinia],
           stubs: {
-            DragHandle: true
-          }
-        }
+            DragHandle: true,
+          },
+        },
       })
 
       expect(wrapper.find('.test-content').exists()).toBe(true)

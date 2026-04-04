@@ -1,5 +1,9 @@
 <template>
-  <div class="workspace-studio" :class="{ 'workspace-studio--immersive': isImmersiveMode }" data-editor-theme="light">
+  <div
+    class="workspace-studio"
+    :class="{ 'workspace-studio--immersive': isImmersiveMode }"
+    data-editor-theme="light"
+  >
     <!-- 顶部工具栏 -->
     <WorkspaceTopbar
       :project-display-name="projectDisplayName"
@@ -128,7 +132,11 @@ import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopedi
 import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
 
 // 引入 API
-import { outlineApi, type CreateOutlineRequest, type UpdateOutlineRequest } from '@/modules/writer/api/outline'
+import {
+  outlineApi,
+  type CreateOutlineRequest,
+  type UpdateOutlineRequest,
+} from '@/modules/writer/api/outline'
 import { createDocument } from '@/modules/writer/api/document'
 
 // 引入子组件
@@ -213,12 +221,8 @@ const { immersiveTimerText, startImmersiveTimer, stopImmersiveTimer } = useImmer
   isImmersiveMode,
 })
 
-const {
-  isEncyclopediaTool,
-  encyclopediaSubView,
-  encyclopediaCategory,
-  setEncyclopediaCategory,
-} = useEncyclopediaView({ activeTool })
+const { isEncyclopediaTool, encyclopediaSubView, encyclopediaCategory, setEncyclopediaCategory } =
+  useEncyclopediaView({ activeTool })
 
 const { buildDirectoryOutline } = useDirectoryOutline({ availableDocMap, mockProject })
 
@@ -398,7 +402,7 @@ const handleCreateDocSubmit = async (formData: Record<string, unknown>) => {
     const currentDoc = availableDocMap.value.get(currentChapterId.value)
     const parentId = currentDoc?.type === DocumentType.VOLUME ? currentChapterId.value : undefined
 
-    await documentStore.create(currentProjectId.value, {
+    const newDoc = await documentStore.create(currentProjectId.value, {
       title,
       type: formData.type as DocumentType,
       projectId: currentProjectId.value,
@@ -406,6 +410,14 @@ const handleCreateDocSubmit = async (formData: Record<string, unknown>) => {
     })
     showCreateDocDialog.value = false
     message.success('创建成功')
+
+    // 创建后自动选中新文档，进入编辑态
+    if (newDoc?.id) {
+      currentChapterId.value = newDoc.id
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.chapterId = newDoc.id
+      await router.replace({ query: nextQuery })
+    }
   } catch (error) {
     console.error('[ProjectWorkspace] Create failed:', error)
     message.error('创建失败')
@@ -504,10 +516,7 @@ const handleCreateOutlineRoot = async () => {
     })
 
     // 重新加载数据
-    await Promise.all([
-      documentStore.loadTree(currentProjectId.value),
-      loadOutlineTree(),
-    ])
+    await Promise.all([documentStore.loadTree(currentProjectId.value), loadOutlineTree()])
 
     message.success(`已创建 ${defaultTitle}`)
   } catch (error) {
@@ -548,7 +557,10 @@ const handleCreateOutlineChild = async (data?: CreateOutlineRequest) => {
 }
 
 // 处理大纲节点转为章节
-const handleConvertToChapter = async (payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }) => {
+const handleConvertToChapter = async (payload: {
+  outlineNode: OutlineNode
+  volumeNode: OutlineNode
+}) => {
   try {
     const { outlineNode, volumeNode } = payload
 
@@ -574,15 +586,27 @@ const handleConvertToChapter = async (payload: { outlineNode: OutlineNode; volum
     })
 
     // 重新加载数据
-    await Promise.all([
-      documentStore.loadTree(currentProjectId.value),
-      loadOutlineTree(),
-    ])
+    await Promise.all([documentStore.loadTree(currentProjectId.value), loadOutlineTree()])
 
     message.success(`已在"${volumeNode.title}"下生成"${defaultTitle}"`)
 
-    // TODO: 如果需要让用户立即编辑新章节标题，可以在这里打开编辑态
-    // 或者通过选中新建的章节来触发编辑
+    // createDocument 可能返回 AxiosResponse，也可能直接返回文档对象
+    const createdDoc = ((newDoc as { data?: { id?: string; documentId?: string } })?.data ||
+      newDoc) as {
+      id?: string
+      documentId?: string
+    }
+
+    // 自动选中新创建的章节，进入编辑态
+    const newDocId = createdDoc.id ?? createdDoc.documentId ?? ''
+    if (newDocId) {
+      currentChapterId.value = newDocId
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.chapterId = newDocId
+      nextQuery.tool = 'writing'
+      delete nextQuery.encyclopediaView
+      await router.replace({ query: nextQuery })
+    }
   } catch (error) {
     console.error('[ProjectWorkspace] 转为章节失败:', error)
     message.error('转为章节失败，请重试')
@@ -653,7 +677,9 @@ const handleMoveOutlineNode = async (direction: 'up' | 'down') => {
     ? writerStore.outline.tree.find((node) => node.id === currentNode.parentId)?.children || []
     : writerStore.outline.tree
 
-  const orderedSiblings = [...siblings].sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+  const orderedSiblings = [...siblings].sort(
+    (left, right) => (left.order ?? 0) - (right.order ?? 0),
+  )
   const currentIndex = orderedSiblings.findIndex((node) => node.id === currentNode.id)
 
   if (currentIndex < 0) {
@@ -715,7 +741,6 @@ const loadOutlineTree = async () => {
       if (import.meta.env.DEV) console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
       writerStore.outline.tree = []
     }
-
   } catch (error) {
     console.error('[ProjectWorkspace] 加载大纲树失败:', error)
     message.error('加载大纲树失败')
@@ -852,10 +877,11 @@ const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
         message.info('原选区内容已发生变化，已改为按整段结果安全回填。')
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.warn(
-        '[ProjectWorkspace] failed to apply AI result to selection, fallback to document mode:',
-        error,
-      )
+      if (import.meta.env.DEV)
+        console.warn(
+          '[ProjectWorkspace] failed to apply AI result to selection, fallback to document mode:',
+          error,
+        )
       setAIApplyFeedback(
         'fallback',
         '定位选区失败，改为安全回填',

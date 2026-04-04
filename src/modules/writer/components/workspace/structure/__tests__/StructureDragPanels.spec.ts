@@ -30,8 +30,9 @@ describe('Structure drag panels', () => {
       id: 'node-a',
       title: '主干 A',
       level: 1,
+      order: 0,
       tags: ['chapter-binding:chapter-1'],
-    } as OutlineNode
+    } as unknown as OutlineNode
 
     expect(matchesStructureNodeGraphFilter(node, [], 'missing')).toBe(true)
     expect(matchesStructureNodeGraphFilter(node, [], 'graphed')).toBe(false)
@@ -73,7 +74,7 @@ describe('Structure drag panels', () => {
         order: 1,
         children: [],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(OutlineTreePanel, {
       props: {
@@ -112,14 +113,25 @@ describe('Structure drag panels', () => {
         tags: ['chapter-binding:chapter-1'],
         children: [],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(OutlineTreePanel, {
       props: {
         nodes,
         selectedNodeId: '',
         expandedNodeIds: [],
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         chapterGraphs: [
           {
             id: 'chapter-graph-chapter-1',
@@ -150,14 +162,25 @@ describe('Structure drag panels', () => {
         tags: ['chapter-binding:chapter-1'],
         children: [],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(OutlineTreePanel, {
       props: {
         nodes,
         selectedNodeId: '',
         expandedNodeIds: [],
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         assetSummaryByChapterId: {
           'chapter-1': { total: 3, characters: 2, locations: 1, items: 0 },
         },
@@ -180,14 +203,25 @@ describe('Structure drag panels', () => {
         tags: ['chapter-binding:chapter-1'],
         children: [],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(OutlineTreePanel, {
       props: {
         nodes,
         selectedNodeId: '',
         expandedNodeIds: [],
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         chapterGraphs: [],
         currentChapterId: '',
       },
@@ -228,7 +262,7 @@ describe('Structure drag panels', () => {
         order: 1,
         children: [],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(OutlineTreePanel, {
       props: {
@@ -269,7 +303,7 @@ describe('Structure drag panels', () => {
         status: 'planned',
         order: 1,
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(BeatBoardPanel, {
       props: {
@@ -282,7 +316,10 @@ describe('Structure drag panels', () => {
 
     const cards = wrapper.findAll('.beat-card')
     await cards[0].trigger('dragstart', { dataTransfer: createDragEvent(20).dataTransfer })
-    await cards[1].trigger('dragover', { clientY: 80, dataTransfer: createDragEvent(80).dataTransfer })
+    await cards[1].trigger('dragover', {
+      clientY: 80,
+      dataTransfer: createDragEvent(80).dataTransfer,
+    })
     await cards[1].trigger('drop', { clientY: 80, dataTransfer: createDragEvent(80).dataTransfer })
 
     expect(wrapper.emitted('reorder')).toBeTruthy()
@@ -313,7 +350,7 @@ describe('Structure drag panels', () => {
         status: 'writing',
         order: 1,
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(BeatBoardPanel, {
       props: {
@@ -326,7 +363,10 @@ describe('Structure drag panels', () => {
 
     const cards = wrapper.findAll('.beat-card')
     await cards[0].trigger('dragstart', { dataTransfer: createDragEvent(20).dataTransfer })
-    await cards[1].trigger('dragover', { clientY: 20, dataTransfer: createDragEvent(20).dataTransfer })
+    await cards[1].trigger('dragover', {
+      clientY: 20,
+      dataTransfer: createDragEvent(20).dataTransfer,
+    })
     await cards[1].trigger('drop', { clientY: 20, dataTransfer: createDragEvent(20).dataTransfer })
 
     expect(wrapper.emitted('reorder')).toBeFalsy()
@@ -343,13 +383,24 @@ describe('Structure drag panels', () => {
         order: 0,
         tags: ['chapter-binding:chapter-1'],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(BeatBoardPanel, {
       props: {
         beats,
         selectedNodeId: '',
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         chapterGraphs: [
           {
             id: 'chapter-graph-chapter-1',
@@ -378,13 +429,24 @@ describe('Structure drag panels', () => {
         order: 0,
         tags: ['chapter-binding:chapter-1'],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(BeatBoardPanel, {
       props: {
         beats,
         selectedNodeId: '',
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         assetSummaryByChapterId: {
           'chapter-1': { total: 4, characters: 2, locations: 1, items: 1 },
         },
@@ -406,13 +468,24 @@ describe('Structure drag panels', () => {
         order: 0,
         tags: ['chapter-binding:chapter-1'],
       },
-    ] as OutlineNode[]
+    ] as unknown as OutlineNode[]
 
     const wrapper = mount(BeatBoardPanel, {
       props: {
         beats,
         selectedNodeId: '',
-        chapters: [{ id: 'chapter-1', title: '第一章', nodeType: 'chapter' }],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            nodeType: 'chapter' as const,
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
         chapterGraphs: [],
         currentChapterId: '',
       },

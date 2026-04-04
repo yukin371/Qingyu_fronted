@@ -65,6 +65,7 @@ export const useWriterStore = defineStore('writer', () => {
     bookCount: 0,
     todayWords: 0,
     pending: 0,
+    streak: 0,
   })
 
   // 计算属性
@@ -309,18 +310,36 @@ export const useWriterStore = defineStore('writer', () => {
     try {
       if (storageMode.value === 'offline') {
         const localStats = await getLocalStats()
-        stats.value = localStats
-      } else {
-        // TODO: 实现在线统计数据API调用
         stats.value = {
-          totalWords: 125000,
-          bookCount: projects.value.length,
-          todayWords: 2500,
-          pending: 3,
+          ...localStats,
+          streak: 0, // 本地模式不支持连续写作天数
+        }
+      } else {
+        // 在线模式：调用真实 API
+        const { getDashboardOverview } = await import('@/modules/writer/api/dashboard')
+        const overview = await getDashboardOverview()
+        stats.value = {
+          totalWords: overview.totalWords,
+          bookCount: overview.totalProjects,
+          todayWords: overview.todayWords,
+          pending: overview.activeProjects,
+          streak: 0, // DashboardOverview 未包含 streak，后续可扩展
         }
       }
     } catch (error: any) {
       console.error('加载统计数据失败:', error)
+      // 失败时尝试降级到离线模式
+      if (storageMode.value === 'online') {
+        try {
+          const localStats = await getLocalStats()
+          stats.value = {
+            ...localStats,
+            streak: 0,
+          }
+        } catch {
+          // 静默失败
+        }
+      }
     }
   }
 

@@ -66,7 +66,7 @@ export class NotificationService {
 
       // 如果没有获取到端点，使用环境变量中的默认配置
       if (!url) {
-        const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+        const wsBaseUrl = import.meta.env.VITE_WS_URL || '/ws'
         url = `${wsBaseUrl}${API_PATHS.WEBSOCKET.NOTIFICATIONS}`
         console.warn('[NotificationService] 未获取到WebSocket端点，使用默认配置:', url)
       }

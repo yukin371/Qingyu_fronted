@@ -11,10 +11,10 @@ export interface APIConfig {
 }
 
 export const apiConfig: APIConfig = {
-  baseURL: (import.meta as any).env?.VITE_API_BASE_URL || 'http://127.0.0.1:9090/api/v1',
+  baseURL: (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1',
   timeout: 10000,
   retryAttempts: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 }
 
 // API Endpoints
@@ -25,7 +25,7 @@ export const endpoints = {
     register: '/auth/register',
     logout: '/auth/logout',
     refresh: '/auth/refresh',
-    profile: '/auth/profile'
+    profile: '/auth/profile',
   },
 
   // Bookstore endpoints
@@ -35,7 +35,7 @@ export const endpoints = {
     categories: '/bookstore/categories',
     rankings: '/bookstore/rankings',
     banners: '/bookstore/banners',
-    search: '/bookstore/books/search'
+    search: '/bookstore/books/search',
   },
 
   // Reader endpoints
@@ -44,14 +44,14 @@ export const endpoints = {
     history: '/reader/history',
     bookmarks: '/reader/bookmarks',
     comments: '/reader/comments',
-    rating: '/reader/rating'
+    rating: '/reader/rating',
   },
 
   // User endpoints
   user: {
     profile: '/user/profile',
     wallet: '/user/wallet',
-    settings: '/user/settings'
+    settings: '/user/settings',
   },
 
   // Admin endpoints
@@ -60,7 +60,7 @@ export const endpoints = {
     users: '/admin/users',
     reviews: '/admin/reviews',
     withdrawals: '/admin/withdrawals',
-    logs: '/admin/logs'
+    logs: '/admin/logs',
   },
 
   // Writer endpoints
@@ -68,9 +68,8 @@ export const endpoints = {
     projects: '/writer/projects',
     documents: '/writer/documents',
     statistics: '/writer/statistics',
-    revenue: '/writer/revenue'
-  }
+    revenue: '/writer/revenue',
+  },
 }
 
 export default apiConfig
-

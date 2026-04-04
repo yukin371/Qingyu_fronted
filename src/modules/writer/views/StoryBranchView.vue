@@ -4,7 +4,9 @@
       <div>
         <h2 class="story-branch-view__title">故事分支</h2>
         <p class="story-branch-view__subtitle">
-          {{ isLinearMode ? '普通小说模式 — 线性叙事流程' : '以组织结构图查看主线、支线与多结局分支' }}
+          {{
+            isLinearMode ? '普通小说模式 — 线性叙事流程' : '以组织结构图查看主线、支线与多结局分支'
+          }}
         </p>
       </div>
       <div class="story-branch-view__header-actions">
@@ -25,12 +27,7 @@
 
     <div class="story-branch-view__stats">
       <SystemStatCard label="节点总数" :value="flatNodes.length" hint="大纲树" tone="info" />
-      <SystemStatCard
-        label="分支点"
-        :value="branchPointCount"
-        hint="多子节点"
-        tone="warning"
-      />
+      <SystemStatCard label="分支点" :value="branchPointCount" hint="多子节点" tone="warning" />
       <SystemStatCard label="结局数" :value="endingCount" hint="叶子节点" tone="success" />
     </div>
 
@@ -45,7 +42,7 @@
         @canvas-click="handleCanvasClick"
       >
         <!-- SVG 连线 -->
-        <template #connections="{ zoom }">
+        <template #connections>
           <g v-for="edge in edges" :key="edge.id">
             <path
               :d="edge.path"
@@ -58,7 +55,7 @@
         </template>
 
         <!-- 节点卡片 -->
-        <template #default="{ selectedIds }">
+        <template #default>
           <div
             v-for="node in flatNodes"
             :key="node.id"
@@ -91,9 +88,14 @@
         </template>
 
         <!-- 工具栏 -->
-        <template #toolbar="{ zoomIn, zoomOut, resetView }">
+        <template #toolbar>
           <div class="story-branch-view__toolbar-actions">
-            <button type="button" class="toolbar-btn" title="自动适配" @click.stop="handleZoomToFit">
+            <button
+              type="button"
+              class="toolbar-btn"
+              title="自动适配"
+              @click.stop="handleZoomToFit"
+            >
               <QyIcon name="FullScreen" :size="14" />
             </button>
           </div>
@@ -109,7 +111,10 @@
     <!-- 右侧详情面板 -->
     <aside v-if="selectedOrgNode" class="story-branch-detail">
       <div class="story-branch-detail__header">
-        <div class="story-branch-detail__type" :style="{ color: getCategoryColor(selectedOrgNode.category) }">
+        <div
+          class="story-branch-detail__type"
+          :style="{ color: getCategoryColor(selectedOrgNode.category) }"
+        >
           <QyIcon :name="getCategoryIcon(selectedOrgNode.category)" :size="16" />
           {{ getCategoryLabel(selectedOrgNode.category) }}
         </div>
@@ -258,15 +263,8 @@ const layoutInput = computed(() => activeBranchSubtree.value)
 // 布局
 // ---------------------------------------------------------------------------
 
-const {
-  layoutRoots,
-  flatNodes,
-  edges,
-  contentWidth,
-  contentHeight,
-  isLinearMode,
-  findNode,
-} = useOrgTreeLayout(layoutInput)
+const { flatNodes, edges, contentWidth, contentHeight, isLinearMode, findNode } =
+  useOrgTreeLayout(layoutInput)
 
 // ---------------------------------------------------------------------------
 // 统计
@@ -622,13 +620,17 @@ watch(
 
   &.org-node--selected {
     border-color: var(--branch-main);
-    box-shadow: 0 0 0 3px rgba(77, 121, 218, 0.15), 0 8px 20px rgba(77, 121, 218, 0.12);
+    box-shadow:
+      0 0 0 3px rgba(77, 121, 218, 0.15),
+      0 8px 20px rgba(77, 121, 218, 0.12);
     transform: translateY(-2px);
   }
 
   &.org-node--active-branch {
     border-color: var(--branch-point);
-    box-shadow: 0 0 0 3px rgba(114, 46, 209, 0.15), 0 8px 20px rgba(114, 46, 209, 0.1);
+    box-shadow:
+      0 0 0 3px rgba(114, 46, 209, 0.15),
+      0 8px 20px rgba(114, 46, 209, 0.1);
   }
 
   &.org-node--dimmed {

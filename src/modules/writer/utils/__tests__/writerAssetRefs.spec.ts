@@ -30,20 +30,14 @@ describe('writerAssetRefs', () => {
       characters: [
         {
           id: 'char-1',
-          projectId: 'project-1',
           name: '沈砚',
           alias: ['阿砚'],
-          createdAt: '',
-          updatedAt: '',
         },
       ],
       locations: [
         {
           id: 'loc-1',
-          projectId: 'project-1',
           name: '雾港',
-          createdAt: '',
-          updatedAt: '',
         },
       ],
       items: [
@@ -99,7 +93,12 @@ describe('writerAssetRefs', () => {
       scopeId: 'chapter-1',
     })
 
-    state = removeScopeAssetRef(projectId, 'chapter', 'chapter-1', state.chapterRefs['chapter-1'][0].id)
+    state = removeScopeAssetRef(
+      projectId,
+      'chapter',
+      'chapter-1',
+      state.chapterRefs['chapter-1'][0].id,
+    )
     expect(state.chapterRefs['chapter-1']).toEqual([])
   })
 })

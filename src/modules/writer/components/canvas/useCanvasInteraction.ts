@@ -56,9 +56,6 @@ export function useCanvasInteraction(
   let panStartOffsetX = 0
   let panStartOffsetY = 0
 
-  let selectStartX = 0
-  let selectStartY = 0
-
   // -------------------------------------------------------------------------
   // 计算属性
   // -------------------------------------------------------------------------
@@ -203,8 +200,6 @@ export function useCanvasInteraction(
 
   function handleSelectionStart(clientX: number, clientY: number) {
     isSelecting.value = true
-    selectStartX = clientX
-    selectStartY = clientY
     selectionBox.value = {
       startX: clientX,
       startY: clientY,

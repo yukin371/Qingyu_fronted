@@ -7,7 +7,6 @@
  */
 
 import type { EntityReference, EntityType } from '../types/entity'
-import { inferEntityTypeFromSymbol } from '../types/entity'
 
 // 实体引用正则表达式
 // 统一格式：@名称（支持中英文、数字、下划线、连字符）

@@ -14,11 +14,7 @@
     @contextmenu.prevent="handleContextMenu"
   >
     <!-- SVG 连线层 -->
-    <svg
-      v-if="$slots.connections"
-      class="canvas-core__connections"
-      :style="transformStyle"
-    >
+    <svg v-if="$slots.connections" class="canvas-core__connections" :style="transformStyle">
       <slot name="connections" :zoom="zoom" :offset="offset" />
     </svg>
 
@@ -33,15 +29,17 @@
     </div>
 
     <!-- 选区框覆盖层 -->
-    <div
-      v-if="selectionBox"
-      class="canvas-core__selection-box"
-      :style="selectionBoxStyle"
-    />
+    <div v-if="selectionBox" class="canvas-core__selection-box" :style="selectionBoxStyle" />
 
     <!-- 浮动工具栏插槽 -->
     <div v-if="$slots.toolbar" class="canvas-core__toolbar">
-      <slot name="toolbar" :zoom="zoom" :reset-view="resetView" :zoom-in="zoomIn" :zoom-out="zoomOut" />
+      <slot
+        name="toolbar"
+        :zoom="zoom"
+        :reset-view="resetView"
+        :zoom-in="zoomIn"
+        :zoom-out="zoomOut"
+      />
     </div>
 
     <!-- 缩放指示器 -->
@@ -53,7 +51,12 @@
       <button type="button" class="zoom-btn" title="放大" @click.stop="zoomIn()">
         <span class="zoom-btn__icon">&plus;</span>
       </button>
-      <button type="button" class="zoom-btn zoom-btn--reset" title="重置视图" @click.stop="resetView()">
+      <button
+        type="button"
+        class="zoom-btn zoom-btn--reset"
+        title="重置视图"
+        @click.stop="resetView()"
+      >
         <span class="zoom-btn__icon">&#8634;</span>
       </button>
     </div>
@@ -93,7 +96,7 @@
  * ```
  */
 
-import { ref, computed, toRef } from 'vue'
+import { ref, computed } from 'vue'
 import { useCanvasInteraction } from './useCanvasInteraction'
 import type { CanvasPoint, CanvasCoreProps } from './canvas.types'
 
@@ -126,9 +129,7 @@ const canvasContainerRef = ref<HTMLElement>()
 const {
   zoom,
   offset,
-  isPanning,
   isSpaceDown,
-  isSelecting,
   selectedIds,
   selectionBox,
   transformStyle,
@@ -235,8 +236,7 @@ defineExpose({
 
   /* 网格背景 */
   &.is-grid-visible {
-    background-image:
-      radial-gradient(circle, var(--canvas-grid-dot, #d1d5db) 1px, transparent 1px);
+    background-image: radial-gradient(circle, var(--canvas-grid-dot, #d1d5db) 1px, transparent 1px);
     background-size: v-bind('`${gridSize}px ${gridSize}px`');
   }
 }
