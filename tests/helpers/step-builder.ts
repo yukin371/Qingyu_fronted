@@ -8,6 +8,81 @@ import { Actor } from './actor-factory'
 import { WaitStrategies } from './wait-strategies'
 
 /**
+ * 导航后关闭可能存在的 onboarding 弹窗
+ */
+async function dismissOnboardingAfterNavigation(page: Page): Promise<void> {
+  // 等待Vue应用渲染完成
+  await page.waitForTimeout(1500)
+  try {
+    // 方法1: 使用JavaScript直接移除onboarding元素（通过文本内容定位）
+    await page.evaluate(() => {
+      // 遍历所有元素，查找包含"欢迎来到青羽"文本的元素
+      const allElements = document.querySelectorAll('*')
+      for (const el of allElements) {
+        if (el.textContent && el.textContent.includes('欢迎来到青羽') && el.children.length < 10) {
+          // 查找父级容器并移除
+          let parent = el.parentElement
+          for (let i = 0; i < 5 && parent; i++) {
+            if (
+              parent.children.length < 10 &&
+              parent.className &&
+              typeof parent.className === 'string'
+            ) {
+              // 如果父级有固定定位或绝对定位，很可能是onboarding容器
+              const style = window.getComputedStyle(parent)
+              if (style.position === 'fixed' || style.position === 'absolute') {
+                parent.remove()
+                break
+              }
+            }
+            parent = parent.parentElement
+          }
+          // 如果没找到父级容器，直接移除当前元素
+          if (parent === null || parent.parentElement === null) {
+            el.remove()
+          }
+        }
+      }
+
+      // 查找并移除遮罩层
+      const overlayElements = document.querySelectorAll(
+        '[class*="overlay"], [class*="mask"], [class*="tour"]',
+      )
+      overlayElements.forEach((el) => {
+        const style = window.getComputedStyle(el)
+        if (
+          (style.position === 'fixed' || style.position === 'absolute') &&
+          el.children.length < 10
+        ) {
+          el.remove()
+        }
+      })
+    })
+
+    // 方法2: 按 Escape 键关闭
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+
+    // 方法3: 点击跳过按钮
+    const skipBtn = page.locator('button:has-text("跳过")').first()
+    if (await skipBtn.isVisible({ timeout: 500 })) {
+      await skipBtn.click()
+      await page.waitForTimeout(300)
+      return
+    }
+
+    // 方法4: 点击关闭按钮
+    const closeBtn = page.locator('.tour-close, button:has-text("关闭")').first()
+    if (await closeBtn.isVisible({ timeout: 500 })) {
+      await closeBtn.click()
+      await page.waitForTimeout(300)
+    }
+  } catch {
+    /* 没有 onboarding 弹窗 */
+  }
+}
+
+/**
  * 测试步骤接口
  */
 export interface TestStep {
@@ -39,8 +114,10 @@ export class StepBuilder {
         await page.goto(url, { timeout: timeout || 60000 })
         // 使用智能等待策略替代 networkidle
         await WaitStrategies.waitForNavigation(page, { timeout: timeout || 30000 })
+        // 导航后自动关闭 onboarding 弹窗
+        await dismissOnboardingAfterNavigation(page)
       },
-      describe: () => `Navigate to ${url}`
+      describe: () => `Navigate to ${url}`,
     })
     return this
   }
@@ -53,7 +130,7 @@ export class StepBuilder {
       execute: async () => {
         await page.click(selector)
       },
-      describe: () => description || `Click element ${selector}`
+      describe: () => description || `Click element ${selector}`,
     })
     return this
   }
@@ -66,7 +143,7 @@ export class StepBuilder {
       execute: async () => {
         await page.fill(selector, value)
       },
-      describe: () => description || `Fill ${selector} with "${value}"`
+      describe: () => description || `Fill ${selector} with "${value}"`,
     })
     return this
   }
@@ -79,7 +156,7 @@ export class StepBuilder {
       execute: async () => {
         await WaitStrategies.waitForElement(page, selector, { timeout })
       },
-      describe: () => description || `Wait for ${selector}`
+      describe: () => description || `Wait for ${selector}`,
     })
     return this
   }
@@ -91,7 +168,7 @@ export class StepBuilder {
     selector: string,
     assertion: 'visible' | 'hidden' | 'enabled' | 'disabled',
     page: Page,
-    description?: string
+    description?: string,
   ): StepBuilder {
     this.steps.push({
       execute: async () => {
@@ -111,7 +188,7 @@ export class StepBuilder {
             break
         }
       },
-      describe: () => description || `Assert ${selector} is ${assertion}`
+      describe: () => description || `Assert ${selector} is ${assertion}`,
     })
     return this
   }
@@ -119,13 +196,18 @@ export class StepBuilder {
   /**
    * 添加文本断言步骤
    */
-  addTextAssertionStep(selector: string, expectedText: string, page: Page, description?: string): StepBuilder {
+  addTextAssertionStep(
+    selector: string,
+    expectedText: string,
+    page: Page,
+    description?: string,
+  ): StepBuilder {
     this.steps.push({
       execute: async () => {
         const element = page.locator(selector)
         await expect(element).toContainText(expectedText)
       },
-      describe: () => description || `Assert ${selector} contains "${expectedText}"`
+      describe: () => description || `Assert ${selector} contains "${expectedText}"`,
     })
     return this
   }
@@ -136,7 +218,7 @@ export class StepBuilder {
   addCustomStep(action: () => Promise<void>, description: string): StepBuilder {
     this.steps.push({
       execute: action,
-      describe: () => description
+      describe: () => description,
     })
     return this
   }
@@ -149,7 +231,7 @@ export class StepBuilder {
       execute: async () => {
         await page.screenshot({ path: `test-screenshots/${filename}.png` })
       },
-      describe: () => `Take screenshot: ${filename}`
+      describe: () => `Take screenshot: ${filename}`,
     })
     return this
   }
@@ -160,9 +242,9 @@ export class StepBuilder {
   addWaitForTimeStep(ms: number): StepBuilder {
     this.steps.push({
       execute: async () => {
-        await new Promise(resolve => setTimeout(resolve, ms))
+        await new Promise((resolve) => setTimeout(resolve, ms))
       },
-      describe: () => `Wait ${ms}ms`
+      describe: () => `Wait ${ms}ms`,
     })
     return this
   }
@@ -194,7 +276,7 @@ export class StepBuilder {
    * 获取步骤描述
    */
   getStepsDescription(): string[] {
-    return this.steps.map(step => step.describe())
+    return this.steps.map((step) => step.describe())
   }
 
   /**
@@ -255,32 +337,39 @@ export class CommonSteps {
    * 登录步骤（使用对话框模式）
    */
   static login(page: Page, username: string, password: string): StepBuilder {
-    return new StepBuilder()
-      .setDescription('Login')
-      .addCustomStep(async () => {
-        // 确保在首页
-        await page.goto('/bookstore')
-        await page.waitForTimeout(500)
+    return new StepBuilder().setDescription('Login').addCustomStep(async () => {
+      // 确保在首页
+      await page.goto('/bookstore')
+      await page.waitForTimeout(500)
 
-        // 点击登录按钮
-        await page.click('button:has-text("登录")')
+      // 点击登录按钮
+      await page.click('button:has-text("登录")')
 
-        // 等待登录对话框出现（通过标题"欢迎回来"定位）
-        await page.waitForSelector('dialog:has-text("欢迎回来"), .el-dialog:has-text("欢迎回来"), [role="dialog"]:has-text("欢迎回来")', { timeout: 5000 })
+      // 等待登录对话框出现（通过标题"欢迎回来"定位）
+      await page.waitForSelector(
+        'dialog:has-text("欢迎回来"), .el-dialog:has-text("欢迎回来"), [role="dialog"]:has-text("欢迎回来")',
+        { timeout: 5000 },
+      )
 
-        // 定位登录对话框
-        const loginDialog = page.locator('dialog:has-text("欢迎回来"), .el-dialog:has-text("欢迎回来"), [role="dialog"]:has-text("欢迎回来")').first()
+      // 定位登录对话框
+      const loginDialog = page
+        .locator(
+          'dialog:has-text("欢迎回来"), .el-dialog:has-text("欢迎回来"), [role="dialog"]:has-text("欢迎回来")',
+        )
+        .first()
 
-        // 填写用户名和密码
-        await loginDialog.locator('input[placeholder*="用户名"], input[placeholder*="邮箱"]').fill(username)
-        await loginDialog.locator('input[placeholder*="密码"]').fill(password)
+      // 填写用户名和密码
+      await loginDialog
+        .locator('input[placeholder*="用户名"], input[placeholder*="邮箱"]')
+        .fill(username)
+      await loginDialog.locator('input[placeholder*="密码"]').fill(password)
 
-        // 点击登录按钮
-        await loginDialog.locator('button:has-text("登录")').click()
+      // 点击登录按钮
+      await loginDialog.locator('button:has-text("登录")').click()
 
-        // 等待登录完成
-        await page.waitForTimeout(2000)
-      }, 'Login with dialog')
+      // 等待登录完成
+      await page.waitForTimeout(2000)
+    }, 'Login with dialog')
   }
 
   /**
@@ -302,7 +391,12 @@ export class CommonSteps {
       .setDescription('View book detail')
       .addNavigationStep(`/bookstore/books/${bookId}`, page)
       .addWaitStep('[data-testid="book-detail"]', page, 'Wait for book detail to load')
-      .addAssertionStep('[data-testid="book-title"]', 'visible', page, 'Book title should be visible')
+      .addAssertionStep(
+        '[data-testid="book-title"]',
+        'visible',
+        page,
+        'Book title should be visible',
+      )
   }
 
   /**
@@ -320,7 +414,10 @@ export class CommonSteps {
   /**
    * 注册新用户步骤
    */
-  static register(page: Page, userData: { username: string; email: string; password: string }): StepBuilder {
+  static register(
+    page: Page,
+    userData: { username: string; email: string; password: string },
+  ): StepBuilder {
     return new StepBuilder()
       .setDescription('Register new user')
       .addNavigationStep('/register', page)
