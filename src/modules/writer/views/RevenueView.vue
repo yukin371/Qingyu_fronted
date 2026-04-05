@@ -5,23 +5,15 @@
         <div class="page-header" style="margin-bottom: 0">
           <h1>收入统计</h1>
           <div class="header-actions">
-            <el-select
+            <QySelect
               v-model="selectedBookId"
-              class="header-book-select"
-              popper-class="writer-book-select-popper"
+              :options="bookOptions"
               placeholder="选择作品"
+              class="header-book-select"
               style="width: 240px"
               @change="loadRevenue"
-            >
-              <el-option label="全部作品" value="all" />
-              <el-option
-                v-for="book in books"
-                :key="book.id"
-                :label="book.title"
-                :value="book.id"
-              />
-            </el-select>
-            <el-button type="primary" @click="showWithdrawDialog = true"> 申请提现 </el-button>
+            />
+            <QyButton variant="primary" @click="showWithdrawDialog = true"> 申请提现 </QyButton>
           </div>
         </div>
         <p class="mt-2 text-sm text-slate-500">
@@ -161,7 +153,14 @@
       </div>
 
       <!-- 提现对话框 -->
-      <el-dialog v-model="showWithdrawDialog" title="申请提现" width="500px">
+      <QyDialog
+        v-model:visible="localWithdrawVisible"
+        title="申请提现"
+        size="md"
+        :show-close="true"
+        :close-on-click-modal="true"
+        :close-on-press-escape="true"
+      >
         <el-form
           ref="withdrawFormRef"
           :model="withdrawForm"
@@ -200,20 +199,20 @@
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="showWithdrawDialog = false">取消</el-button>
-          <el-button type="primary" @click="submitWithdraw" :loading="withdrawing">
+          <QyButton variant="secondary" @click="localWithdrawVisible = false">取消</QyButton>
+          <QyButton variant="primary" @click="submitWithdraw" :loading="withdrawing">
             提交申请
-          </el-button>
+          </QyButton>
         </template>
-      </el-dialog>
+      </QyDialog>
     </div>
   </WriterPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, reactive, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QySelect, QyButton, QyDialog } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
@@ -241,10 +240,27 @@ const resolveTrendPeriod = (range: string): 'daily' | 'monthly' | 'yearly' => {
 }
 const showWithdrawDialog = ref(false)
 
+// 本地 visible 状态（QyDialog 需要可写的 v-model）
+const localWithdrawVisible = ref(showWithdrawDialog.value)
+
+watch(showWithdrawDialog, (v) => {
+  localWithdrawVisible.value = v
+})
+
+watch(localWithdrawVisible, (v) => {
+  showWithdrawDialog.value = v
+})
+
 // 作品列表
 const books = ref([
   { id: '1', title: '示例作品1' },
   { id: '2', title: '示例作品2' },
+])
+
+// 作品选项（用于 QySelect）
+const bookOptions = computed(() => [
+  { label: '全部作品', value: 'all' },
+  ...books.value.map((book) => ({ label: book.title, value: book.id })),
 ])
 
 // 收入统计
