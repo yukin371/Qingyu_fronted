@@ -106,34 +106,6 @@ body {
   max-height: 100%;
 }
 
-/* Element Plus 回到顶部图标尺寸兜底，防止被全局样式放大 */
-.el-backtop {
-  font-size: 18px;
-}
-
-.el-backtop .el-icon,
-.el-backtop .el-icon svg {
-  width: 1em;
-  height: 1em;
-}
-
-/* Element Plus 头像尺寸稳态修复：
-   在复杂页面和全局样式混用场景下，el-avatar 可能继承到异常尺寸。
-   这里固定头像的尺寸计算链，防止被外部容器污染。 */
-.el-avatar {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-shrink: 0 !important;
-  overflow: hidden !important;
-}
-
-.el-avatar img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-}
-
 /* Element Plus 评分星标稳态修复：
    在复杂页面和全局样式混用场景下，el-rate 图标可能继承到异常字号。
    这里固定尺寸计算链为：el-rate(--el-rate-icon-size) -> icon(1em) -> svg(1em)。 */

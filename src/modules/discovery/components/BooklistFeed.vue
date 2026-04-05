@@ -38,7 +38,7 @@
 
           <!-- 创建者信息 -->
           <div class="creator-info">
-            <el-avatar :size="24" :src="booklist.creator.avatar" />
+            <QyAvatar size="sm" :src="booklist.creator.avatar" />
             <span class="creator-name">{{ booklist.creator.nickname }}</span>
           </div>
 
@@ -85,6 +85,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Collection, View, Star } from '@element-plus/icons-vue'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 
 interface Book {
   bookId: string

@@ -1,9 +1,7 @@
 <template>
   <div class="comment-item">
     <div class="comment-header">
-      <el-avatar :size="40" :src="comment.userAvatar">
-        {{ comment.username?.charAt(0) }}
-      </el-avatar>
+      <QyAvatar size="lg" :src="comment.userAvatar" :text="comment.username" />
       <div class="comment-info">
         <div class="user-name">{{ comment.username }}</div>
         <div class="comment-meta">
@@ -69,9 +67,7 @@
     <!-- 回复列表 -->
     <div v-if="comment.replies && comment.replies.length > 0" class="replies-list">
       <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-        <el-avatar :size="32" :src="reply.userAvatar">
-          {{ reply.username?.charAt(0) }}
-        </el-avatar>
+        <QyAvatar size="md" :src="reply.userAvatar" :text="reply.username" />
         <div class="reply-content">
           <div class="reply-header">
             <span class="reply-username">{{ reply.username }}</span>
@@ -89,6 +85,7 @@ import { ref, computed } from 'vue'
 import { StarFilled, Star } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { replyComment, likeComment, unlikeComment } from '@/modules/reader/api/manual/comments'
 import { useAuthStore } from '@/stores/auth'
 

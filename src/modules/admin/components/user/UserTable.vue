@@ -19,9 +19,7 @@
       <el-table-column label="用户信息" min-width="200">
         <template #default="{ row }">
           <div class="user-info">
-            <el-avatar :size="40" :src="row.avatar">
-              {{ row.username?.charAt(0)?.toUpperCase() }}
-            </el-avatar>
+            <QyAvatar size="lg" :src="row.avatar" :text="row.username || row.nickname" />
             <div class="user-meta">
               <span class="username">{{ row.username }}</span>
               <span class="email">{{ row.email }}</span>
@@ -120,6 +118,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElTable } from 'element-plus'
 import { formatDate } from '@/utils/format'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import UserRoleTag from './UserRoleTag.vue'
 import UserStatusTag from './UserStatusTag.vue'
 import type { User, UserPagination } from './types'
@@ -199,28 +198,6 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 12px;
-
-  .el-avatar {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-    max-width: 40px !important;
-    max-height: 40px !important;
-    border-radius: 50% !important;
-    overflow: hidden !important;
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
-    font-size: 16px !important;
-    line-height: 40px !important;
-  }
-
-  .el-avatar img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    display: block !important;
-  }
 
   .user-meta {
     display: flex;

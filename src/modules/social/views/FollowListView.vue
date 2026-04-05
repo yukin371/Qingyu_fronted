@@ -37,9 +37,7 @@
         <div v-if="list.length > 0" class="user-list">
           <div v-for="item in list" :key="item.id" class="user-item">
             <div class="user-avatar" @click="goToUserPage(item.id)">
-              <el-avatar :size="60" :src="item.avatar">
-                <QyIcon name="User" />
-              </el-avatar>
+              <QyAvatar size="xl" :src="item.avatar" :text="item.nickname || item.username" />
             </div>
 
             <div class="user-info">
@@ -99,6 +97,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import FollowButton from '../components/FollowButton.vue'
 import { useSocialStore } from '@/stores/social'
 import { useAuthStore } from '@/stores/auth'
@@ -509,11 +508,6 @@ watch(
 
   .user-item {
     padding: 16px;
-
-    .user-avatar :deep(.el-avatar) {
-      width: 50px !important;
-      height: 50px !important;
-    }
 
     .user-info {
       .user-name {

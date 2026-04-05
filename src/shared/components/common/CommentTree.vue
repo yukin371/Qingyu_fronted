@@ -3,9 +3,7 @@
     <!-- 评论项 -->
     <div class="comment-item" :class="{ 'is-reply': isReply }">
       <!-- 用户头像 -->
-      <el-avatar :size="isReply ? 36 : 42" :src="comment.user?.avatar" class="comment-avatar">
-        {{ comment.user?.nickname?.charAt(0) || 'U' }}
-      </el-avatar>
+      <QyAvatar :size="isReply ? 'md' : 'lg'" :src="comment.user?.avatar" :text="comment.user?.nickname || comment.user?.username" class="comment-avatar" />
 
       <!-- 评论内容 -->
       <div class="comment-content">
@@ -105,6 +103,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 
 interface Comment {

@@ -37,12 +37,11 @@
             <!-- 用户下拉菜单 -->
             <el-dropdown @command="handleCommand">
               <div class="flex items-center space-x-2 cursor-pointer">
-                <el-avatar
-                  :size="32"
+                <QyAvatar
+                  size="md"
                   :src="authStore.user?.avatar"
-                >
-                  <QyIcon name="UserFilled" :size="20" />
-                </el-avatar>
+                  :text="authStore.user?.nickname || authStore.user?.username"
+                />
                 <span class="text-sm font-medium text-gray-700">
                   {{ authStore.user?.nickname || authStore.user?.username }}
                 </span>
@@ -80,6 +79,7 @@
 import { useRouter } from 'vue-router'
 import { messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

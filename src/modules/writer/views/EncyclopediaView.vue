@@ -49,9 +49,7 @@
                 :class="{ 'is-selected': selectedItem?.id === character.id }"
                 @click="handleSelectItem(character, 'character')"
               >
-                <el-avatar :size="50" :src="character.avatarUrl">
-                  {{ character.name.charAt(0) }}
-                </el-avatar>
+                <QyAvatar size="xl" :src="character.avatarUrl" :text="character.name" />
                 <div class="item-info">
                   <div class="item-name">{{ character.name }}</div>
                   <div v-if="character.summary" class="item-desc">{{ character.summary }}</div>
@@ -80,9 +78,7 @@
                 :class="{ 'is-selected': selectedItem?.id === location.id }"
                 @click="handleSelectItem(location, 'location')"
               >
-                <el-avatar :size="50" :src="location.imageUrl" shape="square">
-                  <QyIcon name="LocationInformation"  />
-                </el-avatar>
+                <QyAvatar size="xl" :src="location.imageUrl" shape="square" :text="location.name" />
                 <div class="item-info">
                   <div class="item-name">{{ location.name }}</div>
                   <div v-if="location.description" class="item-desc">{{ location.description }}</div>
@@ -110,9 +106,7 @@
                 :class="{ 'is-selected': selectedItem?.id === concept.id }"
                 @click="handleSelectItem(concept, 'concept')"
               >
-                <el-avatar :size="50" shape="square">
-                  <QyIcon name="PriceTag" />
-                </el-avatar>
+                <QyAvatar size="xl" shape="square" :text="concept.name" />
                 <div class="item-info">
                   <div class="item-name">{{ concept.name }}</div>
                   <div v-if="concept.category" class="item-desc" style="color: #722ED1;">{{ concept.category }}</div>
@@ -132,9 +126,7 @@
           <div v-if="selectedType === 'character'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <el-avatar :size="60" :src="(selectedItem as Character).avatarUrl">
-                  {{ (selectedItem as Character).name.charAt(0) }}
-                </el-avatar>
+                <QyAvatar size="xl" :src="(selectedItem as Character).avatarUrl" :text="(selectedItem as Character).name" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Character).name }}</h2>
                   <p v-if="(selectedItem as Character).alias">{{ (selectedItem as Character).alias?.join('、') }}</p>
@@ -209,9 +201,7 @@
           <div v-if="selectedType === 'location'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <el-avatar :size="60" :src="(selectedItem as Location).imageUrl" shape="square">
-                  <QyIcon name="LocationInformation"  />
-                </el-avatar>
+                <QyAvatar size="xl" :src="(selectedItem as Location).imageUrl" shape="square" :text="(selectedItem as Location).name" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Location).name }}</h2>
                 </div>
@@ -273,9 +263,7 @@
           <div v-if="selectedType === 'concept'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <el-avatar :size="60" shape="square">
-                  <QyIcon name="PriceTag" />
-                </el-avatar>
+                <QyAvatar size="xl" shape="square" :text="(selectedItem as Concept).name" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Concept).name }}</h2>
                   <p v-if="(selectedItem as Concept).alias?.length">{{ (selectedItem as Concept).alias?.join('、') }}</p>
@@ -338,7 +326,7 @@ import { Search, Plus, Edit, Close, Collection } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import type { Concept } from '../types/entity'
-import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
 import { message, messageBox } from '@/design-system/services'

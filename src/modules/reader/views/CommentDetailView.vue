@@ -21,14 +21,13 @@
           <el-card class="main-comment-card" shadow="never">
             <div class="main-comment">
               <!-- 用户头像 -->
-              <el-avatar
-                :size="48"
+              <QyAvatar
+                size="xl"
                 :src="comment.user?.avatar"
                 class="user-avatar"
+                :clickable="true"
                 @click="goToUserProfile(comment.user?.userId)"
-              >
-                {{ comment.user?.nickname?.charAt(0) || 'U' }}
-              </el-avatar>
+              />
 
               <!-- 评论内容 -->
               <div class="comment-content">
@@ -142,6 +141,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import BreadcrumbNav from '@/shared/components/common/BreadcrumbNav.vue'
 import SkeletonLoader from '@/shared/components/common/SkeletonLoader.vue'
 import CommentTree from '@/shared/components/common/CommentTree.vue'

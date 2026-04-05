@@ -51,14 +51,10 @@
 
           <!-- 用户菜单 -->
           <div class="flex items-center space-x-4">
-            <el-avatar
-              :size="36"
+            <QyAvatar
+              size="md"
               :src="userStore.avatar"
-            >
-              <template #icon>
-                <QyIcon name="UserFilled" />
-              </template>
-            </el-avatar>
+            />
           </div>
         </div>
       </div>
@@ -72,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()

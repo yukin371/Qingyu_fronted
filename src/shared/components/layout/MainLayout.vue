@@ -57,9 +57,7 @@
             <template v-if="isLoggedIn">
               <el-dropdown trigger="click" @command="handleUserCommand">
                 <div class="user-info-premium">
-                  <el-avatar :size="20" :src="userAvatar" class="user-avatar">
-                    {{ userDisplayName.charAt(0) }}
-                  </el-avatar>
+                  <QyAvatar size="sm" :src="userAvatar" :text="userDisplayName" class="user-avatar" />
                   <!-- 名字只在hover时显示或简化显示 -->
                 </div>
                 <template #dropdown>
@@ -155,7 +153,7 @@
     </el-drawer>
 
     <!-- 回到顶部 -->
-    <el-backtop :right="20" :bottom="20" />
+    <BackTop :right="24" :bottom="24" shape="circle" size="medium" :visibility-height="300" />
 
     <!-- 快捷登录对话框 -->
     <el-dialog v-model="showQuickLogin" title="欢迎回来" width="400px" class="premium-dialog" :close-on-click-modal="false">
@@ -209,6 +207,8 @@ import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'
 import type { FormInstance, FormRules } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { BackTop } from '@/design-system/other'
 import { Menu } from '@element-plus/icons-vue'
 const router = useRouter()
 const route = useRoute()
@@ -720,21 +720,6 @@ const handleUserCommand = async (command: string) => {
   align-items: center;
   justify-content: center;
   flex: 0 0 38px;
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
-  min-height: 38px !important;
-  overflow: hidden !important;
-  border-radius: 50% !important;
-  line-height: 38px !important;
-}
-
-:deep(.user-avatar img),
-:deep(.user-avatar .el-avatar__inner) {
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-  object-fit: cover !important;
 }
 
 .auth-btns {

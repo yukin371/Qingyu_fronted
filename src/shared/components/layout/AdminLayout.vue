@@ -54,7 +54,7 @@
           <!-- 用户菜单 -->
           <el-dropdown @command="handleUserCommand">
             <div class="user-info">
-              <el-avatar :src="userAvatar" :size="32" />
+              <QyAvatar :src="userAvatar" size="md" :text="userDisplayName" />
               <span class="username">{{ username }}</span>
             </div>
             <template #dropdown>
@@ -84,6 +84,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Bell } from '@element-plus/icons-vue'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
 import * as adminAPI from '@/modules/admin/api'
@@ -158,6 +159,7 @@ const menuItems = computed(() => [
 // 计算属性
 const username = computed(() => authStore.userNickname)
 const userAvatar = computed(() => authStore.userAvatar)
+const userDisplayName = computed(() => authStore.user?.nickname || authStore.user?.username || '')
 
 const currentPageTitle = computed(() => {
   const path = route.path
@@ -422,13 +424,6 @@ watch(
     color: #303133;
   }
 
-  :deep(.el-avatar) {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    flex: 0 0 32px;
-  }
 }
 
 .admin-content {

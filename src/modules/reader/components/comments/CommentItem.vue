@@ -1,8 +1,6 @@
 <template>
   <div class="comment-item">
-    <el-avatar class="user-avatar" :src="comment.avatar" :size="40">
-      {{ comment.username?.charAt(0) || 'U' }}
-    </el-avatar>
+    <QyAvatar class="user-avatar" :src="comment.avatar" size="lg" />
 
     <div class="comment-content">
       <div class="comment-header">
@@ -45,6 +43,7 @@
 
 <script setup lang="ts">
 import type { ParagraphComment } from '@/types/reader/index'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 
 interface Props {
   comment: ParagraphComment
@@ -79,20 +78,8 @@ const formatTime = (dateStr: string): string => {
   border-radius: 8px;
 }
 
-:deep(.user-avatar.el-avatar) {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 9999px !important;
-  overflow: hidden;
-  flex: 0 0 40px;
-}
-
-:deep(.user-avatar img) {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+:deep(.user-avatar) {
+  flex-shrink: 0;
 }
 
 .comment-content {

@@ -2,9 +2,7 @@
   <div class="comment-item">
     <div class="comment-header">
       <div class="user-info">
-        <el-avatar :src="comment.userAvatar" :size="40">
-          {{ comment.userName?.charAt(0) }}
-        </el-avatar>
+        <QyAvatar :src="comment.userAvatar" size="lg" :text="comment.userName" />
         <div class="user-details">
           <div class="user-name">{{ comment.userName }}</div>
           <div class="comment-time">{{ formatTime(comment.createdAt) }}</div>
@@ -73,9 +71,7 @@
     <div v-if="comment.replies && comment.replies.length > 0" class="replies-container">
       <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
         <div class="reply-header">
-          <el-avatar :src="reply.userAvatar" :size="32">
-            {{ reply.userName?.charAt(0) }}
-          </el-avatar>
+          <QyAvatar :src="reply.userAvatar" size="md" :text="reply.userName" />
           <div class="reply-info">
             <span class="reply-user">{{ reply.userName }}</span>
             <span class="reply-time">{{ formatTime(reply.createdAt) }}</span>
@@ -91,6 +87,7 @@
 import { ref, computed } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { commentsAPI } from '@/modules/reader/api/manual/comments'
 

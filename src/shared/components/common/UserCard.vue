@@ -6,11 +6,9 @@
       <QyAvatar
         size="lg"
         :src="user.avatar"
-        type="image"
+        :text="user.nickname || user.username || 'U'"
         class="user-avatar"
-      >
-        {{ user.nickname?.charAt(0) || user.username?.charAt(0) || 'U' }}
-      </QyAvatar>
+      />
 
       <!-- 用户信息 -->
       <div class="user-info">
