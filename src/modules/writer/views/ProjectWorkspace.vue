@@ -2,7 +2,7 @@
   <div
     class="workspace-studio"
     :class="{ 'workspace-studio--immersive': isImmersiveMode }"
-    data-editor-theme="light"
+    :data-editor-theme="editorThemeStore.currentTheme"
   >
     <!-- 顶部工具栏 -->
     <WorkspaceTopbar
@@ -120,6 +120,7 @@ import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { useEditorStore, type ActiveTool } from '@/modules/writer/stores/editorStore'
 import { usePanelStore } from '@/modules/writer/stores/panelStore'
+import { useEditorThemeStore } from '@/modules/writer/stores/editorThemeStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { DocumentType } from '@/modules/writer/types/document'
@@ -172,6 +173,7 @@ const projectStore = useProjectStore()
 const documentStore = useDocumentStore()
 const editorStore = useEditorStore()
 const panelStore = usePanelStore()
+const editorThemeStore = useEditorThemeStore()
 const writerStore = useWriterStore()
 
 // =======================
@@ -930,6 +932,8 @@ const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
 // 生命周期
 // =======================
 onMounted(async () => {
+  // 恢复编辑器主题
+  editorThemeStore.initTheme()
   const pId = currentProjectId.value
   if (pId) {
     await Promise.all([

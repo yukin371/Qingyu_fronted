@@ -36,6 +36,22 @@
             <QyIcon name="SetUp" :size="14" />
             <span>快捷键设置</span>
           </button>
+          <div class="topbar-overflow__divider"></div>
+          <!-- 外观/主题切换 -->
+          <div class="topbar-overflow__label">外观</div>
+          <div class="theme-options">
+            <button
+              v-for="(meta, key) in EDITOR_THEMES"
+              :key="key"
+              class="theme-option"
+              :class="{ 'theme-option--active': editorThemeStore.currentTheme === key }"
+              @click="editorThemeStore.setTheme(key as EditorThemeName); overflowOpen = false"
+            >
+              <span class="theme-option__preview" :style="{ background: meta.previewColor }"></span>
+              <span class="theme-option__label">{{ meta.label }}</span>
+              <QyIcon v-if="editorThemeStore.currentTheme === key" name="Check" :size="12" class="theme-option__check" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -59,6 +75,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { ElDialog } from 'element-plus'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import ShortcutSettingsPanel from '../settings/ShortcutSettingsPanel.vue'
+import { useEditorThemeStore, EDITOR_THEMES } from '@/modules/writer/stores/editorThemeStore'
+import type { EditorThemeName } from '@/modules/writer/stores/editorThemeStore'
 
 defineProps<{
   projectDisplayName: string
@@ -77,6 +95,7 @@ defineEmits<{
 
 const overflowOpen = ref(false)
 const showShortcutSettings = ref(false)
+const editorThemeStore = useEditorThemeStore()
 
 function closeOverflow() {
   overflowOpen.value = false
@@ -251,5 +270,69 @@ onUnmounted(() => document.removeEventListener('click', closeOverflow))
     background: var(--editor-bg-elevated, #f1f5f9);
     color: var(--editor-text-primary, #0f172a);
   }
+}
+
+.topbar-overflow__divider {
+  height: 1px;
+  background: var(--editor-border, #e2e8f0);
+  margin: 4px 8px;
+}
+
+.topbar-overflow__label {
+  padding: 4px 10px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--editor-text-ghost, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.theme-options {
+  padding: 2px 4px 4px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--editor-radius-md, 6px);
+  background: transparent;
+  cursor: pointer;
+  transition: background 120ms ease;
+
+  &:hover {
+    background: var(--editor-bg-elevated, #f1f5f9);
+  }
+
+  &--active {
+    background: var(--editor-accent-soft, #ecfeff);
+  }
+}
+
+.theme-option__preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--editor-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.theme-option__label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--editor-text-secondary, #334155);
+  text-align: left;
+}
+
+.theme-option--active .theme-option__label {
+  color: var(--editor-accent, #06b6d4);
+  font-weight: 600;
+}
+
+.theme-option__check {
+  color: var(--editor-accent, #06b6d4);
 }
 </style>

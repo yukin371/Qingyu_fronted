@@ -420,7 +420,7 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   display: flex;
   gap: 14px;
   padding: 12px;
-  background: var(--editor-bg-surface, #f8fafc);
+  background: var(--editor-bg-surface);
 }
 
 .tiptap-editor-view--without-ref {
@@ -433,16 +433,16 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   display: flex;
   flex-direction: column;
   border-radius: var(--editor-radius-lg, 8px);
-  border: 1px solid var(--editor-border, #e2e8f0);
+  border: 1px solid var(--editor-border);
   overflow: hidden;
-  background: var(--editor-bg-base, #ffffff);
+  background: var(--editor-bg-base);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   height: 100%;
 }
 
 .editor-toolbar {
-  border-bottom: 1px solid var(--editor-border, #e2e8f0);
-  background: linear-gradient(102deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 255, 0.92));
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bg-surface);
   padding: 8px 14px;
   display: flex;
   justify-content: flex-end;
@@ -463,8 +463,8 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   justify-content: space-between;
   gap: 14px;
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(214, 202, 183, 0.7);
-  background: linear-gradient(145deg, rgba(255, 249, 241, 0.98), rgba(247, 238, 227, 0.94));
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bg-elevated);
 }
 
 .editor-empty-banner__copy {
@@ -474,29 +474,29 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 }
 
 .editor-empty-banner__copy strong {
-  color: #2a2f3a;
+  color: var(--editor-text-primary);
   font-size: 15px;
 }
 
 .editor-empty-banner__copy span {
-  color: #655b51;
+  color: var(--editor-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }
 
 .editor-empty-banner__copy code {
   border-radius: 6px;
-  background: rgba(229, 239, 248, 0.8);
-  color: #24425c;
+  background: var(--editor-accent-soft);
+  color: var(--editor-accent);
   padding: 1px 5px;
 }
 
 .editor-empty-banner__action {
   flex: 0 0 auto;
-  border: 1px solid rgba(143, 63, 47, 0.2);
+  border: 1px solid var(--editor-accent);
   border-radius: 999px;
-  background: linear-gradient(180deg, #8f3f2f 0%, #7a3122 100%);
-  color: #fff9f3;
+  background: var(--editor-accent);
+  color: #fff;
   font-size: 12px;
   font-weight: 800;
   padding: 9px 14px;
@@ -507,15 +507,15 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 .meta-chip {
   font-size: 12px;
   font-weight: 700;
-  color: #204ebf;
+  color: var(--editor-accent);
   border-radius: 999px;
   padding: 4px 10px;
-  background: #e8efff;
+  background: var(--editor-accent-soft);
 }
 
 .meta-chip--soft {
-  color: #087f61;
-  background: #e7fbf5;
+  color: var(--editor-accent);
+  background: var(--editor-accent-soft);
 }
 
 .keyword-badge {
@@ -524,10 +524,10 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--brand, #2f6fff);
+  color: var(--brand, var(--editor-accent));
   border-radius: var(--editor-radius-sm, 4px);
   padding: 3px 8px;
-  background: #e8efff;
+  background: var(--editor-accent-soft);
   white-space: nowrap;
 }
 
@@ -537,9 +537,9 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   display: flex;
   flex-direction: column;
   border-radius: var(--editor-radius-lg, 8px);
-  border: 1px solid var(--editor-border, #e2e8f0);
+  border: 1px solid var(--editor-border);
   overflow: hidden;
-  background: var(--editor-bg-base, #ffffff);
+  background: var(--editor-bg-base);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   height: 100%;
 }
@@ -550,14 +550,14 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  background: var(--editor-bg-base, #ffffff);
+  background: var(--editor-bg-base);
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
 .tiptap-editor-view__content--empty {
-  background: var(--editor-bg-muted, #f9fafb);
+  background: var(--editor-bg-elevated);
 }
 
 .selection-toolbar {
@@ -568,15 +568,15 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   gap: 8px;
   padding: 8px;
   border-radius: 999px;
-  background: rgba(41, 32, 24, 0.94);
+  background: var(--editor-text-primary);
   box-shadow: 0 18px 32px rgba(36, 25, 16, 0.18);
 }
 
 .selection-toolbar__action {
-  border: 1px solid rgba(255, 246, 235, 0.16);
+  border: 1px solid var(--editor-border);
   border-radius: 999px;
-  background: rgba(255, 250, 243, 0.1);
-  color: #fff9f1;
+  background: var(--editor-bg-elevated);
+  color: var(--editor-text-primary);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 10px;
@@ -584,42 +584,42 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 }
 
 .selection-toolbar__action:hover {
-  background: rgba(255, 250, 243, 0.18);
+  background: var(--editor-bg-surface);
 }
 
 .tiptap-editor-view__ref {
   width: 320px;
   flex-shrink: 0;
   border-radius: var(--editor-radius-lg, 8px);
-  border: 1px solid var(--editor-border, #e2e8f0);
+  border: 1px solid var(--editor-border);
   padding: 14px;
   overflow: auto;
-  background: var(--editor-bg-base, #ffffff);
+  background: var(--editor-bg-base);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .ref-header {
   padding-bottom: 10px;
-  border-bottom: 1px dashed #d3ddf0;
+  border-bottom: 1px dashed var(--editor-border);
 }
 
 .entity-scan-section {
   margin-top: 12px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--editor-border);
 }
 
 .title {
   margin: 2px 0 4px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--editor-text-primary, #1e293b);
+  color: var(--editor-text-primary);
 }
 
 .hint {
   margin: 0;
-  color: var(--editor-text-secondary, #64748b);
+  color: var(--editor-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -634,15 +634,15 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 .stat {
   border-radius: 12px;
   padding: 8px;
-  border: 1px solid rgba(47, 111, 255, 0.22);
-  background: #edf2ff;
+  border: 1px solid var(--editor-accent-soft-border);
+  background: var(--editor-accent-soft);
   text-align: center;
 }
 
 .stat .label {
   display: block;
   font-size: 11px;
-  color: #2f57c9;
+  color: var(--editor-accent);
   font-weight: 700;
 }
 
@@ -651,25 +651,25 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   margin-top: 2px;
   font-size: 18px;
   font-weight: 700;
-  color: #1f2e57;
+  color: var(--editor-text-primary);
 }
 
 .stat--location {
-  border-color: rgba(2, 180, 139, 0.3);
-  background: #e8fbf5;
+  border-color: var(--editor-accent-soft-border);
+  background: var(--editor-accent-soft);
 }
 
 .stat--location .label {
-  color: #078366;
+  color: var(--editor-accent);
 }
 
 .stat--item {
-  border-color: rgba(228, 140, 45, 0.32);
-  background: #fff4e9;
+  border-color: var(--editor-accent-soft-border);
+  background: var(--editor-accent-soft);
 }
 
 .stat--item .label {
-  color: #ab6212;
+  color: var(--editor-accent);
 }
 
 .ref-list {
@@ -685,34 +685,34 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   gap: 8px;
   align-items: center;
   padding: 8px 10px;
-  border: 1px solid #dde4f1;
+  border: 1px solid var(--editor-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--editor-bg-base);
 }
 
 .ref-list li.is-character {
-  border-left: 3px solid var(--editor-color-brand, #2f6fff);
+  border-left: 3px solid var(--editor-color-brand, var(--editor-accent));
 }
 
 .ref-list li.is-location {
-  border-left: 3px solid var(--editor-color-mint, #02b48b);
+  border-left: 3px solid var(--editor-color-mint, var(--editor-accent));
 }
 
 .ref-list li.is-item {
-  border-left: 3px solid var(--editor-color-warm, #e48c2d);
+  border-left: 3px solid var(--editor-color-warm, var(--editor-accent));
 }
 
 .type {
   font-size: 11px;
   width: 30px;
-  color: #5d6d90;
+  color: var(--editor-text-muted);
   font-weight: 700;
 }
 
 .name {
   flex: 1;
   min-width: 0;
-  color: var(--editor-text-primary, #1e293b);
+  color: var(--editor-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -721,23 +721,23 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 
 .count {
   font-size: 11px;
-  color: #7280a0;
+  color: var(--editor-text-muted);
 }
 
 .ref-empty {
   margin-top: 12px;
   padding: 12px;
   border-radius: 10px;
-  background: #f7f9fe;
-  border: 1px dashed #d2dcef;
-  color: #64718f;
+  background: var(--editor-bg-elevated);
+  border: 1px dashed var(--editor-border);
+  color: var(--editor-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .ref-empty code {
-  color: #2d57c6;
-  background: #edf2ff;
+  color: var(--editor-accent);
+  background: var(--editor-accent-soft);
   border-radius: 4px;
   padding: 1px 4px;
 }
@@ -752,9 +752,9 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 :deep(.qy-tiptap-toolbar) {
   margin: 14px auto 0;
   width: fit-content;
-  border: 1px solid rgba(214, 221, 235, 0.92);
+  border: 1px solid var(--editor-border);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 246, 251, 0.94));
+  background: var(--editor-bg-surface);
   padding: 7px 8px;
   gap: 4px;
   box-shadow: 0 10px 22px rgba(29, 43, 78, 0.06);
@@ -766,9 +766,9 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   min-width: 32px;
   height: 32px;
   border-radius: 10px;
-  border-color: rgba(198, 205, 220, 0.94);
-  background: rgba(255, 255, 255, 0.88);
-  color: #42506f;
+  border-color: var(--editor-border);
+  background: var(--editor-bg-base);
+  color: var(--editor-text-secondary);
   font-weight: 700;
   transition:
     transform 0.18s ease,
@@ -780,21 +780,21 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 
 :deep(.qy-tiptap-toolbar button:hover) {
   transform: translateY(-1px);
-  border-color: rgba(47, 111, 255, 0.24);
-  color: #2449ac;
+  border-color: var(--editor-accent);
+  color: var(--editor-text-primary);
   box-shadow: 0 8px 14px rgba(39, 70, 135, 0.08);
 }
 
 :deep(.qy-tiptap-toolbar button.active) {
-  background: linear-gradient(180deg, #2f6fff 0%, #1f5ad5 100%);
-  border-color: transparent;
+  background: var(--editor-accent);
+  border-color: var(--editor-accent);
   color: #fff;
   box-shadow: 0 10px 20px rgba(42, 79, 163, 0.18);
 }
 
 :deep(.qy-tiptap-toolbar .sep) {
   height: 18px;
-  background: rgba(199, 208, 227, 0.9);
+  background: var(--editor-border);
 }
 
 :deep(.qy-tiptap-editor__content) {
@@ -804,11 +804,11 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 :deep(.ProseMirror) {
   min-height: calc(100% - 4px);
   padding: 6px 0 80px;
-  color: #27324a;
+  color: var(--editor-content-fg);
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {
-  color: #96a0b6;
+  color: var(--editor-content-placeholder-color);
   font-style: normal;
 }
 

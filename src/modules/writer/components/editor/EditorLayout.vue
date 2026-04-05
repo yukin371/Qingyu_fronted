@@ -358,10 +358,8 @@ onMounted(() => {})
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(143, 63, 47, 0.08), transparent 20%),
-    linear-gradient(180deg, #f3ebdf, #ede2d3);
-  color: #0f172a;
+  background: var(--editor-bg-surface);
+  color: var(--editor-text-primary);
   overflow: hidden;
 }
 
@@ -374,12 +372,12 @@ onMounted(() => {})
   position: relative;
   gap: 10px;
   padding: 0;
-  background: linear-gradient(180deg, rgba(250, 246, 240, 0.92) 0%, rgba(241, 232, 220, 0.9) 100%);
+  background: var(--editor-bg-surface);
 
   :deep(.side-panel) {
-    background: #ffffff;
-    color: #1e293b;
-    border-color: #e2e8f0;
+    background: var(--editor-bg-base);
+    color: var(--editor-text-primary);
+    border-color: var(--editor-border);
   }
 
   // 兼容旧版 ProjectSidebar，强制隐藏已废弃统计行，避免和搜索框重叠
@@ -394,10 +392,10 @@ onMounted(() => {})
   flex: 1;
   min-width: 0;
   min-height: 0;
-  border: 1px solid #dbe3ef;
+  border: 1px solid var(--editor-border);
   border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  background: var(--editor-bg-base);
+  box-shadow: var(--editor-shadow-md);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -420,12 +418,12 @@ onMounted(() => {})
   gap: 8px;
   padding: 24px;
   text-align: center;
-  color: #685d53;
-  background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(247, 238, 226, 0.9));
+  color: var(--editor-text-muted);
+  background: var(--editor-bg-surface);
 }
 
 .editor-layout__placeholder strong {
-  color: #2d241d;
+  color: var(--editor-text-primary);
   font-size: 15px;
 }
 
@@ -518,21 +516,21 @@ onMounted(() => {})
       align-items: center;
       gap: 4px;
       padding: 10px 8px;
-      background: #f8fafc;
-      border: 1px solid #dbe3ef;
+      background: var(--editor-bg-surface);
+      border: 1px solid var(--editor-border);
       border-radius: 8px;
-      color: #475569;
+      color: var(--editor-text-muted);
       cursor: pointer;
       transition: all 0.2s ease;
 
       &.active {
-        color: #7b3123;
-        border-color: rgba(143, 63, 47, 0.24);
-        background: linear-gradient(180deg, #fff7ee, #f7e5d0);
+        color: var(--editor-accent);
+        border-color: var(--editor-border);
+        background: var(--editor-bg-elevated);
       }
 
       &:hover:not(.active) {
-        background: #f8eee2;
+        background: var(--editor-bg-elevated);
       }
     }
   }

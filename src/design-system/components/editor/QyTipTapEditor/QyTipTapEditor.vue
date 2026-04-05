@@ -795,33 +795,33 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--editor-content-bg);
 }
 .qy-tiptap-toolbar {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px;
-  border-bottom: 1px solid #ebeef5;
-  background: #fafafa;
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bg-surface);
 }
 .qy-tiptap-toolbar button {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--editor-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--editor-content-bg);
   padding: 4px 8px;
   font-size: 12px;
   cursor: pointer;
 }
 .qy-tiptap-toolbar button.active {
   color: #fff;
-  background: #409eff;
-  border-color: #409eff;
+  background: var(--editor-accent);
+  border-color: var(--editor-accent);
 }
 .sep {
   width: 1px;
   height: 20px;
-  background: #e4e7ed;
+  background: var(--editor-bg-elevated);
 }
 .qy-tiptap-editor__content {
   flex: 1;
@@ -832,11 +832,11 @@ onBeforeUnmount(() => {
   min-height: 380px;
   outline: none;
   line-height: 1.75;
-  color: #303133;
+  color: var(--editor-content-fg);
 }
 :deep(.qy-smart-keyword) {
-  border-bottom: 1px dashed #409eff;
-  color: #1d4ed8;
+  border-bottom: 1px dashed var(--editor-accent);
+  color: var(--editor-accent);
   cursor: pointer;
 }
 :deep(.qy-smart-keyword--character) {
