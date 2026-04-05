@@ -1,28 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { getRatingStats, getUserRating, submitRating } from '../rating'
 
-// Mock request模块 - vi.mock 会被提升到文件顶部，所以不能使用外部变量
+// Mock request模块 - 直接 mock 函数本身
 vi.mock('@/modules/social/request', () => ({
-  default: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn()
-  }
+  default: vi.fn()
 }))
 
 // 导入 mock 后的模块
 import request from '@/modules/social/request'
 
-// 获取 mock 函数
-const mockRequest = request as unknown as {
-  get: ReturnType<typeof vi.fn>
-  post: ReturnType<typeof vi.fn>
-}
-
 describe('评分服务', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(request as ReturnType<typeof vi.fn>).mockReset()
   })
 
   it('应该获取评分统计', async () => {
@@ -40,7 +30,7 @@ describe('评分服务', () => {
       }
     }
 
-    mockRequest.get.mockResolvedValue(mockStats)
+    ;(request as ReturnType<typeof vi.fn>).mockResolvedValue(mockStats)
 
     const stats = await getRatingStats('book', 'book-123')
     expect(stats).toBeDefined()
@@ -56,16 +46,16 @@ describe('评分服务', () => {
       createdAt: '2026-01-30T00:00:00Z'
     }
 
-    mockRequest.get.mockResolvedValue(mockUserRating)
+    ;(request as ReturnType<typeof vi.fn>).mockResolvedValue(mockUserRating)
 
     const rating = await getUserRating('book', 'book-123')
     expect(rating).toBeDefined()
   })
 
   it('应该提交评分', async () => {
-    mockRequest.post.mockResolvedValue({ success: true })
+    ;(request as ReturnType<typeof vi.fn>).mockResolvedValue({ success: true })
 
     await submitRating('book', 'book-123', 5)
-    expect(mockRequest.post).toHaveBeenCalled()
+    expect(request).toHaveBeenCalled()
   })
 })

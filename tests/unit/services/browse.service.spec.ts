@@ -38,7 +38,9 @@ describe('browseService', () => {
     expect(httpService.get).toHaveBeenCalledWith('/bookstore/books', {
       params: {
         q: '测试',
+        keyword: '测试',
         page: 1,
+        size: 24,
         pageSize: 24,
         sortBy: 'updateTime',
         tagMode: 'and'
@@ -73,6 +75,7 @@ describe('browseService', () => {
     expect(httpService.get).toHaveBeenCalledWith('/bookstore/books', {
       params: {
         page: 1,
+        size: 24,
         pageSize: 24,
         sortBy: 'updateTime',
         tagMode: 'and'

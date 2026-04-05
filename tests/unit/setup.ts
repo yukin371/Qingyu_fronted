@@ -353,4 +353,85 @@ vi.mock('@/design-system/services', () => ({
   }),
 }))
 
+// Mock AI API - httpService.post
+vi.mock('@/core/services/http.service', () => {
+  const mockPost = vi.fn(async (url: string, data?: any) => {
+    // Mock AI chat API
+    if (url === '/api/v1/ai/chat') {
+      return {
+        reply: '这是AI的模拟回复，用于测试',
+        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+      }
+    }
+    // Mock AI generate API
+    if (url === '/api/v1/ai/generate') {
+      return {
+        generated_text: '这是AI生成的续写内容',
+        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+      }
+    }
+    // Mock AI polish API
+    if (url === '/api/v1/ai/polish') {
+      return {
+        polished_text: '这是AI润色后的内容',
+        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+      }
+    }
+    // Mock AI expand API
+    if (url === '/api/v1/ai/expand') {
+      return {
+        expanded_text: '这是AI扩写后的内容',
+        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+      }
+    }
+    // Default response
+    return { code: 200, message: 'success', data: {} }
+  })
+
+  return {
+    httpService: {
+      post: mockPost,
+      get: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn(),
+      patch: vi.fn(),
+      setAuthToken: vi.fn(),
+      clearAuthToken: vi.fn(),
+      cancelAllRequests: vi.fn(),
+    }
+  }
+})
+
+// Mock AI Direct API
+vi.mock('@/modules/ai/api/ai-direct', () => {
+  return {
+    isDirectModeEnabled: vi.fn(() => false),
+    aiDirectApi: {
+      health: vi.fn(async () => ({ status: 'ok' })),
+      chat: vi.fn(async () => ({
+        reply: '这是AI直连模式的模拟回复',
+        usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+      })),
+      writing: {
+        continue: vi.fn(async () => ({ generated_text: '这是AI续写内容' })),
+        polish: vi.fn(async () => ({ polished_text: '这是AI润色内容' })),
+        expand: vi.fn(async () => ({ expanded_text: '这是AI扩写内容' })),
+        rewrite: vi.fn(async () => ({ rewritten_text: '这是AI改写内容' })),
+      },
+    }
+  }
+})
+
+// Mock AI API index (re-exports)
+vi.mock('@/modules/ai/api', () => ({
+  chatWithAI: vi.fn(async () => ({
+    reply: '这是chatWithAI的模拟回复',
+    usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+  })),
+  continueWriting: vi.fn(async () => ({ generated_text: '这是continueWriting的模拟回复' })),
+  polishText: vi.fn(async () => ({ polished_text: '这是polishText的模拟回复' })),
+  expandText: vi.fn(async () => ({ expanded_text: '这是expandText的模拟回复' })),
+  rewriteText: vi.fn(async () => ({ rewritten_text: '这是rewriteText的模拟回复' })),
+}))
+
 console.log('✅ Unit test setup completed')

@@ -86,10 +86,40 @@ vi.mock('@/modules/writer/stores/panelStore', () => ({
   }),
 }))
 
+const loadCharacters = vi.fn().mockResolvedValue(undefined)
+const loadCharacterRelations = vi.fn().mockResolvedValue(undefined)
+const loadLocations = vi.fn().mockResolvedValue(undefined)
+const loadOutlineTree = vi.fn().mockResolvedValue(undefined)
+const loadTimelines = vi.fn().mockResolvedValue(undefined)
+const loadTimelineEvents = vi.fn().mockResolvedValue(undefined)
+
+const writerStoreState = {
+  characters: {
+    list: [],
+    relations: [],
+    loading: false,
+  },
+  locations: { list: [] },
+  loadCharacters,
+  loadCharacterRelations,
+  loadLocations,
+  loadOutlineTree,
+  loadTimelines,
+  loadTimelineEvents,
+  outline: {
+    currentNode: null,
+    tree: [],
+    loading: false,
+  },
+  timeline: {
+    currentTimeline: null,
+    events: [],
+  },
+  setSelectedText,
+}
+
 vi.mock('@/modules/writer/stores/writerStore', () => ({
-  useWriterStore: () => ({
-    setSelectedText,
-  }),
+  useWriterStore: () => writerStoreState,
 }))
 
 import ProjectWorkspace from '../ProjectWorkspace.vue'
@@ -148,11 +178,7 @@ const WorkspaceRightPanelStub = defineComponent({
               applyMode: 'replace_document',
             }),
         }),
-        h(
-          'div',
-          { 'data-testid': 'apply-feedback-title' },
-          props.aiApplyFeedback?.title || '',
-        ),
+        h('div', { 'data-testid': 'apply-feedback-title' }, props.aiApplyFeedback?.title || ''),
       ])
   },
 })

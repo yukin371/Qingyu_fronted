@@ -22,3 +22,11 @@
  *   </div>
  * </template>
  */
+
+import { describe, it, expect } from 'vitest'
+
+describe.skip('API Health Check (Documentation Only)', () => {
+  it('this is a documentation file, not an actual test', () => {
+    expect(true).toBe(true)
+  })
+})

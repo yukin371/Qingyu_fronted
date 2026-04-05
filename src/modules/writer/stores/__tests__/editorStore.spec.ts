@@ -177,18 +177,18 @@ describe('EditorStore', () => {
   })
 
   describe('saveStatusText getter', () => {
-    it('正在保存时应该返回"正在保存..."', () => {
+    it('正在保存时应该返回"保存中..."', () => {
       const store = useEditorStore()
       store.setSaving(true)
 
-      expect(store.saveStatusText).toBe('正在保存...')
+      expect(store.saveStatusText).toBe('保存中...')
     })
 
-    it('有未保存更改时应该返回"有未保存的更改"', () => {
+    it('有未保存更改时应该返回"未保存"', () => {
       const store = useEditorStore()
       store.markDirty()
 
-      expect(store.saveStatusText).toBe('有未保存的更改')
+      expect(store.saveStatusText).toBe('未保存')
     })
 
     it('正在保存优先于未保存更改', () => {
@@ -196,25 +196,22 @@ describe('EditorStore', () => {
       store.markDirty()
       store.setSaving(true)
 
-      expect(store.saveStatusText).toBe('正在保存...')
+      expect(store.saveStatusText).toBe('保存中...')
     })
 
-    it('已保存后应该显示上次保存时间', () => {
+    it('已保存后应该返回"已保存"', () => {
       const store = useEditorStore()
       const fixedTime = new Date('2024-01-15T10:30:00').getTime()
       vi.setSystemTime(fixedTime)
       store.markSaved()
 
-      const text = store.saveStatusText
-
-      expect(text).toContain('上次保存:')
-      expect(text).toContain('10:30')
+      expect(store.saveStatusText).toBe('已保存')
     })
 
-    it('初始状态应该返回空字符串', () => {
+    it('初始状态应该返回"已保存"', () => {
       const store = useEditorStore()
 
-      expect(store.saveStatusText).toBe('')
+      expect(store.saveStatusText).toBe('已保存')
     })
   })
 
@@ -358,11 +355,11 @@ describe('EditorStore', () => {
       // 3. 用户编辑
       store.setContent('修改后的内容')
       expect(store.isDirty).toBe(true)
-      expect(store.saveStatusText).toBe('有未保存的更改')
+      expect(store.saveStatusText).toBe('未保存')
 
       // 4. 开始保存
       store.setSaving(true)
-      expect(store.saveStatusText).toBe('正在保存...')
+      expect(store.saveStatusText).toBe('保存中...')
 
       // 5. 保存完成
       const fixedTime = new Date('2024-01-15T10:30:00').getTime()
@@ -370,7 +367,7 @@ describe('EditorStore', () => {
       store.markSaved()
       store.setSaving(false)
       expect(store.isDirty).toBe(false)
-      expect(store.saveStatusText).toContain('上次保存:')
+      expect(store.saveStatusText).toBe('已保存')
     })
 
     it('场景：切换章节', () => {

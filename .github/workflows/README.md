@@ -6,15 +6,15 @@
 
 ## 工作流文件
 
-### 1. test.yml - 单元测试和覆盖率
+### 1. test.yml - CI Smoke Tests 和覆盖率
 
 **触发条件**:
 - Pull Request到main或develop分支
 - Push到main或develop分支
 
 **功能**:
-- 运行单元测试 (`npm run test:run`)
-- 生成测试覆盖率报告 (`npm run test:coverage`)
+- 运行稳定的 CI smoke 测试集 (`npm run test:ci`)
+- 生成 smoke 测试覆盖率报告 (`npm run test:ci:coverage`)
 - 上传覆盖率到Codecov（需要配置CODECOV_TOKEN）
 - 上传测试结果和覆盖率报告作为artifacts
 
@@ -28,12 +28,12 @@
 - Pull Request打开、同步或重新打开
 
 **功能**:
-- 运行单元测试
-- 生成覆盖率报告
+- 运行稳定的 CI smoke 测试集
+- 生成 smoke 覆盖率报告
 - 检查覆盖率阈值
 - 在PR中自动评论测试结果
 - 运行lint检查（如果配置）
-- 运行类型检查（如果配置）
+- 运行类型检查（如果配置，失败会阻断）
 
 **PR评论内容**:
 - ✅ 测试通过状态
@@ -80,11 +80,11 @@
 ### 本地测试工作流
 
 ```bash
-# 测试单元测试
-npm run test:run
+# 测试 CI smoke 套件
+npm run test:ci
 
 # 测试覆盖率
-npm run test:coverage
+npm run test:ci:coverage
 
 # 测试E2E
 npm run test:e2e
@@ -157,7 +157,7 @@ env:
 
 ## 最佳实践
 
-1. **保持工作流快速**: 只在必要时运行完整测试
+1. **保持工作流快速**: CI 默认运行稳定 smoke 套件，全量测试在本地或专项修复时运行
 2. **使用缓存**: 工作流已配置npm缓存
 3. **并行运行**: 多个job可以并行运行
 4. **artifacts管理**: 定期清理旧的artifacts

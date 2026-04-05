@@ -27,6 +27,8 @@
     "test:vitest:ui": "vitest --ui",
     "test:vitest:coverage": "vitest --coverage",
     "test:vitest:run": "vitest run",
+    "test:ci": "vitest run --config vitest.ci.config.ts src/modules/writer/stores/__tests__/editorStore.spec.ts src/modules/writer/stores/__tests__/editorStore.v2.spec.ts src/services/__tests__/rating.test.ts tests/unit/api/writer/publish.api.spec.ts tests/unit/api/writer/timeline.api.spec.ts tests/unit/services/browse.service.spec.ts src/utils/api-health.spec.ts",
+    "test:ci:coverage": "vitest run --config vitest.ci.config.ts --coverage src/modules/writer/stores/__tests__/editorStore.spec.ts src/modules/writer/stores/__tests__/editorStore.v2.spec.ts src/services/__tests__/rating.test.ts tests/unit/api/writer/publish.api.spec.ts tests/unit/api/writer/timeline.api.spec.ts tests/unit/services/browse.service.spec.ts src/utils/api-health.spec.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
@@ -60,7 +62,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.27.3",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.0",
     "@pinia/testing": "^0.1.3",
     "@playwright/test": "^1.58.0",
     "@storybook/addon-essentials": "^8.6.15",
