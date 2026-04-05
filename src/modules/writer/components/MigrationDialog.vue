@@ -1,103 +1,10 @@
-<template>
-  <el-dialog
-    v-model="visible"
-    title="数据迁移"
-    width="500px"
-    :close-on-click-modal="false"
-  >
-    <div v-if="!migrationStarted" class="migration-info">
-      <el-alert
-        type="info"
-        :closable="false"
-        show-icon
-      >
-        <template #title>
-          发现本地数据
-        </template>
-        <p>
-          您有 <strong>{{ localData.projectCount }}</strong> 个本地项目和
-          <strong>{{ localData.documentCount }}</strong> 个文档可以迁移到云端。
-        </p>
-      </el-alert>
-
-      <div class="migration-note">
-        <p>迁移说明：</p>
-        <ul>
-          <li>本地项目将被创建为云端项目</li>
-          <li>项目中的文档也会一并迁移</li>
-          <li>迁移完成后可选择清空本地数据</li>
-        </ul>
-      </div>
-    </div>
-
-    <div v-else-if="migrating" class="migration-progress">
-      <el-progress
-        :percentage="progressPercent"
-        :status="progressPercent === 100 ? 'success' : ''"
-      />
-      <p class="progress-status">{{ progress.status }}</p>
-    </div>
-
-    <div v-else class="migration-result">
-      <el-result
-        v-if="migrationResult?.success"
-        icon="success"
-        title="迁移成功"
-        :sub-title="`已迁移 ${migrationResult.projectsMigrated} 个项目和 ${migrationResult.documentsMigrated} 个文档`"
-      />
-      <el-result
-        v-else
-        icon="error"
-        title="迁移完成（部分失败）"
-      >
-        <template #sub-title>
-          <div>
-            <p>成功: {{ migrationResult?.projectsMigrated }} 个项目, {{ migrationResult?.documentsMigrated }} 个文档</p>
-            <p v-if="migrationResult?.errors?.length">错误: {{ migrationResult.errors.length }} 个</p>
-          </div>
-        </template>
-        <template #extra>
-          <div class="error-list">
-            <el-scrollbar max-height="150px">
-              <p v-for="(error, index) in migrationResult?.errors" :key="index" class="error-item">
-                {{ error }}
-              </p>
-            </el-scrollbar>
-          </div>
-        </template>
-      </el-result>
-
-      <el-checkbox v-model="clearLocalAfterMigration" :disabled="clearingLocal">
-        迁移成功后清空本地数据
-      </el-checkbox>
-    </div>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button v-if="!migrationStarted" @click="handleClose">取消</el-button>
-        <el-button
-          v-if="!migrationStarted"
-          type="primary"
-          :loading="checkingLocal"
-          @click="startMigration"
-        >
-          开始迁移
-        </el-button>
-        <el-button
-          v-if="migrationStarted && !migrating"
-          type="primary"
-          @click="handleComplete"
-        >
-          完成
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
-</template>
-
 <script setup lang="ts">
+/**
+ * 数据迁移对话框
+ * 使用 QyDialog (Apple 风格) 替代 el-dialog
+ */
 import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { QyDialog, QyButton, QyCheckbox, QyProgress } from '@/design-system/components'
 import {
   migrateToBackend,
   hasLocalDataToMigrate,
@@ -117,9 +24,14 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const visible = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+const localVisible = ref(props.modelValue)
+
+watch(() => props.modelValue, (v) => {
+  localVisible.value = v
+})
+
+watch(localVisible, (v) => {
+  emit('update:modelValue', v)
 })
 
 const checkingLocal = ref(false)
@@ -147,6 +59,9 @@ const progressPercent = computed(() => {
   return Math.round((progress.value.current / progress.value.total) * 100)
 })
 
+const isSuccess = computed(() => migrationResult.value?.success)
+const isFailed = computed(() => migrationResult.value && !migrationResult.value.success)
+
 // 检查本地数据
 const checkLocalData = async () => {
   checkingLocal.value = true
@@ -168,20 +83,23 @@ const startMigration = async () => {
       progress.value = p
     })
 
-    // 如果迁移成功且用户选择清空本地数据
     if (migrationResult.value.success && clearLocalAfterMigration.value) {
       clearingLocal.value = true
       try {
         await clearLocalData()
-        ElMessage.success('本地数据已清空')
       } catch (error: unknown) {
-        ElMessage.warning('清空本地数据失败: ' + (error instanceof Error ? error.message : '未知错误'))
+        console.warn('清空本地数据失败:', error)
       } finally {
         clearingLocal.value = false
       }
     }
   } catch (error: unknown) {
-    ElMessage.error('迁移失败: ' + (error instanceof Error ? error.message : '未知错误'))
+    migrationResult.value = {
+      success: false,
+      projectsMigrated: 0,
+      documentsMigrated: 0,
+      errors: [error instanceof Error ? error.message : '未知错误'],
+    }
   } finally {
     migrating.value = false
   }
@@ -195,7 +113,7 @@ const handleComplete = () => {
 
 // 关闭对话框
 const handleClose = () => {
-  visible.value = false
+  localVisible.value = false
   // 重置状态
   migrationStarted.value = false
   migrating.value = false
@@ -204,69 +122,304 @@ const handleClose = () => {
 }
 
 // 监听对话框打开
-watch(visible, (val) => {
+watch(localVisible, (val) => {
   if (val) {
     checkLocalData()
   }
 })
 </script>
 
+<template>
+  <QyDialog
+    v-model:visible="localVisible"
+    title="数据迁移"
+    size="md"
+    :show-close="true"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+  >
+    <!-- 迁移前：显示本地数据概览 -->
+    <div v-if="!migrationStarted" class="migration-info">
+      <div class="info-card">
+        <div class="info-icon">
+          <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75m-3.75 0a3 3 0 013-3h7.5M9 12h6m-6 0a3 3 0 00-3 3v6m6-6a3 3 0 013 3v6M9 12V9.75m0 0H6.75M9 12V9.75M12 15h.008v.008H12V15z" />
+          </svg>
+        </div>
+        <div class="info-content">
+          <p class="info-title">发现本地数据</p>
+          <p class="info-desc">
+            您有 <strong>{{ localData.projectCount }}</strong> 个本地项目和
+            <strong>{{ localData.documentCount }}</strong> 个文档可以迁移到云端。
+          </p>
+        </div>
+      </div>
+
+      <div class="migration-note">
+        <p class="note-title">迁移说明：</p>
+        <ul class="note-list">
+          <li>本地项目将被创建为云端项目</li>
+          <li>项目中的文档也会一并迁移</li>
+          <li>迁移完成后可选择清空本地数据</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 迁移中：进度显示 -->
+    <div v-else-if="migrating" class="migration-progress">
+      <QyProgress :percentage="progressPercent" />
+      <p class="progress-status">{{ progress.status }}</p>
+    </div>
+
+    <!-- 迁移后：结果展示 -->
+    <div v-else class="migration-result">
+      <!-- 成功状态 -->
+      <div v-if="isSuccess" class="result-card success">
+        <div class="result-icon success">
+          <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p class="result-title">迁移成功</p>
+        <p class="result-subtitle">
+          已迁移 {{ migrationResult?.projectsMigrated }} 个项目和
+          {{ migrationResult?.documentsMigrated }} 个文档
+        </p>
+      </div>
+
+      <!-- 失败状态 -->
+      <div v-else-if="isFailed" class="result-card failed">
+        <div class="result-icon failed">
+          <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+        </div>
+        <p class="result-title">迁移完成（部分失败）</p>
+        <div class="result-stats">
+          <p>成功: {{ migrationResult?.projectsMigrated }} 个项目, {{ migrationResult?.documentsMigrated }} 个文档</p>
+          <p v-if="migrationResult?.errors?.length" class="text-red-500">
+            错误: {{ migrationResult.errors.length }} 个
+          </p>
+        </div>
+        <div v-if="migrationResult?.errors?.length" class="error-list">
+          <p v-for="(error, index) in migrationResult.errors" :key="index" class="error-item">
+            {{ index + 1 }}. {{ error }}
+          </p>
+        </div>
+      </div>
+
+      <!-- 清空选项 -->
+      <label v-if="isSuccess" class="clear-checkbox">
+        <QyCheckbox v-model="clearLocalAfterMigration" :disabled="clearingLocal">
+          迁移成功后清空本地数据
+        </QyCheckbox>
+      </label>
+    </div>
+
+    <template #footer>
+      <div class="dialog-footer">
+        <QyButton v-if="!migrationStarted" variant="secondary" @click="handleClose">
+          取消
+        </QyButton>
+        <QyButton
+          v-if="!migrationStarted"
+          variant="primary"
+          :loading="checkingLocal"
+          @click="startMigration"
+        >
+          开始迁移
+        </QyButton>
+        <QyButton
+          v-if="migrationStarted && !migrating"
+          variant="primary"
+          @click="handleComplete"
+        >
+          完成
+        </QyButton>
+      </div>
+    </template>
+  </QyDialog>
+</template>
+
 <style scoped>
+/* 迁移前信息卡片 */
 .migration-info {
-  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+}
+
+.info-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 4px 0;
+}
+
+.info-desc {
+  font-size: 14px;
+  color: #1e3a8a;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.info-desc strong {
+  color: #1d4ed8;
 }
 
 .migration-note {
-  margin-top: 16px;
-  padding: 12px;
-  background: var(--el-fill-color-light);
-  border-radius: 4px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
 }
 
-.migration-note p {
+.note-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
   margin: 0 0 8px 0;
-  font-weight: 500;
 }
 
-.migration-note ul {
+.note-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
 }
 
-.migration-note li {
+.note-list li {
+  font-size: 13px;
+  color: #64748b;
   margin: 4px 0;
-  color: var(--el-text-color-secondary);
+  line-height: 1.5;
 }
 
+/* 迁移中进度 */
 .migration-progress {
-  padding: 20px 0;
+  padding: 24px 0;
   text-align: center;
 }
 
 .progress-status {
-  margin-top: 12px;
-  color: var(--el-text-color-secondary);
+  margin-top: 16px;
+  font-size: 14px;
+  color: #64748b;
 }
 
+/* 迁移结果 */
 .migration-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   text-align: center;
 }
 
+.result-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.result-card.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.result-card.failed {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-icon.success svg {
+  color: #16a34a;
+}
+
+.result-icon.failed svg {
+  color: #dc2626;
+}
+
+.result-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.result-card.success .result-title {
+  color: #15803d;
+}
+
+.result-card.failed .result-title {
+  color: #b91c1c;
+}
+
+.result-subtitle {
+  font-size: 14px;
+  color: #166534;
+  margin: 0;
+}
+
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-stats p {
+  font-size: 14px;
+  color: #7f1d1d;
+  margin: 0;
+}
+
 .error-list {
-  max-width: 400px;
-  margin: 0 auto;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
   text-align: left;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 12px;
 }
 
 .error-item {
-  margin: 4px 0;
   font-size: 12px;
-  color: var(--el-color-danger);
+  color: #dc2626;
+  margin: 4px 0;
+  line-height: 1.4;
 }
 
+.clear-checkbox {
+  cursor: pointer;
+}
+
+/* 底部按钮 */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
 }
 </style>

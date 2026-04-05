@@ -199,7 +199,6 @@ body {
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 20px;
@@ -212,7 +211,6 @@ body {
 
 .el-overlay.el-modal-dialog .admin-modal-card .el-dialog__header {
   padding: 22px 24px 18px;
-  background-color: #ffffff;
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
   border-bottom: 1px solid #e2e8f0;
   margin-right: 0;
