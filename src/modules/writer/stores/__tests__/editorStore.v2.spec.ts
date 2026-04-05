@@ -4,7 +4,7 @@ import { useEditorStore } from '../editorStore'
 
 const mockGetDocumentContents = vi.fn()
 const mockGetDocumentContent = vi.fn()
-const mockReplaceDocumentContents = vi.fn()
+const mockUpdateDocumentContent = vi.fn()
 
 const mockLoadAll = vi.fn()
 const mockUseWorldStore = vi.fn()
@@ -12,7 +12,7 @@ const mockUseWorldStore = vi.fn()
 vi.mock('@/modules/writer/api/wrapper', () => ({
   getDocumentContents: (...args: unknown[]) => mockGetDocumentContents(...args),
   getDocumentContent: (...args: unknown[]) => mockGetDocumentContent(...args),
-  replaceDocumentContents: (...args: unknown[]) => mockReplaceDocumentContents(...args),
+  updateDocumentContent: (...args: unknown[]) => mockUpdateDocumentContent(...args),
 }))
 
 vi.mock('../worldStore', () => ({
@@ -30,8 +30,20 @@ describe('EditorStore V2 Actions', () => {
     mockGetDocumentContents.mockResolvedValue({
       data: {
         contents: [
-          { paragraphId: 'p-1', order: 0, content: '第一段' },
-          { paragraphId: 'p-2', order: 1, content: '第二段' },
+          {
+            paragraphId: 'p-1',
+            order: 0,
+            content: JSON.stringify({
+              type: 'doc',
+              content: [
+                { type: 'paragraph', content: [{ type: 'text', text: '第一段' }] },
+                { type: 'paragraph', content: [{ type: 'text', text: '第二段' }] },
+              ],
+            }),
+            contentType: 'tiptap_json',
+            version: 3,
+          },
+          { paragraphId: 'p-2', order: 1, content: '第二段', version: 3 },
         ],
       },
     })
@@ -40,9 +52,11 @@ describe('EditorStore V2 Actions', () => {
 
     expect(store.currentChapterId).toBe('doc-1')
     expect(store.paragraphOrder).toEqual(['p-1', 'p-2'])
-    expect(store.paragraphs.get('p-1')?.content).toBe('第一段')
-    expect(store.content).toBe('第一段\n第二段')
-    expect(store.editorContent).toBe('第一段\n第二段')
+    expect(store.paragraphs.get('p-1')?.content).toContain('第一段')
+    expect(store.content).toContain('"type":"doc"')
+    expect(store.content).toContain('第一段')
+    expect(store.editorContent).toBe(store.content)
+    expect(store.currentVersion).toBe(3)
     expect(store.isSaving).toBe(false)
     expect(store.isDirty).toBe(false)
   })
@@ -57,8 +71,10 @@ describe('EditorStore V2 Actions', () => {
     await store.loadDocument('doc-fallback')
 
     expect(store.currentChapterId).toBe('doc-fallback')
-    expect(store.content).toBe('fallback 文本')
-    expect(store.editorContent).toBe('fallback 文本')
+    expect(store.content).toContain('"type":"doc"')
+    expect(store.content).toContain('fallback 文本')
+    expect(store.editorContent).toBe(store.content)
+    expect(store.currentVersion).toBe(0)
     expect(store.isSaving).toBe(false)
   })
 
@@ -67,13 +83,14 @@ describe('EditorStore V2 Actions', () => {
 
     await store.saveParagraphs([{ paragraphId: 'p-1', order: 0, content: 'x' }])
 
-    expect(mockReplaceDocumentContents).not.toHaveBeenCalled()
+    expect(mockUpdateDocumentContent).not.toHaveBeenCalled()
   })
 
-  it('saveParagraphs 应调用替换 API 并同步段落与内容', async () => {
+  it('saveParagraphs 应调用更新 API 并同步首段内容与版本号', async () => {
     const store = useEditorStore()
     store.setCurrentChapter('doc-save')
-    mockReplaceDocumentContents.mockResolvedValue({ data: { ok: true } })
+    store.currentVersion = 5
+    mockUpdateDocumentContent.mockResolvedValue({ data: { ok: true } })
 
     const contents = [
       { paragraphId: 'p-1', order: 0, content: 'alpha' },
@@ -81,12 +98,15 @@ describe('EditorStore V2 Actions', () => {
     ]
     await store.saveParagraphs(contents)
 
-    expect(mockReplaceDocumentContents).toHaveBeenCalledTimes(1)
-    expect(mockReplaceDocumentContents).toHaveBeenCalledWith('doc-save', contents)
-    expect(store.paragraphOrder).toEqual(['p-1', 'p-2'])
-    expect(store.paragraphs.get('p-2')?.content).toBe('beta')
-    expect(store.content).toBe('alpha\nbeta')
-    expect(store.editorContent).toBe('alpha\nbeta')
+    expect(mockUpdateDocumentContent).toHaveBeenCalledTimes(1)
+    expect(mockUpdateDocumentContent).toHaveBeenCalledWith('doc-save', {
+      content: 'alpha',
+      contentType: 'tiptap_json',
+      version: 5,
+    })
+    expect(store.content).toBe('alpha')
+    expect(store.editorContent).toBe('alpha')
+    expect(store.currentVersion).toBe(6)
     expect(store.isDirty).toBe(false)
   })
 

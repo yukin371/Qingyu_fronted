@@ -42,6 +42,8 @@ storybook-static/
 test-results/
 playwright-report/
 tests/e2e/screenshots/
+coverage/
+html/
 .serena/
 
 # Test output files

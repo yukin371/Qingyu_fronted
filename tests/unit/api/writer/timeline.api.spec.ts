@@ -203,7 +203,7 @@ describe('timelineApi', () => {
       const projectId = 'proj-456'
       const result = await timelineApi.getDetail(timelineId, projectId)
 
-      expect(httpService.get).toHaveBeenCalledWith(`/timelines/${timelineId}`, {
+      expect(httpService.get).toHaveBeenCalledWith(`/writer/timelines/${timelineId}`, {
         params: { projectId },
       } as any)
       expect(result).toEqual(mockResponse)
@@ -249,7 +249,7 @@ describe('timelineApi', () => {
       const projectId = 'proj-456'
       const result = await timelineApi.delete(timelineId, projectId)
 
-      expect(httpService.delete).toHaveBeenCalledWith(`/timelines/${timelineId}`, {
+      expect(httpService.delete).toHaveBeenCalledWith(`/writer/timelines/${timelineId}`, {
         params: { projectId },
       } as any)
       expect(result).toEqual(mockResponse)
@@ -308,7 +308,7 @@ describe('timelineApi', () => {
       const result = await timelineApi.getVisualization(timelineId)
 
       expect(httpService.get).toHaveBeenCalledWith(
-        `/timelines/${timelineId}/visualization`
+        `/writer/timelines/${timelineId}/visualization`
       )
       expect(result).toEqual(mockResponse)
     })
@@ -364,7 +364,7 @@ describe('timelineApi', () => {
       const result = await timelineApi.createEvent(timelineId, projectId, data)
 
       expect(httpService.post).toHaveBeenCalledWith(
-        `/timelines/${timelineId}/events`,
+        `/writer/timelines/${timelineId}/events`,
         data,
         { params: { projectId } }
       )
@@ -399,7 +399,7 @@ describe('timelineApi', () => {
       await timelineApi.createEvent(timelineId, projectId, data)
 
       expect(httpService.post).toHaveBeenCalledWith(
-        `/timelines/${timelineId}/events`,
+        `/writer/timelines/${timelineId}/events`,
         data,
         { params: { projectId } }
       )
@@ -427,7 +427,7 @@ describe('timelineApi', () => {
         })
 
         expect(httpService.post).toHaveBeenCalledWith(
-          '/timelines/tl-123/events',
+          '/writer/timelines/tl-123/events',
           expect.objectContaining({ eventType }),
           { params: { projectId: 'proj-456' } }
         )
@@ -465,7 +465,7 @@ describe('timelineApi', () => {
       const result = await timelineApi.listEvents(timelineId)
 
       expect(httpService.get).toHaveBeenCalledWith(
-        `/timelines/${timelineId}/events`
+        `/writer/timelines/${timelineId}/events`
       )
       expect(result).toEqual(mockResponse)
     })
@@ -506,7 +506,7 @@ describe('timelineApi', () => {
       const projectId = 'proj-456'
       const result = await timelineApi.getEvent(eventId, projectId)
 
-      expect(httpService.get).toHaveBeenCalledWith(`/events/${eventId}`, {
+      expect(httpService.get).toHaveBeenCalledWith(`/writer/timeline-events/${eventId}`, {
         params: { projectId },
       })
       expect(result).toEqual(mockResponse)
@@ -564,7 +564,7 @@ describe('timelineApi', () => {
       const result = await timelineApi.updateEvent(eventId, projectId, data)
 
       expect(httpService.put).toHaveBeenCalledWith(
-        `/events/${eventId}`,
+        `/writer/timeline-events/${eventId}`,
         data,
         { params: { projectId } }
       )
@@ -584,7 +584,7 @@ describe('timelineApi', () => {
       })
 
       expect(httpService.put).toHaveBeenCalledWith(
-        '/events/event-123',
+        '/writer/timeline-events/event-123',
         expect.objectContaining({ importance: 10 }),
         { params: { projectId: 'proj-456' } }
       )
@@ -605,7 +605,7 @@ describe('timelineApi', () => {
       }
       await timelineApi.updateEvent('event-123', 'proj-456', data)
 
-      expect(httpService.put).toHaveBeenCalledWith('/events/event-123', data, {
+      expect(httpService.put).toHaveBeenCalledWith('/writer/timeline-events/event-123', data, {
         params: { projectId: 'proj-456' },
       })
     })
@@ -640,7 +640,7 @@ describe('timelineApi', () => {
       const projectId = 'proj-456'
       const result = await timelineApi.deleteEvent(eventId, projectId)
 
-      expect(httpService.delete).toHaveBeenCalledWith(`/events/${eventId}`, {
+      expect(httpService.delete).toHaveBeenCalledWith(`/writer/timeline-events/${eventId}`, {
         params: { projectId },
       })
       expect(result).toEqual(mockResponse)
@@ -690,9 +690,7 @@ describe('timelineApi', () => {
 
       await listTimelines('proj-456')
 
-      expect(httpService.get).toHaveBeenCalledWith(
-        '/writer/projects/proj-456/timelines'
-      )
+      expect(httpService.get).toHaveBeenCalledWith('/writer/projects/proj-456/timelines')
     })
 
     it('listTimelineEvents应该调用timelineApi.listEvents', async () => {
@@ -701,7 +699,7 @@ describe('timelineApi', () => {
 
       await listTimelineEvents('tl-123')
 
-      expect(httpService.get).toHaveBeenCalledWith('/timelines/tl-123/events')
+      expect(httpService.get).toHaveBeenCalledWith('/writer/timelines/tl-123/events')
     })
 
     it('listTimelineEvents应该忽略projectId参数', async () => {
@@ -710,7 +708,7 @@ describe('timelineApi', () => {
 
       await listTimelineEvents('tl-123', 'proj-456')
 
-      expect(httpService.get).toHaveBeenCalledWith('/timelines/tl-123/events')
+      expect(httpService.get).toHaveBeenCalledWith('/writer/timelines/tl-123/events')
     })
   })
 

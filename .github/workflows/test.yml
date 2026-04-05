@@ -15,5 +15,5 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci --legacy-peer-deps
-      - run: npm run test:vitest:run
-      - run: npm run test:vitest:coverage
+      - run: npm run test:ci
+      - run: npm run test:ci:coverage
