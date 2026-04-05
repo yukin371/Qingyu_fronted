@@ -4,7 +4,7 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { reactive, watch, ref } from 'vue'
-import { QyDialog, QyButton } from '@/design-system/components'
+import { QyDialog, QyButton, QySelect } from '@/design-system/components'
 import { publishTypeOptions, publishPlatformOptions } from '@/modules/writer/api'
 
 export interface PlanForm {
@@ -84,15 +84,11 @@ const handleSave = () => {
       <!-- 发布类型 -->
       <div class="form-item">
         <label class="form-label">发布类型</label>
-        <select v-model="localForm.type" class="form-select">
-          <option
-            v-for="option in publishTypeOptions"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
+        <QySelect
+          v-model="localForm.type"
+          :options="publishTypeOptions.map(o => ({ label: o.label, value: o.value }))"
+          placeholder="选择发布类型"
+        />
       </div>
 
       <!-- 发布平台 -->
