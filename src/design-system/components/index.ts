@@ -30,8 +30,9 @@ export { default as QySlider } from './basic/QySlider'
 export { default as Slider } from './basic/QySlider'
 export { default as QyTextarea } from './basic/QyTextarea'
 export { default as Textarea } from './basic/QyTextarea'
-export { default as QySelect } from './basic/QySelect'
-export { default as Select } from './basic/QySelect'
+// QySelect: Apple-style select (form/Select) replaces basic/QySelect
+export { QySelect } from '../form/Select'
+export { Select } from '../form/Select'
 export { default as QyRate } from './basic/QyRate'
 export { default as Rate } from './basic/QyRate'
 export { default as QyScrollbar } from './basic/QyScrollbar'
@@ -44,6 +45,8 @@ export { default as QyGhostButton } from './basic/QyGhostButton'
 export { default as QyTopNav } from './navigation/QyTopNav'
 export { default as QyBottomDock } from './navigation/QyBottomDock'
 export { default as QyTabBar } from './navigation/QyTabBar'
+// QyDropdown: Apple-style dropdown from navigation/Dropdown
+export { QyDropdown } from '../navigation/Dropdown'
 
 // Advanced Components
 export { default as QyModal } from './advanced/QyModal'
@@ -80,7 +83,8 @@ export type * from './basic/QyRadio/types'
 export type * from './basic/QySwitch/types'
 export type * from './basic/QySlider/types'
 export type * from './basic/QyTextarea/types'
-export type * from './basic/QySelect/types'
+// QySelect types from form/Select (Apple-style)
+export type { SelectOption, SelectProps, SelectEmits } from '../form/Select/types'
 export type * from './basic/QyRate/types'
 export type * from './basic/QyScrollbar/types'
 export type * from './basic/QyImage/types'
@@ -88,6 +92,8 @@ export type * from './basic/QyGhostButton/types'
 export type * from './navigation/QyTopNav/types'
 export type * from './navigation/QyBottomDock/types'
 export type * from './navigation/QyTabBar/types'
+// QyDropdown types from navigation/Dropdown
+export type { QyDropdownProps, DropdownItem, DropdownTrigger, DropdownPlacement } from '../navigation/Dropdown/types'
 export type * from './advanced/QyModal/types'
 export type * from './advanced/QyLoading/types'
 export type * from './advanced/QyEmpty/types'
@@ -108,7 +114,6 @@ export type * from './data/QyPagination/types'
 import type { QyButtonProps } from './basic/QyButton/types'
 import type { QyInputProps } from './basic/QyInput/types'
 import type { QyTextareaProps } from './basic/QyTextarea/types'
-import type { QySelectProps } from './basic/QySelect/types'
 import type { QyCheckboxProps } from './basic/QyCheckbox/types'
 import type { QyRadioProps } from './basic/QyRadio/types'
 import type { QySwitchProps } from './basic/QySwitch/types'
@@ -125,7 +130,7 @@ import type { RateProps as QyRateProps } from './basic/QyRate/types'
 export type ButtonProps = QyButtonProps
 export type InputProps = QyInputProps
 export type TextareaProps = QyTextareaProps
-export type SelectProps = QySelectProps
+// SelectProps is already exported directly from ../form/Select/types above
 export type CheckboxProps = QyCheckboxProps
 export type RadioProps = QyRadioProps
 export type SwitchProps = QySwitchProps

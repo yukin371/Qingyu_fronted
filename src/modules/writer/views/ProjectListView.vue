@@ -64,11 +64,12 @@
           >
             <div class="card-header">
               <span class="project-name">{{ project.title }}</span>
-              <el-dropdown
+              <QyDropdown
                 class="project-actions"
-                @command="handleCommand($event, project)"
-                @click.stop
-                @mousedown.stop
+                :items="getProjectMenuItems(project)"
+                trigger="click"
+                placement="bottom-end"
+                @select="(key: string) => handleCommand(key, project)"
               >
                 <button
                   type="button"
@@ -79,19 +80,7 @@
                 >
                   <QyIcon name="MoreFilled" :size="16" />
                 </button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="export">
-                      导出为ZIP
-                    </el-dropdown-item>
-                    <el-dropdown-item command="publish" :disabled="project.status === 'published'">
-                      一键发布
-                    </el-dropdown-item>
-                    <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              </QyDropdown>
             </div>
 
             <div class="project-description">
@@ -218,6 +207,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
+import { QyDropdown } from '@/design-system/navigation/Dropdown'
 // 使用后端 API 的 writerStore，而不是 IndexedDB 的旧 store
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { ElMessage } from 'element-plus'
@@ -375,6 +365,13 @@ const removeCover = () => {
   coverPreviewUrl.value = ''
   newProject.value.coverUrl = ''
 }
+
+const getProjectMenuItems = (project: any) => [
+  { key: 'export', label: '导出为ZIP' },
+  { key: 'publish', label: '一键发布', disabled: project.status === 'published' },
+  { key: 'edit', label: '编辑' },
+  { key: 'delete', label: '删除', danger: true, divider: true },
+]
 
 const handleCommand = async (command: string, project: any) => {
   if (command === 'export') {

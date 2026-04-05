@@ -6,24 +6,16 @@
         <div class="project-title" :title="currentProjectTitle">
           {{ currentProjectTitle || '未命名项目' }}
         </div>
-        <el-dropdown trigger="click" @command="handleProjectSwitch">
+        <QyDropdown
+          :items="projectSwitchItems"
+          :disabled="recentProjects.length <= 1"
+          @select="handleProjectSwitch"
+        >
           <button type="button" class="recent-switch-btn" :disabled="recentProjects.length <= 1">
             最近项目
             <QyIcon name="ArrowDown" :size="12" class="recent-switch-caret" />
           </button>
-          <template #dropdown>
-            <el-dropdown-menu class="project-switch-menu">
-              <el-dropdown-item
-                v-for="p in recentProjects"
-                :key="p.id"
-                :command="p.id"
-                :disabled="p.id === internalProjectId"
-              >
-                {{ p.title }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+        </QyDropdown>
       </div>
     </div>
 
@@ -136,24 +128,14 @@
 
         <!-- 操作菜单 -->
         <div class="item-actions" @click.stop>
-          <el-dropdown
-            trigger="click"
-            @command="(cmd: 'edit' | 'delete') => handleAction(cmd, row.chapter)"
+          <QyDropdown
+            :items="chapterActionItems"
+            @select="(cmd: string) => handleAction(cmd as 'edit' | 'delete', row.chapter)"
           >
             <div class="action-btn">
               <QyIcon name="MoreFilled" :size="14" />
             </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="edit">
-                  <QyIcon name="Edit" :size="14" /> 重命名/设置
-                </el-dropdown-item>
-                <el-dropdown-item command="delete" class="danger-item">
-                  <QyIcon name="Delete" :size="14" /> 删除章节
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          </QyDropdown>
         </div>
       </div>
 
@@ -170,7 +152,8 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { QyGhostButton, QyIcon } from '@/design-system/components'
+import { QyGhostButton, QyIcon, QyDropdown } from '@/design-system/components'
+import type { DropdownItem } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { sanitizeText } from '@/utils/sanitize'
@@ -268,6 +251,21 @@ const recentProjects = computed(() => {
     return tb - ta
   })
 })
+
+// 项目切换菜单项
+const projectSwitchItems = computed<DropdownItem[]>(() =>
+  recentProjects.value.map((p) => ({
+    key: p.id,
+    label: p.title,
+    disabled: p.id === internalProjectId.value,
+  })),
+)
+
+// 章节操作菜单项
+const chapterActionItems: DropdownItem[] = [
+  { key: 'edit', label: '重命名/设置', icon: 'icon-edit' },
+  { key: 'delete', label: '删除章节', icon: 'icon-delete', danger: true, divider: true },
+]
 
 const handleProjectSwitch = (projectId: string | number) => {
   internalProjectId.value = String(projectId)
@@ -662,42 +660,6 @@ onBeforeUnmount(() => {
   line-height: 1.2;
 }
 
-// 下拉弹层采用不透明背景，避免与页面内容视觉重叠
-:global(.project-switcher-popper) {
-  background: #ffffff !important;
-  border: 1px solid #dbe3ef !important;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14) !important;
-  backdrop-filter: none !important;
-  opacity: 1 !important;
-}
-
-:global(.project-switcher-popper .el-scrollbar__view),
-:global(.project-switcher-popper .el-select-dropdown__list) {
-  background: #ffffff !important;
-}
-
-:global(.project-switcher-popper .el-select-dropdown__item) {
-  min-height: 32px;
-  height: auto;
-  line-height: 1.4;
-  padding-top: 7px;
-  padding-bottom: 7px;
-  white-space: normal;
-  word-break: break-all;
-}
-
-:global(.project-switcher-popper .el-select-dropdown__item.is-selected) {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  font-weight: 600;
-}
-
-:global(.project-switch-menu) {
-  background: #ffffff !important;
-  border: 1px solid #dbe3ef !important;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14) !important;
-}
-
 // 2. 工具栏
 .sidebar-toolbar {
   padding: 10px 12px;
@@ -1062,9 +1024,5 @@ onBeforeUnmount(() => {
   color: #1d4ed8;
   font-weight: bold;
   background-color: #fef3c7;
-}
-
-.danger-item {
-  color: #dc2626;
 }
 </style>

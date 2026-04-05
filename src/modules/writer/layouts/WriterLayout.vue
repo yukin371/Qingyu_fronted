@@ -27,7 +27,12 @@
             <QyIcon name="ArrowLeft" :size="16" />
             返回书城
           </QyButton>
-          <el-dropdown trigger="click" @command="handleUserCommand">
+          <QyDropdown
+            :items="userMenuItems"
+            trigger="click"
+            placement="bottom-end"
+            @select="handleUserCommand"
+          >
             <button class="avatar-trigger">
               <QyAvatar
                 v-if="avatarUrl"
@@ -42,13 +47,7 @@
               </div>
               <span class="user-name">{{ userName }}</span>
             </button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          </QyDropdown>
         </div>
       </div>
     </header>
@@ -65,7 +64,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { QyAvatar, QyButton, QyIcon } from '@/design-system/components'
+import { QyAvatar, QyButton, QyIcon, QyDropdown } from '@/design-system/components'
 
 const router = useRouter()
 const route = useRoute()
@@ -83,16 +82,21 @@ const navItems = [
 
 const hideWriterHeader = computed(() => route.name === 'writer-project')
 
+const userMenuItems = [
+  { key: 'profile', label: '个人中心' },
+  { key: 'logout', label: '退出登录', danger: true },
+]
+
 const goBookstore = () => router.push('/bookstore')
 const goProfile = () => router.push('/account/profile')
 
-const handleUserCommand = async (command: string) => {
-  if (command === 'profile') {
+const handleUserCommand = async (key: string) => {
+  if (key === 'profile') {
     goProfile()
     return
   }
 
-  if (command === 'logout') {
+  if (key === 'logout') {
     try {
       await authStore.logout()
     } finally {
