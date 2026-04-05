@@ -92,7 +92,9 @@
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">第 5 章答辩直达</h2>
-          <p class="section-subtitle">按论文小节组织：页面直达 + 建议展示代码文件，覆盖 5.1 ~ 5.4。</p>
+          <p class="section-subtitle">
+            按论文小节组织：页面直达 + 建议展示代码文件，覆盖 5.1 ~ 5.4。
+          </p>
         </div>
         <div class="showcase-grid">
           <div v-for="group in thesisShowcaseGroups" :key="group.key" class="showcase-card">
@@ -171,7 +173,12 @@
                 <QyBadge v-if="demo.new" type="text" text="NEW" color="primary" />
                 <QyBadge v-if="demo.updated" type="text" text="UPDATED" color="info" />
                 <QyBadge v-if="demo.business" type="text" text="业务页面" color="warning" />
-                <QyBadge v-else type="text" :text="getCategoryName(demo.category)" color="success" />
+                <QyBadge
+                  v-else
+                  type="text"
+                  :text="getCategoryName(demo.category)"
+                  color="success"
+                />
               </div>
             </div>
             <div class="card-body">
@@ -244,8 +251,8 @@
               关于 Demo Hub
             </h3>
             <p>
-              Demo Hub 是青羽项目的组件库演示中心，汇集了所有用于快速验证页面样式和组件功能的 Demo 页面。
-              所有 Demo 页面自动使用 Mock 数据，无需依赖后端服务。
+              Demo Hub 是青羽项目的组件库演示中心，汇集了所有用于快速验证页面样式和组件功能的 Demo
+              页面。 所有 Demo 页面自动使用 Mock 数据，无需依赖后端服务。
             </p>
           </div>
           <div class="help-section">
@@ -254,8 +261,8 @@
               Mock 数据模式
             </h3>
             <p>
-              点击任意 Demo 页面时，会自动添加 <code>?test=true</code> 参数。
-              该参数告诉页面使用 Mock 数据而非真实 API 数据，方便前端开发和样式调试。
+              点击任意 Demo 页面时，会自动添加 <code>?test=true</code> 参数。 该参数告诉页面使用
+              Mock 数据而非真实 API 数据，方便前端开发和样式调试。
             </p>
           </div>
           <div class="help-section">
@@ -263,9 +270,7 @@
               <QyIcon name="code" size="sm" />
               添加新 Demo
             </h3>
-            <p>
-              要添加新的 Demo 页面，请参考以下步骤：
-            </p>
+            <p>要添加新的 Demo 页面，请参考以下步骤：</p>
             <ol>
               <li>在 <code>src/views/demo/</code> 目录下创建新的 Vue 文件</li>
               <li>在 <code>src/views/demo/mock-data.ts</code> 中添加对应的 Mock 数据</li>
@@ -372,7 +377,7 @@ const demoPages = ref<DemoPage[]>([
     componentCount: 8,
     lastUpdated: '2024-01-15',
     new: true,
-    route: '/demo/qingyu-components'
+    route: '/demo/qingyu-components',
   },
   {
     key: 'navigation-components',
@@ -383,7 +388,7 @@ const demoPages = ref<DemoPage[]>([
     category: 'components',
     componentCount: 5,
     lastUpdated: '2024-01-10',
-    route: '/demo/navigation-components'
+    route: '/demo/navigation-components',
   },
   {
     key: 'advanced-components',
@@ -395,33 +400,48 @@ const demoPages = ref<DemoPage[]>([
     componentCount: 6,
     lastUpdated: '2024-01-12',
     updated: true,
-    route: '/demo/advanced-components'
+    route: '/demo/advanced-components',
   },
 
   // ===== 风格展示 Demo =====
   {
+    key: 'style-comparison',
+    title: 'Apple vs Material 风格对比',
+    description:
+      '直观对比 Apple 和 Material Design 3 的弹窗、下拉栏、按钮风格，解决 Element Plus 痛点。',
+    icon: 'palette',
+    color: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+    category: 'style',
+    componentCount: 6,
+    lastUpdated: '2026-04-05',
+    new: true,
+    route: '/demo/style-comparison',
+  },
+  {
     key: 'digital-atelier',
     title: 'Digital Atelier 深空编辑器',
-    description: '深空科幻风格的写作编辑器主题，玻璃拟态面板、羊皮纸手稿区、星空背景粒子效果，按 F11 进入沉浸模式。',
+    description:
+      '深空科幻风格的写作编辑器主题，玻璃拟态面板、羊皮纸手稿区、星空背景粒子效果，按 F11 进入沉浸模式。',
     icon: 'sparkles',
     color: 'linear-gradient(135deg, #7de9ff 0%, #cebdff 100%)',
     category: 'style',
     componentCount: 12,
     lastUpdated: '2026-03-22',
     new: true,
-    route: '/writer/atelier'
+    route: '/writer/atelier',
   },
   {
     key: 'tailwind-v4-design-system',
     title: 'Tailwind v4 组件库',
-    description: '基于 Tailwind v4 CSS-First 配置的新一代组件库，包含完整的设计令牌系统和 CVA 变体管理。',
+    description:
+      '基于 Tailwind v4 CSS-First 配置的新一代组件库，包含完整的设计令牌系统和 CVA 变体管理。',
     icon: 'sparkles',
     color: 'linear-gradient(135deg, #06b6d4 0%, #2563eb 100%)',
     category: 'style',
     componentCount: 20,
     lastUpdated: '2026-02-09',
     route: '/demo/tailwind-v4-design-system',
-    new: true
+    new: true,
   },
   {
     key: 'apple-style',
@@ -432,7 +452,7 @@ const demoPages = ref<DemoPage[]>([
     category: 'style',
     componentCount: 4,
     lastUpdated: '2024-01-08',
-    route: '/demo/apple-style'
+    route: '/demo/apple-style',
   },
   {
     key: 'qy-icon',
@@ -443,7 +463,7 @@ const demoPages = ref<DemoPage[]>([
     category: 'style',
     componentCount: 50,
     lastUpdated: '2024-01-05',
-    route: '/demo/qy-icon'
+    route: '/demo/qy-icon',
   },
 
   // ===== 功能验证 Demo =====
@@ -457,7 +477,7 @@ const demoPages = ref<DemoPage[]>([
     componentCount: 12,
     lastUpdated: '2024-01-20',
     updated: true,
-    route: '/demo/typescript-fixes'
+    route: '/demo/typescript-fixes',
   },
   {
     key: 'register-simple-demo',
@@ -469,7 +489,7 @@ const demoPages = ref<DemoPage[]>([
     componentCount: 1,
     lastUpdated: '2026-02-16',
     new: true,
-    route: '/demo/register-simple'
+    route: '/demo/register-simple',
   },
 
   // ===== 业务页面（Mock 数据验证） =====
@@ -484,7 +504,7 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/bookstore',
-    business: true
+    business: true,
   },
   {
     key: 'bookstore-browse',
@@ -497,7 +517,7 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/bookstore/browse',
-    business: true
+    business: true,
   },
   {
     key: 'bookstore-detail',
@@ -510,7 +530,7 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/bookstore/books-demo',
-    business: true
+    business: true,
   },
   {
     key: 'writer-projects',
@@ -523,7 +543,7 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/writer/projects',
-    business: true
+    business: true,
   },
   {
     key: 'user-profile',
@@ -536,7 +556,7 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/account/profile',
-    business: true
+    business: true,
   },
   {
     key: 'community-posts',
@@ -549,8 +569,8 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-02-09',
     new: true,
     route: '/community',
-    business: true
-  }
+    business: true,
+  },
 ])
 
 const businessEntrances = ref<BusinessEntranceGroup[]>([
@@ -570,8 +590,8 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
       { key: 'profile', label: '个人中心', route: '/account/profile' },
       { key: 'login', label: '登录页', route: '/login' },
       { key: 'register', label: '注册页', route: '/register' },
-      { key: 'register-simple-demo', label: '注册Demo', route: '/demo/register-simple' }
-    ]
+      { key: 'register-simple-demo', label: '注册Demo', route: '/demo/register-simple' },
+    ],
   },
   {
     key: 'author',
@@ -582,12 +602,16 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
     items: [
       { key: 'writer-dashboard', label: '创作工作台', route: '/writer/dashboard' },
       { key: 'writer-projects', label: '项目列表', route: '/writer/projects' },
-      { key: 'writer-editor', label: '章节编辑', route: '/writer/project/project-1?chapterId=chapter-1' },
+      {
+        key: 'writer-editor',
+        label: '章节编辑',
+        route: '/writer/project/project-1?chapterId=chapter-1',
+      },
       { key: 'writer-publish', label: '发布管理', route: '/writer/publish' },
       { key: 'writer-statistics', label: '数据统计', route: '/writer/statistics' },
       { key: 'writer-revenue', label: '稿费收入', route: '/writer/revenue' },
-      { key: 'become-author', label: '成为作者引导', route: '/writer/become-author' }
-    ]
+      { key: 'become-author', label: '成为作者引导', route: '/writer/become-author' },
+    ],
   },
   {
     key: 'admin',
@@ -599,8 +623,8 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
       { key: 'admin-dashboard', label: '后台仪表板', route: '/admin/dashboard' },
       { key: 'admin-users', label: '用户管理', route: '/admin/users' },
       { key: 'admin-reviews', label: '内容审核', route: '/admin/reviews' },
-      { key: 'admin-categories', label: '分类管理', route: '/admin/categories' }
-    ]
+      { key: 'admin-categories', label: '分类管理', route: '/admin/categories' },
+    ],
   },
   {
     key: 'ai',
@@ -612,9 +636,9 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
       { key: 'ai-overview', label: 'AI 总览', route: '/admin/ai/overview' },
       { key: 'ai-providers', label: '提供商管理', route: '/admin/ai/providers' },
       { key: 'ai-models', label: '模型管理', route: '/admin/ai/models' },
-      { key: 'ai-health', label: '健康检查', route: '/admin/ai/health' }
-    ]
-  }
+      { key: 'ai-health', label: '健康检查', route: '/admin/ai/health' },
+    ],
+  },
 ])
 
 const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
@@ -623,48 +647,162 @@ const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
     title: '5.1 读者端功能模块',
     description: '建议按登录 -> 首页 -> 浏览 -> 详情 -> 阅读 -> 互动的顺序演示。',
     items: [
-      { section: '5.1.1', title: '登录注册界面', route: '/login', frontendFile: 'src/modules/user/views/AuthenticationView.vue', backendFile: 'Qingyu_backend/service/auth/auth_service.go' },
-      { section: '5.1.2', title: '首页界面', route: '/bookstore', frontendFile: 'src/modules/bookstore/views/HomeView.vue', backendFile: 'Qingyu_backend/service/bookstore/bookstore_service.go' },
-      { section: '5.1.3', title: '书城浏览界面', route: '/bookstore/browse', frontendFile: 'src/modules/bookstore/views/BrowseBooksView.vue', backendFile: 'Qingyu_backend/service/search/search.go' },
-      { section: '5.1.4', title: '书籍详情界面', route: '/bookstore/books-demo', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/bookstore/book_detail_service.go' },
-      { section: '5.1.5', title: '章节阅读界面', route: '/bookstore/reader-demo', frontendFile: 'src/modules/reader/views/ReaderView.vue', backendFile: 'Qingyu_backend/service/reader/chapter_service.go' },
-      { section: '5.1.6', title: '评论发表界面', route: '/bookstore/books-demo', frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue', backendFile: 'Qingyu_backend/service/social/comment_service.go' },
-      { section: '5.1.7', title: '收藏管理界面', route: '/reading/collections', frontendFile: 'src/modules/reader/views/CollectionsView.vue', backendFile: 'Qingyu_backend/service/reader/collection_service.go' },
-      { section: '5.1.8', title: '个人中心界面', route: '/account/profile', frontendFile: 'src/modules/user/views/ProfileView.vue', backendFile: 'Qingyu_backend/service/user/user_service.go' }
-    ]
+      {
+        section: '5.1.1',
+        title: '登录注册界面',
+        route: '/login',
+        frontendFile: 'src/modules/user/views/AuthenticationView.vue',
+        backendFile: 'Qingyu_backend/service/auth/auth_service.go',
+      },
+      {
+        section: '5.1.2',
+        title: '首页界面',
+        route: '/bookstore',
+        frontendFile: 'src/modules/bookstore/views/HomeView.vue',
+        backendFile: 'Qingyu_backend/service/bookstore/bookstore_service.go',
+      },
+      {
+        section: '5.1.3',
+        title: '书城浏览界面',
+        route: '/bookstore/browse',
+        frontendFile: 'src/modules/bookstore/views/BrowseBooksView.vue',
+        backendFile: 'Qingyu_backend/service/search/search.go',
+      },
+      {
+        section: '5.1.4',
+        title: '书籍详情界面',
+        route: '/bookstore/books-demo',
+        frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue',
+        backendFile: 'Qingyu_backend/service/bookstore/book_detail_service.go',
+      },
+      {
+        section: '5.1.5',
+        title: '章节阅读界面',
+        route: '/bookstore/reader-demo',
+        frontendFile: 'src/modules/reader/views/ReaderView.vue',
+        backendFile: 'Qingyu_backend/service/reader/chapter_service.go',
+      },
+      {
+        section: '5.1.6',
+        title: '评论发表界面',
+        route: '/bookstore/books-demo',
+        frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue',
+        backendFile: 'Qingyu_backend/service/social/comment_service.go',
+      },
+      {
+        section: '5.1.7',
+        title: '收藏管理界面',
+        route: '/reading/collections',
+        frontendFile: 'src/modules/reader/views/CollectionsView.vue',
+        backendFile: 'Qingyu_backend/service/reader/collection_service.go',
+      },
+      {
+        section: '5.1.8',
+        title: '个人中心界面',
+        route: '/account/profile',
+        frontendFile: 'src/modules/user/views/ProfileView.vue',
+        backendFile: 'Qingyu_backend/service/user/user_service.go',
+      },
+    ],
   },
   {
     key: 'chapter-5-2',
     title: '5.2 作者端功能模块',
     description: '建议按项目管理 -> 编辑创作 -> AI辅助 -> 发布管理 -> 数据统计 -> 稿费收入演示。',
     items: [
-      { section: '5.2.1', title: '作品管理界面', route: '/writer/projects', frontendFile: 'src/modules/writer/views/ProjectListView.vue', backendFile: 'Qingyu_backend/service/writer/project/project_service.go' },
-      { section: '5.2.2', title: '章节编写界面', route: '/writer/project/project-1?chapterId=chapter-1', frontendFile: 'src/modules/writer/views/ProjectWorkspace.vue', backendFile: 'Qingyu_backend/service/writer/document/document_service.go' },
-      { section: '5.2.3', title: 'AI辅助创作界面', route: '/writer/project/project-1?chapterId=chapter-1', frontendFile: 'src/modules/writer/components/ai/AIPanel.vue', backendFile: 'Qingyu_backend/service/ai/chat_service.go' },
-      { section: '5.2.4', title: '发布管理界面', route: '/writer/publish', frontendFile: 'src/modules/writer/views/PublishManagementView.vue', backendFile: 'Qingyu_backend/service/writer/publish_service.go' },
-      { section: '5.2.5', title: '数据统计界面', route: '/writer/statistics', frontendFile: 'src/modules/writer/views/StatisticsView.vue', backendFile: 'Qingyu_backend/service/shared/stats/stats_service.go' },
-      { section: '5.2.6', title: '稿费收入界面', route: '/writer/revenue', frontendFile: 'src/modules/writer/views/RevenueView.vue', backendFile: 'Qingyu_backend/service/finance/revenue_service.go' }
-    ]
+      {
+        section: '5.2.1',
+        title: '作品管理界面',
+        route: '/writer/projects',
+        frontendFile: 'src/modules/writer/views/ProjectListView.vue',
+        backendFile: 'Qingyu_backend/service/writer/project/project_service.go',
+      },
+      {
+        section: '5.2.2',
+        title: '章节编写界面',
+        route: '/writer/project/project-1?chapterId=chapter-1',
+        frontendFile: 'src/modules/writer/views/ProjectWorkspace.vue',
+        backendFile: 'Qingyu_backend/service/writer/document/document_service.go',
+      },
+      {
+        section: '5.2.3',
+        title: 'AI辅助创作界面',
+        route: '/writer/project/project-1?chapterId=chapter-1',
+        frontendFile: 'src/modules/writer/components/ai/AIPanel.vue',
+        backendFile: 'Qingyu_backend/service/ai/chat_service.go',
+      },
+      {
+        section: '5.2.4',
+        title: '发布管理界面',
+        route: '/writer/publish',
+        frontendFile: 'src/modules/writer/views/PublishManagementView.vue',
+        backendFile: 'Qingyu_backend/service/writer/publish_service.go',
+      },
+      {
+        section: '5.2.5',
+        title: '数据统计界面',
+        route: '/writer/statistics',
+        frontendFile: 'src/modules/writer/views/StatisticsView.vue',
+        backendFile: 'Qingyu_backend/service/shared/stats/stats_service.go',
+      },
+      {
+        section: '5.2.6',
+        title: '稿费收入界面',
+        route: '/writer/revenue',
+        frontendFile: 'src/modules/writer/views/RevenueView.vue',
+        backendFile: 'Qingyu_backend/service/finance/revenue_service.go',
+      },
+    ],
   },
   {
     key: 'chapter-5-3',
     title: '5.3 管理员端功能模块',
     description: '建议按用户管理 -> 内容审核 -> 分类管理演示。',
     items: [
-      { section: '5.3.1', title: '用户管理界面', route: '/admin/users', frontendFile: 'src/modules/admin/views/UserManagement.vue', backendFile: 'Qingyu_backend/service/admin/user_admin_service.go' },
-      { section: '5.3.2', title: '内容审核界面', route: '/admin/reviews', frontendFile: 'src/modules/admin/views/ReviewManagement.vue', backendFile: 'Qingyu_backend/service/audit/content_audit_service.go' },
-      { section: '5.3.3', title: '分类管理界面', route: '/admin/categories', frontendFile: 'src/modules/admin/views/CategoryManagement.vue', backendFile: 'Qingyu_backend/service/bookstore/category_service.go' }
-    ]
+      {
+        section: '5.3.1',
+        title: '用户管理界面',
+        route: '/admin/users',
+        frontendFile: 'src/modules/admin/views/UserManagement.vue',
+        backendFile: 'Qingyu_backend/service/admin/user_admin_service.go',
+      },
+      {
+        section: '5.3.2',
+        title: '内容审核界面',
+        route: '/admin/reviews',
+        frontendFile: 'src/modules/admin/views/ReviewManagement.vue',
+        backendFile: 'Qingyu_backend/service/audit/content_audit_service.go',
+      },
+      {
+        section: '5.3.3',
+        title: '分类管理界面',
+        route: '/admin/categories',
+        frontendFile: 'src/modules/admin/views/CategoryManagement.vue',
+        backendFile: 'Qingyu_backend/service/bookstore/category_service.go',
+      },
+    ],
   },
   {
     key: 'chapter-5-4',
     title: '5.4 AI服务模块',
     description: '建议展示模型路由、提供商配置和健康检查。',
     items: [
-      { section: '5.4.1', title: 'AI网关与模型路由', route: '/admin/ai/overview', frontendFile: 'src/modules/ai/views/AIMainView.vue', backendFile: 'Qingyu_backend/service/ai/ai_service.go' },
-      { section: '5.4.2', title: 'RAG检索增强服务', route: '/admin/ai/health', frontendFile: 'src/modules/ai/views/AIHealthView.vue', backendFile: 'Qingyu_backend/service/ai/context_service.go' }
-    ]
-  }
+      {
+        section: '5.4.1',
+        title: 'AI网关与模型路由',
+        route: '/admin/ai/overview',
+        frontendFile: 'src/modules/ai/views/AIMainView.vue',
+        backendFile: 'Qingyu_backend/service/ai/ai_service.go',
+      },
+      {
+        section: '5.4.2',
+        title: 'RAG检索增强服务',
+        route: '/admin/ai/health',
+        frontendFile: 'src/modules/ai/views/AIHealthView.vue',
+        backendFile: 'Qingyu_backend/service/ai/context_service.go',
+      },
+    ],
+  },
 ])
 
 // Categories
@@ -673,7 +811,7 @@ const categories = [
   { key: 'components', label: '基础组件', icon: 'component' },
   { key: 'style', label: '风格展示', icon: 'palette' },
   { key: 'validation', label: '功能验证', icon: 'check-circle' },
-  { key: 'business', label: '业务页面', icon: 'store' }
+  { key: 'business', label: '业务页面', icon: 'store' },
 ]
 
 // Quick links
@@ -684,7 +822,7 @@ const quickLinks = ref([
     description: '组件库文档和交互式演示 (需要先运行 npm run storybook)',
     icon: 'book',
     url: 'http://localhost:6006',
-    external: true
+    external: true,
   },
   {
     key: 'api-docs',
@@ -692,7 +830,7 @@ const quickLinks = ref([
     description: '后端 API 接口文档 (Swagger/Scalar)',
     icon: 'api',
     url: 'http://localhost:8080/swagger.html',
-    external: true
+    external: true,
   },
   {
     key: 'github',
@@ -700,8 +838,8 @@ const quickLinks = ref([
     description: '查看源代码和提交 Issue',
     icon: 'github',
     url: 'https://github.com/yukin371/Qingyu',
-    external: true
-  }
+    external: true,
+  },
 ])
 
 // Computed
@@ -716,7 +854,7 @@ const totalComponents = computed(() => {
 })
 
 const businessPageCount = computed(() => {
-  return demoPages.value.filter(demo => demo.business).length
+  return demoPages.value.filter((demo) => demo.business).length
 })
 
 const filteredDemos = computed(() => {
@@ -724,16 +862,17 @@ const filteredDemos = computed(() => {
 
   // Filter by category
   if (selectedCategory.value !== 'all') {
-    demos = demos.filter(demo => demo.category === selectedCategory.value)
+    demos = demos.filter((demo) => demo.category === selectedCategory.value)
   }
 
   // Filter by search query
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
-    demos = demos.filter(demo =>
-      demo.title.toLowerCase().includes(query) ||
-      demo.description.toLowerCase().includes(query) ||
-      demo.key.toLowerCase().includes(query)
+    demos = demos.filter(
+      (demo) =>
+        demo.title.toLowerCase().includes(query) ||
+        demo.description.toLowerCase().includes(query) ||
+        demo.key.toLowerCase().includes(query),
     )
   }
 
@@ -752,13 +891,13 @@ const showHelp = () => {
 const navigateToDemo = (demo: DemoPage) => {
   // Automatically add ?test=true parameter
   const url = `${demo.route}?test=true`
-  
+
   if (demo.external && demo.url) {
     window.open(url, '_blank')
   } else {
     router.push(url)
   }
-  
+
   // Log business page navigation for debugging
   if (demo.business) {
     console.log('[DemoHub] Navigating to business page with mock data:', demo.route)
@@ -774,7 +913,7 @@ const getCategoryName = (category: string): string => {
     components: '基础组件',
     style: '风格展示',
     validation: '功能验证',
-    business: '业务页面'
+    business: '业务页面',
   }
   return categoryMap[category] || category
 }
@@ -783,7 +922,7 @@ const getFilteredDemos = (category: string) => {
   if (category === 'all') {
     return demoPages.value
   }
-  return demoPages.value.filter(demo => demo.category === category)
+  return demoPages.value.filter((demo) => demo.category === category)
 }
 
 // Lifecycle
@@ -825,8 +964,13 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(50px, 50px) rotate(180deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(50px, 50px) rotate(180deg);
+  }
 }
 
 .hero-content {
@@ -854,7 +998,10 @@ onMounted(() => {
   line-height: 1.1;
   color: #1a1a1a;
   margin-bottom: 20px;
-  font-family: "Inter", -apple-system, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    sans-serif;
 
   .gradient-text {
     background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -903,7 +1050,7 @@ onMounted(() => {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
-  
+
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
@@ -1427,7 +1574,8 @@ onMounted(() => {
     color: #ef4444;
   }
 
-  ol, ul {
+  ol,
+  ul {
     padding-left: 24px;
     margin: 0;
 

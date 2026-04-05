@@ -37,10 +37,10 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: to => ({ path: '/bookstore', query: to.query }) },
+  { path: '/', redirect: (to) => ({ path: '/bookstore', query: to.query }) },
 
   // 搜索路由重定向（兼容旧路径）
-  { path: '/search', redirect: to => ({ path: '/bookstore/search', query: to.query }) },
+  { path: '/search', redirect: (to) => ({ path: '/bookstore/search', query: to.query }) },
 
   ...authRoutes,
   ...bookstoreRoutes,
@@ -66,12 +66,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/DemoHub.vue'),
     meta: {
       title: '青羽 Demo 中心',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/index',
-    redirect: '/demo'
+    redirect: '/demo',
   },
 
   // 演示页面（支持 ?test=true 自动启用 Mock 数据）
@@ -81,8 +81,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/AppleStyleDemo.vue'),
     meta: {
       title: 'Apple 风格组件演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/tailwind-v4-design-system',
@@ -90,8 +90,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/TailwindV4DesignSystem.vue'),
     meta: {
       title: 'Tailwind v4 组件库',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/qingyu-components',
@@ -99,8 +99,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/QingyuComponentsDemo.vue'),
     meta: {
       title: '青羽组件库演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/navigation-components',
@@ -108,8 +108,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/NavigationComponentsDemo.vue'),
     meta: {
       title: '青羽导航组件演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/advanced-components',
@@ -117,8 +117,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/AdvancedComponentsDemo.vue'),
     meta: {
       title: '青羽高级组件演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/typescript-fixes',
@@ -126,8 +126,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/TypeScriptFixDemo.vue'),
     meta: {
       title: 'TypeScript修复验证Demo',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/qy-badge',
@@ -135,8 +135,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/QyBadgeDemo.vue'),
     meta: {
       title: 'QyBadge组件演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/register-simple',
@@ -144,12 +144,21 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/demo/RegisterDemo.vue'),
     meta: {
       title: '简洁注册演示',
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
+  },
+  {
+    path: '/demo/style-comparison',
+    name: 'StyleComparisonDemo',
+    component: () => import('@/views/demo/StyleComparisonDemo.vue'),
+    meta: {
+      title: 'Apple vs Material 风格对比',
+      layout: 'blank',
+    },
   },
   {
     path: '/demo/book-detail',
-    redirect: '/bookstore/books-demo'
+    redirect: '/bookstore/books-demo',
   },
 
   // 404 处理 (必须放在最后)
