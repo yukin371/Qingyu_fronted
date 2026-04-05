@@ -447,31 +447,33 @@ const handleCopyResult = async () => {
   gap: 8px;
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
+/* 深色/暖纸/专注模式 — 统一使用 CSS 变量 */
+[data-editor-theme="dark"],
+[data-editor-theme="sepia"],
+[data-editor-theme="focus"] {
   .context-section,
   .tool-group {
-    background: #1a1a1a;
-    border-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-color: var(--editor-border, #2d2d2d);
   }
 
   .section-title,
   .tool-group h4 {
-    color: #e5e5e5;
+    color: var(--editor-text-primary, #e5e5e5);
   }
 
   .context-group h4 {
-    color: #c0c4cc;
+    color: var(--editor-text-secondary, #c0c4cc);
   }
 
   .result-section {
-    background: #1a3a52;
-    border-color: #2d5a7a;
+    background: var(--editor-accent-soft, #1a3a52);
+    border-color: var(--editor-border-focus, #2d5a7a);
   }
 
   .result-content {
-    background: #0d0d0d;
-    color: #e5e5e5;
+    background: var(--editor-bg-surface, #0d0d0d);
+    color: var(--editor-text-primary, #e5e5e5);
   }
 }
 </style>

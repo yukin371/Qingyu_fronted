@@ -44,6 +44,11 @@ import {
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import { outlineApi } from '../api/outline'
+import {
+  MOCK_TIMELINE_EVENTS,
+  MOCK_CHARACTER_GRAPH,
+  MOCK_ENTITIES,
+} from '../mock/workspaceMock'
 import type {
   LocationTreeNode,
   StatisticsCacheItem,
@@ -1244,15 +1249,25 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadCharacters(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
-      if (!pid) return
+      // 无项目时使用 Mock 数据演示
+      if (!pid) {
+        this.characters.loading = true
+        this.characters.list = MOCK_CHARACTER_GRAPH.characters
+        this.characters.loading = false
+        return
+      }
 
       this.characters.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.characters.list = (await (writerModule.listCharacters?.(pid) ?? [])) || []
+        const list = (await (writerModule.listCharacters?.(pid) ?? [])) || []
+        // API 无数据时降级为 Mock
+        this.characters.list = list.length > 0 ? list : MOCK_CHARACTER_GRAPH.characters
       } catch (error: any) {
         console.error('加载角色列表失败:', error)
         this.error = error.message
+        // 出错时降级为 Mock 数据
+        this.characters.list = MOCK_CHARACTER_GRAPH.characters
       } finally {
         this.characters.loading = false
       }
@@ -1263,16 +1278,18 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadCharacterRelations(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
-      if (!pid) return
+      if (!pid) {
+        this.characters.relations = MOCK_CHARACTER_GRAPH.relations as any
+        return
+      }
 
       try {
         const writerModule = (await import('..')) as any
         const relations = (await (writerModule.listCharacterRelations?.(pid) ?? [])) || []
-        // 确保relations永远不是null
-        this.characters.relations = relations || []
+        this.characters.relations = relations.length > 0 ? (relations as any) : (MOCK_CHARACTER_GRAPH.relations as any)
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
-        this.characters.relations = []
+        this.characters.relations = MOCK_CHARACTER_GRAPH.relations as any
       }
     },
 
@@ -1333,15 +1350,22 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadLocations(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
-      if (!pid) return
+      if (!pid) {
+        this.locations.loading = true
+        this.locations.list = MOCK_ENTITIES.locations as any
+        this.locations.loading = false
+        return
+      }
 
       this.locations.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.locations.list = (await (writerModule.listLocations?.(pid) ?? [])) || []
+        const list = (await (writerModule.listLocations?.(pid) ?? [])) || []
+        this.locations.list = list.length > 0 ? list : (MOCK_ENTITIES.locations as any)
       } catch (error: any) {
         console.error('加载地点列表失败:', error)
         this.error = error.message
+        this.locations.list = MOCK_ENTITIES.locations as any
       } finally {
         this.locations.loading = false
       }
@@ -1376,19 +1400,36 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadTimelines(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
-      if (!pid) return
+      // 无项目时使用 Mock 数据演示
+      if (!pid) {
+        this.timeline.loading = true
+        // 创建默认时间线并填入 Mock 事件
+        const defaultTimeline = {
+          id: 'tl-1',
+          projectId: 'mock-project',
+          name: '主线时间线',
+          description: '故事主要事件时间轴',
+          order: 0,
+        }
+        this.timeline.list = [defaultTimeline as any]
+        this.timeline.currentTimeline = defaultTimeline as any
+        await this.loadTimelineEvents()
+        this.timeline.loading = false
+        return
+      }
 
       this.timeline.loading = true
       try {
         const writerModule = (await import('..')) as any
-        this.timeline.list = (await (writerModule.listTimelines?.(pid) ?? [])) || []
-        // 默认选择第一个时间线
+        const list = (await (writerModule.listTimelines?.(pid) ?? [])) || []
+        this.timeline.list = list.length > 0 ? list : []
         if (this.timeline.list.length > 0 && !this.timeline.currentTimeline) {
           this.timeline.currentTimeline = this.timeline.list[0]
         }
       } catch (error: any) {
         console.error('加载时间线列表失败:', error)
         this.error = error.message
+        this.timeline.list = []
       } finally {
         this.timeline.loading = false
       }
@@ -1399,7 +1440,11 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadTimelineEvents(timelineId?: string): Promise<void> {
       const tid = timelineId || this.timeline.currentTimeline?.id
-      if (!tid) return
+      // 无时间线时使用 Mock 事件
+      if (!tid) {
+        this.timeline.events = MOCK_TIMELINE_EVENTS
+        return
+      }
 
       try {
         const writerModule = (await import('..')) as any

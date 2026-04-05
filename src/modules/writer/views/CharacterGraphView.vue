@@ -2682,74 +2682,76 @@ const handleOutlineNodeClick = (node: any) => {
   }
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
+/* 深色/暖纸/专注模式 — 统一使用 CSS 变量 */
+[data-editor-theme="dark"],
+[data-editor-theme="sepia"],
+[data-editor-theme="focus"] {
   .character-graph-view {
-    background: #0d0d0d;
+    background: var(--editor-bg-surface, #0d0d0d);
   }
 
   .detail-sidebar {
-    background: #1a1a1a;
-    border-left-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-left-color: var(--editor-border, #2d2d2d);
   }
 
   .sidebar-header {
-    border-bottom-color: #2d2d2d;
+    border-bottom-color: var(--editor-border, #2d2d2d);
 
     h3 {
-      color: #e5e5e5;
+      color: var(--editor-text-primary, #e5e5e5);
     }
   }
 
   .info-section h4 {
-    color: #e5e5e5;
+    color: var(--editor-text-primary, #e5e5e5);
   }
 
   .background-text {
-    color: #c0c4cc;
+    color: var(--editor-text-secondary, #c0c4cc);
   }
 
   .relations-list .relation-item {
-    background: #0d0d0d;
+    background: var(--editor-bg-surface, #0d0d0d);
   }
 
   .sidebar-actions {
-    border-top-color: #2d2d2d;
+    border-top-color: var(--editor-border, #2d2d2d);
   }
 
   .character-edit-card {
-    background: #1a1a1a;
-    border-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-color: var(--editor-border, #2d2d2d);
   }
 
   .card-header {
-    border-bottom-color: #2d2d2d;
+    border-bottom-color: var(--editor-border, #2d2d2d);
 
     .header-title {
-      color: #e5e5e5;
+      color: var(--editor-text-primary, #e5e5e5);
     }
   }
 
   .card-footer {
-    border-top-color: #2d2d2d;
+    border-top-color: var(--editor-border, #2d2d2d);
   }
 
   .character-form {
     :deep(.el-form-item) {
-      border-bottom-color: #2d2d2d;
+      border-bottom-color: var(--editor-border, #2d2d2d);
     }
 
     :deep(.el-form-item__label) {
-      color: #e5e5e5;
+      color: var(--editor-text-primary, #e5e5e5);
     }
 
     :deep(.el-input__wrapper) {
-      border-color: #4b5563;
-      background-color: #1f2937;
+      border-color: var(--editor-border, #4b5563);
+      background-color: var(--editor-bg-surface, #1f2937);
       height: 32px;
 
       &:hover {
-        border-color: #6b7280;
+        border-color: var(--editor-border-focus, #6b7280);
       }
 
       &.is-focus {
@@ -2759,12 +2761,12 @@ const handleOutlineNodeClick = (node: any) => {
     }
 
     :deep(.el-textarea__inner) {
-      border-color: #4b5563;
-      background-color: #1f2937;
-      color: #e5e5e5;
+      border-color: var(--editor-border, #4b5563);
+      background-color: var(--editor-bg-surface, #1f2937);
+      color: var(--editor-text-primary, #e5e5e5);
 
       &:hover {
-        border-color: #6b7280;
+        border-color: var(--editor-border-focus, #6b7280);
       }
 
       &:focus {
@@ -2773,11 +2775,11 @@ const handleOutlineNodeClick = (node: any) => {
     }
 
     :deep(.el-input--small .el-input__wrapper) {
-      border-color: #4b5563;
-      background-color: #1f2937;
+      border-color: var(--editor-border, #4b5563);
+      background-color: var(--editor-bg-surface, #1f2937);
 
       &:hover {
-        border-color: #6b7280;
+        border-color: var(--editor-border-focus, #6b7280);
       }
 
       &.is-focus {
@@ -2787,7 +2789,7 @@ const handleOutlineNodeClick = (node: any) => {
     }
 
     :deep(.el-form-item__error) {
-      color: #f87171;
+      color: var(--editor-accent, #f87171);
     }
   }
 }

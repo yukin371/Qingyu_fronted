@@ -871,67 +871,69 @@ watch(
   }
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
+/* 深色/暖纸/专注模式 — 统一使用 CSS 变量 */
+[data-editor-theme="dark"],
+[data-editor-theme="sepia"],
+[data-editor-theme="focus"] {
   .encyclopedia-view {
-    background: #0d0d0d;
+    background: var(--editor-bg-surface, #0d0d0d);
   }
 
   .encyclopedia-header {
-    background: #1a1a1a;
-    border-bottom-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-bottom-color: var(--editor-border, #2d2d2d);
   }
 
   .header-title {
-    color: #e5e5e5;
+    color: var(--editor-text-primary, #e5e5e5);
   }
 
   .list-header,
   .detail-panel {
-    background: #1a1a1a;
-    border-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-color: var(--editor-border, #2d2d2d);
   }
 
   .list-container {
-    background: #0d0d0d;
+    background: var(--editor-bg-surface, #0d0d0d);
   }
 
   .list-header h3 {
-    color: #e5e5e5;
+    color: var(--editor-text-primary, #e5e5e5);
   }
 
   .item-card {
-    background: #1a1a1a;
-    border-color: #2d2d2d;
+    background: var(--editor-bg-base, #1a1a1a);
+    border-color: var(--editor-border, #2d2d2d);
 
     &:hover {
-      border-color: #409eff;
+      border-color: var(--editor-accent, #409eff);
     }
 
     &.is-selected {
-      background: #1a3a52;
+      background: var(--editor-accent-soft, #1a3a52);
     }
   }
 
   .item-info .item-name {
-    color: #e5e5e5;
+    color: var(--editor-text-primary, #e5e5e5);
   }
 
   .detail-header {
-    border-bottom-color: #2d2d2d;
+    border-bottom-color: var(--editor-border, #2d2d2d);
 
     .header-text h2 {
-      color: #e5e5e5;
+      color: var(--editor-text-primary, #e5e5e5);
     }
   }
 
   .detail-section {
     h4 {
-      color: #e5e5e5;
+      color: var(--editor-text-primary, #e5e5e5);
     }
 
     p {
-      color: #c0c4cc;
+      color: var(--editor-text-secondary, #c0c4cc);
     }
   }
 }
