@@ -213,13 +213,13 @@ watch(() => props.isProcessing, () => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #9ca3af;
+  color: var(--editor-text-muted);
   text-align: center;
 
   .empty-icon {
     font-size: 64px;
     margin-bottom: 16px;
-    color: #d1d5db;
+    color: var(--editor-text-ghost);
   }
 
   p {
@@ -229,7 +229,7 @@ watch(() => props.isProcessing, () => {
 
   .hint {
     font-size: 12px;
-    color: #d1d5db;
+    color: var(--editor-text-ghost);
   }
 }
 

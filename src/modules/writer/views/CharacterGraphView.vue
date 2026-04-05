@@ -2535,7 +2535,7 @@ const handleOutlineNodeClick = (node: any) => {
   .empty-icon {
     font-size: 52px;
     margin-bottom: 16px;
-    color: #8da2ff;
+    color: var(--editor-text-ghost);
   }
 
   h4 {

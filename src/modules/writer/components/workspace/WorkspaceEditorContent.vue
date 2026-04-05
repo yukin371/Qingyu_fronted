@@ -217,7 +217,7 @@ defineExpose({
 }
 
 .empty-icon {
-  color: #d6b58f;
+  color: var(--editor-text-ghost);
   margin-bottom: 16px;
 }
 
@@ -225,13 +225,13 @@ defineExpose({
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 600;
-  color: #2d2b29;
+  color: var(--editor-text-primary);
 }
 
 .empty-content p {
   margin: 0 0 20px;
   font-size: 14px;
-  color: #74675d;
+  color: var(--editor-text-secondary);
   line-height: 1.5;
 }
 

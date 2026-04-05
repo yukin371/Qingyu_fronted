@@ -189,13 +189,6 @@ const panelStyle = computed(() => {
     width: `${currentWidth.value}px`,
     minWidth: 'var(--panel-min-width, 200px)',
     maxWidth: 'var(--panel-max-width, 600px)',
-    backgroundColor: 'var(--color-bg-secondary, #252526)',
-    borderLeft: props.position === 'right' 
-      ? '1px solid var(--color-border, #3c3c3c)' 
-      : 'none',
-    borderRight: props.position === 'left' 
-      ? '1px solid var(--color-border, #3c3c3c)' 
-      : 'none'
   }
 })
 
@@ -390,35 +383,35 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  
-  /* VSCode 主题变量 */
-  background-color: var(--color-bg-secondary, #252526);
-  
+
+  /* 编辑器主题变量 */
+  background-color: var(--editor-bg-base);
+
   /* 过渡动画 */
   transition: width var(--transition-normal, 200ms) ease-in-out,
               min-width var(--transition-normal, 200ms) ease-in-out,
               max-width var(--transition-normal, 200ms) ease-in-out;
-  
+
   /* 防止内容溢出 */
   overflow-x: hidden;
   overflow-y: auto;
-  
+
   /* 自定义滚动条 */
   &::-webkit-scrollbar {
     width: var(--scrollbar-width, 8px);
     height: var(--scrollbar-height, 8px);
   }
-  
+
   &::-webkit-scrollbar-track {
-    background: var(--color-scrollbar-bg, #1e1e1e);
+    background: var(--editor-bg-surface);
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    background: var(--color-scrollbar-thumb, #424242);
+    background: var(--editor-border);
     border-radius: var(--radius-sm, 2px);
-    
+
     &:hover {
-      background: var(--color-scrollbar-thumb-hover, #4f4f4f);
+      background: var(--editor-text-muted);
     }
   }
 }
@@ -426,12 +419,12 @@ defineExpose({
 /* 不同位置的面板样式 */
 .side-panel--left {
   order: 0;
-  border-right: 1px solid var(--color-border, #3c3c3c);
+  border-right: 1px solid var(--editor-border);
 }
 
 .side-panel--right {
   order: 2;
-  border-left: 1px solid var(--color-border, #3c3c3c);
+  border-left: 1px solid var(--editor-border);
 }
 
 /* 折叠状态 */
@@ -452,54 +445,54 @@ defineExpose({
   height: 32px;
   padding: 0;
   border: none;
-  background: var(--color-bg-tertiary, #2d2d2d);
-  color: var(--color-text-secondary, #858585);
+  background: var(--editor-bg-elevated);
+  color: var(--editor-text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm, 2px);
+  border-radius: var(--editor-radius-sm, 2px);
   transition: all var(--transition-fast, 100ms) ease-out;
   z-index: 10;
   font-size: 14px;
   font-weight: bold;
   line-height: 1;
-  
+
   /* 不同位置的按钮位置 */
   .side-panel--left & {
     right: -20px;
-    border-radius: 0 var(--radius-sm, 2px) var(--radius-sm, 2px) 0;
-    border: 1px solid var(--color-border, #3c3c3c);
+    border-radius: 0 var(--editor-radius-sm, 2px) var(--editor-radius-sm, 2px) 0;
+    border: 1px solid var(--editor-border);
     border-left: none;
   }
-  
+
   .side-panel--right & {
     left: -20px;
-    border-radius: var(--radius-sm, 2px) 0 0 var(--radius-sm, 2px);
-    border: 1px solid var(--color-border, #3c3c3c);
+    border-radius: var(--editor-radius-sm, 2px) 0 0 var(--editor-radius-sm, 2px);
+    border: 1px solid var(--editor-border);
     border-right: none;
   }
-  
+
   &:hover {
-    background: var(--color-bg-hover, #2a2d2e);
-    color: var(--color-text-primary, #cccccc);
+    background: var(--editor-bg-elevated);
+    color: var(--editor-text-primary);
     width: 24px;
-    
+
     .side-panel--left & {
       right: -24px;
     }
-    
+
     .side-panel--right & {
       left: -24px;
     }
   }
-  
+
   &:active {
-    background: var(--color-bg-active, #37373d);
+    background: var(--editor-bg-overlay);
   }
-  
+
   &:focus-visible {
-    outline: 2px solid var(--color-border-focus, #007fd4);
+    outline: 2px solid var(--editor-border-focus);
     outline-offset: 2px;
   }
 }
@@ -507,11 +500,11 @@ defineExpose({
 /* 折叠状态下的按钮 */
 .collapse-button.collapsed {
   width: 24px;
-  
+
   .side-panel--left & {
     right: -24px;
   }
-  
+
   .side-panel--right & {
     left: -24px;
   }
@@ -521,9 +514,9 @@ defineExpose({
 .side-panel__header {
   flex-shrink: 0;
   padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
-  border-bottom: 1px solid var(--color-border, #3c3c3c);
-  background: var(--color-bg-tertiary, #2d2d2d);
-  
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bg-elevated);
+
   /* 滚动条优化 */
   &::-webkit-scrollbar {
     height: 4px;
@@ -535,28 +528,28 @@ defineExpose({
   flex: 1;
   overflow: auto;
   padding: var(--spacing-md, 16px);
-  
+
   /* 确保内容不会被折叠按钮遮挡 */
   &.hidden {
     display: none;
   }
-  
+
   /* 滚动条样式 */
   &::-webkit-scrollbar {
     width: var(--scrollbar-width, 8px);
     height: var(--scrollbar-height, 8px);
   }
-  
+
   &::-webkit-scrollbar-track {
-    background: var(--color-scrollbar-bg, #1e1e1e);
+    background: var(--editor-bg-surface);
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    background: var(--color-scrollbar-thumb, #424242);
+    background: var(--editor-border);
     border-radius: var(--radius-sm, 2px);
-    
+
     &:hover {
-      background: var(--color-scrollbar-thumb-hover, #4f4f4f);
+      background: var(--editor-text-muted);
     }
   }
 }

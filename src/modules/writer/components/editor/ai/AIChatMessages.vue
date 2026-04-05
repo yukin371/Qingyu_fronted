@@ -173,11 +173,12 @@ watch(
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #94a3b8;
+  color: var(--editor-text-muted);
 
   .empty-icon {
     font-size: 48px;
     margin-bottom: 16px;
+    color: var(--editor-text-ghost);
   }
 
   .empty-text {
