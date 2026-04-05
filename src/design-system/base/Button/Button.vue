@@ -13,7 +13,7 @@ import type { ButtonProps } from './types'
 // 使用 CVA 定义按钮变体
 const buttonVariants = cva(
   // 基础样式
-  'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -23,6 +23,7 @@ const buttonVariants = cva(
         danger: 'bg-danger-DEFAULT text-white hover:bg-danger-dark focus-visible:ring-danger-DEFAULT active:bg-red-700',
         success: 'bg-success-DEFAULT text-white hover:bg-success-dark focus-visible:ring-success-DEFAULT active:bg-emerald-700',
         warning: 'bg-warning-DEFAULT text-white hover:bg-warning-dark focus-visible:ring-warning-DEFAULT active:bg-amber-700',
+        gradient: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 focus-visible:ring-cyan-500 active:from-cyan-700 active:to-blue-700',
       },
       size: {
         xs: 'h-7 px-2 text-xs',

@@ -3,7 +3,7 @@
  */
 
 // Button 变体
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'warning'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'warning' | 'gradient'
 
 // Button 尺寸
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'

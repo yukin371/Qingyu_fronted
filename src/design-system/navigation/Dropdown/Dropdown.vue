@@ -1,441 +1,198 @@
 <script setup lang="ts">
 /**
- * Dropdown 下拉菜单组件
+ * QyDropdown 下拉菜单组件
  *
- * 通用的下拉菜单组件，支持多种触发方式和位置
+ * Apple 风格下拉菜单，支持 click/hover 触发、Teleport 浮层、
+ * ESC 关闭、点击外部关闭
  */
 
-import { ref, computed, watch, onUnmounted, provide } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { cn } from '../../utils/cn'
-import type { DropdownProps, DropdownEmits, DropdownSlots } from './types'
+import type { QyDropdownProps, DropdownItem } from './types'
 
-// 定义注入的 key
-const DROPDOWN_KEY = Symbol('dropdown')
-
-// 组件 Props
-const props = withDefaults(defineProps<DropdownProps>(), {
+const props = withDefaults(defineProps<QyDropdownProps>(), {
   trigger: 'click',
-  placement: 'bottom',
+  placement: 'bottom-start',
   disabled: false,
-  hideOnClick: true,
-  size: 'medium',
-  maxWidth: 240,
-  disableScroll: false,
-  showTimeout: 150,
-  hideTimeout: 150,
-  offset: 8,
-  showArrow: false,
 })
 
-// 组件 Emits
-const emit = defineEmits<DropdownEmits>()
+const emit = defineEmits<{
+  select: [key: string]
+}>()
 
-// 组件 Slots
-const _slots = defineSlots<DropdownSlots>()
-
-// 状态管理
-const isVisible = ref(false)
+const visible = ref(false)
 const triggerRef = ref<HTMLElement>()
-const dropdownRef = ref<HTMLElement>()
-let showTimer: ReturnType<typeof setTimeout> | null = null
-let hideTimer: ReturnType<typeof setTimeout> | null = null
+const panelRef = ref<HTMLElement>()
+const panelStyle = ref<Record<string, string>>({})
 
-// 计算触发器类名
-const triggerClasses = computed(() =>
-  cn(
-    'inline-flex items-center',
-    {
-      'cursor-not-allowed opacity-50': props.disabled,
-      'cursor-pointer': !props.disabled,
-    },
-    props.triggerClass,
-  ),
-)
+/** 计算面板位置 */
+function computePosition() {
+  if (!triggerRef.value) return
+  const rect = triggerRef.value.getBoundingClientRect()
+  const gap = 6
+  let top = rect.bottom + gap
+  let left: number | undefined
+  let right: number | undefined
 
-// 计算下拉菜单位置样式
-const dropdownStyle = computed(() => {
-  const placementMap: Record<string, string> = {
-    top: 'bottom: 100%; left: 50%; transform: translateX(-50%);',
-    'top-start': 'bottom: 100%; left: 0;',
-    'top-end': 'bottom: 100%; right: 0;',
-    bottom: 'top: 100%; left: 50%; transform: translateX(-50%);',
-    'bottom-start': 'top: 100%; left: 0;',
-    'bottom-end': 'top: 100%; right: 0;',
-    left: 'right: 100%; top: 50%; transform: translateY(-50%);',
-    'left-start': 'right: 100%; top: 0;',
-    'left-end': 'right: 100%; bottom: 0;',
-    right: 'left: 100%; top: 50%; transform: translateY(-50%);',
-    'right-start': 'left: 100%; top: 0;',
-    'right-end': 'left: 100%; bottom: 0;',
-  }
-
-  const baseStyle = placementMap[props.placement] || placementMap.bottom
-
-  return {
-    ...getComputedStyle(baseStyle, props.offset),
-    maxWidth: `${props.maxWidth}px`,
-  }
-})
-
-// 获取计算样式
-function getComputedStyle(placementStyle: string, offset: number) {
-  const style: Record<string, string> = {}
-  const styles = placementStyle.split(';').filter((s) => s.trim())
-
-  styles.forEach((s) => {
-    const [property, value] = s.split(':').map((p) => p.trim())
-    if (property && value) {
-      // 添加偏移量
-      if (property.includes('bottom') && value.includes('100%')) {
-        style[property] = `calc(${value} + ${offset}px)`
-      } else if (property.includes('top') && value.includes('100%')) {
-        style[property] = `calc(${value} + ${offset}px)`
-      } else if (property.includes('right') && value.includes('100%')) {
-        style[property] = `calc(${value} + ${offset}px)`
-      } else if (property.includes('left') && value.includes('100%')) {
-        style[property] = `calc(${value} + ${offset}px)`
-      } else {
-        style[property] = value
-      }
-    }
-  })
-
-  return style
-}
-
-// 判断是否为数组触发器
-const triggerArray = computed(() => {
-  return Array.isArray(props.trigger) ? props.trigger : [props.trigger]
-})
-
-// 处理显示
-const handleShow = () => {
-  if (props.disabled) return
-
-  // 清除隐藏定时器
-  if (hideTimer) {
-    clearTimeout(hideTimer)
-    hideTimer = null
-  }
-
-  // 使用显示定时器
-  if (triggerArray.value.includes('hover')) {
-    showTimer = setTimeout(() => {
-      isVisible.value = true
-      emit('visibleChange', true)
-
-      if (props.disableScroll) {
-        document.body.style.overflow = 'hidden'
-      }
-
-      // 添加点击外部监听
-      document.addEventListener('click', handleClickOutside)
-      document.addEventListener('contextmenu', handleContextMenuOutside)
-    }, props.showTimeout)
+  if (props.placement === 'bottom-start') {
+    left = rect.left
+  } else if (props.placement === 'bottom-end') {
+    right = window.innerWidth - rect.right
   } else {
-    isVisible.value = true
-    emit('visibleChange', true)
+    left = rect.left + rect.width / 2
+  }
 
-    if (props.disableScroll) {
-      document.body.style.overflow = 'hidden'
-    }
-
-    // 添加点击外部监听
-    document.addEventListener('click', handleClickOutside)
-    document.addEventListener('contextmenu', handleContextMenuOutside)
+  panelStyle.value = {
+    position: 'fixed',
+    top: `${top}px`,
+    ...(left !== undefined && !right ? (props.placement === 'bottom' ? { left: `${left}px`, transform: 'translateX(-50%)' } : { left: `${left}px` }) : {}),
+    ...(right !== undefined ? { right: `${right}px` } : {}),
+    zIndex: '1000',
   }
 }
 
-// 处理隐藏
-const handleHide = () => {
-  // 清除显示定时器
-  if (showTimer) {
-    clearTimeout(showTimer)
-    showTimer = null
-  }
-
-  // 使用隐藏定时器
-  if (triggerArray.value.includes('hover')) {
-    hideTimer = setTimeout(() => {
-      isVisible.value = false
-      emit('visibleChange', false)
-
-      if (props.disableScroll) {
-        document.body.style.overflow = ''
-      }
-
-      // 移除点击外部监听
-      document.removeEventListener('click', handleClickOutside)
-      document.removeEventListener('contextmenu', handleContextMenuOutside)
-    }, props.hideTimeout)
-  } else {
-    // 非 hover 模式不自动隐藏，需要点击外部或选择菜单项
-    if (!triggerArray.value.includes('click')) {
-      isVisible.value = false
-      emit('visibleChange', false)
-
-      if (props.disableScroll) {
-        document.body.style.overflow = ''
-      }
-
-      document.removeEventListener('click', handleClickOutside)
-      document.removeEventListener('contextmenu', handleContextMenuOutside)
-    }
-  }
-}
-
-// 处理触发器点击
-const handleTriggerClick = (event: MouseEvent) => {
+function show() {
   if (props.disabled) return
-
-  emit('click', event)
-
-  if (triggerArray.value.includes('click')) {
-    if (isVisible.value) {
-      handleHide()
-    } else {
-      handleShow()
-    }
-  }
+  computePosition()
+  visible.value = true
+  nextTick(() => document.addEventListener('mousedown', onOutsideClick))
 }
 
-// 处理触发器悬停
-const handleTriggerHover = () => {
-  if (triggerArray.value.includes('hover')) {
-    handleShow()
-  }
+function hide() {
+  visible.value = false
+  document.removeEventListener('mousedown', onOutsideClick)
 }
 
-const handleTriggerLeave = () => {
-  if (triggerArray.value.includes('hover')) {
-    handleHide()
-  }
+function toggle() {
+  visible.value ? hide() : show()
 }
 
-const clearShowTimer = () => {
-  if (showTimer) {
-    clearTimeout(showTimer)
-    showTimer = null
-  }
+function onItemClick(item: DropdownItem) {
+  if (item.disabled) return
+  emit('select', item.key)
+  hide()
 }
 
-// 处理触发器焦点
-const handleTriggerFocus = () => {
-  if (triggerArray.value.includes('focus')) {
-    handleShow()
-  }
-}
-
-const handleTriggerBlur = () => {
-  if (triggerArray.value.includes('focus')) {
-    handleHide()
-  }
-}
-
-// 处理右键菜单
-const handleContextMenu = (event: MouseEvent) => {
-  if (triggerArray.value.includes('contextmenu')) {
-    event.preventDefault()
-    handleShow()
-  }
-}
-
-// 点击外部处理
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as Node
+function onOutsideClick(e: MouseEvent) {
+  const target = e.target as Node
   if (
-    triggerRef.value &&
-    !triggerRef.value.contains(target) &&
-    dropdownRef.value &&
-    !dropdownRef.value.contains(target)
+    triggerRef.value?.contains(target) ||
+    panelRef.value?.contains(target)
   ) {
-    handleHide()
+    return
+  }
+  hide()
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && visible.value) {
+    hide()
   }
 }
 
-// 右键菜单外部处理
-const handleContextMenuOutside = (event: MouseEvent) => {
-  if (triggerArray.value.includes('contextmenu')) {
-    const target = event.target as Node
-    if (
-      triggerRef.value &&
-      !triggerRef.value.contains(target) &&
-      dropdownRef.value &&
-      !dropdownRef.value.contains(target)
-    ) {
-      handleHide()
-    }
-  }
+function onTriggerClick() {
+  if (props.trigger === 'click') toggle()
 }
 
-// 处理菜单项点击
-const handleItemClick = (command: any) => {
-  emit('command', command)
-
-  if (props.hideOnClick) {
-    handleHide()
-  }
+function onTriggerEnter() {
+  if (props.trigger === 'hover') show()
 }
 
-// 处理键盘事件
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && isVisible.value) {
-    handleHide()
-  } else if (event.key === 'Enter' || event.key === ' ') {
-    if (triggerArray.value.includes('click') && !isVisible.value) {
-      event.preventDefault()
-      handleShow()
-    }
-  }
+function onTriggerLeave() {
+  if (props.trigger === 'hover') hide()
 }
 
-// 注入上下文供子组件使用
-provide(DROPDOWN_KEY, {
-  isVisible,
-  handleItemClick,
-  size: computed(() => props.size),
-})
-
-// 监听可见性变化
-watch(isVisible, (newVal) => {
-  if (newVal) {
-    if (dropdownRef.value) {
-      // 确保下拉菜单在视口内
-      adjustPosition()
-    }
-  }
-})
-
-// 调整位置以确保在视口内
-const adjustPosition = () => {
-  if (!dropdownRef.value) return
-
-  const dropdownRect = dropdownRef.value.getBoundingClientRect()
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
-
-  // 简单的边界检查
-  if (dropdownRect.right > viewportWidth) {
-    const overflow = dropdownRect.right - viewportWidth
-    dropdownRef.value.style.left = `${parseInt(dropdownRef.value.style.left || '0') - overflow}px`
-  }
-
-  if (dropdownRect.bottom > viewportHeight) {
-    const overflow = dropdownRect.bottom - viewportHeight
-    const currentTop = parseInt(dropdownRef.value.style.top || '0')
-    dropdownRef.value.style.top = `${currentTop - overflow}px`
-  }
+function onPanelEnter() {
+  if (props.trigger === 'hover') show()
 }
 
-// 清理定时器
+function onPanelLeave() {
+  if (props.trigger === 'hover') hide()
+}
+
+/** 菜单项样式 */
+function itemClasses(item: DropdownItem) {
+  return cn(
+    'flex items-center gap-3 px-3 py-2 text-sm cursor-pointer transition-colors duration-150 rounded-lg mx-1',
+    {
+      'text-red-500 hover:bg-red-50 active:bg-red-100': item.danger && !item.disabled,
+      'hover:bg-gray-50 active:bg-gray-100': !item.danger && !item.disabled,
+      'opacity-50 cursor-not-allowed': item.disabled,
+    },
+  )
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => {
-  if (showTimer) clearTimeout(showTimer)
-  if (hideTimer) clearTimeout(hideTimer)
-  document.removeEventListener('click', handleClickOutside)
-  document.removeEventListener('contextmenu', handleContextMenuOutside)
-  if (props.disableScroll) {
-    document.body.style.overflow = ''
-  }
-})
-
-// 暴露方法
-defineExpose({
-  show: handleShow,
-  hide: handleHide,
-  toggle: () => (isVisible.value ? handleHide() : handleShow()),
+  document.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('mousedown', onOutsideClick)
 })
 </script>
 
 <template>
+  <!-- 触发器 -->
   <div
     ref="triggerRef"
-    :class="triggerClasses"
-    @click="handleTriggerClick"
-    @mouseenter="handleTriggerHover"
-    @mouseleave="handleTriggerLeave"
-    @focus="handleTriggerFocus"
-    @blur="handleTriggerBlur"
-    @contextmenu="handleContextMenu"
-    @keydown="handleKeydown"
-    :tabindex="disabled ? -1 : 0"
-    role="button"
-    :aria-haspopup="true"
-    :aria-expanded="isVisible"
-    :aria-disabled="disabled"
+    class="inline-flex"
+    @click="onTriggerClick"
+    @mouseenter="onTriggerEnter"
+    @mouseleave="onTriggerLeave"
   >
-    <!-- 触发器插槽 -->
-    <slot name="trigger" />
-
-    <!-- 下拉菜单 -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition ease-out duration-200"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition ease-in duration-150"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95"
-      >
-        <div
-          v-if="isVisible"
-          ref="dropdownRef"
-          :class="
-            cn(
-              'absolute z-50 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-              'focus:outline-none',
-              props.class,
-            )
-          "
-          :style="dropdownStyle"
-          role="menu"
-          :aria-orientation="'vertical'"
-          tabindex="-1"
-          @mouseenter="triggerArray.includes('hover') ? clearShowTimer() : undefined"
-          @mouseleave="triggerArray.includes('hover') ? handleHide : undefined"
-        >
-          <!-- 箭头 -->
-          <div
-            v-if="showArrow"
-            :class="
-              cn('absolute z-[-1] h-2 w-2 rotate-45 border bg-popover', {
-                '-bottom-1 left-1/2 -translate-x-1/2 border-b-0 border-r-0':
-                  placement === 'bottom' ||
-                  placement === 'bottom-start' ||
-                  placement === 'bottom-end',
-                '-top-1 left-1/2 -translate-x-1/2 border-t-0 border-l-0':
-                  placement === 'top' || placement === 'top-start' || placement === 'top-end',
-                '-right-1 top-1/2 -translate-y-1/2 border-r-0 border-t-0':
-                  placement === 'left' || placement === 'left-start' || placement === 'left-end',
-                '-left-1 top-1/2 -translate-y-1/2 border-l-0 border-b-0':
-                  placement === 'right' || placement === 'right-start' || placement === 'right-end',
-              })
-            "
-          />
-
-          <!-- 默认插槽 - 菜单内容 -->
-          <slot />
-        </div>
-      </Transition>
-    </Teleport>
+    <slot />
   </div>
+
+  <!-- 浮层面板 -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition ease-out duration-200"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition ease-in duration-150"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div
+        v-if="visible"
+        ref="panelRef"
+        :style="panelStyle"
+        :class="cn(
+          'rounded-xl border border-gray-100 bg-white py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] min-w-[180px]',
+        )"
+        role="menu"
+        @mouseenter="onPanelEnter"
+        @mouseleave="onPanelLeave"
+      >
+        <template v-for="(item, idx) in items" :key="item.key">
+          <div
+            :class="itemClasses(item)"
+            role="menuitem"
+            :aria-disabled="item.disabled"
+            @click="onItemClick(item)"
+          >
+            <!-- 图标 -->
+            <span
+              v-if="item.icon"
+              :class="cn('w-4 h-4 shrink-0', item.icon)"
+            />
+
+            <!-- 文本 -->
+            <span class="flex-1 truncate">{{ item.label }}</span>
+
+            <!-- 快捷键 -->
+            <span
+              v-if="item.shortcut"
+              class="ml-auto text-xs text-gray-400"
+            >{{ item.shortcut }}</span>
+          </div>
+
+          <!-- 分隔线 -->
+          <div
+            v-if="item.divider && idx < items.length - 1"
+            class="my-1 border-t border-gray-100"
+            role="separator"
+          />
+        </template>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
-
-<style scoped>
-/* 自定义滚动条样式 */
-:deep(.overflow-y-auto)::-webkit-scrollbar {
-  width: 6px;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-</style>

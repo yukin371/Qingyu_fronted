@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * DialogFooter 对话框底部组件
+ * DialogFooter 对话框底部组件 (Apple Style)
  *
- * 提供对话框底部按钮区域的布局
+ * Apple 风格底部区域，无分割线，柔和间距
  */
 
 import { computed } from 'vue'
@@ -25,23 +25,18 @@ const props = withDefaults(defineProps<DialogFooterProps>(), {
   justify: 'end',
 })
 
-// 计算对齐方式类名
-const justifyClasses = computed(() => {
-  const justifyMap = {
-    start: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-    between: 'justify-between',
-  }
-  return justifyMap[props.justify]
-})
+const justifyMap: Record<string, string> = {
+  start: 'justify-start',
+  center: 'justify-center',
+  end: 'justify-end',
+  between: 'justify-between',
+}
 
-// 计算样式类名
 const classes = computed(() =>
   cn(
-    'flex items-center gap-3 px-6 py-4 border-t border-neutral-200 dark:border-neutral-700',
-    justifyClasses.value,
-    props.class
+    'flex items-center gap-3 px-6 py-4',
+    justifyMap[props.justify],
+    props.class,
   )
 )
 </script>

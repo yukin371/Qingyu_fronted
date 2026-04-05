@@ -1,42 +1,25 @@
 <script setup lang="ts">
 /**
- * Dialog 对话框组件
+ * Dialog 对话框组件 (Apple Style)
  *
- * 可自定义的对话框组件，支持多种尺寸和交互方式
+ * Apple 风格的对话框，毛玻璃遮罩、柔和阴影、弹性动画
  */
 
 import { computed, watch, nextTick, ref, onMounted, onUnmounted } from 'vue'
-import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { DialogProps, DialogEmits } from './types'
 import { Icon } from '../../base/Icon'
 
-// 使用 CVA 定义对话框变体
-const dialogVariants = cva(
-  // 基础样式
-  'fixed z-50 bg-white dark:bg-neutral-800 rounded-lg shadow-xl flex flex-col max-h-[90vh]',
-  {
-    variants: {
-      size: {
-        sm: 'w-full max-w-sm',
-        md: 'w-full max-w-md',
-        lg: 'w-full max-w-lg',
-        xl: 'w-full max-w-xl',
-        full: 'w-full h-full max-w-full m-0 rounded-none',
-      },
-      center: {
-        true: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-        false: 'top-20 left-1/2 -translate-x-1/2',
-      },
-    },
-    defaultVariants: {
-      size: 'md',
-      center: false,
-    },
-  }
-)
+// 尺寸到 max-width 的映射
+const sizeMap: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  full: 'max-w-full w-full h-full m-0 rounded-none',
+}
 
-// 组件 Props
+// Props
 const props = withDefaults(defineProps<DialogProps>(), {
   visible: false,
   title: '',
@@ -50,77 +33,77 @@ const props = withDefaults(defineProps<DialogProps>(), {
   teleportTo: 'body',
 })
 
-// 组件 Emits
+// Emits
 const emit = defineEmits<DialogEmits>()
 
-// 内部状态
+// Internal state
 const isVisible = ref(false)
 const isAnimating = ref(false)
-const dialogContent = ref<HTMLElement | null>(null) // 用于暴露给父组件的DOM引用
-const isInitialized = ref(false) // 标记是否已完成初始化
+const dialogContent = ref<HTMLElement | null>(null)
+const isInitialized = ref(false)
 
-// 计算对话框容器样式类名
+// Dialog container classes
 const dialogClasses = computed(() =>
   cn(
-    dialogVariants({
-      size: props.size,
-      center: props.center,
-    }),
+    // Apple 风格卡片: 毛玻璃白底、圆角、深层柔和阴影
+    'bg-white/95 backdrop-blur-xl rounded-2xl',
+    'shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25)]',
+    'flex flex-col max-h-[90vh] overflow-hidden',
+    // 尺寸
+    sizeMap[props.size] || sizeMap.md,
+    // 自定义 class
     props.class,
-    'transition-all duration-300 ease-in-out'
   )
 )
 
-// 计算遮罩层样式类名
-const modalClasses = computed(() =>
+// Overlay classes
+const overlayClasses = computed(() =>
   cn(
-    'fixed inset-0 bg-black/50 z-40 transition-opacity duration-300',
-    props.modalClass
+    // 居中容器
+    'fixed inset-0 z-[9998] flex items-center justify-center',
+    // 遮罩层: 毛玻璃
+    props.modal ? 'bg-black/30 backdrop-blur-sm' : '',
+    props.modalClass,
   )
 )
 
-// 监听 visible 变化
-watch(() => props.visible, (newVal) => {
-  if (newVal) {
+// Watch external visible -> open/close
+watch(() => props.visible, (val) => {
+  if (val) {
     open()
   } else {
     close()
   }
 })
 
-// 监听内部状态变化同步到父组件
-watch(isVisible, (newVal, oldVal) => {
-  // 只在初始化完成后且状态真正改变时才同步到父组件
-  if (isInitialized.value && newVal !== oldVal) {
-    emit('update:visible', newVal)
+// Sync internal state back to parent
+watch(isVisible, (val, oldVal) => {
+  if (isInitialized.value && val !== oldVal) {
+    emit('update:visible', val)
   }
 })
 
-// 监听 closeOnPressEscape 变化，动态添加/移除键盘监听
-watch(() => props.closeOnPressEscape, (newVal) => {
-  if (newVal) {
+// Keyboard listener toggle
+watch(() => props.closeOnPressEscape, (val) => {
+  if (val) {
     document.addEventListener('keydown', handleKeydown)
   } else {
     document.removeEventListener('keydown', handleKeydown)
   }
 })
 
-// 初始化时处理 visible 状态
+// Mount: restore visible state
 onMounted(async () => {
   if (props.visible) {
     await open()
   }
-
-  // 标记初始化完成
   isInitialized.value = true
-
-  // 添加键盘监听
   if (props.closeOnPressEscape) {
     document.addEventListener('keydown', handleKeydown)
   }
 })
 
-// 打开对话框
+// Open
 const open = async () => {
   if (isVisible.value) return
 
@@ -128,32 +111,25 @@ const open = async () => {
   isVisible.value = true
   isAnimating.value = true
 
-  // 禁用 body 滚动
   if (props.lockScroll) {
     document.body.style.overflow = 'hidden'
   }
 
-  // 等待 DOM 更新
   await nextTick()
-
-  // 触发打开动画
   requestAnimationFrame(() => {
     isAnimating.value = false
     emit('opened')
   })
 }
 
-// 关闭对话框
+// Close
 const close = async () => {
   if (!isVisible.value) return
 
-  // 执行关闭前回调
   if (props.beforeClose) {
     try {
       const canClose = await props.beforeClose()
-      if (!canClose) {
-        return
-      }
+      if (!canClose) return
     } catch (error) {
       console.error('Dialog beforeClose error:', error)
       return
@@ -163,12 +139,10 @@ const close = async () => {
   emit('close')
   isAnimating.value = true
 
-  // 等待动画结束
   setTimeout(() => {
     isVisible.value = false
     isAnimating.value = false
 
-    // 恢复 body 滚动
     if (props.lockScroll) {
       document.body.style.overflow = ''
     }
@@ -177,41 +151,39 @@ const close = async () => {
   }, 300)
 }
 
-// 点击遮罩层关闭
-const handleModalClick = () => {
-  if (props.closeOnClickModal && props.modal) {
+// Click overlay to close
+const handleOverlayClick = () => {
+  if (props.closeOnClickModal) {
     close()
   }
 }
 
-// 点击对话框内容，阻止事件冒泡
+// Prevent click propagation from content
 const handleContentClick = (e: MouseEvent) => {
   e.stopPropagation()
 }
 
-// 点击关闭按钮
+// Close button
 const handleCloseClick = () => {
   close()
 }
 
-// 键盘事件处理
+// Keyboard handler
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.closeOnPressEscape) {
     close()
   }
 }
 
-// 组件卸载时移除键盘监听
+// Cleanup
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
-
-  // 恢复 body 滚动
   if (props.lockScroll && isVisible.value) {
     document.body.style.overflow = ''
   }
 })
 
-// 暴露方法给父组件
+// Expose
 defineExpose({
   open,
   close,
@@ -221,108 +193,87 @@ defineExpose({
 
 <template>
   <Teleport :to="teleportTo">
-    <!-- 遮罩层 -->
+    <!-- 遮罩 + 居中容器 -->
     <Transition
-      enter-active-class="transition-opacity duration-300"
+      enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-300"
+      leave-active-class="transition-opacity duration-300 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
       <div
-        v-if="visible && modal"
-        :class="modalClasses"
-        @click="handleModalClick"
-        aria-hidden="true"
-      />
-    </Transition>
-
-    <!-- 对话框 -->
-    <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
-    >
-      <div
         v-if="isVisible"
-        ref="dialogContent"
-        :class="dialogClasses"
-        :style="{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'scale(1)' : 'scale(0.95)' }"
-        role="dialog"
-        aria-modal="true"
-        :aria-labelledby="title ? 'dialog-title' : undefined"
-        @click="handleContentClick"
+        :class="overlayClasses"
+        @click="handleOverlayClick"
       >
-        <!-- 头部 -->
-        <div
-          v-if="$slots.header || title || $slots.footer || showClose"
-          class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-700"
+        <!-- 对话框卡片 -->
+        <Transition
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="transition-all duration-300 ease-in"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
         >
-          <div class="flex items-center gap-3">
-            <slot name="header">
-              <slot name="title">
-                <h3
-                  v-if="title"
-                  id="dialog-title"
-                  class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
-                >
-                  {{ title }}
-                </h3>
-              </slot>
-            </slot>
-          </div>
-          <button
-            v-if="showClose"
-            type="button"
-            class="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            @click="handleCloseClick"
-            aria-label="关闭对话框"
+          <div
+            v-if="isVisible"
+            ref="dialogContent"
+            :class="dialogClasses"
+            class="relative z-[9999]"
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="title ? 'dialog-title' : undefined"
+            @click="handleContentClick"
           >
-            <Icon name="x-mark" size="sm" />
-          </button>
-        </div>
+            <!-- Header -->
+            <div
+              v-if="$slots.header || title || showClose"
+              class="flex items-center justify-between px-6 pt-6 pb-2"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <slot name="header">
+                  <slot name="title">
+                    <h3
+                      v-if="title"
+                      id="dialog-title"
+                      class="text-lg font-semibold text-gray-900 truncate"
+                    >
+                      {{ title }}
+                    </h3>
+                  </slot>
+                </slot>
+              </div>
+              <button
+                v-if="showClose"
+                type="button"
+                class="flex-shrink-0 ml-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                @click="handleCloseClick"
+                aria-label="关闭对话框"
+              >
+                <Icon name="x-mark" size="sm" />
+              </button>
+            </div>
 
-        <!-- 内容区域 -->
-        <div class="flex-1 overflow-auto px-6 py-4">
-          <slot>
-            <p class="text-neutral-600 dark:text-neutral-400">
-              对话框内容
-            </p>
-          </slot>
-        </div>
+            <!-- Body -->
+            <div class="px-6 pb-2 flex-1 overflow-auto">
+              <slot>
+                <p class="text-gray-500">
+                  对话框内容
+                </p>
+              </slot>
+            </div>
 
-        <!-- 底部 -->
-        <div
-          v-if="$slots.footer"
-          class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-200 dark:border-neutral-700"
-        >
-          <slot name="footer" />
-        </div>
+            <!-- Footer -->
+            <div
+              v-if="$slots.footer"
+              class="flex items-center justify-end gap-3 px-6 py-4"
+            >
+              <slot name="footer" />
+            </div>
+          </div>
+        </Transition>
       </div>
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-/* 对话框动画 */
-.dialog-enter-active,
-.dialog-leave-active {
-  transition: all 0.3s ease;
-}
-
-.dialog-enter-from,
-.dialog-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.95);
-}
-
-.dialog-enter-to,
-.dialog-leave-from {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-</style>

@@ -2,9 +2,9 @@
   <div class="filter-bar" data-testid="filter-bar">
     <div class="filter-scroll-wrapper">
       <!-- 分类筛选 -->
-      <Select
+      <QySelect
         :model-value="categoryId"
-        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:categoryId', normalizeSelectValue(val))"
+        @update:model-value="(val: string | number) => $emit('update:categoryId', normalizeSelectValue(val))"
         :options="categoryOptions"
         placeholder="分类"
         clearable
@@ -12,9 +12,9 @@
       />
 
       <!-- 年份筛选 -->
-      <Select
+      <QySelect
         :model-value="year"
-        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:year', normalizeSelectValue(val))"
+        @update:model-value="(val: string | number) => $emit('update:year', normalizeSelectValue(val))"
         :options="yearOptions"
         placeholder="年份"
         clearable
@@ -22,9 +22,9 @@
       />
 
       <!-- 状态筛选 -->
-      <Select
+      <QySelect
         :model-value="status"
-        @update:model-value="(val: string | number | (string | number)[] | undefined) => $emit('update:status', normalizeSelectValue(val))"
+        @update:model-value="(val: string | number) => $emit('update:status', normalizeSelectValue(val))"
         :options="statusOptions"
         placeholder="状态"
         clearable
@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Select } from '@/design-system/form/Select'
+import { QySelect } from '@/design-system/form/Select'
 import type { Category } from '@/types/models'
 import type { SelectOption } from '@/design-system/form/Select/types'
 
@@ -58,14 +58,8 @@ defineEmits<{
 }>()
 
 const normalizeSelectValue = (
-  value: string | number | (string | number)[] | undefined
+  value: string | number
 ): string => {
-  if (Array.isArray(value)) {
-    return value.length > 0 ? String(value[0]) : ''
-  }
-  if (value === undefined) {
-    return ''
-  }
   return String(value)
 }
 

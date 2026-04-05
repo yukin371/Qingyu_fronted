@@ -14,7 +14,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'ghost', 'danger', 'success', 'warning'],
+      options: ['primary', 'secondary', 'ghost', 'danger', 'success', 'warning', 'gradient'],
       description: '按钮变体',
     },
     size: {
@@ -67,6 +67,7 @@ export const AllVariants: Story = {
         <Button variant="danger">Danger</Button>
         <Button variant="success">Success</Button>
         <Button variant="warning">Warning</Button>
+        <Button variant="gradient">Gradient</Button>
       </div>
     `,
   }),

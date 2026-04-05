@@ -1,5 +1,5 @@
 /**
- * Dialog 组件类型定义
+ * Dialog 组件类型定义 (Apple Style)
  */
 
 // Dialog 尺寸
@@ -117,12 +117,12 @@ export const dialogDefaults: Partial<DialogProps> = {
   lockScroll: true,
 }
 
-// Dialog 尺寸配置
+// Dialog 尺寸配置 (Apple Style: 圆角、毛玻璃)
 export const dialogSizes = {
-  sm: 'max-w-sm', // 384px
-  md: 'max-w-md', // 448px
-  lg: 'max-w-lg', // 512px
-  xl: 'max-w-xl', // 576px
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
   full: 'max-w-full w-full h-full m-0 rounded-none',
 } as const
 

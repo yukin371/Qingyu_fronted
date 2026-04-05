@@ -143,9 +143,7 @@ function selectMaterialOption(opt: { label: string; value: string }) {
                     </button>
                     <button
                       class="rounded-xl bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 active:bg-red-700 transition-colors duration-150"
-                      @click="
-                        appleDialogOpen = false
-                        showAppleToast('已删除')
+                      @click="appleDialogOpen = false; showAppleToast('已删除')"
                       "
                     >
                       删除
@@ -229,10 +227,7 @@ function selectMaterialOption(opt: { label: string; value: string }) {
                     </button>
                     <button
                       class="rounded-full bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-200"
-                      @click="
-                        materialDialogOpen = false
-                        showMaterialToast('已删除')
-                      "
+                      @click="materialDialogOpen = false; showMaterialToast('已删除')"
                     >
                       删除
                     </button>

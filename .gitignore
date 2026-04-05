@@ -50,3 +50,4 @@ html/
 test-output.txt
 type-check-output.txt
 *.txt.bak
+demo-style-comparison-full.png

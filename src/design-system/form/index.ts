@@ -29,7 +29,9 @@ export type {
 
 // Radio 组件
 export * from './Radio'
-export * from './Select'
+export { QySelect, Select } from './Select'
+export type { SelectOption, SelectProps, SelectEmits } from './Select'
+export type { SelectFullProps, SelectFullEmits, SelectSlots } from './Select'
 
 // Upload 组件
 export * from './Upload'
