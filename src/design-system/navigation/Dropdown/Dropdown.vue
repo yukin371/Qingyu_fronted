@@ -6,9 +6,13 @@
  * ESC 关闭、点击外部关闭
  */
 
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, useAttrs } from 'vue'
 import { cn } from '../../utils/cn'
 import type { QyDropdownProps, DropdownItem } from './types'
+
+defineOptions({ inheritAttrs: false })
+
+const attrs = useAttrs()
 
 const props = withDefaults(defineProps<QyDropdownProps>(), {
   trigger: 'click',
@@ -130,11 +134,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- 触发器 -->
+  <!-- 触发器 — .stop 阻止冒泡到父元素（如卡片点击导航） -->
   <div
     ref="triggerRef"
     class="inline-flex"
-    @click="onTriggerClick"
+    v-bind="attrs"
+    @click.stop="onTriggerClick"
+    @mousedown.stop
     @mouseenter="onTriggerEnter"
     @mouseleave="onTriggerLeave"
   >

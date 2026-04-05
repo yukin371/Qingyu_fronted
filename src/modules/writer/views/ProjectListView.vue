@@ -75,8 +75,6 @@
                   type="button"
                   class="more-btn"
                   aria-label="更多操作"
-                  @click.stop
-                  @mousedown.stop
                 >
                   <QyIcon name="MoreFilled" :size="16" />
                 </button>
