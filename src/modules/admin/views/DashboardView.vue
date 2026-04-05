@@ -1,167 +1,264 @@
 <template>
-  <div class="admin-dashboard">
-    <div class="page-header">
-      <h2 class="page-title">管理仪表板</h2>
-      <p class="page-subtitle">系统运营数据概览与快捷操作入口</p>
+  <div class="max-w-[1400px] mx-auto">
+    <!-- Page Header -->
+    <div class="mb-7">
+      <h2 class="m-0 text-[28px] font-bold text-slate-900">管理仪表板</h2>
+      <p class="m-0 mt-2 text-sm text-gray-500">系统运营数据概览与快捷操作入口</p>
     </div>
 
-    <div class="stat-cards">
-      <div class="stat-card" @click="goToUsers">
-        <div class="stat-icon primary">
-          <el-icon :size="24"><User /></el-icon>
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-4 gap-5 mb-8 max-[1200px]:grid-cols-2 max-[768px]:grid-cols-1">
+      <div
+        class="bg-white rounded-2xl p-6 flex items-start gap-4 shadow-sm hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer"
+        @click="goToUsers"
+      >
+        <div
+          class="w-14 h-14 rounded-[14px] flex items-center justify-center text-white shrink-0"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ formatNumber(stats.totalUsers) }}</div>
-          <div class="stat-label">用户总数</div>
-          <div class="stat-meta">今日新增 {{ formatNumber(stats.newUsersToday) }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card highlight" @click="goToReviews">
-        <div class="stat-icon danger">
-          <el-icon :size="24"><DocumentChecked /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ formatNumber(stats.pendingReviews) }}</div>
-          <div class="stat-label">待审核</div>
-          <div class="stat-badge">需处理</div>
+        <div class="flex-1">
+          <div class="text-[28px] font-bold text-slate-900 leading-tight">{{ formatNumber(stats.totalUsers) }}</div>
+          <div class="text-sm text-gray-500 mt-1">用户总数</div>
+          <div class="text-[13px] text-gray-400 mt-2">今日新增 {{ formatNumber(stats.newUsersToday) }}</div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon info">
-          <el-icon :size="24"><Wallet /></el-icon>
+      <div
+        class="bg-white rounded-2xl p-6 flex items-start gap-4 shadow-sm hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-[#f5576c]"
+        style="background: linear-gradient(135deg, #fff5f5 0%, #fff 100%)"
+        @click="goToReviews"
+      >
+        <div
+          class="w-14 h-14 rounded-[14px] flex items-center justify-center text-white shrink-0"
+          style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+        >
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</div>
-          <div class="stat-label">累计收入</div>
-          <div class="stat-meta">当前后端未提供日收入趋势</div>
+        <div class="flex-1">
+          <div class="text-[28px] font-bold text-slate-900 leading-tight">{{ formatNumber(stats.pendingReviews) }}</div>
+          <div class="text-sm text-gray-500 mt-1">待审核</div>
+          <div class="inline-block mt-2 px-3 py-1 bg-[#f5576c] text-white text-xs font-medium rounded-xl">需处理</div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon warning">
-          <el-icon :size="24"><TrendCharts /></el-icon>
+      <div
+        class="bg-white rounded-2xl p-6 flex items-start gap-4 shadow-sm hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer"
+      >
+        <div
+          class="w-14 h-14 rounded-[14px] flex items-center justify-center text-white shrink-0"
+          style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+        >
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ formatNumber(stats.activeUsers) }}</div>
-          <div class="stat-label">活跃用户</div>
-          <div class="stat-meta">作者数 {{ formatNumber(stats.authorsCount) }}</div>
+        <div class="flex-1">
+          <div class="text-[28px] font-bold text-slate-900 leading-tight">{{ formatCurrency(stats.totalRevenue) }}</div>
+          <div class="text-sm text-gray-500 mt-1">累计收入</div>
+          <div class="text-[13px] text-gray-400 mt-2">当前后端未提供日收入趋势</div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-2xl p-6 flex items-start gap-4 shadow-sm hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer"
+      >
+        <div
+          class="w-14 h-14 rounded-[14px] flex items-center justify-center text-white shrink-0"
+          style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+        >
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <div class="text-[28px] font-bold text-slate-900 leading-tight">{{ formatNumber(stats.activeUsers) }}</div>
+          <div class="text-sm text-gray-500 mt-1">活跃用户</div>
+          <div class="text-[13px] text-gray-400 mt-2">作者数 {{ formatNumber(stats.authorsCount) }}</div>
         </div>
       </div>
     </div>
 
-    <div class="section-title">
-      <h3>快捷操作</h3>
-      <span class="section-desc">常用管理功能入口</span>
+    <!-- Quick Actions -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center">
+        <h3 class="m-0 text-lg font-semibold text-slate-900">快捷操作</h3>
+        <span class="ml-3 text-[13px] text-gray-400">常用管理功能入口</span>
+      </div>
     </div>
-    <div class="quick-actions">
-      <div class="action-card" @click="goToReviews">
-        <div class="action-icon audit">
-          <el-icon :size="28"><DocumentChecked /></el-icon>
+    <div class="grid grid-cols-3 gap-4 mb-8 max-[1200px]:grid-cols-2 max-[768px]:grid-cols-1">
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToReviews"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
-        <div class="action-info">
-          <div class="action-title">内容审核</div>
-          <div class="action-desc">审核书籍、章节等内容</div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">内容审核</div>
+          <div class="text-[13px] text-gray-400 mt-1">审核书籍、章节等内容</div>
         </div>
-        <div class="action-badge" v-if="stats.pendingReviews > 0">
+        <div
+          v-if="stats.pendingReviews > 0"
+          class="absolute -top-2 -right-2 min-w-[24px] h-6 bg-[#f5576c] text-white text-xs font-semibold rounded-xl flex items-center justify-center px-2"
+        >
           {{ stats.pendingReviews }}
         </div>
       </div>
 
-      <div class="action-card" @click="goToWithdrawals">
-        <div class="action-icon withdrawal">
-          <el-icon :size="28"><Wallet /></el-icon>
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToWithdrawals"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
         </div>
-        <div class="action-info">
-          <div class="action-title">提现审核</div>
-          <div class="action-desc">处理用户提现申请</div>
-        </div>
-      </div>
-
-      <div class="action-card" @click="goToUsers">
-        <div class="action-icon users">
-          <el-icon :size="28"><UserFilled /></el-icon>
-        </div>
-        <div class="action-info">
-          <div class="action-title">用户管理</div>
-          <div class="action-desc">管理平台用户信息</div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">提现审核</div>
+          <div class="text-[13px] text-gray-400 mt-1">处理用户提现申请</div>
         </div>
       </div>
 
-      <div class="action-card" @click="goToCategories">
-        <div class="action-icon category">
-          <el-icon :size="28"><Grid /></el-icon>
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToUsers"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
         </div>
-        <div class="action-info">
-          <div class="action-title">分类管理</div>
-          <div class="action-desc">维护书城分类结构</div>
-        </div>
-      </div>
-
-      <div class="action-card" @click="goToLogs">
-        <div class="action-icon logs">
-          <el-icon :size="28"><Document /></el-icon>
-        </div>
-        <div class="action-info">
-          <div class="action-title">操作日志</div>
-          <div class="action-desc">查看系统操作记录</div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">用户管理</div>
+          <div class="text-[13px] text-gray-400 mt-1">管理平台用户信息</div>
         </div>
       </div>
 
-      <div class="action-card" @click="goToBanners">
-        <div class="action-icon banner">
-          <el-icon :size="28"><Picture /></el-icon>
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToCategories"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
         </div>
-        <div class="action-info">
-          <div class="action-title">Banner管理</div>
-          <div class="action-desc">管理首页轮播图</div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">分类管理</div>
+          <div class="text-[13px] text-gray-400 mt-1">维护书城分类结构</div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToLogs"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-[#666] transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">操作日志</div>
+          <div class="text-[13px] text-gray-400 mt-1">查看系统操作记录</div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-300 border border-gray-200 relative hover:border-transparent hover:shadow-lg hover:-translate-y-0.5 group"
+        @click="goToBanners"
+      >
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-[#666] transition-transform duration-300 group-hover:scale-110"
+          style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)"
+        >
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <div class="text-base font-semibold text-slate-900">Banner管理</div>
+          <div class="text-[13px] text-gray-400 mt-1">管理首页轮播图</div>
         </div>
       </div>
     </div>
 
-    <div class="section-title">
-      <h3>数据概览</h3>
-      <span class="section-desc">当前以真实接口返回的聚合数据为准</span>
-    </div>
-    <div class="charts-section">
-      <div class="chart-card">
-        <div class="chart-header">
-          <span class="chart-title">用户规模概览</span>
-          <el-radio-group v-model="userOverviewMode" size="small">
-            <el-radio-button value="overview">概览</el-radio-button>
-          </el-radio-group>
-        </div>
-        <div ref="userChartRef" class="chart-container"></div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-header">
-          <span class="chart-title">审核状态分布</span>
-          <el-radio-group v-model="auditOverviewMode" size="small">
-            <el-radio-button value="overview">概览</el-radio-button>
-          </el-radio-group>
-        </div>
-        <div ref="auditChartRef" class="chart-container"></div>
+    <!-- Charts Section -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center">
+        <h3 class="m-0 text-lg font-semibold text-slate-900">数据概览</h3>
+        <span class="ml-3 text-[13px] text-gray-400">当前以真实接口返回的聚合数据为准</span>
       </div>
     </div>
+    <div class="grid grid-cols-2 gap-5 mb-8 max-[1200px]:grid-cols-1">
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-5">
+          <span class="text-base font-semibold text-slate-900">用户规模概览</span>
+          <span class="text-sm text-gray-400">概览</span>
+        </div>
+        <div ref="userChartRef" class="h-[280px]"></div>
+      </div>
 
-    <div class="section-title">
-      <h3>最近活动</h3>
-      <el-button text type="primary" :loading="activitiesLoading" @click="loadActivities">
-        <el-icon><Refresh /></el-icon>
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-5">
+          <span class="text-base font-semibold text-slate-900">审核状态分布</span>
+          <span class="text-sm text-gray-400">概览</span>
+        </div>
+        <div ref="auditChartRef" class="h-[280px]"></div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="m-0 text-lg font-semibold text-slate-900">最近活动</h3>
+      <QyButton variant="ghost" :loading="activitiesLoading" @click="loadActivities">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
         刷新
-      </el-button>
+      </QyButton>
     </div>
-    <div class="recent-activities">
-      <div v-if="recentActivities.length === 0" class="empty-state">
-        <el-empty description="暂无操作日志" />
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+      <div v-if="recentActivities.length === 0">
+        <QyEmpty title="暂无操作日志" description="系统运行后将显示操作记录" icon-size="small" />
       </div>
-      <div v-else v-for="activity in recentActivities" :key="activity.id" class="activity-item">
-        <div class="activity-dot" :class="activity.type"></div>
-        <div class="activity-content">
-          <div class="activity-text">{{ activity.content }}</div>
-          <div class="activity-time">{{ activity.time }}</div>
+      <div v-else v-for="activity in recentActivities" :key="activity.id" class="flex items-start gap-4 py-4 border-b border-gray-100 last:border-b-0 last:pb-0 first:pt-0">
+        <div
+          class="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0"
+          :class="{
+            'bg-blue-500': activity.type === 'primary',
+            'bg-green-500': activity.type === 'success',
+            'bg-amber-500': activity.type === 'warning',
+            'bg-gray-400': activity.type === 'info',
+          }"
+        ></div>
+        <div class="flex-1">
+          <div class="text-sm text-gray-700">{{ activity.content }}</div>
+          <div class="text-xs text-gray-400 mt-1">{{ activity.time }}</div>
         </div>
       </div>
     </div>
@@ -172,17 +269,8 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import {
-  User,
-  UserFilled,
-  DocumentChecked,
-  Wallet,
-  TrendCharts,
-  Refresh,
-  Grid,
-  Document,
-  Picture,
-} from '@element-plus/icons-vue'
+import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import { echarts } from '@/utils/echarts'
 import type { ECharts } from '@/utils/echarts'
 import { getAuditStatistics, getDashboardStats, getOperationLogs } from '../api'
@@ -221,8 +309,6 @@ const stats = ref<DashboardMetrics>({
   highRisk: 0,
 })
 
-const userOverviewMode = ref('overview')
-const auditOverviewMode = ref('overview')
 const activitiesLoading = ref(false)
 const recentActivities = ref<ActivityItem[]>([])
 
@@ -380,11 +466,8 @@ const goToLogs = () => router.push('/admin/logs')
 const goToCategories = () => router.push('/admin/categories')
 const goToBanners = () => router.push('/admin/banners')
 
-watch([stats, userOverviewMode], () => {
+watch(stats, () => {
   initUserChart()
-}, { deep: true })
-
-watch([stats, auditOverviewMode], () => {
   initAuditChart()
 }, { deep: true })
 
@@ -402,329 +485,3 @@ onBeforeUnmount(() => {
   auditChart?.dispose()
 })
 </script>
-
-<style scoped lang="scss">
-.admin-dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 28px;
-
-  .page-title {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a2e;
-  }
-
-  .page-subtitle {
-    margin: 8px 0 0;
-    color: #6b7280;
-    font-size: 14px;
-  }
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-
-  h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a2e;
-  }
-
-  .section-desc {
-    margin-left: 12px;
-    font-size: 13px;
-    color: #9ca3af;
-  }
-}
-
-.stat-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  }
-
-  &.highlight {
-    background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
-    border: 2px solid #f5576c;
-  }
-
-  .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-
-    &.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    &.danger {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    &.info {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    &.warning {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-  }
-
-  .stat-content {
-    flex: 1;
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1a1a2e;
-      line-height: 1.2;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
-    .stat-meta {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .stat-badge {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 12px;
-      background: #f5576c;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 500;
-      border-radius: 12px;
-    }
-  }
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.action-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
-  position: relative;
-
-  &:hover {
-    border-color: transparent;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-
-    .action-icon {
-      transform: scale(1.1);
-    }
-  }
-
-  .action-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    transition: transform 0.3s ease;
-
-    &.audit { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    &.withdrawal { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    &.users { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    &.category { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-    &.logs { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #666; }
-    &.banner { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); color: #666; }
-  }
-
-  .action-info {
-    flex: 1;
-
-    .action-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a1a2e;
-    }
-
-    .action-desc {
-      font-size: 13px;
-      color: #9ca3af;
-      margin-top: 4px;
-    }
-  }
-
-  .action-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    min-width: 24px;
-    height: 24px;
-    background: #f5576c;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-  }
-}
-
-.charts-section {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.chart-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  .chart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-
-    .chart-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a1a2e;
-    }
-  }
-
-  .chart-container {
-    height: 280px;
-  }
-}
-
-.recent-activities {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.empty-state {
-  padding: 12px 0;
-}
-
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #f3f4f6;
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  &:first-child {
-    padding-top: 0;
-  }
-
-  .activity-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-top: 6px;
-    flex-shrink: 0;
-
-    &.primary { background: #409eff; }
-    &.success { background: #67c23a; }
-    &.warning { background: #e6a23c; }
-    &.info { background: #909399; }
-  }
-
-  .activity-content {
-    flex: 1;
-
-    .activity-text {
-      font-size: 14px;
-      color: #374151;
-    }
-
-    .activity-time {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-top: 4px;
-    }
-  }
-}
-
-@media (max-width: 1200px) {
-  .stat-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .quick-actions {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .charts-section {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .stat-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
