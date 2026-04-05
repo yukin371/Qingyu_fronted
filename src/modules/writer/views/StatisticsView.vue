@@ -6,16 +6,14 @@
       >
         <div class="page-header" style="margin-bottom: 0">
           <h1>作品数据统计</h1>
-          <el-select
+          <QySelect
             v-model="selectedBookId"
-            class="header-book-select"
-            popper-class="writer-book-select-popper"
+            :options="bookOptions"
             placeholder="选择作品"
+            class="header-book-select"
             style="width: 300px; max-width: 100%"
             @change="loadStatistics"
-          >
-            <el-option v-for="book in books" :key="book.id" :label="book.title" :value="book.id" />
-          </el-select>
+          />
         </div>
         <p class="mt-2 text-sm text-slate-500">跟踪阅读、订阅、收藏与评论趋势，辅助内容迭代。</p>
       </div>
@@ -141,9 +139,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QySelect } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { echarts, graphic } from '@/utils/echarts'
@@ -166,6 +164,11 @@ const isTestMode = new URLSearchParams(window.location.search).get('test') === '
 
 // 作品列表
 const books = ref<Array<{ id: string; title: string }>>([])
+
+// 作品选项（用于 QySelect）
+const bookOptions = computed(() =>
+  books.value.map((book) => ({ label: book.title, value: book.id }))
+)
 
 // 加载作品列表
 async function loadBooks(): Promise<void> {
