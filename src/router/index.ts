@@ -103,6 +103,15 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/demo/components',
+    name: 'ComponentDemo',
+    component: () => import('@/views/demo/ComponentDemo.vue'),
+    meta: {
+      title: '苹果风格组件演示',
+      layout: 'blank',
+    },
+  },
+  {
     path: '/demo/navigation-components',
     name: 'NavigationComponentsDemo',
     component: () => import('@/views/demo/NavigationComponentsDemo.vue'),

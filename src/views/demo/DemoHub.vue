@@ -87,43 +87,6 @@
       </div>
     </div>
 
-    <!-- Thesis Showcase Section -->
-    <div class="thesis-showcase-section">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">第 5 章答辩直达</h2>
-          <p class="section-subtitle">
-            按论文小节组织：页面直达 + 建议展示代码文件，覆盖 5.1 ~ 5.4。
-          </p>
-        </div>
-        <div class="showcase-grid">
-          <div v-for="group in thesisShowcaseGroups" :key="group.key" class="showcase-card">
-            <div class="showcase-header">
-              <h3>{{ group.title }}</h3>
-              <p>{{ group.description }}</p>
-            </div>
-            <div class="showcase-list">
-              <div v-for="item in group.items" :key="item.section" class="showcase-row">
-                <div class="showcase-main">
-                  <span class="showcase-section">{{ item.section }}</span>
-                  <span class="showcase-title">{{ item.title }}</span>
-                </div>
-                <div class="showcase-actions">
-                  <QyButton size="sm" variant="secondary" @click="navigateToRoute(item.route)">
-                    页面直达
-                  </QyButton>
-                </div>
-                <div class="showcase-code">
-                  <code>{{ item.frontendFile }}</code>
-                  <code>{{ item.backendFile }}</code>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Demo Pages Section -->
     <div class="demos-section" ref="demosSectionRef">
       <div class="container">
@@ -350,23 +313,45 @@ interface BusinessEntranceGroup {
   items: BusinessEntranceItem[]
 }
 
-interface ThesisShowcaseItem {
-  section: string
-  title: string
-  route: string
-  frontendFile: string
-  backendFile: string
-}
-
-interface ThesisShowcaseGroup {
-  key: string
-  title: string
-  description: string
-  items: ThesisShowcaseItem[]
-}
-
 const demoPages = ref<DemoPage[]>([
-  // ===== 基础组件 Demo =====
+  // ===== 数据展示组件 =====
+  {
+    key: 'components',
+    title: '苹果风格组件演示',
+    description: '展示苹果风格的 Table、Skeleton、Tabs、Pagination 组件，带圆角、毛玻璃和高斯模糊效果。',
+    icon: 'chart',
+    color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    category: 'data',
+    componentCount: 4,
+    lastUpdated: '2026-04-05',
+    new: true,
+    route: '/demo/components',
+  },
+  {
+    key: 'qy-badge',
+    title: 'QyBadge 徽章',
+    description: '徽章组件，支持多种类型（实心/文字/圆点）、多种颜色和尺寸，用于标签和状态展示。',
+    icon: 'tag',
+    color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    category: 'data',
+    componentCount: 1,
+    lastUpdated: '2024-01-10',
+    route: '/demo/qy-badge',
+  },
+  {
+    key: 'advanced-components',
+    title: '高级组件演示',
+    description: '展示复杂交互组件，包括表单验证、数据表格、弹窗等高级功能组件。',
+    icon: 'puzzle',
+    color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    category: 'data',
+    componentCount: 6,
+    lastUpdated: '2024-01-12',
+    updated: true,
+    route: '/demo/advanced-components',
+  },
+
+  // ===== 基础组件 =====
   {
     key: 'qingyu-components',
     title: '青羽组件库演示',
@@ -396,7 +381,7 @@ const demoPages = ref<DemoPage[]>([
     description: '展示复杂交互组件，包括表单验证、数据表格、弹窗等高级功能组件。',
     icon: 'puzzle',
     color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    category: 'components',
+    category: 'data',
     componentCount: 6,
     lastUpdated: '2024-01-12',
     updated: true,
@@ -424,7 +409,7 @@ const demoPages = ref<DemoPage[]>([
       '深空科幻风格的写作编辑器主题，玻璃拟态面板、羊皮纸手稿区、星空背景粒子效果，按 F11 进入沉浸模式。',
     icon: 'sparkles',
     color: 'linear-gradient(135deg, #7de9ff 0%, #cebdff 100%)',
-    category: 'style',
+    category: 'prototype',
     componentCount: 12,
     lastUpdated: '2026-03-22',
     new: true,
@@ -485,7 +470,7 @@ const demoPages = ref<DemoPage[]>([
     description: '用于论文答辩展示的极简注册页面，聚焦注册核心流程与表单校验。',
     icon: 'user-plus',
     color: 'linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)',
-    category: 'validation',
+    category: 'form',
     componentCount: 1,
     lastUpdated: '2026-02-16',
     new: true,
@@ -641,175 +626,14 @@ const businessEntrances = ref<BusinessEntranceGroup[]>([
   },
 ])
 
-const thesisShowcaseGroups = ref<ThesisShowcaseGroup[]>([
-  {
-    key: 'chapter-5-1',
-    title: '5.1 读者端功能模块',
-    description: '建议按登录 -> 首页 -> 浏览 -> 详情 -> 阅读 -> 互动的顺序演示。',
-    items: [
-      {
-        section: '5.1.1',
-        title: '登录注册界面',
-        route: '/login',
-        frontendFile: 'src/modules/user/views/AuthenticationView.vue',
-        backendFile: 'Qingyu_backend/service/auth/auth_service.go',
-      },
-      {
-        section: '5.1.2',
-        title: '首页界面',
-        route: '/bookstore',
-        frontendFile: 'src/modules/bookstore/views/HomeView.vue',
-        backendFile: 'Qingyu_backend/service/bookstore/bookstore_service.go',
-      },
-      {
-        section: '5.1.3',
-        title: '书城浏览界面',
-        route: '/bookstore/browse',
-        frontendFile: 'src/modules/bookstore/views/BrowseBooksView.vue',
-        backendFile: 'Qingyu_backend/service/search/search.go',
-      },
-      {
-        section: '5.1.4',
-        title: '书籍详情界面',
-        route: '/bookstore/books-demo',
-        frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue',
-        backendFile: 'Qingyu_backend/service/bookstore/book_detail_service.go',
-      },
-      {
-        section: '5.1.5',
-        title: '章节阅读界面',
-        route: '/bookstore/reader-demo',
-        frontendFile: 'src/modules/reader/views/ReaderView.vue',
-        backendFile: 'Qingyu_backend/service/reader/chapter_service.go',
-      },
-      {
-        section: '5.1.6',
-        title: '评论发表界面',
-        route: '/bookstore/books-demo',
-        frontendFile: 'src/modules/bookstore/views/BookDetailDemo.vue',
-        backendFile: 'Qingyu_backend/service/social/comment_service.go',
-      },
-      {
-        section: '5.1.7',
-        title: '收藏管理界面',
-        route: '/reading/collections',
-        frontendFile: 'src/modules/reader/views/CollectionsView.vue',
-        backendFile: 'Qingyu_backend/service/reader/collection_service.go',
-      },
-      {
-        section: '5.1.8',
-        title: '个人中心界面',
-        route: '/account/profile',
-        frontendFile: 'src/modules/user/views/ProfileView.vue',
-        backendFile: 'Qingyu_backend/service/user/user_service.go',
-      },
-    ],
-  },
-  {
-    key: 'chapter-5-2',
-    title: '5.2 作者端功能模块',
-    description: '建议按项目管理 -> 编辑创作 -> AI辅助 -> 发布管理 -> 数据统计 -> 稿费收入演示。',
-    items: [
-      {
-        section: '5.2.1',
-        title: '作品管理界面',
-        route: '/writer/projects',
-        frontendFile: 'src/modules/writer/views/ProjectListView.vue',
-        backendFile: 'Qingyu_backend/service/writer/project/project_service.go',
-      },
-      {
-        section: '5.2.2',
-        title: '章节编写界面',
-        route: '/writer/project/project-1?chapterId=chapter-1',
-        frontendFile: 'src/modules/writer/views/ProjectWorkspace.vue',
-        backendFile: 'Qingyu_backend/service/writer/document/document_service.go',
-      },
-      {
-        section: '5.2.3',
-        title: 'AI辅助创作界面',
-        route: '/writer/project/project-1?chapterId=chapter-1',
-        frontendFile: 'src/modules/writer/components/ai/AIPanel.vue',
-        backendFile: 'Qingyu_backend/service/ai/chat_service.go',
-      },
-      {
-        section: '5.2.4',
-        title: '发布管理界面',
-        route: '/writer/publish',
-        frontendFile: 'src/modules/writer/views/PublishManagementView.vue',
-        backendFile: 'Qingyu_backend/service/writer/publish_service.go',
-      },
-      {
-        section: '5.2.5',
-        title: '数据统计界面',
-        route: '/writer/statistics',
-        frontendFile: 'src/modules/writer/views/StatisticsView.vue',
-        backendFile: 'Qingyu_backend/service/shared/stats/stats_service.go',
-      },
-      {
-        section: '5.2.6',
-        title: '稿费收入界面',
-        route: '/writer/revenue',
-        frontendFile: 'src/modules/writer/views/RevenueView.vue',
-        backendFile: 'Qingyu_backend/service/finance/revenue_service.go',
-      },
-    ],
-  },
-  {
-    key: 'chapter-5-3',
-    title: '5.3 管理员端功能模块',
-    description: '建议按用户管理 -> 内容审核 -> 分类管理演示。',
-    items: [
-      {
-        section: '5.3.1',
-        title: '用户管理界面',
-        route: '/admin/users',
-        frontendFile: 'src/modules/admin/views/UserManagement.vue',
-        backendFile: 'Qingyu_backend/service/admin/user_admin_service.go',
-      },
-      {
-        section: '5.3.2',
-        title: '内容审核界面',
-        route: '/admin/reviews',
-        frontendFile: 'src/modules/admin/views/ReviewManagement.vue',
-        backendFile: 'Qingyu_backend/service/audit/content_audit_service.go',
-      },
-      {
-        section: '5.3.3',
-        title: '分类管理界面',
-        route: '/admin/categories',
-        frontendFile: 'src/modules/admin/views/CategoryManagement.vue',
-        backendFile: 'Qingyu_backend/service/bookstore/category_service.go',
-      },
-    ],
-  },
-  {
-    key: 'chapter-5-4',
-    title: '5.4 AI服务模块',
-    description: '建议展示模型路由、提供商配置和健康检查。',
-    items: [
-      {
-        section: '5.4.1',
-        title: 'AI网关与模型路由',
-        route: '/admin/ai/overview',
-        frontendFile: 'src/modules/ai/views/AIMainView.vue',
-        backendFile: 'Qingyu_backend/service/ai/ai_service.go',
-      },
-      {
-        section: '5.4.2',
-        title: 'RAG检索增强服务',
-        route: '/admin/ai/health',
-        frontendFile: 'src/modules/ai/views/AIHealthView.vue',
-        backendFile: 'Qingyu_backend/service/ai/context_service.go',
-      },
-    ],
-  },
-])
-
 // Categories
 const categories = [
   { key: 'all', label: '全部', icon: 'apps' },
   { key: 'components', label: '基础组件', icon: 'component' },
+  { key: 'data', label: '数据展示', icon: 'chart' },
+  { key: 'form', label: '表单组件', icon: 'edit' },
   { key: 'style', label: '风格展示', icon: 'palette' },
+  { key: 'prototype', label: '原型设计', icon: 'prototype' },
   { key: 'validation', label: '功能验证', icon: 'check-circle' },
   { key: 'business', label: '业务页面', icon: 'store' },
 ]
@@ -911,7 +735,10 @@ const navigateToRoute = (route: string) => {
 const getCategoryName = (category: string): string => {
   const categoryMap: Record<string, string> = {
     components: '基础组件',
+    data: '数据展示',
+    form: '表单组件',
     style: '风格展示',
+    prototype: '原型设计',
     validation: '功能验证',
     business: '业务页面',
   }
@@ -1081,97 +908,6 @@ onMounted(() => {
   padding: 56px 0;
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.thesis-showcase-section {
-  padding: 48px 0;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-
-  @media (max-width: 1080px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.showcase-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.showcase-header {
-  margin-bottom: 10px;
-
-  h3 {
-    margin: 0 0 2px;
-    font-size: 16px;
-    color: #0f172a;
-  }
-
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: #64748b;
-  }
-}
-
-.showcase-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.showcase-row {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
-}
-
-.showcase-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.showcase-section {
-  font-size: 12px;
-  color: #1d4ed8;
-  font-weight: 700;
-}
-
-.showcase-title {
-  font-size: 14px;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.showcase-actions {
-  margin-bottom: 6px;
-}
-
-.showcase-code {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  code {
-    display: block;
-    font-size: 11px;
-    color: #334155;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 4px 6px;
-    word-break: break-all;
-  }
 }
 
 .section-subtitle {

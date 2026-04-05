@@ -25,7 +25,7 @@
                 :on-error="handleAvatarError"
                 accept="image/*"
               >
-                <QyButton class="avatar-edit-btn">
+                <QyButton class="avatar-edit-btn" variant="outline">
                   <QyIcon name="Upload" />
                   编辑头像
                 </QyButton>
@@ -52,8 +52,8 @@
                   编辑资料
                 </QyButton>
                 <div class="secondary-actions">
-                   <QyButton class="btn-half" @click="goToSettings">账户设置</QyButton>
-                   <QyButton class="btn-half" @click="goToSecurity">修改密码</QyButton>
+                   <QyButton class="btn-half" variant="ghost" @click="goToSettings">账户设置</QyButton>
+                   <QyButton class="btn-half" variant="ghost" @click="goToSecurity">修改密码</QyButton>
                 </div>
               </div>
             </div>
@@ -70,7 +70,7 @@
                 </QyFormItem>
                 <div class="form-actions">
                   <QyButton class="btn-block" variant="primary" :loading="savingProfile" @click="saveProfile">保存</QyButton>
-                  <QyButton class="btn-block" @click="cancelEdit">取消</QyButton>
+                  <QyButton class="btn-block" variant="ghost" @click="cancelEdit">取消</QyButton>
                 </div>
               </QyForm>
             </div>
@@ -110,10 +110,10 @@
           </div>
 
           <div class="account-actions">
-            <QyButton @click="goToSecurity">修改密码</QyButton>
-            <QyButton @click="goToHistory">阅读历史</QyButton>
-            <QyButton @click="goToCollections">收藏管理</QyButton>
-            <QyButton @click="goToWallet">我的钱包</QyButton>
+            <QyButton variant="ghost" @click="goToSecurity">修改密码</QyButton>
+            <QyButton variant="ghost" @click="goToHistory">阅读历史</QyButton>
+            <QyButton variant="ghost" @click="goToCollections">收藏管理</QyButton>
+            <QyButton variant="ghost" @click="goToWallet">我的钱包</QyButton>
           </div>
         </QyCard>
 
