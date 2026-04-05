@@ -10,8 +10,8 @@
             v-model="selectedBookId"
             :options="bookOptions"
             placeholder="选择作品"
-            class="header-book-select"
-            style="width: 300px; max-width: 100%"
+            size="sm"
+            class="w-[200px]"
             @change="loadStatistics"
           />
         </div>

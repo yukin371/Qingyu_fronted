@@ -9,11 +9,11 @@
               v-model="selectedBookId"
               :options="bookOptions"
               placeholder="选择作品"
-              class="header-book-select"
-              style="width: 240px"
+              size="sm"
+              style="width: 200px"
               @change="loadRevenue"
             />
-            <QyButton variant="primary" @click="showWithdrawDialog = true"> 申请提现 </QyButton>
+            <QyButton variant="primary" size="sm" @click="showWithdrawDialog = true"> 申请提现 </QyButton>
           </div>
         </div>
         <p class="mt-2 text-sm text-slate-500">
