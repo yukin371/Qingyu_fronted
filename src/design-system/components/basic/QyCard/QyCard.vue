@@ -239,8 +239,8 @@ defineExpose({
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.12), transparent 36%),
-    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.1), transparent 34%);
+    radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.04), transparent 36%),
+    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.03), transparent 34%);
 }
 
 .qy-card__body {

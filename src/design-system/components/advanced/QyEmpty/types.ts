@@ -27,6 +27,11 @@ export interface QyEmptyProps {
    * Optional image URL (overrides icon)
    */
   image?: string
+
+  /**
+   * Icon size: 'small' | 'medium' | 'large'
+   */
+  iconSize?: 'small' | 'medium' | 'large'
 }
 
 export interface QyEmptyEmits {

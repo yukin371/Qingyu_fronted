@@ -39,6 +39,7 @@ const selectRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
 const dropdownRef = ref<HTMLElement>()
 const highlightedIndex = ref(-1)
+const dropdownPosition = ref({ top: 0, left: 0, width: 0 })
 
 // 过滤后的选项
 const filteredOptions = computed(() => {
@@ -100,17 +101,33 @@ const selectClasses = computed(() => {
 // 下拉菜单样式类名
 const dropdownClasses = computed(() => {
   return cn(
-    'absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-slate-200',
+    'fixed z-50 bg-white rounded-xl shadow-lg border border-slate-200/80',
     'max-h-[200px] overflow-y-auto',
     'animate-in fade-in zoom-in-95 duration-200'
   )
 })
+
+// 更新下拉菜单位置
+const updateDropdownPosition = () => {
+  if (selectRef.value) {
+    const rect = selectRef.value.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width
+    }
+  }
+}
 
 // 切换下拉菜单
 const toggleDropdown = () => {
   if (props.disabled) return
   isDropdownVisible.value = !isDropdownVisible.value
   emit('visibleChange', isDropdownVisible.value)
+
+  if (isDropdownVisible.value) {
+    updateDropdownPosition()
+  }
   
   if (isDropdownVisible.value) {
     nextTick(() => {
@@ -229,17 +246,30 @@ const handleBlur = (event: FocusEvent) => {
 
 // 点击外部关闭
 const handleClickOutside = (event: MouseEvent) => {
-  if (selectRef.value && !selectRef.value.contains(event.target as Node)) {
+  const target = event.target as Node
+  if (
+    selectRef.value && !selectRef.value.contains(target) &&
+    dropdownRef.value && !dropdownRef.value.contains(target)
+  ) {
     closeDropdown()
   }
 }
 
+// 更新位置（响应滚动和窗口大小变化）
+const updatePosition = () => {
+  if (isDropdownVisible.value) updateDropdownPosition()
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('scroll', updatePosition, true)
+  window.addEventListener('resize', updatePosition)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('scroll', updatePosition, true)
+  window.removeEventListener('resize', updatePosition)
 })
 
 // 暴露方法
@@ -315,7 +345,12 @@ defineExpose({
         v-if="isDropdownVisible"
         ref="dropdownRef"
         :class="dropdownClasses"
-        :style="{ maxHeight: `${popperMaxHeight}px` }"
+        :style="{
+          top: `${dropdownPosition.top}px`,
+          left: `${dropdownPosition.left}px`,
+          width: `${dropdownPosition.width}px`,
+          maxHeight: `${popperMaxHeight}px`
+        }"
       >
         <!-- 加载状态 -->
         <div v-if="loading" class="px-3 py-4 text-center text-slate-500">

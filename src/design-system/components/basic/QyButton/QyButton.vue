@@ -6,9 +6,6 @@
     :aria-busy="loading || undefined"
     @click="handleClick"
   >
-    <!-- 光晕效果 -->
-    <span class="qy-button__glow" aria-hidden="true"></span>
-
     <!-- 左侧图标 -->
     <span
       v-if="icon && iconPosition === 'left' && !loading"
@@ -130,16 +127,4 @@ const handleClick = (event: MouseEvent) => {
   margin-right: 0.5rem;
 }
 
-.qy-button__glow {
-  position: absolute;
-  inset: -35%;
-  background: radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.28), transparent 55%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.qy-button:hover .qy-button__glow {
-  opacity: 1;
-}
 </style>

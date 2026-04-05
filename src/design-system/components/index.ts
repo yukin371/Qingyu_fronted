@@ -73,6 +73,9 @@ export { default as QyCommentItem } from './business/QyCommentItem'
 export { default as QyDivider } from './data/QyDivider'
 export { default as QyProgress } from './data/QyProgress'
 export { default as QyPagination } from './data/QyPagination'
+export { Table } from '../data/Table'
+export { Tabs, TabPane } from '../data/Tabs'
+export { Skeleton } from '../base/Skeleton'
 
 // Re-export types
 export type * from './basic/QyButton/types'

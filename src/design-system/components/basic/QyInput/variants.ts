@@ -19,12 +19,12 @@ export const inputVariants = cva(
   [
     'w-full',
     'rounded-xl',
-    'bg-white/72 backdrop-blur-md',
+    'bg-white',
     'border',
     'text-slate-800 placeholder:text-slate-400/95',
     'transition-all duration-300',
     'focus:outline-none',
-    'shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]',
+    'shadow-sm',
     'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100/80 disabled:border-slate-200'
   ],
   {
@@ -43,24 +43,24 @@ export const inputVariants = cva(
        */
       state: {
         default: [
-          'border-white/80',
-          'hover:border-blue-100',
-          'focus:border-blue-300 focus:ring-4 focus:ring-blue-500/15 focus:bg-white'
+          'border-slate-200',
+          'hover:border-slate-300',
+          'focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:bg-white'
         ],
         error: [
-          'border-red-300 bg-red-50/85',
+          'border-red-300 bg-red-50',
           'hover:border-red-400',
-          'focus:border-red-400 focus:ring-4 focus:ring-red-500/15 focus:bg-red-50'
+          'focus:border-red-400 focus:ring-2 focus:ring-red-500/20 focus:bg-red-50'
         ],
         success: [
-          'border-emerald-300 bg-emerald-50/85',
+          'border-emerald-300 bg-emerald-50',
           'hover:border-emerald-400',
-          'focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/15 focus:bg-emerald-50'
+          'focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:bg-emerald-50'
         ],
         warning: [
-          'border-amber-300 bg-amber-50/85',
+          'border-amber-300 bg-amber-50',
           'hover:border-amber-400',
-          'focus:border-amber-400 focus:ring-4 focus:ring-amber-500/15 focus:bg-amber-50'
+          'focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 focus:bg-amber-50'
         ]
       }
     },

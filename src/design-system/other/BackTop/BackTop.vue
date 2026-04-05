@@ -95,7 +95,7 @@ const classes = computed(() =>
       size: props.size,
       position: props.position,
     }),
-    'bg-primary-500 hover:bg-primary-600 text-white',
+    'bg-white/90 backdrop-blur-md hover:bg-white text-slate-600 hover:text-slate-900 border border-slate-200/60',
     {
       'opacity-0 translate-y-4 pointer-events-none': !visible.value,
       'opacity-100 translate-y-0': visible.value,

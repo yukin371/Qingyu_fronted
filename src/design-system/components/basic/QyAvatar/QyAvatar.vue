@@ -5,17 +5,21 @@
     :class="avatarWrapperClasses"
     @click="handleClick"
   >
+    <!-- Normal image -->
     <img
-      v-if="src"
+      v-if="src && !imgError"
       :src="src"
       :alt="alt"
       :class="avatarImageClasses"
+      @error="imgError = true"
     />
-    <div v-else :class="avatarPlaceholderClasses">
+    <!-- Fallback: colored background + initials -->
+    <div v-else :class="[avatarPlaceholderClasses, avatarTextBgClasses, 'flex items-center justify-center w-full h-full']">
+      <span v-if="text" :class="avatarTextClasses">{{ getAvatarText(text) }}</span>
       <svg
-        v-if="!icon"
+        v-else
         xmlns="http://www.w3.org/2000/svg"
-        class="w-1/2 h-1/2"
+        class="w-1/2 h-1/2 text-white/80"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -27,7 +31,6 @@
           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
         />
       </svg>
-      <span v-else v-html="icon" :class="avatarIconClasses"></span>
     </div>
   </div>
 
@@ -82,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { cn } from '@/design-system/utils/cn'
 import {
   avatarVariants,
@@ -113,6 +116,14 @@ const props = withDefaults(defineProps<QyAvatarProps>(), {
 
 // Emits
 const emit = defineEmits<QyAvatarEmits>()
+
+// Image error state
+const imgError = ref(false)
+
+// Reset imgError when src changes
+watch(() => props.src, () => {
+  imgError.value = false
+})
 
 // 计算实际的最大显示数量
 const actualMaxVisible = computed(() => props.maxVisible || 3)
@@ -147,18 +158,6 @@ const avatarPlaceholderClasses = computed(() => {
       size: props.size
     })
   )
-})
-
-// 计算图标类名
-const avatarIconClasses = computed(() => {
-  const sizeMap: Record<string, string> = {
-    xs: 'w-3 h-3',
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-10 h-10'
-  }
-  return cn(sizeMap[props.size || 'md'], 'text-slate-500')
 })
 
 // 计算文本背景类名

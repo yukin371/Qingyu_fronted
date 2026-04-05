@@ -22,8 +22,7 @@ export const tagVariants = cva(
   [
     'inline-flex items-center gap-1.5 font-medium',
     'transition-all duration-200',
-    'select-none',
-    'backdrop-blur-sm'
+    'select-none'
   ],
   {
     variants: {
@@ -64,7 +63,7 @@ export const tagVariants = cva(
        */
       round: {
         true: 'rounded-full',
-        false: 'rounded-md'
+        false: 'rounded-lg'
       },
 
       /**

@@ -74,11 +74,11 @@ const sortedData = computed(() => {
 // 表格容器样式
 const tableVariants = cva(
   // 基础样式
-  'w-full overflow-auto',
+  'w-full overflow-auto bg-white dark:bg-slate-900',
   {
     variants: {
       border: {
-        true: 'border border-slate-200 dark:border-slate-700 rounded-lg',
+        true: 'border border-slate-200/60 dark:border-slate-700/60 rounded-xl shadow-sm',
         false: '',
       },
     },
@@ -110,11 +110,11 @@ const rowVariants = cva(
   {
     variants: {
       stripe: {
-        true: 'even:bg-slate-50 dark:even:bg-slate-800/50',
+        true: 'even:bg-slate-50/60 dark:even:bg-slate-800/30',
         false: '',
       },
       hover: {
-        true: 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
+        true: 'hover:bg-blue-50/40 dark:hover:bg-blue-900/20',
         false: '',
       },
     },
@@ -172,11 +172,11 @@ const getCellClass = (
 ): string => {
   const classes: string[] = []
 
-  // 基础类名
+  // 基础类名 - Apple 风格
   classes.push(cellPadding.value)
   classes.push(textSize.value)
-  classes.push('text-slate-600 dark:text-slate-400')
-  classes.push('border-b border-slate-200 dark:border-slate-700')
+  classes.push('text-slate-700 dark:text-slate-300')
+  classes.push('border-b border-slate-100 dark:border-slate-800')
   classes.push(getAlignClass(column.align))
 
   // 自定义类名
@@ -197,7 +197,7 @@ const getCellClass = (
 
   // 边框
   if (props.border) {
-    classes.push('border-r border-slate-200 dark:border-slate-700 last:border-r-0')
+    classes.push('border-r border-slate-200/60 dark:border-slate-700/60 last:border-r-0')
   }
 
   return classes.join(' ')
@@ -207,13 +207,13 @@ const getCellClass = (
 const getHeaderCellClass = (column: Column): string => {
   const classes: string[] = []
 
-  // 基础类名
+  // 基础类名 - Apple 风格表头
   classes.push(cellPadding.value)
   classes.push(textSize.value)
-  classes.push('font-medium')
-  classes.push('text-slate-700 dark:text-slate-300')
-  classes.push('bg-slate-50 dark:bg-slate-800')
-  classes.push('border-b-2 border-slate-200 dark:border-slate-700')
+  classes.push('font-semibold')
+  classes.push('text-slate-500 dark:text-slate-400')
+  classes.push('bg-slate-50/80 dark:bg-slate-800/80')
+  classes.push('border-b border-slate-200/80 dark:border-slate-700/80')
   classes.push(getAlignClass(column.align))
 
   // 表头自定义类名
@@ -223,7 +223,7 @@ const getHeaderCellClass = (column: Column): string => {
 
   // 边框
   if (props.border) {
-    classes.push('border-r border-slate-200 dark:border-slate-700 last:border-r-0')
+    classes.push('border-r border-slate-200/60 dark:border-slate-700/60 last:border-r-0')
   }
 
   return classes.join(' ')
@@ -242,7 +242,7 @@ const getRowClass = (row: TableRowData, index: number): string => {
 
   // 高亮当前行
   if (props.highlightCurrentRow && currentRow.value === row) {
-    classes.push('bg-primary-50 dark:bg-primary-900/20')
+    classes.push('bg-blue-50/50 dark:bg-blue-900/20')
   }
 
   // 自定义行类名
@@ -468,7 +468,8 @@ const displayColumns = computed(() => {
 
             <!-- 普通列 -->
             <template v-else>
-              {{ renderCell(row, column, rowIndex) }}
+              <span v-if="column.render" v-html="renderCell(row, column, rowIndex)"></span>
+              <span v-else>{{ renderCell(row, column, rowIndex) }}</span>
             </template>
           </td>
         </tr>
