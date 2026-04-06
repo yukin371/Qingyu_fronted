@@ -52,3 +52,5 @@ type-check-output.txt
 *.txt.bak
 demo-style-comparison-full.png
 .gitnexus
+AGENTS.md
+CLAUDE.md
