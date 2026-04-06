@@ -361,7 +361,7 @@ describe('AIWorkbench', () => {
     })
   })
 
-  it('shows selected proposal lifecycle feedback while keeping the retained card visible', () => {
+  it('keeps selected proposal lifecycle feedback quiet once the retained card is visible', () => {
     const wrapper = mount(AIWorkbench, {
       props: {
         projectId: 'project-1',
@@ -406,12 +406,9 @@ describe('AIWorkbench', () => {
       },
     })
 
-    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain(
-      '正文提案已保留',
-    )
-    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('审校')
+    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('状态 保留')
     expect(wrapper.text()).toContain('审校建议提案')
   })
 
@@ -532,6 +529,66 @@ describe('AIWorkbench', () => {
     )
     expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('总结')
     expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('旧方向提案')
+  })
+
+  it('suppresses discarded lifecycle feedback when a newer result candidate arrives', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-result-after-discard\" @click=\"$emit('result-candidate', { source: 'chat', action: 'chat', title: 'AI 对话结果', summary: '新的处理建议', generatedText: '新的剧情方向', sourceText: '继续推进冲突' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-discarded',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '旧方向提案',
+            summary: '已不再采用',
+            generatedText: '旧方向提案',
+            sourceText: '第一章',
+            status: 'discarded',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: AIPanelStub,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(true)
+
+    await wrapper.find('[data-testid="emit-result-after-discard"]').trigger('click')
+
+    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
   })
 
   it('routes add_to_chat actions to chat tab via shared workflow resolver', async () => {

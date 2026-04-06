@@ -41,7 +41,7 @@
       </div>
 
       <div
-        v-if="proposalLifecycleFeedback"
+        v-if="shouldShowProposalLifecycleFeedback"
         class="proposal-feedback workflow-feedback-strip"
         :class="`proposal-feedback--${proposalLifecycleFeedback.status}`"
         data-testid="proposal-feedback-strip"
@@ -254,7 +254,7 @@ const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
 const hasWorkflowRail = computed(
   () =>
     !!props.aiApplyFeedback ||
-    !!proposalLifecycleFeedback.value ||
+    !!shouldShowProposalLifecycleFeedback.value ||
     !!latestResultCandidate.value ||
     !!primaryDraftProposal.value,
 )
@@ -288,6 +288,18 @@ const proposalLifecycleFeedback = computed<{
         : `已从 rail 中移除：${latestProposal.title}`,
     source: proposalSourceText(latestProposal.source),
   }
+})
+
+const shouldShowProposalLifecycleFeedback = computed(() => {
+  if (!proposalLifecycleFeedback.value) {
+    return false
+  }
+
+  if (props.aiApplyFeedback || latestResultCandidate.value) {
+    return false
+  }
+
+  return proposalLifecycleFeedback.value.status === 'discarded'
 })
 
 watch(
