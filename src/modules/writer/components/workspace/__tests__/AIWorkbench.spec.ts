@@ -213,4 +213,63 @@ describe('AIWorkbench', () => {
       title: '章节方向提案',
     })
   })
+
+  it('surfaces review results through the shared workflow result card', async () => {
+    const ReviewWorkbenchToolStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        '<button data-testid="emit-review" @click="$emit(\'result-candidate\', { source: \'review\', action: \'proofread\', title: \'审校建议提案\', summary: \'检测到 2 条语言问题\', generatedText: \'审校评分：8.5\\n1. 语法：建议调整句式\', sourceText: \'第一章正文\' })">emit-review</button>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 1,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: ReviewWorkbenchToolStub,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 12,
+        action: 'proofread',
+        text: '这是当前章节正文。',
+      },
+    })
+    await nextTick()
+
+    await wrapper.find('[data-testid="emit-review"]').trigger('click')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('审校建议提案')
+
+    await wrapper.find('.workflow-result-card__action').trigger('click')
+    expect(wrapper.emitted('proposalDraft')?.[0]?.[0]).toMatchObject({
+      source: 'review',
+      action: 'proofread',
+      title: '审校建议提案',
+    })
+  })
 })

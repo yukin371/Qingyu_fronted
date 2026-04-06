@@ -222,6 +222,18 @@ const WorkspaceRightPanelStub = defineComponent({
               sourceText: '第一章',
             }),
         }),
+        h('button', {
+          'data-testid': 'save-review-proposal',
+          onClick: () =>
+            emit('proposal-draft', {
+              source: 'review',
+              action: 'proofread',
+              title: '审校建议提案',
+              summary: '检测到 2 条语言问题',
+              generatedText: '审校评分：8.5\n1. 语法：建议调整句式\n2. 标点：补充逗号',
+              sourceText: '第一章正文',
+            }),
+        }),
         h('div', { 'data-testid': 'apply-feedback-title' }, props.aiApplyFeedback?.title || ''),
         h('div', { 'data-testid': 'trigger-action' }, props.aiActionTrigger?.action || ''),
         h('div', { 'data-testid': 'trigger-source' }, props.aiActionTrigger?.source || ''),
@@ -701,6 +713,37 @@ describe('ProjectWorkspace Refactor', () => {
     expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
     expect(wrapper.find('[data-testid="proposal-kind"]').text()).toBe('chapter-direction')
     expect(wrapper.find('[data-testid="proposal-source"]').text()).toBe('summary-workbench')
+  })
+
+  it('审校结果应映射为 review-workbench proposal', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="save-review-proposal"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+    expect(wrapper.find('[data-testid="proposal-kind"]').text()).toBe('text-draft')
+    expect(wrapper.find('[data-testid="proposal-source"]').text()).toBe('review-workbench')
   })
 
   it('提案状态变更后再次暂存应复位为 draft', async () => {

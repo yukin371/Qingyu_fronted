@@ -102,19 +102,21 @@ import {
   proofreadContent,
   type ReviewIssue,
 } from '@/modules/ai/api/workbench'
+import type {
+  WriterAIActionTrigger,
+  WriterResultCandidate,
+} from '@/modules/writer/types/workflow'
 
 const props = defineProps<{
   projectId: string
   chapterId: string
   chapterTitle: string
   seedText: string
-  actionTrigger: {
-    id: number
-    action: string
-    text: string
-    instructions?: string
-    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  } | null
+  actionTrigger: WriterAIActionTrigger | null
+}>()
+
+const emit = defineEmits<{
+  (e: 'resultCandidate', payload: WriterResultCandidate): void
 }>()
 
 const content = ref('')
@@ -171,6 +173,60 @@ watch(
   },
 )
 
+function buildProofreadGeneratedText(nextIssues: ReviewIssue[], nextScore?: number) {
+  const header =
+    typeof nextScore === 'number'
+      ? `审校评分：${nextScore.toFixed(1)}`
+      : '审校结果：需要人工复核'
+  const issueLines = nextIssues.map((issue, index) => {
+    const parts = [
+      `${index + 1}. ${issue.type || '问题'}：${issue.message || '未提供说明'}`,
+      issue.suggestions?.length ? `建议：${issue.suggestions.join('；')}` : '',
+    ].filter(Boolean)
+    return parts.join('；')
+  })
+
+  return [header, ...issueLines].join('\n')
+}
+
+function buildAuditGeneratedText(nextAuditWords: Array<Record<string, unknown>>) {
+  return nextAuditWords
+    .map((word, index) => {
+      const label = String(word.word || word.context || `风险项 ${index + 1}`)
+      const suggestion = String(word.suggestion || word.reason || '建议进一步人工复核')
+      return `${index + 1}. ${label}：${suggestion}`
+    })
+    .join('\n')
+}
+
+function emitProofreadCandidate(nextIssues: ReviewIssue[], nextScore?: number) {
+  emit('resultCandidate', {
+    source: 'review',
+    action: 'proofread',
+    title: '审校建议提案',
+    summary:
+      nextIssues.length > 0
+        ? `检测到 ${nextIssues.length} 条语言问题，建议人工复核后处理。`
+        : '已生成审校建议提案。',
+    generatedText: buildProofreadGeneratedText(nextIssues, nextScore),
+    sourceText: content.value,
+  })
+}
+
+function emitAuditCandidate(nextAuditWords: Array<Record<string, unknown>>) {
+  emit('resultCandidate', {
+    source: 'review',
+    action: 'audit',
+    title: '风险复核提案',
+    summary:
+      nextAuditWords.length > 0
+        ? `命中 ${nextAuditWords.length} 项风险表达，建议二次复核。`
+        : '已生成风险复核提案。',
+    generatedText: buildAuditGeneratedText(nextAuditWords),
+    sourceText: content.value,
+  })
+}
+
 async function handleProofread() {
   if (!content.value.trim()) return
   loading.value = true
@@ -184,6 +240,7 @@ async function handleProofread() {
     })
     issues.value = result.issues
     score.value = result.score
+    emitProofreadCandidate(result.issues, result.score)
   } catch (error) {
     console.error('[ReviewWorkbenchTool] proofread failed:', error)
     errorText.value = '文本校对失败，请稍后重试。'
@@ -204,6 +261,7 @@ async function handleAudit() {
       chapterId: props.chapterId || undefined,
     })
     auditWords.value = result.sensitiveWords
+    emitAuditCandidate(result.sensitiveWords)
   } catch (error) {
     console.error('[ReviewWorkbenchTool] audit failed:', error)
     errorText.value = '敏感词检测失败，请稍后重试。'
