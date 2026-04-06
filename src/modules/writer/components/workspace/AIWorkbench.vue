@@ -83,7 +83,7 @@
             v-if="primaryDraftProposal.status === 'draft'"
             type="button"
             class="proposal-card__action"
-            :aria-label="`保留提案 ${primaryDraftProposal.title}`"
+            :aria-label="`将 ${primaryDraftProposal.title} 定为当前${proposalKindText(primaryDraftProposal.kind)}`"
             @click="
               emit('proposalStatusChange', {
                 proposalId: primaryDraftProposal.id,
@@ -131,7 +131,7 @@
           type="button"
           class="workflow-result-card__action workflow-result-action"
           data-testid="workflow-result-action"
-          :aria-label="`将 ${latestResultCandidate.title} 转为提案`"
+          :aria-label="`将 ${latestResultCandidate.title} 存为${resultKindText(latestResultCandidate)}提案`"
           @click="handlePromoteToProposal"
         >
           {{ resultPromoteActionText(latestResultCandidate) }}
@@ -345,7 +345,7 @@ function proposalStatusText(status: WriterDraftProposalStatus) {
 }
 
 function proposalSelectActionText(kind: WriterDraftProposalKind) {
-  return kind === 'chapter-direction' ? '保留方向' : '保留正文'
+  return kind === 'chapter-direction' ? '定为方向' : '定为正文'
 }
 
 function proposalDismissActionText(status: WriterDraftProposalStatus) {
@@ -377,7 +377,7 @@ function resultKindText(candidate: WriterResultCandidate) {
 }
 
 function resultPromoteActionText(candidate: WriterResultCandidate) {
-  return resultKindText(candidate) === '方向' ? '暂存方向' : '暂存正文'
+  return resultKindText(candidate) === '方向' ? '存为方向' : '存为正文'
 }
 </script>
 
