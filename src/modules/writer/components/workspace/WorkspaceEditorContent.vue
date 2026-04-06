@@ -71,6 +71,7 @@
       :active-characters="activeCharacters"
       :active-relations="activeRelations"
       :change-requests="changeRequests"
+      :handle-change-request-decision="handleChangeRequestDecision"
     />
   </div>
 
@@ -104,6 +105,7 @@ import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
 import type {
+  StoryHarnessChangeRequestDecision,
   StoryHarnessCharacterSummary,
   StoryHarnessChangeRequestPreview,
   StoryHarnessRelationSummary,
@@ -144,6 +146,11 @@ const props = defineProps<{
   activeRelations?: StoryHarnessRelationSummary[]
   /** 当前场景变更建议预览 */
   changeRequests?: StoryHarnessChangeRequestPreview[]
+  /** 处理变更建议 */
+  handleChangeRequestDecision?: (
+    requestId: string,
+    decision: StoryHarnessChangeRequestDecision,
+  ) => Promise<boolean>
 }>()
 
 // =======================

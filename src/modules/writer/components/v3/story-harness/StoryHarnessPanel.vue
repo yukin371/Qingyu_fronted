@@ -185,6 +185,7 @@
     <StoryHarnessChangeRequestDrawer
       v-model="isChangeRequestDrawerVisible"
       :change-requests="changeRequests"
+      :handle-change-request-decision="handleChangeRequestDecision"
     />
   </aside>
 </template>
@@ -194,6 +195,7 @@ import { computed, ref, watch } from 'vue'
 import { QyBadge, QyButton, QyCard, QyTag } from '@/design-system/components'
 import {
   useStoryHarnessStore,
+  type StoryHarnessChangeRequestDecision,
   type StoryHarnessCharacterSummary,
   type StoryHarnessChangeRequestPreview,
   type StoryHarnessRelationSummary,
@@ -210,6 +212,10 @@ const props = defineProps<{
   activeCharacters?: StoryHarnessCharacterSummary[]
   activeRelations?: StoryHarnessRelationSummary[]
   changeRequests?: StoryHarnessChangeRequestPreview[]
+  handleChangeRequestDecision?: (
+    requestId: string,
+    decision: StoryHarnessChangeRequestDecision,
+  ) => Promise<boolean>
 }>()
 
 const harnessStore = useStoryHarnessStore()

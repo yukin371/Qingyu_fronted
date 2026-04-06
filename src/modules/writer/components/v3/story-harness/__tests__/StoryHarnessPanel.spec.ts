@@ -38,7 +38,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: {
-            props: ['modelValue', 'changeRequests'],
+            props: ['modelValue', 'changeRequests', 'handleChangeRequestDecision'],
             template:
               '<div data-testid="story-harness-drawer-stub" :data-open="String(modelValue)" :data-count="changeRequests.length" />',
           },

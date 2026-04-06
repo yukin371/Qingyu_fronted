@@ -59,6 +59,7 @@
           :active-characters="activeScopeCharacters"
           :active-relations="activeScopeRelations"
           :change-requests="storyHarnessChangeRequests"
+          :handle-change-request-decision="handleChangeRequestDecision"
           v-model:content="tipTapContent"
           @update:category="setEncyclopediaCategory"
           @trigger-ai-action="handleAIStageAction"
@@ -271,6 +272,8 @@ const {
   activeScopeRelations,
   storyHarnessChangeRequests,
   persistCurrentLiveChangeRequests,
+  handleChangeRequestDecision,
+  refreshAfterSave,
 } = useStoryHarnessWorkspace({
   projectId: currentProjectId,
   displayChapterId,
@@ -385,6 +388,7 @@ const handleTipTapSave = async (contents?: unknown[]) => {
       )
     }
     await persistCurrentLiveChangeRequests()
+    await refreshAfterSave()
     // 保存成功静默处理，不显示弹窗，状态栏会显示保存状态
   } catch (error) {
     console.error('[ProjectWorkspace] 保存失败:', error)

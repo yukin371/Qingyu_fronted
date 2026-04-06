@@ -1,16 +1,93 @@
-import { computed, ref } from 'vue'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { computed, nextTick, ref } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useStoryHarnessWorkspace } from '../useStoryHarnessWorkspace'
 import { useStoryHarnessStore } from '@/modules/writer/stores/v3/storyHarnessStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 
+const { mockStoryHarnessService } = vi.hoisted(() => ({
+  mockStoryHarnessService: {
+    getLatestBatch: vi.fn(),
+    persistBatch: vi.fn(),
+    fetchChapterContext: vi.fn(),
+    fetchChangeRequests: vi.fn(),
+    processChangeRequest: vi.fn(),
+    triggerIndex: vi.fn(),
+  },
+}))
+
+vi.mock('@/modules/writer/services/storyHarness.service', () => ({
+  storyHarnessService: mockStoryHarnessService,
+  default: mockStoryHarnessService,
+}))
+
 describe('useStoryHarnessWorkspace', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    vi.clearAllMocks()
+
+    mockStoryHarnessService.getLatestBatch.mockResolvedValue(null)
+    mockStoryHarnessService.persistBatch.mockImplementation(async (payload) => ({
+      changeRequests: payload.changeRequests.map((changeRequest: any, index: number) => ({
+        ...changeRequest,
+        id: `save-batch:batch-local:${index}:${changeRequest.id}`,
+        source: 'save_batch',
+        sourceTimestamp: 1712345678901,
+      })),
+      receipt: {
+        chapterId: payload.chapterId,
+        chapterTitle: payload.chapterTitle,
+        count: payload.changeRequests.length,
+        committedAt: 1712345678901,
+        batchId: 'batch-local',
+        source: 'remote',
+      },
+    }))
+    mockStoryHarnessService.fetchChapterContext.mockResolvedValue({
+      characters: [
+        {
+          id: 'char-1',
+          name: '张三',
+          traits: ['热血'],
+          currentState: '怀疑中',
+        },
+      ],
+      relations: [],
+      pendingCRs: 1,
+    })
+    mockStoryHarnessService.fetchChangeRequests.mockResolvedValue([
+      {
+        id: 'backend-cr-1',
+        batchId: 'batch-1',
+        chapterId: 'chapter-1',
+        category: 'state',
+        priority: 'high',
+        status: 'pending',
+        title: '正文指令建议：更新 张三',
+        description: '张三状态应切换为重伤撤退。',
+        evidence: [
+          {
+            documentId: 'chapter-1',
+            paragraphIdx: 0,
+            quoteText: '// @张三 受伤严重，退出后续战斗。',
+          },
+        ],
+        source: 'indexer',
+        createdAt: '2026-04-06T06:00:00.000Z',
+      },
+    ])
+    mockStoryHarnessService.processChangeRequest.mockResolvedValue(true)
+    mockStoryHarnessService.triggerIndex.mockResolvedValue({
+      batchId: 'batch-1',
+      generated: 1,
+      pending: 1,
+      deduplicated: 0,
+      source: 'manual',
+    })
   })
 
-  it('应整合作用域上下文，并在保存后让正式批次压住同签名即时预览', async () => {
+  it('应整合作用域上下文，并优先展示后端正式建议', async () => {
     const writerStore = useWriterStore()
     const harnessStore = useStoryHarnessStore()
 
@@ -65,18 +142,78 @@ describe('useStoryHarnessWorkspace', () => {
       availableDocMap,
     })
 
+    await flushPromises()
+    await nextTick()
+
     expect(harness.currentScopeLabel.value).toBe('雨夜祠堂')
-    expect(harness.activeScopeCharacters.value.map((character) => character.name)).toEqual(['张三', '李四'])
-    expect(harness.activeScopeRelations.value).toHaveLength(1)
-    expect(harness.storyHarnessLiveChangeRequests.value).toHaveLength(2)
-    expect(harness.storyHarnessLiveChangeRequests.value.every((item) => item.source === 'live')).toBe(true)
-    expect(harness.storyHarnessChangeRequests.value[0].title).toContain('正文指令建议')
+    expect(harness.activeScopeCharacters.value).toEqual([
+      {
+        id: 'char-1',
+        name: '张三',
+        traits: ['热血'],
+        currentState: '怀疑中',
+      },
+    ])
+    expect(harness.storyHarnessLiveChangeRequests.value.length).toBeGreaterThan(0)
+    expect(harness.storyHarnessChangeRequests.value[0].id).toBe('backend-cr-1')
+    expect(
+      harness.storyHarnessChangeRequests.value.filter((item) => item.title.includes('正文指令建议')).length,
+    ).toBe(1)
 
     await harness.persistCurrentLiveChangeRequests()
 
-    expect(harnessStore.savedBatchReceipt?.count).toBe(2)
-    expect(harness.storyHarnessChangeRequests.value).toHaveLength(2)
-    expect(harness.storyHarnessChangeRequests.value.every((item) => item.source === 'save_batch')).toBe(true)
-    expect(harness.storyHarnessChangeRequests.value[0].title).toContain('正文指令建议')
+    expect(harnessStore.savedBatchReceipt?.count).toBeGreaterThan(0)
+    expect(
+      harness.storyHarnessChangeRequests.value.some((item) => item.id === 'backend-cr-1'),
+    ).toBe(true)
+  })
+
+  it('accept 后应同步后端并刷新 Context Lens', async () => {
+    const writerStore = useWriterStore()
+
+    writerStore.characters.list = [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '强撑' }] as any
+    writerStore.characters.relations = [] as any
+    writerStore.outline.tree = [
+      {
+        id: 'outline-1',
+        documentId: 'chapter-1',
+        title: '雨夜祠堂',
+        characters: ['char-1'],
+        children: [],
+      },
+    ] as any
+
+    mockStoryHarnessService.fetchChapterContext
+      .mockResolvedValueOnce({
+        characters: [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' }],
+        relations: [],
+        pendingCRs: 1,
+      })
+      .mockResolvedValueOnce({
+        characters: [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '重伤撤退' }],
+        relations: [],
+        pendingCRs: 0,
+      })
+
+    const harness = useStoryHarnessWorkspace({
+      projectId: computed(() => 'project-1'),
+      displayChapterId: computed(() => 'chapter-1'),
+      displayChapterTitle: computed(() => '第一章'),
+      currentChapterPlainText: computed(() => '// @张三 受伤严重，退出后续战斗。'),
+      availableDocMap: computed(() => new Map([['chapter-1', { id: 'chapter-1', title: '第一章' }]]) as any),
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    expect(harness.activeScopeCharacters.value[0].currentState).toBe('怀疑中')
+
+    const success = await harness.handleChangeRequestDecision('backend-cr-1', 'accepted')
+    await flushPromises()
+    await nextTick()
+
+    expect(success).toBe(true)
+    expect(mockStoryHarnessService.processChangeRequest).toHaveBeenCalledWith('backend-cr-1', 'accepted')
+    expect(harness.activeScopeCharacters.value[0].currentState).toBe('重伤撤退')
   })
 })

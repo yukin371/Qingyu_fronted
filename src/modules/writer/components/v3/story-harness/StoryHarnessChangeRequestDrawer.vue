@@ -268,7 +268,7 @@
 
     <template #footer>
       <div class="flex items-center justify-between gap-3">
-        <p class="text-xs leading-5 text-slate-500">当前抽屉已区分即时预览与保存后批次，下一步再补证据链和持久化。</p>
+        <p class="text-xs leading-5 text-slate-500">当前抽屉已消费正式建议与即时预览，后续再补证据链与全项目视图。</p>
         <QyButton variant="secondary" size="sm" @click="drawerVisible = false">关闭</QyButton>
       </div>
     </template>
@@ -290,6 +290,10 @@ type StoryHarnessQueueFilter = 'pending' | 'resolved' | 'all'
 const props = defineProps<{
   modelValue: boolean
   changeRequests: StoryHarnessChangeRequestPreview[]
+  handleChangeRequestDecision?: (
+    requestId: string,
+    decision: StoryHarnessChangeRequestDecision,
+  ) => Promise<boolean>
 }>()
 
 const emit = defineEmits<{
@@ -435,6 +439,11 @@ const handleDecision = (
   changeRequestId: string,
   decision: StoryHarnessChangeRequestDecision,
 ) => {
+  if (props.handleChangeRequestDecision) {
+    void props.handleChangeRequestDecision(changeRequestId, decision)
+    return
+  }
+
   harnessStore.setChangeRequestDecision(changeRequestId, decision)
 }
 </script>
