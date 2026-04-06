@@ -18,7 +18,13 @@
       </button>
     </nav>
 
-    <section v-if="hasWorkflowRail" class="workflow-rail" data-testid="workflow-state-rail">
+    <section
+      v-if="hasWorkflowRail"
+      class="workflow-rail"
+      data-testid="workflow-state-rail"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div
         v-if="aiApplyFeedback"
         class="apply-feedback workflow-feedback-strip"
@@ -39,31 +45,51 @@
         class="proposal-card workflow-proposal-card"
         data-testid="proposal-card"
       >
-        <div class="proposal-card__header">
-          <div>
-            <strong>{{ primaryDraftProposal.title }}</strong>
-            <p>{{ primaryDraftProposal.summary }}</p>
+        <div class="proposal-card__content">
+          <div class="workflow-card__meta proposal-card__meta" data-testid="proposal-card-meta">
+            <span class="workflow-chip workflow-chip--status">
+              状态 {{ proposalStatusText(primaryDraftProposal.status) }}
+            </span>
+            <span class="workflow-chip"
+              >类型 {{ proposalKindText(primaryDraftProposal.kind) }}</span
+            >
+            <span class="workflow-chip"
+              >来源 {{ proposalSourceText(primaryDraftProposal.source) }}</span
+            >
           </div>
-          <span class="proposal-card__status">{{ proposalStatusText(primaryDraftProposal.status) }}</span>
-        </div>
-        <div class="proposal-card__meta">
-          <span>{{ proposalKindText(primaryDraftProposal.kind) }}</span>
-          <span>{{ proposalSourceText(primaryDraftProposal.source) }}</span>
+          <div class="proposal-card__header">
+            <div>
+              <strong>{{ primaryDraftProposal.title }}</strong>
+              <p>{{ primaryDraftProposal.summary }}</p>
+            </div>
+          </div>
         </div>
         <div class="proposal-card__actions">
           <button
             v-if="primaryDraftProposal.status === 'draft'"
             type="button"
             class="proposal-card__action"
-            @click="emit('proposalStatusChange', { proposalId: primaryDraftProposal.id, status: 'selected' })"
+            :aria-label="`保留提案 ${primaryDraftProposal.title}`"
+            @click="
+              emit('proposalStatusChange', {
+                proposalId: primaryDraftProposal.id,
+                status: 'selected',
+              })
+            "
           >
-            保留方向
+            {{ proposalSelectActionText(primaryDraftProposal.kind) }}
           </button>
           <button
             v-if="primaryDraftProposal.status !== 'discarded'"
             type="button"
             class="proposal-card__action proposal-card__action--ghost"
-            @click="emit('proposalStatusChange', { proposalId: primaryDraftProposal.id, status: 'discarded' })"
+            :aria-label="`丢弃提案 ${primaryDraftProposal.title}`"
+            @click="
+              emit('proposalStatusChange', {
+                proposalId: primaryDraftProposal.id,
+                status: 'discarded',
+              })
+            "
           >
             丢弃
           </button>
@@ -76,17 +102,27 @@
         :class="{ 'workflow-result-card--secondary': !!primaryDraftProposal }"
         data-testid="workflow-result-card"
       >
-        <div>
-          <strong>{{ latestResultCandidate.title }}</strong>
-          <p>{{ latestResultCandidate.summary }}</p>
+        <div class="workflow-result-card__content">
+          <div class="workflow-card__meta" data-testid="workflow-result-meta">
+            <span class="workflow-chip workflow-chip--accent">候选结果</span>
+            <span class="workflow-chip"
+              >来源 {{ resultSourceText(latestResultCandidate.source) }}</span
+            >
+            <span class="workflow-chip">类型 {{ resultKindText(latestResultCandidate) }}</span>
+          </div>
+          <div>
+            <strong>{{ latestResultCandidate.title }}</strong>
+            <p>{{ latestResultCandidate.summary }}</p>
+          </div>
         </div>
         <button
           type="button"
           class="workflow-result-card__action workflow-result-action"
           data-testid="workflow-result-action"
+          :aria-label="`将 ${latestResultCandidate.title} 转为提案`"
           @click="handlePromoteToProposal"
         >
-          暂存
+          {{ resultPromoteActionText(latestResultCandidate) }}
         </button>
       </section>
     </section>
@@ -128,7 +164,9 @@
         :session-id="projectId"
         :action-trigger="actionTrigger"
         :workflow-context="workflowContext"
-        @apply-generated-text="(payload: WriterAIApplyPayload) => emit('applyGeneratedText', payload)"
+        @apply-generated-text="
+          (payload: WriterAIApplyPayload) => emit('applyGeneratedText', payload)
+        "
         @result-candidate="handleResultCandidate"
       />
     </div>
@@ -239,6 +277,10 @@ function proposalStatusText(status: WriterDraftProposalStatus) {
   return '草稿'
 }
 
+function proposalSelectActionText(kind: WriterDraftProposalKind) {
+  return kind === 'chapter-direction' ? '保留方向' : '保留正文'
+}
+
 function proposalKindText(kind: WriterDraftProposalKind) {
   return kind === 'chapter-direction' ? '方向' : '正文'
 }
@@ -248,6 +290,23 @@ function proposalSourceText(source: WriterDraftProposalSource) {
   if (source === 'review-workbench') return '审校'
   if (source === 'rewrite-workbench') return '改写'
   return '对话'
+}
+
+function resultSourceText(source: WriterResultCandidate['source']) {
+  if (source === 'summary') return '总结'
+  if (source === 'review') return '审校'
+  if (source === 'rewrite') return '改写'
+  return '对话'
+}
+
+function resultKindText(candidate: WriterResultCandidate) {
+  const tab = resolveWriterWorkflowTab(candidate.action)
+  if (tab === 'summary') return '方向'
+  return '正文'
+}
+
+function resultPromoteActionText(candidate: WriterResultCandidate) {
+  return resultKindText(candidate) === '方向' ? '暂存方向' : '暂存正文'
 }
 </script>
 
@@ -345,10 +404,17 @@ function proposalSourceText(source: WriterDraftProposalSource) {
   cursor: pointer;
 }
 
+.workflow-result-card__content,
+.proposal-card__content {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
 .workflow-result-card,
 .proposal-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 9px 10px;
@@ -365,34 +431,45 @@ function proposalSourceText(source: WriterDraftProposalSource) {
   display: block;
 }
 
-.proposal-card__header,
-.proposal-card__actions,
-.proposal-card__meta {
+.workflow-card__meta,
+.proposal-card__actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.proposal-card__meta {
-  margin-top: 8px;
-  font-size: 11px;
+.workflow-card__meta {
+  font-size: 10px;
   color: var(--editor-text-muted, #64748b);
+}
+
+.workflow-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--editor-text-muted, #64748b);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.workflow-chip--status,
+.workflow-chip--accent {
+  background: var(--editor-accent-soft, #ecfeff);
+  color: var(--editor-accent, #0891b2);
+}
+
+.proposal-card__meta {
+  margin: 0;
 }
 
 .proposal-card__actions {
   margin-top: 8px;
   justify-content: flex-start;
-}
-
-.proposal-card__status {
-  flex-shrink: 0;
-  border-radius: 999px;
-  padding: 3px 8px;
-  background: rgba(14, 165, 233, 0.1);
-  color: #0369a1;
-  font-size: 10px;
-  font-weight: 700;
 }
 
 .proposal-card__action--ghost {
@@ -478,25 +555,34 @@ function proposalSourceText(source: WriterDraftProposalSource) {
 }
 
 @media (max-width: 768px) {
-  .ai-workbench__title-row {
-    flex-direction: column;
+  .ai-workbench__tabs {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
-  .ai-workbench__tabs {
-    grid-template-columns: 1fr;
+  .ai-workbench__tab {
+    flex: 1 1 calc(50% - 6px);
   }
 
   .workflow-rail {
     gap: 6px;
   }
 
-  .apply-feedback {
+  .apply-feedback,
+  .workflow-result-card,
+  .proposal-card {
     border-radius: 12px;
+    flex-direction: column;
     align-items: flex-start;
   }
 
   .apply-feedback__content {
     display: block;
+  }
+
+  .apply-feedback__mode,
+  .workflow-result-card__action {
+    align-self: flex-start;
   }
 }
 </style>
