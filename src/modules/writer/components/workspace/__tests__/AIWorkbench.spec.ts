@@ -473,6 +473,72 @@ describe('AIWorkbench', () => {
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
   })
 
+  it('hides stale apply feedback once retained proposal and newer result candidate enter condensed state', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-result-on-selected-with-apply\" @click=\"$emit('result-candidate', { source: 'chat', action: 'chat', title: 'AI 对话结果', summary: '新的处理建议', generatedText: '新的剧情方向', sourceText: '继续推进冲突' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: {
+          status: 'success',
+          title: '已按选区回填',
+          detail: 'AI 结果已替换当前选区。',
+          mode: 'replace_selection',
+          updatedAt: Date.now(),
+        },
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-selected-with-apply',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '已保留方向',
+            summary: '当前采用方案',
+            generatedText: '已保留方向',
+            sourceText: '第一章',
+            status: 'selected',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: AIPanelStub,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(true)
+
+    await wrapper.find('[data-testid="emit-result-on-selected-with-apply"]').trigger('click')
+
+    expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain('proposal-card--condensed')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+  })
+
   it('prioritizes selected proposal over draft when choosing primary proposal card', () => {
     const now = Date.now()
     const wrapper = mount(AIWorkbench, {

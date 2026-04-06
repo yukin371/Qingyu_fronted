@@ -26,7 +26,7 @@
       aria-atomic="true"
     >
       <div
-        v-if="aiApplyFeedback"
+        v-if="shouldShowApplyFeedback"
         class="apply-feedback workflow-feedback-strip"
         :class="`apply-feedback--${aiApplyFeedback.status}`"
         data-testid="workflow-feedback-strip"
@@ -258,9 +258,13 @@ const shouldCondensePrimaryProposal = computed(
   () => primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value,
 )
 
+const shouldShowApplyFeedback = computed(
+  () => !!props.aiApplyFeedback && !shouldCondensePrimaryProposal.value,
+)
+
 const hasWorkflowRail = computed(
   () =>
-    !!props.aiApplyFeedback ||
+    !!shouldShowApplyFeedback.value ||
     !!shouldShowProposalLifecycleFeedback.value ||
     !!latestResultCandidate.value ||
     !!primaryDraftProposal.value,
