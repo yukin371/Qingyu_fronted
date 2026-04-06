@@ -18,10 +18,70 @@ export interface CreateStoryHarnessBatchRequest {
   changeRequests: StoryHarnessChangeRequestPreview[]
 }
 
+// --- 后端对接 DTO ---
+
+export interface BackendChapterContextResponse {
+  characters: BackendCharacterDTO[]
+  relations: BackendRelationDTO[]
+  pendingCRs: number
+}
+
+export interface BackendCharacterDTO {
+  id: string
+  name: string
+  alias?: string[]
+  traits?: string[]
+  currentState?: string
+  shortDescription?: string
+  avatarUrl?: string
+}
+
+export interface BackendRelationDTO {
+  id: string
+  fromId: string
+  toId: string
+  fromName: string
+  toName: string
+  type: string
+  strength: number
+  notes?: string
+}
+
+export interface BackendChangeRequestDTO {
+  id: string
+  batchId: string
+  chapterId: string
+  category: string
+  priority: string
+  status: string
+  title: string
+  description?: string
+  suggestedChange?: Record<string, unknown>
+  evidence?: { documentId: string; paragraphIdx: number; quoteText: string }[]
+  source: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface BackendChangeRequestListResponse {
+  items: BackendChangeRequestDTO[]
+  total: number
+}
+
+export interface ProcessChangeRequestPayload {
+  status: 'accepted' | 'ignored' | 'deferred'
+}
+
 const BASE_PROJECT_URL = '/writer/project'
 
 const buildStoryHarnessBatchUrl = (projectId: string, chapterId: string) =>
   `${BASE_PROJECT_URL}/${projectId}/documents/${chapterId}/story-harness/batches`
+
+const buildChapterContextUrl = (projectId: string, chapterId: string) =>
+  `${BASE_PROJECT_URL}/projects/${projectId}/chapters/${chapterId}/context`
+
+const buildChangeRequestListUrl = (projectId: string, chapterId: string) =>
+  `${BASE_PROJECT_URL}/projects/${projectId}/chapters/${chapterId}/change-requests`
 
 export const storyHarnessApi = {
   createBatch(projectId: string, chapterId: string, data: CreateStoryHarnessBatchRequest) {
@@ -31,6 +91,30 @@ export const storyHarnessApi = {
   getLatestBatch(projectId: string, chapterId: string) {
     return httpService.get<StoryHarnessBatchRecord | null>(
       `${buildStoryHarnessBatchUrl(projectId, chapterId)}/latest`,
+    )
+  },
+
+  // --- 后端 V3 API ---
+
+  /** 获取章节上下文（角色 + 关系 + 待处理数） */
+  getChapterContext(projectId: string, chapterId: string) {
+    return httpService.get<BackendChapterContextResponse>(
+      buildChapterContextUrl(projectId, chapterId),
+    )
+  },
+
+  /** 获取章节变更建议列表 */
+  listChangeRequests(projectId: string, chapterId: string, status = 'pending') {
+    return httpService.get<BackendChangeRequestListResponse>(
+      `${buildChangeRequestListUrl(projectId, chapterId)}?status=${status}`,
+    )
+  },
+
+  /** 处理变更建议（接受/忽略/延后） */
+  processChangeRequest(requestId: string, payload: ProcessChangeRequestPayload) {
+    return httpService.put<void>(
+      `${BASE_PROJECT_URL}/change-requests/${requestId}/status`,
+      payload,
     )
   },
 }

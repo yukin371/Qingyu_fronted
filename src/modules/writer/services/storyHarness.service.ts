@@ -2,6 +2,7 @@ import storage from '@/utils/storage'
 import {
   createStoryHarnessBatch,
   getLatestStoryHarnessBatch,
+  storyHarnessApi,
   type StoryHarnessBatchRecord,
   type StoryHarnessBatchSyncSource,
 } from '@/modules/writer/api/story-harness'
@@ -193,6 +194,49 @@ class StoryHarnessService {
         console.warn('[storyHarnessService] failed to persist remote batch, fallback to local cache:', error)
       }
       return this.writeLocalBatch(fallbackRecord)
+    }
+  }
+
+  // --- V3 Backend API 集成 ---
+
+  async fetchChapterContext(projectId: string, chapterId: string) {
+    if (!projectId || !chapterId) return null
+    try {
+      const response = await storyHarnessApi.getChapterContext(projectId, chapterId)
+      const data = (response as { data?: unknown })?.data ?? response
+      return data as import('../api/story-harness').BackendChapterContextResponse
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[storyHarnessService] fetchChapterContext failed:', error)
+      }
+      return null
+    }
+  }
+
+  async fetchChangeRequests(projectId: string, chapterId: string, status = 'pending') {
+    if (!projectId || !chapterId) return []
+    try {
+      const response = await storyHarnessApi.listChangeRequests(projectId, chapterId, status)
+      const data = (response as { data?: unknown })?.data ?? response
+      const list = data as import('../api/story-harness').BackendChangeRequestListResponse
+      return list?.items ?? []
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[storyHarnessService] fetchChangeRequests failed:', error)
+      }
+      return []
+    }
+  }
+
+  async processChangeRequest(requestId: string, status: 'accepted' | 'ignored' | 'deferred') {
+    try {
+      await storyHarnessApi.processChangeRequest(requestId, { status })
+      return true
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[storyHarnessService] processChangeRequest failed:', error)
+      }
+      return false
     }
   }
 }

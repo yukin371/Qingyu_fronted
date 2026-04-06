@@ -199,6 +199,32 @@ export function useStoryHarnessWorkspace(
     )
   }
 
+  // --- 后端 V3 API 集成 ---
+
+  /** 从后端获取章节上下文（角色+关系+待处理数） */
+  const loadBackendContext = async () => {
+    if (!projectId.value || !displayChapterId.value) return null
+    return storyHarnessService.fetchChapterContext(projectId.value, displayChapterId.value)
+  }
+
+  /** 从后端获取变更建议列表 */
+  const loadBackendChangeRequests = async (status = 'pending') => {
+    if (!projectId.value || !displayChapterId.value) return []
+    return storyHarnessService.fetchChangeRequests(projectId.value, displayChapterId.value, status)
+  }
+
+  /** 处理建议时同步到后端 */
+  const processChangeRequestWithBackend = async (
+    requestId: string,
+    decision: 'accepted' | 'ignored' | 'deferred',
+  ) => {
+    const success = await storyHarnessService.processChangeRequest(requestId, decision)
+    if (!success && import.meta.env.DEV) {
+      console.warn('[useStoryHarnessWorkspace] failed to sync CR decision to backend')
+    }
+    return success
+  }
+
   return {
     currentScopeLabel,
     activeScopeCharacters,
@@ -206,5 +232,8 @@ export function useStoryHarnessWorkspace(
     storyHarnessLiveChangeRequests,
     storyHarnessChangeRequests,
     persistCurrentLiveChangeRequests,
+    loadBackendContext,
+    loadBackendChangeRequests,
+    processChangeRequestWithBackend,
   }
 }
