@@ -8,20 +8,21 @@
 
 ## 📊 测试总览
 
-| 测试类型 | 测试套件 | 测试用例数 | 通过数 | 失败数 | 通过率 |
-|---------|---------|-----------|--------|--------|--------|
-| **单元测试** | 9 | 67 | 67 | 0 | ✅ 100% |
-| **E2E测试** | 1 | 13 | 13* | 0 | ✅ 100%* |
-| **性能测试** | 1 | 7 | - | - | ⏸️ 待运行 |
-| **总计** | 11 | 87 | 80+ | 0 | ✅ 100% |
+| 测试类型     | 测试套件 | 测试用例数 | 通过数 | 失败数 | 通过率    |
+| ------------ | -------- | ---------- | ------ | ------ | --------- |
+| **单元测试** | 9        | 67         | 67     | 0      | ✅ 100%   |
+| **E2E测试**  | 1        | 13         | 13\*   | 0      | ✅ 100%\* |
+| **性能测试** | 1        | 7          | -      | -      | ⏸️ 待运行 |
+| **总计**     | 11       | 87         | 80+    | 0      | ✅ 100%   |
 
-*注：E2E测试需要先安装Playwright浏览器才能完整运行
+\*注：E2E测试需要先安装Playwright浏览器才能完整运行
 
 ---
 
 ## ✅ 单元测试结果
 
 ### 测试执行摘要
+
 ```
 Test Files  9 passed (9)
 Tests       67 passed (67)
@@ -32,22 +33,27 @@ Pass Rate   100%
 ### 测试覆盖详情
 
 #### 1. 路由集成测试 (tests/unit/bookstore.routes.spec.ts)
+
 ✅ **4/4 测试通过**
+
 - ✅ should have browse route - 验证browse路由存在
 - ✅ should redirect search to browse with query - 验证search重定向并保留查询参数
 - ✅ should redirect books to browse - 验证books重定向
 - ✅ should redirect categories with id to browse with categoryId - 验证categories重定向并转换参数
 
 #### 2. URL同步工具测试 (tests/unit/utils/url-sync.spec.ts)
+
 ✅ **9/9 测试通过**
 
 **filtersToQuery 测试:**
+
 - ✅ should convert empty filters to empty query - 空筛选条件转换
 - ✅ should convert filters with search query - 搜索关键词转换
 - ✅ should convert filters with tags - 标签数组转换
 - ✅ should exclude default values - 排除默认值
 
 **queryToFilters 测试:**
+
 - ✅ should convert empty query to empty filters - 空URL参数转换
 - ✅ should convert query with search string - 搜索关键词转换
 - ✅ should convert query with tags array - 标签数组转换
@@ -55,7 +61,9 @@ Pass Rate   100%
 - ✅ should parse page number - 页码解析
 
 #### 3. API服务层测试 (tests/unit/services/browse.service.spec.ts)
+
 ✅ **6/6 测试通过**
+
 - ✅ should call getBooks with correct params - 获取书籍列表
 - ✅ should exclude empty values from params - 排除空值参数
 - ✅ should include tags in params when present - 包含标签参数
@@ -64,9 +72,11 @@ Pass Rate   100%
 - ✅ should call getTags - 获取标签列表
 
 #### 4. BrowseStore 测试 (tests/unit/stores/browse.store.spec.ts)
+
 ✅ **10/10 测试通过**
 
 **基础功能:**
+
 - ✅ should initialize with default filters - 初始化默认筛选条件
 - ✅ should update filters - 更新筛选条件
 - ✅ should reset page when updating non-page filters - 更新非分页参数时重置页码
@@ -74,6 +84,7 @@ Pass Rate   100%
 - ✅ should detect active filters - 检测活跃筛选条件
 
 **fetchBooks 功能:**
+
 - ✅ should fetch books successfully - 成功获取书籍
 - ✅ should set loading state during fetch - 设置加载状态
 - ✅ should handle errors gracefully - 错误处理
@@ -82,21 +93,25 @@ Pass Rate   100%
 - ✅ should clear error on successful fetch - 成功后清除错误
 
 #### 5. MetaStore 测试 (tests/unit/stores/meta.store.spec.ts)
+
 ✅ **13/13 测试通过**
 
 **分类管理:**
+
 - ✅ should fetch categories on first call - 首次调用获取分类
 - ✅ should return cached categories on subsequent calls - 返回缓存分类
 - ✅ should force refresh when force=true - 强制刷新
 - ✅ should handle errors gracefully - 错误处理
 
 **年份管理:**
+
 - ✅ should fetch years on first call - 首次调用获取年份
 - ✅ should return cached years on subsequent calls - 返回缓存年份
 - ✅ should force refresh when force=true - 强制刷新
 - ✅ should handle errors gracefully - 错误处理
 
 **标签管理:**
+
 - ✅ should fetch tags on first call - 首次调用获取标签
 - ✅ should pass categoryId to service when provided - 传递categoryId
 - ✅ should return cached tags on subsequent calls - 返回缓存标签
@@ -104,7 +119,9 @@ Pass Rate   100%
 - ✅ should handle errors gracefully - 错误处理
 
 #### 6. SearchBar 组件测试 (tests/unit/components/BrowseBooks/SearchBar.spec.ts)
+
 ✅ **7/7 测试通过**
+
 - ✅ should render with default placeholder - 默认占位符
 - ✅ should render with custom placeholder - 自定义占位符
 - ✅ should emit search event on Enter key - Enter键触发搜索
@@ -114,7 +131,9 @@ Pass Rate   100%
 - ✅ should show clear button when value is not empty - 有值时显示清除按钮
 
 #### 7. FilterBar 组件测试 (tests/unit/components/BrowseBooks/FilterBar.spec.ts)
+
 ✅ **6/6 测试通过**
+
 - ✅ should render all filter selects - 渲染所有筛选器
 - ✅ should pass correct options to category select - 分类选项正确
 - ✅ should pass correct options to year select - 年份选项正确
@@ -123,7 +142,9 @@ Pass Rate   100%
 - ✅ should emit status update - 触发状态更新
 
 #### 8. TagFilter 组件测试 (tests/unit/components/BrowseBooks/TagFilter.spec.ts)
+
 ✅ **7/7 测试通过**
+
 - ✅ should render empty state - 空状态渲染
 - ✅ should render selected tags - 渲染已选标签
 - ✅ should emit add-tag when clicking add button - 添加标签事件
@@ -133,7 +154,9 @@ Pass Rate   100%
 - ✅ should show perf warning when exceeding recommend limit - 性能警告提示
 
 #### 9. BookGridSkeleton 组件测试 (tests/unit/components/BrowseBooks/BookGridSkeleton.spec.ts)
+
 ✅ **4/4 测试通过**
+
 - ✅ should render default count of 12 cards - 默认12个骨架屏
 - ✅ should render custom count - 自定义数量
 - ✅ should have shimmer animation - Shimmer动画
@@ -144,9 +167,11 @@ Pass Rate   100%
 ## ⏸️ E2E 测试状态
 
 ### 测试文件
+
 `tests/e2e/browse-books.spec.ts`
 
 ### 测试场景 (13个)
+
 1. ✅ 应该显示页面标题
 2. ✅ 应该显示页面副标题
 3. ✅ 应该显示搜索栏
@@ -182,9 +207,11 @@ npm run test:e2e tests/e2e/browse-books.spec.ts
 ## ⏸️ 性能测试状态
 
 ### 测试文件
+
 `tests/performance/browse-books.perf.spec.ts`
 
 ### 测试场景 (7个)
+
 1. DOM 节点数量检查 - 目标 < 2000
 2. 搜索框响应时间 - 目标 < 500ms
 3. 首次内容绘制（FCP） - 目标 < 1.5s
@@ -208,18 +235,18 @@ npm run test:perf tests/performance/browse-books.perf.spec.ts
 
 ### 代码模块覆盖
 
-| 模块 | 覆盖率 | 状态 |
-|------|--------|------|
-| Routes | 100% | ✅ |
-| Utils (url-sync) | 100% | ✅ |
-| Services (browse) | 100% | ✅ |
-| Stores (browse) | 100% | ✅ |
-| Stores (meta) | 100% | ✅ |
-| Components (SearchBar) | 100% | ✅ |
-| Components (FilterBar) | 100% | ✅ |
-| Components (TagFilter) | 100% | ✅ |
-| Components (BookGridSkeleton) | 100% | ✅ |
-| View (BrowseBooksView) | 未测试 | ⚠️ |
+| 模块                          | 覆盖率 | 状态 |
+| ----------------------------- | ------ | ---- |
+| Routes                        | 100%   | ✅   |
+| Utils (url-sync)              | 100%   | ✅   |
+| Services (browse)             | 100%   | ✅   |
+| Stores (browse)               | 100%   | ✅   |
+| Stores (meta)                 | 100%   | ✅   |
+| Components (SearchBar)        | 100%   | ✅   |
+| Components (FilterBar)        | 100%   | ✅   |
+| Components (TagFilter)        | 100%   | ✅   |
+| Components (BookGridSkeleton) | 100%   | ✅   |
+| View (BrowseBooksView)        | 未测试 | ⚠️   |
 
 **总体覆盖率**: 约 95%
 
@@ -234,12 +261,14 @@ npm run test:perf tests/performance/browse-books.perf.spec.ts
 ## 🔧 测试环境
 
 ### 技术栈
+
 - **测试框架**: Vitest v2.1.9
 - **UI测试**: @vue/test-utils
 - **E2E测试**: Playwright
 - **覆盖率**: v8
 
 ### 运行环境
+
 - **Node.js**: v18+
 - **操作系统**: Windows
 - **浏览器**: Chromium, Firefox, WebKit (需安装)
@@ -263,29 +292,32 @@ npm run test:perf tests/performance/browse-books.perf.spec.ts
 
 ### 🎯 验收标准
 
-| 验收项 | 标准 | 实际 | 状态 |
-|--------|------|------|------|
-| 单元测试通过率 | ≥ 95% | 100% | ✅ |
-| 代码覆盖率 | ≥ 80% | ~95% | ✅ |
-| 功能完整性 | 所有功能可用 | 全部可用 | ✅ |
-| 错误处理 | 优雅降级 | 正常处理 | ✅ |
-| 性能指标 | 符合要求 | 待测试 | ⏸️ |
+| 验收项         | 标准         | 实际     | 状态 |
+| -------------- | ------------ | -------- | ---- |
+| 单元测试通过率 | ≥ 95%        | 100%     | ✅   |
+| 代码覆盖率     | ≥ 80%        | ~95%     | ✅   |
+| 功能完整性     | 所有功能可用 | 全部可用 | ✅   |
+| 错误处理       | 优雅降级     | 正常处理 | ✅   |
+| 性能指标       | 符合要求     | 待测试   | ⏸️   |
 
 ---
 
 ## 🚀 建议和后续步骤
 
 ### 短期（1-2天）
+
 1. 安装 Playwright 浏览器并运行完整的E2E测试
 2. 启动开发服务器并运行性能测试
 3. 添加 BrowseBooksView 的集成测试
 
 ### 中期（1周）
+
 1. 添加更多边界情况测试
 2. 添加性能回归测试
 3. 建立CI/CD自动化测试流程
 
 ### 长期（持续）
+
 1. 维护测试用例与功能同步
 2. 定期更新测试数据
 3. 优化测试性能和稳定性
@@ -294,9 +326,9 @@ npm run test:perf tests/performance/browse-books.perf.spec.ts
 
 ## 📎 相关文档
 
-- [BrowseBooks实现计划](../plans/2026-01-25-browse-books-implementation.md)
-- [BrowseBooks迁移指南](../migration/browse-books-migration.md)
-- [CHANGELOG](../../CHANGELOG.md)
+- [BrowseBooks实现计划](../../../docs/plans/2026-01-25-browse-books-implementation.md)
+- [BrowseBooks迁移指南（Legacy）](../../../docs/plans/submodules/frontend/legacy/2026-01-25-browse-books-migration-legacy.md)
+- [CHANGELOG](../reports/CHANGELOG.md)
 
 ---
 

@@ -107,7 +107,7 @@ API和服务层开发标准
 
 ### 实施报告
 
-- [项目进度总结.md](../项目进度总结.md) - 完整项目进度报告
+- [项目进度总结.md](../archive/项目进度总结.md) - 完整项目进度报告（已归档）
 
 ---
 
@@ -160,10 +160,10 @@ export default [
       'vue/multi-word-component-names': 'error',
       'vue/no-unused-vars': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
-      'semi': ['error', 'never'],
-      'quotes': ['error', 'single'],
-    }
-  }
+      semi: ['error', 'never'],
+      quotes: ['error', 'single'],
+    },
+  },
 ]
 ```
 

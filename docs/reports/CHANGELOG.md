@@ -106,8 +106,8 @@
 
 #### 📝 文档
 
-- 新增 [BrowseBooks迁移指南](docs/migration/browse-books-migration.md)
-- 新增 [BrowseBooks实现计划](docs/plans/2026-01-25-browse-books-implementation.md)
+- 新增 [BrowseBooks迁移指南（Legacy）](../../../docs/plans/submodules/frontend/legacy/2026-01-25-browse-books-migration-legacy.md)
+- 新增 [BrowseBooks实现计划](../../../docs/plans/2026-01-25-browse-books-implementation.md)
 
 #### ✅ 测试
 
