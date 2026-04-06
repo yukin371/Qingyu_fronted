@@ -154,4 +154,63 @@ describe('AIWorkbench', () => {
 
     expect(wrapper.html()).toContain('a-i-panel-stub')
   })
+
+  it('surfaces summary results through the shared workflow result card', async () => {
+    const SummaryWorkbenchToolStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        '<button data-testid="emit-summary" @click="$emit(\'result-candidate\', { source: \'summary\', action: \'summarize_chapter\', title: \'章节方向提案\', summary: \'本章应聚焦冲突升级\', generatedText: \'本章应聚焦冲突升级\\n\\n核心要点：\\n- 张三主动试探\\n- 李四暂不表态\', sourceText: \'第一章\' })">emit-summary</button>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 1,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: SummaryWorkbenchToolStub,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 11,
+        action: 'summarize_chapter',
+        text: '这是当前章节正文。',
+      },
+    })
+    await nextTick()
+
+    await wrapper.find('[data-testid="emit-summary"]').trigger('click')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('章节方向提案')
+
+    await wrapper.find('.workflow-result-card__action').trigger('click')
+    expect(wrapper.emitted('proposalDraft')?.[0]?.[0]).toMatchObject({
+      source: 'summary',
+      action: 'summarize_chapter',
+      title: '章节方向提案',
+    })
+  })
 })

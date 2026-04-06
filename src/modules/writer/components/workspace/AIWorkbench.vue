@@ -107,6 +107,7 @@
         :chapter-title="chapterTitle"
         :seed-text="sourceText"
         :action-trigger="actionTrigger"
+        @result-candidate="handleResultCandidate"
       />
 
       <ReviewWorkbenchTool

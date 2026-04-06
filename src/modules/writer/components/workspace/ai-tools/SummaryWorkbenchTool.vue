@@ -83,19 +83,21 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { summarizeChapter, summarizeSelection } from '@/modules/ai/api/workbench'
+import type {
+  WriterAIActionTrigger,
+  WriterResultCandidate,
+} from '@/modules/writer/types/workflow'
 
 const props = defineProps<{
   projectId: string
   chapterId: string
   chapterTitle: string
   seedText: string
-  actionTrigger: {
-    id: number
-    action: string
-    text: string
-    instructions?: string
-    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  } | null
+  actionTrigger: WriterAIActionTrigger | null
+}>()
+
+const emit = defineEmits<{
+  (e: 'resultCandidate', payload: WriterResultCandidate): void
 }>()
 
 const content = ref('')
@@ -146,6 +148,31 @@ watch(
   },
 )
 
+function buildGeneratedText(nextSummary: string, nextKeyPoints: string[]) {
+  if (nextKeyPoints.length === 0) {
+    return nextSummary
+  }
+
+  return `${nextSummary}\n\n核心要点：\n${nextKeyPoints.map((point) => `- ${point}`).join('\n')}`
+}
+
+function emitResultCandidate(nextSummary: string, nextKeyPoints: string[]) {
+  const generatedText = buildGeneratedText(nextSummary, nextKeyPoints)
+  const isChapterMode = mode.value === 'chapter'
+  const sourceText = isChapterMode
+    ? props.chapterTitle || props.chapterId || props.seedText || content.value
+    : content.value
+
+  emit('resultCandidate', {
+    source: 'summary',
+    action: isChapterMode ? 'summarize_chapter' : 'summary',
+    title: isChapterMode ? '章节方向提案' : '片段摘要结果',
+    summary: nextSummary.slice(0, 72) || '已生成新的摘要结果。',
+    generatedText,
+    sourceText,
+  })
+}
+
 async function handleSelectionSummary() {
   if (!content.value.trim()) return
   loading.value = true
@@ -160,6 +187,7 @@ async function handleSelectionSummary() {
     })
     summary.value = result.summary
     keyPoints.value = result.keyPoints
+    emitResultCandidate(result.summary, result.keyPoints)
   } catch (error) {
     console.error('[SummaryWorkbenchTool] selection summarize failed:', error)
     errorText.value = '总结失败，请稍后重试。'
@@ -181,6 +209,7 @@ async function handleChapterSummary() {
     })
     summary.value = result.summary
     keyPoints.value = result.keyPoints
+    emitResultCandidate(result.summary, result.keyPoints)
   } catch (error) {
     console.error('[SummaryWorkbenchTool] chapter summarize failed:', error)
     errorText.value = '章节总结失败，请稍后重试。'

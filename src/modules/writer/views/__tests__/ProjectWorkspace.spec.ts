@@ -210,6 +210,18 @@ const WorkspaceRightPanelStub = defineComponent({
               sourceText: '继续推进冲突',
             }),
         }),
+        h('button', {
+          'data-testid': 'save-summary-proposal',
+          onClick: () =>
+            emit('proposal-draft', {
+              source: 'summary',
+              action: 'summarize_chapter',
+              title: '章节方向提案',
+              summary: '本章应聚焦冲突升级',
+              generatedText: '本章应聚焦冲突升级\n\n核心要点：\n- 张三主动试探\n- 李四暂不表态',
+              sourceText: '第一章',
+            }),
+        }),
         h('div', { 'data-testid': 'apply-feedback-title' }, props.aiApplyFeedback?.title || ''),
         h('div', { 'data-testid': 'trigger-action' }, props.aiActionTrigger?.action || ''),
         h('div', { 'data-testid': 'trigger-source' }, props.aiActionTrigger?.source || ''),
@@ -229,6 +241,16 @@ const WorkspaceRightPanelStub = defineComponent({
           'div',
           { 'data-testid': 'proposal-id' },
           String((props.draftProposals as Array<{ id?: string }>)[0]?.id || ''),
+        ),
+        h(
+          'div',
+          { 'data-testid': 'proposal-kind' },
+          String((props.draftProposals as Array<{ kind?: string }>)[0]?.kind || ''),
+        ),
+        h(
+          'div',
+          { 'data-testid': 'proposal-source' },
+          String((props.draftProposals as Array<{ source?: string }>)[0]?.source || ''),
         ),
       ])
   },
@@ -649,6 +671,37 @@ describe('ProjectWorkspace Refactor', () => {
   })
 
   it.todo('提案应按当前章节过滤展示（Phase 2: chapter-scoped proposal visibility）')
+
+  it('章节总结结果应映射为 chapter-direction proposal', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="save-summary-proposal"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+    expect(wrapper.find('[data-testid="proposal-kind"]').text()).toBe('chapter-direction')
+    expect(wrapper.find('[data-testid="proposal-source"]').text()).toBe('summary-workbench')
+  })
 
   it('提案状态变更后再次暂存应复位为 draft', async () => {
     const wrapper = mount(ProjectWorkspace, {
