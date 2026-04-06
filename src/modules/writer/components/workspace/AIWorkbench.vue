@@ -64,14 +64,10 @@
         <div class="proposal-card__content">
           <div class="workflow-card__meta proposal-card__meta" data-testid="proposal-card-meta">
             <span class="workflow-chip workflow-chip--status">
-              状态 {{ proposalStatusText(primaryDraftProposal.status) }}
+              {{ proposalStatusText(primaryDraftProposal.status) }}
             </span>
-            <span class="workflow-chip"
-              >类型 {{ proposalKindText(primaryDraftProposal.kind) }}</span
-            >
-            <span class="workflow-chip"
-              >来源 {{ proposalSourceText(primaryDraftProposal.source) }}</span
-            >
+            <span class="workflow-chip">{{ proposalKindText(primaryDraftProposal.kind) }}</span>
+            <span class="workflow-chip">{{ proposalSourceText(primaryDraftProposal.source) }}</span>
           </div>
           <div class="proposal-card__header">
             <div>
@@ -122,11 +118,9 @@
       >
         <div class="workflow-result-card__content">
           <div class="workflow-card__meta" data-testid="workflow-result-meta">
-            <span class="workflow-chip workflow-chip--accent">候选结果</span>
-            <span class="workflow-chip"
-              >来源 {{ resultSourceText(latestResultCandidate.source) }}</span
-            >
-            <span class="workflow-chip">类型 {{ resultKindText(latestResultCandidate) }}</span>
+            <span class="workflow-chip workflow-chip--accent">候选</span>
+            <span class="workflow-chip">{{ resultSourceText(latestResultCandidate.source) }}</span>
+            <span class="workflow-chip">{{ resultKindText(latestResultCandidate) }}</span>
           </div>
           <div>
             <strong>{{ latestResultCandidate.title }}</strong>

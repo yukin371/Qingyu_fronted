@@ -270,9 +270,9 @@ describe('AIWorkbench', () => {
     expect(rail.get('[data-testid="proposal-card-meta"]').text()).toContain('总结')
     expect(rail.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
     expect(rail.find('[data-testid="workflow-result-action"]').exists()).toBe(true)
-    expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('候选结果')
+    expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('候选')
     expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('对话')
-    expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('类型 正文')
+    expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('正文')
     expect(rail.get('[data-testid="workflow-result-action"]').text()).toBe('暂存正文')
     expect(rail.get('[data-testid="workflow-result-action"]').attributes('aria-label')).toContain(
       'AI 对话结果',
@@ -408,7 +408,7 @@ describe('AIWorkbench', () => {
 
     expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('状态 保留')
+    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('保留')
     expect(wrapper.text()).toContain('审校建议提案')
   })
 
@@ -598,7 +598,7 @@ describe('AIWorkbench', () => {
     })
 
     expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('状态 保留')
+    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('保留')
     expect(wrapper.text()).toContain('已保留方向')
     expect(wrapper.text()).not.toContain('新的草稿方向')
   })
@@ -811,9 +811,9 @@ describe('AIWorkbench', () => {
 
     await wrapper.find('[data-testid="emit-summary"]').trigger('click')
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('候选结果')
+    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('候选')
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('总结')
-    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('类型 方向')
+    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('方向')
     expect(wrapper.text()).toContain('章节方向提案')
     expect(wrapper.get('[data-testid="workflow-result-action"]').text()).toBe('暂存方向')
 
@@ -874,9 +874,9 @@ describe('AIWorkbench', () => {
 
     await wrapper.find('[data-testid="emit-review"]').trigger('click')
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
-    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('候选结果')
+    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('候选')
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('审校')
-    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('类型 正文')
+    expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('正文')
     expect(wrapper.text()).toContain('审校建议提案')
     expect(wrapper.get('[data-testid="workflow-result-action"]').text()).toBe('暂存正文')
 
