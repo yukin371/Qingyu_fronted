@@ -1,7 +1,13 @@
 <template>
   <section class="ai-workbench">
     <header class="ai-workbench__header">
-      <span class="ai-workbench__title">AI 助手</span>
+      <div class="ai-workbench__title-group">
+        <span class="ai-workbench__title">AI 助手</span>
+        <p v-if="workflowSummary" class="ai-workbench__summary">{{ workflowSummary }}</p>
+      </div>
+      <span v-if="draftProposals.length" class="ai-workbench__badge">
+        草案 {{ draftProposals.length }}
+      </span>
     </header>
 
     <nav class="ai-workbench__tabs" aria-label="AI 工具标签">
@@ -32,6 +38,56 @@
       </span>
     </div>
 
+    <section
+      v-if="latestResultCandidate"
+      class="workflow-result-card"
+      data-testid="workflow-result-card"
+    >
+      <div>
+        <strong>{{ latestResultCandidate.title }}</strong>
+        <p>{{ latestResultCandidate.summary }}</p>
+      </div>
+      <button type="button" class="workflow-result-card__action" @click="handlePromoteToProposal">
+        暂存为提案
+      </button>
+    </section>
+
+    <section
+      v-if="primaryDraftProposal"
+      class="proposal-card"
+      data-testid="proposal-card"
+    >
+      <div class="proposal-card__header">
+        <div>
+          <strong>{{ primaryDraftProposal.title }}</strong>
+          <p>{{ primaryDraftProposal.summary }}</p>
+        </div>
+        <span class="proposal-card__status">{{ proposalStatusText(primaryDraftProposal.status) }}</span>
+      </div>
+      <div class="proposal-card__meta">
+        <span>{{ proposalKindText(primaryDraftProposal.kind) }}</span>
+        <span>{{ proposalSourceText(primaryDraftProposal.source) }}</span>
+      </div>
+      <div class="proposal-card__actions">
+        <button
+          v-if="primaryDraftProposal.status === 'draft'"
+          type="button"
+          class="proposal-card__action"
+          @click="emit('proposalStatusChange', { proposalId: primaryDraftProposal.id, status: 'selected' })"
+        >
+          保留方向
+        </button>
+        <button
+          v-if="primaryDraftProposal.status !== 'discarded'"
+          type="button"
+          class="proposal-card__action proposal-card__action--ghost"
+          @click="emit('proposalStatusChange', { proposalId: primaryDraftProposal.id, status: 'discarded' })"
+        >
+          丢弃
+        </button>
+      </div>
+    </section>
+
     <div class="ai-workbench__panel">
       <RewriteWorkbenchTool
         v-if="activeTab === 'rewrite'"
@@ -40,6 +96,7 @@
         :chapter-title="chapterTitle"
         :seed-text="sourceText"
         :action-trigger="actionTrigger"
+        :workflow-context="workflowContext"
         @apply="(payload) => emit('applyGeneratedText', payload)"
       />
 
@@ -65,8 +122,9 @@
         v-else
         :session-id="projectId"
         :action-trigger="actionTrigger"
-        @send="(msg: string) => emit('send', msg)"
-        @apply-generated-text="(payload: AIApplyPayload) => emit('applyGeneratedText', payload)"
+        :workflow-context="workflowContext"
+        @apply-generated-text="(payload: WriterAIApplyPayload) => emit('applyGeneratedText', payload)"
+        @result-candidate="handleResultCandidate"
       />
     </div>
   </section>
@@ -78,64 +136,75 @@ import AIPanel from '@/modules/writer/components/editor/AIPanel.vue'
 import RewriteWorkbenchTool from '@/modules/writer/components/workspace/ai-tools/RewriteWorkbenchTool.vue'
 import SummaryWorkbenchTool from '@/modules/writer/components/workspace/ai-tools/SummaryWorkbenchTool.vue'
 import ReviewWorkbenchTool from '@/modules/writer/components/workspace/ai-tools/ReviewWorkbenchTool.vue'
-import type { AIApplyFeedback } from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
-
-type WorkbenchTab = 'rewrite' | 'summary' | 'review' | 'chat'
-
-interface AIActionTrigger {
-  id: number
-  action: string
-  text: string
-  instructions?: string
-  applyMode?:
-    | 'replace_selection'
-    | 'insert_after_selection'
-    | 'append_paragraph'
-    | 'replace_document'
-}
-
-interface AIApplyPayload {
-  action: string
-  sourceText: string
-  generatedText: string
-  applyMode?:
-    | 'replace_selection'
-    | 'insert_after_selection'
-    | 'append_paragraph'
-    | 'replace_document'
-}
+import type {
+  WriterAIActionTrigger,
+  WriterAIApplyFeedback,
+  WriterAIApplyPayload,
+  WriterDraftProposal,
+  WriterDraftProposalKind,
+  WriterDraftProposalSource,
+  WriterDraftProposalStatus,
+  WriterResultCandidate,
+  WriterWorkbenchTab,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import { resolveWriterWorkflowTab } from '@/modules/writer/types/workflow'
 
 const props = defineProps<{
   projectId: string
   chapterId: string
   chapterTitle: string
   sourceText: string
-  actionTrigger: AIActionTrigger | null
-  aiApplyFeedback: AIApplyFeedback | null
+  actionTrigger: WriterAIActionTrigger | null
+  aiApplyFeedback: WriterAIApplyFeedback | null
+  workflowContext: WriterWorkflowContext
+  draftProposals: WriterDraftProposal[]
 }>()
 
 const emit = defineEmits<{
-  (e: 'send', message: string): void
-  (e: 'applyGeneratedText', payload: AIApplyPayload): void
+  (e: 'applyGeneratedText', payload: WriterAIApplyPayload): void
+  (e: 'proposalDraft', payload: WriterResultCandidate): void
+  (
+    e: 'proposalStatusChange',
+    payload: { proposalId: string; status: WriterDraftProposalStatus },
+  ): void
 }>()
 
-const activeTab = ref<WorkbenchTab>('chat')
+const activeTab = ref<WriterWorkbenchTab>('chat')
+const latestResultCandidate = ref<WriterResultCandidate | null>(null)
 
-const tabs: Array<{ id: WorkbenchTab; label: string; description: string }> = [
+const tabs: Array<{ id: WriterWorkbenchTab; label: string; description: string }> = [
   { id: 'rewrite', label: '改写', description: '续写 / 润色 / 扩写' },
   { id: 'summary', label: '总结', description: '摘要 / 章节提炼' },
   { id: 'review', label: '审校', description: '校对 / 风险检查' },
   { id: 'chat', label: '对话', description: '开放式协作' },
 ]
 
-const actionDrivenTab = computed<WorkbenchTab | null>(() => {
-  const action = props.actionTrigger?.action
-  if (!action) return null
-  if (['continue', 'polish', 'expand', 'rewrite'].includes(action)) return 'rewrite'
-  if (['summary', 'summarize', 'summarize_chapter'].includes(action)) return 'summary'
-  if (['proofread', 'review', 'audit'].includes(action)) return 'review'
-  if (['chat', 'add_to_chat'].includes(action)) return 'chat'
-  return null
+const actionDrivenTab = computed<WriterWorkbenchTab | null>(() =>
+  resolveWriterWorkflowTab(props.actionTrigger?.action),
+)
+
+const workflowSummary = computed(() => {
+  const parts = [
+    props.workflowContext.chapterTitle || '',
+    props.workflowContext.scopeLabel || '',
+    props.workflowContext.pendingChangeRequestCount > 0
+      ? `待处理 ${props.workflowContext.pendingChangeRequestCount}`
+      : '',
+  ].filter(Boolean)
+
+  return parts.join(' · ')
+})
+
+const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
+  if (props.draftProposals.length === 0) {
+    return null
+  }
+
+  return (
+    props.draftProposals.find((proposal) => proposal.status !== 'discarded') ||
+    props.draftProposals[0]
+  )
 })
 
 watch(
@@ -147,11 +216,41 @@ watch(
   },
 )
 
-function applyModeText(mode: NonNullable<AIActionTrigger['applyMode']>) {
+function applyModeText(mode: NonNullable<WriterAIActionTrigger['applyMode']>) {
   if (mode === 'replace_selection') return '替换选区'
   if (mode === 'insert_after_selection') return '插入后方'
   if (mode === 'replace_document') return '替换全文'
   return '追加段落'
+}
+
+function handleResultCandidate(payload: WriterResultCandidate) {
+  latestResultCandidate.value = payload
+}
+
+function handlePromoteToProposal() {
+  if (!latestResultCandidate.value) {
+    return
+  }
+
+  emit('proposalDraft', latestResultCandidate.value)
+  latestResultCandidate.value = null
+}
+
+function proposalStatusText(status: WriterDraftProposalStatus) {
+  if (status === 'selected') return '已保留'
+  if (status === 'discarded') return '已丢弃'
+  return '草案'
+}
+
+function proposalKindText(kind: WriterDraftProposalKind) {
+  return kind === 'chapter-direction' ? '章节方向' : '正文候选'
+}
+
+function proposalSourceText(source: WriterDraftProposalSource) {
+  if (source === 'summary-workbench') return '来自总结'
+  if (source === 'review-workbench') return '来自审校'
+  if (source === 'rewrite-workbench') return '来自改写'
+  return '来自对话'
 }
 </script>
 
@@ -174,11 +273,35 @@ function applyModeText(mode: NonNullable<AIActionTrigger['applyMode']>) {
   gap: 8px;
 }
 
+.ai-workbench__title-group {
+  min-width: 0;
+}
+
 .ai-workbench__title {
   font-size: 13px;
   font-weight: 700;
   color: var(--editor-text-primary, #0f172a);
   letter-spacing: 0.01em;
+}
+
+.ai-workbench__summary {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--editor-text-muted, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-workbench__badge {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--editor-text-muted, #64748b);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .ai-workbench__tabs {
@@ -213,6 +336,83 @@ function applyModeText(mode: NonNullable<AIActionTrigger['applyMode']>) {
   border-color: var(--editor-accent, rgba(6, 182, 212, 0.3));
   color: var(--editor-accent, #06b6d4);
   font-weight: 600;
+}
+
+.workflow-result-card,
+.proposal-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.workflow-result-card strong,
+.proposal-card strong {
+  display: block;
+  font-size: 12px;
+  color: var(--editor-text-primary, #0f172a);
+}
+
+.workflow-result-card p,
+.proposal-card p {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--editor-text-muted, #64748b);
+}
+
+.workflow-result-card__action,
+.proposal-card__action {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--editor-accent-soft, #ecfeff);
+  color: var(--editor-accent, #0891b2);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.proposal-card {
+  display: block;
+}
+
+.proposal-card__header,
+.proposal-card__actions,
+.proposal-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.proposal-card__meta {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--editor-text-muted, #64748b);
+}
+
+.proposal-card__actions {
+  margin-top: 10px;
+  justify-content: flex-start;
+}
+
+.proposal-card__status {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.proposal-card__action--ghost {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--editor-text-muted, #64748b);
 }
 
 .ai-workbench__panel {

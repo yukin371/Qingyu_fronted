@@ -78,4 +78,52 @@ describe('StoryHarnessPanel', () => {
     await wrapper.get('[data-testid="story-harness-trigger-index"]').trigger('click')
     expect(handleTriggerIndex).toHaveBeenCalledTimes(1)
   })
+
+  it('点击交给 AI 后应发出标准工作流事件', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: '张三开始怀疑李四。',
+        chapterCount: 12,
+        changeRequests: [
+          {
+            id: 'cr-1',
+            source: 'live',
+            type: 'state',
+            title: '角色状态可能需要更新：张三',
+            summary: '状态可能转为怀疑或动摇',
+            reason: '这类变化适合先作为 Change Request 预览。',
+            evidence: '张三开始怀疑李四。',
+            severity: 'focus',
+          },
+        ],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="story-harness-send-primary-to-ai"]').trigger('click')
+
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
+      source: 'story_harness',
+      action: 'add_to_chat',
+      title: '角色状态可能需要更新：张三',
+      instructions: expect.stringContaining('Change Request'),
+    })
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
+      '变更建议：角色状态可能需要更新：张三',
+    )
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('证据：张三开始怀疑李四。')
+  })
 })

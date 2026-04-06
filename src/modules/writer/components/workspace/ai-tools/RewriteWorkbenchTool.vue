@@ -89,19 +89,19 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { rewriteWithWorkbench } from '@/modules/ai/api/workbench'
+import type {
+  WriterAIActionTrigger,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import { buildWriterWorkflowContextPrompt } from '@/modules/writer/types/workflow'
 
 const props = defineProps<{
   projectId: string
   chapterId: string
   chapterTitle: string
   seedText: string
-  actionTrigger: {
-    id: number
-    action: string
-    text: string
-    instructions?: string
-    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  } | null
+  actionTrigger: WriterAIActionTrigger | null
+  workflowContext?: WriterWorkflowContext | null
 }>()
 
 const emit = defineEmits<{
@@ -156,6 +156,9 @@ const statusDescription = computed(() => {
   if (props.actionTrigger) return '来自编辑器选区的动作已注入，可继续调整模式或补充要求。'
   return '可以直接处理当前章节，也可以先在正文中选中片段后触发。'
 })
+const effectiveWorkflowContext = computed(
+  () => props.actionTrigger?.context ?? props.workflowContext ?? null,
+)
 
 watch(
   () => props.seedText,
@@ -191,12 +194,16 @@ async function handleRun() {
   loading.value = true
   errorText.value = ''
   try {
+    const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
+    const mergedInstructions = [instructions.value.trim(), workflowContextPrompt]
+      .filter((item) => item && item.trim())
+      .join('\n\n')
     const result = await rewriteWithWorkbench({
       projectId: props.projectId,
       chapterId: props.chapterId || undefined,
       originalText: draftText.value,
       mode: mode.value,
-      instructions: instructions.value.trim() || undefined,
+      instructions: mergedInstructions || undefined,
     })
     resultText.value = result.rewrittenText
   } catch (error) {

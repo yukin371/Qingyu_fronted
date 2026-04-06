@@ -108,6 +108,16 @@
               查看队列
             </QyButton>
           </div>
+          <QyButton
+            v-if="primaryChangeRequest"
+            variant="secondary"
+            size="sm"
+            class="w-full"
+            data-testid="story-harness-send-primary-to-ai"
+            @click="sendPrimaryChangeRequestToAI"
+          >
+            交给 AI
+          </QyButton>
         </template>
 
         <template v-else>
@@ -145,6 +155,7 @@ import {
   type StoryHarnessChangeRequestPreview,
   type StoryHarnessRelationSummary,
 } from '@/modules/writer/stores/v3/storyHarnessStore'
+import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
 import StoryHarnessChangeRequestDrawer from './StoryHarnessChangeRequestDrawer.vue'
 
 const props = defineProps<{
@@ -163,6 +174,9 @@ const props = defineProps<{
   ) => Promise<boolean>
   handleTriggerIndex?: () => Promise<void>
   isTriggeringIndex?: boolean
+}>()
+const emit = defineEmits<{
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
 }>()
 
 const harnessStore = useStoryHarnessStore()
@@ -227,6 +241,33 @@ const handleTriggerIndex = () => {
   }
 
   void props.handleTriggerIndex()
+}
+
+const buildChangeRequestContextText = (changeRequest: StoryHarnessChangeRequestPreview): string => {
+  const lines = [
+    `变更建议：${changeRequest.title}`,
+    changeRequest.summary ? `摘要：${changeRequest.summary}` : '',
+    changeRequest.reason ? `理由：${changeRequest.reason}` : '',
+    changeRequest.evidence ? `证据：${changeRequest.evidence}` : '',
+  ].filter(Boolean)
+
+  return lines.join('\n')
+}
+
+const sendPrimaryChangeRequestToAI = () => {
+  const changeRequest = primaryChangeRequest.value
+  if (!changeRequest) {
+    return
+  }
+
+  emit('trigger-ai-action', {
+    source: 'story_harness',
+    action: 'add_to_chat',
+    title: changeRequest.title,
+    text: buildChangeRequestContextText(changeRequest),
+    instructions:
+      '请基于这条 Change Request 给出可执行的改写建议，优先保持角色状态与关系连续性。',
+  })
 }
 
 watch(

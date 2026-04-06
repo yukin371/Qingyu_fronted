@@ -5,82 +5,53 @@
   >
     <!-- 面板内容区 -->
     <div class="workspace-right-panel-body">
-      <!-- AI 助手 -->
       <AIWorkbench
-        v-if="activeDockTool === 'ai'"
         :project-id="projectId"
         :chapter-id="chapterId"
         :chapter-title="chapterTitle"
         :source-text="sourceText"
         :action-trigger="aiActionTrigger"
         :ai-apply-feedback="aiApplyFeedback"
-        @send="(msg: string) => $emit('ai-send', msg)"
-        @apply-generated-text="(payload: AIApplyPayload) => $emit('ai-apply', payload)"
+        :workflow-context="workflowContext"
+        :draft-proposals="draftProposals"
+        @apply-generated-text="(payload: WriterAIApplyPayload) => $emit('ai-apply', payload)"
+        @proposal-draft="(payload) => $emit('proposal-draft', payload)"
+        @proposal-status-change="(payload) => $emit('proposal-status-change', payload)"
       />
-      <!-- 设定百科 -->
-      <EncyclopediaView
-        v-else-if="activeDockTool === 'encyclopedia'"
-        :embedded="true"
-        :project-id="projectId"
-      />
-      <!-- 写作统计（占位） -->
-      <div v-else-if="activeDockTool === 'stats'" class="panel-placeholder">
-        <QyIcon name="DataAnalysis" :size="32" />
-        <span>写作统计</span>
-        <p>即将推出</p>
-      </div>
     </div>
 
     <!-- Activity Bar（右侧竖排图标） -->
     <nav class="workspace-activity-bar" aria-label="右侧工具栏">
       <button
-        v-for="item in activityItems"
-        :key="item.tool"
         class="workspace-activity-bar__item"
-        :class="{ active: activeDockTool === item.tool && !collapsed }"
-        :title="item.label"
+        :class="{ active: !collapsed }"
+        title="AI 助手"
         type="button"
-        @click="handleActivityClick(item.tool)"
+        @click="handleActivityClick"
       >
-        <QyIcon :name="item.icon" :size="18" />
+        <QyIcon name="MagicStick" :size="18" />
       </button>
     </nav>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import AIWorkbench from '@/modules/writer/components/workspace/AIWorkbench.vue'
-import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
+import type {
+  WriterAIActionTrigger,
+  WriterAIApplyFeedback,
+  WriterAIApplyPayload,
+  WriterDraftProposal,
+  WriterDraftProposalStatus,
+  WriterResultCandidate,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
 
 // =======================
 // Types
 // =======================
-export type RightDockTool = 'ai' | 'encyclopedia' | 'stats'
-
-export interface AIActionTrigger {
-  id: number
-  action: string
-  text: string
-  instructions?: string
-  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-}
-
-export interface AIApplyPayload {
-  action: string
-  sourceText: string
-  generatedText: string
-  applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-}
-
-export interface AIApplyFeedback {
-  status: 'idle' | 'success' | 'fallback'
-  title: string
-  detail: string
-  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  updatedAt: number
-}
+export type RightDockTool = 'ai'
 
 // =======================
 // Props & Emits
@@ -93,37 +64,29 @@ const props = defineProps<{
   chapterId: string
   chapterTitle: string
   sourceText: string
-  aiActionTrigger: AIActionTrigger | null
-  aiApplyFeedback: AIApplyFeedback | null
+  aiActionTrigger: WriterAIActionTrigger | null
+  aiApplyFeedback: WriterAIApplyFeedback | null
+  workflowContext: WriterWorkflowContext
+  draftProposals: WriterDraftProposal[]
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle'): void
-  (e: 'ai-send', message: string): void
-  (e: 'ai-apply', payload: AIApplyPayload): void
+  (e: 'ai-apply', payload: WriterAIApplyPayload): void
+  (e: 'proposal-draft', payload: WriterResultCandidate): void
+  (
+    e: 'proposal-status-change',
+    payload: { proposalId: string; status: WriterDraftProposalStatus },
+  ): void
 }>()
 
-// =======================
-// Activity Bar
-// =======================
-const activityItems = [
-  { tool: 'ai' as RightDockTool, label: 'AI 助手', icon: 'MagicStick' },
-  { tool: 'encyclopedia' as RightDockTool, label: '设定百科', icon: 'Reading' },
-  { tool: 'stats' as RightDockTool, label: '写作统计', icon: 'DataAnalysis' },
-]
-
-const activeDockTool = ref<RightDockTool>(props.activeRightDockTool ?? 'ai')
-
-function handleActivityClick(tool: RightDockTool) {
-  if (activeDockTool.value === tool && !props.collapsed) {
-    // 点击已激活图标 → 折叠面板
+function handleActivityClick() {
+  if (!props.collapsed) {
     emit('toggle')
-  } else {
-    activeDockTool.value = tool
-    if (props.collapsed) {
-      emit('toggle')
-    }
+    return
   }
+
+  emit('toggle')
 }
 </script>
 

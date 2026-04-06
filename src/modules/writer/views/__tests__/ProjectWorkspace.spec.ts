@@ -171,8 +171,20 @@ const WorkspaceRightPanelStub = defineComponent({
       type: Object,
       default: null,
     },
+    aiActionTrigger: {
+      type: Object,
+      default: null,
+    },
+    workflowContext: {
+      type: Object,
+      default: null,
+    },
+    draftProposals: {
+      type: Array,
+      default: () => [],
+    },
   },
-  emits: ['ai-apply'],
+  emits: ['ai-apply', 'proposal-draft', 'proposal-status-change'],
   setup(props, { emit }) {
     return () =>
       h('div', [
@@ -186,8 +198,58 @@ const WorkspaceRightPanelStub = defineComponent({
               applyMode: 'replace_document',
             }),
         }),
+        h('button', {
+          'data-testid': 'save-proposal-draft',
+          onClick: () =>
+            emit('proposal-draft', {
+              source: 'chat',
+              action: 'chat',
+              title: 'AI 对话结果',
+              summary: '新的推进方向',
+              generatedText: '新的推进方向',
+              sourceText: '继续推进冲突',
+            }),
+        }),
         h('div', { 'data-testid': 'apply-feedback-title' }, props.aiApplyFeedback?.title || ''),
+        h('div', { 'data-testid': 'trigger-action' }, props.aiActionTrigger?.action || ''),
+        h('div', { 'data-testid': 'trigger-source' }, props.aiActionTrigger?.source || ''),
+        h('div', { 'data-testid': 'trigger-text' }, props.aiActionTrigger?.text || ''),
+        h('div', { 'data-testid': 'context-signature' }, props.workflowContext?.signature || ''),
+        h(
+          'div',
+          { 'data-testid': 'proposal-count' },
+          String((props.draftProposals as unknown[]).length || 0),
+        ),
+        h(
+          'div',
+          { 'data-testid': 'proposal-status' },
+          String((props.draftProposals as Array<{ status?: string }>)[0]?.status || ''),
+        ),
+        h(
+          'div',
+          { 'data-testid': 'proposal-id' },
+          String((props.draftProposals as Array<{ id?: string }>)[0]?.id || ''),
+        ),
       ])
+  },
+})
+
+const WorkflowRelayEditorContentStub = defineComponent({
+  emits: ['trigger-ai-action'],
+  setup(_, { emit }) {
+    return () =>
+      h('button', {
+        'data-testid': 'relay-workflow-action',
+        onClick: () =>
+          emit('trigger-ai-action', {
+            source: 'story_harness',
+            action: 'add_to_chat',
+            text: '请基于这条建议补写下一段冲突',
+            title: '来自 Story Harness',
+            instructions: '保留当前章节语气',
+            applyMode: 'append_paragraph',
+          }),
+      })
   },
 })
 
@@ -520,5 +582,112 @@ describe('ProjectWorkspace Refactor', () => {
         encyclopediaView: 'relations',
       },
     })
+  })
+
+  it('保存 AI 结果为提案后应把草案回传给右侧工作台', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('0')
+
+    await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+  })
+
+  it('工作流触发应注入 aiActionTrigger 与 workflowContext 到右侧面板', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: WorkflowRelayEditorContentStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="relay-workflow-action"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('add_to_chat')
+    expect(wrapper.find('[data-testid="trigger-source"]').text()).toBe('story_harness')
+    expect(wrapper.find('[data-testid="trigger-text"]').text()).toContain('补写下一段冲突')
+    expect(wrapper.find('[data-testid="context-signature"]').text()).toContain('"chapterId":"chapter-1"')
+  })
+
+  it.todo('提案应按当前章节过滤展示（Phase 2: chapter-scoped proposal visibility）')
+
+  it('提案状态变更后再次暂存应复位为 draft', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
+    await nextTick()
+    const proposalId = wrapper.find('[data-testid="proposal-id"]').text()
+    expect(proposalId).toContain('proposal-')
+    expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('draft')
+
+    await wrapper.findComponent(WorkspaceRightPanelStub).vm.$emit('proposal-status-change', {
+      proposalId,
+      status: 'discarded',
+    })
+    await nextTick()
+    expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('discarded')
+
+    await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
+    await nextTick()
+    expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('draft')
   })
 })

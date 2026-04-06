@@ -65,6 +65,12 @@ import { useTypewriter } from '@/composables/useTypewriter'
 import { message } from '@/design-system/services'
 import { QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
 import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import type {
+  WriterAIActionTrigger,
+  WriterResultCandidate,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import { buildWriterWorkflowContextPrompt } from '@/modules/writer/types/workflow'
 
 // 子组件
 import {
@@ -103,17 +109,11 @@ function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number):
 interface Props {
   sessionId?: string
   width?: number
-  actionTrigger?: {
-    id: number
-    action: string
-    text: string
-    instructions?: string
-    applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  } | null
+  actionTrigger?: WriterAIActionTrigger | null
+  workflowContext?: WriterWorkflowContext | null
 }
 
 interface Emits {
-  (e: 'send', msg: string): void
   (
     e: 'applyGeneratedText',
     payload: {
@@ -123,6 +123,7 @@ interface Emits {
       applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
     },
   ): void
+  (e: 'resultCandidate', payload: WriterResultCandidate): void
 }
 
 // ==================== Props & Emits ====================
@@ -181,6 +182,9 @@ const panelStyle = computed(() => {
 })
 
 const conversationStorageKey = computed(() => `ai-conversation-list-${props.sessionId}`)
+const effectiveWorkflowContext = computed(
+  () => props.actionTrigger?.context ?? props.workflowContext ?? null,
+)
 
 // ==================== 对话管理方法 ====================
 function loadConversations() {
@@ -322,6 +326,10 @@ async function sendMessage(content: string) {
   const requestMessage = selectedChatContext.value
     ? `参考片段：${selectedChatContext.value.text}\n\n用户需求：${trimmedContent}`
     : trimmedContent
+  const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
+  const finalRequestMessage = workflowContextPrompt
+    ? `${workflowContextPrompt}\n\n${requestMessage}`
+    : requestMessage
 
   // 添加用户消息
   addMessage('user', trimmedContent)
@@ -343,11 +351,19 @@ async function sendMessage(content: string) {
         content: m.content,
       }))
 
-    const response = await chatWithAI(requestMessage, history)
+    const response = await chatWithAI(finalRequestMessage, history)
     const aiResponseText = response.reply || '抱歉，我没有理解您的问题。'
 
     // 直接添加AI消息
     addMessage('assistant', aiResponseText)
+    emit('resultCandidate', {
+      source: 'chat',
+      action: 'chat',
+      title: 'AI 对话结果',
+      summary: aiResponseText.slice(0, 72) || '已生成新的对话结果。',
+      generatedText: aiResponseText,
+      sourceText: trimmedContent,
+    })
     if (selectedChatContext.value) {
       handleClearSelectedContext()
     }
@@ -385,6 +401,10 @@ async function runSelectionAction(action: string, selectedText: string, instruct
     }
     const label = actionLabelMap[action] || '处理'
     const trimmedInstructions = (instructions || '').trim()
+    const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
+    const mergedInstructions = [trimmedInstructions, workflowContextPrompt]
+      .filter((item) => item && item.trim())
+      .join('\n\n')
     const userPrompt = trimmedInstructions
       ? `[${label}] ${selectedText}\n要求：${trimmedInstructions}`
       : `[${label}] ${selectedText}`
@@ -393,17 +413,17 @@ async function runSelectionAction(action: string, selectedText: string, instruct
     const projectId = props.sessionId || 'demo-project'
     let response: Record<string, any> = {}
     if (action === 'continue') {
-      response = await continueWriting(projectId, selectedText, 200, trimmedInstructions)
+      response = await continueWriting(projectId, selectedText, 200, mergedInstructions || undefined)
     } else if (action === 'polish') {
-      response = await polishText(projectId, selectedText, trimmedInstructions || undefined)
+      response = await polishText(projectId, selectedText, mergedInstructions || undefined)
     } else if (action === 'expand') {
-      response = await expandText(projectId, selectedText, trimmedInstructions || undefined)
+      response = await expandText(projectId, selectedText, mergedInstructions || undefined)
     } else if (action === 'rewrite') {
       response = await rewriteText(
         projectId,
         selectedText,
         'polish',
-        trimmedInstructions || undefined,
+        mergedInstructions || undefined,
       )
     }
 
@@ -414,6 +434,16 @@ async function runSelectionAction(action: string, selectedText: string, instruct
     }
 
     addMessage('assistant', generatedText)
+    emit('resultCandidate', {
+      source: action === 'continue' || action === 'expand' || action === 'polish' || action === 'rewrite'
+        ? 'rewrite'
+        : 'chat',
+      action,
+      title: `${label}结果`,
+      summary: generatedText.slice(0, 72) || '已生成新的处理结果。',
+      generatedText,
+      sourceText: selectedText,
+    })
     emit('applyGeneratedText', {
       action,
       sourceText: selectedText,

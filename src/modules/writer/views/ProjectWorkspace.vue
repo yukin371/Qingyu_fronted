@@ -64,7 +64,7 @@
           :is-triggering-index="isStoryHarnessTriggering"
           v-model:content="tipTapContent"
           @update:category="setEncyclopediaCategory"
-          @trigger-ai-action="handleAIStageAction"
+          @trigger-ai-action="handleWorkflowAction"
           @open-graph="handleOpenGraph"
           @jump-to-chapter="handleChapterIdUpdate"
           @save="handleTipTapSave"
@@ -87,9 +87,12 @@
           :source-text="currentChapterPlainText"
           :ai-action-trigger="aiActionTrigger"
           :ai-apply-feedback="aiApplyFeedback"
+          :workflow-context="workflowContext"
+          :draft-proposals="visibleDraftProposals"
           @toggle="toggleRightPanel"
-          @ai-send="handleAISend"
           @ai-apply="handleAIApplyGeneratedText"
+          @proposal-draft="handleProposalDraft"
+          @proposal-status-change="handleProposalStatusChange"
         />
       </template>
     </EditorLayout>
@@ -151,9 +154,7 @@ import { createDocument } from '@/modules/writer/api/document'
 // 引入子组件
 import WorkspaceTopbar from '@/modules/writer/components/workspace/WorkspaceTopbar.vue'
 import WorkspaceLeftPanel from '@/modules/writer/components/workspace/WorkspaceLeftPanel.vue'
-import WorkspaceRightPanel, {
-  type AIApplyPayload,
-} from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
+import WorkspaceRightPanel from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
 import WorkspaceStatusbar from '@/modules/writer/components/workspace/WorkspaceStatusbar.vue'
 import WorkspaceEditorContent from '@/modules/writer/components/workspace/WorkspaceEditorContent.vue'
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
@@ -164,6 +165,22 @@ import {
   buildEditorContentFromPlainText,
   extractPlainTextFromEditorContent,
 } from '@/modules/writer/utils/editorContent'
+import type {
+  WriterAIActionTrigger,
+  WriterAIApplyFeedback,
+  WriterAIApplyPayload,
+  WriterDraftProposal,
+  WriterDraftProposalKind,
+  WriterDraftProposalSource,
+  WriterDraftProposalStatus,
+  WriterResultCandidate,
+  WriterWorkflowActionRequest,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import {
+  buildWriterAIActionTrigger,
+  buildWriterWorkflowContextSignature,
+} from '@/modules/writer/types/workflow'
 
 // =======================
 // Props 定义
@@ -268,21 +285,53 @@ const displayChapterTitle = computed(() =>
   isGlobalRelationsView.value ? '' : currentChapterTitle.value,
 )
 
-  const {
-    currentScopeLabel,
-    activeScopeCharacters,
-    activeScopeRelations,
-    storyHarnessChangeRequests,
-    persistCurrentLiveChangeRequests,
-    handleChangeRequestDecision,
-    triggerIndexAndRefresh,
-    refreshAfterSave,
-  } = useStoryHarnessWorkspace({
+const {
+  currentScopeLabel,
+  activeScopeCharacters,
+  activeScopeRelations,
+  storyHarnessChangeRequests,
+  persistCurrentLiveChangeRequests,
+  handleChangeRequestDecision,
+  triggerIndexAndRefresh,
+  refreshAfterSave,
+} = useStoryHarnessWorkspace({
   projectId: currentProjectId,
   displayChapterId,
   displayChapterTitle,
   currentChapterPlainText,
   availableDocMap,
+})
+
+const workflowContext = computed<WriterWorkflowContext>(() => {
+  const context = {
+    projectId: currentProjectId.value,
+    chapterId: displayChapterId.value,
+    chapterTitle: displayChapterTitle.value,
+    scopeLabel: currentScopeLabel.value,
+    activeCharacters: activeScopeCharacters.value.slice(0, 3).map((character) => ({
+      id: character.id,
+      name: character.name,
+      currentState: character.currentState,
+    })),
+    activeRelations: activeScopeRelations.value.slice(0, 2).map((relation) => ({
+      id: relation.id,
+      fromName: relation.fromName,
+      toName: relation.toName,
+      type: relation.type,
+    })),
+    pendingChangeRequests: storyHarnessChangeRequests.value.slice(0, 3).map((changeRequest) => ({
+      id: changeRequest.id,
+      title: changeRequest.title,
+      summary: changeRequest.summary,
+      type: changeRequest.type,
+    })),
+    pendingChangeRequestCount: storyHarnessChangeRequests.value.length,
+  }
+
+  return {
+    ...context,
+    signature: buildWriterWorkflowContextSignature(context),
+  }
 })
 
 // =======================
@@ -291,25 +340,17 @@ const displayChapterTitle = computed(() =>
 const showCreateDocDialog = ref(false)
 const createDocLoading = ref(false)
 const isStoryHarnessTriggering = ref(false)
-const aiActionTrigger = ref<{
-  id: number
-  action: string
-  text: string
-  instructions?: string
-  applyMode?:
-    | 'replace_selection'
-    | 'insert_after_selection'
-    | 'append_paragraph'
-    | 'replace_document'
-} | null>(null)
-const aiApplyFeedback = ref<{
-  status: 'idle' | 'success' | 'fallback'
-  title: string
-  detail: string
-  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
-  updatedAt: number
-} | null>(null)
+const aiActionTrigger = ref<WriterAIActionTrigger | null>(null)
+const aiApplyFeedback = ref<WriterAIApplyFeedback | null>(null)
 const latestSelectionContext = ref<{ text: string; from: number; to: number } | null>(null)
+const draftProposals = ref<WriterDraftProposal[]>([])
+const visibleDraftProposals = computed(() =>
+  draftProposals.value.filter(
+    (proposal) =>
+      proposal.projectId === currentProjectId.value &&
+      proposal.chapterId === displayChapterId.value,
+  ),
+)
 
 // 新建文档表单字段配置
 const createDocFields: FormField[] = [
@@ -822,45 +863,31 @@ const handleCloseFullscreen = () => {
 // 不再需要的 emit 定义，删除
 void handleCloseFullscreen
 
-const handleAISend = (msg: string) => {
-  void msg
-}
-
-const handleAIStageAction = (payload: {
-  action: string
-  text: string
-  instructions?: string
-  from?: number
-  to?: number
-  applyMode?:
-    | 'replace_selection'
-    | 'insert_after_selection'
-    | 'append_paragraph'
-    | 'replace_document'
-}) => {
+const handleWorkflowAction = (payload: WriterWorkflowActionRequest) => {
   panelStore.setRightCollapsed(false)
+  const normalizedText = payload.text?.trim() || currentChapterPlainText.value
   latestSelectionContext.value =
     typeof payload.from === 'number' && typeof payload.to === 'number'
       ? {
-          text: payload.text,
+          text: normalizedText,
           from: payload.from,
           to: payload.to,
         }
       : null
-  aiActionTrigger.value = {
-    id: Date.now(),
-    action: payload.action,
-    text: payload.text || currentChapterPlainText.value,
-    instructions: payload.instructions,
-    applyMode: payload.applyMode,
-  }
+  aiActionTrigger.value = buildWriterAIActionTrigger(
+    {
+      ...payload,
+      text: normalizedText,
+    },
+    workflowContext.value,
+  )
 }
 
 const setAIApplyFeedback = (
-  status: 'idle' | 'success' | 'fallback',
+  status: WriterAIApplyFeedback['status'],
   title: string,
   detail: string,
-  mode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document',
+  mode?: WriterAIApplyFeedback['mode'],
 ) => {
   aiApplyFeedback.value = {
     status,
@@ -871,7 +898,133 @@ const setAIApplyFeedback = (
   }
 }
 
-const handleAIApplyGeneratedText = (payload: AIApplyPayload) => {
+const mapResultCandidateToProposal = (
+  candidate: WriterResultCandidate,
+): {
+  kind: WriterDraftProposalKind
+  source: WriterDraftProposalSource
+  title: string
+  summary: string
+} => {
+  if (candidate.source === 'summary') {
+    return {
+      kind: 'chapter-direction',
+      source: 'summary-workbench',
+      title: candidate.title || '章节方向提案',
+      summary: candidate.summary || '已暂存为章节方向提案。',
+    }
+  }
+
+  if (candidate.source === 'review') {
+    return {
+      kind: 'text-draft',
+      source: 'review-workbench',
+      title: candidate.title || '审校建议提案',
+      summary: candidate.summary || '已暂存为审校建议提案。',
+    }
+  }
+
+  return {
+    kind: 'text-draft',
+    source: candidate.source === 'rewrite' ? 'rewrite-workbench' : 'ai-chat',
+    title: candidate.title || '正文候选提案',
+    summary: candidate.summary || '已暂存为正文候选提案。',
+  }
+}
+
+const handleProposalDraft = (candidate: WriterResultCandidate) => {
+  const mapped = mapResultCandidateToProposal(candidate)
+  const generatedText = candidate.generatedText.trim()
+
+  if (!generatedText) {
+    return
+  }
+
+  const existingProposal = draftProposals.value.find(
+    (proposal) =>
+      proposal.projectId === currentProjectId.value &&
+      proposal.content.generatedText === generatedText &&
+      proposal.chapterId === displayChapterId.value,
+  )
+
+  if (existingProposal) {
+    existingProposal.source = mapped.source
+    existingProposal.kind = mapped.kind
+    existingProposal.title = mapped.title
+    existingProposal.summary = mapped.summary
+    existingProposal.content = {
+      action: candidate.action,
+      sourceText: candidate.sourceText,
+      generatedText,
+      workflowContextSignature: workflowContext.value.signature,
+    }
+    existingProposal.status = 'draft'
+    existingProposal.updatedAt = Date.now()
+    message.success('已更新现有提案草稿')
+    return
+  }
+
+  const nextProposal: WriterDraftProposal = {
+    id: `proposal-${Date.now()}`,
+    projectId: currentProjectId.value,
+    chapterId: displayChapterId.value || undefined,
+    source: mapped.source,
+    kind: mapped.kind,
+    title: mapped.title,
+    summary: mapped.summary,
+    content: {
+      action: candidate.action,
+      sourceText: candidate.sourceText,
+      generatedText,
+      workflowContextSignature: workflowContext.value.signature,
+    },
+    status: 'draft',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  }
+
+  draftProposals.value = [nextProposal, ...draftProposals.value].slice(0, 5)
+
+  message.success('已暂存到提案草稿')
+}
+
+const handleProposalStatusChange = (payload: {
+  proposalId: string
+  status: WriterDraftProposalStatus
+}) => {
+  const now = Date.now()
+  const chapterScopedId = displayChapterId.value || undefined
+
+  draftProposals.value = draftProposals.value.map((proposal) =>
+    proposal.id === payload.proposalId
+      ? {
+          ...proposal,
+          status: payload.status,
+          updatedAt: now,
+        }
+      : payload.status === 'selected' &&
+          proposal.projectId === currentProjectId.value &&
+          proposal.chapterId === chapterScopedId &&
+          proposal.status === 'selected'
+        ? {
+            ...proposal,
+            status: 'draft',
+            updatedAt: now,
+          }
+        : proposal,
+  )
+
+  if (payload.status === 'selected') {
+    message.success('已保留当前提案方向')
+    return
+  }
+
+  if (payload.status === 'discarded') {
+    message.info('已丢弃当前提案')
+  }
+}
+
+const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
   const generatedText = (payload.generatedText || '').trim()
   if (!generatedText) return
 

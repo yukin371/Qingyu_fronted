@@ -74,6 +74,7 @@
       :handle-change-request-decision="handleChangeRequestDecision"
       :handle-trigger-index="handleTriggerIndex"
       :is-triggering-index="isTriggeringIndex"
+      @trigger-ai-action="emit('trigger-ai-action', $event)"
     />
   </div>
 
@@ -112,6 +113,7 @@ import type {
   StoryHarnessChangeRequestPreview,
   StoryHarnessRelationSummary,
 } from '@/modules/writer/stores/v3/storyHarnessStore'
+import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
 import type {
   EncyclopediaSubView,
   EncyclopediaCategory,
@@ -172,21 +174,7 @@ const emit = defineEmits<{
   /** 添加文档 */
   (e: 'add-doc'): void
   /** 触发 AI 快捷动作 */
-  (
-    e: 'trigger-ai-action',
-    payload: {
-      action: string
-      text: string
-      instructions?: string
-      from?: number
-      to?: number
-      applyMode?:
-        | 'replace_selection'
-        | 'insert_after_selection'
-        | 'append_paragraph'
-        | 'replace_document'
-    },
-  ): void
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
   /** 从结构舞台跳转章节 */
   (e: 'jump-to-chapter', chapterId: string): void
   /** 从结构舞台打开关系图谱 */
