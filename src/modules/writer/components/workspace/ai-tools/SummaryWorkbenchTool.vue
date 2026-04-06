@@ -45,7 +45,7 @@
 
     <div v-if="!summary && !errorText" class="tool-panel__empty">
       <strong>摘要结果会显示在这里</strong>
-      <p>片段模式适合快速提炼重点，章节模式会调用当前章节上下文生成更完整的结构化摘要。</p>
+      <p>可总结片段，也可直接总结当前章节。</p>
     </div>
 
     <article v-if="summary" class="result-card">
@@ -104,16 +104,18 @@ const loading = ref(false)
 const errorText = ref('')
 const mode = ref<'selection' | 'chapter'>('selection')
 const statusTitle = computed(() => {
-  if (loading.value) return mode.value === 'chapter' ? '正在提炼章节摘要' : '正在提炼片段摘要'
-  if (summary.value.trim()) return '摘要已生成'
-  if (props.actionTrigger) return '已同步章节或片段意图'
-  return '等待总结任务'
+  if (loading.value) return '处理中'
+  if (summary.value.trim()) return '已就绪'
+  if (props.actionTrigger) return '已同步'
+  return '等待执行'
 })
 const statusDescription = computed(() => {
-  if (loading.value) return '系统会抽取主线信息并整理关键要点。'
-  if (summary.value.trim()) return keyPoints.value.length > 0 ? `已整理 ${keyPoints.value.length} 条核心要点。` : '摘要已可用于继续审校或对话。'
-  if (props.actionTrigger) return '来自章节动作或选区动作的上下文已注入。'
-  return '可以先粘贴片段，也可以直接对当前章节生成摘要。'
+  if (loading.value) return mode.value === 'chapter' ? '正在提炼章节摘要。' : '正在提炼片段摘要。'
+  if (summary.value.trim()) {
+    return keyPoints.value.length > 0 ? `已生成摘要与 ${keyPoints.value.length} 条要点。` : '已生成摘要结果。'
+  }
+  if (props.actionTrigger) return '已注入章节/片段上下文，可直接执行。'
+  return '可先输入片段，或直接总结章节。'
 })
 
 watch(

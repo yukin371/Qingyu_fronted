@@ -45,7 +45,7 @@
 
     <div v-if="!hasResult && !errorText" class="tool-panel__empty">
       <strong>审校结果会显示在这里</strong>
-      <p>校对适合发布前清理语言问题，风险检查适合快速扫出敏感词和需要人工复核的表达。</p>
+      <p>可执行文本校对或风险检查。</p>
     </div>
 
     <article v-if="mode === 'proofread' && issues.length" class="result-card">
@@ -128,18 +128,22 @@ const scoreText = computed(() => (typeof score.value === 'number' ? score.value.
 const auditSummaryText = computed(() => auditWords.value.length > 0 ? `待人工复核 ${auditWords.value.length} 项` : '未发现明显风险词')
 const hasResult = computed(() => issues.value.length > 0 || auditWords.value.length > 0)
 const statusTitle = computed(() => {
-  if (loading.value) return mode.value === 'audit' ? '正在扫描风险表达' : '正在执行文本校对'
-  if (mode.value === 'audit' && auditWords.value.length > 0) return '风险项已整理'
-  if (mode.value === 'proofread' && issues.value.length > 0) return '校对问题已整理'
-  if (props.actionTrigger) return '已同步审校意图'
-  return '等待审校任务'
+  if (loading.value) return '处理中'
+  if (mode.value === 'audit' && auditWords.value.length > 0) return '已就绪'
+  if (mode.value === 'proofread' && issues.value.length > 0) return '已就绪'
+  if (props.actionTrigger) return '已同步'
+  return '等待执行'
 })
 const statusDescription = computed(() => {
-  if (loading.value) return '检测结果会按问题类型与风险线索聚合显示。'
-  if (mode.value === 'audit' && auditWords.value.length > 0) return `当前共有 ${auditWords.value.length} 项待人工复核。`
-  if (mode.value === 'proofread' && issues.value.length > 0) return `当前共有 ${issues.value.length} 条语言问题，评分 ${scoreText.value}。`
-  if (props.actionTrigger) return '来自章节动作或选区动作的检测内容已注入。'
-  return '可以手动粘贴内容，也可以直接复用当前章节正文。'
+  if (loading.value) return mode.value === 'audit' ? '正在扫描风险表达。' : '正在执行文本校对。'
+  if (mode.value === 'audit' && auditWords.value.length > 0) {
+    return `已识别 ${auditWords.value.length} 项，建议人工复核。`
+  }
+  if (mode.value === 'proofread' && issues.value.length > 0) {
+    return `已识别 ${issues.value.length} 条问题，评分 ${scoreText.value}。`
+  }
+  if (props.actionTrigger) return '已注入检测内容，可直接执行。'
+  return '输入内容后可执行审校。'
 })
 
 watch(

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import SummaryWorkbenchTool from '../SummaryWorkbenchTool.vue'
 
 const summarizeSelection = vi.fn()
@@ -69,5 +70,58 @@ describe('SummaryWorkbenchTool', () => {
     expect(wrapper.emitted('resultCandidate')?.[0]?.[0]?.generatedText).toContain(
       '本章应聚焦双方试探升级。',
     )
+  })
+
+  it('shows unified running and ready status copy', async () => {
+    let resolveSelection: (value: { summary: string; keyPoints: string[] }) => void
+    summarizeSelection.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSelection = resolve
+        }),
+    )
+
+    const wrapper = mount(SummaryWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '张三试探李四。',
+        actionTrigger: null,
+      },
+    })
+
+    await wrapper.get('.tool-panel__secondary').trigger('click')
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--running')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('处理中')
+
+    resolveSelection!({
+      summary: '收到 summary',
+      keyPoints: [],
+    })
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--success')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('已就绪')
+  })
+
+  it('shows synced status copy when summary action is injected before execution', () => {
+    const wrapper = mount(SummaryWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '',
+        actionTrigger: {
+          source: 'summary',
+          action: 'summary',
+          text: '',
+        },
+      },
+    })
+
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--warning')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('已同步')
   })
 })

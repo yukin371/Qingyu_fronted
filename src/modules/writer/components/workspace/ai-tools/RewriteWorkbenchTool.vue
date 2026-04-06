@@ -51,7 +51,7 @@
 
     <div v-if="!resultText && !errorText" class="tool-panel__empty">
       <strong>结果卡会显示在这里</strong>
-      <p>可直接处理当前选区，也可手动粘贴文本。润色会回填选区，扩写会插入到选区后方。</p>
+      <p>可处理当前选区，也可手动粘贴文本。</p>
     </div>
 
     <article v-if="resultText" class="result-card">
@@ -142,16 +142,16 @@ const applyModeDescription = computed(() =>
     : '适合润色、改写。AI 结果会覆盖当前选中的内容。',
 )
 const statusTitle = computed(() => {
-  if (loading.value) return '正在生成改写结果'
-  if (resultText.value.trim()) return '结果已准备好'
-  if (props.actionTrigger) return '已同步编辑器意图'
-  return '等待改写任务'
+  if (loading.value) return '处理中'
+  if (resultText.value.trim()) return '已就绪'
+  if (props.actionTrigger) return '已同步'
+  return '等待执行'
 })
 const statusDescription = computed(() => {
-  if (loading.value) return '保留当前工作台上下文中，请稍候。'
-  if (resultText.value.trim()) return `可直接按“${applyModeLabel.value.replace('应用方式: ', '')}”回填正文。`
-  if (props.actionTrigger) return '来自编辑器选区的动作已注入，可继续调整模式或补充要求。'
-  return '可以直接处理当前章节，也可以先在正文中选中片段后触发。'
+  if (loading.value) return '正在生成改写结果。'
+  if (resultText.value.trim()) return `可直接${applyModeLabel.value.replace('应用方式: ', '')}。`
+  if (props.actionTrigger) return '已注入选区与要求，可直接执行。'
+  return '输入内容后可执行改写。'
 })
 const effectiveWorkflowContext = computed(
   () => props.actionTrigger?.context ?? props.workflowContext ?? null,

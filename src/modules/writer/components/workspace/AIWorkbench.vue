@@ -86,7 +86,7 @@
           data-testid="workflow-result-action"
           @click="handlePromoteToProposal"
         >
-          暂存为提案
+          暂存
         </button>
       </section>
     </section>
@@ -234,20 +234,20 @@ function handlePromoteToProposal() {
 }
 
 function proposalStatusText(status: WriterDraftProposalStatus) {
-  if (status === 'selected') return '已保留'
-  if (status === 'discarded') return '已丢弃'
-  return '草案'
+  if (status === 'selected') return '保留'
+  if (status === 'discarded') return '丢弃'
+  return '草稿'
 }
 
 function proposalKindText(kind: WriterDraftProposalKind) {
-  return kind === 'chapter-direction' ? '章节方向' : '正文候选'
+  return kind === 'chapter-direction' ? '方向' : '正文'
 }
 
 function proposalSourceText(source: WriterDraftProposalSource) {
-  if (source === 'summary-workbench') return '来自总结'
-  if (source === 'review-workbench') return '来自审校'
-  if (source === 'rewrite-workbench') return '来自改写'
-  return '来自对话'
+  if (source === 'summary-workbench') return '总结'
+  if (source === 'review-workbench') return '审校'
+  if (source === 'rewrite-workbench') return '改写'
+  return '对话'
 }
 </script>
 

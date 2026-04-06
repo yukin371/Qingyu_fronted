@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import RewriteWorkbenchTool from '../RewriteWorkbenchTool.vue'
 
 const rewriteWithWorkbench = vi.fn()
@@ -73,8 +74,60 @@ describe('RewriteWorkbenchTool', () => {
     await wrapper.get('.tool-panel__primary').trigger('click')
 
     expect(rewriteWithWorkbench).toHaveBeenCalledTimes(1)
-    const payload = rewriteWithWorkbench.mock.calls[0][0] as { instructions?: string }
+    const payload = rewriteWithWorkbench.mock.calls[0][0] as { instructions?: string; chapterId?: string }
     expect(payload.instructions).toBeUndefined()
     expect(payload.chapterId).toBeUndefined()
+  })
+
+  it('shows unified running and ready status copy', async () => {
+    let resolveRun: (value: { rewrittenText: string }) => void
+    rewriteWithWorkbench.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRun = resolve
+        }),
+    )
+
+    const wrapper = mount(RewriteWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '原始文本',
+        actionTrigger: null,
+        workflowContext: null,
+      },
+    })
+
+    await wrapper.get('.tool-panel__primary').trigger('click')
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--running')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('处理中')
+
+    resolveRun!({ rewrittenText: '新的文本' })
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--success')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('已就绪')
+  })
+
+  it('shows synced status copy when action trigger is present before execution', () => {
+    const wrapper = mount(RewriteWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '',
+        actionTrigger: {
+          action: 'rewrite',
+          text: '',
+          applyMode: 'replace_selection',
+        },
+        workflowContext: null,
+      },
+    })
+
+    expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--warning')
+    expect(wrapper.get('.tool-panel__status').text()).toContain('已同步')
   })
 })
