@@ -18,16 +18,16 @@
         <p class="mt-2 text-sm text-slate-500">跟踪阅读、订阅、收藏与评论趋势，辅助内容迭代。</p>
       </div>
 
-      <el-skeleton v-if="loading" :rows="8" animated />
+      <Skeleton v-if="loading" :rows="8" animated />
 
       <div v-else-if="!selectedBookId" class="empty-state">
-        <el-empty description="请选择一部作品查看统计数据" />
+        <QyEmpty description="请选择一部作品查看统计数据" />
       </div>
 
       <div v-else class="statistics-content">
         <!-- 统计概览 -->
         <div class="stats-overview">
-          <el-card class="stat-card">
+          <QyCard class="stat-card">
             <div class="stat-item">
               <div class="stat-icon total-views">
                 <QyIcon name="View" />
@@ -37,9 +37,9 @@
                 <div class="stat-label">总阅读量</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="stat-card">
+          <QyCard class="stat-card">
             <div class="stat-item">
               <div class="stat-icon subscribers">
                 <QyIcon name="Star" />
@@ -49,9 +49,9 @@
                 <div class="stat-label">订阅人数</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="stat-card">
+          <QyCard class="stat-card">
             <div class="stat-item">
               <div class="stat-icon favorites">
                 <QyIcon name="Collection" />
@@ -61,9 +61,9 @@
                 <div class="stat-label">收藏数</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="stat-card">
+          <QyCard class="stat-card">
             <div class="stat-item">
               <div class="stat-icon comments">
                 <QyIcon name="ChatDotRound" />
@@ -73,66 +73,66 @@
                 <div class="stat-label">评论数</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
         </div>
 
         <!-- 图表区域 -->
-        <el-row :gutter="20">
+        <QyRow :gutter="20" align="stretch">
           <!-- 阅读量趋势图 -->
-          <el-col :span="24" :lg="12">
-            <el-card class="chart-card">
+          <QyCol :span="24" :lg="12">
+            <QyCard class="chart-card">
               <template #header>
                 <div class="card-header">
                   <span>阅读量趋势</span>
-                  <el-radio-group v-model="viewsTrendRange" size="small" @change="loadDailyStats">
-                    <el-radio-button label="7">7天</el-radio-button>
-                    <el-radio-button label="30">30天</el-radio-button>
-                    <el-radio-button label="90">90天</el-radio-button>
-                  </el-radio-group>
+                  <QyRadioGroup v-model="viewsTrendRange" size="sm" direction="horizontal" @change="loadDailyStats">
+                    <QyRadio value="7" variant="button">7天</QyRadio>
+                    <QyRadio value="30" variant="button">30天</QyRadio>
+                    <QyRadio value="90" variant="button">90天</QyRadio>
+                  </QyRadioGroup>
                 </div>
               </template>
               <div ref="viewsChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
+            </QyCard>
+          </QyCol>
 
           <!-- 订阅增长图 -->
-          <el-col :span="24" :lg="12">
-            <el-card class="chart-card">
+          <QyCol :span="24" :lg="12">
+            <QyCard class="chart-card">
               <template #header>
                 <span>订阅增长</span>
               </template>
               <div ref="subscribersChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
+            </QyCard>
+          </QyCol>
 
           <!-- 章节热度分布 -->
-          <el-col :span="24" :lg="12">
-            <el-card class="chart-card">
+          <QyCol :span="24" :lg="12">
+            <QyCard class="chart-card">
               <template #header>
                 <span>章节阅读热度 TOP 10</span>
               </template>
               <div ref="chaptersChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
+            </QyCard>
+          </QyCol>
 
           <!-- 读者活跃度 -->
-          <el-col :span="24" :lg="12">
-            <el-card class="chart-card">
+          <QyCol :span="24" :lg="12">
+            <QyCard class="chart-card">
               <template #header>
                 <span>读者活跃度分布</span>
               </template>
               <div ref="readerActivityChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
-        </el-row>
+            </QyCard>
+          </QyCol>
+        </QyRow>
 
         <!-- 阅读热力图 -->
-        <el-card class="chart-card heatmap-card">
+        <QyCard class="chart-card heatmap-card">
           <template #header>
             <span>阅读时段热力图</span>
           </template>
           <div ref="heatmapChartRef" class="heatmap-container"></div>
-        </el-card>
+        </QyCard>
       </div>
     </div>
   </WriterPageShell>
@@ -141,7 +141,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect } from '@/design-system/components'
+import { QyIcon, QySelect, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio } from '@/design-system/components'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { echarts, graphic } from '@/utils/echarts'
@@ -1089,7 +1090,7 @@ onUnmounted(() => {
       gap: 20px;
 
       .stat-card {
-        :deep(.el-card__body) {
+        :deep(.qy-card__body) {
           padding: 18px;
         }
 
@@ -1145,15 +1146,16 @@ onUnmounted(() => {
     }
 
     .chart-card {
+      height: 100%;
       border: 1px solid #e2e8f0;
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 
-      :deep(.el-card__header) {
+      :deep(.qy-card__header) {
         border-bottom: 2px solid #e2e8f0;
         padding: 14px 18px 12px;
       }
 
-      :deep(.el-card__header span) {
+      :deep(.qy-card__header span) {
         position: relative;
         display: inline-flex;
         align-items: center;

@@ -47,17 +47,28 @@
     </div>
   </div>
   <!-- 写作编辑器 -->
-  <TipTapEditorView
-    v-else
-    v-model="modelContent"
-    :project-id="projectId"
-    :document-id="chapterId"
-    :readonly="false"
-    :show-reference-panel="false"
-    @selection-action="emit('trigger-ai-action', $event)"
-    @save="(contents: unknown[]) => $emit('save', contents)"
-    @open-tool-overlay="toolOverlay.open()"
-  />
+  <div v-else class="workspace-writing-surface" data-testid="workspace-writing-surface">
+    <div class="workspace-writing-surface__editor">
+      <TipTapEditorView
+        v-model="modelContent"
+        :project-id="projectId"
+        :document-id="chapterId"
+        :readonly="false"
+        :show-reference-panel="false"
+        @selection-action="emit('trigger-ai-action', $event)"
+        @save="(contents: unknown[]) => $emit('save', contents)"
+        @open-tool-overlay="toolOverlay.open()"
+      />
+    </div>
+    <StoryHarnessPanel
+      class="workspace-writing-surface__aside"
+      :project-id="projectId"
+      :chapter-id="chapterId"
+      :chapter-title="chapterTitle"
+      :content="modelContent"
+      :chapter-count="chapters.length"
+    />
+  </div>
 
   <!-- 全屏工具面板 -->
   <WorkspaceToolOverlay
@@ -84,6 +95,7 @@ import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
 import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
 import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import WorkspaceToolOverlay from '@/modules/writer/components/workspace/WorkspaceToolOverlay.vue'
+import StoryHarnessPanel from '@/modules/writer/components/v3/story-harness/StoryHarnessPanel.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
@@ -235,9 +247,38 @@ defineExpose({
   line-height: 1.5;
 }
 
+.workspace-writing-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  background: var(--editor-bg, #fff);
+}
+
+.workspace-writing-surface__editor {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace-writing-surface__aside {
+  min-height: 0;
+  overflow: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .empty-icon {
     transition: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .workspace-writing-surface {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 }
 </style>

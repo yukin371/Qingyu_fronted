@@ -116,10 +116,12 @@
                 :type="activeRankingTab"
                 :items="rankings?.[activeRankingTab] || []"
                 :loading="loading"
+                :error="rankingsError"
                 :max-items="6"
                 layout="premium"
                 @view-more="handleViewRanking(activeRankingTab)"
                 @item-click="handleBookClick"
+                @retry="handleRetryRankings"
               />
             </div>
           </div>
@@ -139,9 +141,11 @@
               <BookGrid
                 :books="recommendedBooks"
                 :loading="loading"
+                :error="recommendedError"
                 :max-items="8"
                 card-style="premium"
                 @book-click="handleBookClick"
+                @retry="handleRetryRecommended"
               />
             </div>
           </div>
@@ -157,10 +161,12 @@
             <BookGrid
               :books="featuredBooks"
               :loading="loading"
+              :error="featuredError"
               :max-items="6"
               :grid-cols="3"
               card-style="premium"
               @book-click="handleBookClick"
+              @retry="handleRetryFeatured"
             />
           </div>
           <!-- 骨架屏 -->
@@ -260,6 +266,9 @@ export default {
     const router = useRouter()
     const bookstoreStore = useBookstoreStore()
     const loading = ref(false)
+    const rankingsError = ref(false)
+    const recommendedError = ref(false)
+    const featuredError = ref(false)
     const loadMoreElRef = ref(null)
     const activeRankingTab = ref('realtime')
 
@@ -346,6 +355,48 @@ export default {
     }
     const goToReaderDemo = () => router.push('/bookstore/reader-demo')
 
+    const handleRetryRankings = async () => {
+      rankingsError.value = false
+      loading.value = true
+      try {
+        if (typeof bookstoreStore.fetchRankings === 'function') {
+          await bookstoreStore.fetchRankings()
+        }
+      } catch (error) {
+        rankingsError.value = true
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const handleRetryRecommended = async () => {
+      recommendedError.value = false
+      loading.value = true
+      try {
+        if (typeof bookstoreStore.fetchRecommendedBooks === 'function') {
+          await bookstoreStore.fetchRecommendedBooks(1, 12)
+        }
+      } catch (error) {
+        recommendedError.value = true
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const handleRetryFeatured = async () => {
+      featuredError.value = false
+      loading.value = true
+      try {
+        if (typeof bookstoreStore.fetchFeaturedBooks === 'function') {
+          await bookstoreStore.fetchFeaturedBooks()
+        }
+      } catch (error) {
+        featuredError.value = true
+      } finally {
+        loading.value = false
+      }
+    }
+
     const loadHomepageData = async () => {
       loading.value = true
       try {
@@ -361,6 +412,9 @@ export default {
         }
       } catch (error) {
         console.error('[HomeView] 加载首页数据失败:', error)
+        rankingsError.value = true
+        recommendedError.value = true
+        featuredError.value = true
       } finally {
         loading.value = false
       }
@@ -399,6 +453,9 @@ export default {
 
     return {
       loading,
+      rankingsError,
+      recommendedError,
+      featuredError,
       loadingMore,
       hasMoreRecommendations,
       announcements,
@@ -417,6 +474,9 @@ export default {
       handleBannerClick,
       handleViewRanking,
       handleViewBooks,
+      handleRetryRankings,
+      handleRetryRecommended,
+      handleRetryFeatured,
       goToReaderDemo,
     }
   },

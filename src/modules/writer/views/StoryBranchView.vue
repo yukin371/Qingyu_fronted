@@ -104,7 +104,7 @@
 
       <!-- 无数据提示 -->
       <div v-if="!flatNodes.length && !isLoading" class="story-branch-view__empty">
-        <el-empty description="暂无大纲节点，请先创建大纲后再查看分支结构" :image-size="90" />
+        <QyEmpty description="暂无大纲节点，请先创建大纲后再查看分支结构" icon-size="medium" />
       </div>
     </div>
 
@@ -197,8 +197,9 @@
  */
 
 import { computed, ref, watch } from 'vue'
-import { ElButton, ElEmpty } from 'element-plus'
+import { ElButton } from 'element-plus'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import type { OutlineNode } from '@/types/writer'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { CanvasCore } from '@/modules/writer/components/canvas'

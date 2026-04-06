@@ -137,7 +137,7 @@ const handleToolChange = (toolId: ToolType) => {
     width: 100%;
     height: 100%;
     max-width: 1600px;
-    background: #0d1117;
+    background: var(--editor-bg-surface);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -152,14 +152,14 @@ const handleToolChange = (toolId: ToolType) => {
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    background: #161b22;
-    border-bottom: 1px solid #30363d;
+    background: var(--editor-bg-elevated);
+    border-bottom: 1px solid var(--editor-border);
 
     .header-title {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: #e6edf3;
+      color: var(--editor-text-primary);
       font-size: 15px;
       font-weight: 600;
     }
@@ -176,7 +176,7 @@ const handleToolChange = (toolId: ToolType) => {
     flex: 1;
     min-width: 0;
     overflow: auto;
-    background: #0d1117;
+    background: var(--editor-bg-surface);
   }
 }
 

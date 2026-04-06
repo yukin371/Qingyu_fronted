@@ -69,13 +69,14 @@
       </div>
     </div>
 
-    <el-empty v-else description="暂无排行数据" :image-size="100" />
+    <QyEmpty v-else type="ranking" description="暂无排行数据" icon-size="large" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { QyIcon } from '@/design-system/components'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import type { RankingItem } from '@/types/bookstore'
 
 interface Props {

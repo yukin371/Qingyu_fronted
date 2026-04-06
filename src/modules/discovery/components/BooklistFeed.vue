@@ -83,7 +83,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { Collection, View, Star } from '@element-plus/icons-vue'
 import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
 
@@ -253,12 +254,20 @@ const mockBooklists: Booklist[] = [
   }
 ]
 
-const booklists = ref<Booklist[]>(mockBooklists)
+const route = useRoute()
+const isTestMode = computed(() => route.query.test === 'true')
+
+const booklists = ref<Booklist[]>([])
 const loading = ref(false)
 const hasMore = ref(false)
+const error = ref(false)
 
-onMounted(() => {
-  console.log('书单区feed加载')
+onMounted(async () => {
+  if (isTestMode.value) {
+    booklists.value = mockBooklists
+    return
+  }
+  // TODO: 调用真实 API
 })
 
 function handleBooklistClick(booklist: Booklist) {

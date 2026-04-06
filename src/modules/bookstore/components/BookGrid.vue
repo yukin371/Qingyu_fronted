@@ -32,7 +32,7 @@
 
     <!-- 真实数据列表 -->
     <div
-      v-else
+      v-else-if="displayBooks.length > 0"
       class="books-layout"
       :class="{ 'single-column': singleColumn }"
       :style="singleColumn ? undefined : gridStyle"
@@ -88,9 +88,18 @@
       </div>
     </div>
 
-    <!-- 空状态 -->
-    <div v-if="!loading && displayBooks.length === 0" class="empty-state" data-testid="book-grid-empty">
-      <el-empty :image-size="80" :description="emptyText" />
+    <!-- 错误状态（加载失败） -->
+    <div v-else-if="error" class="error-state" data-testid="book-grid-error">
+      <QyEmpty type="network" title="加载失败" description="服务器连接异常，请检查网络后重试">
+        <template #action>
+          <button class="retry-btn" @click="emit('retry')">重新加载</button>
+        </template>
+      </QyEmpty>
+    </div>
+
+    <!-- 空状态（加载成功但无数据） -->
+    <div v-else class="empty-state" data-testid="book-grid-empty">
+      <QyEmpty type="book" :description="emptyText" icon-size="medium" />
     </div>
   </div>
 </template>
@@ -98,6 +107,7 @@
 <script setup>
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import { formatCurrency } from '@/utils/currency'
 
 // Props 定义
@@ -115,6 +125,10 @@ const props = defineProps({
     default: false
   },
   loading: {
+    type: Boolean,
+    default: false
+  },
+  error: {
     type: Boolean,
     default: false
   },
@@ -141,7 +155,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['book-click', 'view-more'])
+const emit = defineEmits(['book-click', 'view-more', 'retry'])
 
 // Logic
 const limit = computed(() => props.maxItems)
@@ -477,6 +491,32 @@ const formatRating = (rating) => {
 .empty-state {
   padding: 60px 0;
   text-align: center;
+}
+
+.error-state {
+  padding: 60px 0;
+  text-align: center;
+}
+
+.retry-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 /* 响应式微调 */

@@ -52,8 +52,8 @@ function handleToolClick(toolId: ToolType) {
 <style scoped lang="scss">
 .tool-sidebar {
   width: 64px;
-  background: #1e1e1e;
-  border-right: 1px solid #333;
+  background: var(--editor-bg-surface);
+  border-right: 1px solid var(--editor-border);
   display: flex;
   flex-direction: column;
   padding: 12px 0;
@@ -75,7 +75,7 @@ function handleToolClick(toolId: ToolType) {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: #8b8b8b;
+    color: var(--editor-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
@@ -98,20 +98,20 @@ function handleToolClick(toolId: ToolType) {
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffffff;
+      background: var(--editor-bg-elevated);
+      color: var(--editor-text-primary);
 
       .tool-icon {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--editor-bg-elevated);
       }
     }
 
     &.is-active {
-      background: rgba(201, 169, 98, 0.15);
-      color: #c9a962;
+      background: var(--editor-accent-soft);
+      color: var(--editor-accent);
 
       .tool-icon {
-        background: rgba(201, 169, 98, 0.2);
+        background: var(--editor-accent-soft);
       }
     }
   }

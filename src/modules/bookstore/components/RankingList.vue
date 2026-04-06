@@ -19,7 +19,7 @@
     </div>
 
     <!-- 真实数据列表 -->
-    <ul v-else class="ranking-list">
+    <ul v-else-if="displayItems.length > 0" class="ranking-list">
       <li v-for="(item, index) in displayItems" :key="item.id || index" class="ranking-item"
         @click="handleItemClick(item)">
         <!-- 排名序号 (前三名特殊样式) -->
@@ -75,9 +75,18 @@
       </li>
     </ul>
 
-    <!-- 空状态 -->
-    <div v-if="!loading && displayItems.length === 0" class="empty-state">
-      <el-empty :image-size="80" description="暂无榜单数据" />
+    <!-- 空状态（加载成功但无数据） -->
+    <div v-else-if="error" class="error-state">
+      <QyEmpty type="network" title="加载失败" description="服务器连接异常，请检查网络后重试">
+        <template #action>
+          <button class="retry-btn" @click="emit('retry')">重新加载</button>
+        </template>
+      </QyEmpty>
+    </div>
+
+    <!-- 错误状态（加载失败） -->
+    <div v-else class="empty-state">
+      <QyEmpty type="ranking" description="暂无榜单数据" icon-size="medium" />
     </div>
 
     <!-- 查看更多 (如果父组件没有提供 Header 里的 View More，这里可以作为底部补充) -->
@@ -91,6 +100,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 
 // Props 定义
 const props = defineProps({
@@ -107,6 +117,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  error: {
+    type: Boolean,
+    default: false
+  },
   maxItems: {
     type: Number,
     default: 10
@@ -114,7 +128,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['view-more', 'item-click'])
+const emit = defineEmits(['view-more', 'item-click', 'retry'])
 
 const displayItems = computed(() => {
   const source = Array.isArray(props.items) ? props.items : []
@@ -414,5 +428,30 @@ $bronze: #cd7f32;
 
 .empty-state {
   padding: 20px 0;
+}
+
+.error-state {
+  padding: 20px 0;
+}
+
+.retry-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 </style>

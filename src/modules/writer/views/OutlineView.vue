@@ -7,32 +7,32 @@
         <span class="header-title">大纲</span>
       </div>
       <div class="header-actions">
-        <el-button-group>
-          <el-button
-            :type="viewMode === 'tree' ? 'primary' : ''"
+        <QyButtonGroup>
+          <QyButton
+            :variant="viewMode === 'tree' ? 'primary' : 'secondary'"
             size="small"
             @click="viewMode = 'tree'"
           >
-            <QyIcon name="List"  />
+            <QyIcon name="List" />
             树形
-          </el-button>
-          <el-button
-            :type="viewMode === 'mindmap' ? 'primary' : ''"
+          </QyButton>
+          <QyButton
+            :variant="viewMode === 'mindmap' ? 'primary' : 'secondary'"
             size="small"
             @click="viewMode = 'mindmap'"
           >
-            <QyIcon name="Share"  />
+            <QyIcon name="Share" />
             思维导图
-          </el-button>
-        </el-button-group>
-        <el-button
-          type="primary"
+          </QyButton>
+        </QyButtonGroup>
+        <QyButton
+          variant="primary"
           size="small"
           @click="handleAddNode"
         >
-          <el-icon><Plus /></el-icon>
+          <QyIcon name="Plus" />
           添加节点
-        </el-button>
+        </QyButton>
       </div>
     </div>
 
@@ -41,9 +41,8 @@
       <!-- 树形视图 -->
       <div v-show="viewMode === 'tree'" class="tree-view">
         <div class="tree-container">
-          <el-scrollbar>
-            <el-tree
-              v-loading="writerStore.outline.loading"
+          <QyScrollbar>
+            <QyTree
               :data="outlineTree"
               node-key="id"
               :default-expand-all="false"
@@ -56,70 +55,70 @@
               <template #default="{ data }">
                 <div class="tree-node">
                   <div class="node-content">
-                    <el-icon v-if="data.level === 1"><QyIcon name="Folder"  /></el-icon>
-                    <el-icon v-else-if="data.level === 2"><QyIcon name="Document"  /></el-icon>
-                    <el-icon v-else><Memo /></el-icon>
+                    <QyIcon v-if="data.level === 1" name="Folder" />
+                    <QyIcon v-else-if="data.level === 2" name="Document" />
+                    <QyIcon v-else name="Memo" />
                     <span class="node-title">{{ data.title }}</span>
-                    <el-tag v-if="data.status" size="small" :type="getStatusType(data.status)">
+                    <QyTag v-if="data.status" size="small" :type="getStatusType(data.status)">
                       {{ getStatusText(data.status) }}
-                    </el-tag>
+                    </QyTag>
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <el-button
-                      text
+                    <QyButton
+                      variant="ghost"
                       size="small"
                       @click.stop="handleEditNode(data)"
                     >
-                      <el-icon><Edit /></el-icon>
-                    </el-button>
-                    <el-button
-                      text
+                      <QyIcon name="Edit" />
+                    </QyButton>
+                    <QyButton
+                      variant="ghost"
                       size="small"
                       @click.stop="handleDeleteNode(data)"
                     >
-                      <el-icon><Delete /></el-icon>
-                    </el-button>
+                      <QyIcon name="Delete" />
+                    </QyButton>
                   </div>
                 </div>
               </template>
-            </el-tree>
-          </el-scrollbar>
+            </QyTree>
+          </QyScrollbar>
         </div>
 
         <!-- 节点详情面板 -->
         <div v-if="selectedNode" class="node-detail">
           <div class="detail-header">
             <h3>{{ selectedNode.title }}</h3>
-            <el-button text @click="selectedNode = null">
-              <el-icon><Close /></el-icon>
-            </el-button>
+            <QyButton variant="ghost" @click="selectedNode = null">
+              <QyIcon name="Close" />
+            </QyButton>
           </div>
           <div class="detail-content">
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="层级">
+            <QyDescriptions :column="1" border>
+              <QyDescriptionsItem label="层级">
                 {{ getLevelText(selectedNode.level) }}
-              </el-descriptions-item>
-              <el-descriptions-item label="状态">
-                <el-tag :type="getStatusType(selectedNode.status || 'draft')">
+              </QyDescriptionsItem>
+              <QyDescriptionsItem label="状态">
+                <QyTag :type="getStatusType(selectedNode.status || 'draft')">
                   {{ getStatusText(selectedNode.status || 'draft') }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="字数">
+                </QyTag>
+              </QyDescriptionsItem>
+              <QyDescriptionsItem label="字数">
                 {{ selectedNode.wordCount || 0 }}
-              </el-descriptions-item>
-            </el-descriptions>
+              </QyDescriptionsItem>
+            </QyDescriptions>
             <div class="detail-description">
               <h4>描述</h4>
               <p>{{ selectedNode.description || '暂无描述' }}</p>
             </div>
             <div class="detail-actions">
-              <el-button type="primary" @click="handleEditNode(selectedNode)">
+              <QyButton variant="primary" @click="handleEditNode(selectedNode)">
                 编辑
-              </el-button>
-              <el-button @click="handleJumpToChapter(selectedNode)">
+              </QyButton>
+              <QyButton @click="handleJumpToChapter(selectedNode)">
                 跳转到章节
-              </el-button>
+              </QyButton>
             </div>
           </div>
         </div>
@@ -138,74 +137,71 @@
     </div>
 
     <!-- 添加/编辑节点对话框 -->
-    <el-dialog
+    <QyDialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑节点' : '添加节点'"
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form
+      <QyForm
         ref="formRef"
         :model="nodeForm"
         :rules="formRules"
         label-width="100px"
       >
-        <el-form-item label="节点标题" prop="title">
-          <el-input v-model="nodeForm.title" placeholder="请输入节点标题" />
-        </el-form-item>
-        <el-form-item label="层级" prop="level">
-          <el-select v-model="nodeForm.level" placeholder="选择层级">
+        <QyFormItem label="节点标题" prop="title">
+          <QyInput v-model="nodeForm.title" placeholder="请输入节点标题" />
+        </QyFormItem>
+        <QyFormItem label="层级" prop="level">
+          <QySelect v-model="nodeForm.level" placeholder="选择层级">
             <el-option label="章节" :value="1" />
             <el-option label="小节" :value="2" />
             <el-option label="段落" :value="3" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="父节点">
-          <el-tree-select
+          </QySelect>
+        </QyFormItem>
+        <QyFormItem label="父节点">
+          <QyTreeSelect
             v-model="nodeForm.parentId"
             :data="outlineTree"
             :props="{ label: 'title', value: 'id', children: 'children' }"
             placeholder="选择父节点（可选）"
             clearable
           />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="nodeForm.status" placeholder="选择状态">
+        </QyFormItem>
+        <QyFormItem label="状态">
+          <QySelect v-model="nodeForm.status" placeholder="选择状态">
             <el-option label="草稿" value="draft" />
             <el-option label="写作中" value="writing" />
             <el-option label="已完成" value="completed" />
             <el-option label="审阅中" value="reviewing" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input
+          </QySelect>
+        </QyFormItem>
+        <QyFormItem label="描述">
+          <QyTextarea
             v-model="nodeForm.description"
-            type="textarea"
             :rows="4"
             placeholder="请输入节点描述"
           />
-        </el-form-item>
-      </el-form>
+        </QyFormItem>
+      </QyForm>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">
+        <QyButton @click="dialogVisible = false">取消</QyButton>
+        <QyButton variant="primary" @click="handleSubmit" :loading="submitting">
           确定
-        </el-button>
+        </QyButton>
       </template>
-    </el-dialog>
+    </QyDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Edit, Delete, Close, Memo } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEngineConfig } from '@/core/draw-engine/types'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyButton, QyButtonGroup, QyScrollbar, QyTree, QyTag, QyDescriptions, QyDescriptionsItem, QyDialog, QyForm, QyFormItem, QyInput, QySelect, QyTreeSelect, QyTextarea } from '@/design-system/components'
 import { message, messageBox } from '@/design-system/services'
-import { ElMessage } from 'element-plus'
 const writerStore = useWriterStore()
 const viewMode = ref<'tree' | 'mindmap'>('tree')
 const selectedNode = ref<OutlineNode | null>(null)

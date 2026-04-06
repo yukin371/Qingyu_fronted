@@ -17,3 +17,7 @@ export type { UserCardProps, UserCardEmits } from './QyUserCard'
 // Comment Components
 export { default as QyCommentItem } from './QyCommentItem'
 export type { CommentItemProps, CommentItemEmits } from './QyCommentItem'
+
+// Tree Components
+export { QyTree, QyTreeSelect } from './QyTree'
+export type { TreeNode, TreeProps, TreeSelectProps } from './QyTree'

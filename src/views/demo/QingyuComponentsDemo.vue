@@ -811,6 +811,249 @@
         </div>
       </section>
 
+      <!-- QyGrid Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyGrid (Row & Col)</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <!-- Basic Grid -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">基础栅格</h3>
+              <div class="bg-slate-100 rounded-xl p-4">
+                <QyRow :gutter="20">
+                  <QyCol :span="8">
+                    <div class="bg-blue-200 rounded-lg p-4 text-center text-blue-800">8列</div>
+                  </QyCol>
+                  <QyCol :span="8">
+                    <div class="bg-green-200 rounded-lg p-4 text-center text-green-800">8列</div>
+                  </QyCol>
+                  <QyCol :span="8">
+                    <div class="bg-purple-200 rounded-lg p-4 text-center text-purple-800">8列</div>
+                  </QyCol>
+                </QyRow>
+              </div>
+            </div>
+
+            <!-- Offset -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">偏移</h3>
+              <div class="bg-slate-100 rounded-xl p-4">
+                <QyRow :gutter="20">
+                  <QyCol :span="6" :offset="3">
+                    <div class="bg-orange-200 rounded-lg p-4 text-center text-orange-800">6列 偏移3</div>
+                  </QyCol>
+                  <QyCol :span="9" :offset="3">
+                    <div class="bg-teal-200 rounded-lg p-4 text-center text-teal-800">9列 偏移3</div>
+                  </QyCol>
+                </QyRow>
+              </div>
+            </div>
+
+            <!-- Responsive -->
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">响应式</h3>
+              <div class="bg-slate-100 rounded-xl p-4">
+                <QyRow :gutter="16">
+                  <QyCol :span="24" :md="12" :lg="6">
+                    <div class="bg-pink-200 rounded-lg p-4 text-center text-pink-800">移动12/桌面6</div>
+                  </QyCol>
+                  <QyCol :span="24" :md="12" :lg="6">
+                    <div class="bg-indigo-200 rounded-lg p-4 text-center text-indigo-800">移动12/桌面6</div>
+                  </QyCol>
+                  <QyCol :span="24" :md="12" :lg="6">
+                    <div class="bg-cyan-200 rounded-lg p-4 text-center text-cyan-800">移动12/桌面6</div>
+                  </QyCol>
+                  <QyCol :span="24" :md="12" :lg="6">
+                    <div class="bg-amber-200 rounded-lg p-4 text-center text-amber-800">移动12/桌面6</div>
+                  </QyCol>
+                </QyRow>
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyButtonGroup Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyButtonGroup</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">按钮组</h3>
+              <div class="flex flex-wrap gap-6">
+                <QyButtonGroup size="sm">
+                  <QyButton>小</QyButton>
+                  <QyButton>按钮</QyButton>
+                  <QyButton>组</QyButton>
+                </QyButtonGroup>
+
+                <QyButtonGroup>
+                  <QyButton variant="primary">中</QyButton>
+                  <QyButton variant="primary">按钮</QyButton>
+                  <QyButton variant="primary">组</QyButton>
+                </QyButtonGroup>
+
+                <QyButtonGroup size="lg">
+                  <QyButton variant="secondary">大</QyButton>
+                  <QyButton variant="secondary">按钮</QyButton>
+                  <QyButton variant="secondary">组</QyButton>
+                </QyButtonGroup>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">按钮组样式变体</h3>
+              <div class="flex flex-wrap gap-6">
+                <QyButtonGroup>
+                  <QyButton variant="primary">主要</QyButton>
+                  <QyButton variant="primary">按钮</QyButton>
+                </QyButtonGroup>
+                <QyButtonGroup>
+                  <QyButton variant="danger">危险</QyButton>
+                  <QyButton variant="danger">按钮</QyButton>
+                </QyButtonGroup>
+                <QyButtonGroup>
+                  <QyButton variant="ghost">幽灵</QyButton>
+                  <QyButton variant="ghost">按钮</QyButton>
+                </QyButtonGroup>
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyInputNumber Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyInputNumber</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">基础数字输入</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyInputNumber v-model="numberValue" :min="0" :max="100" :step="1" />
+                <span class="text-slate-500">当前值: {{ numberValue }}</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">不同尺寸</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyInputNumber v-model="numberValue" size="small" :min="0" :max="100" />
+                <QyInputNumber v-model="numberValue" size="default" :min="0" :max="100" />
+                <QyInputNumber v-model="numberValue" size="large" :min="0" :max="100" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">禁用状态</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyInputNumber v-model="numberValue" :min="0" :max="100" disabled />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">无控制按钮</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyInputNumber v-model="numberValue" :min="0" :max="100" :controls="false" />
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyDatePicker Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyDatePicker</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">基础日期选择</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyDatePicker v-model="dateValue" placeholder="选择日期" />
+                <span class="text-slate-500">选中: {{ dateValue || '未选择' }}</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">不同尺寸</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyDatePicker v-model="dateValue" size="small" placeholder="小尺寸" />
+                <QyDatePicker v-model="dateValue" size="default" placeholder="默认" />
+                <QyDatePicker v-model="dateValue" size="large" placeholder="大尺寸" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">禁用状态</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyDatePicker v-model="dateValue" disabled placeholder="禁用" />
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyDescriptions Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyDescriptions</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">基础描述列表</h3>
+              <QyDescriptions title="项目信息" :column="2">
+                <QyDescriptionsItem label="项目名称">青羽创作平台</QyDescriptionsItem>
+                <QyDescriptionsItem label="创建时间">2024-01-15</QyDescriptionsItem>
+                <QyDescriptionsItem label="作者">张三</QyDescriptionsItem>
+                <QyDescriptionsItem label="状态">
+                  <QyBadge type="text" text="进行中" color="primary" />
+                </QyDescriptionsItem>
+                <QyDescriptionsItem label="总字数">128,000</QyDescriptionsItem>
+                <QyDescriptionsItem label="更新日期">2024-03-20</QyDescriptionsItem>
+              </QyDescriptions>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">无边框模式</h3>
+              <QyDescriptions :border="false" :column="3">
+                <QyDescriptionsItem label="作品名">三体</QyDescriptionsItem>
+                <QyDescriptionsItem label="作者">刘慈欣</QyDescriptionsItem>
+                <QyDescriptionsItem label="类型">科幻</QyDescriptionsItem>
+                <QyDescriptionsItem label="字数">89万</QyDescriptionsItem>
+                <QyDescriptionsItem label="状态">已发布</QyDescriptionsItem>
+                <QyDescriptionsItem label="评分">9.4</QyDescriptionsItem>
+              </QyDescriptions>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
+      <!-- QyTree Demo -->
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">QyTree & QyTreeSelect</h2>
+        <QyCard>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">树形控件</h3>
+              <div class="border border-slate-200 rounded-xl p-4">
+                <QyTree :data="treeData" @node-click="(node) => console.log('Selected:', node)" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-slate-700 mb-4">树形选择器</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <QyTreeSelect
+                  v-model="selectedTreeValue"
+                  :data="treeData"
+                  placeholder="选择章节"
+                />
+                <span class="text-slate-500">选中: {{ selectedTreeValue || '未选择' }}</span>
+              </div>
+            </div>
+          </div>
+        </QyCard>
+      </section>
+
       <!-- Footer -->
       <footer class="text-center text-slate-500 text-sm py-8 border-t border-slate-200">
         <p>Qingyu Design System - Phase 1 Basic Components</p>
@@ -828,7 +1071,16 @@ import {
   QyInput,
   QyBadge,
   QyAvatar,
-  QyImage
+  QyImage,
+  QyRow,
+  QyCol,
+  QyButtonGroup,
+  QyInputNumber,
+  QyDatePicker,
+  QyDescriptions,
+  QyDescriptionsItem,
+  QyTree,
+  QyTreeSelect
 } from '@/design-system/components'
 import ThemeSwitcher from '@/design-system/other/ThemeSwitcher.vue'
 
@@ -866,4 +1118,39 @@ const handleBlur = () => {
 const handleAvatarClick = () => {
   avatarClickCount.value++
 }
+
+// New component data
+const numberValue = ref(0)
+const dateValue = ref<string | null>(null)
+
+const treeData = [
+  {
+    id: 1,
+    label: '第一章：开始',
+    children: [
+      { id: 11, label: '1.1 序幕' },
+      { id: 12, label: '1.2 相遇' },
+      { id: 13, label: '1.3 冒险' }
+    ]
+  },
+  {
+    id: 2,
+    label: '第二章：成长',
+    children: [
+      { id: 21, label: '2.1 修炼' },
+      { id: 22, label: '2.2 挑战' },
+      { id: 23, label: '2.3 突破' }
+    ]
+  },
+  {
+    id: 3,
+    label: '第三章：巅峰',
+    children: [
+      { id: 31, label: '3.1 决战' },
+      { id: 32, label: '3.2 结局' }
+    ]
+  }
+]
+
+const selectedTreeValue = ref<number | null>(null)
 </script>
