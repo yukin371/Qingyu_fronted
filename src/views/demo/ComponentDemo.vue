@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
  * 苹果风格组件演示页面
- * 展示 Table、Skeleton、Tabs、Pagination 组件的苹果风格设计
+ * 展示 Table、Skeleton、Tabs、Pagination、Timeline 组件的苹果风格设计
  */
 import { ref } from 'vue'
-import { Table, Tabs, TabPane, Skeleton, QyEmpty } from '@/design-system/components'
+import { Table, Tabs, TabPane, Skeleton, QyEmpty, Timeline, TimelineItem } from '@/design-system/components'
 import QyPagination from '@/design-system/components/data/QyPagination/QyPagination.vue'
 import type { Column } from '@/design-system/data/Table/types'
 
@@ -141,7 +141,7 @@ const cardBase = 'bg-white/70 backdrop-blur-xl border border-white/50 rounded-2x
       <!-- 页面标题 -->
       <div class="text-center space-y-3">
         <h1 class="text-3xl font-bold text-slate-800">苹果风格组件演示</h1>
-        <p class="text-slate-500">Qy Design System - Table · Skeleton · Tabs · Pagination</p>
+        <p class="text-slate-500">Qy Design System - Table · Skeleton · Tabs · Pagination · Timeline</p>
       </div>
 
       <!-- ================================
@@ -572,6 +572,124 @@ const cardBase = 'bg-white/70 backdrop-blur-xl border border-white/50 rounded-2x
                   <template #description>创建一个新任务开始吧</template>
                 </QyEmpty>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================
+           6. Timeline 时间线演示
+           ================================ -->
+      <section class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-1 h-6 bg-gradient-to-b from-violet-500 to-violet-600 rounded-full"></div>
+          <h2 class="text-xl font-bold text-slate-800">Timeline 时间线</h2>
+          <span class="px-2 py-0.5 bg-violet-100 text-violet-600 text-xs font-medium rounded-full">流程展示</span>
+        </div>
+
+        <div :class="cardBase + ' p-6'">
+          <div class="space-y-10">
+            <!-- 基础时间线 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">基础时间线</span> — 左侧排列
+              </p>
+              <Timeline class="max-w-lg">
+                <TimelineItem type="success" timestamp="2026-04-06 10:00" title="Phase 1 启动" description="编辑器 V3 Phase 1 核心闭环开发">
+                </TimelineItem>
+                <TimelineItem type="primary" timestamp="2026-04-06 14:00" title="完成骨架" description="后端 Indexer + Projection 骨架完成">
+                </TimelineItem>
+                <TimelineItem type="warning" timestamp="2026-04-06 18:00" title="前端接线" description="API URL 修正与 composable 接管">
+                </TimelineItem>
+              </Timeline>
+            </div>
+
+            <!-- 不同颜色节点 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">节点颜色</span> — primary / success / warning / danger / info
+              </p>
+              <Timeline class="max-w-lg">
+                <TimelineItem type="primary" title="主要事件" description="蓝色节点，重要里程碑"></TimelineItem>
+                <TimelineItem type="success" title="成功完成" description="绿色节点，正面状态"></TimelineItem>
+                <TimelineItem type="warning" title="注意提醒" description="黄色节点，需要关注"></TimelineItem>
+                <TimelineItem type="danger" title="错误或失败" description="红色节点，危险状态"></TimelineItem>
+                <TimelineItem type="info" title="普通信息" description="灰色节点，一般信息"></TimelineItem>
+              </Timeline>
+            </div>
+
+            <!-- 空心节点 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">空心节点</span> — hollow 属性
+              </p>
+              <Timeline class="max-w-lg">
+                <TimelineItem type="success" hollow title="已完成" description="第一个里程碑已完成"></TimelineItem>
+                <TimelineItem type="primary" hollow title="进行中" description="第二个里程碑进行中"></TimelineItem>
+                <TimelineItem type="warning" hollow title="待开始" description="第三个里程碑尚未开始"></TimelineItem>
+              </Timeline>
+            </div>
+
+            <!-- Pending 状态 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">进行中状态</span> — pending 属性闪烁
+              </p>
+              <Timeline class="max-w-lg">
+                <TimelineItem type="success" title="已完成" description="第一步已经完成"></TimelineItem>
+                <TimelineItem type="success" title="已完成" description="第二步也已经完成"></TimelineItem>
+                <TimelineItem type="primary" pending title="进行中" description="当前正在进行的步骤"></TimelineItem>
+                <TimelineItem type="info" hollow title="待开始" description="尚未开始的步骤"></TimelineItem>
+              </Timeline>
+            </div>
+
+            <!-- 交替排列 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">交替排列</span> — 左右交替，节点居中
+              </p>
+              <Timeline placement="alternate" class="max-w-2xl">
+                <TimelineItem type="primary" timestamp="2026-04-06" title="LOREM IPSUM DOLOR" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque, facilis quo maiores magnam modi ab libero praesentium blanditiis.">
+                  <template #icon>
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.828 3.842a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm-2.005.448a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+                    </svg>
+                  </template>
+                </TimelineItem>
+                <TimelineItem type="success" timestamp="2026-04-05" title="LOREM IPSUM DOLOR" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque, facilis quo. Maiores magnam modi ab libero praesentium blanditiis consequatur aspernatur accusantium maxime molestiae sunt ipsa.">
+                  <template #icon>
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  </template>
+                </TimelineItem>
+                <TimelineItem type="warning" timestamp="2026-04-04" title="LOREM IPSUM DOLOR" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque, facilis quo. Maiores magnam modi ab libero praesentium blanditiis.">
+                  <template #icon>
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                  </template>
+                </TimelineItem>
+                <TimelineItem type="danger" timestamp="2026-04-03" title="LOREM IPSUM DOLOR" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque, facilis quo. Maiores magnam modi ab libero praesentium blanditiis consequatur aspernatur accusantium maxime molestiae sunt ipsa.">
+                  <template #icon>
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                  </template>
+                </TimelineItem>
+              </Timeline>
+            </div>
+
+            <!-- 大节点 -->
+            <div>
+              <p class="text-sm text-slate-500 mb-3">
+                <span class="font-medium text-slate-700">大节点</span> — size="big" 属性
+              </p>
+              <Timeline class="max-w-lg">
+                <TimelineItem size="big" type="primary" title="重要里程碑" description="这是一个大节点，用于强调重要事件"></TimelineItem>
+                <TimelineItem size="big" type="success" title="重大成就" description="大节点配合成功色，表示重大成就"></TimelineItem>
+                <TimelineItem size="big" type="warning" hollow title="关键决策点" description="空心大节点，既重要又不喧宾夺主"></TimelineItem>
+              </Timeline>
             </div>
           </div>
         </div>
