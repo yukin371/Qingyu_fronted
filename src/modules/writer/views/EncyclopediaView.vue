@@ -56,7 +56,7 @@
                 </div>
               </div>
             </div>
-            <el-empty v-if="filteredCharacters.length === 0" description="暂无角色" />
+            <QyEmpty v-if="filteredCharacters.length === 0" description="暂无角色" />
           </el-scrollbar>
         </div>
 
@@ -85,7 +85,7 @@
                 </div>
               </div>
             </div>
-            <el-empty v-if="filteredLocations.length === 0" description="暂无地点" />
+            <QyEmpty v-if="filteredLocations.length === 0" description="暂无地点" />
           </el-scrollbar>
         </div>
 
@@ -114,7 +114,7 @@
                 </div>
               </div>
             </div>
-            <el-empty v-if="filteredConcepts.length === 0" description="暂无概念" />
+            <QyEmpty v-if="filteredConcepts.length === 0" description="暂无概念" />
           </el-scrollbar>
         </div>
       </div>
@@ -327,6 +327,7 @@ import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import type { Concept } from '../types/entity'
 import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
 import { message, messageBox } from '@/design-system/services'

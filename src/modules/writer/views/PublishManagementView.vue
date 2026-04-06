@@ -1,8 +1,8 @@
 <template>
   <WriterPageShell>
     <div class="publish-management-view">
-      <el-row :gutter="20" class="content-grid">
-        <el-col :span="24">
+      <QyRow :gutter="20" align="stretch" class="content-grid">
+        <QyCol :span="24">
           <div
             class="publish-hero mb-4 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm md:p-5"
           >
@@ -29,11 +29,11 @@
               </div>
             </div>
           </div>
-        </el-col>
+        </QyCol>
 
         <!-- 左侧：发布统计 -->
-        <el-col :span="5">
-          <el-card shadow="never" class="stats-card">
+        <QyCol :span="5">
+          <QyCard shadow="never" class="stats-card" padding="none">
             <template #header>
               <h3>发布统计</h3>
             </template>
@@ -67,24 +67,24 @@
                 <span class="value success">{{ formatNumber(stats.published_words) }}</span>
               </div>
             </div>
-          </el-card>
-        </el-col>
+          </QyCard>
+        </QyCol>
 
         <!-- 右侧：发布管理 -->
-        <el-col :span="19">
-          <el-card shadow="never" class="main-card">
+        <QyCol :span="19">
+          <QyCard shadow="never" class="main-card" padding="none">
             <template #header>
               <div class="card-header">
                 <h3>发布管理</h3>
                 <div class="header-actions">
-                  <el-button @click="showExportDialog = true">
+                  <QyButton @click="showExportDialog = true">
                     <QyIcon name="Download" />
                     导出
-                  </el-button>
-                  <el-button type="primary" @click="showPublishPlanDialog = true">
+                  </QyButton>
+                  <QyButton variant="primary" @click="showPublishPlanDialog = true">
                     <QyIcon name="Setting" />
                     发布计划
-                  </el-button>
+                  </QyButton>
                 </div>
               </div>
             </template>
@@ -142,9 +142,9 @@
                 <PublishStatsPanel :chapters="[]" :stats="stats" />
               </el-tab-pane>
             </el-tabs>
-          </el-card>
-        </el-col>
-      </el-row>
+          </QyCard>
+        </QyCol>
+      </QyRow>
 
       <!-- 发布计划对话框 -->
       <PublishPlanDialog
@@ -177,7 +177,7 @@ import { useRoute } from 'vue-router'
 import { message } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyCard, QyRow, QyCol, QyButton } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import {
   getPublicationDetail,
@@ -421,7 +421,15 @@ const handleStartExport = () => {
 }
 
 // 辅助函数
-const formatNumber = (num: number) => {
+const formatNumber = (num: number): string => {
+  if (num >= 100000000) {
+    const val = num / 100000000
+    return val % 1 === 0 ? `${val}亿` : `${val.toFixed(1)}亿`
+  }
+  if (num >= 10000) {
+    const val = num / 10000
+    return val % 1 === 0 ? `${val}万` : `${val.toFixed(1)}万`
+  }
   return num.toLocaleString()
 }
 
@@ -568,6 +576,9 @@ onMounted(() => {
 }
 
 .stats-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #dbe6f6;
   border-radius: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
@@ -581,6 +592,9 @@ onMounted(() => {
 }
 
 .main-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #dbe6f6;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
@@ -637,31 +651,30 @@ onMounted(() => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 
   .stat-tile {
-    grid-column: span 2;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 10px 10px;
-    border-radius: 12px;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
     border: 1px solid #dbe6f6;
     background: #fff;
-    min-height: 72px;
 
     .label {
-      font-size: 12px;
+      font-size: 11px;
       color: #64748b;
       line-height: 1.2;
     }
 
     .value {
-      font-size: 22px;
+      font-size: 16px;
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.3;
       color: #0f172a;
+      word-break: break-all;
 
       &.success {
         color: var(--el-color-success);
@@ -675,15 +688,6 @@ onMounted(() => {
         color: var(--el-color-warning);
       }
     }
-  }
-
-  > .stat-tile:last-child:nth-child(3n + 1) {
-    grid-column: 1 / -1;
-  }
-
-  > .stat-tile:nth-last-child(2):nth-child(3n + 1),
-  > .stat-tile:last-child:nth-child(3n + 2) {
-    grid-column: span 3;
   }
 }
 
@@ -702,15 +706,15 @@ onMounted(() => {
   }
 }
 
-:deep(.stats-card .el-card__header),
-:deep(.main-card .el-card__header) {
+:deep(.stats-card .qy-card__header),
+:deep(.main-card .qy-card__header) {
   padding: 14px 22px;
   border-bottom: 2px solid #e2e8f0;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
 }
 
-:deep(.stats-card .el-card__body),
-:deep(.main-card .el-card__body) {
+:deep(.stats-card .qy-card__body),
+:deep(.main-card .qy-card__body) {
   padding: 18px 22px;
 }
 

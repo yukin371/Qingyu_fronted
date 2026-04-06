@@ -22,10 +22,10 @@
       </div>
 
       <!-- Empty state -->
-      <el-empty
+      <QyEmpty
         v-else-if="filteredChapters.length === 0"
         description="暂无章节数据"
-        :image-size="80"
+        icon-size="medium"
       />
 
       <!-- Chapter list -->
@@ -133,6 +133,7 @@
 import { ref, computed } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import type { OutlineNode, Character, CharacterRelation } from '@/types/writer'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 
 // Extended relation type that includes chapter-bound fields not in barrel export
 interface StoryLineRelation extends CharacterRelation {

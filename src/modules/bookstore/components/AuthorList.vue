@@ -11,10 +11,11 @@
     </div>
 
     <!-- 空状态 -->
-    <el-empty
+    <QyEmpty
       v-else-if="!isLoading"
+      type="search"
       description="暂无搜索结果"
-      :image-size="200"
+      icon-size="large"
     />
 
     <!-- Loading -->
@@ -35,6 +36,7 @@
 <script setup lang="ts">
 import { Loading } from '@element-plus/icons-vue'
 import AuthorCard from './AuthorCard.vue'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import type { AuthorCard as AuthorCardType } from '../types/search.types'
 
 interface Props {

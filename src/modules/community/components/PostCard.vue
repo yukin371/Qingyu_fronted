@@ -43,6 +43,7 @@
         v-for="topic in post.topics"
         :key="topic"
         variant="ghost"
+        type="text"
         @click.stop="goToTopic(topic)"
       >
         #{{ topic }}

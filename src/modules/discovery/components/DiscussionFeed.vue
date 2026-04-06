@@ -30,12 +30,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ChatDotRound } from '@element-plus/icons-vue'
 import PostCard from '@/modules/community/components/PostCard.vue'
 import type { Post } from '@/types/community'
 
-// Mock数据
+const route = useRoute()
+const isTestMode = computed(() => route.query.test === 'true')
+
+// Mock数据（仅在test模式使用）
 const mockPosts: Post[] = [
   {
     id: '1',
@@ -133,13 +137,23 @@ const mockPosts: Post[] = [
   }
 ]
 
-const posts = ref<Post[]>(mockPosts)
+const posts = ref<Post[]>([])
 const loading = ref(false)
 const hasMore = ref(false)
+const error = ref(false)
 
-onMounted(() => {
-  // 后续可以在这里加载真实数据
-  console.log('讨论区feed加载')
+onMounted(async () => {
+  if (isTestMode.value) {
+    posts.value = mockPosts
+    return
+  }
+  // TODO: 调用真实 API
+  // try {
+  //   const res = await fetchDiscussionFeed()
+  //   posts.value = res
+  // } catch (e) {
+  //   error.value = true
+  // }
 })
 
 function handlePostClick(post: Post) {

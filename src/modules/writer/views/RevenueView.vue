@@ -21,12 +21,12 @@
         </p>
       </div>
 
-      <el-skeleton v-if="loading" :rows="8" animated />
+      <Skeleton v-if="loading" :rows="8" animated />
 
       <div v-else class="revenue-content">
         <!-- 收入概览 -->
         <div class="revenue-overview">
-          <el-card class="revenue-card">
+          <QyCard class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon total">
                 <QyIcon name="Wallet" />
@@ -36,9 +36,9 @@
                 <div class="revenue-label">总收入</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="revenue-card">
+          <QyCard class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon today">
                 <QyIcon name="TrendCharts" />
@@ -48,9 +48,9 @@
                 <div class="revenue-label">今日收入</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="revenue-card">
+          <QyCard class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon available">
                 <QyIcon name="Money" />
@@ -60,9 +60,9 @@
                 <div class="revenue-label">可提现余额</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
 
-          <el-card class="revenue-card">
+          <QyCard class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon withdrawn">
                 <QyIcon name="DocumentChecked" />
@@ -72,84 +72,84 @@
                 <div class="revenue-label">已提现</div>
               </div>
             </div>
-          </el-card>
+          </QyCard>
         </div>
 
         <!-- 收入趋势图 -->
-        <el-row :gutter="20">
-          <el-col :span="24" :lg="16">
-            <el-card class="chart-card">
+        <QyRow :gutter="20" align="stretch">
+          <QyCol :span="24" :lg="16">
+            <QyCard class="chart-card">
               <template #header>
                 <div class="card-header">
                   <span>收入趋势</span>
-                  <el-radio-group v-model="trendRange" size="small" @change="loadRevenueTrend">
-                    <el-radio-button label="7">7天</el-radio-button>
-                    <el-radio-button label="30">30天</el-radio-button>
-                    <el-radio-button label="90">90天</el-radio-button>
-                  </el-radio-group>
+                  <QyRadioGroup v-model="trendRange" size="sm" direction="horizontal" @change="loadRevenueTrend">
+                    <QyRadio value="7" variant="button">7天</QyRadio>
+                    <QyRadio value="30" variant="button">30天</QyRadio>
+                    <QyRadio value="90" variant="button">90天</QyRadio>
+                  </QyRadioGroup>
                 </div>
               </template>
               <div ref="trendChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
+            </QyCard>
+          </QyCol>
 
-          <el-col :span="24" :lg="8">
-            <el-card class="chart-card">
+          <QyCol :span="24" :lg="8">
+            <QyCard class="chart-card">
               <template #header>
                 <span>收入来源</span>
               </template>
               <div ref="sourceChartRef" class="chart-container"></div>
-            </el-card>
-          </el-col>
-        </el-row>
+            </QyCard>
+          </QyCol>
+        </QyRow>
 
         <!-- 章节收入排行 -->
-        <el-card class="ranking-card">
+        <QyCard class="ranking-card" padding="none">
           <template #header>
-            <span>章节收入排行 TOP 10</span>
+            <span style="padding: 14px 18px 12px; display: inline-block;">章节收入排行 TOP 10</span>
           </template>
-          <el-table :data="chapterRanking" stripe>
+          <el-table :data="chapterRanking" stripe :header-cell-style="{ textAlign: 'center' }" :cell-style="{ textAlign: 'center' }">
             <el-table-column type="index" label="排名" width="80" />
             <el-table-column prop="chapterTitle" label="章节名称" min-width="200" />
-            <el-table-column prop="views" label="阅读量" width="120" align="right">
+            <el-table-column prop="views" label="阅读量" width="120" >
               <template #default="{ row }">
                 {{ formatNumber(row.views) }}
               </template>
             </el-table-column>
-            <el-table-column prop="subscriptions" label="订阅数" width="120" align="right">
+            <el-table-column prop="subscriptions" label="订阅数" width="120" >
               <template #default="{ row }">
                 {{ formatNumber(row.subscriptions) }}
               </template>
             </el-table-column>
-            <el-table-column prop="revenue" label="收入金额" width="150" align="right">
+            <el-table-column prop="revenue" label="收入金额" width="150" >
               <template #default="{ row }">
                 <span class="revenue-amount">¥ {{ formatAmount(row.revenue) }}</span>
               </template>
             </el-table-column>
           </el-table>
-        </el-card>
+        </QyCard>
 
         <!-- 提现记录 -->
-        <el-card class="withdrawal-card">
+        <QyCard class="withdrawal-card" padding="none">
           <template #header>
-            <span>提现记录</span>
+            <span style="padding: 14px 18px 12px; display: inline-block;">提现记录</span>
           </template>
-          <el-table :data="withdrawalRecords" stripe>
+          <el-table :data="withdrawalRecords" stripe :header-cell-style="{ textAlign: 'center' }" :cell-style="{ textAlign: 'center' }">
             <el-table-column prop="applyTime" label="申请时间" width="180" />
-            <el-table-column prop="amount" label="提现金额" width="150" align="right">
+            <el-table-column prop="amount" label="提现金额" width="150" >
               <template #default="{ row }"> ¥ {{ formatAmount(row.amount) }} </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="120">
               <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)">
+                <QyTag :variant="getStatusType(row.status)">
                   {{ getStatusLabel(row.status) }}
-                </el-tag>
+                </QyTag>
               </template>
             </el-table-column>
             <el-table-column prop="processTime" label="处理时间" width="180" />
             <el-table-column prop="remark" label="备注" min-width="200" />
           </el-table>
-        </el-card>
+        </QyCard>
       </div>
 
       <!-- 提现对话框 -->
@@ -161,43 +161,42 @@
         :close-on-click-modal="true"
         :close-on-press-escape="true"
       >
-        <el-form
+        <QyForm
           ref="withdrawFormRef"
           :model="withdrawForm"
           :rules="withdrawRules"
           label-width="100px"
         >
-          <el-form-item label="可提现余额">
+          <QyFormItem label="可提现余额">
             <div class="balance-info">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
-          </el-form-item>
-          <el-form-item label="提现金额" prop="amount">
-            <el-input
-              v-model.number="withdrawForm.amount"
+          </QyFormItem>
+          <QyFormItem label="提现金额" prop="amount">
+            <QyInput
+              v-model="withdrawForm.amount"
               placeholder="请输入提现金额"
               type="number"
             >
               <template #prefix>¥</template>
-            </el-input>
-          </el-form-item>
-          <el-form-item label="提现方式" prop="method">
-            <el-select v-model="withdrawForm.method" placeholder="请选择提现方式">
-              <el-option label="支付宝" value="alipay" />
-              <el-option label="微信" value="wechat" />
-              <el-option label="银行卡" value="bank" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="收款账号" prop="account">
-            <el-input v-model="withdrawForm.account" placeholder="请输入收款账号" />
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input
+            </QyInput>
+          </QyFormItem>
+          <QyFormItem label="提现方式" prop="method">
+            <QySelect
+              v-model="withdrawForm.method"
+              :options="withdrawMethodOptions"
+              placeholder="请选择提现方式"
+            />
+          </QyFormItem>
+          <QyFormItem label="收款账号" prop="account">
+            <QyInput v-model="withdrawForm.account" placeholder="请输入收款账号" />
+          </QyFormItem>
+          <QyFormItem label="备注">
+            <QyTextarea
               v-model="withdrawForm.remark"
-              type="textarea"
               :rows="3"
               placeholder="可选填写备注信息"
             />
-          </el-form-item>
-        </el-form>
+          </QyFormItem>
+        </QyForm>
         <template #footer>
           <QyButton variant="secondary" @click="localWithdrawVisible = false">取消</QyButton>
           <QyButton variant="primary" @click="submitWithdraw" :loading="withdrawing">
@@ -212,11 +211,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect, QyButton, QyDialog } from '@/design-system/components'
+import { QyIcon, QySelect, QyButton, QyDialog, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyTag, QyForm, QyFormItem, QyInput, QyTextarea } from '@/design-system/components'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
-import type { FormInstance, FormRules } from 'element-plus'
+// FormInstance / FormRules are no longer imported from element-plus
+// QyForm provides its own validate interface
 import {
   getRevenueStats,
   getRevenueTrend as getRevenueTrendAPI,
@@ -286,7 +286,7 @@ const withdrawalRecords = ref<
 >([])
 
 // 提现表单
-const withdrawFormRef = ref<FormInstance>()
+const withdrawFormRef = ref()
 const withdrawForm = reactive({
   amount: 0,
   method: '',
@@ -294,7 +294,14 @@ const withdrawForm = reactive({
   remark: '',
 })
 
-const withdrawRules: FormRules = {
+// 提现方式选项
+const withdrawMethodOptions = computed(() => [
+  { label: '支付宝', value: 'alipay' },
+  { label: '微信', value: 'wechat' },
+  { label: '银行卡', value: 'bank' },
+])
+
+const withdrawRules = {
   amount: [
     { required: true, message: '请输入提现金额', trigger: 'blur' },
     { type: 'number', min: 1, message: '提现金额必须大于0', trigger: 'blur' },
@@ -903,7 +910,7 @@ onUnmounted(() => {
       gap: 20px;
 
       .revenue-card {
-        :deep(.el-card__body) {
+        :deep(.qy-card__body) {
           padding: 18px;
         }
 
@@ -959,28 +966,20 @@ onUnmounted(() => {
     }
 
     .chart-card {
+      height: 100%;
       border: 1px solid #e2e8f0;
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
-
-      :deep(.el-card__header) {
-        border-bottom: 2px solid #e2e8f0;
-        padding: 14px 18px 12px;
-      }
-
-      :deep(.el-card__header span) {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        padding-left: 0;
-        font-size: 15px;
-        font-weight: 700;
-        color: #1e293b;
-      }
 
       .card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+
+        span {
+          font-size: 15px;
+          font-weight: 700;
+          color: #1e293b;
+        }
       }
 
       .chart-container {
@@ -992,33 +991,6 @@ onUnmounted(() => {
     .withdrawal-card {
       border: 1px solid #e2e8f0;
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
-
-      :deep(.el-card__header) {
-        border-bottom: 2px solid #e2e8f0;
-        padding: 14px 18px 12px;
-      }
-
-      :deep(.el-card__header span) {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        padding-left: 10px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #1e293b;
-      }
-
-      :deep(.el-card__header span::before) {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        width: 4px;
-        height: 16px;
-        transform: translateY(-50%);
-        border-radius: 999px;
-        background: #10b981;
-      }
 
       .revenue-amount {
         color: #67c23a;

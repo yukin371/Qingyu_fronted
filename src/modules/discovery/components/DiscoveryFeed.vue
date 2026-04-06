@@ -84,130 +84,122 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { StarFilled, View, Collection } from '@element-plus/icons-vue'
 
-interface Book {
-  id: string
-  title: string
-  author: string
-  cover: string
-  description: string
-  rating: number
-  category?: string
-  publishDate?: string
+const route = useRoute()
+const isTestMode = computed(() => route.query.test === 'true')
+
+const recommendedBooks = ref<Book[]>([])
+const newBooks = ref<Book[]>([])
+const editorPicks = ref<EditorPick[]>([])
+
+if (isTestMode.value) {
+  recommendedBooks.value = [
+    {
+      id: 'b1',
+      title: '三体',
+      author: '刘慈欣',
+      cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=280&fit=crop',
+      description: '中国科幻基石之作',
+      rating: 9.4
+    },
+    {
+      id: 'b2',
+      title: '百年孤独',
+      author: '加西亚·马尔克斯',
+      cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop',
+      description: '魔幻现实主义经典',
+      rating: 9.3
+    },
+    {
+      id: 'b3',
+      title: '解忧杂货店',
+      author: '东野圭吾',
+      cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
+      description: '温暖治愈的故事',
+      rating: 8.9
+    },
+    {
+      id: 'b4',
+      title: '白夜行',
+      author: '东野圭吾',
+      cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop',
+      description: '推理小说巅峰之作',
+      rating: 9.2
+    }
+  ]
+
+  newBooks.value = [
+    {
+      id: 'b5',
+      title: '活着',
+      author: '余华',
+      cover: 'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=200&h=280&fit=crop',
+      description: '生命的力量',
+      rating: 9.5,
+      category: '文学',
+      publishDate: '2025-01-15'
+    },
+    {
+      id: 'b6',
+      title: '追风筝的人',
+      author: '卡勒德·胡赛尼',
+      cover: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=200&h=280&fit=crop',
+      description: '关于爱与救赎',
+      rating: 8.8,
+      category: '文学',
+      publishDate: '2025-01-10'
+    },
+    {
+      id: 'b7',
+      title: '小王子',
+      author: '圣埃克苏佩里',
+      cover: 'https://images.unsplash.com/photo-1495631342678-477851d94a5c?w=200&h=280&fit=crop',
+      description: '写给大人的童话',
+      rating: 9.1,
+      category: '童话',
+      publishDate: '2025-01-08'
+    }
+  ]
+
+  editorPicks.value = [
+    {
+      id: 'b8',
+      title: '平凡的世界',
+      author: '路遥',
+      cover: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200&h=280&fit=crop',
+      description: '茅盾文学奖获奖作品',
+      rating: 9.3,
+      reason: '这是一部全景式地表现中国当代城乡社会生活的长篇小说，深刻展现了普通人在大时代历史进程中所走过的艰难曲折的道路。',
+      viewCount: 12800,
+      collectCount: 5600
+    },
+    {
+      id: 'b9',
+      title: '围城',
+      author: '钱钟书',
+      cover: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=200&h=280&fit=crop',
+      description: '中国现代文学经典',
+      rating: 9.0,
+      reason: '钱钟书所著的长篇小说，是中国现代文学史上一部风格独特的讽刺小说，被誉为"新儒林外史"。',
+      viewCount: 9600,
+      collectCount: 4200
+    },
+    {
+      id: 'b10',
+      title: '挪威的森林',
+      author: '村上春树',
+      cover: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200&h=280&fit=crop',
+      description: '日本文学经典',
+      rating: 8.7,
+      reason: '村上春树的代表作，一部动人心弦的青春恋爱小说，以其细腻的情感描写和独特的叙事风格打动无数读者。',
+      viewCount: 15200,
+      collectCount: 6800
+    }
+  ]
 }
-
-interface EditorPick extends Book {
-  reason: string
-  viewCount: number
-  collectCount: number
-}
-
-// Mock数据
-const recommendedBooks: Book[] = [
-  {
-    id: 'b1',
-    title: '三体',
-    author: '刘慈欣',
-    cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=280&fit=crop',
-    description: '中国科幻基石之作',
-    rating: 9.4
-  },
-  {
-    id: 'b2',
-    title: '百年孤独',
-    author: '加西亚·马尔克斯',
-    cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop',
-    description: '魔幻现实主义经典',
-    rating: 9.3
-  },
-  {
-    id: 'b3',
-    title: '解忧杂货店',
-    author: '东野圭吾',
-    cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
-    description: '温暖治愈的故事',
-    rating: 8.9
-  },
-  {
-    id: 'b4',
-    title: '白夜行',
-    author: '东野圭吾',
-    cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop',
-    description: '推理小说巅峰之作',
-    rating: 9.2
-  }
-]
-
-const newBooks: Book[] = [
-  {
-    id: 'b5',
-    title: '活着',
-    author: '余华',
-    cover: 'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=200&h=280&fit=crop',
-    description: '生命的力量',
-    rating: 9.5,
-    category: '文学',
-    publishDate: '2025-01-15'
-  },
-  {
-    id: 'b6',
-    title: '追风筝的人',
-    author: '卡勒德·胡赛尼',
-    cover: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=200&h=280&fit=crop',
-    description: '关于爱与救赎',
-    rating: 8.8,
-    category: '文学',
-    publishDate: '2025-01-10'
-  },
-  {
-    id: 'b7',
-    title: '小王子',
-    author: '圣埃克苏佩里',
-    cover: 'https://images.unsplash.com/photo-1495631342678-477851d94a5c?w=200&h=280&fit=crop',
-    description: '写给大人的童话',
-    rating: 9.1,
-    category: '童话',
-    publishDate: '2025-01-08'
-  }
-]
-
-const editorPicks: EditorPick[] = [
-  {
-    id: 'b8',
-    title: '平凡的世界',
-    author: '路遥',
-    cover: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200&h=280&fit=crop',
-    description: '茅盾文学奖获奖作品',
-    rating: 9.3,
-    reason: '这是一部全景式地表现中国当代城乡社会生活的长篇小说，深刻展现了普通人在大时代历史进程中所走过的艰难曲折的道路。',
-    viewCount: 12800,
-    collectCount: 5600
-  },
-  {
-    id: 'b9',
-    title: '围城',
-    author: '钱钟书',
-    cover: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=200&h=280&fit=crop',
-    description: '中国现代文学经典',
-    rating: 9.0,
-    reason: '钱钟书所著的长篇小说，是中国现代文学史上一部风格独特的讽刺小说，被誉为"新儒林外史"。',
-    viewCount: 9600,
-    collectCount: 4200
-  },
-  {
-    id: 'b10',
-    title: '挪威的森林',
-    author: '村上春树',
-    cover: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200&h=280&fit=crop',
-    description: '日本文学经典',
-    rating: 8.7,
-    reason: '村上春树的代表作，一部动人心弦的青春恋爱小说，以其细腻的情感描写和独特的叙事风格打动无数读者。',
-    viewCount: 15200,
-    collectCount: 6800
-  }
-]
 
 onMounted(() => {
   console.log('发现区feed加载')

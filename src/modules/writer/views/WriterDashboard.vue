@@ -16,17 +16,15 @@
     <!-- 2. 核心数据概览 (Stats) -->
     <div class="stats-grid">
       <div v-for="(item, index) in statCards" :key="index" class="stats-grid-item">
-        <el-card class="stat-card" shadow="hover">
+        <QyCard class="stat-card" shadow="hover">
           <div class="stat-icon" :style="{ backgroundColor: item.bgColor }">
-            <el-icon :size="24" :color="item.iconColor">
-              <component :is="item.icon" />
-            </el-icon>
+            <QyIcon :name="item.iconName" :size="24" :color="item.iconColor" />
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ formatNumber(item.value) }}</div>
             <div class="stat-label">{{ item.label }}</div>
           </div>
-        </el-card>
+        </QyCard>
       </div>
     </div>
 
@@ -34,7 +32,7 @@
       <!-- 左侧主要区域 -->
       <div class="left-pane">
         <!-- 3. 快捷操作 -->
-        <el-card class="section-card quick-actions" shadow="hover">
+        <QyCard class="section-card quick-actions" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Lightning" /> 快捷操作 </span>
@@ -58,27 +56,27 @@
               <span>数据报表</span>
             </div>
           </div>
-        </el-card>
+        </QyCard>
 
         <!-- 4. 最近编辑的项目 -->
-        <el-card class="section-card recent-projects" shadow="hover">
+        <QyCard class="section-card recent-projects" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Timer" /> 最近编辑 </span>
-              <el-button link type="primary" @click="goToAllProjects">
+              <QyButton variant="ghost" size="sm" @click="goToAllProjects">
                 全部项目 <QyIcon name="ArrowRight" />
-              </el-button>
+              </QyButton>
             </div>
           </template>
 
           <div v-if="loadingProjects" class="loading-skeleton">
-            <el-skeleton :rows="3" animated />
+            <Skeleton :rows="3" animated />
           </div>
 
-          <el-empty
+          <QyEmpty
             v-else-if="recentProjects.length === 0"
             description="暂无最近编辑的项目"
-            :image-size="80"
+            icon-size="medium"
           />
 
           <div v-else class="project-list">
@@ -89,7 +87,7 @@
               @click="openProject(project.id)"
             >
               <div class="item-cover" :style="getCoverStyle(project.title)">
-                <el-image
+                <QyImage
                   v-if="project.coverImage"
                   :src="project.coverImage"
                   fit="cover"
@@ -101,15 +99,15 @@
               <div class="item-content">
                 <div class="item-header">
                   <h4 class="item-title">{{ project.title }}</h4>
-                  <el-tag size="small" :type="getStatusType(project.status)" effect="plain" round>
+                  <QyTag size="small" :type="getStatusType(project.status)" plain round>
                     {{ getStatusText(project.status) }}
-                  </el-tag>
+                  </QyTag>
                 </div>
                 <div class="item-meta">
                   <span
                     ><QyIcon name="Document" /> {{ formatNumber(project.totalWords ?? 0) }} 字</span
                   >
-                  <el-divider direction="vertical" />
+                  <QyDivider direction="vertical" />
                   <span
                     ><QyIcon name="Clock" />
                     {{ formatTime(project.lastUpdateTime || project.updatedAt || '') }}</span
@@ -117,26 +115,26 @@
                 </div>
               </div>
 
-              <el-button link class="enter-btn" icon="ArrowRight" />
+              <QyButton variant="ghost" class="enter-btn" icon="ArrowRight" />
             </div>
           </div>
-        </el-card>
+        </QyCard>
       </div>
 
       <!-- 右侧辅助区域 -->
       <div class="right-pane">
         <!-- 5. 今日目标 -->
-        <el-card class="section-card writing-goal" shadow="hover">
+        <QyCard class="section-card writing-goal" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Trophy" /> 今日目标 </span>
-              <el-button link size="small" @click="editGoal">设置</el-button>
+              <QyButton variant="ghost" size="sm" @click="editGoal">设置</QyButton>
             </div>
           </template>
 
           <div class="goal-content">
-            <el-progress
-              type="dashboard"
+            <QyProgress
+              type="circle"
               :percentage="goalPercentage"
               :color="goalColors"
               :width="140"
@@ -145,7 +143,7 @@
                 <span class="progress-value">{{ percentage }}%</span>
                 <span class="progress-label">完成度</span>
               </template>
-            </el-progress>
+            </QyProgress>
 
             <div class="goal-stats">
               <div class="stat-row">
@@ -160,18 +158,16 @@
           </div>
 
           <div class="goal-message" v-if="goalPercentage >= 100">🎉 太棒了！今日目标已达成！</div>
-        </el-card>
+        </QyCard>
 
         <!-- 6. 每日灵感 (新增) -->
-        <el-card class="section-card daily-quote" shadow="hover">
+        <QyCard class="section-card daily-quote" shadow="hover">
           <div class="quote-content">
-            <el-icon class="quote-icon">
-              <QyIcon name="ChatDotRound" />
-            </el-icon>
-            <p class="quote-text">“写作就是把原本不存在的事物变成存在。”</p>
+            <QyIcon name="ChatDotRound" class="quote-icon" />
+            <p class="quote-text">写作就是把原本不存在的事物变成存在。</p>
             <p class="quote-author">—— 佚名</p>
           </div>
-        </el-card>
+        </QyCard>
       </div>
     </div>
   </div>
@@ -180,13 +176,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Document, Reading, EditPen, Clock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
-import { useProjectStore } from '@/modules/writer/stores/projectStore' // 使用新的 Store
+import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { getTodayWordsStats, getDashboardOverview } from '@/modules/writer/api/dashboard'
 import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
-import { QyIcon } from '@/design-system/components'
+import { QyIcon, QyCard, QyTag, QyButton, QyDivider, QyProgress, Skeleton, QyImage } from '@/design-system/components'
+import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -216,30 +212,30 @@ const statCards = computed(() => [
   {
     label: '总字数',
     value: stats.value.totalWords,
-    icon: Document,
+    iconName: 'Document',
     iconColor: '#409eff',
-    bgColor: 'var(--el-color-primary-light-9)',
+    bgColor: 'rgba(64, 158, 255, 0.1)',
   },
   {
     label: '作品数',
     value: stats.value.bookCount,
-    icon: Reading,
+    iconName: 'Reading',
     iconColor: '#67c23a',
-    bgColor: 'var(--el-color-success-light-9)',
+    bgColor: 'rgba(103, 194, 58, 0.1)',
   },
   {
     label: '今日码字',
     value: stats.value.todayWords,
-    icon: EditPen,
+    iconName: 'EditPen',
     iconColor: '#e6a23c',
-    bgColor: 'var(--el-color-warning-light-9)',
+    bgColor: 'rgba(230, 162, 60, 0.1)',
   },
   {
     label: '连载中',
     value: stats.value.pending,
-    icon: Clock,
+    iconName: 'Clock',
     iconColor: '#f56c6c',
-    bgColor: 'var(--el-color-danger-light-9)',
+    bgColor: 'rgba(245, 108, 108, 0.1)',
   },
 ])
 

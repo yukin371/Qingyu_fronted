@@ -11,7 +11,7 @@
       <el-button @click="$emit('refresh')">刷新</el-button>
     </div>
 
-    <el-table :data="publishRecords" v-loading="loading" stripe>
+    <el-table :data="publishRecords" v-loading="loading" stripe :header-cell-style="{ textAlign: 'center' }" :cell-style="{ textAlign: 'center' }">
       <el-table-column prop="chapter_number" label="章节号" width="80" />
       <el-table-column prop="chapter_title" label="章节标题" />
       <el-table-column label="状态" width="100">

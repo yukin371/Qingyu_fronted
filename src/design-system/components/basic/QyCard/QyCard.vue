@@ -8,7 +8,7 @@
     <div class="qy-card__aurora" aria-hidden="true"></div>
 
     <!-- Header Slot -->
-    <div v-if="$slots.header" :class="headerClasses">
+    <div v-if="$slots.header" :class="headerClasses" class="qy-card__header">
       <slot name="header" />
     </div>
 

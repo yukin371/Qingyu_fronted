@@ -176,6 +176,13 @@ const ElEmptyStub = defineComponent({
   },
 })
 
+const QyEmptyStub = defineComponent({
+  name: 'QyEmptyStub',
+  setup(_, { attrs }) {
+    return () => h('div', attrs.description as string)
+  },
+})
+
 const ElProgressStub = defineComponent({
   name: 'ElProgressStub',
   setup() {
@@ -251,6 +258,7 @@ describe('CharacterGraphView asset candidates', () => {
           'el-empty': ElEmptyStub,
           'el-progress': ElProgressStub,
           'el-icon': ElIconStub,
+          'QyEmpty': QyEmptyStub,
           transition: false,
         },
         directives: {

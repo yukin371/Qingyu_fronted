@@ -82,6 +82,17 @@
   --editor-transition-fast: 120ms ease-out;
   --editor-transition-base: 200ms ease-out;
   --editor-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== 空状态插图色 ===== */
+  --empty-ill-bg: #f1f5f9;
+  --empty-ill-stroke: #cbd5e1;
+  --empty-ill-fill: #f8fafc;
+  --empty-ill-line: #e2e8f0;
+  --empty-title: #334155;
+  --empty-desc: #64748b;
+  --empty-btn-fg: #6366f1;
+  --empty-btn-bg: #eef2ff;
+  --empty-btn-hover: #e0e7ff;
 }
 
 /* ============================================
@@ -158,6 +169,17 @@
   --editor-transition-fast: 120ms ease-out;
   --editor-transition-base: 200ms ease-out;
   --editor-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== 空状态插图色 ===== */
+  --empty-ill-bg: #f5ede0;
+  --empty-ill-stroke: #d4c4b0;
+  --empty-ill-fill: #faf6f0;
+  --empty-ill-line: #e8dcc8;
+  --empty-title: #5c4833;
+  --empty-desc: #8b7355;
+  --empty-btn-fg: #c47a2a;
+  --empty-btn-bg: rgba(196, 122, 42, 0.10);
+  --empty-btn-hover: rgba(196, 122, 42, 0.18);
 }
 
 /* ============================================
@@ -234,6 +256,17 @@
   --editor-transition-fast: 120ms ease-out;
   --editor-transition-base: 200ms ease-out;
   --editor-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== 空状态插图色 ===== */
+  --empty-ill-bg: #313244;
+  --empty-ill-stroke: #585b70;
+  --empty-ill-fill: #45475a;
+  --empty-ill-line: #4c4f63;
+  --empty-title: #bac2de;
+  --empty-desc: #a6adc8;
+  --empty-btn-fg: #89dceb;
+  --empty-btn-bg: rgba(137, 220, 235, 0.12);
+  --empty-btn-hover: rgba(137, 220, 235, 0.22);
 }
 
 /* ============================================
@@ -310,6 +343,17 @@
   --editor-transition-fast: 120ms ease-out;
   --editor-transition-base: 200ms ease-out;
   --editor-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== 空状态插图色 ===== */
+  --empty-ill-bg: #f1f5f9;
+  --empty-ill-stroke: #cbd5e1;
+  --empty-ill-fill: #f8fafc;
+  --empty-ill-line: #e2e8f0;
+  --empty-title: #334155;
+  --empty-desc: #64748b;
+  --empty-btn-fg: #6366f1;
+  --empty-btn-bg: #eef2ff;
+  --empty-btn-hover: #e0e7ff;
 }
 
 /* ============================================
