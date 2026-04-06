@@ -97,7 +97,7 @@
             v-if="primaryDraftProposal.status !== 'discarded'"
             type="button"
             class="proposal-card__action proposal-card__action--ghost"
-            :aria-label="`丢弃提案 ${primaryDraftProposal.title}`"
+            :aria-label="proposalDismissAriaLabelText(primaryDraftProposal)"
             @click="
               emit('proposalStatusChange', {
                 proposalId: primaryDraftProposal.id,
@@ -350,6 +350,11 @@ function proposalSelectActionText(kind: WriterDraftProposalKind) {
 
 function proposalDismissActionText(status: WriterDraftProposalStatus) {
   return status === 'selected' ? '移出' : '丢弃'
+}
+
+function proposalDismissAriaLabelText(proposal: WriterDraftProposal) {
+  const action = proposal.status === 'selected' ? '移出提案' : '丢弃提案'
+  return `${action} ${proposal.title}`
 }
 
 function proposalKindText(kind: WriterDraftProposalKind) {

@@ -474,6 +474,9 @@ describe('AIWorkbench', () => {
     expect(proposalCard.find('[data-testid="proposal-card-summary"]').exists()).toBe(false)
     expect(proposalCard.text()).toContain('已保留方向')
     expect(proposalCard.text()).toContain('移出')
+    expect(proposalCard.get('.proposal-card__action--ghost').attributes('aria-label')).toContain(
+      '移出提案 已保留方向',
+    )
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
   })
 
