@@ -1,0 +1,231 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { defineComponent, nextTick, ref } from 'vue'
+import AIPanel from '../AIPanel.vue'
+import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
+
+const messages = ref<Array<{ role: string; content: string }>>([])
+const addMessage = vi.fn()
+const clearHistory = vi.fn()
+const save = vi.fn()
+const load = vi.fn()
+const setSessionId = vi.fn()
+
+vi.mock('@/composables/useI18n', () => ({
+  useI18n: () => ({
+    t: (_key: string, fallback?: string) => fallback ?? _key,
+  }),
+}))
+
+vi.mock('@/composables/useBreakpoints', () => ({
+  useBreakpoints: () => ({
+    smaller: () => false,
+    between: () => false,
+    greaterOrEqual: () => true,
+  }),
+}))
+
+vi.mock('@/composables/useChatHistory', () => ({
+  useChatHistory: () => ({
+    messages,
+    addMessage,
+    clearHistory,
+    save,
+    load,
+    setSessionId,
+  }),
+}))
+
+vi.mock('@/composables/useTypewriter', () => ({
+  useTypewriter: () => ({
+    stop: vi.fn(),
+  }),
+}))
+
+vi.mock('@/modules/ai/api', () => ({
+  chatWithAI: vi.fn(),
+  continueWriting: vi.fn(),
+  polishText: vi.fn(),
+  expandText: vi.fn(),
+  rewriteText: vi.fn(),
+}))
+
+vi.mock('@/design-system/services', () => ({
+  message: {
+    warning: vi.fn(),
+  },
+}))
+
+const AIHeaderStub = defineComponent({
+  template: '<div data-testid="ai-header" />',
+})
+
+const AIConversationToolbarStub = defineComponent({
+  props: {
+    currentId: {
+      type: String,
+      default: 'default',
+    },
+    conversationList: {
+      type: Array,
+      default: () => [],
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ['update:currentId', 'create', 'rename', 'delete'],
+  template: '<div data-testid="conversation-toolbar" />',
+})
+
+const AISelectionNoticeStub = defineComponent({
+  props: {
+    notice: {
+      type: Object,
+      default: null,
+    },
+  },
+  template:
+    '<div data-testid="selection-notice">{{ notice ? `${notice.action}:${notice.text}` : "empty" }}</div>',
+})
+
+const AIChatMessagesStub = defineComponent({
+  template: '<div data-testid="chat-messages" />',
+  methods: {
+    scrollToBottom() {},
+  },
+})
+
+const AIQuickActionsStub = defineComponent({
+  template: '<div data-testid="quick-actions" />',
+})
+
+const AIInputAreaStub = defineComponent({
+  props: {
+    modelValue: {
+      type: String,
+      default: '',
+    },
+    context: {
+      type: Object,
+      default: null,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    placeholder: {
+      type: String,
+      default: '',
+    },
+    hint: {
+      type: String,
+      default: '',
+    },
+  },
+  emits: ['update:modelValue', 'send', 'clear-context'],
+  template: '<div data-testid="input-context">{{ context ? context.text : "empty" }}</div>',
+})
+
+function buildWorkflowContext(
+  signature: string,
+  chapterId = signature,
+): WriterWorkflowContext {
+  return {
+    signature,
+    projectId: 'project-1',
+    chapterId,
+    chapterTitle: `章节 ${chapterId}`,
+    scopeLabel: `scope-${chapterId}`,
+    activeCharacters: [],
+    activeRelations: [],
+    pendingChangeRequests: [],
+    pendingChangeRequestCount: 0,
+  }
+}
+
+function mountPanel() {
+  return mount(AIPanel, {
+    props: {
+      sessionId: 'project-1',
+      workflowContext: buildWorkflowContext('chapter-1'),
+      actionTrigger: null,
+    },
+    global: {
+      stubs: {
+        AIHeader: AIHeaderStub,
+        AIConversationToolbar: AIConversationToolbarStub,
+        AISelectionNotice: AISelectionNoticeStub,
+        AIChatMessages: AIChatMessagesStub,
+        AIQuickActions: AIQuickActionsStub,
+        AIInputArea: AIInputAreaStub,
+      },
+    },
+  })
+}
+
+describe('AIPanel', () => {
+  beforeEach(() => {
+    messages.value = []
+    addMessage.mockReset()
+    clearHistory.mockReset()
+    save.mockReset()
+    load.mockReset()
+    setSessionId.mockReset()
+    localStorage.clear()
+  })
+
+  it('clears add_to_chat handoff state when workflow scope changes', async () => {
+    const wrapper = mountPanel()
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 1,
+        action: 'add_to_chat',
+        text: '上一章的重点片段',
+        instructions: '保留人物语气',
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toContain('上一章的重点片段')
+    expect(wrapper.get('[data-testid="input-context"]').text()).toContain('上一章的重点片段')
+
+    await wrapper.setProps({
+      workflowContext: buildWorkflowContext('chapter-2'),
+    })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
+    expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+  })
+
+  it('clears add_to_chat handoff state when session changes', async () => {
+    const wrapper = mountPanel()
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 2,
+        action: 'add_to_chat',
+        text: '需要带到对话里的旧上下文',
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toContain(
+      '需要带到对话里的旧上下文',
+    )
+    expect(wrapper.get('[data-testid="input-context"]').text()).toContain(
+      '需要带到对话里的旧上下文',
+    )
+
+    await wrapper.setProps({
+      sessionId: 'project-2',
+    })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
+    expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+  })
+})

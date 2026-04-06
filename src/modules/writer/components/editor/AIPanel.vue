@@ -166,6 +166,10 @@ const isTyping = ref(false)
 const chatMessagesRef = ref<InstanceType<typeof AIChatMessages>>()
 const selectionNotice = ref<SelectionNotice | null>(null)
 const selectedChatContext = ref<ChatContextSnippet | null>(null)
+const selectedChatContextScope = ref<{
+  sessionId: string
+  workflowSignature: string
+} | null>(null)
 
 // ==================== 快捷操作 ====================
 const quickActions = computed<QuickAction[]>(() => [
@@ -185,6 +189,7 @@ const conversationStorageKey = computed(() => `ai-conversation-list-${props.sess
 const effectiveWorkflowContext = computed(
   () => props.actionTrigger?.context ?? props.workflowContext ?? null,
 )
+const effectiveWorkflowSignature = computed(() => effectiveWorkflowContext.value?.signature ?? '')
 
 // ==================== 对话管理方法 ====================
 function loadConversations() {
@@ -484,11 +489,13 @@ function handleClear() {
     clearHistory()
     selectionNotice.value = null
     selectedChatContext.value = null
+    selectedChatContextScope.value = null
   }
 }
 
 function handleClearSelectedContext() {
   selectedChatContext.value = null
+  selectedChatContextScope.value = null
   if (selectionNotice.value?.action === 'chat') {
     selectionNotice.value = null
   }
@@ -556,6 +563,26 @@ watch(
 )
 
 watch(
+  () => ({
+    sessionId: props.sessionId,
+    workflowSignature: effectiveWorkflowSignature.value,
+  }),
+  (nextScope) => {
+    const currentScope = selectedChatContextScope.value
+    if (!currentScope) return
+
+    if (
+      currentScope.sessionId === nextScope.sessionId &&
+      currentScope.workflowSignature === nextScope.workflowSignature
+    ) {
+      return
+    }
+
+    handleClearSelectedContext()
+  },
+)
+
+watch(
   () => props.actionTrigger?.id,
   async (newId, oldId) => {
     if (!newId || newId === oldId || !props.actionTrigger) return
@@ -567,6 +594,10 @@ watch(
         text: text.trim(),
         instructions: instructions?.trim() || undefined,
         addedAt: Date.now(),
+      }
+      selectedChatContextScope.value = {
+        sessionId: props.sessionId,
+        workflowSignature: effectiveWorkflowSignature.value,
       }
       selectionNotice.value = {
         action: 'chat',
