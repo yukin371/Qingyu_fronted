@@ -708,6 +708,45 @@ describe('ProjectWorkspace Refactor', () => {
     expect(wrapper.find('[data-testid="context-signature"]').text()).toContain('"chapterId":"chapter-1"')
   })
 
+  it('clears stale transient right-panel state on new workflow actions and chapter switches', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: WorkflowRelayEditorContentStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="apply-ai-result"]').trigger('click')
+    await nextTick()
+    expect(wrapper.find('[data-testid="apply-feedback-title"]').text()).toBe('已整章替换')
+
+    await wrapper.find('[data-testid="relay-workflow-action"]').trigger('click')
+    await nextTick()
+    expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('add_to_chat')
+    expect(wrapper.find('[data-testid="apply-feedback-title"]').text()).toBe('')
+
+    await wrapper.find('[data-testid="change-chapter"]').trigger('click')
+    await nextTick()
+    expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('')
+    expect(wrapper.find('[data-testid="apply-feedback-title"]').text()).toBe('')
+  })
+
   it.todo('提案应按当前章节过滤展示（Phase 2: chapter-scoped proposal visibility）')
 
   it('章节总结结果应映射为 chapter-direction proposal', async () => {

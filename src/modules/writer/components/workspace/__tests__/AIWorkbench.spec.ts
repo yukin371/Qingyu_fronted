@@ -203,6 +203,122 @@ describe('AIWorkbench', () => {
     })
   })
 
+  it('clears stale result candidate once a newer workflow trigger arrives', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-trigger-reset-result\" @click=\"$emit('result-candidate', { source: 'chat', action: 'chat', title: 'AI 对话结果', summary: '生成了一条新方向', generatedText: '新的剧情方向', sourceText: '继续推进冲突' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-trigger-reset-result"]').trigger('click')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 77,
+        action: 'rewrite',
+        text: '请重写这一段',
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
+  })
+
+  it('clears stale result candidate when chapter context changes', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-chapter-reset-result\" @click=\"$emit('result-candidate', { source: 'chat', action: 'chat', title: 'AI 对话结果', summary: '生成了一条新方向', generatedText: '新的剧情方向', sourceText: '继续推进冲突' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-chapter-reset-result"]').trigger('click')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+
+    await wrapper.setProps({
+      chapterId: 'chapter-2',
+      chapterTitle: '第二章',
+      sourceText: '这是第二章正文。',
+      workflowContext: {
+        signature: 'chapter-2',
+        projectId: 'project-1',
+        chapterId: 'chapter-2',
+        chapterTitle: '第二章',
+        scopeLabel: '第二场',
+        activeCharacters: [],
+        activeRelations: [],
+        pendingChangeRequests: [],
+        pendingChangeRequestCount: 0,
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workflow-state-rail"]').exists()).toBe(false)
+  })
+
   it('keeps proposal as primary card while allowing result promotion inside the workflow rail', async () => {
     const AIPanelStub = defineComponent({
       emits: ['result-candidate'],

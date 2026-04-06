@@ -319,9 +319,17 @@ const shouldShowProposalLifecycleFeedback = computed(() => {
 })
 
 watch(
-  () => props.actionTrigger?.id,
-  () => {
-    if (actionDrivenTab.value) {
+  [() => props.projectId, () => props.chapterId, () => props.actionTrigger?.id],
+  ([projectId, chapterId, actionTriggerId], [prevProjectId, prevChapterId, prevActionTriggerId]) => {
+    if (
+      projectId !== prevProjectId ||
+      chapterId !== prevChapterId ||
+      actionTriggerId !== prevActionTriggerId
+    ) {
+      latestResultCandidate.value = null
+    }
+
+    if (actionTriggerId !== prevActionTriggerId && actionDrivenTab.value) {
       activeTab.value = actionDrivenTab.value
     }
   },

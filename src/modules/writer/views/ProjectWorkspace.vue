@@ -278,6 +278,10 @@ const isGlobalRelationsView = computed(
 const displayChapterId = computed({
   get: () => (isGlobalRelationsView.value ? '' : currentChapterId.value),
   set: (value: string) => {
+    if (currentChapterId.value !== value) {
+      resetWorkflowTransientState()
+      writerStore.setSelectedText('')
+    }
     currentChapterId.value = value
   },
 })
@@ -387,6 +391,14 @@ const toggleRightPanel = () => {
 }
 void toggleLeftPanel
 void toggleRightPanel
+
+const resetWorkflowTransientState = (options?: { clearActionTrigger?: boolean }) => {
+  if (options?.clearActionTrigger ?? true) {
+    aiActionTrigger.value = null
+  }
+  aiApplyFeedback.value = null
+  latestSelectionContext.value = null
+}
 
 const handleAddDoc = () => {
   showCreateDocDialog.value = true
@@ -865,6 +877,7 @@ void handleCloseFullscreen
 
 const handleWorkflowAction = (payload: WriterWorkflowActionRequest) => {
   panelStore.setRightCollapsed(false)
+  resetWorkflowTransientState({ clearActionTrigger: false })
   const normalizedText = payload.text?.trim() || currentChapterPlainText.value
   latestSelectionContext.value =
     typeof payload.from === 'number' && typeof payload.to === 'number'
@@ -1177,6 +1190,18 @@ onMounted(async () => {
 // =======================
 // Watchers
 // =======================
+watch(
+  [() => currentProjectId.value, () => currentChapterId.value],
+  ([projectId, chapterId], [prevProjectId, prevChapterId]) => {
+    if (projectId === prevProjectId && chapterId === prevChapterId) {
+      return
+    }
+
+    resetWorkflowTransientState()
+    writerStore.setSelectedText('')
+  },
+)
+
 watch(
   () => flatChapters.value,
   (chapters) => {
