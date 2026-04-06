@@ -4,6 +4,31 @@ import { storyHarnessService } from '../storyHarness.service'
 const mockCreateStoryHarnessBatch = vi.fn()
 const mockGetLatestStoryHarnessBatch = vi.fn()
 
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {}
+
+  return {
+    getItem: (key: string) => (key in store ? store[key] : null),
+    setItem: (key: string, value: string) => {
+      store[key] = String(value)
+    },
+    removeItem: (key: string) => {
+      delete store[key]
+    },
+    clear: () => {
+      store = {}
+    },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+    get length() {
+      return Object.keys(store).length
+    },
+  }
+}
+
+const localStorageMock = createLocalStorageMock()
+
+vi.stubGlobal('localStorage', localStorageMock)
+
 vi.mock('@/modules/writer/api/story-harness', () => ({
   createStoryHarnessBatch: (...args: unknown[]) => mockCreateStoryHarnessBatch(...args),
   getLatestStoryHarnessBatch: (...args: unknown[]) => mockGetLatestStoryHarnessBatch(...args),
@@ -11,7 +36,7 @@ vi.mock('@/modules/writer/api/story-harness', () => ({
 
 describe('storyHarnessService', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     localStorage.clear()
   })
 

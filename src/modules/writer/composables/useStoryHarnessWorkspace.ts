@@ -8,6 +8,7 @@ import {
 } from '@/modules/writer/stores/v3/storyHarnessStore'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { buildStoryHarnessSuggestions } from '@/modules/writer/utils/v3/storyHarnessSuggestions'
+import { storyHarnessService } from '@/modules/writer/services/storyHarness.service'
 import type { OutlineNode } from '@/types/writer'
 
 type OutlineScopeNode = OutlineNode & {
@@ -30,6 +31,10 @@ export interface UseStoryHarnessWorkspaceReturn {
   storyHarnessLiveChangeRequests: ComputedRef<StoryHarnessChangeRequestPreview[]>
   storyHarnessChangeRequests: ComputedRef<StoryHarnessChangeRequestPreview[]>
   persistCurrentLiveChangeRequests: () => Promise<void>
+  loadBackendContext: () => Promise<import('../api/story-harness').BackendChapterContextResponse | null>
+  loadBackendChangeRequests: (status?: string) => Promise<import('../api/story-harness').BackendChangeRequestDTO[]>
+  processChangeRequestWithBackend: (requestId: string, decision: 'accepted' | 'ignored' | 'deferred') => Promise<boolean>
+  triggerIndexAndRefresh: () => Promise<{ batchId: string; generated: number; pending: number; deduplicated: number; source: string } | null>
 }
 
 const buildStoryHarnessChangeRequestSignature = (
@@ -225,6 +230,16 @@ export function useStoryHarnessWorkspace(
     return success
   }
 
+  /** 手动触发章节索引并刷新建议列表 */
+  const triggerIndexAndRefresh = async () => {
+    if (!projectId.value || !displayChapterId.value) return null
+    const result = await storyHarnessService.triggerIndex(projectId.value, displayChapterId.value)
+    if (result) {
+      await loadBackendChangeRequests()
+    }
+    return result
+  }
+
   return {
     currentScopeLabel,
     activeScopeCharacters,
@@ -235,5 +250,6 @@ export function useStoryHarnessWorkspace(
     loadBackendContext,
     loadBackendChangeRequests,
     processChangeRequestWithBackend,
+    triggerIndexAndRefresh,
   }
 }

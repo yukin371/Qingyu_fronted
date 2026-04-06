@@ -239,6 +239,21 @@ class StoryHarnessService {
       return false
     }
   }
+
+  /** 手动触发章节索引 */
+  async triggerIndex(projectId: string, chapterId: string) {
+    if (!projectId || !chapterId) return null
+    try {
+      const response = await storyHarnessApi.triggerIndex(projectId, chapterId)
+      const data = (response as { data?: unknown })?.data ?? response
+      return data as { batchId: string; generated: number; pending: number; deduplicated: number; source: string }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[storyHarnessService] triggerIndex failed:', error)
+      }
+      return null
+    }
+  }
 }
 
 export const storyHarnessService = new StoryHarnessService()

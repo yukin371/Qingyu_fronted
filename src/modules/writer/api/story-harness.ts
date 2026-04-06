@@ -73,15 +73,19 @@ export interface ProcessChangeRequestPayload {
 }
 
 const BASE_PROJECT_URL = '/writer/project'
+const BASE_WRITER_URL = '/writer'
 
 const buildStoryHarnessBatchUrl = (projectId: string, chapterId: string) =>
   `${BASE_PROJECT_URL}/${projectId}/documents/${chapterId}/story-harness/batches`
 
 const buildChapterContextUrl = (projectId: string, chapterId: string) =>
-  `${BASE_PROJECT_URL}/projects/${projectId}/chapters/${chapterId}/context`
+  `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/context`
+
+const buildTriggerIndexUrl = (projectId: string, chapterId: string) =>
+  `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/trigger-index`
 
 const buildChangeRequestListUrl = (projectId: string, chapterId: string) =>
-  `${BASE_PROJECT_URL}/projects/${projectId}/chapters/${chapterId}/change-requests`
+  `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/change-requests`
 
 export const storyHarnessApi = {
   createBatch(projectId: string, chapterId: string, data: CreateStoryHarnessBatchRequest) {
@@ -103,6 +107,13 @@ export const storyHarnessApi = {
     )
   },
 
+  /** 手动触发章节索引（规则引擎生成变更建议） */
+  triggerIndex(projectId: string, chapterId: string) {
+    return httpService.post<{ batchId: string; generated: number; pending: number; deduplicated: number; source: string }>(
+      buildTriggerIndexUrl(projectId, chapterId),
+    )
+  },
+
   /** 获取章节变更建议列表 */
   listChangeRequests(projectId: string, chapterId: string, status = 'pending') {
     return httpService.get<BackendChangeRequestListResponse>(
@@ -113,7 +124,7 @@ export const storyHarnessApi = {
   /** 处理变更建议（接受/忽略/延后） */
   processChangeRequest(requestId: string, payload: ProcessChangeRequestPayload) {
     return httpService.put<void>(
-      `${BASE_PROJECT_URL}/change-requests/${requestId}/status`,
+      `${BASE_WRITER_URL}/change-requests/${requestId}/status`,
       payload,
     )
   },
