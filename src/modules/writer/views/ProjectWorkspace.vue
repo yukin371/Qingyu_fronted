@@ -400,6 +400,11 @@ const resetWorkflowTransientState = (options?: { clearActionTrigger?: boolean })
   latestSelectionContext.value = null
 }
 
+const retireWorkflowActionSession = () => {
+  aiActionTrigger.value = null
+  latestSelectionContext.value = null
+}
+
 const handleAddDoc = () => {
   showCreateDocDialog.value = true
 }
@@ -973,6 +978,7 @@ const handleProposalDraft = (candidate: WriterResultCandidate) => {
     }
     existingProposal.status = 'draft'
     existingProposal.updatedAt = Date.now()
+    retireWorkflowActionSession()
     message.success('已更新现有提案草稿')
     return
   }
@@ -997,6 +1003,7 @@ const handleProposalDraft = (candidate: WriterResultCandidate) => {
   }
 
   draftProposals.value = [nextProposal, ...draftProposals.value].slice(0, 5)
+  retireWorkflowActionSession()
 
   message.success('已暂存到提案草稿')
 }
@@ -1092,6 +1099,7 @@ const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
             : 'AI 结果已替换当前选区。',
           requestedApplyMode,
         )
+        retireWorkflowActionSession()
         message.success('AI 结果已应用到当前选区')
         return
       }
@@ -1152,6 +1160,7 @@ const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
         : 'AI 结果已写回编辑器，但未直接覆盖原选区。',
     requestedApplyMode,
   )
+  aiActionTrigger.value = null
   message.success('AI 结果已应用到编辑器')
 }
 
