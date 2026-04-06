@@ -21,9 +21,9 @@ vi.mock('@/composables/useI18n', () => ({
 }))
 
 describe('AIHeader', () => {
-  it('should render header title', () => {
+  it('should render lightweight chat caption', () => {
     const wrapper = mount(AIHeader)
-    expect(wrapper.find('.header-title').text()).toBe('AI写作助手')
+    expect(wrapper.find('.header-caption').text()).toBe('对话协作')
   })
 
   it('should emit clear event when clear button is clicked', async () => {

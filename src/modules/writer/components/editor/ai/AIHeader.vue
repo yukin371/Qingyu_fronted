@@ -1,8 +1,7 @@
 <template>
   <div class="ai-header">
     <div class="header-left">
-      <QyIcon name="MagicStick" class="ai-icon" />
-      <h3 class="header-title">AI写作助手</h3>
+      <span class="header-caption">对话协作</span>
     </div>
     <div class="header-right">
       <button
@@ -45,18 +44,12 @@ const clearLabel = t('ai.clear', '清空对话')
   .header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-
-    .ai-icon {
-      font-size: 18px;
-      color: #2563eb;
-    }
-
-    .header-title {
+    .header-caption {
       margin: 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ai-text, #0f172a);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ai-text-muted, #64748b);
     }
   }
 

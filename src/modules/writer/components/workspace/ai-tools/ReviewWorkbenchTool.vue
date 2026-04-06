@@ -1,10 +1,7 @@
 <template>
   <section class="tool-panel">
     <header class="tool-panel__header">
-      <div>
-        <p class="tool-panel__eyebrow">Review</p>
-        <h3>审校工作台</h3>
-      </div>
+      <p class="tool-panel__eyebrow">审校</p>
       <div class="tool-panel__actions">
         <button
           type="button"

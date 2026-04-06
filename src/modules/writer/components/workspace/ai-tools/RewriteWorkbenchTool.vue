@@ -1,10 +1,7 @@
 <template>
   <section class="tool-panel">
     <header class="tool-panel__header">
-      <div>
-        <p class="tool-panel__eyebrow">Rewrite</p>
-        <h3>改写工作台</h3>
-      </div>
+      <p class="tool-panel__eyebrow">改写</p>
       <button
         type="button"
         class="tool-panel__primary"

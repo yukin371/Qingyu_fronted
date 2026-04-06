@@ -4,6 +4,55 @@ import { defineComponent, nextTick } from 'vue'
 import AIWorkbench from '../AIWorkbench.vue'
 
 describe('AIWorkbench', () => {
+  it('keeps only the compact workbench title in header', () => {
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 3,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-1',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '章节方向提案',
+            summary: '保留冲突升级主线',
+            generatedText: '保留冲突升级主线',
+            sourceText: '第一章',
+            status: 'draft',
+            createdAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('.ai-workbench__title').text()).toBe('AI 助手')
+    expect(wrapper.text()).not.toContain('待处理 3')
+    expect(wrapper.text()).not.toContain('草案 1')
+  })
+
   it('renders apply feedback and switches tabs from action triggers', async () => {
     const RewriteWorkbenchToolStub = defineComponent({
       props: ['workflowContext'],

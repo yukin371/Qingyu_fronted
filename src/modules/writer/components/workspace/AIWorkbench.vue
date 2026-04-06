@@ -1,13 +1,7 @@
 <template>
   <section class="ai-workbench">
     <header class="ai-workbench__header">
-      <div class="ai-workbench__title-group">
-        <span class="ai-workbench__title">AI 助手</span>
-        <p v-if="workflowSummary" class="ai-workbench__summary">{{ workflowSummary }}</p>
-      </div>
-      <span v-if="draftProposals.length" class="ai-workbench__badge">
-        草案 {{ draftProposals.length }}
-      </span>
+      <span class="ai-workbench__title">AI 助手</span>
     </header>
 
     <nav class="ai-workbench__tabs" aria-label="AI 工具标签">
@@ -186,18 +180,6 @@ const actionDrivenTab = computed<WriterWorkbenchTab | null>(() =>
   resolveWriterWorkflowTab(props.actionTrigger?.action),
 )
 
-const workflowSummary = computed(() => {
-  const parts = [
-    props.workflowContext.chapterTitle || '',
-    props.workflowContext.scopeLabel || '',
-    props.workflowContext.pendingChangeRequestCount > 0
-      ? `待处理 ${props.workflowContext.pendingChangeRequestCount}`
-      : '',
-  ].filter(Boolean)
-
-  return parts.join(' · ')
-})
-
 const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
   if (props.draftProposals.length === 0) {
     return null
@@ -271,12 +253,7 @@ function proposalSourceText(source: WriterDraftProposalSource) {
   border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.ai-workbench__title-group {
-  min-width: 0;
+  justify-content: flex-start;
 }
 
 .ai-workbench__title {
@@ -284,26 +261,6 @@ function proposalSourceText(source: WriterDraftProposalSource) {
   font-weight: 700;
   color: var(--editor-text-primary, #0f172a);
   letter-spacing: 0.01em;
-}
-
-.ai-workbench__summary {
-  margin: 4px 0 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--editor-text-muted, #64748b);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ai-workbench__badge {
-  flex-shrink: 0;
-  border-radius: 999px;
-  padding: 4px 8px;
-  background: rgba(15, 23, 42, 0.06);
-  color: var(--editor-text-muted, #64748b);
-  font-size: 11px;
-  font-weight: 700;
 }
 
 .ai-workbench__tabs {
