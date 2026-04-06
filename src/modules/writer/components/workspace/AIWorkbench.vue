@@ -249,11 +249,13 @@ const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
 })
 
 const shouldCondensePrimaryProposal = computed(
-  () => primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value,
+  () => !!primaryDraftProposal.value && !!latestResultCandidate.value,
 )
 
 const shouldShowApplyFeedback = computed(
-  () => !!props.aiApplyFeedback && !shouldCondensePrimaryProposal.value,
+  () =>
+    !!props.aiApplyFeedback &&
+    !(primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value),
 )
 
 const hasWorkflowRail = computed(
