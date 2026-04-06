@@ -1,9 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 import AIWorkbench from '../AIWorkbench.vue'
 
 describe('AIWorkbench', () => {
+  const findStateRail = (wrapper: VueWrapper<any>) => {
+    const primary = wrapper.find('[data-testid="workflow-state-rail"]')
+    if (primary.exists()) {
+      return primary
+    }
+    return wrapper.find('[data-testid="workflow-feedback-strip"]')
+  }
+
+  const findResultSection = (wrapper: VueWrapper<any>) => {
+    const selectors = ['[data-testid="workflow-result-card"]', '[data-testid="ai-result-card"]']
+    for (const selector of selectors) {
+      const match = wrapper.find(selector)
+      if (match.exists()) {
+        return match
+      }
+    }
+    return wrapper.find('[data-testid="result-section"]')
+  }
+
+  const findPromoteButton = (sectionWrapper: VueWrapper<any>) => {
+    const selectors = ['[data-testid="workflow-result-action"]', '[data-testid="workflow-result-card-action"]']
+    for (const selector of selectors) {
+      const button = sectionWrapper.find(selector)
+      if (button.exists()) {
+        return button
+      }
+    }
+    const fallback = sectionWrapper.find('button')
+    if (fallback.exists()) {
+      return fallback
+    }
+    return sectionWrapper.find('.workflow-result-card__action')
+  }
+
   it('keeps only the compact workbench title in header', () => {
     const wrapper = mount(AIWorkbench, {
       props: {
@@ -106,8 +140,10 @@ describe('AIWorkbench', () => {
     })
     await nextTick()
 
-    expect(wrapper.find('.apply-feedback').exists()).toBe(true)
-    expect(wrapper.find('.apply-feedback').text()).toContain('选区已失效')
+    const rail = findStateRail(wrapper)
+    expect(rail.exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(true)
+    expect(rail.text()).toContain('选区已失效')
     expect(wrapper.get('[data-testid="rewrite-tool"]').text()).toContain('第一章')
   })
 
@@ -150,13 +186,161 @@ describe('AIWorkbench', () => {
     })
 
     await wrapper.find('[data-testid="emit-result"]').trigger('click')
-    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+    const resultSection = findResultSection(wrapper)
+    expect(resultSection.exists()).toBe(true)
 
-    await wrapper.find('.workflow-result-card__action').trigger('click')
+    const promoteButton = findPromoteButton(resultSection)
+    expect(promoteButton.exists()).toBe(true)
+    await promoteButton.trigger('click')
+
     expect(wrapper.emitted('proposalDraft')?.[0]?.[0]).toMatchObject({
       source: 'chat',
       action: 'chat',
       generatedText: '新的剧情方向',
+    })
+  })
+
+  it('keeps proposal as primary card while allowing result promotion inside the workflow rail', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        '<button data-testid="emit-result" @click="$emit(\'result-candidate\', { source: \'chat\', action: \'chat\', title: \'AI 对话结果\', summary: \'生成了一条新方向\', generatedText: \'新的剧情方向\', sourceText: \'继续推进冲突\' })">emit</button>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: {
+          status: 'success',
+          title: '已按选区回填',
+          detail: 'AI 结果已替换当前选区。',
+          mode: 'replace_selection',
+          updatedAt: Date.now(),
+        },
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-1',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '章节方向提案',
+            summary: '保留冲突升级主线',
+            generatedText: '保留冲突升级主线',
+            sourceText: '第一章',
+            status: 'draft',
+            createdAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-result"]').trigger('click')
+
+    const rail = wrapper.get('[data-testid="workflow-state-rail"]')
+    expect(rail.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(true)
+    expect(rail.find('[data-testid="proposal-card"]').exists()).toBe(true)
+    expect(rail.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+    expect(rail.find('[data-testid="workflow-result-action"]').exists()).toBe(true)
+
+    await rail.find('[data-testid="workflow-result-action"]').trigger('click')
+    expect(wrapper.emitted('proposalDraft')?.[0]?.[0]).toMatchObject({
+      source: 'chat',
+      action: 'chat',
+      generatedText: '新的剧情方向',
+    })
+  })
+
+  it('renders workflow state rail with aiApplyFeedback and still promotes result card action alongside proposal drafts', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        '<button data-testid="emit-state-result" @click="$emit(\'result-candidate\', { source: \'chat\', action: \'chat\', title: \'AI 对话结果\', summary: \'新状态流结果\', generatedText: \'新的剧情方向\', sourceText: \'上次选区\' })">emit</button>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: {
+          status: 'success',
+          title: '已更新正文',
+          detail: 'AI 结果已应用',
+          updatedAt: Date.now(),
+        },
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-main',
+            kind: 'text-draft',
+            source: 'review-workbench',
+            title: '审校建议提案',
+            summary: '审校完成',
+            generatedText: '审校完成',
+            sourceText: '第一章',
+            status: 'draft',
+            createdAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: AIPanelStub,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="workflow-state-rail"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(true)
+
+    await wrapper.find('[data-testid="emit-state-result"]').trigger('click')
+    const resultSection = findResultSection(wrapper)
+    expect(resultSection.exists()).toBe(true)
+
+    const promoteButton = findPromoteButton(resultSection)
+    expect(promoteButton.exists()).toBe(true)
+
+    await promoteButton.trigger('click')
+    expect(wrapper.emitted('proposalDraft')?.[0]?.[0]).toMatchObject({
+      source: 'chat',
+      action: 'chat',
     })
   })
 
