@@ -40,6 +40,21 @@
         </span>
       </div>
 
+      <div
+        v-if="proposalLifecycleFeedback"
+        class="proposal-feedback workflow-feedback-strip"
+        :class="`proposal-feedback--${proposalLifecycleFeedback.status}`"
+        data-testid="proposal-feedback-strip"
+      >
+        <div class="apply-feedback__content">
+          <strong>{{ proposalLifecycleFeedback.title }}</strong>
+          <p>{{ proposalLifecycleFeedback.detail }}</p>
+        </div>
+        <span class="apply-feedback__mode">
+          {{ proposalLifecycleFeedback.source }}
+        </span>
+      </div>
+
       <section
         v-if="primaryDraftProposal"
         class="proposal-card workflow-proposal-card"
@@ -228,19 +243,52 @@ const actionDrivenTab = computed<WriterWorkbenchTab | null>(() =>
 )
 
 const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
+  const selectedProposal = props.draftProposals.find((proposal) => proposal.status === 'selected')
+  if (selectedProposal) {
+    return selectedProposal
+  }
+
+  return props.draftProposals.find((proposal) => proposal.status === 'draft') || null
+})
+
+const hasWorkflowRail = computed(
+  () =>
+    !!props.aiApplyFeedback ||
+    !!proposalLifecycleFeedback.value ||
+    !!latestResultCandidate.value ||
+    !!primaryDraftProposal.value,
+)
+
+const proposalLifecycleFeedback = computed<{
+  status: 'selected' | 'discarded'
+  title: string
+  detail: string
+  source: string
+} | null>(() => {
   if (props.draftProposals.length === 0) {
     return null
   }
 
-  return (
-    props.draftProposals.find((proposal) => proposal.status !== 'discarded') ||
-    props.draftProposals[0]
-  )
-})
+  const latestProposal = [...props.draftProposals].sort(
+    (left, right) => right.updatedAt - left.updatedAt,
+  )[0]
+  if (!latestProposal || !['selected', 'discarded'].includes(latestProposal.status)) {
+    return null
+  }
 
-const hasWorkflowRail = computed(
-  () => !!props.aiApplyFeedback || !!latestResultCandidate.value || !!primaryDraftProposal.value,
-)
+  return {
+    status: latestProposal.status,
+    title:
+      latestProposal.status === 'selected'
+        ? `${proposalKindText(latestProposal.kind)}提案已保留`
+        : `${proposalKindText(latestProposal.kind)}提案已移出`,
+    detail:
+      latestProposal.status === 'selected'
+        ? `当前保留：${latestProposal.title}`
+        : `已从 rail 中移除：${latestProposal.title}`,
+    source: proposalSourceText(latestProposal.source),
+  }
+})
 
 watch(
   () => props.actionTrigger?.id,
@@ -528,6 +576,16 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 .apply-feedback--fallback {
   border-color: rgba(143, 63, 47, 0.2);
   background: linear-gradient(145deg, rgba(255, 241, 232, 0.96), rgba(255, 250, 245, 0.94));
+}
+
+.proposal-feedback--selected {
+  border-color: rgba(22, 163, 74, 0.18);
+  background: linear-gradient(145deg, rgba(240, 253, 244, 0.96), rgba(248, 255, 250, 0.94));
+}
+
+.proposal-feedback--discarded {
+  border-color: rgba(100, 116, 139, 0.18);
+  background: linear-gradient(145deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.92));
 }
 
 .apply-feedback__mode {

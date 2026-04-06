@@ -361,6 +361,179 @@ describe('AIWorkbench', () => {
     })
   })
 
+  it('shows selected proposal lifecycle feedback while keeping the retained card visible', () => {
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-selected',
+            kind: 'text-draft',
+            source: 'review-workbench',
+            title: '审校建议提案',
+            summary: '审校完成',
+            generatedText: '审校完成',
+            sourceText: '第一章',
+            status: 'selected',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain(
+      '正文提案已保留',
+    )
+    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('审校')
+    expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('审校建议提案')
+  })
+
+  it('prioritizes selected proposal over draft when choosing primary proposal card', () => {
+    const now = Date.now()
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-draft',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '新的草稿方向',
+            summary: '还未确认',
+            generatedText: '新的草稿方向',
+            sourceText: '第一章',
+            status: 'draft',
+            createdAt: now - 50,
+            updatedAt: now,
+          },
+          {
+            id: 'proposal-selected',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '已保留方向',
+            summary: '当前采用方案',
+            generatedText: '已保留方向',
+            sourceText: '第一章',
+            status: 'selected',
+            createdAt: now - 100,
+            updatedAt: now - 10,
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="proposal-card-meta"]').text()).toContain('状态 保留')
+    expect(wrapper.text()).toContain('已保留方向')
+    expect(wrapper.text()).not.toContain('新的草稿方向')
+  })
+
+  it('hides discarded-only proposals while keeping discard feedback inside the rail', () => {
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-discarded',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '旧方向提案',
+            summary: '已不再采用',
+            generatedText: '旧方向提案',
+            sourceText: '第一章',
+            status: 'discarded',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="workflow-state-rail"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="proposal-card"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="proposal-feedback-strip"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain(
+      '方向提案已移出',
+    )
+    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('总结')
+    expect(wrapper.get('[data-testid="proposal-feedback-strip"]').text()).toContain('旧方向提案')
+  })
+
   it('routes add_to_chat actions to chat tab via shared workflow resolver', async () => {
     const wrapper = mount(AIWorkbench, {
       props: {
