@@ -275,6 +275,7 @@ describe('AIWorkbench', () => {
     expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('候选')
     expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('对话')
     expect(rail.get('[data-testid="workflow-result-meta"]').text()).toContain('正文')
+    expect(rail.find('[data-testid="workflow-result-summary"]').exists()).toBe(false)
     expect(rail.get('[data-testid="workflow-result-action"]').text()).toBe('存为正文')
     expect(rail.get('[data-testid="workflow-result-action"]').attributes('aria-label')).toContain(
       '存为正文提案',
@@ -354,6 +355,7 @@ describe('AIWorkbench', () => {
     expect(resultSection.exists()).toBe(true)
     expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain('proposal-card--condensed')
     expect(wrapper.find('[data-testid="proposal-card-summary"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workflow-result-summary"]').exists()).toBe(false)
 
     const promoteButton = findPromoteButton(resultSection)
     expect(promoteButton.exists()).toBe(true)
@@ -478,6 +480,7 @@ describe('AIWorkbench', () => {
       '移出提案 已保留方向',
     )
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-result-summary"]').exists()).toBe(false)
   })
 
   it('hides stale apply feedback once retained proposal and newer result candidate enter condensed state', async () => {
@@ -822,6 +825,9 @@ describe('AIWorkbench', () => {
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('总结')
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('方向')
     expect(wrapper.text()).toContain('章节方向提案')
+    expect(wrapper.get('[data-testid="workflow-result-summary"]').text()).toContain(
+      '本章应聚焦冲突升级',
+    )
     expect(wrapper.get('[data-testid="workflow-result-action"]').text()).toBe('存为方向')
 
     await wrapper.find('.workflow-result-card__action').trigger('click')
@@ -885,6 +891,9 @@ describe('AIWorkbench', () => {
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('审校')
     expect(wrapper.get('[data-testid="workflow-result-meta"]').text()).toContain('正文')
     expect(wrapper.text()).toContain('审校建议提案')
+    expect(wrapper.get('[data-testid="workflow-result-summary"]').text()).toContain(
+      '检测到 2 条语言问题',
+    )
     expect(wrapper.get('[data-testid="workflow-result-action"]').text()).toBe('存为正文')
 
     await wrapper.find('.workflow-result-card__action').trigger('click')

@@ -113,7 +113,10 @@
       <section
         v-if="latestResultCandidate"
         class="workflow-result-card workflow-result-candidate"
-        :class="{ 'workflow-result-card--secondary': !!primaryDraftProposal }"
+        :class="{
+          'workflow-result-card--secondary': !!primaryDraftProposal,
+          'workflow-result-card--condensed': shouldCondenseResultCandidate,
+        }"
         data-testid="workflow-result-card"
       >
         <div class="workflow-result-card__content">
@@ -124,7 +127,9 @@
           </div>
           <div>
             <strong>{{ latestResultCandidate.title }}</strong>
-            <p>{{ latestResultCandidate.summary }}</p>
+            <p v-if="!shouldCondenseResultCandidate" data-testid="workflow-result-summary">
+              {{ latestResultCandidate.summary }}
+            </p>
           </div>
         </div>
         <button
@@ -250,6 +255,10 @@ const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
 
 const shouldCondensePrimaryProposal = computed(
   () => !!primaryDraftProposal.value && !!latestResultCandidate.value,
+)
+
+const shouldCondenseResultCandidate = computed(
+  () => !!latestResultCandidate.value && !!primaryDraftProposal.value,
 )
 
 const shouldShowApplyFeedback = computed(
@@ -501,6 +510,14 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 
 .workflow-result-card--secondary {
   background: rgba(250, 252, 255, 0.7);
+}
+
+.workflow-result-card--condensed {
+  padding-block: 8px;
+}
+
+.workflow-result-card--condensed .workflow-result-card__content {
+  gap: 4px;
 }
 
 .proposal-card {
