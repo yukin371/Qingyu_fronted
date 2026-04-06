@@ -13,6 +13,15 @@ const routeState = {
 const routerReplace = vi.fn().mockResolvedValue(undefined)
 const setActiveTool = vi.fn()
 const setSelectedText = vi.fn()
+const { messageSuccess, messageInfo, messageWarning, messageError, messageBoxConfirm } = vi.hoisted(
+  () => ({
+    messageSuccess: vi.fn(),
+    messageInfo: vi.fn(),
+    messageWarning: vi.fn(),
+    messageError: vi.fn(),
+    messageBoxConfirm: vi.fn().mockResolvedValue(undefined),
+  }),
+)
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({
@@ -27,6 +36,18 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@/modules/writer/mock/workspaceMock', () => ({
   getWorkspaceMockProject: () => null,
+}))
+
+vi.mock('@/design-system/services', () => ({
+  message: {
+    success: messageSuccess,
+    info: messageInfo,
+    warning: messageWarning,
+    error: messageError,
+  },
+  messageBox: {
+    confirm: messageBoxConfirm,
+  },
 }))
 
 vi.mock('@/modules/writer/stores/projectStore', () => ({
@@ -293,6 +314,11 @@ describe('ProjectWorkspace Refactor', () => {
     routerReplace.mockClear()
     setActiveTool.mockClear()
     setSelectedText.mockClear()
+    messageSuccess.mockClear()
+    messageInfo.mockClear()
+    messageWarning.mockClear()
+    messageError.mockClear()
+    messageBoxConfirm.mockClear()
     loadCharacters.mockClear()
     loadCharacterRelations.mockClear()
   })
@@ -781,9 +807,57 @@ describe('ProjectWorkspace Refactor', () => {
     })
     await nextTick()
     expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('discarded')
+    expect(messageInfo).toHaveBeenCalledWith('已丢弃当前提案')
 
     await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
     await nextTick()
     expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('draft')
+  })
+
+  it('selected 提案移出后应保持移出语义提示', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="save-summary-proposal"]').trigger('click')
+    await nextTick()
+
+    const proposalId = wrapper.find('[data-testid="proposal-id"]').text()
+    await wrapper.findComponent(WorkspaceRightPanelStub).vm.$emit('proposal-status-change', {
+      proposalId,
+      status: 'selected',
+    })
+    await nextTick()
+    expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('selected')
+    expect(messageSuccess).toHaveBeenCalledWith('已保留当前提案方向')
+
+    messageInfo.mockClear()
+
+    await wrapper.findComponent(WorkspaceRightPanelStub).vm.$emit('proposal-status-change', {
+      proposalId,
+      status: 'discarded',
+    })
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('discarded')
+    expect(messageInfo).toHaveBeenCalledWith('已移出当前提案')
   })
 })

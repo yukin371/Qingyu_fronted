@@ -994,6 +994,12 @@ const handleProposalStatusChange = (payload: {
 }) => {
   const now = Date.now()
   const chapterScopedId = displayChapterId.value || undefined
+  const targetProposal = draftProposals.value.find(
+    (proposal) =>
+      proposal.id === payload.proposalId &&
+      proposal.projectId === currentProjectId.value &&
+      proposal.chapterId === chapterScopedId,
+  )
 
   draftProposals.value = draftProposals.value.map((proposal) =>
     proposal.id === payload.proposalId
@@ -1020,7 +1026,7 @@ const handleProposalStatusChange = (payload: {
   }
 
   if (payload.status === 'discarded') {
-    message.info('已丢弃当前提案')
+    message.info(targetProposal?.status === 'selected' ? '已移出当前提案' : '已丢弃当前提案')
   }
 }
 
