@@ -139,6 +139,15 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/demo/editor-v3-phase1',
+    name: 'EditorV3Phase1Demo',
+    component: () => import('@/views/demo/EditorV3HarnessDemo.vue'),
+    meta: {
+      title: '编辑器 V3 Phase 1 验收',
+      layout: 'blank',
+    },
+  },
+  {
     path: '/demo/qy-badge',
     name: 'QyBadgeDemo',
     component: () => import('@/views/demo/QyBadgeDemo.vue'),

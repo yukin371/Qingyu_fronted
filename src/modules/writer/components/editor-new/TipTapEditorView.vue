@@ -14,11 +14,8 @@
       <div v-if="isDocumentEmpty" class="editor-empty-banner">
         <div class="editor-empty-banner__copy">
           <strong>开始写作这一章</strong>
-          <span>用 @ 建立上下文关联</span>
+          <span>用 <code>@</code> 建立上下文关联</span>
         </div>
-        <button type="button" class="editor-empty-banner__action" @click="focusEditor">
-          开始输入
-        </button>
       </div>
 
       <div
@@ -306,10 +303,6 @@ function handleEditorReady(editor: Editor) {
   editorStore.setTipTapEditor(editor)
 }
 
-function focusEditor() {
-  editorStore.tipTapEditor?.chain().focus().run()
-}
-
 async function handleSave(contents: ParagraphContent[]) {
   if (!contents || !contents[0]?.content) return
 
@@ -459,8 +452,7 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 
 .editor-empty-banner {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 14px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--editor-border);
@@ -489,19 +481,6 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   background: var(--editor-accent-soft);
   color: var(--editor-accent);
   padding: 1px 5px;
-}
-
-.editor-empty-banner__action {
-  flex: 0 0 auto;
-  border: 1px solid var(--editor-accent);
-  border-radius: 999px;
-  background: var(--editor-accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 9px 14px;
-  cursor: pointer;
-  box-shadow: 0 10px 18px rgba(87, 48, 23, 0.12);
 }
 
 .meta-chip {
@@ -844,10 +823,6 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   .editor-empty-banner {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .editor-empty-banner__action {
-    width: 100%;
   }
 
   :deep(.qy-tiptap-toolbar) {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
+import { createPinia } from 'pinia'
 
 const routeState = {
   query: {
@@ -83,6 +84,13 @@ vi.mock('@/modules/writer/stores/panelStore', () => ({
     rightCollapsed: false,
     setLeftCollapsed: vi.fn(),
     setRightCollapsed: vi.fn(),
+  }),
+}))
+
+vi.mock('@/modules/writer/stores/editorThemeStore', () => ({
+  useEditorThemeStore: () => ({
+    currentTheme: 'light',
+    initTheme: vi.fn(),
   }),
 }))
 
@@ -189,11 +197,14 @@ describe('ProjectWorkspace Refactor', () => {
     routerReplace.mockClear()
     setActiveTool.mockClear()
     setSelectedText.mockClear()
+    loadCharacters.mockClear()
+    loadCharacterRelations.mockClear()
   })
 
   it('写作模式下应渲染 TipTapEditorView 且不渲染旧 EditorPanel', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -215,11 +226,14 @@ describe('ProjectWorkspace Refactor', () => {
 
     expect(wrapper.find('[data-testid="tiptap-editor-view"]').exists()).toBe(true)
     expect(wrapper.html()).not.toContain('EditorPanel')
+    expect(loadCharacters).toHaveBeenCalledWith('project-1')
+    expect(loadCharacterRelations).toHaveBeenCalledWith('project-1')
   })
 
   it('切换章节时应通过路由保持写作模式', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -252,6 +266,7 @@ describe('ProjectWorkspace Refactor', () => {
   it('AI 回填后应把反馈重新传给右侧工作台', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -281,6 +296,7 @@ describe('ProjectWorkspace Refactor', () => {
   it('切到关系图谱 dock 时应写入百科路由查询', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -314,6 +330,7 @@ describe('ProjectWorkspace Refactor', () => {
   it('切到百科 dock 时应进入百科卡片视图', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -347,6 +364,7 @@ describe('ProjectWorkspace Refactor', () => {
   it('切到大纲 dock 时应进入结构舞台视图', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -388,6 +406,7 @@ describe('ProjectWorkspace Refactor', () => {
 
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -428,6 +447,7 @@ describe('ProjectWorkspace Refactor', () => {
 
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `
@@ -472,6 +492,7 @@ describe('ProjectWorkspace Refactor', () => {
 
     const wrapper = mount(ProjectWorkspace, {
       global: {
+        plugins: [createPinia()],
         stubs: {
           EditorLayout: {
             template: `

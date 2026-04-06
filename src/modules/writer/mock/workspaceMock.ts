@@ -168,7 +168,23 @@ const createYunlanContentByDocId = (projectId: string): Record<string, string> =
       `${projectId}-scene-2`,
       '# 目录二 灯下问卷（推进）\n\n这一目录承接前文线索，把叙事重心推进到书院内部谜团，并埋入后续冲突触发点。',
     ],
-    ...readerChapters.map((chapter): [string, string] => [chapter.id, `# ${chapter.title}\n\n${chapter.content}`]),
+    ...readerChapters.map((chapter): [string, string] => {
+      if (chapter.id === 'ch-2') {
+        return [
+          chapter.id,
+          `# ${chapter.title}
+
+${chapter.content}
+
+林砚离开听雨斋前，忽然意识到周先生并没有把所有话说完。他开始怀疑，这位看似平静的先生是否也在借自己试探云岚城里的暗流。
+
+// @周德厚 对林砚起疑，暂不再公开交付关键情报。
+// @林砚 状态转为怀疑与戒备。`,
+        ]
+      }
+
+      return [chapter.id, `# ${chapter.title}\n\n${chapter.content}`]
+    }),
   ]
   return Object.fromEntries(entries)
 }

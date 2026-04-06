@@ -55,6 +55,10 @@
           :chapter-id="displayChapterId"
           :chapter-title="displayChapterTitle"
           :chapters="flatChapters"
+          :scope-label="currentScopeLabel"
+          :active-characters="activeScopeCharacters"
+          :active-relations="activeScopeRelations"
+          :change-requests="storyHarnessChangeRequests"
           v-model:content="tipTapContent"
           @update:category="setEncyclopediaCategory"
           @trigger-ai-action="handleAIStageAction"
@@ -131,6 +135,7 @@ import { useWorkspaceState } from '@/modules/writer/composables/useWorkspaceStat
 import { useImmersiveTimer } from '@/modules/writer/composables/useImmersiveTimer'
 import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopediaView'
 import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
+import { useStoryHarnessWorkspace } from '@/modules/writer/composables/useStoryHarnessWorkspace'
 
 // 引入 API
 import {
@@ -260,6 +265,20 @@ const displayChapterTitle = computed(() =>
   isGlobalRelationsView.value ? '' : currentChapterTitle.value,
 )
 
+const {
+  currentScopeLabel,
+  activeScopeCharacters,
+  activeScopeRelations,
+  storyHarnessChangeRequests,
+  persistCurrentLiveChangeRequests,
+} = useStoryHarnessWorkspace({
+  projectId: currentProjectId,
+  displayChapterId,
+  displayChapterTitle,
+  currentChapterPlainText,
+  availableDocMap,
+})
+
 // =======================
 // UI 状态
 // =======================
@@ -365,6 +384,7 @@ const handleTipTapSave = async (contents?: unknown[]) => {
         }>,
       )
     }
+    await persistCurrentLiveChangeRequests()
     // 保存成功静默处理，不显示弹窗，状态栏会显示保存状态
   } catch (error) {
     console.error('[ProjectWorkspace] 保存失败:', error)
@@ -936,13 +956,23 @@ onMounted(async () => {
   editorThemeStore.initTheme()
   const pId = currentProjectId.value
   if (pId) {
-    await Promise.all([
+    const bootstrapTasks: Array<Promise<unknown>> = [
       projectStore.loadList(),
       projectStore.loadDetail(pId),
       documentStore.loadTree(pId),
       loadOutlineTree(),
       writerStore.loadTimelines(pId),
-    ])
+    ]
+
+    if (writerStore.characters.list.length === 0) {
+      bootstrapTasks.push(writerStore.loadCharacters(pId))
+    }
+
+    if (writerStore.characters.relations.length === 0) {
+      bootstrapTasks.push(writerStore.loadCharacterRelations(pId))
+    }
+
+    await Promise.all(bootstrapTasks)
     // 时间线列表加载完成后，如果有当前时间线则加载事件
     if (writerStore.timeline.currentTimeline) {
       await writerStore.loadTimelineEvents(writerStore.timeline.currentTimeline.id)
