@@ -58,6 +58,7 @@
       <section
         v-if="primaryDraftProposal"
         class="proposal-card workflow-proposal-card"
+        :class="{ 'proposal-card--condensed': shouldCondensePrimaryProposal }"
         data-testid="proposal-card"
       >
         <div class="proposal-card__content">
@@ -75,7 +76,9 @@
           <div class="proposal-card__header">
             <div>
               <strong>{{ primaryDraftProposal.title }}</strong>
-              <p>{{ primaryDraftProposal.summary }}</p>
+              <p v-if="!shouldCondensePrimaryProposal" data-testid="proposal-card-summary">
+                {{ primaryDraftProposal.summary }}
+              </p>
             </div>
           </div>
         </div>
@@ -106,7 +109,7 @@
               })
             "
           >
-            丢弃
+            {{ proposalDismissActionText(primaryDraftProposal.status) }}
           </button>
         </div>
       </section>
@@ -251,6 +254,10 @@ const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
   return props.draftProposals.find((proposal) => proposal.status === 'draft') || null
 })
 
+const shouldCondensePrimaryProposal = computed(
+  () => primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value,
+)
+
 const hasWorkflowRail = computed(
   () =>
     !!props.aiApplyFeedback ||
@@ -339,6 +346,10 @@ function proposalStatusText(status: WriterDraftProposalStatus) {
 
 function proposalSelectActionText(kind: WriterDraftProposalKind) {
   return kind === 'chapter-direction' ? '保留方向' : '保留正文'
+}
+
+function proposalDismissActionText(status: WriterDraftProposalStatus) {
+  return status === 'selected' ? '移出' : '丢弃'
 }
 
 function proposalKindText(kind: WriterDraftProposalKind) {
@@ -489,6 +500,18 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 
 .proposal-card {
   display: block;
+}
+
+.proposal-card--condensed {
+  padding-block: 8px;
+}
+
+.proposal-card--condensed .proposal-card__content {
+  gap: 4px;
+}
+
+.proposal-card--condensed .proposal-card__actions {
+  margin-top: 6px;
 }
 
 .workflow-card__meta,

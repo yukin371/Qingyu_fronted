@@ -412,6 +412,67 @@ describe('AIWorkbench', () => {
     expect(wrapper.text()).toContain('审校建议提案')
   })
 
+  it('condenses selected proposal card once a newer result candidate is visible', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-result-on-selected\" @click=\"$emit('result-candidate', { source: 'chat', action: 'chat', title: 'AI 对话结果', summary: '新的处理建议', generatedText: '新的剧情方向', sourceText: '继续推进冲突' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [
+          {
+            id: 'proposal-selected',
+            kind: 'chapter-direction',
+            source: 'summary-workbench',
+            title: '已保留方向',
+            summary: '当前采用方案',
+            generatedText: '已保留方向',
+            sourceText: '第一章',
+            status: 'selected',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+          AIPanel: AIPanelStub,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-result-on-selected"]').trigger('click')
+
+    const proposalCard = wrapper.get('[data-testid="proposal-card"]')
+    expect(proposalCard.classes()).toContain('proposal-card--condensed')
+    expect(proposalCard.find('[data-testid="proposal-card-summary"]').exists()).toBe(false)
+    expect(proposalCard.text()).toContain('已保留方向')
+    expect(proposalCard.text()).toContain('移出')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
+  })
+
   it('prioritizes selected proposal over draft when choosing primary proposal card', () => {
     const now = Date.now()
     const wrapper = mount(AIWorkbench, {
