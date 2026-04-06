@@ -16,12 +16,12 @@ BrowseBooksView 页面存在**阻塞性 API 路径错误**，导致页面无法�
 
 ### 问题优先级分布
 
-| 优先级 | 数量 | 状态 |
-|--------|------|------|
-| P0 - 阻塞性 | 1 | 🔴 必须修复 |
-| P1 - 高优先级 | 2 | 🟠 建议修复 |
-| P2 - 中优先级 | 1 | 🟡 可选修复 |
-| P3 - 低优先级 | 2 | ⚪ 非关键 |
+| 优先级        | 数量 | 状态        |
+| ------------- | ---- | ----------- |
+| P0 - 阻塞性   | 1    | 🔴 必须修复 |
+| P1 - 高优先级 | 2    | 🟠 建议修复 |
+| P2 - 中优先级 | 1    | 🟡 可选修复 |
+| P3 - 低优先级 | 2    | ⚪ 非关键   |
 
 ---
 
@@ -35,6 +35,7 @@ BrowseBooksView 页面存在**阻塞性 API 路径错误**，导致页面无法�
 `browse.service.ts` 中的 API 路径配置错误，导致所有请求返回 404。
 
 **错误路径**：
+
 ```typescript
 // browse.service.ts (当前错误实现)
 httpService.get('/api/books', ...)          // → /api/v1/api/books ❌
@@ -44,10 +45,12 @@ httpService.get('/api/tags', ...)           // → /api/v1/api/tags ❌
 ```
 
 **根本原因**：
+
 - `http.service.ts` 拦截器（第63-66行）自动添加 `/api/v1` 前缀
 - `browse.service.ts` 路径已包含 `/api`，导致重复
 
 **正确格式**（参考 `categories.ts` 和 `bookstore.ts`）：
+
 ```typescript
 // 应该使用
 httpService.get('/bookstore/books', ...)
@@ -57,12 +60,14 @@ httpService.get('/bookstore/tags', ...)         // 需确认后端是否支持
 ```
 
 **影响范围**：
+
 - ❌ 分类数据无法加载
 - ❌ 年份数据无法加载
 - ❌ 标签数据无法加载
 - ❌ 书籍列表无法加载
 
 **网络请求证据**：
+
 ```
 reqid=204 GET http://localhost:8080/api/v1/api/categories [404]
 reqid=205 GET http://localhost:8080/api/v1/api/books/years [404]
@@ -71,12 +76,15 @@ reqid=207 GET http://localhost:8080/api/v1/api/books [404]
 ```
 
 **修复方案**：
+
 ```typescript
 // src/modules/bookstore/services/browse.service.ts
 
 export const browseService = {
   async getBooks(filters: BrowseFilters): Promise<GetBooksResponse> {
-    const params = { /* ... */ }
+    const params = {
+      /* ... */
+    }
     // 修复：移除 /api 前缀
     return httpService.get('/bookstore/books', { params: cleanParams })
   },
@@ -99,11 +107,12 @@ export const browseService = {
   async getYears() {
     // 修复：移除 /api 前缀
     return httpService.get('/bookstore/books/years')
-  }
+  },
 }
 ```
 
 **修复位置**：
+
 - `src/modules/bookstore/services/browse.service.ts`: 35, 42, 49, 56, 63 行
 
 ---
@@ -116,6 +125,7 @@ export const browseService = {
 BrowseBooksView.vue 仍在使用 Element Plus 的 `el-pagination` 组件，违反了组件库迁移计划。
 
 **问题代码**：
+
 ```vue
 <!-- BrowseBooksView.vue:81-89 -->
 <el-pagination
@@ -130,11 +140,13 @@ BrowseBooksView.vue 仍在使用 Element Plus 的 `el-pagination` 组件，违�
 ```
 
 **影响**：
+
 - 与青羽设计系统风格不一致
 - 违反 Tailwind 重构计划
 - 增加打包体积（Element Plus 依赖）
 
 **修复方案**：
+
 1. 使用现有的青羽设计系统分页组件
 2. 或创建新的 QyPagination 组件（参考设计文档）
 
@@ -146,16 +158,19 @@ BrowseBooksView.vue 仍在使用 Element Plus 的 `el-pagination` 组件，违�
 页面显示错误：`message2.error is not a function`
 
 **控制台证据**：
+
 ```
 uid=1_21 StaticText "message2.error is not a function"
 ```
 
 **根本原因**：
+
 - Element Plus 的 message 调用方式已更改
 - 或使用了错误的青羽消息组件导入方式
 
 **修复方案**：
 使用正确的青羽设计系统消息组件：
+
 ```typescript
 import { message } from '@/design-system/services'
 
@@ -174,15 +189,18 @@ message.success('成功信息')
 2 个表单输入字段缺少 `id` 或 `name` 属性，影响浏览器自动填充和可访问性。
 
 **受影响元素**：
+
 1. `uid=1_9` - 顶部导航搜索框
 2. `uid=1_16` - Browse页面搜索框
 
 **控制台警告**：
+
 ```
 A form field element should have an id or name attribute (count: 2)
 ```
 
 **修复方案**：
+
 ```vue
 <!-- 添加 id 或 name 属性 -->
 <input
@@ -200,6 +218,7 @@ A form field element should have an id or name attribute (count: 2)
 #### ℹ️ 5. Menu 组件引用未解析
 
 **问题描述**：
+
 ```
 [Vue warn]: Failed to resolve component: Menu
 ```
@@ -213,11 +232,13 @@ A form field element should have an id or name attribute (count: 2)
 #### ℹ️ 6. baseline-browser-mapping 过期
 
 **问题描述**：
+
 ```
 [baseline-browser-mapping] The data in this module is over two months old
 ```
 
 **修复方案**：
+
 ```bash
 npm i baseline-browser-mapping@latest -D
 ```
@@ -226,20 +247,20 @@ npm i baseline-browser-mapping@latest -D
 
 ## ✅ 符合设计文档的部分
 
-以下功能已正确实现，符合 `docs/plans/2026-01-25-bookstore-browse-page-design-v1.2.md` 要求：
+以下功能已正确实现，符合 `docs/plans/submodules/frontend/reader-experience/2026-01-25-bookstore-browse-page-design-v1.2.md` 要求：
 
-| 功能 | 要求 | 实现 | 状态 |
-|------|------|------|------|
-| 页面标题 | "探索书库" | ✅ "探索书库" | ✅ |
-| 页面副标题 | "发现你喜欢的精彩书籍" | ✅ 完全匹配 | ✅ |
-| SearchBar 组件 | 支持搜索建议 | ✅ 已实现 | ✅ |
-| FilterBar 组件 | 分类/年份/状态筛选 | ✅ 已实现 | ✅ |
-| TagFilter 组件 | 多标签筛选（AND模式） | ✅ 已实现 | ✅ |
-| BookGrid 组件 | 紧凑网格模式 | ✅ 已实现 | ✅ |
-| 分页/无限滚动 | 桌面/移动端适配 | ✅ 已实现 | ⚠️ |
-| URL 驱动 | URL ↔ Store 双向同步 | ✅ 已实现 | ✅ |
-| 空状态处理 | 多种空状态场景 | ✅ 已实现 | ✅ |
-| 错误处理 | 重试机制 | ✅ 已实现 | ✅ |
+| 功能           | 要求                   | 实现          | 状态 |
+| -------------- | ---------------------- | ------------- | ---- |
+| 页面标题       | "探索书库"             | ✅ "探索书库" | ✅   |
+| 页面副标题     | "发现你喜欢的精彩书籍" | ✅ 完全匹配   | ✅   |
+| SearchBar 组件 | 支持搜索建议           | ✅ 已实现     | ✅   |
+| FilterBar 组件 | 分类/年份/状态筛选     | ✅ 已实现     | ✅   |
+| TagFilter 组件 | 多标签筛选（AND模式）  | ✅ 已实现     | ✅   |
+| BookGrid 组件  | 紧凑网格模式           | ✅ 已实现     | ✅   |
+| 分页/无限滚动  | 桌面/移动端适配        | ✅ 已实现     | ⚠️   |
+| URL 驱动       | URL ↔ Store 双向同步   | ✅ 已实现     | ✅   |
+| 空状态处理     | 多种空状态场景         | ✅ 已实现     | ✅   |
+| 错误处理       | 重试机制               | ✅ 已实现     | ✅   |
 
 ---
 
@@ -275,6 +296,7 @@ npm i baseline-browser-mapping@latest -D
 ### 架构差异：无
 
 页面架构完全符合设计文档要求：
+
 - ✅ 单页入口设计
 - ✅ URL 驱动优先
 - ✅ 单一真源（Pinia Store）
@@ -296,6 +318,7 @@ npm i baseline-browser-mapping@latest -D
 修复后应满足以下标准：
 
 ### 功能验收
+
 - [ ] 所有 API 请求返回 200（非 404）
 - [ ] 页面能正常显示书籍列表
 - [ ] 搜索功能正常工作
@@ -304,12 +327,14 @@ npm i baseline-browser-mapping@latest -D
 - [ ] 无限滚动功能正常工作（移动端）
 
 ### 技术验收
-- [ ] 不使用 Element Plus 组件（el-*）
+
+- [ ] 不使用 Element Plus 组件（el-\*）
 - [ ] 无控制台错误
 - [ ] 所有表单字段有 id/name 属性
 - [ ] API 路径符合 `/bookstore/...` 格式
 
 ### 性能验收
+
 - [ ] Lighthouse 性能分数 ≥ 90
 - [ ] FCP ≤ 1.5s
 - [ ] LCP ≤ 2.5s

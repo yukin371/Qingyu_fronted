@@ -2,7 +2,7 @@
 
 > **版本**: v1.0
 > **最后更新**: 2025-01-14
-> **实施计划**: [2025-01-14-unified-error-handling-implementation.md](../plans/2025-01-14-unified-error-handling-implementation.md)
+> **实施计划**: [2025-01-14-unified-error-handling-implementation.md](../../../../docs/plans/submodules/frontend/api-and-testing/2025-01-14-unified-error-handling-implementation.md)
 
 ## 概述
 
@@ -95,7 +95,7 @@ const loadData = async () => {
 import { httpService } from '@/core/services/http.service'
 
 export const userAPI = {
-  getProfile: () => httpService.get<UserProfile>('/user/profile')
+  getProfile: () => httpService.get<UserProfile>('/user/profile'),
   // 错误会自动被拦截器处理：
   // - 显示用户友好的错误消息
   // - 处理认证错误（自动跳转登录或刷新令牌）
@@ -105,13 +105,13 @@ export const userAPI = {
 
 ### 3. 错误码参考
 
-| 模块 | 错误码范围 | 说明 |
-|------|-----------|------|
-| 通用/客户端 | 1000-1099 | 参数错误、未授权、禁止访问等 |
-| 认证授权 | 1100-1199 | Token 过期、无效凭证等 |
-| 业务逻辑 | 1200-1299 | 余额不足、内容未发布等 |
-| 内容审核 | 1300-1399 | 内容待审核、被拒绝等 |
-| 服务器 | 5000-5999 | 内部错误、数据库错误等 |
+| 模块        | 错误码范围 | 说明                         |
+| ----------- | ---------- | ---------------------------- |
+| 通用/客户端 | 1000-1099  | 参数错误、未授权、禁止访问等 |
+| 认证授权    | 1100-1199  | Token 过期、无效凭证等       |
+| 业务逻辑    | 1200-1299  | 余额不足、内容未发布等       |
+| 内容审核    | 1300-1399  | 内容待审核、被拒绝等         |
+| 服务器      | 5000-5999  | 内部错误、数据库错误等       |
 
 完整错误码列表: [错误码手册](./error-codes.md)
 
@@ -304,7 +304,7 @@ const fetchList = async (page: number, pageSize: number) => {
       items: Item[]
       pagination: Pagination
     }>('/books', {
-      params: { page, pageSize }
+      params: { page, pageSize },
     })
     return result
   } catch (error) {
@@ -384,6 +384,7 @@ logger.Log.Error("API error",
 **原因**: 令牌刷新失败或后端返回了错误的错误码
 
 **解决方案**:
+
 - 检查后端是否返回正确的错误码（1102 表示 Token 过期）
 - 确认 `/api/v1/auth/refresh` 端点可用
 
@@ -392,6 +393,7 @@ logger.Log.Error("API error",
 **原因**: 前端错误码与后端不一致
 
 **解决方案**:
+
 - 使用 `pkg/errors` 包中的错误码常量
 - 不要在代码中硬编码错误码数字
 
@@ -400,6 +402,7 @@ logger.Log.Error("API error",
 **原因**: 仅在生产环境启动错误上报
 
 **解决方案**:
+
 - 检查 `import.meta.env.PROD` 的值
 - 开发环境下可以通过浏览器控制台查看错误
 
@@ -410,7 +413,7 @@ logger.Log.Error("API error",
 - [错误码手册](./error-codes.md) - 完整错误码参考
 - [最佳实践](./best-practices.md) - 错误处理最佳实践
 - [快速参考](../quick-reference/) - 各模块 API 快速参考
-- [实施计划](../plans/2025-01-14-unified-error-handling-implementation.md) - 完整实施计划
+- [实施计划](../../../../docs/plans/submodules/frontend/api-and-testing/2025-01-14-unified-error-handling-implementation.md) - 完整实施计划
 
 ---
 

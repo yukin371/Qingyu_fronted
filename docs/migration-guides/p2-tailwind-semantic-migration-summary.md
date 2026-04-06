@@ -19,12 +19,14 @@
 ## 影响范围统计
 
 ### 代码变更
+
 - **修改文件总数**: 48个源代码文件
 - **代码行数变化**: +453 -281
 - **新增文件**: 1个（coverage-report.txt）
 - **删除文件**: 1191个（旧coverage报告）
 
 ### 文件分类
+
 - **设计系统组件**: 18个文件
 - **业务组件**: 5个文件
 - **特殊场景文件**: 11个文件
@@ -38,6 +40,7 @@
 ### 设计系统组件（18个）
 
 #### 基础组件（10个）
+
 - `src/design-system/components/basic/QyButton/QyButton.vue`
 - `src/design-system/components/basic/QyInput/QyInput.vue`
 - `src/design-system/components/basic/QyCard/QyCard.vue`
@@ -50,22 +53,26 @@
 - `src/design-system/data/Tabs/TabPane.vue`
 
 #### 业务组件（4个）
+
 - `src/design-system/components/business/QyBookCard/QyBookCard.vue`
 - `src/design-system/components/business/QyBookCover/QyBookCover.vue`
 - `src/design-system/components/business/QyCommentItem/QyCommentItem.vue`
 - `src/design-system/components/business/QyUserCard/QyUserCard.vue`
 
 #### 导航组件（3个）
+
 - `src/design-system/components/navigation/QyTopNav/QyTopNav.vue`
 - `src/design-system/components/navigation/QyTabBar/QyTabBar.vue`
 - `src/design-system/components/navigation/QyBottomDock/QyBottomDock.vue`
 
 #### 反馈组件（2个）
+
 - `src/design-system/feedback/Message/Message.vue`
 - `src/design-system/feedback/Notification/Notification.vue`
 - `src/design-system/feedback/MessageBox/MessageBox.vue`
 
 ### 业务组件（5个）
+
 - `src/components/Layout/Header.vue`
 - `src/components/Category/CategoryList.vue`
 - `src/components/Ranking/RankingList.vue`
@@ -75,6 +82,7 @@
 ### 特殊场景文件（11个）
 
 #### 动态类名处理
+
 - `src/modules/writer/components/BatchOperationProgressDialog.vue`
 - `src/modules/writer/components/DocumentTree.vue`
 - `src/modules/writer/components/ExportFormatDialog.vue`
@@ -87,19 +95,23 @@
 - `src/design-system/other/ThemeSwitcher.vue`
 
 #### 其他
+
 - `src/design-system/tokens/typography.ts`
 
 ### Demo文件（4个）
+
 - `src/views/demo/AdvancedComponentsDemo.vue`
 - `src/views/demo/AppleStyleDemo.vue`
 - `src/views/demo/NavigationComponentsDemo.vue`
 - `src/views/demo/QingyuComponentsDemo.vue`
 
 ### 配置文件（2个）
+
 - `tailwind.config.js`
 - `src/design-system/tokens/theme.ts`
 
 ### 测试文件（17个）
+
 - `src/design-system/base/Avatar/Avatar.test.ts`
 - `src/design-system/base/Badge/Badge.test.ts`
 - `src/design-system/base/Button/Button.test.ts`
@@ -119,6 +131,7 @@
 - `src/design-system/feedback/Notification/README.md`
 
 ### 文档文件（3个）
+
 - `docs/standards/STANDARDS.md`
 - `docs/standards/archive/README.md`
 - `scripts/generate-all-apis.mjs`
@@ -127,13 +140,13 @@
 
 ### 类名替换规则
 
-| 旧类名 | 新类名 | 说明 |
-|--------|--------|------|
-| `cyan-*` | `primary-*` | 主色调 |
-| `blue-*` | `secondary-*` | 次要色调 |
+| 旧类名        | 新类名           | 说明     |
+| ------------- | ---------------- | -------- |
+| `cyan-*`      | `primary-*`      | 主色调   |
+| `blue-*`      | `secondary-*`    | 次要色调 |
 | `from-cyan-*` | `from-primary-*` | 渐变起点 |
-| `to-blue-*` | `to-secondary-*` | 渐变终点 |
-| `via-cyan-*` | `via-primary-*` | 渐变中点 |
+| `to-blue-*`   | `to-secondary-*` | 渐变终点 |
+| `via-cyan-*`  | `via-primary-*`  | 渐变中点 |
 
 ### CSS变量定义
 
@@ -241,6 +254,7 @@ info: {
 ### 单元测试
 
 #### 设计系统组件测试
+
 - ✅ **Avatar.test.ts**: 通过
 - ✅ **Badge.test.ts**: 通过
 - ✅ **Button.test.ts**: 通过
@@ -253,37 +267,44 @@ info: {
 - ✅ **Tag.test.ts**: 通过
 
 #### 颜色相关测试
+
 - ✅ **readme-examples.test.ts**: 通过
 - ✅ **Notification.test.ts**: 通过
 
 #### 测试覆盖率
+
 - 总体覆盖率保持稳定
 - 颜色相关测试覆盖率：100%
 
 ### 视觉检查
 
 #### 组件外观
+
 - ✅ **按钮颜色**: primary/secondary 色调显示正常
 - ✅ **渐变效果**: from-primary/to-secondary 渐变平滑
 - ✅ **焦点状态**: focus:ring-primary 效果一致
-- ✅ **悬停效果**: hover:bg-primary-* 过渡自然
+- ✅ **悬停效果**: hover:bg-primary-\* 过渡自然
 
 #### 主题切换
+
 - ✅ **明暗主题**: 语义化颜色在两种主题下正常
 - ✅ **颜色一致性**: 所有组件使用统一的语义化颜色
 
 ### 构建验证
 
 #### Tailwind 配置
+
 - ✅ **配置文件**: tailwind.config.js 正确配置
 - ✅ **CSS变量**: 所有语义化变量已定义
 - ✅ **类名生成**: Tailwind 正确生成 primary/secondary 类
 
 #### 类型检查
+
 - ⚠️ **警告**: 存在部分 TypeScript 错误（与颜色无关）
 - ⚠️ **API 模块**: 部分 API 相关类型错误（已存在问题）
 
 #### 构建结果
+
 - ✅ **颜色相关**: 无颜色相关的构建错误
 - ⚠️ **其他模块**: 存在与颜色无关的已知问题
 
@@ -292,12 +313,14 @@ info: {
 ### 非阻塞问题
 
 #### 1. Stories 文件中的示例代码
+
 - **状态**: 部分保持旧类名
 - **原因**: 按设计保留，用于展示迁移前后的对比
 - **影响**: 无实际影响
 - **优先级**: 低
 
 #### 2. 部分测试文件
+
 - **状态**: 仍使用旧类名
 - **原因**: 测试文件优先级较低
 - **影响**: 无实际影响
@@ -306,11 +329,13 @@ info: {
 ### 后续优化建议
 
 #### 短期优化（可选）
+
 1. 清理 Stories 文件中的旧类名
 2. 清理测试文件中的旧类名
 3. 完善单元测试覆盖率
 
 #### 长期优化
+
 1. 考虑引入主题切换功能
 2. 完善设计令牌系统
 3. 建立颜色使用规范文档
@@ -320,12 +345,14 @@ info: {
 如果需要回滚此次迁移：
 
 ### 方案 1: 切换回主分支
+
 ```bash
 git checkout main
 git branch -D feature/p2-tailwind-semantic-migration
 ```
 
 ### 方案 2: 使用备份配置
+
 ```bash
 # 使用备份的配置文件
 cp .backup/p1-tailwind-config.js tailwind.config.js
@@ -335,6 +362,7 @@ git checkout main -- src/design-system/tokens/theme.ts
 ```
 
 ### 方案 3: 手动回滚
+
 ```bash
 # 回滚到迁移前的提交
 git log --oneline | grep "feat(p2)"
@@ -344,11 +372,13 @@ git revert <commit-hash>
 ## 迁移最佳实践
 
 ### 1. 分支策略
+
 - ✅ 使用独立的特性分支
 - ✅ 完成测试后再合并
 - ✅ 保留主分支稳定
 
 ### 2. 迁移步骤
+
 1. 备份现有配置
 2. 更新 Tailwind 配置
 3. 批量替换类名
@@ -358,6 +388,7 @@ git revert <commit-hash>
 7. 提交变更
 
 ### 3. 验证要点
+
 - 单元测试通过
 - 视觉效果一致
 - 无构建错误
@@ -366,19 +397,23 @@ git revert <commit-hash>
 ## 相关文档
 
 ### 迁移相关
+
 - [Qingyu 组件迁移指南](./qingyu-migration-guide.md)
 - [P1 设计令牌系统](../design-system/qingyu-design-system.md)
 
 ### 设计系统
+
 - [Qingyu 设计系统文档](../design-system/qingyu-design-system.md)
 - [组件快速开始指南](./qingyu-components-quickstart.md)
 
 ### 计划文档
-- [Tailwind 重构计划](../plans/2026-01-26-tailwind-refactor-plan.md)
+
+- [Tailwind 重构设计](../../../docs/plans/submodules/frontend/reader-experience/2026-02-09-reader-tailwind-refactor-design.md)
 
 ## 提交记录
 
 ### 主提交
+
 - **提交哈希**: 7ecb9c8
 - **提交类型**: feat(p2)
 - **提交标题**: 完成Tailwind语义化命名迁移
@@ -386,6 +421,7 @@ git revert <commit-hash>
 - **提交者**: yukin371
 
 ### 提交内容
+
 ```
 feat(p2): 完成Tailwind语义化命名迁移
 
