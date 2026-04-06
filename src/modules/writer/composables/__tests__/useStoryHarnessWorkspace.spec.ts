@@ -14,6 +14,7 @@ const { mockStoryHarnessService } = vi.hoisted(() => ({
     fetchChangeRequests: vi.fn(),
     processChangeRequest: vi.fn(),
     triggerIndex: vi.fn(),
+    rebuildProjection: vi.fn(),
   },
 }))
 
@@ -85,6 +86,12 @@ describe('useStoryHarnessWorkspace', () => {
       pending: 1,
       deduplicated: 0,
       source: 'manual',
+    })
+    mockStoryHarnessService.rebuildProjection.mockResolvedValue({
+      projectId: 'project-1',
+      chapterId: 'chapter-1',
+      replayedCount: 1,
+      lastRequestId: 'backend-cr-1',
     })
   })
 
@@ -323,5 +330,45 @@ describe('useStoryHarnessWorkspace', () => {
 
     expect(mockStoryHarnessService.triggerIndex).toHaveBeenCalledWith('project-1', 'chapter-1')
     expect(harness.storyHarnessChangeRequests.value[0].id).toBe('backend-cr-1')
+  })
+
+  it('accept 后如果 context 为空，应兜底重建 projection 再刷新一次', async () => {
+    const writerStore = useWriterStore()
+
+    writerStore.characters.list = [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '强撑' }] as any
+    writerStore.characters.relations = [] as any
+    writerStore.outline.tree = [] as any
+
+    mockStoryHarnessService.fetchChapterContext
+      .mockResolvedValueOnce({
+        characters: [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' }],
+        relations: [],
+        pendingCRs: 1,
+      })
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        characters: [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '重伤撤退' }],
+        relations: [],
+        pendingCRs: 0,
+      })
+
+    const harness = useStoryHarnessWorkspace({
+      projectId: computed(() => 'project-1'),
+      displayChapterId: computed(() => 'chapter-1'),
+      displayChapterTitle: computed(() => '第一章'),
+      currentChapterPlainText: computed(() => '// @张三 受伤严重，退出后续战斗。'),
+      availableDocMap: computed(() => new Map([['chapter-1', { id: 'chapter-1', title: '第一章' }]]) as any),
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    const success = await harness.handleChangeRequestDecision('backend-cr-1', 'accepted')
+    await flushPromises()
+    await nextTick()
+
+    expect(success).toBe(true)
+    expect(mockStoryHarnessService.rebuildProjection).toHaveBeenCalledWith('project-1', 'chapter-1')
+    expect(harness.activeScopeCharacters.value[0].currentState).toBe('重伤撤退')
   })
 })

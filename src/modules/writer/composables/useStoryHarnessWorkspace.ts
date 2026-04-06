@@ -432,7 +432,11 @@ export function useStoryHarnessWorkspace(
     await loadBackendChangeRequests()
 
     if (decision === 'accepted') {
-      await loadBackendContext()
+      const context = await loadBackendContext()
+      if (!context) {
+        await storyHarnessService.rebuildProjection(projectId.value, displayChapterId.value)
+        await loadBackendContext()
+      }
     }
 
     return true

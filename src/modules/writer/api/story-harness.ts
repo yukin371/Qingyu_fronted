@@ -84,6 +84,9 @@ const buildChapterContextUrl = (projectId: string, chapterId: string) =>
 const buildTriggerIndexUrl = (projectId: string, chapterId: string) =>
   `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/trigger-index`
 
+const buildRebuildProjectionUrl = (projectId: string, chapterId: string) =>
+  `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/rebuild-projection`
+
 const buildChangeRequestListUrl = (projectId: string, chapterId: string) =>
   `${BASE_WRITER_URL}/projects/${projectId}/chapters/${chapterId}/change-requests`
 
@@ -111,6 +114,13 @@ export const storyHarnessApi = {
   triggerIndex(projectId: string, chapterId: string) {
     return httpService.post<{ batchId: string; generated: number; pending: number; deduplicated: number; source: string }>(
       buildTriggerIndexUrl(projectId, chapterId),
+    )
+  },
+
+  /** 手动重建章节投影（用于 accepted 后兜底修复） */
+  rebuildProjection(projectId: string, chapterId: string) {
+    return httpService.post<{ projectId: string; chapterId: string; replayedCount: number; lastRequestId?: string }>(
+      buildRebuildProjectionUrl(projectId, chapterId),
     )
   },
 

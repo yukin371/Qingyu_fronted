@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useStoryHarnessStore } from '@/modules/writer/stores/v3/storyHarnessStore'
 import StoryHarnessChangeRequestDrawer from '../StoryHarnessChangeRequestDrawer.vue'
@@ -71,5 +71,51 @@ describe('StoryHarnessChangeRequestDrawer', () => {
     expect(harnessStore.pendingChangeRequestCount).toBe(1)
 
     expect(wrapper.text()).toContain('关系摘要可能需要更新：张三 → 李四')
+  })
+
+  it('同一条建议处理中不应重复触发后端决策', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const resolveQueue: Array<(value: boolean) => void> = []
+    const handleChangeRequestDecision = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveQueue.push(resolve)
+        }),
+    )
+
+    const wrapper = mount(StoryHarnessChangeRequestDrawer, {
+      props: {
+        modelValue: true,
+        changeRequests: [
+          {
+            id: 'cr-1',
+            source: 'save_batch',
+            type: 'state',
+            title: '角色状态可能需要更新：张三',
+            summary: '状态可能转为怀疑或动摇',
+            reason: '这类变化适合先作为 Change Request 预览。',
+            evidence: '张三开始怀疑李四。',
+            severity: 'focus',
+          },
+        ],
+        handleChangeRequestDecision,
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          QyDrawer: { template: '<div><slot /><slot name="footer" /></div>' },
+        },
+      },
+    })
+
+    const button = wrapper.get('[data-testid="story-harness-accept-cr-1"]')
+    await button.trigger('click')
+    await button.trigger('click')
+
+    expect(handleChangeRequestDecision).toHaveBeenCalledTimes(1)
+
+    resolveQueue[0](true)
+    await flushPromises()
   })
 })

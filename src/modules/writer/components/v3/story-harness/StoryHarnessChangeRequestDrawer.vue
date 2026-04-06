@@ -107,6 +107,8 @@
                 <QyButton
                   variant="primary"
                   size="sm"
+                  :loading="isProcessingDecision(changeRequest.id)"
+                  :disabled="isProcessingDecision(changeRequest.id)"
                   :data-testid="`story-harness-accept-${changeRequest.id}`"
                   @click="handleDecision(changeRequest.id, 'accepted')"
                 >
@@ -115,6 +117,8 @@
                 <QyButton
                   variant="secondary"
                   size="sm"
+                  :loading="isProcessingDecision(changeRequest.id)"
+                  :disabled="isProcessingDecision(changeRequest.id)"
                   :data-testid="`story-harness-defer-${changeRequest.id}`"
                   @click="handleDecision(changeRequest.id, 'deferred')"
                 >
@@ -123,6 +127,8 @@
                 <QyButton
                   variant="ghost"
                   size="sm"
+                  :loading="isProcessingDecision(changeRequest.id)"
+                  :disabled="isProcessingDecision(changeRequest.id)"
                   :data-testid="`story-harness-ignore-${changeRequest.id}`"
                   @click="handleDecision(changeRequest.id, 'ignored')"
                 >
@@ -179,6 +185,8 @@
                 <QyButton
                   variant="secondary"
                   size="sm"
+                  :loading="isProcessingDecision(changeRequest.id)"
+                  :disabled="isProcessingDecision(changeRequest.id)"
                   :data-testid="`story-harness-reset-${changeRequest.id}`"
                   @click="handleDecision(changeRequest.id, 'pending')"
                 >
@@ -225,6 +233,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { QyButton, QyCard, QyDrawer, QyTag } from '@/design-system/components'
+import { message } from '@/design-system/services'
 import {
   useStoryHarnessStore,
   type StoryHarnessChangeRequestDecision,
@@ -248,6 +257,7 @@ const emit = defineEmits<{
 
 const harnessStore = useStoryHarnessStore()
 const activeFilter = ref<StoryHarnessQueueFilter>('pending')
+const processingDecisionIds = ref<Record<string, boolean>>({})
 const drawerVisible = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
@@ -352,13 +362,33 @@ const decisionTagTypeMap: Record<StoryHarnessChangeRequestDecision, 'primary' | 
 }
 
 const getDecision = (changeRequestId: string) => harnessStore.getChangeRequestDecision(changeRequestId)
+const isProcessingDecision = (changeRequestId: string) => Boolean(processingDecisionIds.value[changeRequestId])
 
-const handleDecision = (
+const handleDecision = async (
   changeRequestId: string,
   decision: StoryHarnessChangeRequestDecision,
 ) => {
+  if (isProcessingDecision(changeRequestId)) {
+    return
+  }
+
   if (props.handleChangeRequestDecision) {
-    void props.handleChangeRequestDecision(changeRequestId, decision)
+    processingDecisionIds.value = {
+      ...processingDecisionIds.value,
+      [changeRequestId]: true,
+    }
+
+    try {
+      const success = await props.handleChangeRequestDecision(changeRequestId, decision)
+      if (!success) {
+        message.error('变更建议同步失败，请重试')
+      }
+    } finally {
+      processingDecisionIds.value = {
+        ...processingDecisionIds.value,
+        [changeRequestId]: false,
+      }
+    }
     return
   }
 

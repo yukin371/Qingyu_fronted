@@ -254,6 +254,21 @@ class StoryHarnessService {
       return null
     }
   }
+
+  /** accepted 后兜底重建 projection */
+  async rebuildProjection(projectId: string, chapterId: string) {
+    if (!projectId || !chapterId) return null
+    try {
+      const response = await storyHarnessApi.rebuildProjection(projectId, chapterId)
+      const data = (response as { data?: unknown })?.data ?? response
+      return data as { projectId: string; chapterId: string; replayedCount: number; lastRequestId?: string }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[storyHarnessService] rebuildProjection failed:', error)
+      }
+      return null
+    }
+  }
 }
 
 export const storyHarnessService = new StoryHarnessService()
