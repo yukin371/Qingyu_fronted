@@ -72,6 +72,8 @@
       :active-relations="activeRelations"
       :change-requests="changeRequests"
       :handle-change-request-decision="handleChangeRequestDecision"
+      :handle-trigger-index="handleTriggerIndex"
+      :is-triggering-index="isTriggeringIndex"
     />
   </div>
 
@@ -151,6 +153,10 @@ const props = defineProps<{
     requestId: string,
     decision: StoryHarnessChangeRequestDecision,
   ) => Promise<boolean>
+  /** 手动触发建议生成 */
+  handleTriggerIndex?: () => Promise<void>
+  /** 是否正在生成建议 */
+  isTriggeringIndex?: boolean
 }>()
 
 // =======================

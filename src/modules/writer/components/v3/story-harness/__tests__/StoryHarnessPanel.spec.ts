@@ -33,6 +33,7 @@ describe('StoryHarnessPanel', () => {
             severity: 'focus',
           },
         ],
+        handleTriggerIndex: vi.fn().mockResolvedValue(undefined),
       },
       global: {
         plugins: [pinia],
@@ -49,5 +50,32 @@ describe('StoryHarnessPanel', () => {
     expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe('false')
     await wrapper.get('[data-testid="story-harness-open-change-requests"]').trigger('click')
     expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe('true')
+  })
+
+  it('点击生成建议按钮后应调用手动索引入口', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const handleTriggerIndex = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: '张三开始怀疑李四。',
+        chapterCount: 12,
+        changeRequests: [],
+        handleTriggerIndex,
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="story-harness-trigger-index"]').trigger('click')
+    expect(handleTriggerIndex).toHaveBeenCalledTimes(1)
   })
 })

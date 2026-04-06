@@ -28,74 +28,16 @@
           <p class="text-xs leading-5 text-slate-500">{{ harnessStore.chapterProgressLabel }}</p>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 text-sm text-slate-700">
-          <div class="rounded-2xl bg-slate-50 px-3 py-2">
-            <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">角色</p>
-            <p class="mt-1 font-medium text-slate-900">{{ activeCharacters.length }}</p>
-          </div>
-          <div class="rounded-2xl bg-slate-50 px-3 py-2">
-            <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">关系</p>
-            <p class="mt-1 font-medium text-slate-900">{{ activeRelations.length }}</p>
-          </div>
-          <div class="rounded-2xl bg-slate-50 px-3 py-2">
-            <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">待处理</p>
-            <p class="mt-1 font-medium text-slate-900">{{ harnessStore.pendingChangeRequestCount }}</p>
-          </div>
+        <div class="flex flex-wrap gap-2 text-xs text-slate-600">
+          <span class="rounded-full bg-slate-100 px-3 py-1">角色 {{ activeCharacters.length }}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">关系 {{ activeRelations.length }}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">待处理 {{ harnessStore.pendingChangeRequestCount }}</span>
         </div>
 
         <div class="rounded-2xl bg-slate-950 px-3 py-3 text-slate-50">
           <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">写作状态</p>
           <p class="mt-1 text-sm font-medium">{{ chapterTitle || '未命名章节' }}</p>
           <p class="mt-1 text-xs text-slate-300">正文长度 {{ harnessStore.draftLength }} 字符</p>
-        </div>
-      </QyCard>
-
-      <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
-        <div class="flex items-center justify-between gap-3">
-          <h4 class="text-sm font-semibold text-slate-950">当前焦点</h4>
-          <QyTag size="sm" type="info" effect="light">摘要模式</QyTag>
-        </div>
-
-        <div class="space-y-2">
-          <p class="text-xs text-slate-500">角色</p>
-          <div v-if="activeCharacters.length" class="flex flex-wrap gap-2">
-            <QyTag
-              v-for="character in characterPreview"
-              :key="character.id"
-              size="sm"
-              type="primary"
-              effect="plain"
-            >
-              {{ character.name }}
-            </QyTag>
-            <QyTag
-              v-if="remainingCharacterCount > 0"
-              size="sm"
-              type="info"
-              effect="plain"
-            >
-              +{{ remainingCharacterCount }}
-            </QyTag>
-          </div>
-          <p v-else class="text-xs leading-5 text-slate-500">
-            当前还没有稳定的出场名单，宿主保持静默，只保留轻提示。
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <p class="text-xs text-slate-500">关系</p>
-          <div v-if="strongestRelation" class="rounded-2xl bg-slate-50 px-3 py-3">
-            <p class="text-sm font-medium text-slate-900">
-              {{ strongestRelation.fromName }} · {{ strongestRelation.type }} · {{ strongestRelation.toName }}
-            </p>
-            <p class="mt-1 text-xs leading-5 text-slate-500">
-              强度 {{ strongestRelation.strength }}
-              <span v-if="remainingRelationCount > 0">，另有 {{ remainingRelationCount }} 条关系处于当前作用域。</span>
-            </p>
-          </div>
-          <p v-else class="text-xs leading-5 text-slate-500">
-            当前还没有可聚合的关系线，后续只在必要时提示关系波动。
-          </p>
         </div>
       </QyCard>
     </section>
@@ -122,19 +64,6 @@
             <p class="mt-2 text-xs leading-5 text-slate-600">{{ savedBatchReceiptHint }}</p>
           </div>
 
-          <div v-if="changeRequests.length" class="grid grid-cols-2 gap-3">
-            <div class="rounded-2xl bg-white/80 px-3 py-3">
-              <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">保存后批次</p>
-              <p class="mt-2 text-xl font-semibold text-slate-950">{{ savedBatchChangeRequestCount }}</p>
-              <p class="mt-1 text-xs leading-5 text-slate-500">正式建议。</p>
-            </div>
-            <div class="rounded-2xl bg-white/80 px-3 py-3">
-              <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">即时预览</p>
-              <p class="mt-2 text-xl font-semibold text-slate-950">{{ liveChangeRequestCount }}</p>
-              <p class="mt-1 text-xs leading-5 text-slate-500">实时命中。</p>
-            </div>
-          </div>
-
           <div
             v-if="primaryChangeRequest"
             class="rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-3"
@@ -158,26 +87,42 @@
               </div>
             </div>
             <p class="mt-2 text-xs leading-5 text-slate-600">{{ primaryChangeRequest?.reason }}</p>
-            <p class="mt-2 text-xs leading-5 text-slate-500">{{ changeRequestSourceSummary }}</p>
           </div>
 
-          <QyButton
-            v-if="changeRequests.length"
-            variant="secondary"
-            size="sm"
-            class="w-full"
-            data-testid="story-harness-open-change-requests"
-            @click="isChangeRequestDrawerVisible = true"
-          >
-            查看建议队列
-          </QyButton>
+          <div class="grid grid-cols-2 gap-2">
+            <QyButton
+              variant="primary"
+              size="sm"
+              data-testid="story-harness-trigger-index"
+              :loading="isTriggeringIndex"
+              @click="handleTriggerIndex"
+            >
+              生成建议
+            </QyButton>
+            <QyButton
+              variant="secondary"
+              size="sm"
+              data-testid="story-harness-open-change-requests"
+              @click="isChangeRequestDrawerVisible = true"
+            >
+              查看队列
+            </QyButton>
+          </div>
         </template>
 
         <template v-else>
-          <p class="text-sm leading-6 text-slate-700">当前还没有本地规则命中的建议。</p>
-          <p class="text-sm leading-6 text-slate-500">
-            保存后生成的状态建议、关系建议和证据链会继续汇到这里。
-          </p>
+          <p class="text-sm leading-6 text-slate-700">当前还没有正式建议。</p>
+          <p class="text-sm leading-6 text-slate-500">保存后会自动刷新，你也可以手动触发一次索引。</p>
+          <QyButton
+            variant="primary"
+            size="sm"
+            class="w-full"
+            data-testid="story-harness-trigger-index"
+            :loading="isTriggeringIndex"
+            @click="handleTriggerIndex"
+          >
+            立即生成建议
+          </QyButton>
         </template>
       </QyCard>
     </section>
@@ -216,6 +161,8 @@ const props = defineProps<{
     requestId: string,
     decision: StoryHarnessChangeRequestDecision,
   ) => Promise<boolean>
+  handleTriggerIndex?: () => Promise<void>
+  isTriggeringIndex?: boolean
 }>()
 
 const harnessStore = useStoryHarnessStore()
@@ -223,19 +170,8 @@ const activeCharacters = computed(() => props.activeCharacters ?? [])
 const activeRelations = computed(() => props.activeRelations ?? [])
 const changeRequests = computed(() => props.changeRequests ?? [])
 const isChangeRequestDrawerVisible = ref(false)
-const characterPreview = computed(() => activeCharacters.value.slice(0, 3))
-const remainingCharacterCount = computed(() => Math.max(activeCharacters.value.length - characterPreview.value.length, 0))
-const strongestRelation = computed(() =>
-  [...activeRelations.value].sort((left, right) => right.strength - left.strength)[0] ?? null,
-)
-const remainingRelationCount = computed(() =>
-  strongestRelation.value ? Math.max(activeRelations.value.length - 1, 0) : 0,
-)
 const savedBatchChangeRequests = computed(() =>
   changeRequests.value.filter((changeRequest) => changeRequest.source === 'save_batch'),
-)
-const liveChangeRequests = computed(() =>
-  changeRequests.value.filter((changeRequest) => changeRequest.source === 'live'),
 )
 const savedBatchReceipt = computed(() => harnessStore.savedBatchReceipt)
 const pendingChangeRequests = computed(() =>
@@ -244,8 +180,6 @@ const pendingChangeRequests = computed(() =>
   ),
 )
 const hasSavedBatchReceipt = computed(() => Boolean(savedBatchReceipt.value))
-const savedBatchChangeRequestCount = computed(() => savedBatchChangeRequests.value.length)
-const liveChangeRequestCount = computed(() => liveChangeRequests.value.length)
 const primaryChangeRequest = computed(
   () =>
     pendingChangeRequests.value.find((changeRequest) => changeRequest.source === 'save_batch') ??
@@ -254,21 +188,6 @@ const primaryChangeRequest = computed(
     changeRequests.value[0] ??
     null,
 )
-const changeRequestSourceSummary = computed(() => {
-  if (savedBatchChangeRequestCount.value > 0 && liveChangeRequestCount.value > 0) {
-    return '当前同时存在保存后正式建议和即时预览，抽屉中会优先展示正式批次。'
-  }
-
-  if (savedBatchChangeRequestCount.value > 0) {
-    return '当前摘要来自最近一次保存后冻结的正式建议批次。'
-  }
-
-  if (liveChangeRequestCount.value > 0) {
-    return '当前摘要仍是正文实时命中的即时预览，保存后会再冻结成正式批次。'
-  }
-
-  return '当前还没有建议来源。'
-})
 const savedBatchReceiptTimestampLabel = computed(() => {
   if (!savedBatchReceipt.value) {
     return ''
@@ -301,6 +220,14 @@ const savedBatchReceiptHint = computed(() => {
 
   return '当前保存没有命中正式建议，宿主会继续保留正文侧的即时预览，不打断作者继续写。'
 })
+
+const handleTriggerIndex = () => {
+  if (!props.handleTriggerIndex) {
+    return
+  }
+
+  void props.handleTriggerIndex()
+}
 
 watch(
   () => ({

@@ -8,39 +8,15 @@
     class="story-harness-change-request-drawer"
   >
     <div class="flex h-full min-h-0 flex-col gap-4">
-      <section class="grid grid-cols-2 gap-3">
-        <QyCard variant="glass" padding="sm" shadow="never" class="rounded-3xl border border-slate-200/70">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">待处理建议</p>
-          <p class="mt-2 text-2xl font-semibold text-slate-950">{{ harnessStore.pendingChangeRequestCount }}</p>
-          <p class="mt-1 text-xs leading-5 text-slate-500">当前正文命中的本地预览，不自动落库。</p>
-        </QyCard>
-        <QyCard variant="glass" padding="sm" shadow="never" class="rounded-3xl border border-slate-200/70">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">优先处理</p>
-          <p class="mt-2 text-2xl font-semibold text-slate-950">{{ focusRequestCount }}</p>
-          <p class="mt-1 text-xs leading-5 text-slate-500">作者显式指令和强状态变动会优先浮到前面。</p>
-        </QyCard>
-      </section>
-
-      <section class="grid grid-cols-3 gap-3">
-        <QyCard variant="glass" padding="sm" shadow="never" class="rounded-3xl border border-emerald-200/70 bg-emerald-50/70">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-emerald-600">已合并</p>
-          <p class="mt-2 text-xl font-semibold text-emerald-950">{{ harnessStore.acceptedChangeRequestCount }}</p>
-        </QyCard>
-        <QyCard variant="glass" padding="sm" shadow="never" class="rounded-3xl border border-amber-200/70 bg-amber-50/70">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-amber-600">稍后处理</p>
-          <p class="mt-2 text-xl font-semibold text-amber-950">{{ harnessStore.deferredChangeRequestCount }}</p>
-        </QyCard>
-        <QyCard variant="glass" padding="sm" shadow="never" class="rounded-3xl border border-slate-200/70 bg-slate-50/80">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">已忽略</p>
-          <p class="mt-2 text-xl font-semibold text-slate-900">{{ harnessStore.ignoredChangeRequestCount }}</p>
-        </QyCard>
-      </section>
-
-      <section class="flex flex-wrap items-center gap-2">
-        <QyTag size="sm" type="success" effect="light">保存后批次 {{ savedBatchCount }}</QyTag>
-        <QyTag size="sm" type="info" effect="light">即时预览 {{ livePreviewCount }}</QyTag>
-        <p v-if="savedBatchReceipt" class="text-xs leading-5 text-slate-500">最近保存 {{ savedBatchReceiptLabel }}</p>
-        <p class="text-xs leading-5 text-slate-500">保存后批次会压住同签名的即时预览，避免队列里出现双份噪音。</p>
+      <section class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+        <span class="rounded-full bg-slate-100 px-3 py-1">待处理 {{ harnessStore.pendingChangeRequestCount }}</span>
+        <span class="rounded-full bg-slate-100 px-3 py-1">优先 {{ focusRequestCount }}</span>
+        <span
+          v-if="savedBatchReceipt"
+          class="rounded-full bg-slate-100 px-3 py-1"
+        >
+          最近保存 {{ savedBatchReceiptLabel }}
+        </span>
       </section>
 
       <section class="flex flex-wrap items-center gap-2">
@@ -69,35 +45,6 @@
           全部 {{ changeRequests.length }}
         </QyButton>
       </section>
-
-      <QyCard
-        v-if="recentActivities.length"
-        variant="glass"
-        padding="sm"
-        shadow="never"
-        class="rounded-3xl border border-sky-200/70 bg-sky-50/80"
-      >
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-[11px] uppercase tracking-[0.14em] text-sky-600">最近处理</p>
-            <p class="mt-2 text-sm font-medium text-slate-950">{{ latestActivityLabel }}</p>
-            <p class="mt-1 text-xs leading-5 text-slate-500">先保留为本地决策轨迹，后续再接正式建议批次与持久化。</p>
-          </div>
-          <QyTag size="sm" type="primary" effect="light">{{ recentActivities.length }} 条</QyTag>
-        </div>
-
-        <div class="mt-3 flex flex-wrap gap-2">
-          <QyTag
-            v-for="activity in recentActivities"
-            :key="`${activity.changeRequestId}-${activity.timestamp}`"
-            size="sm"
-            :type="decisionTagTypeMap[activity.decision]"
-            effect="plain"
-          >
-            {{ formatActivityTag(activity) }}
-          </QyTag>
-        </div>
-      </QyCard>
 
       <section class="min-h-0 flex-1">
         <div v-if="changeRequests.length" class="flex h-full min-h-0 flex-col gap-4 overflow-auto pr-1">
@@ -280,7 +227,6 @@ import { computed, ref } from 'vue'
 import { QyButton, QyCard, QyDrawer, QyTag } from '@/design-system/components'
 import {
   useStoryHarnessStore,
-  type StoryHarnessChangeRequestActivity,
   type StoryHarnessChangeRequestDecision,
   type StoryHarnessChangeRequestPreview,
 } from '@/modules/writer/stores/v3/storyHarnessStore'
@@ -324,12 +270,6 @@ const resolvedChangeRequests = computed(() =>
     (changeRequest) => harnessStore.getChangeRequestDecision(changeRequest.id) !== 'pending',
   ),
 )
-const savedBatchCount = computed(
-  () => props.changeRequests.filter((changeRequest) => changeRequest.source === 'save_batch').length,
-)
-const livePreviewCount = computed(
-  () => props.changeRequests.filter((changeRequest) => changeRequest.source === 'live').length,
-)
 const savedBatchReceipt = computed(() => harnessStore.savedBatchReceipt)
 const visiblePendingChangeRequests = computed(() =>
   activeFilter.value === 'resolved' ? [] : pendingChangeRequests.value,
@@ -337,23 +277,6 @@ const visiblePendingChangeRequests = computed(() =>
 const visibleResolvedChangeRequests = computed(() =>
   activeFilter.value === 'pending' ? [] : resolvedChangeRequests.value,
 )
-const changeRequestMap = computed(
-  () =>
-    new Map(
-      props.changeRequests.map((changeRequest) => [changeRequest.id, changeRequest] as const),
-    ),
-)
-const recentActivities = computed(() => harnessStore.recentChangeRequestActivities)
-const latestActivityLabel = computed(() => {
-  const activity = recentActivities.value[0]
-  if (!activity) {
-    return ''
-  }
-
-  const changeRequest = changeRequestMap.value.get(activity.changeRequestId)
-  const title = changeRequest?.title ?? '该建议'
-  return `${title} 已标记为${decisionLabelMap[activity.decision]}`
-})
 const emptyStateTitle = computed(() => {
   if (activeFilter.value === 'pending') {
     return '当前没有待处理建议。'
@@ -429,11 +352,6 @@ const decisionTagTypeMap: Record<StoryHarnessChangeRequestDecision, 'primary' | 
 }
 
 const getDecision = (changeRequestId: string) => harnessStore.getChangeRequestDecision(changeRequestId)
-const formatActivityTag = (activity: StoryHarnessChangeRequestActivity) => {
-  const changeRequest = changeRequestMap.value.get(activity.changeRequestId)
-  const title = changeRequest?.title ?? '建议'
-  return `${decisionLabelMap[activity.decision]} · ${title}`
-}
 
 const handleDecision = (
   changeRequestId: string,

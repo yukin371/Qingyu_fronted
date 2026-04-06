@@ -52,8 +52,8 @@ describe('WorkspaceEditorContent', () => {
 
     expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('张三')
-    expect(wrapper.text()).toContain('张三 · 朋友 · 李四')
+    expect(wrapper.text()).toContain('第一章 / 当前章节')
+    expect(wrapper.text()).toContain('待处理 1')
     expect(wrapper.text()).toContain('角色状态可能需要更新：张三')
   })
 

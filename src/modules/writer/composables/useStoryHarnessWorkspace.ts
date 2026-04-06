@@ -52,6 +52,11 @@ export interface UseStoryHarnessWorkspaceReturn {
   refreshAfterSave: () => Promise<void>
 }
 
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+
 const buildStoryHarnessChangeRequestSignature = (
   changeRequest: Pick<StoryHarnessChangeRequestPreview, 'type' | 'title'>,
 ) => `${changeRequest.type}::${changeRequest.title}`
@@ -424,6 +429,7 @@ export function useStoryHarnessWorkspace(
     }
 
     storyHarnessStore.setChangeRequestDecision(requestId, decision)
+    await loadBackendChangeRequests()
 
     if (decision === 'accepted') {
       await loadBackendContext()
@@ -436,7 +442,7 @@ export function useStoryHarnessWorkspace(
     if (!projectId.value || !displayChapterId.value) return null
     const result = await storyHarnessService.triggerIndex(projectId.value, displayChapterId.value)
     if (result) {
-      await loadBackendChangeRequests()
+      await Promise.all([loadBackendChangeRequests(), loadBackendContext()])
     }
     return result
   }
@@ -446,15 +452,17 @@ export function useStoryHarnessWorkspace(
       return
     }
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      await new Promise((resolve) => window.setTimeout(resolve, 800))
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await wait(800)
       const refreshedChangeRequests = await loadBackendChangeRequests()
 
-      if (refreshedChangeRequests.length > 0 || attempt === 2) {
-        break
+      if (refreshedChangeRequests.length > 0) {
+        await loadBackendContext()
+        return
       }
     }
 
+    await triggerIndexAndRefresh()
     await loadBackendContext()
   }
 

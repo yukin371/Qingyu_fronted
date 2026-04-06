@@ -50,14 +50,12 @@ describe('StoryHarnessChangeRequestDrawer', () => {
 
     expect(wrapper.text()).toContain('待处理队列')
     expect(harnessStore.pendingChangeRequestCount).toBe(2)
-    expect(wrapper.text()).toContain('保存后批次 1')
-    expect(wrapper.text()).toContain('即时预览 1')
+    expect(wrapper.text()).toContain('待处理 2')
+    expect(wrapper.text()).toContain('优先 1')
 
     await wrapper.get('[data-testid="story-harness-accept-cr-1"]').trigger('click')
     expect(harnessStore.acceptedChangeRequestCount).toBe(1)
     expect(harnessStore.pendingChangeRequestCount).toBe(1)
-    expect(wrapper.text()).toContain('最近处理')
-    expect(wrapper.text()).toContain('已标记为已合并')
 
     await wrapper.get('[data-testid="story-harness-filter-resolved"]').trigger('click')
     expect(wrapper.text()).toContain('已处理记录')

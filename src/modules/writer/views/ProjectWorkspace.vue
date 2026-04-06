@@ -60,6 +60,8 @@
           :active-relations="activeScopeRelations"
           :change-requests="storyHarnessChangeRequests"
           :handle-change-request-decision="handleChangeRequestDecision"
+          :handle-trigger-index="handleStoryHarnessTriggerIndex"
+          :is-triggering-index="isStoryHarnessTriggering"
           v-model:content="tipTapContent"
           @update:category="setEncyclopediaCategory"
           @trigger-ai-action="handleAIStageAction"
@@ -266,15 +268,16 @@ const displayChapterTitle = computed(() =>
   isGlobalRelationsView.value ? '' : currentChapterTitle.value,
 )
 
-const {
-  currentScopeLabel,
-  activeScopeCharacters,
-  activeScopeRelations,
-  storyHarnessChangeRequests,
-  persistCurrentLiveChangeRequests,
-  handleChangeRequestDecision,
-  refreshAfterSave,
-} = useStoryHarnessWorkspace({
+  const {
+    currentScopeLabel,
+    activeScopeCharacters,
+    activeScopeRelations,
+    storyHarnessChangeRequests,
+    persistCurrentLiveChangeRequests,
+    handleChangeRequestDecision,
+    triggerIndexAndRefresh,
+    refreshAfterSave,
+  } = useStoryHarnessWorkspace({
   projectId: currentProjectId,
   displayChapterId,
   displayChapterTitle,
@@ -287,6 +290,7 @@ const {
 // =======================
 const showCreateDocDialog = ref(false)
 const createDocLoading = ref(false)
+const isStoryHarnessTriggering = ref(false)
 const aiActionTrigger = ref<{
   id: number
   action: string
@@ -393,6 +397,33 @@ const handleTipTapSave = async (contents?: unknown[]) => {
   } catch (error) {
     console.error('[ProjectWorkspace] 保存失败:', error)
     message.error('保存失败，请重试')
+  }
+}
+
+const handleStoryHarnessTriggerIndex = async () => {
+  if (!currentProjectId.value || !displayChapterId.value || isStoryHarnessTriggering.value) {
+    return
+  }
+
+  isStoryHarnessTriggering.value = true
+  try {
+    const result = await triggerIndexAndRefresh()
+    if (!result) {
+      message.info('当前章节暂时无法生成建议，请稍后重试')
+      return
+    }
+
+    if (result.pending > 0) {
+      message.success(`已生成 ${result.pending} 条待处理建议`)
+      return
+    }
+
+    message.info('已完成索引，本次没有新增建议')
+  } catch (error) {
+    console.error('[ProjectWorkspace] 手动触发 Story Harness 索引失败:', error)
+    message.error('生成建议失败，请重试')
+  } finally {
+    isStoryHarnessTriggering.value = false
   }
 }
 
