@@ -13,14 +13,14 @@ import type { MessageProps, MessageType } from './types'
 // 使用 CVA 定义消息变体
 const messageVariants = cva(
   // 基础样式
-  'fixed left-1/2 -translate-x-1/2 min-w-[300px] max-w-[500px] px-4 py-3 rounded-md shadow-lg flex items-start gap-3 transition-all duration-300 z-5000 pointer-events-auto',
+  'fixed left-1/2 -translate-x-1/2 min-w-[300px] max-w-[500px] px-4 py-3 rounded-2xl shadow-[0_8px_24px_-12px_rgba(0,0,0,0.15)] flex items-start gap-3 transition-all duration-300 z-5000 pointer-events-auto',
   {
     variants: {
       type: {
-        success: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-400 dark:text-emerald-200',
-        info: 'bg-info-50 border-l-4 border-info-500 text-info-800 dark:bg-info-900/20 dark:border-info-400 dark:text-info-200',
-        warning: 'bg-amber-50 border-l-4 border-amber-500 text-amber-800 dark:bg-amber-900/20 dark:border-amber-400 dark:text-amber-200',
-        error: 'bg-red-50 border-l-4 border-red-500 text-red-800 dark:bg-red-900/20 dark:border-red-400 dark:text-red-200',
+        success: 'bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm ring-1 ring-emerald-200/50 dark:ring-emerald-800/40 text-emerald-800 dark:text-emerald-200',
+        info: 'bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm ring-1 ring-sky-200/50 dark:ring-sky-800/40 text-sky-800 dark:text-sky-200',
+        warning: 'bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm ring-1 ring-amber-200/50 dark:ring-amber-800/40 text-amber-800 dark:text-amber-200',
+        error: 'bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm ring-1 ring-red-200/50 dark:ring-red-800/40 text-red-800 dark:text-red-200',
       },
       center: {
         true: 'justify-center text-center',
@@ -219,41 +219,59 @@ watch(visible, (val) => {
   margin-top: 0.125rem;
 }
 
+.qy-message__icon--success {
+  color: #10b981;
+}
+
+.qy-message__icon--info {
+  color: #0ea5e9;
+}
+
+.qy-message__icon--warning {
+  color: #f59e0b;
+}
+
+.qy-message__icon--error {
+  color: #ef4444;
+}
+
 .qy-message__close {
   flex-shrink: 0;
   margin-left: auto;
-  padding: 0;
+  padding: 0.375rem;
   background: none;
   border: none;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-  color: inherit;
+  opacity: 0.5;
+  transition: opacity 0.2s, background-color 0.2s;
+  color: currentColor;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 9999px;
 }
 
 .qy-message__close:hover {
   opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Transition 动画 */
 .qy-message-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .qy-message-leave-active {
-  transition: all 0.2s ease-in;
+  transition: all 0.25s ease-in;
 }
 
 .qy-message-enter-from {
   opacity: 0;
-  transform: translate(-50%, -20px);
+  transform: translate(-50%, -24px) scale(0.96);
 }
 
 .qy-message-leave-to {
   opacity: 0;
-  transform: translate(-50%, -20px);
+  transform: translate(-50%, -16px) scale(0.96);
 }
 </style>

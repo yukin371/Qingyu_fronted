@@ -191,13 +191,13 @@
                 @click="handleBookClick(book)"
               >
                 <div class="card-image-box">
-                  <QyImage :src="book.cover" fit="cover" loading="lazy">
+                  <Image :src="book.cover" fit="cover">
                     <template #error>
                       <div class="image-placeholder">
                         <Icon name="photo" size="md" />
                       </div>
                     </template>
-                  </QyImage>
+                  </Image>
                   <div class="card-overlay">
                     <QyButton variant="primary" size="sm" rounded>立即阅读</QyButton>
                   </div>
@@ -245,7 +245,8 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { Button as QyButton, Divider, Image as QyImage } from '@/design-system'
+import { Button as QyButton, Divider } from '@/design-system'
+import { Image } from '@/design-system/base'
 import { Icon } from '@/design-system'
 import { Input as QyInput } from '@/design-system'
 import { usePagination } from '@/composables/usePagination'

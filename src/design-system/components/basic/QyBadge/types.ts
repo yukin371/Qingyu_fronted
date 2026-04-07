@@ -51,6 +51,12 @@ export interface QyBadgeProps {
   value?: number | string
 
   /**
+   * 文本徽章的兼容别名
+   * 旧用法中常以 text 传入文字内容
+   */
+  text?: string
+
+  /**
    * 最大值，超过时显示为 'max+'
    * 例如 max=99 时，value=100 显示为 '99+'
    * @default 99

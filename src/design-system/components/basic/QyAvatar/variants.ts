@@ -17,13 +17,9 @@ import { cva, type VariantProps } from 'class-variance-authority'
 export const avatarVariants = cva(
   // 基础样式
   [
-    'relative inline-flex overflow-hidden',
-    'bg-white/70 backdrop-blur-md',
-    'border-2 border-white/85',
-    'shadow-[0_10px_24px_-16px_rgba(15,23,42,0.5)]',
-    'transition-all duration-300 ease-out',
-    'hover:shadow-[0_14px_30px_-16px_rgba(37,99,235,0.45)]',
-    'hover:scale-105 hover:-translate-y-0.5'
+    'group relative inline-flex shrink-0 items-center justify-center overflow-hidden p-[2px]',
+    'bg-white/85 backdrop-blur-xl ring-1 ring-slate-900/[0.06]',
+    'shadow-[0_18px_30px_-22px_rgba(15,23,42,0.45)]',
   ],
   {
     variants: {
@@ -35,21 +31,21 @@ export const avatarVariants = cva(
         sm: 'w-8 h-8',
         md: 'w-12 h-12',
         lg: 'w-16 h-16',
-        xl: 'w-20 h-20'
+        xl: 'w-20 h-20',
       },
       /**
        * 形状变体
        */
       shape: {
         circle: 'rounded-full',
-        square: 'rounded-xl'
-      }
+        square: 'rounded-[1.35rem]',
+      },
     },
     defaultVariants: {
       size: 'md',
-      shape: 'circle'
-    }
-  }
+      shape: 'circle',
+    },
+  },
 )
 
 /**
@@ -58,8 +54,9 @@ export const avatarVariants = cva(
 export const avatarImageVariants = cva(
   // 基础样式
   [
-    'w-full h-full',
-    'saturate-[1.05]'
+    'h-full w-full',
+    'object-center saturate-[1.08] contrast-[1.02]',
+    'transition-transform duration-500 ease-out',
   ],
   {
     variants: {
@@ -71,13 +68,13 @@ export const avatarImageVariants = cva(
         contain: 'object-contain',
         fill: 'object-fill',
         none: 'object-none',
-        'scale-down': 'object-scale-down'
-      }
+        'scale-down': 'object-scale-down',
+      },
     },
     defaultVariants: {
-      fit: 'cover'
-    }
-  }
+      fit: 'cover',
+    },
+  },
 )
 
 /**
@@ -86,10 +83,9 @@ export const avatarImageVariants = cva(
 export const avatarPlaceholderVariants = cva(
   // 基础样式
   [
-    'w-full h-full',
-    'flex items-center justify-center',
-    'bg-gradient-to-br from-slate-100 to-slate-200',
-    'text-slate-500'
+    'relative flex h-full w-full items-center justify-center overflow-hidden rounded-[inherit]',
+    'border border-white/45 bg-[linear-gradient(145deg,rgba(248,250,252,0.98),rgba(226,232,240,0.92))]',
+    'text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]',
   ],
   {
     variants: {
@@ -101,13 +97,13 @@ export const avatarPlaceholderVariants = cva(
         sm: 'text-xs',
         md: 'text-sm',
         lg: 'text-base',
-        xl: 'text-lg'
-      }
+        xl: 'text-lg',
+      },
     },
     defaultVariants: {
-      size: 'md'
-    }
-  }
+      size: 'md',
+    },
+  },
 )
 
 /**
@@ -115,26 +111,26 @@ export const avatarPlaceholderVariants = cva(
  */
 export const avatarTextBgVariants = cva(
   // 基础样式
-  [],
+  ['shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'],
   {
     variants: {
       /**
        * 颜色变体
        */
       color: {
-        cyan: 'bg-gradient-to-br from-primary-400 to-primary-600',
-        blue: 'bg-gradient-to-br from-secondary-400 to-secondary-600',
-        green: 'bg-gradient-to-br from-green-400 to-green-600',
-        red: 'bg-gradient-to-br from-red-400 to-red-600',
-        yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
-        purple: 'bg-gradient-to-br from-purple-400 to-purple-600',
-        pink: 'bg-gradient-to-br from-pink-400 to-pink-600'
-      }
+        cyan: 'bg-[linear-gradient(145deg,#38bdf8,#0ea5e9_42%,#2563eb)]',
+        blue: 'bg-[linear-gradient(145deg,#60a5fa,#3b82f6_42%,#1d4ed8)]',
+        green: 'bg-[linear-gradient(145deg,#34d399,#10b981_42%,#047857)]',
+        red: 'bg-[linear-gradient(145deg,#fb7185,#f43f5e_42%,#be123c)]',
+        yellow: 'bg-[linear-gradient(145deg,#fbbf24,#f59e0b_42%,#b45309)]',
+        purple: 'bg-[linear-gradient(145deg,#a78bfa,#8b5cf6_42%,#6d28d9)]',
+        pink: 'bg-[linear-gradient(145deg,#f9a8d4,#ec4899_42%,#be185d)]',
+      },
     },
     defaultVariants: {
-      color: 'cyan'
-    }
-  }
+      color: 'cyan',
+    },
+  },
 )
 
 /**
@@ -142,9 +138,7 @@ export const avatarTextBgVariants = cva(
  */
 export const avatarTextVariants = cva(
   // 基础样式
-  [
-    'font-semibold text-white'
-  ],
+  ['font-semibold text-white tracking-[0.04em] drop-shadow-[0_1px_1px_rgba(15,23,42,0.2)]'],
   {
     variants: {
       /**
@@ -155,13 +149,13 @@ export const avatarTextVariants = cva(
         sm: 'text-xs',
         md: 'text-sm',
         lg: 'text-base',
-        xl: 'text-lg'
-      }
+        xl: 'text-lg',
+      },
     },
     defaultVariants: {
-      size: 'md'
-    }
-  }
+      size: 'md',
+    },
+  },
 )
 
 /**
@@ -169,12 +163,10 @@ export const avatarTextVariants = cva(
  */
 export const avatarGroupVariants = cva(
   // 基础样式
-  [
-    'flex items-center'
-  ],
+  ['isolate flex items-center pl-1'],
   {
-    variants: {}
-  }
+    variants: {},
+  },
 )
 
 /**
@@ -183,9 +175,10 @@ export const avatarGroupVariants = cva(
 export const avatarGroupItemVariants = cva(
   // 基础样式
   [
-    'relative overflow-hidden',
-    'border-2 border-white/90',
-    'shadow-[0_8px_20px_-14px_rgba(15,23,42,0.45)]'
+    'group relative inline-flex shrink-0 items-center justify-center overflow-hidden p-[2px]',
+    'bg-white/88 backdrop-blur-xl ring-1 ring-slate-900/[0.06]',
+    'shadow-[0_16px_24px_-20px_rgba(15,23,42,0.42)]',
+    'transition-transform duration-300 ease-out hover:-translate-y-0.5',
   ],
   {
     variants: {
@@ -197,21 +190,21 @@ export const avatarGroupItemVariants = cva(
         sm: 'w-8 h-8',
         md: 'w-12 h-12',
         lg: 'w-16 h-16',
-        xl: 'w-20 h-20'
+        xl: 'w-20 h-20',
       },
       /**
        * 形状变体
        */
       shape: {
         circle: 'rounded-full',
-        square: 'rounded-xl'
-      }
+        square: 'rounded-[1.35rem]',
+      },
     },
     defaultVariants: {
       size: 'md',
-      shape: 'circle'
-    }
-  }
+      shape: 'circle',
+    },
+  },
 )
 
 /**

@@ -24,6 +24,9 @@ const buttonVariants = cva(
         success: 'bg-success-DEFAULT text-white hover:bg-success-dark focus-visible:ring-success-DEFAULT active:bg-emerald-700',
         warning: 'bg-warning-DEFAULT text-white hover:bg-warning-dark focus-visible:ring-warning-DEFAULT active:bg-amber-700',
         gradient: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 focus-visible:ring-cyan-500 active:from-cyan-700 active:to-blue-700',
+        text: 'text-sky-600 hover:text-sky-700 hover:bg-sky-50 focus-visible:ring-sky-500 dark:text-sky-400 dark:hover:text-sky-300 dark:hover:bg-sky-950',
+        outline: 'border-2 border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-slate-400 dark:border-slate-600 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:bg-slate-800',
+        default: 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:border-slate-700',
       },
       size: {
         xs: 'h-7 px-2 text-xs',

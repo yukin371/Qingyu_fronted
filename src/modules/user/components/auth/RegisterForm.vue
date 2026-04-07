@@ -13,7 +13,7 @@
       </div>
 
       <qy-form-item prop="username">
-        <qy-input
+        <Input
           v-model="registerForm.username"
           placeholder="请输入用户名"
           clearable
@@ -23,7 +23,7 @@
       </qy-form-item>
 
       <qy-form-item prop="email">
-        <qy-input
+        <Input
           v-model="registerForm.email"
           type="email"
           placeholder="请输入邮箱地址"
@@ -34,7 +34,7 @@
       </qy-form-item>
 
       <qy-form-item prop="password">
-        <qy-input
+        <Input
           v-model="registerForm.password"
           type="password"
           placeholder="请输入密码"
@@ -45,7 +45,7 @@
       </qy-form-item>
 
       <qy-form-item prop="confirmPassword">
-        <qy-input
+        <Input
           v-model="registerForm.confirmPassword"
           type="password"
           placeholder="请确认密码"
@@ -57,12 +57,12 @@
       </qy-form-item>
 
       <qy-form-item prop="agreement">
-        <qy-checkbox v-model="registerForm.agreement">
+        <Checkbox v-model="registerForm.agreement">
           我已阅读并同意
           <a class="link-primary" @click="showTerms">《用户协议》</a>
           和
           <a class="link-primary" @click="showPrivacy">《隐私政策》</a>
-        </qy-checkbox>
+        </Checkbox>
       </qy-form-item>
 
       <qy-form-item>
@@ -101,9 +101,8 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
 import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
-import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
-import QyCheckbox from '@/design-system/base/Checkbox/Checkbox.vue'
+import { Checkbox, Input } from '@/design-system/base'
 import { message } from '@/design-system/services'
 import UserAgreementDialog from '@/shared/components/common/UserAgreementDialog.vue'
 import PrivacyPolicyDialog from '@/shared/components/common/PrivacyPolicyDialog.vue'
@@ -113,9 +112,9 @@ export default {
   components: {
     QyForm,
     QyFormItem,
-    QyInput,
     QyButton,
-    QyCheckbox,
+    Checkbox,
+    Input,
     UserAgreementDialog,
     PrivacyPolicyDialog
   },

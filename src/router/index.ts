@@ -175,6 +175,15 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/demo/foundation-showcase',
+    name: 'FoundationShowcaseDemo',
+    component: () => import('@/views/demo/FoundationShowcaseDemo.vue'),
+    meta: {
+      title: 'Tailwind v4 Foundation',
+      layout: 'blank',
+    },
+  },
+  {
     path: '/demo/book-detail',
     redirect: '/bookstore/books-demo',
   },

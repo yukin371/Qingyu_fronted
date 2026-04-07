@@ -5,7 +5,7 @@
  * 标签页容器组件，支持多种类型和位置的标签页
  */
 
-import { provide, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { provide, ref, computed, watch, onMounted, onBeforeUnmount, useSlots } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { TabsProps, TabsEmits, TabsContext, TabPaneInstance } from './types'
@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<TabsProps>(), {
 
 // 组件 Emits
 const emit = defineEmits<TabsEmits>()
+const slots = useSlots()
 
 // 当前激活的标签名称
 const currentName = ref<string | number>(props.modelValue || '')
@@ -35,7 +36,7 @@ watch(
     if (newVal !== undefined && newVal !== currentName.value) {
       currentName.value = newVal
     }
-  }
+  },
 )
 
 // 监听 currentName 变化
@@ -45,74 +46,61 @@ watch(currentName, (newVal) => {
 })
 
 // 使用 CVA 定义容器变体
-const containerVariants = cva(
-  'tabs-container',
-  {
-    variants: {
-      position: {
-        top: 'flex-col',
-        right: 'flex-row',
-        bottom: 'flex-col-reverse',
-        left: 'flex-row-reverse',
-      },
+const containerVariants = cva('tabs-container gap-4', {
+  variants: {
+    position: {
+      top: 'flex-col',
+      right: 'flex-col',
+      bottom: 'flex-col-reverse',
+      left: 'flex-col',
     },
-    defaultVariants: {
-      position: 'top',
-    },
-  }
-)
+  },
+  defaultVariants: {
+    position: 'top',
+  },
+})
 
 // 使用 CVA 定义导航栏变体
-const navVariants = cva(
-  'flex',
-  {
-    variants: {
-      position: {
-        top: 'flex-row border-b',
-        right: 'flex-col border-l',
-        bottom: 'flex-row border-t',
-        left: 'flex-col border-r',
-      },
-      type: {
-        line: 'bg-transparent',
-        card: 'bg-slate-100 dark:bg-slate-800 gap-2 p-2 rounded-lg',
-        'border-card': 'bg-white dark:bg-slate-800',
-      },
+const navVariants = cva('relative flex', {
+  variants: {
+    position: {
+      top: 'flex-row flex-wrap items-center',
+      right: 'flex-row flex-wrap items-center',
+      bottom: 'flex-row flex-wrap items-center',
+      left: 'flex-row flex-wrap items-center',
     },
-    defaultVariants: {
-      position: 'top',
-      type: 'line',
+    type: {
+      line: 'gap-2 rounded-[1.5rem] border border-slate-200/70 bg-white/85 p-2 shadow-[0_18px_38px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/80',
+      card: 'gap-2 rounded-[1.5rem] border border-slate-200/70 bg-slate-100/90 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:border-slate-700/70 dark:bg-slate-900/80',
+      'border-card':
+        'gap-2 rounded-[1.65rem] border border-slate-200/80 bg-white/92 p-2 shadow-[0_20px_44px_-28px_rgba(15,23,42,0.42)] backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/78',
     },
-  }
-)
+  },
+  defaultVariants: {
+    position: 'top',
+    type: 'line',
+  },
+})
 
 // 计算容器类名
 const containerClasses = computed(() => {
-  return cn(
-    'w-full flex',
-    containerVariants({ position: props.tabPosition }),
-    props.class
-  )
+  return cn('w-full flex', containerVariants({ position: props.tabPosition }), props.class)
 })
 
 // 计算导航栏类名
 const navClasses = computed(() => {
   return cn(
     navVariants({ position: props.tabPosition, type: props.type }),
-    props.type === 'line' && 'border-slate-200 dark:border-slate-700',
-    props.type === 'border-card' && 'border border-slate-200 dark:border-slate-700 rounded-t-lg',
-    props.stretch && props.tabPosition === 'top' && 'w-full',
-    props.stretch && props.tabPosition === 'bottom' && 'w-full',
-    props.stretch && props.tabPosition === 'left' && 'h-full',
-    props.stretch && props.tabPosition === 'right' && 'h-full'
+    props.stretch && 'w-full',
   )
 })
 
 // 计算内容区域类名
 const contentClasses = computed(() => {
   return cn(
-    'flex-1',
-    props.type === 'border-card' && 'border border-t-0 border-slate-200 dark:border-slate-700 rounded-b-lg p-4'
+    'flex-1 min-w-0',
+    props.type === 'border-card' &&
+      'rounded-[1.75rem] border border-slate-200/80 bg-white/90 p-5 shadow-[0_24px_54px_-36px_rgba(15,23,42,0.4)] backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/75',
   )
 })
 
@@ -199,7 +187,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 内容区域 -->
-    <div :class="contentClasses">
+    <div v-if="slots.content" :class="contentClasses">
       <slot name="content"></slot>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <template>
   <div class="comment-item">
-    <QyAvatar class="user-avatar" :src="comment.avatar" size="lg" />
+    <Avatar class="user-avatar" :src="comment.avatar" :alt="comment.username" size="lg" />
 
     <div class="comment-content">
       <div class="comment-header">
@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import type { ParagraphComment } from '@/types/reader/index'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 
 interface Props {
   comment: ParagraphComment

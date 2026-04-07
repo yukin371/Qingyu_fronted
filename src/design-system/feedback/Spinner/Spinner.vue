@@ -54,27 +54,6 @@ const colorStyle = computed(() => {
   }
 })
 
-// 计算点动画延迟
-const getDotDelay = (index: number) => {
-  const delays = {
-    0: '0ms',
-    1: '-200ms',
-    2: '-400ms',
-  }
-  return delays[index as keyof typeof delays] || '0ms'
-}
-
-// 计算条动画延迟
-const getBarDelay = (index: number) => {
-  const delays = {
-    0: '0.2s',
-    1: '0.3s',
-    2: '0.4s',
-    3: '0.5s',
-    4: '0.6s',
-  }
-  return delays[index as keyof typeof delays] || '0.2s'
-}
 </script>
 
 <template>
@@ -115,55 +94,57 @@ const getBarDelay = (index: number) => {
       </svg>
     </template>
 
-    <!-- Dots 类型: 点动画 -->
+    <!-- Dots 类型: GitHub/nprogress 风格三点脉冲 -->
     <template v-else-if="type === 'dots'">
-      <div :class="cn('flex items-center', size === 'sm' ? 'gap-1' : size === 'md' ? 'gap-1.5' : 'gap-2')">
+      <div :class="cn('flex items-center gap-1', size === 'sm' ? 'h-4' : size === 'md' ? 'h-5' : 'h-6')">
         <div
           v-for="i in 3"
           :key="i"
           :class="cn(
-            'rounded-full bg-current animate-bounce',
-            size === 'sm' ? 'w-1.5 h-1.5' : size === 'md' ? 'w-2 h-2' : 'w-2.5 h-2.5'
+            'w-1 rounded-full bg-current',
+            size === 'sm' ? 'h-1' : size === 'md' ? 'h-1.5' : 'h-2'
           )"
           :style="{
             ...colorStyle,
-            animationDelay: getDotDelay(i - 1)
+            animation: 'sp-dot 1.4s ease-in-out infinite',
+            animationDelay: `${(i - 1) * 0.16}s`
           }"
         />
       </div>
     </template>
 
-    <!-- Bars 类型: 条形动画 -->
+    <!-- Bars 类型: 优雅的拉伸条（YouTube/Spotify 风格） -->
     <template v-else-if="type === 'bars'">
-      <div :class="cn('flex items-center gap-1', size === 'sm' ? 'h-4' : size === 'md' ? 'h-6' : 'h-8')">
+      <div :class="cn('flex items-center gap-0.5', size === 'sm' ? 'h-4' : size === 'md' ? 'h-5' : 'h-6')">
         <div
           v-for="i in 5"
           :key="i"
           :class="cn(
-            'w-1 rounded-full bg-current animate-pulse',
-            size === 'sm' ? 'h-2' : size === 'md' ? 'h-3' : 'h-4'
+            'w-1 rounded-full bg-current',
+            size === 'sm' ? 'h-1' : size === 'md' ? 'h-1.5' : 'h-2'
           )"
           :style="{
             ...colorStyle,
-            animationDelay: getBarDelay(i - 1)
+            animation: 'sp-bar 1.2s ease-in-out infinite',
+            animationDelay: `${(i - 1) * 0.1}s`
           }"
         />
       </div>
     </template>
 
-    <!-- Wave 类型: 波浪动画 -->
+    <!-- Wave 类型: 波浪条（Nprogress 渐变波浪） -->
     <template v-else-if="type === 'wave'">
-      <div :class="cn('flex items-end', size === 'sm' ? 'gap-0.5' : size === 'md' ? 'gap-1' : 'gap-1.5')">
+      <div class="flex items-end gap-0.5">
         <div
-          v-for="i in 4"
+          v-for="i in 5"
           :key="i"
-          :class="cn(
-            'rounded-full bg-current animate-[wave_1.2s_ease-in-out_infinite]',
-            size === 'sm' ? 'w-1.5 h-1.5' : size === 'md' ? 'w-2 h-2' : 'w-2.5 h-2.5'
-          )"
+          class="rounded-full bg-current"
           :style="{
             ...colorStyle,
-            animationDelay: `${i * 0.15}s`
+            width: size === 'sm' ? '3px' : size === 'md' ? '4px' : '5px',
+            height: size === 'sm' ? '16px' : size === 'md' ? '20px' : '28px',
+            animation: 'sp-wave 1.2s ease-in-out infinite',
+            animationDelay: `${(i - 1) * 0.12}s`
           }"
         />
       </div>
@@ -182,14 +163,40 @@ const getBarDelay = (index: number) => {
   </div>
 </template>
 
-<style scoped>
-/* 波浪动画 */
-@keyframes wave {
+<style>
+/* Dots: 三点脉冲（GitHub/nprogress 风格） */
+@keyframes sp-dot {
+  0%, 80%, 100% {
+    transform: scaleY(0.5) translateY(0);
+    opacity: 0.35;
+  }
+  40% {
+    transform: scaleY(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Bars: 高度拉伸（YouTube 加载条风格） */
+@keyframes sp-bar {
   0%, 100% {
-    transform: scaleY(1);
+    transform: scaleY(0.35);
+    opacity: 0.5;
   }
   50% {
-    transform: scaleY(2);
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Wave: 波浪起伏（Nprogress 渐变波浪） */
+@keyframes sp-wave {
+  0%, 100% {
+    transform: scaleY(0.4);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
   }
 }
 </style>

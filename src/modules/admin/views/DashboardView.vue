@@ -244,7 +244,7 @@
     </div>
     <div class="bg-white rounded-2xl p-5 shadow-sm">
       <div v-if="recentActivities.length === 0">
-        <QyEmpty title="暂无操作日志" description="系统运行后将显示操作记录" icon-size="small" />
+        <Empty title="暂无操作日志" description="系统运行后将显示操作记录" iconSize="small" />
       </div>
       <div v-else v-for="activity in recentActivities" :key="activity.id" class="flex items-start gap-4 py-4 border-b border-gray-100 last:border-b-0 last:pb-0 first:pt-0">
         <div
@@ -270,7 +270,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { echarts } from '@/utils/echarts'
 import type { ECharts } from '@/utils/echarts'
 import { getAuditStatistics, getDashboardStats, getOperationLogs } from '../api'

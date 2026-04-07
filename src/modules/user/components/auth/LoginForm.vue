@@ -13,7 +13,7 @@
       </div>
 
       <qy-form-item prop="username">
-        <qy-input
+        <Input
           v-model="loginForm.username"
           placeholder="请输入用户名或邮箱"
           clearable
@@ -23,7 +23,7 @@
       </qy-form-item>
 
       <qy-form-item prop="password">
-        <qy-input
+        <Input
           v-model="loginForm.password"
           type="password"
           placeholder="请输入密码"
@@ -36,9 +36,9 @@
 
       <qy-form-item>
         <div class="form-options">
-          <qy-checkbox v-model="loginForm.rememberMe">
+          <Checkbox v-model="loginForm.rememberMe">
             记住我
-          </qy-checkbox>
+          </Checkbox>
           <a class="link-primary" @click="$emit('forgot-password')">
             忘记密码？
           </a>
@@ -77,9 +77,8 @@ import { ref, reactive, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
 import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
-import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
-import QyCheckbox from '@/design-system/components/basic/QyCheckbox/QyCheckbox.vue'
+import { Checkbox, Input } from '@/design-system/base'
 import { message } from '@/design-system/services'
 
 export default {
@@ -87,9 +86,9 @@ export default {
   components: {
     QyForm,
     QyFormItem,
-    QyInput,
     QyButton,
-    QyCheckbox
+    Checkbox,
+    Input
   },
   emits: ['login-success', 'switch-to-register', 'forgot-password'],
   setup(_props, { emit }) {

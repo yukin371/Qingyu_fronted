@@ -6,7 +6,7 @@
     @scroll="handleScroll"
     data-testid="reader-main"
   >
-    <QyCard
+    <Card
       class="reader-container"
       variant="glass"
       shadow="always"
@@ -39,7 +39,7 @@
       </div>
 
       <!-- 空状态 -->
-      <QyEmpty v-else description="加载中..." data-testid="reader-loading-state" />
+      <Empty v-else description="加载中..." data-testid="reader-loading-state" />
 
       <!-- 章节结束推荐区 -->
       <div
@@ -47,7 +47,7 @@
         class="chapter-end-recommendation"
         data-testid="chapter-end-recommendation"
       >
-        <QyDivider>本章完</QyDivider>
+        <Divider label="本章完" />
 
         <div class="recommendation-card">
           <h3>📚 阅读完成！</h3>
@@ -100,13 +100,15 @@
           </div>
         </div>
       </div>
-    </QyCard>
+    </Card>
   </main>
 </template>
 
 <script setup lang="ts">
 import { ref, type CSSProperties } from 'vue'
-import { QyCard, QyEmpty, QyDivider, QyAlert } from '@/design-system/components'
+import { QyAlert } from '@/design-system/components'
+import { Empty, Card } from '@/design-system/base'
+import { Divider } from '@/design-system/base'
 import CommentBadge from '../comments/CommentBadge.vue'
 
 export interface ReaderParagraph {

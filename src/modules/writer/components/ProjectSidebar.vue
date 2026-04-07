@@ -140,10 +140,10 @@
       </div>
 
       <!-- 空状态 -->
-      <QyEmpty
+      <Empty
         v-if="visibleRows.length === 0"
         description="暂无章节"
-        icon-size="small"
+        size="sm"
         class="list-empty"
       />
     </div>
@@ -153,7 +153,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { QyGhostButton, QyIcon, QyDropdown } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty, Card } from '@/design-system/base'
 import type { DropdownItem } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'

@@ -6,7 +6,7 @@
         书单标题
         <span class="required">*</span>
       </label>
-      <QyInput
+      <Input
         v-model="formData.title"
         placeholder="给你的书单起个名字"
         :maxlength="50"
@@ -17,7 +17,7 @@
     <!-- 描述 -->
     <div class="form-item">
       <label class="form-label">书单描述</label>
-      <QyTextarea
+      <Textarea
         v-model="formData.description"
         placeholder="简单介绍一下这个书单..."
         :rows="4"
@@ -62,7 +62,7 @@
     <div class="form-item">
       <label class="form-label">标签</label>
       <div class="tags-input">
-        <QyBadge
+        <Badge
           v-for="tag in formData.tags"
           :key="tag"
           variant="secondary"
@@ -70,8 +70,8 @@
           @close="removeTag(tag)"
         >
           {{ tag }}
-        </QyBadge>
-        <QyInput
+        </Badge>
+        <Input
           v-if="inputVisible"
           ref="tagInputRef"
           v-model="inputValue"
@@ -93,7 +93,7 @@
       <!-- 推荐标签 -->
       <div v-if="popularTags.length" class="popular-tags">
         <span class="popular-tags-label">推荐标签：</span>
-        <QyBadge
+        <Badge
           v-for="tag in popularTags.slice(0, 8)"
           :key="tag"
           variant="ghost"
@@ -102,7 +102,7 @@
           @click="addTag(tag)"
         >
           {{ tag }}
-        </QyBadge>
+        </Badge>
       </div>
     </div>
 
@@ -156,7 +156,8 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue'
-import { QyInput, QyButton, QyBadge, QyIcon, QyTextarea } from '@/design-system/components'
+import { QyButton, QyIcon } from '@/design-system/components'
+import { Badge, Textarea, Input } from '@/design-system/base'
 import type { BookList } from '@/types/booklist'
 
 interface Props {

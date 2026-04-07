@@ -51,7 +51,7 @@
           <div v-if="visiblePendingChangeRequests.length" class="space-y-3">
             <div class="flex items-center justify-between gap-3">
               <h4 class="text-sm font-semibold text-slate-950">待处理队列</h4>
-              <QyTag size="sm" type="warning" effect="light">{{ visiblePendingChangeRequests.length }} 条</QyTag>
+              <Tag size="sm" variant="warning" effect="light">{{ visiblePendingChangeRequests.length }} 条</Tag>
             </div>
             <QyCard
               v-for="changeRequest in visiblePendingChangeRequests"
@@ -64,27 +64,27 @@
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
-                    <QyTag
+                    <Tag
                       size="sm"
-                      :type="changeRequest.source === 'save_batch' ? 'success' : 'info'"
+                      :variant="changeRequest.source === 'save_batch' ? 'success' : 'info'"
                       effect="light"
                     >
                       {{ sourceLabelMap[changeRequest.source] }}
-                    </QyTag>
-                    <QyTag
+                    </Tag>
+                    <Tag
                       size="sm"
-                      :type="changeRequest.type === 'state' ? 'warning' : changeRequest.type === 'relation' ? 'success' : 'info'"
+                      :variant="changeRequest.type === 'state' ? 'warning' : changeRequest.type === 'relation' ? 'success' : 'info'"
                       effect="light"
                     >
                       {{ typeLabelMap[changeRequest.type] }}
-                    </QyTag>
-                    <QyTag
+                    </Tag>
+                    <Tag
                       size="sm"
-                      :type="changeRequest.severity === 'focus' ? 'warning' : 'info'"
+                      :variant="changeRequest.severity === 'focus' ? 'warning' : 'info'"
                       effect="plain"
                     >
                       {{ changeRequest.severity === 'focus' ? '优先处理' : '轻提示' }}
-                    </QyTag>
+                    </Tag>
                   </div>
                   <p class="mt-3 text-base font-semibold text-slate-950">{{ changeRequest.title }}</p>
                   <p class="mt-2 text-sm leading-6 text-slate-600">{{ changeRequest.summary }}</p>
@@ -141,7 +141,7 @@
           <div v-if="visibleResolvedChangeRequests.length" class="space-y-3">
             <div class="flex items-center justify-between gap-3">
               <h4 class="text-sm font-semibold text-slate-950">已处理记录</h4>
-              <QyTag size="sm" type="success" effect="light">{{ visibleResolvedChangeRequests.length }} 条</QyTag>
+              <Tag size="sm" variant="success" effect="light">{{ visibleResolvedChangeRequests.length }} 条</Tag>
             </div>
             <QyCard
               v-for="changeRequest in visibleResolvedChangeRequests"
@@ -154,27 +154,27 @@
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
-                    <QyTag
+                    <Tag
                       size="sm"
-                      :type="changeRequest.source === 'save_batch' ? 'success' : 'info'"
+                      :variant="changeRequest.source === 'save_batch' ? 'success' : 'info'"
                       effect="light"
                     >
                       {{ sourceLabelMap[changeRequest.source] }}
-                    </QyTag>
-                    <QyTag
+                    </Tag>
+                    <Tag
                       size="sm"
-                      :type="changeRequest.type === 'state' ? 'warning' : changeRequest.type === 'relation' ? 'success' : 'info'"
+                      :variant="changeRequest.type === 'state' ? 'warning' : changeRequest.type === 'relation' ? 'success' : 'info'"
                       effect="light"
                     >
                       {{ typeLabelMap[changeRequest.type] }}
-                    </QyTag>
-                    <QyTag
+                    </Tag>
+                    <Tag
                       size="sm"
-                      :type="decisionTagTypeMap[getDecision(changeRequest.id)]"
+                      :variant="decisionTagTypeMap[getDecision(changeRequest.id)]"
                       effect="plain"
                     >
                       {{ decisionLabelMap[getDecision(changeRequest.id)] }}
-                    </QyTag>
+                    </Tag>
                   </div>
                   <p class="mt-3 text-base font-semibold text-slate-900">{{ changeRequest.title }}</p>
                   <p class="mt-2 text-sm leading-6 text-slate-600">{{ changeRequest.summary }}</p>
@@ -232,7 +232,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { QyButton, QyCard, QyDrawer, QyTag } from '@/design-system/components'
+import { QyButton, QyCard, QyDrawer } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { message } from '@/design-system/services'
 import {
   useStoryHarnessStore,

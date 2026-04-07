@@ -3,9 +3,10 @@
  * Icon 组件
  *
  * 基于 Heroicons 的图标组件，支持多种尺寸和变体
+ * SVG 使用 currentColor，颜色由父级 text-* 控制
  */
 
-import { computed, defineComponent, h } from 'vue'
+import { computed } from 'vue'
 import { cn } from '../../utils/cn'
 import type { IconProps } from './types'
 import * as iconsData from './icons/icons-data'
@@ -38,7 +39,27 @@ const iconSvgMap: Record<string, { solid: string; outline: string }> = {
   'lock-closed': { solid: iconsData.lockClosedIconSolidSvg, outline: iconsData.lockClosedIconOutlineSvg },
   'information-circle': { solid: iconsData.informationCircleIconSolidSvg, outline: iconsData.informationCircleIconOutlineSvg },
   'book-open': { solid: iconsData.bookOpenIconSolidSvg, outline: iconsData.bookOpenIconOutlineSvg },
-  'photo': { solid: iconsData.photoIconSolidSvg, outline: iconsData.photoIconOutlineSvg },
+  photo: { solid: iconsData.photoIconSolidSvg, outline: iconsData.photoIconOutlineSvg },
+  // 扩展的基础图标
+  sparkles: { solid: iconsData.sparklesIconSolidSvg, outline: iconsData.sparklesIconOutlineSvg },
+  'question-circle': { solid: iconsData.questionMarkCircleIconSolidSvg, outline: iconsData.questionMarkCircleIconOutlineSvg },
+  clock: { solid: iconsData.clockIconSolidSvg, outline: iconsData.clockIconOutlineSvg },
+  code: { solid: iconsData.codeIconSolidSvg, outline: iconsData.codeIconOutlineSvg },
+  lightbulb: { solid: iconsData.lightbulbIconSolidSvg, outline: iconsData.lightbulbIconOutlineSvg },
+  grid: { solid: iconsData.squares2X2IconSolidSvg, outline: iconsData.squares2X2IconOutlineSvg },
+  'check-circle': { solid: iconsData.checkCircleIconSolidSvg, outline: iconsData.checkCircleIconOutlineSvg },
+  book: { solid: iconsData.bookIconSolidSvg, outline: iconsData.bookIconOutlineSvg },
+  search: { solid: iconsData.searchIconSolidSvg, outline: iconsData.searchIconOutlineSvg },
+  apps: { solid: iconsData.appsIconSolidSvg, outline: iconsData.appsIconOutlineSvg },
+  chart: { solid: iconsData.chartBarIconSolidSvg, outline: iconsData.chartBarIconOutlineSvg },
+  'rectangle-stack': { solid: iconsData.rectangleStackIconSolidSvg, outline: iconsData.rectangleStackIconOutlineSvg },
+  'circle-stack': { solid: iconsData.circleStackIconSolidSvg, outline: iconsData.circleStackIconOutlineSvg },
+  'user-circle': { solid: iconsData.userCircleIconSolidSvg, outline: iconsData.userCircleIconOutlineSvg },
+  'map-pin': { solid: iconsData.mapPinIconSolidSvg, outline: iconsData.mapPinIconOutlineSvg },
+  'globe-alt': { solid: iconsData.globeAltIconSolidSvg, outline: iconsData.globeAltIconOutlineSvg },
+  'arrow-trending-up': { solid: iconsData.arrowTrendingUpIconSolidSvg, outline: iconsData.arrowTrendingUpIconOutlineSvg },
+  'arrow-trending-down': { solid: iconsData.arrowTrendingDownIconSolidSvg, outline: iconsData.arrowTrendingDownIconOutlineSvg },
+  'exclamation-triangle': { solid: iconsData.exclamationTriangleIconSolidSvg, outline: iconsData.exclamationTriangleIconOutlineSvg },
 }
 
 // 尺寸映射
@@ -61,52 +82,67 @@ const emit = defineEmits<{
   click: [event: MouseEvent]
 }>()
 
-// 计算要渲染的 SVG 字符串
-const svgContent = computed(() => {
+// 查找图标 SVG 原始字符串
+const rawSvg = computed(() => {
   const icon = iconSvgMap[props.name as keyof typeof iconSvgMap]
-  if (!icon) {
-    console.warn(`Icon "${props.name}" not found`)
-    return null
-  }
+  if (!icon) return null
   return props.variant === 'solid' ? icon.solid : icon.outline
 })
 
-// 计算样式类名
-const classes = computed(() => {
+// 是否找到图标
+const hasIcon = computed(() => rawSvg.value !== null)
+
+// 处理 SVG 字符串：注入 width/height 与 aria-label
+const svgHtml = computed(() => {
+  if (!rawSvg.value) return ''
+  const label = props.ariaLabel || props.name
+  return rawSvg.value.replace(
+    /<svg/,
+    `<svg width="100%" height="100%" aria-label="${label}"`
+  )
+})
+
+// 正常图标的样式类
+const iconClasses = computed(() => {
   return cn(
     sizeClasses[props.size],
-    'inline-flex-shrink-0',
+    'inline-flex shrink-0',
     props.class
   )
 })
 
-// SVG 组件
-const SvgComponent = defineComponent({
-  setup() {
-    return () => {
-      if (!svgContent.value) return null
-
-      // 解析 SVG 字符串并添加 aria-label
-      const svgWithClass = svgContent.value.replace(
-        /<svg/,
-        `<svg style="width: 100%; height: 100%;" aria-label="${props.ariaLabel || props.name}"`
-      )
-
-      return h('div', {
-        class: classes.value,
-        innerHTML: svgWithClass,
-        onClick: (e: MouseEvent) => emit('click', e),
-      })
-    }
-  },
+// Fallback 容器样式
+const fallbackClasses = computed(() => {
+  return cn(
+    sizeClasses[props.size],
+    'inline-flex shrink-0 items-center justify-center',
+    'ring-1 ring-slate-200/60 bg-slate-50 text-slate-400 rounded',
+    props.class
+  )
 })
+
+// 点击处理
+function handleClick(e: MouseEvent) {
+  emit('click', e)
+}
 </script>
 
 <template>
-  <SvgComponent v-if="svgContent" />
-  <span
-    v-else
-    :class="classes"
+  <!-- 正常图标 -->
+  <div
+    v-if="hasIcon"
+    :class="iconClasses"
     :aria-label="ariaLabel || name"
-  >?</span>
+    v-html="svgHtml"
+    @click="handleClick"
+  />
+  <!-- Fallback：tonal 容器 + 问号 -->
+  <div
+    v-else
+    :class="fallbackClasses"
+    :aria-label="ariaLabel || name"
+    @click="handleClick"
+  >
+    <span class="text-[0.65em] leading-none font-medium select-none">?</span>
+  </div>
 </template>

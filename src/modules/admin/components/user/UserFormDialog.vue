@@ -17,7 +17,7 @@
       :disabled="mode === 'view'"
     >
       <div v-if="mode !== 'add'" class="user-avatar-section">
-        <QyAvatar size="xl" :src="formData.avatar" />
+        <Avatar size="xl" :src="formData.avatar" />
       </div>
 
       <el-form-item label="用户ID" v-if="mode !== 'add'">
@@ -116,7 +116,7 @@
 import { ref, computed, watch, reactive } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { formatDate } from '@/utils/format'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 import type { DialogMode, UserFormData } from './types'
 
 interface Props {

@@ -1,5 +1,5 @@
 <template>
-  <div class="qy-input-wrapper">
+  <div class="qy-input-wrapper" :class="{ 'qy-input-wrapper--focused': isFocused }">
     <!-- 前置插槽 -->
     <div v-if="prepend" class="qy-input__prepend">
       {{ prepend }}
@@ -46,7 +46,12 @@
           @click="handleClear"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -57,12 +62,33 @@
           class="qy-input__password-toggle"
           @click="togglePasswordVisibility"
         >
-          <svg v-if="showPasswordVisible" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <svg
+            v-if="showPasswordVisible"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
           </svg>
           <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+            />
           </svg>
         </button>
 
@@ -96,7 +122,7 @@ const props = withDefaults(defineProps<QyInputProps>(), {
   disabled: false,
   readonly: false,
   clearable: false,
-  showPassword: true
+  showPassword: true,
 })
 
 // Emits
@@ -105,6 +131,7 @@ const emit = defineEmits<QyInputEmits>()
 // Refs
 const inputRef = ref<HTMLInputElement>()
 const showPasswordVisible = ref(false)
+const isFocused = ref(false)
 
 // 计算当前输入类型（密码显示切换）
 const currentType = computed(() => {
@@ -129,13 +156,13 @@ const inputClasses = computed(() => {
   return cn(
     inputVariants({
       size: props.size,
-      state: props.state
+      state: props.disabled ? 'disabled' : props.state,
     }),
     {
-      'pl-10': props.prefixIcon,
-      'pr-10': hasSuffix.value
+      'pl-11': props.prefixIcon,
+      'pr-12': hasSuffix.value,
     },
-    props.class
+    props.class,
   )
 })
 
@@ -172,11 +199,13 @@ const handleChange = (event: Event) => {
 
 // 处理焦点事件
 const handleFocus = (event: FocusEvent) => {
+  isFocused.value = true
   emit('focus', event)
 }
 
 // 处理失焦事件
 const handleBlur = (event: FocusEvent) => {
+  isFocused.value = false
   emit('blur', event)
 }
 
@@ -202,7 +231,7 @@ defineExpose({
   focus: () => inputRef.value?.focus(),
   blur: () => inputRef.value?.blur(),
   select: () => inputRef.value?.select(),
-  getText: () => inputRef.value?.value || ''
+  getText: () => inputRef.value?.value || '',
 })
 </script>
 
@@ -222,9 +251,10 @@ defineExpose({
   display: inline-flex;
   align-items: center;
   padding: 0 1rem;
-  background-color: rgb(241 245 249);
-  border: 1px solid rgb(226 232 240);
+  background: linear-gradient(180deg, rgb(248 250 252 / 0.94) 0%, rgb(241 245 249 / 0.98) 100%);
+  border: 1px solid rgb(226 232 240 / 0.95);
   color: rgb(100 116 139);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8);
   font-size: 0.875rem;
   white-space: nowrap;
 }
@@ -249,6 +279,7 @@ defineExpose({
   height: 1rem;
   color: rgb(148 163 184);
   pointer-events: none;
+  transition: color 180ms ease;
 }
 
 .qy-input__icon--prefix {
@@ -266,12 +297,12 @@ defineExpose({
 
 .qy-input__suffix {
   position: absolute;
-  right: 0.75rem;
+  right: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.375rem;
 }
 
 .qy-input__clear,
@@ -279,22 +310,33 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1rem;
-  height: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: rgb(148 163 184);
   cursor: pointer;
-  transition: color 150ms ease;
-  background: transparent;
-  border: none;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+  background: rgb(255 255 255 / 0.86);
+  border: 1px solid rgb(226 232 240 / 0.8);
+  border-radius: 9999px;
   padding: 0;
+  box-shadow: 0 4px 10px -8px rgb(15 23 42 / 0.4);
 }
 
 .qy-input__clear:hover,
 .qy-input__password-toggle:hover {
   color: rgb(100 116 139);
+  background: rgb(248 250 252 / 1);
+  transform: translateY(-1px);
 }
 
 .qy-input__clear:hover {
   color: rgb(239 68 68);
+}
+
+.qy-input-wrapper--focused .qy-input__icon {
+  color: rgb(37 99 235 / 0.78);
 }
 </style>

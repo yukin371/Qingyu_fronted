@@ -16,7 +16,7 @@ export interface SelectProps {
   /** v-model 绑定值 */
   modelValue?: string | number
   /** 选项列表 */
-  options: SelectOption[]
+  options?: SelectOption[]
   /** 占位文本 */
   placeholder?: string
   /** 禁用状态 */

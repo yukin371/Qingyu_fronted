@@ -1,6 +1,6 @@
 <template>
   <div class="notification-container">
-    <QyCard>
+    <Card>
       <template #title>
         <div class="header-content">
           <h3>通知中心</h3>
@@ -70,7 +70,7 @@
           @click="handleNotificationClick(notification)"
         >
           <!-- 多选框 -->
-          <QyCheckbox
+          <Checkbox
             :model-value="selectedIds.includes(notification.id)"
             @change="(val: boolean | string[]) => handleSelectChange(notification.id, typeof val === 'boolean' ? val : false)"
             @click.stop
@@ -89,20 +89,20 @@
               <span :class="{ 'title-unread': notification.status === 'unread' }">
                 {{ notification.title }}
               </span>
-              <QyTag
+              <Tag
                 v-if="notification.priority === 'high'"
                 variant="danger"
                 size="sm"
               >
                 重要
-              </QyTag>
-              <QyTag
+              </Tag>
+              <Tag
                 v-else-if="notification.priority === 'urgent'"
                 variant="danger"
                 size="sm"
               >
                 紧急
-              </QyTag>
+              </Tag>
             </div>
             <div class="notification-text">
               {{ notification.content }}
@@ -131,7 +131,7 @@
         </div>
 
         <!-- 空状态 -->
-        <QyEmpty
+        <Empty
           v-if="!loading && notifications.length === 0"
           :description="emptyText"
         >
@@ -140,7 +140,7 @@
               查看全部通知
             </QyButton>
           </template>
-        </QyEmpty>
+        </Empty>
       </div>
 
       <!-- 分页器 -->
@@ -153,7 +153,7 @@
         @current-change="loadNotifications"
         class="pagination"
       />
-    </QyCard>
+    </Card>
 
     <!-- 设置对话框 -->
     <QyModal
@@ -177,7 +177,7 @@
           <QySwitch v-model="preferences.channel_enabled.push" />
         </QyFormItem>
 
-        <QyDivider />
+        <Divider />
 
         <h4>通知类型</h4>
         <QyFormItem label="系统通知">
@@ -196,7 +196,7 @@
           <QySwitch v-model="preferences.type_enabled.message" />
         </QyFormItem>
 
-        <QyDivider />
+        <Divider />
 
         <h4>免打扰时段</h4>
         <QyFormItem label="启用免打扰">
@@ -235,18 +235,14 @@ import { ref, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
 import {
   QyIcon,
-  QyCard,
   QyButton,
-  QyTag,
-  QyEmpty,
   QyModal,
   QyPagination,
-  QyCheckbox,
   QySwitch,
-  QyDivider,
   QyForm,
   QyFormItem
 } from '@/design-system/components'
+import { Tag, Divider, Checkbox, Empty, Card } from '@/design-system/base'
 import {
   getNotifications,
   getUnreadCount,

@@ -74,6 +74,7 @@ export { QyTree, QyTreeSelect } from './business/QyTree'
 export { default as QyDivider } from './data/QyDivider'
 export { default as QyProgress } from './data/QyProgress'
 export { default as QyPagination } from './data/QyPagination'
+export { Timeline, TimelineItem } from '../data/Timeline'
 export { QyRow, QyCol } from './data/QyGrid'
 export { QyDescriptions, QyDescriptionsItem } from './data/QyDescriptions'
 export { QyButtonGroup } from './basic/QyButtonGroup'
@@ -97,6 +98,7 @@ export type * from './basic/QySlider/types'
 export type * from './basic/QyTextarea/types'
 // QySelect types from form/Select (Apple-style)
 export type { SelectOption, SelectProps, SelectEmits } from '../form/Select/types'
+export type { SelectOption as QySelectOption } from '../form/Select/types'
 export type * from './basic/QyRate/types'
 export type * from './basic/QyScrollbar/types'
 export type * from './basic/QyImage/types'
@@ -105,7 +107,12 @@ export type * from './navigation/QyTopNav/types'
 export type * from './navigation/QyBottomDock/types'
 export type * from './navigation/QyTabBar/types'
 // QyDropdown types from navigation/Dropdown
-export type { QyDropdownProps, DropdownItem, DropdownTrigger, DropdownPlacement } from '../navigation/Dropdown/types'
+export type {
+  QyDropdownProps,
+  DropdownItem,
+  DropdownTrigger,
+  DropdownPlacement,
+} from '../navigation/Dropdown/types'
 export type * from './advanced/QyModal/types'
 export type * from './advanced/QyLoading/types'
 export type * from './advanced/QyEmpty/types'
@@ -121,6 +128,7 @@ export type * from './feedback/QyDrawer/types'
 export type * from './data/QyDivider/types'
 export type * from './data/QyProgress/types'
 export type * from './data/QyPagination/types'
+export type { TimelineProps, TimelineItemProps } from '../data/Timeline/types'
 export type * from './data/QyGrid/types'
 export type * from './data/QyDescriptions/types'
 

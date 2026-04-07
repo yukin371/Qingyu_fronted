@@ -207,7 +207,7 @@
         </QyForm>
 
         <div class="social-login" v-if="activeMode === 'login'">
-          <QyDivider content="第三方登录" content-position="center" />
+          <Divider label="第三方登录" />
           <div class="social-buttons">
             <button class="social-btn wechat" title="微信登录">W</button>
             <button class="social-btn qq" title="QQ登录">Q</button>
@@ -226,7 +226,8 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
-import { QyIcon, QyForm, QyFormItem, QyInput, QyButton, QyDivider } from '@/design-system/components'
+import { QyIcon, QyForm, QyFormItem, QyButton } from '@/design-system/components'
+import { Divider, Input } from '@/design-system/base'
 import { getIconSVG } from '@/design-system/utils/icon-mapper'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义

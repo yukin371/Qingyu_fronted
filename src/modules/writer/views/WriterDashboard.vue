@@ -16,7 +16,7 @@
     <!-- 2. 核心数据概览 (Stats) -->
     <div class="stats-grid">
       <div v-for="(item, index) in statCards" :key="index" class="stats-grid-item">
-        <QyCard class="stat-card" shadow="hover">
+        <Card class="stat-card" shadow="hover">
           <div class="stat-icon" :style="{ backgroundColor: item.bgColor }">
             <QyIcon :name="item.iconName" :size="24" :color="item.iconColor" />
           </div>
@@ -32,7 +32,7 @@
       <!-- 左侧主要区域 -->
       <div class="left-pane">
         <!-- 3. 快捷操作 -->
-        <QyCard class="section-card quick-actions" shadow="hover">
+        <Card class="section-card quick-actions" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Lightning" /> 快捷操作 </span>
@@ -56,10 +56,10 @@
               <span>数据报表</span>
             </div>
           </div>
-        </QyCard>
+        </Card>
 
         <!-- 4. 最近编辑的项目 -->
-        <QyCard class="section-card recent-projects" shadow="hover">
+        <Card class="section-card recent-projects" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Timer" /> 最近编辑 </span>
@@ -73,10 +73,10 @@
             <Skeleton :rows="3" animated />
           </div>
 
-          <QyEmpty
+          <Empty
             v-else-if="recentProjects.length === 0"
             description="暂无最近编辑的项目"
-            icon-size="medium"
+            iconSize="medium"
           />
 
           <div v-else class="project-list">
@@ -87,7 +87,7 @@
               @click="openProject(project.id)"
             >
               <div class="item-cover" :style="getCoverStyle(project.title)">
-                <QyImage
+                <Image
                   v-if="project.coverImage"
                   :src="project.coverImage"
                   fit="cover"
@@ -99,15 +99,15 @@
               <div class="item-content">
                 <div class="item-header">
                   <h4 class="item-title">{{ project.title }}</h4>
-                  <QyTag size="small" :type="getStatusType(project.status)" plain round>
+                  <Tag size="sm" :variant="getStatusType(project.status)" effect="plain" :round="true">
                     {{ getStatusText(project.status) }}
-                  </QyTag>
+                  </Tag>
                 </div>
                 <div class="item-meta">
                   <span
                     ><QyIcon name="Document" /> {{ formatNumber(project.totalWords ?? 0) }} 字</span
                   >
-                  <QyDivider direction="vertical" />
+                  <Divider direction="vertical" />
                   <span
                     ><QyIcon name="Clock" />
                     {{ formatTime(project.lastUpdateTime || project.updatedAt || '') }}</span
@@ -118,13 +118,13 @@
               <QyButton variant="ghost" class="enter-btn" icon="ArrowRight" />
             </div>
           </div>
-        </QyCard>
+        </Card>
       </div>
 
       <!-- 右侧辅助区域 -->
       <div class="right-pane">
         <!-- 5. 今日目标 -->
-        <QyCard class="section-card writing-goal" shadow="hover">
+        <Card class="section-card writing-goal" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="header-title"> <QyIcon name="Trophy" /> 今日目标 </span>
@@ -158,16 +158,16 @@
           </div>
 
           <div class="goal-message" v-if="goalPercentage >= 100">🎉 太棒了！今日目标已达成！</div>
-        </QyCard>
+        </Card>
 
         <!-- 6. 每日灵感 (新增) -->
-        <QyCard class="section-card daily-quote" shadow="hover">
+        <Card class="section-card daily-quote" shadow="hover">
           <div class="quote-content">
             <QyIcon name="ChatDotRound" class="quote-icon" />
             <p class="quote-text">写作就是把原本不存在的事物变成存在。</p>
             <p class="quote-author">—— 佚名</p>
           </div>
-        </QyCard>
+        </Card>
       </div>
     </div>
   </div>
@@ -181,8 +181,8 @@ import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { getTodayWordsStats, getDashboardOverview } from '@/modules/writer/api/dashboard'
 import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
-import { QyIcon, QyCard, QyTag, QyButton, QyDivider, QyProgress, Skeleton, QyImage } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { QyIcon, QyButton, QyProgress, Skeleton } from '@/design-system/components'
+import { Tag, type TagVariant, Divider, Image, Empty, Card } from '@/design-system/base'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -314,8 +314,8 @@ onMounted(async () => {
 const formatNumber = (n: number) => (n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n)
 const formatTime = (t: string) => (t ? dayjs(t).fromNow() : '未知时间')
 
-const getStatusType = (status: string) => {
-  const map: Record<string, string> = {
+const getStatusType = (status: string): TagVariant => {
+  const map: Record<string, TagVariant> = {
     draft: 'info',
     serializing: 'primary',
     completed: 'success',

@@ -108,7 +108,7 @@
       </div>
 
       <div v-else-if="filteredChapters.length === 0" class="empty-container">
-        <QyEmpty description="暂无章节数据" />
+        <Empty description="暂无章节数据" />
       </div>
 
       <el-table v-else :data="filteredChapters" stripe @selection-change="handleSelectionChange">
@@ -235,7 +235,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { getProjects, type Project } from '@/modules/writer/api'
 
 const router = useRouter()

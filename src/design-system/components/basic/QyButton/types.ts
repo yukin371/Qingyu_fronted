@@ -18,6 +18,10 @@ export type QyButtonSize = ButtonVariants['size']
  * 状态层类型（从 CVA 推导）
  */
 export type QyButtonStateLayer = ButtonVariants['stateLayer']
+/**
+ * 是否块级宽度
+ */
+export type QyButtonBlock = ButtonVariants['block']
 
 /**
  * QyButton Props 接口
@@ -69,6 +73,12 @@ export interface QyButtonProps {
    * @default 'button'
    */
   nativeType?: 'button' | 'submit' | 'reset'
+
+  /**
+   * 是否占满父容器宽度
+   * @default false
+   */
+  block?: QyButtonBlock
 
   /**
    * 自定义类名

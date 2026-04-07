@@ -3,6 +3,7 @@
     :class="buttonClasses"
     :disabled="disabled || loading"
     :type="nativeType"
+    :aria-disabled="disabled || loading || undefined"
     :aria-busy="loading || undefined"
     @click="handleClick"
   >
@@ -63,7 +64,8 @@ const props = withDefaults(defineProps<QyButtonProps>(), {
   disabled: false,
   loading: false,
   iconPosition: 'left',
-  nativeType: 'button'
+  nativeType: 'button',
+  block: false,
 })
 
 // Emits
@@ -75,9 +77,10 @@ const buttonClasses = computed(() => {
     buttonVariants({
       variant: props.variant,
       size: props.size,
-      stateLayer: props.stateLayer
+      stateLayer: props.stateLayer,
+      block: props.block,
     }),
-    props.class
+    props.class,
   )
 })
 
@@ -88,7 +91,7 @@ const spinnerSize = computed(() => {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
     lg: 'w-6 h-6',
-    xl: 'w-7 h-7'
+    xl: 'w-7 h-7',
   }
   return sizeMap[props.size ?? 'md']
 })
@@ -126,5 +129,4 @@ const handleClick = (event: MouseEvent) => {
 .qy-button__spinner {
   margin-right: 0.5rem;
 }
-
 </style>

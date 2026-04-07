@@ -18,7 +18,7 @@
       </div>
 
       <!-- 筛选和排序 -->
-      <QyCard shadow="hover" class="filter-card">
+      <Card shadow="hover" class="filter-card">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="8">
             <QySelect
@@ -40,7 +40,7 @@
           </el-col>
 
           <el-col :xs="24" :sm="8">
-            <QyInput
+            <Input
               v-model="filter.keyword"
               placeholder="搜索书名或作者"
               clearable
@@ -49,15 +49,15 @@
               <template #prefix>
                 <QyIcon name="Search"  />
               </template>
-            </QyInput>
+            </Input>
           </el-col>
         </el-row>
-      </QyCard>
+      </Card>
 
       <!-- 历史记录列表 -->
       <QyLoading :loading="loading" class="history-list">
         <template v-if="!loading && historyList.length > 0">
-          <QyCard
+          <Card
             v-for="item in historyList"
             :key="item.id"
             shadow="hover"
@@ -66,13 +66,13 @@
             <div class="item-content" @click="continueReading(item)">
               <!-- 书籍封面 -->
               <div class="item-cover">
-                <QyImage :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
+                <Image :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
                   <template #error>
                     <div class="image-slot">
                       <QyIcon name="Picture"  />
                     </div>
                   </template>
-                </QyImage>
+                </Image>
 
                 <!-- 阅读进度标签 -->
                 <div class="progress-badge">
@@ -89,9 +89,9 @@
                 </p>
 
                 <div class="reading-info">
-                  <QyTag size="sm">
+                  <Tag size="sm">
                     阅读到：{{ item.chapter?.title || '未知章节' }}
-                  </QyTag>
+                  </Tag>
                   <span class="reading-time">
                     <QyIcon name="Timer"  />
                     阅读时长：{{ formatDuration(item.readDuration || 0) }}
@@ -132,7 +132,7 @@
                 </QyButton>
               </div>
             </div>
-          </QyCard>
+          </Card>
 
           <!-- 分页 -->
           <div class="pagination">
@@ -148,9 +148,11 @@
         </template>
 
         <!-- 空状态 -->
-        <QyEmpty v-else-if="!loading" description="暂无阅读历史">
-          <QyButton variant="primary" @click="goToBookstore">去书城看看</QyButton>
-        </QyEmpty>
+        <Empty v-else-if="!loading" description="暂无阅读历史">
+          <template #action>
+            <QyButton variant="primary" @click="goToBookstore">去书城看看</QyButton>
+          </template>
+        </Empty>
       </QyLoading>
     </div>
   </div>
@@ -160,7 +162,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyButton, QyCard, QyInput, QySelect, QyTag, QyImage, QyProgress, QyPagination, QyEmpty, QyLoading } from '@/design-system/components'
+import { QyIcon, QyButton, QyInput, QySelect, QyProgress, QyPagination, QyLoading } from '@/design-system/components'
+import { Tag, Image, Empty, Card, Input } from '@/design-system/base'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
 

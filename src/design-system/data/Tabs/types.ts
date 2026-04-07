@@ -47,6 +47,11 @@ export interface TabPaneProps {
   label?: string
 
   /**
+   * 标签标题别名
+   */
+  title?: string
+
+  /**
    * 标签标识符
    */
   name?: string | number
@@ -81,6 +86,7 @@ export const tabsDefaults: Partial<TabsProps> = {
 // TabPane 组件默认属性
 export const tabPaneDefaults: Partial<TabPaneProps> = {
   label: '',
+  title: '',
   name: undefined,
   disabled: false,
   closable: undefined,
@@ -89,9 +95,9 @@ export const tabPaneDefaults: Partial<TabPaneProps> = {
 // Tabs 事件类型
 export interface TabsEmits {
   'update:modelValue': [value: string | number]
-  'tabClick': [pane: TabPaneInstance, event: MouseEvent]
-  'tabChange': [name: string | number]
-  'tabRemove': [name: string | number, event: MouseEvent]
+  tabClick: [pane: TabPaneInstance, event: MouseEvent]
+  tabChange: [name: string | number]
+  tabRemove: [name: string | number, event: MouseEvent]
 }
 
 // TabPane 实例类型

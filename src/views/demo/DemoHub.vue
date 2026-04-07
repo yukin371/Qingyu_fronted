@@ -4,24 +4,25 @@
     <div class="hero-section">
       <div class="hero-content">
         <div class="hero-badge">
-          <QyIcon name="flask" size="sm" />
-          <span>Development Demo Hub</span>
+          <QyIcon name="sparkles" size="sm" />
+          <span>Tailwind Foundation Console</span>
         </div>
-        <h1 class="hero-title">青羽组件库 <span class="gradient-text">Demo 中心</span></h1>
+        <h1 class="hero-title">青羽 Tailwind <span class="gradient-text">基座设计系统</span></h1>
         <p class="hero-description">
-          快速验证页面样式、组件功能与交互效果
+          DemoHub 现融合了 Tailwind v4 的语义令牌，方便在 Apple + Material 3 语境下定制组件并替代
+          Element Plus。
           <br />
-          所有页面自动启用 Mock 数据模式，无需后端支持
+          所有 Demo 仍自动附加 Mock 标记，无需后端即可验证布局与交互。
         </p>
         <div class="hero-actions">
-          <QyButton variant="primary" size="lg" @click="scrollToDemos">
-            <QyIcon name="arrow-down" size="sm" />
+          <Button variant="primary" size="lg" @click="scrollToDemos">
+            <Icon name="arrow-down" size="sm" />
             浏览 Demo
-          </QyButton>
-          <QyButton variant="secondary" size="lg" @click="showHelp">
+          </Button>
+          <Button variant="secondary" size="lg" @click="showHelp">
             <QyIcon name="question-circle" size="sm" />
             使用说明
-          </QyButton>
+          </Button>
         </div>
       </div>
     </div>
@@ -52,6 +53,42 @@
       </div>
     </div>
 
+    <div v-if="foundationEntry" class="foundation-showcase-section">
+      <div class="container">
+        <Card class="foundation-showcase-card">
+          <div class="foundation-showcase-content">
+            <div>
+              <p class="foundation-eyebrow">Foundation Spotlight</p>
+              <h2>{{ foundationEntry.title }}</h2>
+              <p>{{ foundationEntry.description }}</p>
+            </div>
+            <div class="foundation-showcase-stats">
+              <div class="foundation-pill">
+                <p>组件数</p>
+                <strong>{{ foundationEntry.componentCount }}</strong>
+              </div>
+              <div class="foundation-pill">
+                <p>更新</p>
+                <strong>{{ foundationEntry.lastUpdated }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="foundation-showcase-actions">
+            <Button variant="primary" size="md" @click="navigateToDemo(foundationEntry)">
+              开始体验
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
+              @click="navigateToRoute('/demo/tailwind-v4-design-system')"
+            >
+              查看 Tailwind v4 全景
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </div>
+
     <!-- Business Entrances Section -->
     <div class="business-entrances-section">
       <div class="container">
@@ -71,7 +108,7 @@
               </div>
             </div>
             <div class="entrance-buttons">
-              <QyButton
+              <Button
                 v-for="item in group.items"
                 :key="item.key"
                 size="sm"
@@ -80,7 +117,7 @@
                 @click="navigateToRoute(item.route)"
               >
                 {{ item.label }}
-              </QyButton>
+              </Button>
             </div>
           </div>
         </div>
@@ -93,16 +130,12 @@
         <div class="section-header">
           <h2 class="section-title">可用 Demo 页面</h2>
           <div class="section-actions">
-            <QyInput
+            <Input
               v-model="searchQuery"
               placeholder="搜索 demo 页面..."
               size="md"
               class="search-input"
-            >
-              <template #prefix>
-                <QyIcon name="search" size="sm" />
-              </template>
-            </QyInput>
+            />
           </div>
         </div>
 
@@ -133,14 +166,13 @@
                 <QyIcon :name="demo.icon" size="md" />
               </div>
               <div class="card-badges">
-                <QyBadge v-if="demo.new" type="text" text="NEW" color="primary" />
-                <QyBadge v-if="demo.updated" type="text" text="UPDATED" color="info" />
-                <QyBadge v-if="demo.business" type="text" text="业务页面" color="warning" />
-                <QyBadge
+                <Badge v-if="demo.new" variant="primary" content="NEW" />
+                <Badge v-if="demo.updated" variant="secondary" content="UPDATED" />
+                <Badge v-if="demo.business" variant="warning" content="业务页面" />
+                <Badge
                   v-else
-                  type="text"
-                  :text="getCategoryName(demo.category)"
-                  color="success"
+                  variant="success"
+                  :content="getCategoryName(demo.category)"
                 />
               </div>
             </div>
@@ -149,7 +181,7 @@
               <p class="card-description">{{ demo.description }}</p>
               <div class="card-meta">
                 <span class="meta-item">
-                  <QyIcon name="Grid" size="xs" />
+                  <QyIcon name="grid" size="xs" />
                   {{ demo.componentCount }} 个组件
                 </span>
                 <span class="meta-item">
@@ -159,10 +191,10 @@
               </div>
             </div>
             <div class="card-footer">
-              <QyButton variant="primary" size="sm" block>
-                <QyIcon name="arrow-right" size="sm" />
+              <Button variant="primary" size="sm" block>
+                <Icon name="arrow-right" size="sm" />
                 查看 Demo
-              </QyButton>
+              </Button>
             </div>
           </div>
         </div>
@@ -204,7 +236,7 @@
         <div class="modal-header">
           <h2>使用说明</h2>
           <button class="close-btn" @click="showHelpModal = false">
-            <QyIcon name="x-mark" size="md" />
+            <Icon name="x-mark" size="md" />
           </button>
         </div>
         <div class="modal-body">
@@ -269,7 +301,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { QyButton, QyIcon, QyInput, QyBadge } from '@/design-system/components'
+import { Button, Icon, Badge, Card, Input } from '@/design-system/base'
+import { QyIcon } from '@/design-system/components'
 
 // Router
 const router = useRouter()
@@ -314,11 +347,25 @@ interface BusinessEntranceGroup {
 }
 
 const demoPages = ref<DemoPage[]>([
+  {
+    key: 'foundation-showcase',
+    title: 'Foundation Showroom',
+    description:
+      'Tailwind v4 基础组件组合，验证 Button、Input、Card、Select、Dialog 在 Apple + Material 3 语义下的默契表现。',
+    icon: 'sparkles',
+    color: 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)',
+    category: 'foundation',
+    componentCount: 5,
+    lastUpdated: '2026-04-07',
+    new: true,
+    route: '/demo/foundation-showcase',
+  },
   // ===== 数据展示组件 =====
   {
     key: 'components',
     title: '苹果风格组件演示',
-    description: '展示苹果风格的 Table、Skeleton、Tabs、Pagination 组件，带圆角、毛玻璃和高斯模糊效果。',
+    description:
+      '展示苹果风格的 Table、Skeleton、Tabs、Pagination 组件，带圆角、毛玻璃和高斯模糊效果。',
     icon: 'chart',
     color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     category: 'data',
@@ -329,7 +376,7 @@ const demoPages = ref<DemoPage[]>([
   },
   {
     key: 'qy-badge',
-    title: 'QyBadge 徽章',
+    title: 'Badge 徽章',
     description: '徽章组件，支持多种类型（实心/文字/圆点）、多种颜色和尺寸，用于标签和状态展示。',
     icon: 'tag',
     color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -338,19 +385,6 @@ const demoPages = ref<DemoPage[]>([
     lastUpdated: '2024-01-10',
     route: '/demo/qy-badge',
   },
-  {
-    key: 'advanced-components',
-    title: '高级组件演示',
-    description: '展示复杂交互组件，包括表单验证、数据表格、弹窗等高级功能组件。',
-    icon: 'puzzle',
-    color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    category: 'data',
-    componentCount: 6,
-    lastUpdated: '2024-01-12',
-    updated: true,
-    route: '/demo/advanced-components',
-  },
-
   // ===== 基础组件 =====
   {
     key: 'qingyu-components',
@@ -441,7 +475,7 @@ const demoPages = ref<DemoPage[]>([
   },
   {
     key: 'qy-icon',
-    title: 'QyIcon 图标库',
+    title: 'Icon 图标库',
     description: '展示青羽项目使用的图标库，包含所有可用的图标及其使用方法。',
     icon: 'star',
     color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
@@ -633,10 +667,15 @@ const categories = [
   { key: 'data', label: '数据展示', icon: 'chart' },
   { key: 'form', label: '表单组件', icon: 'edit' },
   { key: 'style', label: '风格展示', icon: 'palette' },
+  { key: 'foundation', label: 'Foundation 展示', icon: 'sparkles' },
   { key: 'prototype', label: '原型设计', icon: 'prototype' },
   { key: 'validation', label: '功能验证', icon: 'check-circle' },
   { key: 'business', label: '业务页面', icon: 'store' },
 ]
+
+const foundationEntry = computed(() =>
+  demoPages.value.find((demo) => demo.key === 'foundation-showcase'),
+)
 
 // Quick links
 const quickLinks = ref([
@@ -646,6 +685,14 @@ const quickLinks = ref([
     description: '组件库文档和交互式演示 (需要先运行 npm run storybook)',
     icon: 'book',
     url: 'http://localhost:6006',
+    external: true,
+  },
+  {
+    key: 'foundation-showcase',
+    title: 'Foundation Showroom',
+    description: 'Tailwind v4 基础组件组合，直接替代 Element Plus 控件。',
+    icon: 'sparkles',
+    url: '/demo/foundation-showcase?test=true',
     external: true,
   },
   {
@@ -738,6 +785,7 @@ const getCategoryName = (category: string): string => {
     data: '数据展示',
     form: '表单组件',
     style: '风格展示',
+    foundation: 'Foundation 展示',
     prototype: '原型设计',
     validation: '功能验证',
     business: '业务页面',
@@ -826,7 +874,9 @@ onMounted(() => {
   color: #1a1a1a;
   margin-bottom: 20px;
   font-family:
-    'Inter',
+    'SF Pro Display',
+    'Segoe UI',
+    'PingFang SC',
     -apple-system,
     sans-serif;
 
@@ -865,6 +915,73 @@ onMounted(() => {
   background: white;
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.foundation-showcase-section {
+  padding: 40px 0;
+  background: linear-gradient(180deg, #ecfeff 0%, #ffffff 70%);
+}
+
+.foundation-showcase-card {
+  padding: 28px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 20px 50px rgba(14, 165, 233, 0.15);
+}
+
+.foundation-showcase-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.foundation-showcase-content h2 {
+  margin: 8px 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.foundation-showcase-stats {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.foundation-pill {
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(14, 165, 233, 0.1);
+  min-width: 120px;
+  text-align: center;
+  color: #0f172a;
+}
+
+.foundation-pill p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.foundation-pill strong {
+  font-size: 1.4rem;
+  display: block;
+}
+
+.foundation-showcase-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.foundation-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+  margin: 0;
 }
 
 .stats-grid {

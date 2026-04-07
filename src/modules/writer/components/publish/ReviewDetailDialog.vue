@@ -4,7 +4,8 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { ref, watch } from 'vue'
-import { QyDialog, QyButton, QyTag } from '@/design-system/components'
+import { QyDialog, QyButton } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 
 export interface ReviewDetail {
   id: string
@@ -91,9 +92,9 @@ const handleResubmit = () => {
             </div>
             <div class="info-item">
               <span class="info-label">审核状态</span>
-              <QyTag :type="getReviewStatusType(detail.status)">
+              <Tag :variant="getReviewStatusType(detail.status)">
                 {{ getReviewStatusLabel(detail.status) }}
-              </QyTag>
+              </Tag>
             </div>
           </div>
           <div class="info-row">

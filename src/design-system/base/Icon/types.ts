@@ -8,64 +8,68 @@ export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 // Icon 变体
 export type IconVariant = 'solid' | 'outline'
 
-// Icon 名称 - 支持的图标列表
+// Icon 名称 - Heroicons 24px
 export type IconName =
   // 导航类
   | 'home'
-  | 'dashboard'
-  | 'menu'
-  | 'x-mark'
+  | 'apps'
   // 用户相关
   | 'user'
-  | 'users'
-  | 'user-group'
   | 'user-circle'
   // 文件/文档
   | 'document'
-  | 'document-text'
+  | 'book'
+  | 'book-open'
   | 'folder'
-  | 'folder-open'
+  | 'photo'
   // 操作类
   | 'plus'
   | 'minus'
   | 'check'
-  | 'x-circle'
+  | 'x-mark'
   | 'pencil'
   | 'trash'
+  | 'sparkles'
+  // 箭头类
   | 'arrow-down'
   | 'arrow-up'
   | 'arrow-left'
   | 'arrow-right'
-  // 导航箭头
+  | 'arrow-trending-up'
+  | 'arrow-trending-down'
   | 'chevron-down'
   | 'chevron-up'
   | 'chevron-left'
   | 'chevron-right'
   // 搜索和设置
   | 'magnifying-glass'
-  | 'adjustments-horizontal'
+  | 'search'
   | 'cog-6-tooth'
-  | 'cog-8-tooth'
   // 通信
   | 'bell'
-  | 'envelope'
-  | 'chat-bubble-left-right'
   // 安全
   | 'lock-closed'
-  | 'lock-open'
-  | 'shield-check'
-  | 'key'
   // 状态
   | 'information-circle'
-  | 'exclamation-circle'
-  | 'exclamation-triangle'
+  | 'question-circle'
+  | 'check-circle'
+  | 'clock'
   // 其他
   | 'heart'
   | 'star'
-  | 'calendar'
-  | 'clock'
-  | 'ellipsis-horizontal'
-  | 'ellipsis-vertical'
+  | 'lightbulb'
+  | 'code'
+  // 图表
+  | 'chart'
+  // 堆叠
+  | 'rectangle-stack'
+  | 'circle-stack'
+  // 位置
+  | 'map-pin'
+  // 全球
+  | 'globe-alt'
+  // 警告
+  | 'exclamation-triangle'
 
 // Icon Props 接口
 export interface IconProps {

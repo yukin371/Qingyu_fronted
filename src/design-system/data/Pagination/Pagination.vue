@@ -240,7 +240,7 @@ const nextDisabled = computed(() => {
       <select
         :value="internalPageSize"
         :disabled="disabled"
-        class="h-8 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-600 outline-none transition-colors hover:border-primary-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+        class="h-8 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-600 outline-none transition-colors hover:border-primary-500 focus:border-primary-500 focus:shadow-[0_0_0_2px_rgba(14,165,233,0.16)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
         @change="handleSizeChange"
       >
         <option
@@ -343,7 +343,7 @@ const nextDisabled = computed(() => {
         v-model.number="jumperValue"
         type="number"
         :disabled="disabled"
-        class="h-8 w-16 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-center text-slate-600 outline-none transition-colors hover:border-primary-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+        class="h-8 w-16 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-center text-slate-600 outline-none transition-colors hover:border-primary-500 focus:border-primary-500 focus:shadow-[0_0_0_2px_rgba(14,165,233,0.16)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
         @keydown="handleJumperKeydown"
         @blur="handleJumperConfirm"
       >

@@ -1,24 +1,14 @@
 <template>
   <!-- Dot Badge / isDot 模式 -->
-  <span
-    v-if="actualType === 'dot'"
-    :class="badgeClasses"
-    aria-hidden="true"
-  />
+  <span v-if="actualType === 'dot'" :class="badgeClasses" aria-hidden="true" />
 
   <!-- Number Badge -->
-  <span
-    v-else-if="actualType === 'number'"
-    :class="badgeClasses"
-  >
+  <span v-else-if="actualType === 'number'" :class="badgeClasses">
     {{ displayValue }}
   </span>
 
   <!-- Text Badge -->
-  <span
-    v-else
-    :class="badgeClasses"
-  >
+  <span v-else :class="badgeClasses">
     <slot>{{ displayValue }}</slot>
   </span>
 </template>
@@ -34,10 +24,9 @@ const props = withDefaults(defineProps<QyBadgeProps>(), {
   type: 'number',
   color: 'primary',
   size: 'md',
-  value: 0,
   max: 99,
   showZero: true,
-  isDot: false
+  isDot: false,
 })
 
 // Slots
@@ -57,9 +46,8 @@ const displayValue = computed(() => {
 
   // number 类型处理数字
   if (actualType.value === 'number') {
-    const numValue = typeof props.value === 'string'
-      ? parseInt(props.value, 10)
-      : props.value
+    const rawValue = props.value ?? 0
+    const numValue = typeof rawValue === 'string' ? parseInt(rawValue, 10) : rawValue
 
     if (isNaN(numValue)) {
       return '0'
@@ -79,7 +67,7 @@ const displayValue = computed(() => {
   }
 
   // text 类型直接返回 value 或使用 slot
-  return props.value?.toString() || ''
+  return props.text || props.value?.toString() || ''
 })
 
 // 计算是否应该渲染
@@ -103,12 +91,12 @@ const badgeClasses = computed(() => {
     badgeVariants({
       type: actualType.value,
       color: props.color,
-      size: props.size
+      size: props.size,
     }),
     {
-      'hidden': !shouldRender.value
+      hidden: !shouldRender.value,
     },
-    props.class
+    props.class,
   )
 })
 
@@ -117,6 +105,6 @@ const getDisplayValue = () => displayValue.value
 
 // 暴露给父组件的方法
 defineExpose<QyBadgeInstance>({
-  getDisplayValue
+  getDisplayValue,
 })
 </script>

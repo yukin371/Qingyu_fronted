@@ -26,7 +26,7 @@
       <div v-else class="revenue-content">
         <!-- 收入概览 -->
         <div class="revenue-overview">
-          <QyCard class="revenue-card">
+          <Card class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon total">
                 <QyIcon name="Wallet" />
@@ -38,7 +38,7 @@
             </div>
           </QyCard>
 
-          <QyCard class="revenue-card">
+          <Card class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon today">
                 <QyIcon name="TrendCharts" />
@@ -50,7 +50,7 @@
             </div>
           </QyCard>
 
-          <QyCard class="revenue-card">
+          <Card class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon available">
                 <QyIcon name="Money" />
@@ -62,7 +62,7 @@
             </div>
           </QyCard>
 
-          <QyCard class="revenue-card">
+          <Card class="revenue-card">
             <div class="revenue-item">
               <div class="revenue-icon withdrawn">
                 <QyIcon name="DocumentChecked" />
@@ -72,13 +72,13 @@
                 <div class="revenue-label">已提现</div>
               </div>
             </div>
-          </QyCard>
+          </Card>
         </div>
 
         <!-- 收入趋势图 -->
         <QyRow :gutter="20" align="stretch">
           <QyCol :span="24" :lg="16">
-            <QyCard class="chart-card">
+            <Card class="chart-card">
               <template #header>
                 <div class="card-header">
                   <span>收入趋势</span>
@@ -90,21 +90,21 @@
                 </div>
               </template>
               <div ref="trendChartRef" class="chart-container"></div>
-            </QyCard>
+            </Card>
           </QyCol>
 
           <QyCol :span="24" :lg="8">
-            <QyCard class="chart-card">
+            <Card class="chart-card">
               <template #header>
                 <span>收入来源</span>
               </template>
               <div ref="sourceChartRef" class="chart-container"></div>
-            </QyCard>
+            </Card>
           </QyCol>
         </QyRow>
 
         <!-- 章节收入排行 -->
-        <QyCard class="ranking-card" padding="none">
+        <Card class="ranking-card" padding="none">
           <template #header>
             <span style="padding: 14px 18px 12px; display: inline-block;">章节收入排行 TOP 10</span>
           </template>
@@ -141,9 +141,9 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" width="120">
               <template #default="{ row }">
-                <QyTag :variant="getStatusType(row.status)">
+                <Tag :variant="getStatusType(row.status)">
                   {{ getStatusLabel(row.status) }}
-                </QyTag>
+                </Tag>
               </template>
             </el-table-column>
             <el-table-column prop="processTime" label="处理时间" width="180" />
@@ -171,13 +171,13 @@
             <div class="balance-info">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
           </QyFormItem>
           <QyFormItem label="提现金额" prop="amount">
-            <QyInput
+            <Input
               v-model="withdrawForm.amount"
               placeholder="请输入提现金额"
               type="number"
             >
               <template #prefix>¥</template>
-            </QyInput>
+            </Input>
           </QyFormItem>
           <QyFormItem label="提现方式" prop="method">
             <QySelect
@@ -187,10 +187,10 @@
             />
           </QyFormItem>
           <QyFormItem label="收款账号" prop="account">
-            <QyInput v-model="withdrawForm.account" placeholder="请输入收款账号" />
+            <Input v-model="withdrawForm.account" placeholder="请输入收款账号" />
           </QyFormItem>
           <QyFormItem label="备注">
-            <QyTextarea
+            <Textarea
               v-model="withdrawForm.remark"
               :rows="3"
               placeholder="可选填写备注信息"
@@ -211,7 +211,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect, QyButton, QyDialog, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyTag, QyForm, QyFormItem, QyInput, QyTextarea } from '@/design-system/components'
+import { QyIcon, QySelect, QyButton, QyDialog, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyForm, QyFormItem, QyInput } from '@/design-system/components'
+import { Tag, type TagVariant, Textarea, Card, Input } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
@@ -330,8 +331,8 @@ function formatNumber(num: number): string {
 }
 
 // 获取状态类型
-function getStatusType(status: string): string {
-  const typeMap: Record<string, string> = {
+function getStatusType(status: string): TagVariant {
+  const typeMap: Record<string, TagVariant> = {
     pending: 'warning',
     processing: 'info',
     completed: 'success',

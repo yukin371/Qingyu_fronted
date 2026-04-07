@@ -20,8 +20,8 @@
       <!-- 消息列表 -->
       <div v-for="(msg, index) in messages" :key="index" class="message-item" :class="msg.role">
         <div class="message-avatar">
-          <QyAvatar v-if="msg.role === 'user'" size="md" />
-          <QyAvatar v-else size="md" type="text" text="AI" color="cyan" />
+          <Avatar v-if="msg.role === 'user'" size="md" />
+          <Avatar v-else size="md" alt="AI" />
         </div>
         <div class="message-content">
           <div class="message-text" v-safe-html="formatMarkdown(msg.content)"></div>
@@ -32,7 +32,7 @@
       <!-- 流式输出中的消息 -->
       <div v-if="streaming" class="message-item assistant">
         <div class="message-avatar">
-          <QyAvatar size="md" type="text" text="AI" color="cyan" />
+          <Avatar size="md" alt="AI" />
         </div>
         <div class="message-content">
           <div class="message-text" v-safe-html="formatMarkdown(streamingContent)"></div>
@@ -96,7 +96,7 @@ import { ref, watch, nextTick } from 'vue'
 import { MagicStick, Close, Promotion, VideoPause } from '@element-plus/icons-vue'
 import { message } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 import { useAIStream } from '../../../composables/useAIStream'
 
 interface Message {

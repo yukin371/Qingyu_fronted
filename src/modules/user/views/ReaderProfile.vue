@@ -5,7 +5,7 @@
     </div>
 
     <div v-else-if="!userProfile" class="error-container">
-      <QyEmpty description="用户不存在" />
+      <Empty description="用户不存在" />
     </div>
 
     <div v-else class="profile-container">
@@ -22,7 +22,7 @@
       />
 
       <!-- 标签页 -->
-      <QyCard class="content-card">
+      <Card class="content-card">
         <el-tabs v-model="activeTab" class="qy-tabs">
           <!-- 书架 -->
           <el-tab-pane label="书架" name="bookshelf">
@@ -31,20 +31,20 @@
             </div>
 
             <div v-else-if="bookshelfList.length === 0" class="empty-content">
-              <QyEmpty description="书架空空如也" />
+              <Empty description="书架空空如也" />
             </div>
 
             <div v-else>
               <!-- 批量操作工具栏 -->
               <div class="bookshelf-toolbar">
                 <div class="toolbar-left">
-                  <QyCheckbox
+                  <Checkbox
                     v-model="selectAll"
                     :indeterminate="isIndeterminate"
                     @change="(val: boolean | string[]) => handleSelectAll(val as boolean)"
                   >
                     全选
-                  </QyCheckbox>
+                  </Checkbox>
                   <span class="selected-count"> 已选择 {{ selectedBooks.length }} 本 </span>
                 </div>
                 <div class="toolbar-right">
@@ -83,7 +83,7 @@
                   @click="handleBookClick(item)"
                 >
                   <div class="book-checkbox">
-                    <QyCheckbox
+                    <Checkbox
                       :model-value="selectedBooks.includes(item.book_id)"
                       @change="
                         (val: boolean | string[]) => handleSelectBook(item.book_id, val as boolean)
@@ -91,7 +91,7 @@
                       @click.stop
                     />
                   </div>
-                  <QyImage
+                  <Image
                     :src="item.book?.cover || '/default-book-cover.jpg'"
                     fit="cover"
                     class="book-cover"
@@ -102,7 +102,7 @@
                         <QyIcon name="Picture" />
                       </div>
                     </template>
-                  </QyImage>
+                  </Image>
                   <div class="book-info">
                     <h4 class="book-title">{{ item.book?.title || '未知书籍' }}</h4>
                     <div class="reading-progress">
@@ -143,7 +143,7 @@
             <div class="stats-content">
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <QyCard class="stat-card">
+                  <Card class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #409eff20">
                         <QyIcon name="Reading" :size="32" color="#409eff" />
@@ -195,12 +195,12 @@
                         <div class="stat-label">发表评论</div>
                       </div>
                     </div>
-                  </QyCard>
+                  </Card>
                 </el-col>
               </el-row>
 
               <!-- 最近阅读 -->
-              <QyCard class="recent-reading-card" style="margin-top: 20px">
+              <Card class="recent-reading-card" style="margin-top: 20px">
                 <template #header>
                   <div class="card-header">
                     <h3>最近阅读</h3>
@@ -208,7 +208,7 @@
                 </template>
 
                 <div v-if="recentReadings.length === 0" class="empty-content">
-                  <QyEmpty description="暂无阅读记录" :image-size="80" />
+                  <Empty description="暂无阅读记录" iconSize="large" />
                 </div>
 
                 <div v-else class="recent-list">
@@ -218,13 +218,13 @@
                     class="recent-item"
                     @click="goToReader(item.book_id, item.chapter_id)"
                   >
-                    <QyImage :src="item.book?.cover" fit="cover" class="recent-cover">
+                    <Image :src="item.book?.cover" fit="cover" class="recent-cover">
                       <template #error>
                         <div class="image-slot-small">
                           <QyIcon name="Picture" />
                         </div>
                       </template>
-                    </QyImage>
+                    </Image>
                     <div class="recent-info">
                       <div class="recent-title">{{ item.book?.title }}</div>
                       <div class="recent-chapter">读到：{{ item.chapter?.title }}</div>
@@ -232,18 +232,18 @@
                     </div>
                   </div>
                 </div>
-              </QyCard>
+              </Card>
             </div>
           </el-tab-pane>
 
           <!-- 动态 -->
           <el-tab-pane label="动态" name="activities">
             <div class="empty-content">
-              <QyEmpty description="暂无动态" />
+              <Empty description="暂无动态" />
             </div>
           </el-tab-pane>
         </el-tabs>
-      </QyCard>
+      </Card>
 
       <!-- 批量移动分类对话框 -->
       <QyModal v-model:visible="moveDialogVisible" title="移动到分类" width="400px">
@@ -305,21 +305,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import {
-  QyIcon,
-  QyImage,
-  QyEmpty,
-  QyLoading,
-  QyProgress,
-  QyPagination,
-  QyButton,
-  QyCheckbox,
-  QyCard,
-  QyForm,
-  QyFormItem,
-  QyModal,
-  QyAlert,
-} from '@/design-system/components'
+import { QyIcon, QyLoading, QyProgress, QyPagination, QyButton, QyForm, QyFormItem, QyModal, QyAlert } from '@/design-system/components'
+import { Checkbox, Image, Empty, Card } from '@/design-system/base'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'

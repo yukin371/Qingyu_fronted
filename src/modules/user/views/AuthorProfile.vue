@@ -5,7 +5,7 @@
     </div>
 
     <div v-else-if="!userProfile" class="error-container">
-      <QyEmpty description="用户不存在" />
+      <Empty description="用户不存在" />
     </div>
 
     <div v-else class="profile-container">
@@ -21,7 +21,7 @@
       />
 
       <!-- 标签页 -->
-      <QyCard class="content-card">
+      <Card class="content-card">
         <el-tabs v-model="activeTab">
           <el-tab-pane label="作品" name="books">
             <div v-if="loadingBooks" class="tab-loading">
@@ -29,7 +29,7 @@
             </div>
 
             <div v-else-if="bookList.length === 0" class="empty-content">
-              <QyEmpty description="暂无作品" />
+              <Empty description="暂无作品" />
             </div>
 
             <div v-else class="books-grid">
@@ -39,23 +39,22 @@
                 class="book-card"
                 @click="goToBook(book.book_id)"
               >
-                <QyImage
+                <Image
                   :src="book.cover || '/default-book-cover.jpg'"
                   fit="cover"
                   class="book-cover"
-                  lazy
                 >
                   <template #error>
                     <div class="image-slot">
                       <QyIcon name="Picture"  />
                     </div>
                   </template>
-                </QyImage>
+                </Image>
                 <div class="book-info">
                   <h4 class="book-title">{{ book.title }}</h4>
                   <p class="book-description">{{ book.description }}</p>
                   <div class="book-meta">
-                    <QyTag size="sm" :type="getTagType(book.category)">{{ book.category }}</QyTag>
+                    <Tag size="sm" :variant="getTagType(book.category)">{{ book.category }}</Tag>
                     <span class="word-count">{{ formatNumber(book.word_count) }} 字</span>
                   </div>
                   <div class="book-stats">
@@ -84,7 +83,7 @@
             </div>
           </el-tab-pane>
         </el-tabs>
-      </QyCard>
+      </Card>
     </div>
   </div>
 </template>
@@ -93,7 +92,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon, QyImage, QyTag, QyEmpty, QyLoading, QyPagination, QyCard } from '@/design-system/components'
+import { QyIcon, QyLoading, QyPagination } from '@/design-system/components'
+import { Tag, Image, Empty, Card } from '@/design-system/base'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'

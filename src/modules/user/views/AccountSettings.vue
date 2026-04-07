@@ -7,7 +7,7 @@
         </el-page-header>
 
         <!-- 角色信息卡片 -->
-        <QyCard class="settings-card role-card">
+        <Card class="settings-card role-card">
             <template #header>
                 <div class="card-header">
                     <span class="card-title">当前角色</span>
@@ -15,14 +15,14 @@
             </template>
             <div class="role-info">
                 <div class="current-roles">
-                    <QyTag
+                    <Tag
                         v-for="role in userRoles"
                         :key="role"
                         :variant="getRoleTagType(role)"
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
-                    </QyTag>
+                    </Tag>
                 </div>
                 <!-- 降级按钮 - 仅作者可见 -->
                 <QyButton
@@ -33,9 +33,9 @@
                     降级为读者
                 </QyButton>
             </div>
-        </QyCard>
+        </Card>
 
-        <QyCard class="settings-card">
+        <Card class="settings-card">
             <QyForm ref="formRef" :model="form" :rules="rules" label-width="120px" class="settings-form">
                 <!-- 头像设置 -->
                 <QyFormItem label="头像">
@@ -58,13 +58,13 @@
 
                 <!-- 昵称 -->
                 <QyFormItem label="昵称" prop="nickname">
-                    <QyInput v-model="form.nickname" placeholder="请输入昵称" :maxlength="50" show-word-limit clearable />
+                    <Input v-model="form.nickname" placeholder="请输入昵称" :maxlength="50" show-count clearable />
                 </QyFormItem>
 
                 <!-- 个人简介 -->
                 <QyFormItem label="个人简介" prop="bio">
-                    <QyTextarea v-model="form.bio" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
-                        show-word-limit />
+                    <Textarea v-model="form.bio" placeholder="介绍一下自己吧" :rows="4" maxlength="500"
+                        show-count />
                 </QyFormItem>
 
                 <!-- 性别 -->
@@ -84,25 +84,25 @@
 
                 <!-- 所在地 -->
                 <QyFormItem label="所在地" prop="location">
-                    <QyInput v-model="form.location" placeholder="如：北京市朝阳区" :maxlength="100" clearable />
+                    <Input v-model="form.location" placeholder="如：北京市朝阳区" :maxlength="100" clearable />
                 </QyFormItem>
 
                 <!-- 个人网站 -->
                 <QyFormItem label="个人网站" prop="website">
-                    <QyInput v-model="form.website" placeholder="https://example.com" :maxlength="200" clearable />
+                    <Input v-model="form.website" placeholder="https://example.com" :maxlength="200" clearable />
                 </QyFormItem>
 
                 <!-- 社交账号 -->
                 <QyFormItem label="微博">
-                    <QyInput v-model="form.social.weibo" placeholder="微博账号" :maxlength="50" clearable />
+                    <Input v-model="form.social.weibo" placeholder="微博账号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="微信">
-                    <QyInput v-model="form.social.wechat" placeholder="微信号" :maxlength="50" clearable />
+                    <Input v-model="form.social.wechat" placeholder="微信号" :maxlength="50" clearable />
                 </QyFormItem>
 
                 <QyFormItem label="QQ">
-                    <QyInput v-model="form.social.qq" placeholder="QQ号" :maxlength="20" clearable />
+                    <Input v-model="form.social.qq" placeholder="QQ号" :maxlength="20" clearable />
                 </QyFormItem>
 
                 <!-- 提交按钮 -->
@@ -113,7 +113,7 @@
                     <QyButton @click="handleReset">重置</QyButton>
                 </QyFormItem>
             </QyForm>
-        </QyCard>
+        </Card>
 
         <!-- 降级确认对话框 -->
         <QyModal
@@ -147,7 +147,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import type { FormInstance, UploadProps } from 'element-plus'
-import { QyCard, QyButton, QyTag, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
+import { QyButton, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
+import { Tag, Textarea, Card, Input } from '@/design-system/base'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
 import storage from '@/utils/storage'

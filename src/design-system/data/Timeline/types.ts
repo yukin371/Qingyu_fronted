@@ -26,6 +26,8 @@ export interface TimelineItemProps {
 }
 
 export interface TimelineProps {
+  /** 时间线方向 */
+  orientation?: 'vertical' | 'horizontal'
   /** 时间线位置 */
   placement?: 'left' | 'right' | 'alternate'
   /** 额外样式类 */

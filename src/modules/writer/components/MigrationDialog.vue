@@ -4,7 +4,8 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { ref, computed, watch } from 'vue'
-import { QyDialog, QyButton, QyCheckbox, QyProgress } from '@/design-system/components'
+import { QyDialog, QyButton, QyProgress } from '@/design-system/components'
+import { Checkbox } from '@/design-system/base'
 import {
   migrateToBackend,
   hasLocalDataToMigrate,
@@ -210,9 +211,9 @@ watch(localVisible, (val) => {
 
       <!-- 清空选项 -->
       <label v-if="isSuccess" class="clear-checkbox">
-        <QyCheckbox v-model="clearLocalAfterMigration" :disabled="clearingLocal">
+        <Checkbox v-model="clearLocalAfterMigration" :disabled="clearingLocal">
           迁移成功后清空本地数据
-        </QyCheckbox>
+        </Checkbox>
       </label>
     </div>
 

@@ -20,9 +20,11 @@ import { cva, type VariantProps } from 'class-variance-authority'
 export const tagVariants = cva(
   // 基础样式
   [
-    'inline-flex items-center gap-1.5 font-medium',
-    'transition-all duration-200',
-    'select-none'
+    'relative isolate inline-flex items-center gap-1.5 overflow-hidden',
+    'border font-medium select-none',
+    'backdrop-blur-md transition-all duration-300 ease-out',
+    'before:absolute before:inset-[1px] before:rounded-[inherit] before:bg-white/45 before:content-[""]',
+    'after:absolute after:inset-x-[16%] after:top-0 after:h-1/2 after:rounded-full after:bg-white/70 after:opacity-80 after:blur-[12px] after:content-[""]',
   ],
   {
     variants: {
@@ -34,7 +36,7 @@ export const tagVariants = cva(
         success: '',
         warning: '',
         danger: '',
-        info: ''
+        info: '',
       },
 
       /**
@@ -43,7 +45,7 @@ export const tagVariants = cva(
       size: {
         sm: 'px-2.5 py-1 text-xs',
         md: 'px-3 py-1.5 text-sm',
-        lg: 'px-3.5 py-2 text-base'
+        lg: 'px-3.5 py-2 text-[15px]',
       },
 
       /**
@@ -55,7 +57,7 @@ export const tagVariants = cva(
       effect: {
         light: '',
         dark: '',
-        plain: ''
+        plain: '',
       },
 
       /**
@@ -63,7 +65,7 @@ export const tagVariants = cva(
        */
       round: {
         true: 'rounded-full',
-        false: 'rounded-lg'
+        false: 'rounded-2xl',
       },
 
       /**
@@ -71,36 +73,111 @@ export const tagVariants = cva(
        */
       hit: {
         true: 'border-2',
-        false: 'border'
-      }
+        false: 'border',
+      },
     },
 
     // 组合变体（type + effect 的样式组合）
     compoundVariants: [
       // primary type
-      { type: 'primary', effect: 'light', class: 'bg-primary-50/95 border-primary-200/70 text-primary-700 hover:bg-primary-100' },
-      { type: 'primary', effect: 'dark', class: 'bg-primary-500 border-primary-600 text-white hover:bg-primary-600' },
-      { type: 'primary', effect: 'plain', class: 'bg-transparent border-primary-500 text-primary-500 hover:bg-primary-50' },
+      {
+        type: 'primary',
+        effect: 'light',
+        class:
+          'border-sky-200/75 bg-[linear-gradient(135deg,rgba(240,249,255,0.96),rgba(224,242,254,0.92))] text-sky-700 shadow-[0_18px_28px_-24px_rgba(14,165,233,0.82)]',
+      },
+      {
+        type: 'primary',
+        effect: 'dark',
+        class:
+          'border-white/15 bg-[linear-gradient(135deg,#0ea5e9,#2563eb)] text-white before:bg-white/14 after:bg-white/42 shadow-[0_22px_36px_-24px_rgba(37,99,235,0.95)]',
+      },
+      {
+        type: 'primary',
+        effect: 'plain',
+        class:
+          'border-sky-200/80 bg-white/72 text-sky-700 shadow-[0_16px_28px_-26px_rgba(37,99,235,0.78)]',
+      },
 
       // success type
-      { type: 'success', effect: 'light', class: 'bg-success-50/95 border-success-200/70 text-success-700 hover:bg-success-100' },
-      { type: 'success', effect: 'dark', class: 'bg-success-500 border-success-600 text-white hover:bg-success-600' },
-      { type: 'success', effect: 'plain', class: 'bg-transparent border-success-500 text-success-500 hover:bg-success-50' },
+      {
+        type: 'success',
+        effect: 'light',
+        class:
+          'border-emerald-200/75 bg-[linear-gradient(135deg,rgba(236,253,245,0.96),rgba(220,252,231,0.92))] text-emerald-700 shadow-[0_18px_28px_-24px_rgba(5,150,105,0.8)]',
+      },
+      {
+        type: 'success',
+        effect: 'dark',
+        class:
+          'border-white/15 bg-[linear-gradient(135deg,#10b981,#059669)] text-white before:bg-white/14 after:bg-white/42 shadow-[0_22px_36px_-24px_rgba(5,150,105,0.92)]',
+      },
+      {
+        type: 'success',
+        effect: 'plain',
+        class:
+          'border-emerald-200/80 bg-white/72 text-emerald-700 shadow-[0_16px_28px_-26px_rgba(5,150,105,0.72)]',
+      },
 
       // warning type
-      { type: 'warning', effect: 'light', class: 'bg-warning-50/95 border-warning-200/70 text-warning-700 hover:bg-warning-100' },
-      { type: 'warning', effect: 'dark', class: 'bg-warning-500 border-warning-600 text-white hover:bg-warning-600' },
-      { type: 'warning', effect: 'plain', class: 'bg-transparent border-warning-500 text-warning-500 hover:bg-warning-50' },
+      {
+        type: 'warning',
+        effect: 'light',
+        class:
+          'border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(254,243,199,0.94))] text-amber-800 shadow-[0_18px_28px_-24px_rgba(217,119,6,0.8)]',
+      },
+      {
+        type: 'warning',
+        effect: 'dark',
+        class:
+          'border-white/15 bg-[linear-gradient(135deg,#f59e0b,#d97706)] text-white before:bg-white/12 after:bg-white/36 shadow-[0_22px_36px_-24px_rgba(217,119,6,0.9)]',
+      },
+      {
+        type: 'warning',
+        effect: 'plain',
+        class:
+          'border-amber-200/85 bg-white/74 text-amber-800 shadow-[0_16px_28px_-26px_rgba(217,119,6,0.72)]',
+      },
 
       // danger type
-      { type: 'danger', effect: 'light', class: 'bg-danger-50/95 border-danger-200/70 text-danger-700 hover:bg-danger-100' },
-      { type: 'danger', effect: 'dark', class: 'bg-danger-500 border-danger-600 text-white hover:bg-danger-600' },
-      { type: 'danger', effect: 'plain', class: 'bg-transparent border-danger-500 text-danger-500 hover:bg-danger-50' },
+      {
+        type: 'danger',
+        effect: 'light',
+        class:
+          'border-rose-200/80 bg-[linear-gradient(135deg,rgba(255,241,242,0.96),rgba(255,228,230,0.92))] text-rose-700 shadow-[0_18px_28px_-24px_rgba(225,29,72,0.8)]',
+      },
+      {
+        type: 'danger',
+        effect: 'dark',
+        class:
+          'border-white/15 bg-[linear-gradient(135deg,#f43f5e,#e11d48)] text-white before:bg-white/12 after:bg-white/36 shadow-[0_22px_36px_-24px_rgba(225,29,72,0.9)]',
+      },
+      {
+        type: 'danger',
+        effect: 'plain',
+        class:
+          'border-rose-200/80 bg-white/74 text-rose-700 shadow-[0_16px_28px_-26px_rgba(225,29,72,0.7)]',
+      },
 
       // info type
-      { type: 'info', effect: 'light', class: 'bg-info-50/95 border-info-200/70 text-info-700 hover:bg-info-100' },
-      { type: 'info', effect: 'dark', class: 'bg-info-500 border-info-600 text-white hover:bg-info-600' },
-      { type: 'info', effect: 'plain', class: 'bg-transparent border-info-500 text-info-500 hover:bg-info-50' }
+      {
+        type: 'info',
+        effect: 'light',
+        class:
+          'border-slate-200/85 bg-[linear-gradient(135deg,rgba(248,250,252,0.96),rgba(241,245,249,0.94))] text-slate-700 shadow-[0_18px_28px_-24px_rgba(71,85,105,0.72)]',
+      },
+      {
+        type: 'info',
+        effect: 'dark',
+        class:
+          'border-white/15 bg-[linear-gradient(135deg,#64748b,#334155)] text-white before:bg-white/12 after:bg-white/34 shadow-[0_22px_36px_-24px_rgba(51,65,85,0.92)]',
+      },
+      {
+        type: 'info',
+        effect: 'plain',
+        class:
+          'border-slate-200/85 bg-white/74 text-slate-700 shadow-[0_16px_28px_-26px_rgba(71,85,105,0.62)]',
+      },
     ],
 
     // 默认变体
@@ -109,9 +186,9 @@ export const tagVariants = cva(
       size: 'md',
       effect: 'light',
       round: true,
-      hit: false
-    }
-  }
+      hit: false,
+    },
+  },
 )
 
 /**

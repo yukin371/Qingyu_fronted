@@ -49,14 +49,14 @@
                 :class="{ 'is-selected': selectedItem?.id === character.id }"
                 @click="handleSelectItem(character, 'character')"
               >
-                <QyAvatar size="xl" :src="character.avatarUrl" :text="character.name" />
+                <Avatar size="xl" :src="character.avatarUrl" :alt="character.name" />
                 <div class="item-info">
                   <div class="item-name">{{ character.name }}</div>
                   <div v-if="character.summary" class="item-desc">{{ character.summary }}</div>
                 </div>
               </div>
             </div>
-            <QyEmpty v-if="filteredCharacters.length === 0" description="暂无角色" />
+            <Empty v-if="filteredCharacters.length === 0" description="暂无角色" />
           </el-scrollbar>
         </div>
 
@@ -78,14 +78,14 @@
                 :class="{ 'is-selected': selectedItem?.id === location.id }"
                 @click="handleSelectItem(location, 'location')"
               >
-                <QyAvatar size="xl" :src="location.imageUrl" shape="square" :text="location.name" />
+                <Avatar size="xl" :src="location.imageUrl" :alt="location.name" variant="square" />
                 <div class="item-info">
                   <div class="item-name">{{ location.name }}</div>
                   <div v-if="location.description" class="item-desc">{{ location.description }}</div>
                 </div>
               </div>
             </div>
-            <QyEmpty v-if="filteredLocations.length === 0" description="暂无地点" />
+            <Empty v-if="filteredLocations.length === 0" description="暂无地点" />
           </el-scrollbar>
         </div>
 
@@ -106,7 +106,7 @@
                 :class="{ 'is-selected': selectedItem?.id === concept.id }"
                 @click="handleSelectItem(concept, 'concept')"
               >
-                <QyAvatar size="xl" shape="square" :text="concept.name" />
+                <Avatar size="xl" :alt="concept.name" variant="square" />
                 <div class="item-info">
                   <div class="item-name">{{ concept.name }}</div>
                   <div v-if="concept.category" class="item-desc" style="color: #722ED1;">{{ concept.category }}</div>
@@ -114,7 +114,7 @@
                 </div>
               </div>
             </div>
-            <QyEmpty v-if="filteredConcepts.length === 0" description="暂无概念" />
+            <Empty v-if="filteredConcepts.length === 0" description="暂无概念" />
           </el-scrollbar>
         </div>
       </div>
@@ -126,7 +126,7 @@
           <div v-if="selectedType === 'character'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <QyAvatar size="xl" :src="(selectedItem as Character).avatarUrl" :text="(selectedItem as Character).name" />
+                <Avatar size="xl" :src="(selectedItem as Character).avatarUrl" :alt="(selectedItem as Character).name" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Character).name }}</h2>
                   <p v-if="(selectedItem as Character).alias">{{ (selectedItem as Character).alias?.join('、') }}</p>
@@ -201,7 +201,7 @@
           <div v-if="selectedType === 'location'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <QyAvatar size="xl" :src="(selectedItem as Location).imageUrl" shape="square" :text="(selectedItem as Location).name" />
+                <Avatar size="xl" :src="(selectedItem as Location).imageUrl" :alt="(selectedItem as Location).name" variant="square" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Location).name }}</h2>
                 </div>
@@ -263,7 +263,7 @@
           <div v-if="selectedType === 'concept'" class="detail-content">
             <div class="detail-header">
               <div class="header-info">
-                <QyAvatar size="xl" shape="square" :text="(selectedItem as Concept).name" />
+                <Avatar size="xl" :alt="(selectedItem as Concept).name" variant="square" />
                 <div class="header-text">
                   <h2>{{ (selectedItem as Concept).name }}</h2>
                   <p v-if="(selectedItem as Concept).alias?.length">{{ (selectedItem as Concept).alias?.join('、') }}</p>
@@ -326,8 +326,7 @@ import { Search, Plus, Edit, Close, Collection } from '@element-plus/icons-vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { Character, Location } from '@/types/writer'
 import type { Concept } from '../types/entity'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Avatar, Empty } from '@/design-system/base'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import EntityTracePanel from '../components/encyclopedia/EntityTracePanel.vue'
 import { message, messageBox } from '@/design-system/services'

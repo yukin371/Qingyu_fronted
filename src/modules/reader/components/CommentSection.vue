@@ -20,7 +20,7 @@
                 <el-empty v-if="comments.length === 0" description="暂无评论" />
 
                 <div v-for="comment in comments" :key="comment.id" class="comment-item">
-                    <QyAvatar :src="comment.user.avatar" size="lg" />
+                    <Avatar :src="comment.user.avatar" :alt="comment.user.nickname || comment.user.username" size="lg" />
 
                     <div class="comment-content">
                         <div class="comment-header">
@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 import { formatDate } from '@/utils/format'
 import { message } from '@/design-system/services'
 import { commentsAPI as commentAPI } from '@/modules/reader/api/manual/comments'

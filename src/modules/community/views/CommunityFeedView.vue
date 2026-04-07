@@ -12,11 +12,11 @@
 
       <!-- 动态列表占位 -->
       <div class="feed-placeholder">
-        <QyEmpty description="社区功能开发中，敬请期待...">
+        <Empty description="社区功能开发中，敬请期待...">
           <template #image>
             <QyIcon name="ChatDotRound" :size="120" color="#ddd" />
           </template>
-        </QyEmpty>
+        </Empty>
       </div>
     </div>
   </div>
@@ -24,7 +24,8 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { QyIcon, QyButton, QyEmpty } from '@/design-system/components'
+import { QyIcon, QyButton } from '@/design-system/components'
+import { Empty } from '@/design-system/base'
 const router = useRouter()
 
 const goToCreatePost = () => {

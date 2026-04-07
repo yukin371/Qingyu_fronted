@@ -187,7 +187,7 @@ const headerClasses = computed(() =>
 
 // 输入框样式
 const inputVariants = cva(
-  'w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200'
+  'w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)] focus:border-transparent transition-all duration-200'
 )
 
 // 列表容器样式
@@ -235,7 +235,7 @@ const getItemDisabled = (item: TransferPropsOption) => {
               type="checkbox"
               :checked="isAllChecked"
               :indeterminate="isIndeterminate"
-              class="w-4 h-4 rounded border-slate-300 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              class="w-4 h-4 rounded border-slate-300 text-primary-500 focus:shadow-[0_0_0_2px_rgba(14,165,233,0.16)] cursor-pointer"
             />
           </div>
           <span>全选</span>

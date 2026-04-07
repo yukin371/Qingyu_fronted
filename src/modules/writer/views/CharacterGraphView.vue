@@ -479,10 +479,10 @@
                     :show-text="false"
                   />
                 </div>
-                <QyEmpty
+                <Empty
                   v-if="getCharacterRelations(selectedCharacter.id).length === 0"
                   description="暂无关系"
-                  icon-size="small"
+                  iconSize="small"
                 />
               </div>
             </div>
@@ -673,10 +673,10 @@
                     <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
-                <QyEmpty
+                <Empty
                   v-if="getCharacterRelations(selectedCharacter.id).length === 0"
                   description="暂无关系"
-                  icon-size="small"
+                  iconSize="small"
                 />
               </div>
             </div>
@@ -771,7 +771,7 @@ import { RELATION_TYPE_OPTIONS } from '../types/character'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import { QyIcon } from '@/design-system/components'
 import QyCard from '@/design-system/components/basic/QyCard/QyCard.vue'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
 import RelationshipGraph, {
   type GraphNode,

@@ -25,7 +25,7 @@
 
       <qy-form-item prop="verificationCode" v-if="showVerificationCode">
         <div class="verification-input">
-          <qy-input
+          <Input
             v-model="form.verificationCode"
             placeholder="请输入验证码"
             prefix-icon="Key"
@@ -94,8 +94,8 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import QyForm from '@/design-system/components/advanced/QyForm/QyForm.vue'
 import QyFormItem from '@/design-system/components/advanced/QyForm/QyFormItem.vue'
-import QyInput from '@/design-system/components/basic/QyInput/QyInput.vue'
 import QyButton from '@/design-system/components/basic/QyButton/QyButton.vue'
+import { Input } from '@/design-system/base'
 import { message } from '@/design-system/services'
 
 export default {
@@ -103,8 +103,8 @@ export default {
   components: {
     QyForm,
     QyFormItem,
-    QyInput,
-    QyButton
+    QyButton,
+    Input
   },
   emits: ['reset-success', 'cancel'],
   setup(props, { emit }) {

@@ -49,7 +49,7 @@
             <div class="timeline-list__name">{{ timeline.name }}</div>
             <div class="timeline-list__meta">{{ timeline.description || '暂无描述' }}</div>
           </button>
-          <QyEmpty v-if="timelines.length === 0" description="暂无时间线" icon-size="medium" />
+          <Empty v-if="timelines.length === 0" description="暂无时间线" iconSize="medium" />
         </div>
       </aside>
 
@@ -72,7 +72,7 @@
               </div>
             </div>
           </article>
-          <QyEmpty v-if="orderedEvents.length === 0" description="当前时间线暂无事件" icon-size="medium" />
+          <Empty v-if="orderedEvents.length === 0" description="当前时间线暂无事件" iconSize="medium" />
         </div>
       </section>
     </div>
@@ -83,7 +83,7 @@
 import { computed, watch } from 'vue'
 import { ElButton, ElTag } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import type { Timeline, TimelineEvent } from '@/types/writer'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'

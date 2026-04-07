@@ -143,7 +143,7 @@
                 </div>
             </template>
             <div class="devices-list">
-                <QyEmpty v-if="loginDevices.length === 0" description="暂无登录设备" />
+                <Empty v-if="loginDevices.length === 0" description="暂无登录设备" />
                 <div v-else v-for="device in loginDevices" :key="device.id" class="device-item">
                     <div class="device-icon">
                         <el-icon :size="32">
@@ -191,7 +191,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyForm, QyFormItem, QyInput, QyButton, QyCard, QyTag, QyEmpty } from '@/design-system/components'
+import { QyForm, QyFormItem, QyInput, QyButton, QyCard } from '@/design-system/components'
+import { Empty } from '@/design-system/base'
 import type { QyFormInstance } from '@/design-system/components/advanced/QyForm/types'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'

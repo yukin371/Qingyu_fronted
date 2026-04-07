@@ -1,17 +1,18 @@
 <template>
   <div class="post-detail-view">
     <div class="container">
-      <QyEmpty description="动态详情页开发中，敬请期待...">
+      <Empty description="动态详情页开发中，敬请期待...">
         <template #image>
           <QyIcon name="ChatDotRound" :size="120" color="#ddd" />
         </template>
-      </QyEmpty>
+      </Empty>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { QyIcon, QyEmpty } from '@/design-system/components'
+import { QyIcon } from '@/design-system/components'
+import { Empty } from '@/design-system/base'
 </script>
 
 <style scoped lang="scss">
