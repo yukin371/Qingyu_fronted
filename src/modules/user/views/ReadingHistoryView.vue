@@ -89,9 +89,9 @@
                 </p>
 
                 <div class="reading-info">
-                  <QyTag size="sm">
+                  <Tag size="sm">
                     阅读到：{{ item.chapter?.title || '未知章节' }}
-                  </QyTag>
+                  </Tag>
                   <span class="reading-time">
                     <QyIcon name="Timer"  />
                     阅读时长：{{ formatDuration(item.readDuration || 0) }}
@@ -160,7 +160,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyButton, QyCard, QyInput, QySelect, QyTag, QyImage, QyProgress, QyPagination, QyEmpty, QyLoading } from '@/design-system/components'
+import { QyIcon, QyButton, QyCard, QyInput, QySelect, QyImage, QyProgress, QyPagination, QyEmpty, QyLoading } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
 

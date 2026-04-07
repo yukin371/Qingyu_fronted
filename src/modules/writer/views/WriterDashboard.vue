@@ -99,9 +99,9 @@
               <div class="item-content">
                 <div class="item-header">
                   <h4 class="item-title">{{ project.title }}</h4>
-                  <QyTag size="small" :type="getStatusType(project.status)" plain round>
+                  <Tag size="sm" :variant="getStatusType(project.status)" effect="plain" :round="true">
                     {{ getStatusText(project.status) }}
-                  </QyTag>
+                  </Tag>
                 </div>
                 <div class="item-meta">
                   <span
@@ -181,7 +181,8 @@ import type { ProjectSummary } from '@/modules/writer/api/project'
 import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { getTodayWordsStats, getDashboardOverview } from '@/modules/writer/api/dashboard'
 import { getGlobalTodayWords } from '@/modules/writer/composables/useWritingStats'
-import { QyIcon, QyCard, QyTag, QyButton, QyDivider, QyProgress, Skeleton, QyImage } from '@/design-system/components'
+import { QyIcon, QyCard, QyButton, QyDivider, QyProgress, Skeleton, QyImage } from '@/design-system/components'
+import { Tag, type TagVariant } from '@/design-system/base'
 import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -314,8 +315,8 @@ onMounted(async () => {
 const formatNumber = (n: number) => (n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n)
 const formatTime = (t: string) => (t ? dayjs(t).fromNow() : '未知时间')
 
-const getStatusType = (status: string) => {
-  const map: Record<string, string> = {
+const getStatusType = (status: string): TagVariant => {
+  const map: Record<string, TagVariant> = {
     draft: 'info',
     serializing: 'primary',
     completed: 'success',

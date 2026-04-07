@@ -10,13 +10,13 @@
         </p>
         <h3 class="text-sm font-semibold text-slate-950">V3 写作宿主</h3>
       </div>
-      <QyBadge type="text" color="primary" size="sm" value="Phase 1" />
+      <QyBadge variant="text" color="primary" size="sm" value="Phase 1" />
     </header>
 
     <section class="flex flex-col gap-3">
       <div class="flex items-center justify-between gap-3">
         <h4 class="text-sm font-semibold text-slate-950">Context Lens</h4>
-        <QyTag size="sm" type="primary" effect="light">{{ harnessStore.writingStateLabel }}</QyTag>
+        <Tag size="sm" variant="primary" effect="light">{{ harnessStore.writingStateLabel }}</Tag>
       </div>
 
       <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
@@ -45,7 +45,7 @@
     <section class="flex flex-col gap-3">
       <div class="flex items-center justify-between gap-3">
         <h4 class="text-sm font-semibold text-slate-950">Change Request</h4>
-        <QyBadge type="text" color="primary" size="sm" :value="`${harnessStore.pendingChangeRequestCount} 待处理`" />
+        <QyBadge variant="text" color="primary" size="sm" :value="`${harnessStore.pendingChangeRequestCount} 待处理`" />
       </div>
 
       <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
@@ -74,16 +74,16 @@
                 <p class="mt-1 text-xs leading-5 text-slate-500">{{ primaryChangeRequest?.summary }}</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <QyTag
+                <Tag
                   size="sm"
-                  :type="primaryChangeRequest?.source === 'save_batch' ? 'success' : 'info'"
+                  :variant="primaryChangeRequest?.source === 'save_batch' ? 'success' : 'info'"
                   effect="light"
                 >
                   {{ primaryChangeRequest?.source === 'save_batch' ? '保存后批次' : '即时预览' }}
-                </QyTag>
-                <QyTag size="sm" :type="primaryChangeRequest?.severity === 'focus' ? 'warning' : 'info'" effect="light">
+                </Tag>
+                <Tag size="sm" :variant="primaryChangeRequest?.severity === 'focus' ? 'warning' : 'info'" effect="light">
                   {{ primaryChangeRequest?.severity === 'focus' ? '优先看' : '轻提示' }}
-                </QyTag>
+                </Tag>
               </div>
             </div>
             <p class="mt-2 text-xs leading-5 text-slate-600">{{ primaryChangeRequest?.reason }}</p>
@@ -137,7 +137,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { QyBadge, QyButton, QyCard, QyTag } from '@/design-system/components'
+import { QyBadge, QyButton, QyCard } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import {
   useStoryHarnessStore,
   type StoryHarnessChangeRequestDecision,

@@ -141,9 +141,9 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" width="120">
               <template #default="{ row }">
-                <QyTag :variant="getStatusType(row.status)">
+                <Tag :variant="getStatusType(row.status)">
                   {{ getStatusLabel(row.status) }}
-                </QyTag>
+                </Tag>
               </template>
             </el-table-column>
             <el-table-column prop="processTime" label="处理时间" width="180" />
@@ -211,7 +211,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect, QyButton, QyDialog, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyTag, QyForm, QyFormItem, QyInput, QyTextarea } from '@/design-system/components'
+import { QyIcon, QySelect, QyButton, QyDialog, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyForm, QyFormItem, QyInput, QyTextarea } from '@/design-system/components'
+import { Tag, type TagVariant } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
@@ -330,8 +331,8 @@ function formatNumber(num: number): string {
 }
 
 // 获取状态类型
-function getStatusType(status: string): string {
-  const typeMap: Record<string, string> = {
+function getStatusType(status: string): TagVariant {
+  const typeMap: Record<string, TagVariant> = {
     pending: 'warning',
     processing: 'info',
     completed: 'success',

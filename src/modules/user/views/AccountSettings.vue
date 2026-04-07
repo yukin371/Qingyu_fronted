@@ -15,14 +15,14 @@
             </template>
             <div class="role-info">
                 <div class="current-roles">
-                    <QyTag
+                    <Tag
                         v-for="role in userRoles"
                         :key="role"
                         :variant="getRoleTagType(role)"
                         class="role-tag"
                     >
                         {{ getRoleLabel(role) }}
-                    </QyTag>
+                    </Tag>
                 </div>
                 <!-- 降级按钮 - 仅作者可见 -->
                 <QyButton
@@ -147,7 +147,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
 import type { FormInstance, UploadProps } from 'element-plus'
-import { QyCard, QyButton, QyTag, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
+import { QyCard, QyButton, QyRadioGroup, QyRadio, QyModal, QyIcon } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { useUserStore } from '@/stores/user'
 import { useAuthStore } from '@/stores/auth'
 import storage from '@/utils/storage'

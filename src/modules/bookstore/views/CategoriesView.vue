@@ -42,7 +42,7 @@
           <h2>{{ currentCategory.name }}</h2>
           <p v-if="currentCategory.description">{{ currentCategory.description }}</p>
           <div class="category-stats">
-            <QyTag type="info">{{ bookTotal }} 本书籍</QyTag>
+            <Tag variant="info">{{ bookTotal }} 本书籍</Tag>
           </div>
         </div>
       </div>
@@ -118,7 +118,8 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon, QyCard, QyButton, QySelect, QyPagination, QyTag, QyEmpty } from '@/design-system/components'
+import { QyIcon, QyCard, QyButton, QySelect, QyPagination, QyEmpty } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getBooksByCategory } from '@/modules/bookstore/api'
 import BookGrid from '@bookstore/components/BookGrid.vue'

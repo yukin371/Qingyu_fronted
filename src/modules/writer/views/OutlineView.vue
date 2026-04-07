@@ -59,9 +59,9 @@
                     <QyIcon v-else-if="data.level === 2" name="Document" />
                     <QyIcon v-else name="Memo" />
                     <span class="node-title">{{ data.title }}</span>
-                    <QyTag v-if="data.status" size="small" :type="getStatusType(data.status)">
+                    <Tag v-if="data.status" size="sm" :variant="getStatusType(data.status)">
                       {{ getStatusText(data.status) }}
-                    </QyTag>
+                    </Tag>
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
@@ -100,9 +100,9 @@
                 {{ getLevelText(selectedNode.level) }}
               </QyDescriptionsItem>
               <QyDescriptionsItem label="状态">
-                <QyTag :type="getStatusType(selectedNode.status || 'draft')">
+                <Tag :variant="getStatusType(selectedNode.status || 'draft')">
                   {{ getStatusText(selectedNode.status || 'draft') }}
-                </QyTag>
+                </Tag>
               </QyDescriptionsItem>
               <QyDescriptionsItem label="字数">
                 {{ selectedNode.wordCount || 0 }}
@@ -200,7 +200,8 @@ import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEngineConfig } from '@/core/draw-engine/types'
-import { QyIcon, QyButton, QyButtonGroup, QyScrollbar, QyTree, QyTag, QyDescriptions, QyDescriptionsItem, QyDialog, QyForm, QyFormItem, QyInput, QySelect, QyTreeSelect, QyTextarea } from '@/design-system/components'
+import { QyIcon, QyButton, QyButtonGroup, QyScrollbar, QyTree, QyDescriptions, QyDescriptionsItem, QyDialog, QyForm, QyFormItem, QyInput, QySelect, QyTreeSelect, QyTextarea } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { message, messageBox } from '@/design-system/services'
 const writerStore = useWriterStore()
 const viewMode = ref<'tree' | 'mindmap'>('tree')

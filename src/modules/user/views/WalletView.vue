@@ -85,9 +85,9 @@
           </el-table-column>
           <el-table-column prop="type" label="类型" width="100">
             <template #default="{ row }">
-              <QyTag :type="getTypeTagColor(row.type)">
+              <Tag :variant="getTypeTagColor(row.type)">
                 {{ getTypeLabel(row.type) }}
-              </QyTag>
+              </Tag>
             </template>
           </el-table-column>
           <el-table-column prop="description" label="说明" min-width="200" />
@@ -215,7 +215,6 @@ import {
   QyIcon,
   QyButton,
   QyCard,
-  QyTag,
   QyPagination,
   QyModal,
   QyInput,
@@ -224,6 +223,7 @@ import {
   QyRadioGroup,
   QyRadio,
 } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import {
   Container,
   Section,

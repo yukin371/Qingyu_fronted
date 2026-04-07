@@ -127,9 +127,9 @@
 
           <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
-              <QyTag :type="getStatusTagType(row.status)">
+              <Tag :variant="getStatusTagType(row.status)">
                 {{ getStatusText(row.status) }}
-              </QyTag>
+              </Tag>
             </template>
           </el-table-column>
         </el-table>
@@ -223,7 +223,6 @@ import {
   QyIcon,
   QyButton,
   QyCard,
-  QyTag,
   QyPagination,
   QyModal,
   QyInput,
@@ -231,6 +230,7 @@ import {
   QyForm,
   QyFormItem,
 } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'

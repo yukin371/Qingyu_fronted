@@ -55,7 +55,7 @@
                   <h4 class="book-title">{{ book.title }}</h4>
                   <p class="book-description">{{ book.description }}</p>
                   <div class="book-meta">
-                    <QyTag size="sm" :type="getTagType(book.category)">{{ book.category }}</QyTag>
+                    <Tag size="sm" :variant="getTagType(book.category)">{{ book.category }}</Tag>
                     <span class="word-count">{{ formatNumber(book.word_count) }} 字</span>
                   </div>
                   <div class="book-stats">
@@ -93,7 +93,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon, QyImage, QyTag, QyEmpty, QyLoading, QyPagination, QyCard } from '@/design-system/components'
+import { QyIcon, QyImage, QyEmpty, QyLoading, QyPagination, QyCard } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { httpService } from '@/core/services/http.service'

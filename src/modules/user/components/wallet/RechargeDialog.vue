@@ -17,7 +17,7 @@
           style="width: 100%"
         />
         <div class="amount-tips">
-          <QyTag
+          <Tag
             v-for="item in quickAmounts"
             :key="item"
             size="sm"
@@ -25,7 +25,7 @@
             style="cursor: pointer; margin-right: 8px; margin-top: 8px"
           >
             ¥{{ item }}
-          </QyTag>
+          </Tag>
         </div>
       </QyFormItem>
 
@@ -92,12 +92,12 @@ import {
   QyModal,
   QyForm,
   QyFormItem,
-  QyTag,
   QyRadioGroup,
   QyRadio,
   QyAlert,
   QyButton,
 } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import type { ConfirmDetail } from '@/design-system/components'
 
 interface Props {

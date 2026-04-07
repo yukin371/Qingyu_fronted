@@ -89,20 +89,20 @@
               <span :class="{ 'title-unread': notification.status === 'unread' }">
                 {{ notification.title }}
               </span>
-              <QyTag
+              <Tag
                 v-if="notification.priority === 'high'"
                 variant="danger"
                 size="sm"
               >
                 重要
-              </QyTag>
-              <QyTag
+              </Tag>
+              <Tag
                 v-else-if="notification.priority === 'urgent'"
                 variant="danger"
                 size="sm"
               >
                 紧急
-              </QyTag>
+              </Tag>
             </div>
             <div class="notification-text">
               {{ notification.content }}
@@ -237,7 +237,6 @@ import {
   QyIcon,
   QyCard,
   QyButton,
-  QyTag,
   QyEmpty,
   QyModal,
   QyPagination,
@@ -247,6 +246,7 @@ import {
   QyForm,
   QyFormItem
 } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import {
   getNotifications,
   getUnreadCount,
