@@ -26,32 +26,36 @@
       aria-atomic="true"
     >
       <div
-        v-if="shouldShowApplyFeedback"
+        v-if="visibleApplyFeedback"
         class="apply-feedback workflow-feedback-strip"
-        :class="`apply-feedback--${aiApplyFeedback.status}`"
+        :class="`apply-feedback--${visibleApplyFeedback.status}`"
         data-testid="workflow-feedback-strip"
       >
         <div class="apply-feedback__content">
-          <strong>{{ aiApplyFeedback.title }}</strong>
-          <p>{{ aiApplyFeedback.detail }}</p>
+          <strong>{{ visibleApplyFeedback.title }}</strong>
+          <p>{{ visibleApplyFeedback.detail }}</p>
         </div>
         <span class="apply-feedback__mode">
-          {{ aiApplyFeedback.mode ? `模式 ${applyModeText(aiApplyFeedback.mode)}` : '已更新正文' }}
+          {{
+            visibleApplyFeedback.mode
+              ? `模式 ${applyModeText(visibleApplyFeedback.mode)}`
+              : '已更新正文'
+          }}
         </span>
       </div>
 
       <div
-        v-if="shouldShowProposalLifecycleFeedback"
+        v-if="visibleProposalLifecycleFeedback"
         class="proposal-feedback workflow-feedback-strip"
-        :class="`proposal-feedback--${proposalLifecycleFeedback.status}`"
+        :class="`proposal-feedback--${visibleProposalLifecycleFeedback.status}`"
         data-testid="proposal-feedback-strip"
       >
         <div class="apply-feedback__content">
-          <strong>{{ proposalLifecycleFeedback.title }}</strong>
-          <p>{{ proposalLifecycleFeedback.detail }}</p>
+          <strong>{{ visibleProposalLifecycleFeedback.title }}</strong>
+          <p>{{ visibleProposalLifecycleFeedback.detail }}</p>
         </div>
         <span class="apply-feedback__mode">
-          {{ proposalLifecycleFeedback.source }}
+          {{ visibleProposalLifecycleFeedback.source }}
         </span>
       </div>
 
@@ -267,6 +271,10 @@ const shouldShowApplyFeedback = computed(
     !(primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value),
 )
 
+const visibleApplyFeedback = computed(() =>
+  shouldShowApplyFeedback.value ? props.aiApplyFeedback : null,
+)
+
 const hasWorkflowRail = computed(
   () =>
     !!shouldShowApplyFeedback.value ||
@@ -288,18 +296,23 @@ const proposalLifecycleFeedback = computed<{
   const latestProposal = [...props.draftProposals].sort(
     (left, right) => right.updatedAt - left.updatedAt,
   )[0]
-  if (!latestProposal || !['selected', 'discarded'].includes(latestProposal.status)) {
+  if (!latestProposal) {
+    return null
+  }
+
+  const latestStatus = latestProposal.status
+  if (latestStatus !== 'selected' && latestStatus !== 'discarded') {
     return null
   }
 
   return {
-    status: latestProposal.status,
+    status: latestStatus,
     title:
-      latestProposal.status === 'selected'
+      latestStatus === 'selected'
         ? `${proposalKindText(latestProposal.kind)}提案已保留`
         : `${proposalKindText(latestProposal.kind)}提案已移出`,
     detail:
-      latestProposal.status === 'selected'
+      latestStatus === 'selected'
         ? `当前保留：${latestProposal.title}`
         : `已从 rail 中移除：${latestProposal.title}`,
     source: proposalSourceText(latestProposal.source),
@@ -318,9 +331,16 @@ const shouldShowProposalLifecycleFeedback = computed(() => {
   return proposalLifecycleFeedback.value.status === 'discarded'
 })
 
+const visibleProposalLifecycleFeedback = computed(() =>
+  shouldShowProposalLifecycleFeedback.value ? proposalLifecycleFeedback.value : null,
+)
+
 watch(
   [() => props.projectId, () => props.chapterId, () => props.actionTrigger?.id],
-  ([projectId, chapterId, actionTriggerId], [prevProjectId, prevChapterId, prevActionTriggerId]) => {
+  (
+    [projectId, chapterId, actionTriggerId],
+    [prevProjectId, prevChapterId, prevActionTriggerId],
+  ) => {
     if (
       projectId !== prevProjectId ||
       chapterId !== prevChapterId ||

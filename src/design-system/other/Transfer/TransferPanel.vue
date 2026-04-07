@@ -12,23 +12,25 @@ import TransferItem from './TransferItem.vue'
 import type { TransferPanelProps, TransferPanelEmits, TransferPropsOption } from './types'
 
 // 使用 CVA 定义面板变体
-const panelVariants = cva(
-  'flex-1 flex flex-col rounded-lg border bg-white',
-  {
-    variants: {
-      disabled: {
-        true: 'opacity-60',
-        false: '',
-      },
+const panelVariants = cva('flex-1 flex flex-col rounded-lg border bg-white', {
+  variants: {
+    disabled: {
+      true: 'opacity-60',
+      false: '',
     },
-  }
-)
+  },
+})
 
 // 组件 Props
 const props = withDefaults(defineProps<TransferPanelProps>(), {
   filterable: false,
   filterPlaceholder: '请输入搜索内容',
   format: '{label}',
+  itemProps: () => ({
+    key: 'key',
+    label: 'label',
+    disabled: 'disabled',
+  }),
 })
 
 // 组件 Emits
@@ -45,7 +47,7 @@ watch(
   () => props.checkedKeys,
   (newVal) => {
     internalChecked.value = [...newVal]
-  }
+  },
 )
 
 // 计算样式类
@@ -53,8 +55,8 @@ const panelClasses = computed(() =>
   cn(
     panelVariants({
       disabled: false,
-    })
-  )
+    }),
+  ),
 )
 
 // 过滤后的数据
@@ -165,38 +167,32 @@ const clearQuery = () => {
 }
 
 // 头部样式
-const headerVariants = cva(
-  'px-4 py-3 border-b bg-slate-50 rounded-t-lg',
-  {
-    variants: {
-      panel: {
-        left: 'bg-slate-50',
-        right: 'bg-primary-50',
-      },
+const headerVariants = cva('px-4 py-3 border-b bg-slate-50 rounded-t-lg', {
+  variants: {
+    panel: {
+      left: 'bg-slate-50',
+      right: 'bg-primary-50',
     },
-  }
-)
+  },
+})
 
 const headerClasses = computed(() =>
   cn(
     headerVariants({
       panel: props.panel,
-    })
-  )
+    }),
+  ),
 )
 
 // 输入框样式
 const inputVariants = cva(
-  'w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)] focus:border-transparent transition-all duration-200'
+  'w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)] focus:border-transparent transition-all duration-200',
 )
 
 // 列表容器样式
-const listVariants = cva(
-  'flex-1 overflow-y-auto p-2 space-y-1',
-  {
-    variants: {},
-  }
-)
+const listVariants = cva('flex-1 overflow-y-auto p-2 space-y-1', {
+  variants: {},
+})
 
 // 获取 item 的 key
 const getItemKey = (item: TransferPropsOption) => {
@@ -255,7 +251,12 @@ const getItemDisabled = (item: TransferPropsOption) => {
           @click="clearQuery"
           class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -264,7 +265,12 @@ const getItemDisabled = (item: TransferPropsOption) => {
           </svg>
         </button>
         <div v-else class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path
               fill-rule="evenodd"
               d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -277,10 +283,24 @@ const getItemDisabled = (item: TransferPropsOption) => {
 
     <!-- 列表内容 -->
     <div :class="listVariants">
-      <div v-if="filteredData.length === 0" class="flex items-center justify-center h-full text-slate-400">
+      <div
+        v-if="filteredData.length === 0"
+        class="flex items-center justify-center h-full text-slate-400"
+      >
         <div class="text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-12 w-12 mx-auto mb-2 opacity-50"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            />
           </svg>
           <p class="text-sm">{{ query ? '暂无匹配数据' : '暂无数据' }}</p>
         </div>

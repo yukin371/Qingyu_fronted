@@ -1,5 +1,11 @@
 <template>
-  <div :class="['qy-input-number', `qy-input-number--${size}`, { 'qy-input-number--disabled': disabled }]">
+  <div
+    :class="[
+      'qy-input-number',
+      `qy-input-number--${size}`,
+      { 'qy-input-number--disabled': disabled },
+    ]"
+  >
     <!-- Decrease button -->
     <button
       v-if="controls"
@@ -9,7 +15,7 @@
       @click="decrease"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
     </button>
 
@@ -38,14 +44,13 @@
       @click="increase"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { InputNumberProps } from './types'
 
 const props = withDefaults(defineProps<InputNumberProps>(), {
@@ -56,14 +61,14 @@ const props = withDefaults(defineProps<InputNumberProps>(), {
   size: 'default',
   disabled: false,
   controls: true,
-  placeholder: ''
+  placeholder: '',
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: number]
-  'change': [value: number]
-  'focus': [event: FocusEvent]
-  'blur': [event: FocusEvent]
+  change: [value: number]
+  focus: [event: FocusEvent]
+  blur: [event: FocusEvent]
 }>()
 
 const decrease = () => {

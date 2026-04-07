@@ -2,7 +2,6 @@
   <div class="profile-container">
     <!-- 布局容器 -->
     <div class="profile-layout">
-
       <!-- 左侧：个人信息与操作 (Sticky 布局) -->
       <aside class="profile-sidebar">
         <Card :class="userCardClass">
@@ -52,8 +51,12 @@
                   编辑资料
                 </QyButton>
                 <div class="secondary-actions">
-                   <QyButton class="btn-half" variant="ghost" @click="goToSettings">账户设置</QyButton>
-                   <QyButton class="btn-half" variant="ghost" @click="goToSecurity">修改密码</QyButton>
+                  <QyButton class="btn-half" variant="ghost" @click="goToSettings"
+                    >账户设置</QyButton
+                  >
+                  <QyButton class="btn-half" variant="ghost" @click="goToSecurity"
+                    >修改密码</QyButton
+                  >
                 </div>
               </div>
             </div>
@@ -63,13 +66,29 @@
               <div class="form-title">编辑资料</div>
               <QyForm v-model="profileForm" class="compact-form">
                 <QyFormItem label="昵称">
-                  <Input v-model="profileForm.nickname" :maxlength="20" placeholder="怎么称呼你？" />
+                  <Input
+                    v-model="profileForm.nickname"
+                    :maxlength="20"
+                    placeholder="怎么称呼你？"
+                  />
                 </QyFormItem>
                 <QyFormItem label="简介">
-                  <Textarea v-model="profileForm.bio" :rows="4" :maxlength="100" show-count placeholder="写一段话介绍自己..." />
+                  <Textarea
+                    v-model="profileForm.bio"
+                    :rows="4"
+                    :maxlength="100"
+                    show-count
+                    placeholder="写一段话介绍自己..."
+                  />
                 </QyFormItem>
                 <div class="form-actions">
-                  <QyButton class="btn-block" variant="primary" :loading="savingProfile" @click="saveProfile">保存</QyButton>
+                  <QyButton
+                    class="btn-block"
+                    variant="primary"
+                    :loading="savingProfile"
+                    @click="saveProfile"
+                    >保存</QyButton
+                  >
                   <QyButton class="btn-block" variant="ghost" @click="cancelEdit">取消</QyButton>
                 </div>
               </QyForm>
@@ -162,14 +181,19 @@
           </template>
 
           <div v-if="historyLoading" class="skeleton-loader">
-             <QyLoading />
+            <QyLoading />
           </div>
           <div v-else-if="readingHistory.length === 0" class="empty-state">
-             <Empty description="最近没有阅读记录，快去探索吧" />
+            <Empty description="最近没有阅读记录，快去探索吧" />
           </div>
 
           <div v-else class="history-grid">
-            <div v-for="item in readingHistory" :key="item.id" class="history-card-item" @click="goToBook(item.bookId)">
+            <div
+              v-for="item in readingHistory"
+              :key="item.id"
+              class="history-card-item"
+              @click="goToBook(item.bookId)"
+            >
               <div class="cover-box">
                 <Image :src="item.coverUrl" fit="cover" class="book-cover" />
                 <div class="progress-overlay">
@@ -205,7 +229,12 @@
           </div>
 
           <div v-else class="shelf-grid-wrapper">
-            <div v-for="book in shelfPreview" :key="book.id" class="shelf-book-item" @click="goToBook(book.id)">
+            <div
+              v-for="book in shelfPreview"
+              :key="book.id"
+              class="shelf-book-item"
+              @click="goToBook(book.id)"
+            >
               <div class="book-cover-3d">
                 <Image :src="book.coverUrl" fit="cover" />
               </div>
@@ -216,7 +245,6 @@
             </div>
           </div>
         </Card>
-
       </main>
     </div>
   </div>
@@ -232,9 +260,8 @@ import {
   QyButton,
   QyForm,
   QyFormItem,
-  QyInput,
   QyLoading,
-  QyIcon // 确保你有这个组件，或者直接用 el-icon
+  QyIcon, // 确保你有这个组件，或者直接用 el-icon
 } from '@/design-system/components'
 import { Empty, Card, Textarea, Image, Input } from '@/design-system/base'
 import { useUserStore } from '@/stores/user'
@@ -286,7 +313,7 @@ const profileForm = reactive({
   nickname: '',
   bio: '',
   email: '',
-  avatar: ''
+  avatar: '',
 })
 
 const shelfBooks = ref<ShelfBook[]>([])
@@ -295,7 +322,7 @@ const readingStats = ref<ReadingStats>({
   totalBooks: 0,
   totalChapters: 0,
   totalWords: 0,
-  totalDays: 0
+  totalDays: 0,
 })
 
 const shelfPreview = computed(() => shelfBooks.value.slice(0, 8)) // 改为8本
@@ -307,13 +334,16 @@ const avatar = computed(() => (userStore.avatar as unknown as string) || '')
 const avatarUrl = computed(() => avatar.value || profileForm.avatar)
 const profile = computed<any>(() => userStore.profile as any)
 const roleLabel = computed(() => {
-  const role = (profile.value?.role || (userStore.userInfo as any)?.role || '').toString().toLowerCase()
+  const role = (profile.value?.role || (userStore.userInfo as any)?.role || '')
+    .toString()
+    .toLowerCase()
   if (role === 'admin') return '管理员'
   if (role === 'writer') return '作者'
   return '读者'
 })
 const vipLevelLabel = computed(() => {
-  const vipLevel = profile.value?.vipLevel ?? profile.value?.vip_level ?? profile.value?.membershipLevel
+  const vipLevel =
+    profile.value?.vipLevel ?? profile.value?.vip_level ?? profile.value?.membershipLevel
   if (vipLevel === undefined || vipLevel === null || vipLevel === '') {
     return isTestMode.value ? 'VIP 2' : '普通会员'
   }
@@ -369,7 +399,8 @@ async function loadRecentReading() {
     const data = (response as any)?.data || response
     const list = Array.isArray(data) ? data : data?.list || data?.items || data?.data || []
     readingHistory.value = normalizeRecentReading(list)
-    if (readingHistory.value.length === 0 && isTestMode.value) readingHistory.value = buildMockRecentReading()
+    if (readingHistory.value.length === 0 && isTestMode.value)
+      readingHistory.value = buildMockRecentReading()
   } catch {
     if (isTestMode.value) readingHistory.value = buildMockRecentReading()
   } finally {
@@ -379,27 +410,32 @@ async function loadRecentReading() {
 
 // --- Helpers & Mocks ---
 function normalizeShelfBooks(list: any[]): ShelfBook[] {
-  return (list || []).filter(item => item?.id || item?.bookId).map(item => ({
-    id: item.id || item.bookId,
-    title: item.title || '未命名书籍',
-    author: item.author || '未知作者',
-    coverUrl: item.cover || item.coverUrl || '/images/placeholders/book-cover.svg',
-    totalChapters: Number(item.totalChapters || 0),
-    wordCount: Number(item.wordCount || 0)
-  }))
+  return (list || [])
+    .filter((item) => item?.id || item?.bookId)
+    .map((item) => ({
+      id: item.id || item.bookId,
+      title: item.title || '未命名书籍',
+      author: item.author || '未知作者',
+      coverUrl: item.cover || item.coverUrl || '/images/placeholders/book-cover.svg',
+      totalChapters: Number(item.totalChapters || 0),
+      wordCount: Number(item.wordCount || 0),
+    }))
 }
 
 function normalizeRecentReading(list: any[]): RecentReadItem[] {
-  return (list || []).filter(item => item?.id || item?.bookId).map((item, idx) => ({
-    id: item.id || `recent-${idx}`,
-    bookId: item.bookId || item.id,
-    title: item.title || item.book?.title || '未命名书籍',
-    author: item.author || item.book?.author || '未知作者',
-    coverUrl: item.cover || item.coverUrl || item.book?.coverUrl || '/images/placeholders/book-cover.svg',
-    chapterTitle: item.lastReadChapter || item.chapterTitle || '最新章节',
-    progress: normalizeProgress(item.progress),
-    lastReadTime: item.lastReadTime || item.updatedAt || new Date().toISOString()
-  }))
+  return (list || [])
+    .filter((item) => item?.id || item?.bookId)
+    .map((item, idx) => ({
+      id: item.id || `recent-${idx}`,
+      bookId: item.bookId || item.id,
+      title: item.title || item.book?.title || '未命名书籍',
+      author: item.author || item.book?.author || '未知作者',
+      coverUrl:
+        item.cover || item.coverUrl || item.book?.coverUrl || '/images/placeholders/book-cover.svg',
+      chapterTitle: item.lastReadChapter || item.chapterTitle || '最新章节',
+      progress: normalizeProgress(item.progress),
+      lastReadTime: item.lastReadTime || item.updatedAt || new Date().toISOString(),
+    }))
 }
 
 function normalizeProgress(progress: any): number {
@@ -412,7 +448,9 @@ function normalizeProgress(progress: any): number {
 function buildReadingStats() {
   // 简单统计逻辑
   const totalBooks = shelfBooks.value.length
-  const totalChapters = shelfBooks.value.reduce((sum, item) => sum + (item.totalChapters || 0), 0) + readingHistory.value.length * 15 // Mock data addition
+  const totalChapters =
+    shelfBooks.value.reduce((sum, item) => sum + (item.totalChapters || 0), 0) +
+    readingHistory.value.length * 15 // Mock data addition
   const totalWordsRaw = shelfBooks.value.reduce((sum, item) => sum + (item.wordCount || 0), 0)
   const totalWords = Math.round(totalWordsRaw / 10000)
 
@@ -423,30 +461,92 @@ function buildReadingStats() {
     totalBooks,
     totalChapters,
     totalWords,
-    totalDays: activeDays
+    totalDays: activeDays,
   }
 }
 
 // --- Mocks Data ---
 function buildMockShelfBooks(): ShelfBook[] {
   return [
-    { id: '1', title: '三体全集', author: '刘慈欣', coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80', totalChapters: 102, wordCount: 900000 },
-    { id: '2', title: '百年孤独', author: '马尔克斯', coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80', totalChapters: 20, wordCount: 300000 },
-    { id: '3', title: '沉默的大多数', author: '王小波', coverUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=300&q=80', totalChapters: 40, wordCount: 250000 },
-    { id: '4', title: '设计心理学', author: '唐纳德', coverUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80', totalChapters: 12, wordCount: 180000 },
-    { id: '5', title: '人类简史', author: '赫拉利', coverUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=300&q=80', totalChapters: 30, wordCount: 400000 }
+    {
+      id: '1',
+      title: '三体全集',
+      author: '刘慈欣',
+      coverUrl:
+        'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80',
+      totalChapters: 102,
+      wordCount: 900000,
+    },
+    {
+      id: '2',
+      title: '百年孤独',
+      author: '马尔克斯',
+      coverUrl:
+        'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=300&q=80',
+      totalChapters: 20,
+      wordCount: 300000,
+    },
+    {
+      id: '3',
+      title: '沉默的大多数',
+      author: '王小波',
+      coverUrl:
+        'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=300&q=80',
+      totalChapters: 40,
+      wordCount: 250000,
+    },
+    {
+      id: '4',
+      title: '设计心理学',
+      author: '唐纳德',
+      coverUrl:
+        'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80',
+      totalChapters: 12,
+      wordCount: 180000,
+    },
+    {
+      id: '5',
+      title: '人类简史',
+      author: '赫拉利',
+      coverUrl:
+        'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=300&q=80',
+      totalChapters: 30,
+      wordCount: 400000,
+    },
   ]
 }
 
 function buildMockRecentReading(): RecentReadItem[] {
   return [
-    { id: 'r1', bookId: '1', title: '三体：死神永生', author: '刘慈欣', coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80', chapterTitle: '第三部 第5章', progress: 65, lastReadTime: new Date().toISOString() },
-    { id: 'r2', bookId: '2', title: '设计模式之禅', author: '秦小波', coverUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=300&q=80', chapterTitle: '第23章 单例模式', progress: 12, lastReadTime: new Date(Date.now() - 86400000).toISOString() },
+    {
+      id: 'r1',
+      bookId: '1',
+      title: '三体：死神永生',
+      author: '刘慈欣',
+      coverUrl:
+        'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=300&q=80',
+      chapterTitle: '第三部 第5章',
+      progress: 65,
+      lastReadTime: new Date().toISOString(),
+    },
+    {
+      id: 'r2',
+      bookId: '2',
+      title: '设计模式之禅',
+      author: '秦小波',
+      coverUrl:
+        'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=300&q=80',
+      chapterTitle: '第23章 单例模式',
+      progress: 12,
+      lastReadTime: new Date(Date.now() - 86400000).toISOString(),
+    },
   ]
 }
 
 // --- Actions ---
-function toggleEdit() { isEditing.value = !isEditing.value }
+function toggleEdit() {
+  isEditing.value = !isEditing.value
+}
 function cancelEdit() {
   isEditing.value = false
   profileForm.nickname = profile.value?.nickname || profile.value?.username || ''
@@ -456,7 +556,10 @@ function cancelEdit() {
 async function saveProfile() {
   savingProfile.value = true
   try {
-    await userStore.updateProfile({ nickname: profileForm.nickname.trim(), bio: profileForm.bio.trim() })
+    await userStore.updateProfile({
+      nickname: profileForm.nickname.trim(),
+      bio: profileForm.bio.trim(),
+    })
     isEditing.value = false
     message.success('资料已更新')
   } catch (error: any) {
@@ -467,9 +570,14 @@ async function saveProfile() {
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (file) => {
-  const isImage = file.type.startsWith('image/'); const isLt2M = file.size / 1024 / 1024 < 2
-  if (!isImage || !isLt2M) { message.warning('请上传2MB以内的图片'); return false }
-  handleAvatarUpload(file); return false
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isImage || !isLt2M) {
+    message.warning('请上传2MB以内的图片')
+    return false
+  }
+  handleAvatarUpload(file)
+  return false
 }
 
 async function handleAvatarUpload(file: File) {
@@ -480,28 +588,44 @@ async function handleAvatarUpload(file: File) {
       profileForm.avatar = (res as any).url
       message.success('头像更新成功')
     }
-  } catch { message.error('上传失败') }
+  } catch {
+    message.error('上传失败')
+  }
 }
 const handleAvatarSuccess = () => {}
 const handleAvatarError = () => {}
 
 // --- Navigation & Utils ---
-function goToBook(id: string) { router.push(`/bookstore/books/${id}`) }
-function goToShelf() { router.push('/reading/bookshelf') }
-function goToCollections() { router.push('/reading/collections') }
-function goToHistory() { router.push('/reading/history') }
-function goToSettings() { router.push('/account/settings/account') }
-function goToSecurity() { router.push('/account/settings/security') }
-function goToWallet() { router.push('/account/wallet') }
+function goToBook(id: string) {
+  router.push(`/bookstore/books/${id}`)
+}
+function goToShelf() {
+  router.push('/reading/bookshelf')
+}
+function goToCollections() {
+  router.push('/reading/collections')
+}
+function goToHistory() {
+  router.push('/reading/history')
+}
+function goToSettings() {
+  router.push('/account/settings/account')
+}
+function goToSecurity() {
+  router.push('/account/settings/security')
+}
+function goToWallet() {
+  router.push('/account/wallet')
+}
 
 function formatTime(isoStr: string) {
   const date = new Date(isoStr)
   const now = new Date()
   const diff = (now.getTime() - date.getTime()) / 1000
   if (diff < 60) return '刚刚'
-  if (diff < 3600) return `${Math.floor(diff/60)}分钟前`
-  if (diff < 86400) return `${Math.floor(diff/3600)}小时前`
-  return `${date.getMonth()+1}月${date.getDate()}日`
+  if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
+  return `${date.getMonth() + 1}月${date.getDate()}日`
 }
 </script>
 
@@ -562,7 +686,7 @@ function formatTime(isoStr: string) {
     width: 120px !important;
     height: 120px !important;
     border: 4px solid #fff;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
     background: #fff;
   }
 }
@@ -645,13 +769,17 @@ function formatTime(isoStr: string) {
     flex-direction: column;
     gap: 12px;
 
-    .btn-block { width: 100%; }
+    .btn-block {
+      width: 100%;
+    }
 
     .secondary-actions {
       display: flex;
       gap: 12px;
 
-      .btn-half { flex: 1; }
+      .btn-half {
+        flex: 1;
+      }
     }
   }
 }
@@ -705,7 +833,9 @@ function formatTime(isoStr: string) {
   }
 
   .compact-form {
-    :deep(.el-form-item) { margin-bottom: 16px; }
+    :deep(.el-form-item) {
+      margin-bottom: 16px;
+    }
   }
 
   .form-actions {
@@ -714,7 +844,10 @@ function formatTime(isoStr: string) {
     gap: 10px;
     margin-top: 24px;
 
-    .btn-block { width: 100%; margin: 0; }
+    .btn-block {
+      width: 100%;
+      margin: 0;
+    }
   }
 }
 
@@ -741,10 +874,12 @@ function formatTime(isoStr: string) {
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
   transition: transform 0.2s;
 
-  &:hover { transform: translateY(-3px); }
+  &:hover {
+    transform: translateY(-3px);
+  }
 
   .stat-icon {
     width: 48px;
@@ -755,10 +890,22 @@ function formatTime(isoStr: string) {
     justify-content: center;
     font-size: 22px;
 
-    &.icon-blue { background: #ecf5ff; color: #409eff; }
-    &.icon-green { background: #f0f9eb; color: #67c23a; }
-    &.icon-purple { background: #f4f4f5; color: #909399; }
-    &.icon-orange { background: #fdf6ec; color: #e6a23c; }
+    &.icon-blue {
+      background: #ecf5ff;
+      color: #409eff;
+    }
+    &.icon-green {
+      background: #f0f9eb;
+      color: #67c23a;
+    }
+    &.icon-purple {
+      background: #f4f4f5;
+      color: #909399;
+    }
+    &.icon-orange {
+      background: #fdf6ec;
+      color: #e6a23c;
+    }
   }
 
   .stat-info {
@@ -771,7 +918,11 @@ function formatTime(isoStr: string) {
       color: #1a1a1a;
       line-height: 1.2;
 
-      small { font-size: 14px; font-weight: normal; margin-left: 2px; }
+      small {
+        font-size: 14px;
+        font-weight: normal;
+        margin-left: 2px;
+      }
     }
 
     .stat-label {
@@ -786,7 +937,7 @@ function formatTime(isoStr: string) {
 .content-section {
   border: none;
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
 
   .section-header {
     display: flex;
@@ -798,7 +949,11 @@ function formatTime(isoStr: string) {
       align-items: center;
       gap: 8px;
 
-      h3 { margin: 0; font-size: 18px; color: #303133; }
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #303133;
+      }
       .badge {
         background: #f2f3f5;
         color: #606266;
@@ -830,7 +985,7 @@ function formatTime(isoStr: string) {
   &:hover {
     background: #fcfcfd;
     border-color: #e4e7ed;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .cover-box {
@@ -841,7 +996,10 @@ function formatTime(isoStr: string) {
     position: relative;
     flex-shrink: 0;
 
-    .book-cover { width: 100%; height: 100%; }
+    .book-cover {
+      width: 100%;
+      height: 100%;
+    }
 
     .progress-overlay {
       position: absolute;
@@ -849,7 +1007,7 @@ function formatTime(isoStr: string) {
       left: 0;
       width: 100%;
       height: 24px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(2px);
       display: flex;
       flex-direction: column;
@@ -916,10 +1074,14 @@ function formatTime(isoStr: string) {
     aspect-ratio: 2/3;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 2px 4px 10px rgba(0,0,0,0.15);
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-    :deep(img) { width: 100%; height: 100%; object-fit: cover; }
+    :deep(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   }
 
   .book-meta {
@@ -944,7 +1106,7 @@ function formatTime(isoStr: string) {
 
   &:hover .book-cover-3d {
     transform: translateY(-5px);
-    box-shadow: 4px 8px 16px rgba(0,0,0,0.2);
+    box-shadow: 4px 8px 16px rgba(0, 0, 0, 0.2);
   }
 }
 

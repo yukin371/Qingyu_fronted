@@ -37,7 +37,11 @@ const state = ref<AffixState>({
 // 获取滚动容器
 const getScrollTarget = (): HTMLElement | Window => {
   if (typeof props.target === 'function') {
-    return props.target()
+    const resolved = props.target()
+    if (resolved && typeof (resolved as EventTarget).addEventListener === 'function') {
+      return resolved
+    }
+    return window
   }
   if (typeof props.target === 'string') {
     const el = document.querySelector(props.target)
@@ -54,7 +58,7 @@ const getContainerScrollTop = (): number => {
   if (target === window) {
     return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
   }
-  return (target as HTMLElement).scrollTop
+  return (target as HTMLElement | null)?.scrollTop || 0
 }
 
 // 计算样式类名
@@ -62,10 +66,10 @@ const classes = computed(() =>
   cn(
     'transition-all duration-200',
     {
-      'fixed': state.value.isFixed,
+      fixed: state.value.isFixed,
     },
-    props.class
-  )
+    props.class,
+  ),
 )
 
 // 计算固定样式
@@ -102,15 +106,17 @@ const checkFixed = () => {
 
   // 获取元素位置信息
   const rect = affixRef.value.getBoundingClientRect()
-  const targetRect = target === window
-    ? { top: 0, left: 0 }
-    : (target as HTMLElement).getBoundingClientRect()
+  const targetRect =
+    target === window
+      ? { top: 0, left: 0 }
+      : (target as HTMLElement | null)?.getBoundingClientRect() || { top: 0, left: 0 }
 
   // 计算元素相对于滚动容器的位置
   const elementTop = rect.top - targetRect.top + scrollTop
-  const shouldFixed = props.position === 'top'
-    ? scrollTop >= elementTop - props.offset
-    : scrollTop <= elementTop + rect.height - (window.innerHeight - props.offset)
+  const shouldFixed =
+    props.position === 'top'
+      ? scrollTop >= elementTop - props.offset
+      : scrollTop <= elementTop + rect.height - (window.innerHeight - props.offset)
 
   // 更新固定状态
   if (shouldFixed !== state.value.isFixed) {
@@ -172,7 +178,9 @@ onUnmounted(() => {
   try {
     const target = getScrollTarget()
     if (target && target.removeEventListener) {
-      target.removeEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
+      target.removeEventListener('scroll', handleScroll, {
+        passive: true,
+      } as AddEventListenerOptions)
     }
   } catch (error) {
     // Ignore errors during cleanup
@@ -185,25 +193,40 @@ onUnmounted(() => {
 })
 
 // 监听 offset 变化
-watch(() => props.offset, () => {
-  checkFixed()
-})
+watch(
+  () => props.offset,
+  () => {
+    checkFixed()
+  },
+)
 
 // 监听 position 变化
-watch(() => props.position, () => {
-  checkFixed()
-})
+watch(
+  () => props.position,
+  () => {
+    checkFixed()
+  },
+)
 
 // 监听 target 变化
-watch(() => props.target, () => {
-  // 重新绑定滚动监听
-  const oldTarget = getScrollTarget()
-  oldTarget.removeEventListener('scroll', handleScroll)
+watch(
+  () => props.target,
+  () => {
+    // 重新绑定滚动监听
+    const oldTarget = getScrollTarget()
+    if (oldTarget && oldTarget.removeEventListener) {
+      oldTarget.removeEventListener('scroll', handleScroll)
+    }
 
-  checkFixed()
-  const newTarget = getScrollTarget()
-  newTarget.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions)
-})
+    checkFixed()
+    const newTarget = getScrollTarget()
+    if (newTarget && newTarget.addEventListener) {
+      newTarget.addEventListener('scroll', handleScroll, {
+        passive: true,
+      } as AddEventListenerOptions)
+    }
+  },
+)
 
 // 暴露方法和状态给父组件
 defineExpose({
@@ -215,11 +238,7 @@ defineExpose({
 </script>
 
 <template>
-  <div
-    :ref="(el: any) => affixRef = el"
-    :class="classes"
-    :style="{ ...fixedStyle, ...style }"
-  >
+  <div :ref="(el: any) => (affixRef = el)" :class="classes" :style="{ ...fixedStyle, ...style }">
     <slot />
   </div>
 </template>

@@ -35,7 +35,7 @@ const itemVariants = cva(
       checked: false,
       disabled: false,
     },
-  }
+  },
 )
 
 // 组件 Props
@@ -43,6 +43,11 @@ const props = withDefaults(defineProps<TransferItemProps>(), {
   checked: false,
   disabled: false,
   format: '{label}',
+  itemProps: () => ({
+    key: 'key',
+    label: 'label',
+    disabled: 'disabled',
+  }),
 })
 
 // 组件 Emits
@@ -54,8 +59,8 @@ const itemClasses = computed(() =>
     itemVariants({
       checked: props.checked,
       disabled: props.disabled,
-    })
-  )
+    }),
+  ),
 )
 
 // 处理点击事件
@@ -97,7 +102,7 @@ const checkboxVariants = cva(
       checked: false,
       disabled: false,
     },
-  }
+  },
 )
 
 const checkboxClasses = computed(() =>
@@ -105,8 +110,8 @@ const checkboxClasses = computed(() =>
     checkboxVariants({
       checked: props.checked,
       disabled: props.disabled,
-    })
-  )
+    }),
+  ),
 )
 </script>
 

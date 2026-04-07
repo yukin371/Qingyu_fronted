@@ -48,6 +48,38 @@ export interface Character extends BaseEntity {
   personalityPrompt?: string
   speechPattern?: string
   currentState?: string
+
+  // 自定义状态（用于 Story Harness 结构化状态追踪）
+  customStatus?: CharacterCustomStatus
+}
+
+/**
+ * 角色自定义状态（Story Harness 用）
+ * 用于结构化存储角色特定的状态字段
+ */
+export interface CharacterCustomStatus {
+  // 基础属性（星级评分 1-5）
+  combatPower?: number // 战力
+  intelligence?: number // 智商
+  charisma?: number // 话术/魅力
+
+  // 亚伯 (Abel) 专属
+  fearValue?: number // 内心恐惧值 (0-100)
+  disguiseStability?: number // 伪装稳定度 (0-100)
+  bonusBalance?: number // 奖金余额
+
+  // 诺艾尔 (Noelle) 专属
+  debt?: number // 债务总额
+  satiety?: number // 饱腹度 (0-100)
+  trustValue?: number // 对某人的信任值 (0-100)
+
+  // 伊莎贝拉 (Isabella) 专属
+  delusionIndex?: number // 妄想指数 (0-100)
+  misunderstandingDepth?: number // 误解深度 (0-100)
+  interceptorTriggers?: number // 拦截器触发次数
+
+  // 通用扩展字段
+  [key: string]: number | string | undefined
 }
 
 /**
@@ -63,7 +95,7 @@ export interface CharacterRelation extends BaseEntity {
   notes?: string
 
   // 新增：时序控制字段
-  validFromChapterId?: string  // 关系生效的起始章节ID
+  validFromChapterId?: string // 关系生效的起始章节ID
   validUntilChapterId?: string // 关系失效的章节ID
 }
 
@@ -84,6 +116,7 @@ export interface CreateCharacterRequest {
   avatarUrl?: string
   personalityPrompt?: string
   speechPattern?: string
+  customStatus?: CharacterCustomStatus
 }
 
 /**
@@ -99,6 +132,7 @@ export interface UpdateCharacterRequest {
   personalityPrompt?: string
   speechPattern?: string
   currentState?: string
+  customStatus?: CharacterCustomStatus
 }
 
 /**
@@ -131,9 +165,9 @@ export interface CharacterGraph {
 export interface ChapterGraph {
   id: string
   projectId: string
-  chapterId: string           // 关联的文档ID
-  chapterTitle?: string      // 章节标题（方便显示）
-  parentGraphId?: string     // 继承的父图谱ID（全局图谱ID或章节图谱ID）
+  chapterId: string // 关联的文档ID
+  chapterTitle?: string // 章节标题（方便显示）
+  parentGraphId?: string // 继承的父图谱ID（全局图谱ID或章节图谱ID）
   createdAt: string
   updatedAt: string
 }
@@ -157,11 +191,11 @@ export interface VolumeGraph {
  * 章节图谱中该章节特有的关系（不包括继承的关系）
  */
 export interface ChapterRelation extends BaseEntity {
-  graphId: string           // 关联的章节图谱ID
-  fromId: string            // 源角色ID
-  toId: string              // 目标角色ID
+  graphId: string // 关联的章节图谱ID
+  fromId: string // 源角色ID
+  toId: string // 目标角色ID
   type: RelationType | string
-  strength: number          // 0-100
+  strength: number // 0-100
   notes?: string
 }
 
@@ -186,7 +220,7 @@ export interface GraphNode {
   name: string
   avatar?: string
   importance?: number
-  isInherited?: boolean      // 是否继承自父图谱
+  isInherited?: boolean // 是否继承自父图谱
 }
 
 /**
@@ -198,7 +232,7 @@ export interface GraphLink {
   target: string | GraphNode
   type: string
   strength: number
-  isInherited?: boolean      // 是否继承自父图谱
+  isInherited?: boolean // 是否继承自父图谱
 }
 
 /**
@@ -206,7 +240,7 @@ export interface GraphLink {
  */
 export interface CreateChapterGraphRequest {
   chapterId: string
-  parentGraphId?: string     // 可选，继承的图谱ID
+  parentGraphId?: string // 可选，继承的图谱ID
   inheritCharacterIds?: string[] // 如果继承，可指定只继承这些角色
 }
 
@@ -242,11 +276,11 @@ export interface RelationTimelineEvent {
 export interface CharacterRole {
   id: string
   projectId: string
-  name: string          // 如"主角"、"配角"
-  color?: string        // 显示颜色
-  icon?: string         // 图标
-  order: number         // 排序权重
-  isDefault: boolean    // 是否系统预设
+  name: string // 如"主角"、"配角"
+  color?: string // 显示颜色
+  icon?: string // 图标
+  order: number // 排序权重
+  isDefault: boolean // 是否系统预设
   createdAt: string
   updatedAt: string
 }
@@ -254,7 +288,10 @@ export interface CharacterRole {
 /**
  * 预设角色类型常量
  */
-export const DEFAULT_CHARACTER_ROLES: Omit<CharacterRole, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>[] = [
+export const DEFAULT_CHARACTER_ROLES: Omit<
+  CharacterRole,
+  'id' | 'projectId' | 'createdAt' | 'updatedAt'
+>[] = [
   {
     name: '主角',
     color: '#ff6b6b',
@@ -300,11 +337,11 @@ export interface CharacterGraphSettings {
  * 对应后端 CharacterAppearance
  */
 export interface CharacterAppearance extends BaseEntity {
-  documentId: string      // 大纲节点ID
-  characterId: string     // 角色ID
-  characterName: string   // 冗余存储，方便查询
-  roleId: string          // 引用CharacterRole
-  roleName: string        // 冗余存储角色类型名称
+  documentId: string // 大纲节点ID
+  characterId: string // 角色ID
+  characterName: string // 冗余存储，方便查询
+  roleId: string // 引用CharacterRole
+  roleName: string // 冗余存储角色类型名称
   firstAppearance: boolean // 是否首次登场
-  notes?: string          // 如"第1卷男二号"
+  notes?: string // 如"第1卷男二号"
 }

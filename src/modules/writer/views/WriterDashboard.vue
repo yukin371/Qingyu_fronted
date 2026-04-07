@@ -24,7 +24,7 @@
             <div class="stat-value">{{ formatNumber(item.value) }}</div>
             <div class="stat-label">{{ item.label }}</div>
           </div>
-        </QyCard>
+        </Card>
       </div>
     </div>
 
@@ -99,7 +99,12 @@
               <div class="item-content">
                 <div class="item-header">
                   <h4 class="item-title">{{ project.title }}</h4>
-                  <Tag size="sm" :variant="getStatusType(project.status)" effect="plain" :round="true">
+                  <Tag
+                    size="sm"
+                    :variant="getStatusType(project.status)"
+                    effect="plain"
+                    :round="true"
+                  >
                     {{ getStatusText(project.status) }}
                   </Tag>
                 </div>
@@ -133,14 +138,9 @@
           </template>
 
           <div class="goal-content">
-            <QyProgress
-              type="circle"
-              :percentage="goalPercentage"
-              :color="goalColors"
-              :width="140"
-            >
-              <template #default="{ percentage }">
-                <span class="progress-value">{{ percentage }}%</span>
+            <QyProgress type="circle" :percentage="goalPercentage" :color="goalColor" :width="140">
+              <template #default>
+                <span class="progress-value">{{ goalPercentage }}%</span>
                 <span class="progress-label">完成度</span>
               </template>
             </QyProgress>
@@ -245,11 +245,11 @@ const goalPercentage = computed(() => {
   return Math.min(Math.round((stats.value.todayWords / writingGoal.value) * 100), 100)
 })
 
-const goalColors = [
-  { color: '#f56c6c', percentage: 20 },
-  { color: '#e6a23c', percentage: 60 },
-  { color: '#67c23a', percentage: 100 },
-]
+const goalColor = computed(() => {
+  if (goalPercentage.value >= 100) return '#67c23a'
+  if (goalPercentage.value >= 60) return '#e6a23c'
+  return '#f56c6c'
+})
 
 // 获取最近项目
 const recentProjects = computed(() => (projectStore.projects || []).slice(0, 5)) // 假设 Store 已按时间排序

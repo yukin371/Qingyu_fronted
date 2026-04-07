@@ -36,12 +36,7 @@
     <section class="section">
       <h2 class="section-title">新书上架</h2>
       <div class="book-list">
-        <div
-          v-for="book in newBooks"
-          :key="book.id"
-          class="book-item"
-          @click="goToBook(book.id)"
-        >
+        <div v-for="book in newBooks" :key="book.id" class="book-item" @click="goToBook(book.id)">
           <img :src="book.cover" :alt="book.title" class="book-item-cover" />
           <div class="book-item-info">
             <h3 class="book-item-title">{{ book.title }}</h3>
@@ -73,8 +68,12 @@
             <h3 class="pick-title">{{ pick.title }}</h3>
             <p class="pick-reason">{{ pick.reason }}</p>
             <div class="pick-stats">
-              <span><el-icon><View /></el-icon> {{ pick.viewCount }}</span>
-              <span><el-icon><Collection /></el-icon> {{ pick.collectCount }}</span>
+              <span
+                ><el-icon><View /></el-icon> {{ pick.viewCount }}</span
+              >
+              <span
+                ><el-icon><Collection /></el-icon> {{ pick.collectCount }}</span
+              >
             </div>
           </div>
         </div>
@@ -87,6 +86,29 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { StarFilled, View, Collection } from '@element-plus/icons-vue'
+
+interface Book {
+  id: string
+  title: string
+  author: string
+  cover: string
+  description: string
+  rating: number
+  category?: string
+  publishDate?: string
+}
+
+interface EditorPick {
+  id: string
+  title: string
+  author?: string
+  cover: string
+  description?: string
+  reason: string
+  viewCount: number
+  collectCount: number
+  [key: string]: unknown
+}
 
 const route = useRoute()
 const isTestMode = computed(() => route.query.test === 'true')
@@ -103,7 +125,7 @@ if (isTestMode.value) {
       author: '刘慈欣',
       cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=280&fit=crop',
       description: '中国科幻基石之作',
-      rating: 9.4
+      rating: 9.4,
     },
     {
       id: 'b2',
@@ -111,7 +133,7 @@ if (isTestMode.value) {
       author: '加西亚·马尔克斯',
       cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop',
       description: '魔幻现实主义经典',
-      rating: 9.3
+      rating: 9.3,
     },
     {
       id: 'b3',
@@ -119,7 +141,7 @@ if (isTestMode.value) {
       author: '东野圭吾',
       cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
       description: '温暖治愈的故事',
-      rating: 8.9
+      rating: 8.9,
     },
     {
       id: 'b4',
@@ -127,8 +149,8 @@ if (isTestMode.value) {
       author: '东野圭吾',
       cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop',
       description: '推理小说巅峰之作',
-      rating: 9.2
-    }
+      rating: 9.2,
+    },
   ]
 
   newBooks.value = [
@@ -140,7 +162,7 @@ if (isTestMode.value) {
       description: '生命的力量',
       rating: 9.5,
       category: '文学',
-      publishDate: '2025-01-15'
+      publishDate: '2025-01-15',
     },
     {
       id: 'b6',
@@ -150,7 +172,7 @@ if (isTestMode.value) {
       description: '关于爱与救赎',
       rating: 8.8,
       category: '文学',
-      publishDate: '2025-01-10'
+      publishDate: '2025-01-10',
     },
     {
       id: 'b7',
@@ -160,8 +182,8 @@ if (isTestMode.value) {
       description: '写给大人的童话',
       rating: 9.1,
       category: '童话',
-      publishDate: '2025-01-08'
-    }
+      publishDate: '2025-01-08',
+    },
   ]
 
   editorPicks.value = [
@@ -172,9 +194,10 @@ if (isTestMode.value) {
       cover: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200&h=280&fit=crop',
       description: '茅盾文学奖获奖作品',
       rating: 9.3,
-      reason: '这是一部全景式地表现中国当代城乡社会生活的长篇小说，深刻展现了普通人在大时代历史进程中所走过的艰难曲折的道路。',
+      reason:
+        '这是一部全景式地表现中国当代城乡社会生活的长篇小说，深刻展现了普通人在大时代历史进程中所走过的艰难曲折的道路。',
       viewCount: 12800,
-      collectCount: 5600
+      collectCount: 5600,
     },
     {
       id: 'b9',
@@ -183,9 +206,10 @@ if (isTestMode.value) {
       cover: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=200&h=280&fit=crop',
       description: '中国现代文学经典',
       rating: 9.0,
-      reason: '钱钟书所著的长篇小说，是中国现代文学史上一部风格独特的讽刺小说，被誉为"新儒林外史"。',
+      reason:
+        '钱钟书所著的长篇小说，是中国现代文学史上一部风格独特的讽刺小说，被誉为"新儒林外史"。',
       viewCount: 9600,
-      collectCount: 4200
+      collectCount: 4200,
     },
     {
       id: 'b10',
@@ -194,10 +218,11 @@ if (isTestMode.value) {
       cover: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200&h=280&fit=crop',
       description: '日本文学经典',
       rating: 8.7,
-      reason: '村上春树的代表作，一部动人心弦的青春恋爱小说，以其细腻的情感描写和独特的叙事风格打动无数读者。',
+      reason:
+        '村上春树的代表作，一部动人心弦的青春恋爱小说，以其细腻的情感描写和独特的叙事风格打动无数读者。',
       viewCount: 15200,
-      collectCount: 6800
-    }
+      collectCount: 6800,
+    },
   ]
 }
 

@@ -22,9 +22,7 @@
 
     <!-- 加载更多 -->
     <div v-if="hasMore" class="load-more">
-      <el-button @click="loadMore" :loading="loading">
-        加载更多
-      </el-button>
+      <el-button @click="loadMore" :loading="loading"> 加载更多 </el-button>
     </div>
   </div>
 </template>
@@ -49,10 +47,11 @@ const mockPosts: Post[] = [
       username: 'booklover1',
       nickname: '书虫小王',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
-      level: 5
+      level: 5,
     },
     type: 'text',
-    content: '最近读完《百年孤独》，真的被马尔克斯的想象力震撼到了！家族七代人的传奇故事，充满了魔幻现实主义的色彩。强烈推荐给喜欢文学的朋友们！',
+    content:
+      '最近读完《百年孤独》，真的被马尔克斯的想象力震撼到了！家族七代人的传奇故事，充满了魔幻现实主义的色彩。强烈推荐给喜欢文学的朋友们！',
     topics: ['读书笔记', '文学经典'],
     likeCount: 128,
     commentCount: 32,
@@ -60,7 +59,7 @@ const mockPosts: Post[] = [
     isLiked: false,
     isBookmarked: false,
     createdAt: '2025-02-05T10:30:00Z',
-    updatedAt: '2025-02-05T10:30:00Z'
+    updatedAt: '2025-02-05T10:30:00Z',
   },
   {
     id: '2',
@@ -70,7 +69,7 @@ const mockPosts: Post[] = [
       username: 'readingfan',
       nickname: '阅读达人',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
-      level: 8
+      level: 8,
     },
     type: 'book_recommendation',
     content: '分享一本最近读到的好书《三体》！刘慈欣的科幻巨作，让人思考宇宙的无限可能。',
@@ -78,7 +77,7 @@ const mockPosts: Post[] = [
       bookId: 'b1',
       title: '三体',
       cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=280&fit=crop',
-      author: '刘慈欣'
+      author: '刘慈欣',
     },
     topics: ['科幻', '推荐'],
     likeCount: 256,
@@ -87,7 +86,7 @@ const mockPosts: Post[] = [
     isLiked: true,
     isBookmarked: false,
     createdAt: '2025-02-05T08:15:00Z',
-    updatedAt: '2025-02-05T08:15:00Z'
+    updatedAt: '2025-02-05T08:15:00Z',
   },
   {
     id: '3',
@@ -97,13 +96,13 @@ const mockPosts: Post[] = [
       username: 'nightowl',
       nickname: '夜猫子',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
-      level: 3
+      level: 3,
     },
     type: 'image',
     content: '今天在书店发现这本珍藏版，装帧太美了！忍不住拍下来分享给大家~',
     images: [
       'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop'
+      'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
     ],
     topics: ['书店', '收藏'],
     likeCount: 89,
@@ -112,7 +111,7 @@ const mockPosts: Post[] = [
     isLiked: false,
     isBookmarked: false,
     createdAt: '2025-02-04T20:45:00Z',
-    updatedAt: '2025-02-04T20:45:00Z'
+    updatedAt: '2025-02-04T20:45:00Z',
   },
   {
     id: '4',
@@ -122,10 +121,11 @@ const mockPosts: Post[] = [
       username: 'philosopher',
       nickname: '思考者',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4',
-      level: 6
+      level: 6,
     },
     type: 'text',
-    content: '有没有人和我一样，喜欢在雨天窝在沙发上看书？这种感觉太惬意了~大家雨天都喜欢读什么类型的书呢？',
+    content:
+      '有没有人和我一样，喜欢在雨天窝在沙发上看书？这种感觉太惬意了~大家雨天都喜欢读什么类型的书呢？',
     topics: ['闲聊', '读书日常'],
     likeCount: 167,
     commentCount: 56,
@@ -133,14 +133,13 @@ const mockPosts: Post[] = [
     isLiked: false,
     isBookmarked: true,
     createdAt: '2025-02-04T16:20:00Z',
-    updatedAt: '2025-02-04T16:20:00Z'
-  }
+    updatedAt: '2025-02-04T16:20:00Z',
+  },
 ]
 
 const posts = ref<Post[]>([])
 const loading = ref(false)
 const hasMore = ref(false)
-const error = ref(false)
 
 onMounted(async () => {
   if (isTestMode.value) {

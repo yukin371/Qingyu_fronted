@@ -182,9 +182,9 @@ describe('BookListDetailView', () => {
     it('should render booklist stats', async () => {
       // Arrange
       const mockBooklist = createMockBooklist({
-        booksCount: 10,
-        followersCount: 1000,
-        likesCount: 50,
+        bookCount: 10,
+        viewCount: 1000,
+        likeCount: 50,
       } as any)
       mockGetBookListDetail.mockResolvedValue(mockBooklist)
 

@@ -9,4 +9,5 @@ export interface ButtonGroupProps {
   size?: ButtonGroupSize
   variant?: ButtonGroupVariant
   disabled?: boolean
+  label?: string
 }

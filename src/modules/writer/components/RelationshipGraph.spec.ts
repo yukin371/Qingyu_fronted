@@ -1,4 +1,3 @@
-
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import RelationshipGraph from './RelationshipGraph.vue'
@@ -19,50 +18,50 @@ describe('RelationshipGraph - P0 Fix: D3直接DOM操作', () => {
 
   const mockNodes = [
     { id: '1', name: '角色A', importance: 5 },
-    { id: '2', name: '角色B', importance: 3 }
+    { id: '2', name: '角色B', importance: 3 },
   ]
 
-  const mockLinks = [
-    { source: '1', target: '2', type: 'friend', strength: 80 }
-  ]
+  const mockLinks = [{ source: '1', target: '2', type: 'friend', strength: 80 }]
 
-  it('应该渲染容器元素', () => {
-    const wrapper = mount(RelationshipGraph, {
+  const mountGraph = () =>
+    mount(RelationshipGraph, {
       props: {
         nodes: mockNodes,
-        links: mockLinks
-      }
+        links: mockLinks,
+      },
+      global: {
+        stubs: {
+          ElTag: true,
+          ElTooltip: true,
+        },
+      },
     })
+
+  const flushGraphRender = async (wrapper: ReturnType<typeof mountGraph>) => {
+    await wrapper.vm.$nextTick()
+    vi.advanceTimersByTime(100)
+    await wrapper.vm.$nextTick()
+  }
+
+  it('应该渲染容器元素', () => {
+    const wrapper = mountGraph()
 
     expect(wrapper.find('.relationship-graph-container').exists()).toBe(true)
   })
 
   it('应该创建SVG元素', async () => {
-    const wrapper = mount(RelationshipGraph, {
-      props: {
-        nodes: mockNodes,
-        links: mockLinks
-      }
-    })
+    const wrapper = mountGraph()
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
-    const svg = wrapper.find('svg')
-    expect(svg.exists()).toBe(true)
-    expect(svg.classes()).toContain('graph-canvas')
+    const svg = wrapper.element.querySelector('svg.graph-canvas')
+    expect(svg).not.toBeNull()
   })
 
   it('应该使用D3直接创建DOM节点（非Vue管理）', async () => {
-    const wrapper = mount(RelationshipGraph, {
-      props: {
-        nodes: mockNodes,
-        links: mockLinks
-      }
-    })
+    const wrapper = mountGraph()
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
     const html = wrapper.html()
     // P0关键验证：不应该有Vue的v-for渲染的节点
@@ -72,58 +71,38 @@ describe('RelationshipGraph - P0 Fix: D3直接DOM操作', () => {
   })
 
   it('应该创建正确数量的节点和链接', async () => {
-    const wrapper = mount(RelationshipGraph, {
-      props: {
-        nodes: mockNodes,
-        links: mockLinks
-      }
-    })
+    const wrapper = mountGraph()
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
-    const svg = wrapper.find('svg')
-    expect(svg.exists()).toBe(true)
+    const circles = wrapper.element.querySelectorAll('.node circle')
+    const links = wrapper.element.querySelectorAll('.links line')
 
-    // 验证节点存在（由D3创建）
-    const circles = svg.findAll('circle')
-    expect(circles.length).toBeGreaterThan(0)
+    expect(circles.length).toBe(mockNodes.length)
+    expect(links.length).toBe(mockLinks.length)
   })
 
   it('节点更新时应该重新初始化图形', async () => {
-    const wrapper = mount(RelationshipGraph, {
-      props: {
-        nodes: mockNodes,
-        links: mockLinks
-      }
-    })
+    const wrapper = mountGraph()
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
     // 更新节点
     await wrapper.setProps({
       nodes: [...mockNodes, { id: '3', name: '角色C', importance: 4 }],
-      links: mockLinks
+      links: mockLinks,
     })
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
     // 验证组件仍然正常渲染
     expect(wrapper.find('svg').exists()).toBe(true)
   })
 
   it('应该在组件卸载时清理simulation', async () => {
-    const wrapper = mount(RelationshipGraph, {
-      props: {
-        nodes: mockNodes,
-        links: mockLinks
-      }
-    })
+    const wrapper = mountGraph()
 
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
     // 获取组件实例
     const vm = wrapper.vm as any
@@ -144,15 +123,20 @@ describe('RelationshipGraph - P0 Fix: D3直接DOM操作', () => {
     const wrapper = mount(RelationshipGraph, {
       props: {
         nodes: [],
-        links: []
-      }
+        links: [],
+      },
+      global: {
+        stubs: {
+          ElTag: true,
+          ElTooltip: true,
+        },
+      },
     })
 
     expect(wrapper.find('.relationship-graph-container').exists()).toBe(true)
 
     // 空数据也会创建SVG
-    await wrapper.vm.$nextTick()
-    vi.advanceTimersByTime(100)
+    await flushGraphRender(wrapper)
 
     expect(wrapper.find('svg').exists()).toBe(true)
   })

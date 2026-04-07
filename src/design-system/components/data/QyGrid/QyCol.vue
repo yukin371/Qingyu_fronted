@@ -10,7 +10,7 @@ import type { ColProps } from './types'
 
 const props = withDefaults(defineProps<ColProps>(), {
   span: 24,
-  offset: 0
+  offset: 0,
 })
 
 const colClasses = computed(() => {
@@ -27,8 +27,15 @@ const colClasses = computed(() => {
   }
 
   // Responsive breakpoints
-  const breakpoints: Array<keyof Pick<ColProps, 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>> = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl']
-  breakpoints.forEach(bp => {
+  const breakpoints: Array<keyof Pick<ColProps, 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>> = [
+    'xs',
+    'sm',
+    'md',
+    'lg',
+    'xl',
+    'xxl',
+  ]
+  breakpoints.forEach((bp) => {
     const val = props[bp]
     if (val !== undefined) {
       if (typeof val === 'number') {
@@ -51,8 +58,8 @@ const colClasses = computed(() => {
 const colStyles = computed(() => {
   const styles: Record<string, string> = {}
 
-  if (props.gutter !== undefined) {
-    const gutter = Number(props.gutter)
+  if (parentGutter.value !== undefined) {
+    const gutter = Number(parentGutter.value)
     styles.paddingLeft = `${gutter / 2}px`
     styles.paddingRight = `${gutter / 2}px`
   }
@@ -62,7 +69,6 @@ const colStyles = computed(() => {
 
 // Make gutter available from parent row
 const parentGutter = defineModel<number>('gutter', { default: 0 })
-const gutter = computed(() => parentGutter.value)
 
 defineOptions({ name: 'QyCol' })
 </script>

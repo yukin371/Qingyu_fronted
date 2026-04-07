@@ -1,5 +1,5 @@
 <template>
-  <div :class="groupClasses" role="group" :aria-label="label">
+  <div :class="groupClasses" role="group" :aria-label="props.label">
     <slot />
   </div>
 </template>
@@ -10,13 +10,13 @@ import type { ButtonGroupProps } from './types'
 
 const props = withDefaults(defineProps<ButtonGroupProps>(), {
   size: 'md',
-  disabled: false
+  disabled: false,
 })
 
 const groupClasses = computed(() => [
   'qy-button-group',
   `qy-button-group--${props.size}`,
-  { 'qy-button-group--disabled': props.disabled }
+  { 'qy-button-group--disabled': props.disabled },
 ])
 
 defineOptions({ name: 'QyButtonGroup' })

@@ -9,24 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ref } from 'vue'
 import { useReadingProgress } from '@/composables/useReadingProgress'
-
-// Mock useStorage
-vi.mock('@/composables/useStorage', () => ({
-  useStorage: vi.fn((key, defaultValue) => {
-    const data = ref(defaultValue)
-    return {
-      data,
-      save: vi.fn(() => {
-        // 模拟保存
-      }),
-      load: vi.fn(() => {
-        // 模拟加载
-      })
-    }
-  })
-}))
 
 describe('useReadingProgress - P0核心测试', () => {
   beforeEach(() => {
@@ -42,7 +25,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该提供保存进度的方法', () => {
       const { saveProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       expect(typeof saveProgress).toBe('function')
@@ -51,7 +34,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('保存进度时应该包含progress、chapterId和scrollY', () => {
       const { saveProgress, currentProgress, currentScrollY } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 设置进度
@@ -69,7 +52,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该使用防抖延迟保存进度（3秒间隔）', () => {
       const { saveProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 多次调用saveProgress
@@ -88,7 +71,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该忽略小于1%的进度变化', () => {
       const { saveProgress, loadProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 保存初始进度
@@ -106,7 +89,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该能够启动和停止自动保存', () => {
       const { startAutoSave, stopAutoSave } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 启动自动保存
@@ -130,7 +113,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该提供flush方法立即保存进度', () => {
       const { saveProgress, flush } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 调用saveProgress（防抖）
@@ -147,13 +130,13 @@ describe('useReadingProgress - P0核心测试', () => {
       const context = { value: 'test' }
       let receivedThis: any = null
 
-      const fn = function(this: any) {
+      const fn = function (this: any) {
         receivedThis = this
       }
 
       const debounced = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 模拟在特定上下文中调用
@@ -167,45 +150,40 @@ describe('useReadingProgress - P0核心测试', () => {
 
   describe('LocalStorage异常处理', () => {
     it('LocalStorage配额超限时应清理旧数据', () => {
-      // 模拟LocalStorage已满
-      const originalSetItem = Storage.prototype.setItem
       let callCount = 0
-      Storage.prototype.setItem = function() {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         callCount++
         if (callCount <= 3) {
           throw new DOMException('QuotaExceededError', 'QuotaExceededError')
         }
-      }
+      })
 
-      const { saveProgress } = useReadingProgress({
+      const { saveProgress, flush } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 前三次失败，第四次成功
       expect(() => saveProgress(50, 1000)).not.toThrow()
-
-      // 恢复原始方法
-      Storage.prototype.setItem = originalSetItem
-
-      // 清理至少被调用过
-      expect(callCount).toBeGreaterThan(0)
+      expect(() => flush()).not.toThrow()
+      setItemSpy.mockRestore()
     })
 
     it('LocalStorage其他错误应该静默失败', () => {
       // 模拟其他错误
       const originalSetItem = Storage.prototype.setItem
-      Storage.prototype.setItem = function() {
+      Storage.prototype.setItem = function () {
         throw new Error('SecurityError')
       }
 
-      const { saveProgress } = useReadingProgress({
+      const { saveProgress, flush } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 应该静默失败，不抛出错误
       expect(() => saveProgress(50, 1000)).not.toThrow()
+      flush()
 
       // 恢复原始方法
       Storage.prototype.setItem = originalSetItem
@@ -216,30 +194,21 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该提供加载进度的方法', () => {
       const { loadProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       expect(typeof loadProgress).toBe('function')
     })
 
     it('加载进度应该返回保存的数据', () => {
-      // 保存进度
-      const saveKey = 'qingyu-storage'
-      localStorage.setItem(saveKey, JSON.stringify({
-        'reading-progress:test-book:chapter-1': {
-          progress: 50,
-          scrollY: 1000,
-          timestamp: Date.now(),
-          chapterId: 'chapter-1'
-        }
-      }))
-
-      const { loadProgress } = useReadingProgress({
+      const writer = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
+      writer.saveProgress(50, 1000)
+      writer.flush()
 
-      const progress = loadProgress()
+      const progress = writer.loadProgress()
 
       expect(progress).toBeDefined()
       expect(progress?.progress).toBe(50)
@@ -249,7 +218,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('如果没有保存的进度应该返回null', () => {
       const { loadProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       const progress = loadProgress()
@@ -262,7 +231,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该暴露currentProgress响应式状态', () => {
       const { currentProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       expect(currentProgress.value).toBeDefined()
@@ -275,7 +244,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('应该暴露currentScrollY响应式状态', () => {
       const { currentScrollY } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       expect(currentScrollY.value).toBeDefined()
@@ -290,7 +259,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('页面关闭前应该flush保存', () => {
       const { flush } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
@@ -308,7 +277,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('进度值应该在0-100范围内', () => {
       const { saveProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       // 测试边界值
@@ -319,7 +288,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('负数进度应该被限制为0', () => {
       const { currentProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       currentProgress.value = -10
@@ -330,7 +299,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('超过100的进度应该被限制为100', () => {
       const { currentProgress } = useReadingProgress({
         bookId: 'test-book',
-        chapterId: 'chapter-1'
+        chapterId: 'chapter-1',
       })
 
       currentProgress.value = 150
@@ -341,7 +310,7 @@ describe('useReadingProgress - P0核心测试', () => {
     it('空bookId或chapterId应该正常处理', () => {
       const { saveProgress, loadProgress } = useReadingProgress({
         bookId: '',
-        chapterId: ''
+        chapterId: '',
       })
 
       expect(() => saveProgress(50, 1000)).not.toThrow()

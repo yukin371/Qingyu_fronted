@@ -26,10 +26,28 @@
         {{ hasChildren ? (isExpanded ? '−' : '+') : '·' }}
       </button>
       <button type="button" class="outline-tree-row__select" @click="emit('select', node)">
-        <span class="outline-tree-row__title">{{ node.title }}</span>
-        <span v-if="boundChapterLabel" class="outline-tree-row__chapter">{{
-          boundChapterLabel
-        }}</span>
+        <span class="outline-tree-row__content">
+          <span class="outline-tree-row__title-row">
+            <span class="outline-tree-row__title">{{ node.title }}</span>
+            <span v-if="boundChapterLabel" class="outline-tree-row__chapter">{{
+              boundChapterLabel
+            }}</span>
+          </span>
+          <span v-if="boundChapterId" class="outline-tree-row__meta-row">
+            <span class="outline-tree-row__graph" :class="graphToneClass">{{ graphText }}</span>
+            <span v-if="assetSummaryText" class="outline-tree-row__asset">{{
+              assetSummaryText
+            }}</span>
+          </span>
+        </span>
+      </button>
+      <button
+        v-if="boundChapterId"
+        type="button"
+        class="outline-tree-row__graph-action"
+        @click.stop="emit('openGraph', boundChapterId)"
+      >
+        {{ graphActionText }}
       </button>
     </div>
 
@@ -42,12 +60,15 @@
         :selected-node-id="selectedNodeId"
         :expanded-node-ids="expandedNodeIds"
         :chapters="chapters"
+        :chapter-graphs="chapterGraphs"
+        :asset-summary-by-chapter-id="assetSummaryByChapterId"
         :current-chapter-id="currentChapterId"
         :dragging-node-id="draggingNodeId"
         :drop-target-node-id="dropTargetNodeId"
         :drop-position="dropPosition"
         @toggle="emit('toggle', $event)"
         @select="emit('select', $event)"
+        @open-graph="emit('openGraph', $event)"
         @drag-start="emit('dragStart', $event)"
         @drag-over="emit('dragOver', $event)"
         @drag-end="emit('dragEnd')"
@@ -60,8 +81,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
+import type { ChapterGraph } from '@/modules/writer/types/character'
+import type { WriterAssetSummary } from '@/modules/writer/utils/writerAssetRefs'
 import type { OutlineNode } from '@/types/writer'
-import { getBoundChapterLabel } from './structureNodeTypes'
+import {
+  getBoundChapterId,
+  getBoundChapterLabel,
+  getStructureNodeGraphState,
+} from './structureNodeTypes'
 
 const props = withDefaults(
   defineProps<{
@@ -70,6 +97,8 @@ const props = withDefaults(
     selectedNodeId: string
     expandedNodeIds: string[]
     chapters: SidebarChapterSummary[]
+    chapterGraphs?: ChapterGraph[]
+    assetSummaryByChapterId?: Record<string, WriterAssetSummary>
     currentChapterId?: string
     draggingNodeId?: string
     dropTargetNodeId?: string
@@ -88,6 +117,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'toggle', nodeId: string): void
   (e: 'select', node: OutlineNode): void
+  (e: 'openGraph', chapterId: string): void
   (e: 'dragStart', node: OutlineNode): void
   (e: 'dragOver', payload: { node: OutlineNode; event: DragEvent }): void
   (e: 'dragEnd'): void
@@ -99,7 +129,20 @@ const hasChildren = computed(
   () => Array.isArray(props.node.children) && props.node.children.length > 0,
 )
 const isExpanded = computed(() => props.expandedNodeIds.includes(props.node.id))
+const boundChapterId = computed(() => getBoundChapterId(props.node))
 const boundChapterLabel = computed(() => getBoundChapterLabel(props.node, props.chapters))
+const graphState = computed(() => getStructureNodeGraphState(props.node, props.chapterGraphs || []))
+const graphText = computed(() => graphState.value.label)
+const graphToneClass = computed(() => `outline-tree-row__graph--${graphState.value.tone}`)
+const graphActionText = computed(() =>
+  graphState.value.tone === 'missing' ? '创建图谱' : '查看图谱',
+)
+const assetSummaryText = computed(() => {
+  const chapterId = boundChapterId.value
+  const summary = chapterId ? props.assetSummaryByChapterId?.[chapterId] : undefined
+  if (!summary || summary.total === 0) return ''
+  return `资产 ${summary.characters}角 ${summary.locations}地${summary.items > 0 ? ` ${summary.items}物` : ''}`
+})
 
 function handleDragStart(event: DragEvent) {
   if (event.dataTransfer) {
@@ -229,10 +272,23 @@ function handleContextMenu(event: MouseEvent) {
   background: transparent;
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   text-align: left;
   cursor: pointer;
+}
+
+.outline-tree-row__content {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.outline-tree-row__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .outline-tree-row__title {
@@ -255,6 +311,81 @@ function handleContextMenu(event: MouseEvent) {
   padding: 4px 8px;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.outline-tree-row__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.outline-tree-row__graph,
+.outline-tree-row__asset {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.outline-tree-row__graph {
+  border: 1px solid rgba(117, 93, 67, 0.14);
+  background: rgba(255, 251, 246, 0.92);
+  color: #6e6155;
+}
+
+.outline-tree-row__graph--ready {
+  border-color: rgba(74, 127, 88, 0.18);
+  background: rgba(232, 245, 236, 0.94);
+  color: #2e6a3d;
+}
+
+.outline-tree-row__graph--inherit {
+  border-color: rgba(54, 80, 107, 0.18);
+  background: rgba(235, 244, 249, 0.94);
+  color: #2c4d66;
+}
+
+.outline-tree-row__graph--missing {
+  border-color: rgba(183, 109, 56, 0.18);
+  background: rgba(255, 243, 230, 0.94);
+  color: #9a551f;
+}
+
+.outline-tree-row__graph--unbound {
+  border-color: rgba(117, 93, 67, 0.14);
+  background: rgba(248, 241, 233, 0.92);
+  color: #7b6a5b;
+}
+
+.outline-tree-row__asset {
+  border: 1px solid rgba(84, 116, 79, 0.16);
+  background: rgba(239, 247, 236, 0.94);
+  color: #41613a;
+}
+
+.outline-tree-row__graph-action {
+  align-self: center;
+  border: 1px solid rgba(74, 127, 88, 0.16);
+  border-radius: 999px;
+  background: rgba(232, 245, 236, 0.96);
+  color: #2e6a3d;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.outline-tree-row__graph-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(74, 127, 88, 0.12);
 }
 
 .outline-tree-row__children {

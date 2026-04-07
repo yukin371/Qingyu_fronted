@@ -7,7 +7,7 @@
 
 // Mock orval mutator
 vi.mock('@/core/config/orval-mutator', () => ({
-  orvalMutator: vi.fn((_config) => {
+  orvalMutator: vi.fn((config: any) => {
     // 模拟返回数据
     return Promise.resolve({
       items: [],

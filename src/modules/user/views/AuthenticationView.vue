@@ -16,8 +16,20 @@
         </div>
 
         <div class="mode-switch">
-          <button class="mode-btn" :class="{ active: activeMode === 'login' }" @click="setMode('login')">登录</button>
-          <button class="mode-btn" :class="{ active: activeMode === 'register' }" @click="setMode('register')">注册</button>
+          <button
+            class="mode-btn"
+            :class="{ active: activeMode === 'login' }"
+            @click="setMode('login')"
+          >
+            登录
+          </button>
+          <button
+            class="mode-btn"
+            :class="{ active: activeMode === 'register' }"
+            @click="setMode('register')"
+          >
+            注册
+          </button>
           <button v-if="activeMode === 'reset'" class="mode-btn active">找回</button>
         </div>
 
@@ -25,7 +37,7 @@
           v-if="activeMode === 'login'"
           ref="loginFormRef"
           v-model="loginForm"
-          :rules="(loginRules as any)"
+          :rules="loginRules as any"
           class="auth-form"
           @submit.prevent="handleLogin"
         >
@@ -50,7 +62,10 @@
               :show-password="true"
               @keyup.enter="handleLogin"
               class="premium-input"
-              :input-attrs="{ 'data-testid': 'login-password-input', autocomplete: 'current-password' }"
+              :input-attrs="{
+                'data-testid': 'login-password-input',
+                autocomplete: 'current-password',
+              }"
               :prefix-icon="lockIcon"
             />
           </QyFormItem>
@@ -63,7 +78,14 @@
             <span class="link-text" @click="setMode('reset')">忘记密码？</span>
           </div>
 
-          <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleLogin" data-testid="login-submit">
+          <QyButton
+            variant="primary"
+            size="lg"
+            class="submit-btn"
+            :loading="loading"
+            @click="handleLogin"
+            data-testid="login-submit"
+          >
             立即登录
           </QyButton>
         </QyForm>
@@ -72,7 +94,7 @@
           v-if="activeMode === 'register'"
           ref="registerFormRef"
           v-model="registerForm"
-          :rules="(registerRules as any)"
+          :rules="registerRules as any"
           class="auth-form"
           @submit.prevent="handleRegister"
         >
@@ -108,7 +130,13 @@
                 :prefix-icon="lockIcon"
                 :input-attrs="{ inputmode: 'numeric', maxlength: '6' }"
               />
-              <QyButton size="lg" class="code-btn" :disabled="emailCountdown > 0" :loading="sendingEmail" @click="sendEmailCode">
+              <QyButton
+                size="lg"
+                class="code-btn"
+                :disabled="emailCountdown > 0"
+                :loading="sendingEmail"
+                @click="sendEmailCode"
+              >
                 {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
               </QyButton>
             </div>
@@ -127,7 +155,11 @@
             />
             <div v-if="registerForm.password" class="password-strength">
               <div class="strength-bar">
-                <div class="strength-fill" :class="`level-${passwordStrength}`" :style="{ width: passwordStrengthPercent }"></div>
+                <div
+                  class="strength-fill"
+                  :class="`level-${passwordStrength}`"
+                  :style="{ width: passwordStrengthPercent }"
+                ></div>
               </div>
               <span class="strength-text">{{ passwordStrengthText }}</span>
             </div>
@@ -149,11 +181,21 @@
           <QyFormItem prop="agreement" data-testid="register-agreement">
             <label class="remember-row">
               <input v-model="registerForm.agreement" type="checkbox" class="remember-checkbox" />
-              <span>我已阅读并同意 <span class="highlight">用户协议</span> 与 <span class="highlight">隐私政策</span></span>
+              <span
+                >我已阅读并同意 <span class="highlight">用户协议</span> 与
+                <span class="highlight">隐私政策</span></span
+              >
             </label>
           </QyFormItem>
 
-          <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleRegister" data-testid="register-submit">
+          <QyButton
+            variant="primary"
+            size="lg"
+            class="submit-btn"
+            :loading="loading"
+            @click="handleRegister"
+            data-testid="register-submit"
+          >
             注册账号
           </QyButton>
         </QyForm>
@@ -162,7 +204,7 @@
           v-if="activeMode === 'reset'"
           ref="resetFormRef"
           v-model="resetForm"
-          :rules="(resetRules as any)"
+          :rules="resetRules as any"
           class="auth-form"
           @submit.prevent="handleReset"
         >
@@ -174,34 +216,82 @@
 
           <template v-if="resetStep === 0">
             <QyFormItem prop="email">
-              <QyInput v-model="resetForm.email" placeholder="注册邮箱" size="lg" class="premium-input" :prefix-icon="messageIcon" />
+              <QyInput
+                v-model="resetForm.email"
+                placeholder="注册邮箱"
+                size="lg"
+                class="premium-input"
+                :prefix-icon="messageIcon"
+              />
             </QyFormItem>
             <QyFormItem prop="code">
               <div class="code-input-group">
-                <QyInput v-model="resetForm.code" placeholder="验证码" size="lg" class="premium-input" :prefix-icon="lockIcon" />
-                <QyButton size="lg" class="code-btn" :disabled="resetCountdown > 0" :loading="sendingReset" @click="sendResetCode">
+                <QyInput
+                  v-model="resetForm.code"
+                  placeholder="验证码"
+                  size="lg"
+                  class="premium-input"
+                  :prefix-icon="lockIcon"
+                />
+                <QyButton
+                  size="lg"
+                  class="code-btn"
+                  :disabled="resetCountdown > 0"
+                  :loading="sendingReset"
+                  @click="sendResetCode"
+                >
                   {{ resetCountdown > 0 ? `${resetCountdown}s` : '发送' }}
                 </QyButton>
               </div>
             </QyFormItem>
-            <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="verifyResetCode">下一步</QyButton>
+            <QyButton
+              variant="primary"
+              size="lg"
+              class="submit-btn"
+              :loading="loading"
+              @click="verifyResetCode"
+              >下一步</QyButton
+            >
           </template>
 
           <template v-if="resetStep === 1">
             <QyFormItem prop="newPassword">
-              <QyInput v-model="resetForm.newPassword" type="password" placeholder="新密码" size="lg" :show-password="true" class="premium-input" />
+              <QyInput
+                v-model="resetForm.newPassword"
+                type="password"
+                placeholder="新密码"
+                size="lg"
+                :show-password="true"
+                class="premium-input"
+              />
             </QyFormItem>
             <QyFormItem prop="confirmNewPassword">
-              <QyInput v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" size="lg" :show-password="true" class="premium-input" />
+              <QyInput
+                v-model="resetForm.confirmNewPassword"
+                type="password"
+                placeholder="确认新密码"
+                size="lg"
+                :show-password="true"
+                class="premium-input"
+              />
             </QyFormItem>
-            <QyButton variant="primary" size="lg" class="submit-btn" :loading="loading" @click="handleReset">提交修改</QyButton>
+            <QyButton
+              variant="primary"
+              size="lg"
+              class="submit-btn"
+              :loading="loading"
+              @click="handleReset"
+              >提交修改</QyButton
+            >
           </template>
 
           <template v-if="resetStep === 2">
             <div class="success-result">
               <QyIcon name="CircleCheckFilled" :size="52" class="success-icon" />
               <h3>密码重置成功</h3>
-              <QyButton variant="primary" class="submit-btn" @click="setMode('login')">立即登录</QyButton>
+              <QyButton variant="primary" class="submit-btn" @click="setMode('login')"
+                >立即登录</QyButton
+              >
             </div>
           </template>
         </QyForm>
@@ -227,7 +317,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from '@/design-system/services'
 import { QyIcon, QyForm, QyFormItem, QyButton } from '@/design-system/components'
-import { Divider, Input } from '@/design-system/base'
+import { Divider } from '@/design-system/base'
 import { getIconSVG } from '@/design-system/utils/icon-mapper'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
@@ -235,7 +325,7 @@ import {
   sendEmailVerifyCode,
   sendPasswordResetCode,
   verifyResetCode as verifyResetCodeAPI,
-  resetPassword as resetPasswordAPI
+  resetPassword as resetPasswordAPI,
 } from '@/modules/user/api'
 import { ElMessage } from 'element-plus'
 
@@ -273,12 +363,26 @@ const registerFormRef = ref<FormInstance>()
 const resetFormRef = ref<FormInstance>()
 // 表单数据
 const loginForm = ref({ username: '', password: '' })
-const registerForm = ref({ username: '', email: '', emailCode: '', phone: '', password: '', confirmPassword: '', agreement: false })
+const registerForm = ref({
+  username: '',
+  email: '',
+  emailCode: '',
+  phone: '',
+  password: '',
+  confirmPassword: '',
+  agreement: false,
+})
 const resetForm = ref({ email: '', code: '', newPassword: '', confirmNewPassword: '' })
 let emailTimer: ReturnType<typeof setInterval> | null = null
 let resetTimer: ReturnType<typeof setInterval> | null = null
 
-const pageTitle = computed(() => activeMode.value === 'login' ? '欢迎回来' : (activeMode.value === 'register' ? '创建账号' : '找回密码'))
+const pageTitle = computed(() =>
+  activeMode.value === 'login'
+    ? '欢迎回来'
+    : activeMode.value === 'register'
+      ? '创建账号'
+      : '找回密码',
+)
 
 // 密码强度
 const passwordStrength = computed(() => {
@@ -296,30 +400,51 @@ const passwordStrengthText = computed(() => ['弱', '弱', '中', '强'][passwor
 // 验证规则 - 使用 Element Plus 的 FormRules 类型
 const loginRules: FormRules = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 // ... 其他规则省略，请保持原有代码 ...
 const registerRules: FormRules = {
   // ... 请保留您的验证规则 ...
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { type: 'email', message: '格式不正确', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '格式不正确', trigger: 'blur' },
+  ],
   // 注意：后端注册API不需要验证码字段，所以emailCode改为可选
-  emailCode: [],  // 移除required，改为可选
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 6, message: '至少6位', trigger: 'blur' }],
-  confirmPassword: [{
-    validator: (_rule, value, callback) => value !== registerForm.value.password ? callback(new Error('密码不一致')) : callback(),
-    trigger: 'blur'
-  }],
-  agreement: [{ validator: (_rule, value, callback) => !value ? callback(new Error('请同意协议')) : callback(), trigger: 'change' }]
+  emailCode: [], // 移除required，改为可选
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '至少6位', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    {
+      validator: (_rule, value, callback) =>
+        value !== registerForm.value.password ? callback(new Error('密码不一致')) : callback(),
+      trigger: 'blur',
+    },
+  ],
+  agreement: [
+    {
+      validator: (_rule, value, callback) =>
+        !value ? callback(new Error('请同意协议')) : callback(),
+      trigger: 'change',
+    },
+  ],
 }
 const resetRules: FormRules = {
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { type: 'email', message: '格式不正确', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '格式不正确', trigger: 'blur' },
+  ],
   code: [{ required: true, message: '验证码必填', trigger: 'blur' }],
   newPassword: [{ required: true, message: '新密码必填', trigger: 'blur' }],
-  confirmNewPassword: [{
-    validator: (_rule, value, callback) => value !== resetForm.value.newPassword ? callback(new Error('密码不一致')) : callback(),
-    trigger: 'blur'
-  }]
+  confirmNewPassword: [
+    {
+      validator: (_rule, value, callback) =>
+        value !== resetForm.value.newPassword ? callback(new Error('密码不一致')) : callback(),
+      trigger: 'blur',
+    },
+  ],
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -394,8 +519,11 @@ const sendEmailCode = async () => {
         emailTimer = null
       }
     }, 1000)
-  } catch (e: any) { message.error(e.message) }
-  finally { sendingEmail.value = false }
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    sendingEmail.value = false
+  }
 }
 
 const handleRegister = async () => {
@@ -408,13 +536,16 @@ const handleRegister = async () => {
         await authStore.register({
           username: registerForm.value.username.trim(),
           email: registerForm.value.email.trim(),
-          password: registerForm.value.password
+          password: registerForm.value.password,
         })
         message.success('注册成功')
         loginForm.value.username = registerForm.value.username.trim()
         setMode('login')
-      } catch (e: any) { message.error(e.message) }
-      finally { loading.value = false }
+      } catch (e: any) {
+        message.error(e.message)
+      } finally {
+        loading.value = false
+      }
     }
   })
 }
@@ -475,7 +606,7 @@ const handleReset = async () => {
         await resetPasswordAPI({
           account: resetForm.value.email,
           code: resetForm.value.code,
-          newPassword: resetForm.value.newPassword
+          newPassword: resetForm.value.newPassword,
         })
         resetStep.value = 2
         ElMessage.success('密码重置成功')
@@ -502,7 +633,7 @@ watch(
   () => [route.path, route.query.mode] as const,
   ([path, mode]) => {
     setMode(resolveModeFromRoute(path, mode as string), false)
-  }
+  },
 )
 
 onBeforeUnmount(() => {
@@ -676,7 +807,9 @@ onBeforeUnmount(() => {
   background: #ffffff;
   border: 1px solid #dbe6f3;
   box-shadow: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .premium-input :deep(input:focus) {

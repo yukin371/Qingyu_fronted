@@ -4,7 +4,7 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { computed, reactive, watch, ref } from 'vue'
-import { QyDialog, QyButton, QyInput, QySelect } from '@/design-system/components'
+import { QyDialog, QyButton, QySelect } from '@/design-system/components'
 import { Textarea, Input } from '@/design-system/base'
 
 export interface StructureNodeFormValue {
@@ -29,9 +29,12 @@ const emit = defineEmits<{
 // 本地 visible 状态
 const localVisible = ref(props.visible)
 
-watch(() => props.visible, (v) => {
-  localVisible.value = v
-})
+watch(
+  () => props.visible,
+  (v) => {
+    localVisible.value = v
+  },
+)
 
 watch(localVisible, (v) => {
   emit('update:visible', v)
@@ -97,30 +100,19 @@ const statusOptions = [
       <!-- 节点标题 -->
       <div class="form-item">
         <label class="form-label">节点标题</label>
-        <Input
-          v-model="localForm.title"
-          placeholder="输入结构节点标题"
-        />
+        <Input v-model="localForm.title" placeholder="输入结构节点标题" />
       </div>
 
       <!-- 层级（新增时显示） -->
       <div v-if="mode !== 'edit'" class="form-item">
         <label class="form-label">层级</label>
-        <QySelect
-          v-model="localForm.level"
-          :options="levelOptions"
-          placeholder="选择层级"
-        />
+        <QySelect v-model="localForm.level" :options="levelOptions" placeholder="选择层级" />
       </div>
 
       <!-- 状态 -->
       <div class="form-item">
         <label class="form-label">状态</label>
-        <QySelect
-          v-model="localForm.status"
-          :options="statusOptions"
-          placeholder="选择状态"
-        />
+        <QySelect v-model="localForm.status" :options="statusOptions" placeholder="选择状态" />
       </div>
 
       <!-- 结构说明 -->
@@ -135,16 +127,8 @@ const statusOptions = [
     </div>
 
     <template #footer>
-      <QyButton variant="secondary" @click="localVisible = false">
-        取消
-      </QyButton>
-      <QyButton
-        variant="primary"
-        :loading="submitting"
-        @click="emitSubmit"
-      >
-        保存
-      </QyButton>
+      <QyButton variant="secondary" @click="localVisible = false"> 取消 </QyButton>
+      <QyButton variant="primary" :loading="submitting" @click="emitSubmit"> 保存 </QyButton>
     </template>
   </QyDialog>
 </template>

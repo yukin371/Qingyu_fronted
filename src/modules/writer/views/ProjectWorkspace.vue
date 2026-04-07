@@ -281,7 +281,10 @@ const displayChapterId = computed({
     if (currentChapterId.value !== value) {
       resetWorkflowTransientState()
       writerStore.setSelectedText('')
+      void handleChapterIdUpdate(value)
+      return
     }
+
     currentChapterId.value = value
   },
 })

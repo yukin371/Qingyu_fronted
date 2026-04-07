@@ -3,7 +3,7 @@
     :class="[
       'qy-descriptions-item',
       `qy-descriptions-item--align-${align}`,
-      `qy-descriptions-item--span-${span}`
+      `qy-descriptions-item--span-${span}`,
     ]"
   >
     <div class="qy-descriptions-item__label">
@@ -16,12 +16,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { DescriptionsItemProps } from './types'
 
 const props = withDefaults(defineProps<DescriptionsItemProps>(), {
   span: 1,
-  align: 'left'
+  align: 'left',
 })
 
 defineOptions({ name: 'QyDescriptionsItem' })

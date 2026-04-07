@@ -18,14 +18,14 @@ describe('BaseDivider', () => {
   describe('基础渲染', () => {
     it('正确渲染水平分割线', () => {
       const { container } = render(BaseDivider)
-      const divider = container.querySelector('div')
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('w-full', 'h-px')
     })
 
     it('默认为水平方向', () => {
       const { container } = render(BaseDivider)
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('border-t')
     })
@@ -34,18 +34,18 @@ describe('BaseDivider', () => {
   describe('方向测试', () => {
     it('支持垂直方向', () => {
       const { container } = render(BaseDivider, {
-        props: { direction: 'vertical' }
+        props: { direction: 'vertical' },
       })
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-l')
 
       expect(divider).toHaveClass('h-full', 'w-px', 'border-l')
     })
 
     it('支持水平方向', () => {
       const { container } = render(BaseDivider, {
-        props: { direction: 'horizontal' }
+        props: { direction: 'horizontal' },
       })
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('w-full', 'h-px', 'border-t')
     })
@@ -54,44 +54,44 @@ describe('BaseDivider', () => {
   describe('文字分割', () => {
     it('支持带文字的分割线', () => {
       const { getByText } = render(BaseDivider, {
-        props: { text: 'Divider Text' }
+        props: { label: 'Divider Text' },
       })
 
       expect(getByText('Divider Text')).toBeInTheDocument()
     })
 
-    it('文字居中显示', () => {
+    it('带标签时会渲染两侧分割线', () => {
       const { container } = render(BaseDivider, {
-        props: { text: 'Text' }
+        props: { label: 'Text' },
       })
 
-      const text = container.querySelector('.text-center')
-      expect(text).toBeTruthy()
+      const lines = container.querySelectorAll('.flex-1')
+      expect(lines).toHaveLength(2)
     })
 
-    it('支持文字位置对齐', () => {
+    it('标签使用默认文本样式', () => {
       const { container } = render(BaseDivider, {
-        props: { text: 'Left', textAlign: 'left' }
+        props: { label: 'Left' },
       })
 
-      const text = container.querySelector('.text-left')
-      expect(text).toBeTruthy()
+      const text = container.querySelector('.text-slate-500')
+      expect(text).toHaveTextContent('Left')
     })
   })
 
   describe('样式变体', () => {
     it('支持虚线样式', () => {
       const { container } = render(BaseDivider, {
-        props: { dashed: true }
+        props: { variant: 'dashed' },
       })
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('border-dashed')
     })
 
     it('默认为实线样式', () => {
       const { container } = render(BaseDivider)
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('border-solid')
     })
@@ -100,16 +100,14 @@ describe('BaseDivider', () => {
   describe('颜色主题', () => {
     it('支持默认颜色', () => {
       const { container } = render(BaseDivider)
-      const divider = container.firstChild
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('border-slate-200')
     })
 
     it('支持深色主题', () => {
-      const { container } = render(BaseDivider, {
-        props: { theme: 'dark' }
-      })
-      const divider = container.firstChild
+      const { container } = render(BaseDivider)
+      const divider = container.querySelector('.border-t')
 
       expect(divider).toHaveClass('dark:border-slate-700')
     })
@@ -118,18 +116,18 @@ describe('BaseDivider', () => {
   describe('自定义样式', () => {
     it('支持自定义 class', () => {
       const { container } = render(BaseDivider, {
-        props: { class: 'custom-class' }
+        props: { class: 'custom-class' },
       })
 
       const divider = container.querySelector('.custom-class')
       expect(divider).toBeTruthy()
     })
 
-    it('支持自定义边距', () => {
+    it('支持自定义容器类名', () => {
       const { container } = render(BaseDivider, {
-        props: { margin: 'lg' }
+        props: { class: 'my-4' },
       })
-      const divider = container.firstChild
+      const divider = container.firstChild as Element
 
       expect(divider).toHaveClass('my-4')
     })

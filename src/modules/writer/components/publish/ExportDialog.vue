@@ -4,7 +4,7 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { reactive, watch, ref } from 'vue'
-import { QyDialog, QyButton, QySelect, QyCheckbox } from '@/design-system/components'
+import { QyDialog, QyButton, QySelect } from '@/design-system/components'
 import { exportFormatOptions, exportScopeOptions } from '@/modules/writer/api'
 
 export interface ExportForm {
@@ -27,9 +27,12 @@ const emit = defineEmits<{
 // 本地 visible 状态
 const localVisible = ref(props.visible)
 
-watch(() => props.visible, (v) => {
-  localVisible.value = v
-})
+watch(
+  () => props.visible,
+  (v) => {
+    localVisible.value = v
+  },
+)
 
 watch(localVisible, (v) => {
   emit('update:visible', v)
@@ -88,7 +91,7 @@ const handleExport = () => {
         <label class="form-label">导出格式</label>
         <QySelect
           v-model="localForm.format"
-          :options="exportFormatOptions.map(o => ({ label: o.label, value: o.value }))"
+          :options="exportFormatOptions.map((o) => ({ label: o.label, value: o.value }))"
           placeholder="选择导出格式"
         />
       </div>
@@ -98,7 +101,7 @@ const handleExport = () => {
         <label class="form-label">导出范围</label>
         <QySelect
           v-model="localForm.scope"
-          :options="exportScopeOptions.map(o => ({ label: o.label, value: o.value }))"
+          :options="exportScopeOptions.map((o) => ({ label: o.label, value: o.value }))"
           placeholder="选择导出范围"
         />
       </div>
@@ -107,11 +110,7 @@ const handleExport = () => {
       <div class="form-item">
         <label class="form-label">包含选项</label>
         <div class="checkbox-group">
-          <label
-            v-for="option in includeOptions"
-            :key="option.value"
-            class="checkbox-item"
-          >
+          <label v-for="option in includeOptions" :key="option.value" class="checkbox-item">
             <input
               type="checkbox"
               :checked="isOptionChecked(option.value)"
@@ -125,12 +124,8 @@ const handleExport = () => {
     </div>
 
     <template #footer>
-      <QyButton variant="secondary" @click="localVisible = false">
-        取消
-      </QyButton>
-      <QyButton variant="primary" @click="handleExport">
-        开始导出
-      </QyButton>
+      <QyButton variant="secondary" @click="localVisible = false"> 取消 </QyButton>
+      <QyButton variant="primary" @click="handleExport"> 开始导出 </QyButton>
     </template>
   </QyDialog>
 </template>

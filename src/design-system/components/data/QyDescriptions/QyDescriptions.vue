@@ -19,7 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { DescriptionsProps } from './types'
 
 const props = withDefaults(defineProps<DescriptionsProps>(), {
@@ -27,7 +26,7 @@ const props = withDefaults(defineProps<DescriptionsProps>(), {
   border: true,
   column: 3,
   layout: 'horizontal',
-  labelPlacement: 'left'
+  labelPlacement: 'left',
 })
 
 defineOptions({ name: 'QyDescriptions' })

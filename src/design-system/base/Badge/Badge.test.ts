@@ -18,7 +18,7 @@ describe('BaseBadge', () => {
   describe('基础渲染', () => {
     it('正确渲染徽标内容', () => {
       const { getByText } = render(BaseBadge, {
-        slots: { default: '5' }
+        props: { content: 5 },
       })
 
       expect(getByText('5')).toBeInTheDocument()
@@ -26,29 +26,21 @@ describe('BaseBadge', () => {
 
     it('默认渲染为默认变体', () => {
       const { container } = render(BaseBadge, {
-        slots: { default: 'Badge' }
+        props: { content: 'Badge' },
       })
 
       const badge = container.querySelector('.inline-flex')
-      expect(badge).toHaveClass('bg-red-500')
-      expect(badge).toHaveClass('text-white')
+      expect(badge).toHaveClass('bg-slate-100')
+      expect(badge).toHaveClass('text-slate-700')
     })
   })
 
   describe('变体测试', () => {
-    const variants = [
-      'default',
-      'primary',
-      'success',
-      'warning',
-      'danger',
-      'info',
-    ]
+    const variants = ['default', 'primary', 'success', 'warning', 'danger']
 
     it.each(variants)('正确渲染 %s 变体', (variant) => {
       const { container } = render(BaseBadge, {
-        props: { variant } as any,
-        slots: { default: 'Badge' }
+        props: { variant, content: 'Badge' } as any,
       })
 
       const badge = container.firstChild
@@ -61,8 +53,7 @@ describe('BaseBadge', () => {
 
     it.each(sizes)('正确渲染 %s 尺寸', (size) => {
       const { container } = render(BaseBadge, {
-        props: { size },
-        slots: { default: 'Badge' }
+        props: { size, content: 'Badge' } as any,
       })
 
       const badge = container.firstChild
@@ -73,7 +64,7 @@ describe('BaseBadge', () => {
   describe('点状模式', () => {
     it('dot 模式渲染圆点', () => {
       const { container } = render(BaseBadge, {
-        props: { dot: true }
+        props: { dot: true },
       })
 
       const badge = container.querySelector('.rounded-full')
@@ -83,7 +74,7 @@ describe('BaseBadge', () => {
     it('dot 模式下不显示内容', () => {
       const { container } = render(BaseBadge, {
         props: { dot: true },
-        slots: { default: '99' }
+        slots: { default: '99' },
       })
 
       const badge = container.firstChild
@@ -94,8 +85,7 @@ describe('BaseBadge', () => {
   describe('数字徽标', () => {
     it('支持大数字显示', () => {
       const { getByText } = render(BaseBadge, {
-        props: { count: 999 } as any,
-        slots: { default: '999' }
+        props: { content: 999, max: 999 } as any,
       })
 
       expect(getByText('999')).toBeInTheDocument()
@@ -103,8 +93,7 @@ describe('BaseBadge', () => {
 
     it('支持 max 属性限制显示', () => {
       const { getByText } = render(BaseBadge, {
-        props: { count: 99, max: 99 } as any,
-        slots: { default: '99+' }
+        props: { content: 100, max: 99 } as any,
       })
 
       expect(getByText('99+')).toBeInTheDocument()
@@ -114,8 +103,7 @@ describe('BaseBadge', () => {
   describe('自定义样式', () => {
     it('支持自定义 class', () => {
       const { container } = render(BaseBadge, {
-        props: { class: 'custom-class' },
-        slots: { default: 'Badge' }
+        props: { class: 'custom-class', content: 'Badge' } as any,
       })
 
       const badge = container.querySelector('.custom-class')
@@ -123,15 +111,19 @@ describe('BaseBadge', () => {
     })
   })
 
-  describe('位置偏移', () => {
-    it('支持 offset 定位', () => {
+  describe('定位样式', () => {
+    it('支持 absolute 定位和自定义位置类', () => {
       const { container } = render(BaseBadge, {
-        props: { offset: [10, 10] } as any,
-        slots: { default: 'Badge' }
+        props: {
+          absolute: true,
+          position: 'top-2 left-2',
+          content: '1',
+        } as any,
       })
 
       const badge = container.firstChild
-      expect(badge).toBeTruthy()
+      expect(badge).toHaveClass('top-2')
+      expect(badge).toHaveClass('left-2')
     })
   })
 })

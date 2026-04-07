@@ -27,23 +27,24 @@ describe('BaseSkeleton', () => {
       const { container } = render(BaseSkeleton)
       const skeleton = container.firstChild
 
-      expect(skeleton).toHaveClass('h-4', 'w-full')
+      expect(skeleton).toHaveClass('h-5', 'w-24')
+      expect(skeleton).toHaveClass('rounded-sm')
     })
   })
 
   describe('变体测试', () => {
     it('支持 text 变体', () => {
       const { container } = render(BaseSkeleton, {
-        props: { variant: 'text' }
+        props: { type: 'text' },
       })
       const skeleton = container.firstChild
 
-      expect(skeleton).toHaveClass('h-4', 'rounded')
+      expect(skeleton).toHaveClass('rounded-sm')
     })
 
-    it('支持 circular 变体', () => {
+    it('支持 circle 变体', () => {
       const { container } = render(BaseSkeleton, {
-        props: { variant: 'circular' }
+        props: { type: 'circle' },
       })
       const skeleton = container.firstChild
 
@@ -52,7 +53,7 @@ describe('BaseSkeleton', () => {
 
     it('支持 rect 变体', () => {
       const { container } = render(BaseSkeleton, {
-        props: { variant: 'rect' }
+        props: { type: 'rect' },
       })
       const skeleton = container.firstChild
 
@@ -63,7 +64,7 @@ describe('BaseSkeleton', () => {
   describe('尺寸测试', () => {
     it('支持自定义宽度', () => {
       const { container } = render(BaseSkeleton, {
-        props: { width: '100px' }
+        props: { width: '100px' },
       })
       const skeleton = container.firstChild
 
@@ -72,7 +73,7 @@ describe('BaseSkeleton', () => {
 
     it('支持自定义高度', () => {
       const { container } = render(BaseSkeleton, {
-        props: { height: '50px' }
+        props: { height: '50px' },
       })
       const skeleton = container.firstChild
 
@@ -81,7 +82,7 @@ describe('BaseSkeleton', () => {
 
     it('支持同时设置宽高', () => {
       const { container } = render(BaseSkeleton, {
-        props: { width: '200px', height: '100px' }
+        props: { width: '200px', height: '100px' },
       })
       const skeleton = container.firstChild
 
@@ -99,7 +100,7 @@ describe('BaseSkeleton', () => {
 
     it('支持禁用动画', () => {
       const { container } = render(BaseSkeleton, {
-        props: { animated: false }
+        props: { animated: false },
       })
       const skeleton = container.querySelector('.animate-pulse')
 
@@ -116,9 +117,7 @@ describe('BaseSkeleton', () => {
     })
 
     it('支持深色模式', () => {
-      const { container } = render(BaseSkeleton, {
-        props: { darkMode: true }
-      })
+      const { container } = render(BaseSkeleton)
       const skeleton = container.firstChild
 
       expect(skeleton).toHaveClass('dark:bg-slate-700')
@@ -128,7 +127,7 @@ describe('BaseSkeleton', () => {
   describe('自定义样式', () => {
     it('支持自定义 class', () => {
       const { container } = render(BaseSkeleton, {
-        props: { class: 'custom-class' }
+        props: { class: 'custom-class' },
       })
 
       const skeleton = container.querySelector('.custom-class')
@@ -137,7 +136,7 @@ describe('BaseSkeleton', () => {
 
     it('自定义 class 与默认样式共存', () => {
       const { container } = render(BaseSkeleton, {
-        props: { class: 'custom-class' }
+        props: { class: 'custom-class' },
       })
       const skeleton = container.firstChild
 
@@ -151,12 +150,12 @@ describe('BaseSkeleton', () => {
       const { container } = render({
         template: `
           <div>
-            <BaseSkeleton variant="circular" width="40px" height="40px" />
-            <BaseSkeleton variant="text" width="60%" />
-            <BaseSkeleton variant="text" width="40%" />
+            <BaseSkeleton type="circle" width="40px" height="40px" />
+            <BaseSkeleton type="text" width="60%" />
+            <BaseSkeleton type="text" width="40%" />
           </div>
         `,
-        components: { BaseSkeleton }
+        components: { BaseSkeleton },
       })
 
       const skeletons = container.querySelectorAll('.animate-pulse')
@@ -165,26 +164,12 @@ describe('BaseSkeleton', () => {
   })
 
   describe('可访问性', () => {
-    it('有正确的 role 属性', () => {
+    it('默认作为装饰性占位元素渲染', () => {
       const { container } = render(BaseSkeleton)
-      const skeleton = container.querySelector('[role="status"]')
+      const skeleton = container.firstChild as Element
 
-      expect(skeleton).toBeTruthy()
-    })
-
-    it('有正确的 aria-live 属性', () => {
-      const { container } = render(BaseSkeleton)
-      const skeleton = container.querySelector('[aria-live="polite"]')
-
-      expect(skeleton).toBeTruthy()
-    })
-
-    it('有屏幕阅读器专用文本', () => {
-      const { container } = render(BaseSkeleton)
-      const srText = container.querySelector('.sr-only')
-
-      expect(srText).toBeTruthy()
-      expect(srText).toHaveTextContent('Loading...')
+      expect(skeleton).toHaveAttribute('aria-hidden', 'true')
+      expect(skeleton).not.toHaveAttribute('role')
     })
   })
 

@@ -51,10 +51,7 @@
 
           <!-- 用户菜单 -->
           <div class="flex items-center space-x-4">
-            <QyAvatar
-              size="md"
-              :src="userStore.avatar"
-            />
+            <QyAvatar size="md" :src="userStore.avatar.value" />
           </div>
         </div>
       </div>

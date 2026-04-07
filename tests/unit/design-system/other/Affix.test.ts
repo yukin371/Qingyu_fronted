@@ -458,6 +458,7 @@ describe('Affix 组件', () => {
         },
       })
 
+      await nextTick()
       wrapper.vm.state.isFixed = true
       await nextTick()
 
@@ -678,7 +679,7 @@ describe('Affix 组件', () => {
       expect(addSpy).toHaveBeenCalled()
       // 获取调用参数
       const calls = addSpy.mock.calls
-      const scrollCall = calls.find(call => call[0] === 'scroll')
+      const scrollCall = calls.find((call) => call[0] === 'scroll')
       expect(scrollCall).toBeDefined()
       if (scrollCall && scrollCall[2]) {
         expect(scrollCall[2]).toHaveProperty('passive', true)

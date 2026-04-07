@@ -1,16 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { defineComponent, h, nextTick, reactive, ref } from 'vue'
 import { createPinia } from 'pinia'
 
-const routeState = {
+const routeState = reactive({
+  params: { projectId: 'project-1' },
   query: {
     chapterId: 'chapter-1',
     tool: 'writing',
   } as Record<string, unknown>,
-}
+})
 
-const routerReplace = vi.fn().mockResolvedValue(undefined)
+const routerReplace = vi
+  .fn()
+  .mockImplementation(async ({ query }: { query?: Record<string, unknown> }) => {
+    routeState.query = { ...(query || {}) }
+  })
 const setActiveTool = vi.fn()
 const setSelectedText = vi.fn()
 const { messageSuccess, messageInfo, messageWarning, messageError, messageBoxConfirm } = vi.hoisted(
@@ -24,10 +29,7 @@ const { messageSuccess, messageInfo, messageWarning, messageError, messageBoxCon
 )
 
 vi.mock('vue-router', () => ({
-  useRoute: () => ({
-    params: { projectId: 'project-1' },
-    query: routeState.query,
-  }),
+  useRoute: () => routeState,
   useRouter: () => ({
     replace: routerReplace,
     push: vi.fn().mockResolvedValue(undefined),
@@ -151,10 +153,31 @@ vi.mock('@/modules/writer/stores/writerStore', () => ({
   useWriterStore: () => writerStoreState,
 }))
 
+vi.mock('@/modules/writer/api/outline', () => {
+  const outlineApi = {
+    getTree: vi.fn().mockResolvedValue([]),
+    create: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined),
+  }
+
+  return {
+    outlineApi,
+    default: outlineApi,
+  }
+})
+
+vi.mock('@/modules/writer/components/workspace/WorkspaceStatusbar.vue', () => ({
+  default: defineComponent({
+    name: 'WorkspaceStatusbarStub',
+    template: '<div data-testid="workspace-statusbar-stub" />',
+  }),
+}))
+
 import ProjectWorkspace from '../ProjectWorkspace.vue'
 
 const WorkspaceLeftPanelStub = defineComponent({
-  emits: ['update:chapter-id', 'dock-select', 'global-graph-click'],
+  emits: ['update:chapter-id', 'open-graph'],
   setup(_, { emit }) {
     return () =>
       h('div', [
@@ -163,24 +186,8 @@ const WorkspaceLeftPanelStub = defineComponent({
           onClick: () => emit('update:chapter-id', 'chapter-2'),
         }),
         h('button', {
-          'data-testid': 'open-relations',
-          onClick: () => emit('dock-select', 'relations'),
-        }),
-        h('button', {
-          'data-testid': 'open-encyclopedia',
-          onClick: () => emit('dock-select', 'encyclopedia'),
-        }),
-        h('button', {
-          'data-testid': 'open-structure',
-          onClick: () => emit('dock-select', 'structure'),
-        }),
-        h('button', {
-          'data-testid': 'open-writing',
-          onClick: () => emit('dock-select', 'writing'),
-        }),
-        h('button', {
           'data-testid': 'open-global-graph',
-          onClick: () => emit('global-graph-click'),
+          onClick: () => emit('open-graph', ''),
         }),
       ])
   },
@@ -415,151 +422,6 @@ describe('ProjectWorkspace Refactor', () => {
     expect(setSelectedText).toHaveBeenCalledWith('')
   })
 
-  it('切到关系图谱 dock 时应写入百科路由查询', async () => {
-    const wrapper = mount(ProjectWorkspace, {
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          EditorLayout: {
-            template: `
-              <div>
-                <slot name="left-panel" />
-                <slot name="editor" :active-tool="'writing'" />
-                <slot name="right-panel" />
-              </div>
-            `,
-          },
-          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
-          WorkspaceRightPanel: WorkspaceRightPanelStub,
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
-          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
-          AIPanel: { template: '<div data-testid="ai-panel" />' },
-        },
-      },
-    })
-
-    await wrapper.find('[data-testid="open-relations"]').trigger('click')
-
-    expect(setActiveTool).toHaveBeenCalledWith('encyclopedia')
-    expect(routerReplace).toHaveBeenCalledWith({
-      query: expect.objectContaining({
-        tool: 'encyclopedia',
-        encyclopediaView: 'relations',
-      }),
-    })
-  })
-
-  it('切到百科 dock 时应进入百科卡片视图', async () => {
-    const wrapper = mount(ProjectWorkspace, {
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          EditorLayout: {
-            template: `
-              <div>
-                <slot name="left-panel" />
-                <slot name="editor" :active-tool="'writing'" />
-                <slot name="right-panel" />
-              </div>
-            `,
-          },
-          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
-          WorkspaceRightPanel: WorkspaceRightPanelStub,
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
-          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
-          AIPanel: { template: '<div data-testid="ai-panel" />' },
-        },
-      },
-    })
-
-    await wrapper.find('[data-testid="open-encyclopedia"]').trigger('click')
-
-    expect(setActiveTool).toHaveBeenCalledWith('encyclopedia')
-    expect(routerReplace).toHaveBeenCalledWith({
-      query: expect.objectContaining({
-        tool: 'encyclopedia',
-        encyclopediaView: 'encyclopedia',
-      }),
-    })
-  })
-
-  it('切到大纲 dock 时应进入结构舞台视图', async () => {
-    const wrapper = mount(ProjectWorkspace, {
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          EditorLayout: {
-            template: `
-              <div>
-                <slot name="left-panel" />
-                <slot name="editor" :active-tool="'writing'" />
-                <slot name="right-panel" />
-              </div>
-            `,
-          },
-          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
-          WorkspaceRightPanel: WorkspaceRightPanelStub,
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
-          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
-          AIPanel: { template: '<div data-testid="ai-panel" />' },
-        },
-      },
-    })
-
-    await wrapper.find('[data-testid="open-structure"]').trigger('click')
-
-    expect(setActiveTool).toHaveBeenCalledWith('encyclopedia')
-    expect(routerReplace).toHaveBeenCalledWith({
-      query: expect.objectContaining({
-        tool: 'encyclopedia',
-        encyclopediaView: 'structure',
-      }),
-    })
-  })
-
-  it('从百科切回写作 dock 时应清理百科查询参数', async () => {
-    routeState.query = {
-      chapterId: 'chapter-1',
-      tool: 'encyclopedia',
-      encyclopediaView: 'relations',
-      worldView: 'characters',
-      worldCategory: 'main',
-    }
-
-    const wrapper = mount(ProjectWorkspace, {
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          EditorLayout: {
-            template: `
-              <div>
-                <slot name="left-panel" />
-                <slot name="editor" :active-tool="'writing'" />
-                <slot name="right-panel" />
-              </div>
-            `,
-          },
-          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
-          WorkspaceRightPanel: WorkspaceRightPanelStub,
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
-          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
-          AIPanel: { template: '<div data-testid="ai-panel" />' },
-        },
-      },
-    })
-
-    await wrapper.find('[data-testid="open-writing"]').trigger('click')
-
-    expect(setActiveTool).toHaveBeenCalledWith('writing')
-    expect(routerReplace).toHaveBeenCalledWith({
-      query: expect.not.objectContaining({
-        encyclopediaView: expect.anything(),
-        worldView: expect.anything(),
-        worldCategory: expect.anything(),
-      }),
-    })
-  })
-
   it('从结构舞台打开章节图谱时应写入关系图谱路由查询', async () => {
     routeState.query = {
       chapterId: 'chapter-1',
@@ -605,7 +467,7 @@ describe('ProjectWorkspace Refactor', () => {
     })
   })
 
-  it('点击全局关系图谱入口时应清理 chapterId 查询', async () => {
+  it('点击左栏全局关系图谱入口时应清理 chapterId 查询', async () => {
     routeState.query = {
       chapterId: 'project-yljs-1-volume-1',
       tool: 'encyclopedia',
@@ -705,7 +567,9 @@ describe('ProjectWorkspace Refactor', () => {
     expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('add_to_chat')
     expect(wrapper.find('[data-testid="trigger-source"]').text()).toBe('story_harness')
     expect(wrapper.find('[data-testid="trigger-text"]').text()).toContain('补写下一段冲突')
-    expect(wrapper.find('[data-testid="context-signature"]').text()).toContain('"chapterId":"chapter-1"')
+    expect(wrapper.find('[data-testid="context-signature"]').text()).toContain(
+      '"chapterId":"chapter-1"',
+    )
   })
 
   it('clears stale transient right-panel state on new workflow actions and chapter switches', async () => {
@@ -817,7 +681,62 @@ describe('ProjectWorkspace Refactor', () => {
     expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('')
   })
 
-  it.todo('提案应按当前章节过滤展示（Phase 2: chapter-scoped proposal visibility）')
+  it('提案应按当前章节过滤展示（Phase 2: chapter-scoped proposal visibility）', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: WorkflowRelayEditorContentStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
+    await nextTick()
+
+    const chapterOneProposalId = wrapper.find('[data-testid="proposal-id"]').text()
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+    expect(chapterOneProposalId).toContain('proposal-')
+
+    await wrapper.find('[data-testid="change-chapter"]').trigger('click')
+    await Promise.resolve()
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('0')
+    expect(wrapper.find('[data-testid="proposal-id"]').text()).toBe('')
+
+    await wrapper.find('[data-testid="save-proposal-draft"]').trigger('click')
+    await nextTick()
+
+    const chapterTwoProposalId = wrapper.find('[data-testid="proposal-id"]').text()
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+    expect(chapterTwoProposalId).toContain('proposal-')
+    expect(chapterTwoProposalId).not.toBe(chapterOneProposalId)
+
+    routeState.query = {
+      ...routeState.query,
+      chapterId: 'chapter-1',
+      tool: 'writing',
+    }
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="proposal-count"]').text()).toBe('1')
+    expect(wrapper.find('[data-testid="proposal-id"]').text()).toBe(chapterOneProposalId)
+  })
 
   it('章节总结结果应映射为 chapter-direction proposal', async () => {
     const wrapper = mount(ProjectWorkspace, {

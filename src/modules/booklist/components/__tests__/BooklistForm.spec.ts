@@ -68,6 +68,42 @@ vi.mock('@/design-system/components', () => {
     },
   })
 
+  const MockQyTextarea = defineComponent({
+    name: 'QyTextarea',
+    props: {
+      modelValue: { type: String, default: '' },
+      placeholder: { type: String, default: '' },
+      disabled: { type: Boolean, default: false },
+      readonly: { type: Boolean, default: false },
+      rows: { type: Number, default: 3 },
+      maxlength: { type: Number },
+      showCount: { type: Boolean, default: false },
+    },
+    emits: ['update:modelValue', 'change', 'blur', 'focus'],
+    setup(props: any, { emit }: any) {
+      const handleInput = (e: any) => {
+        const value = e.target.value
+        emit('update:modelValue', value)
+        emit('change', value)
+      }
+
+      return () =>
+        h('textarea', {
+          class: 'qy-textarea',
+          placeholder: props.placeholder,
+          disabled: props.disabled,
+          readonly: props.readonly,
+          rows: props.rows,
+          maxlength: props.maxlength,
+          value: props.modelValue,
+          onInput: handleInput,
+          onBlur: () => emit('blur'),
+          onFocus: () => emit('focus'),
+          'data-testid': 'qy-textarea',
+        })
+    },
+  })
+
   const MockQyButton = defineComponent({
     name: 'QyButton',
     props: {
@@ -148,6 +184,7 @@ vi.mock('@/design-system/components', () => {
 
   return {
     QyInput: MockQyInput,
+    QyTextarea: MockQyTextarea,
     QyButton: MockQyButton,
     QyBadge: MockQyBadge,
     QyIcon: MockQyIcon,
@@ -277,7 +314,7 @@ describe('BooklistForm', () => {
       const booklist: any = createMockBooklist({
         title: '测试书单',
         description: '测试描述',
-        coverImage: 'https://example.com/cover.jpg',
+        cover: 'https://example.com/cover.jpg',
         isPublic: true,
         tags: ['玄幻', '仙侠'],
       })
@@ -341,14 +378,14 @@ describe('BooklistForm', () => {
       const wrapper = mount(BooklistForm, {
         props: defaultProps,
       })
-      const addButton = wrapper.findAll('.qy-button').find((btn) => btn.text() === '添加标签')
+      const addButton = wrapper.findAll('button').find((btn) => btn.text().includes('添加标签'))
 
       // Act
       await addButton?.trigger('click')
       await wrapper.vm.$nextTick()
 
       // Assert
-      expect(wrapper.vm.inputVisible).toBe(true)
+      expect(wrapper.find('input[placeholder="输入标签"]').exists()).toBe(true)
     })
 
     it('should add tag when tag input is confirmed', async () => {

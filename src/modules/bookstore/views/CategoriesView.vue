@@ -4,7 +4,7 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">
-          <QyIcon name="Grid"  />
+          <QyIcon name="Grid" />
           图书分类
         </h1>
         <p class="page-subtitle">探索不同类型的精彩作品</p>
@@ -28,7 +28,7 @@
             :expand-all="expandAll"
             @select="handleCategorySelect"
           />
-        </QyCard>
+        </Card>
       </div>
 
       <!-- 当前分类信息 -->
@@ -51,30 +51,32 @@
       <Card shadow="hover" class="filter-card">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="8" :md="6">
-            <QySelect v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
-              <el-option label="全部" value="" />
-              <el-option label="连载中" value="ongoing" />
-              <el-option label="已完结" value="completed" />
-            </QySelect>
+            <QySelect
+              v-model="filters.status"
+              :options="statusOptions"
+              placeholder="连载状态"
+              clearable
+              @change="handleFilterChange"
+            />
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
-            <QySelect v-model="filters.sortBy" placeholder="排序方式" @change="handleFilterChange">
-              <el-option label="最新更新" value="updateTime" />
-              <el-option label="最高评分" value="rating" />
-              <el-option label="最多阅读" value="viewCount" />
-              <el-option label="最多收藏" value="favoriteCount" />
-            </QySelect>
+            <QySelect
+              v-model="filters.sortBy"
+              :options="sortOptions"
+              placeholder="排序方式"
+              @change="handleFilterChange"
+            />
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
-            <QySelect v-model="filters.wordCountRange" placeholder="字数范围" clearable @change="handleFilterChange">
-              <el-option label="全部" value="" />
-              <el-option label="10万以下" value="0-100000" />
-              <el-option label="10-50万" value="100000-500000" />
-              <el-option label="50-100万" value="500000-1000000" />
-              <el-option label="100万以上" value="1000000-" />
-            </QySelect>
+            <QySelect
+              v-model="filters.wordCountRange"
+              :options="wordCountRangeOptions"
+              placeholder="字数范围"
+              clearable
+              @change="handleFilterChange"
+            />
           </el-col>
 
           <el-col :xs="24" :sm="8" :md="6">
@@ -86,11 +88,7 @@
       <!-- 书籍列表 -->
       <div class="books-section" v-loading="booksLoading">
         <template v-if="!booksLoading && books.length > 0">
-          <BookGrid
-            :books="books"
-            :loading="booksLoading"
-            @book-click="handleBookClick"
-          />
+          <BookGrid :books="books" :loading="booksLoading" @book-click="handleBookClick" />
 
           <!-- 分页 -->
           <div class="pagination">
@@ -158,8 +156,29 @@ const pageSize = ref(24)
 const filters = reactive<FilterValues>({
   status: undefined,
   sortBy: 'updateTime',
-  wordCountRange: undefined
+  wordCountRange: undefined,
 })
+
+const statusOptions = [
+  { label: '全部', value: '' },
+  { label: '连载中', value: 'ongoing' },
+  { label: '已完结', value: 'completed' },
+]
+
+const sortOptions = [
+  { label: '最新更新', value: 'updateTime' },
+  { label: '最高评分', value: 'rating' },
+  { label: '最多阅读', value: 'viewCount' },
+  { label: '最多收藏', value: 'favoriteCount' },
+]
+
+const wordCountRangeOptions = [
+  { label: '全部', value: '' },
+  { label: '10万以下', value: '0-100000' },
+  { label: '10-50万', value: '100000-500000' },
+  { label: '50-100万', value: '500000-1000000' },
+  { label: '100万以上', value: '1000000-' },
+]
 
 // 加载分类树
 const loadCategoryTree = async () => {
@@ -206,14 +225,17 @@ const loadBooks = async () => {
     const response = await getBooksByCategory({
       category: selectedCategoryId.value,
       page: currentPage.value,
-      size: pageSize.value
+      size: pageSize.value,
     })
 
     // 处理响应
     if (response && (response as any).code === 200) {
       const data = (response as any).data
       books.value = data?.books || data || []
-      bookTotal.value = data?.total || (response as any).pagination?.total || (Array.isArray(books.value) ? books.value.length : 0)
+      bookTotal.value =
+        data?.total ||
+        (response as any).pagination?.total ||
+        (Array.isArray(books.value) ? books.value.length : 0)
     } else {
       books.value = Array.isArray(response) ? response : []
       bookTotal.value = books.value.length
@@ -235,7 +257,7 @@ const handleCategorySelect = (category: Category) => {
   // 更新URL (不直接调用loadBooks，让watch来处理)
   router.push({
     path: '/bookstore/categories',
-    query: { id: selectedCategoryId.value }
+    query: { id: selectedCategoryId.value },
   })
 }
 
@@ -274,14 +296,18 @@ const handleBookClick = (book: BookBrief) => {
 }
 
 // 监听路由变化
-watch(() => route.query.id, (newId, oldId) => {
-  // 只在ID真正改变时才重新加载
-  if (newId && typeof newId === 'string' && newId !== oldId) {
-    selectedCategoryId.value = newId
-    currentCategory.value = findCategory(categoryTree.value, newId)
-    loadBooks()
-  }
-}, { immediate: false }) // 不在初始化时立即执行
+watch(
+  () => route.query.id,
+  (newId, oldId) => {
+    // 只在ID真正改变时才重新加载
+    if (newId && typeof newId === 'string' && newId !== oldId) {
+      selectedCategoryId.value = newId
+      currentCategory.value = findCategory(categoryTree.value, newId)
+      loadBooks()
+    }
+  },
+  { immediate: false },
+) // 不在初始化时立即执行
 
 // 页面初始化
 onMounted(async () => {
@@ -436,7 +462,11 @@ onMounted(async () => {
       gap: 12px;
 
       :deep(.qy-tag) {
-        background: linear-gradient(135deg, rgba(64, 158, 255, 0.1) 0%, rgba(102, 177, 255, 0.1) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(64, 158, 255, 0.1) 0%,
+          rgba(102, 177, 255, 0.1) 100%
+        );
         border: 1px solid rgba(64, 158, 255, 0.2);
         color: #409eff;
         padding: 6px 16px;

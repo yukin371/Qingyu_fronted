@@ -18,7 +18,7 @@
           stroke="currentColor"
           stroke-width="2"
         >
-          <polyline points="6 9 12 15 18 9"/>
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </span>
     </div>
@@ -28,7 +28,7 @@
       <div v-if="isOpen && !disabled" class="qy-tree-select__dropdown">
         <QyTree
           :data="data"
-          :model-value="modelValue"
+          :model-value="modelValue ?? undefined"
           :multiple="multiple"
           :show-checkbox="showCheckbox"
           :node-key="nodeKey"
@@ -52,12 +52,13 @@ const props = withDefaults(defineProps<TreeSelectProps>(), {
   disabled: false,
   multiple: false,
   clearable: false,
-  nodeKey: 'id'
+  showCheckbox: false,
+  nodeKey: 'id',
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number | null]
-  'change': [value: string | number | null]
+  'update:modelValue': [value: string | number | (string | number)[] | null]
+  change: [value: string | number | (string | number)[] | null]
 }>()
 
 const isOpen = ref(false)
@@ -65,6 +66,14 @@ const containerRef = ref<HTMLElement>()
 
 const displayValue = computed(() => {
   if (!props.modelValue) return ''
+
+  if (Array.isArray(props.modelValue)) {
+    return props.modelValue
+      .map((value) => findNode(props.data, value)?.label)
+      .filter((label): label is string => !!label)
+      .join(', ')
+  }
+
   const selected = findNode(props.data, props.modelValue)
   return selected?.label || ''
 })

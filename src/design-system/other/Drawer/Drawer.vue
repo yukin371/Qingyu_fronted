@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<DrawerProps>(), {
 const emit = defineEmits<DrawerEmits>()
 
 // 内部状态
-const isVisible = ref(props.modelValue)
+const isVisible = ref(false)
 const isAnimating = ref(false)
 
 // 计算抽屉样式类名
@@ -116,24 +116,20 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
-      open()
+      open(false)
     } else {
-      close()
+      close(false)
     }
   },
 )
 
-// 监听内部状态变化同步到父组件
-watch(isVisible, (newVal) => {
-  if (!isAnimating.value) {
-    emit('update:modelValue', newVal)
-  }
-})
-
 // 打开抽屉
-const open = async () => {
+const open = async (syncModel = true) => {
   if (isVisible.value) return
 
+  if (syncModel) {
+    emit('update:modelValue', true)
+  }
   emit('open')
   isVisible.value = true
   isAnimating.value = true
@@ -154,7 +150,7 @@ const open = async () => {
 }
 
 // 关闭抽屉
-const close = async () => {
+const close = async (syncModel = true) => {
   if (!isVisible.value) return
 
   // 执行关闭前回调
@@ -170,6 +166,9 @@ const close = async () => {
     }
   }
 
+  if (syncModel) {
+    emit('update:modelValue', false)
+  }
   emit('close')
   isAnimating.value = true
 
@@ -215,6 +214,9 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 // 组件挂载时添加键盘监听
 onMounted(() => {
+  if (props.modelValue) {
+    void open(false)
+  }
   if (props.closeOnPressEscape) {
     document.addEventListener('keydown', handleKeydown)
   }
@@ -249,7 +251,7 @@ defineExpose({
       leave-to-class="opacity-0"
     >
       <div
-        v-if="modelValue && modal"
+        v-if="isVisible && modal"
         :class="modalClasses"
         @click="handleModalClick"
         aria-hidden="true"
@@ -262,7 +264,7 @@ defineExpose({
       leave-active-class="transition-transform duration-300 ease-in"
     >
       <div
-        v-if="modelValue"
+        v-if="isVisible"
         ref="drawerContent"
         :class="drawerClasses"
         :style="{
@@ -276,7 +278,7 @@ defineExpose({
       >
         <!-- 头部 -->
         <div
-          v-if="$slots.header || title"
+          v-if="$slots.header || title || (showClose && closable)"
           class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0"
         >
           <div class="flex items-center gap-3">
@@ -305,7 +307,7 @@ defineExpose({
 
         <!-- 内容区域 -->
         <div class="flex-1 overflow-auto px-6 py-4">
-          <slot v-if="!destroyOnClose || modelValue">
+          <slot v-if="!destroyOnClose || props.modelValue">
             <p class="text-neutral-600 dark:text-neutral-400">抽屉内容</p>
           </slot>
         </div>

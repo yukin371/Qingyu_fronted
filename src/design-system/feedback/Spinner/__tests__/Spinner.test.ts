@@ -6,6 +6,12 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/vue'
 import Spinner from '../Spinner.vue'
 
+function expectInlineColor(style: string | null, color: string) {
+  expect(style).toBeTruthy()
+  const normalized = style?.replace(/\s+/g, '').toLowerCase()
+  expect(normalized).toContain(`color:${color.toLowerCase()};`)
+}
+
 describe('Spinner 组件', () => {
   describe('基础渲染', () => {
     it('应该正确渲染默认的 Spinner', () => {
@@ -136,8 +142,7 @@ describe('Spinner 组件', () => {
         props: { color: '#ff0000' },
       })
       const status = screen.getByRole('status')
-      // 浏览器会将颜色转换为 RGB
-      expect(status.getAttribute('style')).toMatch(/color:\s*rgb\(255,\s*0,\s*0\)/)
+      expectInlineColor(status.getAttribute('style'), '#ff0000')
     })
 
     it('应该应用十六进制颜色', () => {
@@ -145,8 +150,7 @@ describe('Spinner 组件', () => {
         props: { color: '#3b82f6' },
       })
       const status = screen.getByRole('status')
-      // 浏览器会将颜色转换为 RGB
-      expect(status.getAttribute('style')).toMatch(/color:\s*rgb\(59,\s*130,\s*246\)/)
+      expectInlineColor(status.getAttribute('style'), '#3b82f6')
     })
 
     it('应该应用 RGB 颜色', () => {
@@ -296,7 +300,9 @@ describe('Spinner 组件', () => {
       const waves = container.querySelectorAll('.rounded-full')
       if (waves.length > 0) {
         // wave 使用自定义动画，检查是否有动画类
-        const hasAnimation = Array.from(waves[0].classList).some(cls => cls.startsWith('animate-'))
+        const hasAnimation = Array.from(waves[0].classList).some((cls) =>
+          cls.startsWith('animate-'),
+        )
         expect(hasAnimation).toBe(true)
       }
     })
@@ -309,7 +315,7 @@ describe('Spinner 组件', () => {
       })
       const status = container.querySelector('[role="status"]')
       const svg = container.querySelector('svg')
-      expect(status?.getAttribute('style')).toMatch(/color:\s*rgb\(255,\s*0,\s*0\)/)
+      expectInlineColor(status?.getAttribute('style') ?? null, '#ff0000')
       expect(svg?.classList.contains('w-8')).toBe(true)
       expect(svg?.classList.contains('h-8')).toBe(true)
     })
@@ -336,7 +342,7 @@ describe('Spinner 组件', () => {
       expect(screen.getByText('完整配置')).toBeInTheDocument()
       const status = container.querySelector('[role="status"]')
       const svg = container.querySelector('svg')
-      expect(status?.getAttribute('style')).toMatch(/color:\s*rgb\(59,\s*130,\s*246\)/)
+      expectInlineColor(status?.getAttribute('style') ?? null, '#3b82f6')
       expect(svg?.getAttribute('style')).toContain('stroke-width: 4px')
     })
   })
@@ -359,11 +365,11 @@ describe('Spinner 组件', () => {
         props: { color: '#ff0000' },
       })
       let status = screen.getByRole('status')
-      expect(status.getAttribute('style')).toMatch(/color:\s*rgb\(255,\s*0,\s*0\)/)
+      expectInlineColor(status.getAttribute('style'), '#ff0000')
 
       await rerender({ color: '#00ff00' })
       status = screen.getByRole('status')
-      expect(status.getAttribute('style')).toMatch(/color:\s*rgb\(0,\s*255,\s*0\)/)
+      expectInlineColor(status.getAttribute('style'), '#00ff00')
     })
 
     it('应该在 type 变化时更新渲染', async () => {

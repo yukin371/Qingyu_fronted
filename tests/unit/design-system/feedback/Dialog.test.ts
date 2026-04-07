@@ -18,14 +18,14 @@ describe('Dialog 组件', () => {
   afterEach(() => {
     // 清理所有 Teleport 容器
     const teleports = document.querySelectorAll('[data-v-teleport]')
-    teleports.forEach(el => el.remove())
+    teleports.forEach((el) => el.remove())
 
     // 清理所有 Dialog 相关的 DOM 元素
     const dialogs = document.querySelectorAll('[role="dialog"]')
-    dialogs.forEach(el => el.remove())
+    dialogs.forEach((el) => el.remove())
 
-    const overlays = document.querySelectorAll('.bg-black\\/50')
-    overlays.forEach(el => el.remove())
+    const overlays = document.querySelectorAll('.bg-black\\/30')
+    overlays.forEach((el) => el.remove())
 
     // 重置 body 样式
     document.body.style.overflow = ''
@@ -95,8 +95,9 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const overlay = document.querySelector('.bg-black\\/50')
+        const overlay = document.querySelector('.bg-black\\/30')
         expect(overlay).toBeInTheDocument()
+        expect(overlay).toHaveClass('backdrop-blur-sm')
       })
     })
 
@@ -109,7 +110,7 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const overlay = document.querySelector('.bg-black\\/50')
+        const overlay = document.querySelector('.bg-black\\/30')
         expect(overlay).not.toBeInTheDocument()
       })
     })
@@ -181,11 +182,11 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const overlay = document.querySelector('.bg-black\\/50')
+        const overlay = document.querySelector('.bg-black\\/30')
         expect(overlay).toBeInTheDocument()
       })
 
-      const overlay = document.querySelector('.bg-black\\/50')
+      const overlay = document.querySelector('.bg-black\\/30')
       await fireEvent.click(overlay!)
 
       await waitFor(() => {
@@ -204,11 +205,11 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const overlay = document.querySelector('.bg-black\\/50')
+        const overlay = document.querySelector('.bg-black\\/30')
         expect(overlay).toBeInTheDocument()
       })
 
-      const overlay = document.querySelector('.bg-black\\/50')
+      const overlay = document.querySelector('.bg-black\\/30')
       await fireEvent.click(overlay!)
 
       await waitFor(() => {
@@ -258,9 +259,12 @@ describe('Dialog 组件', () => {
       // 使用 userEvent 模拟按 ESC 键
       await user.keyboard('{Escape}')
 
-      await waitFor(() => {
-        expect(emitted()['update:visible']).toBeFalsy()
-      }, { timeout: 100 })
+      await waitFor(
+        () => {
+          expect(emitted()['update:visible']).toBeFalsy()
+        },
+        { timeout: 100 },
+      )
     })
 
     it('对话框打开时应该禁用 body 滚动', async () => {
@@ -382,9 +386,10 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const dialog = document.querySelector('[role="dialog"]')
-        expect(dialog).toHaveClass('top-20')
-        expect(dialog).not.toHaveClass('top-1/2')
+        const overlay = document.querySelector('.bg-black\\/30')
+        expect(overlay).toHaveClass('items-start')
+        expect(overlay).toHaveClass('pt-20')
+        expect(overlay).not.toHaveClass('items-center')
       })
     })
 
@@ -397,9 +402,10 @@ describe('Dialog 组件', () => {
       })
 
       await waitFor(() => {
-        const dialog = document.querySelector('[role="dialog"]')
-        expect(dialog).toHaveClass('top-1/2')
-        expect(dialog).toHaveClass('-translate-y-1/2')
+        const overlay = document.querySelector('.bg-black\\/30')
+        expect(overlay).toHaveClass('items-center')
+        expect(overlay).not.toHaveClass('items-start')
+        expect(overlay).not.toHaveClass('pt-20')
       })
     })
   })
@@ -538,9 +544,12 @@ describe('Dialog 组件', () => {
         },
       })
 
-      await waitFor(() => {
-        expect(onOpened).toHaveBeenCalled()
-      }, { timeout: 500 })
+      await waitFor(
+        () => {
+          expect(onOpened).toHaveBeenCalled()
+        },
+        { timeout: 500 },
+      )
     })
 
     it('对话框隐藏时应该触发 closed 事件', async () => {
@@ -554,7 +563,7 @@ describe('Dialog 组件', () => {
       })
 
       // 等待动画时间
-      await new Promise(resolve => setTimeout(resolve, 400))
+      await new Promise((resolve) => setTimeout(resolve, 400))
 
       // 如果 visible 从 true 变为 false，应该触发 closed
       const { rerender } = render(Dialog, {
@@ -571,9 +580,12 @@ describe('Dialog 组件', () => {
 
       await rerender({ visible: false })
 
-      await waitFor(() => {
-        expect(onClosed).toHaveBeenCalled()
-      }, { timeout: 500 })
+      await waitFor(
+        () => {
+          expect(onClosed).toHaveBeenCalled()
+        },
+        { timeout: 500 },
+      )
     })
   })
 
@@ -601,13 +613,13 @@ describe('Dialog 组件', () => {
       await fireEvent.click(closeButton!)
 
       // 给组件一些时间来处理 beforeClose
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       // 检查 beforeClose 是否被调用
       expect(beforeClose).toHaveBeenCalledTimes(1)
 
       // 等待 Promise 解析并检查结果
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // 确认对话框仍然存在
       const dialogAfter = document.querySelector('[role="dialog"]')
@@ -640,7 +652,7 @@ describe('Dialog 组件', () => {
       await fireEvent.click(closeButton!)
 
       // 给组件一些时间来处理 beforeClose
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // 检查 beforeClose 是否被调用
       expect(beforeClose).toHaveBeenCalledTimes(1)
@@ -650,13 +662,13 @@ describe('Dialog 组件', () => {
         () => {
           expect(emitted()['update:visible']).toBeTruthy()
         },
-        { timeout: 1000 }
+        { timeout: 1000 },
       )
     })
 
     it('beforeClose 返回 Promise 应该等待异步操作', async () => {
       let resolveClose: (value: boolean) => void
-      const beforeClosePromise = new Promise<boolean>(resolve => {
+      const beforeClosePromise = new Promise<boolean>((resolve) => {
         resolveClose = resolve
       })
       const beforeClose = vi.fn().mockReturnValue(beforeClosePromise)
@@ -682,7 +694,7 @@ describe('Dialog 组件', () => {
       await fireEvent.click(closeButton!)
 
       // 给组件一些时间来处理 beforeClose
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // 检查 beforeClose 是否被调用
       expect(beforeClose).toHaveBeenCalledTimes(1)
@@ -700,7 +712,7 @@ describe('Dialog 组件', () => {
           const dialog = document.querySelector('[role="dialog"]')
           expect(dialog).not.toBeInTheDocument()
         },
-        { timeout: 1000 }
+        { timeout: 1000 },
       )
     })
   })
@@ -772,7 +784,9 @@ describe('Dialog 组件', () => {
 
       await waitFor(() => {
         const dialog = document.querySelector('[role="dialog"]')
-        expect(dialog).toHaveAttribute('aria-labelledby', 'dialog-title')
+        const labelledBy = dialog?.getAttribute('aria-labelledby')
+        expect(labelledBy).toMatch(/^qy-dialog-title-/)
+        expect(document.getElementById(labelledBy || '')).toHaveTextContent('测试标题')
       })
     })
 

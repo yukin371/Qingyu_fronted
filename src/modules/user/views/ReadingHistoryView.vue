@@ -4,7 +4,7 @@
       <!-- 页面标题 -->
       <div class="page-header">
         <h1 class="page-title">
-          <QyIcon name="Clock"  />
+          <QyIcon name="Clock" />
           阅读历史
         </h1>
         <div class="header-actions">
@@ -47,7 +47,7 @@
               @change="loadHistory"
             >
               <template #prefix>
-                <QyIcon name="Search"  />
+                <QyIcon name="Search" />
               </template>
             </Input>
           </el-col>
@@ -57,58 +57,43 @@
       <!-- 历史记录列表 -->
       <QyLoading :loading="loading" class="history-list">
         <template v-if="!loading && historyList.length > 0">
-          <Card
-            v-for="item in historyList"
-            :key="item.id"
-            shadow="hover"
-            class="history-item"
-          >
+          <Card v-for="item in historyList" :key="item.id" shadow="hover" class="history-item">
             <div class="item-content" @click="continueReading(item)">
               <!-- 书籍封面 -->
               <div class="item-cover">
                 <Image :src="item.book?.cover || '/placeholder-book.png'" fit="cover">
                   <template #error>
                     <div class="image-slot">
-                      <QyIcon name="Picture"  />
+                      <QyIcon name="Picture" />
                     </div>
                   </template>
                 </Image>
 
                 <!-- 阅读进度标签 -->
-                <div class="progress-badge">
-                  已读
-                </div>
+                <div class="progress-badge">已读</div>
               </div>
 
               <!-- 书籍信息 -->
               <div class="item-info">
                 <h3 class="book-title">{{ item.book?.title }}</h3>
                 <p class="book-author">
-                  <QyIcon name="User"  />
+                  <QyIcon name="User" />
                   {{ item.book?.author }}
                 </p>
 
                 <div class="reading-info">
-                  <Tag size="sm">
-                    阅读到：{{ item.chapter?.title || '未知章节' }}
-                  </Tag>
+                  <Tag size="sm"> 阅读到：{{ item.chapter?.title || '未知章节' }} </Tag>
                   <span class="reading-time">
-                    <QyIcon name="Timer"  />
+                    <QyIcon name="Timer" />
                     阅读时长：{{ formatDuration(item.readDuration || 0) }}
                   </span>
                 </div>
 
                 <!-- 阅读进度条 -->
-                <QyProgress
-                  :percentage="item.progress || 0"
-                  :stroke-width="8"
-                  :show-text="false"
-                />
+                <QyProgress :percentage="item.progress || 0" :stroke-width="8" :show-text="false" />
 
                 <div class="meta-info">
-                  <span class="last-read-time">
-                    最后阅读：{{ formatTime(item.lastReadAt) }}
-                  </span>
+                  <span class="last-read-time"> 最后阅读：{{ formatTime(item.lastReadAt) }} </span>
                 </div>
               </div>
 
@@ -117,14 +102,8 @@
                 <QyButton variant="primary" @click.stop="continueReading(item)">
                   继续阅读
                 </QyButton>
-                <QyButton @click.stop="goToBookDetail(item.bookId)">
-                  查看详情
-                </QyButton>
-                <QyButton
-                  variant="danger"
-                  text
-                  @click.stop="removeHistory(item.id)"
-                >
+                <QyButton @click.stop="goToBookDetail(item.bookId)"> 查看详情 </QyButton>
+                <QyButton variant="danger" text @click.stop="removeHistory(item.id)">
                   <template #icon>
                     <QyIcon name="Delete" />
                   </template>
@@ -162,7 +141,14 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyButton, QyInput, QySelect, QyProgress, QyPagination, QyLoading } from '@/design-system/components'
+import {
+  QyIcon,
+  QyButton,
+  QySelect,
+  QyProgress,
+  QyPagination,
+  QyLoading,
+} from '@/design-system/components'
 import { Tag, Image, Empty, Card, Input } from '@/design-system/base'
 import { getReadingHistory, deleteHistory, clearHistory } from '@/modules/reader/api'
 import type { ReadingHistory } from '@/types/reader'
@@ -171,7 +157,7 @@ import type { ReadingHistory } from '@/types/reader'
 const sortByOptions = [
   { label: '最近阅读', value: 'recent' },
   { label: '阅读时长', value: 'duration' },
-  { label: '阅读进度', value: 'progress' }
+  { label: '阅读进度', value: 'progress' },
 ]
 
 // 时间范围选项
@@ -179,7 +165,7 @@ const periodOptions = [
   { label: '全部', value: '' },
   { label: '最近7天', value: '7d' },
   { label: '最近30天', value: '30d' },
-  { label: '最近3个月', value: '3m' }
+  { label: '最近3个月', value: '3m' },
 ]
 
 const router = useRouter()
@@ -195,7 +181,7 @@ const total = ref(0)
 const filter = reactive({
   sortBy: 'recent',
   period: '',
-  keyword: ''
+  keyword: '',
 })
 
 // 格式化时间
@@ -220,7 +206,7 @@ const formatTime = (time: string | Date) => {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -275,7 +261,7 @@ const removeHistory = async (historyId: string) => {
   try {
     await messageBox.confirm('确定要删除这条阅读记录吗？', '提示', {
       confirmButtonText: '确定',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
     })
 
     await deleteHistory(historyId)
@@ -292,14 +278,10 @@ const removeHistory = async (historyId: string) => {
 // 清空所有历史
 const clearAllHistory = async () => {
   try {
-    await messageBox.confirm(
-      '确定要清空所有阅读历史吗？此操作不可恢复！',
-      '警告',
-      {
-        confirmButtonText: '确定清空',
-        cancelButtonText: '取消'
-      }
-    )
+    await messageBox.confirm('确定要清空所有阅读历史吗？此操作不可恢复！', '警告', {
+      confirmButtonText: '确定清空',
+      cancelButtonText: '取消',
+    })
 
     await clearHistory()
     message.success('已清空所有历史')
@@ -562,4 +544,3 @@ onMounted(() => {
   }
 }
 </style>
-

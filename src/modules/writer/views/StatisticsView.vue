@@ -84,7 +84,12 @@
               <template #header>
                 <div class="card-header">
                   <span>阅读量趋势</span>
-                  <QyRadioGroup v-model="viewsTrendRange" size="sm" direction="horizontal" @change="loadDailyStats">
+                  <QyRadioGroup
+                    v-model="viewsTrendRange"
+                    size="sm"
+                    direction="horizontal"
+                    @change="loadDailyStats"
+                  >
                     <QyRadio value="7" variant="button">7天</QyRadio>
                     <QyRadio value="30" variant="button">30天</QyRadio>
                     <QyRadio value="90" variant="button">90天</QyRadio>
@@ -139,9 +144,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio } from '@/design-system/components'
+import {
+  QyIcon,
+  QySelect,
+  QyCard,
+  QyRow,
+  QyCol,
+  Skeleton,
+  QyRadioGroup,
+  QyRadio,
+} from '@/design-system/components'
 import { Empty } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
@@ -168,7 +182,7 @@ const books = ref<Array<{ id: string; title: string }>>([])
 
 // 作品选项（用于 QySelect）
 const bookOptions = computed(() =>
-  books.value.map((book) => ({ label: book.title, value: book.id }))
+  books.value.map((book) => ({ label: book.title, value: book.id })),
 )
 
 // 加载作品列表

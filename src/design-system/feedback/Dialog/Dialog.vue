@@ -59,8 +59,9 @@ const dialogClasses = computed(() =>
 // Overlay classes
 const overlayClasses = computed(() =>
   cn(
-    'fixed inset-0 z-[9998] flex items-center justify-center px-4 py-6',
-    props.modal ? 'bg-slate-950/28 backdrop-blur-md' : '',
+    'fixed inset-0 z-[9998] flex justify-center px-4 py-6',
+    props.size === 'full' ? 'items-stretch' : props.center ? 'items-center' : 'items-start pt-20',
+    props.modal ? 'bg-black/30 backdrop-blur-sm' : '',
     props.modalClass,
   ),
 )

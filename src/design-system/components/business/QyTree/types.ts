@@ -29,13 +29,14 @@ export interface TreeProps {
 }
 
 export interface TreeSelectProps {
-  modelValue?: string | number | null
+  modelValue?: string | number | (string | number)[] | null
   data?: TreeNode[]
   placeholder?: string
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
   multiple?: boolean
   clearable?: boolean
+  showCheckbox?: boolean
   nodeKey?: string
   props?: {
     label?: string

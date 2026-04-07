@@ -33,7 +33,9 @@
         <template #default="{ item }">
           <div class="keyword-option">
             <span class="keyword-option__name">{{ item.value }}</span>
-            <span class="keyword-option__meta">{{ item.typeLabel }} · {{ item.matchModeLabel }}</span>
+            <span class="keyword-option__meta"
+              >{{ item.typeLabel }} · {{ item.matchModeLabel }}</span
+            >
           </div>
         </template>
       </el-autocomplete>
@@ -42,11 +44,7 @@
     <!-- 4. VSCode风格目录树 -->
     <div class="explorer-header" @click="isTreeExpanded = !isTreeExpanded">
       <div class="explorer-title">
-        <QyIcon
-          name="ArrowRight"
-          :size="14"
-          :class="chevronClass"
-        />
+        <QyIcon name="ArrowRight" :size="14" :class="chevronClass" />
         <span>目录</span>
         <span class="section-count">{{ displayChapters.length }}</span>
       </div>
@@ -83,7 +81,13 @@
           @click="handleRowMainClick(row)"
         >
           <QyIcon
-            :name="row.chapter.nodeType === 'directory' ? (isDirectoryCollapsed(row.chapter.id) ? 'Folder' : 'FolderOpened') : 'DocumentCopy'"
+            :name="
+              row.chapter.nodeType === 'directory'
+                ? isDirectoryCollapsed(row.chapter.id)
+                  ? 'Folder'
+                  : 'FolderOpened'
+                : 'DocumentCopy'
+            "
             :size="14"
             class="item-file-icon"
           />
@@ -122,7 +126,11 @@
           <QyIcon
             name="ArrowRight"
             :size="12"
-            :class="isDirectoryCollapsed(row.chapter.id) ? 'directory-triangle is-collapsed' : 'directory-triangle'"
+            :class="
+              isDirectoryCollapsed(row.chapter.id)
+                ? 'directory-triangle is-collapsed'
+                : 'directory-triangle'
+            "
           />
         </QyGhostButton>
 
@@ -140,12 +148,7 @@
       </div>
 
       <!-- 空状态 -->
-      <Empty
-        v-if="visibleRows.length === 0"
-        description="暂无章节"
-        size="sm"
-        class="list-empty"
-      />
+      <Empty v-if="visibleRows.length === 0" description="暂无章节" size="sm" class="list-empty" />
     </div>
   </div>
 </template>
@@ -153,7 +156,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { QyGhostButton, QyIcon, QyDropdown } from '@/design-system/components'
-import { Empty, Card } from '@/design-system/base'
+import { Empty } from '@/design-system/base'
 import type { DropdownItem } from '@/design-system/components'
 import { messageBox } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
@@ -228,7 +231,9 @@ const isTreeExpanded = ref(true)
 const writerStore = useWriterStore()
 const collapsedDirectoryIds = ref<Set<string>>(new Set())
 let suggestionTimer: ReturnType<typeof setTimeout> | null = null
-const chevronClass = computed(() => (isTreeExpanded.value ? 'tree-chevron expanded' : 'tree-chevron'))
+const chevronClass = computed(() =>
+  isTreeExpanded.value ? 'tree-chevron expanded' : 'tree-chevron',
+)
 
 // 双向绑定代理
 const internalProjectId = computed({
@@ -314,9 +319,7 @@ const fetchKeywordSuggestions = async (
     }))
 
     const localChapters: KeywordSuggestion[] = displayChapters.value
-      .filter((chapter) =>
-        getDisplayTitle(chapter).toLowerCase().includes(query.toLowerCase()),
-      )
+      .filter((chapter) => getDisplayTitle(chapter).toLowerCase().includes(query.toLowerCase()))
       .slice(0, 8)
       .map((chapter) => ({
         value: getDisplayTitle(chapter),

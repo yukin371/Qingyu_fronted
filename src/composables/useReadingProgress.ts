@@ -9,7 +9,7 @@
  * - 忽略<1%的进度变化
  */
 
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, getCurrentInstance, onMounted, onUnmounted } from 'vue'
 import { useDebounce } from './useDebounce'
 import { useStorage } from './useStorage'
 
@@ -41,12 +41,20 @@ export function useReadingProgress(options: ReadingProgressOptions) {
     bookId,
     chapterId,
     autoSave = true,
-    saveInterval = 3000 // 默认3秒
+    saveInterval = 3000, // 默认3秒
   } = options
 
   // 响应式状态
-  const currentProgress = ref(0)
+  const currentProgressValue = ref(0)
   const currentScrollY = ref(0)
+  const normalizeProgress = (value: number) => Math.max(0, Math.min(100, value))
+
+  const currentProgress = computed({
+    get: () => currentProgressValue.value,
+    set: (value: number) => {
+      currentProgressValue.value = normalizeProgress(value)
+    },
+  })
 
   // Storage key
   const storageKey = `reading-progress:${bookId}:${chapterId}`
@@ -55,15 +63,15 @@ export function useReadingProgress(options: ReadingProgressOptions) {
   const storage = useStorage<ReadingProgressData>(storageKey, {
     progress: 0,
     scrollY: 0,
-    timestamp: Date.now(),
-    chapterId
+    timestamp: -1,
+    chapterId,
   })
 
   // 加载进度
   const loadProgress = (): ReadingProgressData | null => {
     storage.load()
     const data = storage.data.value
-    if (data && data.timestamp > 0) {
+    if (data && data.timestamp >= 0) {
       currentProgress.value = data.progress
       currentScrollY.value = data.scrollY
       return data
@@ -72,34 +80,37 @@ export function useReadingProgress(options: ReadingProgressOptions) {
   }
 
   // T3.4: 使用useDebounce创建防抖保存函数
-  const { debouncedFn: saveProgressDebounced, flush } = useDebounce((progress: number, scrollY: number) => {
-    if (!autoSave) return
+  const { debouncedFn: saveProgressDebounced, flush } = useDebounce(
+    (progress: number, scrollY: number) => {
+      if (!autoSave) return
 
-    // P1优化：检查变化是否有意义（<1%忽略）
-    const last = loadProgress()
-    if (last && Math.abs(last.progress - progress) < 1) {
-      return
-    }
+      // P1优化：检查变化是否有意义（<1%忽略）
+      const last = loadProgress()
+      if (last && Math.abs(last.progress - progress) < 1) {
+        return
+      }
 
-    // 限制范围
-    const normalizedProgress = Math.max(0, Math.min(100, progress))
+      // 限制范围
+      const normalizedProgress = normalizeProgress(progress)
 
-    // 更新状态
-    const data: ReadingProgressData = {
-      progress: normalizedProgress,
-      scrollY,
-      timestamp: Date.now(),
-      chapterId
-    }
+      // 更新状态
+      const data: ReadingProgressData = {
+        progress: normalizedProgress,
+        scrollY,
+        timestamp: Date.now(),
+        chapterId,
+      }
 
-    // 保存到storage
-    storage.data.value = data
-    storage.save()
+      // 保存到storage
+      storage.data.value = data
+      storage.save()
 
-    // 更新响应式状态
-    currentProgress.value = normalizedProgress
-    currentScrollY.value = scrollY
-  }, 1000) // 防抖延迟1秒
+      // 更新响应式状态
+      currentProgress.value = normalizedProgress
+      currentScrollY.value = scrollY
+    },
+    saveInterval,
+  )
 
   // 对外暴露的保存进度函数
   const saveProgress = (progress?: number, scrollY?: number) => {
@@ -136,29 +147,31 @@ export function useReadingProgress(options: ReadingProgressOptions) {
   }
 
   // 生命周期管理
-  onMounted(() => {
-    // 加载已保存的进度
-    loadProgress()
+  if (getCurrentInstance()) {
+    onMounted(() => {
+      // 加载已保存的进度
+      loadProgress()
 
-    // 启动自动保存
-    if (autoSave) {
-      startAutoSave()
-    }
+      // 启动自动保存
+      if (autoSave) {
+        startAutoSave()
+      }
 
-    // 监听页面关闭事件
-    window.addEventListener('beforeunload', handleBeforeUnload)
-  })
+      // 监听页面关闭事件
+      window.addEventListener('beforeunload', handleBeforeUnload)
+    })
 
-  onUnmounted(() => {
-    // 组件卸载前保存进度
-    flush()
+    onUnmounted(() => {
+      // 组件卸载前保存进度
+      flush()
 
-    // 停止自动保存
-    stopAutoSave()
+      // 停止自动保存
+      stopAutoSave()
 
-    // 移除事件监听
-    window.removeEventListener('beforeunload', handleBeforeUnload)
-  })
+      // 移除事件监听
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    })
+  }
 
   return {
     currentProgress,
@@ -167,6 +180,6 @@ export function useReadingProgress(options: ReadingProgressOptions) {
     loadProgress,
     startAutoSave,
     stopAutoSave,
-    flush
+    flush,
   }
 }

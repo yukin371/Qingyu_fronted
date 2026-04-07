@@ -29,7 +29,7 @@ describe('PostDetailView', () => {
       const wrapper = mount(PostDetailView)
 
       // Assert
-      expect(wrapper.find('.el-empty').exists()).toBe(true)
+      expect(wrapper.text()).toContain('动态详情页开发中，敬请期待...')
     })
   })
 

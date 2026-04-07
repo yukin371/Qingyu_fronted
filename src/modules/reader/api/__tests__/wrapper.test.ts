@@ -41,14 +41,11 @@ describe('Reader API Wrapper', () => {
 
       const result = await (wrapper as any).getBooks({ page: 1, size: 20 })
 
-      expect(orvalMutator).toHaveBeenCalledWith(
-        {
-          method: 'GET',
-          url: '/api/v1/reader/books',
-          params: { page: 1, size: 20 },
-        } as any,
-        { page: 1, size: 20 } as any,
-      )
+      expect(orvalMutator).toHaveBeenCalledWith({
+        method: 'GET',
+        url: '/api/v1/reader/books',
+        params: { page: 1, size: 20 },
+      } as any)
       expect(result).toBeDefined()
     }, 30000)
 

@@ -13,7 +13,9 @@
               style="width: 200px"
               @change="loadRevenue"
             />
-            <QyButton variant="primary" size="sm" @click="showWithdrawDialog = true"> 申请提现 </QyButton>
+            <QyButton variant="primary" size="sm" @click="showWithdrawDialog = true">
+              申请提现
+            </QyButton>
           </div>
         </div>
         <p class="mt-2 text-sm text-slate-500">
@@ -36,7 +38,7 @@
                 <div class="revenue-label">总收入</div>
               </div>
             </div>
-          </QyCard>
+          </Card>
 
           <Card class="revenue-card">
             <div class="revenue-item">
@@ -48,7 +50,7 @@
                 <div class="revenue-label">今日收入</div>
               </div>
             </div>
-          </QyCard>
+          </Card>
 
           <Card class="revenue-card">
             <div class="revenue-item">
@@ -60,7 +62,7 @@
                 <div class="revenue-label">可提现余额</div>
               </div>
             </div>
-          </QyCard>
+          </Card>
 
           <Card class="revenue-card">
             <div class="revenue-item">
@@ -82,7 +84,12 @@
               <template #header>
                 <div class="card-header">
                   <span>收入趋势</span>
-                  <QyRadioGroup v-model="trendRange" size="sm" direction="horizontal" @change="loadRevenueTrend">
+                  <QyRadioGroup
+                    v-model="trendRange"
+                    size="sm"
+                    direction="horizontal"
+                    @change="loadRevenueTrend"
+                  >
                     <QyRadio value="7" variant="button">7天</QyRadio>
                     <QyRadio value="30" variant="button">30天</QyRadio>
                     <QyRadio value="90" variant="button">90天</QyRadio>
@@ -106,37 +113,47 @@
         <!-- 章节收入排行 -->
         <Card class="ranking-card" padding="none">
           <template #header>
-            <span style="padding: 14px 18px 12px; display: inline-block;">章节收入排行 TOP 10</span>
+            <span style="padding: 14px 18px 12px; display: inline-block">章节收入排行 TOP 10</span>
           </template>
-          <el-table :data="chapterRanking" stripe :header-cell-style="{ textAlign: 'center' }" :cell-style="{ textAlign: 'center' }">
+          <el-table
+            :data="chapterRanking"
+            stripe
+            :header-cell-style="{ textAlign: 'center' }"
+            :cell-style="{ textAlign: 'center' }"
+          >
             <el-table-column type="index" label="排名" width="80" />
             <el-table-column prop="chapterTitle" label="章节名称" min-width="200" />
-            <el-table-column prop="views" label="阅读量" width="120" >
+            <el-table-column prop="views" label="阅读量" width="120">
               <template #default="{ row }">
                 {{ formatNumber(row.views) }}
               </template>
             </el-table-column>
-            <el-table-column prop="subscriptions" label="订阅数" width="120" >
+            <el-table-column prop="subscriptions" label="订阅数" width="120">
               <template #default="{ row }">
                 {{ formatNumber(row.subscriptions) }}
               </template>
             </el-table-column>
-            <el-table-column prop="revenue" label="收入金额" width="150" >
+            <el-table-column prop="revenue" label="收入金额" width="150">
               <template #default="{ row }">
                 <span class="revenue-amount">¥ {{ formatAmount(row.revenue) }}</span>
               </template>
             </el-table-column>
           </el-table>
-        </QyCard>
+        </Card>
 
         <!-- 提现记录 -->
-        <QyCard class="withdrawal-card" padding="none">
+        <Card class="withdrawal-card" padding="none">
           <template #header>
-            <span style="padding: 14px 18px 12px; display: inline-block;">提现记录</span>
+            <span style="padding: 14px 18px 12px; display: inline-block">提现记录</span>
           </template>
-          <el-table :data="withdrawalRecords" stripe :header-cell-style="{ textAlign: 'center' }" :cell-style="{ textAlign: 'center' }">
+          <el-table
+            :data="withdrawalRecords"
+            stripe
+            :header-cell-style="{ textAlign: 'center' }"
+            :cell-style="{ textAlign: 'center' }"
+          >
             <el-table-column prop="applyTime" label="申请时间" width="180" />
-            <el-table-column prop="amount" label="提现金额" width="150" >
+            <el-table-column prop="amount" label="提现金额" width="150">
               <template #default="{ row }"> ¥ {{ formatAmount(row.amount) }} </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="120">
@@ -149,7 +166,7 @@
             <el-table-column prop="processTime" label="处理时间" width="180" />
             <el-table-column prop="remark" label="备注" min-width="200" />
           </el-table>
-        </QyCard>
+        </Card>
       </div>
 
       <!-- 提现对话框 -->
@@ -163,7 +180,7 @@
       >
         <QyForm
           ref="withdrawFormRef"
-          :model="withdrawForm"
+          v-model="withdrawForm"
           :rules="withdrawRules"
           label-width="100px"
         >
@@ -171,11 +188,7 @@
             <div class="balance-info">¥ {{ formatAmount(revenueStats.availableBalance) }}</div>
           </QyFormItem>
           <QyFormItem label="提现金额" prop="amount">
-            <Input
-              v-model="withdrawForm.amount"
-              placeholder="请输入提现金额"
-              type="number"
-            >
+            <Input v-model="withdrawForm.amount" placeholder="请输入提现金额" type="number">
               <template #prefix>¥</template>
             </Input>
           </QyFormItem>
@@ -190,11 +203,7 @@
             <Input v-model="withdrawForm.account" placeholder="请输入收款账号" />
           </QyFormItem>
           <QyFormItem label="备注">
-            <Textarea
-              v-model="withdrawForm.remark"
-              :rows="3"
-              placeholder="可选填写备注信息"
-            />
+            <Textarea v-model="withdrawForm.remark" :rows="3" placeholder="可选填写备注信息" />
           </QyFormItem>
         </QyForm>
         <template #footer>
@@ -211,8 +220,21 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, reactive, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
-import { QyIcon, QySelect, QyButton, QyDialog, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio, QyForm, QyFormItem, QyInput } from '@/design-system/components'
+import {
+  QyIcon,
+  QySelect,
+  QyButton,
+  QyDialog,
+  QyRow,
+  QyCol,
+  Skeleton,
+  QyRadioGroup,
+  QyRadio,
+  QyForm,
+  QyFormItem,
+} from '@/design-system/components'
 import { Tag, type TagVariant, Textarea, Card, Input } from '@/design-system/base'
+import type { QyValidationRule } from '@/design-system/components/advanced/QyForm/types'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
@@ -302,10 +324,13 @@ const withdrawMethodOptions = computed(() => [
   { label: '银行卡', value: 'bank' },
 ])
 
-const withdrawRules = {
+const withdrawRules: Record<string, QyValidationRule[]> = {
   amount: [
     { required: true, message: '请输入提现金额', trigger: 'blur' },
-    { type: 'number', min: 1, message: '提现金额必须大于0', trigger: 'blur' },
+    {
+      trigger: 'blur',
+      validator: (_, value) => (typeof value === 'number' && value >= 1) || '提现金额必须大于0',
+    },
   ],
   method: [{ required: true, message: '请选择提现方式', trigger: 'change' }],
   account: [{ required: true, message: '请输入收款账号', trigger: 'blur' }],

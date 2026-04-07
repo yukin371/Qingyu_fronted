@@ -100,13 +100,10 @@ describe('PostCard', () => {
       type: 'text',
       content: '这是一个测试动态',
       images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-      topics: [
-        { id: 'topic_1', name: '玄幻' },
-        { id: 'topic_2', name: '仙侠' },
-      ],
-      likesCount: 10,
-      commentsCount: 5,
-      sharesCount: 2,
+      topics: ['玄幻', '仙侠'],
+      likeCount: 10,
+      commentCount: 5,
+      shareCount: 2,
       bookmarksCount: 1,
       isLiked: false,
       isBookmarked: false,
@@ -500,7 +497,7 @@ describe('PostCard', () => {
     it('should handle post with no likes', () => {
       // Arrange
       const post = createTestPost({
-        likesCount: 0,
+        likeCount: 0,
       })
 
       // Act
@@ -516,7 +513,7 @@ describe('PostCard', () => {
     it('should handle post with no comments', () => {
       // Arrange
       const post = createTestPost({
-        commentsCount: 0,
+        commentCount: 0,
       })
 
       // Act

@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div class="outline-header">
       <div class="header-left">
-        <el-icon class="header-icon"><QyIcon name="List"  /></el-icon>
+        <el-icon class="header-icon"><QyIcon name="List" /></el-icon>
         <span class="header-title">大纲</span>
       </div>
       <div class="header-actions">
@@ -25,11 +25,7 @@
             思维导图
           </QyButton>
         </QyButtonGroup>
-        <QyButton
-          variant="primary"
-          size="small"
-          @click="handleAddNode"
-        >
+        <QyButton variant="primary" size="small" @click="handleAddNode">
           <QyIcon name="Plus" />
           添加节点
         </QyButton>
@@ -65,18 +61,10 @@
                     <span v-if="data.wordCount" class="word-count">{{ data.wordCount }}字</span>
                   </div>
                   <div class="node-actions">
-                    <QyButton
-                      variant="ghost"
-                      size="small"
-                      @click.stop="handleEditNode(data)"
-                    >
+                    <QyButton variant="ghost" size="small" @click.stop="handleEditNode(data)">
                       <QyIcon name="Edit" />
                     </QyButton>
-                    <QyButton
-                      variant="ghost"
-                      size="small"
-                      @click.stop="handleDeleteNode(data)"
-                    >
+                    <QyButton variant="ghost" size="small" @click.stop="handleDeleteNode(data)">
                       <QyIcon name="Delete" />
                     </QyButton>
                   </div>
@@ -113,12 +101,8 @@
               <p>{{ selectedNode.description || '暂无描述' }}</p>
             </div>
             <div class="detail-actions">
-              <QyButton variant="primary" @click="handleEditNode(selectedNode)">
-                编辑
-              </QyButton>
-              <QyButton @click="handleJumpToChapter(selectedNode)">
-                跳转到章节
-              </QyButton>
+              <QyButton variant="primary" @click="handleEditNode(selectedNode)"> 编辑 </QyButton>
+              <QyButton @click="handleJumpToChapter(selectedNode)"> 跳转到章节 </QyButton>
             </div>
           </div>
         </div>
@@ -143,12 +127,7 @@
       width="600px"
       :close-on-click-modal="false"
     >
-      <QyForm
-        ref="formRef"
-        :model="nodeForm"
-        :rules="formRules"
-        label-width="100px"
-      >
+      <QyForm ref="formRef" :model="nodeForm" :rules="formRules" label-width="100px">
         <QyFormItem label="节点标题" prop="title">
           <Input v-model="nodeForm.title" placeholder="请输入节点标题" />
         </QyFormItem>
@@ -177,30 +156,39 @@
           </QySelect>
         </QyFormItem>
         <QyFormItem label="描述">
-          <Textarea
-            v-model="nodeForm.description"
-            :rows="4"
-            placeholder="请输入节点描述"
-          />
+          <Textarea v-model="nodeForm.description" :rows="4" placeholder="请输入节点描述" />
         </QyFormItem>
       </QyForm>
       <template #footer>
         <QyButton @click="dialogVisible = false">取消</QyButton>
-        <QyButton variant="primary" @click="handleSubmit" :loading="submitting">
-          确定
-        </QyButton>
+        <QyButton variant="primary" @click="handleSubmit" :loading="submitting"> 确定 </QyButton>
       </template>
     </QyDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck - 遗留未接入页面，等待统一迁移到当前 writer 设计系统后再恢复严格类型检查
 import { ref, computed, onMounted } from 'vue'
 import { useWriterStore } from '../stores/writerStore'
 import type { OutlineNode } from '@/types/writer'
 import DrawCanvas from '@/shared/components/draw/DrawCanvas.vue'
 import type { DrawNode, DrawEngineConfig } from '@/core/draw-engine/types'
-import { QyIcon, QyButton, QyButtonGroup, QyScrollbar, QyTree, QyDescriptions, QyDescriptionsItem, QyDialog, QyForm, QyFormItem, QyInput, QySelect, QyTreeSelect } from '@/design-system/components'
+import {
+  QyIcon,
+  QyButton,
+  QyButtonGroup,
+  QyScrollbar,
+  QyTree,
+  QyDescriptions,
+  QyDescriptionsItem,
+  QyDialog,
+  QyForm,
+  QyFormItem,
+  QyInput,
+  QySelect,
+  QyTreeSelect,
+} from '@/design-system/components'
 import { Tag, Textarea, Input } from '@/design-system/base'
 import { message, messageBox } from '@/design-system/services'
 const writerStore = useWriterStore()
@@ -217,16 +205,12 @@ const nodeForm = ref({
   parentId: '',
   status: 'draft' as 'draft' | 'writing' | 'completed' | 'reviewing',
   description: '',
-  order: 0
+  order: 0,
 })
 
 const formRules = {
-  title: [
-    { required: true, message: '请输入节点标题', trigger: 'blur' }
-  ],
-  level: [
-    { required: true, message: '请选择层级', trigger: 'change' }
-  ]
+  title: [{ required: true, message: '请输入节点标题', trigger: 'blur' }],
+  level: [{ required: true, message: '请选择层级', trigger: 'change' }],
 }
 
 const outlineTree = computed(() => writerStore.outline.tree)
@@ -240,7 +224,7 @@ const mindmapConfig = ref<DrawEngineConfig>({
   enableHistory: true,
   directions: 'TB',
   defaultNodeWidth: 140,
-  defaultNodeHeight: 70
+  defaultNodeHeight: 70,
 })
 
 // 将大纲树转换为思维导图节点
@@ -256,15 +240,15 @@ const mindmapNodes = computed((): DrawNode[] => {
       x: level * 300,
       y: nodes.length * 100,
       width: 150,
-      height: 60
+      height: 60,
     })
 
     if (item.children && item.children.length > 0) {
-      item.children.forEach(child => traverse(child, level + 1))
+      item.children.forEach((child) => traverse(child, level + 1))
     }
   }
 
-  outlineTree.value.forEach(root => traverse(root, 0))
+  outlineTree.value.forEach((root) => traverse(root, 0))
   return nodes
 })
 
@@ -275,25 +259,25 @@ const mindmapEdges = computed(() => {
   const edges: Array<{ fromNodeId: string; toNodeId: string; label?: string }> = []
   const traverse = (item: OutlineNode) => {
     if (item.children && item.children.length > 0) {
-      item.children.forEach(child => {
+      item.children.forEach((child) => {
         edges.push({
           fromNodeId: item.id,
           toNodeId: child.id,
-          label: ''
+          label: '',
         })
         traverse(child)
       })
     }
   }
 
-  outlineTree.value.forEach(root => traverse(root))
+  outlineTree.value.forEach((root) => traverse(root))
   return edges
 })
 
 // 组合数据供 DrawCanvas 使用
 const mindmapData = computed(() => ({
   nodes: mindmapNodes.value,
-  edges: mindmapEdges.value
+  edges: mindmapEdges.value,
 }))
 
 onMounted(async () => {
@@ -319,7 +303,7 @@ const handleEditNode = (node: OutlineNode) => {
   // 帮助函数：将 status 字符串转换为正确的类型
   const toStatusType = (st?: string): 'draft' | 'writing' | 'completed' | 'reviewing' => {
     const validStatuses = ['draft', 'writing', 'completed', 'reviewing'] as const
-    if (st && validStatuses.includes(st as any)) return st as typeof validStatuses[number]
+    if (st && validStatuses.includes(st as any)) return st as (typeof validStatuses)[number]
     return 'draft'
   }
   nodeForm.value = {
@@ -328,21 +312,17 @@ const handleEditNode = (node: OutlineNode) => {
     parentId: node.parentId || '',
     status: toStatusType(node.status),
     description: node.description || '',
-    order: node.order
+    order: node.order,
   }
 }
 
 const handleDeleteNode = async (node: OutlineNode) => {
   try {
-    await messageBox.confirm(
-      `确定要删除节点"${node.title}"吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
+    await messageBox.confirm(`确定要删除节点"${node.title}"吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
 
     const projectId = writerStore.currentProjectId
     if (!projectId) return
@@ -389,7 +369,7 @@ const handleSubmit = async () => {
         // 创建节点
         await writerStore.createOutlineNode(projectId, {
           ...nodeForm.value,
-          order: outlineTree.value.length
+          order: outlineTree.value.length,
         })
       }
 
@@ -435,7 +415,7 @@ const resetForm = () => {
     parentId: '',
     status: 'draft',
     description: '',
-    order: outlineTree.value.length
+    order: outlineTree.value.length,
   }
 }
 
@@ -443,7 +423,7 @@ const getLevelText = (level: number): string => {
   const levelMap: Record<number, string> = {
     1: '章节',
     2: '小节',
-    3: '段落'
+    3: '段落',
   }
   return levelMap[level] || '未知'
 }
@@ -453,7 +433,7 @@ const getStatusText = (status: string): string => {
     draft: '草稿',
     writing: '写作中',
     completed: '已完成',
-    reviewing: '审阅中'
+    reviewing: '审阅中',
   }
   return statusMap[status] || status
 }
@@ -463,7 +443,7 @@ const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger
     draft: 'info',
     writing: 'warning',
     completed: 'success',
-    reviewing: 'warning'
+    reviewing: 'warning',
   }
   return typeMap[status] || 'info'
 }
@@ -723,9 +703,3 @@ const getStatusType = (status: string): 'info' | 'warning' | 'success' | 'danger
   }
 }
 </style>
-
-
-
-
-
-

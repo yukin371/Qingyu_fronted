@@ -13,11 +13,7 @@ import { useProjectStore } from '@/modules/writer/stores/projectStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { useEditorStore, type ActiveTool } from '@/modules/writer/stores/editorStore'
 import { DocumentType, type Document } from '@/modules/writer/types/document'
-import type {
-  SidebarProjectSummary,
-  SidebarChapterSummary,
-  MockProjectData,
-} from './types'
+import type { SidebarProjectSummary, SidebarChapterSummary, MockProjectData } from './types'
 
 // 重新导出类型以保持向后兼容
 export type { SidebarProjectSummary, SidebarChapterSummary, MockProjectData }
@@ -105,10 +101,7 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
 
   /** 当前项目 ID (双向绑定) */
   const currentProjectId = computed({
-    get: () =>
-      projectIdProp ||
-      projectStore.currentProjectId ||
-      (route.params.projectId as string),
+    get: () => projectIdProp || projectStore.currentProjectId || (route.params.projectId as string),
     set: (id) => {
       if (id) {
         projectStore.loadDetail(id)
@@ -119,22 +112,14 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
 
   /** 当前章节 ID (双向绑定) */
   const currentChapterId = computed({
-    get: () =>
-      (route.query.chapterId as string) ||
-      documentStore.currentDocMeta?.id ||
-      '',
+    get: () => (route.query.chapterId as string) || documentStore.currentDocMeta?.id || '',
     set: async (id) => {
-      console.log('[useWorkspaceState] currentChapterId setter called with:', id)
       if (!id) return
       const selectedDoc = availableDocMap.value.get(id)
       if (selectedDoc) {
-        console.log('[useWorkspaceState] 选择文档:', selectedDoc.title)
         await documentStore.selectDocument(selectedDoc)
       }
-      // 加载文档内容而不是仅设置ID
-      console.log('[useWorkspaceState] 开始加载文档内容')
       await editorStore.loadDocument(id)
-      console.log('[useWorkspaceState] 文档内容加载完成')
     },
   })
 
@@ -151,9 +136,7 @@ export function useWorkspaceState(options: UseWorkspaceStateOptions): UseWorkspa
       wordCount: Number(p.wordCount ?? p.totalWords ?? 0),
       chapterCount: Number(p.chapterCount ?? 0),
       updatedAt:
-        (p.updatedAt as string) ||
-        (p.lastUpdateTime as string) ||
-        new Date().toISOString(),
+        (p.updatedAt as string) || (p.lastUpdateTime as string) || new Date().toISOString(),
     }))
 
     const mock = mockProject.value?.project

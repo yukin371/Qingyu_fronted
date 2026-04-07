@@ -87,14 +87,10 @@
           <label>字体</label>
           <QySelect
             v-model="localFontFamily"
+            :options="fontFamilyOptions"
             placeholder="选择字体"
             data-testid="font-family-select"
-          >
-            <el-option label="系统默认" value="system-ui, -apple-system, sans-serif" />
-            <el-option label="宋体" value="SimSun, serif" />
-            <el-option label="黑体" value="SimHei, sans-serif" />
-            <el-option label="楷体" value="KaiTi, serif" />
-          </QySelect>
+          />
         </div>
 
         <!-- 翻页模式 -->
@@ -152,6 +148,13 @@ const localFontFamily = computed({
   get: () => props.settings.fontFamily,
   set: (value: string) => emit('update:font-family', value),
 })
+
+const fontFamilyOptions = [
+  { label: '系统默认', value: 'system-ui, -apple-system, sans-serif' },
+  { label: '宋体', value: 'SimSun, serif' },
+  { label: '黑体', value: 'SimHei, sans-serif' },
+  { label: '楷体', value: 'KaiTi, serif' },
+]
 
 const localPageMode = computed({
   get: () => props.settings.pageMode,

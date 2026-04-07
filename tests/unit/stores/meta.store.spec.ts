@@ -15,26 +15,30 @@ describe('MetaStore', () => {
     it('should fetch categories on first call', async () => {
       const mockCategories = [
         { _id: '1', name: '玄幻' },
-        { _id: '2', name: '都市' }
+        { _id: '2', name: '都市' },
+      ]
+      const expectedCategories = [
+        { _id: '1', id: '1', name: '玄幻', children: [] },
+        { _id: '2', id: '2', name: '都市', children: [] },
       ]
 
       vi.mocked(browseService.getCategories).mockResolvedValue({
-        data: mockCategories
+        data: mockCategories,
       })
 
       const store = useMetaStore()
       const result = await store.getCategories()
 
       expect(browseService.getCategories).toHaveBeenCalledTimes(1)
-      expect(result).toEqual(mockCategories)
-      expect(store.categories).toEqual(mockCategories)
+      expect(result).toEqual(expectedCategories)
+      expect(store.categories).toEqual(expectedCategories)
     })
 
     it('should return cached categories on subsequent calls', async () => {
       const mockCategories = [{ _id: '1', name: '玄幻' }]
 
       vi.mocked(browseService.getCategories).mockResolvedValue({
-        data: mockCategories
+        data: mockCategories,
       })
 
       const store = useMetaStore()
@@ -47,7 +51,7 @@ describe('MetaStore', () => {
 
     it('should force refresh when force=true', async () => {
       vi.mocked(browseService.getCategories).mockResolvedValue({
-        data: [{ _id: '1', name: '玄幻' }]
+        data: [{ _id: '1', name: '玄幻' }],
       })
 
       const store = useMetaStore()
@@ -75,7 +79,7 @@ describe('MetaStore', () => {
       const mockYears = ['2024', '2023', '2022']
 
       vi.mocked(browseService.getYears).mockResolvedValue({
-        data: mockYears
+        data: mockYears,
       })
 
       const store = useMetaStore()
@@ -90,7 +94,7 @@ describe('MetaStore', () => {
       const mockYears = ['2024', '2023']
 
       vi.mocked(browseService.getYears).mockResolvedValue({
-        data: mockYears
+        data: mockYears,
       })
 
       const store = useMetaStore()
@@ -103,7 +107,7 @@ describe('MetaStore', () => {
 
     it('should force refresh when force=true', async () => {
       vi.mocked(browseService.getYears).mockResolvedValue({
-        data: ['2024']
+        data: ['2024'],
       })
 
       const store = useMetaStore()
@@ -131,7 +135,7 @@ describe('MetaStore', () => {
       const mockTags = ['热血', '穿越', '系统']
 
       vi.mocked(browseService.getTags).mockResolvedValue({
-        data: mockTags
+        data: mockTags,
       })
 
       const store = useMetaStore()
@@ -144,7 +148,7 @@ describe('MetaStore', () => {
 
     it('should pass categoryId to service when provided', async () => {
       vi.mocked(browseService.getTags).mockResolvedValue({
-        data: ['玄幻']
+        data: ['玄幻'],
       })
 
       const store = useMetaStore()
@@ -158,7 +162,7 @@ describe('MetaStore', () => {
       const mockTags = ['热血', '穿越']
 
       vi.mocked(browseService.getTags).mockResolvedValue({
-        data: mockTags
+        data: mockTags,
       })
 
       const store = useMetaStore()
@@ -171,7 +175,7 @@ describe('MetaStore', () => {
 
     it('should force refresh when force=true', async () => {
       vi.mocked(browseService.getTags).mockResolvedValue({
-        data: ['热血']
+        data: ['热血'],
       })
 
       const store = useMetaStore()

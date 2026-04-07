@@ -26,9 +26,7 @@
               :style="{ transform: `rotate(${index * 5}deg) translateY(${index * 2}px)` }"
             />
           </div>
-          <div class="cover-badge">
-            {{ booklist.bookCount }}本书
-          </div>
+          <div class="cover-badge">{{ booklist.bookCount }}本书</div>
         </div>
 
         <!-- 内容区域 -->
@@ -60,12 +58,7 @@
 
           <!-- 标签 -->
           <div v-if="booklist.tags?.length" class="booklist-tags">
-            <el-tag
-              v-for="tag in booklist.tags.slice(0, 3)"
-              :key="tag"
-              size="small"
-              type="info"
-            >
+            <el-tag v-for="tag in booklist.tags.slice(0, 3)" :key="tag" size="small" type="info">
               {{ tag }}
             </el-tag>
           </div>
@@ -75,9 +68,7 @@
 
     <!-- 加载更多 -->
     <div v-if="hasMore" class="load-more">
-      <el-button @click="loadMore" :loading="loading">
-        加载更多
-      </el-button>
+      <el-button @click="loadMore" :loading="loading"> 加载更多 </el-button>
     </div>
   </div>
 </template>
@@ -130,34 +121,34 @@ const mockBooklists: Booklist[] = [
         bookId: 'b1',
         title: '三体',
         cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&h=280&fit=crop',
-        author: '刘慈欣'
+        author: '刘慈欣',
       },
       {
         bookId: 'b2',
         title: '沙丘',
         cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop',
-        author: '弗兰克·赫伯特'
+        author: '弗兰克·赫伯特',
       },
       {
         bookId: 'b3',
         title: '银河帝国',
         cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop',
-        author: '阿西莫夫'
-      }
+        author: '阿西莫夫',
+      },
     ],
     bookCount: 20,
     creator: {
       id: 'u1',
       username: 'scififan',
       nickname: '科幻迷小张',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=scifi'
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=scifi',
     },
     viewCount: 12580,
     favoriteCount: 2340,
     isFavorited: false,
     tags: ['科幻', '经典', '太空'],
     createdAt: '2025-01-15T10:00:00Z',
-    updatedAt: '2025-01-15T10:00:00Z'
+    updatedAt: '2025-01-15T10:00:00Z',
   },
   {
     id: 'bl2',
@@ -169,28 +160,28 @@ const mockBooklists: Booklist[] = [
         bookId: 'b4',
         title: '小王子',
         cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
-        author: '圣埃克苏佩里'
+        author: '圣埃克苏佩里',
       },
       {
         bookId: 'b5',
         title: '解忧杂货店',
         cover: 'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=200&h=280&fit=crop',
-        author: '东野圭吾'
-      }
+        author: '东野圭吾',
+      },
     ],
     bookCount: 12,
     creator: {
       id: 'u2',
       username: 'bookhealer',
       nickname: '治愈系书单',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=healer'
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=healer',
     },
     viewCount: 8960,
     favoriteCount: 1560,
     isFavorited: true,
     tags: ['治愈', '心理', '成长'],
     createdAt: '2025-01-20T14:30:00Z',
-    updatedAt: '2025-01-20T14:30:00Z'
+    updatedAt: '2025-01-20T14:30:00Z',
   },
   {
     id: 'bl3',
@@ -202,28 +193,28 @@ const mockBooklists: Booklist[] = [
         bookId: 'b6',
         title: '白夜行',
         cover: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=200&h=280&fit=crop',
-        author: '东野圭吾'
+        author: '东野圭吾',
       },
       {
         bookId: 'b7',
         title: '嫌疑人X的献身',
         cover: 'https://images.unsplash.com/photo-1495631342678-477851d94a5c?w=200&h=280&fit=crop',
-        author: '东野圭吾'
-      }
+        author: '东野圭吾',
+      },
     ],
     bookCount: 15,
     creator: {
       id: 'u3',
       username: 'detective',
       nickname: '推理达人',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=detective'
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=detective',
     },
     viewCount: 15620,
     favoriteCount: 3120,
     isFavorited: false,
     tags: ['推理', '悬疑', '烧脑'],
     createdAt: '2025-01-10T09:00:00Z',
-    updatedAt: '2025-01-10T09:00:00Z'
+    updatedAt: '2025-01-10T09:00:00Z',
   },
   {
     id: 'bl4',
@@ -235,23 +226,23 @@ const mockBooklists: Booklist[] = [
         bookId: 'b8',
         title: '万历十五年',
         cover: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200&h=280&fit=crop',
-        author: '黄仁宇'
-      }
+        author: '黄仁宇',
+      },
     ],
     bookCount: 18,
     creator: {
       id: 'u4',
       username: 'historian',
       nickname: '历史爱好者',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=history'
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=history',
     },
     viewCount: 9230,
     favoriteCount: 1780,
     isFavorited: false,
     tags: ['历史', '人文', '经典'],
     createdAt: '2025-01-25T16:20:00Z',
-    updatedAt: '2025-01-25T16:20:00Z'
-  }
+    updatedAt: '2025-01-25T16:20:00Z',
+  },
 ]
 
 const route = useRoute()
@@ -260,7 +251,6 @@ const isTestMode = computed(() => route.query.test === 'true')
 const booklists = ref<Booklist[]>([])
 const loading = ref(false)
 const hasMore = ref(false)
-const error = ref(false)
 
 onMounted(async () => {
   if (isTestMode.value) {

@@ -8,7 +8,7 @@
  * - 边缘区域检测避免冲突（iOS左滑返回）
  */
 
-import { ref, onMounted, onUnmounted, type Ref } from 'vue'
+import { ref, getCurrentInstance, onMounted, onUnmounted, type Ref } from 'vue'
 
 /**
  * 手势回调函数
@@ -29,22 +29,29 @@ export interface ReaderGestureOptions {
   preventDefault?: boolean // 是否阻止默认行为
 }
 
+export type ReaderGestureConfig = ReaderGestureCallbacks & ReaderGestureOptions
+
 /**
  * 阅读器手势Composable
  */
 export function useReaderGestures(
   element: Ref<HTMLElement | undefined>,
-  callbacks: ReaderGestureCallbacks,
-  options: ReaderGestureOptions = {}
+  callbacksOrConfig: ReaderGestureConfig,
+  options: ReaderGestureOptions = {},
 ) {
+  const mergedConfig = {
+    ...callbacksOrConfig,
+    ...options,
+  }
+
   const {
     swipeThreshold = 50,
     longPressDelay = 500,
     edgeThreshold = 20,
-    preventDefault = true
-  } = options
+    preventDefault = true,
+  } = mergedConfig
 
-  const { onSwipeLeft, onSwipeRight, onLongPress } = callbacks
+  const { onSwipeLeft, onSwipeRight, onLongPress } = mergedConfig
 
   // 内部状态
   const startX = ref(0)
@@ -58,7 +65,7 @@ export function useReaderGestures(
    */
   const isEdgeArea = (x: number): boolean => {
     const windowWidth = window.innerWidth
-    return x < edgeThreshold || x > windowWidth - edgeThreshold
+    return x <= edgeThreshold || x >= windowWidth - edgeThreshold
   }
 
   /**
@@ -182,16 +189,18 @@ export function useReaderGestures(
   }
 
   // 生命周期管理
-  onMounted(() => {
-    initGestures()
-  })
+  if (getCurrentInstance()) {
+    onMounted(() => {
+      initGestures()
+    })
 
-  onUnmounted(() => {
-    cleanup()
-  })
+    onUnmounted(() => {
+      cleanup()
+    })
+  }
 
   return {
     initGestures,
-    cleanup
+    cleanup,
   }
 }

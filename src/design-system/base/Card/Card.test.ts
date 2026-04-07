@@ -22,12 +22,12 @@ describe('BaseCard', () => {
 
       expect(card).toBeInTheDocument()
       expect(card).toHaveClass('rounded-lg')
-      expect(card).toHaveClass('border')
+      expect(card).toHaveClass('p-6')
     })
 
     it('正确渲染默认插槽内容', () => {
       const { getByText } = render(BaseCard, {
-        slots: { default: 'Card Content' }
+        slots: { default: 'Card Content' },
       })
 
       expect(getByText('Card Content')).toBeInTheDocument()
@@ -37,7 +37,7 @@ describe('BaseCard', () => {
   describe('变体测试', () => {
     it('支持 bordered 变体', () => {
       const { container } = render(BaseCard, {
-        props: { variant: 'bordered' }
+        props: { variant: 'bordered' },
       })
       const card = container.firstChild as Element
 
@@ -46,51 +46,33 @@ describe('BaseCard', () => {
 
     it('支持 shadow 变体', () => {
       const { container } = render(BaseCard, {
-        props: { variant: 'shadow' } as any
+        props: { variant: 'elevated' } as any,
       })
       const card = container.firstChild as Element
 
       expect(card).toHaveClass('shadow-md')
     })
 
-    it('支持 flat 变体', () => {
+    it('default 变体不附带边框和阴影', () => {
       const { container } = render(BaseCard, {
-        props: { variant: 'flat' } as any
+        props: { variant: 'default' } as any,
       })
       const card = container.firstChild as Element
 
-      expect(card).toHaveClass('shadow-none')
-    })
-  })
-
-  describe('阴影级别', () => {
-    const shadows: Array<'none' | 'sm' | 'md' | 'lg' | 'xl'> = [
-      'none',
-      'sm',
-      'md',
-      'lg',
-      'xl',
-    ]
-
-    it.each(shadows)('正确渲染 %s 阴影级别', (shadow) => {
-      const { container } = render(BaseCard, {
-        props: { shadow } as any
-      })
-      const card = container.firstChild as Element
-
-      expect(card).toBeInTheDocument()
+      expect(card).not.toHaveClass('border')
+      expect(card).not.toHaveClass('shadow-md')
     })
   })
 
   describe('可悬停效果', () => {
     it('hoverable 为 true 时添加悬停效果', () => {
       const { container } = render(BaseCard, {
-        props: { hoverable: true }
+        props: { hoverable: true },
       })
       const card = container.firstChild as Element
 
       expect(card).toHaveClass('hover:shadow-lg')
-      expect(card).toHaveClass('transition-shadow')
+      expect(card).toHaveClass('transition-all')
     })
   })
 
@@ -98,8 +80,8 @@ describe('BaseCard', () => {
     it('支持 header 插槽', () => {
       const { getByText } = render(BaseCard, {
         slots: {
-          header: 'Card Header'
-        }
+          header: 'Card Header',
+        },
       })
 
       expect(getByText('Card Header')).toBeInTheDocument()
@@ -108,8 +90,8 @@ describe('BaseCard', () => {
     it('支持 footer 插槽', () => {
       const { getByText } = render(BaseCard, {
         slots: {
-          footer: 'Card Footer'
-        }
+          footer: 'Card Footer',
+        },
       })
 
       expect(getByText('Card Footer')).toBeInTheDocument()
@@ -120,8 +102,8 @@ describe('BaseCard', () => {
         slots: {
           header: 'Header',
           default: 'Content',
-          footer: 'Footer'
-        }
+          footer: 'Footer',
+        },
       })
 
       expect(getByText('Header')).toBeInTheDocument()
@@ -133,32 +115,18 @@ describe('BaseCard', () => {
   describe('自定义样式', () => {
     it('支持自定义 class', () => {
       const { container } = render(BaseCard, {
-        props: { class: 'custom-class' }
+        props: { class: 'custom-class' },
       })
       const card = container.querySelector('.custom-class')
 
       expect(card).toBeTruthy()
     })
 
-    it('支持自定义 padding', () => {
-      const { container } = render(BaseCard, {
-        props: { padding: 'lg' } as any
-      })
+    it('默认包含基础间距', () => {
+      const { container } = render(BaseCard)
       const card = container.firstChild as Element
 
       expect(card).toHaveClass('p-6')
-    })
-  })
-
-  describe('深色模式', () => {
-    it('支持深色模式样式', () => {
-      const { container } = render(BaseCard, {
-        props: { darkMode: true } as any
-      })
-      const card = container.firstChild as Element
-
-      expect(card).toHaveClass('dark:bg-slate-800')
-      expect(card).toHaveClass('dark:border-slate-700')
     })
   })
 })

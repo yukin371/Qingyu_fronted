@@ -212,10 +212,13 @@ describe('Transfer 组件', () => {
       })
 
       // 模拟左侧选中
-      await wrapper.vm.handleLeftCheckChange([1, 2], [
-        { key: 1, label: '选项 1', disabled: false },
-        { key: 2, label: '选项 2', disabled: false },
-      ])
+      await wrapper.vm.handleLeftCheckChange(
+        [1, 2],
+        [
+          { key: 1, label: '选项 1', disabled: false },
+          { key: 2, label: '选项 2', disabled: false },
+        ],
+      )
 
       // 点击向右移动按钮
       await wrapper.vm.moveToRight()
@@ -233,10 +236,13 @@ describe('Transfer 组件', () => {
       })
 
       // 模拟右侧选中
-      await wrapper.vm.handleRightCheckChange([1, 2], [
-        { key: 1, label: '选项 1', disabled: false },
-        { key: 2, label: '选项 2', disabled: false },
-      ])
+      await wrapper.vm.handleRightCheckChange(
+        [1, 2],
+        [
+          { key: 1, label: '选项 1', disabled: false },
+          { key: 2, label: '选项 2', disabled: false },
+        ],
+      )
 
       // 点击向左移动按钮
       await wrapper.vm.moveToLeft()
@@ -265,9 +271,7 @@ describe('Transfer 组件', () => {
         },
       })
 
-      await wrapper.vm.handleLeftCheckChange([1], [
-        { key: 1, label: '选项 1', disabled: false },
-      ])
+      await wrapper.vm.handleLeftCheckChange([1], [{ key: 1, label: '选项 1', disabled: false }])
 
       expect(wrapper.vm.canMoveRight).toBe(true)
     })
@@ -283,18 +287,12 @@ describe('Transfer 组件', () => {
         },
       })
 
-      await wrapper.vm.handleLeftCheckChange([1], [
-        { key: 1, label: '选项 1', disabled: false },
-      ])
+      await wrapper.vm.handleLeftCheckChange([1], [{ key: 1, label: '选项 1', disabled: false }])
       await wrapper.vm.moveToRight()
 
       const changeEvents = wrapper.emitted('change')
       expect(changeEvents).toBeTruthy()
-      expect(changeEvents![0]).toEqual([
-        [1],
-        'right',
-        [1],
-      ])
+      expect(changeEvents![0]).toEqual([[1], 'right', [1]])
     })
 
     it('应该在左侧选中变化时触发 left-check-change 事件', async () => {
@@ -305,10 +303,13 @@ describe('Transfer 组件', () => {
         },
       })
 
-      await wrapper.vm.handleLeftCheckChange([1, 2], [
-        { key: 1, label: '选项 1', disabled: false },
-        { key: 2, label: '选项 2', disabled: false },
-      ])
+      await wrapper.vm.handleLeftCheckChange(
+        [1, 2],
+        [
+          { key: 1, label: '选项 1', disabled: false },
+          { key: 2, label: '选项 2', disabled: false },
+        ],
+      )
 
       const events = wrapper.emitted('left-check-change')
       expect(events).toBeTruthy()
@@ -329,16 +330,11 @@ describe('Transfer 组件', () => {
         },
       })
 
-      await wrapper.vm.handleRightCheckChange([1], [
-        { key: 1, label: '选项 1', disabled: false },
-      ])
+      await wrapper.vm.handleRightCheckChange([1], [{ key: 1, label: '选项 1', disabled: false }])
 
       const events = wrapper.emitted('right-check-change')
       expect(events).toBeTruthy()
-      expect(events![0]).toEqual([
-        [1],
-        [{ key: 1, label: '选项 1', disabled: false }],
-      ])
+      expect(events![0]).toEqual([[1], [{ key: 1, label: '选项 1', disabled: false }]])
     })
 
     it('应该在值变化时触发 update:modelValue 事件', async () => {
@@ -349,9 +345,7 @@ describe('Transfer 组件', () => {
         },
       })
 
-      await wrapper.vm.handleLeftCheckChange([1], [
-        { key: 1, label: '选项 1', disabled: false },
-      ])
+      await wrapper.vm.handleLeftCheckChange([1], [{ key: 1, label: '选项 1', disabled: false }])
       await wrapper.vm.moveToRight()
 
       const events = wrapper.emitted('update:modelValue')
@@ -584,7 +578,7 @@ describe('TransferPanel 组件', () => {
         props: {
           data: generateData(),
           checkedKeys: [],
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -602,7 +596,7 @@ describe('TransferPanel 组件', () => {
           data: generateData(),
           checkedKeys: [],
           title,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -620,7 +614,7 @@ describe('TransferPanel 组件', () => {
           data: generateData(),
           checkedKeys: [],
           filterable: true,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -645,7 +639,7 @@ describe('TransferPanel 组件', () => {
           data,
           checkedKeys: [],
           filterable: true,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -672,7 +666,7 @@ describe('TransferPanel 组件', () => {
         props: {
           data,
           checkedKeys: [],
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -694,7 +688,7 @@ describe('TransferPanel 组件', () => {
         props: {
           data,
           checkedKeys: [1, 2],
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -716,7 +710,7 @@ describe('TransferItem 组件', () => {
         props: {
           item: { key: 1, label: '选项 1', disabled: false },
           checked: false,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -731,7 +725,7 @@ describe('TransferItem 组件', () => {
         props: {
           item: { key: 1, label: '测试标签', disabled: false },
           checked: false,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -749,7 +743,7 @@ describe('TransferItem 组件', () => {
         props: {
           item: { key: 1, label: '选项 1', disabled: false },
           checked: true,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -765,7 +759,7 @@ describe('TransferItem 组件', () => {
         props: {
           item: { key: 1, label: '选项 1', disabled: false },
           checked: false,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -783,7 +777,7 @@ describe('TransferItem 组件', () => {
         props: {
           item: { key: 1, label: '选项 1', disabled: false },
           checked: false,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -802,7 +796,7 @@ describe('TransferItem 组件', () => {
           item: { key: 1, label: '选项 1', disabled: true },
           checked: false,
           disabled: true,
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
@@ -822,7 +816,7 @@ describe('TransferItem 组件', () => {
           item: { key: 1, label: '选项 1', disabled: false },
           checked: false,
           format: '前缀：{label}',
-          props: {
+          itemProps: {
             key: 'key',
             label: 'label',
             disabled: 'disabled',
