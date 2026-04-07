@@ -12,7 +12,7 @@
 
       <!-- 分类树状导航 -->
       <div class="category-tree-section" v-loading="treeLoading">
-        <QyCard shadow="hover">
+        <Card shadow="hover">
           <template #header>
             <div class="card-header">
               <span>分类导航</span>
@@ -48,7 +48,7 @@
       </div>
 
       <!-- 筛选栏 -->
-      <QyCard shadow="hover" class="filter-card">
+      <Card shadow="hover" class="filter-card">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="8" :md="6">
             <QySelect v-model="filters.status" placeholder="连载状态" clearable @change="handleFilterChange">
@@ -81,7 +81,7 @@
             <QyButton variant="primary" @click="resetFilters">重置筛选</QyButton>
           </el-col>
         </el-row>
-      </QyCard>
+      </Card>
 
       <!-- 书籍列表 -->
       <div class="books-section" v-loading="booksLoading">
@@ -106,9 +106,11 @@
           </div>
         </template>
 
-        <QyEmpty v-else-if="!booksLoading" description="暂无相关书籍">
-          <QyButton variant="primary" @click="resetFilters">重置筛选</QyButton>
-        </QyEmpty>
+        <Empty v-else-if="!booksLoading" description="暂无相关书籍">
+          <template #action>
+            <QyButton variant="primary" @click="resetFilters">重置筛选</QyButton>
+          </template>
+        </Empty>
       </div>
     </div>
   </div>
@@ -118,8 +120,8 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from '@/design-system/services'
-import { QyIcon, QyCard, QyButton, QySelect, QyPagination, QyEmpty } from '@/design-system/components'
-import { Tag } from '@/design-system/base'
+import { QyIcon, QyButton, QySelect, QyPagination } from '@/design-system/components'
+import { Empty, Card, Tag } from '@/design-system/base'
 import { getCategoryTree } from '@/modules/bookstore/api'
 import { getBooksByCategory } from '@/modules/bookstore/api'
 import BookGrid from '@bookstore/components/BookGrid.vue'

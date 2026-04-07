@@ -8,12 +8,13 @@
 import { computed } from 'vue'
 import { cn } from '../../utils/cn'
 import Icon from '../Icon/Icon.vue'
-import type { EmptyProps } from './types'
+import type { EmptyProps, EmptySize } from './types'
 
 // 组件 Props
 const props = withDefaults(defineProps<EmptyProps>(), {
   description: '暂无数据',
   size: 'md',
+  iconSize: undefined,
 })
 
 // 组件 Emits
@@ -40,23 +41,36 @@ const surfaceClasses = computed(() =>
 const iconWrapperClasses = computed(() =>
   cn(
     'flex items-center justify-center rounded-2xl border border-slate-100 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]',
-    sizeClasses[props.size].icon,
+    sizeClasses[resolvedSize.value].icon,
   ),
 )
 
 const iconClasses = computed(() =>
-  cn('text-slate-400', sizeClasses[props.size].iconText),
+  cn('text-slate-400', sizeClasses[resolvedSize.value].iconText),
 )
 
-const contentGap = computed(() => sizeClasses[props.size].gap)
+const contentGap = computed(() => sizeClasses[resolvedSize.value].gap)
+
+// Resolve effective size from iconSize or size prop
+const resolvedSize = computed<EmptySize>(() => {
+  if (props.iconSize) {
+    const iconSizeMap: Record<string, EmptySize> = {
+      small: 'sm',
+      medium: 'md',
+      large: 'lg',
+    }
+    return iconSizeMap[props.iconSize] || (props.iconSize as EmptySize) || props.size
+  }
+  return props.size
+})
 
 const titleClasses = computed(() =>
-  cn('text-slate-900', sizeClasses[props.size].title, 'tracking-tight'),
+  cn('text-slate-900', sizeClasses[resolvedSize.value].title, 'tracking-tight'),
 )
 
 const descriptionClasses = computed(() =>
   cn(
-    sizeClasses[props.size].description,
+    sizeClasses[resolvedSize.value].description,
     'text-slate-500 leading-relaxed text-center max-w-[300px]',
   ),
 )
@@ -77,9 +91,11 @@ const handleClick = (e: MouseEvent) => {
     />
 
     <div :class="['flex flex-col items-center text-center', contentGap]">
-      <div v-if="icon" :class="iconWrapperClasses">
-        <Icon :name="icon" :class="iconClasses" />
-      </div>
+      <slot name="image">
+        <div v-if="icon" :class="iconWrapperClasses">
+          <Icon :name="icon" :class="iconClasses" />
+        </div>
+      </slot>
 
       <p v-if="title" :class="titleClasses">
         {{ title }}

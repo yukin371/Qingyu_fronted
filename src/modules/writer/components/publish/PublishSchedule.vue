@@ -1,13 +1,13 @@
 <template>
   <div class="publish-schedule">
     <div v-if="!publishPlan" class="empty-plan">
-      <QyEmpty description="暂无发布计划">
+      <Empty description="暂无发布计划">
         <template #action>
           <el-button type="primary" @click="$emit('create')">
             创建发布计划
           </el-button>
         </template>
-      </QyEmpty>
+      </Empty>
     </div>
     <div v-else class="plan-detail">
       <el-descriptions :column="2" border>
@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import type { PublishPlan } from '@/modules/writer/api'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import {
   publishTypeOptions,
   publishPlatformOptions,

@@ -21,7 +21,7 @@
       <Skeleton v-if="loading" :rows="8" animated />
 
       <div v-else-if="!selectedBookId" class="empty-state">
-        <QyEmpty description="请选择一部作品查看统计数据" />
+        <Empty description="请选择一部作品查看统计数据" />
       </div>
 
       <div v-else class="statistics-content">
@@ -142,7 +142,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import { message } from '@/design-system/services'
 import { QyIcon, QySelect, QyCard, QyRow, QyCol, Skeleton, QyRadioGroup, QyRadio } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { echarts, graphic } from '@/utils/echarts'

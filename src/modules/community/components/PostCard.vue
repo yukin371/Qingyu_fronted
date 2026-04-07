@@ -2,9 +2,9 @@
   <div class="post-card" @click="handleClick">
     <!-- 头部：用户信息 -->
     <div class="post-header">
-      <QyAvatar
+      <Avatar
         :src="post.user?.avatar"
-        :name="post.user?.nickname"
+        :alt="post.user?.nickname"
         size="md"
       />
       <div class="user-info">
@@ -39,15 +39,16 @@
 
     <!-- 话题标签 -->
     <div v-if="post.topics?.length" class="post-topics">
-      <QyBadge
+      <Tag
         v-for="topic in post.topics"
         :key="topic"
-        variant="ghost"
-        type="text"
+        variant="default"
+        effect="plain"
+        size="sm"
         @click.stop="goToTopic(topic)"
       >
         #{{ topic }}
-      </QyBadge>
+      </Tag>
     </div>
 
     <!-- 底部：操作按钮 -->
@@ -75,7 +76,8 @@
 </template>
 
 <script setup lang="ts">
-import { QyAvatar, QyBadge, QyIcon } from '@/design-system/components'
+import { QyIcon } from '@/design-system/components'
+import { Avatar, Tag } from '@/design-system/base'
 import type { Post } from '@/types/community'
 
 interface Props {

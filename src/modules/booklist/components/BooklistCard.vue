@@ -29,9 +29,9 @@
 
       <!-- 创建者信息 -->
       <div class="creator-info">
-        <QyAvatar
+        <Avatar
           :src="booklist.creator?.avatar"
-          :name="booklist.creator?.nickname"
+          :alt="booklist.creator?.nickname"
           size="sm"
         />
         <span class="creator-name">{{ booklist.creator?.nickname }}</span>
@@ -39,14 +39,14 @@
 
       <!-- 标签 -->
       <div v-if="booklist.tags?.length" class="booklist-tags">
-        <QyBadge
+        <Badge
           v-for="tag in displayedTags"
           :key="tag"
           variant="secondary"
           size="sm"
         >
           {{ tag }}
-        </QyBadge>
+        </Badge>
         <span v-if="hasMoreTags" class="more-tags">+{{ booklist.tags.length - 3 }}</span>
       </div>
 
@@ -79,7 +79,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QyBadge, QyAvatar, QyButton, QyIcon } from '@/design-system/components'
+import { QyButton, QyIcon } from '@/design-system/components'
+import { Avatar, Badge } from '@/design-system/base'
 import type { BookList } from '@/types/booklist'
 
 interface Props {

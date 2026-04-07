@@ -26,6 +26,13 @@ export interface EmptyProps {
   icon?: IconName
 
   /**
+   * 图标尺寸（兼容 QyEmpty 的 icon-size prop）
+   * 'small' | 'medium' | 'large' 会映射为 base/Empty 的 size
+   * @default 'md'
+   */
+  iconSize?: 'small' | 'medium' | 'large' | EmptySize
+
+  /**
    * Empty 尺寸
    * @default 'md'
    */

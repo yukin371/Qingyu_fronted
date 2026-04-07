@@ -4,7 +4,8 @@
  * 使用 QyDialog (Apple 风格) 替代 el-dialog
  */
 import { computed, reactive, watch, ref } from 'vue'
-import { QyDialog, QyButton, QyInput, QySelect, QyTextarea } from '@/design-system/components'
+import { QyDialog, QyButton, QyInput, QySelect } from '@/design-system/components'
+import { Textarea, Input } from '@/design-system/base'
 
 export interface StructureNodeFormValue {
   title: string
@@ -96,7 +97,7 @@ const statusOptions = [
       <!-- 节点标题 -->
       <div class="form-item">
         <label class="form-label">节点标题</label>
-        <QyInput
+        <Input
           v-model="localForm.title"
           placeholder="输入结构节点标题"
         />
@@ -125,7 +126,7 @@ const statusOptions = [
       <!-- 结构说明 -->
       <div class="form-item">
         <label class="form-label">结构说明</label>
-        <QyTextarea
+        <Textarea
           v-model="localForm.description"
           :rows="4"
           placeholder="补充这个节点的目标、冲突、结果或节拍要点"

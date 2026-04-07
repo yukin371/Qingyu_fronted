@@ -10,7 +10,7 @@
         </p>
         <h3 class="text-sm font-semibold text-slate-950">V3 写作宿主</h3>
       </div>
-      <QyBadge variant="text" color="primary" size="sm" value="Phase 1" />
+      <Tag variant="primary" size="sm">Phase 1</Tag>
     </header>
 
     <section class="flex flex-col gap-3">
@@ -45,7 +45,7 @@
     <section class="flex flex-col gap-3">
       <div class="flex items-center justify-between gap-3">
         <h4 class="text-sm font-semibold text-slate-950">Change Request</h4>
-        <QyBadge variant="text" color="primary" size="sm" :value="`${harnessStore.pendingChangeRequestCount} 待处理`" />
+        <Tag variant="primary" size="sm">{{ harnessStore.pendingChangeRequestCount }} 待处理</Tag>
       </div>
 
       <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
@@ -137,7 +137,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { QyBadge, QyButton, QyCard } from '@/design-system/components'
+import { QyButton, QyCard } from '@/design-system/components'
 import { Tag } from '@/design-system/base'
 import {
   useStoryHarnessStore,

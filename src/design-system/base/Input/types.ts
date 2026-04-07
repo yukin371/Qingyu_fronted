@@ -53,6 +53,12 @@ export interface InputProps {
   clearable?: boolean
 
   /**
+   * 密码框是否显示切换按钮
+   * @default false
+   */
+  showPassword?: boolean
+
+  /**
    * 自定义类名
    */
   class?: string
@@ -65,4 +71,5 @@ export const inputDefaults: Partial<InputProps> = {
   disabled: false,
   readonly: false,
   clearable: false,
+  showPassword: false,
 }

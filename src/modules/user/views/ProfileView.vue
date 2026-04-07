@@ -5,7 +5,7 @@
 
       <!-- 左侧：个人信息与操作 (Sticky 布局) -->
       <aside class="profile-sidebar">
-        <QyCard :class="userCardClass">
+        <Card :class="userCardClass">
           <div class="user-header-bg"></div>
 
           <div class="user-content">
@@ -63,10 +63,10 @@
               <div class="form-title">编辑资料</div>
               <QyForm v-model="profileForm" class="compact-form">
                 <QyFormItem label="昵称">
-                  <QyInput v-model="profileForm.nickname" :maxlength="20" placeholder="怎么称呼你？" />
+                  <Input v-model="profileForm.nickname" :maxlength="20" placeholder="怎么称呼你？" />
                 </QyFormItem>
                 <QyFormItem label="简介">
-                  <QyTextarea v-model="profileForm.bio" :rows="4" :maxlength="100" show-word-limit placeholder="写一段话介绍自己..." />
+                  <Textarea v-model="profileForm.bio" :rows="4" :maxlength="100" show-count placeholder="写一段话介绍自己..." />
                 </QyFormItem>
                 <div class="form-actions">
                   <QyButton class="btn-block" variant="primary" :loading="savingProfile" @click="saveProfile">保存</QyButton>
@@ -75,12 +75,12 @@
               </QyForm>
             </div>
           </div>
-        </QyCard>
+        </Card>
       </aside>
 
       <!-- 右侧：数据与内容 -->
       <main class="profile-main">
-        <QyCard class="content-section account-overview-card">
+        <Card class="content-section account-overview-card">
           <template #header>
             <div class="section-header">
               <div class="title-group">
@@ -115,7 +115,7 @@
             <QyButton variant="ghost" @click="goToCollections">收藏管理</QyButton>
             <QyButton variant="ghost" @click="goToWallet">我的钱包</QyButton>
           </div>
-        </QyCard>
+        </Card>
 
         <!-- 统计数据栏 -->
         <div class="stats-overview">
@@ -150,7 +150,7 @@
         </div>
 
         <!-- 最近阅读 -->
-        <QyCard class="content-section">
+        <Card class="content-section">
           <template #header>
             <div class="section-header">
               <div class="title-group">
@@ -165,13 +165,13 @@
              <QyLoading />
           </div>
           <div v-else-if="readingHistory.length === 0" class="empty-state">
-             <QyEmpty description="最近没有阅读记录，快去探索吧" />
+             <Empty description="最近没有阅读记录，快去探索吧" />
           </div>
 
           <div v-else class="history-grid">
             <div v-for="item in readingHistory" :key="item.id" class="history-card-item" @click="goToBook(item.bookId)">
               <div class="cover-box">
-                <QyImage :src="item.coverUrl" fit="cover" class="book-cover" />
+                <Image :src="item.coverUrl" fit="cover" class="book-cover" />
                 <div class="progress-overlay">
                   <span class="progress-text">已读 {{ item.progress }}%</span>
                   <div class="progress-bar-mini" :style="{ width: item.progress + '%' }"></div>
@@ -184,10 +184,10 @@
               </div>
             </div>
           </div>
-        </QyCard>
+        </Card>
 
         <!-- 我的书架 -->
-        <QyCard class="content-section">
+        <Card class="content-section">
           <template #header>
             <div class="section-header">
               <div class="title-group">
@@ -201,13 +201,13 @@
             <QyLoading />
           </div>
           <div v-else-if="shelfPreview.length === 0" class="empty-state">
-            <QyEmpty description="书架空空如也" />
+            <Empty description="书架空空如也" />
           </div>
 
           <div v-else class="shelf-grid-wrapper">
             <div v-for="book in shelfPreview" :key="book.id" class="shelf-book-item" @click="goToBook(book.id)">
               <div class="book-cover-3d">
-                <QyImage :src="book.coverUrl" fit="cover" />
+                <Image :src="book.coverUrl" fit="cover" />
               </div>
               <div class="book-meta">
                 <h4 :title="book.title">{{ book.title }}</h4>
@@ -215,7 +215,7 @@
               </div>
             </div>
           </div>
-        </QyCard>
+        </Card>
 
       </main>
     </div>
@@ -230,16 +230,13 @@ import { message } from '@/design-system/services'
 import {
   QyAvatar,
   QyButton,
-  QyCard,
-  QyEmpty,
   QyForm,
   QyFormItem,
-  QyImage,
   QyInput,
   QyLoading,
-  QyTextarea,
   QyIcon // 确保你有这个组件，或者直接用 el-icon
 } from '@/design-system/components'
+import { Empty, Card, Textarea, Image, Input } from '@/design-system/base'
 import { useUserStore } from '@/stores/user'
 import { userAPI } from '@/modules/user/api'
 import * as readerAPI from '@/modules/reader/api'

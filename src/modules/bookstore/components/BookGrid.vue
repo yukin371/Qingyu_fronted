@@ -90,16 +90,16 @@
 
     <!-- 错误状态（加载失败） -->
     <div v-else-if="error" class="error-state" data-testid="book-grid-error">
-      <QyEmpty type="network" title="加载失败" description="服务器连接异常，请检查网络后重试">
+      <Empty title="加载失败" description="服务器连接异常，请检查网络后重试">
         <template #action>
           <button class="retry-btn" @click="emit('retry')">重新加载</button>
         </template>
-      </QyEmpty>
+      </Empty>
     </div>
 
     <!-- 空状态（加载成功但无数据） -->
     <div v-else class="empty-state" data-testid="book-grid-empty">
-      <QyEmpty type="book" :description="emptyText" icon-size="medium" />
+      <Empty :description="emptyText" iconSize="medium" />
     </div>
   </div>
 </template>
@@ -107,7 +107,7 @@
 <script setup>
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { formatCurrency } from '@/utils/currency'
 
 // Props 定义

@@ -19,7 +19,7 @@
       <el-table-column label="用户信息" min-width="200">
         <template #default="{ row }">
           <div class="user-info">
-            <QyAvatar size="lg" :src="row.avatar" :text="row.username || row.nickname" />
+            <Avatar size="lg" :src="row.avatar" :alt="row.username || row.nickname" />
             <div class="user-meta">
               <span class="username">{{ row.username }}</span>
               <span class="email">{{ row.email }}</span>
@@ -118,7 +118,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElTable } from 'element-plus'
 import { formatDate } from '@/utils/format'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 import UserRoleTag from './UserRoleTag.vue'
 import UserStatusTag from './UserStatusTag.vue'
 import type { User, UserPagination } from './types'

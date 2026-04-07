@@ -77,16 +77,16 @@
 
     <!-- 空状态（加载成功但无数据） -->
     <div v-else-if="error" class="error-state">
-      <QyEmpty type="network" title="加载失败" description="服务器连接异常，请检查网络后重试">
+      <Empty title="加载失败" description="服务器连接异常，请检查网络后重试">
         <template #action>
           <button class="retry-btn" @click="emit('retry')">重新加载</button>
         </template>
-      </QyEmpty>
+      </Empty>
     </div>
 
     <!-- 错误状态（加载失败） -->
     <div v-else class="empty-state">
-      <QyEmpty type="ranking" description="暂无榜单数据" icon-size="medium" />
+      <Empty description="暂无榜单数据" iconSize="medium" />
     </div>
 
     <!-- 查看更多 (如果父组件没有提供 Header 里的 View More，这里可以作为底部补充) -->
@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 
 // Props 定义
 const props = defineProps({

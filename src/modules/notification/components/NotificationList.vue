@@ -68,14 +68,14 @@
     </div>
 
     <!-- 空状态 -->
-    <QyEmpty
+    <Empty
       v-if="!loading && notifications.length === 0"
       :description="emptyText"
     >
-      <template #icon>
+      <template #image>
         <QyIcon name="Bell" :size="120" color="#ddd" />
       </template>
-    </QyEmpty>
+    </Empty>
 
     <!-- 加载更多 -->
     <div v-if="hasMore" class="load-more">
@@ -88,7 +88,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { QyIcon, QyButton, QyEmpty } from '@/design-system/components'
+import { QyIcon, QyButton } from '@/design-system/components'
+import { Empty } from '@/design-system/base'
 import { message, messageBox } from '@/design-system/services'
 import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/stores/notification'

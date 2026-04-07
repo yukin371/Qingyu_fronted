@@ -33,7 +33,7 @@
 
         <!-- 左侧：发布统计 -->
         <QyCol :span="5">
-          <QyCard shadow="never" class="stats-card" padding="none">
+          <Card shadow="never" class="stats-card" padding="none">
             <template #header>
               <h3>发布统计</h3>
             </template>
@@ -67,12 +67,12 @@
                 <span class="value success">{{ formatNumber(stats.published_words) }}</span>
               </div>
             </div>
-          </QyCard>
+          </Card>
         </QyCol>
 
         <!-- 右侧：发布管理 -->
         <QyCol :span="19">
-          <QyCard shadow="never" class="main-card" padding="none">
+          <Card shadow="never" class="main-card" padding="none">
             <template #header>
               <div class="card-header">
                 <h3>发布管理</h3>
@@ -142,7 +142,7 @@
                 <PublishStatsPanel :chapters="[]" :stats="stats" />
               </el-tab-pane>
             </el-tabs>
-          </QyCard>
+          </Card>
         </QyCol>
       </QyRow>
 
@@ -177,7 +177,8 @@ import { useRoute } from 'vue-router'
 import { message } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
-import { QyIcon, QyCard, QyRow, QyCol, QyButton } from '@/design-system/components'
+import { QyIcon, QyRow, QyCol, QyButton } from '@/design-system/components'
+import { Card } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import {
   getPublicationDetail,

@@ -34,13 +34,11 @@
             @select="handleUserCommand"
           >
             <button class="avatar-trigger">
-              <QyAvatar
+              <Avatar
                 v-if="avatarUrl"
-                type="image"
                 :src="avatarUrl"
-                :text="userName"
+                :alt="userName"
                 size="md"
-                color="blue"
               />
               <div v-else class="default-avatar">
                 <QyIcon name="UserFilled" :size="22" />
@@ -64,7 +62,8 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { QyAvatar, QyButton, QyIcon, QyDropdown } from '@/design-system/components'
+import { QyButton, QyIcon, QyDropdown } from '@/design-system/components'
+import { Avatar } from '@/design-system/base'
 
 const router = useRouter()
 const route = useRoute()

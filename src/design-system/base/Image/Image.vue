@@ -169,8 +169,10 @@ const skeletonSize = computed(() => {
       v-if="showError"
       class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-50/95 dark:bg-slate-800/90"
     >
-      <Icon :name="fallbackIcon" size="lg" class="text-slate-300 dark:text-slate-600" />
-      <span class="text-[10px] text-slate-400 dark:text-slate-500">Failed to load</span>
+      <slot name="error">
+        <Icon :name="fallbackIcon" size="lg" class="text-slate-300 dark:text-slate-600" />
+        <span class="text-[10px] text-slate-400 dark:text-slate-500">Failed to load</span>
+      </slot>
     </div>
   </div>
 </template>

@@ -39,9 +39,9 @@
 
             <!-- 创建者信息 -->
             <div class="creator-info">
-              <QyAvatar
+              <Avatar
                 :src="booklistStore.currentBooklist.creator?.avatar"
-                :name="booklistStore.currentBooklist.creator?.nickname"
+                :alt="booklistStore.currentBooklist.creator?.nickname"
                 size="md"
               />
               <div class="creator-meta">
@@ -52,9 +52,9 @@
 
             <!-- 标签 -->
             <div v-if="booklistStore.currentBooklist.tags?.length" class="booklist-tags">
-              <QyBadge v-for="tag in booklistStore.currentBooklist.tags" :key="tag" variant="secondary">
+              <Badge v-for="tag in booklistStore.currentBooklist.tags" :key="tag" variant="secondary">
                 {{ tag }}
-              </QyBadge>
+              </Badge>
             </div>
 
             <!-- 统计 -->
@@ -144,25 +144,27 @@
           </div>
 
           <div v-else class="empty-books">
-            <QyEmpty description="书单还没有书籍">
+            <Empty description="书单还没有书籍">
               <template #image>
                 <QyIcon name="Document" :size="64" />
               </template>
-            </QyEmpty>
+            </Empty>
           </div>
         </div>
       </template>
 
       <!-- 未找到 -->
       <div v-else class="not-found">
-        <QyEmpty description="书单不存在或已被删除">
+        <Empty description="书单不存在或已被删除">
           <template #image>
             <QyIcon name="Warning" :size="80" />
           </template>
-          <QyButton variant="primary" @click="goBack">
-            返回书单广场
-          </QyButton>
-        </QyEmpty>
+          <template #action>
+            <QyButton variant="primary" @click="goBack">
+              返回书单广场
+            </QyButton>
+          </template>
+        </Empty>
       </div>
     </div>
 
@@ -189,7 +191,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElDialog, ElSkeleton, ElSkeletonItem } from 'element-plus'
-import { QyButton, QyIcon, QyAvatar, QyBadge, QyEmpty } from '@/design-system/components'
+import { QyButton, QyIcon } from '@/design-system/components'
+import { Avatar, Empty, Badge } from '@/design-system/base'
 import { useBooklistStore } from '../stores/booklist.store'
 import BooklistForm from '../components/BooklistForm.vue'
 import { useUserStore } from '@/stores/user'

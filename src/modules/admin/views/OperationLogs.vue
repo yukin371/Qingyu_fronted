@@ -121,7 +121,7 @@
         <el-table-column label="管理员" width="140">
           <template #default="{ row }">
             <div class="admin-info">
-              <QyAvatar size="md" :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${row.adminName}`" :text="row.adminName" />
+              <Avatar size="md" :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${row.adminName}`" :alt="row.adminName" />
               <div class="admin-meta">
                 <span class="admin-name">{{ row.adminName }}</span>
               </div>
@@ -211,7 +211,7 @@
           </el-descriptions-item>
           <el-descriptions-item label="操作管理员">
             <div class="admin-info">
-              <QyAvatar size="sm" :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentItem.adminName}`" :text="currentItem.adminName" />
+              <Avatar size="sm" :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentItem.adminName}`" :alt="currentItem.adminName" />
               <span>{{ currentItem.adminName }} ({{ currentItem.adminId }})</span>
             </div>
           </el-descriptions-item>
@@ -245,7 +245,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { message } from '@/design-system/services'
-import QyAvatar from '@/design-system/components/basic/QyAvatar/QyAvatar.vue'
+import { Avatar } from '@/design-system/base'
 import {
   Download, Document, Clock, CircleCheck, Warning, Search, Refresh,
   CircleClose, Lock, Edit, View

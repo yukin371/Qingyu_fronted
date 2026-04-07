@@ -44,14 +44,14 @@
 
       <div v-loading="loading" class="projects-container">
         <div v-if="!loading && projectList.length === 0" class="empty-container">
-          <QyEmpty description="还没有项目，创建一个开始吧！">
+          <Empty description="还没有项目，创建一个开始吧！">
             <template #action>
               <el-button type="primary" @click="showCreateDialog = true">
                 <QyIcon name="Plus" :size="14" />
                 创建第一个项目
               </el-button>
             </template>
-          </QyEmpty>
+          </Empty>
         </div>
 
         <div v-else class="project-grid">
@@ -207,7 +207,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 import { QyDropdown } from '@/design-system/navigation/Dropdown'
 // 使用后端 API 的 writerStore，而不是 IndexedDB 的旧 store
 import { useWriterStore } from '@/modules/writer/stores/writerStore'

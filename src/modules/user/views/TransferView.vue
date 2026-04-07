@@ -2,7 +2,7 @@
   <Container maxWidth="md" padding>
     <Section title="转账" spacing="lg">
       <!-- 转账表单 -->
-      <QyCard shadow="hover" class="transfer-card">
+      <Card shadow="hover" class="transfer-card">
         <template #header>
           <div class="card-header">
             <span class="card-title">向其他用户转账</span>
@@ -49,9 +49,9 @@
 
           <!-- 转账金额 -->
           <QyFormItem label="转账金额" prop="amount">
-            <QyInput v-model="transferForm.amount" type="number" placeholder="请输入转账金额">
+            <Input v-model="transferForm.amount" type="number" placeholder="请输入转账金额">
               <template #prefix>¥</template>
-            </QyInput>
+            </Input>
             <div class="quick-amounts">
               <QyButton
                 v-for="amount in quickAmounts"
@@ -66,12 +66,12 @@
 
           <!-- 转账备注 -->
           <QyFormItem label="转账备注" prop="reason">
-            <QyTextarea
+            <Textarea
               v-model="transferForm.reason"
               :rows="3"
               placeholder="请输入转账备注（可选）"
               :maxlength="200"
-              show-word-limit
+              show-count
             />
           </QyFormItem>
 
@@ -88,10 +88,10 @@
             </QyButton>
           </QyFormItem>
         </QyForm>
-      </QyCard>
+      </Card>
 
       <!-- 转账记录 -->
-      <QyCard v-if="showHistory" shadow="hover" class="history-card">
+      <Card v-if="showHistory" shadow="hover" class="history-card">
         <template #header>
           <div class="card-header">
             <span class="card-title">转账记录</span>
@@ -144,7 +144,7 @@
             @change="loadTransferHistory"
           />
         </div>
-      </QyCard>
+      </Card>
 
       <!-- 转账确认对话框 -->
       <QyModal
@@ -222,15 +222,13 @@ import type { FormRules } from '@/design-system/form/Form/types'
 import {
   QyIcon,
   QyButton,
-  QyCard,
   QyPagination,
   QyModal,
   QyInput,
-  QyTextarea,
   QyForm,
   QyFormItem,
 } from '@/design-system/components'
-import { Tag } from '@/design-system/base'
+import { Tag, Textarea, Card, Input } from '@/design-system/base'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
 import { walletAPI } from '@/modules/shared/api'
 import type { WalletInfo, Transaction } from '@/types/shared'

@@ -138,9 +138,9 @@
       </FormSection>
 
       <FormSection label="自定义金额" hint="最低充值金额为10元">
-        <QyInput v-model="customAmount" placeholder="请输入充值金额" type="number">
+        <Input v-model="customAmount" placeholder="请输入充值金额" type="number">
           <template #prefix>¥</template>
-        </QyInput>
+        </Input>
       </FormSection>
 
       <FormSection label="支付方式" required>
@@ -182,14 +182,14 @@
 
         <QyFormItem prop="amount" label="提现金额" required>
           <div class="form-hint">单笔提现最低10元，最高10000元</div>
-          <QyInput v-model="withdrawForm.amount" placeholder="请输入提现金额" type="number">
+          <Input v-model="withdrawForm.amount" placeholder="请输入提现金额" type="number">
             <template #prefix>¥</template>
-          </QyInput>
+          </Input>
         </QyFormItem>
 
         <QyFormItem prop="account" label="提现账号" required>
           <div class="form-hint">请填写您的支付宝账号或银行卡号</div>
-          <QyInput v-model="withdrawForm.account" placeholder="请输入提现账号" />
+          <Input v-model="withdrawForm.account" placeholder="请输入提现账号" />
         </QyFormItem>
       </QyForm>
 
@@ -223,7 +223,7 @@ import {
   QyRadioGroup,
   QyRadio,
 } from '@/design-system/components'
-import { Tag } from '@/design-system/base'
+import { Tag, Input } from '@/design-system/base'
 import {
   Container,
   Section,

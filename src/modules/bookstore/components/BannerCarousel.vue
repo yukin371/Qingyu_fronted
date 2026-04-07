@@ -61,7 +61,7 @@
 
     <!-- 空状态 -->
     <div v-if="!loading && banners.length === 0" class="empty-state" :style="{ height }">
-      <QyEmpty type="default" description="暂无精彩内容" icon-size="medium" />
+      <Empty description="暂无精彩内容" iconSize="medium" />
     </div>
 
     <!-- 骨架屏加载状态 -->
@@ -78,7 +78,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { QyIcon } from '@/design-system/components'
-import QyEmpty from '@/design-system/components/advanced/QyEmpty/QyEmpty.vue'
+import { Empty } from '@/design-system/base'
 // Props
 const props = defineProps({
   banners: {

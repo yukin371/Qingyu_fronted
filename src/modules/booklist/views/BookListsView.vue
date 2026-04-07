@@ -16,14 +16,14 @@
       <!-- 筛选标签 -->
       <div class="filter-section">
         <div class="filter-tags">
-          <QyBadge
+          <Badge
             :variant="currentTag === '' ? 'primary' : 'secondary'"
             class="filter-tag"
             @click="selectTag('')"
           >
             全部
-          </QyBadge>
-          <QyBadge
+          </Badge>
+          <Badge
             v-for="tag in popularTags.slice(0, 10)"
             :key="tag"
             :variant="currentTag === tag ? 'primary' : 'secondary'"
@@ -31,7 +31,7 @@
             @click="selectTag(tag)"
           >
             {{ tag }}
-          </QyBadge>
+          </Badge>
         </div>
         <div class="sort-options">
           <QyButton
@@ -81,14 +81,16 @@
 
         <!-- 空状态 -->
         <div v-else class="empty-state">
-          <QyEmpty description="暂无书单，快来创建第一个书单吧~">
+          <Empty description="暂无书单，快来创建第一个书单吧~">
             <template #image>
               <QyIcon name="Collection" :size="80" />
             </template>
-            <QyButton variant="primary" @click="showCreateDialog = true">
-              创建书单
-            </QyButton>
-          </QyEmpty>
+            <template #action>
+              <QyButton variant="primary" @click="showCreateDialog = true">
+                创建书单
+              </QyButton>
+            </template>
+          </Empty>
         </div>
 
         <!-- 加载更多 -->
@@ -127,7 +129,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElDialog, ElSkeleton, ElSkeletonItem } from 'element-plus'
-import { QyButton, QyIcon, QyBadge, QyEmpty } from '@/design-system/components'
+import { QyButton, QyIcon } from '@/design-system/components'
+import { Empty } from '@/design-system/base'
+import { Badge } from '@/design-system/base/Badge'
 import { useBooklistStore } from '../stores/booklist.store'
 import BooklistCard from '../components/BooklistCard.vue'
 import BooklistForm from '../components/BooklistForm.vue'
