@@ -24,6 +24,11 @@ const meta = {
       control: 'text',
       description: '图标名称（使用 Icon 组件）',
     },
+    iconSize: {
+      control: 'select',
+      options: ['small', 'medium', 'large'],
+      description: '图标尺寸（small→sm, medium→md, large→lg）',
+    },
     size: {
       control: 'select',
       options: ['sm', 'md', 'lg', 'xl'],

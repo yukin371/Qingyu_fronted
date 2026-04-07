@@ -14,8 +14,18 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'bordered', 'elevated'],
+      options: ['default', 'bordered', 'elevated', 'outlined', 'glass'],
       description: '卡片变体',
+    },
+    shadow: {
+      control: 'select',
+      options: ['always', 'hover', 'never'],
+      description: '阴影模式',
+    },
+    padding: {
+      control: 'select',
+      options: ['none', 'sm', 'md', 'lg'],
+      description: '内边距',
     },
     hoverable: {
       control: 'boolean',
@@ -62,6 +72,89 @@ export const AllVariants: Story = {
         <Card variant="elevated">
           <h3 class="text-lg font-semibold mb-2">Elevated</h3>
           <p class="text-slate-600">带阴影样式卡片</p>
+        </Card>
+        <Card variant="outlined">
+          <h3 class="text-lg font-semibold mb-2">Outlined</h3>
+          <p class="text-slate-600">简洁边框样式卡片</p>
+        </Card>
+        <Card variant="glass">
+          <h3 class="text-lg font-semibold mb-2">Glass</h3>
+          <p class="text-slate-600">玻璃态样式卡片</p>
+        </Card>
+      </div>
+    `,
+  }),
+}
+
+// 阴影模式
+export const ShadowModes: Story = {
+  render: () => ({
+    components: { Card },
+    template: `
+      <div class="flex flex-wrap gap-4 p-8">
+        <Card shadow="always">
+          <h3 class="text-lg font-semibold mb-2">Always</h3>
+          <p class="text-slate-600">始终显示阴影</p>
+        </Card>
+        <Card shadow="hover">
+          <h3 class="text-lg font-semibold mb-2">Hover</h3>
+          <p class="text-slate-600">悬停时显示阴影</p>
+        </Card>
+        <Card shadow="never">
+          <h3 class="text-lg font-semibold mb-2">Never</h3>
+          <p class="text-slate-600">从不显示阴影</p>
+        </Card>
+      </div>
+    `,
+  }),
+}
+
+// 内边距
+export const PaddingSizes: Story = {
+  render: () => ({
+    components: { Card },
+    template: `
+      <div class="flex flex-wrap gap-4 p-8">
+        <Card padding="none">
+          <h3 class="text-lg font-semibold mb-2">None</h3>
+          <p class="text-slate-600">无内边距</p>
+        </Card>
+        <Card padding="sm">
+          <h3 class="text-lg font-semibold mb-2">SM</h3>
+          <p class="text-slate-600">小内边距</p>
+        </Card>
+        <Card padding="md">
+          <h3 class="text-lg font-semibold mb-2">MD</h3>
+          <p class="text-slate-600">中等内边距</p>
+        </Card>
+        <Card padding="lg">
+          <h3 class="text-lg font-semibold mb-2">LG</h3>
+          <p class="text-slate-600">大内边距</p>
+        </Card>
+      </div>
+    `,
+  }),
+}
+
+// 玻璃态卡片
+export const GlassCard: Story = {
+  render: () => ({
+    components: { Card },
+    template: `
+      <div class="p-8 bg-gradient-to-br from-slate-100 to-slate-200">
+        <Card variant="glass" shadow="always" class="max-w-sm">
+          <template #header>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full"></div>
+              <div>
+                <h3 class="text-lg font-semibold">玻璃态卡片</h3>
+                <p class="text-sm text-slate-500">Glassmorphism 风格</p>
+              </div>
+            </div>
+          </template>
+          <p class="text-slate-600">
+            这是一个玻璃态风格的卡片，具有模糊背景和半透明效果。
+          </p>
         </Card>
       </div>
     `,
