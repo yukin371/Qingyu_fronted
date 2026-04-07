@@ -61,11 +61,12 @@ const popoverClasses = computed(() =>
   cn(
     'qy-popover',
     'absolute z-50',
-    'bg-white dark:bg-slate-800',
-    'border border-slate-200 dark:border-slate-700',
-    'rounded-lg shadow-lg',
+    'bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm',
+    'border border-slate-200/70 dark:border-slate-700/50',
+    'rounded-2xl',
+    'shadow-[0_16px_48px_-20px_rgba(15,23,42,0.22)]',
     'p-4',
-    'transition-all duration-200 ease-in-out',
+    'transition-all duration-250 ease-out',
     'origin-center',
     props.popperClass,
     isTransitioning.value ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
@@ -75,7 +76,7 @@ const popoverClasses = computed(() =>
 // 计算箭头样式类名
 const arrowClasses = computed(() => {
   const placement = props.placement || 'bottom'
-  const baseClasses = 'absolute w-2 h-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rotate-45'
+  const baseClasses = 'absolute w-2.5 h-2.5 bg-white/96 dark:bg-slate-800/96 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/50 rotate-45'
 
   // 根据位置调整箭头方向
   const positionClasses: Record<string, string> = {
@@ -297,17 +298,17 @@ onUnmounted(() => {
 
 <style scoped>
 /* Popover 过渡动画 */
-.v-enter-active,
-.v-leave-active {
-  transition: all 0.2s ease-in-out;
+.v-enter-active {
+  transition: all 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
-
+.v-leave-active {
+  transition: all 0.18s ease-in;
+}
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.94);
 }
-
 .v-enter-to,
 .v-leave-from {
   opacity: 1;

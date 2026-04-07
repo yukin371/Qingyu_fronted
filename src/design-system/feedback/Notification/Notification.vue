@@ -13,14 +13,14 @@ import type { NotificationProps, NotificationType } from './types'
 // 使用 CVA 定义通知变体
 const notificationVariants = cva(
   // 基础样式
-  'w-[320px] max-w-[calc(100vw-32px)] p-4 rounded-lg shadow-lg border flex items-start gap-3 transition-all duration-300 pointer-events-auto',
+  'w-[320px] max-w-[calc(100vw-32px)] p-4 rounded-xl flex items-start gap-3 transition-all duration-300 pointer-events-auto relative overflow-hidden',
   {
     variants: {
       type: {
-        success: 'bg-white border-emerald-200 dark:bg-emerald-950 dark:border-emerald-800',
-        info: 'bg-white border-info-200 dark:bg-info-950 dark:border-info-800',
-        warning: 'bg-white border-amber-200 dark:bg-amber-950 dark:border-amber-800',
-        error: 'bg-white border-red-200 dark:bg-red-950 dark:border-red-800',
+        success: 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-emerald-200/60 dark:ring-emerald-700/40 shadow-[0_8px_30px_-12px_rgba(5,150,105,0.18)]',
+        info: 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-sky-200/60 dark:ring-sky-700/40 shadow-[0_8px_30px_-12px_rgba(14,165,233,0.18)]',
+        warning: 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-amber-200/60 dark:ring-amber-700/40 shadow-[0_8px_30px_-12px_rgba(245,158,11,0.18)]',
+        error: 'bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-red-200/60 dark:ring-red-700/40 shadow-[0_8px_30px_-12px_rgba(239,68,68,0.18)]',
       },
     },
     defaultVariants: {
@@ -59,7 +59,7 @@ const iconMap: Record<NotificationType, string> = {
 // 图标颜色映射
 const iconColorMap: Record<NotificationType, string> = {
   success: 'text-emerald-500 dark:text-emerald-400',
-  info: 'text-info-500 dark:text-info-400',
+  info: 'text-sky-500 dark:text-sky-400',
   warning: 'text-amber-500 dark:text-amber-400',
   error: 'text-red-500 dark:text-red-400',
 }
@@ -67,7 +67,7 @@ const iconColorMap: Record<NotificationType, string> = {
 // 标题颜色映射
 const titleColorMap: Record<NotificationType, string> = {
   success: 'text-emerald-900 dark:text-emerald-100',
-  info: 'text-info-900 dark:text-info-100',
+  info: 'text-sky-900 dark:text-sky-100',
   warning: 'text-amber-900 dark:text-amber-100',
   error: 'text-red-900 dark:text-red-100',
 }
@@ -95,12 +95,23 @@ const titleClass = computed(() => titleColorMap[props.type])
 const messageClass = computed(() => {
   const colors: Record<NotificationType, string> = {
     success: 'text-emerald-700 dark:text-emerald-300',
-    info: 'text-info-700 dark:text-info-300',
+    info: 'text-sky-700 dark:text-sky-300',
     warning: 'text-amber-700 dark:text-amber-300',
     error: 'text-red-700 dark:text-red-300',
   }
   return colors[props.type]
 })
+
+// 进度条颜色映射
+const progressColorMap: Record<NotificationType, string> = {
+  success: '#10b981',
+  info: '#0ea5e9',
+  warning: '#f59e0b',
+  error: '#ef4444',
+}
+
+// 计算进度条颜色
+const progressColor = computed(() => progressColorMap[props.type])
 
 // 关闭通知
 const close = () => {
@@ -218,7 +229,7 @@ watch(visible, (val) => {
       <!-- 关闭按钮 -->
       <button
         v-if="showClose"
-        class="qy-notification__close flex-shrink-0 p-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+        class="qy-notification__close flex-shrink-0 p-1.5 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-600/60 transition-colors"
         @click.stop="handleClose"
         aria-label="关闭"
       >
@@ -226,13 +237,26 @@ watch(visible, (val) => {
           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
+
+      <!-- 自动关闭进度条 -->
+      <div
+        v-if="duration > 0"
+        class="absolute bottom-0 left-0 h-0.5 rounded-full transition-transform origin-left"
+        :style="{
+          width: '100%',
+          backgroundColor: progressColor,
+          animation: `notif-progress ${duration}ms linear forwards`
+        }"
+      />
     </div>
   </Transition>
 </template>
 
 <style scoped>
 .qy-notification__close {
-  opacity: 0.6;
+  opacity: 0.5;
+  color: currentColor;
+  transition: opacity 0.2s, background-color 0.2s;
 }
 
 .qy-notification__close:hover {
@@ -241,20 +265,26 @@ watch(visible, (val) => {
 
 /* Transition 动画 */
 .qy-notification-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .qy-notification-leave-active {
-  transition: all 0.2s ease-in;
+  transition: all 0.25s ease-in;
 }
 
 .qy-notification-enter-from {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateX(110%) scale(0.96);
 }
 
 .qy-notification-leave-to {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateX(110%) scale(0.96);
+}
+
+/* 自动关闭进度条动画 */
+@keyframes notif-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 </style>

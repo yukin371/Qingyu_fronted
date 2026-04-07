@@ -11,19 +11,20 @@ const meta = {
   component: Timeline,
   tags: ['autodocs'],
   argTypes: {
+    orientation: {
+      control: 'select',
+      options: ['vertical', 'horizontal'],
+      description: '时间线方向',
+    },
     placement: {
       control: 'select',
       options: ['left', 'right', 'alternate'],
       description: '时间线位置',
     },
-    fillLine: {
-      control: 'boolean',
-      description: '是否填充连接线',
-    },
   },
   args: {
+    orientation: 'vertical',
     placement: 'left',
-    fillLine: false,
   },
 } satisfies Meta<typeof Timeline>
 
@@ -148,6 +149,27 @@ export const Alternate: Story = {
               <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
           </template>
+        </TimelineItem>
+      </Timeline>
+    `,
+  }),
+}
+
+/**
+ * 横向时间线
+ */
+export const HorizontalRail: Story = {
+  render: () => ({
+    components: { Timeline, TimelineItem },
+    template: `
+      <Timeline orientation="horizontal" class="w-full max-w-full">
+        <TimelineItem type="primary" timestamp="Q1 2026" title="Design Tokens" description="统一 surface、ring、elevation 与字体层级，建立替代 Element 的基础视觉语言。">
+        </TimelineItem>
+        <TimelineItem type="success" timestamp="Q2 2026" title="Form Foundation" description="按钮、输入框、选择器进入 Apple / Google 混合风格的稳定可复用阶段。">
+        </TimelineItem>
+        <TimelineItem type="warning" timestamp="Q3 2026" title="DemoHub Rollout" description="把基础组件完整接入 DemoHub，并开始收口 Storybook 展示与交互说明。">
+        </TimelineItem>
+        <TimelineItem type="danger" timestamp="Q4 2026" title="Migration Ready" description="为平台逐步替换 Element Plus 提供可落地的 UI 基建和对照页。">
         </TimelineItem>
       </Timeline>
     `,

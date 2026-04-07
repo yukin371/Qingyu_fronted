@@ -34,12 +34,16 @@ const sortProp = ref<string>('')
 const sortOrder = ref<SortOrder>(null)
 
 // 监听默认排序变化
-watch(() => props.defaultSort, (newVal) => {
-  if (newVal) {
-    sortProp.value = newVal.prop
-    sortOrder.value = newVal.order
-  }
-}, { immediate: true })
+watch(
+  () => props.defaultSort,
+  (newVal) => {
+    if (newVal) {
+      sortProp.value = newVal.prop
+      sortOrder.value = newVal.order
+    }
+  },
+  { immediate: true },
+)
 
 // 获取行的唯一标识
 const getRowKey = (row: TableRowData, index: number): string | number => {
@@ -74,66 +78,60 @@ const sortedData = computed(() => {
 // 表格容器样式
 const tableVariants = cva(
   // 基础样式
-  'w-full overflow-auto bg-white dark:bg-slate-900',
+  'relative w-full overflow-auto rounded-[1.75rem] border border-slate-200/70 bg-white/92 shadow-[0_28px_60px_-44px_rgba(15,23,42,0.38)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-950/78',
   {
     variants: {
       border: {
-        true: 'border border-slate-200/60 dark:border-slate-700/60 rounded-xl shadow-sm',
+        true: 'ring-1 ring-inset ring-slate-200/65 dark:ring-slate-700/60',
         false: '',
       },
     },
     defaultVariants: {
       border: false,
     },
-  }
+  },
 )
 
 // 表格元素样式
-const tableElementVariants = cva(
-  'w-full border-collapse',
-  {
-    variants: {
-      fit: {
-        true: 'table-fixed',
-        false: '',
-      },
+const tableElementVariants = cva('w-full border-separate border-spacing-0', {
+  variants: {
+    fit: {
+      true: 'table-fixed',
+      false: '',
     },
-    defaultVariants: {
-      fit: true,
-    },
-  }
-)
+  },
+  defaultVariants: {
+    fit: true,
+  },
+})
 
 // 行样式
-const rowVariants = cva(
-  'transition-colors duration-150',
-  {
-    variants: {
-      stripe: {
-        true: 'even:bg-slate-50/60 dark:even:bg-slate-800/30',
-        false: '',
-      },
-      hover: {
-        true: 'hover:bg-blue-50/40 dark:hover:bg-blue-900/20',
-        false: '',
-      },
+const rowVariants = cva('group transition-all duration-200', {
+  variants: {
+    stripe: {
+      true: 'even:bg-slate-50/65 dark:even:bg-slate-900/40',
+      false: '',
     },
-    defaultVariants: {
-      stripe: false,
-      hover: true,
+    hover: {
+      true: 'hover:bg-slate-50/95 dark:hover:bg-slate-900/88',
+      false: '',
     },
-  }
-)
+  },
+  defaultVariants: {
+    stripe: false,
+    hover: true,
+  },
+})
 
 // 单元格内边距样式
 const cellPadding = computed(() => {
   switch (props.size) {
     case 'sm':
-      return 'px-3 py-2'
-    case 'lg':
       return 'px-4 py-3'
+    case 'lg':
+      return 'px-6 py-4'
     default:
-      return 'px-4 py-2.5'
+      return 'px-5 py-3.5'
   }
 })
 
@@ -143,7 +141,7 @@ const textSize = computed(() => {
     case 'sm':
       return 'text-sm'
     case 'lg':
-      return 'text-base'
+      return 'text-[15px]'
     default:
       return 'text-sm'
   }
@@ -168,15 +166,16 @@ const getCellClass = (
   row: TableRowData,
   column: Column,
   rowIndex: number,
-  columnIndex: number
+  columnIndex: number,
 ): string => {
   const classes: string[] = []
 
   // 基础类名 - Apple 风格
   classes.push(cellPadding.value)
   classes.push(textSize.value)
-  classes.push('text-slate-700 dark:text-slate-300')
-  classes.push('border-b border-slate-100 dark:border-slate-800')
+  classes.push('relative align-middle text-slate-700 dark:text-slate-300')
+  classes.push('border-b border-slate-100/90 dark:border-slate-800/90')
+  classes.push('first:pl-6 last:pr-6')
   classes.push(getAlignClass(column.align))
 
   // 自定义类名
@@ -209,11 +208,12 @@ const getHeaderCellClass = (column: Column): string => {
 
   // 基础类名 - Apple 风格表头
   classes.push(cellPadding.value)
-  classes.push(textSize.value)
+  classes.push('text-xs uppercase tracking-[0.18em]')
   classes.push('font-semibold')
   classes.push('text-slate-500 dark:text-slate-400')
-  classes.push('bg-slate-50/80 dark:bg-slate-800/80')
+  classes.push('bg-slate-50/88 dark:bg-slate-900/88')
   classes.push('border-b border-slate-200/80 dark:border-slate-700/80')
+  classes.push('first:pl-6 first:rounded-tl-[1.75rem] last:pr-6 last:rounded-tr-[1.75rem]')
   classes.push(getAlignClass(column.align))
 
   // 表头自定义类名
@@ -234,15 +234,17 @@ const getRowClass = (row: TableRowData, index: number): string => {
   const classes: string[] = []
 
   // 基础类名
-  classes.push(rowVariants({
-    stripe: props.stripe,
-    hover: !props.highlightCurrentRow,
-  }))
-  classes.push('bg-white dark:bg-slate-900')
+  classes.push(
+    rowVariants({
+      stripe: props.stripe,
+      hover: !props.highlightCurrentRow,
+    }),
+  )
+  classes.push('bg-transparent')
 
   // 高亮当前行
   if (props.highlightCurrentRow && currentRow.value === row) {
-    classes.push('bg-blue-50/50 dark:bg-blue-900/20')
+    classes.push('bg-blue-50/70 dark:bg-blue-950/35')
   }
 
   // 自定义行类名
@@ -328,6 +330,17 @@ const getSortIcon = (column: Column) => {
   return '↓'
 }
 
+const getHeaderInnerClass = (align?: TableAlign): string => {
+  switch (align) {
+    case 'center':
+      return 'flex items-center justify-center gap-1.5'
+    case 'right':
+      return 'flex items-center justify-end gap-1.5'
+    default:
+      return 'flex items-center gap-1.5'
+  }
+}
+
 // 渲染单元格内容
 const renderCell = (row: TableRowData, column: Column, index: number) => {
   // 自定义渲染函数
@@ -364,11 +377,13 @@ const isEmpty = computed(() => {
 
 // 获取列配置（包含选择列和索引列）
 const displayColumns = computed(() => {
-  const columns: Column[] = [...props.columns]
+  const columns: Column[] = props.columns.filter(
+    (col) => col.type !== 'selection' && col.type !== 'index',
+  )
 
   // 检查是否有选择列
-  const hasSelection = props.columns.some(col => col.type === 'selection')
-  const hasIndex = props.columns.some(col => col.type === 'index')
+  const hasSelection = props.columns.some((col) => col.type === 'selection')
+  const hasIndex = props.columns.some((col) => col.type === 'index')
 
   // 在开头添加索引列
   if (hasIndex) {
@@ -395,15 +410,8 @@ const displayColumns = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="cn(
-      tableVariants({ border }),
-      props.class
-    )"
-  >
-    <table
-      :class="tableElementVariants({ fit })"
-    >
+  <div :class="cn(tableVariants({ border }), props.class)">
+    <table :class="tableElementVariants({ fit })">
       <!-- 表头 -->
       <thead v-if="showHeader">
         <tr>
@@ -411,21 +419,19 @@ const displayColumns = computed(() => {
             v-for="(column, index) in displayColumns"
             :key="column.prop + index"
             :class="getHeaderCellClass(column)"
-            :style="{ width: column.width ? `${column.width}px` : undefined, minWidth: column.minWidth ? `${column.minWidth}px` : undefined }"
+            :style="{
+              width: column.width ? `${column.width}px` : undefined,
+              minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
+            }"
             @click="handleSortClick(column)"
           >
-            <div class="flex items-center gap-1">
+            <div :class="getHeaderInnerClass(column.align)">
               <span>{{ column.label }}</span>
-              <span
-                v-if="column.sortable"
-                class="text-slate-400"
-              >
+              <span v-if="column.sortable" class="text-slate-300 dark:text-slate-600">
                 <template v-if="getSortIcon(column)">
                   {{ getSortIcon(column) }}
                 </template>
-                <template v-else>
-                  ↕
-                </template>
+                <template v-else> ↕ </template>
               </span>
             </div>
           </th>
@@ -448,7 +454,10 @@ const displayColumns = computed(() => {
             v-for="(column, columnIndex) in displayColumns"
             :key="column.prop + columnIndex"
             :class="getCellClass(row, column, rowIndex, columnIndex)"
-            :style="{ width: column.width ? `${column.width}px` : undefined, minWidth: column.minWidth ? `${column.minWidth}px` : undefined }"
+            :style="{
+              width: column.width ? `${column.width}px` : undefined,
+              minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
+            }"
             @mouseenter="handleCellMouseEnter(row, column, $event)"
             @mouseleave="handleCellMouseLeave(row, column, $event)"
           >
@@ -456,9 +465,10 @@ const displayColumns = computed(() => {
             <template v-if="column.prop === '_selection'">
               <input
                 type="checkbox"
+                class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:shadow-[0_0_0_2px_rgba(100,116,139,0.16)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:shadow-[0_0_0_2px_rgba(100,116,139,0.16)]"
                 :checked="selectedRows.includes(row)"
                 @change="toggleRowSelection(row)"
-              >
+              />
             </template>
 
             <!-- 索引列 -->
@@ -478,11 +488,19 @@ const displayColumns = computed(() => {
       <!-- 空数据状态 -->
       <tbody v-else>
         <tr>
-          <td
-            :colspan="displayColumns.length"
-            class="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-600"
-          >
-            {{ emptyText }}
+          <td :colspan="displayColumns.length" class="px-6 py-16 text-center">
+            <div
+              class="mx-auto flex max-w-sm flex-col items-center gap-3 rounded-[1.35rem] border border-dashed border-slate-200/80 bg-slate-50/70 px-6 py-8 text-slate-400 dark:border-slate-700/80 dark:bg-slate-900/40 dark:text-slate-500"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] dark:border-slate-700/80 dark:bg-slate-950"
+              >
+                ···
+              </div>
+              <div class="text-sm font-medium text-slate-500 dark:text-slate-400">
+                {{ emptyText }}
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>

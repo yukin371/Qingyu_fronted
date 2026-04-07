@@ -1,7 +1,9 @@
 <template>
   <span
     ref="tagRef"
-    :class="tagClasses"
+    :class="['qy-tag', tagClasses]"
+    :data-effect="effect"
+    :data-type="type"
     :aria-disabled="disabled ? 'true' : undefined"
   >
     <slot />
@@ -14,12 +16,7 @@
       @click.stop="handleClose"
     >
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path
-          d="M6 6l8 8m0-8l-8 8"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
+        <path d="M6 6l8 8m0-8l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
       </svg>
     </button>
   </span>
@@ -39,7 +36,7 @@ const props = withDefaults(defineProps<QyTagProps>(), {
   round: true,
   hit: false,
   closable: false,
-  disabled: false
+  disabled: false,
 })
 
 // Emits
@@ -56,15 +53,15 @@ const tagClasses = computed(() => {
       size: props.size,
       effect: props.effect,
       round: props.round,
-      hit: props.hit
+      hit: props.hit,
     }),
     {
       'opacity-50 cursor-not-allowed pointer-events-none': props.disabled,
       'shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]':
         props.effect === 'light' && props.type === 'primary',
-      'hover:shadow-lg': !props.disabled
+      'hover:shadow-lg': !props.disabled,
     },
-    props.class
+    props.class,
   )
 })
 
@@ -78,7 +75,7 @@ const handleClose = () => {
 // 暴露方法给父组件
 defineExpose<QyTagInstance>({
   focus: () => tagRef.value?.focus(),
-  blur: () => tagRef.value?.blur()
+  blur: () => tagRef.value?.blur(),
 })
 </script>
 
@@ -87,19 +84,21 @@ defineExpose<QyTagInstance>({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1rem;
-  height: 1rem;
+  width: 1.05rem;
+  height: 1.05rem;
   border-radius: 9999px;
-  border: 0;
-  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   color: currentColor;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  backdrop-filter: blur(8px);
 }
 
 .qy-tag__close:hover {
-  background: rgba(15, 23, 42, 0.18);
+  background: rgba(255, 255, 255, 0.8);
   transform: scale(1.1);
 }
 
@@ -114,12 +113,17 @@ defineExpose<QyTagInstance>({
   height: 0.7rem;
 }
 
-/* Dark effect下的关闭按钮样式调整 */
-span[data-effect="dark"] .qy-tag__close {
-  background: rgba(255, 255, 255, 0.2);
+.qy-tag[data-effect='dark'] .qy-tag__close {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
-span[data-effect="dark"] .qy-tag__close:hover {
-  background: rgba(255, 255, 255, 0.3);
+.qy-tag[data-effect='dark'] .qy-tag__close:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.qy-tag[data-effect='plain'] .qy-tag__close {
+  background: rgba(248, 250, 252, 0.9);
 }
 </style>

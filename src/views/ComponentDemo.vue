@@ -8,10 +8,10 @@
         </h1>
         <p class="text-slate-600 text-lg">基于 Tailwind v4 和 CVA 的 Vue 3 组件库</p>
         <div class="mt-4 flex justify-center gap-2">
-          <QyTag color="primary">Vue 3</QyTag>
-          <QyTag color="success">TypeScript</QyTag>
-          <QyTag color="info">Tailwind v4</QyTag>
-          <QyTag color="warning">CVA</QyTag>
+          <Tag variant="primary">Vue 3</Tag>
+          <Tag variant="success">TypeScript</Tag>
+          <Tag variant="info">Tailwind v4</Tag>
+          <Tag variant="warning">CVA</Tag>
         </div>
       </div>
 
@@ -253,11 +253,11 @@
             <div>
               <p class="text-sm text-slate-600 mb-3 font-medium">标签</p>
               <div class="flex gap-2 flex-wrap">
-                <QyTag color="primary">主要</QyTag>
-                <QyTag color="success">成功</QyTag>
-                <QyTag color="warning">警告</QyTag>
-                <QyTag color="danger">危险</QyTag>
-                <QyTag color="info">信息</QyTag>
+                <Tag variant="primary">主要</Tag>
+                <Tag variant="success">成功</Tag>
+                <Tag variant="warning">警告</Tag>
+                <Tag variant="danger">危险</Tag>
+                <Tag variant="info">信息</Tag>
               </div>
             </div>
           </div>
@@ -509,7 +509,6 @@ import {
   QyTextarea,
   QyAvatar,
   QyBadge,
-  QyTag,
   QyTooltip,
   QyAlert,
   QyDrawer,
@@ -521,6 +520,7 @@ import {
   QyLoading,
   QyEmpty
 } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import message from '@/design-system/feedback/Message/useMessage'
 
 // 导航配置

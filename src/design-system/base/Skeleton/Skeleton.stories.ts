@@ -5,6 +5,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Skeleton from './Skeleton.vue'
 
+const previewShell =
+  'rounded-[30px] border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.34),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-6 shadow-[0_28px_52px_-30px_rgba(15,23,42,0.28)] dark:border-slate-700/50 dark:bg-[radial-gradient(circle_at_top_left,rgba(30,58,95,0.4),transparent_34%),linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.95))]'
+
+const cardRow =
+  'rounded-2xl border border-white/80 bg-white/84 px-4 py-3 dark:border-slate-700/40 dark:bg-slate-800/60'
+
 const meta = {
   title: 'Base/Skeleton',
   component: Skeleton,
@@ -38,283 +44,144 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-// 默认示例
+/** 默认骨架 - 可通过 Controls 面板调节所有属性 */
 export const Default: Story = {
   args: {
     type: 'text',
     size: 'md',
     animated: true,
   },
+  render: (args) => ({
+    components: { Skeleton },
+    setup() {
+      return { args }
+    },
+    template: `
+      <div :class="'${previewShell}'">
+        <Skeleton v-bind="args" />
+      </div>
+    `,
+  }),
 }
 
-// Text 类型
-export const Text: Story = {
-  args: {
-    type: 'text',
-    size: 'md',
-    animated: true,
-  },
-}
-
-// Text 尺寸变体
-export const TextSizes: Story = {
+/** 5 种类型并排展示 */
+export const Types: Story = {
   render: () => ({
     components: { Skeleton },
     template: `
-      <div class="space-y-4 p-4">
-        <div class="flex items-center gap-4">
-          <Skeleton type="text" size="xs" />
-          <span class="text-sm text-slate-500">xs</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="text" size="sm" />
-          <span class="text-sm text-slate-500">sm</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="text" size="md" />
-          <span class="text-sm text-slate-500">md</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="text" size="lg" />
-          <span class="text-sm text-slate-500">lg</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="text" size="xl" />
-          <span class="text-sm text-slate-500">xl</span>
+      <div :class="'${previewShell}'">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+          <div :class="'${cardRow} flex flex-col items-center gap-3'">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Text</span>
+            <Skeleton type="text" size="md" class="w-full" />
+          </div>
+          <div :class="'${cardRow} flex flex-col items-center gap-3'">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Circle</span>
+            <Skeleton type="circle" size="md" />
+          </div>
+          <div :class="'${cardRow} flex flex-col items-center gap-3'">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Rect</span>
+            <Skeleton type="rect" size="md" />
+          </div>
+          <div :class="'${cardRow} flex flex-col items-center gap-3'">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Avatar</span>
+            <Skeleton type="avatar" size="md" />
+          </div>
+          <div :class="'${cardRow} flex flex-col items-center gap-3'">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Image</span>
+            <Skeleton type="image" size="md" />
+          </div>
         </div>
       </div>
     `,
   }),
 }
 
-// Circle 类型
-export const Circle: Story = {
-  args: {
-    type: 'circle',
-    size: 'md',
-    animated: true,
-  },
-}
-
-// Circle 尺寸变体
-export const CircleSizes: Story = {
+/** 每种类型的 5 个尺寸 */
+export const Sizes: Story = {
   render: () => ({
     components: { Skeleton },
     template: `
-      <div class="space-y-4 p-4">
-        <div class="flex items-center gap-4">
-          <Skeleton type="circle" size="xs" />
-          <span class="text-sm text-slate-500">xs</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="circle" size="sm" />
-          <span class="text-sm text-slate-500">sm</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="circle" size="md" />
-          <span class="text-sm text-slate-500">md</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="circle" size="lg" />
-          <span class="text-sm text-slate-500">lg</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="circle" size="xl" />
-          <span class="text-sm text-slate-500">xl</span>
+      <div :class="'${previewShell}'">
+        <div class="space-y-8">
+          <!-- Text -->
+          <section>
+            <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Text</h3>
+            <div :class="'${cardRow} space-y-2'">
+              <div class="flex items-center gap-3" v-for="s in ['xs','sm','md','lg','xl']" :key="'t-'+s">
+                <Skeleton type="text" :size="s" class="flex-1" />
+                <span class="w-8 text-right text-xs text-slate-400 dark:text-slate-500">{{ s }}</span>
+              </div>
+            </div>
+          </section>
+          <!-- Circle -->
+          <section>
+            <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Circle</h3>
+            <div :class="'${cardRow} flex items-end gap-4'">
+              <div v-for="s in ['xs','sm','md','lg','xl']" :key="'c-'+s" class="flex flex-col items-center gap-1">
+                <Skeleton type="circle" :size="s" />
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ s }}</span>
+              </div>
+            </div>
+          </section>
+          <!-- Rect -->
+          <section>
+            <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Rect</h3>
+            <div :class="'${cardRow} flex items-end gap-4'">
+              <div v-for="s in ['xs','sm','md','lg','xl']" :key="'r-'+s" class="flex flex-col items-center gap-1">
+                <Skeleton type="rect" :size="s" />
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ s }}</span>
+              </div>
+            </div>
+          </section>
+          <!-- Avatar -->
+          <section>
+            <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Avatar</h3>
+            <div :class="'${cardRow} flex items-end gap-4'">
+              <div v-for="s in ['xs','sm','md','lg','xl']" :key="'a-'+s" class="flex flex-col items-center gap-1">
+                <Skeleton type="avatar" :size="s" />
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ s }}</span>
+              </div>
+            </div>
+          </section>
+          <!-- Image -->
+          <section>
+            <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Image</h3>
+            <div :class="'${cardRow} flex items-end gap-4'">
+              <div v-for="s in ['xs','sm','md','lg','xl']" :key="'i-'+s" class="flex flex-col items-center gap-1">
+                <Skeleton type="image" :size="s" />
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ s }}</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     `,
   }),
 }
 
-// Rect 类型
-export const Rect: Story = {
-  args: {
-    type: 'rect',
-    size: 'md',
-    animated: true,
-  },
-}
-
-// Rect 尺寸变体
-export const RectSizes: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="space-y-4 p-4">
-        <div>
-          <Skeleton type="rect" size="xs" />
-          <span class="text-sm text-slate-500 ml-2">xs</span>
-        </div>
-        <div>
-          <Skeleton type="rect" size="sm" />
-          <span class="text-sm text-slate-500 ml-2">sm</span>
-        </div>
-        <div>
-          <Skeleton type="rect" size="md" />
-          <span class="text-sm text-slate-500 ml-2">md</span>
-        </div>
-        <div>
-          <Skeleton type="rect" size="lg" />
-          <span class="text-sm text-slate-500 ml-2">lg</span>
-        </div>
-        <div>
-          <Skeleton type="rect" size="xl" />
-          <span class="text-sm text-slate-500 ml-2">xl</span>
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// Avatar 类型
-export const Avatar: Story = {
-  args: {
-    type: 'avatar',
-    size: 'md',
-    animated: true,
-  },
-}
-
-// Avatar 尺寸变体
-export const AvatarSizes: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="space-y-4 p-4">
-        <div class="flex items-center gap-4">
-          <Skeleton type="avatar" size="xs" />
-          <span class="text-sm text-slate-500">xs</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="avatar" size="sm" />
-          <span class="text-sm text-slate-500">sm</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="avatar" size="md" />
-          <span class="text-sm text-slate-500">md</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="avatar" size="lg" />
-          <span class="text-sm text-slate-500">lg</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <Skeleton type="avatar" size="xl" />
-          <span class="text-sm text-slate-500">xl</span>
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// Image 类型
-export const Image: Story = {
-  args: {
-    type: 'image',
-    size: 'md',
-    animated: true,
-  },
-}
-
-// Image 尺寸变体
-export const ImageSizes: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="space-y-4 p-4">
-        <div>
-          <Skeleton type="image" size="xs" />
-          <span class="text-sm text-slate-500 ml-2">xs</span>
-        </div>
-        <div>
-          <Skeleton type="image" size="sm" />
-          <span class="text-sm text-slate-500 ml-2">sm</span>
-        </div>
-        <div>
-          <Skeleton type="image" size="md" />
-          <span class="text-sm text-slate-500 ml-2">md</span>
-        </div>
-        <div>
-          <Skeleton type="image" size="lg" />
-          <span class="text-sm text-slate-500 ml-2">lg</span>
-        </div>
-        <div>
-          <Skeleton type="image" size="xl" />
-          <span class="text-sm text-slate-500 ml-2">xl</span>
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 自定义尺寸
+/** 自定义宽高 */
 export const CustomSize: Story = {
   render: () => ({
     components: { Skeleton },
     template: `
-      <div class="space-y-4 p-4">
-        <div>
-          <Skeleton type="text" width="200px" height="20px" />
-          <p class="text-sm text-slate-500 mt-1">自定义文本骨架: 200px x 20px</p>
-        </div>
-        <div>
-          <Skeleton type="circle" width="60px" height="60px" />
-          <p class="text-sm text-slate-500 mt-1">自定义圆形骨架: 60px x 60px</p>
-        </div>
-        <div>
-          <Skeleton type="rect" width="100%" height="120px" />
-          <p class="text-sm text-slate-500 mt-1">自定义矩形骨架: 100% x 120px</p>
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 无动画
-export const NoAnimation: Story = {
-  args: {
-    type: 'text',
-    size: 'md',
-    animated: false,
-  },
-}
-
-// 组合使用 - 用户卡片
-export const UserCard: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 w-80">
-        <div class="flex items-center gap-4 mb-4">
-          <Skeleton type="avatar" size="xl" />
-          <div class="flex-1 space-y-2">
-            <Skeleton type="text" size="lg" />
-            <Skeleton type="text" size="sm" />
+      <div :class="'${previewShell}'">
+        <div :class="'${cardRow} space-y-4'">
+          <div>
+            <Skeleton type="text" width="200px" height="20px" />
+            <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">200px x 20px</p>
           </div>
-        </div>
-        <div class="space-y-2">
-          <Skeleton type="text" size="md" />
-          <Skeleton type="text" size="md" />
-          <Skeleton type="text" size="md" width="150px" />
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 组合使用 - 文章卡片
-export const ArticleCard: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden w-96">
-        <Skeleton type="image" size="lg" height="200px" />
-        <div class="p-6 space-y-4">
-          <Skeleton type="text" size="xl" />
-          <div class="space-y-2">
-            <Skeleton type="text" size="md" />
-            <Skeleton type="text" size="md" />
-            <Skeleton type="text" size="md" width="200px" />
+          <div class="flex items-center gap-3">
+            <Skeleton type="circle" width="48px" height="48px" />
+            <div class="flex-1">
+              <Skeleton type="text" width="60%" height="14px" />
+              <Skeleton type="text" width="40%" height="12px" class="mt-2" />
+            </div>
+            <span class="text-xs text-slate-400 dark:text-slate-500 shrink-0">Circle 48px + Text</span>
+          </div>
+          <div>
+            <Skeleton type="rect" width="100%" height="100px" />
+            <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">100% x 100px</p>
           </div>
         </div>
       </div>
@@ -322,104 +189,147 @@ export const ArticleCard: Story = {
   }),
 }
 
-// 组合使用 - 列表
-export const List: Story = {
+/** 无动画版本 */
+export const Static: Story = {
   render: () => ({
     components: { Skeleton },
     template: `
-      <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 w-96">
-        <div class="space-y-4">
-          <div v-for="i in 5" :key="i" class="flex items-center gap-4">
-            <Skeleton type="avatar" size="md" />
+      <div :class="'${previewShell}'">
+        <div :class="'${cardRow} space-y-3'">
+          <div class="flex items-center gap-3">
+            <Skeleton type="avatar" size="md" :animated="false" />
             <div class="flex-1 space-y-2">
-              <Skeleton type="text" size="md" />
-              <Skeleton type="text" size="sm" width="150px" />
+              <Skeleton type="text" size="md" :animated="false" />
+              <Skeleton type="text" size="sm" width="60%" :animated="false" />
             </div>
           </div>
+          <Skeleton type="text" size="md" :animated="false" />
+          <Skeleton type="text" size="md" :animated="false" />
+          <Skeleton type="text" size="md" width="45%" :animated="false" />
         </div>
       </div>
     `,
   }),
 }
 
-// 组合使用 - 表格
-export const Table: Story = {
+/** 真实场景：用户卡片骨架 */
+export const UserCardSkeleton: Story = {
   render: () => ({
     components: { Skeleton },
     template: `
-      <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden w-full max-w-2xl">
-        <div class="p-4 border-b border-slate-200 dark:border-slate-700">
-          <Skeleton type="text" size="xl" />
-        </div>
-        <div class="p-4">
-          <div class="space-y-4">
-            <div v-for="i in 3" :key="i" class="flex gap-4">
-              <Skeleton type="circle" size="sm" class="flex-shrink-0" />
-              <Skeleton type="text" size="md" class="flex-1" />
-              <Skeleton type="text" size="md" class="flex-1" />
-              <Skeleton type="text" size="md" width="100px" class="flex-shrink-0" />
-            </div>
-          </div>
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 所有类型展示
-export const AllTypes: Story = {
-  render: () => ({
-    components: { Skeleton },
-    template: `
-      <div class="space-y-6 p-4">
-        <div>
-          <h3 class="text-lg font-semibold mb-2">Text</h3>
+      <div :class="'${previewShell} max-w-sm'">
+        <div :class="'${cardRow}'">
           <div class="flex items-center gap-4">
-            <Skeleton type="text" size="xs" />
-            <Skeleton type="text" size="sm" />
-            <Skeleton type="text" size="md" />
-            <Skeleton type="text" size="lg" />
-            <Skeleton type="text" size="xl" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold mb-2">Circle</h3>
-          <div class="flex items-center gap-4">
-            <Skeleton type="circle" size="xs" />
-            <Skeleton type="circle" size="sm" />
-            <Skeleton type="circle" size="md" />
-            <Skeleton type="circle" size="lg" />
-            <Skeleton type="circle" size="xl" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold mb-2">Rect</h3>
-          <div class="flex items-end gap-4">
-            <Skeleton type="rect" size="xs" />
-            <Skeleton type="rect" size="sm" />
-            <Skeleton type="rect" size="md" />
-            <Skeleton type="rect" size="lg" />
-            <Skeleton type="rect" size="xl" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold mb-2">Avatar</h3>
-          <div class="flex items-center gap-4">
-            <Skeleton type="avatar" size="xs" />
-            <Skeleton type="avatar" size="sm" />
-            <Skeleton type="avatar" size="md" />
-            <Skeleton type="avatar" size="lg" />
             <Skeleton type="avatar" size="xl" />
+            <div class="flex-1 space-y-2">
+              <Skeleton type="text" size="lg" />
+              <Skeleton type="text" size="sm" width="60%" />
+            </div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <Skeleton type="text" size="md" />
+            <Skeleton type="text" size="md" />
+            <Skeleton type="text" size="md" width="45%" />
           </div>
         </div>
-        <div>
-          <h3 class="text-lg font-semibold mb-2">Image</h3>
-          <div class="flex items-end gap-4">
-            <Skeleton type="image" size="xs" />
-            <Skeleton type="image" size="sm" />
-            <Skeleton type="image" size="md" />
-            <Skeleton type="image" size="lg" />
-            <Skeleton type="image" size="xl" />
+      </div>
+    `,
+  }),
+}
+
+/** 真实场景：文章卡片骨架 */
+export const ArticleCardSkeleton: Story = {
+  render: () => ({
+    components: { Skeleton },
+    template: `
+      <div :class="'${previewShell} max-w-md'">
+        <div :class="'${cardRow} !p-0 overflow-hidden'">
+          <Skeleton type="image" height="180px" />
+          <div class="space-y-3 p-4">
+            <Skeleton type="text" size="xl" />
+            <div class="space-y-2">
+              <Skeleton type="text" size="md" />
+              <Skeleton type="text" size="md" />
+              <Skeleton type="text" size="md" width="65%" />
+            </div>
+            <div class="flex items-center gap-3 pt-1">
+              <Skeleton type="avatar" size="xs" />
+              <Skeleton type="text" size="sm" width="90px" />
+              <Skeleton type="text" size="xs" width="60px" class="ml-auto" />
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+  }),
+}
+
+/** 真实场景：列表骨架 */
+export const ListSkeleton: Story = {
+  render: () => ({
+    components: { Skeleton },
+    template: `
+      <div :class="'${previewShell} max-w-md'">
+        <div :class="'${cardRow} space-y-3'">
+          <div v-for="i in 5" :key="i" class="flex items-center gap-3">
+            <Skeleton type="avatar" size="md" />
+            <div class="flex-1 space-y-1.5">
+              <Skeleton type="text" size="md" />
+              <Skeleton type="text" size="sm" width="55%" />
+            </div>
+            <Skeleton type="text" size="xs" width="48px" />
+          </div>
+        </div>
+      </div>
+    `,
+  }),
+}
+
+/** 真实场景：仪表盘骨架 */
+export const DashboardSkeleton: Story = {
+  render: () => ({
+    components: { Skeleton },
+    template: `
+      <div :class="'${previewShell}'">
+        <!-- 统计卡片行 -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div v-for="i in 3" :key="'stat-'+i" :class="'${cardRow}'">
+            <div class="flex items-center justify-between">
+              <div class="space-y-2 flex-1">
+                <Skeleton type="text" size="sm" width="50%" />
+                <Skeleton type="text" size="xl" width="70%" />
+              </div>
+              <Skeleton type="circle" size="sm" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 图表占位 -->
+        <div :class="'${cardRow} mt-4'">
+          <div class="mb-4 flex items-center justify-between">
+            <Skeleton type="text" size="lg" width="120px" />
+            <div class="flex gap-2">
+              <Skeleton type="text" size="xs" width="48px" />
+              <Skeleton type="text" size="xs" width="48px" />
+              <Skeleton type="text" size="xs" width="48px" />
+            </div>
+          </div>
+          <Skeleton type="rect" height="200px" class="w-full" />
+        </div>
+
+        <!-- 列表行 -->
+        <div :class="'${cardRow} mt-4 space-y-3'">
+          <div class="mb-2 flex items-center justify-between">
+            <Skeleton type="text" size="lg" width="100px" />
+            <Skeleton type="text" size="xs" width="64px" />
+          </div>
+          <div v-for="i in 3" :key="'row-'+i" class="flex items-center gap-3">
+            <Skeleton type="circle" size="sm" />
+            <div class="flex-1 space-y-1.5">
+              <Skeleton type="text" size="md" />
+              <Skeleton type="text" size="xs" width="50%" />
+            </div>
+            <Skeleton type="text" size="sm" width="64px" />
           </div>
         </div>
       </div>

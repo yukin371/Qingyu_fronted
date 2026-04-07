@@ -12,19 +12,19 @@ import type { SkeletonProps } from './types'
 
 // 使用 CVA 定义骨架变体
 const skeletonVariants = cva(
-  // 基础样式
-  'bg-slate-200 dark:bg-slate-700 rounded',
+  // 基础样式 - subtle tonal 风格，无边框无 inset shadow
+  'relative isolate overflow-hidden bg-slate-100/90 dark:bg-slate-800/60',
   {
     variants: {
       type: {
-        text: 'rounded-sm',
+        text: 'rounded-full',
         circle: 'rounded-full',
-        rect: 'rounded-md',
+        rect: 'rounded-2xl',
         avatar: 'rounded-full',
-        image: 'rounded-md',
+        image: 'rounded-2xl',
       },
       animated: {
-        true: 'animate-pulse',
+        true: 'qy-skeleton--animated',
         false: '',
       },
     },
@@ -32,7 +32,7 @@ const skeletonVariants = cva(
       type: 'text',
       animated: true,
     },
-  }
+  },
 )
 
 // 组件 Props
@@ -74,11 +74,28 @@ const classes = computed(() =>
       animated: props.animated,
     }),
     sizeClasses.value,
-    props.class
-  )
+    props.class,
+  ),
 )
 </script>
 
 <template>
-  <div :class="classes" :style="customStyle" aria-hidden="true" />
+  <div :class="classes" :style="customStyle" aria-hidden="true">
+    <div
+      v-if="props.animated"
+      class="pointer-events-none absolute inset-y-0 left-0 w-1/2 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/[0.06] qy-skeleton__shimmer"
+    />
+  </div>
 </template>
+
+<style scoped>
+.qy-skeleton__shimmer {
+  animation: qy-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes qy-skeleton-shimmer {
+  100% {
+    transform: translateX(300%);
+  }
+}
+</style>

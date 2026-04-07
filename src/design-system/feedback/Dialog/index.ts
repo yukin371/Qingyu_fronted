@@ -2,8 +2,6 @@
  * Dialog 组件导出
  */
 
-import Dialog from './Dialog.vue'
-
 export { default as DialogFooter } from './DialogFooter.vue'
 
 // 导出类型

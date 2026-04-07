@@ -2,13 +2,11 @@
 /**
  * QySelect 下拉选择器
  *
- * Apple 风格设计，解决 Element Plus 下拉栏痛点:
- * - placeholder 可读性差 -> 清晰的灰度对比
- * - 箭头与文字不对齐 -> flex 居中对齐
- * - 点击后出现蓝色矩形框 -> 柔和的 ring 过渡
+ * Apple + Material 3 风格基础选择器，保持 API 兼容，
+ * 用于逐步替代 Element Plus Select 的常见交互场景。
  */
 
-import { computed, ref, nextTick, onUnmounted, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { cn } from '../../utils/cn'
 import type { SelectProps, SelectEmits, SelectOption } from './types'
 
@@ -17,112 +15,216 @@ const props = withDefaults(defineProps<SelectProps>(), {
   disabled: false,
   clearable: false,
   size: 'md',
+  options: () => [],
 })
 
 const emit = defineEmits<SelectEmits>()
 
-// --- 状态 ---
-const isOpen = ref(false)
 const triggerRef = ref<HTMLElement>()
 const dropdownRef = ref<HTMLElement>()
+const isOpen = ref(false)
+const isFocused = ref(false)
+const highlightedIndex = ref(-1)
 const dropdownStyle = ref<Record<string, string>>({})
 
-// --- 计算属性 ---
+const triggerId = `qy-select-trigger-${Math.random().toString(36).slice(2)}`
+const dropdownId = `qy-select-dropdown-${Math.random().toString(36).slice(2)}`
 
-/** 当前选中项 */
-const selectedOption = computed(() =>
-  props.options.find((o) => o.value === props.modelValue)
-)
-
-/** 是否已有选中值 */
-const hasValue = computed(
-  () => props.modelValue !== undefined && props.modelValue !== ''
-)
-
-// --- 尺寸映射 ---
 const sizeClasses: Record<string, string> = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2.5 text-sm',
-  lg: 'px-5 py-3 text-base',
+  sm: 'min-h-[38px] px-3.5 text-sm',
+  md: 'min-h-[44px] px-4 text-[15px]',
+  lg: 'min-h-[52px] px-5 text-base',
 }
 
-/** 触发器完整类名 */
-const triggerClasses = computed(() =>
-  cn(
-    'flex items-center justify-between w-full rounded-xl border bg-white transition-all duration-200 cursor-pointer select-none outline-none',
-    sizeClasses[props.size],
-    {
-      'border-gray-200 hover:border-gray-300 hover:bg-gray-50':
-        !props.disabled && !isOpen.value,
-      'ring-2 ring-blue-500/20 border-blue-400 bg-blue-50/30':
-        !props.disabled && isOpen.value,
-      'opacity-50 cursor-not-allowed pointer-events-none': props.disabled,
-    },
-    props.class
-  )
+const selectedOption = computed(() =>
+  props.options.find((option) => option.value === props.modelValue),
 )
 
-// --- 定位 ---
+const selectedIndex = computed(() =>
+  props.options.findIndex((option) => option.value === props.modelValue),
+)
 
-function updatePosition() {
-  if (!triggerRef.value) return
+const hasValue = computed(() => props.modelValue !== undefined && props.modelValue !== '')
+
+const activeDescendant = computed(() =>
+  isOpen.value && highlightedIndex.value >= 0
+    ? `${dropdownId}-option-${highlightedIndex.value}`
+    : undefined,
+)
+
+const triggerClasses = computed(() =>
+  cn(
+    'surface-control group flex w-full items-center justify-between gap-3 text-left',
+    'transition-[border-color,box-shadow,background-color,transform] duration-200',
+    sizeClasses[props.size],
+    {
+      'hover:border-[var(--color-line-strong)] hover:bg-white': !props.disabled && !isOpen.value,
+      'border-primary-400/70 bg-white ring-brand':
+        !props.disabled && (isOpen.value || isFocused.value),
+      'cursor-not-allowed opacity-55': props.disabled,
+    },
+    props.class,
+  ),
+)
+
+const getOptionId = (index: number) => `${dropdownId}-option-${index}`
+
+const getEnabledIndex = (start: number, step: 1 | -1) => {
+  if (!props.options.length) {
+    return -1
+  }
+
+  let current = start
+  for (let count = 0; count < props.options.length; count += 1) {
+    current = (current + step + props.options.length) % props.options.length
+    if (!props.options[current].disabled) {
+      return current
+    }
+  }
+
+  return -1
+}
+
+const updatePosition = () => {
+  if (!triggerRef.value) {
+    return
+  }
+
   const rect = triggerRef.value.getBoundingClientRect()
+  const gap = 10
+  const estimatedHeight = Math.min(Math.max(props.options.length, 1) * 44 + 20, 280)
+  const showAbove =
+    rect.bottom + estimatedHeight + gap > window.innerHeight && rect.top > window.innerHeight / 2
+
   dropdownStyle.value = {
     position: 'fixed',
-    top: `${rect.bottom + 6}px`,
     left: `${rect.left}px`,
     width: `${rect.width}px`,
+    top: showAbove
+      ? `${Math.max(12, rect.top - estimatedHeight - gap)}px`
+      : `${rect.bottom + gap}px`,
     zIndex: '1000',
   }
 }
 
-// --- 交互 ---
-
-function toggleOpen() {
-  if (props.disabled) return
-  isOpen.value = !isOpen.value
-  if (isOpen.value) {
-    nextTick(updatePosition)
-  }
-}
-
-function selectOption(option: SelectOption) {
-  if (option.disabled) return
-  emit('update:modelValue', option.value)
-  emit('change', option.value)
-  isOpen.value = false
-}
-
-function handleClear(e: MouseEvent) {
-  e.stopPropagation()
-  emit('update:modelValue', '')
-  emit('change', '')
-}
-
-// --- 外部点击 & 键盘 ---
-
-function handleClickOutside(e: MouseEvent) {
-  const target = e.target as Node
-  if (
-    triggerRef.value?.contains(target) ||
-    dropdownRef.value?.contains(target)
-  ) {
+const scrollHighlightedIntoView = () => {
+  if (highlightedIndex.value < 0) {
     return
   }
-  isOpen.value = false
+
+  nextTick(() => {
+    const optionEl = document.getElementById(getOptionId(highlightedIndex.value))
+    optionEl?.scrollIntoView({ block: 'nearest' })
+  })
 }
 
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    isOpen.value = false
+const openDropdown = async () => {
+  if (props.disabled || isOpen.value) {
+    return
+  }
+
+  isOpen.value = true
+  highlightedIndex.value = selectedIndex.value >= 0 ? selectedIndex.value : getEnabledIndex(-1, 1)
+
+  await nextTick()
+  updatePosition()
+  scrollHighlightedIntoView()
+}
+
+const closeDropdown = () => {
+  isOpen.value = false
+  highlightedIndex.value = -1
+}
+
+const toggleOpen = async () => {
+  if (isOpen.value) {
+    closeDropdown()
+    return
+  }
+
+  await openDropdown()
+}
+
+const selectOption = (option: SelectOption) => {
+  if (option.disabled) {
+    return
+  }
+
+  emit('update:modelValue', option.value)
+  emit('change', option.value)
+  closeDropdown()
+}
+
+const handleClear = (event: MouseEvent) => {
+  event.stopPropagation()
+  emit('update:modelValue', '')
+  emit('change', '')
+  closeDropdown()
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as Node
+  if (triggerRef.value?.contains(target) || dropdownRef.value?.contains(target)) {
+    return
+  }
+
+  closeDropdown()
+}
+
+const handleTriggerKeydown = async (event: KeyboardEvent) => {
+  if (props.disabled) {
+    return
+  }
+
+  switch (event.key) {
+    case 'ArrowDown':
+      event.preventDefault()
+      if (!isOpen.value) {
+        await openDropdown()
+      } else {
+        highlightedIndex.value = getEnabledIndex(highlightedIndex.value, 1)
+      }
+      break
+    case 'ArrowUp':
+      event.preventDefault()
+      if (!isOpen.value) {
+        await openDropdown()
+      } else {
+        highlightedIndex.value = getEnabledIndex(highlightedIndex.value, -1)
+      }
+      break
+    case 'Enter':
+    case ' ': {
+      event.preventDefault()
+      if (!isOpen.value) {
+        await openDropdown()
+      } else if (highlightedIndex.value >= 0) {
+        selectOption(props.options[highlightedIndex.value])
+      }
+      break
+    }
+    case 'Home':
+    case 'PageUp':
+      event.preventDefault()
+      highlightedIndex.value = getEnabledIndex(-1, 1)
+      break
+    case 'End':
+    case 'PageDown':
+      event.preventDefault()
+      highlightedIndex.value = getEnabledIndex(0, -1)
+      break
+    case 'Escape':
+      event.preventDefault()
+      closeDropdown()
+      break
+    case 'Tab':
+      closeDropdown()
+      break
   }
 }
-
-// --- 生命周期 ---
 
 watch(isOpen, (open) => {
   if (open) {
-    nextTick(updatePosition)
     document.addEventListener('mousedown', handleClickOutside, true)
     window.addEventListener('resize', updatePosition)
     window.addEventListener('scroll', updatePosition, true)
@@ -133,6 +235,10 @@ watch(isOpen, (open) => {
   }
 })
 
+watch(highlightedIndex, () => {
+  scrollHighlightedIntoView()
+})
+
 onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside, true)
   window.removeEventListener('resize', updatePosition)
@@ -141,107 +247,119 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    ref="triggerRef"
-    :class="triggerClasses"
-    :tabindex="disabled ? -1 : 0"
-    role="combobox"
-    :aria-expanded="isOpen"
-    :aria-disabled="disabled"
-    @click="toggleOpen"
-    @keydown="handleKeydown"
-  >
-    <!-- 文本区域 -->
-    <span
-      class="truncate"
-      :class="hasValue ? 'text-gray-800' : 'text-gray-400'"
+  <div class="relative w-full">
+    <div
+      :id="triggerId"
+      ref="triggerRef"
+      :class="triggerClasses"
+      :tabindex="disabled ? -1 : 0"
+      role="combobox"
+      aria-autocomplete="none"
+      :aria-expanded="isOpen"
+      :aria-controls="dropdownId"
+      :aria-activedescendant="activeDescendant"
+      :aria-disabled="disabled"
+      @click="toggleOpen"
+      @keydown="handleTriggerKeydown"
+      @focus="isFocused = true"
+      @blur="isFocused = false"
     >
-      {{ selectedOption ? selectedOption.label : placeholder }}
-    </span>
+      <span class="min-w-0 flex-1 truncate" :class="hasValue ? 'text-slate-900' : 'text-slate-400'">
+        {{ selectedOption ? selectedOption.label : placeholder }}
+      </span>
 
-    <!-- 右侧图标区域 -->
-    <span class="flex items-center gap-1 ml-2 shrink-0">
-      <!-- 清除按钮 -->
-      <button
-        v-if="clearable && hasValue && !disabled"
-        type="button"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
-        @click="handleClear"
-        @mousedown.stop
-      >
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      <!-- 箭头 -->
-      <svg
-        class="w-4 h-4 text-gray-400 transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-      </svg>
-    </span>
-  </div>
-
-  <!-- 浮动菜单 -->
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-[opacity,transform] duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition-[opacity,transform] duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
-    >
-      <div
-        v-if="isOpen"
-        ref="dropdownRef"
-        :style="dropdownStyle"
-        class="rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 bg-white py-1.5 overflow-hidden"
-      >
-        <!-- 无选项 -->
-        <div
-          v-if="options.length === 0"
-          class="px-4 py-6 text-center text-sm text-gray-400"
+      <span class="ml-2 flex shrink-0 items-center gap-2">
+        <button
+          v-if="clearable && hasValue && !disabled"
+          type="button"
+          class="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-400 transition-all duration-150 hover:-translate-y-px hover:border-slate-300 hover:text-slate-700"
+          @click="handleClear"
+          @mousedown.stop
         >
-          暂无数据
-        </div>
-
-        <!-- 选项列表 -->
-        <ul v-else class="max-h-60 overflow-y-auto">
-          <li
-            v-for="option in options"
-            :key="option.value"
-            class="flex items-center px-4 py-2.5 text-sm cursor-pointer transition-colors duration-100"
-            :class="{
-              'text-gray-700 hover:bg-gray-50 active:bg-gray-100':
-                !option.disabled && option.value !== modelValue,
-              'bg-blue-50/60 text-blue-600': option.value === modelValue,
-              'opacity-50 cursor-not-allowed': option.disabled,
-            }"
-            @click="selectOption(option)"
+          <svg
+            class="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
           >
-            <span class="flex-1 truncate">{{ option.label }}</span>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-            <!-- 选中勾号 -->
-            <svg
-              v-if="option.value === modelValue"
-              class="w-4 h-4 text-blue-500 ml-auto shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
+        <svg
+          class="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:text-slate-600"
+          :class="{ 'rotate-180': isOpen }"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </span>
+    </div>
+
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-[opacity,transform] duration-200 ease-out"
+        enter-from-class="opacity-0 translate-y-1 scale-[0.98]"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        leave-active-class="transition-[opacity,transform] duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0 scale-100"
+        leave-to-class="opacity-0 translate-y-1 scale-[0.98]"
+      >
+        <div
+          v-if="isOpen"
+          :id="dropdownId"
+          ref="dropdownRef"
+          :style="dropdownStyle"
+          class="surface-floating overflow-hidden py-2"
+        >
+          <div v-if="options.length === 0" class="px-4 py-6 text-center text-sm text-slate-400">
+            暂无数据
+          </div>
+
+          <ul
+            v-else
+            role="listbox"
+            :aria-labelledby="triggerId"
+            class="max-h-64 overflow-y-auto px-2"
+          >
+            <li
+              v-for="(option, index) in options"
+              :id="getOptionId(index)"
+              :key="option.value"
+              role="option"
+              :aria-selected="option.value === modelValue"
+              class="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition-colors duration-150"
+              :class="{
+                'bg-primary-500/12 text-primary-700': option.value === modelValue,
+                'bg-slate-100 text-slate-900':
+                  highlightedIndex === index && option.value !== modelValue && !option.disabled,
+                'text-slate-700 hover:bg-slate-100/90':
+                  !option.disabled && highlightedIndex !== index && option.value !== modelValue,
+                'cursor-not-allowed opacity-45': option.disabled,
+              }"
+              @mouseenter="!option.disabled && (highlightedIndex = index)"
+              @click="selectOption(option)"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </li>
-        </ul>
-      </div>
-    </Transition>
-  </Teleport>
+              <span class="flex-1 truncate">{{ option.label }}</span>
+
+              <svg
+                v-if="option.value === modelValue"
+                class="ml-auto h-4 w-4 shrink-0 text-primary-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </li>
+          </ul>
+        </div>
+      </Transition>
+    </Teleport>
+  </div>
 </template>

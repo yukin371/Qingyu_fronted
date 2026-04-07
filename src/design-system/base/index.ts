@@ -37,3 +37,6 @@ export * from './Checkbox'
 
 // Textarea 组件
 export * from './Textarea'
+
+// Input 组件
+export * from './Input'

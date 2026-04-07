@@ -7,32 +7,8 @@
  */
 
 import { computed } from 'vue'
-import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import type { DividerProps } from './types'
-
-// 使用 CVA 定义 Divider 变体
-const dividerVariants = cva(
-  // 基础样式
-  '',
-  {
-    variants: {
-      direction: {
-        horizontal: 'h-px w-full border-t',
-        vertical: 'h-full w-px border-l',
-      },
-      variant: {
-        solid: 'border-solid',
-        dashed: 'border-dashed',
-        dotted: 'border-dotted',
-      },
-    },
-    defaultVariants: {
-      direction: 'horizontal',
-      variant: 'solid',
-    },
-  }
-)
 
 // 组件 Props
 const props = withDefaults(defineProps<DividerProps>(), {
@@ -41,76 +17,77 @@ const props = withDefaults(defineProps<DividerProps>(), {
   label: undefined,
 })
 
-// 计算基础容器类名
+const gradientDirections: Record<'horizontal' | 'vertical', string> = {
+  horizontal: 'bg-gradient-to-r from-slate-200/0 via-slate-300/70 to-slate-200/0',
+  vertical: 'bg-gradient-to-b from-slate-200/0 via-slate-300/70 to-slate-200/0',
+}
+
+const labelBaseClasses = 'px-3 py-1 rounded-full border border-slate-100 bg-white/90 shadow-sm text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase'
+
 const containerClasses = computed(() => {
   return cn(
-    'flex items-center',
-    props.direction === 'vertical' ? 'h-full' : 'w-full',
+    'flex items-center gap-3 text-slate-500',
+    props.direction === 'horizontal' ? 'w-full' : 'h-full flex-col justify-center',
     props.class
   )
 })
 
-// 计算线条样式
+const lineWrapperClasses = computed(() => {
+  return cn(
+    'flex items-center justify-center',
+    props.direction === 'horizontal' ? 'flex-1 h-px' : 'h-full w-full'
+  )
+})
+
 const lineClasses = computed(() => {
+  const dimension = props.direction === 'horizontal' ? 'h-px w-full' : 'w-px h-full'
+  const solidStyle = cn(
+    'border border-transparent',
+    gradientDirections[props.direction],
+    'shadow-[0_12px_18px_-12px_rgba(15,23,42,0.9)]'
+  )
+  const dashedStyle = 'border border-dashed border-slate-300/70 bg-transparent'
+  const dottedStyle = 'border border-dotted border-slate-300/70 bg-transparent'
+
   return cn(
-    dividerVariants({
-      direction: props.direction,
-      variant: props.variant,
-    }),
-    'border-slate-200 dark:border-slate-700'
+    'relative overflow-hidden rounded-full transition-all duration-200 ease-out',
+    dimension,
+    props.variant === 'solid' ? solidStyle : props.variant === 'dashed' ? dashedStyle : dottedStyle
   )
 })
 
-// 计算第一个线条的样式（有标签时）
-const firstLineClasses = computed(() => {
-  if (!props.label) return lineClasses.value
-
+const labelClasses = computed(() => {
   return cn(
-    lineClasses.value,
-    props.direction === 'horizontal' ? 'flex-1' : 'h-1/2'
+    labelBaseClasses,
+    props.direction === 'vertical' ? 'transform -rotate-90 origin-center' : ''
   )
 })
 
-// 计算第二个线条的样式（有标签时）
-const secondLineClasses = computed(() => {
-  if (!props.label) return ''
-
-  return cn(
-    lineClasses.value,
-    props.direction === 'horizontal' ? 'flex-1' : 'h-1/2'
-  )
-})
-
-// 计算标签容器样式
-const labelContainerClasses = computed(() => {
-  if (!props.label) return ''
-
-  return cn(
-    'px-3 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap',
-    props.direction === 'horizontal' ? '' : 'py-3'
-  )
+const ariaOrientation = computed(() => {
+  return props.direction === 'horizontal' ? 'horizontal' : 'vertical'
 })
 </script>
 
 <template>
-  <div :class="containerClasses">
-    <!-- 有标签时的布局 -->
+  <div :class="containerClasses" role="separator" :aria-orientation="ariaOrientation">
     <template v-if="label">
-      <!-- 第一条线 -->
-      <div :class="firstLineClasses"></div>
+      <span :class="lineWrapperClasses">
+        <span :class="lineClasses" aria-hidden="true"></span>
+      </span>
 
-      <!-- 标签 -->
-      <span :class="labelContainerClasses">
+      <span :class="labelClasses">
         {{ label }}
       </span>
 
-      <!-- 第二条线 -->
-      <div :class="secondLineClasses"></div>
+      <span :class="lineWrapperClasses">
+        <span :class="lineClasses" aria-hidden="true"></span>
+      </span>
     </template>
 
-    <!-- 无标签时的布局 -->
     <template v-else>
-      <div :class="lineClasses"></div>
+      <span :class="lineWrapperClasses">
+        <span :class="lineClasses" aria-hidden="true"></span>
+      </span>
     </template>
   </div>
 </template>

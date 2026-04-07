@@ -13,120 +13,115 @@ import { cva, type VariantProps } from 'class-variance-authority'
  * 包含以下维度：
  * - variant: 视觉样式变体
  * - size: 尺寸变体
- * - stateLayer: Fluent Design 风格的状态层
+ * - stateLayer: Apple/Material 混合状态描边
  */
 export const buttonVariants = cva(
-  // 基础样式
   [
-    'inline-flex items-center justify-center font-medium',
-    'transition-all duration-300',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50',
-    'disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
-    'select-none relative overflow-hidden'
+    'relative inline-flex items-center justify-center gap-2 whitespace-nowrap',
+    'rounded-[1.25rem] border font-semibold tracking-[0.01em]',
+    'transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200 ease-out',
+    'transform-gpu will-change-transform',
+    'focus-visible:outline-none focus-visible:z-10 focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+    'disabled:pointer-events-none disabled:opacity-60 disabled:shadow-none',
+    'select-none overflow-hidden',
   ],
   {
     variants: {
-      /**
-       * 视觉样式变体
-       * - primary: 主要按钮（青蓝渐变 + Apple 风格）
-       * - secondary: 次要按钮（玻璃拟态效果）
-       * - danger: 危险按钮（红色渐变）
-       * - ghost: 幽灵按钮（Material Design 风格状态层）
-       * - outline: 轮廓按钮（带边框）
-       * - text: 文字按钮（最小样式）
-       */
       variant: {
         primary: [
-          'text-white rounded-xl',
-          'bg-gradient-to-r from-primary-600 to-secondary-600',
-          'shadow-md shadow-primary-500/20',
-          'hover:shadow-lg hover:shadow-primary-500/30',
-          'hover:-translate-y-0.5 hover:scale-105',
-          'active:scale-95 active:translate-y-0'
+          'text-white rounded-[1.25rem]',
+          'bg-[linear-gradient(135deg,var(--gradient-to)_0%,var(--gradient-from)_100%)]',
+          'border border-transparent',
+          'shadow-[var(--shadow-control),0_18px_36px_-22px_rgba(37,99,235,0.78)]',
+          'focus-visible:ring-primary-500/24',
+          'hover:-translate-y-0.5 hover:shadow-[var(--shadow-card),0_18px_36px_-20px_rgba(37,99,235,0.72)]',
+          'active:translate-y-0 active:scale-95',
         ],
         secondary: [
-          'text-slate-700 rounded-xl',
-          'bg-white/60 backdrop-blur-md',
-          'border border-white/50',
-          'hover:bg-white/80 hover:-translate-y-0.5',
-          'active:scale-95'
+          'text-slate-900 rounded-[1.25rem]',
+          'bg-[var(--color-surface-elevated)] backdrop-blur-xl border-[var(--color-line-soft)]',
+          'shadow-[var(--shadow-inset-soft),var(--shadow-control)]',
+          'focus-visible:ring-primary-500/14',
+          'hover:-translate-y-0.25 hover:bg-white/90 hover:border-[var(--color-line-strong)] hover:shadow-[var(--shadow-card)]',
+          'active:scale-[0.985]',
         ],
         danger: [
-          'text-white rounded-xl',
-          'bg-gradient-to-r from-danger-500 to-danger-600',
-          'shadow-md shadow-danger-500/20',
-          'hover:shadow-lg hover:shadow-danger-500/30',
-          'hover:-translate-y-0.5 hover:scale-105',
-          'active:scale-95 active:translate-y-0'
+          'text-white rounded-[1.25rem]',
+          'bg-[linear-gradient(135deg,var(--color-danger-600)_0%,var(--color-danger-500)_100%)] border-transparent',
+          'shadow-[0_20px_45px_-16px_rgba(220,38,38,0.65)]',
+          'focus-visible:ring-danger-500/24',
+          'hover:-translate-y-0.5 hover:shadow-[0_24px_45px_-20px_rgba(220,38,38,0.55)]',
+          'active:translate-y-0 active:scale-95',
         ],
         ghost: [
-          'text-slate-600 rounded-xl',
-          'hover:bg-slate-100 active:bg-slate-200',
-          'active:scale-95'
+          'text-slate-700 rounded-[1.25rem]',
+          'bg-transparent border-slate-200/60',
+          'focus-visible:ring-primary-500/14',
+          'hover:bg-slate-50/90 hover:border-slate-300 hover:text-slate-900',
+          'active:scale-95',
         ],
         outline: [
-          'text-slate-700 rounded-xl',
-          'border-2 border-slate-300',
-          'hover:border-primary-500 hover:text-primary-600',
-          'hover:bg-primary-50',
-          'active:scale-95'
+          'text-primary-600 rounded-[1.25rem]',
+          'border-2 border-slate-200 bg-white/72',
+          'focus-visible:ring-primary-500/16',
+          'shadow-[0_8px_30px_-24px_rgba(15,23,42,0.42)]',
+          'hover:bg-primary-50/80 hover:text-primary-700',
+          'hover:border-primary-500/80',
+          'active:scale-95',
         ],
         text: [
           'text-primary-600 rounded-lg',
-          'hover:bg-primary-50 active:bg-primary-100',
-          'active:scale-95'
-        ]
+          'border-transparent bg-transparent shadow-none',
+          'focus-visible:ring-primary-500/14',
+          'hover:bg-primary-50/60',
+          'active:scale-95',
+        ],
+        gradient: [
+          'text-white rounded-[1.25rem]',
+          'bg-[linear-gradient(120deg,#0f172a_0%,var(--gradient-to)_45%,var(--gradient-from)_100%)]',
+          'border border-white/10',
+          'shadow-[var(--shadow-control),0_18px_40px_-24px_rgba(6,182,212,0.8)]',
+          'focus-visible:ring-primary-500/24',
+          'hover:-translate-y-0.5 hover:saturate-[1.06] hover:shadow-[var(--shadow-card),0_18px_40px_-22px_rgba(6,182,212,0.72)]',
+          'active:scale-95',
+        ],
       },
-
-      /**
-       * 尺寸变体
-       */
       size: {
-        xs: 'px-2.5 py-1 text-xs min-h-[28px]',
-        sm: 'px-3 py-1.5 text-sm min-h-[32px]',
-        md: 'px-6 py-3 text-base min-h-[40px]',
-        lg: 'px-8 py-4 text-lg min-h-[48px]',
-        xl: 'px-10 py-5 text-xl min-h-[56px]'
+        xs: 'min-h-[30px] px-3 text-xs',
+        sm: 'min-h-[36px] px-4 text-sm',
+        md: 'min-h-[42px] px-5 text-[15px]',
+        lg: 'min-h-[48px] px-6 text-base',
+        xl: 'min-h-[56px] px-7 text-lg',
       },
-
-      /**
-       * Fluent Design 风格的状态层
-       * 在悬停或聚焦时显示半透明层
-       */
       stateLayer: {
         none: '',
-        hover: 'hover:after:absolute hover:after:inset-0 hover:after:bg-current hover:after:opacity-8',
-        focus: 'focus:after:absolute focus:after:inset-0 focus:after:bg-current focus:after:opacity-12'
-      }
+        hover: 'hover:shadow-[0_18px_35px_-16px_rgba(15,23,42,0.5)]',
+        focus: 'focus-visible:ring-primary-500/40',
+      },
+      block: {
+        true: 'w-full',
+        false: '',
+      },
     },
-
-    // 默认变体
     defaultVariants: {
       variant: 'primary',
       size: 'md',
-      stateLayer: 'none'
+      stateLayer: 'none',
+      block: false,
     },
-
-    // 组合变体（特殊情况的样式覆盖）
     compoundVariants: [
-      // primary + lg 组合时增加阴影
       {
         variant: 'primary',
         size: 'lg',
-        class: 'shadow-xl shadow-primary-500/25'
+        class: 'shadow-[var(--shadow-control),0_20px_40px_-20px_rgba(37,99,235,0.78)]',
       },
-      // danger + lg 组合时增加阴影
       {
         variant: 'danger',
         size: 'lg',
-        class: 'shadow-xl shadow-danger-500/25'
-      }
-    ]
-  }
+        class: 'shadow-[0_25px_45px_-20px_rgba(220,38,38,0.55)]',
+      },
+    ],
+  },
 )
 
-/**
- * 按钮变体类型
- * 从 CVA 配置中自动推导
- */
 export type ButtonVariants = VariantProps<typeof buttonVariants>

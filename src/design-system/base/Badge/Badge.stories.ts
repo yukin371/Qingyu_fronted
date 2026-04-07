@@ -1,16 +1,20 @@
+/**
+ * Badge 组件 Storybook 故事
+ */
+
 import type { Meta, StoryObj } from '@storybook/vue3'
 import Badge from './Badge.vue'
 
-/**
- * Badge 组件 Storybook 故事
- *
- * 展示所有变体、尺寸和状态
- */
+const previewShell =
+  'rounded-[30px] border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,rgba(191,219,254,0.34),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-6 shadow-[0_28px_52px_-30px_rgba(15,23,42,0.28)]'
 
 const meta = {
-  title: 'Design System/Base/Badge',
+  title: 'Base/Badge',
   component: Badge,
   tags: ['autodocs'],
+  parameters: {
+    layout: 'centered',
+  },
   argTypes: {
     variant: {
       control: 'select',
@@ -28,7 +32,7 @@ const meta = {
     },
     max: {
       control: 'number',
-      description: '最大显示数字',
+      description: '最大显示值',
     },
     dot: {
       control: 'boolean',
@@ -36,197 +40,145 @@ const meta = {
     },
     absolute: {
       control: 'boolean',
-      description: '是否绝对定位',
+      description: '是否绝对定位到宿主元素',
     },
+  },
+  args: {
+    variant: 'primary',
+    size: 'md',
+    content: 12,
+    max: 99,
+    dot: false,
+    absolute: false,
   },
 } satisfies Meta<typeof Badge>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-// 默认故事
 export const Default: Story = {
-  args: {
-    variant: 'default',
-    size: 'md',
-    content: 5,
-  },
   render: (args) => ({
     components: { Badge },
     setup() {
-      return { args }
+      return { args, previewShell }
     },
-    template: '<Badge v-bind="args" />',
-  }),
-}
-
-// 所有变体
-export const AllVariants: Story = {
-  render: () => ({
-    components: { Badge },
     template: `
-      <div class="flex flex-wrap gap-4 p-8">
-        <Badge variant="default" :content="5">Default</Badge>
-        <Badge variant="primary" :content="10">Primary</Badge>
-        <Badge variant="success" :content="3">Success</Badge>
-        <Badge variant="warning" :content="8">Warning</Badge>
-        <Badge variant="danger" :content="12">Danger</Badge>
+      <div :class="previewShell" class="min-w-[320px]">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Unread updates</p>
+            <p class="mt-1 text-sm text-slate-500">A softer count badge that stays readable without shouting.</p>
+          </div>
+          <Badge v-bind="args" />
+        </div>
       </div>
     `,
   }),
 }
 
-// 所有尺寸
-export const AllSizes: Story = {
+export const Variants: Story = {
   render: () => ({
     components: { Badge },
+    setup() {
+      return { previewShell }
+    },
     template: `
-      <div class="flex items-center gap-4 p-8">
-        <Badge size="sm" :content="5">SM</Badge>
-        <Badge size="md" :content="10">MD</Badge>
-        <Badge size="lg" :content="99">LG</Badge>
+      <div :class="previewShell" class="min-w-[520px]">
+        <div class="flex flex-wrap gap-3">
+          <Badge variant="default" content="Draft" />
+          <Badge variant="primary" content="Review" />
+          <Badge variant="success" content="Ready" />
+          <Badge variant="warning" content="Pending" />
+          <Badge variant="danger" content="Blocked" />
+        </div>
       </div>
     `,
   }),
 }
 
-// 数字模式
-export const Numbers: Story = {
+export const Sizes: Story = {
   render: () => ({
     components: { Badge },
+    setup() {
+      return { previewShell }
+    },
     template: `
-      <div class="flex flex-wrap gap-4 p-8">
-        <Badge :content="1">1</Badge>
-        <Badge :content="42">42</Badge>
-        <Badge :content="99">99</Badge>
-        <Badge :content="100">100</Badge>
-        <Badge :content="999" :max="99">999</Badge>
+      <div :class="previewShell" class="min-w-[460px]">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <p class="text-sm text-slate-600">Compact toolbar count</p>
+            <Badge size="sm" content="8" />
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <p class="text-sm text-slate-600">Default list count</p>
+            <Badge size="md" variant="primary" content="24" />
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <p class="text-sm text-slate-600">Prominent inbox marker</p>
+            <Badge size="lg" variant="danger" content="99+" />
+          </div>
+        </div>
       </div>
     `,
   }),
 }
 
-// 点模式
 export const Dots: Story = {
   render: () => ({
     components: { Badge },
+    setup() {
+      return { previewShell }
+    },
     template: `
-      <div class="flex gap-8 p-8 items-center">
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+      <div :class="previewShell" class="min-w-[500px]">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Sync status</p>
+              <p class="text-xs text-slate-500">Background worker is active.</p>
+            </div>
+            <Badge variant="success" :dot="true" />
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Moderation queue</p>
+              <p class="text-xs text-slate-500">Needs review before publishing.</p>
+            </div>
+            <Badge variant="warning" :dot="true" />
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-white/80 bg-white/84 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Deployment health</p>
+              <p class="text-xs text-slate-500">One service is still degraded.</p>
+            </div>
+            <Badge variant="danger" :dot="true" />
+          </div>
+        </div>
+      </div>
+    `,
+  }),
+}
+
+export const Attached: Story = {
+  render: () => ({
+    components: { Badge },
+    setup() {
+      return { previewShell }
+    },
+    template: `
+      <div :class="previewShell" class="min-w-[520px]">
+        <div class="flex gap-4">
+          <div class="relative flex h-16 flex-1 items-center justify-center rounded-[22px] border border-white/80 bg-white/84 text-sm font-medium text-slate-700">
             Inbox
+            <Badge variant="danger" :content="6" :absolute="true" />
           </div>
-          <Badge variant="danger" :dot="true" :absolute="true" />
-        </div>
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-            Messages
+          <div class="relative flex h-16 flex-1 items-center justify-center rounded-[22px] border border-white/80 bg-white/84 text-sm font-medium text-slate-700">
+            Comments
+            <Badge variant="primary" :content="18" :absolute="true" />
           </div>
-          <Badge variant="success" :dot="true" :absolute="true" />
-        </div>
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-            Alert
-          </div>
-          <Badge variant="warning" :dot="true" :absolute="true" />
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 绝对定位模式
-export const AbsolutePosition: Story = {
-  render: () => ({
-    components: { Badge },
-    template: `
-      <div class="flex gap-8 p-8 items-center">
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-            Inbox
-          </div>
-          <Badge variant="danger" :content="5" :absolute="true" />
-        </div>
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-            Messages
-          </div>
-          <Badge variant="primary" :content="12" :absolute="true" />
-        </div>
-        <div class="relative">
-          <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-            Alert
-          </div>
-          <Badge variant="warning" :content="99" :absolute="true" />
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 带按钮的 Badge
-export const WithButton: Story = {
-  render: () => ({
-    components: { Badge },
-    template: `
-      <div class="flex gap-4 p-8">
-        <div class="relative inline-block">
-          <button class="px-4 py-2 bg-primary-500 text-white rounded-md">
-            Messages
-          </button>
-          <Badge variant="danger" :content="5" :absolute="true" />
-        </div>
-        <div class="relative inline-block">
-          <button class="px-4 py-2 bg-slate-200 text-slate-700 rounded-md">
-            Notifications
-          </button>
-          <Badge variant="warning" :content="12" :absolute="true" />
-        </div>
-        <div class="relative inline-block">
-          <button class="px-4 py-2 bg-success-DEFAULT text-white rounded-md">
-            Tasks
-          </button>
-          <Badge variant="primary" :dot="true" :absolute="true" />
-        </div>
-      </div>
-    `,
-  }),
-}
-
-// 不同尺寸组合
-export const SizeVariants: Story = {
-  render: () => ({
-    components: { Badge },
-    template: `
-      <div class="space-y-8 p-8">
-        <div>
-          <h3 class="text-sm font-medium mb-2">Small (sm)</h3>
-          <div class="flex gap-4">
-            <Badge size="sm" :content="5" />
-            <Badge size="sm" variant="primary" :content="10" />
-            <Badge size="sm" variant="success" :content="3" />
-            <Badge size="sm" variant="warning" :content="8" />
-            <Badge size="sm" variant="danger" :content="12" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-sm font-medium mb-2">Medium (md)</h3>
-          <div class="flex gap-4">
-            <Badge size="md" :content="5" />
-            <Badge size="md" variant="primary" :content="10" />
-            <Badge size="md" variant="success" :content="3" />
-            <Badge size="md" variant="warning" :content="8" />
-            <Badge size="md" variant="danger" :content="12" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-sm font-medium mb-2">Large (lg)</h3>
-          <div class="flex gap-4">
-            <Badge size="lg" :content="5" />
-            <Badge size="lg" variant="primary" :content="10" />
-            <Badge size="lg" variant="success" :content="3" />
-            <Badge size="lg" variant="warning" :content="8" />
-            <Badge size="lg" variant="danger" :content="12" />
+          <div class="relative flex h-16 flex-1 items-center justify-center rounded-[22px] border border-white/80 bg-white/84 text-sm font-medium text-slate-700">
+            Health
+            <Badge variant="success" :dot="true" :absolute="true" />
           </div>
         </div>
       </div>
@@ -234,32 +186,75 @@ export const SizeVariants: Story = {
   }),
 }
 
-// Max 属性演示
-export const MaxAttribute: Story = {
+export const Overflow: Story = {
   render: () => ({
     components: { Badge },
+    setup() {
+      return { previewShell }
+    },
     template: `
-      <div class="flex flex-wrap gap-4 p-8">
-        <Badge :content="50" :max="9" />
-        <Badge :content="99" :max="99" />
-        <Badge :content="100" :max="99" />
-        <Badge :content="999" :max="99" variant="primary" />
-        <Badge :content="1000" :max="999" variant="success" />
+      <div :class="previewShell" class="min-w-[520px]">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="rounded-[22px] border border-white/80 bg-white/84 p-4 text-center">
+            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">9 max</p>
+            <div class="mt-3 flex justify-center">
+              <Badge variant="default" :content="56" :max="9" />
+            </div>
+          </div>
+          <div class="rounded-[22px] border border-white/80 bg-white/84 p-4 text-center">
+            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">99 max</p>
+            <div class="mt-3 flex justify-center">
+              <Badge variant="primary" :content="146" :max="99" />
+            </div>
+          </div>
+          <div class="rounded-[22px] border border-white/80 bg-white/84 p-4 text-center">
+            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">999 max</p>
+            <div class="mt-3 flex justify-center">
+              <Badge variant="success" :content="1280" :max="999" />
+            </div>
+          </div>
+        </div>
       </div>
     `,
   }),
 }
 
-// 空内容（红点）
-export const EmptyContent: Story = {
+export const NotificationRail: Story = {
   render: () => ({
     components: { Badge },
     template: `
-      <div class="flex flex-wrap gap-4 p-8">
-        <Badge variant="danger" />
-        <Badge variant="primary" :content="null" />
-        <Badge variant="success" :content="undefined" />
-        <Badge variant="warning" :dot="true" />
+      <div class="w-[640px] rounded-[32px] border border-slate-200/70 bg-[linear-gradient(180deg,#ffffff,#f8fafc)] p-6 shadow-[0_28px_60px_-34px_rgba(15,23,42,0.28)]">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Notification rail</p>
+            <p class="mt-1 text-sm text-slate-500">Badges used as counts, states and attached indicators within one surface.</p>
+          </div>
+          <Badge variant="default" content="Live" />
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/86 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Reader feedback</p>
+              <p class="text-xs text-slate-500">New comments arrived from three chapters.</p>
+            </div>
+            <Badge variant="primary" :content="12" />
+          </div>
+          <div class="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/86 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Moderation queue</p>
+              <p class="text-xs text-slate-500">Two reports are still waiting for review.</p>
+            </div>
+            <Badge variant="warning" content="Pending" />
+          </div>
+          <div class="flex items-center justify-between rounded-[24px] border border-white/80 bg-white/86 px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-900">Build health</p>
+              <p class="text-xs text-slate-500">All checks passed after the latest UI pass.</p>
+            </div>
+            <Badge variant="success" :dot="true" />
+          </div>
+        </div>
       </div>
     `,
   }),

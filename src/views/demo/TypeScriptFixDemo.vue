@@ -213,7 +213,7 @@
                         <div class="flex items-center gap-2 mb-1">
                           <span class="font-medium text-slate-800">{{ comment.user.nickname }}</span>
                           <span class="text-xs text-slate-400">{{ comment.user.username }}</span>
-                          <QyTag v-if="comment.user.level" size="sm" type="info">Lv{{ comment.user.level }}</QyTag>
+                          <Tag v-if="comment.user.level" size="sm" variant="info">Lv{{ comment.user.level }}</Tag>
                         </div>
                         <p class="text-slate-600 text-sm mb-2">{{ comment.content }}</p>
                         <div class="flex items-center gap-4 text-xs text-slate-400">
@@ -277,9 +277,9 @@
                     <div class="flex items-start justify-between">
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
-                          <QyTag :type="item.type === 'book' ? 'primary' : item.type === 'chapter' ? 'success' : 'warning'">
+                          <Tag :variant="item.type === 'book' ? 'primary' : item.type === 'chapter' ? 'success' : 'warning'">
                             {{ item.type === 'book' ? '书籍' : item.type === 'chapter' ? '章节' : '评论' }}
-                          </QyTag>
+                          </Tag>
                           <h4 class="font-medium text-slate-800">{{ item.title }}</h4>
                         </div>
                         <p class="text-sm text-slate-600 mb-2">{{ item.content || '无内容预览' }}</p>
@@ -325,9 +325,9 @@
                     <div class="flex items-center justify-between">
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                          <QyTag :type="getTransactionTypeColor(tx.type)" size="sm">
+                          <Tag :variant="getTransactionTypeColor(tx.type)" size="sm">
                             {{ getTransactionTypeName(tx.type) }}
-                          </QyTag>
+                          </Tag>
                           <span class="font-medium text-slate-800 text-sm">{{ tx.description || getTypeDescription(tx.type) }}</span>
                         </div>
                         <div class="text-xs text-slate-400">{{ formatRelativeTime(String(tx.createTime * 1000)) }}</div>
@@ -362,9 +362,9 @@
                         <h4 class="font-medium text-slate-800 truncate">{{ project.title }}</h4>
                         <p class="text-sm text-slate-500 mt-1 line-clamp-2">{{ project.summary }}</p>
                         <div class="flex items-center gap-2 mt-2">
-                          <QyTag :type="getProjectStatusColor(project.status)">
+                          <Tag :variant="getProjectStatusColor(project.status)">
                             {{ getProjectStatusName(project.status) }}
-                          </QyTag>
+                          </Tag>
                           <span class="text-xs text-slate-400">{{ project.statistics.totalWords }}字</span>
                           <span class="text-xs text-slate-400">{{ project.statistics.chapterCount }}章</span>
                         </div>
@@ -417,9 +417,9 @@
                           <span class="font-medium text-slate-800">{{ node.title }}</span>
                           <span v-if="node.wordCount" class="text-xs text-slate-400 ml-2">({{ node.wordCount }}字)</span>
                         </div>
-                        <QyTag v-if="node.status" size="sm" :type="node.status === 'completed' ? 'success' : 'info'">
+                        <Tag v-if="node.status" size="sm" :variant="node.status === 'completed' ? 'success' : 'info'">
                           {{ node.status === 'completed' ? '已完成' : '进行中' }}
-                        </QyTag>
+                        </Tag>
                       </div>
                     </div>
                   </div>
@@ -475,27 +475,27 @@
                     <div>
                       <h5 class="text-sm font-medium text-slate-600 mb-2">不同类型</h5>
                       <div class="flex flex-wrap gap-2">
-                        <QyTag type="primary">主要</QyTag>
-                        <QyTag type="success">成功</QyTag>
-                        <QyTag type="warning">警告</QyTag>
-                        <QyTag type="danger">危险</QyTag>
-                        <QyTag type="info">信息</QyTag>
+                        <Tag variant="primary">主要</Tag>
+                        <Tag variant="success">成功</Tag>
+                        <Tag variant="warning">警告</Tag>
+                        <Tag variant="danger">危险</Tag>
+                        <Tag variant="info">信息</Tag>
                       </div>
                     </div>
                     <div>
                       <h5 class="text-sm font-medium text-slate-600 mb-2">不同尺寸</h5>
                       <div class="flex flex-wrap gap-2 items-center">
-                        <QyTag size="lg">大尺寸</QyTag>
-                        <QyTag>默认尺寸</QyTag>
-                        <QyTag size="sm">小尺寸</QyTag>
+                        <Tag size="lg">大尺寸</Tag>
+                        <Tag>默认尺寸</Tag>
+                        <Tag size="sm">小尺寸</Tag>
                       </div>
                     </div>
                     <div>
                       <h5 class="text-sm font-medium text-slate-600 mb-2">可关闭</h5>
                       <div class="flex flex-wrap gap-2">
-                        <QyTag v-for="tag in closableTags" :key="tag" closable @close="removeTag(tag)">
+                        <Tag v-for="tag in closableTags" :key="tag" closable @close="removeTag(tag)">
                           {{ tag }}
-                        </QyTag>
+                        </Tag>
                         <el-button size="small" @click="addTag">添加标签</el-button>
                       </div>
                     </div>
@@ -531,7 +531,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ArrowRight, ChatDotRound, Star, Reading, Document, Files } from '@element-plus/icons-vue'
-import { QyTag } from '@/design-system/components'
+import { Tag } from '@/design-system/base'
 import { formatRelativeTime, formatReadingTime } from '../../utils/format'
 import type { Comment, ShelfBook } from '../../types/reader'
 import type { ReviewItem } from '@/modules/admin/types/admin.types'

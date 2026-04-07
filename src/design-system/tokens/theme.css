@@ -14,7 +14,7 @@
  * @date 2026-02-09
  */
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================
    @theme - 设计令牌定义
@@ -28,9 +28,9 @@
   --color-primary-100: #cffafe;
   --color-primary-200: #a5f3fc;
   --color-primary-300: #67e8f9;
-  --color-primary-400: #22d3ee;  /* 悬停状态 */
-  --color-primary-500: #06b6d4;  /* 主色 */
-  --color-primary-600: #0891b2;  /* 激活状态 */
+  --color-primary-400: #22d3ee; /* 悬停状态 */
+  --color-primary-500: #06b6d4; /* 主色 */
+  --color-primary-600: #0891b2; /* 激活状态 */
   --color-primary-700: #0e7490;
   --color-primary-800: #155e75;
   --color-primary-900: #164e63;
@@ -42,18 +42,18 @@
   --color-secondary-200: #bfdbfe;
   --color-secondary-300: #93c5fd;
   --color-secondary-400: #60a5fa;
-  --color-secondary-500: #3b82f6;  /* 辅助色 */
-  --color-secondary-600: #2563eb;  /* 深色状态 */
+  --color-secondary-500: #3b82f6; /* 辅助色 */
+  --color-secondary-600: #2563eb; /* 深色状态 */
   --color-secondary-700: #1d4ed8;
   --color-secondary-800: #1e40af;
   --color-secondary-900: #1e3a8a;
   --color-secondary-950: #172554;
 
   /* 渐变色 */
-  --gradient-from: #0891b2;    /* cyan-600 */
-  --gradient-to: #2563eb;      /* blue-600 */
-  --gradient-soft-from: #22d3ee;  /* cyan-400 */
-  --gradient-soft-to: #3b82f6;    /* blue-500 */
+  --gradient-from: #0891b2; /* cyan-600 */
+  --gradient-to: #2563eb; /* blue-600 */
+  --gradient-soft-from: #22d3ee; /* cyan-400 */
+  --gradient-soft-to: #3b82f6; /* blue-500 */
 
   /* ===== 功能色 ===== */
 
@@ -118,45 +118,58 @@
   --color-slate-900: #0f172a;
   --color-slate-950: #020617;
 
+  /* ===== 表面与描边语义色 ===== */
+  --color-ink-primary: #0f172a;
+  --color-ink-secondary: #334155;
+  --color-ink-tertiary: #64748b;
+  --color-surface-base: rgb(255 255 255 / 0.94);
+  --color-surface-muted: rgb(248 250 252 / 0.82);
+  --color-surface-elevated: rgb(255 255 255 / 0.8);
+  --color-surface-glass: rgb(255 255 255 / 0.64);
+  --color-surface-inverse: rgb(15 23 42 / 0.88);
+  --color-line-soft: rgb(148 163 184 / 0.18);
+  --color-line-strong: rgb(148 163 184 / 0.28);
+  --color-line-contrast: rgb(255 255 255 / 0.58);
+
   /* ===== 间距系统 ===== */
   --spacing-0: 0;
   --spacing-px: 1px;
-  --spacing-0-5: 0.125rem;  /* 2px */
-  --spacing-1: 0.25rem;     /* 4px */
-  --spacing-1-5: 0.375rem;  /* 6px */
-  --spacing-2: 0.5rem;      /* 8px */
-  --spacing-2-5: 0.625rem;  /* 10px */
-  --spacing-3: 0.75rem;     /* 12px */
-  --spacing-3-5: 0.875rem;  /* 14px */
-  --spacing-4: 1rem;        /* 16px */
-  --spacing-5: 1.25rem;     /* 20px */
-  --spacing-6: 1.5rem;      /* 24px */
-  --spacing-7: 1.75rem;     /* 28px */
-  --spacing-8: 2rem;        /* 32px */
-  --spacing-9: 2.25rem;     /* 36px */
-  --spacing-10: 2.5rem;     /* 40px */
-  --spacing-11: 2.75rem;    /* 44px */
-  --spacing-12: 3rem;       /* 48px */
-  --spacing-14: 3.5rem;     /* 56px */
-  --spacing-16: 4rem;       /* 64px */
-  --spacing-20: 5rem;       /* 80px */
-  --spacing-24: 6rem;       /* 96px */
-  --spacing-32: 8rem;       /* 128px */
-  --spacing-40: 10rem;      /* 160px */
-  --spacing-48: 12rem;      /* 192px */
-  --spacing-56: 14rem;      /* 224px */
-  --spacing-64: 16rem;      /* 256px */
+  --spacing-0-5: 0.125rem; /* 2px */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-1-5: 0.375rem; /* 6px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-2-5: 0.625rem; /* 10px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-3-5: 0.875rem; /* 14px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-7: 1.75rem; /* 28px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-9: 2.25rem; /* 36px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-11: 2.75rem; /* 44px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-14: 3.5rem; /* 56px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+  --spacing-24: 6rem; /* 96px */
+  --spacing-32: 8rem; /* 128px */
+  --spacing-40: 10rem; /* 160px */
+  --spacing-48: 12rem; /* 192px */
+  --spacing-56: 14rem; /* 224px */
+  --spacing-64: 16rem; /* 256px */
 
   /* ===== 圆角系统 ===== */
   --radius-none: 0;
-  --radius-sm: 0.125rem;    /* 2px */
+  --radius-sm: 0.125rem; /* 2px */
   --radius-default: 0.25rem; /* 4px */
-  --radius-md: 0.375rem;    /* 6px */
-  --radius-lg: 0.5rem;      /* 8px */
-  --radius-xl: 0.75rem;     /* 12px */
-  --radius-2xl: 1rem;       /* 16px */
-  --radius-3xl: 1.5rem;     /* 24px */
-  --radius-4xl: 2rem;       /* 32px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-xl: 0.75rem; /* 12px */
+  --radius-2xl: 1rem; /* 16px */
+  --radius-3xl: 1.5rem; /* 24px */
+  --radius-4xl: 2rem; /* 32px */
   --radius-full: 9999px;
 
   /* ===== 阴影系统 ===== */
@@ -171,21 +184,30 @@
   --shadow-glow-strong: 0 14px 32px -16px rgb(6 182 212 / 0.72);
   --shadow-soft: 0 12px 28px -18px rgb(59 130 246 / 0.45);
   --shadow-dock: 0 8px 32px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 18px 40px -24px rgb(15 23 42 / 0.24), 0 8px 18px -12px rgb(15 23 42 / 0.12);
+  --shadow-floating: 0 28px 72px -28px rgb(15 23 42 / 0.32), 0 18px 32px -24px rgb(15 23 42 / 0.18);
+  --shadow-control: 0 1px 2px rgb(15 23 42 / 0.04), 0 10px 24px -20px rgb(15 23 42 / 0.3);
+  --shadow-inset-soft: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(148 163 184 / 0.08);
+  --ring-brand: 0 0 0 4px rgb(37 99 235 / 0.12);
+  --ring-danger: 0 0 0 4px rgb(239 68 68 / 0.12);
 
   /* ===== 字体系统 ===== */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans:
+    'SF Pro Text', 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  --font-display:
+    'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Courier New', monospace;
 
   /* 字体大小 */
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
-  --font-size-5xl: 3rem;      /* 48px */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem; /* 36px */
+  --font-size-5xl: 3rem; /* 48px */
 
   /* 字体粗细 */
   --font-weight-light: 300;
@@ -216,12 +238,14 @@
   --ease-mac: cubic-bezier(0.42, 0, 0.58, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-bounce: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
 
   /* 动画关键帧 */
   --animate-float: float 7s ease-in-out infinite;
   --animate-float-fast: float 500ms ease-in-out infinite;
   --animate-fade-in: fadeIn 300ms ease-out;
   --animate-slide-up: slideUp 300ms ease-out;
+  --animate-slide-down: slideDown 240ms var(--ease-emphasized);
   --animate-scale-in: scaleIn 200ms ease-out;
 }
 
@@ -230,7 +254,8 @@
    ============================================ */
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) scale(1);
   }
   50% {
@@ -239,7 +264,8 @@
 }
 
 @keyframes float-complex {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0px, 0px) scale(1);
   }
   33% {
@@ -270,6 +296,17 @@
   }
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes scaleIn {
   from {
     opacity: 0;
@@ -282,7 +319,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -291,7 +329,8 @@
 }
 
 @keyframes gradient-shift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -305,33 +344,35 @@
 
 /* 玻璃拟态效果 */
 @utility glass-card {
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: var(--color-surface-glass);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid var(--color-line-contrast);
   border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-card);
 }
 
 @utility glass-card-light {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgb(255 255 255 / 0.52);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgb(255 255 255 / 0.42);
   border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-control);
 }
 
 @utility glass-nav {
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgb(248 250 252 / 0.74);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+  border-bottom: 1px solid var(--color-line-soft);
 }
 
 @utility glass-dock {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: rgb(255 255 255 / 0.76);
+  backdrop-filter: blur(32px) saturate(1.1);
+  -webkit-backdrop-filter: blur(32px) saturate(1.1);
+  border: 1px solid var(--color-line-contrast);
   border-radius: var(--radius-4xl);
   box-shadow: var(--shadow-dock);
 }
@@ -345,17 +386,27 @@
   padding-right: var(--spacing-6);
   padding-top: var(--spacing-3);
   padding-bottom: var(--spacing-3);
-  border-radius: var(--radius-xl);
-  background: linear-gradient(120deg, var(--gradient-from), var(--gradient-to));
+  gap: var(--spacing-2);
+  border-radius: var(--radius-full);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: linear-gradient(135deg, var(--gradient-to) 0%, var(--gradient-from) 100%);
   color: white;
   font-weight: var(--font-weight-medium);
-  box-shadow: var(--shadow-md), 0 4px 12px rgb(6 182 212 / 0.2);
-  transition: all var(--duration-normal) var(--ease-ios);
+  box-shadow:
+    var(--shadow-control),
+    0 12px 24px -18px rgb(37 99 235 / 0.7);
+  transition:
+    transform var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized),
+    filter var(--duration-fast) var(--ease-out);
 }
 
 @utility btn-primary-hover {
-  box-shadow: var(--shadow-lg), 0 4px 16px rgb(6 182 212 / 0.3);
-  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    var(--shadow-card),
+    0 16px 32px -20px rgb(37 99 235 / 0.66);
+  transform: translateY(-1px);
+  filter: saturate(1.04);
 }
 
 @utility btn-secondary {
@@ -366,13 +417,18 @@
   padding-right: var(--spacing-6);
   padding-top: var(--spacing-3);
   padding-bottom: var(--spacing-3);
-  border-radius: var(--radius-xl);
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: rgb(51 65 85);
+  gap: var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-elevated);
+  backdrop-filter: blur(18px) saturate(1.05);
+  border: 1px solid var(--color-line-soft);
+  color: var(--color-ink-secondary);
   font-weight: var(--font-weight-medium);
-  transition: all var(--duration-normal) var(--ease-ios);
+  box-shadow: var(--shadow-inset-soft), var(--shadow-control);
+  transition:
+    transform var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 /* 输入框样式 */
@@ -382,18 +438,72 @@
   padding-right: var(--spacing-4);
   padding-top: var(--spacing-3);
   padding-bottom: var(--spacing-3);
-  border-radius: var(--radius-xl);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: rgb(15 23 42);
-  transition: all var(--duration-fast) var(--ease-out);
+  border-radius: calc(var(--radius-2xl) - 2px);
+  background-color: var(--color-surface-base);
+  backdrop-filter: blur(16px) saturate(1.04);
+  border: 1px solid var(--color-line-soft);
+  color: var(--color-ink-primary);
+  box-shadow: var(--shadow-inset-soft), var(--shadow-control);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-emphasized),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 @utility input-focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgb(6 182 212 / 0.5);
-  border-color: rgb(6 182 212);
+  box-shadow: var(--shadow-inset-soft), var(--shadow-control), var(--ring-brand);
+  border-color: rgb(37 99 235 / 0.44);
+  background-color: rgb(255 255 255 / 0.98);
+}
+
+@utility surface-panel {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.94) 0%, rgb(248 250 252 / 0.9) 100%);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-card);
+}
+
+@utility surface-floating {
+  background: var(--color-surface-elevated);
+  backdrop-filter: blur(28px) saturate(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(1.08);
+  border: 1px solid var(--color-line-contrast);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-floating);
+}
+
+@utility surface-control {
+  background: var(--color-surface-base);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-line-soft);
+  border-radius: calc(var(--radius-2xl) - 2px);
+  box-shadow: var(--shadow-inset-soft), var(--shadow-control);
+}
+
+@utility hairline-border {
+  border: 1px solid var(--color-line-soft);
+}
+
+@utility ring-brand {
+  box-shadow: var(--ring-brand);
+}
+
+@utility ring-danger {
+  box-shadow: var(--ring-danger);
+}
+
+@utility page-aurora {
+  background:
+    radial-gradient(circle at top left, rgb(191 219 254 / 0.58) 0%, transparent 34%),
+    radial-gradient(circle at 82% 14%, rgb(103 232 249 / 0.34) 0%, transparent 30%),
+    linear-gradient(
+      180deg,
+      rgb(248 250 252 / 0.95) 0%,
+      rgb(255 255 255 / 1) 58%,
+      rgb(248 250 252 / 0.92) 100%
+    );
 }
 
 /* 品牌渐变背景 */
@@ -414,7 +524,9 @@
 
 /* 悬浮效果 - 使用标准CSS实现hover效果 */
 .hover-lift {
-  transition: transform var(--duration-normal) var(--ease-ios), box-shadow var(--duration-normal) var(--ease-ios);
+  transition:
+    transform var(--duration-normal) var(--ease-ios),
+    box-shadow var(--duration-normal) var(--ease-ios);
 }
 
 .hover-lift:hover {
@@ -423,7 +535,9 @@
 }
 
 .hover-scale {
-  transition: transform var(--duration-normal) var(--ease-ios), box-shadow var(--duration-normal) var(--ease-ios);
+  transition:
+    transform var(--duration-normal) var(--ease-ios),
+    box-shadow var(--duration-normal) var(--ease-ios);
 }
 
 .hover-scale:hover {
@@ -539,13 +653,13 @@
 
 /* 文本选择颜色 */
 ::selection {
-  background-color: rgb(34 211 238 / 0.3);
-  color: rgb(8 145 178);
+  background-color: rgb(37 99 235 / 0.18);
+  color: var(--color-ink-primary);
 }
 
 ::-moz-selection {
-  background-color: rgb(34 211 238 / 0.3);
-  color: rgb(8 145 178);
+  background-color: rgb(37 99 235 / 0.18);
+  color: var(--color-ink-primary);
 }
 
 /* 滚动条样式 */
@@ -583,7 +697,7 @@
 
 /* Focus visible 样式 */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
+  outline: 2px solid rgb(37 99 235 / 0.65);
   outline-offset: 2px;
 }
 

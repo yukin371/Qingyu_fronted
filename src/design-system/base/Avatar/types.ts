@@ -51,11 +51,6 @@ export interface AvatarProps {
    * 自定义类名
    */
   class?: any
-
-  /**
-   * 点击事件
-   */
-  onClick?: (event: MouseEvent) => void
 }
 
 // Avatar 尺寸对应的像素值

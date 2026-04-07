@@ -295,7 +295,7 @@ defineExpose({
           <button
             v-if="showClose && closable"
             type="button"
-            class="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)]"
             @click="handleCloseClick"
             aria-label="关闭抽屉"
           >

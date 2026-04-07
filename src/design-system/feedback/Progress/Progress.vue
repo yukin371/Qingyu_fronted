@@ -356,30 +356,30 @@ watch(() => props.percentage, (newVal) => {
 .qy-progress__bar-outer {
   width: 100%;
   height: 100%;
-  background-color: rgb(226 232 240);
+  background-color: rgb(226 232 240 / 80%);
   border-radius: 9999px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .qy-progress__bar-outer--success {
-  background-color: rgb(209 250 229);
+  background-color: rgb(209 250 229 / 80%);
 }
 
 .qy-progress__bar-outer--exception {
-  background-color: rgb(254 226 226);
+  background-color: rgb(254 226 226 / 80%);
 }
 
 .qy-progress__bar-outer--warning {
-  background-color: rgb(253 230 138);
+  background-color: rgb(253 230 138 / 80%);
 }
 
 .qy-progress__bar-inner {
   height: 100%;
   border-radius: 9999px;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
   position: relative;
-  background-color: rgb(59 130 246);
+  background-color: rgb(14 165 233);
 }
 
 .qy-progress__bar-inner--animated {
@@ -401,7 +401,7 @@ watch(() => props.percentage, (newVal) => {
 }
 
 .qy-progress__bar-inner--flow {
-  animation: progress-stripe-flow 1s linear infinite;
+  animation: progress-stripe-flow 2s linear infinite;
 }
 
 .qy-progress__text {
@@ -448,12 +448,12 @@ watch(() => props.percentage, (newVal) => {
 }
 
 .qy-progress__circle-bg {
-  stroke: rgb(226 232 240);
+  stroke: rgb(226 232 240 / 80%);
 }
 
 .qy-progress__circle-stroke {
-  stroke: rgb(59 130 246);
-  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+  stroke: rgb(14 165 233);
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
 }
 
 .qy-progress__circle-stroke--animated {
@@ -508,12 +508,12 @@ watch(() => props.percentage, (newVal) => {
 }
 
 .qy-progress__dashboard-bg {
-  stroke: rgb(226 232 240);
+  stroke: rgb(226 232 240 / 80%);
 }
 
 .qy-progress__dashboard-stroke {
-  stroke: rgb(59 130 246);
-  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+  stroke: rgb(14 165 233);
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
 }
 
 .qy-progress__dashboard-stroke--animated {
@@ -584,7 +584,7 @@ watch(() => props.percentage, (newVal) => {
 /* 深色模式 */
 @media (prefers-color-scheme: dark) {
   .qy-progress__bar-outer {
-    background-color: rgb(51 65 85);
+    background-color: rgb(51 65 85 / 80%);
   }
 
   .qy-progress__text {
@@ -593,7 +593,7 @@ watch(() => props.percentage, (newVal) => {
 
   .qy-progress__circle-bg,
   .qy-progress__dashboard-bg {
-    stroke: rgb(51 65 85);
+    stroke: rgb(51 65 85 / 80%);
   }
 
   .qy-progress__circle-text,

@@ -41,40 +41,41 @@ const isVisible = ref(false)
 const isAnimating = ref(false)
 const dialogContent = ref<HTMLElement | null>(null)
 const isInitialized = ref(false)
+const titleId = `qy-dialog-title-${Math.random().toString(36).slice(2)}`
 
 // Dialog container classes
 const dialogClasses = computed(() =>
   cn(
-    // Apple 风格卡片: 毛玻璃白底、圆角、深层柔和阴影
-    'bg-white/95 backdrop-blur-xl rounded-2xl',
-    'shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25)]',
-    'flex flex-col max-h-[90vh] overflow-hidden',
+    'surface-floating flex flex-col overflow-hidden text-[var(--color-ink-primary)]',
+    'max-h-[min(88vh,900px)] rounded-[1.75rem]',
+    props.center ? 'text-center' : '',
     // 尺寸
     sizeMap[props.size] || sizeMap.md,
     // 自定义 class
     props.class,
-  )
+  ),
 )
 
 // Overlay classes
 const overlayClasses = computed(() =>
   cn(
-    // 居中容器
-    'fixed inset-0 z-[9998] flex items-center justify-center',
-    // 遮罩层: 毛玻璃
-    props.modal ? 'bg-black/30 backdrop-blur-sm' : '',
+    'fixed inset-0 z-[9998] flex items-center justify-center px-4 py-6',
+    props.modal ? 'bg-slate-950/28 backdrop-blur-md' : '',
     props.modalClass,
-  )
+  ),
 )
 
 // Watch external visible -> open/close
-watch(() => props.visible, (val) => {
-  if (val) {
-    open()
-  } else {
-    close()
-  }
-})
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      open()
+    } else {
+      close()
+    }
+  },
+)
 
 // Sync internal state back to parent
 watch(isVisible, (val, oldVal) => {
@@ -84,13 +85,16 @@ watch(isVisible, (val, oldVal) => {
 })
 
 // Keyboard listener toggle
-watch(() => props.closeOnPressEscape, (val) => {
-  if (val) {
-    document.addEventListener('keydown', handleKeydown)
-  } else {
-    document.removeEventListener('keydown', handleKeydown)
-  }
-})
+watch(
+  () => props.closeOnPressEscape,
+  (val) => {
+    if (val) {
+      document.addEventListener('keydown', handleKeydown)
+    } else {
+      document.removeEventListener('keydown', handleKeydown)
+    }
+  },
+)
 
 // Mount: restore visible state
 onMounted(async () => {
@@ -118,6 +122,7 @@ const open = async () => {
   await nextTick()
   requestAnimationFrame(() => {
     isAnimating.value = false
+    dialogContent.value?.focus()
     emit('opened')
   })
 }
@@ -148,7 +153,7 @@ const close = async () => {
     }
 
     emit('closed')
-  }, 300)
+  }, 220)
 }
 
 // Click overlay to close
@@ -202,11 +207,7 @@ defineExpose({
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div
-        v-if="isVisible"
-        :class="overlayClasses"
-        @click="handleOverlayClick"
-      >
+      <div v-if="isVisible" :class="overlayClasses" @click="handleOverlayClick">
         <!-- 对话框卡片 -->
         <Transition
           enter-active-class="transition-all duration-300 ease-out"
@@ -223,21 +224,22 @@ defineExpose({
             class="relative z-[9999]"
             role="dialog"
             aria-modal="true"
-            :aria-labelledby="title ? 'dialog-title' : undefined"
+            :aria-labelledby="title ? titleId : undefined"
+            tabindex="-1"
             @click="handleContentClick"
           >
             <!-- Header -->
             <div
               v-if="$slots.header || title || showClose"
-              class="flex items-center justify-between px-6 pt-6 pb-2"
+              class="flex items-start justify-between gap-4 border-b border-[var(--color-line-soft)] px-6 pt-6 pb-4"
             >
               <div class="flex items-center gap-3 min-w-0">
                 <slot name="header">
                   <slot name="title">
                     <h3
                       v-if="title"
-                      id="dialog-title"
-                      class="text-lg font-semibold text-gray-900 truncate"
+                      :id="titleId"
+                      class="truncate text-lg font-semibold tracking-[-0.01em] text-slate-950"
                     >
                       {{ title }}
                     </h3>
@@ -247,7 +249,7 @@ defineExpose({
               <button
                 v-if="showClose"
                 type="button"
-                class="flex-shrink-0 ml-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                class="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200/70 bg-white/88 text-slate-400 shadow-[0_8px_20px_-16px_rgba(15,23,42,0.4)] transition-all duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/18 focus-visible:ring-offset-2"
                 @click="handleCloseClick"
                 aria-label="关闭对话框"
               >
@@ -256,18 +258,16 @@ defineExpose({
             </div>
 
             <!-- Body -->
-            <div class="px-6 pb-2 flex-1 overflow-auto">
+            <div class="flex-1 overflow-auto px-6 py-5">
               <slot>
-                <p class="text-gray-500">
-                  对话框内容
-                </p>
+                <p class="text-slate-500">对话框内容</p>
               </slot>
             </div>
 
             <!-- Footer -->
             <div
               v-if="$slots.footer"
-              class="flex items-center justify-end gap-3 px-6 py-4"
+              class="flex items-center justify-end gap-3 border-t border-[var(--color-line-soft)] bg-slate-50/72 px-6 py-4"
             >
               <slot name="footer" />
             </div>

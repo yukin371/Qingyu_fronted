@@ -79,22 +79,27 @@ const customStyle = computed(() => {
   return style
 })
 
+// Shape 圆角覆盖：对齐设计系统
+const shapeOverrides: Record<string, string> = {
+  'rounded-md': 'rounded-2xl',
+  'rounded-lg': 'rounded-xl',
+  'rounded-full': 'rounded-full',
+}
+
 // 计算容器样式类名
 const containerClasses = computed(() => {
+  const resolvedShape = shapeOverrides[imageShapeMap[props.shape || 'rect']] || imageShapeMap[props.shape || 'rect']
   return cn(
-    'relative inline-flex overflow-hidden bg-neutral-100 dark:bg-neutral-800',
+    'relative inline-flex overflow-hidden bg-slate-50 dark:bg-slate-800/40 ring-1 ring-slate-200/50 dark:ring-slate-700/30',
     sizeClasses.value,
-    imageShapeMap[props.shape || 'rect'],
+    resolvedShape,
     props.class
   )
 })
 
-// 计算图片样式类名
-const imageClasses = computed(() => {
-  return cn(
-    'block w-full h-full',
-    imageFitMap[props.fit || 'cover']
-  )
+// 计算是否显示图片
+const showImage = computed(() => {
+  return imageStatus.value === 'loaded' && currentSrc.value
 })
 
 // 计算是否显示骨架屏
@@ -107,9 +112,13 @@ const showError = computed(() => {
   return imageStatus.value === 'error'
 })
 
-// 计算是否显示图片
-const showImage = computed(() => {
-  return imageStatus.value === 'loaded' && currentSrc.value
+// 计算图片样式类名
+const imageClasses = computed(() => {
+  return cn(
+    'block w-full h-full transition-opacity duration-300',
+    imageFitMap[props.fit || 'cover'],
+    showImage.value ? 'opacity-100' : 'opacity-0'
+  )
 })
 
 // 加载状态容器尺寸
@@ -158,9 +167,10 @@ const skeletonSize = computed(() => {
     <!-- 错误状态 Fallback -->
     <div
       v-if="showError"
-      class="absolute inset-0 flex items-center justify-center text-neutral-400 dark:text-neutral-600"
+      class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-50/95 dark:bg-slate-800/90"
     >
-      <Icon :name="fallbackIcon" size="lg" />
+      <Icon :name="fallbackIcon" size="lg" class="text-slate-300 dark:text-slate-600" />
+      <span class="text-[10px] text-slate-400 dark:text-slate-500">Failed to load</span>
     </div>
   </div>
 </template>

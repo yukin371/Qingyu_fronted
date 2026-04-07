@@ -23,8 +23,8 @@ const datePickerVariants = cva(
         lg: 'h-12 px-4 py-3 text-lg',
       },
       error: {
-        true: 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20',
-        false: 'border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+        true: 'border-red-500 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(244,63,94,0.16)]',
+        false: 'border-slate-300 focus:border-primary-500 focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)]',
       },
       disabled: {
         true: 'bg-slate-100 cursor-not-allowed opacity-60',
@@ -316,7 +316,7 @@ defineExpose({
           <button
             v-if="showClearButton"
             type="button"
-            class="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            class="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded hover:bg-slate-100 focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)]"
             :class="iconSizes[size]"
             @click="handleClear"
           >
@@ -386,7 +386,7 @@ defineExpose({
             <button
               v-if="showClearButton"
               type="button"
-              class="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+              class="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded hover:bg-slate-100 focus:outline-none focus:shadow-[0_0_0_3px_rgba(14,165,233,0.16)]"
               :class="iconSizes[size]"
               @click="handleClear"
             >

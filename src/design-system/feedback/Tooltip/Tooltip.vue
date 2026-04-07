@@ -5,19 +5,13 @@
  * 用于显示鼠标悬停时的提示信息
  */
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, useSlots } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
-import type { TooltipProps, TooltipPlacement } from './types'
+import type { TooltipProps } from './types'
 
 // 使用 CVA 定义 Tooltip 变体
-const tooltipVariants = cva(
-  // 基础样式
-  'relative inline-flex',
-  {
-    variants: {},
-  }
-)
+const tooltipVariants = cva('relative inline-flex', { variants: {} })
 
 // 组件 Props
 const props = withDefaults(defineProps<TooltipProps>(), {
@@ -42,152 +36,155 @@ const emit = defineEmits<{
   afterHide: []
 }>()
 
-// 插槽
-const slots = useSlots()
-
 // 状态
 const visible = ref(false)
 const triggerRef = ref<HTMLElement | null>(null)
 const popperRef = ref<HTMLElement | null>(null)
-const popperId = `qy-tooltip-${Math.random().toString(36).substring(2, 9)}`
 let showTimer: number | null = null
 let hideTimer: number | null = null
 
 // 计算样式类名
-const classes = computed(() =>
-  cn(
-    tooltipVariants(),
-    props.class
-  )
-)
+const classes = computed(() => cn(tooltipVariants(), props.class))
 
 // 计算 Popper 位置样式
 const popperStyle = computed(() => {
-  if (!triggerRef.value || !popperRef.value) return {}
+  if (!triggerRef.value) return {}
 
-  const triggerRect = triggerRef.value.getBoundingClientRect()
-  const popperRect = popperRef.value.getBoundingClientRect()
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+  const trigger = triggerRef.value.getBoundingClientRect()
+  const offset = props.offset
 
   let top = 0
-  let left: number | undefined = undefined
-  let right: number | undefined = undefined
-  const offset = props.offset
+  let left = 0
 
   switch (props.placement) {
     case 'top':
-      top = triggerRect.top + scrollTop - popperRect.height - offset
-      left = triggerRect.left + scrollLeft + (triggerRect.width - popperRect.width) / 2
+      top = trigger.top - trigger.height - offset
+      left = trigger.left + (trigger.width) / 2
       break
     case 'top-start':
-      top = triggerRect.top + scrollTop - popperRect.height - offset
-      left = triggerRect.left + scrollLeft
+      top = trigger.top - trigger.height - offset
+      left = trigger.left
       break
     case 'top-end':
-      top = triggerRect.top + scrollTop - popperRect.height - offset
-      left = triggerRect.right + scrollLeft - popperRect.width
+      top = trigger.top - trigger.height - offset
+      left = trigger.right
       break
     case 'bottom':
-      top = triggerRect.bottom + scrollTop + offset
-      left = triggerRect.left + scrollLeft + (triggerRect.width - popperRect.width) / 2
+      top = trigger.bottom + offset
+      left = trigger.left + (trigger.width) / 2
       break
     case 'bottom-start':
-      top = triggerRect.bottom + scrollTop + offset
-      left = triggerRect.left + scrollLeft
+      top = trigger.bottom + offset
+      left = trigger.left
       break
     case 'bottom-end':
-      top = triggerRect.bottom + scrollTop + offset
-      left = triggerRect.right + scrollLeft - popperRect.width
+      top = trigger.bottom + offset
+      left = trigger.right
       break
     case 'left':
-      top = triggerRect.top + scrollTop + (triggerRect.height - popperRect.height) / 2
-      // 使用 right 定位，让 tooltip 右边缘对齐到按钮左边缘左侧 offset 处
-      right = document.body.clientWidth - triggerRect.left + offset
+      top = trigger.top + (trigger.height) / 2
+      left = trigger.left - offset
       break
     case 'left-start':
-      top = triggerRect.top + scrollTop
-      right = document.body.clientWidth - triggerRect.left + offset
+      top = trigger.top
+      left = trigger.left - offset
       break
     case 'left-end':
-      top = triggerRect.bottom + scrollTop - popperRect.height
-      right = document.body.clientWidth - triggerRect.left + offset
+      top = trigger.bottom
+      left = trigger.left - offset
       break
     case 'right':
-      top = triggerRect.top + scrollTop + (triggerRect.height - popperRect.height) / 2
-      left = triggerRect.right + scrollLeft + offset
+      top = trigger.top + (trigger.height) / 2
+      left = trigger.right + offset
       break
     case 'right-start':
-      top = triggerRect.top + scrollTop
-      left = triggerRect.right + scrollLeft + offset
+      top = trigger.top
+      left = trigger.right + offset
       break
     case 'right-end':
-      top = triggerRect.bottom + scrollTop - popperRect.height
-      left = triggerRect.right + scrollLeft + offset
+      top = trigger.bottom
+      left = trigger.right + offset
       break
   }
 
   return {
     top: `${top}px`,
-    ...(left !== undefined && { left: `${left}px` }),
-    ...(right !== undefined && { right: `${right}px` }),
+    left: `${left}px`,
+    transform: getTransform(),
   }
 })
 
-// 箭头样式
-const arrowStyle = computed(() => {
-  const size = 8
-  const color = props.effect === 'dark' ? '#1f2937' : '#ffffff'
-
-  let rotation = 0
+function getTransform() {
   switch (props.placement) {
     case 'top':
-    case 'top-start':
-    case 'top-end':
-      rotation = 180
-      break
     case 'bottom':
+      return 'translateX(-50%)'
+    case 'top-start':
     case 'bottom-start':
-    case 'bottom-end':
-      rotation = 0
-      break
     case 'left':
-    case 'left-start':
-    case 'left-end':
-      rotation = 90
-      break
     case 'right':
+      return ''
+    case 'top-end':
+    case 'bottom-end':
+      return 'translateX(-100%)'
+    case 'left-start':
     case 'right-start':
+      return 'translateY(-50%)'
+    case 'left-end':
     case 'right-end':
-      rotation = -90
-      break
+      return 'translateY(-100%)'
+    default:
+      return ''
+  }
+}
+
+// 箭头样式
+const arrowStyle = computed(() => {
+  const size = 6
+  const dark = props.effect === 'dark'
+  const borderColor = dark ? '#1e293b' : '#e2e8f0'
+
+  const rotationMap: Record<string, number> = {
+    top: 0,
+    'top-start': 0,
+    'top-end': 0,
+    bottom: 180,
+    'bottom-start': 180,
+    'bottom-end': 180,
+    left: 90,
+    'left-start': 90,
+    'left-end': 90,
+    right: -90,
+    'right-start': -90,
+    'right-end': -90,
   }
 
-  const placementMap: Record<TooltipPlacement, { top: string; left: string; transform: string }> = {
-    'top': { top: '100%', left: '50%', transform: 'translate(-50%, 0)' },
+  const placementPosMap: Record<string, { top: string; left: string; transform: string }> = {
+    top: { top: '100%', left: '50%', transform: 'translateX(-50%)' },
     'top-start': { top: '100%', left: `${size}px`, transform: 'translate(0, 0)' },
     'top-end': { top: '100%', left: `calc(100% - ${size}px)`, transform: 'translate(0, 0)' },
-    'bottom': { top: `-${size}px`, left: '50%', transform: 'translate(-50%, 0)' },
+    bottom: { top: `-${size}px`, left: '50%', transform: 'translateX(-50%)' },
     'bottom-start': { top: `-${size}px`, left: `${size}px`, transform: 'translate(0, 0)' },
     'bottom-end': { top: `-${size}px`, left: `calc(100% - ${size}px)`, transform: 'translate(0, 0)' },
-    'left': { top: '50%', left: '100%', transform: 'translate(0, -50%)' },
+    left: { top: '50%', left: '100%', transform: 'translateY(-50%)' },
     'left-start': { top: `${size}px`, left: '100%', transform: 'translate(0, 0)' },
     'left-end': { top: `calc(100% - ${size}px)`, left: '100%', transform: 'translate(0, 0)' },
-    'right': { top: '50%', left: `-${size}px`, transform: 'translate(0, -50%)' },
+    right: { top: '50%', left: `-${size}px`, transform: 'translateY(-50%)' },
     'right-start': { top: `${size}px`, left: `-${size}px`, transform: 'translate(0, 0)' },
     'right-end': { top: `calc(100% - ${size}px)`, left: `-${size}px`, transform: 'translate(0, 0)' },
   }
 
-  const pos = placementMap[props.placement]
+  const rotation = rotationMap[props.placement] ?? 0
+  const pos = placementPosMap[props.placement]
 
   return {
     width: `${size}px`,
     height: `${size}px`,
-    borderTopColor: color,
-    borderRightColor: color,
-    borderBottomColor: color,
-    borderLeftColor: color,
-    transform: `rotate(${rotation}deg) ${pos.transform}`,
+    borderTopColor: rotation === 0 ? borderColor : 'transparent',
+    borderRightColor: rotation === -90 ? borderColor : 'transparent',
+    borderBottomColor: rotation === 180 ? borderColor : 'transparent',
+    borderLeftColor: rotation === 90 ? borderColor : 'transparent',
+    transform: pos.transform,
     top: pos.top,
     left: pos.left,
   }
@@ -195,34 +192,22 @@ const arrowStyle = computed(() => {
 
 // 清除定时器
 const clearTimers = () => {
-  if (showTimer !== null) {
-    clearTimeout(showTimer)
-    showTimer = null
-  }
-  if (hideTimer !== null) {
-    clearTimeout(hideTimer)
-    hideTimer = null
-  }
+  if (showTimer !== null) { clearTimeout(showTimer); showTimer = null }
+  if (hideTimer !== null) { clearTimeout(hideTimer); hideTimer = null }
 }
 
-// 显示 Tooltip
+// 显示
 const show = async () => {
   if (props.disabled) return
-
   clearTimers()
-
   if (props.openDelay > 0) {
-    showTimer = window.setTimeout(async () => {
-      await doShow()
-    }, props.openDelay)
+    showTimer = window.setTimeout(() => doShow(), props.openDelay)
   } else {
     await doShow()
   }
 }
 
-// 执行显示
 const doShow = async () => {
-  // 触发 beforeShow 回调
   if (props.onBeforeShow) {
     emit('beforeShow')
     const canShow = await props.onBeforeShow()
@@ -230,36 +215,23 @@ const doShow = async () => {
   } else {
     emit('beforeShow')
   }
-
   visible.value = true
-
-  await nextTick()
-
-  // 触发 afterShow 回调
-  if (props.onAfterShow) {
-    props.onAfterShow()
-  }
+  if (props.onAfterShow) props.onAfterShow()
   emit('afterShow')
 }
 
-// 隐藏 Tooltip
+// 隐藏
 const hide = async () => {
   if (props.trigger === 'manual') return
-
   clearTimers()
-
   if (props.closeDelay > 0) {
-    hideTimer = window.setTimeout(async () => {
-      await doHide()
-    }, props.closeDelay)
+    hideTimer = window.setTimeout(() => doHide(), props.closeDelay)
   } else {
     await doHide()
   }
 }
 
-// 执行隐藏
 const doHide = async () => {
-  // 触发 beforeHide 回调
   if (props.onBeforeHide) {
     emit('beforeHide')
     const canHide = await props.onBeforeHide()
@@ -267,106 +239,56 @@ const doHide = async () => {
   } else {
     emit('beforeHide')
   }
-
   visible.value = false
-
-  // 触发 afterHide 回调
-  if (props.onAfterHide) {
-    props.onAfterHide()
-  }
+  if (props.onAfterHide) props.onAfterHide()
   emit('afterHide')
 }
 
-// 切换显示状态
 const toggle = async () => {
-  if (visible.value) {
-    await hide()
-  } else {
-    await show()
-  }
+  visible.value ? await hide() : await show()
 }
 
-// 事件处理器
-const handleMouseEnter = () => {
-  if (props.trigger === 'hover') {
-    show()
-  }
-}
+// 事件
+const handleMouseEnter = () => { if (props.trigger === 'hover') show() }
+const handleMouseLeave = () => { if (props.trigger === 'hover') hide() }
+const handleClick = () => { if (props.trigger === 'click') toggle() }
+const handleFocus = () => { if (props.trigger === 'focus') show() }
+const handleBlur = () => { if (props.trigger === 'focus') hide() }
 
-const handleMouseLeave = () => {
-  if (props.trigger === 'hover') {
-    hide()
-  }
-}
-
-const handleClick = () => {
-  if (props.trigger === 'click') {
-    toggle()
-  }
-}
-
-const handleFocus = () => {
-  if (props.trigger === 'focus') {
-    show()
-  }
-}
-
-const handleBlur = () => {
-  if (props.trigger === 'focus') {
-    hide()
-  }
-}
-
-// 监听 modelValue 变化（manual 模式）
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (props.trigger === 'manual') {
-      if (val) {
-        show()
-      } else {
-        hide()
-      }
-    }
-  }
-)
-
-// 同步 visible 到 modelValue
-watch(visible, (val) => {
-  emit('update:modelValue', val)
+// modelValue 监听
+watch(() => props.modelValue, (val) => {
+  if (props.trigger === 'manual') val ? show() : hide()
 })
+watch(visible, (val) => emit('update:modelValue', val))
 
 // 点击外部关闭
 const handleClickOutside = (e: MouseEvent) => {
+  if (props.trigger !== 'click' || !visible.value) return
   if (
-    props.trigger === 'click' &&
-    visible.value &&
-    triggerRef.value &&
-    !triggerRef.value.contains(e.target as Node) &&
-    popperRef.value &&
-    !popperRef.value.contains(e.target as Node) &&
-    !(e.target as Node)?.contains?.(triggerRef.value)
+    triggerRef.value && !triggerRef.value.contains(e.target as Node) &&
+    popperRef.value && !popperRef.value.contains(e.target as Node)
   ) {
     hide()
   }
 }
 
-// 生命周期
+// 页面滚动/resize 时关闭
+const handleScroll = () => { if (visible.value) hide() }
+const handleResize = () => { if (visible.value) hide() }
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('scroll', handleScroll, true)
+  window.addEventListener('resize', handleResize)
 })
-
 onBeforeUnmount(() => {
   clearTimers()
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('scroll', handleScroll, true)
+  window.removeEventListener('resize', handleResize)
 })
 
-// 暴露方法
-defineExpose({
-  show,
-  hide,
-  toggle,
-})
+defineExpose({ show, hide, toggle })
 </script>
 
 <template>
@@ -379,42 +301,34 @@ defineExpose({
     @focus="handleFocus"
     @blur="handleBlur"
   >
-    <!-- 触发元素 -->
     <slot />
 
-    <!-- Tooltip Popper -->
     <Teleport to="body">
       <Transition :name="transition">
         <div
           v-if="visible || !destroyOnClose"
           v-show="visible"
-          :id="popperId"
           ref="popperRef"
           role="tooltip"
           :class="cn(
-            'qy-tooltip',
-            'absolute z-50 max-w-xs px-3 py-2 text-sm rounded-lg shadow-lg',
+            'qy-tooltip absolute z-50 max-w-xs px-3 py-2 text-sm rounded-xl',
             'pointer-events-none',
             effect === 'dark'
-              ? 'bg-gray-800 text-white dark:bg-gray-900 dark:text-gray-100'
-              : 'bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700',
+              ? 'bg-slate-800 text-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] border border-slate-700/50'
+              : 'bg-white text-slate-700 border border-slate-200/70 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.22)]',
             popperClass
           )"
           :style="popperStyle"
         >
-          <!-- 内容 -->
-          <div v-if="content || slots.content">
-            <slot name="content">
-              {{ content }}
-            </slot>
+          <div v-if="content || $slots.content">
+            <slot name="content">{{ content }}</slot>
           </div>
 
           <!-- 箭头 -->
           <span
             v-if="showArrow"
             :class="cn(
-              'qy-tooltip__arrow',
-              'absolute border-[6px] border-transparent'
+              'qy-tooltip__arrow absolute border-[6px] border-transparent'
             )"
             :style="arrowStyle"
           />
@@ -425,18 +339,15 @@ defineExpose({
 </template>
 
 <style scoped>
-/* Tooltip 过渡动画 */
 .tooltip-fade-enter-active,
 .tooltip-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
 .tooltip-fade-enter-from,
 .tooltip-fade-leave-to {
   opacity: 0;
   transform: scale(0.95);
 }
-
 .tooltip-fade-enter-to,
 .tooltip-fade-leave-from {
   opacity: 1;

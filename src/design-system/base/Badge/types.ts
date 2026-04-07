@@ -3,7 +3,7 @@
  */
 
 // Badge 变体
-export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger'
+export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary' | 'ghost'
 
 // Badge 尺寸
 export type BadgeSize = 'sm' | 'md' | 'lg'
@@ -52,6 +52,12 @@ export interface BadgeProps {
    * @default false
    */
   dot?: boolean
+
+  /**
+   * 是否可关闭
+   * @default false
+   */
+  closable?: boolean
 
   /**
    * 自定义类名

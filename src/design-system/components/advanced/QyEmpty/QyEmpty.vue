@@ -96,102 +96,151 @@ const illustrations: Record<QyEmptyType, string> = {
 
 <template>
   <div class="qy-empty">
-    <!-- Custom icon/image slot -->
-    <div v-if="$slots.icon || icon || image" class="qy-empty__icon">
-      <slot name="icon">
-        <img
-          v-if="image"
-          :src="image"
-          :alt="title || 'Empty state'"
-          class="qy-empty__image"
-        />
-        <div
-          v-else-if="icon"
-          v-html="icon"
-          class="qy-empty__icon-svg"
-        />
-      </slot>
-    </div>
+    <div class="qy-empty__glow" aria-hidden="true"></div>
+    <div class="qy-empty__panel">
+      <div class="qy-empty__icon-shell">
+        <div v-if="$slots.icon || icon || image" class="qy-empty__icon qy-empty__icon--custom">
+          <slot name="icon">
+            <img v-if="image" :src="image" :alt="title || 'Empty state'" class="qy-empty__image" />
+            <div v-else-if="icon" v-html="icon" class="qy-empty__icon-svg" />
+          </slot>
+        </div>
+        <div v-else class="qy-empty__icon qy-empty__icon--illustration">
+          <svg
+            :class="['qy-empty__illustration', iconSizeClasses[iconSize]]"
+            viewBox="0 0 120 120"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            v-html="illustrations[type]"
+          />
+        </div>
+      </div>
 
-    <!-- SVG illustration by type -->
-    <div v-else class="qy-empty__icon qy-empty__icon--illustration">
-      <svg
-        :class="['qy-empty__illustration', iconSizeClasses[iconSize]]"
-        viewBox="0 0 120 120"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        v-html="illustrations[type]"
-      />
-    </div>
+      <div class="qy-empty__content">
+        <div v-if="$slots.title || title" class="qy-empty__title">
+          <slot name="title">
+            {{ title }}
+          </slot>
+        </div>
 
-    <!-- Title -->
-    <div v-if="$slots.title || title" class="qy-empty__title">
-      <slot name="title">
-        {{ title }}
-      </slot>
-    </div>
+        <p v-if="$slots.description || description" class="qy-empty__description">
+          <slot name="description">
+            {{ description }}
+          </slot>
+        </p>
 
-    <!-- Description -->
-    <p v-if="$slots.description || description" class="qy-empty__description">
-      <slot name="description">
-        {{ description }}
-      </slot>
-    </p>
-
-    <!-- Action -->
-    <div v-if="$slots.action || actionText" class="qy-empty__action">
-      <slot name="action">
-        <button class="qy-empty__btn" @click="handleAction">
-          {{ actionText }}
-        </button>
-      </slot>
+        <div v-if="$slots.action || actionText" class="qy-empty__action">
+          <slot name="action">
+            <button class="qy-empty__btn" @click="handleAction">
+              {{ actionText }}
+            </button>
+          </slot>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .qy-empty {
+  position: relative;
+  padding: 2rem 1rem;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qy-empty__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.25), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.18), transparent 40%),
+    radial-gradient(circle at 50% 70%, rgba(59, 130, 246, 0.2), transparent 45%);
+  filter: blur(24px);
+  z-index: 0;
+}
+
+.qy-empty__panel {
+  position: relative;
+  z-index: 10;
+  width: min(360px, 100%);
+  padding: 2rem 2rem 1.5rem;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.25rem;
+  backdrop-filter: blur(20px);
+}
+
+.qy-empty__icon-shell {
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(255, 255, 255, 0.6));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 15px 30px rgba(15, 23, 42, 0.15);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  min-height: 200px;
+  position: relative;
+  isolation: isolate;
+}
+
+.qy-empty__icon-shell::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  pointer-events: none;
 }
 
 .qy-empty__icon {
-  margin-bottom: 1rem;
-}
-
-.qy-empty__icon--illustration {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.qy-empty__icon--illustration,
+.qy-empty__icon--custom {
+  border-radius: 16px;
+}
+
 .qy-empty__illustration {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-
-  &--small {
-    width: 64px;
-    height: 64px;
-  }
-
-  &--medium {
-    width: 96px;
-    height: 96px;
-  }
-
-  &--large {
-    width: 120px;
-    height: 120px;
-  }
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .qy-empty__illustration:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
+  transform: translateY(-4px) scale(1.02);
+  opacity: 0.95;
+}
+
+.qy-empty__illustration--small {
+  width: 64px;
+  height: 64px;
+}
+
+.qy-empty__illustration--medium {
+  width: 96px;
+  height: 96px;
+}
+
+.qy-empty__illustration--large {
+  width: 120px;
+  height: 120px;
 }
 
 .qy-empty__image {
@@ -210,21 +259,29 @@ const illustrations: Record<QyEmptyType, string> = {
   height: 100%;
 }
 
+.qy-empty__content {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .qy-empty__title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--empty-title, rgb(51 65 85));
-  margin: 0 0 0.5rem 0;
+  color: #0f172a;
+  margin: 0;
   line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .qy-empty__description {
   margin: 0;
-  font-size: 0.875rem;
-  color: var(--empty-desc, rgb(100 116 139));
-  max-width: 16rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
 }
 
 .qy-empty__action {
@@ -232,23 +289,34 @@ const illustrations: Record<QyEmptyType, string> = {
 }
 
 .qy-empty__btn {
-  padding: 0.5rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--empty-btn-fg, #6366f1);
-  background: var(--empty-btn-bg, #eff0ff);
-  border: none;
-  border-radius: 0.5rem;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(59, 130, 246, 0.2));
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-  &:hover {
-    background: var(--empty-btn-hover, #e0e7ff);
-    transform: translateY(-1px);
-  }
+.qy-empty__btn:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+}
 
-  &:active {
-    transform: translateY(0);
+.qy-empty__btn:active {
+  transform: translateY(0) scale(1);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+@media (max-width: 640px) {
+  .qy-empty__panel {
+    padding: 1.5rem 1.5rem 1.25rem;
+    border-radius: 24px;
   }
 }
 </style>
