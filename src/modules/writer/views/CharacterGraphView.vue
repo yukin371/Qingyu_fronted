@@ -487,14 +487,14 @@
               </div>
             </div>
 
-              <!-- 操作按钮 -->
-              <div class="sidebar-actions">
-                <el-button @click="sendSelectedCharacterToAI"> 交给 AI </el-button>
-                <el-button type="primary" @click="handleEditCharacter(selectedCharacter)">
-                  编辑角色
-                </el-button>
-                <el-button @click="handleManageRelations(selectedCharacter)"> 管理关系 </el-button>
-              </div>
+            <!-- 操作按钮 -->
+            <div class="sidebar-actions">
+              <el-button @click="sendSelectedCharacterToAI"> 交给 AI </el-button>
+              <el-button type="primary" @click="handleEditCharacter(selectedCharacter)">
+                编辑角色
+              </el-button>
+              <el-button @click="handleManageRelations(selectedCharacter)"> 管理关系 </el-button>
+            </div>
           </el-scrollbar>
         </div>
       </transition>
@@ -1537,7 +1537,9 @@ const graphNodes = computed<GraphNode[]>(() => {
     )
 
   const inheritedAssetKeySet = new Set(
-    inheritedVolumeAssetRefs.value.map((asset) => `${asset.assetType}:${asset.assetId || asset.assetName}`),
+    inheritedVolumeAssetRefs.value.map(
+      (asset) => `${asset.assetType}:${asset.assetId || asset.assetName}`,
+    ),
   )
   const nonCharacterNodes = boundScopeAssetRefs.value
     .filter((asset) => asset.assetType !== 'character')
@@ -1546,7 +1548,9 @@ const graphNodes = computed<GraphNode[]>(() => {
         assetType: asset.assetType,
         assetId: asset.assetId,
         assetName: asset.assetName,
-        isInherited: inheritedAssetKeySet.has(`${asset.assetType}:${asset.assetId || asset.assetName}`),
+        isInherited: inheritedAssetKeySet.has(
+          `${asset.assetType}:${asset.assetId || asset.assetName}`,
+        ),
         isAppeared: asset.source !== 'manual',
       }),
     )
@@ -2794,9 +2798,9 @@ const handleOutlineNodeClick = (node: any) => {
 }
 
 /* 深色/暖纸/专注模式 — 统一使用 CSS 变量 */
-[data-editor-theme="dark"],
-[data-editor-theme="sepia"],
-[data-editor-theme="focus"] {
+[data-editor-theme='dark'],
+[data-editor-theme='sepia'],
+[data-editor-theme='focus'] {
   .character-graph-view {
     background: var(--editor-bg-surface, #0d0d0d);
   }

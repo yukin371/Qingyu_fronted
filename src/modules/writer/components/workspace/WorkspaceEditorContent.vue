@@ -13,10 +13,7 @@
     :project-id="projectId"
   />
   <!-- 百科视图 - 分支 -->
-  <StoryBranchView
-    v-else-if="isEncyclopedia && subView === 'branches'"
-    :project-id="projectId"
-  />
+  <StoryBranchView v-else-if="isEncyclopedia && subView === 'branches'" :project-id="projectId" />
   <!-- 结构舞台 -->
   <StructureStageView
     v-else-if="isEncyclopedia && subView === 'structure'"

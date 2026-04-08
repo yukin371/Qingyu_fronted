@@ -28,9 +28,11 @@ type StoryHarnessBatchRecordLike = Partial<StoryHarnessBatchRecord> | null | und
 const buildStorageKey = (projectId: string, chapterId: string) =>
   `writer_story_harness_batch:${projectId}:${chapterId}`
 
-const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0
 
-const isValidTimestamp = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
+const isValidTimestamp = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
 
 const isBatchSyncSource = (value: unknown): value is StoryHarnessBatchSyncSource =>
   value === 'remote' || value === 'local_fallback'
@@ -53,7 +55,11 @@ const normalizeChangeRequests = (
 const normalizeBatchRecord = (
   record: StoryHarnessBatchRecord,
 ): StoryHarnessPersistedBatchResult => {
-  const changeRequests = normalizeChangeRequests(record.changeRequests, record.batchId, record.committedAt)
+  const changeRequests = normalizeChangeRequests(
+    record.changeRequests,
+    record.batchId,
+    record.committedAt,
+  )
 
   return {
     changeRequests,
@@ -97,8 +103,12 @@ const mergeBatchRecord = (
     return fallbackRecord
   }
 
-  const projectId = isNonEmptyString(record.projectId) ? record.projectId : fallbackRecord?.projectId ?? ''
-  const chapterId = isNonEmptyString(record.chapterId) ? record.chapterId : fallbackRecord?.chapterId ?? ''
+  const projectId = isNonEmptyString(record.projectId)
+    ? record.projectId
+    : (fallbackRecord?.projectId ?? '')
+  const chapterId = isNonEmptyString(record.chapterId)
+    ? record.chapterId
+    : (fallbackRecord?.chapterId ?? '')
 
   if (!projectId || !chapterId) {
     return fallbackRecord
@@ -106,29 +116,39 @@ const mergeBatchRecord = (
 
   const committedAt = isValidTimestamp(record.committedAt)
     ? record.committedAt
-    : fallbackRecord?.committedAt ?? Date.now()
+    : (fallbackRecord?.committedAt ?? Date.now())
 
   const batchId = isNonEmptyString(record.batchId)
     ? record.batchId
-    : fallbackRecord?.batchId ?? `story-harness:${chapterId}:${committedAt}`
+    : (fallbackRecord?.batchId ?? `story-harness:${chapterId}:${committedAt}`)
 
   return {
     batchId,
     projectId,
     chapterId,
-    chapterTitle: isNonEmptyString(record.chapterTitle) ? record.chapterTitle : fallbackRecord?.chapterTitle ?? '',
+    chapterTitle: isNonEmptyString(record.chapterTitle)
+      ? record.chapterTitle
+      : (fallbackRecord?.chapterTitle ?? ''),
     committedAt,
-    source: isBatchSyncSource(record.source) ? record.source : fallbackRecord?.source ?? 'remote',
-    changeRequests: Array.isArray(record.changeRequests) ? record.changeRequests : fallbackRecord?.changeRequests ?? [],
+    source: isBatchSyncSource(record.source) ? record.source : (fallbackRecord?.source ?? 'remote'),
+    changeRequests: Array.isArray(record.changeRequests)
+      ? record.changeRequests
+      : (fallbackRecord?.changeRequests ?? []),
   }
 }
 
 class StoryHarnessService {
-  private readLocalBatchRecord(projectId: string, chapterId: string): StoryHarnessBatchRecord | null {
+  private readLocalBatchRecord(
+    projectId: string,
+    chapterId: string,
+  ): StoryHarnessBatchRecord | null {
     return storage.get<StoryHarnessBatchRecord | null>(buildStorageKey(projectId, chapterId), null)
   }
 
-  private readLocalBatch(projectId: string, chapterId: string): StoryHarnessPersistedBatchResult | null {
+  private readLocalBatch(
+    projectId: string,
+    chapterId: string,
+  ): StoryHarnessPersistedBatchResult | null {
     const record = this.readLocalBatchRecord(projectId, chapterId)
     if (!record) {
       return null
@@ -157,10 +177,9 @@ class StoryHarnessService {
         response != null &&
         typeof response === 'object' &&
         Object.prototype.hasOwnProperty.call(response, 'data')
-      const payload =
-        hasWrappedData
-          ? ((response as { data?: StoryHarnessBatchRecordLike }).data as StoryHarnessBatchRecordLike)
-          : (response as StoryHarnessBatchRecordLike)
+      const payload = hasWrappedData
+        ? ((response as { data?: StoryHarnessBatchRecordLike }).data as StoryHarnessBatchRecordLike)
+        : (response as StoryHarnessBatchRecordLike)
 
       if (!payload) {
         return localRecord ? normalizeBatchRecord(localRecord) : null
@@ -174,7 +193,10 @@ class StoryHarnessService {
       return this.writeLocalBatch(normalizedRecord)
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.warn('[storyHarnessService] failed to load remote batch, fallback to local cache:', error)
+        console.warn(
+          '[storyHarnessService] failed to load remote batch, fallback to local cache:',
+          error,
+        )
       }
       return this.readLocalBatch(projectId, chapterId)
     }
@@ -191,14 +213,18 @@ class StoryHarnessService {
         changeRequests: payload.changeRequests,
       })
       const remoteRecord = mergeBatchRecord(
-        ((response as { data?: StoryHarnessBatchRecordLike })?.data ?? response) as StoryHarnessBatchRecordLike,
+        ((response as { data?: StoryHarnessBatchRecordLike })?.data ??
+          response) as StoryHarnessBatchRecordLike,
         fallbackRecord,
       )
 
       return this.writeLocalBatch(remoteRecord ?? fallbackRecord)
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.warn('[storyHarnessService] failed to persist remote batch, fallback to local cache:', error)
+        console.warn(
+          '[storyHarnessService] failed to persist remote batch, fallback to local cache:',
+          error,
+        )
       }
       return this.writeLocalBatch(fallbackRecord)
     }
@@ -253,7 +279,13 @@ class StoryHarnessService {
     try {
       const response = await storyHarnessApi.triggerIndex(projectId, chapterId)
       const data = (response as { data?: unknown })?.data ?? response
-      return data as { batchId: string; generated: number; pending: number; deduplicated: number; source: string }
+      return data as {
+        batchId: string
+        generated: number
+        pending: number
+        deduplicated: number
+        source: string
+      }
     } catch (error) {
       if (import.meta.env.DEV) {
         console.warn('[storyHarnessService] triggerIndex failed:', error)
@@ -268,7 +300,12 @@ class StoryHarnessService {
     try {
       const response = await storyHarnessApi.rebuildProjection(projectId, chapterId)
       const data = (response as { data?: unknown })?.data ?? response
-      return data as { projectId: string; chapterId: string; replayedCount: number; lastRequestId?: string }
+      return data as {
+        projectId: string
+        chapterId: string
+        replayedCount: number
+        lastRequestId?: string
+      }
     } catch (error) {
       if (import.meta.env.DEV) {
         console.warn('[storyHarnessService] rebuildProjection failed:', error)

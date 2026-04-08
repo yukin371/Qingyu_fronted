@@ -45,15 +45,18 @@ export type OutlineTreeResponse =
 // 大纲节点类型配置
 // ============================================================================
 
-export const OUTLINE_NODE_TYPE_CONFIG: Record<string, {
-  label: string
-  icon: string
-  color: string
-}> = {
-  volume:  { label: '卷', icon: '📚', color: '#8B5CF6' },
-  plot:    { label: '情节', icon: '📖', color: '#409EFF' },
-  idea:    { label: '灵感', icon: '💡', color: '#E6A23C' },
-  draft:   { label: '草稿', icon: '📝', color: '#909399' },
+export const OUTLINE_NODE_TYPE_CONFIG: Record<
+  string,
+  {
+    label: string
+    icon: string
+    color: string
+  }
+> = {
+  volume: { label: '卷', icon: '📚', color: '#8B5CF6' },
+  plot: { label: '情节', icon: '📖', color: '#409EFF' },
+  idea: { label: '灵感', icon: '💡', color: '#E6A23C' },
+  draft: { label: '草稿', icon: '📝', color: '#909399' },
   setting: { label: '设定', icon: '⚙️', color: '#67C23A' },
   chapter: { label: '章节', icon: '📄', color: '#F56C6C' },
 }
@@ -68,7 +71,11 @@ export const LEGACY_TYPE_MAP: Record<string, string> = {
 }
 
 /** 获取节点类型的显示信息 */
-export function getOutlineNodeTypeInfo(type?: string | null): { label: string; icon: string; color: string } {
+export function getOutlineNodeTypeInfo(type?: string | null): {
+  label: string
+  icon: string
+  color: string
+} {
   if (!type) return { label: '未分类', icon: '📋', color: '#C0C4CC' }
   // 兼容旧类型
   const resolvedType = LEGACY_TYPE_MAP[type] || type
@@ -126,10 +133,7 @@ export const outlineApi = {
    * POST /api/v1/writer/projects/{projectId}/outlines
    */
   create(projectId: string, data: CreateOutlineRequest) {
-    return httpService.post<OutlineNode>(
-      `${BASE_PROJECT_URL}/${projectId}/outlines`,
-      data
-    )
+    return httpService.post<OutlineNode>(`${BASE_PROJECT_URL}/${projectId}/outlines`, data)
   },
 
   /**
@@ -137,9 +141,7 @@ export const outlineApi = {
    * GET /api/v1/writer/outlines/{outlineId}
    */
   getDetail(outlineId: string, projectId: string) {
-    return httpService.get<OutlineNode>(
-      `${BASE_OUTLINE_URL}/${outlineId}?projectId=${projectId}`
-    )
+    return httpService.get<OutlineNode>(`${BASE_OUTLINE_URL}/${outlineId}?projectId=${projectId}`)
   },
 
   /**
@@ -149,7 +151,7 @@ export const outlineApi = {
   update(outlineId: string, projectId: string, data: UpdateOutlineRequest) {
     return httpService.put<OutlineNode>(
       `${BASE_OUTLINE_URL}/${outlineId}?projectId=${projectId}`,
-      data
+      data,
     )
   },
 
@@ -158,9 +160,7 @@ export const outlineApi = {
    * DELETE /api/v1/writer/outlines/{outlineId}
    */
   delete(outlineId: string, projectId: string) {
-    return httpService.delete<void>(
-      `${BASE_OUTLINE_URL}/${outlineId}?projectId=${projectId}`
-    )
+    return httpService.delete<void>(`${BASE_OUTLINE_URL}/${outlineId}?projectId=${projectId}`)
   },
 
   // ==========================================
@@ -172,9 +172,7 @@ export const outlineApi = {
    * GET /api/v1/writer/projects/{projectId}/outlines
    */
   list(projectId: string) {
-    return httpService.get<OutlineNode[]>(
-      `${BASE_PROJECT_URL}/${projectId}/outlines`
-    )
+    return httpService.get<OutlineNode[]>(`${BASE_PROJECT_URL}/${projectId}/outlines`)
   },
 
   /**
@@ -183,7 +181,7 @@ export const outlineApi = {
    */
   async getTree(projectId: string): Promise<OutlineTreeNode[]> {
     const response = await httpService.get<unknown>(
-      `${BASE_PROJECT_URL}/${projectId}/outlines/tree`
+      `${BASE_PROJECT_URL}/${projectId}/outlines/tree`,
     )
     return normalizeOutlineTreeResponse(response)
   },
@@ -195,7 +193,7 @@ export const outlineApi = {
   getChildren(projectId: string, parentId?: string) {
     const params = parentId ? `?parentId=${parentId}` : ''
     return httpService.get<OutlineNode[]>(
-      `${BASE_PROJECT_URL}/${projectId}/outlines/children${params}`
+      `${BASE_PROJECT_URL}/${projectId}/outlines/children${params}`,
     )
   },
 }

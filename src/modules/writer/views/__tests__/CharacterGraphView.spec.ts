@@ -269,7 +269,7 @@ describe('CharacterGraphView asset candidates', () => {
           'el-empty': ElEmptyStub,
           'el-progress': ElProgressStub,
           'el-icon': ElIconStub,
-          'QyEmpty': QyEmptyStub,
+          QyEmpty: QyEmptyStub,
           transition: false,
         },
         directives: {
@@ -338,7 +338,6 @@ describe('CharacterGraphView asset candidates', () => {
   it('emits a standard workflow action when sending the selected character to AI', async () => {
     const wrapper = mountView()
     await nextTick()
-
     ;(wrapper.vm as any).$.setupState.selectedCharacter = writerStoreState.characters.list[0]
     await nextTick()
 

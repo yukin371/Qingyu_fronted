@@ -44,11 +44,7 @@ import {
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import { outlineApi } from '../api/outline'
-import {
-  MOCK_TIMELINE_EVENTS,
-  MOCK_CHARACTER_GRAPH,
-  MOCK_ENTITIES,
-} from '../mock/workspaceMock'
+import { MOCK_TIMELINE_EVENTS, MOCK_CHARACTER_GRAPH, MOCK_ENTITIES } from '../mock/workspaceMock'
 import type {
   LocationTreeNode,
   StatisticsCacheItem,
@@ -1286,7 +1282,8 @@ export const useWriterStore = defineStore('writer', {
       try {
         const writerModule = (await import('..')) as any
         const relations = (await (writerModule.listCharacterRelations?.(pid) ?? [])) || []
-        this.characters.relations = relations.length > 0 ? (relations as any) : (MOCK_CHARACTER_GRAPH.relations as any)
+        this.characters.relations =
+          relations.length > 0 ? (relations as any) : (MOCK_CHARACTER_GRAPH.relations as any)
       } catch (error: any) {
         console.error('加载角色关系失败:', error)
         this.characters.relations = MOCK_CHARACTER_GRAPH.relations as any

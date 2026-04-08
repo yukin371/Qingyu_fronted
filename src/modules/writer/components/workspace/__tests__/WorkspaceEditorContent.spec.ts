@@ -95,7 +95,7 @@ describe('WorkspaceEditorContent', () => {
     const CharacterGraphViewStub = {
       emits: ['trigger-ai-action'],
       template:
-        '<button data-testid="graph-send-to-ai" @click="$emit(\'trigger-ai-action\', { source: \'workspace\', action: \'add_to_chat\', title: \'图谱角色分析：林舟\', text: \'角色：林舟\' })">send</button>',
+        "<button data-testid=\"graph-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '图谱角色分析：林舟', text: '角色：林舟' })\">send</button>",
     }
 
     const wrapper = mount(WorkspaceEditorContent, {

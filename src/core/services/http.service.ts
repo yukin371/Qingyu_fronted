@@ -89,7 +89,8 @@ function readStoredToken(): string | null {
 // 旧的 mock 数据函数已被 mock-data-manager.ts 替代
 // @deprecated 请使用 mock-data-manager.ts 中的函数
 async function _getMockDataForRequest(url: string | undefined): Promise<any> {
-  if (import.meta.env.DEV) console.warn('[TestMode] _getMockDataForRequest 已废弃，请改用 mock-data-manager:', url)
+  if (import.meta.env.DEV)
+    console.warn('[TestMode] _getMockDataForRequest 已废弃，请改用 mock-data-manager:', url)
   return { code: 200, message: 'success', data: {} }
 }
 
@@ -109,7 +110,6 @@ apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // 🧪 测试模式检测：如果处于测试模式，直接返回 mock 数据
     if (checkTestMode()) {
-
       // 使用统一的 Mock 数据管理器
       const mockData = await handleMockRequest(config.url, {
         method: config.method,

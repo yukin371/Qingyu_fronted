@@ -55,7 +55,10 @@ interface MockState {
   writerCharacters: Map<string, Array<Record<string, any>>>
   writerCharacterRelations: Map<string, Array<Record<string, any>>>
   writerLocations: Map<string, Array<Record<string, any>>>
-  writerDocumentContents: Map<string, { projectId: string; documentId: string; content: string; updatedAt: string }>
+  writerDocumentContents: Map<
+    string,
+    { projectId: string; documentId: string; content: string; updatedAt: string }
+  >
   storyHarnessBatches: Map<string, Record<string, any>>
   storyHarnessChangeRequests: Map<string, Array<Record<string, any>>>
   reviewCounter: number
@@ -240,12 +243,14 @@ function ensureWriterDocumentContent(projectId: string, documentId: string) {
     })
   }
 
-  return mockState.writerDocumentContents.get(key) || {
-    projectId,
-    documentId,
-    content: '',
-    updatedAt: new Date().toISOString(),
-  }
+  return (
+    mockState.writerDocumentContents.get(key) || {
+      projectId,
+      documentId,
+      content: '',
+      updatedAt: new Date().toISOString(),
+    }
+  )
 }
 
 function updateWriterDocumentContent(projectId: string, documentId: string, content: string) {
@@ -255,7 +260,10 @@ function updateWriterDocumentContent(projectId: string, documentId: string, cont
     content,
     updatedAt: new Date().toISOString(),
   }
-  mockState.writerDocumentContents.set(buildWriterDocumentContentKey(projectId, documentId), nextRecord)
+  mockState.writerDocumentContents.set(
+    buildWriterDocumentContentKey(projectId, documentId),
+    nextRecord,
+  )
   return nextRecord
 }
 
@@ -278,7 +286,9 @@ function buildParagraphContents(documentId: string, content: string, updatedAt: 
 }
 
 function getStoryHarnessChangeRequests(projectId: string, chapterId: string) {
-  return mockState.storyHarnessChangeRequests.get(buildStoryHarnessStateKey(projectId, chapterId)) || []
+  return (
+    mockState.storyHarnessChangeRequests.get(buildStoryHarnessStateKey(projectId, chapterId)) || []
+  )
 }
 
 function setStoryHarnessChangeRequests(
@@ -488,15 +498,11 @@ const mockState: MockState = {
       ],
     ],
   ]),
-  writerCharacters: new Map([
-    ['project-yljs-1', createSeedWriterCharacters('project-yljs-1')],
-  ]),
+  writerCharacters: new Map([['project-yljs-1', createSeedWriterCharacters('project-yljs-1')]]),
   writerCharacterRelations: new Map([
     ['project-yljs-1', createSeedWriterCharacterRelations('project-yljs-1')],
   ]),
-  writerLocations: new Map([
-    ['project-yljs-1', createSeedWriterLocations('project-yljs-1')],
-  ]),
+  writerLocations: new Map([['project-yljs-1', createSeedWriterLocations('project-yljs-1')]]),
   writerDocumentContents: new Map(),
   storyHarnessBatches: new Map(),
   storyHarnessChangeRequests: new Map(),
@@ -907,7 +913,6 @@ function getAnnouncements(): MockResponse {
 
 // ==================== 书籍数据生成器 ====================
 
- 
 function generateBook(
   index: number,
   _type: 'recommended' | 'featured' | 'ranking' = 'recommended',
@@ -1062,11 +1067,12 @@ function getWriterProjectDetail(projectId: string): MockResponse {
     : Array.isArray(projectsPayload.projects)
       ? projectsPayload.projects
       : []
-  const matched = list.find((item) => item.id === projectId || item.projectId === projectId) || list[0] || {
-    id: projectId,
-    projectId,
-    title: '未命名项目',
-  }
+  const matched = list.find((item) => item.id === projectId || item.projectId === projectId) ||
+    list[0] || {
+      id: projectId,
+      projectId,
+      title: '未命名项目',
+    }
 
   return createMockResponse(matched)
 }
@@ -1403,7 +1409,11 @@ export async function getMockDataForRequest(
         .map((item: Record<string, any>) => (typeof item?.content === 'string' ? item.content : ''))
         .join('\n\n')
       const updated = updateWriterDocumentContent(projectId, documentId, mergedContent)
-      const normalizedContents = buildParagraphContents(documentId, updated.content, updated.updatedAt)
+      const normalizedContents = buildParagraphContents(
+        documentId,
+        updated.content,
+        updated.updatedAt,
+      )
 
       return createMockResponse({
         documentId,
@@ -1425,15 +1435,21 @@ export async function getMockDataForRequest(
     })
   }
 
-  if (/\/writer\/project\/[^/]+\/documents\/[^/]+\/story-harness\/batches\/latest(\?.*)?$/.test(url)) {
-    const match = url.match(/\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches\/latest/)
+  if (
+    /\/writer\/project\/[^/]+\/documents\/[^/]+\/story-harness\/batches\/latest(\?.*)?$/.test(url)
+  ) {
+    const match = url.match(
+      /\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches\/latest/,
+    )
     const projectId = match?.[1] || 'project-yljs-1'
     const chapterId = match?.[2] || ''
     return createMockResponse(getStoryHarnessBatch(projectId, chapterId))
   }
 
   if (/\/writer\/project\/[^/]+\/documents\/[^/]+\/story-harness\/batches(\?.*)?$/.test(url)) {
-    const match = url.match(/\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches/)
+    const match = url.match(
+      /\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches/,
+    )
     const projectId = match?.[1] || 'project-yljs-1'
     const chapterId = match?.[2] || ''
     const chapterMeta = getWorkspaceMockDocumentMeta(projectId, chapterId)
@@ -1479,8 +1495,8 @@ export async function getMockDataForRequest(
     const projectId = match?.[1] || 'project-yljs-1'
     const chapterId = match?.[2] || ''
     const requestedStatus = parsedUrl.searchParams.get('status')
-    const items = getStoryHarnessChangeRequests(projectId, chapterId).filter((item: Record<string, any>) =>
-      requestedStatus ? item.status === requestedStatus : true,
+    const items = getStoryHarnessChangeRequests(projectId, chapterId).filter(
+      (item: Record<string, any>) => (requestedStatus ? item.status === requestedStatus : true),
     )
 
     return createMockResponse({
@@ -1539,7 +1555,8 @@ export async function getMockDataForRequest(
   }
 
   if (/\/writer\/projects\/[^/]+\/characters\/graph(\?.*)?$/.test(url)) {
-    const projectId = url.match(/\/writer\/projects\/([^/]+)\/characters\/graph/)?.[1] || 'project-yljs-1'
+    const projectId =
+      url.match(/\/writer\/projects\/([^/]+)\/characters\/graph/)?.[1] || 'project-yljs-1'
     return createMockResponse({
       characters: ensureWriterCharacters(projectId),
       relations: ensureWriterCharacterRelations(projectId),
@@ -1547,7 +1564,8 @@ export async function getMockDataForRequest(
   }
 
   if (/\/writer\/projects\/[^/]+\/characters\/relations(\?.*)?$/.test(url)) {
-    const projectId = url.match(/\/writer\/projects\/([^/]+)\/characters\/relations/)?.[1] || 'project-yljs-1'
+    const projectId =
+      url.match(/\/writer\/projects\/([^/]+)\/characters\/relations/)?.[1] || 'project-yljs-1'
     return getWriterProjectCharacterRelations(projectId)
   }
 

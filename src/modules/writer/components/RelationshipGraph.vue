@@ -31,8 +31,8 @@ export interface GraphNode {
   avatar?: string
   entityType?: 'character' | 'location' | 'item' | 'concept'
   importance?: number
-  isInherited?: boolean      // 是否继承自父图谱
-  isAppeared?: boolean       // 是否已通过@引用登场（true=已登场高亮，false/undefined=未登场灰显）
+  isInherited?: boolean // 是否继承自父图谱
+  isAppeared?: boolean // 是否已通过@引用登场（true=已登场高亮，false/undefined=未登场灰显）
 }
 
 export interface GraphLink {
@@ -41,7 +41,7 @@ export interface GraphLink {
   target: string
   type: string
   strength: number
-  isInherited?: boolean      // 是否继承自父图谱
+  isInherited?: boolean // 是否继承自父图谱
 }
 
 // 内部节点类型（包含D3计算的位置属性）
@@ -213,17 +213,11 @@ function initGraph() {
     .append('circle')
     .attr('r', (d: GraphNode) => 15 + (d.importance || 3) * 2)
     .attr('fill', (d: GraphNode) => getNodeFillColor(d))
-    .attr('stroke', (d: GraphNode) =>
-      d.isAppeared === false ? '#d0d4de' : '#fff',
-    )
+    .attr('stroke', (d: GraphNode) => (d.isAppeared === false ? '#d0d4de' : '#fff'))
     .attr('stroke-width', 2)
-    .attr('stroke-dasharray', (d: GraphNode) =>
-      d.isAppeared === false ? '4,3' : 'none',
-    )
+    .attr('stroke-dasharray', (d: GraphNode) => (d.isAppeared === false ? '4,3' : 'none'))
     .style('cursor', 'pointer')
-    .style('opacity', (d: GraphNode) =>
-      d.isAppeared === false ? 0.55 : 1,
-    )
+    .style('opacity', (d: GraphNode) => (d.isAppeared === false ? 0.55 : 1))
 
   node
     .append('text')
@@ -245,9 +239,7 @@ function initGraph() {
     .attr('y', (d: GraphNode) => 20 + (d.importance || 3) * 2)
     .attr('text-anchor', 'middle')
     .attr('font-size', '12px')
-    .attr('fill', (d: GraphNode) =>
-      d.isAppeared === false ? '#9ca3af' : '#333',
-    )
+    .attr('fill', (d: GraphNode) => (d.isAppeared === false ? '#9ca3af' : '#333'))
     .style('pointer-events', 'none')
 
   // 添加拖拽行为（移动节点）
