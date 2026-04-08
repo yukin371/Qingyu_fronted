@@ -19,10 +19,7 @@
         <!-- 主体区域：侧边栏 + 内容 -->
         <div class="tool-overlay__body">
           <!-- 侧边栏切换器 -->
-          <ToolSidebar
-            :active-tool="activeTool"
-            @tool-change="handleToolChange"
-          />
+          <ToolSidebar :active-tool="activeTool" @tool-change="handleToolChange" />
 
           <!-- 工具内容区 -->
           <div class="tool-overlay__content">
@@ -33,9 +30,12 @@
                 :chapter-id="chapterId"
                 :chapter-title="chapterTitle"
                 :chapters="chapters"
+                :workflow-context="workflowContext"
+                :active-entities="activeEntities"
                 @status-change="(chips: string[]) => emit('status-change', chips)"
                 @open-graph="(chapterId: string) => emit('open-graph', chapterId)"
                 @jump-to-chapter="(chapterId: string) => emit('jump-to-chapter', chapterId)"
+                @trigger-ai-action="(payload: any) => emit('trigger-ai-action', payload)"
               />
             </KeepAlive>
           </div>
@@ -73,6 +73,10 @@ interface Props {
   chapterTitle: string
   /** 章节列表 */
   chapters: SidebarChapterSummary[]
+  /** 工作流上下文（可选） */
+  workflowContext?: Record<string, unknown>
+  /** 活跃实体列表（可选） */
+  activeEntities?: Array<{ id: string; name: string; type?: string; summary?: string }>
 }
 
 const props = defineProps<Props>()
@@ -86,6 +90,16 @@ const emit = defineEmits<{
   (e: 'status-change', chips: string[]): void
   (e: 'open-graph', chapterId: string): void
   (e: 'jump-to-chapter', chapterId: string): void
+  (
+    e: 'trigger-ai-action',
+    payload: {
+      source: string
+      action: string
+      title: string
+      text: string
+      instructions?: string
+    },
+  ): void
 }>()
 
 // =======================
@@ -186,7 +200,9 @@ const handleToolChange = (toolId: ToolType) => {
   transition: opacity 0.2s ease;
 
   .tool-overlay__container {
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
   }
 }
 
