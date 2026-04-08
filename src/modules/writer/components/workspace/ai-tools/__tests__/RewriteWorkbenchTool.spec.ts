@@ -74,7 +74,10 @@ describe('RewriteWorkbenchTool', () => {
     await wrapper.get('.tool-panel__primary').trigger('click')
 
     expect(rewriteWithWorkbench).toHaveBeenCalledTimes(1)
-    const payload = rewriteWithWorkbench.mock.calls[0][0] as { instructions?: string; chapterId?: string }
+    const payload = rewriteWithWorkbench.mock.calls[0][0] as {
+      instructions?: string
+      chapterId?: string
+    }
     expect(payload.instructions).toBeUndefined()
     expect(payload.chapterId).toBeUndefined()
   })
@@ -129,5 +132,44 @@ describe('RewriteWorkbenchTool', () => {
 
     expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--warning')
     expect(wrapper.get('.tool-panel__status').text()).toContain('已同步')
+  })
+
+  it('auto-executes rewrite when action trigger with text arrives', async () => {
+    const wrapper = mount(RewriteWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '',
+        actionTrigger: null,
+        workflowContext: null,
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 'trigger-auto-1',
+        action: 'rewrite',
+        text: '这段文字需要润色。',
+        applyMode: 'replace_selection' as const,
+      },
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    // Should have auto-executed the rewrite
+    expect(rewriteWithWorkbench).toHaveBeenCalledTimes(1)
+    expect(rewriteWithWorkbench).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: 'project-1',
+        originalText: '这段文字需要润色。',
+        mode: 'polish',
+      }),
+    )
+
+    // Should show the result
+    expect(wrapper.get('.tool-panel__status').text()).toContain('已就绪')
+    expect(wrapper.find('.result-card').exists()).toBe(true)
   })
 })

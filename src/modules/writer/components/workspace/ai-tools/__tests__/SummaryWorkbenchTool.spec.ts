@@ -124,4 +124,43 @@ describe('SummaryWorkbenchTool', () => {
     expect(wrapper.get('.tool-panel__status').classes()).toContain('tool-panel__status--warning')
     expect(wrapper.get('.tool-panel__status').text()).toContain('已同步')
   })
+
+  it('auto-executes chapter summary when summarize_chapter trigger arrives', async () => {
+    const wrapper = mount(SummaryWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '',
+        actionTrigger: null,
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 'trigger-chapter-1',
+        action: 'summarize_chapter',
+        text: '整章内容概要',
+      },
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    // Should have auto-executed the chapter summary
+    expect(summarizeChapter).toHaveBeenCalledTimes(1)
+    expect(summarizeChapter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+      }),
+    )
+
+    // Should emit a chapter-direction result candidate
+    expect(wrapper.emitted('resultCandidate')?.[0]?.[0]).toMatchObject({
+      source: 'summary',
+      action: 'summarize_chapter',
+      title: '章节方向提案',
+    })
+  })
 })

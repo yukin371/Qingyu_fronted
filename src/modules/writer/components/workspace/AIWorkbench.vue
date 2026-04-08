@@ -490,21 +490,6 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   gap: 8px;
 }
 
-.workflow-result-card strong,
-.proposal-card strong {
-  display: block;
-  font-size: 12px;
-  color: var(--editor-text-primary, #0f172a);
-}
-
-.workflow-result-card p,
-.proposal-card p {
-  margin: 4px 0 0;
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--editor-text-muted, #64748b);
-}
-
 .workflow-result-card__action,
 .proposal-card__action {
   border: none;
@@ -534,6 +519,18 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   border: 1px solid var(--editor-border, rgba(0, 0, 0, 0.08));
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.76);
+
+  strong {
+    display: block;
+    font-size: 12px;
+    color: var(--editor-text-primary, #0f172a);
+  }
+  p {
+    margin: 4px 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--editor-text-muted, #64748b);
+  }
 }
 
 .workflow-result-card--secondary {
