@@ -19,7 +19,9 @@ describe('StoryHarnessPanel', () => {
         content: '张三开始怀疑李四。',
         chapterCount: 12,
         scopeLabel: '第一章 / 当前章节',
-        activeCharacters: [{ id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' }],
+        activeCharacters: [
+          { id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' },
+        ],
         activeRelations: [],
         changeRequests: [
           {
@@ -47,9 +49,13 @@ describe('StoryHarnessPanel', () => {
       },
     })
 
-    expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe('false')
+    expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe(
+      'false',
+    )
     await wrapper.get('[data-testid="story-harness-open-change-requests"]').trigger('click')
-    expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe('true')
+    expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe(
+      'true',
+    )
   })
 
   it('点击生成建议按钮后应调用手动索引入口', async () => {
@@ -124,6 +130,106 @@ describe('StoryHarnessPanel', () => {
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
       '变更建议：角色状态可能需要更新：张三',
     )
-    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('证据：张三开始怀疑李四。')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
+      '证据：张三开始怀疑李四。',
+    )
+  })
+
+  it('renders simplified header with writing state label', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: 'test',
+        chapterCount: 5,
+        changeRequests: [],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Story Harness')
+    expect(wrapper.text()).not.toContain('Phase 1')
+  })
+
+  it('renders compressed save batch receipt', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+    harnessStore.savedBatchReceipt = {
+      chapterId: 'chapter-1',
+      chapterTitle: '第一章',
+      count: 3,
+      committedAt: new Date('2026-04-08T14:30:00'),
+    }
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: 'test',
+        chapterCount: 5,
+        changeRequests: [
+          {
+            id: 'cr-batch-1',
+            source: 'save_batch',
+            type: 'state',
+            title: '张三状态可能需要更新',
+            summary: '从冷静转为愤怒',
+            reason: '正文证据显示情绪变化',
+            evidence: '张三猛地拍了一下桌子。',
+            severity: 'focus',
+          },
+        ],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('已冻结 3 条建议')
+    expect(wrapper.text()).not.toContain('保存回执')
+  })
+
+  it('shows compressed empty state when no change requests', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: 'test',
+        chapterCount: 5,
+        changeRequests: [],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('保存章节后自动生成')
+    expect(wrapper.text()).not.toContain('当前还没有正式建议')
   })
 })

@@ -81,11 +81,6 @@ const emit = defineEmits<{
 }>()
 
 function handleActivityClick() {
-  if (!props.collapsed) {
-    emit('toggle')
-    return
-  }
-
   emit('toggle')
 }
 </script>
@@ -110,7 +105,9 @@ function handleActivityClick() {
   overflow: hidden;
   position: relative;
   background: var(--editor-bg-base, #ffffff);
-  transition: opacity 200ms ease-out, width 200ms ease-out;
+  transition:
+    opacity 200ms ease-out,
+    width 200ms ease-out;
 }
 
 // Activity Bar
@@ -136,7 +133,9 @@ function handleActivityClick() {
     background: transparent;
     color: var(--editor-actbar-icon, #64748b);
     cursor: pointer;
-    transition: background 120ms ease-out, color 120ms ease-out;
+    transition:
+      background 120ms ease-out,
+      color 120ms ease-out;
 
     &:hover {
       background: var(--editor-bg-elevated, #e8edf2);

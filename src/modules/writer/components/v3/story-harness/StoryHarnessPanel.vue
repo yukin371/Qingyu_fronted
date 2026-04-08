@@ -3,41 +3,35 @@
     class="flex min-h-0 min-w-[280px] max-w-[320px] flex-col gap-4 border-l border-slate-200/80 bg-slate-50/70 p-4 max-[1200px]:max-w-none max-[1200px]:border-l-0 max-[1200px]:border-t"
     data-testid="story-harness-panel"
   >
-    <header class="flex items-start justify-between gap-3">
-      <div class="space-y-1">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700">
-          Story Harness
-        </p>
-        <h3 class="text-sm font-semibold text-slate-950">V3 写作宿主</h3>
-      </div>
-      <Tag variant="primary" size="sm">Phase 1</Tag>
+    <header class="flex items-center justify-between gap-3">
+      <h3 class="text-sm font-semibold text-slate-950">Story Harness</h3>
+      <Tag size="sm" variant="primary" effect="light">{{ harnessStore.writingStateLabel }}</Tag>
     </header>
 
     <section class="flex flex-col gap-3">
-      <div class="flex items-center justify-between gap-3">
-        <h4 class="text-sm font-semibold text-slate-950">Context Lens</h4>
-        <Tag size="sm" variant="primary" effect="light">{{ harnessStore.writingStateLabel }}</Tag>
-      </div>
-
-      <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
+      <QyCard
+        variant="glass"
+        padding="sm"
+        shadow="never"
+        class="space-y-3 rounded-3xl border border-white/70 bg-white/85"
+      >
         <div class="space-y-1">
-          <p class="text-xs text-slate-500">当前作用域</p>
           <p class="text-sm font-medium text-slate-900">
             {{ scopeLabel || chapterTitle || '未声明场景作用域' }}
           </p>
-          <p class="text-xs leading-5 text-slate-500">{{ harnessStore.chapterProgressLabel }}</p>
+          <p class="text-xs leading-5 text-slate-500">
+            {{ harnessStore.chapterProgressLabel }} · {{ harnessStore.draftLength }} 字符
+          </p>
         </div>
 
         <div class="flex flex-wrap gap-2 text-xs text-slate-600">
-          <span class="rounded-full bg-slate-100 px-3 py-1">角色 {{ activeCharacters.length }}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1"
+            >角色 {{ activeCharacters.length }}</span
+          >
           <span class="rounded-full bg-slate-100 px-3 py-1">关系 {{ activeRelations.length }}</span>
-          <span class="rounded-full bg-slate-100 px-3 py-1">待处理 {{ harnessStore.pendingChangeRequestCount }}</span>
-        </div>
-
-        <div class="rounded-2xl bg-slate-950 px-3 py-3 text-slate-50">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">写作状态</p>
-          <p class="mt-1 text-sm font-medium">{{ chapterTitle || '未命名章节' }}</p>
-          <p class="mt-1 text-xs text-slate-300">正文长度 {{ harnessStore.draftLength }} 字符</p>
+          <span class="rounded-full bg-slate-100 px-3 py-1"
+            >待处理 {{ harnessStore.pendingChangeRequestCount }}</span
+          >
         </div>
       </QyCard>
     </section>
@@ -48,20 +42,19 @@
         <Tag variant="primary" size="sm">{{ harnessStore.pendingChangeRequestCount }} 待处理</Tag>
       </div>
 
-      <QyCard variant="glass" padding="sm" shadow="never" class="space-y-3 rounded-3xl border border-white/70 bg-white/85">
+      <QyCard
+        variant="glass"
+        padding="sm"
+        shadow="never"
+        class="space-y-3 rounded-3xl border border-white/70 bg-white/85"
+      >
         <template v-if="changeRequests.length || hasSavedBatchReceipt">
           <div
             v-if="hasSavedBatchReceipt"
-            class="rounded-2xl bg-slate-50 px-3 py-3"
+            class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2"
           >
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400">保存回执</p>
-                <p class="mt-2 text-sm font-semibold text-slate-950">{{ savedBatchReceiptStatus }}</p>
-              </div>
-              <span class="text-xs text-slate-500">{{ savedBatchReceiptTimestampLabel }}</span>
-            </div>
-            <p class="mt-2 text-xs leading-5 text-slate-600">{{ savedBatchReceiptHint }}</p>
+            <p class="text-xs text-slate-600">{{ savedBatchReceiptStatus }}</p>
+            <span class="text-xs text-slate-500">{{ savedBatchReceiptTimestampLabel }}</span>
           </div>
 
           <div
@@ -71,7 +64,9 @@
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
                 <p class="text-sm font-medium text-slate-900">{{ primaryChangeRequest?.title }}</p>
-                <p class="mt-1 text-xs leading-5 text-slate-500">{{ primaryChangeRequest?.summary }}</p>
+                <p class="mt-1 text-xs leading-5 text-slate-500">
+                  {{ primaryChangeRequest?.summary }}
+                </p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 <Tag
@@ -81,7 +76,11 @@
                 >
                   {{ primaryChangeRequest?.source === 'save_batch' ? '保存后批次' : '即时预览' }}
                 </Tag>
-                <Tag size="sm" :variant="primaryChangeRequest?.severity === 'focus' ? 'warning' : 'info'" effect="light">
+                <Tag
+                  size="sm"
+                  :variant="primaryChangeRequest?.severity === 'focus' ? 'warning' : 'info'"
+                  effect="light"
+                >
                   {{ primaryChangeRequest?.severity === 'focus' ? '优先看' : '轻提示' }}
                 </Tag>
               </div>
@@ -121,8 +120,7 @@
         </template>
 
         <template v-else>
-          <p class="text-sm leading-6 text-slate-700">当前还没有正式建议。</p>
-          <p class="text-sm leading-6 text-slate-500">保存后会自动刷新，你也可以手动触发一次索引。</p>
+          <p class="text-sm leading-6 text-slate-500">保存章节后自动生成，或手动触发索引。</p>
           <QyButton
             variant="primary"
             size="sm"
@@ -219,21 +217,10 @@ const savedBatchReceiptStatus = computed(() => {
   }
 
   if (savedBatchReceipt.value.count > 0) {
-    return `本章已冻结 ${savedBatchReceipt.value.count} 条正式建议`
+    return `已冻结 ${savedBatchReceipt.value.count} 条建议`
   }
 
-  return '本次保存未产出正式建议'
-})
-const savedBatchReceiptHint = computed(() => {
-  if (!savedBatchReceipt.value) {
-    return ''
-  }
-
-  if (savedBatchReceipt.value.count > 0) {
-    return '当前批次已成为正式回顾入口，同签名的即时预览会自动退到后面。'
-  }
-
-  return '当前保存没有命中正式建议，宿主会继续保留正文侧的即时预览，不打断作者继续写。'
+  return '本次保存未产出建议'
 })
 
 const handleTriggerIndex = () => {
@@ -266,8 +253,7 @@ const sendPrimaryChangeRequestToAI = () => {
     action: 'add_to_chat',
     title: changeRequest.title,
     text: buildChangeRequestContextText(changeRequest),
-    instructions:
-      '请基于这条 Change Request 给出可执行的改写建议，优先保持角色状态与关系连续性。',
+    instructions: '请基于这条 Change Request 给出可执行的改写建议，优先保持角色状态与关系连续性。',
   })
 }
 
