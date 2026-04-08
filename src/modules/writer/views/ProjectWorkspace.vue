@@ -56,6 +56,7 @@
           :chapter-title="displayChapterTitle"
           :chapters="flatChapters"
           :scope-label="currentScopeLabel"
+          :entity-stats="storyHarnessEntityStats"
           :active-characters="activeScopeCharacters"
           :active-relations="activeScopeRelations"
           :change-requests="storyHarnessChangeRequests"
@@ -165,6 +166,12 @@ import {
   buildEditorContentFromPlainText,
   extractPlainTextFromEditorContent,
 } from '@/modules/writer/utils/editorContent'
+import {
+  extractEntitiesFromTipTapContent,
+  groupEntitiesByType,
+  parseEntityReferences,
+} from '@/modules/writer/utils/entityParser'
+import type { EntityReference } from '@/modules/writer/types/entity'
 import type {
   WriterAIActionTrigger,
   WriterAIApplyFeedback,
@@ -307,6 +314,34 @@ const {
   displayChapterTitle,
   currentChapterPlainText,
   availableDocMap,
+})
+
+const storyHarnessEntityStats = computed(() => {
+  const rawContent = tipTapContent.value || editorStore.editorContent || editorStore.content || ''
+
+  let entityReferences: EntityReference[] = []
+
+  try {
+    entityReferences = extractEntitiesFromTipTapContent(JSON.parse(rawContent))
+  } catch {
+    entityReferences = []
+  }
+
+  if (entityReferences.length === 0) {
+    entityReferences = parseEntityReferences(currentChapterPlainText.value, {
+      includePosition: false,
+      dedupe: true,
+    })
+  }
+
+  const grouped = groupEntitiesByType(entityReferences)
+
+  return {
+    characters: Math.max(activeScopeCharacters.value.length, grouped.character.length),
+    locations: grouped.location.length,
+    items: grouped.item.length,
+    concepts: grouped.concept.length,
+  }
 })
 
 const workflowContext = computed<WriterWorkflowContext>(() => {
@@ -838,27 +873,7 @@ const handleMoveOutlineNode = async (direction: 'up' | 'down') => {
 const loadOutlineTree = async () => {
   try {
     writerStore.outline.loading = true
-    const response = await outlineApi.getTree(currentProjectId.value)
-
-    // 处理后端返回的响应格式
-    if (Array.isArray(response)) {
-      // 直接是数组
-      writerStore.outline.tree = response
-    } else if (response && typeof response === 'object') {
-      // 后端返回包装格式：{ projects, list, total }
-      if ('list' in response && Array.isArray(response.list)) {
-        writerStore.outline.tree = response.list
-      } else if ('data' in response && Array.isArray(response.data)) {
-        // 标准响应格式：{ data: [...] }
-        writerStore.outline.tree = response.data
-      } else {
-        if (import.meta.env.DEV) console.warn('[ProjectWorkspace] 大纲树API返回格式未知:', response)
-        writerStore.outline.tree = []
-      }
-    } else {
-      if (import.meta.env.DEV) console.warn('[ProjectWorkspace] 大纲树API返回非对象:', response)
-      writerStore.outline.tree = []
-    }
+    writerStore.outline.tree = await outlineApi.getTree(currentProjectId.value)
   } catch (error) {
     console.error('[ProjectWorkspace] 加载大纲树失败:', error)
     message.error('加载大纲树失败')

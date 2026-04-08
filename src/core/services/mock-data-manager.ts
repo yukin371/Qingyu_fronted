@@ -8,6 +8,7 @@
  * 4. 普通业务模式使用真实 API
  */
 
+import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
 import { getBookCoverUrl } from '@/views/demo/mock-images'
 
 // ==================== 类型定义 ====================
@@ -54,8 +55,17 @@ interface MockState {
   writerCharacters: Map<string, Array<Record<string, any>>>
   writerCharacterRelations: Map<string, Array<Record<string, any>>>
   writerLocations: Map<string, Array<Record<string, any>>>
+  writerDocumentContents: Map<string, { projectId: string; documentId: string; content: string; updatedAt: string }>
+  storyHarnessBatches: Map<string, Record<string, any>>
+  storyHarnessChangeRequests: Map<string, Array<Record<string, any>>>
   reviewCounter: number
 }
+
+const buildWriterDocumentContentKey = (projectId: string, documentId: string) =>
+  `${projectId}:${documentId}`
+
+const buildStoryHarnessStateKey = (projectId: string, chapterId: string) =>
+  `${projectId}:${chapterId}`
 
 function createSeedWriterCharacters(projectId: string) {
   const now = new Date().toISOString()
@@ -192,6 +202,208 @@ function ensureWriterLocations(projectId: string) {
   return mockState.writerLocations.get(projectId) || []
 }
 
+function getWorkspaceMockDocumentMeta(projectId: string, documentId: string) {
+  const mockProject = getWorkspaceMockProject(projectId)
+  if (!mockProject) {
+    return null
+  }
+
+  const doc = mockProject.docs.find((item) => item.id === documentId)
+  if (doc) {
+    return {
+      title: doc.title,
+      updatedAt: doc.updatedAt || new Date().toISOString(),
+    }
+  }
+
+  const chapter = mockProject.chapters.find((item) => item.id === documentId)
+  if (chapter) {
+    return {
+      title: chapter.title,
+      updatedAt: chapter.updatedAt,
+    }
+  }
+
+  return null
+}
+
+function ensureWriterDocumentContent(projectId: string, documentId: string) {
+  const key = buildWriterDocumentContentKey(projectId, documentId)
+  if (!mockState.writerDocumentContents.has(key)) {
+    const mockProject = getWorkspaceMockProject(projectId)
+    const seedContent = mockProject?.contentByDocId?.[documentId] || ''
+    mockState.writerDocumentContents.set(key, {
+      projectId,
+      documentId,
+      content: seedContent,
+      updatedAt: new Date().toISOString(),
+    })
+  }
+
+  return mockState.writerDocumentContents.get(key) || {
+    projectId,
+    documentId,
+    content: '',
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+function updateWriterDocumentContent(projectId: string, documentId: string, content: string) {
+  const nextRecord = {
+    projectId,
+    documentId,
+    content,
+    updatedAt: new Date().toISOString(),
+  }
+  mockState.writerDocumentContents.set(buildWriterDocumentContentKey(projectId, documentId), nextRecord)
+  return nextRecord
+}
+
+function buildParagraphContents(documentId: string, content: string, updatedAt: string) {
+  const blocks = content
+    .split(/\n\s*\n/g)
+    .map((block) => block.trim())
+    .filter(Boolean)
+
+  const normalizedBlocks = blocks.length > 0 ? blocks : ['']
+
+  return normalizedBlocks.map((block, index) => ({
+    paragraphId: `${documentId}-p-${index + 1}`,
+    order: index + 1,
+    content: block,
+    contentType: 'markdown',
+    version: 1,
+    updatedAt,
+  }))
+}
+
+function getStoryHarnessChangeRequests(projectId: string, chapterId: string) {
+  return mockState.storyHarnessChangeRequests.get(buildStoryHarnessStateKey(projectId, chapterId)) || []
+}
+
+function setStoryHarnessChangeRequests(
+  projectId: string,
+  chapterId: string,
+  changeRequests: Array<Record<string, any>>,
+) {
+  mockState.storyHarnessChangeRequests.set(
+    buildStoryHarnessStateKey(projectId, chapterId),
+    changeRequests,
+  )
+  return changeRequests
+}
+
+function getStoryHarnessBatch(projectId: string, chapterId: string) {
+  return mockState.storyHarnessBatches.get(buildStoryHarnessStateKey(projectId, chapterId)) || null
+}
+
+function setStoryHarnessBatch(projectId: string, chapterId: string, batch: Record<string, any>) {
+  mockState.storyHarnessBatches.set(buildStoryHarnessStateKey(projectId, chapterId), batch)
+  return batch
+}
+
+function buildMockStoryHarnessChangeRequests(_projectId: string, chapterId: string) {
+  const now = new Date().toISOString()
+  const batchId = `mock-trigger:${chapterId}:${Date.now()}`
+
+  return {
+    batchId,
+    items: [
+      {
+        id: `${chapterId}-cr-state-1`,
+        batchId,
+        chapterId,
+        category: 'state',
+        priority: 'high',
+        status: 'pending',
+        title: '正文指令建议：同步周德厚对林砚的戒备',
+        description: '正文备注已经明确角色态度变化，建议把周德厚的对外信息策略调整为更克制。',
+        suggestedChange: {
+          entityType: 'character',
+          entityName: '周德厚',
+          field: 'current_state',
+        },
+        evidence: [
+          {
+            documentId: chapterId,
+            paragraphIdx: 4,
+            quoteText: '// @周德厚 对林砚起疑，暂不再公开交付关键情报。',
+          },
+        ],
+        source: 'mock_story_harness',
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: `${chapterId}-cr-relation-1`,
+        batchId,
+        chapterId,
+        category: 'relation',
+        priority: 'medium',
+        status: 'pending',
+        title: '关系建议：提升林砚与周德厚之间的试探张力',
+        description: '当前章节已经形成明显的相互试探，建议补一条关系侧正式建议，便于后续承接。',
+        suggestedChange: {
+          entityType: 'relation',
+          fromName: '林砚',
+          toName: '周德厚',
+          type: '试探',
+        },
+        evidence: [
+          {
+            documentId: chapterId,
+            paragraphIdx: 3,
+            quoteText: '林砚离开听雨斋前，忽然意识到周先生并没有把所有话说完。',
+          },
+        ],
+        source: 'mock_story_harness',
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
+  }
+}
+
+function buildStoryHarnessContext(projectId: string, chapterId: string) {
+  const pendingCount = getStoryHarnessChangeRequests(projectId, chapterId).filter(
+    (item) => item.status === 'pending',
+  ).length
+
+  return {
+    characters: [
+      {
+        id: `${projectId}-char-linyi`,
+        name: '林砚',
+        alias: ['林公子'],
+        traits: ['沉稳', '敏锐'],
+        currentState: '对周德厚的言外之意产生警惕',
+        shortDescription: '云岚城暗线中的观察者，开始主动辨别他人试探。',
+      },
+      {
+        id: `${projectId}-char-zhoudehou`,
+        name: '周德厚',
+        alias: ['周先生'],
+        traits: ['克制', '老练'],
+        currentState: '对林砚起疑，暂缓继续公开交付关键情报',
+        shortDescription: '听雨斋里掌握线索的关键人物，当前进入审慎观察阶段。',
+      },
+    ],
+    relations: [
+      {
+        id: `${projectId}-rel-linyan-zhoudehou`,
+        fromId: `${projectId}-char-linyi`,
+        toId: `${projectId}-char-zhoudehou`,
+        fromName: '林砚',
+        toName: '周德厚',
+        type: '试探',
+        strength: 72,
+        notes: '双方都意识到对方并未交底，关系从单向求助转为相互试探。',
+      },
+    ],
+    pendingCRs: pendingCount,
+  }
+}
+
 function parseMockBody(data: unknown) {
   if (!data) return {}
   if (typeof data === 'string') {
@@ -285,6 +497,9 @@ const mockState: MockState = {
   writerLocations: new Map([
     ['project-yljs-1', createSeedWriterLocations('project-yljs-1')],
   ]),
+  writerDocumentContents: new Map(),
+  storyHarnessBatches: new Map(),
+  storyHarnessChangeRequests: new Map(),
   reviewCounter: 6,
 }
 
@@ -352,6 +567,9 @@ export function resetMockState(): void {
   mockState.writerLocations = new Map([
     ['project-yljs-1', createSeedWriterLocations('project-yljs-1')],
   ])
+  mockState.writerDocumentContents = new Map()
+  mockState.storyHarnessBatches = new Map()
+  mockState.storyHarnessChangeRequests = new Map()
   mockState.reviewCounter = 4
 }
 
@@ -1017,6 +1235,7 @@ export async function getMockDataForRequest(
   console.log('[MockDataManager] 获取 Mock 数据:', url)
   const method = (options.method || 'get').toUpperCase()
   const body = parseMockBody(options.data)
+  const parsedUrl = new URL(url, 'http://mock.local')
 
   // ==================== 书城模块 ====================
 
@@ -1174,6 +1393,139 @@ export async function getMockDataForRequest(
 
   // ==================== 创作中心 ====================
 
+  if (/\/api\/v1\/writer\/documents\/[^/]+\/contents(\?.*)?$/.test(url)) {
+    const documentId = url.match(/\/api\/v1\/writer\/documents\/([^/]+)\/contents/)?.[1] || ''
+    const projectId = String(options.params?.projectId || body.projectId || 'project-yljs-1')
+
+    if (method === 'PUT') {
+      const nextContents = Array.isArray(body.contents) ? body.contents : []
+      const mergedContent = nextContents
+        .map((item: Record<string, any>) => (typeof item?.content === 'string' ? item.content : ''))
+        .join('\n\n')
+      const updated = updateWriterDocumentContent(projectId, documentId, mergedContent)
+      const normalizedContents = buildParagraphContents(documentId, updated.content, updated.updatedAt)
+
+      return createMockResponse({
+        documentId,
+        total: normalizedContents.length,
+        wordCount: updated.content.replace(/\s/g, '').length,
+        updatedAt: updated.updatedAt,
+      })
+    }
+
+    const record = ensureWriterDocumentContent(projectId, documentId)
+    const contents = buildParagraphContents(documentId, record.content, record.updatedAt)
+
+    return createMockResponse({
+      documentId,
+      contents,
+      total: contents.length,
+      wordCount: record.content.replace(/\s/g, '').length,
+      updatedAt: record.updatedAt,
+    })
+  }
+
+  if (/\/writer\/project\/[^/]+\/documents\/[^/]+\/story-harness\/batches\/latest(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches\/latest/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    return createMockResponse(getStoryHarnessBatch(projectId, chapterId))
+  }
+
+  if (/\/writer\/project\/[^/]+\/documents\/[^/]+\/story-harness\/batches(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/project\/([^/]+)\/documents\/([^/]+)\/story-harness\/batches/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    const chapterMeta = getWorkspaceMockDocumentMeta(projectId, chapterId)
+    const committedAt = Date.now()
+    const batch = {
+      batchId: `story-harness:${chapterId}:${committedAt}`,
+      projectId,
+      chapterId,
+      chapterTitle: body.chapterTitle || chapterMeta?.title || '未命名章节',
+      committedAt,
+      source: 'remote',
+      changeRequests: Array.isArray(body.changeRequests) ? body.changeRequests : [],
+    }
+
+    return createMockResponse(setStoryHarnessBatch(projectId, chapterId, batch))
+  }
+
+  if (/\/writer\/projects\/[^/]+\/chapters\/[^/]+\/context(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/projects\/([^/]+)\/chapters\/([^/]+)\/context/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    return createMockResponse(buildStoryHarnessContext(projectId, chapterId))
+  }
+
+  if (/\/writer\/projects\/[^/]+\/chapters\/[^/]+\/trigger-index(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/projects\/([^/]+)\/chapters\/([^/]+)\/trigger-index/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    const { batchId, items } = buildMockStoryHarnessChangeRequests(projectId, chapterId)
+    setStoryHarnessChangeRequests(projectId, chapterId, items)
+
+    return createMockResponse({
+      batchId,
+      generated: items.length,
+      pending: items.filter((item) => item.status === 'pending').length,
+      deduplicated: 0,
+      source: 'mock_ai',
+    })
+  }
+
+  if (/\/writer\/projects\/[^/]+\/chapters\/[^/]+\/change-requests(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/projects\/([^/]+)\/chapters\/([^/]+)\/change-requests/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    const requestedStatus = parsedUrl.searchParams.get('status')
+    const items = getStoryHarnessChangeRequests(projectId, chapterId).filter((item: Record<string, any>) =>
+      requestedStatus ? item.status === requestedStatus : true,
+    )
+
+    return createMockResponse({
+      items,
+      total: items.length,
+    })
+  }
+
+  if (/\/writer\/change-requests\/[^/]+\/status(\?.*)?$/.test(url)) {
+    const requestId = url.match(/\/writer\/change-requests\/([^/]+)\/status/)?.[1] || ''
+    const nextStatus = body.status || 'pending'
+
+    for (const [key, items] of mockState.storyHarnessChangeRequests.entries()) {
+      const index = items.findIndex((item) => item.id === requestId)
+      if (index === -1) {
+        continue
+      }
+
+      const nextItems = [...items]
+      nextItems[index] = {
+        ...nextItems[index],
+        status: nextStatus,
+        updatedAt: new Date().toISOString(),
+      }
+      mockState.storyHarnessChangeRequests.set(key, nextItems)
+      return createMockResponse(null)
+    }
+
+    return createMockResponse(null)
+  }
+
+  if (/\/writer\/projects\/[^/]+\/chapters\/[^/]+\/rebuild-projection(\?.*)?$/.test(url)) {
+    const match = url.match(/\/writer\/projects\/([^/]+)\/chapters\/([^/]+)\/rebuild-projection/)
+    const projectId = match?.[1] || 'project-yljs-1'
+    const chapterId = match?.[2] || ''
+    const items = getStoryHarnessChangeRequests(projectId, chapterId)
+
+    return createMockResponse({
+      projectId,
+      chapterId,
+      replayedCount: items.length,
+      lastRequestId: items[0]?.id,
+    })
+  }
+
   // 写作项目文档树（单数 project 路由）
   if (/\/writer\/project\/[^/]+\/documents\/tree(\?.*)?$/.test(url)) {
     const projectId = url.match(/\/writer\/project\/([^/]+)\/documents\/tree/)?.[1]
@@ -1297,6 +1649,17 @@ export async function getMockDataForRequest(
     return getWriterProjectLocations(projectId)
   }
 
+  if (url.includes('/api/v1/writer/stats/today')) {
+    const todayWords = 1680
+    return createMockResponse({
+      todayWords,
+      words: todayWords,
+      writingMinutes: 54,
+      updatedChapters: 1,
+      date: new Date().toISOString().split('T')[0],
+    })
+  }
+
   if (/\/writer\/projects\/[^/]+(\?.*)?$/.test(url)) {
     const projectId = url.match(/\/writer\/projects\/([^/?]+)/)?.[1] || 'project-yljs-1'
     return getWriterProjectDetail(projectId)
@@ -1305,6 +1668,19 @@ export async function getMockDataForRequest(
   // 写作项目列表
   if (url.includes('/writer/projects')) {
     return getWriterProjects()
+  }
+
+  // 今日写作统计
+  if (url.includes('/writer/stats/today')) {
+    return createMockResponse({
+      todayWords: 5029,
+      words: 5029,
+      weekTotal: 16840,
+      monthTotal: 48210,
+      writingMinutes: 96,
+      updatedChapters: 1,
+      date: new Date().toISOString().split('T')[0],
+    })
   }
 
   // 收入统计

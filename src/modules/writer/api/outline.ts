@@ -33,6 +33,14 @@ export interface OutlineTreeNode extends OutlineNode {
   children?: OutlineTreeNode[]
 }
 
+export type OutlineTreeResponse =
+  | OutlineTreeNode[]
+  | {
+      data?: OutlineTreeNode[]
+      list?: OutlineTreeNode[]
+      tree?: OutlineTreeNode[]
+    }
+
 // ============================================================================
 // 大纲节点类型配置
 // ============================================================================
@@ -65,6 +73,36 @@ export function getOutlineNodeTypeInfo(type?: string | null): { label: string; i
   // 兼容旧类型
   const resolvedType = LEGACY_TYPE_MAP[type] || type
   return OUTLINE_NODE_TYPE_CONFIG[resolvedType] || { label: type, icon: '📋', color: '#C0C4CC' }
+}
+
+export function normalizeOutlineTreeResponse(response: unknown): OutlineTreeNode[] {
+  if (Array.isArray(response)) {
+    return response
+  }
+
+  if (!response || typeof response !== 'object') {
+    return []
+  }
+
+  const wrapped = response as {
+    data?: OutlineTreeNode[]
+    list?: OutlineTreeNode[]
+    tree?: OutlineTreeNode[]
+  }
+
+  if (Array.isArray(wrapped.data)) {
+    return wrapped.data
+  }
+
+  if (Array.isArray(wrapped.list)) {
+    return wrapped.list
+  }
+
+  if (Array.isArray(wrapped.tree)) {
+    return wrapped.tree
+  }
+
+  return []
 }
 
 // ============================================================================
@@ -143,10 +181,11 @@ export const outlineApi = {
    * 获取大纲树
    * GET /api/v1/writer/projects/{projectId}/outlines/tree
    */
-  getTree(projectId: string) {
-    return httpService.get<OutlineTreeNode[]>(
+  async getTree(projectId: string): Promise<OutlineTreeNode[]> {
+    const response = await httpService.get<unknown>(
       `${BASE_PROJECT_URL}/${projectId}/outlines/tree`
     )
+    return normalizeOutlineTreeResponse(response)
   },
 
   /**

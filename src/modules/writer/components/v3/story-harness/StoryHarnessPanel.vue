@@ -25,13 +25,13 @@
         </div>
 
         <div class="flex flex-wrap gap-2 text-xs text-slate-600">
-          <span class="rounded-full bg-slate-100 px-3 py-1"
-            >角色 {{ activeCharacters.length }}</span
+          <span
+            v-for="chip in summaryChips"
+            :key="chip.key"
+            class="rounded-full bg-slate-100 px-3 py-1"
           >
-          <span class="rounded-full bg-slate-100 px-3 py-1">关系 {{ activeRelations.length }}</span>
-          <span class="rounded-full bg-slate-100 px-3 py-1"
-            >待处理 {{ harnessStore.pendingChangeRequestCount }}</span
-          >
+            {{ chip.label }} {{ chip.count }}
+          </span>
         </div>
       </QyCard>
     </section>
@@ -164,6 +164,12 @@ const props = defineProps<{
   content: string
   chapterCount: number
   scopeLabel?: string
+  entityStats?: {
+    characters: number
+    locations: number
+    items: number
+    concepts: number
+  }
   activeCharacters?: StoryHarnessCharacterSummary[]
   activeRelations?: StoryHarnessRelationSummary[]
   changeRequests?: StoryHarnessChangeRequestPreview[]
@@ -182,6 +188,12 @@ const harnessStore = useStoryHarnessStore()
 const activeCharacters = computed(() => props.activeCharacters ?? [])
 const activeRelations = computed(() => props.activeRelations ?? [])
 const changeRequests = computed(() => props.changeRequests ?? [])
+const resolvedEntityStats = computed(() => ({
+  characters: props.entityStats?.characters ?? activeCharacters.value.length,
+  locations: props.entityStats?.locations ?? 0,
+  items: props.entityStats?.items ?? 0,
+  concepts: props.entityStats?.concepts ?? 0,
+}))
 const isChangeRequestDrawerVisible = ref(false)
 const savedBatchChangeRequests = computed(() =>
   changeRequests.value.filter((changeRequest) => changeRequest.source === 'save_batch'),
@@ -193,6 +205,16 @@ const pendingChangeRequests = computed(() =>
   ),
 )
 const hasSavedBatchReceipt = computed(() => Boolean(savedBatchReceipt.value))
+const summaryChips = computed(() =>
+  [
+    { key: 'characters', label: '角色', count: resolvedEntityStats.value.characters },
+    { key: 'locations', label: '地点', count: resolvedEntityStats.value.locations },
+    { key: 'items', label: '物品', count: resolvedEntityStats.value.items },
+    { key: 'concepts', label: '概念', count: resolvedEntityStats.value.concepts },
+    { key: 'relations', label: '关系', count: activeRelations.value.length },
+    { key: 'pending', label: '待处理', count: harnessStore.pendingChangeRequestCount },
+  ].filter((chip) => chip.count > 0),
+)
 const primaryChangeRequest = computed(
   () =>
     pendingChangeRequests.value.find((changeRequest) => changeRequest.source === 'save_batch') ??

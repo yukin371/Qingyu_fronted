@@ -162,6 +162,57 @@ describe('StoryHarnessPanel', () => {
     expect(wrapper.text()).not.toContain('Phase 1')
   })
 
+  it('在顶部摘要中显示多类型实体统计', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: '张三在云港找到青铜钥匙，并意识到预言成真。',
+        chapterCount: 5,
+        entityStats: {
+          characters: 2,
+          locations: 1,
+          items: 1,
+          concepts: 1,
+        },
+        activeCharacters: [{ id: 'char-1', name: '张三', traits: ['谨慎'], currentState: '警惕' }],
+        activeRelations: [
+          { id: 'rel-1', fromName: '张三', toName: '李四', type: '朋友', strength: 80 },
+        ],
+        changeRequests: [
+          {
+            id: 'cr-1',
+            source: 'live',
+            type: 'state',
+            title: '角色状态可能需要更新：张三',
+            summary: '状态可能转为警惕',
+            reason: '正文出现明显情绪变化。',
+            severity: 'focus',
+          },
+        ],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('角色 2')
+    expect(wrapper.text()).toContain('地点 1')
+    expect(wrapper.text()).toContain('物品 1')
+    expect(wrapper.text()).toContain('概念 1')
+    expect(wrapper.text()).toContain('关系 1')
+    expect(wrapper.text()).toContain('待处理 1')
+  })
+
   it('renders compressed save batch receipt', () => {
     const pinia = createPinia()
     setActivePinia(pinia)

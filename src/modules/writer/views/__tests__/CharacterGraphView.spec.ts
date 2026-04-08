@@ -199,8 +199,13 @@ const ElIconStub = defineComponent({
 
 const RelationshipGraphStub = defineComponent({
   name: 'RelationshipGraphStub',
-  setup() {
-    return () => h('div', { 'data-testid': 'relationship-graph' })
+  emits: ['node-click'],
+  setup(_, { emit }) {
+    return () =>
+      h('button', {
+        'data-testid': 'relationship-graph',
+        onClick: () => emit('node-click', 'char-1'),
+      })
   },
 })
 
@@ -250,7 +255,13 @@ describe('CharacterGraphView asset candidates', () => {
           RelationshipGraph: RelationshipGraphStub,
           QyCard: true,
           QyIcon: true,
+          'el-form': true,
+          'el-form-item': true,
           'el-button': ElButtonStub,
+          'el-divider': true,
+          'el-input': true,
+          'el-option': true,
+          'el-select': true,
           'el-tag': ElTagStub,
           'el-scrollbar': ElScrollbarStub,
           'el-descriptions': ElDescriptionsStub,
@@ -322,5 +333,29 @@ describe('CharacterGraphView asset candidates', () => {
     await nextTick()
 
     expect(toastMocks.success).toHaveBeenCalledWith('已绑定 1 个角色到当前图谱')
+  })
+
+  it('emits a standard workflow action when sending the selected character to AI', async () => {
+    const wrapper = mountView()
+    await nextTick()
+
+    ;(wrapper.vm as any).$.setupState.selectedCharacter = writerStoreState.characters.list[0]
+    await nextTick()
+
+    const sendToAIButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('交给 AI'))
+
+    expect(sendToAIButton).toBeTruthy()
+
+    await sendToAIButton!.trigger('click')
+
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
+      source: 'workspace',
+      action: 'add_to_chat',
+      title: '图谱角色分析：林舟',
+    })
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('角色：林舟')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('简介：主角')
   })
 })

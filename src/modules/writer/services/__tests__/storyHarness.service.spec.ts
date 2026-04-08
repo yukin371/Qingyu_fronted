@@ -137,6 +137,14 @@ describe('storyHarnessService', () => {
     expect(result?.changeRequests[0].id).toContain('save-batch:batch-1')
   })
 
+  it('远端显式返回 null 批次时，不应把响应壳误判为异常 payload', async () => {
+    mockGetLatestStoryHarnessBatch.mockResolvedValue({ data: null })
+
+    const result = await storyHarnessService.getLatestBatch('project-1', 'chapter-1')
+
+    expect(result).toBeNull()
+  })
+
   it('读取远端批次缺少变更列表时，应与本地缓存合并而不是返回空壳批次', async () => {
     mockCreateStoryHarnessBatch.mockRejectedValueOnce(new Error('offline'))
 

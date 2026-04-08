@@ -153,7 +153,14 @@ class StoryHarnessService {
     try {
       const localRecord = this.readLocalBatchRecord(projectId, chapterId)
       const response = await getLatestStoryHarnessBatch(projectId, chapterId)
-      const payload = ((response as { data?: StoryHarnessBatchRecordLike })?.data ?? response) as StoryHarnessBatchRecordLike
+      const hasWrappedData =
+        response != null &&
+        typeof response === 'object' &&
+        Object.prototype.hasOwnProperty.call(response, 'data')
+      const payload =
+        hasWrappedData
+          ? ((response as { data?: StoryHarnessBatchRecordLike }).data as StoryHarnessBatchRecordLike)
+          : (response as StoryHarnessBatchRecordLike)
 
       if (!payload) {
         return localRecord ? normalizeBatchRecord(localRecord) : null

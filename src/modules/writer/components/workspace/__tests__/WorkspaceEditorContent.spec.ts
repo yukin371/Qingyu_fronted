@@ -21,6 +21,12 @@ describe('WorkspaceEditorContent', () => {
         chapters: [{ id: 'chapter-1', title: '第一章' }],
         content: '这里是正文。',
         scopeLabel: '第一章 / 当前章节',
+        entityStats: {
+          characters: 2,
+          locations: 1,
+          items: 1,
+          concepts: 0,
+        },
         activeCharacters: [
           { id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' },
           { id: 'char-2', name: '李四', traits: ['冷静'] },
@@ -53,6 +59,8 @@ describe('WorkspaceEditorContent', () => {
     expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('第一章 / 当前章节')
+    expect(wrapper.text()).toContain('地点 1')
+    expect(wrapper.text()).toContain('物品 1')
     expect(wrapper.text()).toContain('待处理 1')
     expect(wrapper.text()).toContain('角色状态可能需要更新：张三')
   })
@@ -81,6 +89,43 @@ describe('WorkspaceEditorContent', () => {
 
     expect(wrapper.find('[data-testid="graph-view"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(false)
+  })
+
+  it('百科关系图谱的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+    const CharacterGraphViewStub = {
+      emits: ['trigger-ai-action'],
+      template:
+        '<button data-testid="graph-send-to-ai" @click="$emit(\'trigger-ai-action\', { source: \'workspace\', action: \'add_to_chat\', title: \'图谱角色分析：林舟\', text: \'角色：林舟\' })">send</button>',
+    }
+
+    const wrapper = mount(WorkspaceEditorContent, {
+      props: {
+        activeTool: 'encyclopedia',
+        isEncyclopedia: true,
+        subView: 'relations',
+        category: 'all',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这里是正文。',
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          CharacterGraphView: CharacterGraphViewStub,
+          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="graph-send-to-ai"]').trigger('click')
+
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
+      source: 'workspace',
+      action: 'add_to_chat',
+      title: '图谱角色分析：林舟',
+    })
   })
 
   it('Story Harness 的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {

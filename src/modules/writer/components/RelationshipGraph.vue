@@ -5,7 +5,7 @@
     <div v-if="isDrawingLine" class="drawing-hint">
       <el-tag type="warning" size="small">
         <el-icon><Connection /></el-icon>
-        拖拽到目标角色创建关系，松开取消
+        拖拽到目标节点创建关系，松开取消
       </el-tag>
     </div>
     <!-- 工具提示 -->
@@ -29,6 +29,7 @@ export interface GraphNode {
   id: string
   name: string
   avatar?: string
+  entityType?: 'character' | 'location' | 'item' | 'concept'
   importance?: number
   isInherited?: boolean      // 是否继承自父图谱
   isAppeared?: boolean       // 是否已通过@引用登场（true=已登场高亮，false/undefined=未登场灰显）
@@ -86,6 +87,35 @@ let hoveredNodeId: string | null = null
 defineExpose({
   d3Simulation: () => simulation,
 })
+
+function getNodeBaseColor(node: GraphNode) {
+  if (node.entityType === 'location') return '#52c41a'
+  if (node.entityType === 'item') return '#fa8c16'
+  if (node.entityType === 'concept') return '#722ed1'
+  return '#5b8cff'
+}
+
+function getNodeFillColor(node: GraphNode) {
+  if (node.isAppeared === false) {
+    return '#c4c8d4'
+  }
+
+  if (node.isInherited) {
+    if (node.entityType === 'location') return '#95de64'
+    if (node.entityType === 'item') return '#ffc069'
+    if (node.entityType === 'concept') return '#b37feb'
+    return '#a0b4f0'
+  }
+
+  return getNodeBaseColor(node)
+}
+
+function getNodeTypeGlyph(node: GraphNode) {
+  if (node.entityType === 'location') return '地'
+  if (node.entityType === 'item') return '物'
+  if (node.entityType === 'concept') return '概'
+  return '角'
+}
 
 function initGraph() {
   if (!containerRef.value) return
@@ -176,14 +206,13 @@ function initGraph() {
     .join('g')
     .attr('class', 'node')
     .attr('data-id', (d: GraphNode) => d.id)
+    .attr('data-entity-type', (d: GraphNode) => d.entityType || 'character')
 
   // 节点圆形 — 已登场/未登场视觉区分
   node
     .append('circle')
     .attr('r', (d: GraphNode) => 15 + (d.importance || 3) * 2)
-    .attr('fill', (d: GraphNode) =>
-      d.isAppeared === false ? '#c4c8d4' : (d.isInherited ? '#a0b4f0' : '#5b8cff'),
-    )
+    .attr('fill', (d: GraphNode) => getNodeFillColor(d))
     .attr('stroke', (d: GraphNode) =>
       d.isAppeared === false ? '#d0d4de' : '#fff',
     )
@@ -195,6 +224,18 @@ function initGraph() {
     .style('opacity', (d: GraphNode) =>
       d.isAppeared === false ? 0.55 : 1,
     )
+
+  node
+    .append('text')
+    .attr('class', 'node-type-badge')
+    .text((d: GraphNode) => getNodeTypeGlyph(d))
+    .attr('x', 0)
+    .attr('y', 4)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '11px')
+    .attr('font-weight', 700)
+    .attr('fill', '#fff')
+    .style('pointer-events', 'none')
 
   // 节点标签
   node

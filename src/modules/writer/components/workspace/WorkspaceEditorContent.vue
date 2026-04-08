@@ -5,6 +5,7 @@
     :chapter-id="chapterId"
     :chapters="chapters"
     @status-change="emit('status-change', $event)"
+    @trigger-ai-action="emit('trigger-ai-action', $event)"
   />
   <!-- 百科视图 - 时间线 -->
   <TimelineOutlineView
@@ -68,6 +69,7 @@
       :content="modelContent"
       :chapter-count="chapters.length"
       :scope-label="scopeLabel"
+      :entity-stats="entityStats"
       :active-characters="activeCharacters"
       :active-relations="activeRelations"
       :change-requests="changeRequests"
@@ -144,6 +146,13 @@ const props = defineProps<{
   content: string
   /** 当前场景作用域标签 */
   scopeLabel?: string
+  /** Context Lens 多类型实体统计 */
+  entityStats?: {
+    characters: number
+    locations: number
+    items: number
+    concepts: number
+  }
   /** 当前场景活跃角色 */
   activeCharacters?: StoryHarnessCharacterSummary[]
   /** 当前场景关系摘要 */

@@ -192,7 +192,7 @@ apiClient.interceptors.response.use(
         return mockData as any
       }
 
-      return mockData.data || mockData
+      return mockData ?? null
     }
 
     // 网络错误处理

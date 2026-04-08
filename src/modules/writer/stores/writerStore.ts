@@ -1482,21 +1482,7 @@ export const useWriterStore = defineStore('writer', {
 
       this.outline.loading = true
       try {
-        const response = await outlineApi.getTree(pid)
-        // 处理后端返回的响应格式（HTTP拦截器已提取data字段）
-        if (Array.isArray(response)) {
-          this.outline.tree = response
-        } else if (
-          response &&
-          typeof response === 'object' &&
-          'data' in response &&
-          Array.isArray((response as any).data)
-        ) {
-          this.outline.tree = (response as any).data
-        } else {
-          if (import.meta.env.DEV) console.warn('[writerStore] 大纲树API返回格式未知:', response)
-          this.outline.tree = []
-        }
+        this.outline.tree = await outlineApi.getTree(pid)
       } catch (error: any) {
         console.error('加载大纲树失败:', error)
         this.error = error.message

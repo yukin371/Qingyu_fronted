@@ -487,13 +487,14 @@
               </div>
             </div>
 
-            <!-- 操作按钮 -->
-            <div class="sidebar-actions">
-              <el-button type="primary" @click="handleEditCharacter(selectedCharacter)">
-                编辑角色
-              </el-button>
-              <el-button @click="handleManageRelations(selectedCharacter)"> 管理关系 </el-button>
-            </div>
+              <!-- 操作按钮 -->
+              <div class="sidebar-actions">
+                <el-button @click="sendSelectedCharacterToAI"> 交给 AI </el-button>
+                <el-button type="primary" @click="handleEditCharacter(selectedCharacter)">
+                  编辑角色
+                </el-button>
+                <el-button @click="handleManageRelations(selectedCharacter)"> 管理关系 </el-button>
+              </div>
           </el-scrollbar>
         </div>
       </transition>
@@ -760,6 +761,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useWriterStore } from '../stores/writerStore'
 import { useEditorStore } from '../stores/editorStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
+import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
 import type {
   ChapterGraph,
   ChapterRelation,
@@ -834,6 +836,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const emit = defineEmits<{
   (e: 'status-change', chips: string[]): void
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
 }>()
 
 const selectedCharacter = ref<Character | null>(null)
@@ -1430,17 +1433,60 @@ const currentScopeAppearedIds = computed<Set<string>>(() => {
   return new Set([...volumeAppearedCharacterIds.value, ...chapterAppearedCharacterIds.value])
 })
 
+const buildGraphAssetNodeId = (
+  assetType: 'character' | 'location' | 'item',
+  assetId: string | undefined,
+  assetName: string,
+) => (assetType === 'character' ? assetId || assetName : `${assetType}:${assetId || assetName}`)
+
+const buildGraphAssetNode = (params: {
+  assetType: 'character' | 'location' | 'item'
+  assetId?: string
+  assetName: string
+  importance?: number
+  isInherited?: boolean
+  isAppeared?: boolean
+}): GraphNode => ({
+  id: buildGraphAssetNodeId(params.assetType, params.assetId, params.assetName),
+  name: params.assetName,
+  entityType: params.assetType,
+  importance: params.importance ?? (params.assetType === 'character' ? 3 : 2),
+  isInherited: params.isInherited,
+  isAppeared: params.isAppeared,
+})
+
 // 转换角色数据为图谱节点
 const graphNodes = computed<GraphNode[]>(() => {
   const appearedIds = currentScopeAppearedIds.value
 
   if (isGlobalGraph.value) {
-    return characters.value.map((character) => ({
-      id: character.id,
-      name: character.name,
-      importance: character.traits?.length || 0,
-      isAppeared: appearedIds.has(character.id),
-    }))
+    return [
+      ...characters.value.map((character) =>
+        buildGraphAssetNode({
+          assetType: 'character',
+          assetId: character.id,
+          assetName: character.name,
+          importance: character.traits?.length || 0,
+          isAppeared: appearedIds.has(character.id),
+        }),
+      ),
+      ...writerStore.locations.list.map((location) =>
+        buildGraphAssetNode({
+          assetType: 'location',
+          assetId: location.id,
+          assetName: location.name,
+          isAppeared: true,
+        }),
+      ),
+      ...writerItems.value.map((item) =>
+        buildGraphAssetNode({
+          assetType: 'item',
+          assetId: item.id,
+          assetName: item.name,
+          isAppeared: true,
+        }),
+      ),
+    ]
   }
 
   const chapterCharIds = new Set([
@@ -1474,18 +1520,43 @@ const graphNodes = computed<GraphNode[]>(() => {
     ...inheritedBoundCharIds,
   ])
 
-  return characters.value
+  const characterNodes = characters.value
     .filter((character) => visibleCharIds.has(character.id))
-    .map((character) => ({
-      id: character.id,
-      name: character.name,
-      importance: character.traits?.length || 0,
-      isInherited:
-        !chapterCharIds.has(character.id) &&
-        !localBoundCharIds.has(character.id) &&
-        (inheritedCharIds.has(character.id) || inheritedBoundCharIds.has(character.id)),
-      isAppeared: appearedIds.has(character.id),
-    }))
+    .map((character) =>
+      buildGraphAssetNode({
+        assetType: 'character',
+        assetId: character.id,
+        assetName: character.name,
+        importance: character.traits?.length || 0,
+        isInherited:
+          !chapterCharIds.has(character.id) &&
+          !localBoundCharIds.has(character.id) &&
+          (inheritedCharIds.has(character.id) || inheritedBoundCharIds.has(character.id)),
+        isAppeared: appearedIds.has(character.id),
+      }),
+    )
+
+  const inheritedAssetKeySet = new Set(
+    inheritedVolumeAssetRefs.value.map((asset) => `${asset.assetType}:${asset.assetId || asset.assetName}`),
+  )
+  const nonCharacterNodes = boundScopeAssetRefs.value
+    .filter((asset) => asset.assetType !== 'character')
+    .map((asset) =>
+      buildGraphAssetNode({
+        assetType: asset.assetType,
+        assetId: asset.assetId,
+        assetName: asset.assetName,
+        isInherited: inheritedAssetKeySet.has(`${asset.assetType}:${asset.assetId || asset.assetName}`),
+        isAppeared: asset.source !== 'manual',
+      }),
+    )
+
+  const seenNodeIds = new Set<string>()
+  return [...characterNodes, ...nonCharacterNodes].filter((node) => {
+    if (seenNodeIds.has(node.id)) return false
+    seenNodeIds.add(node.id)
+    return true
+  })
 })
 
 // 转换关系数据为图谱链接
@@ -2097,6 +2168,45 @@ const handleNodeClick = (nodeId: string) => {
   if (character) {
     selectedCharacter.value = character
   }
+}
+
+const buildCharacterAIContextText = (character: Character): string => {
+  const lines = [
+    `角色：${character.name}`,
+    character.alias?.length ? `别名：${character.alias.join('、')}` : '',
+    character.summary ? `简介：${character.summary}` : '',
+    character.currentState ? `当前状态：${character.currentState}` : '',
+    character.traits?.length ? `性格特征：${character.traits.join('、')}` : '',
+  ].filter(Boolean)
+
+  const relationSummary = getCharacterRelations(character.id)
+    .slice(0, 4)
+    .map((relation) => {
+      const targetId = relation.fromId === character.id ? relation.toId : relation.fromId
+      return `${getCharacterName(targetId)}：${relation.type}`
+    })
+
+  if (relationSummary.length > 0) {
+    lines.push(`当前关系：${relationSummary.join('；')}`)
+  }
+
+  return lines.join('\n')
+}
+
+const sendSelectedCharacterToAI = () => {
+  const character = selectedCharacter.value
+  if (!character) {
+    return
+  }
+
+  emit('trigger-ai-action', {
+    source: 'workspace',
+    action: 'add_to_chat',
+    title: `图谱角色分析：${character.name}`,
+    text: buildCharacterAIContextText(character),
+    instructions:
+      '请结合这位角色在当前图谱中的状态与关系，给出可执行的写作建议，优先关注动机、冲突和后续推进。',
+  })
 }
 
 // 处理节点删除事件

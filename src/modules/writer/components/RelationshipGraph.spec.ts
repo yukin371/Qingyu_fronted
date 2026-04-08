@@ -140,4 +140,38 @@ describe('RelationshipGraph - P0 Fix: D3直接DOM操作', () => {
 
     expect(wrapper.find('svg').exists()).toBe(true)
   })
+
+  it('应该按实体类型渲染不同节点样式', async () => {
+    const wrapper = mount(RelationshipGraph, {
+      props: {
+        nodes: [
+          { id: 'char-1', name: '角色A', entityType: 'character', importance: 5 },
+          { id: 'loc-1', name: '云港', entityType: 'location', importance: 2 },
+          { id: 'item-1', name: '青铜钥匙', entityType: 'item', importance: 2 },
+        ],
+        links: [],
+      },
+      global: {
+        stubs: {
+          ElTag: true,
+          ElTooltip: true,
+        },
+      },
+    })
+
+    await flushGraphRender(wrapper)
+
+    const circles = Array.from(wrapper.element.querySelectorAll('.node circle'))
+    const labels = Array.from(wrapper.element.querySelectorAll('.node text')).map((node) =>
+      node.textContent?.trim(),
+    )
+
+    expect(circles).toHaveLength(3)
+    expect(circles[0]?.getAttribute('fill')).toBe('#5b8cff')
+    expect(circles[1]?.getAttribute('fill')).toBe('#52c41a')
+    expect(circles[2]?.getAttribute('fill')).toBe('#fa8c16')
+    expect(labels).toContain('角')
+    expect(labels).toContain('地')
+    expect(labels).toContain('物')
+  })
 })
