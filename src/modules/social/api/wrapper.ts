@@ -184,6 +184,18 @@ export type MessageType = 'text' | 'image' | 'voice' | 'file' | 'system'
 export type MessageStatus = 'sending' | 'sent' | 'read' | 'failed'
 
 /**
+ * 评分统计
+ */
+export interface RatingStats {
+  average_rating: number
+  total_ratings: number
+  rating_distribution: {
+    rating: number
+    count: number
+  }[]
+}
+
+/**
  * 会话
  */
 export interface Conversation {
@@ -415,6 +427,199 @@ export const followAuthor = api.postApiV1SocialAuthorsAuthorIdFollow
  */
 export const unfollowAuthor = api.deleteApiV1SocialAuthorsAuthorIdUnfollow
 
+// ==================== 评论相关 API ====================
+
+/**
+ * 发表评论
+ */
+export const createComment = api.postApiV1ReaderComments
+
+/**
+ * 获取评论列表
+ */
+export const getComments = api.getApiV1ReaderComments
+
+/**
+ * 获取评论详情
+ */
+export const getCommentDetail = api.getApiV1ReaderCommentsId
+
+/**
+ * 更新评论
+ */
+export const updateComment = api.putApiV1ReaderCommentsId
+
+/**
+ * 删除评论
+ */
+export const deleteComment = api.deleteApiV1ReaderCommentsId
+
+/**
+ * 回复评论
+ */
+export const replyComment = api.postApiV1ReaderCommentsIdReply
+
+/**
+ * 获取评论线程
+ */
+export const getCommentThread = api.getApiV1ReaderCommentsIdThread
+
+/**
+ * 获取热门评论
+ */
+export const getTopComments = api.getApiV1ReaderCommentsTop
+
+/**
+ * 获取评论回复
+ */
+export const getCommentReplies = api.getApiV1ReaderCommentsIdReplies
+
+/**
+ * 点赞评论
+ */
+export const likeComment = api.postApiV1ReaderCommentsIdLike
+
+/**
+ * 取消点赞评论
+ */
+export const unlikeComment = api.deleteApiV1ReaderCommentsIdLike
+
+// ==================== 点赞相关 API ====================
+
+/**
+ * 点赞书籍
+ */
+export const likeBook = api.postApiV1ReaderBooksBookIdLike
+
+/**
+ * 取消点赞书籍
+ */
+export const unlikeBook = api.deleteApiV1ReaderBooksBookIdLike
+
+/**
+ * 获取书籍点赞信息
+ */
+export const getBookLikeInfo = api.getApiV1ReaderBooksBookIdLikeInfo
+
+/**
+ * 获取用户点赞的书籍列表
+ */
+export const getUserLikedBooks = api.getApiV1ReaderLikesBooks
+
+/**
+ * 获取用户点赞统计
+ */
+export const getUserLikeStats = api.getApiV1ReaderLikesStats
+
+// ==================== 收藏相关 API ====================
+
+/**
+ * 添加收藏
+ */
+export const addCollection = api.postApiV1ReaderCollections
+
+/**
+ * 获取收藏列表
+ */
+export const getCollections = api.getApiV1ReaderCollections
+
+/**
+ * 更新收藏
+ */
+export const updateCollection = api.putApiV1ReaderCollectionsId
+
+/**
+ * 删除收藏
+ */
+export const deleteCollection = api.deleteApiV1ReaderCollectionsId
+
+/**
+ * 检查是否已收藏
+ */
+export const checkCollected = api.getApiV1ReaderCollectionsCheckBookId
+
+/**
+ * 根据标签获取收藏
+ */
+export const getCollectionsByTag = api.getApiV1ReaderCollectionsTagsTag
+
+/**
+ * 获取收藏统计
+ */
+export const getCollectionStats = api.getApiV1ReaderCollectionsStats
+
+/**
+ * 分享收藏
+ */
+export const shareCollection = api.postApiV1ReaderCollectionsIdShare
+
+/**
+ * 取消分享收藏
+ */
+export const unshareCollection = api.deleteApiV1ReaderCollectionsIdShare
+
+/**
+ * 获取公开收藏
+ */
+export const getPublicCollections = api.getApiV1ReaderCollectionsPublic
+
+/**
+ * 创建收藏夹
+ */
+export const createFolder = api.postApiV1ReaderCollectionsFolders
+
+/**
+ * 获取收藏夹列表
+ */
+export const getFolders = api.getApiV1ReaderCollectionsFolders
+
+/**
+ * 更新收藏夹
+ */
+export const updateFolder = api.putApiV1ReaderCollectionsFoldersId
+
+/**
+ * 删除收藏夹
+ */
+export const deleteFolder = api.deleteApiV1ReaderCollectionsFoldersId
+
+// ==================== 评分相关 API ====================
+
+/**
+ * 获取评分统计
+ */
+export const getRatingStats = api.getApiV1BookstoreBooksIdAverageRating
+
+/**
+ * 获取书籍评分
+ */
+export const getBookRating = api.getApiV1BookstoreBooksIdRating
+
+/**
+ * 创建书籍评分
+ */
+export const createBookRating = api.postApiV1BookstoreBooksIdRating
+
+/**
+ * 更新书籍评分
+ */
+export const updateBookRating = api.putApiV1BookstoreBooksIdRating
+
+/**
+ * 删除书籍评分
+ */
+export const deleteBookRating = api.deleteApiV1BookstoreBooksIdRating
+
+/**
+ * 获取评分分布
+ */
+export const getRatingDistribution = api.getApiV1BookstoreBooksIdRatingDistribution
+
+/**
+ * 获取书籍评分列表
+ */
+export const getBookRatings = api.getApiV1BookstoreBooksIdRatings
+
 // ==================== 提及相关 API ====================
 
 /**
@@ -497,6 +702,20 @@ import {
   deleteConversation,
 } from './message'
 
+// 从 review.ts 导入手动实现的API（generated API中不存在）
+import {
+  getReviewComments,
+  addReviewComment,
+  deleteReviewComment,
+  getReviewStats,
+  getMyReviews,
+  getHotReviews,
+  reportReview,
+} from './review'
+
+// 从 follow.ts 导入手动实现的API（generated API中不存在）
+import { getMutualFollows, getRecommendedFollows } from './follow'
+
 // 重新导出这些API
 export {
   searchConversations,
@@ -506,6 +725,15 @@ export {
   sendFileMessage,
   getConversationStats,
   deleteConversation,
+  getReviewComments,
+  addReviewComment,
+  deleteReviewComment,
+  getReviewStats,
+  getMyReviews,
+  getHotReviews,
+  reportReview,
+  getMutualFollows,
+  getRecommendedFollows,
 }
 
 // ==================== 其他便捷方法 ====================
@@ -578,6 +806,58 @@ export default {
   recallMessage,
   sendImageMessage,
   sendFileMessage,
+  // 评论相关
+  createComment,
+  getComments,
+  getCommentDetail,
+  updateComment,
+  deleteComment,
+  replyComment,
+  getCommentThread,
+  getTopComments,
+  getCommentReplies,
+  likeComment,
+  unlikeComment,
+  // 点赞相关
+  likeBook,
+  unlikeBook,
+  getBookLikeInfo,
+  getUserLikedBooks,
+  getUserLikeStats,
+  // 收藏相关
+  addCollection,
+  getCollections,
+  updateCollection,
+  deleteCollection,
+  checkCollected,
+  getCollectionsByTag,
+  getCollectionStats,
+  shareCollection,
+  unshareCollection,
+  getPublicCollections,
+  createFolder,
+  getFolders,
+  updateFolder,
+  deleteFolder,
+  // 评分相关
+  getRatingStats,
+  getBookRating,
+  createBookRating,
+  updateBookRating,
+  deleteBookRating,
+  getRatingDistribution,
+  getBookRatings,
+  // 书评扩展
+  getReviewComments,
+  addReviewComment,
+  deleteReviewComment,
+  getReviewStats,
+  getMyReviews,
+  getHotReviews,
+  reportReview,
+  // 关注扩展
+  getMutualFollows,
+  getRecommendedFollows,
   // 工具函数
   getApi,
 }
