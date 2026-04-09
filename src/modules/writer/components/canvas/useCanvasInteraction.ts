@@ -222,6 +222,22 @@ export function useCanvasInteraction(
     selectionBox.value = null
   }
 
+  function getContainerRelativePoint(clientX: number, clientY: number): CanvasPoint {
+    const container = containerRef.value
+    if (!container) {
+      return { x: clientX, y: clientY }
+    }
+
+    const rect = container.getBoundingClientRect()
+    const scaleX = container.clientWidth > 0 ? rect.width / container.clientWidth : 1
+    const scaleY = container.clientHeight > 0 ? rect.height / container.clientHeight : 1
+
+    return {
+      x: (clientX - rect.left - container.clientLeft) / scaleX,
+      y: (clientY - rect.top - container.clientTop) / scaleY,
+    }
+  }
+
   // -------------------------------------------------------------------------
   // 鼠标事件
   // -------------------------------------------------------------------------
@@ -236,7 +252,8 @@ export function useCanvasInteraction(
 
     // 左键按下（非空格模式）=> 准备选区
     if (event.button === 0) {
-      handleSelectionStart(event.clientX, event.clientY)
+      const point = getContainerRelativePoint(event.clientX, event.clientY)
+      handleSelectionStart(point.x, point.y)
     }
   }
 
@@ -246,7 +263,8 @@ export function useCanvasInteraction(
       return
     }
     if (isSelecting.value) {
-      handleSelectionMove(event.clientX, event.clientY)
+      const point = getContainerRelativePoint(event.clientX, event.clientY)
+      handleSelectionMove(point.x, point.y)
     }
   }
 

@@ -143,7 +143,7 @@
             <div class="stats-content">
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <Card class="stat-card">
+                  <QyCard class="stat-card">
                     <div class="stat-item">
                       <div class="stat-icon" style="background-color: #409eff20">
                         <QyIcon name="Reading" :size="32" color="#409eff" />
@@ -195,7 +195,7 @@
                         <div class="stat-label">发表评论</div>
                       </div>
                     </div>
-                  </Card>
+                  </QyCard>
                 </el-col>
               </el-row>
 
@@ -305,7 +305,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
-import { QyIcon, QyLoading, QyProgress, QyPagination, QyButton, QyForm, QyFormItem, QyModal, QyAlert } from '@/design-system/components'
+import {
+  QyIcon,
+  QyLoading,
+  QyProgress,
+  QyPagination,
+  QyButton,
+  QyForm,
+  QyFormItem,
+  QyModal,
+  QyAlert,
+} from '@/design-system/components'
 import { Checkbox, Image, Empty, Card } from '@/design-system/base'
 import UserCard from '@/shared/components/common/UserCard.vue'
 import { useAuthStore } from '@/stores/auth'

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick, ref } from 'vue'
 import AIPanel from '../AIPanel.vue'
 import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
+import { continueWriting } from '@/modules/ai/api'
 
 const messages = ref<Array<{ role: string; content: string }>>([])
 const addMessage = vi.fn()
@@ -128,10 +129,7 @@ const AIInputAreaStub = defineComponent({
   template: '<div data-testid="input-context">{{ context ? context.text : "empty" }}</div>',
 })
 
-function buildWorkflowContext(
-  signature: string,
-  chapterId = signature,
-): WriterWorkflowContext {
+function buildWorkflowContext(signature: string, chapterId = signature): WriterWorkflowContext {
   return {
     signature,
     projectId: 'project-1',
@@ -189,7 +187,7 @@ describe('AIPanel', () => {
     })
     await nextTick()
 
-    expect(wrapper.get('[data-testid="selection-notice"]').text()).toContain('上一章的重点片段')
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
     expect(wrapper.get('[data-testid="input-context"]').text()).toContain('上一章的重点片段')
 
     await wrapper.setProps({
@@ -213,9 +211,7 @@ describe('AIPanel', () => {
     })
     await nextTick()
 
-    expect(wrapper.get('[data-testid="selection-notice"]').text()).toContain(
-      '需要带到对话里的旧上下文',
-    )
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
     expect(wrapper.get('[data-testid="input-context"]').text()).toContain(
       '需要带到对话里的旧上下文',
     )
@@ -226,6 +222,31 @@ describe('AIPanel', () => {
     await nextTick()
 
     expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
+    expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+  })
+
+  it('keeps execution status in selection notice for continue action while chat context stays empty', async () => {
+    vi.mocked(continueWriting).mockResolvedValue({
+      generated_text: '续写后的内容',
+    } as never)
+
+    const wrapper = mountPanel()
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 3,
+        action: 'continue',
+        text: '原始选中文本',
+        instructions: '延续当前语气',
+      },
+    })
+    await nextTick()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toContain(
+      'continue:原始选中文本',
+    )
     expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
   })
 })

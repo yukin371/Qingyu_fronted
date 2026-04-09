@@ -24,7 +24,7 @@
       />
 
       <!-- 选中内容提示 -->
-      <AISelectionNotice :notice="selectionNotice" />
+      <AISelectionNotice :notice="visibleSelectionNotice" />
 
       <!-- 消息列表区域 -->
       <AIChatMessages
@@ -120,7 +120,11 @@ interface Emits {
       action: string
       sourceText: string
       generatedText: string
-      applyMode?: 'replace_selection' | 'insert_after_selection' | 'append_paragraph' | 'replace_document'
+      applyMode?:
+        | 'replace_selection'
+        | 'insert_after_selection'
+        | 'append_paragraph'
+        | 'replace_document'
     },
   ): void
   (e: 'resultCandidate', payload: WriterResultCandidate): void
@@ -190,6 +194,9 @@ const effectiveWorkflowContext = computed(
   () => props.actionTrigger?.context ?? props.workflowContext ?? null,
 )
 const effectiveWorkflowSignature = computed(() => effectiveWorkflowContext.value?.signature ?? '')
+const visibleSelectionNotice = computed(() =>
+  selectionNotice.value?.action === 'chat' ? null : selectionNotice.value,
+)
 
 // ==================== 对话管理方法 ====================
 function loadConversations() {
@@ -418,7 +425,12 @@ async function runSelectionAction(action: string, selectedText: string, instruct
     const projectId = props.sessionId || 'demo-project'
     let response: Record<string, any> = {}
     if (action === 'continue') {
-      response = await continueWriting(projectId, selectedText, 200, mergedInstructions || undefined)
+      response = await continueWriting(
+        projectId,
+        selectedText,
+        200,
+        mergedInstructions || undefined,
+      )
     } else if (action === 'polish') {
       response = await polishText(projectId, selectedText, mergedInstructions || undefined)
     } else if (action === 'expand') {
@@ -440,9 +452,10 @@ async function runSelectionAction(action: string, selectedText: string, instruct
 
     addMessage('assistant', generatedText)
     emit('resultCandidate', {
-      source: action === 'continue' || action === 'expand' || action === 'polish' || action === 'rewrite'
-        ? 'rewrite'
-        : 'chat',
+      source:
+        action === 'continue' || action === 'expand' || action === 'polish' || action === 'rewrite'
+          ? 'rewrite'
+          : 'chat',
       action,
       title: `${label}结果`,
       summary: generatedText.slice(0, 72) || '已生成新的处理结果。',
@@ -599,14 +612,7 @@ watch(
         sessionId: props.sessionId,
         workflowSignature: effectiveWorkflowSignature.value,
       }
-      selectionNotice.value = {
-        action: 'chat',
-        actionLabel: '对话上下文',
-        text: text.trim(),
-        instructions: instructions?.trim() || undefined,
-        status: 'done',
-        statusText: '已加入即将发送内容，下一条消息会自动携带',
-      }
+      selectionNotice.value = null
       return
     }
 

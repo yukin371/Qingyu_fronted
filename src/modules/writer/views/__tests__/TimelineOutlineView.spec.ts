@@ -69,6 +69,10 @@ describe('TimelineOutlineView', () => {
         projectId: 'project-1',
         chapterId: 'chapter-1',
         chapterTitle: '第一章',
+        activeEntities: [
+          { id: 'char-1', name: '亚伯', type: 'character', summary: '犹豫' },
+          { id: 'item-1', name: '劝退任务书', type: 'item' },
+        ],
         workflowContext: {
           signature: 'ctx-1',
           projectId: 'project-1',
@@ -101,5 +105,8 @@ describe('TimelineOutlineView', () => {
     })
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain('所属时间线：主线')
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain('当前章节：第一章')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain(
+      '当前活跃实体：角色：亚伯（犹豫）；物品：劝退任务书',
+    )
   })
 })

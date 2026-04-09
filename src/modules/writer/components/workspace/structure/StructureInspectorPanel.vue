@@ -157,6 +157,10 @@ import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
 import {
+  formatActiveEntitiesPrompt,
+  type ActiveEntitySummary,
+} from '@/modules/writer/composables/useWorkflowContext'
+import {
   buildWriterWorkflowContextPrompt,
   type WriterWorkflowActionRequest,
   type WriterWorkflowContext,
@@ -172,6 +176,7 @@ const props = defineProps<{
   chapters: SidebarChapterSummary[]
   chapterGraphs?: ChapterGraph[]
   workflowContext?: WriterWorkflowContext
+  activeEntities?: ActiveEntitySummary[]
   currentChapterId: string
   currentChapterTitle: string
   draftBindingChapterId: string
@@ -226,6 +231,7 @@ function emitStructureNodeToAI() {
   if (!props.selectedNode) return
 
   const workflowPrompt = buildWriterWorkflowContextPrompt(props.workflowContext)
+  const activeEntitiesPrompt = formatActiveEntitiesPrompt(props.activeEntities)
   const lines = [
     `结构节点：${props.selectedNode.title || '未命名节点'}`,
     props.boundChapter ? `已绑定章节：${props.boundChapter.title}` : '已绑定章节：未绑定',
@@ -233,6 +239,7 @@ function emitStructureNodeToAI() {
     `节点状态：${statusText.value}`,
     `子节点数：${childCount.value}`,
     props.selectedNode.description ? `节点描述：${props.selectedNode.description}` : '',
+    activeEntitiesPrompt,
     workflowPrompt,
   ].filter(Boolean)
 

@@ -212,6 +212,10 @@ import { Empty } from '@/design-system/base'
 import type { OutlineNode } from '@/types/writer'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { CanvasCore } from '@/modules/writer/components/canvas'
+import {
+  formatActiveEntitiesPrompt,
+  type ActiveEntitySummary,
+} from '@/modules/writer/composables/useWorkflowContext'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import type {
   WriterWorkflowActionRequest,
@@ -237,12 +241,14 @@ const props = withDefaults(
     chapterId?: string
     chapterTitle?: string
     workflowContext?: WriterWorkflowContext
+    activeEntities?: ActiveEntitySummary[]
   }>(),
   {
     projectId: '',
     chapterId: '',
     chapterTitle: '',
     workflowContext: undefined,
+    activeEntities: () => [],
   },
 )
 
@@ -421,6 +427,7 @@ function buildSelectedNodeAIContextText(node: OrgTreeNode): string {
     `故事分支节点：${node.title}`,
     props.chapterTitle ? `当前章节：${props.chapterTitle}` : '',
     props.workflowContext?.scopeLabel ? `场景作用域：${props.workflowContext.scopeLabel}` : '',
+    formatActiveEntitiesPrompt(props.activeEntities),
     `节点类型：${getCategoryLabel(node.category)}`,
     `节点状态：${statusText(node.status)}`,
     node.outlineNode.description ? `节点描述：${node.outlineNode.description}` : '',

@@ -1,9 +1,17 @@
 <template>
   <div class="ai-input-area">
     <div v-if="context" class="chat-context-chip">
-      <span class="context-label">即将发送片段</span>
-      <span class="context-text">{{ context.text }}</span>
-      <button class="context-clear" @click="$emit('clearContext')">移除</button>
+      <div class="context-copy">
+        <div class="context-header">
+          <span class="context-label">对话上下文</span>
+          <span class="context-status">下一条消息将自动携带</span>
+        </div>
+        <span class="context-text">{{ context.text }}</span>
+        <span v-if="context.instructions" class="context-extra">
+          附带要求：{{ context.instructions }}
+        </span>
+      </div>
+      <button class="context-clear" type="button" @click="$emit('clearContext')">移除</button>
     </div>
     <div class="input-wrapper">
       <textarea
@@ -115,21 +123,47 @@ defineExpose({
     border-radius: 10px;
     padding: 6px 8px;
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-start;
+    gap: 10px;
     font-size: 12px;
 
+    .context-copy {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .context-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
     .context-label {
-      flex-shrink: 0;
       font-weight: 600;
     }
 
+    .context-status {
+      flex-shrink: 0;
+      color: #1d4ed8;
+      font-size: 11px;
+    }
+
     .context-text {
-      flex: 1;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .context-extra {
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .context-clear {

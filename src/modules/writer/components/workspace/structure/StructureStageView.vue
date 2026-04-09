@@ -225,6 +225,7 @@
         :chapters="chapterOptions"
         :chapter-graphs="chapterGraphs"
         :workflow-context="workflowContext"
+        :active-entities="activeEntities"
         :current-chapter-id="currentChapterId"
         :current-chapter-title="currentChapterTitle"
         :draft-binding-chapter-id="draftBindingChapterId"
@@ -264,6 +265,7 @@ import {
 import { DocumentStatus } from '@/modules/writer/types/document'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
+import type { ActiveEntitySummary } from '@/modules/writer/composables/useWorkflowContext'
 import type {
   WriterWorkflowActionRequest,
   WriterWorkflowContext,
@@ -311,6 +313,7 @@ const props = withDefaults(
     currentChapterId?: string
     currentChapterTitle?: string
     workflowContext?: WriterWorkflowContext
+    activeEntities?: ActiveEntitySummary[]
   }>(),
   {
     projectId: '',
@@ -318,6 +321,7 @@ const props = withDefaults(
     currentChapterId: '',
     currentChapterTitle: '',
     workflowContext: undefined,
+    activeEntities: () => [],
   },
 )
 

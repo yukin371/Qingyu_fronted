@@ -1,9 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ref, computed } from 'vue'
 import {
+  buildActiveEntityPreview,
   useWorkflowContext,
   formatEntityStatsLabel,
   buildEntitySummary,
+  formatActiveEntitiesPrompt,
 } from '../useWorkflowContext'
 
 describe('useWorkflowContext', () => {
@@ -150,6 +152,60 @@ describe('buildEntitySummary', () => {
       name: '张三',
       type: 'character',
       summary: '紧张',
+    })
+  })
+})
+
+describe('formatActiveEntitiesPrompt', () => {
+  it('formats multi-type active entity prompt text', () => {
+    const prompt = formatActiveEntitiesPrompt([
+      { id: 'char-1', name: '张三', type: 'character', summary: '紧张' },
+      { id: 'item-1', name: '铜钥匙', type: 'item' },
+      { id: 'loc-1', name: '青石镇', type: 'location' },
+      { id: 'org-1', name: '巡夜司', type: 'organization' },
+      { id: 'concept-1', name: '禁术传闻', type: 'concept' },
+    ])
+
+    expect(prompt).toContain('当前活跃实体：')
+    expect(prompt).toContain('角色：张三（紧张）')
+    expect(prompt).toContain('物品：铜钥匙')
+    expect(prompt).toContain('地点：青石镇')
+    expect(prompt).toContain('其余 1 项见章节上下文')
+  })
+
+  it('returns empty string when there are no active entities', () => {
+    expect(formatActiveEntitiesPrompt([])).toBe('')
+    expect(formatActiveEntitiesPrompt(undefined)).toBe('')
+  })
+})
+
+describe('buildActiveEntityPreview', () => {
+  it('builds labeled preview items and hidden count', () => {
+    const preview = buildActiveEntityPreview([
+      { id: 'char-1', name: '张三', type: 'character', summary: ' 紧张 ' },
+      { id: 'item-1', name: '铜钥匙', type: 'item' },
+      { id: 'loc-1', name: '青石镇', type: 'location' },
+      { id: 'org-1', name: '巡夜司', type: 'organization' },
+      { id: 'concept-1', name: '禁术传闻', type: 'concept' },
+    ])
+
+    expect(preview.total).toBe(5)
+    expect(preview.hiddenCount).toBe(1)
+    expect(preview.items[0]).toMatchObject({
+      key: 'character:char-1',
+      typeLabel: '角色',
+      summary: '紧张',
+    })
+    expect(preview.items[3]).toMatchObject({
+      typeLabel: '组织',
+    })
+  })
+
+  it('returns empty preview when there are no active entities', () => {
+    expect(buildActiveEntityPreview([])).toEqual({
+      items: [],
+      hiddenCount: 0,
+      total: 0,
     })
   })
 })

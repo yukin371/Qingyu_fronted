@@ -225,6 +225,21 @@ describe('CharacterGraphView asset candidates', () => {
     return mount(CharacterGraphView, {
       props: {
         chapterId: 'chapter-1',
+        workflowContext: {
+          signature: 'ctx-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一幕 / 港口追踪',
+          activeCharacters: [{ id: 'char-1', name: '林舟', currentState: '戒备' }],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        activeEntities: [
+          { id: 'char-1', name: '林舟', type: 'character', summary: '戒备' },
+          { id: 'loc-1', name: '云港', type: 'location' },
+        ],
         chapters: [
           {
             id: 'chapter-1',
@@ -356,5 +371,11 @@ describe('CharacterGraphView asset candidates', () => {
     })
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('角色：林舟')
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain('简介：主角')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
+      '当前活跃实体：角色：林舟（戒备）；地点：云港',
+    )
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
+      '场景作用域：第一幕 / 港口追踪',
+    )
   })
 })

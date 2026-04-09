@@ -27,6 +27,17 @@ export interface ActiveEntitySummary {
   summary?: string
 }
 
+export interface ActiveEntityPreviewItem extends ActiveEntitySummary {
+  key: string
+  typeLabel: string
+}
+
+export interface ActiveEntityPreview {
+  items: ActiveEntityPreviewItem[]
+  hiddenCount: number
+  total: number
+}
+
 export interface UseWorkflowContextOptions {
   projectId: ComputedRef<string>
   chapterId: ComputedRef<string>
@@ -54,6 +65,15 @@ export interface UseWorkflowContextReturn {
   entityStats: ComputedRef<EntityStatsSnapshot & { pending: number }>
   /** 当前章节可供工具消费的活跃实体摘要 */
   activeEntities: ComputedRef<ActiveEntitySummary[]>
+}
+
+const ACTIVE_ENTITY_TYPE_LABELS: Record<string, string> = {
+  character: '角色',
+  item: '物品',
+  location: '地点',
+  concept: '概念',
+  organization: '组织',
+  foreshadowing: '伏笔',
 }
 
 /**
@@ -200,4 +220,56 @@ export function formatEntityStatsLabel(stats: {
   if ((stats.concepts ?? 0) > 0) parts.push(`概念 ${stats.concepts ?? 0}`)
   if (stats.pending > 0) parts.push(`待处理 ${stats.pending}`)
   return parts.join(' · ') || '暂无数据'
+}
+
+export function formatActiveEntitiesPrompt(
+  activeEntities: ActiveEntitySummary[] | null | undefined,
+  limit = 4,
+): string {
+  const preview = buildActiveEntityPreview(activeEntities, limit)
+  if (preview.total === 0) {
+    return ''
+  }
+
+  const summary = preview.items
+    .map((entity) => {
+      return entity.summary
+        ? `${entity.typeLabel}：${entity.name}（${entity.summary}）`
+        : `${entity.typeLabel}：${entity.name}`
+    })
+    .join('；')
+
+  return preview.hiddenCount > 0
+    ? `当前活跃实体：${summary}；其余 ${preview.hiddenCount} 项见章节上下文`
+    : `当前活跃实体：${summary}`
+}
+
+export function getActiveEntityTypeLabel(type: string): string {
+  return ACTIVE_ENTITY_TYPE_LABELS[type] || type || '实体'
+}
+
+export function buildActiveEntityPreview(
+  activeEntities: ActiveEntitySummary[] | null | undefined,
+  limit = 4,
+): ActiveEntityPreview {
+  if (!activeEntities?.length) {
+    return {
+      items: [],
+      hiddenCount: 0,
+      total: 0,
+    }
+  }
+
+  const items = activeEntities.slice(0, limit).map((entity) => ({
+    ...entity,
+    key: `${entity.type}:${entity.id || entity.name}`,
+    summary: entity.summary?.trim(),
+    typeLabel: getActiveEntityTypeLabel(entity.type),
+  }))
+
+  return {
+    items,
+    hiddenCount: Math.max(activeEntities.length - items.length, 0),
+    total: activeEntities.length,
+  }
 }

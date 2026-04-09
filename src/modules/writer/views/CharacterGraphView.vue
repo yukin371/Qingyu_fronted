@@ -761,7 +761,15 @@ import { useProjectStore } from '../stores/projectStore'
 import { useWriterStore } from '../stores/writerStore'
 import { useEditorStore } from '../stores/editorStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
-import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
+import {
+  buildWriterWorkflowContextPrompt,
+  type WriterWorkflowActionRequest,
+  type WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import {
+  formatActiveEntitiesPrompt,
+  type ActiveEntitySummary,
+} from '@/modules/writer/composables/useWorkflowContext'
 import type {
   ChapterGraph,
   ChapterRelation,
@@ -828,11 +836,15 @@ type RelationSeed = {
 interface Props {
   chapterId?: string
   chapters?: SidebarChapterSummary[]
+  workflowContext?: WriterWorkflowContext
+  activeEntities?: ActiveEntitySummary[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   chapterId: '',
   chapters: () => [],
+  workflowContext: undefined,
+  activeEntities: () => [],
 })
 const emit = defineEmits<{
   (e: 'status-change', chips: string[]): void
@@ -2181,6 +2193,8 @@ const buildCharacterAIContextText = (character: Character): string => {
     character.summary ? `简介：${character.summary}` : '',
     character.currentState ? `当前状态：${character.currentState}` : '',
     character.traits?.length ? `性格特征：${character.traits.join('、')}` : '',
+    formatActiveEntitiesPrompt(props.activeEntities),
+    buildWriterWorkflowContextPrompt(props.workflowContext),
   ].filter(Boolean)
 
   const relationSummary = getCharacterRelations(character.id)

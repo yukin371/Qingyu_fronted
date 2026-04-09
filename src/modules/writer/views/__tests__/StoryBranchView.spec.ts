@@ -78,6 +78,10 @@ describe('StoryBranchView', () => {
         projectId: 'project-1',
         chapterId: 'chapter-1',
         chapterTitle: '第一章',
+        activeEntities: [
+          { id: 'char-1', name: '林舟', type: 'character', summary: '迟疑' },
+          { id: 'loc-1', name: '城门口', type: 'location' },
+        ],
         workflowContext: {
           signature: 'ctx-1',
           projectId: 'project-1',
@@ -112,6 +116,9 @@ describe('StoryBranchView', () => {
       title: '故事分支分析：支线转折点',
     })
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain('当前章节：第一章')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain(
+      '当前活跃实体：角色：林舟（迟疑）；地点：城门口',
+    )
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain(
       '节点描述：主角决定是否接受任务',
     )

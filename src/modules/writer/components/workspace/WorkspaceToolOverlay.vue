@@ -16,6 +16,43 @@
           </div>
         </header>
 
+        <section
+          v-if="hasWorkflowContextSummary"
+          class="tool-overlay__context"
+          data-testid="tool-overlay-context"
+        >
+          <span class="tool-overlay__context-label">当前上下文</span>
+          <div class="tool-overlay__context-chips">
+            <span v-if="effectiveChapterTitle" class="tool-overlay__context-chip is-neutral">
+              章节 {{ effectiveChapterTitle }}
+            </span>
+            <span
+              v-if="workflowContext?.scopeLabel"
+              class="tool-overlay__context-chip is-neutral is-scope"
+            >
+              场景 {{ workflowContext.scopeLabel }}
+            </span>
+            <span
+              v-for="entity in activeEntityPreview.items"
+              :key="entity.key"
+              class="tool-overlay__context-chip"
+              :class="`is-${entity.type}`"
+            >
+              <span class="tool-overlay__context-chip-type">{{ entity.typeLabel }}</span>
+              <strong>{{ entity.name }}</strong>
+              <span v-if="entity.summary" class="tool-overlay__context-chip-summary">
+                {{ entity.summary }}
+              </span>
+            </span>
+            <span
+              v-if="activeEntityPreview.hiddenCount > 0"
+              class="tool-overlay__context-chip is-overflow"
+            >
+              +{{ activeEntityPreview.hiddenCount }}
+            </span>
+          </div>
+        </section>
+
         <!-- 主体区域：侧边栏 + 内容 -->
         <div class="tool-overlay__body">
           <!-- 侧边栏切换器 -->
@@ -56,7 +93,10 @@ import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
-import type { ActiveEntitySummary } from '@/modules/writer/composables/useWorkflowContext'
+import {
+  buildActiveEntityPreview,
+  type ActiveEntitySummary,
+} from '@/modules/writer/composables/useWorkflowContext'
 import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
 
 // =======================
@@ -111,6 +151,17 @@ const { getToolName, getToolIcon } = useToolOverlay()
 
 const currentToolName = computed(() => getToolName(props.activeTool))
 const currentToolIcon = computed(() => getToolIcon(props.activeTool))
+const effectiveChapterTitle = computed(
+  () => props.chapterTitle || props.workflowContext?.chapterTitle || '',
+)
+const activeEntityPreview = computed(() => buildActiveEntityPreview(props.activeEntities))
+const hasWorkflowContextSummary = computed(() =>
+  Boolean(
+    effectiveChapterTitle.value ||
+    props.workflowContext?.scopeLabel ||
+    activeEntityPreview.value.total,
+  ),
+)
 
 // =======================
 // 工具组件映射
@@ -188,6 +239,102 @@ const handleToolChange = (toolId: ToolType) => {
     overflow: hidden;
   }
 
+  &__context {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--editor-border);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96));
+  }
+
+  &__context-label {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--editor-text-secondary);
+  }
+
+  &__context-chips {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(72, 94, 144, 0.14);
+    background: rgba(248, 251, 255, 0.95);
+    color: var(--editor-text-primary);
+    font-size: 12px;
+    line-height: 1.2;
+
+    strong {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &.is-neutral {
+      background: rgba(240, 246, 255, 0.96);
+      color: #365072;
+    }
+
+    &.is-scope {
+      border-color: rgba(62, 99, 146, 0.18);
+    }
+
+    &.is-character {
+      border-color: rgba(70, 110, 196, 0.22);
+      background: rgba(238, 244, 255, 0.98);
+    }
+
+    &.is-item {
+      border-color: rgba(178, 132, 43, 0.22);
+      background: rgba(255, 248, 231, 0.98);
+    }
+
+    &.is-location {
+      border-color: rgba(48, 132, 109, 0.22);
+      background: rgba(236, 249, 243, 0.98);
+    }
+
+    &.is-organization,
+    &.is-concept,
+    &.is-foreshadowing {
+      border-color: rgba(114, 92, 178, 0.18);
+      background: rgba(245, 240, 255, 0.98);
+    }
+
+    &.is-overflow {
+      background: rgba(241, 244, 249, 0.96);
+      color: var(--editor-text-secondary);
+    }
+  }
+
+  &__context-chip-type {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--editor-text-secondary);
+  }
+
+  &__context-chip-summary {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--editor-text-secondary);
+  }
+
   &__content {
     flex: 1;
     min-width: 0;
@@ -215,6 +362,22 @@ const handleToolChange = (toolId: ToolType) => {
   .tool-overlay__container {
     transform: scale(0.95);
     opacity: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .tool-overlay {
+    &__context {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__context-chip {
+      strong,
+      .tool-overlay__context-chip-summary {
+        max-width: 140px;
+      }
+    }
   }
 }
 </style>

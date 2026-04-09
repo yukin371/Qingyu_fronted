@@ -32,6 +32,10 @@ describe('StructureInspectorPanel', () => {
           },
         ],
         chapterGraphs: [],
+        activeEntities: [
+          { id: 'char-1', name: '林舟', type: 'character', summary: '警惕' },
+          { id: 'item-1', name: '巡夜令牌', type: 'item' },
+        ],
         workflowContext: {
           signature: 'ctx-1',
           projectId: 'project-1',
@@ -68,6 +72,9 @@ describe('StructureInspectorPanel', () => {
       title: '结构节点分析：主线冲突',
     })
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain('已绑定章节：第一章')
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain(
+      '当前活跃实体：角色：林舟（警惕）；物品：巡夜令牌',
+    )
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0].text).toContain(
       '场景作用域：第一章 / 夜巡冲突',
     )

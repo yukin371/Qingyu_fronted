@@ -104,6 +104,10 @@ import { ElButton, ElTag } from 'element-plus'
 import { QyIcon } from '@/design-system/components'
 import { Empty } from '@/design-system/base'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
+import {
+  formatActiveEntitiesPrompt,
+  type ActiveEntitySummary,
+} from '@/modules/writer/composables/useWorkflowContext'
 import type { Timeline, TimelineEvent } from '@/types/writer'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
 import type {
@@ -125,12 +129,14 @@ const props = withDefaults(
     chapterId?: string
     chapterTitle?: string
     workflowContext?: WriterWorkflowContext
+    activeEntities?: ActiveEntitySummary[]
   }>(),
   {
     projectId: '',
     chapterId: '',
     chapterTitle: '',
     workflowContext: undefined,
+    activeEntities: () => [],
   },
 )
 
@@ -183,6 +189,7 @@ const buildEventAIContextText = (event: TimelineEvent) => {
     currentTimeline?.name ? `所属时间线：${currentTimeline.name}` : '',
     props.chapterTitle ? `当前章节：${props.chapterTitle}` : '',
     props.workflowContext?.scopeLabel ? `场景作用域：${props.workflowContext.scopeLabel}` : '',
+    formatActiveEntitiesPrompt(props.activeEntities),
     event.description ? `事件描述：${event.description}` : '',
     event.eventType ? `事件类型：${event.eventType}` : '',
     `故事时间：${formatStoryTime(event.storyTime)}`,
