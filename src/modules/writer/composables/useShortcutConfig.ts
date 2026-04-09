@@ -1,6 +1,10 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { Shortcut, ShortcutCategory } from '../types/editor'
 import { editorApi } from '../api/editor'
+import {
+  WORKSPACE_SHORTCUT_DEFAULTS,
+  WORKSPACE_SYSTEM_SHORTCUT_IDS,
+} from './workspaceShortcutActions'
 
 // =======================
 // 常量
@@ -9,7 +13,7 @@ import { editorApi } from '../api/editor'
 const STORAGE_KEY = 'qingyu_shortcut_config'
 
 /** 系统级快捷键 ID 前缀（不可修改） */
-const SYSTEM_SHORTCUT_IDS = ['workspace.closeOverlay']
+const SYSTEM_SHORTCUT_IDS = WORKSPACE_SYSTEM_SHORTCUT_IDS
 
 /**
  * 默认快捷键列表
@@ -20,9 +24,18 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
   { id: 'workspace.save', keys: ['Ctrl', 'S'], description: '保存文档', category: 'navigation' },
   { id: 'workspace.undo', keys: ['Ctrl', 'Z'], description: '撤销', category: 'navigation' },
   { id: 'workspace.redo', keys: ['Ctrl', 'Y'], description: '重做', category: 'navigation' },
-  { id: 'workspace.closeOverlay', keys: ['Escape'], description: '关闭覆盖层', category: 'navigation' },
-  { id: 'workspace.toggleLeftPanel', keys: ['Ctrl', '['], description: '折叠/展开左侧面板', category: 'navigation' },
-  { id: 'workspace.toggleRightPanel', keys: ['Ctrl', ']'], description: '折叠/展开右侧面板', category: 'navigation' },
+  {
+    id: 'workspace.toggleLeftPanel',
+    keys: ['Ctrl', '['],
+    description: '折叠/展开左侧面板',
+    category: 'navigation',
+  },
+  {
+    id: 'workspace.toggleRightPanel',
+    keys: ['Ctrl', ']'],
+    description: '折叠/展开右侧面板',
+    category: 'navigation',
+  },
   { id: 'workspace.focusMode', keys: ['F11'], description: '专注模式', category: 'navigation' },
   // Editor
   { id: 'editor.bold', keys: ['Ctrl', 'B'], description: '粗体', category: 'editor' },
@@ -33,12 +46,7 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
   { id: 'ai.ask', keys: ['Ctrl', 'K'], description: 'AI 对话', category: 'ai' },
   { id: 'ai.continue', keys: ['Ctrl', 'Shift', 'K'], description: 'AI 续写', category: 'ai' },
   { id: 'ai.polish', keys: ['Ctrl', 'Shift', 'P'], description: 'AI 润色', category: 'ai' },
-  // Tool
-  { id: 'tool.open', keys: ['Ctrl', 'G'], description: '打开工具面板', category: 'tool' },
-  { id: 'tool.switchRelations', keys: ['Ctrl', '1'], description: '切换到关系图谱', category: 'tool' },
-  { id: 'tool.switchTimeline', keys: ['Ctrl', '2'], description: '切换到时间线', category: 'tool' },
-  { id: 'tool.switchBranches', keys: ['Ctrl', '3'], description: '切换到故事分支', category: 'tool' },
-  { id: 'tool.switchStructure', keys: ['Ctrl', '4'], description: '切换到结构舞台', category: 'tool' },
+  ...WORKSPACE_SHORTCUT_DEFAULTS,
 ]
 
 // =======================
@@ -49,7 +57,7 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
  * 判断是否为系统快捷键（不可修改）
  */
 function isSystemShortcut(actionId: string): boolean {
-  return SYSTEM_SHORTCUT_IDS.some(prefix => actionId.startsWith(prefix))
+  return SYSTEM_SHORTCUT_IDS.some((prefix) => actionId.startsWith(prefix))
 }
 
 /**
@@ -57,7 +65,10 @@ function isSystemShortcut(actionId: string): boolean {
  * ['Ctrl', 'S'] -> 'ctrl+s'
  */
 function normalizeKeyCombo(keys: string[]): string {
-  return [...keys].sort().map(k => k.toLowerCase()).join('+')
+  return [...keys]
+    .sort()
+    .map((k) => k.toLowerCase())
+    .join('+')
 }
 
 /**
@@ -94,11 +105,12 @@ function matchKeyEvent(event: KeyboardEvent, keys: string[]): boolean {
 
   // 反向校验：确保没有多余的修饰键被按下
   // 统计 keys 中声明的修饰键数量，与事件中实际按下的修饰键数量比较
-  const declaredModifiers = keys.filter(k =>
-    ['ctrl', 'meta', 'shift', 'alt'].includes(k.toLowerCase())
+  const declaredModifiers = keys.filter((k) =>
+    ['ctrl', 'meta', 'shift', 'alt'].includes(k.toLowerCase()),
   ).length
-  const activeModifiers = [event.ctrlKey || event.metaKey, event.shiftKey, event.altKey]
-    .filter(Boolean).length
+  const activeModifiers = [event.ctrlKey || event.metaKey, event.shiftKey, event.altKey].filter(
+    Boolean,
+  ).length
 
   // 如果声明了修饰键，需要精确匹配
   if (declaredModifiers > 0 && activeModifiers !== declaredModifiers) {
@@ -178,7 +190,7 @@ export function useShortcutConfig() {
         // Sanitize: ensure all shortcuts have valid keys array
         for (const [id, s] of Object.entries(cached)) {
           if (!Array.isArray(s.keys)) {
-            const defaultShortcut = DEFAULT_SHORTCUTS.find(d => d.id === id)
+            const defaultShortcut = DEFAULT_SHORTCUTS.find((d) => d.id === id)
             s.keys = defaultShortcut?.keys ?? []
           }
         }
@@ -194,7 +206,7 @@ export function useShortcutConfig() {
           const apiShortcuts = data.shortcuts as Record<string, Shortcut>
           for (const [id, s] of Object.entries(apiShortcuts)) {
             if (!Array.isArray(s.keys)) {
-              const defaultShortcut = DEFAULT_SHORTCUTS.find(d => d.id === id)
+              const defaultShortcut = DEFAULT_SHORTCUTS.find((d) => d.id === id)
               s.keys = defaultShortcut?.keys ?? []
             }
           }
@@ -358,10 +370,7 @@ export function useShortcutConfig() {
    * @param handler 键盘事件处理函数
    * @returns 取消注册的函数
    */
-  function registerHandler(
-    actionId: string,
-    handler: (e: KeyboardEvent) => void,
-  ): () => void {
+  function registerHandler(actionId: string, handler: (e: KeyboardEvent) => void): () => void {
     const wrappedHandler = (e: KeyboardEvent) => {
       const keys = getKeyCombo(actionId)
       if (keys.length > 0 && matchKeyEvent(e, keys)) {

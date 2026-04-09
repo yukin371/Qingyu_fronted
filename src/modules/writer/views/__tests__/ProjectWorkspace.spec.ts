@@ -167,6 +167,12 @@ vi.mock('@/modules/writer/api/outline', () => {
   }
 })
 
+vi.mock('@/modules/writer/composables/useWorkspaceShortcuts', () => ({
+  useWorkspaceShortcuts: () => ({
+    shortcutsEnabled: { value: true },
+  }),
+}))
+
 vi.mock('@/modules/writer/components/workspace/WorkspaceStatusbar.vue', () => ({
   default: defineComponent({
     name: 'WorkspaceStatusbarStub',
@@ -315,6 +321,80 @@ const WorkflowRelayEditorContentStub = defineComponent({
   },
 })
 
+const openFullscreenToolSpy = vi.fn()
+const closeFullscreenSpy = vi.fn()
+
+const OverlayAwareEditorContentStub = defineComponent({
+  props: {
+    toolOverlayChapterId: {
+      type: String,
+      default: undefined,
+    },
+    toolOverlayChapterTitle: {
+      type: String,
+      default: undefined,
+    },
+  },
+  emits: ['open-graph'],
+  setup(props, { emit, expose }) {
+    expose({
+      openFullscreenTool: (tool: string) => openFullscreenToolSpy(tool),
+      closeFullscreen: () => closeFullscreenSpy(),
+    })
+
+    return () =>
+      h('div', [
+        h('button', {
+          'data-testid': 'open-graph',
+          onClick: () => emit('open-graph', 'chapter-2'),
+        }),
+        h(
+          'div',
+          { 'data-testid': 'overlay-chapter-id' },
+          props.toolOverlayChapterId ?? '__undefined__',
+        ),
+        h(
+          'div',
+          { 'data-testid': 'overlay-chapter-title' },
+          props.toolOverlayChapterTitle ?? '__undefined__',
+        ),
+      ])
+  },
+})
+
+const GlobalOverlayEditorContentStub = defineComponent({
+  props: {
+    toolOverlayChapterId: {
+      type: String,
+      default: undefined,
+    },
+    toolOverlayChapterTitle: {
+      type: String,
+      default: undefined,
+    },
+  },
+  setup(props, { expose }) {
+    expose({
+      openFullscreenTool: (tool: string) => openFullscreenToolSpy(tool),
+      closeFullscreen: () => closeFullscreenSpy(),
+    })
+
+    return () =>
+      h('div', [
+        h(
+          'div',
+          { 'data-testid': 'overlay-chapter-id' },
+          props.toolOverlayChapterId ?? '__undefined__',
+        ),
+        h(
+          'div',
+          { 'data-testid': 'overlay-chapter-title' },
+          props.toolOverlayChapterTitle ?? '__undefined__',
+        ),
+      ])
+  },
+})
+
 describe('ProjectWorkspace Refactor', () => {
   beforeEach(() => {
     routeState.query = { chapterId: 'chapter-1', tool: 'writing' }
@@ -328,6 +408,8 @@ describe('ProjectWorkspace Refactor', () => {
     messageBoxConfirm.mockClear()
     loadCharacters.mockClear()
     loadCharacterRelations.mockClear()
+    openFullscreenToolSpy.mockClear()
+    closeFullscreenSpy.mockClear()
   })
 
   it('写作模式下应渲染 TipTapEditorView 且不渲染旧 EditorPanel', async () => {
@@ -422,11 +504,10 @@ describe('ProjectWorkspace Refactor', () => {
     expect(setSelectedText).toHaveBeenCalledWith('')
   })
 
-  it('从结构舞台打开章节图谱时应写入关系图谱路由查询', async () => {
+  it('从结构舞台打开章节图谱时应保持写作路由，并把目标章节作用域交给 overlay', async () => {
     routeState.query = {
       chapterId: 'chapter-1',
-      tool: 'encyclopedia',
-      encyclopediaView: 'encyclopedia',
+      tool: 'writing',
     }
 
     const wrapper = mount(ProjectWorkspace, {
@@ -444,11 +525,7 @@ describe('ProjectWorkspace Refactor', () => {
           },
           WorkspaceLeftPanel: WorkspaceLeftPanelStub,
           WorkspaceRightPanel: WorkspaceRightPanelStub,
-          WorkspaceEditorContent: {
-            emits: ['open-graph'],
-            template:
-              '<button data-testid="open-graph" @click="$emit(\'open-graph\', \'chapter-2\')">open</button>',
-          },
+          WorkspaceEditorContent: OverlayAwareEditorContentStub,
           TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
           EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
           AIPanel: { template: '<div data-testid="ai-panel" />' },
@@ -458,20 +535,16 @@ describe('ProjectWorkspace Refactor', () => {
 
     await wrapper.find('[data-testid="open-graph"]').trigger('click')
 
-    expect(routerReplace).toHaveBeenCalledWith({
-      query: expect.objectContaining({
-        chapterId: 'chapter-2',
-        tool: 'encyclopedia',
-        encyclopediaView: 'relations',
-      }),
-    })
+    expect(openFullscreenToolSpy).toHaveBeenCalledWith('relations')
+    expect(wrapper.find('[data-testid="overlay-chapter-id"]').text()).toBe('chapter-2')
+    expect(wrapper.find('[data-testid="overlay-chapter-title"]').text()).toBe('第二章')
+    expect(routerReplace).not.toHaveBeenCalled()
   })
 
-  it('点击左栏全局关系图谱入口时应清理 chapterId 查询', async () => {
+  it('点击左栏全局关系图谱入口时应以空章节作用域打开 overlay', async () => {
     routeState.query = {
       chapterId: 'project-yljs-1-volume-1',
-      tool: 'encyclopedia',
-      encyclopediaView: 'relations',
+      tool: 'writing',
     }
 
     const wrapper = mount(ProjectWorkspace, {
@@ -489,6 +562,7 @@ describe('ProjectWorkspace Refactor', () => {
           },
           WorkspaceLeftPanel: WorkspaceLeftPanelStub,
           WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: GlobalOverlayEditorContentStub,
           TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
           EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
           AIPanel: { template: '<div data-testid="ai-panel" />' },
@@ -498,10 +572,51 @@ describe('ProjectWorkspace Refactor', () => {
 
     await wrapper.find('[data-testid="open-global-graph"]').trigger('click')
 
+    expect(openFullscreenToolSpy).toHaveBeenCalledWith('relations')
+    expect(wrapper.find('[data-testid="overlay-chapter-id"]').text()).toBe('')
+    expect(wrapper.find('[data-testid="overlay-chapter-title"]').text()).toBe('')
+    expect(routerReplace).not.toHaveBeenCalled()
+  })
+
+  it('旧 encyclopedia deep-link 应自动转成 overlay，并把主路由收回写作态', async () => {
+    routeState.query = {
+      chapterId: 'chapter-2',
+      tool: 'encyclopedia',
+      encyclopediaView: 'branches',
+    }
+
+    mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: OverlayAwareEditorContentStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await nextTick()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(openFullscreenToolSpy).toHaveBeenCalledWith('branches')
     expect(routerReplace).toHaveBeenCalledWith({
       query: {
-        tool: 'encyclopedia',
-        encyclopediaView: 'relations',
+        chapterId: 'chapter-2',
+        tool: 'writing',
       },
     })
   })

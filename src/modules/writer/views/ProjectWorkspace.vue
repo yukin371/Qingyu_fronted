@@ -54,6 +54,8 @@
           :project-id="currentProjectId"
           :chapter-id="displayChapterId"
           :chapter-title="displayChapterTitle"
+          :tool-overlay-chapter-id="toolOverlayChapterId"
+          :tool-overlay-chapter-title="toolOverlayChapterTitle"
           :chapters="flatChapters"
           :scope-label="currentScopeLabel"
           :entity-stats="storyHarnessEntityStats"
@@ -125,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, unref } from 'vue'
+import { ref, computed, onMounted, watch, unref, nextTick } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 // 引入 Store 体系
@@ -146,6 +148,7 @@ import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopedi
 import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
 import { useStoryHarnessWorkspace } from '@/modules/writer/composables/useStoryHarnessWorkspace'
 import { useWorkflowContext } from '@/modules/writer/composables/useWorkflowContext'
+import { type ToolType } from '@/modules/writer/composables/useToolOverlay'
 
 // 引入 API
 import {
@@ -263,26 +266,12 @@ const handleWorkspaceStatusChange = (chips: string[]) => {
   workspaceExtraStatusChips.value = chips
 }
 
-watch(
-  [isEncyclopediaTool, encyclopediaSubView],
-  ([isEncyclopedia, subView]) => {
-    if (!isEncyclopedia || subView !== 'relations') {
-      workspaceExtraStatusChips.value = []
-    }
-  },
-  { immediate: true },
-)
-
 const activeRightDockTool = computed<'ai'>(() => 'ai')
 const currentChapterPlainText = computed(() =>
   extractPlainTextFromEditorContent(tipTapContent.value),
 )
-const isGlobalRelationsView = computed(
-  () =>
-    isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value,
-)
 const displayChapterId = computed({
-  get: () => (isGlobalRelationsView.value ? '' : currentChapterId.value),
+  get: () => currentChapterId.value,
   set: (value: string) => {
     if (currentChapterId.value !== value) {
       resetWorkflowTransientState()
@@ -294,9 +283,7 @@ const displayChapterId = computed({
     currentChapterId.value = value
   },
 })
-const displayChapterTitle = computed(() =>
-  isGlobalRelationsView.value ? '' : currentChapterTitle.value,
-)
+const displayChapterTitle = computed(() => currentChapterTitle.value)
 
 const {
   currentScopeLabel,
@@ -432,12 +419,6 @@ const handleAddDoc = () => {
 
 const handleOpenDirectoryOutline = async (directoryId: string) => {
   if (!directoryId) return
-
-  // 如果在百科/关系图谱视图，点击卷不切换到编辑器，只更新选中
-  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
-    currentChapterId.value = directoryId
-    return
-  }
 
   editorStore.setActiveTool('writing')
   if (currentChapterId.value !== directoryId) {
@@ -578,15 +559,6 @@ const handleDeleteChapter = async (docId: string) => {
 const handleChapterIdUpdate = async (chapterId: string) => {
   if (!chapterId) return
 
-  // 如果在百科/关系图谱视图，保持在该视图
-  if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
-    // 更新路由 query 中的 chapterId，但不切换工具
-    const nextQuery = { ...route.query } as LocationQueryRaw
-    nextQuery.chapterId = chapterId
-    await router.replace({ query: nextQuery })
-    return
-  }
-
   // 其他视图切换到写作模式
   const nextQuery = { ...route.query } as LocationQueryRaw
   nextQuery.chapterId = chapterId
@@ -596,17 +568,15 @@ const handleChapterIdUpdate = async (chapterId: string) => {
 }
 
 const handleOpenGraph = async (chapterId: string) => {
-  const nextQuery = { ...route.query } as LocationQueryRaw
-  nextQuery.tool = 'encyclopedia'
-  nextQuery.encyclopediaView = 'relations'
-
   if (chapterId) {
-    nextQuery.chapterId = chapterId
+    toolOverlayChapterId.value = chapterId
+    toolOverlayChapterTitle.value = resolveChapterTitle(chapterId)
   } else {
-    delete nextQuery.chapterId
+    toolOverlayChapterId.value = ''
+    toolOverlayChapterTitle.value = ''
   }
 
-  await router.replace({ query: nextQuery })
+  workspaceEditorContentRef.value?.openFullscreenTool('relations')
 }
 
 // 处理大纲节点选择 - 设置当前节点并加载关联文档内容
@@ -616,15 +586,6 @@ const handleOutlineSelect = async (node: OutlineNode) => {
 
   // 如果节点关联了文档，切换到该文档
   if (node.documentId) {
-    // 如果在百科/关系图谱视图，保持在该视图
-    if (isEncyclopediaTool.value && encyclopediaSubView.value === 'relations') {
-      currentChapterId.value = node.documentId
-      const nextQuery = { ...route.query } as LocationQueryRaw
-      nextQuery.chapterId = node.documentId
-      await router.replace({ query: nextQuery })
-      return
-    }
-
     // 切换到写作模式并加载文档
     editorStore.setActiveTool('writing')
     currentChapterId.value = node.documentId
@@ -868,14 +829,46 @@ const loadOutlineTree = async () => {
 
 // 处理打开全屏工具
 const workspaceEditorContentRef = ref<InstanceType<typeof WorkspaceEditorContent> | null>(null)
+const toolOverlayChapterId = ref<string | undefined>(undefined)
+const toolOverlayChapterTitle = ref<string | undefined>(undefined)
 
-const handleOpenFullscreenTool = (tool: string) => {
+const resolveChapterTitle = (chapterId: string) => {
+  if (!chapterId) return ''
+  return (
+    flatChapters.value.find((chapter) => chapter.id === chapterId)?.title ||
+    availableDocMap.value.get(chapterId)?.title ||
+    ''
+  )
+}
+
+const normalizeToolOverlayScope = (chapterId?: string) => {
+  if (typeof chapterId === 'string') {
+    toolOverlayChapterId.value = chapterId
+    toolOverlayChapterTitle.value = chapterId ? resolveChapterTitle(chapterId) : ''
+    return
+  }
+
+  toolOverlayChapterId.value = undefined
+  toolOverlayChapterTitle.value = undefined
+}
+
+const mapLegacyEncyclopediaViewToTool = (subView: string): ToolType => {
+  if (subView === 'timeline') return 'timeline'
+  if (subView === 'branches') return 'branches'
+  if (subView === 'structure') return 'structure'
+  return 'relations'
+}
+
+const handleOpenFullscreenTool = (tool: string, chapterId?: string) => {
+  normalizeToolOverlayScope(chapterId)
   workspaceEditorContentRef.value?.openFullscreenTool(tool)
 }
 
 /** 关闭全屏覆盖层 */
 const handleCloseFullscreen = () => {
   workspaceEditorContentRef.value?.closeFullscreen()
+  normalizeToolOverlayScope()
+  workspaceExtraStatusChips.value = []
 }
 
 // 不再需要的 emit 定义，删除
@@ -1215,14 +1208,6 @@ watch(
 watch(
   () => flatChapters.value,
   (chapters) => {
-    const shouldStayOnGlobalRelations =
-      isEncyclopediaTool.value && encyclopediaSubView.value === 'relations' && !queryChapterId.value
-
-    if (shouldStayOnGlobalRelations) {
-      currentChapterId.value = ''
-      return
-    }
-
     if (!currentChapterId.value && chapters.length > 0) {
       const firstChapter = chapters.find((chapter) => chapter.nodeType !== 'directory')
       const targetChapter = firstChapter || chapters[0]
@@ -1251,13 +1236,34 @@ watch(
 watch(
   () => queryTool.value,
   (tool) => {
-    const normalizedTool = tool === 'chapters' || tool === 'ai' ? 'writing' : tool
+    const normalizedTool =
+      tool === 'chapters' || tool === 'ai' || tool === 'encyclopedia' ? 'writing' : tool
     const allowedTools: ActiveTool[] = ['writing', 'immersive', 'encyclopedia']
     if (allowedTools.includes(normalizedTool as ActiveTool)) {
       editorStore.setActiveTool(normalizedTool as ActiveTool)
     }
   },
   { immediate: true },
+)
+
+watch(
+  [queryTool, encyclopediaSubView, queryChapterId],
+  ([tool, subView, chapterId]) => {
+    if (tool !== 'encyclopedia') {
+      return
+    }
+
+    void (async () => {
+      await nextTick()
+      handleOpenFullscreenTool(mapLegacyEncyclopediaViewToTool(subView), chapterId || '')
+
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.tool = 'writing'
+      delete nextQuery.encyclopediaView
+      await router.replace({ query: nextQuery })
+    })()
+  },
+  { immediate: true, flush: 'post' },
 )
 
 watch(

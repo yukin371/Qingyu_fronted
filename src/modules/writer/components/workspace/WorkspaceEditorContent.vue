@@ -1,52 +1,6 @@
 <template>
-  <!-- 百科视图 - 关系图谱 -->
-  <CharacterGraphView
-    v-if="isEncyclopedia && subView === 'relations'"
-    :chapter-id="chapterId"
-    :chapters="chapters"
-    @status-change="emit('status-change', $event)"
-    @trigger-ai-action="emit('trigger-ai-action', $event)"
-  />
-  <!-- 百科视图 - 时间线 -->
-  <TimelineOutlineView
-    v-else-if="isEncyclopedia && subView === 'timeline'"
-    :project-id="projectId"
-    :chapter-id="chapterId"
-    :chapter-title="chapterTitle"
-    :workflow-context="workflowContext"
-    @trigger-ai-action="emit('trigger-ai-action', $event)"
-  />
-  <!-- 百科视图 - 分支 -->
-  <StoryBranchView
-    v-else-if="isEncyclopedia && subView === 'branches'"
-    :project-id="projectId"
-    :chapter-id="chapterId"
-    :chapter-title="chapterTitle"
-    :workflow-context="workflowContext"
-    @trigger-ai-action="emit('trigger-ai-action', $event)"
-  />
-  <!-- 结构舞台 -->
-  <StructureStageView
-    v-else-if="isEncyclopedia && subView === 'structure'"
-    :project-id="projectId"
-    :chapters="chapters"
-    :current-chapter-id="chapterId"
-    :current-chapter-title="chapterTitle"
-    :workflow-context="workflowContext"
-    @trigger-ai-action="emit('trigger-ai-action', $event)"
-    @open-graph="$emit('open-graph', $event)"
-    @jump-to-chapter="$emit('jump-to-chapter', $event)"
-  />
-  <!-- 百科视图 - 主页 -->
-  <EncyclopediaView
-    v-else-if="isEncyclopedia"
-    :project-id="projectId"
-    :embedded="true"
-    :active-category="category"
-    @update:active-category="$emit('update:category', $event)"
-  />
   <!-- 空状态 - 未选择章节 -->
-  <div v-else-if="!chapterId" class="editor-empty-state">
+  <div v-if="!chapterId" class="editor-empty-state">
     <div class="empty-content">
       <QyIcon name="Document" :size="48" class="empty-icon" />
       <h3>请选择章节</h3>
@@ -95,8 +49,8 @@
     :visible="toolOverlay.visible.value"
     :active-tool="toolOverlay.activeTool.value"
     :project-id="projectId"
-    :chapter-id="chapterId"
-    :chapter-title="chapterTitle"
+    :chapter-id="overlayChapterId"
+    :chapter-title="overlayChapterTitle"
     :chapters="chapters"
     :workflow-context="workflowContext"
     :active-entities="activeEntities"
@@ -105,22 +59,19 @@
     @status-change="emit('status-change', $event)"
     @open-graph="(chapterId: string) => emit('open-graph', chapterId)"
     @jump-to-chapter="(chapterId: string) => emit('jump-to-chapter', chapterId)"
+    @trigger-ai-action="handleOverlayTriggerAIAction"
   />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
-import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
-import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
-import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
-import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
-import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import WorkspaceToolOverlay from '@/modules/writer/components/workspace/WorkspaceToolOverlay.vue'
 import StoryHarnessPanel from '@/modules/writer/components/v3/story-harness/StoryHarnessPanel.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
+import { useWorkspaceShortcuts } from '@/modules/writer/composables/useWorkspaceShortcuts'
 import type {
   StoryHarnessChangeRequestDecision,
   StoryHarnessCharacterSummary,
@@ -154,6 +105,10 @@ const props = defineProps<{
   chapterId: string
   /** 当前章节标题 */
   chapterTitle: string
+  /** 工具覆盖层章节 ID */
+  toolOverlayChapterId?: string
+  /** 工具覆盖层章节标题 */
+  toolOverlayChapterTitle?: string
   /** 章节列表 */
   chapters: SidebarChapterSummary[]
   /** 编辑器内容 */
@@ -223,22 +178,27 @@ const modelContent = computed({
   set: (value: string) => emit('update:content', value),
 })
 
+const overlayChapterId = computed(() => props.toolOverlayChapterId ?? props.chapterId)
+const overlayChapterTitle = computed(() => props.toolOverlayChapterTitle ?? props.chapterTitle)
+const handleOverlayTriggerAIAction = (payload: {
+  source: string
+  action: string
+  title: string
+  text: string
+  instructions?: string
+}) => {
+  emit('trigger-ai-action', payload as WriterWorkflowActionRequest)
+}
+
 // =======================
 // 工具面板状态
 // =======================
 const toolOverlay = useToolOverlay()
-
-// 键盘快捷键处理（委托给 toolOverlay）
-const handleKeyDown = (event: KeyboardEvent) => {
-  toolOverlay.handleKeyboardEvent(event)
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
+useWorkspaceShortcuts({
+  openLatestTool: () => toolOverlay.open(),
+  openTool: (tool) => toolOverlay.open(tool),
+  closeOverlay: () => toolOverlay.close(),
+  isOverlayVisible: () => toolOverlay.visible.value,
 })
 
 // 暴露方法给父组件

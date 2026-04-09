@@ -38,10 +38,7 @@
     <div v-else class="shortcut-settings__list">
       <template v-for="category in filteredCategories" :key="category.name">
         <!-- 分类头部 -->
-        <div
-          class="shortcut-settings__category-header"
-          @click="toggleCategory(category.name)"
-        >
+        <div class="shortcut-settings__category-header" @click="toggleCategory(category.name)">
           <span
             class="shortcut-settings__category-arrow"
             :class="{ 'is-expanded': expandedCategories.has(category.name) }"
@@ -53,7 +50,10 @@
         </div>
 
         <!-- 快捷键行 -->
-        <div v-show="expandedCategories.has(category.name)" class="shortcut-settings__category-body">
+        <div
+          v-show="expandedCategories.has(category.name)"
+          class="shortcut-settings__category-body"
+        >
           <div
             v-for="shortcut in category.shortcuts"
             :key="shortcut.id"
@@ -61,7 +61,7 @@
             :class="{
               'is-editing': editingId === shortcut.id,
               'has-conflict': hasConflict(shortcut.id),
-              'is-system': isSystemKey(shortcut)
+              'is-system': isSystemKey(shortcut),
             }"
           >
             <!-- 描述 -->
@@ -86,12 +86,20 @@
             </span>
 
             <!-- 冲突警告 -->
-            <span v-if="hasConflict(shortcut.id)" class="shortcut-settings__conflict-icon" title="存在冲突">
+            <span
+              v-if="hasConflict(shortcut.id)"
+              class="shortcut-settings__conflict-icon"
+              title="存在冲突"
+            >
               &#9888;
             </span>
 
             <!-- 系统锁定标识 -->
-            <span v-if="isSystemKey(shortcut)" class="shortcut-settings__lock-icon" title="系统键，不可修改">
+            <span
+              v-if="isSystemKey(shortcut)"
+              class="shortcut-settings__lock-icon"
+              title="系统键，不可修改"
+            >
               &#128274;
             </span>
 
@@ -121,7 +129,8 @@
       <span class="shortcut-settings__conflict-summary-icon">&#9888;</span>
       <span class="shortcut-settings__conflict-summary-text">
         <template v-for="(conflict, index) in allConflicts" :key="index">
-          {{ conflict.action1.keys.join(' + ') }} 存在冲突：{{ conflict.action1.description }} / {{ conflict.action2.description }}
+          {{ conflict.action1.keys.join(' + ') }} 存在冲突：{{ conflict.action1.description }} /
+          {{ conflict.action2.description }}
           <template v-if="index < allConflicts.length - 1">；</template>
         </template>
       </span>
@@ -140,6 +149,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useShortcutConfig } from '../../composables/useShortcutConfig'
+import { WORKSPACE_SYSTEM_SHORTCUT_IDS } from '../../composables/workspaceShortcutActions'
 
 // ============================================
 // 类型定义
@@ -158,14 +168,6 @@ interface ShortcutCategory {
   title: string
   shortcuts: Shortcut[]
 }
-
-// ============================================
-// 事件
-// ============================================
-
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
 
 // ============================================
 // 组合式函数
@@ -198,8 +200,8 @@ const expandedCategories = ref<Set<string>>(new Set())
 /** 编辑超时定时器 */
 let editTimeout: ReturnType<typeof setTimeout> | null = null
 
-/** 系统键集合 - 这些键不允许用户修改 */
-const SYSTEM_KEYS = new Set<string>(['Tab', 'Escape'])
+/** 系统级 action 集合 - 这些动作不允许用户修改 */
+const SYSTEM_SHORTCUT_IDS = new Set<string>(WORKSPACE_SYSTEM_SHORTCUT_IDS)
 
 // ============================================
 // 计算属性
@@ -243,7 +245,7 @@ const allConflicts = computed(() => {
 
 /** 判断是否为系统键 */
 function isSystemKey(shortcut: Shortcut): boolean {
-  return shortcut.keys?.some((key) => SYSTEM_KEYS.has(key)) ?? false
+  return SYSTEM_SHORTCUT_IDS.has(shortcut.id)
 }
 
 /** 检查某个快捷键是否存在冲突 */
@@ -329,9 +331,7 @@ function handleKeyDown(event: KeyboardEvent): void {
     // 检查冲突
     const conflict = detectConflict(editingId.value, keys)
     if (conflict) {
-      ElMessage.warning(
-        `快捷键 ${formatKeys(keys)} 与「${conflict.description}」存在冲突`
-      )
+      ElMessage.warning(`快捷键 ${formatKeys(keys)} 与「${conflict.description}」存在冲突`)
     } else {
       ElMessage.success('快捷键已更新')
     }
@@ -373,7 +373,7 @@ async function handleResetDefaults(): Promise<void> {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
-      }
+      },
     )
     await resetToDefaults()
     ElMessage.success('已恢复默认快捷键')
@@ -619,8 +619,13 @@ onUnmounted(() => {
 }
 
 @keyframes shortcut-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* 冲突警告图标 */

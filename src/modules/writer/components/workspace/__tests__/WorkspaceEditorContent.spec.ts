@@ -1,7 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import WorkspaceEditorContent from '../WorkspaceEditorContent.vue'
+
+vi.mock('@/modules/writer/composables/useWorkspaceShortcuts', () => ({
+  useWorkspaceShortcuts: () => ({
+    shortcutsEnabled: { value: true },
+  }),
+}))
 
 describe('WorkspaceEditorContent', () => {
   beforeEach(() => {
@@ -65,7 +71,7 @@ describe('WorkspaceEditorContent', () => {
     expect(wrapper.text()).toContain('角色状态可能需要更新：张三')
   })
 
-  it('在百科模式下不应渲染 Story Harness 面板', () => {
+  it('旧百科路由态下仍应保留写作面，不再让工具页接管主编辑区', () => {
     const wrapper = mount(WorkspaceEditorContent, {
       props: {
         activeTool: 'encyclopedia',
@@ -81,18 +87,19 @@ describe('WorkspaceEditorContent', () => {
       global: {
         plugins: [createPinia()],
         stubs: {
-          CharacterGraphView: { template: '<div data-testid="graph-view" />' },
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
           WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
         },
       },
     })
 
-    expect(wrapper.find('[data-testid="graph-view"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="tiptap-editor"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(true)
   })
 
-  it('百科关系图谱的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
-    const CharacterGraphViewStub = {
+  it('全屏关系图谱的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+    const WorkspaceToolOverlayStub = {
       emits: ['trigger-ai-action'],
       template:
         "<button data-testid=\"graph-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '图谱角色分析：林舟', text: '角色：林舟' })\">send</button>",
@@ -113,8 +120,8 @@ describe('WorkspaceEditorContent', () => {
       global: {
         plugins: [createPinia()],
         stubs: {
-          CharacterGraphView: CharacterGraphViewStub,
-          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
+          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
         },
       },
     })
@@ -170,8 +177,8 @@ describe('WorkspaceEditorContent', () => {
     })
   })
 
-  it('结构舞台的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
-    const StructureStageViewStub = {
+  it('全屏结构舞台的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+    const WorkspaceToolOverlayStub = {
       emits: ['trigger-ai-action'],
       template:
         "<button data-testid=\"structure-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '结构节点分析：主线冲突', text: '结构节点：主线冲突' })\">send</button>",
@@ -192,8 +199,8 @@ describe('WorkspaceEditorContent', () => {
       global: {
         plugins: [createPinia()],
         stubs: {
-          StructureStageView: StructureStageViewStub,
-          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
+          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
         },
       },
     })
@@ -209,12 +216,14 @@ describe('WorkspaceEditorContent', () => {
 
   it('应将共享 workflowContext 和 activeEntities 透传给全屏工具覆盖层', () => {
     const WorkspaceToolOverlayStub = {
-      props: ['workflowContext', 'activeEntities'],
+      props: ['workflowContext', 'activeEntities', 'chapterId', 'chapterTitle'],
       template: `
         <div
           data-testid="tool-overlay"
           :data-signature="workflowContext?.signature || ''"
           :data-entities="String(activeEntities?.length || 0)"
+          :data-chapter-id="chapterId || ''"
+          :data-chapter-title="chapterTitle || ''"
         />
       `,
     }
@@ -257,6 +266,49 @@ describe('WorkspaceEditorContent', () => {
     const overlay = wrapper.get('[data-testid="tool-overlay"]')
     expect(overlay.attributes('data-signature')).toBe('ctx-1')
     expect(overlay.attributes('data-entities')).toBe('2')
+    expect(overlay.attributes('data-chapter-id')).toBe('chapter-1')
+    expect(overlay.attributes('data-chapter-title')).toBe('第一章')
+  })
+
+  it('应允许为工具覆盖层覆写章节作用域，而不影响主编辑区章节', () => {
+    const WorkspaceToolOverlayStub = {
+      props: ['chapterId', 'chapterTitle'],
+      template: `
+        <div
+          data-testid="tool-overlay"
+          :data-chapter-id="chapterId || ''"
+          :data-chapter-title="chapterTitle || ''"
+        />
+      `,
+    }
+
+    const wrapper = mount(WorkspaceEditorContent, {
+      props: {
+        activeTool: 'writing',
+        isEncyclopedia: false,
+        subView: 'home',
+        category: 'all',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        toolOverlayChapterId: '',
+        toolOverlayChapterTitle: '',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这里是正文。',
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
+          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
+        },
+      },
+    })
+
+    const overlay = wrapper.get('[data-testid="tool-overlay"]')
+    expect(overlay.attributes('data-chapter-id')).toBe('')
+    expect(overlay.attributes('data-chapter-title')).toBe('')
+    expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
   })
 
   it('未选择章节时应保持空态而不渲染 Story Harness 面板', () => {
