@@ -61,7 +61,12 @@
             <div class="timeline-event__card">
               <div class="timeline-event__head">
                 <h3>{{ event.title }}</h3>
-                <el-tag size="small" :type="event.importance >= 8 ? 'danger' : event.importance >= 5 ? 'warning' : 'info'">
+                <el-tag
+                  size="small"
+                  :type="
+                    event.importance >= 8 ? 'danger' : event.importance >= 5 ? 'warning' : 'info'
+                  "
+                >
                   P{{ event.importance || 0 }}
                 </el-tag>
               </div>
@@ -70,9 +75,23 @@
                 <span>{{ formatStoryTime(event.storyTime) }}</span>
                 <span>类型：{{ event.eventType }}</span>
               </div>
+              <div class="timeline-event__actions">
+                <el-button
+                  size="small"
+                  text
+                  data-testid="timeline-send-to-ai"
+                  @click="handleSendEventToAI(event)"
+                >
+                  交给 AI
+                </el-button>
+              </div>
             </div>
           </article>
-          <Empty v-if="orderedEvents.length === 0" description="当前时间线暂无事件" iconSize="medium" />
+          <Empty
+            v-if="orderedEvents.length === 0"
+            description="当前时间线暂无事件"
+            iconSize="medium"
+          />
         </div>
       </section>
     </div>
@@ -87,6 +106,10 @@ import { Empty } from '@/design-system/base'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import type { Timeline, TimelineEvent } from '@/types/writer'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
+import type {
+  WriterWorkflowActionRequest,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
 
 interface TimelineStoryTime {
   year?: number
@@ -99,11 +122,21 @@ interface TimelineStoryTime {
 const props = withDefaults(
   defineProps<{
     projectId?: string
+    chapterId?: string
+    chapterTitle?: string
+    workflowContext?: WriterWorkflowContext
   }>(),
   {
     projectId: '',
+    chapterId: '',
+    chapterTitle: '',
+    workflowContext: undefined,
   },
 )
+
+const emit = defineEmits<{
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
+}>()
 
 const writerStore = useWriterStore()
 
@@ -114,13 +147,21 @@ const currentTimelineId = computed(() => writerStore.timeline.currentTimeline?.i
 
 const orderedEvents = computed(() =>
   [...events.value].sort((a, b) => {
-    const orderA = Number(a.storyTime?.year || 0) * 10000 + Number(a.storyTime?.month || 0) * 100 + Number(a.storyTime?.day || 0)
-    const orderB = Number(b.storyTime?.year || 0) * 10000 + Number(b.storyTime?.month || 0) * 100 + Number(b.storyTime?.day || 0)
+    const orderA =
+      Number(a.storyTime?.year || 0) * 10000 +
+      Number(a.storyTime?.month || 0) * 100 +
+      Number(a.storyTime?.day || 0)
+    const orderB =
+      Number(b.storyTime?.year || 0) * 10000 +
+      Number(b.storyTime?.month || 0) * 100 +
+      Number(b.storyTime?.day || 0)
     return orderA - orderB
   }),
 )
 
-const highPriorityEvents = computed(() => events.value.filter((event) => (event.importance || 0) >= 8).length)
+const highPriorityEvents = computed(
+  () => events.value.filter((event) => (event.importance || 0) >= 8).length,
+)
 
 const formatStoryTime = (storyTime?: TimelineStoryTime) => {
   if (!storyTime) return '未设置时间'
@@ -131,6 +172,34 @@ const formatStoryTime = (storyTime?: TimelineStoryTime) => {
   const fallback = storyTime.description || '未设置时间'
   const text = `${era}${year}${month}${day}`.trim()
   return text || fallback
+}
+
+const buildEventAIContextText = (event: TimelineEvent) => {
+  const currentTimeline = timelines.value.find(
+    (timeline) => timeline.id === currentTimelineId.value,
+  )
+  const lines = [
+    `时间线事件：${event.title}`,
+    currentTimeline?.name ? `所属时间线：${currentTimeline.name}` : '',
+    props.chapterTitle ? `当前章节：${props.chapterTitle}` : '',
+    props.workflowContext?.scopeLabel ? `场景作用域：${props.workflowContext.scopeLabel}` : '',
+    event.description ? `事件描述：${event.description}` : '',
+    event.eventType ? `事件类型：${event.eventType}` : '',
+    `故事时间：${formatStoryTime(event.storyTime)}`,
+  ].filter(Boolean)
+
+  return lines.join('\n')
+}
+
+const handleSendEventToAI = (event: TimelineEvent) => {
+  emit('trigger-ai-action', {
+    source: 'workspace',
+    action: 'add_to_chat',
+    title: `时间线事件分析：${event.title}`,
+    text: buildEventAIContextText(event),
+    instructions:
+      '请基于这条时间线事件分析它对当前章节推进的影响，优先给出冲突升级、节奏衔接和后续伏笔建议。',
+  })
 }
 
 const selectTimeline = (timelineId: string) => {
@@ -321,10 +390,16 @@ watch(
   color: var(--editor-text-muted, #7485a3);
 }
 
+.timeline-event__actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* 深色/暖纸/专注模式 */
-[data-editor-theme="dark"],
-[data-editor-theme="sepia"],
-[data-editor-theme="focus"] {
+[data-editor-theme='dark'],
+[data-editor-theme='sepia'],
+[data-editor-theme='focus'] {
   .timeline-outline-view {
     background: var(--editor-bg-surface);
   }

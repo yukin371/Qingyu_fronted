@@ -6,68 +6,59 @@ import {
   buildEntitySummary,
 } from '../useWorkflowContext'
 
-// Mock the stores
-vi.mock('@/modules/writer/stores/writerStore', () => ({
-  useWriterStore: () => ({
-    characters: {
-      list: [
-        { id: 'char-1', name: '张三', traits: ['勇敢'], currentState: '紧张' },
-        { id: 'char-2', name: '李四', traits: ['聪明'], currentState: '平静' },
-      ],
-      relations: [{ id: 'rel-1', fromId: 'char-1', toId: 'char-2', type: '朋友', strength: 5 }],
-    },
-  }),
-}))
-
-vi.mock('@/modules/writer/stores/v3/storyHarnessStore', () => ({
-  useStoryHarnessStore: () => ({
-    savedBatchChangeRequests: [
-      { id: 'cr-1', title: '更新张三的恐惧值', summary: '...' },
-      { id: 'cr-2', title: '关系变更', summary: '...' },
-    ],
-  }),
-}))
-
 describe('useWorkflowContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
+  const buildOptions = () => ({
+    projectId: computed(() => 'project-1'),
+    chapterId: computed(() => 'chapter-1'),
+    chapterTitle: computed(() => '第一章'),
+    scopeLabel: computed(() => '第一幕 / 城门口'),
+    activeCharacters: computed(() => [
+      { id: 'char-1', name: '张三', traits: ['勇敢'], currentState: '紧张' },
+      { id: 'char-2', name: '李四', traits: ['聪明'], currentState: '平静' },
+    ]),
+    activeRelations: computed(() => [
+      { id: 'rel-1', fromName: '张三', toName: '李四', type: '朋友', strength: 5 },
+    ]),
+    changeRequests: computed(() => [
+      { id: 'cr-1', title: '更新张三的恐惧值', summary: '...', type: 'state' as const },
+      { id: 'cr-2', title: '关系变更', summary: '...', type: 'relation' as const },
+    ]),
+    entityReferences: computed(() => [
+      { id: 'char-1', name: '张三', type: 'character' as const, position: { start: 0, end: 0 } },
+      { id: 'loc-1', name: '青石镇', type: 'location' as const, position: { start: 0, end: 0 } },
+      { id: 'item-1', name: '铜钥匙', type: 'item' as const, position: { start: 0, end: 0 } },
+    ]),
+    entityStats: computed(() => ({
+      characters: 2,
+      items: 1,
+      locations: 1,
+      concepts: 0,
+    })),
+  })
+
   it('returns workflow context signature based on project and chapter id', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
+    const { workflowContextSignature } = useWorkflowContext(buildOptions())
 
-    const { workflowContextSignature } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
-
-    expect(workflowContextSignature.value).toBe('project-1-chapter-1')
+    expect(workflowContextSignature.value).toContain('"projectId":"project-1"')
+    expect(workflowContextSignature.value).toContain('"chapterId":"chapter-1"')
   })
 
   it('returns workflow context with correct structure', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
+    const { workflowContext } = useWorkflowContext(buildOptions())
 
-    const { workflowContext } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
-
-    expect(workflowContext.value.signature).toBe('project-1-chapter-1')
+    expect(workflowContext.value.signature).toContain('"chapterId":"chapter-1"')
     expect(workflowContext.value.projectId).toBe('project-1')
     expect(workflowContext.value.chapterId).toBe('chapter-1')
-    expect(workflowContext.value.chapterTitle).toBe('')
+    expect(workflowContext.value.chapterTitle).toBe('第一章')
+    expect(workflowContext.value.pendingChangeRequests).toHaveLength(2)
   })
 
   it('returns active characters from writer store', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
-
-    const { activeCharacters } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
+    const { activeCharacters } = useWorkflowContext(buildOptions())
 
     expect(activeCharacters.value).toHaveLength(2)
     expect(activeCharacters.value[0].name).toBe('张三')
@@ -75,13 +66,7 @@ describe('useWorkflowContext', () => {
   })
 
   it('returns active relations from writer store', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
-
-    const { activeRelations } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
+    const { activeRelations } = useWorkflowContext(buildOptions())
 
     expect(activeRelations.value).toHaveLength(1)
     expect(activeRelations.value[0].fromName).toBe('张三')
@@ -89,28 +74,36 @@ describe('useWorkflowContext', () => {
   })
 
   it('returns pending change requests count', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
-
-    const { pendingChangeRequestsCount } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
+    const { pendingChangeRequestsCount } = useWorkflowContext(buildOptions())
 
     expect(pendingChangeRequestsCount.value).toBe(2)
   })
 
-  it('returns entity stats with character counts', () => {
-    const projectId = computed(() => 'project-1')
-    const chapterId = computed(() => 'chapter-1')
-
-    const { entityStats } = useWorkflowContext({
-      projectId,
-      chapterId,
-    })
+  it('returns entity stats with multi-type counts', () => {
+    const { entityStats } = useWorkflowContext(buildOptions())
 
     expect(entityStats.value.characters).toBe(2)
+    expect(entityStats.value.items).toBe(1)
+    expect(entityStats.value.locations).toBe(1)
     expect(entityStats.value.pending).toBe(2)
+  })
+
+  it('builds activeEntities from active characters and parsed entity references', () => {
+    const { activeEntities } = useWorkflowContext(buildOptions())
+
+    expect(activeEntities.value).toHaveLength(4)
+    expect(activeEntities.value[0]).toMatchObject({
+      id: 'char-1',
+      name: '张三',
+      type: 'character',
+      summary: '紧张',
+    })
+    expect(activeEntities.value).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: '青石镇', type: 'location' }),
+        expect.objectContaining({ name: '铜钥匙', type: 'item' }),
+      ]),
+    )
   })
 })
 
@@ -120,6 +113,7 @@ describe('formatEntityStatsLabel', () => {
       characters: 3,
       items: 2,
       locations: 1,
+      concepts: 1,
       pending: 5,
     }
 
@@ -128,11 +122,12 @@ describe('formatEntityStatsLabel', () => {
     expect(label).toContain('角色 3')
     expect(label).toContain('物品 2')
     expect(label).toContain('地点 1')
+    expect(label).toContain('概念 1')
     expect(label).toContain('待处理 5')
   })
 
   it('returns "暂无数据" for zero stats', () => {
-    const stats = { characters: 0, items: 0, locations: 0, pending: 0 }
+    const stats = { characters: 0, items: 0, locations: 0, concepts: 0, pending: 0 }
 
     const label = formatEntityStatsLabel(stats)
 

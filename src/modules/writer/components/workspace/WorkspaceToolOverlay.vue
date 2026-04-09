@@ -56,6 +56,8 @@ import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
+import type { ActiveEntitySummary } from '@/modules/writer/composables/useWorkflowContext'
+import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
 
 // =======================
 // Props 定义
@@ -74,9 +76,9 @@ interface Props {
   /** 章节列表 */
   chapters: SidebarChapterSummary[]
   /** 工作流上下文（可选） */
-  workflowContext?: Record<string, unknown>
+  workflowContext?: WriterWorkflowContext
   /** 活跃实体列表（可选） */
-  activeEntities?: Array<{ id: string; name: string; type?: string; summary?: string }>
+  activeEntities?: ActiveEntitySummary[]
 }
 
 const props = defineProps<Props>()

@@ -170,6 +170,95 @@ describe('WorkspaceEditorContent', () => {
     })
   })
 
+  it('结构舞台的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+    const StructureStageViewStub = {
+      emits: ['trigger-ai-action'],
+      template:
+        "<button data-testid=\"structure-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '结构节点分析：主线冲突', text: '结构节点：主线冲突' })\">send</button>",
+    }
+
+    const wrapper = mount(WorkspaceEditorContent, {
+      props: {
+        activeTool: 'encyclopedia',
+        isEncyclopedia: true,
+        subView: 'structure',
+        category: 'all',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这里是正文。',
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          StructureStageView: StructureStageViewStub,
+          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="structure-send-to-ai"]').trigger('click')
+
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
+      source: 'workspace',
+      action: 'add_to_chat',
+      title: '结构节点分析：主线冲突',
+    })
+  })
+
+  it('应将共享 workflowContext 和 activeEntities 透传给全屏工具覆盖层', () => {
+    const WorkspaceToolOverlayStub = {
+      props: ['workflowContext', 'activeEntities'],
+      template: `
+        <div
+          data-testid="tool-overlay"
+          :data-signature="workflowContext?.signature || ''"
+          :data-entities="String(activeEntities?.length || 0)"
+        />
+      `,
+    }
+
+    const wrapper = mount(WorkspaceEditorContent, {
+      props: {
+        activeTool: 'writing',
+        isEncyclopedia: false,
+        subView: 'home',
+        category: 'all',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这里是正文。',
+        workflowContext: {
+          signature: 'ctx-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        activeEntities: [
+          { id: 'char-1', name: '张三', type: 'character', summary: '紧张' },
+          { id: 'loc-1', name: '青石镇', type: 'location' },
+        ],
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
+          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
+        },
+      },
+    })
+
+    const overlay = wrapper.get('[data-testid="tool-overlay"]')
+    expect(overlay.attributes('data-signature')).toBe('ctx-1')
+    expect(overlay.attributes('data-entities')).toBe('2')
+  })
+
   it('未选择章节时应保持空态而不渲染 Story Harness 面板', () => {
     const wrapper = mount(WorkspaceEditorContent, {
       props: {

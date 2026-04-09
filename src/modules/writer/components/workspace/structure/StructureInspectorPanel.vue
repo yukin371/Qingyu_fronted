@@ -38,8 +38,20 @@
       <div class="inspector-outline">
         <div class="inspector-outline__title">结构建议</div>
         <ul>
-          <li>{{ childCount > 0 ? '已有细纲支节，可优先检查信息密度是否均衡。' : '当前节点缺少细纲支节，建议拆出冲突、转折与收束。' }}</li>
-          <li>{{ selectedNode.level <= 1 ? '作为主干节点，优先明确事件目标、阻力与结果。' : '作为细纲节点，优先明确动作、信息与情绪推进。' }}</li>
+          <li>
+            {{
+              childCount > 0
+                ? '已有细纲支节，可优先检查信息密度是否均衡。'
+                : '当前节点缺少细纲支节，建议拆出冲突、转折与收束。'
+            }}
+          </li>
+          <li>
+            {{
+              selectedNode.level <= 1
+                ? '作为主干节点，优先明确事件目标、阻力与结果。'
+                : '作为细纲节点，优先明确动作、信息与情绪推进。'
+            }}
+          </li>
           <li>{{ linkedChapterHint }}</li>
           <li>{{ graphHint }}</li>
         </ul>
@@ -48,14 +60,20 @@
       <div class="inspector-binding">
         <div class="inspector-binding__title">章节绑定</div>
         <p class="inspector-binding__hint">
-          {{ boundChapter ? `当前已绑定「${boundChapter.title}」` : '为该结构节点指定一个落地章节，形成结构到正文的稳定映射。' }}
+          {{
+            boundChapter
+              ? `当前已绑定「${boundChapter.title}」`
+              : '为该结构节点指定一个落地章节，形成结构到正文的稳定映射。'
+          }}
         </p>
 
         <div class="inspector-binding__controls">
           <select
             class="inspector-binding__select"
             :value="draftBindingChapterId"
-            @change="emit('update:draftBindingChapterId', ($event.target as HTMLSelectElement).value)"
+            @change="
+              emit('update:draftBindingChapterId', ($event.target as HTMLSelectElement).value)
+            "
           >
             <option value="">未绑定章节</option>
             <option v-for="chapter in chapterOptions" :key="chapter.id" :value="chapter.id">
@@ -96,6 +114,14 @@
         <button
           type="button"
           class="inspector-action inspector-action--secondary"
+          data-testid="structure-send-to-ai"
+          @click="emitStructureNodeToAI"
+        >
+          交给 AI
+        </button>
+        <button
+          type="button"
+          class="inspector-action inspector-action--secondary"
           :disabled="!boundChapter"
           @click="boundChapter && emit('openGraph', boundChapter.id)"
         >
@@ -112,7 +138,10 @@
       </div>
     </div>
 
-    <div v-else-if="loading" class="structure-inspector-panel__empty structure-inspector-panel__empty--loading">
+    <div
+      v-else-if="loading"
+      class="structure-inspector-panel__empty structure-inspector-panel__empty--loading"
+    >
       正在准备结构检视数据。
     </div>
 
@@ -127,12 +156,22 @@ import { computed } from 'vue'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
-import { getStructureNodeBindingState, getStructureNodeGraphState, getStructureNodeStatusText } from './structureNodeTypes'
+import {
+  buildWriterWorkflowContextPrompt,
+  type WriterWorkflowActionRequest,
+  type WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
+import {
+  getStructureNodeBindingState,
+  getStructureNodeGraphState,
+  getStructureNodeStatusText,
+} from './structureNodeTypes'
 
 const props = defineProps<{
   selectedNode: OutlineNode | null
   chapters: SidebarChapterSummary[]
   chapterGraphs?: ChapterGraph[]
+  workflowContext?: WriterWorkflowContext
   currentChapterId: string
   currentChapterTitle: string
   draftBindingChapterId: string
@@ -141,6 +180,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
   (e: 'jumpToChapter', chapterId: string): void
   (e: 'openGraph', chapterId: string): void
   (e: 'update:draftBindingChapterId', value: string): void
@@ -152,7 +192,9 @@ const emit = defineEmits<{
 const childCount = computed(() => props.selectedNode?.children?.length || 0)
 const statusText = computed(() => getStructureNodeStatusText(props.selectedNode))
 const bindingState = computed(() => getStructureNodeBindingState(props.selectedNode))
-const graphState = computed(() => getStructureNodeGraphState(props.selectedNode, props.chapterGraphs || []))
+const graphState = computed(() =>
+  getStructureNodeGraphState(props.selectedNode, props.chapterGraphs || []),
+)
 const chapterOptions = computed(() =>
   props.chapters.filter((chapter) => chapter.nodeType !== 'directory'),
 )
@@ -179,6 +221,30 @@ const graphHint = computed(() => {
   }
   return '节点尚未绑定章节，暂时无法挂接章节关系图谱。'
 })
+
+function emitStructureNodeToAI() {
+  if (!props.selectedNode) return
+
+  const workflowPrompt = buildWriterWorkflowContextPrompt(props.workflowContext)
+  const lines = [
+    `结构节点：${props.selectedNode.title || '未命名节点'}`,
+    props.boundChapter ? `已绑定章节：${props.boundChapter.title}` : '已绑定章节：未绑定',
+    `节点层级：L${props.selectedNode.level || 1}`,
+    `节点状态：${statusText.value}`,
+    `子节点数：${childCount.value}`,
+    props.selectedNode.description ? `节点描述：${props.selectedNode.description}` : '',
+    workflowPrompt,
+  ].filter(Boolean)
+
+  emit('trigger-ai-action', {
+    source: 'workspace',
+    action: 'add_to_chat',
+    title: `结构节点分析：${props.selectedNode.title || '未命名节点'}`,
+    text: lines.join('\n'),
+    instructions:
+      '请结合当前结构节点与章节映射，分析它在叙事推进中的作用，并优先给出可执行的细纲补强与正文落地建议。',
+  })
+}
 </script>
 
 <style scoped lang="scss">

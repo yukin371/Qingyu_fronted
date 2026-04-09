@@ -224,6 +224,7 @@
         :selected-node="selectedNode"
         :chapters="chapterOptions"
         :chapter-graphs="chapterGraphs"
+        :workflow-context="workflowContext"
         :current-chapter-id="currentChapterId"
         :current-chapter-title="currentChapterTitle"
         :draft-binding-chapter-id="draftBindingChapterId"
@@ -233,6 +234,7 @@
         @bind-current-chapter="bindNodeToChapter"
         @bind-chapter="bindNodeToChapter"
         @unbind-chapter="unbindNodeFromChapter"
+        @trigger-ai-action="emit('trigger-ai-action', $event)"
         @open-graph="emit('openGraph', $event)"
         @jump-to-chapter="emit('jumpToChapter', $event)"
       />
@@ -262,6 +264,10 @@ import {
 import { DocumentStatus } from '@/modules/writer/types/document'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
+import type {
+  WriterWorkflowActionRequest,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
 import FishboneOutlineBoard from './FishboneOutlineBoard.vue'
 import CanvasOutlineBoard from './CanvasOutlineBoard.vue'
 import BeatBoardPanel from './BeatBoardPanel.vue'
@@ -304,12 +310,14 @@ const props = withDefaults(
     chapters?: SidebarChapterSummary[]
     currentChapterId?: string
     currentChapterTitle?: string
+    workflowContext?: WriterWorkflowContext
   }>(),
   {
     projectId: '',
     chapters: () => [],
     currentChapterId: '',
     currentChapterTitle: '',
+    workflowContext: undefined,
   },
 )
 
@@ -373,6 +381,7 @@ const assetRefState = ref<WriterAssetRefState>({
   volumeRefs: {},
 })
 const emit = defineEmits<{
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
   (e: 'jumpToChapter', chapterId: string): void
   (e: 'openGraph', chapterId: string): void
 }>()

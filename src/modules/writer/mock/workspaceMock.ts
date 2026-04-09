@@ -5,6 +5,7 @@ import {
   createYunlanReaderChapters,
   yunlanBookMeta,
 } from '@/modules/bookstore/yunlanDemo.mock'
+import type { OutlineNode } from '@/types/writer'
 
 export interface WorkspaceProjectSummary {
   id: string
@@ -221,11 +222,82 @@ export const getWorkspaceMockProject = (projectId?: string | null): WorkspaceMoc
   return null
 }
 
+export const createMockOutlineTree = (
+  projectId: string = WRITER_YUNLAN_PROJECT_ID,
+): OutlineNode[] => {
+  const mockProject = getWorkspaceMockProject(projectId) ?? buildYunlanMock(projectId)
+  const nowIso = iso(30 * 60 * 1000)
+
+  const chapterMap = new Map(
+    mockProject.chapters
+      .filter((chapter) => chapter.nodeType === 'chapter')
+      .map((chapter) => [chapter.id, chapter]),
+  )
+
+  const directoryNodes: OutlineNode[] = mockProject.scenes.map((scene, sceneIndex) => ({
+    id: scene.id,
+    projectId,
+    title: scene.title,
+    description: scene.hook,
+    order: sceneIndex,
+    level: 2,
+    parentId: `${projectId}-outline-root`,
+    wordCount: scene.chapterIds.reduce(
+      (sum, chapterId) => sum + (chapterMap.get(chapterId)?.wordCount || 0),
+      0,
+    ),
+    status: 'writing',
+    type: 'volume',
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    children: scene.chapterIds
+      .map((chapterId, chapterIndex) => {
+        const chapter = chapterMap.get(chapterId)
+        if (!chapter) return null
+        return {
+          id: `outline-${chapter.id}`,
+          projectId,
+          documentId: chapter.id,
+          title: chapter.title,
+          description: `映射章节：${chapter.title}`,
+          order: chapterIndex,
+          level: 3,
+          parentId: scene.id,
+          wordCount: chapter.wordCount,
+          status: chapter.status === 'published' ? 'completed' : 'writing',
+          type: 'chapter',
+          createdAt: chapter.updatedAt,
+          updatedAt: chapter.updatedAt,
+          children: [],
+          tags: [`chapter-binding:${chapter.id}`],
+        } as OutlineNode
+      })
+      .filter(Boolean) as OutlineNode[],
+  }))
+
+  return [
+    {
+      id: `${projectId}-outline-root`,
+      projectId,
+      title: mockProject.project.title,
+      description: 'Mock 工作区主线结构',
+      order: 0,
+      level: 1,
+      wordCount: mockProject.project.wordCount,
+      status: 'writing',
+      type: 'volume',
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      children: directoryNodes,
+    } as OutlineNode,
+  ]
+}
+
 // ============================================
 // Mock Data: 时间线事件
 // ============================================
 
-import type { TimelineEvent, EventType } from '@/modules/writer/types/timeline'
+import type { Timeline, TimelineEvent, EventType } from '@/modules/writer/types/timeline'
 import type { Character, CharacterRelation, CharacterGraph } from '@/modules/writer/types/character'
 import type { EntityType } from '@/modules/writer/types/entity'
 
@@ -234,7 +306,21 @@ const WRITER_PROJECT_ID = WRITER_YUNLAN_PROJECT_ID
 /**
  * 生成模拟时间线事件
  */
-export const createMockTimelineEvents = (): TimelineEvent[] => {
+export const createMockTimelines = (projectId: string = WRITER_PROJECT_ID): Timeline[] => [
+  {
+    id: 'tl-1',
+    projectId,
+    name: '第一卷主线时间线',
+    description: '聚焦林砚进入云岚城后的主线推进与关键转折。',
+    order: 0,
+    createdAt: iso(14 * 24 * 60 * 60 * 1000),
+    updatedAt: iso(2 * 60 * 60 * 1000),
+  } as Timeline,
+]
+
+export const createMockTimelineEvents = (
+  projectId: string = WRITER_PROJECT_ID,
+): TimelineEvent[] => {
   const now = Date.now()
   const iso = (offsetDays: number, hour = 12) =>
     new Date(now - offsetDays * 24 * 60 * 60 * 1000 + hour * 60 * 60 * 1000).toISOString()
@@ -242,7 +328,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
   return [
     {
       id: 'evt-1',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '林砚入城',
       description: '主角林砚在雨夜从北门进入云岚城，身无分文，携一封旧书信。',
@@ -259,7 +345,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
     },
     {
       id: 'evt-2',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '听雨斋初见',
       description: '林砚在听雨斋茶馆偶遇老者周先生，收到关于云岚城暗线的第一份情报。',
@@ -276,7 +362,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
     },
     {
       id: 'evt-3',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '云澜书院入学',
       description: '林砚化名入学云澜书院，开始接触书院深处的秘密。',
@@ -293,7 +379,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
     },
     {
       id: 'evt-4',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '第一次暗号接触',
       description: '林砚收到神秘纸条，相约子时在城北旧宅相见。',
@@ -310,7 +396,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
     },
     {
       id: 'evt-5',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '发现地下密室',
       description: '在旧宅地下发现被封存的文献，记录着云岚城百年前的秘密。',
@@ -327,7 +413,7 @@ export const createMockTimelineEvents = (): TimelineEvent[] => {
     },
     {
       id: 'evt-6',
-      projectId: WRITER_PROJECT_ID,
+      projectId,
       timelineId: 'tl-1',
       title: '林砚身世之谜',
       description: '文献中提及的姓氏与林砚家族族谱吻合，暗示其与云岚城的深层渊源。',
@@ -547,7 +633,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '云岚城',
       alias: ['云城'],
       summary: '故事发生的主舞台，一座表面繁华、实则暗流涌动的江南古城。',
-      description: '云岚城始建于三百年前，地处江南要冲，商贾云集。城中有云澜书院、听雨斋茶馆等重要地点。地下有历代挖掘的密道系统，连接城中各处。',
+      description:
+        '云岚城始建于三百年前，地处江南要冲，商贾云集。城中有云澜书院、听雨斋茶馆等重要地点。地下有历代挖掘的密道系统，连接城中各处。',
       type: 'location' as EntityType,
       createdAt: baseTime(30),
       updatedAt: baseTime(2),
@@ -558,7 +645,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '听雨斋',
       alias: ['听雨茶馆'],
       summary: '云岚城北街的茶馆，周德厚所开，是城中消息最灵通的地方。',
-      description: '北街老店，招牌已褪色。内部陈设简朴但雅致，常有城中老人在此品茶闲聊。周德厚在此收集并传递情报。',
+      description:
+        '北街老店，招牌已褪色。内部陈设简朴但雅致，常有城中老人在此品茶闲聊。周德厚在此收集并传递情报。',
       type: 'location' as EntityType,
       createdAt: baseTime(28),
       updatedAt: baseTime(3),
@@ -569,7 +657,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '云澜书院',
       alias: ['书院'],
       summary: '云岚城最高学府，山长沈鸿实际掌控，暗中经营情报网。',
-      description: '城西丘陵之上，环境清幽。书院藏书楼地下三层封存有云氏旧族的文献档案。沈鸿以教书为掩护，实际上在寻找某种力量。',
+      description:
+        '城西丘陵之上，环境清幽。书院藏书楼地下三层封存有云氏旧族的文献档案。沈鸿以教书为掩护，实际上在寻找某种力量。',
       type: 'location' as EntityType,
       createdAt: baseTime(25),
       updatedAt: baseTime(2),
@@ -580,7 +669,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '城北旧宅',
       alias: ['废弃宅院'],
       summary: '云氏旧族故居，已废弃数十年，地下藏有密室。',
-      description: '位于城北荒僻处，宅院已半塌。周德厚指引林砚至此，宅中密室藏有云氏旧族封印的文献。',
+      description:
+        '位于城北荒僻处，宅院已半塌。周德厚指引林砚至此，宅中密室藏有云氏旧族封印的文献。',
       type: 'location' as EntityType,
       createdAt: baseTime(20),
       updatedAt: baseTime(1),
@@ -591,7 +681,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '地下密室',
       alias: ['云氏密库'],
       summary: '旧宅地下密室，保存着云氏旧族的珍贵文献与遗物。',
-      description: '入口在旧宅正厅佛龛之后，需特殊方式开启。室内干燥，保存完好。藏有云氏族谱、失传的医方及一卷密文。',
+      description:
+        '入口在旧宅正厅佛龛之后，需特殊方式开启。室内干燥，保存完好。藏有云氏族谱、失传的医方及一卷密文。',
       type: 'location' as EntityType,
       createdAt: baseTime(18),
       updatedAt: baseTime(1),
@@ -605,7 +696,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '古旧医方',
       alias: ['林氏医方'],
       summary: '林父遗留的医方，上载数种失传医术，林砚此行的真正目的。',
-      description: '一张泛黄古方，记录十二种医方。其中一种与云氏旧族的消失有直接关联，被沈鸿追寻多年。',
+      description:
+        '一张泛黄古方，记录十二种医方。其中一种与云氏旧族的消失有直接关联，被沈鸿追寻多年。',
       type: 'item' as EntityType,
       createdAt: baseTime(30),
       updatedAt: baseTime(10),
@@ -616,7 +708,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '云氏密文',
       alias: ['密卷'],
       summary: '地下密室中发现的密文，记载云氏旧族消失的真相。',
-      description: '一卷用特殊墨水书写的帛书，需用特定方法才能显现全部内容。目前只解读出部分，涉及云氏旧族被灭门的内幕。',
+      description:
+        '一卷用特殊墨水书写的帛书，需用特定方法才能显现全部内容。目前只解读出部分，涉及云氏旧族被灭门的内幕。',
       type: 'item' as EntityType,
       createdAt: baseTime(18),
       updatedAt: baseTime(1),
@@ -627,7 +720,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '子时纸条',
       alias: ['神秘纸条'],
       summary: '夜行人留给林砚的纸条，约在城北旧宅相见。',
-      description: '一张普通信纸，字迹工整，内容仅有一行字和一枚特殊印章。印章图案与云氏族徽极为相似。',
+      description:
+        '一张普通信纸，字迹工整，内容仅有一行字和一枚特殊印章。印章图案与云氏族徽极为相似。',
       type: 'item' as EntityType,
       createdAt: baseTime(20),
       updatedAt: baseTime(1),
@@ -641,7 +735,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '云氏旧族',
       alias: ['云氏', '旧族'],
       summary: '三百年前云岚城的实际掌控者，一夜之间全族消失，留下无数谜团。',
-      description: '云氏为云岚城原住民，曾掌控城中经济与文化命脉。族中有多支旁系，每支掌握不同秘密。一百年前全族在一夜之间消失，只留下少量遗物和密文。',
+      description:
+        '云氏为云岚城原住民，曾掌控城中经济与文化命脉。族中有多支旁系，每支掌握不同秘密。一百年前全族在一夜之间消失，只留下少量遗物和密文。',
       category: '势力',
       type: 'concept' as EntityType,
       createdAt: baseTime(28),
@@ -653,7 +748,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '云岚暗线',
       alias: ['城中暗涌'],
       summary: '云岚城表面繁华下潜藏的政治、经济、文化的暗流。',
-      description: '由多股势力在暗中角力：沈鸿的书院系、周德厚的神秘组织、夜行人的反书院势力，以及尚未露面的朝廷暗探。',
+      description:
+        '由多股势力在暗中角力：沈鸿的书院系、周德厚的神秘组织、夜行人的反书院势力，以及尚未露面的朝廷暗探。',
       category: '世界观',
       type: 'concept' as EntityType,
       createdAt: baseTime(25),
@@ -665,7 +761,8 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
       name: '失传医术',
       alias: ['古医方', '云氏医典'],
       summary: '云氏旧族掌握的数种失传医术，可治不治之症。',
-      description: '云氏族中医术最高者所创，共十二方。其中一方与"移魂续命"有关，正是沈鸿追寻的目标，也是云氏灭族的真正原因。',
+      description:
+        '云氏族中医术最高者所创，共十二方。其中一方与"移魂续命"有关，正是沈鸿追寻的目标，也是云氏灭族的真正原因。',
       category: '特殊能力',
       type: 'concept' as EntityType,
       createdAt: baseTime(18),
@@ -681,6 +778,7 @@ export const createMockEncyclopediaEntities = (): MockEncyclopediaEntities => {
   }
 }
 
+export const MOCK_TIMELINES = createMockTimelines()
 export const MOCK_TIMELINE_EVENTS = createMockTimelineEvents()
 export const MOCK_CHARACTER_GRAPH = createMockCharacterGraph()
 export const MOCK_ENTITIES = createMockEncyclopediaEntities()

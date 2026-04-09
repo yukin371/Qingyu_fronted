@@ -60,6 +60,8 @@
           :active-characters="activeScopeCharacters"
           :active-relations="activeScopeRelations"
           :change-requests="storyHarnessChangeRequests"
+          :workflow-context="workflowContext"
+          :active-entities="activeEntities"
           :handle-change-request-decision="handleChangeRequestDecision"
           :handle-trigger-index="handleStoryHarnessTriggerIndex"
           :is-triggering-index="isStoryHarnessTriggering"
@@ -143,6 +145,7 @@ import { useImmersiveTimer } from '@/modules/writer/composables/useImmersiveTime
 import { useEncyclopediaView } from '@/modules/writer/composables/useEncyclopediaView'
 import { useDirectoryOutline } from '@/modules/writer/composables/useDirectoryOutline'
 import { useStoryHarnessWorkspace } from '@/modules/writer/composables/useStoryHarnessWorkspace'
+import { useWorkflowContext } from '@/modules/writer/composables/useWorkflowContext'
 
 // 引入 API
 import {
@@ -182,12 +185,8 @@ import type {
   WriterDraftProposalStatus,
   WriterResultCandidate,
   WriterWorkflowActionRequest,
-  WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
-import {
-  buildWriterAIActionTrigger,
-  buildWriterWorkflowContextSignature,
-} from '@/modules/writer/types/workflow'
+import { buildWriterAIActionTrigger } from '@/modules/writer/types/workflow'
 
 // =======================
 // Props 定义
@@ -316,7 +315,7 @@ const {
   availableDocMap,
 })
 
-const storyHarnessEntityStats = computed(() => {
+const storyHarnessEntityReferences = computed(() => {
   const rawContent = tipTapContent.value || editorStore.editorContent || editorStore.content || ''
 
   let entityReferences: EntityReference[] = []
@@ -334,7 +333,11 @@ const storyHarnessEntityStats = computed(() => {
     })
   }
 
-  const grouped = groupEntitiesByType(entityReferences)
+  return entityReferences
+})
+
+const storyHarnessEntityStats = computed(() => {
+  const grouped = groupEntitiesByType(storyHarnessEntityReferences.value)
 
   return {
     characters: Math.max(activeScopeCharacters.value.length, grouped.character.length),
@@ -344,36 +347,16 @@ const storyHarnessEntityStats = computed(() => {
   }
 })
 
-const workflowContext = computed<WriterWorkflowContext>(() => {
-  const context = {
-    projectId: currentProjectId.value,
-    chapterId: displayChapterId.value,
-    chapterTitle: displayChapterTitle.value,
-    scopeLabel: currentScopeLabel.value,
-    activeCharacters: activeScopeCharacters.value.slice(0, 3).map((character) => ({
-      id: character.id,
-      name: character.name,
-      currentState: character.currentState,
-    })),
-    activeRelations: activeScopeRelations.value.slice(0, 2).map((relation) => ({
-      id: relation.id,
-      fromName: relation.fromName,
-      toName: relation.toName,
-      type: relation.type,
-    })),
-    pendingChangeRequests: storyHarnessChangeRequests.value.slice(0, 3).map((changeRequest) => ({
-      id: changeRequest.id,
-      title: changeRequest.title,
-      summary: changeRequest.summary,
-      type: changeRequest.type,
-    })),
-    pendingChangeRequestCount: storyHarnessChangeRequests.value.length,
-  }
-
-  return {
-    ...context,
-    signature: buildWriterWorkflowContextSignature(context),
-  }
+const { workflowContext, activeEntities } = useWorkflowContext({
+  projectId: currentProjectId,
+  chapterId: displayChapterId,
+  chapterTitle: displayChapterTitle,
+  scopeLabel: currentScopeLabel,
+  activeCharacters: activeScopeCharacters,
+  activeRelations: activeScopeRelations,
+  changeRequests: storyHarnessChangeRequests,
+  entityReferences: storyHarnessEntityReferences,
+  entityStats: storyHarnessEntityStats,
 })
 
 // =======================

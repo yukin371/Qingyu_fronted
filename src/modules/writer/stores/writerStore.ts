@@ -44,7 +44,15 @@ import {
 import { useAIContext } from '../composables/useAIContext'
 import { syncService, type SyncStatus } from '@/utils/syncService'
 import { outlineApi } from '../api/outline'
-import { MOCK_TIMELINE_EVENTS, MOCK_CHARACTER_GRAPH, MOCK_ENTITIES } from '../mock/workspaceMock'
+import {
+  createMockOutlineTree,
+  createMockTimelineEvents,
+  createMockTimelines,
+  getWorkspaceMockProject,
+  MOCK_TIMELINE_EVENTS,
+  MOCK_CHARACTER_GRAPH,
+  MOCK_ENTITIES,
+} from '../mock/workspaceMock'
 import type {
   LocationTreeNode,
   StatisticsCacheItem,
@@ -1397,20 +1405,14 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadTimelines(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
+      const mockProject = pid ? getWorkspaceMockProject(pid) : null
       // 无项目时使用 Mock 数据演示
-      if (!pid) {
+      if (!pid || mockProject) {
         this.timeline.loading = true
-        // 创建默认时间线并填入 Mock 事件
-        const defaultTimeline = {
-          id: 'tl-1',
-          projectId: 'mock-project',
-          name: '主线时间线',
-          description: '故事主要事件时间轴',
-          order: 0,
-        }
-        this.timeline.list = [defaultTimeline as any]
-        this.timeline.currentTimeline = defaultTimeline as any
-        await this.loadTimelineEvents()
+        const timelineList = createMockTimelines(pid || 'mock-project')
+        this.timeline.list = timelineList
+        this.timeline.currentTimeline = timelineList[0] || null
+        await this.loadTimelineEvents(this.timeline.currentTimeline?.id)
         this.timeline.loading = false
         return
       }
@@ -1437,9 +1439,14 @@ export const useWriterStore = defineStore('writer', {
      */
     async loadTimelineEvents(timelineId?: string): Promise<void> {
       const tid = timelineId || this.timeline.currentTimeline?.id
+      const currentTimeline =
+        this.timeline.list.find((timeline) => timeline.id === tid) || this.timeline.currentTimeline
+      const timelineProjectId = currentTimeline?.projectId || this.currentProjectId
       // 无时间线时使用 Mock 事件
-      if (!tid) {
-        this.timeline.events = MOCK_TIMELINE_EVENTS
+      if (!tid || getWorkspaceMockProject(timelineProjectId)) {
+        this.timeline.events = timelineProjectId
+          ? createMockTimelineEvents(timelineProjectId)
+          : MOCK_TIMELINE_EVENTS
         return
       }
 
@@ -1476,9 +1483,14 @@ export const useWriterStore = defineStore('writer', {
     async loadOutlineTree(projectId?: string): Promise<void> {
       const pid = projectId || this.currentProjectId
       if (!pid) return
+      const mockProject = getWorkspaceMockProject(pid)
 
       this.outline.loading = true
       try {
+        if (mockProject) {
+          this.outline.tree = createMockOutlineTree(pid)
+          return
+        }
         this.outline.tree = await outlineApi.getTree(pid)
       } catch (error: any) {
         console.error('加载大纲树失败:', error)

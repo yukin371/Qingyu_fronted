@@ -167,6 +167,15 @@
       <!-- 进入分支按钮 -->
       <div class="story-branch-detail__actions">
         <button
+          type="button"
+          class="enter-branch-btn enter-branch-btn--secondary"
+          data-testid="branch-send-to-ai"
+          @click="sendSelectedNodeToAI"
+        >
+          <QyIcon name="MagicStick" :size="14" />
+          交给 AI
+        </button>
+        <button
           v-if="selectedOrgNode.children.length > 0 && activeBranchId !== selectedOrgNode.id"
           type="button"
           class="enter-branch-btn"
@@ -204,6 +213,10 @@ import type { OutlineNode } from '@/types/writer'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { CanvasCore } from '@/modules/writer/components/canvas'
 import SystemStatCard from '@/modules/writer/components/system-design/SystemStatCard.vue'
+import type {
+  WriterWorkflowActionRequest,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
 import {
   useOrgTreeLayout,
   getCategoryColor,
@@ -221,11 +234,21 @@ import {
 const props = withDefaults(
   defineProps<{
     projectId?: string
+    chapterId?: string
+    chapterTitle?: string
+    workflowContext?: WriterWorkflowContext
   }>(),
   {
     projectId: '',
+    chapterId: '',
+    chapterTitle: '',
+    workflowContext: undefined,
   },
 )
+
+const emit = defineEmits<{
+  (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
+}>()
 
 // ---------------------------------------------------------------------------
 // Store & State
@@ -391,6 +414,34 @@ function statusText(status: string): string {
   if (status === 'reviewing') return '审核中'
   if (status === 'completed') return '已完成'
   return '草稿'
+}
+
+function buildSelectedNodeAIContextText(node: OrgTreeNode): string {
+  const lines = [
+    `故事分支节点：${node.title}`,
+    props.chapterTitle ? `当前章节：${props.chapterTitle}` : '',
+    props.workflowContext?.scopeLabel ? `场景作用域：${props.workflowContext.scopeLabel}` : '',
+    `节点类型：${getCategoryLabel(node.category)}`,
+    `节点状态：${statusText(node.status)}`,
+    node.outlineNode.description ? `节点描述：${node.outlineNode.description}` : '',
+    `子分支数：${node.children.length}`,
+  ].filter(Boolean)
+
+  return lines.join('\n')
+}
+
+function sendSelectedNodeToAI() {
+  const node = selectedOrgNode.value
+  if (!node) return
+
+  emit('trigger-ai-action', {
+    source: 'workspace',
+    action: 'add_to_chat',
+    title: `故事分支分析：${node.title}`,
+    text: buildSelectedNodeAIContextText(node),
+    instructions:
+      '请分析这个分支节点对当前叙事结构的作用，优先给出分支动机、冲突承接和后续展开建议。',
+  })
 }
 
 function findOutlineNode(nodes: OutlineNode[], id: string): OutlineNode | null {
@@ -919,6 +970,9 @@ watch(
 
 .story-branch-detail__actions {
   margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .enter-branch-btn {
@@ -942,6 +996,18 @@ watch(
     border-color: rgba(114, 46, 209, 0.35);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(114, 46, 209, 0.1);
+  }
+}
+
+.enter-branch-btn--secondary {
+  border-color: var(--editor-border, #dbe5f5);
+  background: var(--editor-bg-base, #ffffff);
+  color: var(--editor-text-primary, #24365d);
+
+  &:hover {
+    background: var(--editor-bg-elevated, #f3f7ff);
+    border-color: rgba(77, 121, 218, 0.35);
+    box-shadow: 0 4px 12px rgba(77, 121, 218, 0.08);
   }
 }
 

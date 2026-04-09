@@ -11,9 +11,20 @@
   <TimelineOutlineView
     v-else-if="isEncyclopedia && subView === 'timeline'"
     :project-id="projectId"
+    :chapter-id="chapterId"
+    :chapter-title="chapterTitle"
+    :workflow-context="workflowContext"
+    @trigger-ai-action="emit('trigger-ai-action', $event)"
   />
   <!-- 百科视图 - 分支 -->
-  <StoryBranchView v-else-if="isEncyclopedia && subView === 'branches'" :project-id="projectId" />
+  <StoryBranchView
+    v-else-if="isEncyclopedia && subView === 'branches'"
+    :project-id="projectId"
+    :chapter-id="chapterId"
+    :chapter-title="chapterTitle"
+    :workflow-context="workflowContext"
+    @trigger-ai-action="emit('trigger-ai-action', $event)"
+  />
   <!-- 结构舞台 -->
   <StructureStageView
     v-else-if="isEncyclopedia && subView === 'structure'"
@@ -21,6 +32,8 @@
     :chapters="chapters"
     :current-chapter-id="chapterId"
     :current-chapter-title="chapterTitle"
+    :workflow-context="workflowContext"
+    @trigger-ai-action="emit('trigger-ai-action', $event)"
     @open-graph="$emit('open-graph', $event)"
     @jump-to-chapter="$emit('jump-to-chapter', $event)"
   />
@@ -85,6 +98,8 @@
     :chapter-id="chapterId"
     :chapter-title="chapterTitle"
     :chapters="chapters"
+    :workflow-context="workflowContext"
+    :active-entities="activeEntities"
     @close="toolOverlay.close"
     @tool-change="toolOverlay.switchTool"
     @status-change="emit('status-change', $event)"
@@ -118,6 +133,8 @@ import type {
   EncyclopediaCategory,
   SidebarChapterSummary,
 } from '@/modules/writer/composables/types'
+import type { ActiveEntitySummary } from '@/modules/writer/composables/useWorkflowContext'
+import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
 
 // =======================
 // Props 定义
@@ -156,6 +173,10 @@ const props = defineProps<{
   activeRelations?: StoryHarnessRelationSummary[]
   /** 当前场景变更建议预览 */
   changeRequests?: StoryHarnessChangeRequestPreview[]
+  /** 共享工作流上下文 */
+  workflowContext?: WriterWorkflowContext
+  /** 共享实体摘要 */
+  activeEntities?: ActiveEntitySummary[]
   /** 处理变更建议 */
   handleChangeRequestDecision?: (
     requestId: string,
