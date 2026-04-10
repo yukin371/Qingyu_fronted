@@ -3,7 +3,7 @@ import { sharedAuthAPI as authAPI } from '@/modules/shared/api/auth'
 import storage from '@/utils/storage'
 // 移除对router的直接导入以避免循环依赖
 // import router from '@/router'
-import type { User } from '@/types/models'
+import type { User, UserRole } from '@/types/models'
 import type { LoginCredentials, RegisterData } from '@/types/auth'
 
 // Storage keys
@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
   TOKEN: 'token',
   REFRESH_TOKEN: 'refreshToken',
   USER: 'user',
-  ROLES: 'roles'
+  ROLES: 'roles',
 }
 
 const TEST_MODE_MOCK_TOKEN = 'mock-token-for-testing'
@@ -57,6 +57,28 @@ type RoleSource = {
   role?: string
 }
 
+function normalizeRole(role?: string | null): UserRole | '' {
+  const normalized = String(role || '').toLowerCase()
+  if (normalized === 'writer' || normalized === 'author') return 'author'
+  if (normalized === 'admin') return 'admin'
+  if (normalized === 'reader') return 'reader'
+  return ''
+}
+
+function resolvePrimaryRole(role?: string | null, roles?: string[] | null): UserRole {
+  const normalizedRole = normalizeRole(role)
+  if (normalizedRole) return normalizedRole
+
+  const normalizedRoles = Array.isArray(roles)
+    ? (roles.map((item) => normalizeRole(item)).filter(Boolean) as UserRole[])
+    : []
+
+  if (normalizedRoles.includes('admin')) return 'admin'
+  if (normalizedRoles.includes('author')) return 'author'
+  if (normalizedRoles.includes('reader')) return 'reader'
+  return 'reader'
+}
+
 function isUnauthorizedAuthError(error: unknown): boolean {
   const err = error as {
     response?: { status?: number; data?: { code?: string | number } }
@@ -70,25 +92,61 @@ function isUnauthorizedAuthError(error: unknown): boolean {
   if (status === 401) return true
 
   const authErrorCodes = new Set<string | number>([
-    1002, 1102, 1103, 2007, 2008, 2009, 2010, 2016,
-    '1002', '1102', '1103', '2007', '2008', '2009', '2010', '2016',
-    'UNAUTHORIZED'
+    1002,
+    1102,
+    1103,
+    2007,
+    2008,
+    2009,
+    2010,
+    2016,
+    '1002',
+    '1102',
+    '1103',
+    '2007',
+    '2008',
+    '2009',
+    '2010',
+    '2016',
+    'UNAUTHORIZED',
   ])
 
-  return authErrorCodes.has(responseCode as string | number) || authErrorCodes.has(code as string | number)
+  return (
+    authErrorCodes.has(responseCode as string | number) ||
+    authErrorCodes.has(code as string | number)
+  )
 }
 
 function normalizeRoles(user?: RoleSource | null, responseRoles?: string[] | null): string[] {
   if (Array.isArray(user?.roles) && user.roles.length > 0) {
-    return user.roles
+    return Array.from(new Set(user.roles.map((role) => normalizeRole(role)).filter(Boolean)))
   }
   if (Array.isArray(responseRoles) && responseRoles.length > 0) {
-    return responseRoles
+    return Array.from(new Set(responseRoles.map((role) => normalizeRole(role)).filter(Boolean)))
   }
   if (typeof user?.role === 'string' && user.role.length > 0) {
-    return [user.role]
+    return [normalizeRole(user.role)].filter(Boolean)
   }
   return []
+}
+
+function normalizeStoredRoles(roles?: string[] | null): string[] {
+  return normalizeRoles({ roles: Array.isArray(roles) ? roles : [] }, null)
+}
+
+function resolveRolesForUser(user?: RoleSource | null, fallbackRoles?: string[] | null): string[] {
+  const normalizedRoles = normalizeRoles(user, fallbackRoles)
+  if (normalizedRoles.length > 0) {
+    return normalizedRoles
+  }
+
+  const storedRoles = normalizeStoredRoles(fallbackRoles)
+  if (storedRoles.length > 0) {
+    return storedRoles
+  }
+
+  const primaryRole = resolvePrimaryRole(user?.role, fallbackRoles)
+  return primaryRole ? [primaryRole] : []
 }
 
 /**
@@ -137,7 +195,7 @@ function createTestModeMockUser(): User {
     isVip: false,
     // 测试模式拥有所有角色，可访问所有功能页面
     roles: ['admin', 'author', 'reader'],
-    permissions: ['*']
+    permissions: ['*'],
   }
 }
 
@@ -147,7 +205,7 @@ export const useAuthStore = defineStore('auth', {
     const savedToken = storage.get<string>(STORAGE_KEYS.TOKEN)
     const savedRefreshToken = storage.get<string>(STORAGE_KEYS.REFRESH_TOKEN)
     const savedUser = storage.get<User>(STORAGE_KEYS.USER)
-    const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+    const savedRoles = normalizeStoredRoles(storage.get<string[]>(STORAGE_KEYS.ROLES))
     const fallbackRoles = normalizeRoles(savedUser as unknown as RoleSource, null)
 
     return {
@@ -157,7 +215,7 @@ export const useAuthStore = defineStore('auth', {
       // 认证状态
       token: savedToken,
       refreshToken: savedRefreshToken,
-      isLoggedIn: !!savedToken,  // 有token就认为是已登录
+      isLoggedIn: !!savedToken, // 有token就认为是已登录
 
       // 加载状态
       loading: false,
@@ -169,7 +227,7 @@ export const useAuthStore = defineStore('auth', {
       permissions: [],
 
       // 角色列表 - 从storage恢复或使用user.roles
-      roles: savedRoles || fallbackRoles
+      roles: savedRoles.length > 0 ? savedRoles : fallbackRoles,
     }
   },
 
@@ -190,14 +248,18 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 检查是否有特定权限
-    hasPermission: (state) => (permission: string): boolean => {
-      return state.permissions.includes(permission) || state.permissions.includes('*')
-    },
+    hasPermission:
+      (state) =>
+      (permission: string): boolean => {
+        return state.permissions.includes(permission) || state.permissions.includes('*')
+      },
 
     // 检查是否有特定角色
-    hasRole: (state) => (role: string): boolean => {
-      return state.roles.includes(role)
-    },
+    hasRole:
+      (state) =>
+      (role: string): boolean => {
+        return state.roles.includes(role)
+      },
 
     // 检查是否为管理员
     isAdmin: (state): boolean => {
@@ -218,7 +280,7 @@ export const useAuthStore = defineStore('auth', {
     authorAIPackageDiscountRate: (state): number => {
       const hasAuthor = state.roles.includes('author') || state.roles.includes('admin')
       return hasAuthor ? 0.85 : 1
-    }
+    },
   },
 
   actions: {
@@ -235,7 +297,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = {
           ...this.user,
           role: this.user.role === 'admin' ? 'admin' : 'author',
-          roles: nextUserRoles
+          roles: nextUserRoles,
         }
       }
 
@@ -280,7 +342,8 @@ export const useAuthStore = defineStore('auth', {
 
         if (mockToken && !isTestModeEnabled) {
           // 发现mock token但URL没有测试模式标识，清空并要求真实登录
-          if (import.meta.env.DEV) console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
+          if (import.meta.env.DEV)
+            console.warn('[auth] 检测到mock token但URL未启用测试模式，清空token')
           this.clearAuth()
           return
         }
@@ -293,7 +356,7 @@ export const useAuthStore = defineStore('auth', {
             this.user = storage.get<User>(STORAGE_KEYS.USER)
           }
           // 优先从localStorage恢复roles，否则使用默认的完整角色列表
-          const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+          const savedRoles = normalizeStoredRoles(storage.get<string[]>(STORAGE_KEYS.ROLES))
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
           } else {
@@ -306,7 +369,7 @@ export const useAuthStore = defineStore('auth', {
 
         // 生产模式：确保roles有值
         if (!this.roles || this.roles.length === 0) {
-          const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+          const savedRoles = normalizeStoredRoles(storage.get<string[]>(STORAGE_KEYS.ROLES))
           if (savedRoles && savedRoles.length > 0) {
             this.roles = savedRoles
           }
@@ -337,10 +400,10 @@ export const useAuthStore = defineStore('auth', {
           if (hasTokenInStorage && hasRolesInStorage) {
             // 从 localStorage 恢复状态，保持登录
             const savedUser = storage.get<User>(STORAGE_KEYS.USER)
-            const savedRoles = storage.get<string[]>(STORAGE_KEYS.ROLES)
+            const savedRoles = normalizeStoredRoles(storage.get<string[]>(STORAGE_KEYS.ROLES))
 
             this.user = savedUser ?? null
-            this.roles = savedRoles ?? []
+            this.roles = savedRoles
             this.isLoggedIn = true
           } else {
             // 只有在完全没有存储数据时才清空
@@ -365,7 +428,13 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = data.refreshToken ?? null
         const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
         // 确保user对象包含roles字段，兼容后端 role(字符串) 与 roles(数组)
-        this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
+        this.user = data.user
+          ? ({
+              ...data.user,
+              role: resolvePrimaryRole(data.user.role, normalizedRoles),
+              roles: normalizedRoles,
+            } as User)
+          : null
         this.permissions = data.permissions || []
         this.roles = normalizedRoles
         this.isLoggedIn = true
@@ -401,7 +470,13 @@ export const useAuthStore = defineStore('auth', {
           const normalizedRoles = normalizeRoles(data.user as RoleSource, data.roles)
           this.token = data.token
           this.refreshToken = data.refreshToken ?? null
-          this.user = data.user ? { ...data.user, roles: normalizedRoles } as User : null
+          this.user = data.user
+            ? ({
+                ...data.user,
+                role: resolvePrimaryRole(data.user.role, normalizedRoles),
+                roles: normalizedRoles,
+              } as User)
+            : null
           this.permissions = data.permissions || []
           this.roles = normalizedRoles
           this.isLoggedIn = true
@@ -448,14 +523,22 @@ export const useAuthStore = defineStore('auth', {
         this.user = data.user || data
         this.permissions = data.permissions || []
         const userData = data.user || data
-        const normalizedRoles = normalizeRoles(userData as RoleSource, data.roles)
+        const normalizedRoles = resolveRolesForUser(
+          userData as RoleSource,
+          data.roles || this.roles,
+        )
         this.roles = normalizedRoles
         if (this.user) {
-          this.user = { ...this.user, roles: normalizedRoles }
+          this.user = {
+            ...this.user,
+            role: resolvePrimaryRole(this.user.role, normalizedRoles),
+            roles: normalizedRoles,
+          }
         }
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
+        storage.set(STORAGE_KEYS.ROLES, this.roles)
 
         return response
       } catch (error) {
@@ -472,11 +555,23 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.updateUserInfo(userInfo)
         // http service 响应拦截器已提取 data 字段，response 直接是 { user }
-        const data = response as { user: User }
-        this.user = { ...this.user!, ...data.user }
+        const data = response as { user: User; roles?: string[] }
+        const nextUser = { ...(this.user || {}), ...data.user } as User
+        const normalizedRoles = resolveRolesForUser(
+          nextUser as RoleSource,
+          data.roles || this.roles,
+        )
+
+        this.roles = normalizedRoles
+        this.user = {
+          ...nextUser,
+          role: resolvePrimaryRole(nextUser.role, normalizedRoles),
+          roles: normalizedRoles,
+        }
 
         // 更新本地存储
         storage.set(STORAGE_KEYS.USER, this.user)
+        storage.set(STORAGE_KEYS.ROLES, this.roles)
 
         return response
       } catch (error: unknown) {
@@ -638,6 +733,6 @@ export const useAuthStore = defineStore('auth', {
     // 清除错误信息
     clearError(): void {
       this.error = null
-    }
-  }
+    },
+  },
 })

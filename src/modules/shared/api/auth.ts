@@ -16,7 +16,7 @@ import type {
   TokenRefreshResponse,
   UserPermission,
   UserRole,
-  UserInfo
+  UserInfo,
 } from '@/types/auth'
 
 /**
@@ -25,7 +25,7 @@ import type {
  * 参见: Qingyu_backend/router/user/user_router.go 第67-68行
  */
 function getAuthPath(endpoint: string): string {
-  return `/user/auth/${endpoint}`  // /api/v1/user/auth/register, /api/v1/user/auth/login
+  return `/user/auth/${endpoint}` // /api/v1/user/auth/register, /api/v1/user/auth/login
 }
 
 /**
@@ -42,6 +42,15 @@ export interface PasswordChangeData {
 export interface CheckAvailabilityResponse {
   available: boolean
   message?: string
+}
+
+function normalizeProfilePayload(
+  payload: UserInfo | { user?: UserInfo } | null | undefined,
+): UserInfo {
+  if (payload && typeof payload === 'object' && 'user' in payload && payload.user) {
+    return payload.user
+  }
+  return (payload || {}) as UserInfo
 }
 
 /**
@@ -109,8 +118,13 @@ export const sharedAuthAPI = {
    * 获取用户信息
    * GET /api/v1/user/profile
    */
-  async getUserInfo(): Promise<{ user: UserInfo; permissions?: UserPermission[]; roles?: UserRole[] }> {
-    const user = await httpService.get<UserInfo>('/user/profile')
+  async getUserInfo(): Promise<{
+    user: UserInfo
+    permissions?: UserPermission[]
+    roles?: UserRole[]
+  }> {
+    const response = await httpService.get<UserInfo | { user?: UserInfo }>('/user/profile')
+    const user = normalizeProfilePayload(response)
     return { user }
   },
 
@@ -119,7 +133,8 @@ export const sharedAuthAPI = {
    * PUT /api/v1/user/profile
    */
   async updateUserInfo(data: Partial<UserInfo>): Promise<{ user: UserInfo }> {
-    const user = await httpService.put<UserInfo>('/user/profile', data)
+    const response = await httpService.put<UserInfo | { user?: UserInfo }>('/user/profile', data)
+    const user = normalizeProfilePayload(response)
     return { user }
   },
 
@@ -206,7 +221,7 @@ export const sharedAuthAPI = {
   async resetPassword(_data: { email: string; code: string; new_password: string }): Promise<void> {
     // 后端暂时没有此接口，返回空响应
     return Promise.resolve()
-  }
+  },
 }
 
 // 向后兼容：导出旧的函数名

@@ -64,7 +64,7 @@
             <!-- 编辑状态 -->
             <div v-else class="edit-form-wrap">
               <div class="form-title">编辑资料</div>
-              <QyForm v-model="profileForm" class="compact-form">
+              <QyForm :model-value="profileForm" class="compact-form">
                 <QyFormItem label="昵称">
                   <Input
                     v-model="profileForm.nickname"
@@ -338,7 +338,7 @@ const roleLabel = computed(() => {
     .toString()
     .toLowerCase()
   if (role === 'admin') return '管理员'
-  if (role === 'writer') return '作者'
+  if (role === 'writer' || role === 'author') return '作者'
   return '读者'
 })
 const vipLevelLabel = computed(() => {

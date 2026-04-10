@@ -7,19 +7,76 @@ import { ref, computed } from 'vue'
 import { message } from '@/design-system/services'
 import type { UserInfo, LoginRequest, RegisterRequest } from '@/types/user'
 import { login, logout, register } from '@/modules/shared/api/auth'
+import { useAuthStore } from '@/stores/auth'
+import storage, { readStoredAuthToken } from '@/utils/storage'
 
 export const useUserStore = defineStore('user', () => {
+  const authStore = useAuthStore()
+
   // 状态
-  const token = ref<string>(localStorage.getItem('token') || '')
+  const token = ref<string>(readStoredAuthToken() || '')
   const userInfo = ref<UserInfo | null>(null)
   const isLoading = ref(false)
 
+  const resolvePrimaryRole = (user?: Partial<UserInfo> | null) => {
+    const roles = Array.isArray((user as any)?.roles) ? (user as any).roles : []
+    if (roles.includes('admin')) return 'admin'
+    if (roles.includes('author')) return 'author'
+    if (roles.includes('writer')) return 'author'
+    if (roles.includes('reader')) return 'reader'
+
+    const role = String(user?.role || '').toLowerCase()
+    if (role) {
+      return role === 'writer' ? 'author' : role
+    }
+
+    return 'user'
+  }
+
+  const normalizeRoles = (user?: Partial<UserInfo> | null) => {
+    const roles = Array.isArray((user as any)?.roles)
+      ? (user as any).roles
+          .map((role: unknown) => String(role || '').toLowerCase())
+          .map((role: string) => (role === 'writer' ? 'author' : role))
+          .filter(Boolean)
+      : []
+
+    if (roles.length > 0) {
+      return Array.from(new Set(roles))
+    }
+
+    const primaryRole = resolvePrimaryRole(user)
+    return primaryRole === 'user' ? [] : [primaryRole]
+  }
+
+  const syncAuthStoreUser = (nextUser: UserInfo | null) => {
+    if (!nextUser) return
+
+    const nextRoles = normalizeRoles(nextUser)
+    const resolvedRoles =
+      nextRoles.length > 0
+        ? nextRoles
+        : Array.isArray((authStore.user as any)?.roles)
+          ? (authStore.user as any).roles
+          : authStore.roles
+
+    authStore.user = {
+      ...(authStore.user || {}),
+      ...nextUser,
+      role: resolvePrimaryRole(nextUser),
+      roles: resolvedRoles,
+    } as any
+    authStore.roles = resolvedRoles
+    storage.set('user', authStore.user)
+    storage.set('roles', resolvedRoles)
+  }
+
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
-  const isWriter = computed(
-    () => userInfo.value?.role === 'writer' || userInfo.value?.role === 'admin'
+  const isWriter = computed(() =>
+    ['writer', 'author', 'admin'].includes(resolvePrimaryRole(userInfo.value)),
   )
-  const isAdmin = computed(() => userInfo.value?.role === 'admin')
+  const isAdmin = computed(() => resolvePrimaryRole(userInfo.value) === 'admin')
 
   // 用户资料相关计算属性
   const profile = computed(() => userInfo.value)
@@ -48,12 +105,14 @@ export const useUserStore = defineStore('user', () => {
       // 适配后端返回的用户数据
       const adaptedUser: UserInfo = {
         ...user,
-        role: user.role || 'user' // 使用后端返回的role或默认值
+        role: resolvePrimaryRole(user as UserInfo),
       }
 
       userInfo.value = adaptedUser
+      syncAuthStoreUser(adaptedUser)
 
       // 保存token到localStorage
+      localStorage.setItem('qingyu_token', JSON.stringify(responseToken))
       localStorage.setItem('token', responseToken)
 
       return response
@@ -99,7 +158,13 @@ export const useUserStore = defineStore('user', () => {
       // 无论API调用是否成功，都清除本地状态
       token.value = ''
       userInfo.value = null
+      authStore.clearAuth()
+      localStorage.removeItem('qingyu_token')
       localStorage.removeItem('token')
+      localStorage.removeItem('qingyu_user')
+      localStorage.removeItem('user')
+      localStorage.removeItem('qingyu_roles')
+      localStorage.removeItem('roles')
       message.success('已退出登录')
     }
   }
@@ -116,7 +181,12 @@ export const useUserStore = defineStore('user', () => {
       isLoading.value = true
       const { sharedAuthAPI } = await import('@/modules/shared/api/auth')
       const response = await sharedAuthAPI.getUserInfo()
-      userInfo.value = response.user as any
+      const normalizedUser = {
+        ...(response.user as any),
+        role: resolvePrimaryRole(response.user as any),
+      }
+      userInfo.value = normalizedUser as any
+      syncAuthStoreUser(userInfo.value)
       return response.user
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -135,7 +205,12 @@ export const useUserStore = defineStore('user', () => {
    */
   function updateUserInfo(info: Partial<UserInfo>) {
     if (userInfo.value) {
-      userInfo.value = { ...userInfo.value, ...info }
+      const nextUserInfo = { ...userInfo.value, ...info }
+      userInfo.value = {
+        ...nextUserInfo,
+        role: resolvePrimaryRole(nextUserInfo),
+      }
+      syncAuthStoreUser(userInfo.value)
     }
   }
 
