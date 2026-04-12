@@ -245,7 +245,7 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { QyButton, Divider, Icon, Input as QyInput, Image as QyImage } from '@/design-system/components'
+import { QyButton, QyDivider as Divider, Icon, Input as QyInput, Image as QyImage } from '@/design-system/components'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
