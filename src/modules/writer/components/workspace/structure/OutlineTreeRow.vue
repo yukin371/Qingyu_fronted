@@ -29,25 +29,14 @@
         <span class="outline-tree-row__content">
           <span class="outline-tree-row__title-row">
             <span class="outline-tree-row__title">{{ node.title }}</span>
-            <span v-if="boundChapterLabel" class="outline-tree-row__chapter">{{
-              boundChapterLabel
-            }}</span>
-          </span>
-          <span v-if="boundChapterId" class="outline-tree-row__meta-row">
-            <span class="outline-tree-row__graph" :class="graphToneClass">{{ graphText }}</span>
-            <span v-if="assetSummaryText" class="outline-tree-row__asset">{{
-              assetSummaryText
-            }}</span>
+            <span v-if="boundChapterId" class="outline-tree-row__binding-icon" title="已绑定章节">
+              🔗
+            </span>
+            <span v-else class="outline-tree-row__binding-icon" title="未绑定章节">
+              ○
+            </span>
           </span>
         </span>
-      </button>
-      <button
-        v-if="boundChapterId"
-        type="button"
-        class="outline-tree-row__graph-action"
-        @click.stop="emit('openGraph', boundChapterId)"
-      >
-        {{ graphActionText }}
       </button>
     </div>
 
@@ -86,8 +75,6 @@ import type { WriterAssetSummary } from '@/modules/writer/utils/writerAssetRefs'
 import type { OutlineNode } from '@/types/writer'
 import {
   getBoundChapterId,
-  getBoundChapterLabel,
-  getStructureNodeGraphState,
 } from './structureNodeTypes'
 
 const props = withDefaults(
@@ -130,19 +117,6 @@ const hasChildren = computed(
 )
 const isExpanded = computed(() => props.expandedNodeIds.includes(props.node.id))
 const boundChapterId = computed(() => getBoundChapterId(props.node))
-const boundChapterLabel = computed(() => getBoundChapterLabel(props.node, props.chapters))
-const graphState = computed(() => getStructureNodeGraphState(props.node, props.chapterGraphs || []))
-const graphText = computed(() => graphState.value.label)
-const graphToneClass = computed(() => `outline-tree-row__graph--${graphState.value.tone}`)
-const graphActionText = computed(() =>
-  graphState.value.tone === 'missing' ? '创建图谱' : '查看图谱',
-)
-const assetSummaryText = computed(() => {
-  const chapterId = boundChapterId.value
-  const summary = chapterId ? props.assetSummaryByChapterId?.[chapterId] : undefined
-  if (!summary || summary.total === 0) return ''
-  return `资产 ${summary.characters}角 ${summary.locations}地${summary.items > 0 ? ` ${summary.items}物` : ''}`
-})
 
 function handleDragStart(event: DragEvent) {
   if (event.dataTransfer) {
@@ -184,10 +158,10 @@ function handleContextMenu(event: MouseEvent) {
   width: 100%;
   position: relative;
   border: 1px solid rgba(117, 93, 67, 0.14);
-  border-radius: 16px;
+  border-radius: 12px;
   background: linear-gradient(135deg, rgba(255, 252, 248, 0.95), rgba(251, 245, 236, 0.9));
-  min-height: 44px;
-  padding: 10px 12px 10px calc(12px + var(--outline-level, 0) * 18px);
+  min-height: 40px;
+  padding: 8px 12px 8px calc(12px + var(--outline-level, 0) * 18px);
   display: grid;
   grid-template-columns: 10px 24px minmax(0, 1fr);
   align-items: center;
@@ -293,6 +267,7 @@ function handleContextMenu(event: MouseEvent) {
 
 .outline-tree-row__title {
   min-width: 0;
+  flex: 1;
   color: #2f2b26;
   font-size: 14px;
   font-weight: 700;
@@ -302,90 +277,15 @@ function handleContextMenu(event: MouseEvent) {
   white-space: nowrap;
 }
 
-.outline-tree-row__chapter {
-  border: 1px solid rgba(117, 93, 67, 0.12);
-  background: rgba(255, 251, 246, 0.94);
-  color: #6d5f52;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
+.outline-tree-row__binding-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 
-.outline-tree-row__meta-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.outline-tree-row__graph,
-.outline-tree-row__asset {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-}
-
-.outline-tree-row__graph {
-  border: 1px solid rgba(117, 93, 67, 0.14);
-  background: rgba(255, 251, 246, 0.92);
-  color: #6e6155;
-}
-
-.outline-tree-row__graph--ready {
-  border-color: rgba(74, 127, 88, 0.18);
-  background: rgba(232, 245, 236, 0.94);
-  color: #2e6a3d;
-}
-
-.outline-tree-row__graph--inherit {
-  border-color: rgba(54, 80, 107, 0.18);
-  background: rgba(235, 244, 249, 0.94);
-  color: #2c4d66;
-}
-
-.outline-tree-row__graph--missing {
-  border-color: rgba(183, 109, 56, 0.18);
-  background: rgba(255, 243, 230, 0.94);
-  color: #9a551f;
-}
-
-.outline-tree-row__graph--unbound {
-  border-color: rgba(117, 93, 67, 0.14);
-  background: rgba(248, 241, 233, 0.92);
-  color: #7b6a5b;
-}
-
-.outline-tree-row__asset {
-  border: 1px solid rgba(84, 116, 79, 0.16);
-  background: rgba(239, 247, 236, 0.94);
-  color: #41613a;
-}
-
-.outline-tree-row__graph-action {
-  align-self: center;
-  border: 1px solid rgba(74, 127, 88, 0.16);
-  border-radius: 999px;
-  background: rgba(232, 245, 236, 0.96);
-  color: #2e6a3d;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 5px 9px;
-  cursor: pointer;
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    border-color 0.16s ease;
-}
-
-.outline-tree-row__graph-action:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 14px rgba(74, 127, 88, 0.12);
+.outline-tree-row__main:hover .outline-tree-row__binding-icon {
+  opacity: 1;
 }
 
 .outline-tree-row__children {

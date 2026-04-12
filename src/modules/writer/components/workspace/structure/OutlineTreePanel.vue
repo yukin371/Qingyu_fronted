@@ -28,7 +28,7 @@
             type="button"
             class="outline-action"
             :disabled="!canMoveUp"
-            @click="emit('moveUp')"
+            @click="handleMoveUp"
           >
             上移
           </button>
@@ -36,7 +36,7 @@
             type="button"
             class="outline-action"
             :disabled="!canMoveDown"
-            @click="emit('moveDown')"
+            @click="handleMoveDown"
           >
             下移
           </button>
@@ -102,11 +102,15 @@
       :can-move-down="canMoveDown"
       :volume-nodes="volumeNodes"
       :can-convert-to-chapter="canConvertToChapter"
+      :chapters="chapters"
+      :has-bound-chapter="!!selectedNodeBoundChapterId"
       @create-child="handleCreateChild"
-      @move-up="emit('moveUp')"
-      @move-down="emit('moveDown')"
+      @move-up="handleMoveUp"
+      @move-down="handleMoveDown"
       @edit="handleEdit"
       @delete="handleDelete"
+      @bind-chapter="handleBindChapter"
+      @unbind-chapter="handleUnbindChapter"
       @close="contextMenuVisible = false"
       @convert-to-chapter="handleConvertToChapter"
     />
@@ -155,8 +159,8 @@ const emit = defineEmits<{
   (e: 'createRoot'): void
   (e: 'createChild'): void
   (e: 'createChild', data: CreateOutlineRequest): void
-  (e: 'moveUp'): void
-  (e: 'moveDown'): void
+  (e: 'moveUp', node: OutlineNode): void
+  (e: 'moveDown', node: OutlineNode): void
   (e: 'editSelected', data: UpdateOutlineRequest): void
   (e: 'deleteSelected'): void
   (
@@ -164,6 +168,8 @@ const emit = defineEmits<{
     payload: { draggedNodeId: string; targetNodeId: string; position: TreeDropPosition },
   ): void
   (e: 'convertToChapter', payload: { outlineNode: OutlineNode; volumeNode: OutlineNode }): void
+  (e: 'bindChapter', chapterId: string): void
+  (e: 'unbindChapter'): void
 }>()
 
 const dragState = reactive<{
@@ -299,6 +305,13 @@ const canConvertToChapter = computed(() => {
   return nodeWithType.type !== 'volume'
 })
 
+// 当前选中节点绑定的章节 ID
+const selectedNodeBoundChapterId = computed(() => {
+  const node = selectedNodeData.value
+  if (!node) return ''
+  return node.documentId || ''
+})
+
 function handleSelect(node: OutlineNode) {
   emit('select', node)
 }
@@ -336,6 +349,30 @@ function handleConvertToChapter(volumeNode: OutlineNode) {
   if (outlineNode) {
     emit('convertToChapter', { outlineNode, volumeNode })
   }
+}
+
+// 绑定章节处理
+function handleBindChapter(chapterId: string) {
+  contextMenuVisible.value = false
+  emit('bindChapter', chapterId)
+}
+
+// 解绑章节处理
+function handleUnbindChapter() {
+  contextMenuVisible.value = false
+  emit('unbindChapter')
+}
+
+// 上移处理
+function handleMoveUp() {
+  if (!selectedNodeData.value) return
+  emit('moveUp', selectedNodeData.value)
+}
+
+// 下移处理
+function handleMoveDown() {
+  if (!selectedNodeData.value) return
+  emit('moveDown', selectedNodeData.value)
 }
 
 function handleDialogConfirm(data: CreateOutlineRequest | UpdateOutlineRequest) {

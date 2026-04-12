@@ -40,6 +40,52 @@
 
         <div class="context-menu__divider"></div>
 
+        <!-- 绑定/解绑章节菜单 -->
+        <div
+          class="context-menu__group context-menu__group--submenu"
+          @mouseenter="showChapterSubmenu = true"
+          @mouseleave="showChapterSubmenu = false"
+        >
+          <!-- 已绑定时显示解绑选项 -->
+          <button
+            v-if="hasBoundChapter"
+            type="button"
+            class="context-menu__item context-menu__item--danger"
+            @click="handleUnbindChapter"
+          >
+            <QyIcon name="Link" :size="14" />
+            <span>解绑章节</span>
+          </button>
+          <!-- 未绑定时显示绑定选项 -->
+          <button
+            v-else
+            type="button"
+            class="context-menu__item context-menu__item--submenu"
+            :disabled="chapters.length === 0"
+          >
+            <QyIcon name="Link" :size="14" />
+            <span>绑定章节</span>
+            <QyIcon name="ChevronRight" :size="12" class="submenu-arrow" />
+          </button>
+          <!-- 子菜单：章节列表 -->
+          <Transition name="submenu">
+            <div v-if="showChapterSubmenu && !hasBoundChapter && chapters.length > 0" class="context-menu__submenu">
+              <button
+                v-for="chapter in chapters"
+                :key="chapter.id"
+                type="button"
+                class="context-menu__item context-menu__item--submenu-item"
+                @click="handleBindChapter(chapter.id)"
+              >
+                <span class="chapter-icon">📄</span>
+                <span class="chapter-title">{{ chapter.title }}</span>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <div class="context-menu__divider"></div>
+
         <!-- 转为章节菜单 -->
         <div
           v-if="canConvertToChapter && volumeNodes.length > 0"
@@ -102,6 +148,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import type { OutlineNode } from '@/types/writer'
+import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 
 // =======================
 // Props 定义
@@ -113,6 +160,8 @@ const props = defineProps<{
   canMoveDown: boolean
   volumeNodes?: OutlineNode[] // 所有卷级别节点
   canConvertToChapter?: boolean // 是否可以转为章节（非 volume 类型节点）
+  chapters?: SidebarChapterSummary[] // 章节列表
+  hasBoundChapter?: boolean // 是否已绑定章节
 }>()
 
 // =======================
@@ -126,6 +175,8 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'close'): void
   (e: 'convertToChapter', volumeNode: OutlineNode): void
+  (e: 'bindChapter', chapterId: string): void
+  (e: 'unbindChapter'): void
 }>()
 
 // =======================
@@ -134,9 +185,11 @@ const emit = defineEmits<{
 const menuRef = ref<HTMLElement | null>(null)
 const position = ref({ x: 0, y: 0 })
 const showSubmenu = ref(false)
+const showChapterSubmenu = ref(false)
 
 // 默认为空数组
 const volumeNodes = computed(() => props.volumeNodes || [])
+const chapters = computed(() => props.chapters || [])
 
 // =======================
 // 菜单位置计算
@@ -165,6 +218,7 @@ function adjustPosition() {
 function show(x: number, y: number) {
   position.value = { x, y }
   showSubmenu.value = false
+  showChapterSubmenu.value = false
   nextTick(() => {
     adjustPosition()
   })
@@ -191,6 +245,18 @@ function handleEscape(event: KeyboardEvent) {
   if (event.key === 'Escape' && props.visible) {
     emit('close')
   }
+}
+
+// 绑定章节处理
+function handleBindChapter(chapterId: string) {
+  emit('bindChapter', chapterId)
+  emit('close')
+}
+
+// 解绑章节处理
+function handleUnbindChapter() {
+  emit('unbindChapter')
+  emit('close')
 }
 
 // 转为章节处理
@@ -306,11 +372,13 @@ defineExpose({
   &--submenu-item {
     padding-left: 20px;
 
-    .volume-icon {
+    .volume-icon,
+    .chapter-icon {
       font-size: 12px;
     }
 
-    .volume-title {
+    .volume-title,
+    .chapter-title {
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;

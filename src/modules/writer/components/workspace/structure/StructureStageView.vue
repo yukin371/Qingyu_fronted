@@ -1,22 +1,12 @@
 <template>
   <section class="structure-stage-view">
-    <!-- 顶部快速切换标签栏 - 现代化分段控制 -->
-    <nav class="structure-stage-view__tabs" aria-label="结构舞台视图切换">
-      <div class="tabs-group">
-        <button
-          v-for="option in viewModeOptions"
-          :key="option.value"
-          type="button"
-          class="stage-tab"
-          :class="{ 'is-active': stageViewMode === option.value }"
-          @click="stageViewMode = option.value"
-        >
-          <QyIcon :name="option.icon" :size="14" class="stage-tab__icon" />
-          <span class="stage-tab__label">{{ option.label }}</span>
-        </button>
-      </div>
-
-      <div class="tabs-actions">
+    <!-- 顶部状态栏 -->
+    <nav class="structure-stage-view__header" aria-label="结构舞台">
+      <div class="header-left">
+        <div>
+          <p class="structure-stage-view__eyebrow">Structure Tree</p>
+          <h3 class="structure-stage-view__title">结构树</h3>
+        </div>
         <div
           class="structure-stage-view__status"
           :class="{ 'is-loading': isOutlineLoading, 'is-error': !!structureRefreshError }"
@@ -25,6 +15,8 @@
             isOutlineLoading ? '正在同步结构...' : structureRefreshError ? '同步失败' : '结构已就绪'
           }}
         </div>
+      </div>
+      <div class="header-actions">
         <button
           type="button"
           class="refresh-action"
@@ -36,50 +28,6 @@
         </button>
       </div>
     </nav>
-
-    <!-- 紧凑工具栏：搜索与筛选 -->
-    <header class="structure-stage-view__toolbar">
-      <div class="toolbar-left">
-        <div class="structure-search">
-          <QyIcon name="Search" :size="14" class="search-icon" />
-          <input
-            v-model.trim="filterText"
-            type="text"
-            class="structure-search__input"
-            placeholder="搜索节点标题或描述"
-          />
-        </div>
-        <div class="structure-filter-chips">
-          <button
-            v-for="option in filterOptions"
-            :key="option.value"
-            type="button"
-            class="structure-filter-chip"
-            :class="{ 'is-active': activeFilter === option.value }"
-            @click="activeFilter = option.value"
-          >
-            {{ option.label }}
-          </button>
-        </div>
-      </div>
-
-      <div class="toolbar-right">
-        <div class="mini-metrics">
-          <div class="mini-metric" title="主干节点数">
-            <span>主干</span><strong>{{ rootNodes.length }}</strong>
-          </div>
-          <div class="mini-metric" title="结构总数">
-            <span>总计</span><strong>{{ flattenedNodes.length }}</strong>
-          </div>
-          <div class="mini-metric" title="当前筛选数">
-            <span>命中</span><strong>{{ filteredFlattenedNodes.length }}</strong>
-          </div>
-          <div class="mini-metric highlight" title="当前章节">
-            <span>当前</span><strong>{{ currentChapterTitle || '未选择' }}</strong>
-          </div>
-        </div>
-      </div>
-    </header>
 
     <section v-if="structureRefreshError" class="structure-stage-view__error-card">
       <div>
@@ -98,125 +46,31 @@
     </section>
 
     <div class="structure-stage-view__grid">
-      <div class="structure-stage-view__stage-column">
-        <!-- 模式 1: 分叉总览 -->
-        <section v-if="stageViewMode === 'overview'" class="structure-stage-view__branch-ribbon">
-          <div class="structure-stage-view__branch-ribbon-header">
-            <div>
-              <p class="structure-stage-view__branch-eyebrow">Branch Ribbon</p>
-              <h3>主线与分叉一眼对齐</h3>
-            </div>
-            <div class="structure-stage-view__branch-hint">
-              先看每条主干的上下分支密度，再进入鱼骨图与节拍板细化。
-            </div>
-          </div>
-
-          <div v-if="branchSpotlights.length" class="structure-stage-view__branch-cards">
-            <button
-              v-for="branch in branchSpotlights"
-              :key="branch.id"
-              type="button"
-              class="structure-branch-card"
-              :class="{ 'is-selected': selectedNodeId === branch.id }"
-              @click="selectNode(branch.node)"
-            >
-              <span class="structure-branch-card__level">L{{ branch.level }}</span>
-              <strong class="structure-branch-card__title">{{ branch.title }}</strong>
-              <span class="structure-branch-card__meta">
-                <span>{{ branch.branchCount }} 条分叉</span>
-                <span>上支 {{ branch.topCount }}</span>
-                <span>下支 {{ branch.bottomCount }}</span>
-              </span>
-              <span class="structure-branch-card__chips">
-                <span class="structure-branch-card__chip">{{ branch.bindingLabel }}</span>
-                <span class="structure-branch-card__chip" :class="`is-${branch.graphTone}`">{{
-                  branch.graphLabel
-                }}</span>
-                <span v-if="branch.assetLabel" class="structure-branch-card__chip">{{
-                  branch.assetLabel
-                }}</span>
-              </span>
-            </button>
-          </div>
-          <div v-else class="structure-stage-view__branch-empty">
-            {{
-              isOutlineLoading
-                ? '正在编排主干与分叉摘要…'
-                : '还没有主干节点，先创建主线后再展开分叉。'
-            }}
-          </div>
-        </section>
-
-        <!-- 模式 2: 鱼骨聚焦 -->
-        <FishboneOutlineBoard
-          v-if="stageViewMode === 'fishbone'"
-          :nodes="filteredRootNodes"
+      <div class="structure-stage-view__tree-column">
+        <!-- 大纲树面板 -->
+        <OutlineTreePanel
+          :nodes="rootNodes"
           :selected-node-id="selectedNodeId"
+          :expanded-node-ids="expandedNodeIds"
           :chapters="chapterOptions"
           :chapter-graphs="chapterGraphs"
           :asset-summary-by-chapter-id="assetSummaryByChapterId"
           :current-chapter-id="currentChapterId"
           :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
+          :can-move-up="selectedNode ? canMoveNodeUp(selectedNode) : false"
+          :can-move-down="selectedNode ? canMoveNodeDown(selectedNode) : false"
+          @toggle="handleToggleNode"
           @select="selectNode"
-          @edit-node="openEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @bind-current-chapter="bindCurrentChapterForNode"
-          @unbind-chapter="unbindChapterForNode"
-          @update-status="updateNodeStatus"
           @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
-        />
-
-        <!-- 模式 3: 自由画布 -->
-        <CanvasOutlineBoard
-          v-if="stageViewMode === 'canvas'"
-          :nodes="filteredRootNodes"
-          :selected-node-id="selectedNodeId"
-          :chapters="chapterOptions"
-          :chapter-graphs="chapterGraphs"
-          :asset-summary-by-chapter-id="assetSummaryByChapterId"
-          :current-chapter-id="currentChapterId"
-          :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
-          @select="selectNode"
-          @edit-node="handleCanvasEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @delete-node="handleCanvasDeleteNode"
-          @update-status="updateNodeStatus"
-          @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
-        />
-
-        <!-- 模式 4: 节拍卡片 -->
-        <BeatBoardPanel
-          v-if="stageViewMode === 'beats'"
-          :beats="filteredFlattenedNodes"
-          :selected-node-id="selectedNodeId"
-          :chapters="chapterOptions"
-          :chapter-graphs="chapterGraphs"
-          :asset-summary-by-chapter-id="assetSummaryByChapterId"
-          :current-chapter-id="currentChapterId"
-          :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
-          @select="selectNode"
-          @edit-node="openEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @bind-current-chapter="bindCurrentChapterForNode"
-          @unbind-chapter="unbindChapterForNode"
-          @update-status="updateNodeStatus"
-          @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
+          @create-root="openCreateRoot"
+          @create-child="openCreateChild"
+          @move-up="(node: OutlineNode) => moveNodeUp(node)"
+          @move-down="(node: OutlineNode) => moveNodeDown(node)"
+          @edit-selected="handleEditSelected"
+          @delete-selected="handleDeleteSelected"
           @reorder="handleTreeReorder"
+          @bind-chapter="(chapterId: string) => handleBindChapterFromMenu(chapterId)"
+          @unbind-chapter="() => handleUnbindChapterFromMenu()"
         />
       </div>
 
@@ -270,38 +124,17 @@ import type {
   WriterWorkflowActionRequest,
   WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
-import FishboneOutlineBoard from './FishboneOutlineBoard.vue'
-import CanvasOutlineBoard from './CanvasOutlineBoard.vue'
-import BeatBoardPanel from './BeatBoardPanel.vue'
+import OutlineTreePanel from './OutlineTreePanel.vue'
 import StructureInspectorPanel from './StructureInspectorPanel.vue'
 import StructureNodeEditorDialog, {
   type StructureNodeFormValue,
 } from './StructureNodeEditorDialog.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import {
-  type StructureStatusValue,
   findBoundChapter,
   getBoundChapterId,
-  getStructureNodeGraphState,
-  getStructureNodeLane,
-  matchesStructureNodeGraphFilter,
   mapLevelToDocumentType,
 } from './structureNodeTypes'
-
-type StructureFilterMode =
-  | 'all'
-  | 'linked'
-  | 'unlinked'
-  | 'current-chapter'
-  | 'asset-ready'
-  | 'asset-missing'
-  | 'draft'
-  | 'writing'
-  | 'completed'
-  | 'graph-missing'
-  | 'graph-ready'
-  | 'graph-inherit'
-type StageViewMode = 'overview' | 'fishbone' | 'canvas' | 'beats'
 
 type TreeDropPosition = 'before' | 'after'
 
@@ -332,21 +165,7 @@ const selectedNodeId = ref('')
 // 本地计算属性
 const rootNodes = computed<OutlineNode[]>(() => writerStore.outline.tree || [])
 
-// 本地计算属性（基于过滤后的树，用于舞台视图）
-const filteredRootNodes = computed<OutlineNode[]>(() => filterOutlineTree(rootNodes.value))
-const filteredFlattenedNodes = computed<OutlineNode[]>(() => {
-  const list: OutlineNode[] = []
-  const walk = (nodes: OutlineNode[]) => {
-    for (const node of nodes) {
-      list.push(node)
-      if (node.children?.length) walk(node.children)
-    }
-  }
-  walk(filteredRootNodes.value)
-  return list
-})
-
-// 未过滤的扁平化节点（用于节点排序等操作）
+// 扁平化节点（用于节点排序等操作）
 const flattenedNodes = computed<OutlineNode[]>(() => {
   const list: OutlineNode[] = []
   const walk = (nodes: OutlineNode[]) => {
@@ -368,15 +187,6 @@ const editorForm = ref<StructureNodeFormValue>({
   status: 'planned',
   description: '',
 })
-const filterText = ref('')
-const activeFilter = ref<StructureFilterMode>('all')
-const stageViewMode = ref<StageViewMode>('overview')
-const viewModeOptions: Array<{ value: StageViewMode; label: string; icon: string }> = [
-  { value: 'overview', label: '分叉总览', icon: 'Connection' },
-  { value: 'fishbone', label: '鱼骨聚焦', icon: 'Workflow' },
-  { value: 'canvas', label: '自由画布', icon: 'Grid' },
-  { value: 'beats', label: '节拍卡片', icon: 'Card' },
-]
 const draftBindingChapterId = ref('')
 const structureRefreshError = ref('')
 const assetRefState = ref<WriterAssetRefState>({
@@ -421,47 +231,9 @@ const assetSummaryByChapterId = computed<Record<string, WriterAssetSummary>>(() 
 
   return summaries
 })
-const filterOptions: Array<{ value: StructureFilterMode; label: string }> = [
-  { value: 'all', label: '全部' },
-  { value: 'linked', label: '已绑定' },
-  { value: 'unlinked', label: '待绑定' },
-  { value: 'current-chapter', label: '当前章节' },
-  { value: 'asset-ready', label: '资产已就绪' },
-  { value: 'asset-missing', label: '资产待补' },
-  { value: 'graph-missing', label: '待建图谱' },
-  { value: 'graph-ready', label: '已建图谱' },
-  { value: 'graph-inherit', label: '继承图谱' },
-  { value: 'draft', label: '草稿' },
-  { value: 'writing', label: '推进中' },
-  { value: 'completed', label: '已完成' },
-]
 
-const branchSpotlights = computed(() =>
-  filteredRootNodes.value.map((node) => {
-    const children = node.children || []
-    const topCount = children.filter((_, index) => index % 2 === 0).length
-    const bottomCount = children.length - topCount
-    const branchCount = children.length
-    const chapterId = getBoundChapterId(node)
-    const assetSummary = chapterId ? assetSummaryByChapterId.value[chapterId] : undefined
-    const graphState = getStructureNodeGraphState(node, chapterGraphs.value)
-    return {
-      id: node.id,
-      node,
-      title: node.title || '未命名节点',
-      level: node.level || 1,
-      topCount,
-      bottomCount,
-      branchCount,
-      bindingLabel: findBoundChapter(node, chapterOptions.value)?.title || '未绑定章节',
-      graphLabel: graphState.label,
-      graphTone: graphState.tone,
-      assetLabel: assetSummary?.total ? `资产 ${assetSummary.total}` : '',
-    }
-  }),
-)
 const selectedNode = computed(
-  () => filteredFlattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
+  () => flattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
 )
 const boundChapter = computed(() => findBoundChapter(selectedNode.value, chapterOptions.value))
 
@@ -487,54 +259,62 @@ function expandRootNodes() {
   expandedNodeIds.value = rootNodes.value.map((node) => node.id)
 }
 
-function matchesNodeFilter(node: OutlineNode): boolean {
-  const normalizedQuery = filterText.value.trim().toLowerCase()
-  const matchesQuery =
-    !normalizedQuery ||
-    node.title?.toLowerCase().includes(normalizedQuery) ||
-    node.description?.toLowerCase().includes(normalizedQuery)
-
-  if (!matchesQuery) return false
-
-  if (activeFilter.value === 'linked') return !!getBoundChapterId(node)
-  if (activeFilter.value === 'unlinked') return !getBoundChapterId(node)
-  if (activeFilter.value === 'current-chapter') {
-    return !!props.currentChapterId && getBoundChapterId(node) === props.currentChapterId
+function handleToggleNode(nodeId: string) {
+  const index = expandedNodeIds.value.indexOf(nodeId)
+  if (index >= 0) {
+    expandedNodeIds.value.splice(index, 1)
+  } else {
+    expandedNodeIds.value.push(nodeId)
   }
-  if (activeFilter.value === 'asset-ready') {
-    const chapterId = getBoundChapterId(node)
-    return !!chapterId && (assetSummaryByChapterId.value[chapterId]?.total || 0) > 0
-  }
-  if (activeFilter.value === 'asset-missing') {
-    const chapterId = getBoundChapterId(node)
-    return !chapterId || (assetSummaryByChapterId.value[chapterId]?.total || 0) === 0
-  }
-  if (activeFilter.value === 'graph-missing') {
-    return matchesStructureNodeGraphFilter(node, chapterGraphs.value, 'missing')
-  }
-  if (activeFilter.value === 'graph-ready') {
-    return matchesStructureNodeGraphFilter(node, chapterGraphs.value, 'graphed')
-  }
-  if (activeFilter.value === 'graph-inherit') {
-    return matchesStructureNodeGraphFilter(node, chapterGraphs.value, 'inherit')
-  }
-  if (activeFilter.value === 'draft') return getStructureNodeLane(node) === 'draft'
-  if (activeFilter.value === 'writing') return getStructureNodeLane(node) === 'writing'
-  if (activeFilter.value === 'completed') return getStructureNodeLane(node) === 'completed'
-  return true
 }
 
-function filterOutlineTree(nodes: OutlineNode[]): OutlineNode[] {
-  return nodes.reduce<OutlineNode[]>((result, node) => {
-    const filteredChildren = filterOutlineTree(node.children || [])
-    if (matchesNodeFilter(node) || filteredChildren.length > 0) {
-      result.push({
-        ...node,
-        children: filteredChildren,
-      })
+function openCreateRoot() {
+  editorMode.value = 'create-root'
+  editorForm.value = {
+    title: '',
+    level: 1,
+    status: 'planned',
+    description: '',
+  }
+  editorVisible.value = true
+}
+
+function openCreateChild() {
+  if (!selectedNode.value) return
+  openCreateChildForNode(selectedNode.value)
+}
+
+function handleEditSelected(_data: any) {
+  if (!selectedNode.value) return
+  // 编辑模式：更新节点
+  editorVisible.value = false
+  // 编辑逻辑已在 submitNodeEditor 中处理
+}
+
+function handleDeleteSelected() {
+  if (!selectedNode.value) return
+  messageBox.confirm(`确定删除结构节点"${selectedNode.value.title}"吗？`, '删除节点', {
+    type: 'warning',
+  }).then(() => {
+    if (!effectiveProjectId.value || !selectedNode.value) return
+    writerStore.deleteOutlineNode(selectedNode.value.id, effectiveProjectId.value)
+    if (selectedNodeId.value === selectedNode.value.id) {
+      selectedNodeId.value = ''
+      draftBindingChapterId.value = ''
     }
-    return result
-  }, [])
+    message.success('结构节点已删除')
+    handleRefresh()
+  })
+}
+
+async function handleBindChapterFromMenu(chapterId: string) {
+  if (!selectedNode.value) return
+  await bindChapterForNode(selectedNode.value, chapterId)
+}
+
+async function handleUnbindChapterFromMenu() {
+  if (!selectedNode.value) return
+  await unbindChapterForNode(selectedNode.value)
 }
 
 function selectNode(node: OutlineNode) {
@@ -551,18 +331,6 @@ function openCreateChildForNode(node: OutlineNode) {
     level: Math.min((node.level || 1) + 1, 3),
     status: 'planned',
     description: '',
-  }
-  editorVisible.value = true
-}
-
-function openEditNode(node: OutlineNode) {
-  selectNode(node)
-  editorMode.value = 'edit'
-  editorForm.value = {
-    title: node.title || '',
-    level: node.level || 1,
-    status: node.status === 'completed' || node.status === 'writing' ? node.status : 'planned',
-    description: node.description || '',
   }
   editorVisible.value = true
 }
@@ -704,37 +472,6 @@ async function bindChapterForNode(node: OutlineNode, chapterId: string) {
   message.success(chapter ? `已绑定到章节「${chapter.title}」` : '章节绑定已更新')
 }
 
-async function bindCurrentChapterForNode(node: OutlineNode) {
-  if (!props.currentChapterId) return
-
-  // 只有 volume 类型的大纲节点才能自动映射到章节
-  const nodeWithType = node as OutlineNode & { type?: string }
-  if (nodeWithType.type && nodeWithType.type !== 'volume') {
-    message.warning('只有卷级别的大纲节点才能绑定章节')
-    return
-  }
-
-  await bindChapterForNode(node, props.currentChapterId)
-}
-
-async function updateNodeStatus(node: OutlineNode, status: StructureStatusValue) {
-  if (!effectiveProjectId.value) return
-  if ((node.status || 'planned') === status) return
-
-  await writerStore.updateOutlineNode(node.id, effectiveProjectId.value, {
-    title: node.title,
-    status: status === 'planned' ? DocumentStatus.PLANNED : status,
-    notes: (node as OutlineNode & { notes?: string }).notes,
-    tags: (node as OutlineNode & { tags?: string[] }).tags,
-  })
-
-  selectNode(node)
-  await handleRefresh()
-  message.success(
-    `结构节点已切换为「${status === 'planned' ? '草稿' : status === 'writing' ? '写作中' : '已完成'}」`,
-  )
-}
-
 async function submitNodeEditor(value: StructureNodeFormValue) {
   if (!effectiveProjectId.value) {
     message.warning('当前没有可用项目')
@@ -771,31 +508,6 @@ async function submitNodeEditor(value: StructureNodeFormValue) {
   }
 }
 
-/**
- * 画布编辑节点：双击改名时，直接更新标题（不走编辑弹窗）
- */
-async function handleCanvasEditNode(node: OutlineNode) {
-  if (!effectiveProjectId.value) return
-  // 画布双击编辑时，打开编辑弹窗以保留完整表单能力
-  openEditNode(node)
-}
-
-/**
- * 画布删除节点
- */
-async function handleCanvasDeleteNode(node: OutlineNode) {
-  if (!effectiveProjectId.value) return
-  await messageBox.confirm(`确定删除结构节点"${node.title}"吗？`, '删除节点', {
-    type: 'warning',
-  })
-  await writerStore.deleteOutlineNode(node.id, effectiveProjectId.value)
-  if (selectedNodeId.value === node.id) {
-    selectedNodeId.value = ''
-    draftBindingChapterId.value = ''
-  }
-  message.success('结构节点已删除')
-}
-
 async function handleRefresh() {
   if (!effectiveProjectId.value) return
   structureRefreshError.value = ''
@@ -803,8 +515,8 @@ async function handleRefresh() {
     await writerStore.loadOutlineTree(effectiveProjectId.value)
     assetRefState.value = loadWriterAssetRefState(effectiveProjectId.value)
     expandRootNodes()
-    if (!selectedNodeId.value && filteredRootNodes.value.length > 0) {
-      selectNode(filteredRootNodes.value[0])
+    if (!selectedNodeId.value && rootNodes.value.length > 0) {
+      selectNode(rootNodes.value[0])
     }
   } catch (error) {
     const fallbackMessage =
@@ -830,38 +542,11 @@ watch(
   },
   { immediate: true },
 )
-
-watch(
-  () => [
-    filterText.value,
-    activeFilter.value,
-    filteredFlattenedNodes.value.map((node) => node.id).join('|'),
-  ],
-  () => {
-    if (
-      selectedNodeId.value &&
-      filteredFlattenedNodes.value.some((node) => node.id === selectedNodeId.value)
-    ) {
-      return
-    }
-
-    const firstNode = filteredFlattenedNodes.value[0]
-    if (firstNode) {
-      selectNode(firstNode)
-      return
-    }
-
-    selectedNodeId.value = ''
-    draftBindingChapterId.value = ''
-    writerStore.setCurrentOutlineNode(null)
-  },
-  { immediate: true },
-)
 </script>
 
 <style scoped lang="scss">
 /* ==========================================================================
-   结构舞台主容器 - 采用现代毛玻璃设计与分层 Flex 布局
+   结构舞台主容器 - 极简设计
    ========================================================================== */
 .structure-stage-view {
   --structure-warm: #8f3f2f;
@@ -876,82 +561,39 @@ watch(
   background: transparent;
 }
 
-/* 1. 顶部现代化分段导航栏 (Segmented Control) */
-.structure-stage-view__tabs {
+/* 1. 顶部简化导航栏 */
+.structure-stage-view__header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: 12px 16px;
   background: var(--editor-bg-surface, #f8fafc);
   border-radius: var(--editor-radius-lg, 8px);
   border: 1px solid var(--editor-border, #e2e8f0);
   margin: 0 4px;
 }
 
-.tabs-group {
-  display: flex;
-  gap: 2px;
-  background: var(--editor-bg-elevated, #f1f5f9);
-  padding: 4px;
-  border-radius: var(--editor-radius-md, 6px);
-  border: 1px solid var(--editor-border, #e2e8f0);
-}
-
-.stage-tab {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 20px;
-  border-radius: var(--editor-radius-md, 6px);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--editor-text-muted, #64748b);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-
-  .stage-tab__icon {
-    opacity: 0.5;
-    transition: all 0.25s;
-    filter: grayscale(1);
-    color: currentColor;
-  }
-
-  &:hover {
-    color: var(--editor-text-secondary, #334155);
-    background: var(--editor-bg-elevated, #f1f5f9);
-
-    .stage-tab__icon {
-      opacity: 0.8;
-      filter: grayscale(0);
-      transform: scale(1.1);
-    }
-  }
-
-  &.is-active {
-    background: var(--editor-bg-base, #ffffff);
-    color: var(--editor-accent, #06b6d4);
-    border-color: var(--editor-accent-soft-border, #a5f3fc);
-    box-shadow: none;
-
-    .stage-tab__icon {
-      opacity: 1;
-      filter: grayscale(0);
-    }
-
-    .stage-tab__label {
-      font-weight: 700;
-    }
-  }
-}
-
-.tabs-actions {
+.header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.structure-stage-view__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--editor-accent);
+  font-weight: 800;
+}
+
+.structure-stage-view__title {
+  margin: 4px 0 0;
+  font-size: 18px;
+  color: var(--editor-text-primary);
+  font-weight: 700;
 }
 
 .structure-stage-view__status {
@@ -1006,6 +648,12 @@ watch(
   }
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .refresh-action {
   display: flex;
   align-items: center;
@@ -1034,120 +682,49 @@ watch(
   }
 }
 
-/* 2. 紧凑工具栏 (搜索 & 指标) */
-.structure-stage-view__toolbar {
+/* 2. 错误卡片 */
+.structure-stage-view__error-card {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 16px 20px;
+  background: #fff2e7;
+  border: 1px solid rgba(143, 63, 47, 0.2);
+  border-radius: var(--editor-radius-lg, 8px);
+  margin: 0 4px;
   gap: 16px;
 }
 
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
+.structure-stage-view__error-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--structure-warm);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
 }
 
-.structure-search {
-  position: relative;
-  width: 260px;
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #a39589;
-  }
-
-  .structure-search__input {
-    width: 100%;
-    height: 36px;
-    padding: 0 12px 0 38px;
-    border-radius: 12px;
-    border: 1px solid rgba(143, 63, 47, 0.1);
-    background: rgba(255, 255, 255, 0.7);
-    font-size: 13px;
-    outline: none;
-    transition: all 0.2s;
-
-    &:focus {
-      background: white;
-      border-color: var(--structure-warm);
-      box-shadow: 0 0 0 3px rgba(143, 63, 47, 0.08);
-    }
-  }
+.structure-stage-view__error-card h3 {
+  margin: 6px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--structure-warm);
 }
 
-.structure-filter-chips {
-  display: flex;
-  gap: 8px;
+.structure-stage-view__error-card p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #8a7e74;
 }
 
-.structure-filter-chip {
-  padding: 6px 14px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: rgba(143, 63, 47, 0.04);
-  color: #746b64;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(143, 63, 47, 0.08);
-  }
-
-  &.is-active {
-    background: rgba(143, 63, 47, 0.1);
-    color: var(--structure-warm);
-    border-color: rgba(143, 63, 47, 0.2);
-  }
-}
-
-.mini-metrics {
-  display: flex;
-  gap: 20px;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 6px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(143, 63, 47, 0.08);
-}
-
-.mini-metric {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-
-  span {
-    font-size: 10px;
-    color: #a39589;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  strong {
-    font-size: 14px;
-    color: #4e443c;
-    font-weight: 700;
-  }
-
-  &.highlight strong {
-    color: var(--structure-warm);
-  }
-}
-
-/* 3. 双栏网格布局容器（树已移至侧边栏） */
+/* 3. 双栏网格布局容器 */
 .structure-stage-view__grid {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-areas: 'stage inspector';
+  grid-template-areas: 'tree inspector';
   gap: 16px;
   padding: 0 4px 4px;
 }
@@ -1156,219 +733,45 @@ watch(
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--editor-bg-surface, #f8fafc);
-  border-radius: var(--editor-radius-lg, 8px);
-  border: 1px solid var(--editor-border, #e2e8f0);
-  overflow: hidden;
 }
 
-.structure-stage-view__stage-column {
-  grid-area: stage;
+.structure-stage-view__tree-column {
+  grid-area: tree;
   background: transparent;
   border: none;
-  gap: 16px;
-}
-
-/* 4. 具体视图样式 (分叉总览/鱼骨/节拍) */
-.structure-stage-view__branch-ribbon,
-:deep(.fishbone-outline-board),
-:deep(.beat-board-panel) {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--editor-bg-base, #ffffff);
-  border-radius: var(--editor-radius-lg, 8px);
-  border: 1px solid var(--editor-border, #e2e8f0);
   overflow: hidden;
-}
-
-/* 5. 分叉总览 (Branch Ribbon) 卡片流样式 */
-.structure-stage-view__branch-ribbon {
-  padding: 24px;
-}
-
-.structure-stage-view__branch-ribbon-header {
-  margin-bottom: 24px;
-  flex-shrink: 0;
-}
-
-.structure-stage-view__branch-eyebrow {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--structure-warm);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-}
-
-.structure-stage-view__branch-ribbon-header h3 {
-  margin: 6px 0;
-  font-size: 24px;
-  font-weight: 800;
-  color: #2e2b27;
-}
-
-.structure-stage-view__branch-hint {
-  font-size: 14px;
-  color: #8a7e74;
-  line-height: 1.6;
-}
-
-.structure-stage-view__branch-cards {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-  padding: 4px;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(143, 63, 47, 0.1);
-    border-radius: 4px;
-  }
-}
-
-.structure-branch-card {
-  padding: 20px;
-  border-radius: 18px;
-  border: 1px solid rgba(143, 63, 47, 0.1);
-  background: white;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.25s;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 32px rgba(143, 63, 47, 0.1);
-    border-color: rgba(143, 63, 47, 0.2);
-  }
-
-  &.is-selected {
-    background: rgba(143, 63, 47, 0.03);
-    border-color: var(--structure-warm);
-    box-shadow: 0 8px 24px rgba(143, 63, 47, 0.12);
-  }
-}
-
-.structure-branch-card__level {
-  display: inline-flex;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(50, 83, 106, 0.08);
-  color: #32536a;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.structure-branch-card__title {
-  color: #2b2926;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.structure-branch-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  span {
-    font-size: 12px;
-    color: #6f6257;
-    background: #f5efe7;
-    border-radius: 999px;
-    padding: 4px 10px;
-  }
-}
-
-.structure-branch-card__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.structure-branch-card__chip {
-  font-size: 11px;
-  color: #65574d;
-  border-radius: 999px;
-  border: 1px solid rgba(117, 93, 67, 0.12);
-  background: rgba(255, 251, 247, 0.88);
-  padding: 4px 10px;
-}
-
-.structure-branch-card__chip.is-ready {
-  color: #1f6a43;
-  background: #eaf7ef;
-  border-color: rgba(31, 106, 67, 0.16);
-}
-
-.structure-branch-card__chip.is-inherit {
-  color: #32536a;
-  background: #eaf1f6;
-  border-color: rgba(50, 83, 106, 0.16);
-}
-
-.structure-branch-card__chip.is-missing {
-  color: #8f3f2f;
-  background: #fff2e7;
-  border-color: rgba(143, 63, 47, 0.16);
-}
-
-.structure-stage-view__branch-empty {
-  border-radius: 18px;
-  border: 2px dashed rgba(143, 63, 47, 0.15);
-  background: rgba(255, 251, 247, 0.6);
-  padding: 32px;
-  color: #8a7e74;
-  font-size: 15px;
-  text-align: center;
 }
 
 /* 子组件特殊覆盖 */
 :deep(.structure-inspector-panel) {
   grid-area: inspector;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: var(--editor-bg-surface, #f8fafc) !important;
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0) !important;
 }
 
 @media (max-width: 1380px) {
   .structure-stage-view__grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      'stage'
+      'tree'
       'inspector';
   }
 }
 
 @media (max-width: 1024px) {
-  .structure-stage-view__grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'stage'
-      'inspector';
-  }
-
-  .structure-stage-view__tabs {
+  .structure-stage-view__header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
 
-  .tabs-group {
-    justify-content: center;
+  .header-left {
+    justify-content: space-between;
   }
 
-  .tabs-actions {
-    justify-content: space-between;
+  .header-actions {
+    justify-content: flex-end;
   }
 }
 </style>
