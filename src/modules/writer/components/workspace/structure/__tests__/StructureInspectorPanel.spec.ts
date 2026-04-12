@@ -13,7 +13,8 @@ describe('StructureInspectorPanel', () => {
       status: 'writing',
       wordCount: 2800,
       children: [{ id: 'node-1-1' }],
-      tags: ['chapter-binding:chapter-1'],
+      documentId: 'chapter-1',
+      tags: [],
     } as unknown as OutlineNode
 
     const wrapper = mount(StructureInspectorPanel, {

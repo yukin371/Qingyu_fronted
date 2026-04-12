@@ -31,7 +31,8 @@ describe('Structure drag panels', () => {
       title: '主干 A',
       level: 1,
       order: 0,
-      tags: ['chapter-binding:chapter-1'],
+      documentId: 'chapter-1',
+      tags: [],
     } as unknown as OutlineNode
 
     expect(matchesStructureNodeGraphFilter(node, [], 'missing')).toBe(true)
@@ -110,7 +111,8 @@ describe('Structure drag panels', () => {
         level: 1,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
         children: [],
       },
     ] as unknown as OutlineNode[]
@@ -159,7 +161,8 @@ describe('Structure drag panels', () => {
         level: 1,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
         children: [],
       },
     ] as unknown as OutlineNode[]
@@ -200,7 +203,8 @@ describe('Structure drag panels', () => {
         level: 1,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
         children: [],
       },
     ] as unknown as OutlineNode[]
@@ -381,7 +385,8 @@ describe('Structure drag panels', () => {
         level: 2,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
       },
     ] as unknown as OutlineNode[]
 
@@ -427,7 +432,8 @@ describe('Structure drag panels', () => {
         level: 2,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
       },
     ] as unknown as OutlineNode[]
 
@@ -466,7 +472,8 @@ describe('Structure drag panels', () => {
         level: 2,
         status: 'planned',
         order: 0,
-        tags: ['chapter-binding:chapter-1'],
+        documentId: 'chapter-1',
+        tags: [],
       },
     ] as unknown as OutlineNode[]
 
