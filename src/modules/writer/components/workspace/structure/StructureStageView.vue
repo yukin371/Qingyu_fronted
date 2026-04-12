@@ -280,7 +280,6 @@ import StructureNodeEditorDialog, {
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import {
   type StructureStatusValue,
-  buildStructureNodeTags,
   findBoundChapter,
   getBoundChapterId,
   getStructureNodeGraphState,
@@ -667,7 +666,8 @@ async function unbindChapterForNode(node: OutlineNode) {
         ? node.status
         : DocumentStatus.PLANNED,
     notes: (node as OutlineNode & { notes?: string }).notes,
-    tags: buildStructureNodeTags(node, ''),
+    tags: [],
+    documentId: '',
   })
 
   selectNode(node)
@@ -693,7 +693,8 @@ async function bindChapterForNode(node: OutlineNode, chapterId: string) {
         ? node.status
         : DocumentStatus.PLANNED,
     notes: (node as OutlineNode & { notes?: string }).notes,
-    tags: buildStructureNodeTags(node, chapterId),
+    tags: [],
+    documentId: chapterId,
   })
 
   selectNode(node)
