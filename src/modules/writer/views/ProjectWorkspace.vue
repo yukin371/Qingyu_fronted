@@ -94,10 +94,26 @@
           :ai-apply-feedback="aiApplyFeedback"
           :workflow-context="workflowContext"
           :draft-proposals="visibleDraftProposals"
+          :harness-data="{
+            projectId: currentProjectId,
+            chapterId: displayChapterId,
+            chapterTitle: displayChapterTitle,
+            content: tipTapContent,
+            chapterCount: flatChapters.length,
+            scopeLabel: currentScopeLabel,
+            entityStats: storyHarnessEntityStats,
+            activeCharacters: activeScopeCharacters,
+            activeRelations: activeScopeRelations,
+            changeRequests: storyHarnessChangeRequests,
+            handleChangeRequestDecision,
+            handleTriggerIndex: handleStoryHarnessTriggerIndex,
+            isTriggeringIndex: isStoryHarnessTriggering,
+          }"
           @toggle="toggleRightPanel"
           @ai-apply="handleAIApplyGeneratedText"
           @proposal-draft="handleProposalDraft"
           @proposal-status-change="handleProposalStatusChange"
+          @trigger-ai-action="handleWorkflowAction"
         />
       </template>
     </EditorLayout>

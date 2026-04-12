@@ -25,23 +25,6 @@
         @open-tool-overlay="toolOverlay.open()"
       />
     </div>
-    <StoryHarnessPanel
-      class="workspace-writing-surface__aside"
-      :project-id="projectId"
-      :chapter-id="chapterId"
-      :chapter-title="chapterTitle"
-      :content="modelContent"
-      :chapter-count="chapters.length"
-      :scope-label="scopeLabel"
-      :entity-stats="entityStats"
-      :active-characters="activeCharacters"
-      :active-relations="activeRelations"
-      :change-requests="changeRequests"
-      :handle-change-request-decision="handleChangeRequestDecision"
-      :handle-trigger-index="handleTriggerIndex"
-      :is-triggering-index="isTriggeringIndex"
-      @trigger-ai-action="emit('trigger-ai-action', $event)"
-    />
   </div>
 
   <!-- 全屏工具面板 -->
@@ -67,7 +50,6 @@
 import { computed } from 'vue'
 import TipTapEditorView from '@/modules/writer/components/editor-new/TipTapEditorView.vue'
 import WorkspaceToolOverlay from '@/modules/writer/components/workspace/WorkspaceToolOverlay.vue'
-import StoryHarnessPanel from '@/modules/writer/components/v3/story-harness/StoryHarnessPanel.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
@@ -254,7 +236,7 @@ defineExpose({
 
 .workspace-writing-surface {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -269,21 +251,9 @@ defineExpose({
   overflow: hidden;
 }
 
-.workspace-writing-surface__aside {
-  min-height: 0;
-  overflow: auto;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .empty-icon {
     transition: none;
-  }
-}
-
-@media (max-width: 1200px) {
-  .workspace-writing-surface {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
   }
 }
 </style>
