@@ -3,7 +3,8 @@ import type { ChapterGraph } from '@/modules/writer/types/character'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 
-const CHAPTER_BINDING_TAG_PREFIX = 'chapter-binding:'
+// 已废弃：不再使用 chapter-binding tag，统一使用 documentId 字段
+// const CHAPTER_BINDING_TAG_PREFIX = 'chapter-binding:'
 
 export const STRUCTURE_STATUS_OPTIONS = [
   { value: 'planned', label: '草稿' },
@@ -50,24 +51,20 @@ export function getStructureNodeBindingState(node: OutlineNode | null | undefine
 }
 
 export function getBoundChapterId(node: OutlineNode | null | undefined): string {
-  if (!node) return ''
-  const tags = Array.isArray((node as OutlineNode & { tags?: unknown[] }).tags)
-    ? ((node as OutlineNode & { tags?: unknown[] }).tags as unknown[])
-    : []
-  const match = tags.find((tag) => typeof tag === 'string' && tag.startsWith(CHAPTER_BINDING_TAG_PREFIX))
-  return typeof match === 'string' ? match.slice(CHAPTER_BINDING_TAG_PREFIX.length) : ''
+  return node?.documentId || ''
 }
 
+/**
+ * @deprecated 已废弃：不再使用 chapter-binding tag
+ * 绑定关系现在统一通过 documentId 字段管理
+ * 此函数保留仅为向后兼容，返回空数组
+ */
 export function buildStructureNodeTags(
-  node: OutlineNode | null | undefined,
-  chapterId: string,
+  _node: OutlineNode | null | undefined,
+  _chapterId: string,
 ): string[] {
-  const existingTags = Array.isArray((node as OutlineNode & { tags?: unknown[] } | null | undefined)?.tags)
-    ? ((((node as OutlineNode & { tags?: unknown[] }).tags as unknown[]) || []).filter((tag): tag is string => typeof tag === 'string'))
-    : []
-
-  const filteredTags = existingTags.filter((tag) => !tag.startsWith(CHAPTER_BINDING_TAG_PREFIX))
-  return chapterId ? [...filteredTags, `${CHAPTER_BINDING_TAG_PREFIX}${chapterId}`] : filteredTags
+  // 不再构建 chapter-binding tags，统一使用 documentId 字段
+  return []
 }
 
 export function findBoundChapter(

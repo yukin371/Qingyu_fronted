@@ -269,7 +269,7 @@ export const createMockOutlineTree = (
           createdAt: chapter.updatedAt,
           updatedAt: chapter.updatedAt,
           children: [],
-          tags: [`chapter-binding:${chapter.id}`],
+          tags: [],
         } as OutlineNode
       })
       .filter(Boolean) as OutlineNode[],
