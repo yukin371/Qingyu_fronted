@@ -52,7 +52,7 @@ export class Storage {
   clear(): void {
     try {
       const keys = Object.keys(localStorage)
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(PREFIX)) {
           localStorage.removeItem(key)
         }
@@ -74,3 +74,23 @@ const storage = new Storage()
 
 export default storage
 
+/**
+ * 读取存储的认证 token
+ * @returns token 字符串或 null
+ */
+export function readStoredAuthToken(): string | null {
+  try {
+    const item = localStorage.getItem(PREFIX + 'token')
+    if (item === null || item === 'undefined' || item === 'null') {
+      return null
+    }
+    // 支持直接存储的字符串或 JSON 格式
+    try {
+      return JSON.parse(item) as string
+    } catch {
+      return item
+    }
+  } catch {
+    return null
+  }
+}

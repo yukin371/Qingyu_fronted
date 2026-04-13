@@ -5,6 +5,16 @@
         <h2 class="timeline-outline-view__title">时间线大纲</h2>
         <p class="timeline-outline-view__subtitle">聚焦关键事件与节奏推进，辅助主线与支线校准。</p>
       </div>
+      <div class="timeline-outline-view__context-anchors">
+        <span v-if="chapterTitle" class="context-anchor">
+          <QyIcon name="Document" :size="12" />
+          章节：{{ chapterTitle }}
+        </span>
+        <span v-if="workflowContext?.scopeLabel" class="context-anchor">
+          <QyIcon name="Grid" :size="12" />
+          场景：{{ workflowContext.scopeLabel }}
+        </span>
+      </div>
       <div class="timeline-outline-view__actions">
         <el-button size="small" @click="handleRefresh">
           <QyIcon name="Refresh" :size="14" />
@@ -246,11 +256,37 @@ watch(
 .timeline-outline-view__header {
   padding: 14px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   border-bottom: 1px solid var(--editor-border, #d9e2f1);
   background: var(--editor-bg-base, #fff);
+}
+
+.timeline-outline-view__title-wrap {
+  flex: 1;
+  min-width: 200px;
+}
+
+.timeline-outline-view__context-anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.context-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.16);
+  color: var(--editor-accent, #06b6d4);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .timeline-outline-view__title {

@@ -1,85 +1,150 @@
 <template>
   <section class="structure-stage-view">
-    <!-- 顶部快速切换标签栏 - 现代化分段控制 -->
-    <nav class="structure-stage-view__tabs" aria-label="结构舞台视图切换">
-      <div class="tabs-group">
-        <button
-          v-for="option in viewModeOptions"
-          :key="option.value"
-          type="button"
-          class="stage-tab"
-          :class="{ 'is-active': stageViewMode === option.value }"
-          @click="stageViewMode = option.value"
-        >
-          <QyIcon :name="option.icon" :size="14" class="stage-tab__icon" />
-          <span class="stage-tab__label">{{ option.label }}</span>
-        </button>
-      </div>
-
-      <div class="tabs-actions">
-        <div
-          class="structure-stage-view__status"
-          :class="{ 'is-loading': isOutlineLoading, 'is-error': !!structureRefreshError }"
-        >
-          {{
-            isOutlineLoading ? '正在同步结构...' : structureRefreshError ? '同步失败' : '结构已就绪'
-          }}
+    <header class="structure-stage-view__header">
+      <div class="structure-stage-view__header-main">
+        <div class="structure-stage-view__title-block">
+          <p class="structure-stage-view__eyebrow">Structure Stage</p>
+          <h2>结构舞台</h2>
+          <p class="structure-stage-view__subtitle">
+            这里优先完成节点推进、章节绑定与进入写作。复杂筛选与专业视图已下沉。
+          </p>
         </div>
-        <button
-          type="button"
-          class="refresh-action"
-          :disabled="isOutlineLoading"
-          @click="handleRefresh"
-        >
-          <QyIcon :name="isOutlineLoading ? 'Loading' : 'Refresh'" :size="14" />
-          <span>{{ isOutlineLoading ? '加载中' : '刷新' }}</span>
-        </button>
-      </div>
-    </nav>
 
-    <!-- 紧凑工具栏：搜索与筛选 -->
-    <header class="structure-stage-view__toolbar">
-      <div class="toolbar-left">
-        <div class="structure-search">
-          <QyIcon name="Search" :size="14" class="search-icon" />
-          <input
-            v-model.trim="filterText"
-            type="text"
-            class="structure-search__input"
-            placeholder="搜索节点标题或描述"
-          />
-        </div>
-        <div class="structure-filter-chips">
+        <div class="structure-stage-view__header-actions">
           <button
-            v-for="option in filterOptions"
-            :key="option.value"
             type="button"
-            class="structure-filter-chip"
-            :class="{ 'is-active': activeFilter === option.value }"
-            @click="activeFilter = option.value"
+            class="stage-secondary-action"
+            :class="{ 'is-active': showAdvancedControls }"
+            @click="showAdvancedControls = !showAdvancedControls"
           >
-            {{ option.label }}
+            <QyIcon name="Filter" :size="14" />
+            <span>{{ showAdvancedControls ? '收起高级控制' : '高级视图与筛选' }}</span>
+          </button>
+          <div
+            class="structure-stage-view__status"
+            :class="{ 'is-loading': isOutlineLoading, 'is-error': !!structureRefreshError }"
+          >
+            {{
+              isOutlineLoading
+                ? '正在同步结构...'
+                : structureRefreshError
+                  ? '同步失败'
+                  : '结构已就绪'
+            }}
+          </div>
+          <button
+            type="button"
+            class="refresh-action"
+            :disabled="isOutlineLoading"
+            @click="handleRefresh"
+          >
+            <QyIcon :name="isOutlineLoading ? 'Loading' : 'Refresh'" :size="14" />
+            <span>{{ isOutlineLoading ? '加载中' : '刷新' }}</span>
           </button>
         </div>
       </div>
 
-      <div class="toolbar-right">
-        <div class="mini-metrics">
-          <div class="mini-metric" title="主干节点数">
-            <span>主干</span><strong>{{ rootNodes.length }}</strong>
-          </div>
-          <div class="mini-metric" title="结构总数">
-            <span>总计</span><strong>{{ flattenedNodes.length }}</strong>
-          </div>
-          <div class="mini-metric" title="当前筛选数">
-            <span>命中</span><strong>{{ filteredFlattenedNodes.length }}</strong>
-          </div>
-          <div class="mini-metric highlight" title="当前章节">
-            <span>当前</span><strong>{{ currentChapterTitle || '未选择' }}</strong>
-          </div>
+      <div class="structure-stage-view__focus-card">
+        <div class="focus-card__summary">
+          <span class="focus-card__label">当前节点</span>
+          <strong class="focus-card__title">{{ selectedNode?.title || '未选择结构节点' }}</strong>
+          <span class="focus-card__meta">
+            <span>{{ boundChapter ? `章节：${boundChapter.title}` : '章节：未绑定' }}</span>
+            <span v-if="selectedNode">{{ `状态：${selectedNodeStatusText}` }}</span>
+            <span v-if="selectedNodeAssetCount > 0">{{ `资产：${selectedNodeAssetCount}` }}</span>
+          </span>
+          <p class="focus-card__hint">
+            图谱、时间线与分支已收进右侧结构检视，默认层先专注当前节点与进入写作。
+          </p>
+        </div>
+
+        <div class="focus-card__actions">
+          <button
+            type="button"
+            class="focus-card__action focus-card__action--primary"
+            :disabled="!boundChapter"
+            @click="boundChapter && emit('jumpToChapter', boundChapter.id)"
+          >
+            进入写作
+          </button>
+          <button
+            type="button"
+            class="focus-card__action focus-card__action--secondary"
+            :disabled="!selectedNode || !currentChapterId"
+            @click="selectedNode && currentChapterId && bindCurrentChapterForNode(selectedNode)"
+          >
+            绑定当前章节
+          </button>
         </div>
       </div>
     </header>
+
+    <section
+      v-if="showAdvancedControls"
+      class="structure-stage-view__advanced"
+      data-testid="structure-stage-advanced"
+    >
+      <!-- 视图模式 Tab：仅在高级控制展开时显示 -->
+      <nav class="structure-stage-view__tabs" aria-label="结构舞台视图切换">
+        <div class="tabs-group">
+          <button
+            v-for="option in viewModeOptions"
+            :key="option.value"
+            type="button"
+            class="stage-tab"
+            :class="{ 'is-active': stageViewMode === option.value }"
+            @click="stageViewMode = option.value"
+          >
+            <QyIcon :name="option.icon" :size="14" class="stage-tab__icon" />
+            <span class="stage-tab__label">{{ option.label }}</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- 高级工具栏 -->
+      <header class="structure-stage-view__toolbar">
+        <div class="toolbar-left">
+          <div class="structure-search">
+            <QyIcon name="Search" :size="14" class="search-icon" />
+            <input
+              v-model.trim="filterText"
+              type="text"
+              class="structure-search__input"
+              placeholder="搜索节点标题或描述"
+            />
+          </div>
+          <div class="structure-filter-chips">
+            <button
+              v-for="option in filterOptions"
+              :key="option.value"
+              type="button"
+              class="structure-filter-chip"
+              :class="{ 'is-active': activeFilter === option.value }"
+              @click="activeFilter = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="mini-metrics">
+            <div class="mini-metric" title="主干节点数">
+              <span>主干</span><strong>{{ rootNodes.length }}</strong>
+            </div>
+            <div class="mini-metric" title="结构总数">
+              <span>总计</span><strong>{{ flattenedNodes.length }}</strong>
+            </div>
+            <div class="mini-metric" title="当前筛选数">
+              <span>命中</span><strong>{{ filteredFlattenedNodes.length }}</strong>
+            </div>
+            <div class="mini-metric highlight" title="当前章节">
+              <span>当前</span><strong>{{ currentChapterTitle || '未选择' }}</strong>
+            </div>
+          </div>
+        </div>
+      </header>
+    </section>
 
     <section v-if="structureRefreshError" class="structure-stage-view__error-card">
       <div>
@@ -99,125 +164,208 @@
 
     <div class="structure-stage-view__grid">
       <div class="structure-stage-view__stage-column">
-        <!-- 模式 1: 分叉总览 -->
-        <section v-if="stageViewMode === 'overview'" class="structure-stage-view__branch-ribbon">
-          <div class="structure-stage-view__branch-ribbon-header">
-            <div>
-              <p class="structure-stage-view__branch-eyebrow">Branch Ribbon</p>
-              <h3>主线与分叉一眼对齐</h3>
+        <section
+          v-if="!showAdvancedControls"
+          class="structure-stage-view__default-stage"
+          data-testid="structure-stage-default"
+        >
+          <article class="structure-stage-view__default-hero">
+            <p class="structure-stage-view__default-eyebrow">Current Focus</p>
+            <h3>{{ selectedNode?.title || '还没有可用节点' }}</h3>
+            <p class="structure-stage-view__default-copy">
+              {{
+                selectedNode?.description ||
+                '默认层先承接节点推进与章节绑定。更复杂的视图切换和结构图展示，按需从上方高级控制进入。'
+              }}
+            </p>
+            <div class="structure-stage-view__default-meta">
+              <span>{{ defaultStagePrimaryHint }}</span>
+              <span>{{ currentChapterTitle || '当前未锁定章节' }}</span>
             </div>
-            <div class="structure-stage-view__branch-hint">
-              先看每条主干的上下分支密度，再进入鱼骨图与节拍板细化。
-            </div>
-          </div>
+          </article>
 
-          <div v-if="branchSpotlights.length" class="structure-stage-view__branch-cards">
-            <button
-              v-for="branch in branchSpotlights"
-              :key="branch.id"
-              type="button"
-              class="structure-branch-card"
-              :class="{ 'is-selected': selectedNodeId === branch.id }"
-              @click="selectNode(branch.node)"
+          <section class="structure-stage-view__default-queue">
+            <div class="structure-stage-view__default-queue-header">
+              <div>
+                <p class="structure-stage-view__default-eyebrow">Structure Queue</p>
+                <h4>当前推进队列</h4>
+              </div>
+              <span class="structure-stage-view__default-count">
+                {{ defaultStageNodes.length }} 个节点
+              </span>
+            </div>
+
+            <div
+              v-if="defaultStageNodes.length"
+              class="structure-stage-view__default-list"
+              data-testid="structure-stage-default-list"
             >
-              <span class="structure-branch-card__level">L{{ branch.level }}</span>
-              <strong class="structure-branch-card__title">{{ branch.title }}</strong>
-              <span class="structure-branch-card__meta">
-                <span>{{ branch.branchCount }} 条分叉</span>
-                <span>上支 {{ branch.topCount }}</span>
-                <span>下支 {{ branch.bottomCount }}</span>
-              </span>
-              <span class="structure-branch-card__chips">
-                <span class="structure-branch-card__chip">{{ branch.bindingLabel }}</span>
-                <span class="structure-branch-card__chip" :class="`is-${branch.graphTone}`">{{
-                  branch.graphLabel
-                }}</span>
-                <span v-if="branch.assetLabel" class="structure-branch-card__chip">{{
-                  branch.assetLabel
-                }}</span>
-              </span>
-            </button>
-          </div>
-          <div v-else class="structure-stage-view__branch-empty">
-            {{
-              isOutlineLoading
-                ? '正在编排主干与分叉摘要…'
-                : '还没有主干节点，先创建主线后再展开分叉。'
-            }}
-          </div>
+              <button
+                v-for="node in defaultStageNodes"
+                :key="node.id"
+                type="button"
+                class="structure-stage-view__default-node"
+                :class="{ 'is-selected': selectedNodeId === node.id }"
+                @click="selectNode(node)"
+              >
+                <div class="structure-stage-view__default-node-header">
+                  <span
+                    class="structure-stage-view__default-node-status"
+                    :class="`is-${getStructureNodeLane(node)}`"
+                  >
+                    {{ getStructureNodeStatusText(node) }}
+                  </span>
+                  <span class="structure-stage-view__default-node-binding">
+                    {{ getDefaultNodeBindingLabel(node) }}
+                  </span>
+                </div>
+                <strong class="structure-stage-view__default-node-title">
+                  {{ node.title || '未命名节点' }}
+                </strong>
+                <p class="structure-stage-view__default-node-copy">
+                  {{ node.description || '还没有补充节点摘要，先绑定章节或补充一句目标说明。' }}
+                </p>
+                <div class="structure-stage-view__default-node-meta">
+                  <span>{{ `L${node.level || 1}` }}</span>
+                  <span>{{ `子节点 ${node.children?.length || 0}` }}</span>
+                  <span v-if="getNodeAssetCount(node) > 0">{{
+                    `资产 ${getNodeAssetCount(node)}`
+                  }}</span>
+                </div>
+              </button>
+            </div>
+
+            <div v-else class="structure-stage-view__default-empty">
+              {{
+                isOutlineLoading
+                  ? '正在准备当前推进队列...'
+                  : '当前筛选条件下没有结构节点，调整筛选或先创建主线节点。'
+              }}
+            </div>
+          </section>
         </section>
 
-        <!-- 模式 2: 鱼骨聚焦 -->
-        <FishboneOutlineBoard
-          v-if="stageViewMode === 'fishbone'"
-          :nodes="filteredRootNodes"
-          :selected-node-id="selectedNodeId"
-          :chapters="chapterOptions"
-          :chapter-graphs="chapterGraphs"
-          :asset-summary-by-chapter-id="assetSummaryByChapterId"
-          :current-chapter-id="currentChapterId"
-          :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
-          @select="selectNode"
-          @edit-node="openEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @bind-current-chapter="bindCurrentChapterForNode"
-          @unbind-chapter="unbindChapterForNode"
-          @update-status="updateNodeStatus"
-          @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
-        />
+        <template v-else>
+          <!-- 模式 1: 分叉总览 -->
+          <section v-if="stageViewMode === 'overview'" class="structure-stage-view__branch-ribbon">
+            <div class="structure-stage-view__branch-ribbon-header">
+              <div>
+                <p class="structure-stage-view__branch-eyebrow">Branch Ribbon</p>
+                <h3>主线与分叉一眼对齐</h3>
+              </div>
+              <div class="structure-stage-view__branch-hint">
+                先看每条主干的上下分支密度，再进入鱼骨图与节拍板细化。
+              </div>
+            </div>
 
-        <!-- 模式 3: 自由画布 -->
-        <CanvasOutlineBoard
-          v-if="stageViewMode === 'canvas'"
-          :nodes="filteredRootNodes"
-          :selected-node-id="selectedNodeId"
-          :chapters="chapterOptions"
-          :chapter-graphs="chapterGraphs"
-          :asset-summary-by-chapter-id="assetSummaryByChapterId"
-          :current-chapter-id="currentChapterId"
-          :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
-          @select="selectNode"
-          @edit-node="handleCanvasEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @delete-node="handleCanvasDeleteNode"
-          @update-status="updateNodeStatus"
-          @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
-        />
+            <div v-if="branchSpotlights.length" class="structure-stage-view__branch-cards">
+              <button
+                v-for="branch in branchSpotlights"
+                :key="branch.id"
+                type="button"
+                class="structure-branch-card"
+                :class="{ 'is-selected': selectedNodeId === branch.id }"
+                @click="selectNode(branch.node)"
+              >
+                <span class="structure-branch-card__level">L{{ branch.level }}</span>
+                <strong class="structure-branch-card__title">{{ branch.title }}</strong>
+                <span class="structure-branch-card__meta">
+                  <span>{{ branch.branchCount }} 条分叉</span>
+                  <span>上支 {{ branch.topCount }}</span>
+                  <span>下支 {{ branch.bottomCount }}</span>
+                </span>
+                <span class="structure-branch-card__chips">
+                  <span class="structure-branch-card__chip">{{ branch.bindingLabel }}</span>
+                  <span class="structure-branch-card__chip" :class="`is-${branch.graphTone}`">{{
+                    branch.graphLabel
+                  }}</span>
+                  <span v-if="branch.assetLabel" class="structure-branch-card__chip">{{
+                    branch.assetLabel
+                  }}</span>
+                </span>
+              </button>
+            </div>
+            <div v-else class="structure-stage-view__branch-empty">
+              {{
+                isOutlineLoading
+                  ? '正在编排主干与分叉摘要…'
+                  : '还没有主干节点，先创建主线后再展开分叉。'
+              }}
+            </div>
+          </section>
 
-        <!-- 模式 4: 节拍卡片 -->
-        <BeatBoardPanel
-          v-if="stageViewMode === 'beats'"
-          :beats="filteredFlattenedNodes"
-          :selected-node-id="selectedNodeId"
-          :chapters="chapterOptions"
-          :chapter-graphs="chapterGraphs"
-          :asset-summary-by-chapter-id="assetSummaryByChapterId"
-          :current-chapter-id="currentChapterId"
-          :loading="isOutlineLoading"
-          :can-move-up="canMoveNodeUp"
-          :can-move-down="canMoveNodeDown"
-          @select="selectNode"
-          @edit-node="openEditNode"
-          @move-up="moveNodeUp"
-          @move-down="moveNodeDown"
-          @create-child-node="openCreateChildForNode"
-          @bind-current-chapter="bindCurrentChapterForNode"
-          @unbind-chapter="unbindChapterForNode"
-          @update-status="updateNodeStatus"
-          @open-graph="emit('openGraph', $event)"
-          @jump-to-chapter="emit('jumpToChapter', $event)"
-          @reorder="handleTreeReorder"
-        />
+          <!-- 模式 2: 鱼骨聚焦 -->
+          <FishboneOutlineBoard
+            v-if="stageViewMode === 'fishbone'"
+            :nodes="filteredRootNodes"
+            :selected-node-id="selectedNodeId"
+            :chapters="chapterOptions"
+            :chapter-graphs="chapterGraphs"
+            :asset-summary-by-chapter-id="assetSummaryByChapterId"
+            :current-chapter-id="currentChapterId"
+            :loading="isOutlineLoading"
+            :can-move-up="canMoveNodeUp"
+            :can-move-down="canMoveNodeDown"
+            @select="selectNode"
+            @edit-node="openEditNode"
+            @move-up="moveNodeUp"
+            @move-down="moveNodeDown"
+            @create-child-node="openCreateChildForNode"
+            @bind-current-chapter="bindCurrentChapterForNode"
+            @unbind-chapter="unbindChapterForNode"
+            @update-status="updateNodeStatus"
+            @open-graph="emit('openGraph', $event)"
+            @jump-to-chapter="emit('jumpToChapter', $event)"
+          />
+
+          <!-- 模式 3: 自由画布 -->
+          <CanvasOutlineBoard
+            v-if="stageViewMode === 'canvas'"
+            :nodes="filteredRootNodes"
+            :selected-node-id="selectedNodeId"
+            :chapters="chapterOptions"
+            :chapter-graphs="chapterGraphs"
+            :asset-summary-by-chapter-id="assetSummaryByChapterId"
+            :current-chapter-id="currentChapterId"
+            :loading="isOutlineLoading"
+            :can-move-up="canMoveNodeUp"
+            :can-move-down="canMoveNodeDown"
+            @select="selectNode"
+            @edit-node="handleCanvasEditNode"
+            @move-up="moveNodeUp"
+            @move-down="moveNodeDown"
+            @create-child-node="openCreateChildForNode"
+            @delete-node="handleCanvasDeleteNode"
+            @update-status="updateNodeStatus"
+            @open-graph="emit('openGraph', $event)"
+            @jump-to-chapter="emit('jumpToChapter', $event)"
+          />
+
+          <!-- 模式 4: 节拍卡片 -->
+          <BeatBoardPanel
+            v-if="stageViewMode === 'beats'"
+            :beats="filteredFlattenedNodes"
+            :selected-node-id="selectedNodeId"
+            :chapters="chapterOptions"
+            :chapter-graphs="chapterGraphs"
+            :asset-summary-by-chapter-id="assetSummaryByChapterId"
+            :current-chapter-id="currentChapterId"
+            :loading="isOutlineLoading"
+            :can-move-up="canMoveNodeUp"
+            :can-move-down="canMoveNodeDown"
+            @select="selectNode"
+            @edit-node="openEditNode"
+            @move-up="moveNodeUp"
+            @move-down="moveNodeDown"
+            @create-child-node="openCreateChildForNode"
+            @bind-current-chapter="bindCurrentChapterForNode"
+            @unbind-chapter="unbindChapterForNode"
+            @update-status="updateNodeStatus"
+            @open-graph="emit('openGraph', $event)"
+            @jump-to-chapter="emit('jumpToChapter', $event)"
+            @reorder="handleTreeReorder"
+          />
+        </template>
       </div>
 
       <StructureInspectorPanel
@@ -284,6 +432,7 @@ import {
   getBoundChapterId,
   getStructureNodeGraphState,
   getStructureNodeLane,
+  getStructureNodeStatusText,
   matchesStructureNodeGraphFilter,
   mapLevelToDocumentType,
 } from './structureNodeTypes'
@@ -371,6 +520,7 @@ const editorForm = ref<StructureNodeFormValue>({
 const filterText = ref('')
 const activeFilter = ref<StructureFilterMode>('all')
 const stageViewMode = ref<StageViewMode>('overview')
+const showAdvancedControls = ref(false)
 const viewModeOptions: Array<{ value: StageViewMode; label: string; icon: string }> = [
   { value: 'overview', label: '分叉总览', icon: 'Connection' },
   { value: 'fishbone', label: '鱼骨聚焦', icon: 'Workflow' },
@@ -464,6 +614,35 @@ const selectedNode = computed(
   () => filteredFlattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
 )
 const boundChapter = computed(() => findBoundChapter(selectedNode.value, chapterOptions.value))
+const defaultStageNodes = computed(() => filteredFlattenedNodes.value)
+const selectedNodeStatusText = computed(() => getStructureNodeStatusText(selectedNode.value))
+const selectedNodeAssetCount = computed(() => {
+  const chapterId = getBoundChapterId(selectedNode.value)
+  if (!chapterId) return 0
+  return assetSummaryByChapterId.value[chapterId]?.total || 0
+})
+const defaultStagePrimaryHint = computed(() => {
+  if (boundChapter.value) {
+    return `已绑定「${boundChapter.value.title}」，可以直接进入正文继续写。`
+  }
+  if (selectedNode.value && props.currentChapterTitle) {
+    return `当前工作章节是「${props.currentChapterTitle}」，可直接把它绑定到这个节点。`
+  }
+  if (selectedNode.value) {
+    return '先确定这个节点落到哪一章，再进入正文会更顺。'
+  }
+  return '先从左侧大纲树或下方队列选择一个节点。'
+})
+
+function getNodeAssetCount(node: OutlineNode | null | undefined): number {
+  const chapterId = getBoundChapterId(node)
+  if (!chapterId) return 0
+  return assetSummaryByChapterId.value[chapterId]?.total || 0
+}
+
+function getDefaultNodeBindingLabel(node: OutlineNode): string {
+  return findBoundChapter(node, chapterOptions.value)?.title || '未绑定章节'
+}
 
 function getNodeSiblingContext(node: OutlineNode | null | undefined) {
   if (!node) {
@@ -874,6 +1053,377 @@ watch(
   overflow: hidden;
   position: relative;
   background: transparent;
+}
+
+.structure-stage-view__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.structure-stage-view__header-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.structure-stage-view__title-block {
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--editor-text-primary, #0f172a);
+  }
+}
+
+.structure-stage-view__eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--structure-warm);
+}
+
+.structure-stage-view__subtitle {
+  margin: 6px 0 0;
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--editor-text-secondary, #475569);
+}
+
+.structure-stage-view__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.stage-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--editor-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--editor-bg-base, #fff);
+  color: var(--editor-text-secondary, #334155);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease-out;
+
+  &:hover {
+    border-color: rgba(50, 83, 106, 0.24);
+    color: var(--editor-text-primary, #0f172a);
+  }
+
+  &.is-active {
+    border-color: rgba(6, 182, 212, 0.28);
+    background: rgba(236, 254, 255, 0.72);
+    color: var(--editor-accent, #06b6d4);
+  }
+}
+
+.structure-stage-view__focus-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(50, 83, 106, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96));
+}
+
+.focus-card__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.focus-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--editor-text-muted, #64748b);
+}
+
+.focus-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--editor-text-primary, #0f172a);
+}
+
+.focus-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 12px;
+  color: var(--editor-text-secondary, #475569);
+}
+
+.focus-card__hint {
+  margin: 0;
+  max-width: 520px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--editor-text-muted, #64748b);
+}
+
+.focus-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.focus-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease-out;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--editor-accent, #06b6d4);
+    color: #fff;
+  }
+
+  &--secondary {
+    border-color: rgba(50, 83, 106, 0.16);
+    background: rgba(236, 254, 255, 0.72);
+    color: var(--editor-accent, #06b6d4);
+  }
+
+  &--ghost {
+    border-color: var(--editor-border, #e2e8f0);
+    background: var(--editor-bg-base, #fff);
+    color: var(--editor-text-secondary, #334155);
+  }
+}
+
+.structure-stage-view__advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.structure-stage-view__default-stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+}
+
+.structure-stage-view__default-hero,
+.structure-stage-view__default-queue {
+  border-radius: var(--editor-radius-lg, 8px);
+  border: 1px solid var(--editor-border, #e2e8f0);
+  background: var(--editor-bg-base, #ffffff);
+  overflow: hidden;
+}
+
+.structure-stage-view__default-hero {
+  padding: 18px 20px;
+  background:
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.1), transparent 26%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 255, 0.98));
+}
+
+.structure-stage-view__default-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--structure-warm);
+}
+
+.structure-stage-view__default-hero h3,
+.structure-stage-view__default-queue-header h4 {
+  margin: 8px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--editor-text-primary, #0f172a);
+}
+
+.structure-stage-view__default-copy {
+  margin: 10px 0 0;
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--editor-text-secondary, #475569);
+}
+
+.structure-stage-view__default-meta {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(236, 254, 255, 0.8);
+    border: 1px solid rgba(6, 182, 212, 0.12);
+    color: var(--editor-text-secondary, #334155);
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.structure-stage-view__default-queue {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.structure-stage-view__default-queue-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--editor-border, #e2e8f0);
+}
+
+.structure-stage-view__default-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--editor-bg-surface, #f8fafc);
+  color: var(--editor-text-secondary, #475569);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.structure-stage-view__default-list {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  padding: 16px;
+}
+
+.structure-stage-view__default-node {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+  cursor: pointer;
+  transition:
+    border-color 120ms ease-out,
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(50, 83, 106, 0.18);
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.06);
+  }
+
+  &.is-selected {
+    border-color: rgba(6, 182, 212, 0.28);
+    box-shadow: 0 14px 24px rgba(6, 182, 212, 0.12);
+  }
+}
+
+.structure-stage-view__default-node-header,
+.structure-stage-view__default-node-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.structure-stage-view__default-node-status,
+.structure-stage-view__default-node-binding,
+.structure-stage-view__default-node-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.structure-stage-view__default-node-status {
+  &.is-draft {
+    background: rgba(226, 232, 240, 0.9);
+    color: #475569;
+  }
+
+  &.is-writing {
+    background: rgba(236, 254, 255, 0.9);
+    color: #0891b2;
+  }
+
+  &.is-completed {
+    background: rgba(240, 253, 244, 0.94);
+    color: #15803d;
+  }
+}
+
+.structure-stage-view__default-node-binding,
+.structure-stage-view__default-node-meta span {
+  background: rgba(248, 250, 252, 0.96);
+  color: var(--editor-text-secondary, #475569);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.structure-stage-view__default-node-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--editor-text-primary, #0f172a);
+}
+
+.structure-stage-view__default-node-copy {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--editor-text-secondary, #475569);
+}
+
+.structure-stage-view__default-empty {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 24px;
+  color: var(--editor-text-muted, #64748b);
+  font-size: 13px;
+  text-align: center;
 }
 
 /* 1. 顶部现代化分段导航栏 (Segmented Control) */
@@ -1350,6 +1900,29 @@ watch(
 }
 
 @media (max-width: 1024px) {
+  .structure-stage-view__header-main,
+  .structure-stage-view__focus-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .structure-stage-view__header-actions {
+    flex-wrap: wrap;
+  }
+
+  .focus-card__actions {
+    justify-content: flex-start;
+  }
+
+  .structure-stage-view__default-queue-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .structure-stage-view__default-list {
+    grid-template-columns: 1fr;
+  }
+
   .structure-stage-view__grid {
     grid-template-columns: 1fr;
     grid-template-areas:

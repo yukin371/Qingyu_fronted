@@ -69,6 +69,7 @@
                 :chapters="chapters"
                 :workflow-context="workflowContext"
                 :active-entities="activeEntities"
+                v-bind="currentToolExtraProps"
                 @status-change="(chips: string[]) => emit('status-change', chips)"
                 @open-graph="(chapterId: string) => emit('open-graph', chapterId)"
                 @jump-to-chapter="(chapterId: string) => emit('jump-to-chapter', chapterId)"
@@ -88,6 +89,7 @@ import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import ToolSidebar from './tool-overlay/ToolSidebar.vue'
 import CharacterGraphView from '@/modules/writer/views/CharacterGraphView.vue'
+import EncyclopediaView from '@/modules/writer/views/EncyclopediaView.vue'
 import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
 import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
@@ -162,15 +164,24 @@ const hasWorkflowContextSummary = computed(() =>
     activeEntityPreview.value.total,
   ),
 )
+const currentToolExtraProps = computed(() =>
+  props.activeTool === 'assets'
+    ? {
+        embedded: true,
+        activeCategory: 'characters',
+      }
+    : {},
+)
 
 // =======================
 // 工具组件映射
 // =======================
 const toolComponentMap: Record<ToolType, unknown> = {
+  structure: markRaw(StructureStageView),
+  assets: markRaw(EncyclopediaView),
   relations: markRaw(CharacterGraphView),
   timeline: markRaw(TimelineOutlineView),
   branches: markRaw(StoryBranchView),
-  structure: markRaw(StructureStageView),
 }
 
 // =======================

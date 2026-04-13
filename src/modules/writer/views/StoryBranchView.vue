@@ -1,13 +1,23 @@
 <template>
   <section class="story-branch-view">
     <header class="story-branch-view__header">
-      <div>
+      <div class="story-branch-view__title-wrap">
         <h2 class="story-branch-view__title">故事分支</h2>
         <p class="story-branch-view__subtitle">
           {{
             isLinearMode ? '普通小说模式 — 线性叙事流程' : '以组织结构图查看主线、支线与多结局分支'
           }}
         </p>
+      </div>
+      <div class="story-branch-view__context-anchors">
+        <span v-if="chapterTitle" class="context-anchor">
+          <QyIcon name="Document" :size="12" />
+          章节：{{ chapterTitle }}
+        </span>
+        <span v-if="workflowContext?.scopeLabel" class="context-anchor">
+          <QyIcon name="Grid" :size="12" />
+          场景：{{ workflowContext.scopeLabel }}
+        </span>
       </div>
       <div class="story-branch-view__header-actions">
         <div v-if="activeBranchId" class="branch-breadcrumb">
@@ -514,12 +524,38 @@ watch(
 .story-branch-view__header {
   padding: 14px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   background: var(--editor-bg-base, #ffffff);
   border-bottom: 1px solid var(--editor-border, #d7dff0);
   flex-shrink: 0;
+}
+
+.story-branch-view__title-wrap {
+  flex: 1;
+  min-width: 200px;
+}
+
+.story-branch-view__context-anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.context-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.16);
+  color: var(--editor-accent, #06b6d4);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .story-branch-view__title {

@@ -10,9 +10,10 @@
 import { readonly, ref } from 'vue'
 
 const LAST_TOOL_KEY = 'qingyu_last_tool'
-const DEFAULT_TOOL = 'relations'
+const TOOL_IDS = ['structure', 'assets', 'relations', 'timeline', 'branches'] as const
+const DEFAULT_TOOL = 'structure'
 
-export type ToolType = 'relations' | 'timeline' | 'branches' | 'structure'
+export type ToolType = 'structure' | 'assets' | 'relations' | 'timeline' | 'branches'
 
 // 单例状态
 const visible = ref(false)
@@ -20,7 +21,7 @@ const activeTool = ref<ToolType>(getLastTool())
 
 function getLastTool(): ToolType {
   const saved = localStorage.getItem(LAST_TOOL_KEY)
-  if (saved && ['relations', 'timeline', 'branches', 'structure'].includes(saved)) {
+  if (saved && TOOL_IDS.includes(saved as ToolType)) {
     return saved as ToolType
   }
   return DEFAULT_TOOL as ToolType
@@ -80,20 +81,22 @@ export function useToolOverlay() {
    * 获取当前工具的名称
    */
   const toolNames: Record<ToolType, string> = {
+    structure: '结构舞台',
+    assets: '资产总览',
     relations: '关系图谱',
     timeline: '时间线',
     branches: '故事分支',
-    structure: '结构舞台',
   }
 
   /**
    * 获取当前工具的图标
    */
   const toolIcons: Record<ToolType, string> = {
+    structure: 'Grid',
+    assets: 'Collection',
     relations: 'Share',
     timeline: 'Clock',
     branches: 'Connection',
-    structure: 'Grid',
   }
 
   function getToolName(toolId: ToolType): string {

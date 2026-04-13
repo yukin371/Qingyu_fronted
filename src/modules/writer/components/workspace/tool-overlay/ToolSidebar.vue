@@ -1,19 +1,27 @@
 <template>
   <nav class="tool-sidebar">
-    <div class="tool-list">
-      <button
-        v-for="tool in tools"
-        :key="tool.id"
-        class="tool-item"
-        :class="{ 'is-active': activeTool === tool.id }"
-        :title="`${tool.name} (Ctrl+${tool.index})`"
-        @click="handleToolClick(tool.id)"
-      >
-        <span class="tool-icon">
-          <QyIcon :name="tool.icon" :size="22" />
-        </span>
-        <span class="tool-name">{{ tool.name }}</span>
-      </button>
+    <div
+      v-for="group in toolGroups"
+      :key="group.id"
+      class="tool-group"
+      :class="`tool-group--${group.id}`"
+    >
+      <div class="tool-group__label">{{ group.label }}</div>
+      <div class="tool-list">
+        <button
+          v-for="tool in group.tools"
+          :key="tool.id"
+          class="tool-item"
+          :class="{ 'is-active': activeTool === tool.id, 'is-primary': group.id === 'primary' }"
+          :title="tool.name"
+          @click="handleToolClick(tool.id)"
+        >
+          <span class="tool-icon">
+            <QyIcon :name="tool.icon" :size="22" />
+          </span>
+          <span class="tool-name">{{ tool.name }}</span>
+        </button>
+      </div>
     </div>
   </nav>
 </template>
@@ -32,16 +40,32 @@ const emit = defineEmits<{
   (e: 'toolChange', toolId: ToolType): void
 }>()
 
-const tools: Array<{
-  id: ToolType
-  name: string
-  icon: string
-  index: number
+const toolGroups: Array<{
+  id: 'primary' | 'professional'
+  label: string
+  tools: Array<{
+    id: ToolType
+    name: string
+    icon: string
+  }>
 }> = [
-  { id: 'relations', name: '关系图谱', icon: 'Share', index: 1 },
-  { id: 'timeline', name: '时间线', icon: 'Clock', index: 2 },
-  { id: 'branches', name: '故事分支', icon: 'Connection', index: 3 },
-  { id: 'structure', name: '结构舞台', icon: 'Grid', index: 4 },
+  {
+    id: 'primary',
+    label: '主辅助',
+    tools: [
+      { id: 'structure', name: '结构舞台', icon: 'Grid' },
+      { id: 'assets', name: '资产总览', icon: 'Collection' },
+    ],
+  },
+  {
+    id: 'professional',
+    label: '专业',
+    tools: [
+      { id: 'relations', name: '关系图谱', icon: 'Share' },
+      { id: 'timeline', name: '时间线', icon: 'Clock' },
+      { id: 'branches', name: '故事分支', icon: 'Connection' },
+    ],
+  },
 ]
 
 function handleToolClick(toolId: ToolType) {
@@ -58,6 +82,23 @@ function handleToolClick(toolId: ToolType) {
   flex-direction: column;
   padding: 12px 0;
   flex-shrink: 0;
+  gap: 10px;
+
+  .tool-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tool-group__label {
+    padding: 0 12px;
+    color: var(--editor-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+  }
 
   .tool-list {
     display: flex;
@@ -112,6 +153,14 @@ function handleToolClick(toolId: ToolType) {
 
       .tool-icon {
         background: var(--editor-accent-soft);
+      }
+    }
+
+    &.is-primary:not(.is-active) {
+      color: var(--editor-text-secondary);
+
+      .tool-icon {
+        background: rgba(236, 254, 255, 0.48);
       }
     }
   }

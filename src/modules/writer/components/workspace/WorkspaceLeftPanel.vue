@@ -25,31 +25,7 @@
       </button>
       <button
         type="button"
-        class="dock-item"
-        :title="'关系图谱'"
-        @click="openTool('relations')"
-      >
-        <QyIcon name="Share" :size="18" />
-      </button>
-      <button
-        type="button"
-        class="dock-item"
-        :title="'时间线'"
-        @click="openTool('timeline')"
-      >
-        <QyIcon name="Clock" :size="18" />
-      </button>
-      <button
-        type="button"
-        class="dock-item"
-        :title="'故事分支'"
-        @click="openTool('branches')"
-      >
-        <QyIcon name="Connection" :size="18" />
-      </button>
-      <button
-        type="button"
-        class="dock-item"
+        class="dock-item dock-item--primary"
         :title="'结构舞台'"
         @click="openTool('structure')"
       >
@@ -59,13 +35,10 @@
       <!-- 分隔线 -->
       <div class="dock-divider"></div>
 
-      <!-- 展开按钮 -->
-      <button
-        type="button"
-        class="dock-item"
-        :title="'展开面板'"
-        @click="$emit('toggle')"
-      >
+      <button type="button" class="dock-item" :title="'资产总览'" @click="openTool('assets')">
+        <QyIcon name="Collection" :size="18" />
+      </button>
+      <button type="button" class="dock-item" :title="'展开更多工具'" @click="$emit('toggle')">
         <QyIcon name="ArrowRight" :size="18" />
       </button>
     </aside>
@@ -91,6 +64,16 @@
         </button>
       </div>
 
+      <button
+        type="button"
+        class="primary-tool-btn"
+        title="打开结构舞台"
+        @click="openTool('structure')"
+      >
+        <QyIcon name="Grid" :size="14" />
+        <span>结构舞台</span>
+      </button>
+
       <!-- 更多工具下拉菜单 -->
       <div class="more-tools-dropdown" v-click-outside="closeMoreMenu">
         <button
@@ -99,51 +82,35 @@
           :class="{ active: moreMenuOpen }"
           @click="moreMenuOpen = !moreMenuOpen"
         >
-          ···
+          工具
         </button>
         <div v-if="moreMenuOpen" class="dropdown-menu">
           <button
             type="button"
-            class="dropdown-item"
-            @click="openTool('relations')"
+            class="dropdown-item dropdown-item--featured"
+            @click="openTool('assets')"
           >
+            <QyIcon name="Collection" :size="14" />
+            <span>资产总览</span>
+          </button>
+          <div class="dropdown-section-label">专业工具</div>
+          <button type="button" class="dropdown-item" @click="openTool('relations')">
             <QyIcon name="Share" :size="14" />
             <span>关系图谱</span>
           </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('timeline')"
-          >
+          <button type="button" class="dropdown-item" @click="openTool('timeline')">
             <QyIcon name="Clock" :size="14" />
             <span>时间线</span>
           </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('branches')"
-          >
+          <button type="button" class="dropdown-item" @click="openTool('branches')">
             <QyIcon name="Connection" :size="14" />
             <span>故事分支</span>
-          </button>
-          <button
-            type="button"
-            class="dropdown-item"
-            @click="openTool('structure')"
-          >
-            <QyIcon name="Memo" :size="14" />
-            <span>结构舞台</span>
           </button>
         </div>
       </div>
 
       <!-- 折叠按钮 -->
-      <button
-        type="button"
-        class="collapse-btn"
-        :title="'折叠面板'"
-        @click="$emit('toggle')"
-      >
+      <button type="button" class="collapse-btn" :title="'折叠面板'" @click="$emit('toggle')">
         <QyIcon name="ArrowLeft" :size="14" />
       </button>
     </header>
@@ -326,7 +293,7 @@ watch(
       outlineTreeState.expandRootNodes()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const graphDraftState = computed(() => loadCharacterGraphDraftState(props.projectId))
@@ -337,9 +304,13 @@ const assetSummaryByChapterId = computed<Record<string, WriterAssetSummary>>(() 
   const summaries: Record<string, WriterAssetSummary> = {}
   for (const chapter of chapterOptions.value) {
     const chapterRefs = assetRefState.value.chapterRefs[chapter.id] || []
-    const volumeRefs = chapter.parentId ? assetRefState.value.volumeRefs[chapter.parentId] || [] : []
+    const volumeRefs = chapter.parentId
+      ? assetRefState.value.volumeRefs[chapter.parentId] || []
+      : []
     const merged = [...chapterRefs]
-    const seen = new Set(chapterRefs.map((ref) => `${ref.assetType}:${ref.assetId || ref.assetName}`))
+    const seen = new Set(
+      chapterRefs.map((ref) => `${ref.assetType}:${ref.assetId || ref.assetName}`),
+    )
     for (const ref of volumeRefs) {
       const key = `${ref.assetType}:${ref.assetId || ref.assetName}`
       if (seen.has(key)) continue
@@ -426,6 +397,30 @@ const localChapterId = computed({
   min-width: 0;
 }
 
+.primary-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(50, 83, 106, 0.16);
+  border-radius: var(--editor-radius-md, 6px);
+  background: rgba(236, 254, 255, 0.72);
+  color: var(--editor-accent, #06b6d4);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease-out;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(236, 254, 255, 0.96);
+    color: var(--editor-text-primary, #0f172a);
+    border-color: rgba(50, 83, 106, 0.24);
+  }
+}
+
 .tab-btn {
   flex: 1;
   padding: 6px 10px;
@@ -460,14 +455,14 @@ const localChapterId = computed({
 }
 
 .more-btn {
-  width: 28px;
+  min-width: 40px;
   height: 28px;
-  padding: 0;
+  padding: 0 8px;
   border: none;
   border-radius: var(--editor-radius-md, 6px);
   background: transparent;
   color: var(--editor-text-muted, #64748b);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 120ms ease-out;
@@ -488,7 +483,7 @@ const localChapterId = computed({
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  min-width: 140px;
+  min-width: 156px;
   background: var(--editor-bg-base, #ffffff);
   border: 1px solid var(--editor-border, #e2e8f0);
   border-radius: var(--editor-radius-lg, 8px);
@@ -524,6 +519,20 @@ const localChapterId = computed({
   span {
     flex: 1;
   }
+}
+
+.dropdown-item--featured {
+  background: rgba(236, 254, 255, 0.56);
+  color: var(--editor-accent, #06b6d4);
+}
+
+.dropdown-section-label {
+  padding: 6px 10px 4px;
+  color: var(--editor-text-muted, #64748b);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 // =======================
@@ -575,7 +584,9 @@ const localChapterId = computed({
   background: transparent;
   color: var(--editor-actbar-icon, #64748b);
   cursor: pointer;
-  transition: background 120ms ease-out, color 120ms ease-out;
+  transition:
+    background 120ms ease-out,
+    color 120ms ease-out;
 
   &:hover {
     background: var(--editor-bg-elevated, #e8edf2);
@@ -585,6 +596,20 @@ const localChapterId = computed({
   &.active {
     background: var(--editor-accent-soft, #ecfeff);
     color: var(--editor-accent, #06b6d4);
+  }
+
+  // 主辅助工具样式：结构舞台等默认主辅助工具有微妙高亮
+  &--primary {
+    color: var(--editor-accent, #06b6d4);
+
+    &:not(.active) {
+      background: rgba(6, 182, 212, 0.08);
+    }
+
+    &:hover {
+      background: rgba(6, 182, 212, 0.14);
+      color: var(--editor-accent, #06b6d4);
+    }
   }
 }
 
@@ -617,11 +642,20 @@ const localChapterId = computed({
     font-size: 12px;
     padding: 6px 8px;
   }
+
+  .primary-tool-btn {
+    padding: 0 8px;
+
+    span {
+      display: none;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-left-panel-shell,
   .tab-btn,
+  .primary-tool-btn,
   .more-btn,
   .collapse-btn,
   .dropdown-item {
