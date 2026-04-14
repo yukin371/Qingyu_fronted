@@ -14,7 +14,7 @@ describe('WorkspaceEditorContent', () => {
     setActivePinia(createPinia())
   })
 
-  it('在写作模式下应渲染 Story Harness 面板', () => {
+  it('在写作模式下应渲染写作面', () => {
     const wrapper = mount(WorkspaceEditorContent, {
       props: {
         activeTool: 'writing',
@@ -63,12 +63,8 @@ describe('WorkspaceEditorContent', () => {
     })
 
     expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('第一章 / 当前章节')
-    expect(wrapper.text()).toContain('地点 1')
-    expect(wrapper.text()).toContain('物品 1')
-    expect(wrapper.text()).toContain('待处理 1')
-    expect(wrapper.text()).toContain('角色状态可能需要更新：张三')
+    expect(wrapper.find('[data-testid="tiptap-editor"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="tool-overlay"]').exists()).toBe(true)
   })
 
   it('旧百科路由态下仍应保留写作面，不再让工具页接管主编辑区', () => {
@@ -95,7 +91,7 @@ describe('WorkspaceEditorContent', () => {
 
     expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="tiptap-editor"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="tool-overlay"]').exists()).toBe(true)
   })
 
   it('全屏关系图谱的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
@@ -135,7 +131,7 @@ describe('WorkspaceEditorContent', () => {
     })
   })
 
-  it('Story Harness 的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+  it('未选择章节时应显示空状态', () => {
     const wrapper = mount(WorkspaceEditorContent, {
       props: {
         activeTool: 'writing',
@@ -143,75 +139,23 @@ describe('WorkspaceEditorContent', () => {
         subView: 'home',
         category: 'all',
         projectId: 'project-1',
-        chapterId: 'chapter-1',
-        chapterTitle: '第一章',
-        chapters: [{ id: 'chapter-1', title: '第一章' }],
-        content: '这里是正文。',
-        changeRequests: [
-          {
-            id: 'cr-1',
-            source: 'live',
-            type: 'state',
-            title: '角色状态可能需要更新：张三',
-            summary: '状态可能转为怀疑或动摇',
-            reason: '这类变化适合先作为 Change Request 预览。',
-            evidence: '张三开始怀疑李四。',
-            severity: 'focus',
-          },
-        ],
+        chapterId: '',
+        chapterTitle: '',
+        chapters: [],
+        content: '',
       },
       global: {
         plugins: [createPinia()],
         stubs: {
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
           WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+          QyIcon: { template: '<span />' },
+          QyGhostButton: { template: '<button><slot /></button>' },
         },
       },
     })
 
-    await wrapper.get('[data-testid="story-harness-send-primary-to-ai"]').trigger('click')
-    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
-      source: 'story_harness',
-      action: 'add_to_chat',
-      title: '角色状态可能需要更新：张三',
-    })
-  })
-
-  it('全屏结构舞台的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
-    const WorkspaceToolOverlayStub = {
-      emits: ['trigger-ai-action'],
-      template:
-        "<button data-testid=\"structure-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '结构节点分析：主线冲突', text: '结构节点：主线冲突' })\">send</button>",
-    }
-
-    const wrapper = mount(WorkspaceEditorContent, {
-      props: {
-        activeTool: 'encyclopedia',
-        isEncyclopedia: true,
-        subView: 'structure',
-        category: 'all',
-        projectId: 'project-1',
-        chapterId: 'chapter-1',
-        chapterTitle: '第一章',
-        chapters: [{ id: 'chapter-1', title: '第一章' }],
-        content: '这里是正文。',
-      },
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
-          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
-        },
-      },
-    })
-
-    await wrapper.get('[data-testid="structure-send-to-ai"]').trigger('click')
-
-    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
-      source: 'workspace',
-      action: 'add_to_chat',
-      title: '结构节点分析：主线冲突',
-    })
+    expect(wrapper.text()).toContain('请选择章节')
+    expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(false)
   })
 
   it('应将共享 workflowContext 和 activeEntities 透传给全屏工具覆盖层', () => {
@@ -311,30 +255,40 @@ describe('WorkspaceEditorContent', () => {
     expect(wrapper.find('[data-testid="workspace-writing-surface"]').exists()).toBe(true)
   })
 
-  it('未选择章节时应保持空态而不渲染 Story Harness 面板', () => {
+  it('全屏结构舞台的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
+    const WorkspaceToolOverlayStub = {
+      emits: ['trigger-ai-action'],
+      template:
+        "<button data-testid=\"structure-send-to-ai\" @click=\"$emit('trigger-ai-action', { source: 'workspace', action: 'add_to_chat', title: '结构节点分析：主线冲突', text: '结构节点：主线冲突' })\">send</button>",
+    }
+
     const wrapper = mount(WorkspaceEditorContent, {
       props: {
-        activeTool: 'writing',
-        isEncyclopedia: false,
-        subView: 'home',
+        activeTool: 'encyclopedia',
+        isEncyclopedia: true,
+        subView: 'structure',
         category: 'all',
         projectId: 'project-1',
-        chapterId: '',
-        chapterTitle: '',
-        chapters: [],
-        content: '',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这里是正文。',
       },
       global: {
         plugins: [createPinia()],
         stubs: {
-          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
-          QyIcon: { template: '<span />' },
-          QyGhostButton: { template: '<button><slot /></button>' },
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor" />' },
+          WorkspaceToolOverlay: WorkspaceToolOverlayStub,
         },
       },
     })
 
-    expect(wrapper.text()).toContain('请选择章节')
-    expect(wrapper.find('[data-testid="story-harness-panel"]').exists()).toBe(false)
+    await wrapper.get('[data-testid="structure-send-to-ai"]').trigger('click')
+
+    expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]).toMatchObject({
+      source: 'workspace',
+      action: 'add_to_chat',
+      title: '结构节点分析：主线冲突',
+    })
   })
 })
