@@ -94,6 +94,7 @@
             </div>
           </div>
         </div>
+        <div v-if="reason" class="book-reason">{{ reason }}</div>
       </div>
     </Card>
   </main>
@@ -124,6 +125,7 @@ export interface RecommendedBook {
 defineProps<{
   chapterTitle?: string
   paragraphs: ReaderParagraph[]
+  reason?: string
   containerStyle: CSSProperties
   highlightedParagraphIndex: number | null
   showRecommendation: boolean
@@ -317,6 +319,16 @@ defineExpose({
       }
     }
   }
+
+            .book-reason {
+              font-size: 11px;
+              color: #10b981;
+              margin-top: 4px;
+              background: #d1fae5;
+              padding: 2px 6px;
+              border-radius: 4px;
+              display: inline-block;
+            }
 }
 
 @media (max-width: 768px) {
