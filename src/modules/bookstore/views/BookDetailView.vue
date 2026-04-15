@@ -201,7 +201,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useBookstoreStore } from '@/stores/bookstore'
+import { useBookstoreStore } from '../stores/bookstore.store'
 import { useReaderStore } from '@/stores/reader'
 import { useAuthStore } from '@/stores/auth'
 import { message, messageBox } from '@/design-system/services'

@@ -18,6 +18,7 @@ import type {
 export interface BookstoreState {
   homepageData: HomepageData | null
   loading: boolean
+  rankingsLoading: boolean
   error: string | null
   rankings: {
     realtime: RankingItem[]
@@ -45,6 +46,7 @@ export const useBookstoreStore = defineStore('bookstore', {
   state: (): BookstoreState => ({
     homepageData: null,
     loading: false,
+    rankingsLoading: false,
     error: null,
     rankings: {
       realtime: [],
@@ -101,14 +103,18 @@ export const useBookstoreStore = defineStore('bookstore', {
 
         this.homepageData = data
 
-        // Update state with safe access
+        // Update state with safe access — 只用非空数组覆盖已有 rankings
         if (data.rankings && typeof data.rankings === 'object') {
-          this.rankings = {
-            realtime: Array.isArray(data.rankings.realtime) ? data.rankings.realtime : [],
-            weekly: Array.isArray(data.rankings.weekly) ? data.rankings.weekly : [],
-            monthly: Array.isArray(data.rankings.monthly) ? data.rankings.monthly : [],
-            newbie: Array.isArray(data.rankings.newbie) ? data.rankings.newbie : []
+          const mergeRanking = (key: keyof typeof this.rankings) => {
+            const incoming = data.rankings[key]
+            if (Array.isArray(incoming) && incoming.length > 0) {
+              this.rankings[key] = incoming
+            }
           }
+          mergeRanking('realtime')
+          mergeRanking('weekly')
+          mergeRanking('monthly')
+          mergeRanking('newbie')
         }
         if (data.banners && Array.isArray(data.banners)) {
           this.banners = data.banners
@@ -134,7 +140,7 @@ export const useBookstoreStore = defineStore('bookstore', {
      * Fetch rankings
      */
     async fetchRankings(type?: 'realtime' | 'weekly' | 'monthly' | 'newbie'): Promise<void> {
-      this.loading = true
+      this.rankingsLoading = true
       this.error = null
 
       try {
@@ -166,7 +172,7 @@ export const useBookstoreStore = defineStore('bookstore', {
           this.rankings[type] = this.rankings[type] || []
         }
       } finally {
-        this.loading = false
+        this.rankingsLoading = false
       }
     },
 
