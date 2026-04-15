@@ -24,32 +24,45 @@ export const browseService = {
    * 获取书籍列表
    */
   async getBooks(filters: BrowseFilters): Promise<GetBooksResponse> {
-    const params = {
-      q: filters.q || undefined,
-      keyword: filters.q || undefined,
-      categoryId: filters.categoryId || undefined,
-      category: filters.categoryId || undefined,
-      year: filters.year || undefined,
-      status: filters.status || undefined,
-      tags: filters.tags.length > 0 ? filters.tags : undefined,
-      tagMode: filters.tagMode,
-      page: filters.page,
-      size: filters.pageSize,
-      pageSize: filters.pageSize,
-      sortBy: filters.sortBy
-    }
+    const keyword = filters.q.trim()
+    const isKeywordSearch = keyword.length > 0
+    const params = isKeywordSearch
+      ? {
+          keyword,
+          categoryId: filters.categoryId || undefined,
+          status: filters.status || undefined,
+          tags: filters.tags.length > 0 ? filters.tags : undefined,
+          page: filters.page,
+          size: filters.pageSize,
+          sortBy: filters.sortBy,
+        }
+      : {
+          q: undefined,
+          keyword: undefined,
+          categoryId: filters.categoryId || undefined,
+          category: filters.categoryId || undefined,
+          year: filters.year || undefined,
+          status: filters.status || undefined,
+          tags: filters.tags.length > 0 ? filters.tags : undefined,
+          tagMode: filters.tagMode,
+          page: filters.page,
+          size: filters.pageSize,
+          pageSize: filters.pageSize,
+          sortBy: filters.sortBy,
+        }
 
     // 移除undefined值
     const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([, value]) => value !== undefined)
+      Object.entries(params).filter(([, value]) => value !== undefined),
     )
 
-    const response = await httpService.get('/bookstore/books', { params: cleanParams }) as GetBooksResponse
+    const endpoint = isKeywordSearch ? '/bookstore/books/search' : '/bookstore/books'
+    const response = (await httpService.get(endpoint, { params: cleanParams })) as GetBooksResponse
 
     if (Array.isArray((response as any)?.data)) {
       return {
         ...response,
-        data: normalizeBookList((response as any).data) as BookBrief[]
+        data: normalizeBookList((response as any).data) as BookBrief[],
       }
     }
 
@@ -82,5 +95,5 @@ export const browseService = {
    */
   async getYears() {
     return httpService.get('/bookstore/books/years')
-  }
+  },
 }

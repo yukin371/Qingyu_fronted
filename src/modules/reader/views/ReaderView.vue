@@ -124,7 +124,10 @@ import {
   YUNLAN_TOTAL_CHAPTERS,
   createYunlanReaderChapters,
 } from '@/modules/bookstore/yunlanDemo.mock'
-import { getPublishedBookDetail } from '@/modules/workflow/publishedBridge'
+import {
+  getPublishedBookDetail,
+  shouldUsePublishedBridge,
+} from '@/modules/workflow/publishedBridge'
 import * as readerAPI from '@/modules/reader/api'
 
 // 子组件
@@ -189,9 +192,12 @@ const publishedBookId = computed(() =>
     route.query.bookId || (readerStore as unknown as { currentBookId: string }).currentBookId || '',
   ),
 )
-const isPublishedMode = computed(
-  () => route.query.source === 'published' && !!publishedBookId.value,
+const publishedBridgeDetail = computed(() =>
+  shouldUsePublishedBridge(route.query.source, publishedBookId.value)
+    ? getPublishedBookDetail(publishedBookId.value)
+    : null,
 )
+const isPublishedMode = computed(() => !!publishedBridgeDetail.value)
 const loading = ref(false)
 const catalogVisible = ref(false)
 const settingsVisible = ref(false)
@@ -579,7 +585,7 @@ const loadChapter = async () => {
       return
     }
     if (isPublishedMode.value) {
-      const detail = getPublishedBookDetail(publishedBookId.value)
+      const detail = publishedBridgeDetail.value
       if (!detail) {
         message.error('未找到已发布内容，请先在发布管理中发布章节')
         return

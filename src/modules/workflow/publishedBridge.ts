@@ -61,7 +61,10 @@ const writeStorage = (data: PublishedBridgeStorage) => {
 
 const normalizeContent = (raw: string) => raw.replace(/^#\s+.+?\n+/m, '').trim()
 
-const buildBaseFromWriterProject = (projectId: string, fallbackTitle?: string): PublishedBridgeBookDetail | null => {
+const buildBaseFromWriterProject = (
+  projectId: string,
+  fallbackTitle?: string,
+): PublishedBridgeBookDetail | null => {
   const mockProject = getWorkspaceMockProject(projectId)
   if (!mockProject) return null
 
@@ -108,7 +111,7 @@ const toSet = (records: PublishRecord[]) =>
 export const syncPublishedBookFromRecords = (
   projectId: string,
   records: PublishRecord[],
-  options?: { title?: string }
+  options?: { title?: string },
 ): PublishedBridgeBookDetail | null => {
   const base = buildBaseFromWriterProject(projectId, options?.title)
   if (!base) return null
@@ -179,7 +182,21 @@ export const getPublishedBookDetail = (bookId: string): PublishedBridgeBookDetai
   return readStorage()[bookId] || null
 }
 
-export const getPublishedChapterById = (bookId: string, chapterId: string): PublishedBridgeChapter | null => {
+export const shouldUsePublishedBridge = (
+  source: unknown,
+  bookId: string | null | undefined,
+): boolean => {
+  const normalizedBookId = String(bookId || '').trim()
+  if (source !== 'published' || !normalizedBookId) {
+    return false
+  }
+  return !!getPublishedBookDetail(normalizedBookId)
+}
+
+export const getPublishedChapterById = (
+  bookId: string,
+  chapterId: string,
+): PublishedBridgeChapter | null => {
   const detail = getPublishedBookDetail(bookId)
   if (!detail) return null
   return detail.chapters.find((item) => item.id === chapterId) || null

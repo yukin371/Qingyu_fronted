@@ -11,13 +11,21 @@ describe('browseService', () => {
 
   it('should call getBooks with correct params', async () => {
     const mockResponse = {
-      data: {
-        books: [
-          { _id: '1', title: 'Book 1' },
-          { _id: '2', title: 'Book 2' }
-        ],
-        total: 10
-      }
+      code: 0,
+      message: 'ok',
+      data: [
+        { id: '1', title: 'Book 1' },
+        { id: '2', title: 'Book 2' },
+      ],
+      pagination: {
+        total: 10,
+        page: 1,
+        page_size: 24,
+        total_pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
+      timestamp: Date.now(),
     }
     vi.mocked(httpService.get).mockResolvedValue(mockResponse)
 
@@ -30,31 +38,36 @@ describe('browseService', () => {
       sortBy: 'updateTime',
       page: 1,
       pageSize: 24,
-      tagMode: 'and' as const
+      tagMode: 'and' as const,
     }
 
     const result = await browseService.getBooks(filters)
 
-    expect(httpService.get).toHaveBeenCalledWith('/bookstore/books', {
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/books/search', {
       params: {
-        q: '测试',
         keyword: '测试',
         page: 1,
         size: 24,
-        pageSize: 24,
         sortBy: 'updateTime',
-        tagMode: 'and'
-      }
+      },
     })
-    expect(result.data).toEqual(mockResponse.data)
+    expect(result.data).toMatchObject(mockResponse.data)
   })
 
   it('should exclude empty values from params', async () => {
     const mockResponse = {
-      data: {
-        books: [],
-        total: 0
-      }
+      code: 0,
+      message: 'ok',
+      data: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        page_size: 24,
+        total_pages: 0,
+        has_next: false,
+        has_previous: false,
+      },
+      timestamp: Date.now(),
     }
     vi.mocked(httpService.get).mockResolvedValue(mockResponse)
 
@@ -67,7 +80,7 @@ describe('browseService', () => {
       sortBy: 'updateTime',
       page: 1,
       pageSize: 24,
-      tagMode: 'and' as const
+      tagMode: 'and' as const,
     }
 
     await browseService.getBooks(filters)
@@ -78,17 +91,25 @@ describe('browseService', () => {
         size: 24,
         pageSize: 24,
         sortBy: 'updateTime',
-        tagMode: 'and'
-      }
+        tagMode: 'and',
+      },
     })
   })
 
   it('should include tags in params when present', async () => {
     const mockResponse = {
-      data: {
-        books: [],
-        total: 0
-      }
+      code: 0,
+      message: 'ok',
+      data: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        page_size: 24,
+        total_pages: 0,
+        has_next: false,
+        has_previous: false,
+      },
+      timestamp: Date.now(),
     }
     vi.mocked(httpService.get).mockResolvedValue(mockResponse)
 
@@ -101,7 +122,7 @@ describe('browseService', () => {
       sortBy: 'updateTime',
       page: 1,
       pageSize: 24,
-      tagMode: 'and' as const
+      tagMode: 'and' as const,
     }
 
     await browseService.getBooks(filters)
@@ -113,7 +134,7 @@ describe('browseService', () => {
   it('should call getCategories', async () => {
     const mockCategories = [
       { _id: '1', name: '玄幻' },
-      { _id: '2', name: '都市' }
+      { _id: '2', name: '都市' },
     ]
     vi.mocked(httpService.get).mockResolvedValue({ data: mockCategories })
 
@@ -139,7 +160,9 @@ describe('browseService', () => {
 
     const result = await browseService.getTags('fantasy')
 
-    expect(httpService.get).toHaveBeenCalledWith('/bookstore/tags', { params: { categoryId: 'fantasy' } })
+    expect(httpService.get).toHaveBeenCalledWith('/bookstore/tags', {
+      params: { categoryId: 'fantasy' },
+    })
     expect(result.data).toEqual(mockTags)
   })
 })
