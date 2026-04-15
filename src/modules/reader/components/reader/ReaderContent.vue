@@ -68,12 +68,7 @@
 
           <!-- 自动加入书架提示 -->
           <div v-if="!isInBookshelf" class="add-to-bookshelf-tip">
-            <QyAlert
-              title="已自动添加到书架"
-              type="success"
-              :closable="false"
-              show-icon
-            >
+            <QyAlert title="已自动添加到书架" type="success" :closable="false" show-icon>
               <template #default>
                 <p>本书已添加到您的书架，方便继续阅读</p>
               </template>
@@ -106,7 +101,7 @@
 
 <script setup lang="ts">
 import { ref, type CSSProperties } from 'vue'
-import { QyAlert } from '@/design-system/components'
+import { QyAlert, QyButton } from '@/design-system/components'
 import { Empty, Card } from '@/design-system/base'
 import { Divider } from '@/design-system/base'
 import CommentBadge from '../comments/CommentBadge.vue'
@@ -154,7 +149,7 @@ const handleScroll = () => {
 }
 
 defineExpose({
-  contentRef
+  contentRef,
 })
 </script>
 
