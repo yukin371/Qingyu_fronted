@@ -9,25 +9,30 @@
 ### 1. test.yml - CI Smoke Tests 和覆盖率
 
 **触发条件**:
-- Pull Request到main或develop分支
-- Push到main或develop分支
+
+- Pull Request到main、dev或develop分支
+- Push到main、dev或develop分支
 
 **功能**:
+
 - 运行稳定的 CI smoke 测试集 (`npm run test:ci`)
 - 生成 smoke 测试覆盖率报告 (`npm run test:ci:coverage`)
 - 上传覆盖率到Codecov（需要配置CODECOV_TOKEN）
 - 上传测试结果和覆盖率报告作为artifacts
 
 **覆盖率阈值**:
+
 - 当前设置为60%（占位符）
 - 需要根据实际覆盖率工具输出调整
 
 ### 2. pr-check.yml - PR检查门禁
 
 **触发条件**:
+
 - Pull Request打开、同步或重新打开
 
 **功能**:
+
 - 运行稳定的 CI smoke 测试集
 - 生成 smoke 覆盖率报告
 - 检查覆盖率阈值
@@ -36,6 +41,7 @@
 - 运行类型检查（如果配置，失败会阻断）
 
 **PR评论内容**:
+
 - ✅ 测试通过状态
 - 📊 覆盖率报告
 - 🔗 相关链接
@@ -43,11 +49,13 @@
 ### 3. e2e-test.yml - E2E测试
 
 **触发条件**:
-- Pull Request到main或develop分支
-- Push到main或develop分支
+
+- Pull Request到main、dev或develop分支
+- Push到main、dev或develop分支
 - 手动触发 (workflow_dispatch)
 
 **功能**:
+
 - 安装Playwright浏览器
 - 运行E2E测试 (`npm run test:e2e`)
 - 上传测试结果和截图作为artifacts
@@ -120,9 +128,9 @@ npm run test:e2e
 ```yaml
 on:
   push:
-    branches: [main, develop, your-branch]
+    branches: [main, dev, develop, your-branch]
   pull_request:
-    branches: [main, develop, your-branch]
+    branches: [main, dev, develop, your-branch]
 ```
 
 ### 添加环境变量
