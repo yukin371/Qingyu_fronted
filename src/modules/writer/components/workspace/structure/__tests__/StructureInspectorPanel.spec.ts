@@ -83,4 +83,37 @@ describe('StructureInspectorPanel', () => {
       '节点描述：主角第一次与反派正面交锋',
     )
   })
+
+  it('应提供跳到全局资产总览的次入口', async () => {
+    const selectedNode = {
+      id: 'node-1',
+      title: '主线冲突',
+      description: '主角第一次与反派正面交锋',
+      level: 1,
+      status: 'writing',
+      wordCount: 2800,
+      children: [{ id: 'node-1-1' }],
+      documentId: 'chapter-1',
+      tags: [],
+    } as unknown as OutlineNode
+
+    const wrapper = mount(StructureInspectorPanel, {
+      props: {
+        selectedNode,
+        chapters: [],
+        chapterGraphs: [],
+        activeEntities: [],
+        workflowContext: undefined,
+        currentChapterId: 'chapter-1',
+        currentChapterTitle: '第一章',
+        draftBindingChapterId: 'chapter-1',
+        boundChapter: null,
+        loading: false,
+      },
+    })
+
+    await wrapper.get('[data-testid="structure-open-assets"]').trigger('click')
+
+    expect(wrapper.emitted('switch-tool')?.[0]).toEqual(['assets'])
+  })
 })

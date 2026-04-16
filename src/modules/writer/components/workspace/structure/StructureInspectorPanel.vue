@@ -122,6 +122,14 @@
         <button
           type="button"
           class="inspector-action inspector-action--secondary"
+          data-testid="structure-open-assets"
+          @click="emit('switch-tool', 'assets')"
+        >
+          查看全局资产
+        </button>
+        <button
+          type="button"
+          class="inspector-action inspector-action--secondary"
           :disabled="!boundChapter"
           @click="boundChapter && emit('openGraph', boundChapter.id)"
         >
@@ -153,6 +161,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { ToolType } from '@/modules/writer/composables/useToolOverlay'
 import type { OutlineNode } from '@/types/writer'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import type { ChapterGraph } from '@/modules/writer/types/character'
@@ -188,6 +197,7 @@ const emit = defineEmits<{
   (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
   (e: 'jumpToChapter', chapterId: string): void
   (e: 'openGraph', chapterId: string): void
+  (e: 'switch-tool', toolId: ToolType): void
   (e: 'update:draftBindingChapterId', value: string): void
   (e: 'bindCurrentChapter', chapterId: string): void
   (e: 'bindChapter', chapterId: string): void

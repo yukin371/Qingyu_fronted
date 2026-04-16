@@ -1,6 +1,6 @@
 const STORAGE_PREFIX = 'qingyu_writer_asset_refs'
 
-export type WriterAssetType = 'character' | 'location' | 'item'
+export type WriterAssetType = 'character' | 'location' | 'item' | 'organization' | 'concept'
 export type WriterAssetScopeType = 'chapter' | 'volume'
 export type WriterAssetSource = 'mention' | 'name' | 'alias' | 'manual' | 'chapter_rollup'
 
@@ -38,6 +38,8 @@ export interface WriterAssetSummary {
   characters: number
   locations: number
   items: number
+  organizations: number
+  concepts: number
 }
 
 interface ExtractionParams {
@@ -45,11 +47,16 @@ interface ExtractionParams {
   characters: Array<{ id: string; name: string; alias?: string[] }>
   locations: Array<{ id: string; name: string }>
   items?: Array<{ id: string; name: string; alias?: string[] }>
+  organizations?: Array<{ id: string; name: string; alias?: string[] }>
+  concepts?: Array<{ id: string; name: string; alias?: string[] }>
+  entityReferences?: Array<{ id?: string; name: string; type: string }>
 }
 
 type CharacterInput = ExtractionParams['characters'][number]
 type LocationInput = ExtractionParams['locations'][number]
 type ItemInput = NonNullable<ExtractionParams['items']>[number]
+type OrganizationInput = NonNullable<ExtractionParams['organizations']>[number]
+type ConceptInput = NonNullable<ExtractionParams['concepts']>[number]
 
 const createDefaultState = (): WriterAssetRefState => ({
   chapterRefs: {},
@@ -63,6 +70,8 @@ export function summarizeWriterAssetRefs(refs: WriterAssetRef[]): WriterAssetSum
       if (ref.assetType === 'character') summary.characters += 1
       else if (ref.assetType === 'location') summary.locations += 1
       else if (ref.assetType === 'item') summary.items += 1
+      else if (ref.assetType === 'organization') summary.organizations += 1
+      else if (ref.assetType === 'concept') summary.concepts += 1
       return summary
     },
     {
@@ -70,6 +79,8 @@ export function summarizeWriterAssetRefs(refs: WriterAssetRef[]): WriterAssetSum
       characters: 0,
       locations: 0,
       items: 0,
+      organizations: 0,
+      concepts: 0,
     },
   )
 }
@@ -84,7 +95,11 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function createCandidateKey(assetType: WriterAssetType, assetId: string | undefined, assetName: string) {
+function createCandidateKey(
+  assetType: WriterAssetType,
+  assetId: string | undefined,
+  assetName: string,
+) {
   return `${assetType}:${assetId || assetName}`
 }
 
@@ -122,6 +137,36 @@ function indexItems(items: Array<{ id: string; name: string; alias?: string[] }>
     for (const alias of item.alias || []) {
       if (!alias.trim()) continue
       aliasMap.set(normalizeName(alias), item)
+    }
+  }
+
+  return { exactNameMap, aliasMap }
+}
+
+function indexOrganizations(organizations: Array<{ id: string; name: string; alias?: string[] }>) {
+  const exactNameMap = new Map<string, OrganizationInput>()
+  const aliasMap = new Map<string, OrganizationInput>()
+
+  for (const organization of organizations) {
+    exactNameMap.set(normalizeName(organization.name), organization)
+    for (const alias of organization.alias || []) {
+      if (!alias.trim()) continue
+      aliasMap.set(normalizeName(alias), organization)
+    }
+  }
+
+  return { exactNameMap, aliasMap }
+}
+
+function indexConcepts(concepts: Array<{ id: string; name: string; alias?: string[] }>) {
+  const exactNameMap = new Map<string, ConceptInput>()
+  const aliasMap = new Map<string, ConceptInput>()
+
+  for (const concept of concepts) {
+    exactNameMap.set(normalizeName(concept.name), concept)
+    for (const alias of concept.alias || []) {
+      if (!alias.trim()) continue
+      aliasMap.set(normalizeName(alias), concept)
     }
   }
 
@@ -176,14 +221,26 @@ export function upsertScopeAssetRef(params: {
   evidence?: string
   unresolved?: boolean
 }) {
-  const { projectId, scopeType, scopeId, assetType, assetId, assetName, source, evidence, unresolved } = params
+  const {
+    projectId,
+    scopeType,
+    scopeId,
+    assetType,
+    assetId,
+    assetName,
+    source,
+    evidence,
+    unresolved,
+  } = params
 
   return updateWriterAssetRefState(projectId, (state) => {
     const refMap = scopeType === 'volume' ? state.volumeRefs : state.chapterRefs
     const currentRefs = refMap[scopeId] || []
     const matchKey = createCandidateKey(assetType, assetId, assetName)
     const now = new Date().toISOString()
-    const existing = currentRefs.find((item) => createCandidateKey(item.assetType, item.assetId, item.assetName) === matchKey)
+    const existing = currentRefs.find(
+      (item) => createCandidateKey(item.assetType, item.assetId, item.assetName) === matchKey,
+    )
 
     const nextRef: WriterAssetRef = existing
       ? {
@@ -268,6 +325,12 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
   const { exactNameMap: characterNameMap, aliasMap } = indexCharacters(params.characters || [])
   const { exactNameMap: locationNameMap } = indexLocations(params.locations || [])
   const { exactNameMap: itemNameMap, aliasMap: itemAliasMap } = indexItems(params.items || [])
+  const { exactNameMap: organizationNameMap, aliasMap: organizationAliasMap } = indexOrganizations(
+    params.organizations || [],
+  )
+  const { exactNameMap: conceptNameMap, aliasMap: conceptAliasMap } = indexConcepts(
+    params.concepts || [],
+  )
 
   const pushCandidate = (candidate: WriterAssetCandidate) => {
     const existing = summary.get(candidate.key)
@@ -284,6 +347,123 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
       return
     }
     summary.set(candidate.key, candidate)
+  }
+
+  const matchEntityReference = (reference: { id?: string; name: string; type: string }) => {
+    const normalized = normalizeName(reference.name)
+    if (reference.type === 'character') {
+      const entity =
+        params.characters.find((item) => item.id === reference.id) ||
+        characterNameMap.get(normalized) ||
+        aliasMap.get(normalized)
+      return entity
+        ? {
+            assetType: 'character' as const,
+            assetId: entity.id,
+            assetName: entity.name,
+            unresolved: false,
+          }
+        : {
+            assetType: 'character' as const,
+            assetId: reference.id,
+            assetName: reference.name,
+            unresolved: true,
+          }
+    }
+
+    if (reference.type === 'location') {
+      const entity =
+        params.locations.find((item) => item.id === reference.id) || locationNameMap.get(normalized)
+      return entity
+        ? {
+            assetType: 'location' as const,
+            assetId: entity.id,
+            assetName: entity.name,
+            unresolved: false,
+          }
+        : {
+            assetType: 'location' as const,
+            assetId: reference.id,
+            assetName: reference.name,
+            unresolved: true,
+          }
+    }
+
+    if (reference.type === 'item') {
+      const entity =
+        (params.items || []).find((item) => item.id === reference.id) ||
+        itemNameMap.get(normalized) ||
+        itemAliasMap.get(normalized)
+      return entity
+        ? {
+            assetType: 'item' as const,
+            assetId: entity.id,
+            assetName: entity.name,
+            unresolved: false,
+          }
+        : {
+            assetType: 'item' as const,
+            assetId: reference.id,
+            assetName: reference.name,
+            unresolved: true,
+          }
+    }
+
+    if (reference.type === 'organization') {
+      const entity =
+        (params.organizations || []).find((item) => item.id === reference.id) ||
+        organizationNameMap.get(normalized) ||
+        organizationAliasMap.get(normalized)
+      return entity
+        ? {
+            assetType: 'organization' as const,
+            assetId: entity.id,
+            assetName: entity.name,
+            unresolved: false,
+          }
+        : {
+            assetType: 'organization' as const,
+            assetId: reference.id,
+            assetName: reference.name,
+            unresolved: true,
+          }
+    }
+
+    if (reference.type === 'concept') {
+      const entity =
+        (params.concepts || []).find((item) => item.id === reference.id) ||
+        conceptNameMap.get(normalized) ||
+        conceptAliasMap.get(normalized)
+      return entity
+        ? {
+            assetType: 'concept' as const,
+            assetId: entity.id,
+            assetName: entity.name,
+            unresolved: false,
+          }
+        : {
+            assetType: 'concept' as const,
+            assetId: reference.id,
+            assetName: reference.name,
+            unresolved: true,
+          }
+    }
+
+    return null
+  }
+
+  for (const reference of params.entityReferences || []) {
+    const matched = matchEntityReference(reference)
+    if (!matched) continue
+    pushCandidate({
+      key: createCandidateKey(matched.assetType, matched.assetId, matched.assetName),
+      assetType: matched.assetType,
+      assetId: matched.assetId,
+      assetName: matched.assetName,
+      source: 'mention',
+      evidence: reference.name,
+      unresolved: matched.unresolved,
+    })
   }
 
   const mentionPatterns: Array<{ assetType: WriterAssetType; regex: RegExp }> = [
@@ -305,7 +485,11 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
           assetType: 'character',
           assetId: character?.id,
           assetName: character?.name || rawName,
-          source: characterNameMap.get(normalized) ? 'mention' : aliasMap.get(normalized) ? 'alias' : 'mention',
+          source: characterNameMap.get(normalized)
+            ? 'mention'
+            : aliasMap.get(normalized)
+              ? 'alias'
+              : 'mention',
           evidence: rawName,
           unresolved: !character,
         })
@@ -332,7 +516,11 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
         assetType: 'item',
         assetId: item?.id,
         assetName: item?.name || rawName,
-        source: itemNameMap.get(normalized) ? 'mention' : itemAliasMap.get(normalized) ? 'alias' : 'mention',
+        source: itemNameMap.get(normalized)
+          ? 'mention'
+          : itemAliasMap.get(normalized)
+            ? 'alias'
+            : 'mention',
         evidence: rawName,
         unresolved: !item,
       })
@@ -356,7 +544,10 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
 
     const matchedAlias = (character.alias || []).find((alias) => {
       if (!alias.trim()) return false
-      const pattern = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(alias)}([^\\w\\u4e00-\\u9fa5]|$)`, 'i')
+      const pattern = new RegExp(
+        `(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(alias)}([^\\w\\u4e00-\\u9fa5]|$)`,
+        'i',
+      )
       return pattern.test(text)
     })
 
@@ -374,7 +565,10 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
 
   for (const location of params.locations || []) {
     if (!location.name.trim()) continue
-    const pattern = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(location.name)}([^\\w\\u4e00-\\u9fa5]|$)`, 'i')
+    const pattern = new RegExp(
+      `(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(location.name)}([^\\w\\u4e00-\\u9fa5]|$)`,
+      'i',
+    )
     if (!pattern.test(text)) continue
 
     pushCandidate({
@@ -402,7 +596,10 @@ export function extractWriterAssetCandidates(params: ExtractionParams): WriterAs
 
     const matchedAlias = (item.alias || []).find((alias) => {
       if (!alias.trim()) return false
-      const pattern = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(alias)}([^\\w\\u4e00-\\u9fa5]|$)`, 'i')
+      const pattern = new RegExp(
+        `(^|[^\\w\\u4e00-\\u9fa5])${escapeRegExp(alias)}([^\\w\\u4e00-\\u9fa5]|$)`,
+        'i',
+      )
       return pattern.test(text)
     })
 

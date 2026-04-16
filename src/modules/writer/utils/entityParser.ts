@@ -216,6 +216,8 @@ export function groupEntitiesByType(
     location: [],
     item: [],
     concept: [],
+    organization: [],
+    foreshadowing: [],
   }
 
   for (const ref of references) {
@@ -238,11 +240,15 @@ function normalizeEntityType(type: string): EntityType {
     location: 'location',
     item: 'item',
     concept: 'concept',
+    organization: 'organization',
+    foreshadowing: 'foreshadowing',
     // 兼容旧的类型名称
     角色: 'character',
     地点: 'location',
     物品: 'item',
     概念: 'concept',
+    组织: 'organization',
+    伏笔: 'foreshadowing',
   }
   return typeMap[type] || 'character'
 }

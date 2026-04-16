@@ -70,6 +70,12 @@
                 :workflow-context="workflowContext"
                 :active-entities="activeEntities"
                 v-bind="currentToolExtraProps"
+                @update:active-category="
+                  (category: EncyclopediaCategory) => handleAssetsCategoryChange(category)
+                "
+                @switch-tool="(toolId: ToolType) => handleToolChange(toolId)"
+                @focus-graph-asset="handleGraphAssetFocus"
+                @graph-focus-consumed="handleGraphFocusConsumed"
                 @status-change="(chips: string[]) => emit('status-change', chips)"
                 @open-graph="(chapterId: string) => emit('open-graph', chapterId)"
                 @jump-to-chapter="(chapterId: string) => emit('jump-to-chapter', chapterId)"
@@ -84,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw } from 'vue'
+import { computed, markRaw, ref } from 'vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import QyGhostButton from '@/design-system/components/basic/QyGhostButton/QyGhostButton.vue'
 import ToolSidebar from './tool-overlay/ToolSidebar.vue'
@@ -94,6 +100,7 @@ import TimelineOutlineView from '@/modules/writer/views/TimelineOutlineView.vue'
 import StoryBranchView from '@/modules/writer/views/StoryBranchView.vue'
 import StructureStageView from '@/modules/writer/components/workspace/structure/StructureStageView.vue'
 import { useToolOverlay, type ToolType } from '@/modules/writer/composables/useToolOverlay'
+import type { EncyclopediaCategory, GraphFocusTarget } from '@/modules/writer/composables/types'
 import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
 import {
   buildActiveEntityPreview,
@@ -153,6 +160,8 @@ const { getToolName, getToolIcon } = useToolOverlay()
 
 const currentToolName = computed(() => getToolName(props.activeTool))
 const currentToolIcon = computed(() => getToolIcon(props.activeTool))
+const assetsActiveCategory = ref<EncyclopediaCategory>('characters')
+const relationsFocusedAsset = ref<GraphFocusTarget | null>(null)
 const effectiveChapterTitle = computed(
   () => props.chapterTitle || props.workflowContext?.chapterTitle || '',
 )
@@ -168,9 +177,13 @@ const currentToolExtraProps = computed(() =>
   props.activeTool === 'assets'
     ? {
         embedded: true,
-        activeCategory: 'characters',
+        activeCategory: assetsActiveCategory.value,
       }
-    : {},
+    : props.activeTool === 'relations'
+      ? {
+          focusedAsset: relationsFocusedAsset.value,
+        }
+      : {},
 )
 
 // =======================
@@ -192,7 +205,22 @@ const handleClose = () => {
 }
 
 const handleToolChange = (toolId: ToolType) => {
+  if (toolId !== 'relations') {
+    relationsFocusedAsset.value = null
+  }
   emit('tool-change', toolId)
+}
+
+const handleAssetsCategoryChange = (category: EncyclopediaCategory) => {
+  assetsActiveCategory.value = category
+}
+
+const handleGraphAssetFocus = (target: GraphFocusTarget) => {
+  relationsFocusedAsset.value = target
+}
+
+const handleGraphFocusConsumed = () => {
+  relationsFocusedAsset.value = null
 }
 </script>
 

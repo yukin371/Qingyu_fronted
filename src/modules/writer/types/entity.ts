@@ -8,18 +8,27 @@ import type { BaseEntity, ID } from './core'
  * 统一实体类型
  * 支持 @角色、#地点、%物品 和新增的 @概念
  */
-export type EntityType = 'character' | 'location' | 'item' | 'concept'
+export type EntityType =
+  | 'character'
+  | 'location'
+  | 'item'
+  | 'concept'
+  | 'organization'
+  | 'foreshadowing'
 
 /**
  * 实体类型配置
  * 用于 UI 显示（图标、颜色、标签）
  */
-export const ENTITY_TYPE_CONFIG: Record<EntityType, {
-  icon: string
-  color: string
-  label: string
-  symbol: string  // 编辑器中的引用符号
-}> = {
+export const ENTITY_TYPE_CONFIG: Record<
+  EntityType,
+  {
+    icon: string
+    color: string
+    label: string
+    symbol: string // 编辑器中的引用符号
+  }
+> = {
   character: {
     icon: 'User',
     color: '#5B8CFF',
@@ -44,6 +53,18 @@ export const ENTITY_TYPE_CONFIG: Record<EntityType, {
     label: '概念',
     symbol: '@',
   },
+  organization: {
+    icon: 'OfficeBuilding',
+    color: '#0F766E',
+    label: '组织',
+    symbol: '@',
+  },
+  foreshadowing: {
+    icon: 'Bell',
+    color: '#B45309',
+    label: '伏笔',
+    symbol: '@',
+  },
 }
 
 /**
@@ -55,6 +76,7 @@ export const ENTITY_TYPE_OPTIONS = [
   { label: '地点', value: 'location' as EntityType, icon: 'Location', color: '#52C41A' },
   { label: '物品', value: 'item' as EntityType, icon: 'Box', color: '#FA8C16' },
   { label: '概念', value: 'concept' as EntityType, icon: 'Lightbulb', color: '#722ED1' },
+  { label: '组织', value: 'organization' as EntityType, icon: 'OfficeBuilding', color: '#0F766E' },
 ]
 
 // ==========================================
@@ -82,7 +104,7 @@ export interface EntitySearchResult {
   type: EntityType
   alias?: string[]
   summary?: string
-  avatarUrl?: string  // 角色头像
+  avatarUrl?: string // 角色头像
 }
 
 /**
@@ -108,12 +130,12 @@ export interface Concept extends BaseEntity {
   name: string
   alias?: string[]
   summary?: string
-  description?: string       // 详细描述
-  category?: string          // 分类（如：魔法体系、世界观规则、势力等）
+  description?: string // 详细描述
+  category?: string // 分类（如：魔法体系、世界观规则、势力等）
   relatedConcepts?: string[] // 关联概念 ID
   relatedCharacters?: string[] // 关联角色 ID
-  relatedLocations?: string[]  // 关联地点 ID
-  relatedItems?: string[]      // 关联物品 ID
+  relatedLocations?: string[] // 关联地点 ID
+  relatedItems?: string[] // 关联物品 ID
 }
 
 /**

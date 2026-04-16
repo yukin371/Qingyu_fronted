@@ -6,7 +6,9 @@ import WorkspaceToolOverlay from '../WorkspaceToolOverlay.vue'
 vi.mock('@/modules/writer/views/CharacterGraphView.vue', () => ({
   default: defineComponent({
     name: 'CharacterGraphViewStub',
-    template: '<div data-testid="tool-view-stub">graph</div>',
+    props: ['focusedAsset'],
+    template:
+      '<div data-testid="tool-view-stub" :data-focused="focusedAsset ? `${focusedAsset.assetType}:${focusedAsset.assetId || focusedAsset.assetName}` : \'\'">graph</div>',
   }),
 }))
 
@@ -14,6 +16,15 @@ vi.mock('@/modules/writer/views/TimelineOutlineView.vue', () => ({
   default: defineComponent({
     name: 'TimelineOutlineViewStub',
     template: '<div data-testid="tool-view-stub">timeline</div>',
+  }),
+}))
+
+vi.mock('@/modules/writer/views/EncyclopediaView.vue', () => ({
+  default: defineComponent({
+    name: 'EncyclopediaViewStub',
+    props: ['embedded', 'activeCategory'],
+    template:
+      '<div data-testid="tool-view-stub" :data-embedded="String(embedded)" :data-category="activeCategory">assets</div>',
   }),
 }))
 
@@ -79,5 +90,93 @@ describe('WorkspaceToolOverlay', () => {
     expect(contextBar.text()).toContain('云港')
     expect(contextBar.text()).toContain('物品')
     expect(contextBar.text()).toContain('+1')
+  })
+
+  it('应以结构舞台作为默认主辅助工具之外提供资产总览工具', () => {
+    const wrapper = mount(WorkspaceToolOverlay, {
+      props: {
+        visible: true,
+        activeTool: 'assets',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [],
+      },
+      global: {
+        stubs: {
+          QyIcon: { template: '<span />' },
+          QyGhostButton: { template: '<button><slot /></button>' },
+          ToolSidebar: { template: '<aside />' },
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('资产总览')
+    const toolView = wrapper.get('[data-testid="tool-view-stub"]')
+    expect(toolView.text()).toContain('assets')
+    expect(toolView.attributes('data-embedded')).toBe('true')
+    expect(toolView.attributes('data-category')).toBe('characters')
+  })
+
+  it('应接管资产总览发出的图谱聚焦参数并透传给关系图谱', async () => {
+    const wrapper = mount(WorkspaceToolOverlay, {
+      props: {
+        visible: true,
+        activeTool: 'assets',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [],
+      },
+      global: {
+        stubs: {
+          QyIcon: { template: '<span />' },
+          QyGhostButton: { template: '<button><slot /></button>' },
+          ToolSidebar: { template: '<aside />' },
+        },
+      },
+    })
+
+    const assetsView = wrapper.getComponent({ name: 'EncyclopediaViewStub' })
+    await assetsView.vm.$emit('focus-graph-asset', {
+      assetType: 'location',
+      assetId: 'loc-1',
+      assetName: '云港',
+      latestChapterId: 'chapter-2',
+    })
+    await assetsView.vm.$emit('switch-tool', 'relations')
+
+    expect(wrapper.emitted('tool-change')?.at(-1)).toEqual(['relations'])
+
+    await wrapper.setProps({ activeTool: 'relations' })
+
+    const toolView = wrapper.get('[data-testid="tool-view-stub"]')
+    expect(toolView.text()).toContain('graph')
+    expect(toolView.attributes('data-focused')).toBe('location:loc-1')
+  })
+
+  it('应透传资产总览发出的前往章节事件', async () => {
+    const wrapper = mount(WorkspaceToolOverlay, {
+      props: {
+        visible: true,
+        activeTool: 'assets',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [],
+      },
+      global: {
+        stubs: {
+          QyIcon: { template: '<span />' },
+          QyGhostButton: { template: '<button><slot /></button>' },
+          ToolSidebar: { template: '<aside />' },
+        },
+      },
+    })
+
+    const assetsView = wrapper.getComponent({ name: 'EncyclopediaViewStub' })
+    await assetsView.vm.$emit('jump-to-chapter', 'chapter-2')
+
+    expect(wrapper.emitted('jump-to-chapter')?.at(-1)).toEqual(['chapter-2'])
   })
 })

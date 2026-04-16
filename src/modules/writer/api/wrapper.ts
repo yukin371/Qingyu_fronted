@@ -229,18 +229,39 @@ export const deleteProject = projectApi.deleteProject
 
 // ==================== 文档相关 API ====================
 
-export const getDocuments = api.getApiV1ProjectsProjectIdDocuments
-export const getProjectDocuments = api.getApiV1ProjectsProjectIdDocuments
+export const getDocuments = (projectId: string, params?: { page?: number; pageSize?: number }) =>
+  request({
+    url: `/api/v1/writer/project/${projectId}/documents`,
+    method: 'get',
+    params,
+  })
+export const getProjectDocuments = getDocuments
 export const getDocument = api.getApiV1DocumentsId
 export const getDocumentById = api.getApiV1DocumentsId
 export const getDocumentContent = (id: string) =>
-  request<{ documentId: string; content: string; version: number; wordCount: number; updatedAt: string }>({
+  request<{
+    documentId: string
+    content: string
+    version: number
+    wordCount: number
+    updatedAt: string
+  }>({
     url: `/api/v1/writer/documents/${id}/content`,
     method: 'get',
   })
-export const getDocumentTree = api.getApiV1ProjectsProjectIdDocumentsTree
+export const getDocumentTree = (projectId: string) =>
+  request({
+    url: `/api/v1/writer/project/${projectId}/documents/tree`,
+    method: 'get',
+  })
 export const getSaveStatus = (id: string) =>
-  request<{ documentId: string; lastSavedAt: string; currentVersion: number; isSaving: boolean; wordCount: number }>({
+  request<{
+    documentId: string
+    lastSavedAt: string
+    currentVersion: number
+    isSaving: boolean
+    wordCount: number
+  }>({
     url: `/api/v1/writer/documents/${id}/save-status`,
     method: 'get',
   })
@@ -248,7 +269,12 @@ export const getSaveStatus = (id: string) =>
 /**
  * 创建文档（在指定项目下）
  */
-export const createDocument = api.postApiV1ProjectsProjectIdDocuments
+export const createDocument = (projectId: string, body: Record<string, unknown>) =>
+  request({
+    url: `/api/v1/writer/project/${projectId}/documents`,
+    method: 'post',
+    data: body,
+  })
 
 export const updateDocument = api.putApiV1DocumentsId
 export const deleteDocument = api.deleteApiV1DocumentsId
@@ -260,7 +286,13 @@ export const autosaveDocument = (
   id: string,
   body: { content: string; currentVersion?: number; saveType?: 'auto' | 'manual' },
 ) =>
-  request<{ saved: boolean; newVersion: number; wordCount: number; savedAt: string; hasConflict: boolean }>({
+  request<{
+    saved: boolean
+    newVersion: number
+    wordCount: number
+    savedAt: string
+    hasConflict: boolean
+  }>({
     url: `/api/v1/writer/documents/${id}/autosave`,
     method: 'post',
     data: body,
@@ -269,10 +301,7 @@ export const autosaveDocument = (
 /**
  * 更新文档内容
  */
-export const updateDocumentContent = (
-  id: string,
-  body: { content: string; version?: number },
-) =>
+export const updateDocumentContent = (id: string, body: { content: string; version?: number }) =>
   request<void>({
     url: `/api/v1/writer/documents/${id}/content`,
     method: 'put',
@@ -301,7 +330,13 @@ export const updateDocumentWordCount = (
  * 获取文档分段内容（Editor V2）
  */
 export const getDocumentContents = (id: string) =>
-  request<{ documentId: string; contents: ParagraphContent[]; total: number; wordCount: number; updatedAt: string }>({
+  request<{
+    documentId: string
+    contents: ParagraphContent[]
+    total: number
+    wordCount: number
+    updatedAt: string
+  }>({
     url: `/api/v1/writer/documents/${id}/contents`,
     method: 'get',
   })
@@ -329,7 +364,10 @@ export const reindexDocumentContents = (id: string) =>
  * 关键词检索（支持拼音模糊/补全）
  */
 export const searchProjectKeywords = (projectId: string, q: string, limit = 20) =>
-  request<{ query: string; suggestions: Array<{ type: string; id: string; name: string; matchMode: string }> }>({
+  request<{
+    query: string
+    suggestions: Array<{ type: string; id: string; name: string; matchMode: string }>
+  }>({
     url: `/api/v1/writer/projects/${projectId}/keywords/search`,
     method: 'get',
     params: { q, limit },
@@ -397,10 +435,7 @@ export const getDocumentComments = api.getApiV1WriterDocumentsIdComments
 /**
  * 创建文档评论
  */
-export const createDocumentComment = (
-  id: string,
-  body: { content: string; paragraphId: string },
-) =>
+export const createDocumentComment = (id: string, body: { content: string; paragraphId: string }) =>
   request<unknown>({
     url: `/api/v1/writer/documents/${id}/comments`,
     method: 'post',

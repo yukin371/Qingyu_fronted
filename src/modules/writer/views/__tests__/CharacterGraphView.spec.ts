@@ -13,6 +13,8 @@ const loadCharacters = vi.fn().mockResolvedValue(undefined)
 const loadCharacterRelations = vi.fn().mockResolvedValue(undefined)
 const loadLocations = vi.fn().mockResolvedValue(undefined)
 const loadOutlineTree = vi.fn().mockResolvedValue(undefined)
+const listConcepts = vi.fn().mockResolvedValue({ data: [] })
+const listEntities = vi.fn().mockResolvedValue([])
 
 const writerStoreState = {
   characters: {
@@ -92,6 +94,28 @@ vi.mock('../api/location', () => ({
   locationApi: {
     create: vi.fn(),
   },
+}))
+
+vi.mock('../api/concept', () => ({
+  conceptApi: {
+    list: (...args: unknown[]) => listConcepts(...args),
+    create: vi.fn(),
+  },
+}))
+
+vi.mock('@/modules/writer/api/concept', () => ({
+  conceptApi: {
+    list: (...args: unknown[]) => listConcepts(...args),
+    create: vi.fn(),
+  },
+}))
+
+vi.mock('../api/entities', () => ({
+  listEntities: (...args: unknown[]) => listEntities(...args),
+}))
+
+vi.mock('@/modules/writer/api/entities', () => ({
+  listEntities: (...args: unknown[]) => listEntities(...args),
 }))
 
 vi.mock('@/design-system/services', () => ({
@@ -199,13 +223,24 @@ const ElIconStub = defineComponent({
 
 const RelationshipGraphStub = defineComponent({
   name: 'RelationshipGraphStub',
+  props: {
+    focusedNodeId: {
+      type: String,
+      default: '',
+    },
+  },
   emits: ['node-click'],
-  setup(_, { emit }) {
+  setup(props, { emit }) {
     return () =>
-      h('button', {
-        'data-testid': 'relationship-graph',
-        onClick: () => emit('node-click', 'char-1'),
-      })
+      h(
+        'button',
+        {
+          'data-testid': 'relationship-graph',
+          'data-focused-node-id': props.focusedNodeId,
+          onClick: () => emit('node-click', 'char-1'),
+        },
+        'graph',
+      )
   },
 })
 
@@ -215,6 +250,11 @@ describe('CharacterGraphView asset candidates', () => {
     loadCharacters.mockClear()
     loadCharacterRelations.mockClear()
     loadLocations.mockClear()
+    loadOutlineTree.mockClear()
+    listConcepts.mockClear()
+    listEntities.mockClear()
+    listConcepts.mockResolvedValue({ data: [] })
+    listEntities.mockResolvedValue([])
     toastMocks.success.mockClear()
     toastMocks.info.mockClear()
     toastMocks.warning.mockClear()
@@ -377,5 +417,84 @@ describe('CharacterGraphView asset candidates', () => {
     expect(wrapper.emitted('trigger-ai-action')?.[0]?.[0]?.text).toContain(
       '场景作用域：第一幕 / 港口追踪',
     )
+  })
+
+  it('switches to global graph and highlights a focused non-character asset from assets overview', async () => {
+    const wrapper = mount(CharacterGraphView, {
+      props: {
+        chapterId: 'chapter-1',
+        focusedAsset: {
+          assetType: 'location',
+          assetId: 'loc-1',
+          assetName: '云港',
+          latestChapterId: 'chapter-1',
+        },
+        workflowContext: {
+          signature: 'ctx-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一幕 / 港口追踪',
+          activeCharacters: [{ id: 'char-1', name: '林舟', currentState: '戒备' }],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        activeEntities: [
+          { id: 'char-1', name: '林舟', type: 'character', summary: '戒备' },
+          { id: 'loc-1', name: '云港', type: 'location' },
+        ],
+        chapters: [
+          {
+            id: 'chapter-1',
+            projectId: 'project-1',
+            chapterNum: 1,
+            title: '第一章',
+            parentId: 'volume-1',
+            nodeType: 'chapter',
+            wordCount: 0,
+            updatedAt: '2026-03-25T00:00:00Z',
+            status: 'draft' as const,
+          },
+        ],
+      },
+      global: {
+        stubs: {
+          SystemStatCard: true,
+          RelationshipGraph: RelationshipGraphStub,
+          QyCard: true,
+          QyIcon: true,
+          'el-form': true,
+          'el-form-item': true,
+          'el-button': ElButtonStub,
+          'el-divider': true,
+          'el-input': true,
+          'el-option': true,
+          'el-select': true,
+          'el-tag': ElTagStub,
+          'el-scrollbar': ElScrollbarStub,
+          'el-descriptions': ElDescriptionsStub,
+          'el-descriptions-item': ElDescriptionsItemStub,
+          'el-empty': ElEmptyStub,
+          'el-progress': ElProgressStub,
+          'el-icon': ElIconStub,
+          QyEmpty: QyEmptyStub,
+          transition: false,
+        },
+        directives: {
+          loading: () => undefined,
+        },
+      },
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="graph-focus-banner"]').text()).toContain('已定位地点：云港')
+    expect(
+      wrapper.get('[data-testid="relationship-graph"]').attributes('data-focused-node-id'),
+    ).toBe('location:loc-1')
+    expect(wrapper.emitted('graph-focus-consumed')).toHaveLength(1)
+    expect(wrapper.text()).toContain('全局关系图谱')
   })
 })

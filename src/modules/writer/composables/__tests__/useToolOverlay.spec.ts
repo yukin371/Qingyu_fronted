@@ -6,7 +6,7 @@ describe('useToolOverlay', () => {
     localStorage.clear()
     const overlay = useToolOverlay()
     overlay.close()
-    overlay.switchTool('relations')
+    overlay.switchTool('structure')
     overlay.close()
   })
 
@@ -20,10 +20,10 @@ describe('useToolOverlay', () => {
 
   it('switchTool 应在未打开时切换并显示 overlay', () => {
     const overlay = useToolOverlay()
-    overlay.switchTool('branches')
+    overlay.switchTool('assets')
 
     expect(overlay.visible.value).toBe(true)
-    expect(overlay.activeTool.value).toBe('branches')
+    expect(overlay.activeTool.value).toBe('assets')
   })
 
   it('close 应仅关闭 overlay 而保留当前工具', () => {
@@ -32,6 +32,17 @@ describe('useToolOverlay', () => {
     overlay.close()
 
     expect(overlay.visible.value).toBe(false)
+    expect(overlay.activeTool.value).toBe('structure')
+  })
+
+  it('未指定工具打开时应默认落到结构舞台', () => {
+    localStorage.clear()
+
+    const overlay = useToolOverlay()
+    overlay.close()
+    overlay.open()
+
+    expect(overlay.visible.value).toBe(true)
     expect(overlay.activeTool.value).toBe('structure')
   })
 })

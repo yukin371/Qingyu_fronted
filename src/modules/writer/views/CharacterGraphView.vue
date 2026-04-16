@@ -154,7 +154,7 @@
             <div v-else-if="showCandidatePanel" class="asset-binding-empty">
               {{
                 currentScopeType === 'volume'
-                  ? '先在本卷章节里确认角色/地点资产，这里才会出现可提升的卷级候选。'
+                  ? '先在本卷章节里确认角色、地点、物件或概念资产，这里才会出现可提升的卷级候选。'
                   : chapterCandidateHint
               }}
             </div>
@@ -249,6 +249,20 @@
                 </el-tag>
               </div>
               <div
+                v-if="graphFocusFeedback"
+                class="graph-focus-banner"
+                data-testid="graph-focus-banner"
+                :class="{ 'is-missing': graphFocusFeedback.missing }"
+              >
+                <span>
+                  {{
+                    graphFocusFeedback.missing
+                      ? `当前全局图谱尚未接入${graphFocusFeedback.typeLabel}：${graphFocusFeedback.name}`
+                      : `已定位${graphFocusFeedback.typeLabel}：${graphFocusFeedback.name}`
+                  }}
+                </span>
+              </div>
+              <div
                 v-if="isGlobalGraphCreatedEmpty"
                 class="graph-empty-panel"
                 data-testid="global-empty-graph-state"
@@ -267,6 +281,7 @@
                 v-else
                 :nodes="graphNodes"
                 :links="graphLinks"
+                :focused-node-id="focusedGraphNodeId"
                 @create-link="handleGraphCreateLink"
                 @node-click="handleNodeClick"
                 @delete-node="handleDeleteNode"
@@ -287,6 +302,20 @@
                 <el-tag size="small" :type="currentChapterGraphTagType">
                   {{ currentChapterGraphTag }}
                 </el-tag>
+              </div>
+              <div
+                v-if="graphFocusFeedback"
+                class="graph-focus-banner"
+                data-testid="graph-focus-banner"
+                :class="{ 'is-missing': graphFocusFeedback.missing }"
+              >
+                <span>
+                  {{
+                    graphFocusFeedback.missing
+                      ? `当前图谱尚未接入${graphFocusFeedback.typeLabel}：${graphFocusFeedback.name}`
+                      : `已定位${graphFocusFeedback.typeLabel}：${graphFocusFeedback.name}`
+                  }}
+                </span>
               </div>
               <div
                 v-if="isCurrentChapterGraphEmpty"
@@ -334,6 +363,7 @@
                 v-else
                 :nodes="graphNodes"
                 :links="graphLinks"
+                :focused-node-id="focusedGraphNodeId"
                 @create-link="handleGraphCreateLink"
                 @node-click="handleNodeClick"
                 @delete-node="handleDeleteNode"
@@ -761,6 +791,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useWriterStore } from '../stores/writerStore'
 import { useEditorStore } from '../stores/editorStore'
 import type { Character, CharacterRelation, RelationType } from '@/types/writer'
+import type { Concept } from '../types/entity'
 import {
   buildWriterWorkflowContextPrompt,
   type WriterWorkflowActionRequest,
@@ -778,7 +809,11 @@ import type {
   VolumeRelation,
 } from '../types/character'
 import { RELATION_TYPE_OPTIONS } from '../types/character'
-import type { SidebarChapterSummary } from '@/modules/writer/composables/types'
+import type {
+  GraphFocusAssetType,
+  GraphFocusTarget,
+  SidebarChapterSummary,
+} from '@/modules/writer/composables/types'
 import { QyIcon } from '@/design-system/components'
 import QyCard from '@/design-system/components/basic/QyCard/QyCard.vue'
 import { Empty } from '@/design-system/base'
@@ -810,7 +845,10 @@ import {
   type WriterAssetRef,
   type WriterAssetRefState,
 } from '../utils/writerAssetRefs'
+import { extractEntitiesFromTipTapContent } from '../utils/entityParser'
 import { locationApi } from '../api/location'
+import { conceptApi } from '../api/concept'
+import { listEntities, type EntitySummary } from '../api/entities'
 import { loadWriterItems, upsertWriterItem } from '../utils/writerItems'
 import { message, messageBox } from '@/design-system/services'
 import { ElMessage } from 'element-plus'
@@ -838,6 +876,7 @@ interface Props {
   chapters?: SidebarChapterSummary[]
   workflowContext?: WriterWorkflowContext
   activeEntities?: ActiveEntitySummary[]
+  focusedAsset?: GraphFocusTarget | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -845,13 +884,20 @@ const props = withDefaults(defineProps<Props>(), {
   chapters: () => [],
   workflowContext: undefined,
   activeEntities: () => [],
+  focusedAsset: null,
 })
 const emit = defineEmits<{
   (e: 'status-change', chips: string[]): void
   (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
+  (e: 'graph-focus-consumed'): void
 }>()
 
 const selectedCharacter = ref<Character | null>(null)
+const selectedGraphNodeId = ref<string | null>(null)
+const focusedGraphNodeId = ref<string | null>(null)
+const graphFocusFeedback = ref<{ typeLabel: string; name: string; missing: boolean } | null>(null)
+const concepts = ref<Concept[]>([])
+const organizations = ref<EntitySummary[]>([])
 const dialogVisible = ref(false)
 const viewMode = ref<'graph' | 'storyline'>('graph')
 const entityScopeTab = ref<'all' | 'volume' | 'chapter'>('all') // 实体作用域 tab：全部 / 卷级 / 章节级
@@ -989,7 +1035,21 @@ const currentVolumeChapterIds = computed(() => {
 const currentEditorPlainText = computed(() =>
   extractPlainTextFromEditorContent(editorStore.editorContent || editorStore.content || ''),
 )
+const editorEntityReferences = computed(() => {
+  const rawContent = editorStore.editorContent || editorStore.content || ''
+  try {
+    return extractEntitiesFromTipTapContent(JSON.parse(rawContent))
+  } catch {
+    return []
+  }
+})
 const writerItems = computed(() => loadWriterItems(activeProjectId.value))
+const unwrapApiData = <T,>(payload: unknown): T => {
+  if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
+    return ((payload as Record<string, unknown>).data as T) ?? ([] as unknown as T)
+  }
+  return (payload as T) ?? ([] as unknown as T)
+}
 
 // 监听外部 chapterId 变化，同步内部状态
 watch(
@@ -1095,6 +1155,16 @@ const chapterDetectedAssetCandidates = computed<WriterAssetCandidate[]>(() => {
     characters: writerStore.characters.list || [],
     locations: writerStore.locations.list || [],
     items: writerItems.value,
+    organizations: organizations.value.map((organization) => ({
+      id: organization.id,
+      name: organization.name,
+    })),
+    concepts: concepts.value.map((concept) => ({
+      id: concept.id,
+      name: concept.name,
+      alias: concept.alias,
+    })),
+    entityReferences: editorEntityReferences.value,
   }).filter((candidate) => {
     return !boundScopeAssetRefs.value.some(
       (asset) =>
@@ -1151,9 +1221,9 @@ const scopeBindableCharacters = computed(() => {
 const chapterCandidateHint = computed(() => {
   if (!currentChapterId.value) return '当前没有可识别的候选资产。'
   if (editorStore.currentChapterId !== currentChapterId.value) {
-    return '切回该章节正文后，会基于当前内容自动识别候选角色和地点。'
+    return '切回该章节正文后，会基于当前内容自动识别候选角色、地点、物件与已标记概念。'
   }
-  return '当前正文里还没有识别到可绑定的角色或地点，可继续输入 @角色 / #地点 / %物品。'
+  return '当前正文里还没有识别到可绑定资产，可继续输入 @角色 / #地点 / %物品，或插入已标记概念。'
 })
 
 const currentChapterGraphTag = computed(() => {
@@ -1445,14 +1515,22 @@ const currentScopeAppearedIds = computed<Set<string>>(() => {
   return new Set([...volumeAppearedCharacterIds.value, ...chapterAppearedCharacterIds.value])
 })
 
+const formatGraphNodeTypeLabel = (type: GraphNode['entityType'] | GraphFocusAssetType) => {
+  if (type === 'location') return '地点'
+  if (type === 'item') return '物件'
+  if (type === 'organization') return '组织'
+  if (type === 'concept') return '概念'
+  return '角色'
+}
+
 const buildGraphAssetNodeId = (
-  assetType: 'character' | 'location' | 'item',
+  assetType: 'character' | 'location' | 'item' | 'organization' | 'concept',
   assetId: string | undefined,
   assetName: string,
 ) => (assetType === 'character' ? assetId || assetName : `${assetType}:${assetId || assetName}`)
 
 const buildGraphAssetNode = (params: {
-  assetType: 'character' | 'location' | 'item'
+  assetType: 'character' | 'location' | 'item' | 'organization' | 'concept'
   assetId?: string
   assetName: string
   importance?: number
@@ -1466,6 +1544,44 @@ const buildGraphAssetNode = (params: {
   isInherited: params.isInherited,
   isAppeared: params.isAppeared,
 })
+
+const applyGraphFocusTarget = async (target: GraphFocusTarget) => {
+  const projectId = activeProjectId.value
+  if (projectId && !graphDraftState.value.globalGraphInitialized) {
+    graphDraftState.value = setGlobalGraphInitialized(projectId, true)
+  }
+  currentChapterId.value = null
+  await nextTick()
+
+  const targetNodeId = buildGraphAssetNodeId(target.assetType, target.assetId, target.assetName)
+  let matchedNode = graphNodes.value.find((node) => node.id === targetNodeId) || null
+  if (!matchedNode && projectId) {
+    await handleRefresh()
+    await nextTick()
+    matchedNode = graphNodes.value.find((node) => node.id === targetNodeId) || null
+  }
+
+  focusedGraphNodeId.value = matchedNode ? targetNodeId : null
+  selectedGraphNodeId.value = matchedNode ? targetNodeId : null
+
+  if (matchedNode?.entityType === 'character') {
+    selectedCharacter.value =
+      characters.value.find((character) => character.id === matchedNode.id) || null
+    graphFocusFeedback.value = {
+      typeLabel: formatGraphNodeTypeLabel(matchedNode.entityType),
+      name: matchedNode.name,
+      missing: false,
+    }
+    return
+  }
+
+  selectedCharacter.value = null
+  graphFocusFeedback.value = {
+    typeLabel: formatGraphNodeTypeLabel(target.assetType),
+    name: target.assetName,
+    missing: !matchedNode,
+  }
+}
 
 // 转换角色数据为图谱节点
 const graphNodes = computed<GraphNode[]>(() => {
@@ -1495,6 +1611,22 @@ const graphNodes = computed<GraphNode[]>(() => {
           assetType: 'item',
           assetId: item.id,
           assetName: item.name,
+          isAppeared: true,
+        }),
+      ),
+      ...organizations.value.map((organization) =>
+        buildGraphAssetNode({
+          assetType: 'organization',
+          assetId: organization.id,
+          assetName: organization.name,
+          isAppeared: true,
+        }),
+      ),
+      ...concepts.value.map((concept) =>
+        buildGraphAssetNode({
+          assetType: 'concept',
+          assetId: concept.id,
+          assetName: concept.name,
           isAppeared: true,
         }),
       ),
@@ -1639,12 +1771,16 @@ onMounted(async () => {
 async function handleRefresh() {
   const projectId = activeProjectId.value
   if (projectId) {
-    await Promise.all([
+    const [, , , , conceptData, organizationData] = await Promise.all([
       writerStore.loadCharacters(projectId),
       writerStore.loadCharacterRelations(projectId),
       writerStore.loadLocations(projectId),
       writerStore.loadOutlineTree(projectId),
+      conceptApi.list(projectId),
+      listEntities(projectId, 'organization'),
     ])
+    concepts.value = unwrapApiData<Concept[]>(conceptData)
+    organizations.value = organizationData
     if (writerStore.characters.relations?.length > 0) {
       graphDraftState.value = setGlobalGraphInitialized(projectId, true)
     } else {
@@ -1662,6 +1798,15 @@ watch(
     reloadAssetRefState()
     await handleRefresh()
   },
+)
+
+watch(
+  () => props.focusedAsset,
+  (target) => {
+    if (!target) return
+    void applyGraphFocusTarget(target).finally(() => emit('graph-focus-consumed'))
+  },
+  { immediate: true },
 )
 
 watch(
@@ -1689,6 +1834,8 @@ watch(currentEditorPlainText, () => {
 const formatAssetType = (type: WriterAssetCandidate['assetType']) => {
   if (type === 'character') return '角色'
   if (type === 'location') return '地点'
+  if (type === 'organization') return '组织'
+  if (type === 'concept') return '概念'
   return '物品'
 }
 
@@ -1818,7 +1965,11 @@ const handleCreateAndBindCandidate = async (candidate: WriterAssetCandidate) => 
         ? '角色'
         : candidate.assetType === 'location'
           ? '地点'
-          : '物品'
+          : candidate.assetType === 'concept'
+            ? '概念'
+            : candidate.assetType === 'organization'
+              ? '组织'
+              : '物品'
     const summaryResult = await messageBox.prompt(
       `为${copyLabel}「${candidate.assetName}」补充一句简介（可选）`,
       `建档并绑定${copyLabel}`,
@@ -1849,6 +2000,19 @@ const handleCreateAndBindCandidate = async (candidate: WriterAssetCandidate) => 
       createdAssetId = locationPayload?.id || ''
       createdAssetName = locationPayload?.name || candidate.assetName
       await writerStore.loadLocations(projectId)
+    } else if (candidate.assetType === 'concept') {
+      const createdConcept = (await conceptApi.create(projectId, {
+        projectId,
+        name: candidate.assetName,
+        summary,
+      })) as any
+      const conceptPayload = createdConcept?.data || createdConcept
+      createdAssetId = conceptPayload?.id || ''
+      createdAssetName = conceptPayload?.name || candidate.assetName
+      concepts.value = unwrapApiData<Concept[]>(await conceptApi.list(projectId))
+    } else if (candidate.assetType === 'organization') {
+      ElMessage.info('组织当前只支持绑定已建档资产，请先在统一实体入口完成建档')
+      return
     } else {
       const nextItems = upsertWriterItem(projectId, {
         name: candidate.assetName,
@@ -2180,10 +2344,23 @@ const handleGraphCreateLink = (fromId: string, toId: string) => {
 
 // 处理节点点击事件
 const handleNodeClick = (nodeId: string) => {
+  selectedGraphNodeId.value = nodeId
+  focusedGraphNodeId.value = nodeId
+  const graphNode = graphNodes.value.find((node) => node.id === nodeId) || null
   const character = characters.value.find((c) => c.id === nodeId)
   if (character) {
     selectedCharacter.value = character
+    graphFocusFeedback.value = null
+    return
   }
+  selectedCharacter.value = null
+  graphFocusFeedback.value = graphNode
+    ? {
+        typeLabel: formatGraphNodeTypeLabel(graphNode.entityType),
+        name: graphNode.name,
+        missing: false,
+      }
+    : null
 }
 
 const buildCharacterAIContextText = (character: Character): string => {
@@ -2604,6 +2781,22 @@ const handleOutlineNodeClick = (node: any) => {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
     color: var(--editor-bg-base);
+  }
+}
+
+.graph-focus-banner {
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(14, 116, 144, 0.08);
+  border: 1px solid rgba(14, 116, 144, 0.14);
+  color: var(--editor-text-secondary);
+  font-size: 12px;
+
+  &.is-missing {
+    background: rgba(217, 119, 6, 0.08);
+    border-color: rgba(217, 119, 6, 0.16);
+    color: #92400e;
   }
 }
 

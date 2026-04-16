@@ -29,7 +29,7 @@ export interface GraphNode {
   id: string
   name: string
   avatar?: string
-  entityType?: 'character' | 'location' | 'item' | 'concept'
+  entityType?: 'character' | 'location' | 'item' | 'organization' | 'concept'
   importance?: number
   isInherited?: boolean // 是否继承自父图谱
   isAppeared?: boolean // 是否已通过@引用登场（true=已登场高亮，false/undefined=未登场灰显）
@@ -57,6 +57,7 @@ interface Props {
   links: GraphLink[]
   inheritedNodes?: GraphNode[]
   inheritedLinks?: GraphLink[]
+  focusedNodeId?: string | null
 }
 
 const props = defineProps<Props>()
@@ -75,6 +76,7 @@ const containerRef = ref<HTMLElement>()
 let simulation: d3.Simulation<any, undefined> | null = null
 let svg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null
 let g: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let nodeSelection: d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown> | null = null
 
 // 连线状态
 const isDrawingLine = ref(false)
@@ -91,6 +93,7 @@ defineExpose({
 function getNodeBaseColor(node: GraphNode) {
   if (node.entityType === 'location') return '#52c41a'
   if (node.entityType === 'item') return '#fa8c16'
+  if (node.entityType === 'organization') return '#0f766e'
   if (node.entityType === 'concept') return '#722ed1'
   return '#5b8cff'
 }
@@ -103,6 +106,7 @@ function getNodeFillColor(node: GraphNode) {
   if (node.isInherited) {
     if (node.entityType === 'location') return '#95de64'
     if (node.entityType === 'item') return '#ffc069'
+    if (node.entityType === 'organization') return '#5eead4'
     if (node.entityType === 'concept') return '#b37feb'
     return '#a0b4f0'
   }
@@ -113,8 +117,17 @@ function getNodeFillColor(node: GraphNode) {
 function getNodeTypeGlyph(node: GraphNode) {
   if (node.entityType === 'location') return '地'
   if (node.entityType === 'item') return '物'
+  if (node.entityType === 'organization') return '组'
   if (node.entityType === 'concept') return '概'
   return '角'
+}
+
+function applyFocusedNodeState() {
+  if (!nodeSelection) return
+  const targetId = props.focusedNodeId || null
+  nodeSelection.classed('is-focused', (node: GraphNode) =>
+    Boolean(targetId && node.id === targetId),
+  )
 }
 
 function initGraph() {
@@ -207,6 +220,7 @@ function initGraph() {
     .attr('class', 'node')
     .attr('data-id', (d: GraphNode) => d.id)
     .attr('data-entity-type', (d: GraphNode) => d.entityType || 'character')
+  nodeSelection = node as d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown>
 
   // 节点圆形 — 已登场/未登场视觉区分
   node
@@ -422,6 +436,8 @@ function initGraph() {
     sourceNodePos = null
     hoveredNodeId = null
   }
+
+  applyFocusedNodeState()
 }
 
 onMounted(() => {
@@ -440,6 +456,13 @@ watch(
   { deep: true },
 )
 
+watch(
+  () => props.focusedNodeId,
+  () => {
+    applyFocusedNodeState()
+  },
+)
+
 onUnmounted(() => {
   // 清理资源
   if (simulation) {
@@ -450,6 +473,7 @@ onUnmounted(() => {
     svg.remove()
     svg = null
   }
+  nodeSelection = null
 })
 </script>
 
@@ -469,6 +493,15 @@ onUnmounted(() => {
 
   :deep(.node:hover circle) {
     fill: #409eff;
+  }
+
+  :deep(.node.is-focused circle) {
+    stroke: #f59e0b;
+    stroke-width: 4;
+  }
+
+  :deep(.node.is-focused .node-type-badge) {
+    font-size: 12px;
   }
 
   :deep(.temp-line) {

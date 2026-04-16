@@ -115,7 +115,7 @@
           </div>
           <div class="structure-filter-chips">
             <button
-              v-for="option in filterOptions"
+              v-for="option in primaryFilterOptions"
               :key="option.value"
               type="button"
               class="structure-filter-chip"
@@ -124,6 +124,24 @@
             >
               {{ option.label }}
             </button>
+            <label v-if="secondaryFilterOptions.length" class="structure-filter-select-wrap">
+              <span class="structure-filter-select__label">更多筛选</span>
+              <select
+                class="structure-filter-select"
+                data-testid="structure-secondary-filter"
+                :value="secondaryFilterValue"
+                @change="handleSecondaryFilterChange(($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">选择筛选</option>
+                <option
+                  v-for="option in secondaryFilterOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -190,9 +208,17 @@
                 <p class="structure-stage-view__default-eyebrow">Structure Queue</p>
                 <h4>当前推进队列</h4>
               </div>
-              <span class="structure-stage-view__default-count">
-                {{ defaultStageNodes.length }} 个节点
-              </span>
+              <div class="structure-stage-view__default-queue-meta">
+                <span class="structure-stage-view__default-count">
+                  {{ defaultStageNodes.length }} 个节点
+                </span>
+                <span
+                  v-if="defaultStageOverflowCount > 0"
+                  class="structure-stage-view__default-overflow"
+                >
+                  其余 {{ defaultStageOverflowCount }} 个节点已下沉到高级控制
+                </span>
+              </div>
             </div>
 
             <div
@@ -232,6 +258,25 @@
                     `资产 ${getNodeAssetCount(node)}`
                   }}</span>
                 </div>
+                <div class="structure-stage-view__default-node-actions">
+                  <button
+                    v-if="getBoundChapterId(node)"
+                    type="button"
+                    class="structure-stage-view__default-node-action is-primary"
+                    @click.stop="emit('jumpToChapter', getBoundChapterId(node))"
+                  >
+                    进入写作
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="structure-stage-view__default-node-action"
+                    :disabled="!currentChapterId"
+                    @click.stop="bindCurrentChapterForNode(node)"
+                  >
+                    绑定当前章节
+                  </button>
+                </div>
               </button>
             </div>
 
@@ -239,7 +284,7 @@
               {{
                 isOutlineLoading
                   ? '正在准备当前推进队列...'
-                  : '当前筛选条件下没有结构节点，调整筛选或先创建主线节点。'
+                  : '当前没有可推进的结构节点，先创建主线节点或从左侧选择节点。'
               }}
             </div>
           </section>
@@ -386,6 +431,7 @@
         @trigger-ai-action="emit('trigger-ai-action', $event)"
         @open-graph="emit('openGraph', $event)"
         @jump-to-chapter="emit('jumpToChapter', $event)"
+        @switch-tool="emit('switch-tool', $event)"
       />
     </div>
 
@@ -426,6 +472,7 @@ import StructureNodeEditorDialog, {
   type StructureNodeFormValue,
 } from './StructureNodeEditorDialog.vue'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
+import type { ToolType } from '@/modules/writer/composables/useToolOverlay'
 import {
   type StructureStatusValue,
   findBoundChapter,
@@ -537,6 +584,7 @@ const emit = defineEmits<{
   (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
   (e: 'jumpToChapter', chapterId: string): void
   (e: 'openGraph', chapterId: string): void
+  (e: 'switch-tool', toolId: ToolType): void
 }>()
 
 const effectiveProjectId = computed(() => props.projectId || writerStore.currentProjectId || '')
@@ -585,6 +633,24 @@ const filterOptions: Array<{ value: StructureFilterMode; label: string }> = [
   { value: 'writing', label: '推进中' },
   { value: 'completed', label: '已完成' },
 ]
+const primaryFilterValues: StructureFilterMode[] = [
+  'all',
+  'current-chapter',
+  'linked',
+  'unlinked',
+  'writing',
+]
+const primaryFilterOptions = computed(() =>
+  filterOptions.filter((option) => primaryFilterValues.includes(option.value)),
+)
+const secondaryFilterOptions = computed(() =>
+  filterOptions.filter((option) => !primaryFilterValues.includes(option.value)),
+)
+const secondaryFilterValue = computed(() =>
+  secondaryFilterOptions.value.some((option) => option.value === activeFilter.value)
+    ? activeFilter.value
+    : '',
+)
 
 const branchSpotlights = computed(() =>
   filteredRootNodes.value.map((node) => {
@@ -614,7 +680,34 @@ const selectedNode = computed(
   () => filteredFlattenedNodes.value.find((node) => node.id === selectedNodeId.value) || null,
 )
 const boundChapter = computed(() => findBoundChapter(selectedNode.value, chapterOptions.value))
-const defaultStageNodes = computed(() => filteredFlattenedNodes.value)
+const STRUCTURE_DEFAULT_STAGE_LIMIT = 5
+const structureNodePriority = (node: OutlineNode) => {
+  const chapterId = getBoundChapterId(node)
+  const statusLane = getStructureNodeLane(node)
+
+  if (selectedNodeId.value && node.id === selectedNodeId.value) return 0
+  if (props.currentChapterId && chapterId === props.currentChapterId) return 1
+  if (statusLane === 'writing') return 2
+  if (chapterId) return 3
+  if (statusLane === 'draft') return 4
+  return 5
+}
+const defaultStageNodes = computed(() =>
+  [...filteredFlattenedNodes.value]
+    .sort((left, right) => {
+      const priorityGap = structureNodePriority(left) - structureNodePriority(right)
+      if (priorityGap !== 0) return priorityGap
+
+      const levelGap = (left.level || 1) - (right.level || 1)
+      if (levelGap !== 0) return levelGap
+
+      return (left.order ?? 0) - (right.order ?? 0)
+    })
+    .slice(0, STRUCTURE_DEFAULT_STAGE_LIMIT),
+)
+const defaultStageOverflowCount = computed(() =>
+  Math.max(filteredFlattenedNodes.value.length - defaultStageNodes.value.length, 0),
+)
 const selectedNodeStatusText = computed(() => getStructureNodeStatusText(selectedNode.value))
 const selectedNodeAssetCount = computed(() => {
   const chapterId = getBoundChapterId(selectedNode.value)
@@ -664,6 +757,11 @@ function getNodeSiblingContext(node: OutlineNode | null | undefined) {
 
 function expandRootNodes() {
   expandedNodeIds.value = rootNodes.value.map((node) => node.id)
+}
+
+function handleSecondaryFilterChange(value: string) {
+  if (!value) return
+  activeFilter.value = value as StructureFilterMode
 }
 
 function matchesNodeFilter(node: OutlineNode): boolean {
@@ -1312,6 +1410,13 @@ watch(
   border-bottom: 1px solid var(--editor-border, #e2e8f0);
 }
 
+.structure-stage-view__default-queue-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
 .structure-stage-view__default-count {
   display: inline-flex;
   align-items: center;
@@ -1322,6 +1427,13 @@ watch(
   color: var(--editor-text-secondary, #475569);
   font-size: 12px;
   font-weight: 700;
+}
+
+.structure-stage-view__default-overflow {
+  color: var(--editor-text-muted, #64748b);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
 }
 
 .structure-stage-view__default-list {
@@ -1414,6 +1526,35 @@ watch(
   font-size: 13px;
   line-height: 1.6;
   color: var(--editor-text-secondary, #475569);
+}
+
+.structure-stage-view__default-node-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.structure-stage-view__default-node-action {
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--editor-text-secondary, #475569);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &.is-primary {
+    border-color: rgba(14, 116, 144, 0.16);
+    background: rgba(236, 254, 255, 0.96);
+    color: #0f766e;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.56;
+  }
 }
 
 .structure-stage-view__default-empty {
@@ -1634,7 +1775,26 @@ watch(
 
 .structure-filter-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.structure-filter-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(143, 63, 47, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.structure-filter-select__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a7e74;
+  text-transform: uppercase;
 }
 
 .structure-filter-chip {
@@ -1657,6 +1817,16 @@ watch(
     color: var(--structure-warm);
     border-color: rgba(143, 63, 47, 0.2);
   }
+}
+
+.structure-filter-select {
+  border: none;
+  background: transparent;
+  color: #5f4e40;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
 }
 
 .mini-metrics {

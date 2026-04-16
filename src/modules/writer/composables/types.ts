@@ -34,7 +34,21 @@ export type EncyclopediaSubView =
   | 'branches'
 
 /** 百科分类类型 */
-export type EncyclopediaCategory = 'characters' | 'locations' | 'concepts'
+export type EncyclopediaCategory =
+  | 'characters'
+  | 'locations'
+  | 'items'
+  | 'organizations'
+  | 'concepts'
+
+export type GraphFocusAssetType = 'character' | 'location' | 'item' | 'organization' | 'concept'
+
+export interface GraphFocusTarget {
+  assetType: GraphFocusAssetType
+  assetId?: string
+  assetName: string
+  latestChapterId?: string
+}
 
 // =======================
 // 侧边栏数据类型

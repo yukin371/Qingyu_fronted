@@ -71,6 +71,49 @@ describe('writerAssetRefs', () => {
     )
   })
 
+  it('应优先复用 smart keyword 的已解析类型提取概念和组织候选', () => {
+    const candidates = extractWriterAssetCandidates({
+      text: '@巡夜司 正在追查 @禁术回响。',
+      characters: [],
+      locations: [],
+      items: [],
+      organizations: [
+        {
+          id: 'org-1',
+          name: '巡夜司',
+        },
+      ],
+      concepts: [
+        {
+          id: 'concept-1',
+          name: '禁术回响',
+          alias: ['回响术'],
+        },
+      ],
+      entityReferences: [
+        { id: 'org-1', name: '巡夜司', type: 'organization' },
+        { id: 'concept-1', name: '禁术回响', type: 'concept' },
+      ],
+    })
+
+    expect(candidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetType: 'organization',
+          assetId: 'org-1',
+          assetName: '巡夜司',
+          unresolved: false,
+        }),
+        expect.objectContaining({
+          assetType: 'concept',
+          assetId: 'concept-1',
+          assetName: '禁术回响',
+          unresolved: false,
+        }),
+      ]),
+    )
+  })
+
   it('应持久化并移除章节绑定资产', () => {
     const projectId = 'project-1'
     upsertScopeAssetRef({
@@ -100,5 +143,43 @@ describe('writerAssetRefs', () => {
       state.chapterRefs['chapter-1'][0].id,
     )
     expect(state.chapterRefs['chapter-1']).toEqual([])
+  })
+
+  it('应持久化组织与概念绑定', () => {
+    const projectId = 'project-1'
+    upsertScopeAssetRef({
+      projectId,
+      scopeType: 'chapter',
+      scopeId: 'chapter-2',
+      assetType: 'organization',
+      assetId: 'org-1',
+      assetName: '巡夜司',
+      source: 'manual',
+    })
+    upsertScopeAssetRef({
+      projectId,
+      scopeType: 'chapter',
+      scopeId: 'chapter-2',
+      assetType: 'concept',
+      assetId: 'concept-1',
+      assetName: '禁术回响',
+      source: 'mention',
+    })
+
+    const state = loadWriterAssetRefState(projectId)
+    expect(state.chapterRefs['chapter-2']).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetType: 'organization',
+          assetId: 'org-1',
+          assetName: '巡夜司',
+        }),
+        expect.objectContaining({
+          assetType: 'concept',
+          assetId: 'concept-1',
+          assetName: '禁术回响',
+        }),
+      ]),
+    )
   })
 })
