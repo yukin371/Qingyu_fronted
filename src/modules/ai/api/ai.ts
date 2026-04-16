@@ -125,7 +125,7 @@ export interface ChatSession {
  */
 export const chatWithAI = async (
   message: string,
-  history?: ChatMessage[]
+  history?: ChatMessage[],
 ): Promise<{ reply: string; usage?: any }> => {
   console.log('[AI API] chatWithAI called, isDirectModeEnabled:', isDirectModeEnabled())
   if (isDirectModeEnabled()) {
@@ -134,15 +134,18 @@ export const chatWithAI = async (
   }
 
   console.log('[AI API] 使用httpService模式')
-  const response = await httpService.post<{ reply?: string; message?: string; usage?: any }>('/api/v1/ai/chat', {
-    message,
-    history: history || []
-  })
+  const response = await httpService.post<{ reply?: string; message?: string; usage?: any }>(
+    '/api/v1/ai/chat',
+    {
+      message,
+      history: history || [],
+    },
+  )
 
   const data = response as unknown as { reply?: string; message?: string; usage?: any }
   return {
     reply: data?.reply || data?.message || '',
-    usage: data?.usage
+    usage: data?.usage,
   }
 }
 
@@ -162,10 +165,10 @@ export const continueWriting = async (
   projectId: string,
   currentText: string,
   length: number = 200,
-  instructions?: string
+  instructions?: string,
 ): Promise<AIGenerateResponse> => {
   if (isDirectModeEnabled()) {
-    return aiDirectApi.writing.continue(currentText)
+    return aiDirectApi.writing.continue(projectId, currentText, length, instructions)
   }
 
   const trimmedInstructions = (instructions || '').trim()
@@ -178,7 +181,7 @@ export const continueWriting = async (
     currentText,
     prompt,
     continueLength: length,
-    type: 'continue'
+    type: 'continue',
   })
 
   return (response as unknown as AIGenerateResponse) || {}
@@ -199,17 +202,17 @@ export const continueWriting = async (
 export const polishText = async (
   projectId: string,
   text: string,
-  instructions?: string
+  instructions?: string,
 ): Promise<AIGenerateResponse> => {
   if (isDirectModeEnabled()) {
-    return aiDirectApi.writing.polish(text)
+    return aiDirectApi.writing.polish(text, instructions)
   }
 
   const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/polish', {
     projectId,
     originalText: text,
     rewriteMode: 'polish',
-    instructions: instructions || '提升文学性和表达力'
+    instructions: instructions || '提升文学性和表达力',
   })
 
   return (response as unknown as AIGenerateResponse) || {}
@@ -232,10 +235,10 @@ export const expandText = async (
   projectId: string,
   text: string,
   instructions?: string,
-  targetLength?: number
+  targetLength?: number,
 ): Promise<AIGenerateResponse> => {
   if (isDirectModeEnabled()) {
-    return aiDirectApi.writing.expand(text)
+    return aiDirectApi.writing.expand(text, instructions, targetLength)
   }
 
   const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/expand', {
@@ -243,7 +246,7 @@ export const expandText = async (
     originalText: text,
     rewriteMode: 'expand',
     instructions: instructions || '扩展为更详细的描述',
-    targetLength
+    targetLength,
   })
 
   return (response as unknown as AIGenerateResponse) || {}
@@ -266,17 +269,17 @@ export const rewriteText = async (
   projectId: string,
   text: string,
   mode: 'polish' | 'simplify' | 'formal' | 'casual',
-  instructions?: string
+  instructions?: string,
 ): Promise<AIGenerateResponse> => {
   if (isDirectModeEnabled()) {
-    return aiDirectApi.writing.rewrite(text)
+    return aiDirectApi.writing.rewrite(text, instructions || mode)
   }
 
   const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/rewrite', {
     projectId,
     originalText: text,
     rewriteMode: mode,
-    instructions
+    instructions,
   })
 
   return (response as unknown as AIGenerateResponse) || {}
@@ -383,7 +386,10 @@ export const getTransactionHistory = async (params?: {
   page?: number
   pageSize?: number
 }): Promise<PaginatedResponse<QuotaTransaction>> => {
-  const response = await httpService.get<PaginatedResponse<QuotaTransaction>>('/ai/quota/transactions', { params })
+  const response = await httpService.get<PaginatedResponse<QuotaTransaction>>(
+    '/ai/quota/transactions',
+    { params },
+  )
   return response as unknown as PaginatedResponse<QuotaTransaction>
 }
 
@@ -417,7 +423,9 @@ export const getChatSessions = async (): Promise<APIResponse<ChatSession[]>> => 
  * @security BearerAuth
  */
 export const getSessionHistory = async (sessionId: string): Promise<APIResponse<ChatMessage[]>> => {
-  const response = await httpService.get<APIResponse<ChatMessage[]>>(`/ai/chat/sessions/${sessionId}`)
+  const response = await httpService.get<APIResponse<ChatMessage[]>>(
+    `/ai/chat/sessions/${sessionId}`,
+  )
   return response as unknown as APIResponse<ChatMessage[]>
 }
 
@@ -464,9 +472,12 @@ export const createSession = async (title?: string): Promise<APIResponse<ChatSes
  */
 export const updateSession = async (
   sessionId: string,
-  title: string
+  title: string,
 ): Promise<APIResponse<ChatSession>> => {
-  const response = await httpService.put<APIResponse<ChatSession>>(`/ai/chat/sessions/${sessionId}`, { title })
+  const response = await httpService.put<APIResponse<ChatSession>>(
+    `/ai/chat/sessions/${sessionId}`,
+    { title },
+  )
   return response as unknown as APIResponse<ChatSession>
 }
 
@@ -491,10 +502,13 @@ export function contextPreview(projectId: string, documentId: string) {
 }
 
 /** 更新场景状态 */
-export function updateSceneState(documentId: string, data: {
-  sceneGoal?: string
-  activeConflict?: string
-}) {
+export function updateSceneState(
+  documentId: string,
+  data: {
+    sceneGoal?: string
+    activeConflict?: string
+  },
+) {
   return httpService.put(`/ai/story/documents/${documentId}/scene-state`, data)
 }
 
@@ -523,6 +537,5 @@ export default {
   // 故事上下文写作
   storyGenerate,
   contextPreview,
-  updateSceneState
+  updateSceneState,
 }
-

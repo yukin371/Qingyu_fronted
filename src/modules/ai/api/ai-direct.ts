@@ -49,11 +49,24 @@ export const aiDirectApi = {
 
   writing: {
     // 续写: POST /api/v1/ai/writing/continue
-    continue: async (text: string, length: number = 200): Promise<AIGenerateResponse> => {
+    continue: async (
+      projectId: string,
+      text: string,
+      length: number = 200,
+      instructions?: string,
+    ): Promise<AIGenerateResponse> => {
+      const trimmedInstructions = (instructions || '').trim()
       const response = await directClient.post('/api/v1/ai/writing/continue', {
-        project_id: 'demo-project', // 演示模式使用默认项目ID
+        project_id: projectId || 'demo-project',
         current_text: text,
         continue_length: length,
+        ...(trimmedInstructions
+          ? {
+              context: {
+                plot_summary: trimmedInstructions,
+              },
+            }
+          : {}),
       })
       return {
         generated_text: response.data?.generated_text,
@@ -62,9 +75,16 @@ export const aiDirectApi = {
     },
 
     // 润色: POST /api/v1/ai/writing/polish
-    polish: async (text: string): Promise<AIGenerateResponse> => {
+    polish: async (text: string, instructions?: string): Promise<AIGenerateResponse> => {
+      const trimmedInstructions = (instructions || '').trim()
       const response = await directClient.post('/api/v1/ai/writing/polish', {
         text,
+        ...(trimmedInstructions
+          ? {
+              style: trimmedInstructions.slice(0, 80),
+              focus_areas: ['flow', 'tone'],
+            }
+          : {}),
       })
       return {
         polished_text: response.data?.generated_text,
@@ -73,10 +93,22 @@ export const aiDirectApi = {
     },
 
     // 扩写: POST /api/v1/ai/writing/expand
-    expand: async (text: string, ratio: number = 1.5): Promise<AIGenerateResponse> => {
+    expand: async (
+      text: string,
+      instructions?: string,
+      targetLength?: number,
+    ): Promise<AIGenerateResponse> => {
+      const textLength = Math.max(text.length, 1)
+      const ratioFromTarget = targetLength ? targetLength / textLength : 1.5
+      const expandRatio = Math.min(3, Math.max(1, ratioFromTarget))
       const response = await directClient.post('/api/v1/ai/writing/expand', {
         text,
-        expand_ratio: ratio,
+        expand_ratio: expandRatio,
+        ...(instructions?.trim()
+          ? {
+              direction: instructions.trim(),
+            }
+          : {}),
       })
       return {
         expanded_text: response.data?.generated_text,
@@ -85,9 +117,15 @@ export const aiDirectApi = {
     },
 
     // 改写: 暂无对应API，使用润色代替
-    rewrite: async (text: string): Promise<AIGenerateResponse> => {
+    rewrite: async (text: string, instructions?: string): Promise<AIGenerateResponse> => {
       const response = await directClient.post('/api/v1/ai/writing/polish', {
         text,
+        ...(instructions?.trim()
+          ? {
+              style: instructions.trim().slice(0, 80),
+              focus_areas: ['flow', 'tone'],
+            }
+          : {}),
       })
       return {
         rewritten_text: response.data?.generated_text,
