@@ -13,6 +13,26 @@
       </div>
       <button class="context-clear" type="button" @click="$emit('clearContext')">移除</button>
     </div>
+    <div v-if="context && canEdit" class="interaction-mode">
+      <button
+        type="button"
+        class="interaction-mode__option"
+        :class="{ 'is-active': mode === 'edit' }"
+        :disabled="disabled"
+        @click="$emit('update:mode', 'edit')"
+      >
+        直接改正文
+      </button>
+      <button
+        type="button"
+        class="interaction-mode__option"
+        :class="{ 'is-active': mode === 'chat' }"
+        :disabled="disabled"
+        @click="$emit('update:mode', 'chat')"
+      >
+        仅对话
+      </button>
+    </div>
     <div class="input-wrapper">
       <textarea
         ref="inputRef"
@@ -50,6 +70,8 @@ const props = withDefaults(
   defineProps<{
     modelValue: string
     context?: ChatContextSnippet | null
+    mode?: 'chat' | 'edit'
+    canEdit?: boolean
     disabled?: boolean
     placeholder?: string
     hint?: string
@@ -57,6 +79,8 @@ const props = withDefaults(
   {
     modelValue: '',
     context: null,
+    mode: 'chat',
+    canEdit: false,
     disabled: false,
     placeholder: '输入消息...',
     hint: '按 Enter 发送，Shift + Enter 换行',
@@ -66,6 +90,7 @@ const props = withDefaults(
 // ==================== Emits ====================
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
+  (e: 'update:mode', value: 'chat' | 'edit'): void
   (e: 'send'): void
   (e: 'clearContext'): void
 }>()
@@ -114,6 +139,37 @@ defineExpose({
   padding: 12px 16px;
   background: var(--ai-bg-soft, #f8fafc);
   border-top: 1px solid var(--ai-border, #e2e8f0);
+
+  .interaction-mode {
+    display: inline-flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #e2e8f0;
+  }
+
+  .interaction-mode__option {
+    border: none;
+    background: transparent;
+    color: #475569;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &.is-active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
 
   .chat-context-chip {
     margin-bottom: 8px;

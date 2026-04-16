@@ -46,6 +46,8 @@
       <AIInputArea
         v-model="inputText"
         :context="selectedChatContext"
+        v-model:mode="interactionMode"
+        :can-edit="canEditDirectly"
         :disabled="isTyping"
         :placeholder="t('ai.inputPlaceholder', '输入消息...')"
         :hint="t('ai.hint', '按 Enter 发送，Shift + Enter 换行')"
@@ -109,6 +111,7 @@ function useDebounceFn<T extends (...args: any[]) => any>(fn: T, delay: number):
 interface Props {
   sessionId?: string
   width?: number
+  sourceText?: string
   actionTrigger?: WriterAIActionTrigger | null
   workflowContext?: WriterWorkflowContext | null
 }
@@ -167,6 +170,7 @@ const typewriter = useTypewriter('', 30)
 // ==================== UI状态 ====================
 const inputText = ref('')
 const isTyping = ref(false)
+const interactionMode = ref<'chat' | 'edit'>('chat')
 const chatMessagesRef = ref<InstanceType<typeof AIChatMessages>>()
 const selectionNotice = ref<SelectionNotice | null>(null)
 const selectedChatContext = ref<ChatContextSnippet | null>(null)
@@ -194,6 +198,9 @@ const effectiveWorkflowContext = computed(
   () => props.actionTrigger?.context ?? props.workflowContext ?? null,
 )
 const effectiveWorkflowSignature = computed(() => effectiveWorkflowContext.value?.signature ?? '')
+const canEditDirectly = computed(
+  () => !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim(),
+)
 const visibleSelectionNotice = computed(() =>
   selectionNotice.value?.action === 'chat' ? null : selectionNotice.value,
 )
@@ -335,6 +342,10 @@ async function sendMessage(content: string) {
   if (!content.trim() || isTyping.value) return
 
   const trimmedContent = content.trim()
+  if (interactionMode.value === 'edit' && canEditDirectly.value) {
+    await runDirectEdit(trimmedContent)
+    return
+  }
   const requestMessage = selectedChatContext.value
     ? `参考片段：${selectedChatContext.value.text}\n\n用户需求：${trimmedContent}`
     : trimmedContent
@@ -386,6 +397,71 @@ async function sendMessage(content: string) {
   } catch (error) {
     console.error('[AIPanel] Failed to get AI response:', error)
     addMessage('assistant', '抱歉，我遇到了一些问题。请稍后再试。')
+    isTyping.value = false
+  }
+}
+
+async function runDirectEdit(instruction: string) {
+  const context = selectedChatContext.value
+  const sourceText = context?.text.trim() || props.sourceText?.trim() || ''
+  if (!sourceText) return
+  const applyMode = context?.text.trim() ? 'replace_selection' : 'replace_document'
+
+  isTyping.value = true
+  addMessage(
+    'user',
+    `[直接修改正文]\n目标${applyMode === 'replace_document' ? '章节' : '片段'}：${sourceText}\n修改要求：${instruction}`,
+  )
+  inputText.value = ''
+  await scrollToBottom()
+
+  try {
+    const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
+    const mergedInstructions = [
+      instruction,
+      context?.instructions?.trim() || '',
+      applyMode === 'replace_document' ? '请直接输出可替换整章正文的完整版本。' : '',
+      workflowContextPrompt,
+    ]
+      .filter((item) => item && item.trim())
+      .join('\n\n')
+    const projectId = props.sessionId || 'demo-project'
+    const response = await rewriteText(
+      projectId,
+      sourceText,
+      'polish',
+      mergedInstructions || undefined,
+    )
+    const generatedText = response.rewritten_text || response.polished_text || ''
+
+    if (!generatedText.trim()) {
+      addMessage('assistant', '未生成可应用的正文，请调整要求后重试。')
+      return
+    }
+
+    addMessage('assistant', generatedText)
+    emit('resultCandidate', {
+      source: 'rewrite',
+      action: 'direct_edit',
+      title: 'AI 直接改写结果',
+      summary: generatedText.slice(0, 72) || '已生成新的正文版本。',
+      generatedText,
+      sourceText,
+    })
+    emit('applyGeneratedText', {
+      action: 'rewrite',
+      sourceText,
+      generatedText,
+      applyMode,
+    })
+    if (context) {
+      handleClearSelectedContext()
+    }
+    await scrollToBottom()
+  } catch (error) {
+    console.error('[AIPanel] Failed to run direct edit:', error)
+    addMessage('assistant', '直接修改失败，请稍后重试。')
+  } finally {
     isTyping.value = false
   }
 }
@@ -503,12 +579,14 @@ function handleClear() {
     selectionNotice.value = null
     selectedChatContext.value = null
     selectedChatContextScope.value = null
+    interactionMode.value = 'chat'
   }
 }
 
 function handleClearSelectedContext() {
   selectedChatContext.value = null
   selectedChatContextScope.value = null
+  interactionMode.value = 'chat'
   if (selectionNotice.value?.action === 'chat') {
     selectionNotice.value = null
   }
@@ -612,6 +690,7 @@ watch(
         sessionId: props.sessionId,
         workflowSignature: effectiveWorkflowSignature.value,
       }
+      interactionMode.value = 'edit'
       selectionNotice.value = null
       return
     }

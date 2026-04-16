@@ -146,6 +146,7 @@ const writerStoreState = {
     currentTimeline: null,
     events: [],
   },
+  setCurrentOutlineNode: vi.fn(),
   setSelectedText,
 }
 
@@ -183,7 +184,7 @@ vi.mock('@/modules/writer/components/workspace/WorkspaceStatusbar.vue', () => ({
 import ProjectWorkspace from '../ProjectWorkspace.vue'
 
 const WorkspaceLeftPanelStub = defineComponent({
-  emits: ['update:chapter-id', 'open-graph'],
+  emits: ['update:chapter-id', 'open-graph', 'outline-select'],
   setup(_, { emit }) {
     return () =>
       h('div', [
@@ -194,6 +195,15 @@ const WorkspaceLeftPanelStub = defineComponent({
         h('button', {
           'data-testid': 'open-global-graph',
           onClick: () => emit('open-graph', ''),
+        }),
+        h('button', {
+          'data-testid': 'outline-select',
+          onClick: () =>
+            emit('outline-select', {
+              id: 'node-2',
+              title: '第二幕转折',
+              documentId: 'chapter-2',
+            }),
         }),
       ])
   },
@@ -408,6 +418,7 @@ describe('ProjectWorkspace Refactor', () => {
     messageBoxConfirm.mockClear()
     loadCharacters.mockClear()
     loadCharacterRelations.mockClear()
+    writerStoreState.setCurrentOutlineNode.mockClear()
     openFullscreenToolSpy.mockClear()
     closeFullscreenSpy.mockClear()
   })
@@ -621,6 +632,51 @@ describe('ProjectWorkspace Refactor', () => {
     })
   })
 
+  it('结构节点选择已绑定章节时，应切回写作章节并记录当前大纲节点', async () => {
+    routeState.query = {
+      chapterId: 'chapter-1',
+      tool: 'structure',
+    }
+
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="outline-select"]').trigger('click')
+    await nextTick()
+
+    expect(writerStoreState.setCurrentOutlineNode).toHaveBeenCalledWith({
+      id: 'node-2',
+      title: '第二幕转折',
+      documentId: 'chapter-2',
+    })
+    expect(setActiveTool).toHaveBeenCalledWith('writing')
+    expect(routerReplace).toHaveBeenCalledWith({
+      query: {
+        chapterId: 'chapter-2',
+        tool: 'writing',
+      },
+    })
+  })
+
   it('保存 AI 结果为提案后应把草案回传给右侧工作台', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
@@ -684,6 +740,44 @@ describe('ProjectWorkspace Refactor', () => {
     expect(wrapper.find('[data-testid="trigger-text"]').text()).toContain('补写下一段冲突')
     expect(wrapper.find('[data-testid="context-signature"]').text()).toContain(
       '"chapterId":"chapter-1"',
+    )
+  })
+
+  it('切章节后再次触发工作流动作时，应注入新章节的 workflowContext', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          WorkspaceEditorContent: WorkflowRelayEditorContentStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="change-chapter"]').trigger('click')
+    await nextTick()
+    await Promise.resolve()
+    await nextTick()
+
+    await wrapper.find('[data-testid="relay-workflow-action"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="trigger-action"]').text()).toBe('add_to_chat')
+    expect(wrapper.find('[data-testid="context-signature"]').text()).toContain(
+      '"chapterId":"chapter-2"',
     )
   })
 

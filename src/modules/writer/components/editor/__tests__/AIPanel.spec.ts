@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick, ref } from 'vue'
 import AIPanel from '../AIPanel.vue'
 import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
-import { continueWriting } from '@/modules/ai/api'
+import { continueWriting, rewriteText } from '@/modules/ai/api'
 
 const messages = ref<Array<{ role: string; content: string }>>([])
 const addMessage = vi.fn()
@@ -112,6 +112,14 @@ const AIInputAreaStub = defineComponent({
       type: Object,
       default: null,
     },
+    mode: {
+      type: String,
+      default: 'chat',
+    },
+    canEdit: {
+      type: Boolean,
+      default: false,
+    },
     disabled: {
       type: Boolean,
       default: false,
@@ -125,8 +133,9 @@ const AIInputAreaStub = defineComponent({
       default: '',
     },
   },
-  emits: ['update:modelValue', 'send', 'clear-context'],
-  template: '<div data-testid="input-context">{{ context ? context.text : "empty" }}</div>',
+  emits: ['update:modelValue', 'update:mode', 'send', 'clear-context'],
+  template:
+    '<div><div data-testid="input-context">{{ context ? context.text : "empty" }}</div><div data-testid="input-mode">{{ mode }}</div><button data-testid="input-send" @click="$emit(\'send\')">send</button></div>',
 })
 
 function buildWorkflowContext(signature: string, chapterId = signature): WriterWorkflowContext {
@@ -147,6 +156,7 @@ function mountPanel() {
   return mount(AIPanel, {
     props: {
       sessionId: 'project-1',
+      sourceText: '',
       workflowContext: buildWorkflowContext('chapter-1'),
       actionTrigger: null,
     },
@@ -171,6 +181,7 @@ describe('AIPanel', () => {
     save.mockReset()
     load.mockReset()
     setSessionId.mockReset()
+    vi.mocked(rewriteText).mockReset()
     localStorage.clear()
   })
 
@@ -248,5 +259,77 @@ describe('AIPanel', () => {
       'continue:原始选中文本',
     )
     expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+  })
+
+  it('directly applies rewritten text when sending an edit instruction with selected context', async () => {
+    vi.mocked(rewriteText).mockResolvedValue({
+      rewritten_text: '修改后的正文',
+    } as never)
+
+    const wrapper = mountPanel()
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 4,
+        action: 'add_to_chat',
+        text: '原始正文片段',
+        instructions: '保留悬疑氛围',
+        from: 2,
+        to: 6,
+      },
+    })
+    await nextTick()
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '把语气改得更紧张')
+    await nextTick()
+    input.vm.$emit('send')
+    await Promise.resolve()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(vi.mocked(rewriteText)).toHaveBeenCalledTimes(1)
+  })
+
+  it('supports direct whole-document rewriting when no selection context exists', async () => {
+    vi.mocked(rewriteText).mockResolvedValue({
+      rewritten_text: '整章重写后的正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIHeader: AIHeaderStub,
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '把这一章改得更紧张')
+    await nextTick()
+    input.vm.$emit('send')
+    await Promise.resolve()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(vi.mocked(rewriteText)).toHaveBeenCalledWith(
+      'project-1',
+      '当前整章正文',
+      'polish',
+      expect.stringContaining('请直接输出可替换整章正文的完整版本。'),
+    )
   })
 })

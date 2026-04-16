@@ -150,6 +150,46 @@ describe('AIWorkbench', () => {
     expect(wrapper.get('[data-testid="rewrite-tool"]').text()).toContain('第一章')
   })
 
+  it('passes current chapter source text down to chat AIPanel', () => {
+    const AIPanelStub = defineComponent({
+      props: ['sourceText'],
+      template: '<div data-testid="ai-panel-source-text">{{ sourceText }}</div>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-testid="ai-panel-source-text"]').text()).toBe('这是当前章节正文。')
+  })
+
   it('promotes AI result candidates into proposal drafts through emitted events', async () => {
     const AIPanelStub = defineComponent({
       emits: ['result-candidate'],
@@ -407,6 +447,109 @@ describe('AIWorkbench', () => {
     })
   })
 
+  it('shows before-after preview for direct whole-document edits', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate'],
+      template:
+        "<button data-testid=\"emit-direct-edit-result\" @click=\"$emit('result-candidate', { source: 'rewrite', action: 'direct_edit', title: 'AI 直接改写结果', summary: '已生成新的正文版本。', generatedText: '重写后的第一段\\n第二段更紧张。', sourceText: '原始第一段\\n第二段。' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: {
+          id: 100,
+          action: 'rewrite',
+          text: '把这一章改得更紧张',
+          applyMode: 'replace_document',
+        },
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-direct-edit-result"]').trigger('click')
+
+    const diffCard = wrapper.get('[data-testid="workflow-diff-card"]')
+    expect(diffCard.text()).toContain('变更预览')
+    expect(diffCard.text()).toContain('整章改写')
+    expect(diffCard.text()).toContain('原始第一段 第二段。')
+    expect(diffCard.text()).toContain('重写后的第一段 第二段更紧张。')
+  })
+
+  it('re-emits apply-generated-text from chat AIPanel to the workspace shell', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['apply-generated-text'],
+      template:
+        "<button data-testid=\"emit-apply-generated-text\" @click=\"$emit('apply-generated-text', { action: 'rewrite', sourceText: '原文', generatedText: '新文', applyMode: 'replace_document' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-apply-generated-text"]').trigger('click')
+
+    const applyPayload =
+      wrapper.emitted('applyGeneratedText')?.[0]?.[0] ??
+      wrapper.emitted('apply-generated-text')?.[0]?.[0]
+    expect(applyPayload).toMatchObject({
+      action: 'rewrite',
+      sourceText: '原文',
+      generatedText: '新文',
+      applyMode: 'replace_document',
+    })
+  })
+
   it('renders workflow state rail with aiApplyFeedback and still promotes result card action alongside proposal drafts', async () => {
     const AIPanelStub = defineComponent({
       emits: ['result-candidate'],
@@ -469,7 +612,9 @@ describe('AIWorkbench', () => {
     await wrapper.find('[data-testid="emit-state-result"]').trigger('click')
     const resultSection = findResultSection(wrapper)
     expect(resultSection.exists()).toBe(true)
-    expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain('proposal-card--condensed')
+    expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain(
+      'proposal-card--condensed',
+    )
     expect(wrapper.find('[data-testid="proposal-card-summary"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="workflow-result-summary"]').exists()).toBe(false)
 
@@ -661,7 +806,9 @@ describe('AIWorkbench', () => {
     await wrapper.find('[data-testid="emit-result-on-selected-with-apply"]').trigger('click')
 
     expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(false)
-    expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain('proposal-card--condensed')
+    expect(wrapper.get('[data-testid="proposal-card"]').classes()).toContain(
+      'proposal-card--condensed',
+    )
     expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(true)
   })
 

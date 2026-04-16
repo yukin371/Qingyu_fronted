@@ -1,20 +1,77 @@
 ﻿<template>
   <div class="qy-tiptap-editor" @click="handleEditorClick">
     <div class="qy-tiptap-toolbar">
-      <button type="button" :class="{ active: isActive('bold') }" @click="run('toggleBold')"><strong>B</strong></button>
-      <button type="button" :class="{ active: isActive('italic') }" @click="run('toggleItalic')"><em>I</em></button>
-      <button type="button" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')"><u>U</u></button>
+      <button type="button" :class="{ active: isActive('bold') }" @click="run('toggleBold')">
+        <strong>B</strong>
+      </button>
+      <button type="button" :class="{ active: isActive('italic') }" @click="run('toggleItalic')">
+        <em>I</em>
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('underline') }"
+        @click="run('toggleUnderline')"
+      >
+        <u>U</u>
+      </button>
       <span class="sep" />
-      <button type="button" :class="{ active: isActive('heading', { level: 1 }) }" @click="run('toggleHeading1')">H1</button>
-      <button type="button" :class="{ active: isActive('heading', { level: 2 }) }" @click="run('toggleHeading2')">H2</button>
-      <button type="button" :class="{ active: isActive('heading', { level: 3 }) }" @click="run('toggleHeading3')">H3</button>
-      <button type="button" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')">引用</button>
-      <button type="button" :class="{ active: isActive('codeBlock') }" @click="run('toggleCodeBlock')">代码</button>
+      <button
+        type="button"
+        :class="{ active: isActive('heading', { level: 1 }) }"
+        @click="run('toggleHeading1')"
+      >
+        H1
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('heading', { level: 2 }) }"
+        @click="run('toggleHeading2')"
+      >
+        H2
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('heading', { level: 3 }) }"
+        @click="run('toggleHeading3')"
+      >
+        H3
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('blockquote') }"
+        @click="run('toggleBlockquote')"
+      >
+        引用
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('codeBlock') }"
+        @click="run('toggleCodeBlock')"
+      >
+        代码
+      </button>
       <span class="sep" />
-      <button type="button" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')">无序</button>
-      <button type="button" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')">有序</button>
+      <button
+        type="button"
+        :class="{ active: isActive('bulletList') }"
+        @click="run('toggleBulletList')"
+      >
+        无序
+      </button>
+      <button
+        type="button"
+        :class="{ active: isActive('orderedList') }"
+        @click="run('toggleOrderedList')"
+      >
+        有序
+      </button>
       <span class="sep" />
-      <button type="button" :class="{ active: isActive('image') }" @click="run('insertImage')" :disabled="isUploadingImage">
+      <button
+        type="button"
+        :class="{ active: isActive('image') }"
+        @click="run('insertImage')"
+        :disabled="isUploadingImage"
+      >
         {{ isUploadingImage ? '上传中...' : '图片' }}
       </button>
       <span class="sep" />
@@ -257,7 +314,7 @@ const completion = reactive<{
   y: number
   items: KeywordInfo[]
   activeIndex: number
-  prefix: '@'  // 统一使用 @ 前缀
+  prefix: '@' // 统一使用 @ 前缀
   query: string
   from: number
   to: number
@@ -273,7 +330,12 @@ const completion = reactive<{
   to: 0,
 })
 
-const keywordCard = reactive<{ visible: boolean; x: number; y: number; keyword: KeywordInfo | null }>({
+const keywordCard = reactive<{
+  visible: boolean
+  x: number
+  y: number
+  keyword: KeywordInfo | null
+}>({
   visible: false,
   x: 0,
   y: 0,
@@ -392,7 +454,8 @@ function handleCompletionKeydown(event: KeyboardEvent): boolean {
     }
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      completion.activeIndex = (completion.activeIndex - 1 + completion.items.length) % completion.items.length
+      completion.activeIndex =
+        (completion.activeIndex - 1 + completion.items.length) % completion.items.length
       return true
     }
     if (event.key === 'Enter' || event.key === 'Tab') {
@@ -473,7 +536,10 @@ watch(
         // 检查更新后的DOM
         setTimeout(() => {
           const proseMirror = document.querySelector('.ProseMirror')
-          console.log('[QyTipTapEditor] 更新后的ProseMirror HTML:', proseMirror?.innerHTML?.substring(0, 500))
+          console.log(
+            '[QyTipTapEditor] 更新后的ProseMirror HTML:',
+            proseMirror?.innerHTML?.substring(0, 500),
+          )
         }, 100)
       } else {
         console.log('[QyTipTapEditor] 内容相同，跳过更新')
@@ -523,7 +589,7 @@ async function updateCompletionFromSelection(currentEditor: CoreEditor) {
   const items = await searchAllEntities(completion.query)
   completion.items = items
   completion.activeIndex = 0
-  completion.visible = true  // 始终显示，包括无匹配时
+  completion.visible = true // 始终显示，包括无匹配时
 }
 
 async function searchAllEntities(query: string): Promise<KeywordInfo[]> {
@@ -535,10 +601,12 @@ async function searchAllEntities(query: string): Promise<KeywordInfo[]> {
     // 调用统一的搜索API，返回所有类型的实体
     const keyword = `@${query}`
     const resp = await searchProjectKeywords(props.projectId, keyword, 10)
-    const payload = (resp as unknown as {
-      data?: { suggestions?: Array<{ type?: string; id?: string; name?: string; summary?: string }> }
+    const payload = resp as unknown as {
+      data?: {
+        suggestions?: Array<{ type?: string; id?: string; name?: string; summary?: string }>
+      }
       suggestions?: Array<{ type?: string; id?: string; name?: string; summary?: string }>
-    })
+    }
     const suggestions = payload.data?.suggestions || payload.suggestions || []
 
     return suggestions
@@ -555,13 +623,20 @@ async function searchAllEntities(query: string): Promise<KeywordInfo[]> {
   }
 }
 
-function normalizeKeywordType(rawType: string | undefined, fallback: KeywordInfo['type']): KeywordInfo['type'] {
-  if (rawType === 'character' || rawType === 'location' || rawType === 'item' || rawType === 'concept') {
+function normalizeKeywordType(
+  rawType: string | undefined,
+  fallback: KeywordInfo['type'],
+): KeywordInfo['type'] {
+  if (
+    rawType === 'character' ||
+    rawType === 'location' ||
+    rawType === 'item' ||
+    rawType === 'concept'
+  ) {
     return rawType
   }
   return fallback
 }
-
 
 function buildMockAllEntities(query: string): KeywordInfo[] {
   // 混合所有类型的模拟数据
@@ -590,21 +665,27 @@ function insertCompletion(item: KeywordInfo) {
   const to = completion.to || editor.value.state.selection.from
 
   // 插入带 SmartKeyword mark 的内容
-  editor.value.chain().focus().insertContentAt({ from, to }, [
-    {
-      type: 'text',
-      text: `@${item.name}`,
-      marks: [{
-        type: 'smartKeyword',
-        attrs: {
-          keywordId: item.id || null,
-          keywordType: item.type,
-          keywordName: item.name,
-        },
-      }],
-    },
-    { type: 'text', text: ' ' },
-  ]).run()
+  editor.value
+    .chain()
+    .focus()
+    .insertContentAt({ from, to }, [
+      {
+        type: 'text',
+        text: `@${item.name}`,
+        marks: [
+          {
+            type: 'smartKeyword',
+            attrs: {
+              keywordId: item.id || null,
+              keywordType: item.type,
+              keywordName: item.name,
+            },
+          },
+        ],
+      },
+      { type: 'text', text: ' ' },
+    ])
+    .run()
   completion.visible = false
 }
 
@@ -655,12 +736,14 @@ function extractParagraphs(doc: unknown): ParagraphContent[] {
   const jsonString = JSON.stringify(doc)
 
   // 返回单个段落，包含 TipTap JSON字符串
-  return [{
-    paragraphId: 'main',
-    order: 0,
-    content: jsonString,
-    contentType: 'tiptap_json',
-  }]
+  return [
+    {
+      paragraphId: 'main',
+      order: 0,
+      content: jsonString,
+      contentType: 'tiptap_json',
+    },
+  ]
 }
 
 async function scanAndNotifyEntities(doc: unknown) {
@@ -750,7 +833,9 @@ async function handleEntityCreate(entity: {
     try {
       const { message } = await import('@/design-system/services')
       message.error(`创建实体「${entity.name}」失败`)
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // 插入带 mark 的内容
@@ -770,12 +855,18 @@ function insertEntityMark(name: string, type: string, id?: string) {
   if (id) markAttrs.keywordId = id
 
   const content = [
-    { type: 'text' as const, text: `@${name}`, marks: [{ type: 'smartKeyword', attrs: markAttrs }] },
+    {
+      type: 'text' as const,
+      text: `@${name}`,
+      marks: [{ type: 'smartKeyword', attrs: markAttrs }],
+    },
     { type: 'text' as const, text: ' ' },
   ]
 
   if (insertFrom > 0 && insertTo > insertFrom) {
-    editor.value.chain().focus()
+    editor.value
+      .chain()
+      .focus()
       .deleteRange({ from: insertFrom, to: insertTo })
       .insertContentAt({ from: insertFrom, to: insertFrom }, content)
       .run()
@@ -833,6 +924,22 @@ onBeforeUnmount(() => {
   outline: none;
   line-height: 1.75;
   color: var(--editor-content-fg);
+}
+:deep(.ProseMirror p) {
+  margin: 0;
+  text-indent: 2em;
+}
+:deep(.ProseMirror h1),
+:deep(.ProseMirror h2),
+:deep(.ProseMirror h3),
+:deep(.ProseMirror h4),
+:deep(.ProseMirror h5),
+:deep(.ProseMirror h6),
+:deep(.ProseMirror blockquote),
+:deep(.ProseMirror pre),
+:deep(.ProseMirror ul),
+:deep(.ProseMirror ol) {
+  text-indent: 0;
 }
 :deep(.qy-smart-keyword) {
   border-bottom: 1px dashed var(--editor-accent);

@@ -75,6 +75,8 @@ export interface ActionTrigger {
 export interface AIInputAreaProps {
   modelValue: string
   context?: ChatContextSnippet | null
+  mode?: 'chat' | 'edit'
+  canEdit?: boolean
   disabled?: boolean
   placeholder?: string
   hint?: string

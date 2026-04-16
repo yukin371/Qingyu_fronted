@@ -24,9 +24,11 @@
           <QyIcon name="MagicStick" />
         </div>
         <div class="message-content-wrapper">
-          <div class="message-content">
-            {{ message.typing ? typingText : message.content }}
-          </div>
+          <div
+            class="message-content"
+            :class="{ 'message-content--pending': message.typing }"
+            v-safe-html="renderAssistantMessage(message)"
+          ></div>
           <div v-if="message.typing" class="typing-indicator">
             <span></span><span></span><span></span>
           </div>
@@ -34,13 +36,31 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showPendingAssistant" class="message-item message-ai message-ai-pending">
+      <div class="message-bubble message-ai">
+        <div class="message-avatar">
+          <QyIcon name="MagicStick" />
+        </div>
+        <div class="message-content-wrapper">
+          <div
+            class="message-content message-content--pending"
+            v-safe-html="renderPendingMarkdown()"
+          ></div>
+          <div class="typing-indicator"><span></span><span></span><span></span></div>
+          <div class="message-time">思考中</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
+import { marked } from 'marked'
 import QyIcon from '@/design-system/components/basic/QyIcon/QyIcon.vue'
 import { useI18n } from '@/composables/useI18n'
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
 import type { ChatMessage } from './types'
 
 // ==================== Props ====================
@@ -68,8 +88,32 @@ const emptyHint = t('ai.emptyHint', '开始与AI助手对话...')
 
 // ==================== Refs ====================
 const messagesContainer = ref<HTMLElement>()
+const showPendingAssistant = computed(
+  () =>
+    props.isTyping &&
+    !props.messages.some((message) => message.role === 'assistant' && message.typing),
+)
 
 // ==================== 方法 ====================
+function renderMarkdown(content: string): string {
+  if (!content) return ''
+  try {
+    const html = marked(content, { breaks: true, gfm: true }) as string
+    return sanitizeMarkdownHtml(html)
+  } catch {
+    return content
+  }
+}
+
+function renderAssistantMessage(message: ChatMessage): string {
+  const content = message.typing ? props.typingText || '正在整理回复…' : message.content
+  return renderMarkdown(content)
+}
+
+function renderPendingMarkdown(): string {
+  return renderMarkdown(props.typingText || '正在思考，请稍候…')
+}
+
 /**
  * 格式化时间戳
  */
@@ -240,6 +284,54 @@ watch(
     font-size: 14px;
     line-height: 1.6;
     white-space: pre-wrap;
+
+    &--pending {
+      color: var(--ai-text-muted, #64748b);
+    }
+  }
+
+  .message-content :deep(p) {
+    margin: 0 0 8px;
+  }
+
+  .message-content :deep(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .message-content :deep(ul),
+  .message-content :deep(ol) {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .message-content :deep(blockquote) {
+    margin: 8px 0;
+    padding-left: 12px;
+    border-left: 3px solid var(--ai-border-strong, #cbd5e1);
+    color: var(--ai-text-muted, #64748b);
+  }
+
+  .message-content :deep(code) {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.08);
+    font-size: 13px;
+  }
+
+  .message-content :deep(pre) {
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    overflow-x: auto;
+    background: #0f172a;
+    color: #e2e8f0;
+    white-space: pre-wrap;
+  }
+
+  .message-content :deep(pre code) {
+    padding: 0;
+    background: transparent;
+    color: inherit;
   }
 
   .message-time {

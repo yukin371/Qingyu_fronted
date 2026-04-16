@@ -146,6 +146,27 @@
           {{ resultPromoteActionText(latestResultCandidate) }}
         </button>
       </section>
+
+      <section
+        v-if="visibleDiffPreview"
+        class="workflow-diff-card"
+        data-testid="workflow-diff-card"
+      >
+        <div class="workflow-card__meta">
+          <span class="workflow-chip workflow-chip--accent">变更预览</span>
+          <span class="workflow-chip">{{ diffModeText }}</span>
+        </div>
+        <div class="workflow-diff-card__grid">
+          <div class="workflow-diff-card__column">
+            <span class="workflow-diff-card__label">修改前</span>
+            <p class="workflow-diff-card__text">{{ visibleDiffPreview.before }}</p>
+          </div>
+          <div class="workflow-diff-card__column workflow-diff-card__column--after">
+            <span class="workflow-diff-card__label">修改后</span>
+            <p class="workflow-diff-card__text">{{ visibleDiffPreview.after }}</p>
+          </div>
+        </div>
+      </section>
     </section>
 
     <div class="ai-workbench__panel">
@@ -183,6 +204,7 @@
       <AIPanel
         v-else
         :session-id="projectId"
+        :source-text="sourceText"
         :action-trigger="actionTrigger"
         :workflow-context="workflowContext"
         @apply-generated-text="
@@ -335,6 +357,32 @@ const visibleProposalLifecycleFeedback = computed(() =>
   shouldShowProposalLifecycleFeedback.value ? proposalLifecycleFeedback.value : null,
 )
 
+const visibleDiffPreview = computed(() => {
+  const candidate = latestResultCandidate.value
+  if (!candidate) return null
+  if (!['rewrite', 'direct_edit', 'expand', 'polish', 'continue'].includes(candidate.action)) {
+    return null
+  }
+
+  const before = (candidate.sourceText || props.sourceText || '').trim()
+  const after = (candidate.generatedText || '').trim()
+  if (!before || !after || before === after) return null
+
+  return {
+    before: shortenPreview(before),
+    after: shortenPreview(after),
+  }
+})
+
+const diffModeText = computed(() => {
+  const mode = props.actionTrigger?.applyMode
+  if (mode === 'replace_document') return '整章改写'
+  if (mode === 'insert_after_selection') return '插入选区后'
+  if (mode === 'replace_selection') return '替换选区'
+  if (mode === 'append_paragraph') return '追加段落'
+  return '正文改写'
+})
+
 watch(
   [() => props.projectId, () => props.chapterId, () => props.actionTrigger?.id],
   (
@@ -420,6 +468,11 @@ function resultKindText(candidate: WriterResultCandidate) {
 
 function resultPromoteActionText(candidate: WriterResultCandidate) {
   return resultKindText(candidate) === '方向' ? '存为方向' : '存为正文'
+}
+
+function shortenPreview(text: string) {
+  const normalized = text.replace(/\s+/g, ' ').trim()
+  return normalized.length > 180 ? `${normalized.slice(0, 180)}…` : normalized
 }
 </script>
 
@@ -607,6 +660,50 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   color: var(--editor-text-muted, #64748b);
 }
 
+.workflow-diff-card {
+  padding: 10px;
+  border: 1px solid var(--editor-border, rgba(0, 0, 0, 0.08));
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-diff-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workflow-diff-card__column {
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(248, 250, 252, 0.9);
+  padding: 8px;
+}
+
+.workflow-diff-card__column--after {
+  background: rgba(236, 253, 245, 0.9);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.workflow-diff-card__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--editor-text-muted, #64748b);
+}
+
+.workflow-diff-card__text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--editor-text-primary, #0f172a);
+  white-space: pre-wrap;
+}
+
 .ai-workbench__panel {
   flex: 1;
   min-height: 0;
@@ -710,10 +807,15 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 
   .apply-feedback,
   .workflow-result-card,
-  .proposal-card {
+  .proposal-card,
+  .workflow-diff-card {
     border-radius: 12px;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .workflow-diff-card__grid {
+    grid-template-columns: 1fr;
   }
 
   .apply-feedback__content {
