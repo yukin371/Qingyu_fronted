@@ -1,7 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="visible" class="onboarding-overlay" @click="handleOverlayClick">
+      <div
+        v-if="visible"
+        class="onboarding-overlay"
+        :class="{ 'onboarding-overlay--fullscreen': currentStep?.target === 'body' }"
+        @click.self="handleOverlayClick"
+      >
         <!-- 高亮目标元素 -->
         <div
           v-if="currentStep && currentStep.target !== 'body'"
@@ -79,7 +84,13 @@
         </div>
 
         <!-- 全屏引导（无高亮目标） -->
-        <div v-else-if="currentStep && currentStep.target === 'body'" class="fullscreen-tour">
+        <div
+          v-else-if="currentStep && currentStep.target === 'body'"
+          class="fullscreen-tour"
+          role="dialog"
+          aria-modal="true"
+          @click.stop
+        >
           <div class="tour-content-fullscreen">
             <!-- 进度条 -->
             <div v-if="showProgress" class="tour-progress">
@@ -304,12 +315,10 @@ watch(visible, (isVisible) => {
 })
 
 // 方法
-function handleOverlayClick(event: MouseEvent) {
+function handleOverlayClick() {
   // 只有点击高亮区域外的遮罩才关闭
-  if ((event.target as HTMLElement).classList.contains('onboarding-overlay')) {
-    // 可以选择是否允许点击遮罩关闭
-    // endTour()
-  }
+  // 可以选择是否允许点击遮罩关闭
+  // endTour()
 }
 
 function nextStep() {
@@ -353,6 +362,13 @@ function endTour() {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
+.onboarding-overlay--fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
 .highlight-target {
   position: absolute;
   pointer-events: auto;
@@ -391,6 +407,7 @@ function endTour() {
   max-width: 400px;
   z-index: 10000;
   transition: all 0.3s ease;
+  pointer-events: auto;
 }
 
 .tour-progress {
@@ -494,21 +511,22 @@ function endTour() {
 
 // 全屏引导
 .fullscreen-tour {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   max-width: 600px;
-  width: 90%;
+  width: min(600px, 100%);
+  max-height: calc(100vh - 48px);
   background: white;
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 16px 64px rgba(0, 0, 0, 0.2);
   z-index: 10000;
+  overflow: auto;
+  pointer-events: auto;
 }
 
 .tour-content-fullscreen {
   text-align: center;
+  pointer-events: auto;
 }
 
 .fullscreen-title {
