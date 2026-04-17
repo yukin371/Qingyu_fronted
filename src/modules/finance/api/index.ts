@@ -15,8 +15,25 @@ export type {
 export type {
   WithdrawalRequest,
   AuthorEarning,
-  Settlement
+  Settlement,
+  RevenueOverview,
+  RevenueStatistics,
+  RevenueDetail,
+  TaxInfo
 } from './author-revenue'
+
+// 导出 wallet.ts 的类型
+export type {
+  WalletInfo,
+  WalletTransaction,
+  WalletWithdrawal,
+  WalletListResult,
+  WalletRechargePayload,
+  WalletConsumePayload,
+  WalletTransferPayload,
+  WalletWithdrawPayload,
+  WalletPaymentMethod
+} from './wallet'
 
 // 导出 wrapper 中的函数（但不导出冲突的类型）
 export {
@@ -67,6 +84,10 @@ export {
 export {
   getRevenueOverview,
   getAuthorEarnings,
+  getRevenueStatistics,
+  getRevenueDetails,
+  getTaxInfo,
+  updateTaxInfo,
   getDailyEarnings,
   getMonthlyEarnings,
   withdrawEarnings,
@@ -76,3 +97,6 @@ export {
   getSettlements,
   getSettlementDetail
 } from './author-revenue'
+
+// 导出 wallet.ts 的函数
+export { walletAPI } from './wallet'

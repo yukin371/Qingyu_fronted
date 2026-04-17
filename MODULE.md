@@ -32,6 +32,8 @@
 - `docs/plans/v3` 目录只承载当前活跃专题，新增内容必须遵循目录分类与 `README` 维护规则。
 - Playwright/Vitest 作为主验证路径，不得跳过，改动后必须通过对应 smoke/check scripts。
 - 与后端约定的 API contract（包括命名、错误码）必须保持一致，任何不确定项标注 `TBD` 并列出验证/确认路径。
+- 钱包、充值、提现、作者收益等财务前端能力统一归 `src/modules/finance` owner，`shared` 只允许承载真正跨域复用的 UI/基础设施，不再继续扩展历史 `wallet` 业务逻辑。
+- 阅读器的付费章节展示与购买入口属于 `reader/bookstore` 体验层，但余额、交易、提现数据必须复用 `finance` 契约，不能各自维护影子账本或第二套钱包适配层。
 
 ## 常见坑
 

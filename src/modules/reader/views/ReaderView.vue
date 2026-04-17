@@ -41,6 +41,29 @@
             @scroll="handleScroll"
           />
 
+          <div v-if="isLockedChapter" class="chapter-lock-shell">
+            <div class="chapter-lock-card">
+              <span class="lock-kicker">Paid Chapter</span>
+              <h3>{{ currentChapter?.title }}</h3>
+              <p>{{ lockReason }}</p>
+              <div class="lock-price">
+                <span>解锁价格</span>
+                <strong>¥{{ formatMoney(currentChapterPrice) }}</strong>
+              </div>
+              <div class="lock-actions">
+                <QyButton v-if="!isLoggedIn" variant="primary" @click="goToLogin">
+                  登录后购买
+                </QyButton>
+                <template v-else>
+                  <QyButton variant="primary" :loading="purchasing" @click="handlePurchaseChapter">
+                    立即购买章节
+                  </QyButton>
+                  <QyButton @click="goToWallet">先去充值</QyButton>
+                </template>
+              </div>
+            </div>
+          </div>
+
           <!-- 底部导航栏 -->
           <ReaderFooter
             :is-fullscreen="isFullscreen"
@@ -115,6 +138,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReaderStore } from '@/stores/reader'
 import { useCommentStore } from '@/stores/comment'
+import { useWalletStore } from '@/stores/wallet'
+import { useAuthStore } from '@/stores/auth'
 import { useTouch } from '@/composables/useTouch'
 import { useResponsive } from '@/composables/useResponsive'
 import { message } from '@/design-system/services'
@@ -146,6 +171,7 @@ interface Chapter {
   bookId?: string
   title: string
   chapterNum?: number
+  price?: number
   content?: string
   paragraphs?: ReaderParagraph[]
   isRead?: boolean
@@ -160,6 +186,8 @@ const route = useRoute()
 const router = useRouter()
 const readerStore = useReaderStore()
 const commentStore = useCommentStore()
+const walletStore = useWalletStore()
+const authStore = useAuthStore()
 const { isMobile } = useResponsive()
 
 // 使用设置 composable
@@ -217,9 +245,13 @@ const isInBookshelf = ref(false)
 const readingDuration = ref(0)
 const readingDurationTimer = ref<number | null>(null)
 const hasAddedToBookshelfThisSession = ref(false)
-const recommendedBooks = ref<Array<{ id: string; title: string; author: string; cover: string }>>(
-  [],
-)
+const recommendedBooks = ref<Array<{
+  id: string
+  title: string
+  author: string
+  cover: string
+  reason?: string
+}>>([])
 const demoChapterList = ref(createYunlanReaderChapters())
 const demoCurrentChapter = ref<Chapter | null>(null)
 const publishedChapterList = ref<Chapter[]>([])
@@ -298,6 +330,14 @@ const progressText = computed(() => {
 })
 
 const showBackTop = computed(() => readProgress.value > 15)
+const isLockedChapter = computed(() => {
+  if (isDemoMode.value || isPublishedMode.value) return false
+  return !!currentChapter.value && (currentChapter.value as any).canAccess === false
+})
+const lockReason = computed(() => (currentChapter.value as any)?.accessReason || '该章节需要购买后阅读')
+const currentChapterPrice = computed(() => Number(currentChapter.value?.price || 0) / 100)
+const isLoggedIn = computed(() => Boolean(authStore.token))
+const purchasing = ref(false)
 
 // 阅读时长格式化
 const formatReadingTime = computed(() => {
@@ -308,6 +348,8 @@ const formatReadingTime = computed(() => {
   }
   return `${seconds}秒`
 })
+
+const formatMoney = (value: number) => Number(value || 0).toFixed(2)
 
 // 方法
 const toggleHeaderFooter = () => {
@@ -453,6 +495,19 @@ const goHome = () => {
   router.push('/bookstore')
 }
 
+const goToWallet = () => {
+  router.push('/user/wallet')
+}
+
+const goToLogin = () => {
+  router.push({
+    path: '/auth',
+    query: {
+      redirect: route.fullPath,
+    },
+  })
+}
+
 const goToBook = (bookId: string) => {
   router.push(`/bookstore/books/${bookId}`)
 }
@@ -480,28 +535,125 @@ const checkBookshelfStatus = async () => {
 
 const loadRecommendedBooks = async () => {
   try {
-    recommendedBooks.value = [
-      {
-        id: 'rec1',
-        title: '玄幻巅峰',
-        author: '天蚕',
-        cover: 'https://picsum.photos/seed/rec1/80/120',
-      },
-      {
-        id: 'rec2',
-        title: '都市修仙',
-        author: '我吃西红柿',
-        cover: 'https://picsum.photos/seed/rec2/80/120',
-      },
-      {
-        id: 'rec3',
-        title: '科幻世界',
-        author: '刘慈欣',
-        cover: 'https://picsum.photos/seed/rec3/80/120',
-      },
-    ]
+    // 获取当前书籍 ID
+    const currentBookId = currentChapter.value?.bookId || publishedBookId.value
+
+    if (!currentBookId) {
+      // 如果没有书籍ID，使用空数组
+      recommendedBooks.value = []
+      return
+    }
+
+    // 调用 bookstore 的相似书籍 API
+    const response = await fetch(`/api/v1/bookstore/books/${currentBookId}/similar?limit=6`)
+
+    // 检查 HTTP 状态码
+    if (!response.ok) {
+      console.error('推荐 API 请求失败:', response.status)
+      await loadFallbackRecommendedBooks()
+      return
+    }
+
+    const result = await response.json()
+
+    // 检查业务状态码
+    if (result?.code !== 0) {
+      console.error('推荐 API 业务错误:', result?.message)
+      await loadFallbackRecommendedBooks()
+      return
+    }
+
+    // 解析响应数据
+    const books = result?.data
+
+    if (books && books.length > 0) {
+      // 转换为推荐书籍格式（包含推荐理由）
+      recommendedBooks.value = books.map((book: {
+        id: string
+        title: string
+        author: string
+        cover?: string
+        categories?: string[]
+        tags?: string[]
+        rating?: number
+      }) => ({
+        id: book.id,
+        title: book.title || '未知书名',
+        author: book.author || '未知作者',
+        cover: book.cover || '',
+        // 推荐理由：基于分类和评分生成
+        reason: generateRecommendationReason(book),
+      }))
+    } else {
+      // API 返回空数据时，使用备用的热门书籍
+      await loadFallbackRecommendedBooks()
+    }
+  } catch (error) {
+    console.error('加载推荐书籍失败:', error)
+    // API 调用失败时，使用备用的热门书籍
+    await loadFallbackRecommendedBooks()
+  }
+}
+
+// 生成推荐理由
+const generateRecommendationReason = (book: {
+  categories?: string[]
+  tags?: string[]
+  rating?: number
+}): string => {
+  if (book.rating && book.rating >= 9.0) {
+    return '高分神作'
+  }
+  if (book.rating && book.rating >= 8.0) {
+    return '口碑佳作'
+  }
+  if (book.categories && book.categories.length > 0) {
+    return `${book.categories[0]}力作`
+  }
+  if (book.tags && book.tags.length > 0) {
+    return `标签: ${book.tags[0]}`
+  }
+  return '热门推荐'
+}
+
+// 加载备用推荐书籍（当 API 失败时使用）
+const loadFallbackRecommendedBooks = async () => {
+  try {
+    // 调用书店首页 API 获取推荐书籍
+    const response = await fetch('/api/v1/bookstore/books?page=1&pageSize=6')
+
+    if (!response.ok) {
+      console.error('备用推荐 API 请求失败:', response.status)
+      recommendedBooks.value = []
+      return
+    }
+
+    const result = await response.json()
+    const books = result?.data
+
+    if (books && books.length > 0) {
+      // 从首页书籍中获取前 6 本作为推荐
+      recommendedBooks.value = books.slice(0, 6).map((book: {
+        id: string
+        title: string
+        author: string
+        cover?: string
+        categories?: string[]
+        rating?: number
+      }) => ({
+        id: book.id,
+        title: book.title || '推荐书籍',
+        author: book.author || '青羽平台',
+        cover: book.cover || '',
+        reason: book.rating && book.rating >= 9.0 ? '高分神作' : '热门推荐',
+      }))
+    } else {
+      // 如果 API 也为空，设置空数组
+      recommendedBooks.value = []
+    }
   } catch {
-    console.error('加载推荐书籍失败')
+    console.error('加载备用推荐书籍失败')
+    recommendedBooks.value = []
   }
 }
 
@@ -636,6 +788,32 @@ const loadChapter = async () => {
     message.error(err.message || '加载章节失败')
   } finally {
     loading.value = false
+  }
+}
+
+const handlePurchaseChapter = async () => {
+  if (!chapterId.value) return
+  if (!isLoggedIn.value) {
+    goToLogin()
+    return
+  }
+
+  purchasing.value = true
+  try {
+    await readerAPI.purchaseChapter(chapterId.value)
+    await walletStore.fetchBalance().catch(() => undefined)
+    message.success('章节已解锁')
+    await loadChapter()
+  } catch (error) {
+    const err = error as { message?: string }
+    const errorMessage = err?.message || '购买章节失败'
+    if (errorMessage.includes('余额') || errorMessage.toLowerCase().includes('balance')) {
+      message.warning('余额不足，请先充值后再购买')
+    } else {
+      message.error(errorMessage)
+    }
+  } finally {
+    purchasing.value = false
   }
 }
 
@@ -783,5 +961,77 @@ watch(commentDrawerVisible, (visible) => {
 .reader-fade-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+.chapter-lock-shell {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px 24px;
+}
+
+.chapter-lock-card {
+  width: min(560px, 100%);
+  padding: 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  background:
+    linear-gradient(145deg, rgba(255, 247, 237, 0.96), rgba(255, 255, 255, 0.94));
+  box-shadow: 0 18px 42px rgba(217, 119, 6, 0.12);
+  text-align: center;
+
+  h3 {
+    margin: 10px 0 12px;
+    font-size: 28px;
+    color: #7c2d12;
+  }
+
+  p {
+    margin: 0;
+    color: #9a3412;
+    line-height: 1.7;
+  }
+}
+
+.lock-kicker {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lock-price {
+  margin: 18px 0;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  span {
+    color: #92400e;
+    font-size: 13px;
+  }
+
+  strong {
+    font-size: 34px;
+    color: #b45309;
+  }
+}
+
+.lock-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .lock-actions {
+    flex-direction: column;
+  }
 }
 </style>

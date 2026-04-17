@@ -56,6 +56,8 @@ export const useReaderStore = defineStore('reader', () => {
         wordCount: item.word_count ?? item.wordCount ?? 0,
         isFree: item.is_free ?? item.isFree ?? true,
         price: item.price ?? 0,
+        canAccess: item.canAccess ?? item.can_access ?? true,
+        accessReason: item.accessReason ?? item.access_reason ?? '',
         publishedAt: item.publish_time ?? item.publishTime ?? item.publishedAt,
         createdAt: item.created_at ?? item.createdAt,
         updatedAt: item.updated_at ?? item.updatedAt,
@@ -161,36 +163,48 @@ export const useReaderStore = defineStore('reader', () => {
         return { chapter: currentChapter.value, content: chapterContent.value }
       }
 
-      // 生产模式：调用真实API
-      const [chapterRes, contentRes] = await Promise.all([
-        readerAPI.getChapterInfo(chapterId),
-        readerAPI.getChapterContent(currentBookId.value || '', chapterId),
-      ])
-
-      // 合并章节信息和内容数据，并转换字段名
+      // 生产模式：优先走 reader 受控接口，确保付费章节能触发权限校验
+      const chapterRes = await readerAPI.getChapterInfo(chapterId)
       const chapterInfo = (chapterRes as any)?.data ?? (chapterRes as any)
-      const contentData = (contentRes as any)?.data ?? (contentRes as any)
+      const resolvedBookId =
+        _bookId ||
+        chapterInfo.book_id ||
+        chapterInfo.bookId ||
+        currentBookId.value ||
+        ''
       const previousBookId = currentBookId.value
 
-      // 转换API响应数据格式为前端Chapter类型
-      // 后端返回 hasNext/hasPrevious 布尔值，前端需要兼容使用
+      let contentData: any = {
+        content: '',
+        paragraphs: [],
+        hasPrevious: false,
+        hasNext: false,
+        canAccess: chapterInfo.canAccess ?? true,
+        accessReason: chapterInfo.accessReason ?? '',
+      }
+
+      if ((chapterInfo.canAccess ?? true) && resolvedBookId) {
+        const contentRes = await readerAPI.getChapterContent(resolvedBookId, chapterId)
+        contentData = (contentRes as any)?.data ?? (contentRes as any)
+      }
+
       const chapter: any = {
         id: chapterInfo.id ?? chapterInfo.chapterId,
-        bookId: chapterInfo.book_id ?? chapterInfo.bookId ?? currentBookId.value,
+        bookId: chapterInfo.book_id ?? chapterInfo.bookId ?? resolvedBookId,
         title: chapterInfo.title,
         chapterNumber: chapterInfo.chapter_num ?? chapterInfo.chapterNum,
         wordCount: chapterInfo.word_count ?? chapterInfo.wordCount,
         isFree: chapterInfo.is_free ?? chapterInfo.isFree,
-        price: chapterInfo.price,
+        price: chapterInfo.price ?? contentData.price ?? 0,
         publishedAt: chapterInfo.publish_time ?? chapterInfo.publishTime ?? chapterInfo.publishedAt,
         createdAt: chapterInfo.created_at ?? chapterInfo.createdAt,
         updatedAt: chapterInfo.updated_at ?? chapterInfo.updatedAt,
-        // 导航ID优先从章节数据获取，否则使用后端返回的布尔标志
         prevChapterId: chapterInfo.prev_chapter_id ?? chapterInfo.prevChapterId ?? null,
         nextChapterId: chapterInfo.next_chapter_id ?? chapterInfo.nextChapterId ?? null,
-        // 后端API返回的导航布尔标志
         hasPrevious: chapterInfo.hasPrevious ?? contentData.hasPrevious ?? false,
         hasNext: chapterInfo.hasNext ?? contentData.hasNext ?? false,
+        canAccess: chapterInfo.canAccess ?? contentData.canAccess ?? true,
+        accessReason: chapterInfo.accessReason ?? contentData.accessReason ?? '',
         content: contentData.content || '',
         paragraphs: Array.isArray(contentData.paragraphs) ? contentData.paragraphs : [],
       }

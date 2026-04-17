@@ -105,15 +105,15 @@
           stripe
           empty-text="暂无转账记录"
         >
-          <el-table-column prop="created_at" label="时间" width="180">
+          <el-table-column prop="createdAt" label="时间" width="180">
             <template #default="{ row }">
-              {{ formatDate(row.created_at) }}
+              {{ formatDate(row.createdAt) }}
             </template>
           </el-table-column>
 
-          <el-table-column prop="related_user" label="收款人" width="150">
+          <el-table-column prop="relatedUserId" label="收款人" width="150">
             <template #default="{ row }">
-              {{ row.related_user || '-' }}
+              {{ row.relatedUserId || '-' }}
             </template>
           </el-table-column>
 
@@ -229,8 +229,8 @@ import {
 } from '@/design-system/components'
 import { Tag, Textarea, Card, Input } from '@/design-system/base'
 import { Container, Section, LoadingOverlay } from '@/shared/components/design-system'
-import { walletAPI } from '@/modules/shared/api'
-import type { WalletInfo, Transaction } from '@/types/shared'
+import { walletAPI } from '@/modules/finance/api/wallet'
+import type { WalletInfo, WalletTransaction as Transaction } from '@/modules/finance/api'
 
 // 加载状态
 const pageLoading = ref(false)
@@ -241,8 +241,16 @@ const loadingHistory = ref(false)
 const walletInfo = ref<WalletInfo>({
   userId: '',
   balance: 0,
+  balanceCents: 0,
+  availableAmount: 0,
+  availableAmountCents: 0,
+  frozenAmount: 0,
+  frozenAmountCents: 0,
   totalIncome: 0,
   totalExpense: 0,
+  totalIncomeCents: 0,
+  totalExpenseCents: 0,
+  frozen: false,
 })
 
 // 转账表单
@@ -360,20 +368,7 @@ function handleUserSelect(item: { value: string; nickname: string }) {
 // 加载钱包信息
 async function loadWalletInfo() {
   try {
-    const response = await walletAPI.getWallet()
-    if (response.code === 200 && response.data) {
-      walletInfo.value = {
-        userId: response.data.userId || '',
-        balance: response.data.balance || 0,
-        totalIncome: response.data.totalIncome || 0,
-        totalExpense: response.data.totalExpense || 0,
-        frozenBalance: response.data.frozenBalance,
-        frozenAmount: response.data.frozenAmount,
-        availableAmount: response.data.availableAmount,
-        currency: response.data.currency,
-        updatedAt: response.data.updatedAt,
-      }
-    }
+    walletInfo.value = await walletAPI.getWallet()
   } catch (error) {
     console.error('加载钱包信息失败:', error)
   }
@@ -388,11 +383,8 @@ async function loadTransferHistory() {
       pageSize: pageSize.value,
       type: 'transfer_out',
     })
-
-    if (response.code === 200) {
-      transferHistory.value = (response.data as any)?.data || []
-      total.value = (response.data as any)?.pagination?.total || 0
-    }
+    transferHistory.value = response.items
+    total.value = response.total
   } catch (error) {
     console.error('加载转账记录失败:', error)
   } finally {
@@ -422,26 +414,14 @@ async function confirmTransfer() {
       amount: transferForm.amount,
       reason: transferForm.reason || '用户转账',
     })
-
-    if (response.code === 200) {
-      transferResult.value = {
-        success: true,
-        message: '转账成功',
-        transactionId: response.data?.id || '',
-      }
-
-      // 刷新钱包信息和转账记录
-      await Promise.all([loadWalletInfo(), loadTransferHistory()])
-
-      // 重置表单
-      transferFormRef.value?.resetFields()
-    } else {
-      transferResult.value = {
-        success: false,
-        message: response.message || '转账失败',
-        transactionId: '',
-      }
+    transferResult.value = {
+      success: true,
+      message: '转账成功',
+      transactionId: response.id || '',
     }
+
+    await Promise.all([loadWalletInfo(), loadTransferHistory()])
+    transferFormRef.value?.resetFields()
   } catch (error) {
     transferResult.value = {
       success: false,

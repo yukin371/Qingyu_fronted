@@ -1,425 +1,503 @@
-/**
- * 作者收入 API
- */
-import request from '../request'
+import { httpService } from '@/core/services/http.service'
 
-// 收入记录
 export interface AuthorEarning {
   id: string
-  author_id: string
-  book_id: string
-  book_title?: string
+  authorId: string
+  bookId?: string
+  bookTitle?: string
+  chapterId?: string
+  chapterTitle?: string
   type: string
   amount: number
-  description: string
-  status: 'pending' | 'confirmed' | 'paid'
-  created_at: string
-  updated_at: string
+  amountCents: number
+  grossAmount: number
+  grossAmountCents: number
+  platformFee: number
+  platformFeeCents: number
+  status: 'pending' | 'confirmed' | 'completed' | 'paid'
+  isSettled: boolean
+  createdAt: string
+  updatedAt?: string
 }
 
-// 提现申请
 export interface WithdrawalRequest {
   id: string
-  user_id: string
+  userId: string
   amount: number
-  status: 'pending' | 'processing' | 'completed' | 'rejected'
-  method: string
-  account_info: string
+  amountCents: number
   fee: number
-  actual_amount: number
-  reject_reason?: string
-  created_at: string
-  processed_at?: string
+  feeCents: number
+  actualAmount: number
+  actualAmountCents: number
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'failed'
+  method: string
+  accountType: string
+  accountName: string
+  accountNo: string
+  bankName?: string
+  branchName?: string
+  rejectReason?: string
+  approvedAt?: string
+  completedAt?: string
+  transactionId?: string
+  note?: string
+  createdAt: string
+  updatedAt?: string
 }
 
-// 结算记录
 export interface Settlement {
   id: string
-  author_id: string
+  authorId: string
+  authorNickname?: string
   period: string
-  total_amount: number
-  total_earnings: number
+  totalRevenue: number
+  totalRevenueCents: number
+  platformFee: number
+  platformFeeCents: number
+  actualIncome: number
+  actualIncomeCents: number
+  taxFee: number
+  taxFeeCents: number
+  finalIncome: number
+  finalIncomeCents: number
+  earningCount: number
   status: string
-  created_at: string
+  processedAt?: string
+  transactionId?: string
+  note?: string
+  createdAt: string
+  updatedAt?: string
 }
 
-// 收入统计
 export interface RevenueStatistics {
-  id: string
-  author_id: string
+  authorId: string
   period: string
-  total_earnings: number
-  total_readers: number
-  total_books: number
-  rank?: number
+  periodStart?: string
+  periodEnd?: string
+  totalRevenue: number
+  totalRevenueCents: number
+  chapterIncome: number
+  chapterIncomeCents: number
+  rewardIncome: number
+  rewardIncomeCents: number
+  vipReadingIncome: number
+  vipReadingIncomeCents: number
+  transactionCount: number
+  readerCount: number
+  bookCount: number
+  createdAt?: string
+  updatedAt?: string
 }
 
-// 收入明细
 export interface RevenueDetail {
   id: string
-  author_id: string
-  book_id: string
-  book_title: string
-  total_earnings: number
-  total_readers: number
-  total_chapters: number
-  subscribe_count: number
-  chapter_count: number
+  authorId: string
+  bookId: string
+  bookTitle: string
+  type: string
+  totalAmount: number
+  totalAmountCents: number
+  totalIncome: number
+  totalIncomeCents: number
+  transactionCount: number
+  firstEarningAt?: string
+  lastEarningAt?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
-// 税务信息
 export interface TaxInfo {
   id: string
-  user_id: string
-  id_type: string
-  id_number: string
+  userId: string
+  idType: string
+  idNumber: string
   name: string
-  status: string
-  created_at: string
-  updated_at: string
+  taxType?: string
+  taxRate?: number
+  isVerified?: boolean
+  verifiedAt?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
-/**
- * 获取收入列表
- * @description 获取作者的收入记录列表，支持分页和筛选
- * @endpoint GET /api/v1/finance/author/earnings
- * @category finance
- * @tags 财务管理
- * @param {number} page - 页码（默认1）
- * @param {number} page_size - 每页数量（默认10）
- * @param {string} book_id - 书籍ID（可选）
- * @param {string} type - 收入类型（可选）
- * @param {string} status - 状态筛选（可选）
- * @response {Object} 200 - 成功返回收入列表
- * @response {AuthorEarning[]} items - 收入记录列表
- * @response {number} total - 总数量
- * @security BearerAuth
- */
-export function getAuthorEarnings(params: {
+export interface RevenueOverview {
+  totalEarnings: number
+  pendingEarnings: number
+  paidAmount: number
+  withdrawableAmount: number
+  monthEarnings: number
+  todayEarnings: number
+  totalReaders: number
+  totalTransactions: number
+  totalBooks: number
+}
+
+export interface PaginatedFinanceResult<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface CreateAuthorWithdrawalPayload {
+  amount: number
+  method: 'alipay' | 'wechat' | 'bank'
+  account_type: string
+  account_name: string
+  account_no: string
+  bank_name?: string
+  branch_name?: string
+}
+
+const toCents = (value?: number | null) => Number(value ?? 0)
+const toYuan = (value?: number | null) => Number((toCents(value) / 100).toFixed(2))
+
+function extractItems(raw: any): any[] {
+  if (Array.isArray(raw)) return raw
+  if (Array.isArray(raw?.data)) return raw.data
+  return []
+}
+
+function extractPagination(raw: any, page: number, pageSize: number) {
+  return {
+    total: Number(raw?.pagination?.total ?? extractItems(raw).length),
+    page: Number(raw?.pagination?.page ?? page),
+    pageSize: Number(raw?.pagination?.pageSize ?? pageSize),
+  }
+}
+
+function normalizePagedResult<T>(
+  raw: any,
+  page: number,
+  pageSize: number,
+  mapper: (item: any) => T,
+): PaginatedFinanceResult<T> {
+  const pagination = extractPagination(raw, page, pageSize)
+  return {
+    items: extractItems(raw).map(mapper),
+    total: pagination.total,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+  }
+}
+
+function normalizeAuthorEarning(raw: any): AuthorEarning {
+  const amountCents = toCents(raw?.author_income_cents ?? raw?.author_income ?? raw?.amount)
+  const grossAmountCents = toCents(raw?.amount_cents ?? raw?.gross_amount_cents ?? raw?.gross_amount)
+  const platformFeeCents = toCents(raw?.platform_fee_cents ?? raw?.platform_fee)
+
+  return {
+    id: raw?.id ?? '',
+    authorId: raw?.author_id ?? raw?.authorId ?? '',
+    bookId: raw?.book_id ?? raw?.bookId,
+    bookTitle: raw?.book_title ?? raw?.bookTitle,
+    chapterId: raw?.chapter_id ?? raw?.chapterId,
+    chapterTitle: raw?.chapter_title ?? raw?.chapterTitle,
+    type: raw?.type ?? '',
+    amount: toYuan(amountCents),
+    amountCents,
+    grossAmount: toYuan(grossAmountCents),
+    grossAmountCents,
+    platformFee: toYuan(platformFeeCents),
+    platformFeeCents,
+    status: raw?.status ?? (raw?.is_settled ? 'paid' : 'pending'),
+    isSettled: Boolean(raw?.is_settled ?? raw?.isSettled),
+    createdAt: raw?.created_at ?? raw?.createdAt ?? '',
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+function normalizeWithdrawalRequest(raw: any): WithdrawalRequest {
+  const accountInfo = raw?.account_info ?? {}
+  const amountCents = toCents(raw?.amount_cents ?? raw?.amount)
+  const feeCents = toCents(raw?.fee_cents ?? raw?.fee)
+  const actualAmountCents = toCents(raw?.actual_amount_cents ?? raw?.actual_amount)
+
+  return {
+    id: raw?.id ?? '',
+    userId: raw?.user_id ?? raw?.userId ?? '',
+    amount: toYuan(amountCents),
+    amountCents,
+    fee: toYuan(feeCents),
+    feeCents,
+    actualAmount: toYuan(actualAmountCents),
+    actualAmountCents,
+    status: raw?.status ?? 'pending',
+    method: raw?.method ?? 'alipay',
+    accountType: accountInfo?.account_type ?? raw?.account_type ?? raw?.accountType ?? '',
+    accountName: accountInfo?.account_name ?? raw?.account_name ?? raw?.accountName ?? '',
+    accountNo: accountInfo?.account_no ?? raw?.account_no ?? raw?.account ?? '',
+    bankName: accountInfo?.bank_name ?? raw?.bank_name,
+    branchName: accountInfo?.branch_name ?? raw?.branch_name,
+    rejectReason: raw?.reject_reason ?? raw?.rejectReason,
+    approvedAt: raw?.approved_at ?? raw?.approvedAt,
+    completedAt: raw?.completed_at ?? raw?.completedAt,
+    transactionId: raw?.transaction_id ?? raw?.transactionId,
+    note: raw?.note,
+    createdAt: raw?.created_at ?? raw?.createdAt ?? '',
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+function normalizeSettlement(raw: any): Settlement {
+  const totalRevenueCents = toCents(raw?.total_revenue_cents ?? raw?.total_revenue)
+  const platformFeeCents = toCents(raw?.platform_fee_cents ?? raw?.platform_fee)
+  const actualIncomeCents = toCents(raw?.actual_income_cents ?? raw?.actual_income)
+  const taxFeeCents = toCents(raw?.tax_fee_cents ?? raw?.tax_fee)
+  const finalIncomeCents = toCents(raw?.final_income_cents ?? raw?.final_income)
+
+  return {
+    id: raw?.id ?? '',
+    authorId: raw?.author_id ?? raw?.authorId ?? '',
+    authorNickname: raw?.author_nickname ?? raw?.authorNickname,
+    period:
+      raw?.period ??
+      [raw?.period_start ?? raw?.periodStart, raw?.period_end ?? raw?.periodEnd]
+        .filter(Boolean)
+        .join(' - '),
+    totalRevenue: toYuan(totalRevenueCents),
+    totalRevenueCents,
+    platformFee: toYuan(platformFeeCents),
+    platformFeeCents,
+    actualIncome: toYuan(actualIncomeCents),
+    actualIncomeCents,
+    taxFee: toYuan(taxFeeCents),
+    taxFeeCents,
+    finalIncome: toYuan(finalIncomeCents),
+    finalIncomeCents,
+    earningCount: Number(raw?.earning_count ?? raw?.earningCount ?? 0),
+    status: raw?.status ?? '',
+    processedAt: raw?.processed_at ?? raw?.processedAt,
+    transactionId: raw?.transaction_id ?? raw?.transactionId,
+    note: raw?.note,
+    createdAt: raw?.created_at ?? raw?.createdAt ?? '',
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+function normalizeRevenueStatistics(raw: any): RevenueStatistics {
+  const totalRevenueCents = toCents(raw?.total_revenue_cents ?? raw?.total_revenue)
+  const chapterIncomeCents = toCents(raw?.chapter_income_cents ?? raw?.chapter_income)
+  const rewardIncomeCents = toCents(raw?.reward_income_cents ?? raw?.reward_income)
+  const vipReadingIncomeCents = toCents(raw?.vip_reading_income_cents ?? raw?.vip_reading_income)
+
+  return {
+    authorId: raw?.author_id ?? raw?.authorId ?? '',
+    period: raw?.period ?? '',
+    periodStart: raw?.period_start ?? raw?.periodStart,
+    periodEnd: raw?.period_end ?? raw?.periodEnd,
+    totalRevenue: toYuan(totalRevenueCents),
+    totalRevenueCents,
+    chapterIncome: toYuan(chapterIncomeCents),
+    chapterIncomeCents,
+    rewardIncome: toYuan(rewardIncomeCents),
+    rewardIncomeCents,
+    vipReadingIncome: toYuan(vipReadingIncomeCents),
+    vipReadingIncomeCents,
+    transactionCount: Number(raw?.transaction_count ?? raw?.transactionCount ?? 0),
+    readerCount: Number(raw?.reader_count ?? raw?.readerCount ?? 0),
+    bookCount: Number(raw?.book_count ?? raw?.bookCount ?? 0),
+    createdAt: raw?.created_at ?? raw?.createdAt,
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+function normalizeRevenueDetail(raw: any): RevenueDetail {
+  const totalAmountCents = toCents(raw?.total_amount_cents ?? raw?.total_amount)
+  const totalIncomeCents = toCents(raw?.total_income_cents ?? raw?.total_income)
+
+  return {
+    id: raw?.id ?? '',
+    authorId: raw?.author_id ?? raw?.authorId ?? '',
+    bookId: raw?.book_id ?? raw?.bookId ?? '',
+    bookTitle: raw?.book_title ?? raw?.bookTitle ?? '',
+    type: raw?.type ?? '',
+    totalAmount: toYuan(totalAmountCents),
+    totalAmountCents,
+    totalIncome: toYuan(totalIncomeCents),
+    totalIncomeCents,
+    transactionCount: Number(raw?.transaction_count ?? raw?.transactionCount ?? 0),
+    firstEarningAt: raw?.first_earning_at ?? raw?.firstEarningAt,
+    lastEarningAt: raw?.last_earning_at ?? raw?.lastEarningAt,
+    createdAt: raw?.created_at ?? raw?.createdAt,
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+function normalizeTaxInfo(raw: any): TaxInfo {
+  return {
+    id: raw?.id ?? '',
+    userId: raw?.user_id ?? raw?.userId ?? '',
+    idType: raw?.id_type ?? raw?.idType ?? '',
+    idNumber: raw?.id_number ?? raw?.idNumber ?? '',
+    name: raw?.name ?? '',
+    taxType: raw?.tax_type ?? raw?.taxType,
+    taxRate: Number(raw?.tax_rate ?? raw?.taxRate ?? 0),
+    isVerified: Boolean(raw?.is_verified ?? raw?.isVerified),
+    verifiedAt: raw?.verified_at ?? raw?.verifiedAt,
+    createdAt: raw?.created_at ?? raw?.createdAt,
+    updatedAt: raw?.updated_at ?? raw?.updatedAt,
+  }
+}
+
+export async function getAuthorEarnings(params: {
   page?: number
   page_size?: number
   book_id?: string
   type?: string
   status?: string
-}) {
-  return request<{
-    items: AuthorEarning[]
-    total: number
-    page: number
-    page_size: number
-  }>({
-    url: '/api/v1/finance/author/earnings',
-    method: 'get',
-    params
+} = {}): Promise<PaginatedFinanceResult<AuthorEarning>> {
+  const page = params.page ?? 1
+  const pageSize = params.page_size ?? 20
+  const raw = await httpService.get<any>('/api/v1/finance/author/earnings', {
+    params: {
+      page,
+      page_size: pageSize,
+      book_id: params.book_id,
+      type: params.type,
+      status: params.status,
+    },
   })
+
+  return normalizePagedResult(raw, page, pageSize, normalizeAuthorEarning)
 }
 
-/**
- * 获取收入统计
- * @description 获取作者的收入统计数据，按时间段统计
- * @endpoint GET /api/v1/finance/author/revenue-statistics
- * @category finance
- * @tags 财务管理
- * @param {string} period - 统计周期（可选）
- * @param {number} limit - 返回数量限制（可选）
- * @response {RevenueStatistics[]} 200 - 成功返回统计数据
- * @security BearerAuth
- */
-export function getRevenueStatistics(params: {
+export async function getRevenueStatistics(params: {
   period?: string
   limit?: number
-}) {
-  return request<RevenueStatistics[]>({
-    url: '/api/v1/finance/author/revenue-statistics',
-    method: 'get',
-    params
+} = {}): Promise<RevenueStatistics[]> {
+  const raw = await httpService.get<any>('/api/v1/finance/author/revenue-statistics', {
+    params,
   })
+
+  return extractItems(raw).map(normalizeRevenueStatistics)
 }
 
-/**
- * 获取收入明细
- * @description 获取作者的收入明细，按书籍维度展示
- * @endpoint GET /api/v1/finance/author/revenue-details
- * @category finance
- * @tags 财务管理
- * @param {number} page - 页码（默认1）
- * @param {number} page_size - 每页数量（默认10）
- * @response {Object} 200 - 成功返回收入明细
- * @response {RevenueDetail[]} items - 收入明细列表
- * @response {number} total - 总数量
- * @security BearerAuth
- */
-export function getRevenueDetails(params: {
+export async function getRevenueDetails(params: {
   page?: number
   page_size?: number
-}) {
-  return request<{
-    items: RevenueDetail[]
-    total: number
-    page: number
-    page_size: number
-  }>({
-    url: '/api/v1/finance/author/revenue-details',
-    method: 'get',
-    params
+} = {}): Promise<PaginatedFinanceResult<RevenueDetail>> {
+  const page = params.page ?? 1
+  const pageSize = params.page_size ?? 20
+  const raw = await httpService.get<any>('/api/v1/finance/author/revenue-details', {
+    params: { page, page_size: pageSize },
   })
+
+  return normalizePagedResult(raw, page, pageSize, normalizeRevenueDetail)
 }
 
-/**
- * 获取提现申请列表
- * @description 获取作者的提现申请记录
- * @endpoint GET /api/v1/finance/author/withdrawals
- * @category finance
- * @tags 财务管理
- * @param {number} page - 页码（默认1）
- * @param {number} page_size - 每页数量（默认10）
- * @param {string} status - 状态筛选（可选）
- * @response {Object} 200 - 成功返回提现申请列表
- * @response {WithdrawalRequest[]} items - 提现申请列表
- * @response {number} total - 总数量
- * @security BearerAuth
- */
-export function getWithdrawalRequests(params: {
+export async function getWithdrawalRequests(params: {
   page?: number
   page_size?: number
   status?: string
-}) {
-  return request<{
-    items: WithdrawalRequest[]
-    total: number
-    page: number
-    page_size: number
-  }>({
-    url: '/api/v1/finance/author/withdrawals',
-    method: 'get',
-    params
+} = {}): Promise<PaginatedFinanceResult<WithdrawalRequest>> {
+  const page = params.page ?? 1
+  const pageSize = params.page_size ?? 20
+  const raw = await httpService.get<any>('/api/v1/finance/author/withdrawals', {
+    params: {
+      page,
+      page_size: pageSize,
+      status: params.status,
+    },
   })
+
+  return normalizePagedResult(raw, page, pageSize, normalizeWithdrawalRequest)
 }
 
-/**
- * 创建提现申请
- * @description 创建新的提现申请
- * @endpoint POST /api/v1/finance/author/withdraw
- * @category finance
- * @tags 财务管理
- * @param {Object} data - 提现申请数据
- * @param {number} data.amount - 提现金额
- * @param {string} data.method - 提现方式
- * @param {string} data.account_info - 账户信息
- * @response {WithdrawalRequest} 201 - 创建成功返回提现申请详情
- * @security BearerAuth
- */
-export function createWithdrawal(data: {
-  amount: number
-  method: string
-  account_info: string
-}) {
-  return request<WithdrawalRequest>({
-    url: '/api/v1/finance/author/withdraw',
-    method: 'post',
-    data
-  })
+export async function createWithdrawal(
+  data: CreateAuthorWithdrawalPayload,
+): Promise<WithdrawalRequest> {
+  const raw = await httpService.post<any>('/api/v1/finance/author/withdraw', data)
+  return normalizeWithdrawalRequest(raw)
 }
 
-/**
- * 获取结算记录
- * @description 获取作者的结算记录列表
- * @endpoint GET /api/v1/finance/author/settlements
- * @category finance
- * @tags 财务管理
- * @param {number} page - 页码（默认1）
- * @param {number} page_size - 每页数量（默认10）
- * @response {Object} 200 - 成功返回结算记录
- * @response {Settlement[]} items - 结算记录列表
- * @response {number} total - 总数量
- * @security BearerAuth
- */
-export function getSettlements(params: {
+export async function getSettlements(params: {
   page?: number
   page_size?: number
-}) {
-  return request<{
-    items: Settlement[]
-    total: number
-    page: number
-    page_size: number
-  }>({
-    url: '/api/v1/finance/author/settlements',
-    method: 'get',
-    params
+} = {}): Promise<PaginatedFinanceResult<Settlement>> {
+  const page = params.page ?? 1
+  const pageSize = params.page_size ?? 20
+  const raw = await httpService.get<any>('/api/v1/finance/author/settlements', {
+    params: { page, page_size: pageSize },
   })
+
+  return normalizePagedResult(raw, page, pageSize, normalizeSettlement)
 }
 
-/**
- * 获取结算详情
- * @description 获取指定结算记录的详细信息
- * @endpoint GET /api/v1/finance/author/settlements/:settlementId
- * @category finance
- * @tags 财务管理
- * @param {string} settlementId - 结算记录ID
- * @response {Settlement} 200 - 成功返回结算详情
- * @security BearerAuth
- */
-export function getSettlementDetail(settlementId: string) {
-  return request<Settlement>({
-    url: `/api/v1/finance/author/settlements/${settlementId}`,
-    method: 'get'
-  })
+export async function getSettlementDetail(settlementId: string): Promise<Settlement> {
+  const raw = await httpService.get<any>(`/api/v1/finance/author/settlements/${settlementId}`)
+  return normalizeSettlement(raw)
 }
 
-/**
- * 获取税务信息
- * @description 获取作者的税务信息
- * @endpoint GET /api/v1/finance/author/tax-info
- * @category finance
- * @tags 财务管理
- * @response {TaxInfo} 200 - 成功返回税务信息
- * @security BearerAuth
- */
-export function getTaxInfo() {
-  return request<TaxInfo>({
-    url: '/api/v1/finance/author/tax-info',
-    method: 'get'
-  })
+export async function getTaxInfo(): Promise<TaxInfo> {
+  const raw = await httpService.get<any>('/api/v1/finance/author/tax-info')
+  return normalizeTaxInfo(raw)
 }
 
-/**
- * 更新税务信息
- * @description 更新作者的税务信息
- * @endpoint PUT /api/v1/finance/author/tax-info
- * @category finance
- * @tags 财务管理
- * @param {Object} data - 税务信息数据
- * @param {string} data.id_type - 证件类型
- * @param {string} data.id_number - 证件号码
- * @param {string} data.name - 真实姓名
- * @response {TaxInfo} 200 - 成功返回更新后的税务信息
- * @security BearerAuth
- */
-export function updateTaxInfo(data: {
+export async function updateTaxInfo(data: {
   id_type: string
   id_number: string
   name: string
-}) {
-  return request<TaxInfo>({
-    url: '/api/v1/finance/author/tax-info',
-    method: 'put',
-    data
-  })
+  tax_type: string
+}): Promise<TaxInfo> {
+  const raw = await httpService.put<any>('/api/v1/finance/author/tax-info', data)
+  return normalizeTaxInfo(raw)
 }
 
-/**
- * 获取收入总览
- * @description 获取作者的收入总览数据，包括总收入、待结算、已提现等
- * @endpoint GET /api/v1/finance/author/overview
- * @category finance
- * @tags 财务管理
- * @response {Object} 200 - 成功返回收入总览
- * @response {number} total_earnings - 总收入
- * @response {number} pending_earnings - 待结算收入
- * @response {number} paid_amount - 已提现金额
- * @response {number} withdrawable_amount - 可提现金额
- * @response {number} month_earnings - 本月收入
- * @response {number} today_earnings - 今日收入
- * @response {number} total_readers - 总读者数
- * @security BearerAuth
- */
-export function getRevenueOverview() {
-  return request<{
-    total_earnings: number
-    pending_earnings: number
-    paid_amount: number
-    withdrawable_amount: number
-    month_earnings: number
-    today_earnings: number
-    total_readers: number
-  }>({
-    url: '/api/v1/finance/author/overview',
-    method: 'get'
-  })
+export async function getRevenueOverview(): Promise<RevenueOverview> {
+  const [earnings, withdrawals, statistics] = await Promise.all([
+    getAuthorEarnings({ page: 1, page_size: 100 }),
+    getWithdrawalRequests({ page: 1, page_size: 100 }),
+    getRevenueStatistics({ period: 'monthly' }),
+  ])
+
+  const totalEarnings = earnings.items.reduce((sum, item) => sum + item.amount, 0)
+  const pendingEarnings = earnings.items
+    .filter((item) => !item.isSettled && item.status !== 'paid')
+    .reduce((sum, item) => sum + item.amount, 0)
+  const paidAmount = withdrawals.items
+    .filter((item) => item.status === 'completed' || item.status === 'approved')
+    .reduce((sum, item) => sum + item.actualAmount, 0)
+  const monthEarnings = statistics[0]?.totalRevenue ?? 0
+  const todayStat = statistics.find((item) => item.period === 'daily')
+  const todayEarnings = todayStat?.totalRevenue ?? 0
+  const totalReaders = Math.max(...statistics.map((item) => item.readerCount), 0)
+  const totalBooks = Math.max(...statistics.map((item) => item.bookCount), 0)
+
+  return {
+    totalEarnings: Number(totalEarnings.toFixed(2)),
+    pendingEarnings: Number(pendingEarnings.toFixed(2)),
+    paidAmount: Number(paidAmount.toFixed(2)),
+    withdrawableAmount: Number(Math.max(totalEarnings - paidAmount, 0).toFixed(2)),
+    monthEarnings: Number(monthEarnings.toFixed(2)),
+    todayEarnings: Number(todayEarnings.toFixed(2)),
+    totalReaders,
+    totalTransactions: earnings.total,
+    totalBooks,
+  }
 }
 
-/**
- * 获取每日收入
- * @description 获取作者每日收入统计
- * @endpoint GET /api/v1/finance/author/daily-earnings
- * @category finance
- * @tags 财务管理
- * @param {string} start_date - 开始日期（可选）
- * @param {string} end_date - 结束日期（可选）
- * @param {number} limit - 返回数量限制（可选）
- * @response {Object[]} 200 - 成功返回每日收入列表
- * @security BearerAuth
- */
-export function getDailyEarnings(params: {
-  start_date?: string
-  end_date?: string
+export async function getDailyEarnings(params: {
   limit?: number
-}) {
-  return request<Array<{
-    date: string
-    amount: number
-    orders: number
-  }>>({
-    url: '/api/v1/finance/author/daily-earnings',
-    method: 'get',
-    params
-  })
+} = {}): Promise<Array<{ date: string; amount: number; orders: number }>> {
+  const statistics = await getRevenueStatistics({ period: 'daily', limit: params.limit })
+  return statistics.map((item) => ({
+    date: item.periodStart ?? item.period,
+    amount: item.totalRevenue,
+    orders: item.transactionCount,
+  }))
 }
 
-/**
- * 获取月度收入
- * @description 获取作者月度收入统计
- * @endpoint GET /api/v1/finance/author/monthly-earnings
- * @category finance
- * @tags 财务管理
- * @param {number} year - 年份（可选）
- * @param {number} limit - 返回数量限制（可选）
- * @response {Object[]} 200 - 成功返回月度收入列表
- * @security BearerAuth
- */
-export function getMonthlyEarnings(params: {
-  year?: number
+export async function getMonthlyEarnings(params: {
   limit?: number
-}) {
-  return request<Array<{
-    month: string
-    amount: number
-    orders: number
-  }>>({
-    url: '/api/v1/finance/author/monthly-earnings',
-    method: 'get',
-    params
-  })
+} = {}): Promise<Array<{ month: string; amount: number; orders: number }>> {
+  const statistics = await getRevenueStatistics({ period: 'monthly', limit: params.limit })
+  return statistics.map((item) => ({
+    month: item.periodStart ?? item.period,
+    amount: item.totalRevenue,
+    orders: item.transactionCount,
+  }))
 }
 
-/**
- * 提现收入
- * @description 创建提现申请的别名函数
- * @endpoint POST /api/v1/finance/author/withdraw
- * @category finance
- * @tags 财务管理
- * @param {Object} data - 提现申请数据
- * @param {number} data.amount - 提现金额
- * @param {string} data.method - 提现方式
- * @param {string} data.account_info - 账户信息
- * @response {WithdrawalRequest} 201 - 创建成功返回提现申请详情
- * @security BearerAuth
- */
 export const withdrawEarnings = createWithdrawal
-
-/**
- * 获取提现历史
- * @description 获取提现申请记录的别名函数
- * @endpoint GET /api/v1/finance/author/withdrawals
- * @category finance
- * @tags 财务管理
- * @param {number} page - 页码（默认1）
- * @param {number} page_size - 每页数量（默认10）
- * @param {string} status - 状态筛选（可选）
- * @response {Object} 200 - 成功返回提现申请列表
- * @response {WithdrawalRequest[]} items - 提现申请列表
- * @response {number} total - 总数量
- * @security BearerAuth
- */
 export const getWithdrawalHistory = getWithdrawalRequests

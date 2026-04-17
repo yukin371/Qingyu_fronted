@@ -80,7 +80,7 @@
         <el-table :data="transactions" v-loading="loading" stripe empty-text="暂无交易记录">
           <el-table-column prop="created_at" label="时间" width="180">
             <template #default="{ row }">
-              {{ formatDate(row.created_at) }}
+              {{ formatDate(row.createdAt) }}
             </template>
           </el-table-column>
           <el-table-column prop="type" label="类型" width="100">
@@ -98,8 +98,8 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column prop="balance_after" label="余额" width="150" align="right">
-            <template #default="{ row }"> ¥{{ formatAmount(row.balance_after || 0) }} </template>
+          <el-table-column prop="balance" label="余额" width="150" align="right">
+            <template #default="{ row }"> ¥{{ formatAmount(row.balance || 0) }} </template>
           </el-table-column>
         </el-table>
 
@@ -177,7 +177,7 @@
     >
       <QyForm v-model="withdrawForm" :rules="withdrawRules" ref="withdrawFormRef">
         <FormSection label="可提现余额">
-          <div class="available-balance">¥{{ formatAmount(walletInfo.balance) }}</div>
+          <div class="available-balance">¥{{ formatAmount(walletInfo.availableAmount) }}</div>
         </FormSection>
 
         <QyFormItem prop="amount" label="提现金额" required>
@@ -190,6 +190,18 @@
         <QyFormItem prop="account" label="提现账号" required>
           <div class="form-hint">请填写您的支付宝账号或银行卡号</div>
           <Input v-model="withdrawForm.account" placeholder="请输入提现账号" />
+        </QyFormItem>
+
+        <QyFormItem prop="method" label="提现方式" required>
+          <QyRadioGroup v-model="withdrawForm.method" class="payment-methods">
+            <QyRadio value="alipay" variant="border">支付宝</QyRadio>
+            <QyRadio value="wechat" variant="border">微信</QyRadio>
+            <QyRadio value="bank" variant="border">银行卡</QyRadio>
+          </QyRadioGroup>
+        </QyFormItem>
+
+        <QyFormItem prop="password" label="支付密码" required>
+          <Input v-model="withdrawForm.password" placeholder="请输入支付密码" type="password" />
         </QyFormItem>
       </QyForm>
 
@@ -230,8 +242,12 @@ import {
   FormSection,
   LoadingOverlay,
 } from '@/shared/components/design-system'
-import { walletAPI } from '@/modules/shared/api'
-import type { WalletInfo, Transaction } from '@/types/shared'
+import { walletAPI } from '@/modules/finance/api/wallet'
+import type {
+  WalletInfo,
+  WalletPaymentMethod,
+  WalletTransaction as Transaction,
+} from '@/modules/finance/api'
 
 const router = useRouter()
 
@@ -249,8 +265,16 @@ const showWithdrawDialog = ref(false)
 const walletInfo = ref<WalletInfo>({
   userId: '',
   balance: 0,
+  balanceCents: 0,
+  availableAmount: 0,
+  availableAmountCents: 0,
+  frozenAmount: 0,
+  frozenAmountCents: 0,
   totalIncome: 0,
   totalExpense: 0,
+  totalIncomeCents: 0,
+  totalExpenseCents: 0,
+  frozen: false,
 })
 
 // 交易记录
@@ -264,13 +288,15 @@ const transactionType = ref('')
 const rechargeAmounts = [10, 50, 100, 200, 500, 1000]
 const rechargeAmount = ref(0)
 const customAmount = ref(0)
-const paymentMethod = ref('alipay')
+const paymentMethod = ref<WalletPaymentMethod>('alipay')
 
 // 提现相关
 const withdrawFormRef = ref<FormInstance>()
 const withdrawForm = reactive({
   amount: 0,
   account: '',
+  method: 'alipay' as WalletPaymentMethod,
+  password: '',
 })
 
 const withdrawRules: FormRules = {
@@ -291,6 +317,8 @@ const withdrawRules: FormRules = {
     { required: true, message: '请输入提现账号', trigger: 'blur' },
     { min: 5, max: 50, message: '账号长度应在5-50个字符之间', trigger: 'blur' },
   ],
+  method: [{ required: true, message: '请选择提现方式', trigger: 'change' }],
+  password: [{ required: true, message: '请输入支付密码', trigger: 'blur' }],
 }
 
 // 格式化金额
@@ -337,6 +365,8 @@ function getTypeLabel(type: string): string {
     income: '收入',
     withdraw: '提现',
     transfer: '转账',
+    transfer_in: '转入',
+    transfer_out: '转出',
   }
   return labelMap[type] || type
 }
@@ -350,20 +380,7 @@ function selectRechargeAmount(amount: number) {
 // 加载钱包信息
 async function loadWalletInfo(): Promise<void> {
   try {
-    const response = await walletAPI.getWallet()
-    if (response.code === 200 && response.data) {
-      walletInfo.value = {
-        userId: response.data.userId || '',
-        balance: response.data.balance || 0,
-        totalIncome: response.data.totalIncome || 0,
-        totalExpense: response.data.totalExpense || 0,
-        frozenBalance: response.data.frozenBalance,
-        frozenAmount: response.data.frozenAmount,
-        availableAmount: response.data.availableAmount,
-        currency: response.data.currency,
-        updatedAt: response.data.updatedAt,
-      }
-    }
+    walletInfo.value = await walletAPI.getWallet()
   } catch (error) {
     message.error(error instanceof Error ? error.message : '加载钱包信息失败')
   }
@@ -379,12 +396,14 @@ async function loadTransactions(): Promise<void> {
       type: transactionType.value || undefined,
     }
 
-    const response = await walletAPI.getTransactions(params)
+    const response = await walletAPI.getTransactions({
+      page: params.page,
+      pageSize: params.page_size,
+      type: params.type,
+    })
 
-    if (response.code === 200) {
-      transactions.value = (response.data as any)?.data || []
-      total.value = (response.data as any)?.pagination?.total || 0
-    }
+    transactions.value = response.items
+    total.value = response.total
   } catch (error) {
     message.error(error instanceof Error ? error.message : '加载交易记录失败')
   } finally {
@@ -414,23 +433,18 @@ async function submitRecharge(): Promise<void> {
 
   recharging.value = true
   try {
-    const response = await walletAPI.recharge({
+    await walletAPI.recharge({
       amount,
       method: paymentMethod.value,
     })
+    message.success('充值成功')
+    showRechargeDialog.value = false
 
-    if (response.code === 200) {
-      message.success('充值成功')
-      showRechargeDialog.value = false
+    rechargeAmount.value = 0
+    customAmount.value = 0
 
-      // 重置表单
-      rechargeAmount.value = 0
-      customAmount.value = 0
-
-      // 刷新数据
-      await loadWalletInfo()
-      await loadTransactions()
-    }
+    await loadWalletInfo()
+    await loadTransactions()
   } catch (error) {
     message.error(error instanceof Error ? error.message : '充值失败，请稍后重试')
   } finally {
@@ -448,32 +462,30 @@ async function submitWithdraw(): Promise<void> {
     return
   }
 
-  if (withdrawForm.amount > walletInfo.value.balance) {
+  if (withdrawForm.amount > walletInfo.value.availableAmount) {
     message.error('提现金额不能超过可用余额')
     return
   }
 
   withdrawing.value = true
   try {
-    const response = await walletAPI.submitWithdraw({
+    await walletAPI.submitWithdraw({
       amount: withdrawForm.amount,
+      method: withdrawForm.method,
       account: withdrawForm.account,
-      accountType: 'bank',
+      password: withdrawForm.password,
     })
+    message.success('提现申请已提交，预计1-3个工作日到账')
+    showWithdrawDialog.value = false
 
-    if (response.code === 200) {
-      message.success('提现申请已提交，预计1-3个工作日到账')
-      showWithdrawDialog.value = false
+    withdrawForm.amount = 0
+    withdrawForm.account = ''
+    withdrawForm.method = 'alipay'
+    withdrawForm.password = ''
+    withdrawFormRef.value?.resetFields()
 
-      // 重置表单
-      withdrawForm.amount = 0
-      withdrawForm.account = ''
-      withdrawFormRef.value?.resetFields()
-
-      // 刷新数据
-      await loadWalletInfo()
-      await loadTransactions()
-    }
+    await loadWalletInfo()
+    await loadTransactions()
   } catch (error) {
     message.error(error instanceof Error ? error.message : '提现申请失败，请稍后重试')
   } finally {

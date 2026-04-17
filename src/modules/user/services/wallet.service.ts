@@ -3,7 +3,7 @@
  * Business logic for wallet management
  */
 
-import { walletAPI } from '@/modules/shared/api'
+import { walletAPI } from '@/modules/finance/api/wallet'
 import type {
   WalletBalance,
   Transaction,
@@ -17,7 +17,11 @@ class WalletService {
    */
   async getWalletBalance(): Promise<WalletBalance> {
     const response = await walletAPI.getBalance()
-    return (response.data as WalletBalance) || { balance: 0, userId: '', frozenBalance: 0 }
+    return {
+      balance: response.balance,
+      userId: '',
+      frozenBalance: 0,
+    }
   }
 
   /**
@@ -25,7 +29,7 @@ class WalletService {
    */
   async getTransactions(page: number = 1, size: number = 20): Promise<Transaction[]> {
     const response = await walletAPI.getTransactions({ page, pageSize: size })
-    return (response.data as any)?.items || response.data || []
+    return response.items as any
   }
 
   /**
@@ -41,7 +45,10 @@ class WalletService {
       throw new Error('单次充值金额不能超过10000')
     }
 
-    await walletAPI.recharge(params as any)
+    await walletAPI.recharge({
+      amount: params.amount,
+      method: params.payment_method === 'card' ? 'bank' : params.payment_method,
+    })
   }
 
   /**
@@ -58,7 +65,12 @@ class WalletService {
       throw new Error('提现金额不能超过可用余额')
     }
 
-    await walletAPI.submitWithdraw(params as any)
+    await walletAPI.submitWithdraw({
+      amount: params.amount,
+      method: params.account_type === 'bank' ? 'bank' : 'alipay',
+      account: params.account,
+      password: (params as any).password || '',
+    })
   }
 
   /**
@@ -106,4 +118,3 @@ class WalletService {
 
 export const walletService = new WalletService()
 export default walletService
-

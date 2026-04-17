@@ -9,6 +9,7 @@
 
 import { getApi } from './generated/reader'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
+import { httpService } from '@/core/services/http.service'
 
 // 获取生成的API对象
 const api = getApi()
@@ -140,15 +141,16 @@ export const getPreviousChapter = api.getApiV1ReaderBooksBookIdChaptersChapterId
 export const purchaseChapter = api.postApiV1ReaderChaptersIdPurchase
 
 /**
- * 获取章节内容（使用公开API，不需要登录）
+ * 获取章节内容（阅读器权限控制接口）
  * 兼容旧API: getChapterContent(bookId, chapterId)
  */
 export async function getChapterContent(
-  _bookId: string,
+  bookId: string,
   chapterId: string
 ): Promise<APIResponse<ChapterContent>> {
-  // 使用bookstore的公开API获取章节内容
-  return api.getApiV1BookstoreChaptersIdContent(chapterId) as any
+  return httpService.get<APIResponse<ChapterContent>>(
+    `/api/v1/reader/books/${bookId}/chapters/${chapterId}`
+  ) as any
 }
 
 /**

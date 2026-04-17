@@ -202,6 +202,12 @@
           <QyFormItem label="收款账号" prop="account">
             <Input v-model="withdrawForm.account" placeholder="请输入收款账号" />
           </QyFormItem>
+          <QyFormItem label="账户名称" prop="accountName">
+            <Input v-model="withdrawForm.accountName" placeholder="请输入收款账户姓名/主体名称" />
+          </QyFormItem>
+          <QyFormItem v-if="withdrawForm.method === 'bank'" label="银行名称" prop="bankName">
+            <Input v-model="withdrawForm.bankName" placeholder="请输入开户银行" />
+          </QyFormItem>
           <QyFormItem label="备注">
             <Textarea v-model="withdrawForm.remark" :rows="3" placeholder="可选填写备注信息" />
           </QyFormItem>
@@ -248,7 +254,7 @@ import {
   type RevenueStats as RevenueStatsType,
   type ChapterRevenue,
 } from '@/modules/writer/api/revenue'
-import { walletAPI } from '@/modules/shared/api'
+import { createWithdrawal, getRevenueOverview, getWithdrawalRequests } from '@/modules/finance/api'
 
 const loading = ref(false)
 const withdrawing = ref(false)
@@ -314,6 +320,8 @@ const withdrawForm = reactive({
   amount: 0,
   method: '',
   account: '',
+  accountName: '',
+  bankName: '',
   remark: '',
 })
 
@@ -334,6 +342,7 @@ const withdrawRules: Record<string, QyValidationRule[]> = {
   ],
   method: [{ required: true, message: '请选择提现方式', trigger: 'change' }],
   account: [{ required: true, message: '请输入收款账号', trigger: 'blur' }],
+  accountName: [{ required: true, message: '请输入账户名称', trigger: 'blur' }],
 }
 
 // 图表实例
@@ -464,9 +473,16 @@ async function loadRevenue(): Promise<void> {
     // 加载收入统计
     try {
       // 当前后端接口不接收 bookId 参数，按作者维度返回
+      const summary = await getRevenueOverview()
+      revenueStats.value = {
+        totalRevenue: Number(summary.totalEarnings || 0),
+        todayRevenue: Number(summary.todayEarnings || 0),
+        availableBalance: Number(summary.withdrawableAmount || 0),
+        totalWithdrawn: Number(summary.paidAmount || 0),
+      }
       const statsResponse: any = await getRevenueStats()
       const normalized = normalizeRevenueStatsPayload(statsResponse)
-      if (normalized) {
+      if (normalized && isStatsEmpty(revenueStats.value)) {
         revenueStats.value = {
           totalRevenue: Number(normalized.totalRevenue || 0),
           todayRevenue: Number(normalized.todayRevenue || 0),
@@ -508,14 +524,14 @@ async function loadRevenue(): Promise<void> {
 
     // 加载提现记录
     try {
-      const withdrawResponse: any = await walletAPI.getWithdrawRequests()
-      if (withdrawResponse.data) {
-        withdrawalRecords.value = withdrawResponse.data.map((item: any) => ({
-          applyTime: item.created_at || item.createdAt,
+      const withdrawResponse = await getWithdrawalRequests({ page: 1, page_size: 20 })
+      if (withdrawResponse.items.length) {
+        withdrawalRecords.value = withdrawResponse.items.map((item: any) => ({
+          applyTime: item.createdAt,
           amount: item.amount,
           status: item.status,
-          processTime: item.processed_at || item.processedAt || '-',
-          remark: item.remark || item.note || '-',
+          processTime: item.completedAt || item.approvedAt || '-',
+          remark: item.rejectReason || item.note || '-',
         }))
       }
     } catch (error) {
@@ -729,10 +745,13 @@ async function submitWithdraw(): Promise<void> {
     }
 
     withdrawing.value = true
-    await walletAPI.submitWithdraw({
+    await createWithdrawal({
       amount: withdrawForm.amount,
-      account: withdrawForm.account,
-      accountType: withdrawForm.method === 'bank' ? 'bank' : 'alipay',
+      method: withdrawForm.method as 'alipay' | 'wechat' | 'bank',
+      account_type: withdrawForm.method === 'bank' ? 'bank' : 'personal',
+      account_name: withdrawForm.accountName,
+      account_no: withdrawForm.account,
+      bank_name: withdrawForm.method === 'bank' ? withdrawForm.bankName || undefined : undefined,
     })
 
     message.success('提现申请已提交，请等待审核')
