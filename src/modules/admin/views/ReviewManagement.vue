@@ -6,17 +6,21 @@
         <h2 class="page-title">内容审核</h2>
         <p class="page-subtitle">按作者跟进审核用户提交的书籍、章节、评论等内容</p>
       </div>
-      <el-button @click="loadReviews">
-        <el-icon><Refresh /></el-icon>
-        刷新
-      </el-button>
+      <QyButton :icon="refreshIconSvg" @click="loadReviews"> 刷新 </QyButton>
     </div>
 
     <!-- 统计卡片 -->
     <div class="stats-row">
       <div class="stat-item pending">
         <div class="stat-icon">
-          <el-icon :size="20"><Clock /></el-icon>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.pending }}</span>
@@ -25,7 +29,14 @@
       </div>
       <div class="stat-item approved">
         <div class="stat-icon">
-          <el-icon :size="20"><CircleCheck /></el-icon>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.approved }}</span>
@@ -34,7 +45,14 @@
       </div>
       <div class="stat-item rejected">
         <div class="stat-icon">
-          <el-icon :size="20"><CircleClose /></el-icon>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.rejected }}</span>
@@ -48,71 +66,74 @@
       <div class="filters-main">
         <div class="filter-group filter-block">
           <span class="filter-label">内容类型</span>
-          <el-select
+          <QySelect
             v-model="filters.contentType"
+            :options="contentTypeOptions"
             placeholder="全部类型"
             clearable
-            popper-class="admin-select-popper"
-            @change="handleFilterChange"
-          >
-            <el-option label="全部" value="" />
-            <el-option label="书籍" value="book" />
-            <el-option label="章节" value="chapter" />
-            <el-option label="文档" value="document" />
-            <el-option label="评论" value="comment" />
-          </el-select>
+            class="admin-select"
+            @update:model-value="handleFilterChange"
+          />
         </div>
 
         <div class="filter-group filter-block">
           <span class="filter-label">关键词</span>
-          <el-input
+          <QyInput
             v-model="filters.keyword"
             placeholder="搜索标题或内容"
             clearable
+            :prefix-icon="searchIconSvg"
             @clear="handleFilterChange"
             @keyup.enter="handleFilterChange"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
+          />
         </div>
 
         <div class="filter-group filter-block">
           <span class="filter-label">作者</span>
-          <el-select
+          <QySelect
             v-model="filters.author"
+            :options="authorOptionsData"
             placeholder="全部作者"
             clearable
-            popper-class="admin-select-popper"
-            @change="handleFilterChange"
-          >
-            <el-option label="全部" value="" />
-            <el-option
-              v-for="author in authorOptions"
-              :key="author"
-              :label="author"
-              :value="author"
-            />
-          </el-select>
+            class="admin-select"
+            @update:model-value="handleFilterChange"
+          />
         </div>
       </div>
 
       <div class="filters-actions">
-        <el-button type="primary" @click="handleFilterChange">
-          <el-icon><Search /></el-icon>
+        <QyButton variant="primary" :icon="searchBtnIconSvg" @click="handleFilterChange">
           搜索
-        </el-button>
+        </QyButton>
       </div>
     </div>
 
     <!-- 待审核列表 -->
-    <div v-loading="loading" class="review-list">
-      <el-empty v-if="reviews.length === 0 && !loading" description="暂无待审核内容">
+    <div class="review-list" :class="{ 'is-loading': loading }">
+      <!-- 加载遮罩 -->
+      <Transition name="fade">
+        <div v-if="loading" class="loading-overlay">
+          <div class="loading-spinner" />
+        </div>
+      </Transition>
+
+      <Empty v-if="reviews.length === 0 && !loading" description="暂无待审核内容">
         <template #image>
-          <el-icon :size="64" color="#d1d5db"><DocumentChecked /></el-icon>
+          <svg
+            class="w-16 h-16 text-slate-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
         </template>
-      </el-empty>
+      </Empty>
 
       <ReviewCard
         v-for="item in reviews"
@@ -127,24 +148,28 @@
     <!-- 分页 -->
     <div v-if="total > 0" class="pagination-card">
       <div class="pagination-total">共 {{ total }} 条</div>
-      <el-pagination
+      <Pagination
         :current-page="pagination.page"
         :page-size="pagination.pageSize"
         :total="total"
         layout="prev, pager, next"
-        @update:current-page="pagination.page = $event"
-        @current-change="loadReviews"
+        class="admin-pagination"
+        @update:current-page="
+          (p: number) => {
+            pagination.page = p
+            loadReviews()
+          }
+        "
       />
     </div>
 
     <!-- 审核详情对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
+    <Dialog
+      v-model:visible="dialogVisible"
       :title="`审核详情 - ${currentItem?.title || '无标题'}`"
-      width="800px"
-      class="admin-modal-card"
-      append-to-body
-      align-center
+      size="lg"
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
     >
       <div v-if="currentItem" class="review-detail">
         <div class="detail-header">
@@ -172,86 +197,116 @@
       </div>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">关闭</el-button>
-        <el-button type="danger" @click="handleReject(currentItem!)">
-          <el-icon><CloseBold /></el-icon>
+        <QyButton @click="dialogVisible = false">关闭</QyButton>
+        <QyButton variant="danger" :icon="closeIconSvg" @click="handleReject(currentItem!)">
           拒绝
-        </el-button>
-        <el-button type="success" @click="handleApprove(currentItem!)">
-          <el-icon><Select /></el-icon>
+        </QyButton>
+        <QyButton variant="primary" :icon="checkIconSvg" @click="handleApprove(currentItem!)">
           批准
-        </el-button>
+        </QyButton>
       </template>
-    </el-dialog>
+    </Dialog>
 
     <!-- 拒绝原因对话框 -->
-    <el-dialog
-      v-model="rejectDialogVisible"
+    <Dialog
+      v-model:visible="rejectDialogVisible"
       title="拒绝原因"
-      width="500px"
-      class="admin-modal-card"
-      append-to-body
-      align-center
+      size="md"
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
     >
-      <el-form :model="rejectForm" label-width="80px">
-        <el-form-item label="拒绝原因" required>
-          <el-input
+      <div class="reject-form">
+        <label class="form-label">
+          <span class="label-text">拒绝原因</span>
+          <span class="label-required">*</span>
+        </label>
+        <div class="textarea-wrapper">
+          <textarea
             v-model="rejectForm.reason"
-            type="textarea"
-            :rows="5"
+            class="reason-textarea"
+            :class="{ 'has-error': rejectForm.reason && rejectForm.reason.length > 200 }"
             placeholder="请输入拒绝原因，将通知提交者"
             maxlength="200"
-            show-word-limit
+            rows="5"
           />
-        </el-form-item>
-      </el-form>
+          <div class="word-count" :class="{ 'over-limit': rejectForm.reason.length > 200 }">
+            {{ rejectForm.reason.length }}/200
+          </div>
+        </div>
+      </div>
 
       <template #footer>
-        <el-button @click="rejectDialogVisible = false">取消</el-button>
-        <el-button type="danger" :loading="submitting" @click="confirmReject">确认拒绝</el-button>
+        <QyButton @click="rejectDialogVisible = false">取消</QyButton>
+        <QyButton variant="danger" :loading="submitting" @click="confirmReject">确认拒绝</QyButton>
       </template>
-    </el-dialog>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, messageBox } from '@/design-system/services'
-import { Refresh, Clock, CircleCheck, CircleClose, Search, DocumentChecked, CloseBold, Select } from '@element-plus/icons-vue'
+import { QyButton } from '@/design-system/components/basic/QyButton'
+import { QyInput } from '@/design-system/components/basic/QyInput'
+import { QySelect } from '@/design-system/components/basic/QySelect'
+import { Dialog } from '@/design-system/feedback/Dialog'
+import { Empty } from '@/design-system/base/Empty'
+import { Pagination } from '@/design-system/data/Pagination'
 import ReviewCard from '@admin/components/ReviewCard.vue'
 import * as adminAPI from '@/modules/admin/api'
 import type { PendingReview } from '@/types/shared'
 
+// === SVG 图标常量 ===
+const searchIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>`
+const refreshIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>`
+const closeIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`
+const checkIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`
+const searchBtnIconSvg = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>`
+
 const stats = reactive({
   pending: 0,
   approved: 0,
-  rejected: 0
+  rejected: 0,
 })
 
 // 筛选器
 const filters = reactive({
   contentType: '',
   keyword: '',
-  author: ''
+  author: '',
 })
+
+// 筛选选项 - QySelect 使用 label/value 结构
+const contentTypeOptions = [
+  { label: '全部', value: '' },
+  { label: '书籍', value: 'book' },
+  { label: '章节', value: 'chapter' },
+  { label: '文档', value: 'document' },
+  { label: '评论', value: 'comment' },
+]
 
 // 分页
 const pagination = reactive({
   page: 1,
-  pageSize: 20
+  pageSize: 20,
 })
 
 // 数据
 const loading = ref(false)
 const reviews = ref<any[]>([])
 const total = ref(0)
-const authorOptions = computed<string[]>(() => {
+
+// 作者选项 - 从列表动态生成，但需要 label/value 结构
+const authorOptionsData = computed(() => {
   const set = new Set<string>()
   reviews.value.forEach((item) => {
     const name = String(item.submittedBy || item.submitterName || '').trim()
     if (name) set.add(name)
   })
-  return Array.from(set)
+  return [
+    { label: '全部', value: '' },
+    ...Array.from(set).map((name) => ({ label: name, value: name })),
+  ]
 })
 
 // 对话框
@@ -262,7 +317,7 @@ const submitting = ref(false)
 
 // 拒绝表单
 const rejectForm = reactive({
-  reason: ''
+  reason: '',
 })
 
 type ReviewContentType = 'book' | 'chapter' | 'document' | 'comment'
@@ -274,15 +329,19 @@ const getTypeName = (type?: string): string => {
     book: '书籍',
     chapter: '章节',
     document: '文档',
-    comment: '评论'
+    comment: '评论',
   }
   return typeMap[type] || type
 }
 
 const normalizeReviewItem = (item: any) => {
   const reviewId = item.reviewId || item.id || item.auditId || item.targetId || item.contentId || ''
-  const contentType = (item.contentType || item.type || item.targetType || 'document') as ReviewContentType
-  const submittedAt = item.submittedAt || item.createdAt || item.submit_time || item.created_at || ''
+  const contentType = (item.contentType ||
+    item.type ||
+    item.targetType ||
+    'document') as ReviewContentType
+  const submittedAt =
+    item.submittedAt || item.createdAt || item.submit_time || item.created_at || ''
 
   return {
     ...item,
@@ -291,8 +350,18 @@ const normalizeReviewItem = (item: any) => {
     targetId: item.targetId || item.contentId || item.resourceId || item.target_id || '',
     title: item.title || item.name || item.contentTitle || '未命名内容',
     content: item.content || item.preview || item.summary || '',
-    submittedBy: item.submittedBy || item.submitterName || item.authorName || item.submitter_name || '未知提交者',
-    submitterName: item.submitterName || item.submittedBy || item.authorName || item.submitter_name || '未知提交者',
+    submittedBy:
+      item.submittedBy ||
+      item.submitterName ||
+      item.authorName ||
+      item.submitter_name ||
+      '未知提交者',
+    submitterName:
+      item.submitterName ||
+      item.submittedBy ||
+      item.authorName ||
+      item.submitter_name ||
+      '未知提交者',
     contentType,
     type: contentType,
     submittedAt,
@@ -304,12 +373,12 @@ const applyFrontendFilters = (source: any[]) => {
   let filtered = [...source]
 
   if (filters.contentType) {
-    filtered = filtered.filter(item => item.contentType === filters.contentType)
+    filtered = filtered.filter((item) => item.contentType === filters.contentType)
   }
 
   const keyword = filters.keyword.trim().toLowerCase()
   if (keyword) {
-    filtered = filtered.filter(item => {
+    filtered = filtered.filter((item) => {
       const title = String(item.title || '').toLowerCase()
       const content = String(item.content || '').toLowerCase()
       const submitter = String(item.submittedBy || item.submitterName || '').toLowerCase()
@@ -318,7 +387,9 @@ const applyFrontendFilters = (source: any[]) => {
   }
 
   if (filters.author) {
-    filtered = filtered.filter(item => String(item.submittedBy || item.submitterName || '') === filters.author)
+    filtered = filtered.filter(
+      (item) => String(item.submittedBy || item.submitterName || '') === filters.author,
+    )
   }
 
   return filtered
@@ -345,7 +416,7 @@ const loadReviews = async () => {
   try {
     const params: any = {
       page: pagination.page,
-      page_size: pagination.pageSize
+      page_size: pagination.pageSize,
     }
 
     if (filters.contentType) {
@@ -355,14 +426,17 @@ const loadReviews = async () => {
       params.submitter_name = filters.author
     }
 
-    const response = await adminAPI.getPendingReviews(params) as any
+    const response = (await adminAPI.getPendingReviews(params)) as any
     const rawData = response?.data ?? response ?? []
-    const rawList = Array.isArray(rawData) ? rawData : (rawData.items || rawData.list || [])
+    const rawList = Array.isArray(rawData) ? rawData : rawData.items || rawData.list || []
     const normalized = rawList.map(normalizeReviewItem)
     const filtered = applyFrontendFilters(normalized)
 
     reviews.value = filtered
-    total.value = filters.keyword || filters.author ? filtered.length : Number(rawData.total ?? rawData.pagination?.total ?? filtered.length)
+    total.value =
+      filters.keyword || filters.author
+        ? filtered.length
+        : Number(rawData.total ?? rawData.pagination?.total ?? filtered.length)
   } catch (error) {
     console.error('加载审核列表失败:', error)
     reviews.value = []
@@ -394,11 +468,11 @@ const handleApprove = async (item: PendingReview) => {
       type: 'confirm',
       center: true,
       closeOnClickModal: false,
-      closeOnPressEscape: true
+      closeOnPressEscape: true,
     })
 
     await adminAPI.reviewContent(item.contentId || item.targetId, {
-      approved: true
+      approved: true,
     })
 
     message.success('批准成功，内容已发布')
@@ -432,7 +506,7 @@ const confirmReject = async () => {
   try {
     await adminAPI.reviewContent(currentItem.value.contentId || currentItem.value.targetId, {
       approved: false,
-      reason: rejectForm.reason
+      reason: rejectForm.reason,
     })
 
     message.success('已拒绝该内容')
@@ -519,335 +593,310 @@ onMounted(() => {
 
   .stat-label {
     font-size: 13px;
-    color: #6b7280;
+    color: #9ca3af;
   }
 
-  &.pending {
-    .stat-icon { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
-    .stat-value { color: #f5576c; }
+  &.pending .stat-icon {
+    background: #fef3c7;
+    color: #d97706;
   }
-
-  &.approved {
-    .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    .stat-value { color: #10b981; }
+  &.approved .stat-icon {
+    background: #d1fae5;
+    color: #059669;
   }
-
-  &.rejected {
-    .stat-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-    .stat-value { color: #ef4444; }
+  &.rejected .stat-icon {
+    background: #fee2e2;
+    color: #dc2626;
   }
 }
 
 // 筛选器
 .filters-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
   background: #fff;
-  border-radius: 16px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
   border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .filters-main {
   display: flex;
-  align-items: stretch;
+  gap: 12px;
   flex: 1;
-  min-width: 0;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
+  flex-wrap: wrap;
+  align-items: flex-end;
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
+  gap: 8px;
 
-  .filter-label {
-    font-size: 14px;
-    color: #6b7280;
-    white-space: nowrap;
-  }
-
-  > .el-select {
-    width: 200px;
-  }
-
-  > .el-input {
-    width: 240px;
-  }
-
-  :deep(.el-select__wrapper),
-  :deep(.el-input__wrapper) {
-    display: flex;
-    align-items: center;
-    height: 36px;
-    min-height: 36px;
-    box-sizing: border-box;
-  }
-
-  :deep(.el-select__wrapper) {
-    position: relative;
-    padding: 0 30px 0 12px;
-  }
-
-  :deep(.el-select__selection) {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    min-width: 0;
-    flex: 1;
-  }
-
-  :deep(.el-select__placeholder) {
-    flex: 0 0 auto;
-    width: auto !important;
-    max-width: none !important;
-    overflow: visible;
-    text-overflow: clip;
-  }
-
-  :deep(.el-select__selected-item) {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: none;
-  }
-
-  /* 保证下拉箭头始终在右侧，避免与文案重叠 */
-  :deep(.el-select__suffix) {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-flex;
-    align-items: center;
-  }
-
-  :deep(.el-select__caret) {
-    margin-left: 0;
+  &.filter-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
 
-.filter-block {
-  flex: 1;
-  padding: 10px 12px;
-  background: #f8fafc;
-}
-
-.filter-block + .filter-block {
-  border-left: 1px solid #e2e8f0;
+.filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
 }
 
 .filters-actions {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
+  gap: 8px;
+  align-items: flex-end;
 }
 
-// 审核列表
+.admin-select {
+  min-width: 140px;
+
+  :deep(.qy-select__trigger) {
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+}
+
+// 待审核列表
 .review-list {
+  position: relative;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 // 分页
 .pagination-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 24px;
+  justify-content: space-between;
+  padding: 16px 20px;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
+}
 
-  .pagination-total {
-    font-size: 14px;
-    color: #64748b;
-    white-space: nowrap;
+.pagination-total {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+// 详情弹窗内容
+.review-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+
+  &.book {
+    background: #d1fae5;
+    color: #059669;
   }
-
-  :deep(.el-pagination) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    font-size: 14px;
-    color: #475569;
+  &.chapter {
+    background: #fef3c7;
+    color: #d97706;
   }
-
-  :deep(.el-pagination__total),
-  :deep(.el-pagination__sizes),
-  :deep(.btn-prev),
-  :deep(.btn-next),
-  :deep(.el-pager),
-  :deep(.el-pagination__jump) {
-    margin: 0 !important;
-    display: inline-flex;
-    align-items: center;
+  &.document {
+    background: #e0e7ff;
+    color: #4f46e5;
   }
-
-  :deep(.btn-prev),
-  :deep(.btn-next),
-  :deep(.el-pager li) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    color: #334155;
-    transition: all 0.2s ease;
-  }
-
-  :deep(.btn-prev:hover),
-  :deep(.btn-next:hover),
-  :deep(.el-pager li:hover) {
-    border-color: #93c5fd;
-    color: #2563eb;
-    background: #eff6ff;
-  }
-
-  :deep(.el-pager li.is-active) {
-    border-color: #3b82f6;
-    background: #3b82f6;
-    color: #fff;
+  &.comment {
+    background: #f3e8ff;
+    color: #7c3aed;
   }
 }
 
-// 审核详情
-.review-detail {
-  .detail-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f3f4f6;
-  }
+.detail-time {
+  font-size: 13px;
+  color: #9ca3af;
+}
 
-  .detail-type {
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
+.detail-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
 
-    &.book { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    &.chapter { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-    &.document { background: rgba(102, 126, 234, 0.1); color: #667eea; }
-    &.comment { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
-  }
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-  .detail-time {
+.info-label {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+
+  &.code {
+    font-family: 'Courier New', monospace;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
     font-size: 13px;
+    word-break: break-all;
+  }
+}
+
+.content-preview {
+  h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+  }
+}
+
+.content-text {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.7;
+  background: #f9fafb;
+  padding: 14px 18px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+// 拒绝表单
+.reject-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.label-required {
+  color: #ef4444;
+}
+
+.textarea-wrapper {
+  position: relative;
+}
+
+.reason-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+  background: #fff;
+  resize: vertical;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  font-family: inherit;
+
+  &::placeholder {
     color: #9ca3af;
   }
 
-  .detail-info {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
   }
 
-  .info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    .info-label {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .info-value {
-      font-size: 14px;
-      color: #374151;
-
-      &.code {
-        font-family: monospace;
-        background: #f3f4f6;
-        padding: 4px 8px;
-        border-radius: 4px;
-      }
-    }
-  }
-
-  .content-preview {
-    h4 {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .content-text {
-      padding: 16px;
-      background: #f9fafb;
-      border-radius: 12px;
-      line-height: 1.8;
-      color: #4b5563;
-      max-height: 400px;
-      overflow-y: auto;
-    }
+  &.has-error {
+    border-color: #fca5a5;
   }
 }
 
-@media (max-width: 768px) {
-  .stats-row {
-    flex-direction: column;
+.word-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+
+  &.over-limit {
+    color: #ef4444;
+    font-weight: 500;
   }
+}
 
-  .filters-card {
-    flex-direction: column;
-    align-items: stretch;
-
-    .filters-main {
-      flex-direction: column;
-    }
-
-    .filter-group {
-      flex-direction: column;
-      align-items: stretch;
-
-      > .el-select, > .el-input {
-        width: 100%;
-      }
-    }
-
-    .filter-block + .filter-block {
-      border-left: none;
-      border-top: 1px solid #e2e8f0;
-    }
-  }
-
-  .pagination-card {
-    padding: 18px 14px;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-
-    .pagination-total {
-      width: 100%;
-      margin-bottom: 2px;
-    }
-
-    :deep(.el-pagination) {
-      justify-content: flex-start;
-      gap: 8px;
-    }
-  }
+// 适配 admin 模块选择器样式
+:deep(.admin-select-popper) {
+  z-index: 2000;
 }
 </style>

@@ -15,6 +15,11 @@ export { default as QyLoading } from './QyLoading'
 export { default as QyEmpty } from './QyEmpty'
 export { QyForm, QyFormItem } from './QyForm'
 
+// Admin Components
+export { default as QyAdminTable } from './QyAdminTable'
+export { default as QyAdminDialog } from './QyAdminDialog'
+export { default as QyAdminForm } from './QyAdminForm'
+
 // Re-export types
 export type * from './QyModal/types'
 export type * from './QyDialog/types'

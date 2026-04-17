@@ -58,6 +58,11 @@ export { default as QyLoading } from './advanced/QyLoading'
 export { default as QyEmpty } from './advanced/QyEmpty'
 export { QyForm, QyFormItem } from './advanced/QyForm'
 
+// Admin Components
+export { default as QyAdminTable } from './advanced/QyAdminTable'
+export { default as QyAdminDialog } from './advanced/QyAdminDialog'
+export { default as QyAdminForm } from './advanced/QyAdminForm'
+
 // Feedback Components
 export { default as QyTooltip } from './feedback/QyTooltip'
 export { default as QyAlert } from './feedback/QyAlert'

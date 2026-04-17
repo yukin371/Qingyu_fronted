@@ -100,60 +100,89 @@ const notificationCount = ref(0)
 
 const menuBadges = ref({
   reviews: 0,
-  withdrawals: 0
+  withdrawals: 0,
+  quotaAlerts: 0,
 })
 
-const isTestMode = computed(() => new URLSearchParams(window.location.search).get('test') === 'true')
+const isTestMode = computed(
+  () => new URLSearchParams(window.location.search).get('test') === 'true',
+)
 
 // 菜单项
 const menuItems = computed(() => [
   {
     path: '/admin/dashboard',
     label: '仪表板',
-    icon: 'el-icon-data-analysis'
+    icon: 'el-icon-data-analysis',
+  },
+  {
+    path: '/admin/quota/dashboard',
+    label: '配额监控',
+    icon: 'el-icon-data-line',
+    badge: menuBadges.value.quotaAlerts > 0 ? menuBadges.value.quotaAlerts : undefined,
+  },
+  {
+    path: '/admin/quota/users',
+    label: '配额用户',
+    icon: 'el-icon-histogram',
+  },
+  {
+    path: '/admin/quota/policies',
+    label: '配额策略',
+    icon: 'el-icon-setting',
+  },
+  {
+    path: '/admin/quota/alerts',
+    label: '预警中心',
+    icon: 'el-icon-warning-outline',
+  },
+  {
+    path: '/admin/quota/reports',
+    label: '消耗报表',
+    icon: 'el-icon-pie-chart',
   },
   {
     path: '/admin/reviews',
     label: '内容审核',
     icon: 'el-icon-document-checked',
-    badge: menuBadges.value.reviews > 0 ? menuBadges.value.reviews : undefined
+    badge: menuBadges.value.reviews > 0 ? menuBadges.value.reviews : undefined,
   },
   {
     path: '/admin/withdrawals',
     label: '提现审核',
     icon: 'el-icon-wallet',
-    badge: menuBadges.value.withdrawals > 0 ? menuBadges.value.withdrawals : undefined
+    badge: menuBadges.value.withdrawals > 0 ? menuBadges.value.withdrawals : undefined,
   },
   {
     path: '/admin/users',
     label: '用户管理',
-    icon: 'el-icon-user'
+    icon: 'el-icon-user',
   },
   {
     path: '/admin/banners',
     label: 'Banner管理',
-    icon: 'el-icon-picture'
+    icon: 'el-icon-picture',
   },
   {
     path: '/admin/announcements',
     label: '公告管理',
-    icon: 'el-icon-bell'
+    icon: 'el-icon-bell',
   },
   {
     path: '/admin/categories',
     label: '分类管理',
-    icon: 'el-icon-folder-opened'
+    icon: 'el-icon-folder-opened',
   },
   {
     path: '/admin/system-config',
     label: '系统配置',
-    icon: 'el-icon-setting'
+    icon: 'el-icon-setting',
   },
   {
     path: '/admin/logs',
     label: '操作日志',
-    icon: 'el-icon-document'
-  }
+    icon: 'el-icon-document',
+  },
 ])
 
 // 计算属性
@@ -171,13 +200,17 @@ const loadMenuBadges = async () => {
   if (isTestMode.value) {
     menuBadges.value = {
       reviews: 23,
-      withdrawals: 2
+      withdrawals: 2,
+      quotaAlerts: 5,
     }
     return
   }
 
   try {
-    const response = await adminAPI.getAuditStatistics() as { data?: { pending?: number }; pending?: number }
+    const response = (await adminAPI.getAuditStatistics()) as {
+      data?: { pending?: number }
+      pending?: number
+    }
     const pending = response?.data?.pending ?? response?.pending ?? 0
     menuBadges.value.reviews = Number(pending) || 0
   } catch (error) {
@@ -225,7 +258,7 @@ watch(
   () => route.fullPath,
   () => {
     loadMenuBadges()
-  }
+  },
 )
 </script>
 
@@ -423,7 +456,6 @@ watch(
     font-size: 14px;
     color: #303133;
   }
-
 }
 
 .admin-content {

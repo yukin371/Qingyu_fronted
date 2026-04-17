@@ -343,20 +343,24 @@ const getHeaderInnerClass = (align?: TableAlign): string => {
 
 // 渲染单元格内容
 const renderCell = (row: TableRowData, column: Column, index: number) => {
-  // 自定义渲染函数
   if (column.render) {
     return column.render(row, column, index)
   }
-
-  // 获取值
   const value = row[column.prop]
-
-  // 处理 undefined 和 null
-  if (value === undefined || value === null) {
-    return ''
-  }
-
+  if (value === undefined || value === null) return ''
   return value
+}
+
+// 判断是否为 VNode
+const isVNode = (value: any): boolean => {
+  return (
+    value && (value.__v_isVNode === true || (typeof value === 'object' && value.type !== undefined))
+  )
+}
+
+// 获取单元格内容（返回 VNode 或字符串）
+const getCellContent = (row: TableRowData, column: Column, index: number) => {
+  return renderCell(row, column, index)
 }
 
 // 切换行选择状态
@@ -478,8 +482,11 @@ const displayColumns = computed(() => {
 
             <!-- 普通列 -->
             <template v-else>
-              <span v-if="column.render" v-html="renderCell(row, column, rowIndex)"></span>
-              <span v-else>{{ renderCell(row, column, rowIndex) }}</span>
+              <component
+                v-if="isVNode(getCellContent(row, column, rowIndex))"
+                :is="getCellContent(row, column, rowIndex)"
+              />
+              <span v-else v-html="getCellContent(row, column, rowIndex)" />
             </template>
           </td>
         </tr>
