@@ -4,7 +4,6 @@ const mockListDocuments = vi.fn()
 const mockReadDocument = vi.fn()
 const mockSearchDocument = vi.fn()
 const mockPreviewTextPatch = vi.fn()
-const mockPreviewPatchDocument = vi.fn()
 
 vi.mock('@/modules/writer/services/documentTools.service', () => ({
   documentToolsService: {
@@ -12,7 +11,6 @@ vi.mock('@/modules/writer/services/documentTools.service', () => ({
     readDocument: (...args: unknown[]) => mockReadDocument(...args),
     searchDocument: (...args: unknown[]) => mockSearchDocument(...args),
     previewTextPatch: (...args: unknown[]) => mockPreviewTextPatch(...args),
-    previewPatchDocument: (...args: unknown[]) => mockPreviewPatchDocument(...args),
   },
 }))
 
@@ -169,22 +167,32 @@ describe('documentToolCommandsService', () => {
       sourceText: '第一行\n第二行',
       generatedText: '第一行\n第二行（改）\n第三行',
       applyMode: 'replace_document',
+      targetDocumentId: 'chapter-1',
+      targetDocumentTitle: '第一章',
     })
   })
 
-  it('returns preview when patching a non-current document', async () => {
+  it('returns target chapter diff payload when patching a non-current document', async () => {
     mockListDocuments.mockResolvedValue({
       projectId: 'project-1',
       documents: [{ documentId: 'chapter-2', title: '第二章', type: 'chapter', level: 0 }],
     })
-    mockPreviewPatchDocument.mockResolvedValue({
+    mockReadDocument.mockResolvedValue({
       documentId: 'chapter-2',
       baseVersion: 5,
+      version: 5,
+      contentType: 'tiptap_json',
       totalLines: 12,
       lines: [
         { line: 1, text: '第一行' },
         { line: 2, text: '第二行' },
       ],
+    })
+    mockPreviewTextPatch.mockReturnValue({
+      documentId: 'chapter-2',
+      baseVersion: 5,
+      totalLines: 1,
+      lines: [{ line: 1, text: '第一行' }],
       previews: [
         {
           type: 'delete_lines',
@@ -202,8 +210,14 @@ describe('documentToolCommandsService', () => {
       currentSourceText: '当前正文',
     })
 
-    expect(mockPreviewPatchDocument).toHaveBeenCalledWith({
+    expect(mockReadDocument).toHaveBeenCalledWith('chapter-2')
+    expect(mockPreviewTextPatch).toHaveBeenCalledWith({
       documentId: 'chapter-2',
+      version: 5,
+      lines: [
+        { line: 1, text: '第一行' },
+        { line: 2, text: '第二行' },
+      ],
       operations: [
         {
           type: 'delete_lines',
@@ -212,10 +226,16 @@ describe('documentToolCommandsService', () => {
         },
       ],
     })
-    expect(result.patchPayload).toBeUndefined()
+    expect(result.patchPayload).toEqual({
+      action: 'rewrite',
+      sourceText: '第一行\n第二行',
+      generatedText: '第一行',
+      applyMode: 'replace_document',
+      targetDocumentId: 'chapter-2',
+      targetDocumentTitle: '第二章',
+    })
     expect(result.assistantMessage).toContain('异章节 patch 预览')
-    expect(result.assistantMessage).toContain('变更 1 [delete_lines] 8-10')
-    expect(result.assistantMessage).toContain('- 旧内容一')
-    expect(result.assistantMessage).toContain('+ （删除）')
+    expect(result.assistantMessage).toContain('准备切章挂起 diff')
+    expect(result.assistantMessage).toContain('自动切换到目标章节')
   })
 })

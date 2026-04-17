@@ -30,6 +30,10 @@ const { messageSuccess, messageInfo, messageWarning, messageError, messageBoxCon
 const { createDocumentMock } = vi.hoisted(() => ({
   createDocumentMock: vi.fn(),
 }))
+const { selectDocumentMock, loadDocumentMock } = vi.hoisted(() => ({
+  selectDocumentMock: vi.fn().mockResolvedValue(undefined),
+  loadDocumentMock: vi.fn().mockResolvedValue(undefined),
+}))
 
 vi.mock('vue-router', () => ({
   useRoute: () => routeState,
@@ -168,7 +172,7 @@ vi.mock('@/modules/writer/stores/documentStore', () => ({
       },
     ],
     loadTree: vi.fn().mockResolvedValue(undefined),
-    selectDocument: vi.fn().mockResolvedValue(undefined),
+    selectDocument: selectDocumentMock,
     create: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
   }),
@@ -185,7 +189,7 @@ vi.mock('@/modules/writer/stores/editorStore', () => ({
     setContent: vi.fn(),
     markSaved: vi.fn(),
     reset: vi.fn(),
-    loadDocument: vi.fn().mockResolvedValue(undefined),
+    loadDocument: loadDocumentMock,
   }),
 }))
 
@@ -328,6 +332,18 @@ const WorkspaceRightPanelStub = defineComponent({
               sourceText: '旧内容',
               generatedText: '新内容',
               applyMode: 'replace_document',
+            }),
+        }),
+        h('button', {
+          'data-testid': 'apply-ai-result-to-other-chapter',
+          onClick: () =>
+            emit('ai-apply', {
+              action: 'rewrite',
+              sourceText: '第二章旧内容',
+              generatedText: '第二章新内容',
+              applyMode: 'replace_document',
+              targetDocumentId: 'chapter-2',
+              targetDocumentTitle: '第二章',
             }),
         }),
         h('button', {
@@ -528,6 +544,8 @@ describe('ProjectWorkspace Refactor', () => {
     loadCharacters.mockClear()
     loadCharacterRelations.mockClear()
     writerStoreState.setCurrentOutlineNode.mockClear()
+    selectDocumentMock.mockClear()
+    loadDocumentMock.mockClear()
     openFullscreenToolSpy.mockClear()
     closeFullscreenSpy.mockClear()
   })
@@ -622,6 +640,49 @@ describe('ProjectWorkspace Refactor', () => {
 
     expect(wrapper.find('[data-testid="apply-feedback-title"]').text()).toBe('已整章替换')
     expect(setSelectedText).toHaveBeenCalledWith('')
+  })
+
+  it('异章节 AI 回填应先切章再加载目标章节', async () => {
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="apply-ai-result-to-other-chapter"]').trigger('click')
+    await nextTick()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(routerReplace).toHaveBeenCalledWith({
+      query: expect.objectContaining({
+        chapterId: 'chapter-2',
+        tool: 'writing',
+      }),
+    })
+    expect(selectDocumentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'chapter-2',
+        title: '第二章',
+      }),
+    )
+    expect(loadDocumentMock).toHaveBeenCalledWith('chapter-2')
   })
 
   it('从结构舞台打开章节图谱时应保持写作路由，并把目标章节作用域交给 overlay', async () => {

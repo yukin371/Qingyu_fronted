@@ -113,7 +113,9 @@ function formatPatchPreviewBlocks(
           ? preview.before.map((line) => `- ${line}`).join('\n')
           : '- （空）'
       const after =
-        preview.after.length > 0 ? preview.after.map((line) => `+ ${line}`).join('\n') : '+ （删除）'
+        preview.after.length > 0
+          ? preview.after.map((line) => `+ ${line}`).join('\n')
+          : '+ （删除）'
 
       return [header, before, after].join('\n')
     })
@@ -379,24 +381,37 @@ export async function executeWriterDocumentCommand(
 
     const document = await resolveDocument(context, command.documentRef)
     if (!context.currentDocumentId || document.documentId !== context.currentDocumentId) {
-      const preview = await documentToolsService.previewPatchDocument({
+      const targetDocument = await documentToolsService.readDocument(document.documentId)
+      const sourceText = textFromLines(targetDocument.lines)
+      const preview = documentToolsService.previewTextPatch({
         documentId: document.documentId,
+        version: targetDocument.version,
+        lines: targetDocument.lines,
         operations: [command.operation],
       })
+      const nextText = textFromLines(preview.lines)
 
       return {
         handled: true,
         userEcho: input.trim(),
         assistantMessage: [
-          `已为 ${formatDocumentLabel(document)} 生成异章节 patch 预览：`,
+          `已为 ${formatDocumentLabel(document)} 生成异章节 patch 预览，并准备切章挂起 diff：`,
           `- 操作类型：${command.operation.type}`,
           `- 变更块数：${preview.previews.length}`,
           `- 结果行数：${preview.totalLines}`,
           '',
           formatPatchPreviewBlocks(preview.previews),
           '',
-          '当前章节之外的 patch 暂不会直接写入；请切换到该章节后再次执行，以进入正文编辑器 diff。',
+          '系统将自动切换到目标章节，并在正文编辑器内显示可接受/放弃的 diff。',
         ].join('\n'),
+        patchPayload: {
+          action: 'rewrite',
+          sourceText,
+          generatedText: nextText,
+          applyMode: 'replace_document',
+          targetDocumentId: document.documentId,
+          targetDocumentTitle: document.title,
+        },
       }
     }
 
@@ -426,6 +441,8 @@ export async function executeWriterDocumentCommand(
         sourceText,
         generatedText: nextText,
         applyMode: 'replace_document',
+        targetDocumentId: document.documentId,
+        targetDocumentTitle: document.title,
       },
     }
   } catch (error) {

@@ -1255,6 +1255,40 @@ setDiffCallbacks(
 )
 
 const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
+  void applyAIResultToWorkspace(payload)
+}
+
+async function ensureAIApplyTargetDocument(payload: WriterAIApplyPayload) {
+  const targetDocumentId = payload.targetDocumentId?.trim()
+  if (!targetDocumentId || targetDocumentId === displayChapterId.value) {
+    return
+  }
+
+  const targetDocumentTitle =
+    payload.targetDocumentTitle?.trim() || resolveChapterTitle(targetDocumentId) || targetDocumentId
+
+  setAIApplyFeedback(
+    'idle',
+    '正在切换目标章节',
+    `准备切换到《${targetDocumentTitle}》并挂起正文 diff。`,
+    payload.applyMode,
+  )
+
+  await handleChapterIdUpdate(targetDocumentId)
+
+  const targetDocument = availableDocMap.value.get(targetDocumentId)
+  if (targetDocument) {
+    await documentStore.selectDocument(targetDocument)
+  }
+  await editorStore.loadDocument(targetDocumentId)
+  latestSelectionContext.value = null
+  writerStore.setSelectedText('')
+  await nextTick()
+}
+
+async function applyAIResultToWorkspace(payload: WriterAIApplyPayload) {
+  await ensureAIApplyTargetDocument(payload)
+
   const generatedText = (payload.generatedText || '').trim()
   if (!generatedText) return
 

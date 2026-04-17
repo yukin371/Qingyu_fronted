@@ -52,6 +52,8 @@ export interface WriterAIApplyPayload {
   sourceText: string
   generatedText: string
   applyMode?: AIApplyMode
+  targetDocumentId?: string
+  targetDocumentTitle?: string
 }
 
 export interface WriterAIApplyFeedback {
