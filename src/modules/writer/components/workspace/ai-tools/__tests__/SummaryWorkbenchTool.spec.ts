@@ -5,16 +5,19 @@ import SummaryWorkbenchTool from '../SummaryWorkbenchTool.vue'
 
 const summarizeSelection = vi.fn()
 const summarizeChapter = vi.fn()
+const generateStructurePlan = vi.fn()
 
 vi.mock('@/modules/ai/api/workbench', () => ({
   summarizeSelection: (...args: unknown[]) => summarizeSelection(...args),
   summarizeChapter: (...args: unknown[]) => summarizeChapter(...args),
+  generateStructurePlan: (...args: unknown[]) => generateStructurePlan(...args),
 }))
 
 describe('SummaryWorkbenchTool', () => {
   beforeEach(() => {
     summarizeSelection.mockReset()
     summarizeChapter.mockReset()
+    generateStructurePlan.mockReset()
     summarizeSelection.mockResolvedValue({
       summary: '这一段主要呈现张三对李四的试探。',
       keyPoints: ['张三先试探', '李四暂不回应'],
@@ -22,6 +25,21 @@ describe('SummaryWorkbenchTool', () => {
     summarizeChapter.mockResolvedValue({
       summary: '本章应聚焦双方试探升级。',
       keyPoints: ['张三主动施压', '李四继续隐藏真实态度'],
+    })
+    generateStructurePlan.mockResolvedValue({
+      summary: '建议补 2 个后续章节。',
+      items: [
+        {
+          title: '夜探旧仓库',
+          summary: '主角第一次确认线索方向。',
+          reason: '补足冲突升级节点。',
+        },
+        {
+          title: '街口对峙',
+          summary: '反派提前亮相。',
+          reason: '把压力前置到下一段。',
+        },
+      ],
     })
   })
 
@@ -162,5 +180,48 @@ describe('SummaryWorkbenchTool', () => {
       action: 'summarize_chapter',
       title: '章节方向提案',
     })
+  })
+
+  it('generates structure plans and emits applyStructurePlan payloads', async () => {
+    const wrapper = mount(SummaryWorkbenchTool, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        seedText: '张三试探李四。',
+        actionTrigger: null,
+        workflowContext: {
+          signature: 'ctx-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+      },
+    })
+
+    await wrapper.get('.result-card--planner .tool-panel__primary').trigger('click')
+    await flushPromises()
+    await nextTick()
+
+    expect(generateStructurePlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        mode: 'chapter',
+      }),
+    )
+    expect(wrapper.text()).toContain('夜探旧仓库')
+
+    await wrapper.get('.result-card__action--primary').trigger('click')
+
+    expect(wrapper.emitted('applyStructurePlan')?.[0]?.[0]).toMatchObject({
+      mode: 'chapter',
+      summary: '建议补 2 个后续章节。',
+    })
+    expect(wrapper.emitted('applyStructurePlan')?.[0]?.[0].items).toHaveLength(2)
   })
 })

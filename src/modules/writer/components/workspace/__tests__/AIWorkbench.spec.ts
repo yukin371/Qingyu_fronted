@@ -561,7 +561,7 @@ describe('AIWorkbench', () => {
       props: ['revisionSeed'],
       emits: ['apply-generated-text'],
       template:
-        '<div><button data-testid="emit-apply-generated-text" @click="$emit(\'apply-generated-text\', { action: \'rewrite\', sourceText: \'原文\', generatedText: \'新文\', applyMode: \'replace_document\' })">emit</button><div data-testid="revision-seed-text">{{ revisionSeed?.text || "empty" }}</div></div>',
+        "<div><button data-testid=\"emit-apply-generated-text\" @click=\"$emit('apply-generated-text', { action: 'rewrite', sourceText: '原文', generatedText: '新文', applyMode: 'replace_document' })\">emit</button><div data-testid=\"revision-seed-text\">{{ revisionSeed?.text || \"empty\" }}</div></div>",
     })
 
     const wrapper = mount(AIWorkbench, {
@@ -1150,6 +1150,60 @@ describe('AIWorkbench', () => {
       source: 'summary',
       action: 'summarize_chapter',
       title: '章节方向提案',
+    })
+  })
+
+  it('relays structure-plan apply events from summary workbench', async () => {
+    const SummaryWorkbenchToolStub = defineComponent({
+      emits: ['apply-structure-plan'],
+      template:
+        "<button data-testid=\"emit-structure-plan\" @click=\"$emit('apply-structure-plan', { mode: 'chapter', prompt: '补两个后续章节', summary: '建议补 2 个后续章节。', items: [{ title: '夜探旧仓库', summary: '主角第一次确认线索方向。' }] })\">emit-structure-plan</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: SummaryWorkbenchToolStub,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 13,
+        action: 'summarize_chapter',
+        text: '这是当前章节正文。',
+      },
+    })
+    await nextTick()
+    await wrapper.find('[data-testid="emit-structure-plan"]').trigger('click')
+
+    expect(wrapper.emitted('applyStructurePlan')?.[0]?.[0]).toMatchObject({
+      mode: 'chapter',
+      summary: '建议补 2 个后续章节。',
     })
   })
 

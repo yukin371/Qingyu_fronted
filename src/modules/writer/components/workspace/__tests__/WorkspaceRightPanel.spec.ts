@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
+
+vi.mock('@/modules/writer/components/v3/story-harness/StoryHarnessPanel.vue', () => ({
+  default: defineComponent({
+    name: 'StoryHarnessPanelMock',
+    template: '<div data-testid="story-harness-module-mock" />',
+  }),
+}))
+
 import WorkspaceRightPanel from '../WorkspaceRightPanel.vue'
 
 describe('WorkspaceRightPanel', () => {
@@ -108,5 +116,52 @@ describe('WorkspaceRightPanel', () => {
 
     expect(wrapper.findAll('.workspace-activity-bar__item')[1].classes()).toContain('active')
     expect(wrapper.text()).toContain('当前章节分析台')
+  })
+
+  it('relays structure-plan creation requests outward', async () => {
+    const AIWorkbenchStub = defineComponent({
+      emits: ['apply-structure-plan'],
+      template:
+        "<button data-testid=\"forward-structure-plan\" @click=\"$emit('apply-structure-plan', { mode: 'chapter', prompt: '补两个后续章节', summary: '建议补 2 个后续章节。', items: [{ title: '夜探旧仓库' }] })\">plan</button>",
+    })
+
+    const wrapper = mount(WorkspaceRightPanel, {
+      props: {
+        collapsed: false,
+        isImmersiveMode: false,
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        aiActionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIWorkbench: AIWorkbenchStub,
+          StoryHarnessPanel: true,
+          QyIcon: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="forward-structure-plan"]').trigger('click')
+
+    expect(wrapper.emitted('create-structure-plan')?.[0]?.[0]).toMatchObject({
+      mode: 'chapter',
+      summary: '建议补 2 个后续章节。',
+    })
   })
 })

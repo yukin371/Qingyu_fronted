@@ -114,6 +114,7 @@
           @proposal-draft="handleProposalDraft"
           @proposal-status-change="handleProposalStatusChange"
           @trigger-ai-action="handleWorkflowAction"
+          @create-structure-plan="handleCreateStructurePlan"
         />
       </template>
     </EditorLayout>
@@ -209,6 +210,7 @@ import type {
   WriterDraftProposalSource,
   WriterDraftProposalStatus,
   WriterResultCandidate,
+  WriterStructurePlanPayload,
   WriterWorkflowActionRequest,
 } from '@/modules/writer/types/workflow'
 import { buildWriterAIActionTrigger } from '@/modules/writer/types/workflow'
@@ -917,6 +919,131 @@ const handleWorkflowAction = (payload: WriterWorkflowActionRequest) => {
   )
 }
 
+const resolveCreatedDocumentId = (created: unknown): string => {
+  const record = ((created as { data?: unknown })?.data || created) as {
+    id?: string
+    documentId?: string
+  }
+  return record.id ?? record.documentId ?? ''
+}
+
+const flattenOutlineNodes = (nodes: OutlineNode[]): OutlineNode[] =>
+  nodes.flatMap((node) => [node, ...flattenOutlineNodes(node.children || [])])
+
+const findOutlineNodeByDocumentId = (documentId: string) =>
+  flattenOutlineNodes(writerStore.outline.tree).find((node) => node.documentId === documentId) ||
+  null
+
+const resolveCurrentVolumeDocument = () => {
+  const currentDoc = availableDocMap.value.get(currentChapterId.value)
+  if (!currentDoc) {
+    return null
+  }
+
+  if (currentDoc.type === DocumentType.VOLUME) {
+    return currentDoc
+  }
+
+  if (currentDoc.parentId) {
+    const parentDoc = availableDocMap.value.get(currentDoc.parentId)
+    if (parentDoc?.type === DocumentType.VOLUME) {
+      return parentDoc
+    }
+  }
+
+  return null
+}
+
+const buildStructureDocumentTitle = (
+  mode: WriterStructurePlanPayload['mode'],
+  rawTitle: string,
+  sequence: number,
+) => {
+  const cleaned = rawTitle
+    .replace(/^第[\d一二三四五六七八九十百千]+[卷章节回]\s*/u, '')
+    .replace(/^(卷|章节?)\s*[:：-]?\s*/u, '')
+    .trim()
+
+  if (mode === 'volume') {
+    return cleaned ? `第${sequence}卷 ${cleaned}` : `第${sequence}卷`
+  }
+
+  return cleaned ? `第${sequence}章 ${cleaned}` : `第${sequence}章`
+}
+
+const handleCreateStructurePlan = async (payload: WriterStructurePlanPayload) => {
+  if (!currentProjectId.value || payload.items.length === 0) {
+    return
+  }
+
+  const volumeDocs = Array.from(availableDocMap.value.values()).filter(
+    (doc) => doc.type === DocumentType.VOLUME,
+  )
+  const currentVolumeDoc = resolveCurrentVolumeDocument()
+  const chapterParentId = payload.mode === 'chapter' ? currentVolumeDoc?.id : undefined
+  const chapterSiblingDocs =
+    payload.mode === 'chapter'
+      ? Array.from(availableDocMap.value.values()).filter(
+          (doc) => doc.type === DocumentType.CHAPTER && doc.parentId === chapterParentId,
+        )
+      : []
+  const outlineParentNode =
+    payload.mode === 'chapter' && chapterParentId
+      ? findOutlineNodeByDocumentId(chapterParentId)
+      : null
+
+  try {
+    const createdDocumentIds: string[] = []
+
+    for (const [index, item] of payload.items.entries()) {
+      const sequenceBase = payload.mode === 'volume' ? volumeDocs.length : chapterSiblingDocs.length
+      const title = buildStructureDocumentTitle(payload.mode, item.title, sequenceBase + index + 1)
+      const created = await createDocument(currentProjectId.value, {
+        projectId: currentProjectId.value,
+        parentId: payload.mode === 'chapter' ? chapterParentId : undefined,
+        title,
+        type: payload.mode === 'volume' ? DocumentType.VOLUME : DocumentType.CHAPTER,
+        order: sequenceBase + index,
+      })
+      const createdDocumentId = resolveCreatedDocumentId(created)
+      if (createdDocumentId) {
+        createdDocumentIds.push(createdDocumentId)
+      }
+
+      if (payload.mode === 'chapter' && createdDocumentId) {
+        await outlineApi.create(currentProjectId.value, {
+          parentId: outlineParentNode?.id,
+          title,
+          type: 'chapter',
+          summary: item.summary || item.reason || payload.summary,
+          documentId: createdDocumentId,
+          order: chapterSiblingDocs.length + index,
+        })
+      }
+    }
+
+    await Promise.all([documentStore.loadTree(currentProjectId.value), loadOutlineTree()])
+
+    if (payload.mode === 'chapter' && createdDocumentIds[0]) {
+      currentChapterId.value = createdDocumentIds[0]
+      const nextQuery = { ...route.query } as LocationQueryRaw
+      nextQuery.chapterId = createdDocumentIds[0]
+      nextQuery.tool = 'writing'
+      delete nextQuery.encyclopediaView
+      await router.replace({ query: nextQuery })
+    }
+
+    message.success(
+      payload.mode === 'volume'
+        ? `已创建 ${payload.items.length} 个 AI 卷草案`
+        : `已创建 ${payload.items.length} 个 AI 章节草案`,
+    )
+  } catch (error) {
+    console.error('[ProjectWorkspace] 创建 AI 结构草案失败:', error)
+    message.error(payload.mode === 'volume' ? 'AI 增卷失败，请重试' : 'AI 增章节失败，请重试')
+  }
+}
+
 const setAIApplyFeedback = (
   status: WriterAIApplyFeedback['status'],
   title: string,
@@ -1078,7 +1205,9 @@ setDiffCallbacks(
     const to = Math.max(diff.from, diff.to)
     if (from < 0 || to > docSize || from > to) return
 
-    const insertionDoc = JSON.parse(buildEditorContentFromPlainText(diff.newText)) as { content?: unknown[] }
+    const insertionDoc = JSON.parse(buildEditorContentFromPlainText(diff.newText)) as {
+      content?: unknown[]
+    }
     const insertionContent =
       insertionDoc.content && insertionDoc.content.length > 0
         ? insertionDoc.content
@@ -1145,7 +1274,9 @@ const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
 
     if (hasSelectionContext || shouldDiffWholeDocument) {
       const from = hasSelectionContext ? Math.min(selectionContext.from, selectionContext.to) : 0
-      const to = hasSelectionContext ? Math.max(selectionContext.from, selectionContext.to) : docSize
+      const to = hasSelectionContext
+        ? Math.max(selectionContext.from, selectionContext.to)
+        : docSize
       const oldText = hasSelectionContext
         ? tiptapEditor.state.doc.textBetween(from, to, '\n')
         : tiptapEditor.state.doc.textBetween(0, docSize, '\n')

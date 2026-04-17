@@ -10,13 +10,11 @@ export type AIApplyMode =
   | 'append_paragraph'
   | 'replace_document'
 
-export type WriterWorkflowSource =
-  | 'selection'
-  | 'story_harness'
-  | 'ai_result'
-  | 'workspace'
+export type WriterWorkflowSource = 'selection' | 'story_harness' | 'ai_result' | 'workspace'
 
 export type WriterWorkbenchTab = 'rewrite' | 'summary' | 'review' | 'chat'
+
+export type WriterStructurePlanMode = 'volume' | 'chapter'
 
 export interface WriterWorkflowActionRequest {
   source?: WriterWorkflowSource
@@ -55,23 +53,15 @@ export interface WriterWorkflowContext {
   chapterId: string
   chapterTitle: string
   scopeLabel?: string
-  activeCharacters: Array<
-    Pick<StoryHarnessCharacterSummary, 'id' | 'name' | 'currentState'>
-  >
-  activeRelations: Array<
-    Pick<StoryHarnessRelationSummary, 'id' | 'fromName' | 'toName' | 'type'>
-  >
+  activeCharacters: Array<Pick<StoryHarnessCharacterSummary, 'id' | 'name' | 'currentState'>>
+  activeRelations: Array<Pick<StoryHarnessRelationSummary, 'id' | 'fromName' | 'toName' | 'type'>>
   pendingChangeRequests: Array<
     Pick<StoryHarnessChangeRequestPreview, 'id' | 'title' | 'summary' | 'type'>
   >
   pendingChangeRequestCount: number
 }
 
-export type WriterResultCandidateSource =
-  | 'chat'
-  | 'rewrite'
-  | 'summary'
-  | 'review'
+export type WriterResultCandidateSource = 'chat' | 'rewrite' | 'summary' | 'review'
 
 export interface WriterResultCandidate {
   source: WriterResultCandidateSource
@@ -109,6 +99,19 @@ export interface WriterDraftProposal {
   status: WriterDraftProposalStatus
   createdAt: number
   updatedAt: number
+}
+
+export interface WriterStructurePlanItem {
+  title: string
+  summary?: string
+  reason?: string
+}
+
+export interface WriterStructurePlanPayload {
+  mode: WriterStructurePlanMode
+  prompt: string
+  summary: string
+  items: WriterStructurePlanItem[]
 }
 
 export function buildWriterWorkflowContextSignature(

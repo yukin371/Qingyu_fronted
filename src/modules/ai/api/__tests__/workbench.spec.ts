@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const summarizeText = vi.fn()
 const proofreadText = vi.fn()
+const chatWithAI = vi.fn()
 const postAIRequest = vi.fn()
 
 vi.mock('../ai', () => ({
+  chatWithAI: (...args: unknown[]) => chatWithAI(...args),
   summarizeText: (...args: unknown[]) => summarizeText(...args),
   proofreadText: (...args: unknown[]) => proofreadText(...args),
 }))
@@ -16,6 +18,7 @@ vi.mock('../request', () => ({
 
 import {
   auditSensitiveWords,
+  generateStructurePlan,
   proofreadContent,
   rewriteWithWorkbench,
   summarizeChapter,
@@ -26,6 +29,7 @@ describe('ai workbench api', () => {
   beforeEach(() => {
     summarizeText.mockReset()
     proofreadText.mockReset()
+    chatWithAI.mockReset()
     postAIRequest.mockReset()
   })
 
@@ -129,5 +133,53 @@ describe('ai workbench api', () => {
     })
     expect(summary.summary).toBe('摘要结果')
     expect(review.score).toBe(9)
+  })
+
+  it('generates structure plans through chat facade and parses json reply', async () => {
+    chatWithAI.mockResolvedValue({
+      reply: JSON.stringify({
+        summary: '围绕当前冲突新增两章推进。',
+        items: [
+          {
+            title: '夜探旧仓库',
+            summary: '主角第一次确认线索方向。',
+            reason: '补足冲突升级节点。',
+          },
+          {
+            title: '街口对峙',
+            summary: '反派提前亮相。',
+            reason: '把压力前置到下一段。',
+          },
+        ],
+      }),
+    })
+
+    const result = await generateStructurePlan({
+      projectId: 'project-1',
+      chapterId: 'chapter-1',
+      chapterTitle: '第一章',
+      mode: 'chapter',
+      count: 2,
+      prompt: '补两个后续章节',
+      seedText: '张三刚发现账本有问题。',
+      workflowContextPrompt: '当前工作流上下文：章节：第一章',
+    })
+
+    expect(chatWithAI).toHaveBeenCalledTimes(1)
+    expect(chatWithAI.mock.calls[0]?.[0]).toContain('补两个后续章节')
+    expect(chatWithAI.mock.calls[0]?.[0]).toContain('当前工作流上下文')
+    expect(result.summary).toBe('围绕当前冲突新增两章推进。')
+    expect(result.items).toEqual([
+      {
+        title: '夜探旧仓库',
+        summary: '主角第一次确认线索方向。',
+        reason: '补足冲突升级节点。',
+      },
+      {
+        title: '街口对峙',
+        summary: '反派提前亮相。',
+        reason: '把压力前置到下一段。',
+      },
+    ])
   })
 })

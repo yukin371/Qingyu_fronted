@@ -191,7 +191,9 @@
         :chapter-title="chapterTitle"
         :seed-text="sourceText"
         :action-trigger="actionTrigger"
+        :workflow-context="workflowContext"
         @result-candidate="handleResultCandidate"
+        @apply-structure-plan="(payload) => emit('applyStructurePlan', payload)"
       />
 
       <ReviewWorkbenchTool
@@ -234,6 +236,7 @@ import type {
   WriterDraftProposalStatus,
   WriterRevisionSeed,
   WriterResultCandidate,
+  WriterStructurePlanPayload,
   WriterWorkbenchTab,
   WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
@@ -257,6 +260,7 @@ const emit = defineEmits<{
     e: 'proposalStatusChange',
     payload: { proposalId: string; status: WriterDraftProposalStatus },
   ): void
+  (e: 'applyStructurePlan', payload: WriterStructurePlanPayload): void
 }>()
 
 const activeTab = ref<WriterWorkbenchTab>('chat')
@@ -452,7 +456,7 @@ function handleApplyPayload(payload: WriterAIApplyPayload) {
   if (
     !currentCandidate ||
     currentCandidate.generatedText.trim() !== payload.generatedText.trim() ||
-      currentCandidate.sourceText.trim() !== payload.sourceText.trim()
+    currentCandidate.sourceText.trim() !== payload.sourceText.trim()
   ) {
     latestResultCandidate.value = buildCandidateFromPayload(payload)
   }
@@ -528,7 +532,6 @@ function resultKindText(candidate: WriterResultCandidate) {
 function resultPromoteActionText(candidate: WriterResultCandidate) {
   return resultKindText(candidate) === '方向' ? '存为方向' : '存为正文'
 }
-
 </script>
 
 <style scoped lang="scss">
@@ -548,8 +551,7 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   gap: 6px;
   padding: 12px 14px 10px;
   border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.72));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.72));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
@@ -588,8 +590,7 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 .workflow-rail {
   padding: 12px;
   border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
-  background:
-    linear-gradient(180deg, rgba(246, 250, 255, 0.92), rgba(255, 255, 255, 0.82));
+  background: linear-gradient(180deg, rgba(246, 250, 255, 0.92), rgba(255, 255, 255, 0.82));
   display: grid;
   gap: 10px;
 }
@@ -622,8 +623,7 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   padding: 11px 12px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
   box-shadow:
     0 10px 24px rgba(15, 23, 42, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -762,8 +762,7 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
 }
 
 .workflow-diff-card__column--after {
-  background:
-    linear-gradient(180deg, rgba(240, 253, 244, 0.98), rgba(236, 253, 245, 0.88));
+  background: linear-gradient(180deg, rgba(240, 253, 244, 0.98), rgba(236, 253, 245, 0.88));
   border-color: rgba(34, 197, 94, 0.22);
   box-shadow: inset 0 0 0 1px rgba(187, 247, 208, 0.45);
 }
@@ -809,8 +808,7 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   min-height: 0;
   overflow: hidden;
   padding: 14px 16px 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(248, 250, 252, 0.12));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(248, 250, 252, 0.12));
 }
 
 .apply-feedback {

@@ -19,6 +19,7 @@
             @apply-generated-text="(payload: WriterAIApplyPayload) => $emit('ai-apply', payload)"
             @proposal-draft="(payload) => $emit('proposal-draft', payload)"
             @proposal-status-change="(payload) => $emit('proposal-status-change', payload)"
+            @apply-structure-plan="(payload) => $emit('create-structure-plan', payload)"
           />
         </div>
         <div v-show="activeTab === 'harness'" class="workspace-right-panel-pane">
@@ -87,6 +88,7 @@ import type {
   WriterDraftProposal,
   WriterDraftProposalStatus,
   WriterResultCandidate,
+  WriterStructurePlanPayload,
   WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
 import type {
@@ -151,6 +153,7 @@ const emit = defineEmits<{
     payload: { proposalId: string; status: WriterDraftProposalStatus },
   ): void
   (e: 'trigger-ai-action', payload: WriterWorkflowActionRequest): void
+  (e: 'create-structure-plan', payload: WriterStructurePlanPayload): void
 }>()
 
 // =======================
@@ -200,8 +203,7 @@ function handleHarnessActivityClick() {
   position: relative;
   display: flex;
   flex-direction: column;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 255, 0.92));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 255, 0.92));
   backdrop-filter: blur(16px);
   transition:
     opacity 200ms ease-out,
@@ -268,8 +270,7 @@ function handleHarnessActivityClick() {
   padding: 10px 0;
   width: 48px;
   min-width: 48px;
-  background:
-    linear-gradient(180deg, rgba(240, 249, 255, 0.98), rgba(224, 242, 254, 0.95));
+  background: linear-gradient(180deg, rgba(240, 249, 255, 0.98), rgba(224, 242, 254, 0.95));
   border-left: 1px solid var(--editor-border, #e2e8f0);
   gap: 6px;
   box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.85);

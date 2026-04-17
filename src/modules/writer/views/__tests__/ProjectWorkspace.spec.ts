@@ -27,6 +27,9 @@ const { messageSuccess, messageInfo, messageWarning, messageError, messageBoxCon
     messageBoxConfirm: vi.fn().mockResolvedValue(undefined),
   }),
 )
+const { createDocumentMock } = vi.hoisted(() => ({
+  createDocumentMock: vi.fn(),
+}))
 
 vi.mock('vue-router', () => ({
   useRoute: () => routeState,
@@ -38,6 +41,91 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@/modules/writer/mock/workspaceMock', () => ({
   getWorkspaceMockProject: () => null,
+}))
+
+vi.mock('@/modules/writer/api/document', () => ({
+  createDocument: (...args: unknown[]) => createDocumentMock(...args),
+}))
+
+vi.mock('@/design-system/components', () => {
+  const stub = defineComponent({
+    name: 'DesignSystemComponentMock',
+    template: '<div data-testid="design-system-component-mock" />',
+  })
+
+  return {
+    __esModule: true,
+    QyButton: stub,
+    QyCard: stub,
+    QyDialog: stub,
+    QyDrawer: stub,
+    QyDropdown: stub,
+    QyGhostButton: stub,
+    QyIcon: stub,
+    QyProgress: stub,
+    QyRow: stub,
+    QyCol: stub,
+    QySelect: stub,
+    Skeleton: stub,
+  }
+})
+
+vi.mock('@/design-system/components/index', () => {
+  const stub = defineComponent({
+    name: 'DesignSystemComponentMock',
+    template: '<div data-testid="design-system-component-mock" />',
+  })
+
+  return {
+    __esModule: true,
+    QyButton: stub,
+    QyCard: stub,
+    QyDialog: stub,
+    QyDrawer: stub,
+    QyDropdown: stub,
+    QyGhostButton: stub,
+    QyIcon: stub,
+    QyProgress: stub,
+    QyRow: stub,
+    QyCol: stub,
+    QySelect: stub,
+    Skeleton: stub,
+  }
+})
+
+vi.mock('@/modules/writer/components/v3/story-harness/StoryHarnessPanel.vue', () => ({
+  default: defineComponent({
+    name: 'StoryHarnessPanelMock',
+    template: '<div data-testid="story-harness-module-mock" />',
+  }),
+}))
+
+vi.mock('@/modules/writer/components/workspace/WorkspaceTopbar.vue', () => ({
+  default: defineComponent({
+    name: 'WorkspaceTopbarMock',
+    template: '<div data-testid="workspace-topbar-module-mock" />',
+  }),
+}))
+
+vi.mock('@/modules/writer/components/workspace/WorkspaceLeftPanel.vue', () => ({
+  default: defineComponent({
+    name: 'WorkspaceLeftPanel',
+    template: '<div data-testid="workspace-left-panel-module-mock" />',
+  }),
+}))
+
+vi.mock('@/modules/writer/components/workspace/WorkspaceRightPanel.vue', () => ({
+  default: defineComponent({
+    name: 'WorkspaceRightPanel',
+    template: '<div data-testid="workspace-right-panel-module-mock" />',
+  }),
+}))
+
+vi.mock('@/modules/writer/components/workspace/WorkspaceEditorContent.vue', () => ({
+  default: defineComponent({
+    name: 'WorkspaceEditorContent',
+    template: '<div data-testid="workspace-editor-content-module-mock" />',
+  }),
 }))
 
 vi.mock('@/design-system/services', () => ({
@@ -228,7 +316,7 @@ const WorkspaceRightPanelStub = defineComponent({
       default: () => [],
     },
   },
-  emits: ['ai-apply', 'proposal-draft', 'proposal-status-change'],
+  emits: ['ai-apply', 'proposal-draft', 'proposal-status-change', 'create-structure-plan'],
   setup(props, { emit }) {
     return () =>
       h('div', [
@@ -276,6 +364,25 @@ const WorkspaceRightPanelStub = defineComponent({
               summary: '检测到 2 条语言问题',
               generatedText: '审校评分：8.5\n1. 语法：建议调整句式\n2. 标点：补充逗号',
               sourceText: '第一章正文',
+            }),
+        }),
+        h('button', {
+          'data-testid': 'create-structure-plan',
+          onClick: () =>
+            emit('create-structure-plan', {
+              mode: 'chapter',
+              prompt: '补两个后续章节',
+              summary: '建议补 2 个后续章节。',
+              items: [
+                {
+                  title: '夜探旧仓库',
+                  summary: '主角第一次确认线索方向。',
+                },
+                {
+                  title: '街口对峙',
+                  summary: '反派提前亮相。',
+                },
+              ],
             }),
         }),
         h('div', { 'data-testid': 'apply-feedback-title' }, props.aiApplyFeedback?.title || ''),
@@ -411,6 +518,8 @@ describe('ProjectWorkspace Refactor', () => {
     routerReplace.mockClear()
     setActiveTool.mockClear()
     setSelectedText.mockClear()
+    createDocumentMock.mockReset()
+    createDocumentMock.mockResolvedValue({ id: 'generated-doc-1' })
     messageSuccess.mockClear()
     messageInfo.mockClear()
     messageWarning.mockClear()
@@ -423,7 +532,7 @@ describe('ProjectWorkspace Refactor', () => {
     closeFullscreenSpy.mockClear()
   })
 
-  it('写作模式下应渲染 TipTapEditorView 且不渲染旧 EditorPanel', async () => {
+  it('写作模式下应渲染工作区编辑宿主且不渲染旧 EditorPanel', async () => {
     const wrapper = mount(ProjectWorkspace, {
       global: {
         plugins: [createPinia()],
@@ -446,7 +555,7 @@ describe('ProjectWorkspace Refactor', () => {
       },
     })
 
-    expect(wrapper.find('[data-testid="tiptap-editor-view"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workspace-editor-content-module-mock"]').exists()).toBe(true)
     expect(wrapper.html()).not.toContain('EditorPanel')
     expect(loadCharacters).toHaveBeenCalledWith('project-1')
     expect(loadCharacterRelations).toHaveBeenCalledWith('project-1')
@@ -1096,5 +1205,57 @@ describe('ProjectWorkspace Refactor', () => {
 
     expect(wrapper.find('[data-testid="proposal-status"]').text()).toBe('discarded')
     expect(messageInfo).toHaveBeenCalledWith('已移出当前提案')
+  })
+
+  it('AI 结构草案落地后应批量创建章节并跳转到首个新章节', async () => {
+    createDocumentMock
+      .mockResolvedValueOnce({ id: 'generated-doc-1' })
+      .mockResolvedValueOnce({ id: 'generated-doc-2' })
+
+    const wrapper = mount(ProjectWorkspace, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          EditorLayout: {
+            template: `
+              <div>
+                <slot name="left-panel" />
+                <slot name="editor" :active-tool="'writing'" />
+                <slot name="right-panel" />
+              </div>
+            `,
+          },
+          WorkspaceLeftPanel: WorkspaceLeftPanelStub,
+          WorkspaceRightPanel: WorkspaceRightPanelStub,
+          TipTapEditorView: { template: '<div data-testid="tiptap-editor-view" />' },
+          EncyclopediaView: { template: '<div data-testid="encyclopedia-view" />' },
+          AIPanel: { template: '<div data-testid="ai-panel" />' },
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="create-structure-plan"]').trigger('click')
+    await Promise.resolve()
+    await nextTick()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(createDocumentMock).toHaveBeenCalledTimes(2)
+    expect(createDocumentMock).toHaveBeenNthCalledWith(
+      1,
+      'project-1',
+      expect.objectContaining({
+        title: '第3章 夜探旧仓库',
+        type: 'chapter',
+      }),
+    )
+    expect(createDocumentMock).toHaveBeenNthCalledWith(
+      2,
+      'project-1',
+      expect.objectContaining({
+        title: '第4章 街口对峙',
+        type: 'chapter',
+      }),
+    )
   })
 })
