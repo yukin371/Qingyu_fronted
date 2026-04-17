@@ -80,7 +80,10 @@ export async function batchUpdateAnnouncementStatus(
   ids: string[],
   status: 'active' | 'inactive',
 ): Promise<APIResponse<void>> {
-  return api.putApiV1AdminAnnouncementsBatchStatus({ ids, status } as any) as any
+  return api.putApiV1AdminAnnouncementsBatchStatus({
+    announcementIds: ids,
+    isActive: status === 'active',
+  } as any) as any
 }
 
 /**

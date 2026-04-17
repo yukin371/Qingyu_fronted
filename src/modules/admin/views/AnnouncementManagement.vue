@@ -306,6 +306,32 @@ import {
   deleteAnnouncement,
 } from '../api'
 
+function getHttpStatus(error: unknown): number | undefined {
+  const status = (error as { response?: { status?: unknown } })?.response?.status
+  return typeof status === 'number' ? status : undefined
+}
+
+function resetForm() {
+  editingAnnouncement.value = null
+  Object.assign(announcementForm, {
+    title: '',
+    content: '',
+    type: 'info',
+    targetRole: 'all',
+    priority: 0,
+    isActive: true,
+    startTime: undefined,
+    endTime: undefined,
+  })
+}
+
+async function handleAnnouncementNotFound(messageText: string) {
+  dialogVisible.value = false
+  resetForm()
+  await loadAnnouncements()
+  message.error(messageText)
+}
+
 // 筛选器
 const filters = reactive({
   type: '',
@@ -409,17 +435,7 @@ const getPriorityClass = (priority: number): string => {
 }
 
 const handleCreate = () => {
-  editingAnnouncement.value = null
-  Object.assign(announcementForm, {
-    title: '',
-    content: '',
-    type: 'info',
-    targetRole: 'all',
-    priority: 0,
-    isActive: true,
-    startTime: undefined,
-    endTime: undefined,
-  })
+  resetForm()
   dialogVisible.value = true
 }
 
@@ -461,6 +477,10 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     void loadAnnouncements()
   } catch (error) {
+    if (getHttpStatus(error) === 404) {
+      await handleAnnouncementNotFound('公告不存在或已被删除，列表已自动刷新')
+      return
+    }
     message.error('操作失败')
   } finally {
     submitting.value = false
@@ -473,6 +493,11 @@ const handleStatusChange = async (announcement: any) => {
     message.success(announcement.isActive ? '已启用' : '已禁用')
     void loadAnnouncements()
   } catch (error) {
+    if (getHttpStatus(error) === 404) {
+      announcement.isActive = !announcement.isActive
+      await handleAnnouncementNotFound('公告不存在或已被删除，列表已自动刷新')
+      return
+    }
     message.error('状态更新失败')
     announcement.isActive = !announcement.isActive
   }
@@ -489,6 +514,10 @@ const handleDelete = async (announcement: any) => {
     message.success('删除成功')
     void loadAnnouncements()
   } catch (error: any) {
+    if (getHttpStatus(error) === 404) {
+      await handleAnnouncementNotFound('公告不存在或已被删除，列表已自动刷新')
+      return
+    }
     if (error !== 'cancel') {
       message.error('删除失败')
     }

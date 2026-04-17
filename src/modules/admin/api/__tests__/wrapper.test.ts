@@ -144,6 +144,25 @@ describe('Admin API Wrapper', () => {
       expect(result).toBeDefined()
     })
 
+    it('应该按后端契约调用batchUpdateAnnouncementStatus', async () => {
+      const wrapper = await import('../wrapper')
+      const { orvalMutator } = await import('@/core/config/orval-mutator')
+
+      const result = await wrapper.batchUpdateAnnouncementStatus(['id-1', 'id-2'], 'active')
+
+      expect(orvalMutator).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/api/v1/admin/announcements/batch-status',
+          method: 'PUT',
+          data: {
+            announcementIds: ['id-1', 'id-2'],
+            isActive: true,
+          },
+        }),
+      )
+      expect(result).toBeDefined()
+    })
+
     it('应该能调用getAllConfigs', async () => {
       const wrapper = await import('../wrapper')
       const { orvalMutator } = await import('@/core/config/orval-mutator')
