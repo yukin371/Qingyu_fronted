@@ -18,6 +18,8 @@ export interface Chapter {
   wordCount: number
   isFree: boolean
   price: number
+  canAccess?: boolean
+  accessReason?: string
   publishTime?: string
   publishedAt?: string
   updateTime?: string
@@ -67,6 +69,8 @@ export interface ChapterListItem {
   wordCount: number
   isFree: boolean
   price: number
+  canAccess?: boolean
+  accessReason?: string
   isRead?: boolean
   publishTime?: string
   publishedAt?: string

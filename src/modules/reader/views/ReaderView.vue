@@ -172,6 +172,8 @@ interface Chapter {
   title: string
   chapterNum?: number
   price?: number
+  canAccess?: boolean
+  accessReason?: string
   content?: string
   paragraphs?: ReaderParagraph[]
   isRead?: boolean

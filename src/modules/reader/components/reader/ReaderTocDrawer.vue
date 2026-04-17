@@ -5,13 +5,17 @@
         v-for="chapter in chapters"
         :key="chapter.id"
         class="catalog-item"
-        :class="{ 'is-active': chapter.id === currentChapterId, 'is-read': chapter.isRead }"
+        :class="{
+          'is-active': chapter.id === currentChapterId,
+          'is-read': chapter.isRead,
+          'is-locked': isChapterLocked(chapter),
+        }"
         :data-testid="`catalog-chapter-${chapter.id}`"
         @click="$emit('jump', chapter.id)"
       >
         <span class="chapter-num">{{ chapter.chapterNum ?? '' }}</span>
         <span class="chapter-name">{{ chapter.title }}</span>
-        <el-icon v-if="!chapter.isFree" class="lock-icon">
+        <el-icon v-if="isChapterLocked(chapter)" class="lock-icon">
           <QyIcon name="Lock" />
         </el-icon>
       </div>
@@ -29,6 +33,8 @@ export interface ChapterItem {
   title: string
   isRead?: boolean
   isFree?: boolean
+  canAccess?: boolean
+  accessReason?: string
 }
 
 const props = defineProps<{
@@ -46,6 +52,8 @@ const drawerVisible = computed({
   get: () => props.visible,
   set: (value: boolean) => emit('update:visible', value),
 })
+
+const isChapterLocked = (chapter: ChapterItem) => !chapter.isFree && chapter.canAccess === false
 </script>
 
 <style scoped lang="scss">
@@ -68,6 +76,12 @@ const drawerVisible = computed({
 
   &.is-read {
     color: #909399;
+  }
+
+  &.is-locked {
+    .chapter-name {
+      color: #c05621;
+    }
   }
 
   .chapter-num {
