@@ -4,6 +4,7 @@ const mockListDocuments = vi.fn()
 const mockReadDocument = vi.fn()
 const mockSearchDocument = vi.fn()
 const mockPreviewTextPatch = vi.fn()
+const mockPreviewPatchDocument = vi.fn()
 
 vi.mock('@/modules/writer/services/documentTools.service', () => ({
   documentToolsService: {
@@ -11,6 +12,7 @@ vi.mock('@/modules/writer/services/documentTools.service', () => ({
     readDocument: (...args: unknown[]) => mockReadDocument(...args),
     searchDocument: (...args: unknown[]) => mockSearchDocument(...args),
     previewTextPatch: (...args: unknown[]) => mockPreviewTextPatch(...args),
+    previewPatchDocument: (...args: unknown[]) => mockPreviewPatchDocument(...args),
   },
 }))
 
@@ -170,10 +172,28 @@ describe('documentToolCommandsService', () => {
     })
   })
 
-  it('rejects patching non-current document for now', async () => {
+  it('returns preview when patching a non-current document', async () => {
     mockListDocuments.mockResolvedValue({
       projectId: 'project-1',
       documents: [{ documentId: 'chapter-2', title: '第二章', type: 'chapter', level: 0 }],
+    })
+    mockPreviewPatchDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      baseVersion: 5,
+      totalLines: 12,
+      lines: [
+        { line: 1, text: '第一行' },
+        { line: 2, text: '第二行' },
+      ],
+      previews: [
+        {
+          type: 'delete_lines',
+          startLine: 8,
+          endLine: 10,
+          before: ['旧内容一', '旧内容二', '旧内容三'],
+          after: [],
+        },
+      ],
     })
 
     const result = await executeWriterDocumentCommand('/doc patch --doc=chapter-2 delete 8-10', {
@@ -182,7 +202,20 @@ describe('documentToolCommandsService', () => {
       currentSourceText: '当前正文',
     })
 
+    expect(mockPreviewPatchDocument).toHaveBeenCalledWith({
+      documentId: 'chapter-2',
+      operations: [
+        {
+          type: 'delete_lines',
+          startLine: 8,
+          endLine: 10,
+        },
+      ],
+    })
     expect(result.patchPayload).toBeUndefined()
-    expect(result.assistantMessage).toContain('当前仅支持对当前章节执行 /doc patch')
+    expect(result.assistantMessage).toContain('异章节 patch 预览')
+    expect(result.assistantMessage).toContain('变更 1 [delete_lines] 8-10')
+    expect(result.assistantMessage).toContain('- 旧内容一')
+    expect(result.assistantMessage).toContain('+ （删除）')
   })
 })

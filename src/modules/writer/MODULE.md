@@ -36,7 +36,7 @@
 - **对话、改写、总结、审校要共享同一套工作台视觉语言**：`AIPanel`、`RewriteWorkbenchTool`、`SummaryWorkbenchTool`、`ReviewWorkbenchTool` 的 header、说明文案、状态栏和主按钮布局应复用统一样式 token，不要让右栏看起来像四套不同产品拼接。
 - **writer 侧 AI 请求必须走统一 API facade**：聊天、续写、改写、扩写、总结、审校，以及 workbench 的章节总结/敏感词检测，都应先收敛到 `src/modules/ai/api` 下的统一 request helper，再决定是直连 AI 服务还是走后端 `/api/v1/ai/*`。不要在组件里各自直接 new axios、各自写 timeout，避免再次出现 15s / 60s / 默认值混杂。
 - **文档工具协议优先复用 writer 文档树与内容接口**：`list_documents / read_document / search_document / patch_document` 这类 agent 能力，优先复用 `getDocumentTree / getDocumentContent(s) / updateDocumentContent` 及其 service 封装，不要再造第二套“AI 文件系统”。`patch_document` 即使后续接入真实 tool calling，也必须保留版本校验，并继续走正文 diff / 编辑器确认链路，不能让 AI 直接静默落盘。
-- **`/doc` 命令桥只做轻量演示接入**：`AIPanel` 内的 `/doc list/read/search/patch` 目前是面向当前 writer 工作区的本地命令桥。`list/read/search` 可直接返回文本结果；`patch` 现阶段只允许作用于当前章节，并必须转换成 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText` 的正文 diff，不允许绕过编辑器直接保存其它章节。
+- **`/doc` 命令桥只做轻量演示接入**：`AIPanel` 内的 `/doc list/read/search/patch` 目前是面向当前 writer 工作区的本地命令桥。`list/read/search` 可直接返回文本结果；当前章节 `patch` 必须转换成 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText` 的正文 diff，异章节 `patch` 只允许返回预览，不允许绕过编辑器直接静默保存。
 - **会话操作应并入工具栏，不再回到独立头部**：清空当前对话、重命名、新建会话等动作统一放在 `AIConversationToolbar`，不要为了单个会话动作再长回额外标题栏。
 - **Harness 入口走侧边 activity bar，不占顶部模式栏**：`WorkspaceRightPanel` 顶部不再为 `对话 / Harness` 单独保留一行 tabs；Story Harness 应通过右侧按钮显隐，正文协作区把垂直空间让给 AI 工作台本体。
 - **全屏工具 handoff 要复用共享实体上下文**：`CharacterGraphView / TimelineOutlineView / StoryBranchView / StructureStageView` 发给 AI 的 `add_to_chat` 文本不能只带局部节点名；应优先复用 `useWorkflowContext` 产出的 `activeEntities` / `workflowContext`，把当前章节的活跃角色、物品、地点等上下文一起带过去，避免工具页再次回到各自拼接一套孤立上下文。
