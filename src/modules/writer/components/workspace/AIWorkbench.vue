@@ -1,9 +1,5 @@
 <template>
   <section class="ai-workbench">
-    <header class="ai-workbench__header">
-      <span class="ai-workbench__title">AI 助手</span>
-    </header>
-
     <nav class="ai-workbench__tabs" aria-label="AI 工具标签">
       <button
         v-for="tab in tabs"
@@ -148,23 +144,30 @@
       </section>
 
       <section
-        v-if="visibleDiffPreview"
+        v-if="showEditorDiffStatus"
         class="workflow-diff-card"
         data-testid="workflow-diff-card"
       >
         <div class="workflow-card__meta">
-          <span class="workflow-chip workflow-chip--accent">变更预览</span>
+          <span class="workflow-chip workflow-chip--accent">正文已挂起</span>
           <span class="workflow-chip">{{ diffModeText }}</span>
         </div>
-        <div class="workflow-diff-card__grid">
-          <div class="workflow-diff-card__column">
-            <span class="workflow-diff-card__label">修改前</span>
-            <p class="workflow-diff-card__text">{{ visibleDiffPreview.before }}</p>
-          </div>
-          <div class="workflow-diff-card__column workflow-diff-card__column--after">
-            <span class="workflow-diff-card__label">修改后</span>
-            <p class="workflow-diff-card__text">{{ visibleDiffPreview.after }}</p>
-          </div>
+        <p class="workflow-diff-card__hint">
+          改动已同步到正文编辑器。请直接在正文区域接受或放弃，本侧栏不再重复展示前后对比。
+        </p>
+        <div
+          v-if="pendingApplyPayload"
+          class="workflow-diff-card__actions"
+          data-testid="workflow-diff-actions"
+        >
+          <button
+            type="button"
+            class="workflow-diff-card__action workflow-diff-card__action--primary"
+            data-testid="workflow-revise-action"
+            @click="handleContinueRevision"
+          >
+            继续修改
+          </button>
         </div>
       </section>
     </section>
@@ -178,7 +181,7 @@
         :seed-text="sourceText"
         :action-trigger="actionTrigger"
         :workflow-context="workflowContext"
-        @apply="(payload) => emit('applyGeneratedText', payload)"
+        @apply="handleApplyPayload"
       />
 
       <SummaryWorkbenchTool
@@ -207,9 +210,8 @@
         :source-text="sourceText"
         :action-trigger="actionTrigger"
         :workflow-context="workflowContext"
-        @apply-generated-text="
-          (payload: WriterAIApplyPayload) => emit('applyGeneratedText', payload)
-        "
+        :revision-seed="revisionSeed"
+        @apply-generated-text="handleApplyPayload"
         @result-candidate="handleResultCandidate"
       />
     </div>
@@ -230,6 +232,7 @@ import type {
   WriterDraftProposalKind,
   WriterDraftProposalSource,
   WriterDraftProposalStatus,
+  WriterRevisionSeed,
   WriterResultCandidate,
   WriterWorkbenchTab,
   WriterWorkflowContext,
@@ -258,12 +261,14 @@ const emit = defineEmits<{
 
 const activeTab = ref<WriterWorkbenchTab>('chat')
 const latestResultCandidate = ref<WriterResultCandidate | null>(null)
+const pendingApplyPayload = ref<WriterAIApplyPayload | null>(null)
+const revisionSeed = ref<WriterRevisionSeed | null>(null)
 
 const tabs: Array<{ id: WriterWorkbenchTab; label: string; description: string }> = [
   { id: 'rewrite', label: '改写', description: '续写 / 润色 / 扩写' },
   { id: 'summary', label: '总结', description: '摘要 / 章节提炼' },
   { id: 'review', label: '审校', description: '校对 / 风险检查' },
-  { id: 'chat', label: '对话', description: '开放式协作' },
+  { id: 'chat', label: '对话协作', description: '开放式协作' },
 ]
 
 const actionDrivenTab = computed<WriterWorkbenchTab | null>(() =>
@@ -302,7 +307,8 @@ const hasWorkflowRail = computed(
     !!shouldShowApplyFeedback.value ||
     !!shouldShowProposalLifecycleFeedback.value ||
     !!latestResultCandidate.value ||
-    !!primaryDraftProposal.value,
+    !!primaryDraftProposal.value ||
+    !!pendingApplyPayload.value,
 )
 
 const proposalLifecycleFeedback = computed<{
@@ -357,25 +363,10 @@ const visibleProposalLifecycleFeedback = computed(() =>
   shouldShowProposalLifecycleFeedback.value ? proposalLifecycleFeedback.value : null,
 )
 
-const visibleDiffPreview = computed(() => {
-  const candidate = latestResultCandidate.value
-  if (!candidate) return null
-  if (!['rewrite', 'direct_edit', 'expand', 'polish', 'continue'].includes(candidate.action)) {
-    return null
-  }
-
-  const before = (candidate.sourceText || props.sourceText || '').trim()
-  const after = (candidate.generatedText || '').trim()
-  if (!before || !after || before === after) return null
-
-  return {
-    before: shortenPreview(before),
-    after: shortenPreview(after),
-  }
-})
+const showEditorDiffStatus = computed(() => !!pendingApplyPayload.value)
 
 const diffModeText = computed(() => {
-  const mode = props.actionTrigger?.applyMode
+  const mode = pendingApplyPayload.value?.applyMode || props.actionTrigger?.applyMode
   if (mode === 'replace_document') return '整章改写'
   if (mode === 'insert_after_selection') return '插入选区后'
   if (mode === 'replace_selection') return '替换选区'
@@ -395,11 +386,25 @@ watch(
       actionTriggerId !== prevActionTriggerId
     ) {
       latestResultCandidate.value = null
+      pendingApplyPayload.value = null
+      revisionSeed.value = null
     }
 
     if (actionTriggerId !== prevActionTriggerId && actionDrivenTab.value) {
       activeTab.value = actionDrivenTab.value
     }
+  },
+)
+
+watch(
+  () => props.aiApplyFeedback?.updatedAt,
+  (updatedAt, previousUpdatedAt) => {
+    if (!updatedAt || updatedAt === previousUpdatedAt) {
+      return
+    }
+
+    pendingApplyPayload.value = null
+    revisionSeed.value = null
   },
 )
 
@@ -412,6 +417,60 @@ function applyModeText(mode: NonNullable<WriterAIActionTrigger['applyMode']>) {
 
 function handleResultCandidate(payload: WriterResultCandidate) {
   latestResultCandidate.value = payload
+}
+
+function buildCandidateFromPayload(payload: WriterAIApplyPayload): WriterResultCandidate {
+  const resolvedTab = resolveWriterWorkflowTab(payload.action)
+  const title =
+    payload.applyMode === 'replace_document'
+      ? 'AI 整章改写结果'
+      : payload.applyMode === 'replace_selection'
+        ? 'AI 选区替换结果'
+        : payload.applyMode === 'insert_after_selection'
+          ? 'AI 续写结果'
+          : 'AI 正文结果'
+
+  return {
+    source:
+      resolvedTab === 'summary' || resolvedTab === 'review' || resolvedTab === 'rewrite'
+        ? resolvedTab
+        : 'chat',
+    action: payload.action,
+    title,
+    summary: payload.generatedText.slice(0, 72) || '已生成新的正文结果。',
+    generatedText: payload.generatedText,
+    sourceText: payload.sourceText,
+  }
+}
+
+function handleApplyPayload(payload: WriterAIApplyPayload) {
+  pendingApplyPayload.value = payload
+  revisionSeed.value = null
+  emit('applyGeneratedText', payload)
+
+  const currentCandidate = latestResultCandidate.value
+  if (
+    !currentCandidate ||
+    currentCandidate.generatedText.trim() !== payload.generatedText.trim() ||
+      currentCandidate.sourceText.trim() !== payload.sourceText.trim()
+  ) {
+    latestResultCandidate.value = buildCandidateFromPayload(payload)
+  }
+}
+
+function handleContinueRevision() {
+  const candidate = latestResultCandidate.value
+  if (!pendingApplyPayload.value || !candidate?.generatedText.trim()) {
+    return
+  }
+
+  revisionSeed.value = {
+    id: Date.now(),
+    text: candidate.generatedText,
+    instructions: `基于当前候选继续修改，目标模式：${diffModeText.value}。`,
+    applyMode: pendingApplyPayload.value.applyMode,
+  }
+  activeTab.value = 'chat'
 }
 
 function handlePromoteToProposal() {
@@ -470,10 +529,6 @@ function resultPromoteActionText(candidate: WriterResultCandidate) {
   return resultKindText(candidate) === '方向' ? '存为方向' : '存为正文'
 }
 
-function shortenPreview(text: string) {
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  return normalized.length > 180 ? `${normalized.slice(0, 180)}…` : normalized
-}
 </script>
 
 <style scoped lang="scss">
@@ -482,65 +537,61 @@ function shortenPreview(text: string) {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: transparent;
+  background:
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(253, 254, 255, 0.98), rgba(247, 250, 252, 0.95));
   color: #1f2430;
-}
-
-.ai-workbench__header {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.ai-workbench__title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--editor-text-primary, #0f172a);
-  letter-spacing: 0.01em;
 }
 
 .ai-workbench__tabs {
   display: flex;
-  gap: 4px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 12px 14px 10px;
   border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
 .ai-workbench__tab {
   flex: 1;
   text-align: center;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: var(--editor-radius-md, 6px);
-  padding: 5px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.56);
+  border-radius: 999px;
+  padding: 7px 10px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--editor-text-muted, #64748b);
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .ai-workbench__tab:hover {
-  background: var(--editor-bg-elevated, #f1f5f9);
+  background: rgba(255, 255, 255, 0.94);
   color: var(--editor-text-primary, #0f172a);
+  transform: translateY(-1px);
 }
 
 .ai-workbench__tab.active {
-  background: var(--editor-accent-soft, #ecfeff);
-  border-color: var(--editor-accent, rgba(6, 182, 212, 0.3));
-  color: var(--editor-accent, #06b6d4);
-  font-weight: 600;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(34, 211, 238, 0.08)),
+    rgba(255, 255, 255, 0.96);
+  border-color: rgba(14, 165, 233, 0.22);
+  color: #0369a1;
+  font-weight: 800;
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.12);
 }
 
 .workflow-rail {
-  padding: 10px 12px;
+  padding: 12px;
   border-bottom: 1px solid var(--editor-border, rgba(0, 0, 0, 0.06));
-  background: rgba(248, 250, 252, 0.86);
+  background:
+    linear-gradient(180deg, rgba(246, 250, 255, 0.92), rgba(255, 255, 255, 0.82));
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .workflow-result-card__action,
@@ -568,14 +619,19 @@ function shortenPreview(text: string) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 10px;
-  border: 1px solid var(--editor-border, rgba(0, 0, 0, 0.08));
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.76);
+  padding: 11px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   strong {
     display: block;
     font-size: 12px;
+    font-weight: 800;
     color: var(--editor-text-primary, #0f172a);
   }
   p {
@@ -661,12 +717,28 @@ function shortenPreview(text: string) {
 }
 
 .workflow-diff-card {
-  padding: 10px;
-  border: 1px solid var(--editor-border, rgba(0, 0, 0, 0.08));
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.78);
+  padding: 12px;
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(243, 248, 252, 0.95));
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  box-shadow:
+    0 16px 34px rgba(8, 47, 73, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.workflow-diff-card__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--editor-text-secondary, #334155);
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(240, 249, 255, 0.9);
+  border: 1px solid rgba(125, 211, 252, 0.28);
 }
 
 .workflow-diff-card__grid {
@@ -675,24 +747,34 @@ function shortenPreview(text: string) {
   gap: 8px;
 }
 
+.workflow-diff-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 .workflow-diff-card__column {
   min-width: 0;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(248, 250, 252, 0.9);
-  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(248, 250, 252, 0.95);
+  padding: 10px;
 }
 
 .workflow-diff-card__column--after {
-  background: rgba(236, 253, 245, 0.9);
-  border-color: rgba(34, 197, 94, 0.2);
+  background:
+    linear-gradient(180deg, rgba(240, 253, 244, 0.98), rgba(236, 253, 245, 0.88));
+  border-color: rgba(34, 197, 94, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(187, 247, 208, 0.45);
 }
 
 .workflow-diff-card__label {
   display: block;
   margin-bottom: 6px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--editor-text-muted, #64748b);
 }
 
@@ -704,11 +786,31 @@ function shortenPreview(text: string) {
   white-space: pre-wrap;
 }
 
+.workflow-diff-card__action {
+  border: 1px solid rgba(14, 165, 233, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--editor-text-primary, #0f172a);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.08);
+}
+
+.workflow-diff-card__action--primary {
+  background: linear-gradient(135deg, #0284c7, #06b6d4);
+  color: #f8fafc;
+  border-color: rgba(2, 132, 199, 0.36);
+}
+
 .ai-workbench__panel {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: 16px 18px 18px;
+  padding: 14px 16px 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(248, 250, 252, 0.12));
 }
 
 .apply-feedback {
@@ -816,6 +918,10 @@ function shortenPreview(text: string) {
 
   .workflow-diff-card__grid {
     grid-template-columns: 1fr;
+  }
+
+  .workflow-diff-card__actions {
+    flex-direction: column;
   }
 
   .apply-feedback__content {

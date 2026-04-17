@@ -18,11 +18,32 @@
   gap: 12px;
 }
 
+.tool-panel__header-copy {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
 .tool-panel__header h3 {
   margin: 4px 0 0;
   font-size: 22px;
   line-height: 1.1;
   color: #1f2430;
+}
+
+.tool-panel__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.12;
+  font-weight: 900;
+  color: #1f2430;
+}
+
+.tool-panel__lede {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6a5f55;
 }
 
 .tool-panel__eyebrow {
@@ -38,6 +59,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .tool-panel__status {

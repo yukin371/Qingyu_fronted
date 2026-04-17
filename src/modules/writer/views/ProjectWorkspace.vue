@@ -189,6 +189,12 @@ import {
   extractPlainTextFromEditorContent,
 } from '@/modules/writer/utils/editorContent'
 import {
+  registerPendingDiff,
+  clearPendingDiffs,
+  setDiffCallbacks,
+  type PendingDiff,
+} from '@/design-system/components/editor/QySmartKeyword/extensions/AiDiffExtension'
+import {
   extractEntitiesFromTipTapContent,
   groupEntitiesByType,
   parseEntityReferences,
@@ -1060,6 +1066,65 @@ const handleProposalStatusChange = (payload: {
   }
 }
 
+// ── AI 内联 Diff 回调 ──────────────────────────
+setDiffCallbacks(
+  // 接受：将新文本正式写入编辑器
+  (diff: PendingDiff) => {
+    const tiptapEditor = editorStore.tipTapEditor
+    if (!tiptapEditor) return
+
+    const docSize = tiptapEditor.state.doc.content.size
+    const from = Math.min(diff.from, diff.to)
+    const to = Math.max(diff.from, diff.to)
+    if (from < 0 || to > docSize || from > to) return
+
+    const insertionDoc = JSON.parse(buildEditorContentFromPlainText(diff.newText)) as { content?: unknown[] }
+    const insertionContent =
+      insertionDoc.content && insertionDoc.content.length > 0
+        ? insertionDoc.content
+        : [{ type: 'paragraph' }]
+
+    if (diff.applyMode === 'replace_selection') {
+      tiptapEditor.chain().focus().insertContentAt({ from, to }, insertionContent).run()
+    } else {
+      tiptapEditor.chain().focus().insertContentAt(to, insertionContent).run()
+    }
+
+    const nextJson = JSON.stringify(tiptapEditor.getJSON())
+    tipTapContent.value = nextJson
+    editorStore.editorContent = nextJson
+    clearPendingDiffs()
+    writerStore.setSelectedText('')
+    latestSelectionContext.value = null
+    setAIApplyFeedback(
+      'success',
+      diff.applyMode === 'insert_after_selection' ? '已接受续写建议' : '已接受正文修改',
+      diff.applyMode === 'insert_after_selection'
+        ? 'AI 结果已插入到当前片段后方。'
+        : 'AI 结果已正式写入正文编辑器。',
+      diff.applyMode,
+    )
+    retireWorkflowActionSession()
+    message.success('已接受 AI 建议')
+  },
+  // 拒绝：清除 diff，保持原文
+  (diff: PendingDiff) => {
+    clearPendingDiffs()
+    writerStore.setSelectedText('')
+    latestSelectionContext.value = null
+    setAIApplyFeedback(
+      'fallback',
+      '已放弃本次 AI 修改',
+      diff.applyMode === 'insert_after_selection'
+        ? '续写建议已撤回，正文保持原样。'
+        : '正文修改已撤回，原文保持不变。',
+      diff.applyMode,
+    )
+    retireWorkflowActionSession()
+    message.info('已拒绝 AI 建议')
+  },
+)
+
 const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
   const generatedText = (payload.generatedText || '').trim()
   if (!generatedText) return
@@ -1067,6 +1132,52 @@ const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
   const tiptapEditor = editorStore.tipTapEditor
   const selectionContext = latestSelectionContext.value
   const requestedApplyMode = payload.applyMode || aiActionTrigger.value?.applyMode
+  const currentDocumentText = currentChapterPlainText.value.trim()
+
+  if (tiptapEditor) {
+    const docSize = tiptapEditor.state.doc.content.size
+    const hasSelectionContext = !!selectionContext
+    const shouldDiffWholeDocument =
+      !hasSelectionContext &&
+      requestedApplyMode === 'replace_document' &&
+      !!generatedText &&
+      payload.sourceText.trim() === currentDocumentText
+
+    if (hasSelectionContext || shouldDiffWholeDocument) {
+      const from = hasSelectionContext ? Math.min(selectionContext.from, selectionContext.to) : 0
+      const to = hasSelectionContext ? Math.max(selectionContext.from, selectionContext.to) : docSize
+      const oldText = hasSelectionContext
+        ? tiptapEditor.state.doc.textBetween(from, to, '\n')
+        : tiptapEditor.state.doc.textBetween(0, docSize, '\n')
+
+      if (from >= 0 && to <= docSize && from <= to) {
+        registerPendingDiff({
+          id: `diff-${Date.now()}`,
+          from,
+          to,
+          oldText,
+          newText: generatedText,
+          applyMode:
+            requestedApplyMode === 'insert_after_selection'
+              ? 'insert_after_selection'
+              : 'replace_selection',
+        })
+        tiptapEditor.view.dispatch(tiptapEditor.state.tr.setMeta('aiDiff', { updated: true }))
+        setAIApplyFeedback(
+          'idle',
+          shouldDiffWholeDocument ? '整章 Diff 已就绪' : '选区 Diff 已就绪',
+          shouldDiffWholeDocument
+            ? '请在正文编辑器内接受或放弃这次整章修改。'
+            : '请在正文编辑器内接受或放弃这次选区修改。',
+          requestedApplyMode,
+        )
+        message.info('AI 建议已显示在正文编辑器中，请直接接受或拒绝')
+        return
+      }
+    }
+  }
+
+  // fallback：无选区时，仍直接写入
 
   if (
     tiptapEditor &&

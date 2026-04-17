@@ -55,4 +55,58 @@ describe('WorkspaceRightPanel', () => {
       applyMode: 'replace_document',
     })
   })
+
+  it('switches harness through side activity button without top tabs', async () => {
+    const StoryHarnessPanelStub = defineComponent({
+      template: '<div data-testid="story-harness-panel">harness</div>',
+    })
+
+    const wrapper = mount(WorkspaceRightPanel, {
+      props: {
+        collapsed: false,
+        isImmersiveMode: false,
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        aiActionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+        harnessData: {
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          content: '章节内容',
+          chapterCount: 1,
+        },
+      },
+      global: {
+        stubs: {
+          AIWorkbench: true,
+          StoryHarnessPanel: StoryHarnessPanelStub,
+          QyIcon: true,
+        },
+      },
+    })
+
+    expect(wrapper.find('.workspace-right-panel-tabs').exists()).toBe(false)
+    expect(wrapper.findAll('.workspace-activity-bar__item')[0].classes()).toContain('active')
+    expect(wrapper.findAll('.workspace-activity-bar__item')[1].classes()).not.toContain('active')
+
+    await wrapper.findAll('.workspace-activity-bar__item')[1].trigger('click')
+
+    expect(wrapper.findAll('.workspace-activity-bar__item')[1].classes()).toContain('active')
+    expect(wrapper.text()).toContain('当前章节分析台')
+  })
 })

@@ -8,9 +8,6 @@
     }"
     :style="panelStyle"
   >
-    <!-- 面板头部 -->
-    <AIHeader @clear="handleClear" />
-
     <!-- 面板内容 -->
     <div class="ai-content">
       <!-- 对话工具栏 -->
@@ -18,6 +15,7 @@
         v-model:currentId="currentConversationId"
         :conversation-list="conversationList"
         :disabled="isTyping"
+        @clear="handleClearConversation"
         @create="handleCreateConversation"
         @rename="handleRenameConversation"
         @delete="handleDeleteConversation"
@@ -66,9 +64,139 @@ import { useChatHistory } from '@/composables/useChatHistory'
 import { useTypewriter } from '@/composables/useTypewriter'
 import { message } from '@/design-system/services'
 import { QUICK_ACTION_PROMPTS, getQuickActionPrompt } from '@/utils/mockAIResponse'
-import { chatWithAI, continueWriting, polishText, expandText, rewriteText } from '@/modules/ai/api'
+import {
+  chatWithAI,
+  continueWriting,
+  polishText,
+  expandText,
+  rewriteText,
+  summarizeText,
+  proofreadText,
+} from '@/modules/ai/api'
+
+type DetectedIntentAction = 'summarize' | 'rewrite' | 'continue' | 'proofread' | 'expand'
+type DetectedIntentKind = 'edit' | 'analysis'
+
+interface DetectedIntent {
+  action: DetectedIntentAction
+  confidence: number
+  kind: DetectedIntentKind
+  targetLength?: number
+}
+
+type EditorApplyMode =
+  | 'replace_selection'
+  | 'insert_after_selection'
+  | 'append_paragraph'
+  | 'replace_document'
+
+/**
+ * 意图识别：基于关键词将自由对话路由到专用 API
+ * 返回 null 表示走通用 chat
+ */
+function extractTargetLength(text: string): number | undefined {
+  const directMatch = text.match(/(?:扩写|扩充|扩展|续写|补充|增加)[^\d]{0,8}(\d{2,5})\s*字/i)
+  if (directMatch) {
+    return Number(directMatch[1])
+  }
+
+  const genericMatch = text.match(/(?:到|至|成文约?|写到|补到)?\s*(\d{2,5})\s*字/i)
+  if (!genericMatch) {
+    return undefined
+  }
+
+  const value = Number(genericMatch[1])
+  return Number.isFinite(value) ? value : undefined
+}
+
+function detectIntent(text: string): DetectedIntent | null {
+  const t = text.toLowerCase()
+  const rules: Array<{ keywords: string[]; action: DetectedIntentAction; kind: DetectedIntentKind }> = [
+    {
+      keywords: ['总结', '摘要', '概括', '提取要点', '归纳', 'summarize', 'summary', 'summarise'],
+      action: 'summarize',
+      kind: 'analysis',
+    },
+    {
+      keywords: ['扩写', '扩充', '扩展', '补充细节', '增加描写', '写长一点', '写到', '补到'],
+      action: 'expand',
+      kind: 'edit',
+    },
+    {
+      keywords: ['改写', '重写', '换种说法', '润色', '优化表达', '换个写法', '改善', 'rewrite', 'rephrase', 'polish'],
+      action: 'rewrite',
+      kind: 'edit',
+    },
+    {
+      keywords: ['续写', '继续写', '接着写', '往下写', '继续', 'continue', 'keep writing', '接下来'],
+      action: 'continue',
+      kind: 'edit',
+    },
+    {
+      keywords: ['校对', '检查错误', '纠错', '错别字', '语法检查', 'proofread', 'check grammar', '拼写'],
+      action: 'proofread',
+      kind: 'analysis',
+    },
+  ]
+  for (const rule of rules) {
+    if (rule.keywords.some((kw) => t.includes(kw))) {
+      const targetLength =
+        rule.action === 'expand' || rule.action === 'continue' ? extractTargetLength(text) : undefined
+      return { action: rule.action, kind: rule.kind, confidence: 0.9, targetLength }
+    }
+  }
+  return null
+}
+
+function resolveAIErrorMessage(error: unknown): string {
+  const fallback = '抱歉，我遇到了一些问题。请稍后再试。'
+  if (!error || typeof error !== 'object') {
+    return fallback
+  }
+
+  const record = error as {
+    code?: string
+    message?: string
+    response?: {
+      status?: number
+      data?: Record<string, unknown> | string
+    }
+  }
+
+  const status = record.response?.status
+  const responseData = record.response?.data
+  const responseMessage =
+    typeof responseData === 'string'
+      ? responseData
+      : typeof responseData?.message === 'string'
+        ? responseData.message
+        : typeof responseData?.detail === 'string'
+          ? responseData.detail
+          : typeof responseData?.error === 'string'
+            ? responseData.error
+            : ''
+
+  if (status === 401) {
+    return 'AI 请求未通过鉴权，请刷新页面后重试。'
+  }
+  if (status === 404) {
+    return '当前 AI 接口不可用，请检查服务配置后重试。'
+  }
+  if (status && status >= 500) {
+    return responseMessage || 'AI 服务暂时不可用，请稍后再试。'
+  }
+  if (record.code === 'ECONNABORTED' || /timeout/i.test(record.message || '')) {
+    return 'AI 请求超时，请稍后重试。'
+  }
+  if (/network error/i.test(record.message || '')) {
+    return 'AI 服务连接失败，请确认本地 AI 服务已启动。'
+  }
+
+  return responseMessage || fallback
+}
 import type {
   WriterAIActionTrigger,
+  WriterRevisionSeed,
   WriterResultCandidate,
   WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
@@ -76,7 +204,6 @@ import { buildWriterWorkflowContextPrompt } from '@/modules/writer/types/workflo
 
 // 子组件
 import {
-  AIHeader,
   AIConversationToolbar,
   AISelectionNotice,
   AIChatMessages,
@@ -114,6 +241,7 @@ interface Props {
   sourceText?: string
   actionTrigger?: WriterAIActionTrigger | null
   workflowContext?: WriterWorkflowContext | null
+  revisionSeed?: WriterRevisionSeed | null
 }
 
 interface Emits {
@@ -308,6 +436,19 @@ function handleDeleteConversation() {
   currentConversationId.value = remaining[0]?.id || 'default'
 }
 
+function handleClearConversation() {
+  if (!confirm(t('ai.clearConfirm', '确定要清空当前对话吗？'))) {
+    return
+  }
+
+  clearHistory()
+  inputText.value = ''
+  selectionNotice.value = null
+  selectedChatContext.value = null
+  selectedChatContextScope.value = null
+  interactionMode.value = 'chat'
+}
+
 // ==================== 选中提示管理 ====================
 function updateSelectionNotice(
   action: string,
@@ -337,13 +478,120 @@ function updateSelectionNotice(
   }
 }
 
+function resolveEditApplyMode(action: DetectedIntentAction | 'direct_edit', hasSelectionContext: boolean): EditorApplyMode {
+  if (action === 'continue') {
+    return hasSelectionContext ? 'insert_after_selection' : 'append_paragraph'
+  }
+
+  return hasSelectionContext ? 'replace_selection' : 'replace_document'
+}
+
+function buildAnalysisCandidate(
+  intent: DetectedIntent,
+  generatedText: string,
+  sourceText: string,
+): WriterResultCandidate {
+  if (intent.action === 'summarize') {
+    return {
+      source: 'summary',
+      action: 'summary',
+      title: '章节方向提案',
+      summary: generatedText.slice(0, 72) || '已生成新的摘要结果。',
+      generatedText,
+      sourceText,
+    }
+  }
+
+  return {
+    source: 'review',
+    action: 'proofread',
+    title: '审校建议提案',
+    summary: generatedText.slice(0, 72) || '已生成新的审校建议。',
+    generatedText,
+    sourceText,
+  }
+}
+
+async function requestEditIntent(
+  projectId: string,
+  sourceText: string,
+  instruction: string,
+  intent: DetectedIntent | null,
+  applyMode: EditorApplyMode,
+  baseInstructions?: string,
+) {
+  const action = intent?.action ?? 'rewrite'
+  const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
+  const replacementHint =
+    applyMode === 'replace_document'
+      ? '请直接输出可替换整章正文的完整版本。'
+      : applyMode === 'replace_selection'
+        ? '请直接输出可替换当前选中文本的完整版本。'
+        : ''
+  const mergedInstructions = [instruction, baseInstructions || '', replacementHint, workflowContextPrompt]
+    .filter((item) => item && item.trim())
+    .join('\n\n')
+
+  if (action === 'continue') {
+    const response = await continueWriting(
+      projectId,
+      sourceText,
+      intent?.targetLength ?? 300,
+      mergedInstructions || undefined,
+    )
+    return {
+      emittedAction: 'continue' as const,
+      label: '续写',
+      generatedText: response.generated_text || '',
+      applyMode,
+    }
+  }
+
+  if (action === 'expand') {
+    const response = await expandText(
+      projectId,
+      sourceText,
+      mergedInstructions || undefined,
+      intent?.targetLength,
+    )
+    return {
+      emittedAction: 'expand' as const,
+      label: '扩写',
+      generatedText: response.expanded_text || response.rewritten_text || '',
+      applyMode,
+    }
+  }
+
+  const response = await rewriteText(
+    projectId,
+    sourceText,
+    'polish',
+    mergedInstructions || undefined,
+  )
+  return {
+    emittedAction: 'rewrite' as const,
+    label: '改写',
+    generatedText: response.rewritten_text || response.polished_text || '',
+    applyMode,
+  }
+}
+
 // ==================== 消息发送方法 ====================
 async function sendMessage(content: string) {
   if (!content.trim() || isTyping.value) return
 
   const trimmedContent = content.trim()
-  if (interactionMode.value === 'edit' && canEditDirectly.value) {
-    await runDirectEdit(trimmedContent)
+
+  // ── 先识别意图 ──
+  const intent = detectIntent(trimmedContent)
+
+  // edit 模式下，默认将输入视为正文修改要求；分析类意图仍回到普通对话/候选流程。
+  if (
+    interactionMode.value === 'edit' &&
+    canEditDirectly.value &&
+    (!intent || intent.kind === 'edit')
+  ) {
+    await runDirectEdit(trimmedContent, intent)
     return
   }
   const requestMessage = selectedChatContext.value
@@ -366,6 +614,84 @@ async function sendMessage(content: string) {
   // 调用真实AI API
   isTyping.value = true
   try {
+    // ── 意图识别路由 ──
+    const intent = detectIntent(trimmedContent)
+    const hasSourceText =
+      !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim()
+
+    if (intent && hasSourceText) {
+      const sourceText =
+        selectedChatContext.value?.text.trim() || props.sourceText?.trim() || ''
+      const projectId = props.sessionId || 'demo-project'
+      let generatedText = ''
+      const hasSelectionContext = !!selectedChatContext.value?.text.trim()
+
+      if (intent.kind === 'analysis') {
+        if (intent.action === 'proofread') {
+          const proofread = await proofreadText(sourceText, {
+            projectId,
+          })
+          generatedText = proofread.issues
+            .map((issue, index) => {
+              const suggestions = Array.isArray(issue.suggestions) && issue.suggestions.length > 0
+                ? ` 建议：${issue.suggestions.join('；')}`
+                : ''
+              return `${index + 1}. ${issue.message || '检测到可优化项。'}${suggestions}`
+            })
+            .join('\n')
+        } else {
+          const response = await summarizeText(sourceText, {
+            projectId,
+            summaryType: 'detailed',
+          })
+          generatedText = response.summary || response.keyPoints.join('\n')
+        }
+
+        if (generatedText.trim()) {
+          addMessage('assistant', generatedText)
+          emit('resultCandidate', buildAnalysisCandidate(intent, generatedText, sourceText))
+        } else {
+          addMessage('assistant', '未返回有效结果，请重试。')
+        }
+      } else {
+        const applyMode = resolveEditApplyMode(intent.action, hasSelectionContext)
+        const editResult = await requestEditIntent(
+          projectId,
+          sourceText,
+          trimmedContent,
+          intent,
+          applyMode,
+        )
+        generatedText = editResult.generatedText
+
+        if (generatedText.trim()) {
+          addMessage('assistant', generatedText)
+          emit('resultCandidate', {
+            source: 'rewrite',
+            action: editResult.emittedAction,
+            title: `${editResult.label}结果`,
+            summary: generatedText.slice(0, 72),
+            generatedText,
+            sourceText,
+          })
+          emit('applyGeneratedText', {
+            action: editResult.emittedAction,
+            sourceText,
+            generatedText,
+            applyMode: editResult.applyMode,
+          })
+        } else {
+          addMessage('assistant', `${editResult.label}未返回有效内容，请重试。`)
+        }
+      }
+
+      if (selectedChatContext.value) handleClearSelectedContext()
+      isTyping.value = false
+      await scrollToBottom()
+      return
+    }
+
+    // ── 通用聊天（无匹配意图或无选中文本）──
     // 构建对话历史
     const history = messages.value
       .filter((m) => m.role !== 'system')
@@ -377,16 +703,8 @@ async function sendMessage(content: string) {
     const response = await chatWithAI(finalRequestMessage, history)
     const aiResponseText = response.reply || '抱歉，我没有理解您的问题。'
 
-    // 直接添加AI消息
+    // 通用对话：只在聊天气泡中显示，不触发编辑器候选
     addMessage('assistant', aiResponseText)
-    emit('resultCandidate', {
-      source: 'chat',
-      action: 'chat',
-      title: 'AI 对话结果',
-      summary: aiResponseText.slice(0, 72) || '已生成新的对话结果。',
-      generatedText: aiResponseText,
-      sourceText: trimmedContent,
-    })
     if (selectedChatContext.value) {
       handleClearSelectedContext()
     }
@@ -396,16 +714,17 @@ async function sendMessage(content: string) {
     await scrollToBottom()
   } catch (error) {
     console.error('[AIPanel] Failed to get AI response:', error)
-    addMessage('assistant', '抱歉，我遇到了一些问题。请稍后再试。')
+    addMessage('assistant', resolveAIErrorMessage(error))
     isTyping.value = false
   }
 }
 
-async function runDirectEdit(instruction: string) {
+async function runDirectEdit(instruction: string, intent: DetectedIntent | null = null) {
   const context = selectedChatContext.value
   const sourceText = context?.text.trim() || props.sourceText?.trim() || ''
   if (!sourceText) return
-  const applyMode = context?.text.trim() ? 'replace_selection' : 'replace_document'
+  const hasSelectionContext = !!context?.text.trim()
+  const applyMode = resolveEditApplyMode(intent?.action ?? 'direct_edit', hasSelectionContext)
 
   isTyping.value = true
   addMessage(
@@ -416,23 +735,16 @@ async function runDirectEdit(instruction: string) {
   await scrollToBottom()
 
   try {
-    const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
-    const mergedInstructions = [
-      instruction,
-      context?.instructions?.trim() || '',
-      applyMode === 'replace_document' ? '请直接输出可替换整章正文的完整版本。' : '',
-      workflowContextPrompt,
-    ]
-      .filter((item) => item && item.trim())
-      .join('\n\n')
     const projectId = props.sessionId || 'demo-project'
-    const response = await rewriteText(
+    const editResult = await requestEditIntent(
       projectId,
       sourceText,
-      'polish',
-      mergedInstructions || undefined,
+      instruction,
+      intent,
+      applyMode,
+      context?.instructions?.trim() || '',
     )
-    const generatedText = response.rewritten_text || response.polished_text || ''
+    const generatedText = editResult.generatedText
 
     if (!generatedText.trim()) {
       addMessage('assistant', '未生成可应用的正文，请调整要求后重试。')
@@ -442,17 +754,17 @@ async function runDirectEdit(instruction: string) {
     addMessage('assistant', generatedText)
     emit('resultCandidate', {
       source: 'rewrite',
-      action: 'direct_edit',
-      title: 'AI 直接改写结果',
+      action: editResult.emittedAction,
+      title: `AI 直接${editResult.label}结果`,
       summary: generatedText.slice(0, 72) || '已生成新的正文版本。',
       generatedText,
       sourceText,
     })
     emit('applyGeneratedText', {
-      action: 'rewrite',
+      action: editResult.emittedAction,
       sourceText,
       generatedText,
-      applyMode,
+      applyMode: editResult.applyMode,
     })
     if (context) {
       handleClearSelectedContext()
@@ -571,16 +883,6 @@ function handleQuickAction(action: QuickAction) {
 async function scrollToBottom() {
   await nextTick()
   chatMessagesRef.value?.scrollToBottom()
-}
-
-function handleClear() {
-  if (confirm(t('ai.clearConfirm', '确定要清空对话历史吗？'))) {
-    clearHistory()
-    selectionNotice.value = null
-    selectedChatContext.value = null
-    selectedChatContextScope.value = null
-    interactionMode.value = 'chat'
-  }
 }
 
 function handleClearSelectedContext() {
@@ -706,6 +1008,27 @@ watch(
     }
   },
 )
+
+watch(
+  () => props.revisionSeed?.id,
+  (newId, oldId) => {
+    if (!newId || newId === oldId || !props.revisionSeed?.text.trim()) {
+      return
+    }
+
+    selectedChatContext.value = {
+      text: props.revisionSeed.text.trim(),
+      instructions: props.revisionSeed.instructions?.trim() || undefined,
+      addedAt: Date.now(),
+    }
+    selectedChatContextScope.value = {
+      sessionId: props.sessionId,
+      workflowSignature: effectiveWorkflowSignature.value,
+    }
+    interactionMode.value = 'edit'
+    selectionNotice.value = null
+  },
+)
 </script>
 
 <style scoped lang="scss">
@@ -727,10 +1050,10 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--ai-bg);
+  background: transparent;
   color: var(--ai-text);
-  border-left: 1px solid var(--ai-border);
-  border-radius: 12px;
+  border-left: none;
+  border-radius: 0;
   transition: all 0.3s ease;
   overflow: hidden;
 
@@ -752,7 +1075,8 @@ watch(
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #fcfdff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 253, 255, 0.72));
 }
 
 @media (prefers-reduced-motion: reduce) {

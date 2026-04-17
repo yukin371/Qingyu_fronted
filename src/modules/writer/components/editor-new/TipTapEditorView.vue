@@ -44,6 +44,7 @@
           <button
             type="button"
             class="selection-toolbar__action"
+            data-action="continue"
             @click="emitSelectionAction('continue')"
           >
             续写
@@ -51,6 +52,7 @@
           <button
             type="button"
             class="selection-toolbar__action"
+            data-action="polish"
             @click="emitSelectionAction('polish')"
           >
             润色
@@ -58,6 +60,7 @@
           <button
             type="button"
             class="selection-toolbar__action"
+            data-action="rewrite"
             @click="emitSelectionAction('rewrite')"
           >
             改写
@@ -65,6 +68,7 @@
           <button
             type="button"
             class="selection-toolbar__action"
+            data-action="add_to_chat"
             @click="emitSelectionAction('add_to_chat')"
           >
             加入对话
@@ -545,25 +549,53 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
   transform: translate(-50%, -100%);
   display: inline-flex;
   gap: 8px;
-  padding: 8px;
-  border-radius: 999px;
-  background: var(--editor-text-primary);
-  box-shadow: 0 18px 32px rgba(36, 25, 16, 0.18);
+  padding: 10px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(12, 74, 110, 0.92));
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  box-shadow:
+    0 22px 42px rgba(2, 6, 23, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
 }
 
 .selection-toolbar__action {
-  border: 1px solid var(--editor-border);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 999px;
-  background: var(--editor-bg-elevated);
-  color: var(--editor-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
   font-size: 12px;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 7px 12px;
   cursor: pointer;
+  letter-spacing: 0.01em;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .selection-toolbar__action:hover {
-  background: var(--editor-bg-surface);
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
+.selection-toolbar__action[data-action='continue'] {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.3), rgba(6, 182, 212, 0.18));
+}
+
+.selection-toolbar__action[data-action='polish'] {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.28), rgba(192, 132, 252, 0.16));
+}
+
+.selection-toolbar__action[data-action='rewrite'] {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.3), rgba(251, 146, 60, 0.18));
+}
+
+.selection-toolbar__action[data-action='add_to_chat'] {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.28), rgba(74, 222, 128, 0.16));
 }
 
 .tiptap-editor-view__ref {

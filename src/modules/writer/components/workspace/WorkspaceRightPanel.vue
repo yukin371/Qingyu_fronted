@@ -5,27 +5,6 @@
   >
     <!-- 面板内容区 -->
     <div class="workspace-right-panel-body">
-      <!-- Tab 切换按钮 -->
-      <div class="workspace-right-panel-tabs">
-        <button
-          class="workspace-right-panel-tab"
-          :class="{ active: activeTab === 'chat' }"
-          type="button"
-          @click="activeTab = 'chat'"
-        >
-          对话
-        </button>
-        <button
-          class="workspace-right-panel-tab"
-          :class="{ active: activeTab === 'harness' }"
-          type="button"
-          @click="activeTab = 'harness'"
-        >
-          Harness
-        </button>
-      </div>
-
-      <!-- Tab 内容区 -->
       <div class="workspace-right-panel-content">
         <div v-show="activeTab === 'chat'" class="workspace-right-panel-pane">
           <AIWorkbench
@@ -43,6 +22,11 @@
           />
         </div>
         <div v-show="activeTab === 'harness'" class="workspace-right-panel-pane">
+          <div class="workspace-right-panel-harness-banner">
+            <span class="workspace-right-panel-harness-banner__eyebrow">Story Harness</span>
+            <strong>当前章节分析台</strong>
+            <p>从侧边按钮进入，随时回切对话协作，不再占用顶部模式栏。</p>
+          </div>
           <StoryHarnessPanel
             v-if="harnessData"
             :project-id="harnessData.projectId"
@@ -76,13 +60,16 @@
         <QyIcon name="MagicStick" :size="18" />
       </button>
       <button
-        class="workspace-activity-bar__item"
+        class="workspace-activity-bar__item workspace-activity-bar__item--harness"
         :class="{ active: activeTab === 'harness' && !collapsed }"
         title="Story Harness"
         type="button"
         @click="handleHarnessActivityClick"
       >
-        <QyIcon name="Lightning" :size="18" />
+        <span class="workspace-activity-bar__glyph">
+          <QyIcon name="DataAnalysis" :size="16" />
+          <span class="workspace-activity-bar__mini-label">H</span>
+        </span>
       </button>
     </nav>
   </div>
@@ -188,6 +175,9 @@ function handleHarnessActivityClick() {
 
 <style scoped lang="scss">
 .workspace-right-panel-shell {
+  --panel-shell-bg:
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(247, 250, 252, 0.98), rgba(238, 244, 250, 0.96));
   height: 100%;
   min-height: 0;
   display: flex;
@@ -195,8 +185,11 @@ function handleHarnessActivityClick() {
   width: 100%;
   min-width: 0;
   position: relative;
-  background: var(--editor-bg-surface, #f8fafc);
+  background: var(--panel-shell-bg);
   border-left: 1px solid var(--editor-border, #e2e8f0);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.75),
+    -14px 0 28px rgba(15, 23, 42, 0.04);
 }
 
 .workspace-right-panel-body {
@@ -207,43 +200,13 @@ function handleHarnessActivityClick() {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--editor-bg-base, #ffffff);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 255, 0.92));
+  backdrop-filter: blur(16px);
   transition:
     opacity 200ms ease-out,
     width 200ms ease-out;
-}
-
-.workspace-right-panel-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--editor-border, #e2e8f0);
-  background: var(--editor-bg-surface, #f8fafc);
-}
-
-.workspace-right-panel-tab {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: var(--editor-radius-md, 6px);
-  background: transparent;
-  color: var(--editor-text-secondary, #64748b);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 120ms ease-out,
-    color 120ms ease-out;
-
-  &:hover {
-    background: var(--editor-bg-elevated, #e8edf2);
-    color: var(--editor-text-primary, #0f172a);
-  }
-
-  &.active {
-    background: var(--editor-accent-soft, #ecfeff);
-    color: var(--editor-accent, #06b6d4);
-  }
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .workspace-right-panel-content {
@@ -259,42 +222,124 @@ function handleHarnessActivityClick() {
   overflow: hidden;
 }
 
+.workspace-right-panel-harness-banner {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  background:
+    radial-gradient(circle at top left, rgba(250, 204, 21, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(255, 255, 255, 0.9));
+
+  strong {
+    font-size: 14px;
+    line-height: 1.2;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #6b7280;
+  }
+}
+
+.workspace-right-panel-harness-banner__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 // Activity Bar
 .workspace-activity-bar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 0;
-  width: 44px;
-  min-width: 44px;
-  background: var(--editor-bg-actbar, #f1f5f9);
+  padding: 10px 0;
+  width: 48px;
+  min-width: 48px;
+  background:
+    linear-gradient(180deg, rgba(240, 249, 255, 0.98), rgba(224, 242, 254, 0.95));
   border-left: 1px solid var(--editor-border, #e2e8f0);
-  gap: 2px;
+  gap: 6px;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.85);
 
   &__item {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--editor-radius-md, 6px);
-    border: none;
-    background: transparent;
-    color: var(--editor-actbar-icon, #64748b);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.42);
+    color: var(--editor-actbar-icon, #475569);
     cursor: pointer;
     transition:
-      background 120ms ease-out,
-      color 120ms ease-out;
+      background 160ms ease-out,
+      color 160ms ease-out,
+      transform 160ms ease-out,
+      border-color 160ms ease-out,
+      box-shadow 160ms ease-out;
 
     &:hover {
-      background: var(--editor-bg-elevated, #e8edf2);
+      background: rgba(255, 255, 255, 0.92);
       color: var(--editor-text-primary, #0f172a);
+      border-color: rgba(148, 163, 184, 0.24);
     }
 
     &.active {
-      background: var(--editor-accent-soft, #ecfeff);
-      color: var(--editor-accent, #06b6d4);
+      transform: translateX(-1px);
+      background:
+        linear-gradient(180deg, rgba(14, 165, 233, 0.16), rgba(34, 211, 238, 0.12)),
+        rgba(255, 255, 255, 0.96);
+      color: #0284c7;
+      border-color: rgba(14, 165, 233, 0.18);
+      box-shadow: 0 8px 18px rgba(14, 165, 233, 0.18);
     }
+  }
+
+  &__item--harness {
+    position: relative;
+  }
+
+  &__glyph {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__mini-label {
+    position: absolute;
+    right: -6px;
+    bottom: -5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 13px;
+    height: 13px;
+    padding: 0 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(251, 191, 36, 0.98), rgba(245, 158, 11, 0.96));
+    color: #fff7ed;
+    font-size: 8px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    box-shadow:
+      0 4px 10px rgba(180, 83, 9, 0.24),
+      0 0 0 1.5px rgba(255, 255, 255, 0.92);
   }
 }
 

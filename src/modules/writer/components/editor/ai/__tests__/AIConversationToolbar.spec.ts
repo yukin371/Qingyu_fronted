@@ -56,6 +56,17 @@ describe('AIConversationToolbar', () => {
     expect(wrapper.emitted('create')).toBeTruthy()
   })
 
+  it('should emit clear event when clear button is clicked', async () => {
+    const wrapper = mount(AIConversationToolbar, {
+      props: {
+        conversationList: mockConversations,
+        currentId: '1',
+      },
+    })
+    await wrapper.find('.conversation-action-btn--ghost').trigger('click')
+    expect(wrapper.emitted('clear')).toBeTruthy()
+  })
+
   it('should emit rename event when rename button is clicked', async () => {
     const wrapper = mount(AIConversationToolbar, {
       props: {
@@ -63,7 +74,7 @@ describe('AIConversationToolbar', () => {
         currentId: '1',
       },
     })
-    await wrapper.find('.conversation-action-btn').trigger('click')
+    await wrapper.findAll('.conversation-action-btn')[1].trigger('click')
     expect(wrapper.emitted('rename')).toBeTruthy()
   })
 
@@ -77,5 +88,6 @@ describe('AIConversationToolbar', () => {
     })
     expect(wrapper.find('select').element.disabled).toBe(true)
     expect(wrapper.find('.conversation-new-btn').element.disabled).toBe(true)
+    expect(wrapper.find('.conversation-action-btn--ghost').element.disabled).toBe(true)
   })
 })

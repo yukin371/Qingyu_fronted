@@ -1,7 +1,13 @@
 <template>
   <section class="tool-panel">
     <header class="tool-panel__header">
-      <p class="tool-panel__eyebrow">审校</p>
+      <div class="tool-panel__header-copy">
+        <p class="tool-panel__eyebrow">审校</p>
+        <h3 class="tool-panel__title">文本审校与风险复核</h3>
+        <p class="tool-panel__lede">
+          沿用同一套候选卡结构，聚焦语言问题与风险表达，不直接进入正文 diff。
+        </p>
+      </div>
       <div class="tool-panel__actions">
         <button
           type="button"

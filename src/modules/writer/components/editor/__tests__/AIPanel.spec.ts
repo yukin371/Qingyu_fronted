@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, nextTick, ref } from 'vue'
 import AIPanel from '../AIPanel.vue'
 import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
-import { continueWriting, rewriteText } from '@/modules/ai/api'
+import { continueWriting, expandText, rewriteText, summarizeText } from '@/modules/ai/api'
 
 const messages = ref<Array<{ role: string; content: string }>>([])
 const addMessage = vi.fn()
@@ -49,6 +49,8 @@ vi.mock('@/modules/ai/api', () => ({
   polishText: vi.fn(),
   expandText: vi.fn(),
   rewriteText: vi.fn(),
+  summarizeText: vi.fn(),
+  proofreadText: vi.fn(),
 }))
 
 vi.mock('@/design-system/services', () => ({
@@ -56,10 +58,6 @@ vi.mock('@/design-system/services', () => ({
     warning: vi.fn(),
   },
 }))
-
-const AIHeaderStub = defineComponent({
-  template: '<div data-testid="ai-header" />',
-})
 
 const AIConversationToolbarStub = defineComponent({
   props: {
@@ -76,8 +74,9 @@ const AIConversationToolbarStub = defineComponent({
       default: false,
     },
   },
-  emits: ['update:currentId', 'create', 'rename', 'delete'],
-  template: '<div data-testid="conversation-toolbar" />',
+  emits: ['update:currentId', 'clear', 'create', 'rename', 'delete'],
+  template:
+    '<div><div data-testid="conversation-toolbar" /><button data-testid="toolbar-clear" @click="$emit(\'clear\')">clear</button></div>',
 })
 
 const AISelectionNoticeStub = defineComponent({
@@ -162,7 +161,6 @@ function mountPanel() {
     },
     global: {
       stubs: {
-        AIHeader: AIHeaderStub,
         AIConversationToolbar: AIConversationToolbarStub,
         AISelectionNotice: AISelectionNoticeStub,
         AIChatMessages: AIChatMessagesStub,
@@ -181,7 +179,9 @@ describe('AIPanel', () => {
     save.mockReset()
     load.mockReset()
     setSessionId.mockReset()
+    vi.mocked(expandText).mockReset()
     vi.mocked(rewriteText).mockReset()
+    vi.mocked(summarizeText).mockReset()
     localStorage.clear()
   })
 
@@ -234,6 +234,24 @@ describe('AIPanel', () => {
 
     expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
     expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+  })
+
+  it('switches to edit mode with revision seed as current context', async () => {
+    const wrapper = mountPanel()
+
+    await wrapper.setProps({
+      revisionSeed: {
+        id: 1,
+        text: '待继续修改的候选正文',
+        instructions: '再压缩一点，并强化悬念。',
+        applyMode: 'replace_document',
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="selection-notice"]').text()).toBe('empty')
+    expect(wrapper.get('[data-testid="input-context"]').text()).toContain('待继续修改的候选正文')
+    expect(wrapper.get('[data-testid="input-mode"]').text()).toBe('edit')
   })
 
   it('keeps execution status in selection notice for continue action while chat context stays empty', async () => {
@@ -306,7 +324,6 @@ describe('AIPanel', () => {
       },
       global: {
         stubs: {
-          AIHeader: AIHeaderStub,
           AIConversationToolbar: AIConversationToolbarStub,
           AISelectionNotice: AISelectionNoticeStub,
           AIChatMessages: AIChatMessagesStub,
@@ -331,5 +348,96 @@ describe('AIPanel', () => {
       'polish',
       expect.stringContaining('请直接输出可替换整章正文的完整版本。'),
     )
+  })
+
+  it('routes explicit expand-length requests into direct edit diff flow', async () => {
+    vi.mocked(expandText).mockResolvedValue({
+      expanded_text: '扩写后的整章正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '把这一章扩写到300字，增加心理描写')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+    await nextTick()
+
+    expect(vi.mocked(expandText)).toHaveBeenCalledWith(
+      'project-1',
+      '当前整章正文',
+      expect.stringContaining('把这一章扩写到300字'),
+      300,
+    )
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
+    expect(vi.mocked(summarizeText)).not.toHaveBeenCalled()
+  })
+
+  it('keeps summarize intent in candidate flow instead of applying正文 diff', async () => {
+    vi.mocked(summarizeText).mockResolvedValue({
+      summary: '这一章主要呈现双方试探升级。',
+      keyPoints: ['张三主动施压'],
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:modelValue', '帮我总结一下这一章')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+    await nextTick()
+
+    expect(vi.mocked(summarizeText)).toHaveBeenCalledWith('当前整章正文', {
+      projectId: 'project-1',
+      summaryType: 'detailed',
+    })
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
+    expect(vi.mocked(expandText)).not.toHaveBeenCalled()
+  })
+
+  it('clears current conversation from toolbar action', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true))
+    const wrapper = mountPanel()
+
+    await wrapper.get('[data-testid="toolbar-clear"]').trigger('click')
+
+    expect(clearHistory).toHaveBeenCalledTimes(1)
+    expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
+    expect(wrapper.get('[data-testid="input-mode"]').text()).toBe('chat')
   })
 })

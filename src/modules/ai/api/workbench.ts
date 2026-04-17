@@ -1,4 +1,5 @@
-import { request } from '@/utils/request-adapter'
+import { summarizeText, proofreadText } from './ai'
+import { postAIRequest } from './request'
 
 export interface RewriteToolRequest {
   projectId: string
@@ -64,16 +65,12 @@ export interface SensitiveAuditResult {
 export async function rewriteWithWorkbench(
   payload: RewriteToolRequest,
 ): Promise<RewriteToolResult> {
-  const response = await request<Record<string, unknown>>({
-    url: '/api/v1/ai/writing/rewrite',
-    method: 'post',
-    data: {
-      projectId: payload.projectId,
-      chapterId: payload.chapterId,
-      originalText: payload.originalText,
-      rewriteMode: payload.mode,
-      instructions: payload.instructions,
-    },
+  const response = await postAIRequest<Record<string, unknown>>('/api/v1/ai/writing/rewrite', {
+    projectId: payload.projectId,
+    chapterId: payload.chapterId,
+    originalText: payload.originalText,
+    rewriteMode: payload.mode,
+    instructions: payload.instructions,
   })
 
   return {
@@ -92,40 +89,32 @@ export async function rewriteWithWorkbench(
 export async function summarizeSelection(
   payload: SummaryToolRequest,
 ): Promise<SummaryToolResult> {
-  const response = await request<Record<string, unknown>>({
-    url: '/api/v1/ai/writing/summarize',
-    method: 'post',
-    data: {
-      content: payload.content,
-      projectId: payload.projectId,
-      chapterId: payload.chapterId,
-      maxLength: payload.maxLength,
-      summaryType: payload.summaryType || 'detailed',
-      includeQuotes: payload.includeQuotes ?? false,
-    },
+  const response = await summarizeText(payload.content, {
+    projectId: payload.projectId,
+    chapterId: payload.chapterId,
+    maxLength: payload.maxLength,
+    summaryType: payload.summaryType || 'detailed',
+    includeQuotes: payload.includeQuotes ?? false,
   })
 
   return {
-    summary: String(response.summary || ''),
-    keyPoints: Array.isArray(response.keyPoints)
-      ? response.keyPoints.map((item) => String(item))
-      : [],
-    raw: response,
+    summary: response.summary,
+    keyPoints: response.keyPoints,
+    raw: response as unknown as Record<string, unknown>,
   }
 }
 
 export async function summarizeChapter(
   payload: ChapterSummaryRequest,
 ): Promise<SummaryToolResult> {
-  const response = await request<Record<string, unknown>>({
-    url: '/api/v1/ai/writing/summarize-chapter',
-    method: 'post',
-    data: {
+  const response = await postAIRequest<Record<string, unknown>>(
+    '/api/v1/ai/writing/summarize-chapter',
+    {
       projectId: payload.projectId,
       chapterId: payload.chapterId,
       outlineLevel: payload.outlineLevel ?? 3,
     },
-  })
+  )
 
   return {
     summary: String(response.summary || ''),
@@ -139,38 +128,26 @@ export async function summarizeChapter(
 export async function proofreadContent(
   payload: ReviewToolRequest,
 ): Promise<ReviewToolResult> {
-  const response = await request<Record<string, unknown>>({
-    url: '/api/v1/ai/writing/proofread',
-    method: 'post',
-    data: {
-      content: payload.content,
-      projectId: payload.projectId,
-      chapterId: payload.chapterId,
-      checkTypes: ['spelling', 'grammar', 'punctuation'],
-      language: 'zh-CN',
-      suggestions: true,
-    },
+  const response = await proofreadText(payload.content, {
+    projectId: payload.projectId,
+    chapterId: payload.chapterId,
   })
 
   return {
-    score: typeof response.score === 'number' ? response.score : undefined,
-    issues: Array.isArray(response.issues) ? (response.issues as ReviewIssue[]) : [],
-    raw: response,
+    score: response.score,
+    issues: response.issues as ReviewIssue[],
+    raw: response as unknown as Record<string, unknown>,
   }
 }
 
 export async function auditSensitiveWords(
   payload: ReviewToolRequest,
 ): Promise<SensitiveAuditResult> {
-  const response = await request<Record<string, unknown>>({
-    url: '/api/v1/ai/audit/sensitive-words',
-    method: 'post',
-    data: {
-      content: payload.content,
-      projectId: payload.projectId,
-      chapterId: payload.chapterId,
-      category: 'all',
-    },
+  const response = await postAIRequest<Record<string, unknown>>('/api/v1/ai/audit/sensitive-words', {
+    content: payload.content,
+    projectId: payload.projectId,
+    chapterId: payload.chapterId,
+    category: 'all',
   })
 
   return {

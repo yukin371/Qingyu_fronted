@@ -1,7 +1,13 @@
 <template>
   <section class="tool-panel">
     <header class="tool-panel__header">
-      <p class="tool-panel__eyebrow">改写</p>
+      <div class="tool-panel__header-copy">
+        <p class="tool-panel__eyebrow">改写</p>
+        <h3 class="tool-panel__title">正文改写台</h3>
+        <p class="tool-panel__lede">
+          直接生成可进入正文 diff 的版本，适合润色、扩写、缩写与续写衔接。
+        </p>
+      </div>
       <button
         type="button"
         class="tool-panel__primary"

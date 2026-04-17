@@ -82,6 +82,13 @@ export interface WriterResultCandidate {
   sourceText: string
 }
 
+export interface WriterRevisionSeed {
+  id: number
+  text: string
+  instructions?: string
+  applyMode?: AIApplyMode
+}
+
 export type WriterDraftProposalKind = 'text-draft' | 'chapter-direction'
 export type WriterDraftProposalStatus = 'draft' | 'selected' | 'discarded'
 export type WriterDraftProposalSource =

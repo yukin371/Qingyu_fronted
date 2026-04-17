@@ -134,6 +134,7 @@ import QyCompletionPopover from '../QySmartKeyword/QyCompletionPopover.vue'
 import QyEntityCreateDialog from '../QySmartKeyword/QyEntityCreateDialog.vue'
 import { SmartKeyword, type KeywordInfo } from '../QySmartKeyword/extensions/SmartKeyword'
 import { ParagraphWithId } from '../QySmartKeyword/extensions/ParagraphWithId'
+import { AiDiffExtension } from '../QySmartKeyword/extensions/AiDiffExtension'
 import { searchProjectKeywords, type ParagraphContent } from '@/modules/writer/api/wrapper'
 import { storageAPI } from '@/modules/shared/api/storage'
 
@@ -366,6 +367,7 @@ const editor = useEditor({
     CharacterCount,
     Placeholder.configure({ placeholder: props.placeholder }),
     ParagraphWithId,
+    AiDiffExtension,
     SmartKeyword.configure({ projectId: props.projectId }),
   ],
   editorProps: {
@@ -429,7 +431,9 @@ const editor = useEditor({
   },
   onUpdate({ editor: currentEditor }: { editor: CoreEditor }) {
     const json = currentEditor.getJSON()
-    emit('update:modelValue', JSON.stringify(json))
+    // 清理内容去除开头空格，避免与 text-indent 冲突
+    const cleanedJson = cleanParagraphLeadingSpaces(json)
+    emit('update:modelValue', JSON.stringify(cleanedJson))
     scheduleCompletionUpdate(currentEditor)
   },
   onBlur({ editor: currentEditor }: { editor: CoreEditor }) {
@@ -732,8 +736,9 @@ function emitSelectionChange(currentEditor: CoreEditor) {
 }
 
 function extractParagraphs(doc: unknown): ParagraphContent[] {
-  // 直接序列化 TipTap JSON
-  const jsonString = JSON.stringify(doc)
+  // 清理内容，去除段落开头的多余空格，让 CSS text-indent 统一处理首行缩进
+  const cleanedDoc = cleanParagraphLeadingSpaces(doc)
+  const jsonString = JSON.stringify(cleanedDoc)
 
   // 返回单个段落，包含 TipTap JSON字符串
   return [
@@ -744,6 +749,43 @@ function extractParagraphs(doc: unknown): ParagraphContent[] {
       contentType: 'tiptap_json',
     },
   ]
+}
+
+/**
+ * 清理段落开头的多余空格
+ * 问题：用户输入的空格 + CSS text-indent 会导致双重缩进
+ * 解决：去除段落开头的空格字符，让 text-indent 单独处理首行缩进
+ */
+function cleanParagraphLeadingSpaces(doc: unknown): unknown {
+  if (!doc || typeof doc !== 'object') return doc
+
+  const docObj = doc as { type?: string; content?: unknown[]; text?: string; marks?: unknown[] }
+
+  // 如果是文本节点，去除开头空格
+  if (docObj.type === 'text' && typeof docObj.text === 'string') {
+    return {
+      ...docObj,
+      text: docObj.text.replace(/^ +/, ''),
+    }
+  }
+
+  // 如果是段落节点，递归处理其内容
+  if (docObj.type === 'paragraph' && Array.isArray(docObj.content)) {
+    return {
+      ...docObj,
+      content: docObj.content.map(cleanParagraphLeadingSpaces),
+    }
+  }
+
+  // 如果是文档节点，处理所有子节点
+  if (Array.isArray(docObj.content)) {
+    return {
+      ...docObj,
+      content: docObj.content.map(cleanParagraphLeadingSpaces),
+    }
+  }
+
+  return doc
 }
 
 async function scanAndNotifyEntities(doc: unknown) {
@@ -924,6 +966,8 @@ onBeforeUnmount(() => {
   outline: none;
   line-height: 1.75;
   color: var(--editor-content-fg);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 :deep(.ProseMirror p) {
   margin: 0;

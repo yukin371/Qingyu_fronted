@@ -1,7 +1,13 @@
 <template>
   <section class="tool-panel">
     <header class="tool-panel__header">
-      <p class="tool-panel__eyebrow">总结</p>
+      <div class="tool-panel__header-copy">
+        <p class="tool-panel__eyebrow">总结</p>
+        <h3 class="tool-panel__title">摘要与方向提炼</h3>
+        <p class="tool-panel__lede">
+          统一输出片段摘要或章节方向提案，只生成候选，不直接覆盖正文。
+        </p>
+      </div>
       <div class="tool-panel__actions">
         <button
           type="button"
@@ -211,6 +217,23 @@ async function handleChapterSummary() {
     emitResultCandidate(result.summary, result.keyPoints)
   } catch (error) {
     console.error('[SummaryWorkbenchTool] chapter summarize failed:', error)
+    if (props.seedText.trim()) {
+      try {
+        const fallbackResult = await summarizeSelection({
+          content: props.seedText,
+          projectId: props.projectId || undefined,
+          chapterId: props.chapterId || undefined,
+          summaryType: 'detailed',
+        })
+        summary.value = fallbackResult.summary
+        keyPoints.value = fallbackResult.keyPoints
+        emitResultCandidate(fallbackResult.summary, fallbackResult.keyPoints)
+        errorText.value = ''
+        return
+      } catch (fallbackError) {
+        console.error('[SummaryWorkbenchTool] chapter summarize fallback failed:', fallbackError)
+      }
+    }
     errorText.value = '章节总结失败，请稍后重试。'
   } finally {
     loading.value = false

@@ -6,6 +6,7 @@
 import { httpService } from '@/core/services/http.service'
 import type { APIResponse, PaginatedResponse } from '@/types/api'
 import { aiDirectApi, isDirectModeEnabled } from './ai-direct'
+import { getAIRequest, postAIRequest, putAIRequest } from './request'
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
@@ -26,6 +27,34 @@ export interface AIGenerateResponse {
   rewritten_text?: string
   polished_text?: string
   expanded_text?: string
+  usage?: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+export interface AISummaryResponse {
+  summary: string
+  keyPoints: string[]
+  usage?: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+export interface AIProofreadIssue {
+  id?: string
+  type?: string
+  severity?: string
+  message?: string
+  suggestions?: string[]
+}
+
+export interface AIProofreadResponse {
+  score?: number
+  issues: AIProofreadIssue[]
   usage?: {
     prompt_tokens: number
     completion_tokens: number
@@ -127,14 +156,11 @@ export const chatWithAI = async (
   message: string,
   history?: ChatMessage[],
 ): Promise<{ reply: string; usage?: any }> => {
-  console.log('[AI API] chatWithAI called, isDirectModeEnabled:', isDirectModeEnabled())
   if (isDirectModeEnabled()) {
-    console.log('[AI API] 使用直连模式')
     return aiDirectApi.chat(message, history)
   }
 
-  console.log('[AI API] 使用httpService模式')
-  const response = await httpService.post<{ reply?: string; message?: string; usage?: any }>(
+  const response = await postAIRequest<{ reply?: string; message?: string; usage?: any }>(
     '/api/v1/ai/chat',
     {
       message,
@@ -176,7 +202,7 @@ export const continueWriting = async (
     ? `${currentText}\n\n续写要求：${trimmedInstructions}`
     : currentText
 
-  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/generate', {
+  const response = await postAIRequest<AIGenerateResponse>('/api/v1/ai/generate', {
     projectId,
     currentText,
     prompt,
@@ -208,7 +234,7 @@ export const polishText = async (
     return aiDirectApi.writing.polish(text, instructions)
   }
 
-  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/polish', {
+  const response = await postAIRequest<AIGenerateResponse>('/api/v1/ai/polish', {
     projectId,
     originalText: text,
     rewriteMode: 'polish',
@@ -241,7 +267,7 @@ export const expandText = async (
     return aiDirectApi.writing.expand(text, instructions, targetLength)
   }
 
-  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/expand', {
+  const response = await postAIRequest<AIGenerateResponse>('/api/v1/ai/expand', {
     projectId,
     originalText: text,
     rewriteMode: 'expand',
@@ -275,7 +301,7 @@ export const rewriteText = async (
     return aiDirectApi.writing.rewrite(text, instructions || mode)
   }
 
-  const response = await httpService.post<AIGenerateResponse>('/api/v1/ai/rewrite', {
+  const response = await postAIRequest<AIGenerateResponse>('/api/v1/ai/rewrite', {
     projectId,
     originalText: text,
     rewriteMode: mode,
@@ -283,6 +309,143 @@ export const rewriteText = async (
   })
 
   return (response as unknown as AIGenerateResponse) || {}
+}
+
+export const summarizeText = async (
+  text: string,
+  options?: {
+    projectId?: string
+    chapterId?: string
+    maxLength?: number
+    summaryType?: 'brief' | 'detailed' | 'keypoints'
+    includeQuotes?: boolean
+  },
+): Promise<AISummaryResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.summarize(text, {
+      maxLength: options?.maxLength,
+      summaryType: options?.summaryType,
+      includeQuotes: options?.includeQuotes,
+    })
+  }
+
+  const response = await postAIRequest<{
+    summary?: string
+    keyPoints?: unknown[]
+    key_points?: unknown[]
+    data?: {
+      summary?: string
+      keyPoints?: unknown[]
+      key_points?: unknown[]
+    }
+    usage?: any
+  }>('/api/v1/ai/writing/summarize', {
+    content: text,
+    text,
+    projectId: options?.projectId,
+    chapterId: options?.chapterId,
+    project_id: options?.projectId,
+    chapter_id: options?.chapterId,
+    maxLength: options?.maxLength,
+    summaryType: options?.summaryType || 'detailed',
+    includeQuotes: options?.includeQuotes ?? false,
+  })
+
+  const data = response as unknown as Record<string, any>
+  const keyPointsSource = data?.keyPoints || data?.key_points || data?.data?.keyPoints || data?.data?.key_points
+  return {
+    summary: String(data?.summary || data?.data?.summary || '').trim(),
+    keyPoints: Array.isArray(keyPointsSource)
+      ? keyPointsSource.map((item) => String(item).trim()).filter(Boolean)
+      : [],
+    usage: data?.usage,
+  }
+}
+
+export const proofreadText = async (
+  text: string,
+  options?: {
+    projectId?: string
+    chapterId?: string
+  },
+): Promise<AIProofreadResponse> => {
+  if (isDirectModeEnabled()) {
+    return aiDirectApi.writing.proofread(text)
+  }
+
+  const response = await postAIRequest<{
+    score?: number
+    issues?: unknown[]
+    proofread_result?: string
+    rewritten_text?: string
+    data?: {
+      score?: number
+      issues?: unknown[]
+      proofread_result?: string
+      rewritten_text?: string
+    }
+    usage?: any
+  }>('/api/v1/ai/writing/proofread', {
+    content: text,
+    text,
+    projectId: options?.projectId,
+    chapterId: options?.chapterId,
+    project_id: options?.projectId,
+    chapter_id: options?.chapterId,
+    checkTypes: ['spelling', 'grammar', 'punctuation'],
+    language: 'zh-CN',
+    suggestions: true,
+  })
+
+  const data = response as unknown as Record<string, any>
+  const issuesSource = data?.issues || data?.data?.issues
+  const fallbackMessage = String(
+    data?.proofread_result || data?.data?.proofread_result || data?.rewritten_text || data?.data?.rewritten_text || '',
+  ).trim()
+  const normalizedIssues: AIProofreadIssue[] = Array.isArray(issuesSource)
+    ? issuesSource.reduce<AIProofreadIssue[]>((acc, item, index) => {
+        if (!item || typeof item !== 'object') {
+          return acc
+        }
+        const record = item as Record<string, any>
+        const message = String(record.message || record.description || record.issue || '').trim()
+        if (!message) {
+          return acc
+        }
+        acc.push({
+          id: String(record.id || `proofread-${index + 1}`),
+          type: String(record.type || record.category || '表达'),
+          severity: String(record.severity || record.level || 'medium'),
+          message,
+          suggestions: Array.isArray(record.suggestions)
+            ? record.suggestions.map((suggestion: unknown) => String(suggestion).trim()).filter(Boolean)
+            : [],
+        })
+        return acc
+      }, [])
+    : []
+  return {
+    score:
+      typeof data?.score === 'number'
+        ? data.score
+        : typeof data?.data?.score === 'number'
+          ? data.data.score
+          : undefined,
+    issues: normalizedIssues.length > 0
+      ? normalizedIssues
+      : fallbackMessage
+        ? [
+            {
+              id: 'proofread-fallback',
+              type: '审校',
+              severity: 'info',
+              message: fallbackMessage,
+              suggestions: [],
+            },
+          ]
+        : [],
+    usage: data?.usage,
+  }
 }
 
 /**
@@ -294,7 +457,7 @@ export const rewriteText = async (
  * @response {Object} 200 - 成功返回健康状态
  */
 export const getAIHealth = async (): Promise<any> => {
-  const response = await httpService.get('/api/v1/ai/health')
+  const response = await getAIRequest('/api/v1/ai/health')
   return response || {}
 }
 
@@ -307,7 +470,7 @@ export const getAIHealth = async (): Promise<any> => {
  * @response {Object} 200 - 成功返回提供商列表
  */
 export const getAIProviders = async (): Promise<any> => {
-  const response = await httpService.get('/api/v1/ai/providers')
+  const response = await getAIRequest('/api/v1/ai/providers')
   return response || {}
 }
 
@@ -320,7 +483,7 @@ export const getAIProviders = async (): Promise<any> => {
  * @response {Object} 200 - 成功返回模型列表
  */
 export const getAIModels = async (): Promise<any> => {
-  const response = await httpService.get('/api/v1/ai/models')
+  const response = await getAIRequest('/api/v1/ai/models')
   return response || {}
 }
 
@@ -491,12 +654,12 @@ export function storyGenerate(data: {
   instruction?: string
   selectedText?: string
 }) {
-  return httpService.post('/ai/story/generate', data)
+  return postAIRequest('/ai/story/generate', data)
 }
 
 /** 上下文预览（调试用） */
 export function contextPreview(projectId: string, documentId: string) {
-  return httpService.get('/ai/story/context-preview', {
+  return getAIRequest('/ai/story/context-preview', {
     params: { projectId, documentId },
   })
 }
@@ -509,7 +672,7 @@ export function updateSceneState(
     activeConflict?: string
   },
 ) {
-  return httpService.put(`/ai/story/documents/${documentId}/scene-state`, data)
+  return putAIRequest(`/ai/story/documents/${documentId}/scene-state`, data)
 }
 
 export default {
@@ -519,6 +682,8 @@ export default {
   polishText,
   expandText,
   rewriteText,
+  summarizeText,
+  proofreadText,
   // 系统信息
   getAIHealth,
   getAIProviders,

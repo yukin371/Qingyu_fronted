@@ -41,7 +41,7 @@ describe('AIWorkbench', () => {
     return sectionWrapper.find('.workflow-result-card__action')
   }
 
-  it('keeps only the compact workbench title in header', () => {
+  it('uses the tab row as the only visible workbench header', () => {
     const wrapper = mount(AIWorkbench, {
       props: {
         projectId: 'project-1',
@@ -85,7 +85,8 @@ describe('AIWorkbench', () => {
       },
     })
 
-    expect(wrapper.find('.ai-workbench__title').text()).toBe('AI 助手')
+    expect(wrapper.find('.ai-workbench__title').exists()).toBe(false)
+    expect(wrapper.text()).toContain('对话协作')
     expect(wrapper.text()).not.toContain('待处理 3')
     expect(wrapper.text()).not.toContain('草案 1')
   })
@@ -447,11 +448,11 @@ describe('AIWorkbench', () => {
     })
   })
 
-  it('shows before-after preview for direct whole-document edits', async () => {
+  it('shows lightweight editor diff status for direct whole-document edits', async () => {
     const AIPanelStub = defineComponent({
-      emits: ['result-candidate'],
+      emits: ['result-candidate', 'apply-generated-text'],
       template:
-        "<button data-testid=\"emit-direct-edit-result\" @click=\"$emit('result-candidate', { source: 'rewrite', action: 'direct_edit', title: 'AI 直接改写结果', summary: '已生成新的正文版本。', generatedText: '重写后的第一段\\n第二段更紧张。', sourceText: '原始第一段\\n第二段。' })\">emit</button>",
+        "<button data-testid=\"emit-direct-edit-result\" @click=\"$emit('result-candidate', { source: 'rewrite', action: 'direct_edit', title: 'AI 直接改写结果', summary: '已生成新的正文版本。', generatedText: '重写后的第一段\\n第二段更紧张。', sourceText: '原始第一段\\n第二段。' }); $emit('apply-generated-text', { action: 'direct_edit', sourceText: '原始第一段\\n第二段。', generatedText: '重写后的第一段\\n第二段更紧张。', applyMode: 'replace_document' })\">emit</button>",
     })
 
     const wrapper = mount(AIWorkbench, {
@@ -493,13 +494,16 @@ describe('AIWorkbench', () => {
     await wrapper.find('[data-testid="emit-direct-edit-result"]').trigger('click')
 
     const diffCard = wrapper.get('[data-testid="workflow-diff-card"]')
-    expect(diffCard.text()).toContain('变更预览')
+    expect(diffCard.text()).toContain('正文已挂起')
     expect(diffCard.text()).toContain('整章改写')
-    expect(diffCard.text()).toContain('原始第一段 第二段。')
-    expect(diffCard.text()).toContain('重写后的第一段 第二段更紧张。')
+    expect(diffCard.text()).toContain('请直接在正文区域接受或放弃')
+    expect(diffCard.text()).not.toContain('修改前')
+    expect(diffCard.text()).not.toContain('修改后')
+    expect(diffCard.text()).not.toContain('原始第一段 第二段。')
+    expect(diffCard.text()).not.toContain('重写后的第一段 第二段更紧张。')
   })
 
-  it('re-emits apply-generated-text from chat AIPanel to the workspace shell', async () => {
+  it('forwards chat apply payload immediately and keeps revision entry in diff rail', async () => {
     const AIPanelStub = defineComponent({
       emits: ['apply-generated-text'],
       template:
@@ -539,15 +543,63 @@ describe('AIWorkbench', () => {
 
     await wrapper.find('[data-testid="emit-apply-generated-text"]').trigger('click')
 
-    const applyPayload =
-      wrapper.emitted('applyGeneratedText')?.[0]?.[0] ??
-      wrapper.emitted('apply-generated-text')?.[0]?.[0]
+    const applyPayload = wrapper.emitted('applyGeneratedText')?.[0]?.[0]
     expect(applyPayload).toMatchObject({
       action: 'rewrite',
       sourceText: '原文',
       generatedText: '新文',
       applyMode: 'replace_document',
     })
+
+    expect(wrapper.find('[data-testid="workflow-diff-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-diff-actions"]').text()).toContain('继续修改')
+    expect(wrapper.text()).toContain('本侧栏不再重复展示前后对比')
+  })
+
+  it('injects pending candidate back into chat panel when continuing revision', async () => {
+    const AIPanelStub = defineComponent({
+      props: ['revisionSeed'],
+      emits: ['apply-generated-text'],
+      template:
+        '<div><button data-testid="emit-apply-generated-text" @click="$emit(\'apply-generated-text\', { action: \'rewrite\', sourceText: \'原文\', generatedText: \'新文\', applyMode: \'replace_document\' })">emit</button><div data-testid="revision-seed-text">{{ revisionSeed?.text || "empty" }}</div></div>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-apply-generated-text"]').trigger('click')
+    await wrapper.find('[data-testid="workflow-revise-action"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="revision-seed-text"]').text()).toBe('新文')
   })
 
   it('renders workflow state rail with aiApplyFeedback and still promotes result card action alongside proposal drafts', async () => {
