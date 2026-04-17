@@ -15,6 +15,21 @@ export type WriterWorkflowSource = 'selection' | 'story_harness' | 'ai_result' |
 export type WriterWorkbenchTab = 'rewrite' | 'summary' | 'review' | 'chat'
 
 export type WriterStructurePlanMode = 'volume' | 'chapter'
+export type WriterPromptIntentAction = 'summarize' | 'rewrite' | 'continue' | 'proofread' | 'expand'
+export type WriterPromptIntentKind = 'edit' | 'analysis'
+
+export interface WriterPromptIntent {
+  action: WriterPromptIntentAction
+  confidence: number
+  kind: WriterPromptIntentKind
+  targetLength?: number
+}
+
+export interface WriterPromptExecution {
+  route: 'chat' | 'edit' | 'analysis'
+  intent: WriterPromptIntent | null
+  applyMode?: AIApplyMode
+}
 
 export interface WriterWorkflowActionRequest {
   source?: WriterWorkflowSource
@@ -190,7 +205,7 @@ export function resolveWriterWorkflowTab(
     return null
   }
 
-  if (['continue', 'polish', 'expand', 'rewrite'].includes(action)) {
+  if (isWriterEditAction(action)) {
     return 'rewrite'
   }
 
@@ -209,14 +224,193 @@ export function resolveWriterWorkflowTab(
   return null
 }
 
+export function isWriterEditAction(action: string | null | undefined): boolean {
+  return !!action && ['continue', 'polish', 'expand', 'rewrite'].includes(action)
+}
+
+export function extractWriterTargetLength(text: string): number | undefined {
+  const directMatch = text.match(/(?:扩写|扩充|扩展|续写|补充|增加)[^\d]{0,8}(\d{2,5})\s*字/i)
+  if (directMatch) {
+    return Number(directMatch[1])
+  }
+
+  const genericMatch = text.match(/(?:到|至|成文约?|写到|补到)?\s*(\d{2,5})\s*字/i)
+  if (!genericMatch) {
+    return undefined
+  }
+
+  const value = Number(genericMatch[1])
+  return Number.isFinite(value) ? value : undefined
+}
+
+export function detectWriterPromptIntent(text: string): WriterPromptIntent | null {
+  const normalizedText = text.toLowerCase()
+  const rules: Array<{
+    keywords: string[]
+    action: WriterPromptIntentAction
+    kind: WriterPromptIntentKind
+  }> = [
+    {
+      keywords: ['总结', '摘要', '概括', '提取要点', '归纳', 'summarize', 'summary', 'summarise'],
+      action: 'summarize',
+      kind: 'analysis',
+    },
+    {
+      keywords: ['扩写', '扩充', '扩展', '补充细节', '增加描写', '写长一点', '写到', '补到'],
+      action: 'expand',
+      kind: 'edit',
+    },
+    {
+      keywords: [
+        '改写',
+        '重写',
+        '换种说法',
+        '润色',
+        '优化表达',
+        '换个写法',
+        '改善',
+        'rewrite',
+        'rephrase',
+        'polish',
+      ],
+      action: 'rewrite',
+      kind: 'edit',
+    },
+    {
+      keywords: [
+        '续写',
+        '继续写',
+        '接着写',
+        '往下写',
+        '继续',
+        'continue',
+        'keep writing',
+        '接下来',
+      ],
+      action: 'continue',
+      kind: 'edit',
+    },
+    {
+      keywords: [
+        '校对',
+        '检查错误',
+        '纠错',
+        '错别字',
+        '语法检查',
+        'proofread',
+        'check grammar',
+        '拼写',
+      ],
+      action: 'proofread',
+      kind: 'analysis',
+    },
+  ]
+
+  for (const rule of rules) {
+    if (rule.keywords.some((keyword) => normalizedText.includes(keyword))) {
+      const targetLength =
+        rule.action === 'expand' || rule.action === 'continue'
+          ? extractWriterTargetLength(text)
+          : undefined
+      return {
+        action: rule.action,
+        kind: rule.kind,
+        confidence: 0.9,
+        targetLength,
+      }
+    }
+  }
+
+  return null
+}
+
+export function resolveWriterEditApplyMode(
+  action: WriterPromptIntentAction | 'direct_edit' | 'polish',
+  hasSelectionContext: boolean,
+): AIApplyMode {
+  if (action === 'continue') {
+    return hasSelectionContext ? 'insert_after_selection' : 'append_paragraph'
+  }
+
+  return hasSelectionContext ? 'replace_selection' : 'replace_document'
+}
+
+export function resolveWriterPromptExecution(
+  text: string,
+  options: {
+    interactionMode: 'chat' | 'edit'
+    canEditDirectly: boolean
+    hasSelectionContext: boolean
+  },
+): WriterPromptExecution {
+  const intent = detectWriterPromptIntent(text)
+
+  if (!intent) {
+    if (options.interactionMode === 'edit' && options.canEditDirectly) {
+      return {
+        route: 'edit',
+        intent: null,
+        applyMode: resolveWriterEditApplyMode('direct_edit', options.hasSelectionContext),
+      }
+    }
+
+    return {
+      route: 'chat',
+      intent: null,
+    }
+  }
+
+  if (!options.canEditDirectly) {
+    return {
+      route: 'chat',
+      intent,
+    }
+  }
+
+  if (intent.kind === 'analysis') {
+    return {
+      route: 'analysis',
+      intent,
+    }
+  }
+
+  return {
+    route: 'edit',
+    intent,
+    applyMode: resolveWriterEditApplyMode(intent.action, options.hasSelectionContext),
+  }
+}
+
+export function normalizeWriterWorkflowActionRequest(
+  payload: WriterWorkflowActionRequest,
+): WriterWorkflowActionRequest {
+  if (payload.applyMode || !isWriterEditAction(payload.action)) {
+    return payload
+  }
+
+  const hasSelectionContext =
+    typeof payload.from === 'number' &&
+    typeof payload.to === 'number' &&
+    payload.from !== payload.to
+
+  return {
+    ...payload,
+    applyMode: resolveWriterEditApplyMode(
+      payload.action as 'continue' | 'polish' | 'expand' | 'rewrite',
+      hasSelectionContext,
+    ),
+  }
+}
+
 export function buildWriterAIActionTrigger(
   payload: WriterWorkflowActionRequest,
   context?: WriterWorkflowContext | null,
 ): WriterAIActionTrigger {
+  const normalizedPayload = normalizeWriterWorkflowActionRequest(payload)
   return {
-    ...payload,
+    ...normalizedPayload,
     id: Date.now(),
-    source: payload.source ?? 'workspace',
+    source: normalizedPayload.source ?? 'workspace',
     context: context ?? null,
   }
 }

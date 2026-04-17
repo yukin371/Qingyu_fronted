@@ -111,7 +111,7 @@
       </section>
 
       <section
-        v-if="latestResultCandidate"
+        v-if="visibleResultCandidate"
         class="workflow-result-card workflow-result-candidate"
         :class="{
           'workflow-result-card--secondary': !!primaryDraftProposal,
@@ -122,13 +122,13 @@
         <div class="workflow-result-card__content">
           <div class="workflow-card__meta" data-testid="workflow-result-meta">
             <span class="workflow-chip workflow-chip--accent">候选</span>
-            <span class="workflow-chip">{{ resultSourceText(latestResultCandidate.source) }}</span>
-            <span class="workflow-chip">{{ resultKindText(latestResultCandidate) }}</span>
+            <span class="workflow-chip">{{ resultSourceText(visibleResultCandidate.source) }}</span>
+            <span class="workflow-chip">{{ resultKindText(visibleResultCandidate) }}</span>
           </div>
           <div>
-            <strong>{{ latestResultCandidate.title }}</strong>
+            <strong>{{ visibleResultCandidate.title }}</strong>
             <p v-if="!shouldCondenseResultCandidate" data-testid="workflow-result-summary">
-              {{ latestResultCandidate.summary }}
+              {{ visibleResultCandidate.summary }}
             </p>
           </div>
         </div>
@@ -136,10 +136,10 @@
           type="button"
           class="workflow-result-card__action workflow-result-action"
           data-testid="workflow-result-action"
-          :aria-label="`将 ${latestResultCandidate.title} 存为${resultKindText(latestResultCandidate)}提案`"
+          :aria-label="`将 ${visibleResultCandidate.title} 存为${resultKindText(visibleResultCandidate)}提案`"
           @click="handlePromoteToProposal"
         >
-          {{ resultPromoteActionText(latestResultCandidate) }}
+          {{ resultPromoteActionText(visibleResultCandidate) }}
         </button>
       </section>
 
@@ -289,17 +289,21 @@ const primaryDraftProposal = computed<WriterDraftProposal | null>(() => {
 })
 
 const shouldCondensePrimaryProposal = computed(
-  () => !!primaryDraftProposal.value && !!latestResultCandidate.value,
+  () => !!primaryDraftProposal.value && !!visibleResultCandidate.value,
 )
 
 const shouldCondenseResultCandidate = computed(
-  () => !!latestResultCandidate.value && !!primaryDraftProposal.value,
+  () => !!visibleResultCandidate.value && !!primaryDraftProposal.value,
+)
+
+const visibleResultCandidate = computed(() =>
+  pendingApplyPayload.value ? null : latestResultCandidate.value,
 )
 
 const shouldShowApplyFeedback = computed(
   () =>
     !!props.aiApplyFeedback &&
-    !(primaryDraftProposal.value?.status === 'selected' && !!latestResultCandidate.value),
+    !(primaryDraftProposal.value?.status === 'selected' && !!visibleResultCandidate.value),
 )
 
 const visibleApplyFeedback = computed(() =>
@@ -310,7 +314,7 @@ const hasWorkflowRail = computed(
   () =>
     !!shouldShowApplyFeedback.value ||
     !!shouldShowProposalLifecycleFeedback.value ||
-    !!latestResultCandidate.value ||
+    !!visibleResultCandidate.value ||
     !!primaryDraftProposal.value ||
     !!pendingApplyPayload.value,
 )
@@ -356,10 +360,9 @@ const shouldShowProposalLifecycleFeedback = computed(() => {
     return false
   }
 
-  if (props.aiApplyFeedback || latestResultCandidate.value) {
+  if (props.aiApplyFeedback || visibleResultCandidate.value) {
     return false
   }
-
   return proposalLifecycleFeedback.value.status === 'discarded'
 })
 
@@ -408,6 +411,7 @@ watch(
     }
 
     pendingApplyPayload.value = null
+    latestResultCandidate.value = null
     revisionSeed.value = null
   },
 )
@@ -463,14 +467,14 @@ function handleApplyPayload(payload: WriterAIApplyPayload) {
 }
 
 function handleContinueRevision() {
-  const candidate = latestResultCandidate.value
-  if (!pendingApplyPayload.value || !candidate?.generatedText.trim()) {
+  const revisionText = pendingApplyPayload.value?.generatedText?.trim() || ''
+  if (!pendingApplyPayload.value || !revisionText) {
     return
   }
 
   revisionSeed.value = {
     id: Date.now(),
-    text: candidate.generatedText,
+    text: revisionText,
     instructions: `基于当前候选继续修改，目标模式：${diffModeText.value}。`,
     applyMode: pendingApplyPayload.value.applyMode,
   }
@@ -478,11 +482,11 @@ function handleContinueRevision() {
 }
 
 function handlePromoteToProposal() {
-  if (!latestResultCandidate.value) {
+  if (!visibleResultCandidate.value) {
     return
   }
 
-  emit('proposalDraft', latestResultCandidate.value)
+  emit('proposalDraft', visibleResultCandidate.value)
   latestResultCandidate.value = null
 }
 

@@ -497,6 +497,7 @@ describe('AIWorkbench', () => {
     expect(diffCard.text()).toContain('正文已挂起')
     expect(diffCard.text()).toContain('整章改写')
     expect(diffCard.text()).toContain('请直接在正文区域接受或放弃')
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
     expect(diffCard.text()).not.toContain('修改前')
     expect(diffCard.text()).not.toContain('修改后')
     expect(diffCard.text()).not.toContain('原始第一段 第二段。')
@@ -552,6 +553,7 @@ describe('AIWorkbench', () => {
     })
 
     expect(wrapper.find('[data-testid="workflow-diff-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="workflow-diff-actions"]').text()).toContain('继续修改')
     expect(wrapper.text()).toContain('本侧栏不再重复展示前后对比')
   })
@@ -600,6 +602,65 @@ describe('AIWorkbench', () => {
     await nextTick()
 
     expect(wrapper.get('[data-testid="revision-seed-text"]').text()).toBe('新文')
+  })
+
+  it('clears pending diff rail and stale hidden candidate after apply feedback arrives', async () => {
+    const AIPanelStub = defineComponent({
+      emits: ['result-candidate', 'apply-generated-text'],
+      template:
+        "<button data-testid=\"emit-edit-with-hidden-result\" @click=\"$emit('result-candidate', { source: 'rewrite', action: 'rewrite', title: 'AI 改写候选', summary: '新的正文版本', generatedText: '新文', sourceText: '原文' }); $emit('apply-generated-text', { action: 'rewrite', sourceText: '原文', generatedText: '新文', applyMode: 'replace_document' })\">emit</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: AIPanelStub,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: true,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.find('[data-testid="emit-edit-with-hidden-result"]').trigger('click')
+
+    expect(wrapper.find('[data-testid="workflow-diff-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
+
+    await wrapper.setProps({
+      aiApplyFeedback: {
+        status: 'success',
+        title: '已更新正文',
+        detail: '正文已接受最新改写。',
+        mode: 'replace_document',
+        updatedAt: Date.now(),
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="workflow-diff-card"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workflow-result-card"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="workflow-feedback-strip"]').exists()).toBe(true)
   })
 
   it('renders workflow state rail with aiApplyFeedback and still promotes result card action alongside proposal drafts', async () => {

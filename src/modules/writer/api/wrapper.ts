@@ -301,7 +301,10 @@ export const autosaveDocument = (
 /**
  * 更新文档内容
  */
-export const updateDocumentContent = (id: string, body: { content: string; version?: number }) =>
+export const updateDocumentContent = (
+  id: string,
+  body: { content: string; version?: number; contentType?: string },
+) =>
   request<void>({
     url: `/api/v1/writer/documents/${id}/content`,
     method: 'put',

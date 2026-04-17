@@ -8,6 +8,7 @@ export * from './timeline'
 export * from './location'
 export * from './wike'
 export * from './export'
+export * from './document-tools'
 export type {
   EntityType,
   EntityReference,

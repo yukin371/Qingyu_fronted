@@ -11,6 +11,7 @@ const clearHistory = vi.fn()
 const save = vi.fn()
 const load = vi.fn()
 const setSessionId = vi.fn()
+const mockExecuteWriterDocumentCommand = vi.fn()
 
 vi.mock('@/composables/useI18n', () => ({
   useI18n: () => ({
@@ -57,6 +58,10 @@ vi.mock('@/design-system/services', () => ({
   message: {
     warning: vi.fn(),
   },
+}))
+
+vi.mock('@/modules/writer/services/documentToolCommands.service', () => ({
+  executeWriterDocumentCommand: (...args: unknown[]) => mockExecuteWriterDocumentCommand(...args),
 }))
 
 const AIConversationToolbarStub = defineComponent({
@@ -182,6 +187,8 @@ describe('AIPanel', () => {
     vi.mocked(expandText).mockReset()
     vi.mocked(rewriteText).mockReset()
     vi.mocked(summarizeText).mockReset()
+    mockExecuteWriterDocumentCommand.mockReset()
+    mockExecuteWriterDocumentCommand.mockResolvedValue({ handled: false })
     localStorage.clear()
   })
 
@@ -303,8 +310,7 @@ describe('AIPanel', () => {
     input.vm.$emit('update:modelValue', '把语气改得更紧张')
     await nextTick()
     input.vm.$emit('send')
-    await Promise.resolve()
-    await Promise.resolve()
+    await flushPromises()
     await nextTick()
 
     expect(vi.mocked(rewriteText)).toHaveBeenCalledTimes(1)
@@ -338,8 +344,7 @@ describe('AIPanel', () => {
     input.vm.$emit('update:modelValue', '把这一章改得更紧张')
     await nextTick()
     input.vm.$emit('send')
-    await Promise.resolve()
-    await Promise.resolve()
+    await flushPromises()
     await nextTick()
 
     expect(vi.mocked(rewriteText)).toHaveBeenCalledWith(
@@ -431,7 +436,10 @@ describe('AIPanel', () => {
   })
 
   it('clears current conversation from toolbar action', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true),
+    )
     const wrapper = mountPanel()
 
     await wrapper.get('[data-testid="toolbar-clear"]').trigger('click')
@@ -439,5 +447,76 @@ describe('AIPanel', () => {
     expect(clearHistory).toHaveBeenCalledTimes(1)
     expect(wrapper.get('[data-testid="input-context"]').text()).toBe('empty')
     expect(wrapper.get('[data-testid="input-mode"]').text()).toBe('chat')
+  })
+
+  it('intercepts /doc list locally without calling AI', async () => {
+    mockExecuteWriterDocumentCommand.mockResolvedValue({
+      handled: true,
+      userEcho: '/doc list',
+      assistantMessage: '当前项目文档：\n- 第一章 [chapter] (chapter-1)',
+    })
+
+    const wrapper = mountPanel()
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:modelValue', '/doc list')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(mockExecuteWriterDocumentCommand).toHaveBeenCalledWith('/doc list', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-1',
+      currentDocumentTitle: '章节 chapter-1',
+      currentSourceText: '',
+    })
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
+    expect(vi.mocked(expandText)).not.toHaveBeenCalled()
+    expect(addMessage).toHaveBeenCalledWith('assistant', expect.stringContaining('当前项目文档'))
+  })
+
+  it('emits applyGeneratedText when /doc patch returns a document diff payload', async () => {
+    mockExecuteWriterDocumentCommand.mockResolvedValue({
+      handled: true,
+      userEcho: '/doc patch replace 2 => 第二行（改）',
+      assistantMessage: '已生成正文 diff 预览',
+      patchPayload: {
+        action: 'rewrite',
+        sourceText: '第一行\n第二行',
+        generatedText: '第一行\n第二行（改）',
+        applyMode: 'replace_document',
+      },
+    })
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '第一行\n第二行',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:modelValue', '/doc patch replace 2 => 第二行（改）')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(wrapper.emitted('applyGeneratedText')?.[0]?.[0]).toEqual({
+      action: 'rewrite',
+      sourceText: '第一行\n第二行',
+      generatedText: '第一行\n第二行（改）',
+      applyMode: 'replace_document',
+    })
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
   })
 })

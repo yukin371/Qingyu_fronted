@@ -47,7 +47,8 @@
             data-action="continue"
             @click="emitSelectionAction('continue')"
           >
-            续写
+            <span class="selection-toolbar__action-label">续写</span>
+            <span class="selection-toolbar__action-hint">后接片段</span>
           </button>
           <button
             type="button"
@@ -55,7 +56,8 @@
             data-action="polish"
             @click="emitSelectionAction('polish')"
           >
-            润色
+            <span class="selection-toolbar__action-label">润色</span>
+            <span class="selection-toolbar__action-hint">提纯语气</span>
           </button>
           <button
             type="button"
@@ -63,7 +65,8 @@
             data-action="rewrite"
             @click="emitSelectionAction('rewrite')"
           >
-            改写
+            <span class="selection-toolbar__action-label">改写</span>
+            <span class="selection-toolbar__action-hint">重组表达</span>
           </button>
           <button
             type="button"
@@ -71,7 +74,8 @@
             data-action="add_to_chat"
             @click="emitSelectionAction('add_to_chat')"
           >
-            加入对话
+            <span class="selection-toolbar__action-label">加入对话</span>
+            <span class="selection-toolbar__action-hint">交给右栏</span>
           </button>
         </div>
       </div>
@@ -546,56 +550,106 @@ function handleEntityScan(refs: Array<{ id?: string; name: string; type: string 
 .selection-toolbar {
   position: absolute;
   z-index: 12;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, calc(-100% - 12px));
   display: inline-flex;
-  gap: 8px;
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
   border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(12, 74, 110, 0.92));
-  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.22);
   box-shadow:
-    0 22px 42px rgba(2, 6, 23, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
+    0 18px 34px rgba(15, 23, 42, 0.14),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.selection-toolbar::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-right: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .selection-toolbar__action {
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 7px 12px;
+  min-width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--editor-text-primary);
+  padding: 8px 12px 9px;
   cursor: pointer;
-  letter-spacing: 0.01em;
   transition:
     transform 0.18s ease,
     background 0.18s ease,
-    border-color 0.18s ease;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.selection-toolbar__action-label {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.selection-toolbar__action-hint {
+  font-size: 10px;
+  line-height: 1.1;
+  color: var(--editor-text-tertiary, rgba(15, 23, 42, 0.56));
 }
 
 .selection-toolbar__action:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(125, 211, 252, 0.28);
+  background: rgba(15, 23, 42, 0.035);
+  border-color: rgba(148, 163, 184, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64);
+}
+
+.selection-toolbar__action:focus-visible {
+  outline: none;
+  border-color: var(--editor-accent);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.16);
 }
 
 .selection-toolbar__action[data-action='continue'] {
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.3), rgba(6, 182, 212, 0.18));
+  border-color: rgba(14, 165, 233, 0.12);
+}
+
+.selection-toolbar__action[data-action='continue'] .selection-toolbar__action-label {
+  color: #0f766e;
 }
 
 .selection-toolbar__action[data-action='polish'] {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.28), rgba(192, 132, 252, 0.16));
+  border-color: rgba(99, 102, 241, 0.1);
+}
+
+.selection-toolbar__action[data-action='polish'] .selection-toolbar__action-label {
+  color: #4338ca;
 }
 
 .selection-toolbar__action[data-action='rewrite'] {
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.3), rgba(251, 146, 60, 0.18));
+  border-color: rgba(249, 115, 22, 0.12);
+}
+
+.selection-toolbar__action[data-action='rewrite'] .selection-toolbar__action-label {
+  color: #c2410c;
 }
 
 .selection-toolbar__action[data-action='add_to_chat'] {
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.28), rgba(74, 222, 128, 0.16));
+  border-color: rgba(34, 197, 94, 0.12);
+}
+
+.selection-toolbar__action[data-action='add_to_chat'] .selection-toolbar__action-label {
+  color: #15803d;
 }
 
 .tiptap-editor-view__ref {

@@ -73,80 +73,13 @@ import {
   summarizeText,
   proofreadText,
 } from '@/modules/ai/api'
-
-type DetectedIntentAction = 'summarize' | 'rewrite' | 'continue' | 'proofread' | 'expand'
-type DetectedIntentKind = 'edit' | 'analysis'
-
-interface DetectedIntent {
-  action: DetectedIntentAction
-  confidence: number
-  kind: DetectedIntentKind
-  targetLength?: number
-}
+import { executeWriterDocumentCommand } from '@/modules/writer/services/documentToolCommands.service'
 
 type EditorApplyMode =
   | 'replace_selection'
   | 'insert_after_selection'
   | 'append_paragraph'
   | 'replace_document'
-
-/**
- * 意图识别：基于关键词将自由对话路由到专用 API
- * 返回 null 表示走通用 chat
- */
-function extractTargetLength(text: string): number | undefined {
-  const directMatch = text.match(/(?:扩写|扩充|扩展|续写|补充|增加)[^\d]{0,8}(\d{2,5})\s*字/i)
-  if (directMatch) {
-    return Number(directMatch[1])
-  }
-
-  const genericMatch = text.match(/(?:到|至|成文约?|写到|补到)?\s*(\d{2,5})\s*字/i)
-  if (!genericMatch) {
-    return undefined
-  }
-
-  const value = Number(genericMatch[1])
-  return Number.isFinite(value) ? value : undefined
-}
-
-function detectIntent(text: string): DetectedIntent | null {
-  const t = text.toLowerCase()
-  const rules: Array<{ keywords: string[]; action: DetectedIntentAction; kind: DetectedIntentKind }> = [
-    {
-      keywords: ['总结', '摘要', '概括', '提取要点', '归纳', 'summarize', 'summary', 'summarise'],
-      action: 'summarize',
-      kind: 'analysis',
-    },
-    {
-      keywords: ['扩写', '扩充', '扩展', '补充细节', '增加描写', '写长一点', '写到', '补到'],
-      action: 'expand',
-      kind: 'edit',
-    },
-    {
-      keywords: ['改写', '重写', '换种说法', '润色', '优化表达', '换个写法', '改善', 'rewrite', 'rephrase', 'polish'],
-      action: 'rewrite',
-      kind: 'edit',
-    },
-    {
-      keywords: ['续写', '继续写', '接着写', '往下写', '继续', 'continue', 'keep writing', '接下来'],
-      action: 'continue',
-      kind: 'edit',
-    },
-    {
-      keywords: ['校对', '检查错误', '纠错', '错别字', '语法检查', 'proofread', 'check grammar', '拼写'],
-      action: 'proofread',
-      kind: 'analysis',
-    },
-  ]
-  for (const rule of rules) {
-    if (rule.keywords.some((kw) => t.includes(kw))) {
-      const targetLength =
-        rule.action === 'expand' || rule.action === 'continue' ? extractTargetLength(text) : undefined
-      return { action: rule.action, kind: rule.kind, confidence: 0.9, targetLength }
-    }
-  }
-  return null
-}
 
 function resolveAIErrorMessage(error: unknown): string {
   const fallback = '抱歉，我遇到了一些问题。请稍后再试。'
@@ -195,12 +128,18 @@ function resolveAIErrorMessage(error: unknown): string {
   return responseMessage || fallback
 }
 import type {
+  WriterPromptIntent,
   WriterAIActionTrigger,
   WriterRevisionSeed,
   WriterResultCandidate,
   WriterWorkflowContext,
 } from '@/modules/writer/types/workflow'
-import { buildWriterWorkflowContextPrompt } from '@/modules/writer/types/workflow'
+import {
+  buildWriterWorkflowContextPrompt,
+  isWriterEditAction,
+  resolveWriterEditApplyMode,
+  resolveWriterPromptExecution,
+} from '@/modules/writer/types/workflow'
 
 // 子组件
 import {
@@ -478,16 +417,8 @@ function updateSelectionNotice(
   }
 }
 
-function resolveEditApplyMode(action: DetectedIntentAction | 'direct_edit', hasSelectionContext: boolean): EditorApplyMode {
-  if (action === 'continue') {
-    return hasSelectionContext ? 'insert_after_selection' : 'append_paragraph'
-  }
-
-  return hasSelectionContext ? 'replace_selection' : 'replace_document'
-}
-
 function buildAnalysisCandidate(
-  intent: DetectedIntent,
+  intent: WriterPromptIntent,
   generatedText: string,
   sourceText: string,
 ): WriterResultCandidate {
@@ -516,7 +447,7 @@ async function requestEditIntent(
   projectId: string,
   sourceText: string,
   instruction: string,
-  intent: DetectedIntent | null,
+  intent: WriterPromptIntent | null,
   applyMode: EditorApplyMode,
   baseInstructions?: string,
 ) {
@@ -528,7 +459,12 @@ async function requestEditIntent(
       : applyMode === 'replace_selection'
         ? '请直接输出可替换当前选中文本的完整版本。'
         : ''
-  const mergedInstructions = [instruction, baseInstructions || '', replacementHint, workflowContextPrompt]
+  const mergedInstructions = [
+    instruction,
+    baseInstructions || '',
+    replacementHint,
+    workflowContextPrompt,
+  ]
     .filter((item) => item && item.trim())
     .join('\n\n')
 
@@ -581,16 +517,39 @@ async function sendMessage(content: string) {
   if (!content.trim() || isTyping.value) return
 
   const trimmedContent = content.trim()
+  const documentCommand = await executeWriterDocumentCommand(trimmedContent, {
+    projectId: effectiveWorkflowContext.value?.projectId || props.sessionId,
+    currentDocumentId: effectiveWorkflowContext.value?.chapterId || null,
+    currentDocumentTitle: effectiveWorkflowContext.value?.chapterTitle || null,
+    currentSourceText: props.sourceText || '',
+  })
 
-  // ── 先识别意图 ──
-  const intent = detectIntent(trimmedContent)
+  if (documentCommand.handled) {
+    addMessage('user', documentCommand.userEcho || trimmedContent)
+    inputText.value = ''
+    await scrollToBottom()
 
-  // edit 模式下，默认将输入视为正文修改要求；分析类意图仍回到普通对话/候选流程。
-  if (
-    interactionMode.value === 'edit' &&
-    canEditDirectly.value &&
-    (!intent || intent.kind === 'edit')
-  ) {
+    if (documentCommand.assistantMessage?.trim()) {
+      addMessage('assistant', documentCommand.assistantMessage)
+    }
+
+    if (documentCommand.patchPayload) {
+      emit('applyGeneratedText', documentCommand.patchPayload)
+    }
+
+    await scrollToBottom()
+    return
+  }
+
+  const hasSelectionContext = !!selectedChatContext.value?.text.trim()
+  const promptExecution = resolveWriterPromptExecution(trimmedContent, {
+    interactionMode: interactionMode.value,
+    canEditDirectly: canEditDirectly.value,
+    hasSelectionContext,
+  })
+  const intent = promptExecution.intent
+
+  if (promptExecution.route === 'edit') {
     await runDirectEdit(trimmedContent, intent)
     return
   }
@@ -614,75 +573,39 @@ async function sendMessage(content: string) {
   // 调用真实AI API
   isTyping.value = true
   try {
-    // ── 意图识别路由 ──
-    const intent = detectIntent(trimmedContent)
-    const hasSourceText =
-      !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim()
+    const hasSourceText = !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim()
 
-    if (intent && hasSourceText) {
-      const sourceText =
-        selectedChatContext.value?.text.trim() || props.sourceText?.trim() || ''
+    if (promptExecution.route === 'analysis' && intent && hasSourceText) {
+      const sourceText = selectedChatContext.value?.text.trim() || props.sourceText?.trim() || ''
       const projectId = props.sessionId || 'demo-project'
       let generatedText = ''
-      const hasSelectionContext = !!selectedChatContext.value?.text.trim()
 
-      if (intent.kind === 'analysis') {
-        if (intent.action === 'proofread') {
-          const proofread = await proofreadText(sourceText, {
-            projectId,
-          })
-          generatedText = proofread.issues
-            .map((issue, index) => {
-              const suggestions = Array.isArray(issue.suggestions) && issue.suggestions.length > 0
+      if (intent.action === 'proofread') {
+        const proofread = await proofreadText(sourceText, {
+          projectId,
+        })
+        generatedText = proofread.issues
+          .map((issue, index) => {
+            const suggestions =
+              Array.isArray(issue.suggestions) && issue.suggestions.length > 0
                 ? ` 建议：${issue.suggestions.join('；')}`
                 : ''
-              return `${index + 1}. ${issue.message || '检测到可优化项。'}${suggestions}`
-            })
-            .join('\n')
-        } else {
-          const response = await summarizeText(sourceText, {
-            projectId,
-            summaryType: 'detailed',
+            return `${index + 1}. ${issue.message || '检测到可优化项。'}${suggestions}`
           })
-          generatedText = response.summary || response.keyPoints.join('\n')
-        }
-
-        if (generatedText.trim()) {
-          addMessage('assistant', generatedText)
-          emit('resultCandidate', buildAnalysisCandidate(intent, generatedText, sourceText))
-        } else {
-          addMessage('assistant', '未返回有效结果，请重试。')
-        }
+          .join('\n')
       } else {
-        const applyMode = resolveEditApplyMode(intent.action, hasSelectionContext)
-        const editResult = await requestEditIntent(
+        const response = await summarizeText(sourceText, {
           projectId,
-          sourceText,
-          trimmedContent,
-          intent,
-          applyMode,
-        )
-        generatedText = editResult.generatedText
+          summaryType: 'detailed',
+        })
+        generatedText = response.summary || response.keyPoints.join('\n')
+      }
 
-        if (generatedText.trim()) {
-          addMessage('assistant', generatedText)
-          emit('resultCandidate', {
-            source: 'rewrite',
-            action: editResult.emittedAction,
-            title: `${editResult.label}结果`,
-            summary: generatedText.slice(0, 72),
-            generatedText,
-            sourceText,
-          })
-          emit('applyGeneratedText', {
-            action: editResult.emittedAction,
-            sourceText,
-            generatedText,
-            applyMode: editResult.applyMode,
-          })
-        } else {
-          addMessage('assistant', `${editResult.label}未返回有效内容，请重试。`)
-        }
+      if (generatedText.trim()) {
+        addMessage('assistant', generatedText)
+        emit('resultCandidate', buildAnalysisCandidate(intent, generatedText, sourceText))
+      } else {
+        addMessage('assistant', '未返回有效结果，请重试。')
       }
 
       if (selectedChatContext.value) handleClearSelectedContext()
@@ -719,12 +642,15 @@ async function sendMessage(content: string) {
   }
 }
 
-async function runDirectEdit(instruction: string, intent: DetectedIntent | null = null) {
+async function runDirectEdit(instruction: string, intent: WriterPromptIntent | null = null) {
   const context = selectedChatContext.value
   const sourceText = context?.text.trim() || props.sourceText?.trim() || ''
   if (!sourceText) return
   const hasSelectionContext = !!context?.text.trim()
-  const applyMode = resolveEditApplyMode(intent?.action ?? 'direct_edit', hasSelectionContext)
+  const applyMode = resolveWriterEditApplyMode(
+    intent?.action ?? 'direct_edit',
+    hasSelectionContext,
+  ) as EditorApplyMode
 
   isTyping.value = true
   addMessage(
@@ -1002,7 +928,7 @@ watch(
       return
     }
 
-    if (['continue', 'polish', 'expand', 'rewrite'].includes(action)) {
+    if (isWriterEditAction(action)) {
       updateSelectionNotice(action, text, instructions, 'pending')
       await runSelectionAction(action, text, instructions)
     }
@@ -1075,8 +1001,7 @@ watch(
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 253, 255, 0.72));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 253, 255, 0.72));
 }
 
 @media (prefers-reduced-motion: reduce) {
