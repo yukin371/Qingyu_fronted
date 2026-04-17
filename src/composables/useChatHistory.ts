@@ -22,6 +22,21 @@ import { ref, watch, computed, type ComputedRef, type Ref } from 'vue'
  * 聊天消息接口
  */
 export interface ChatMessage {
+  /** 扩展元信息，用于结构化消息卡片 */
+  meta?: {
+    kind: 'document_tool_patch_preview'
+    status: 'ready' | 'switching'
+    statusText: string
+    documentLabel: string
+    operationType: string
+    blockCount: number
+    totalLines: number
+    blocks: Array<{
+      header: string
+      before: string[]
+      after: string[]
+    }>
+  }
   /** 消息唯一标识 */
   id: string
   /** 消息角色 */
@@ -42,7 +57,12 @@ export interface UseChatHistoryReturn {
   /** 切换会话ID */
   setSessionId: (newSessionId: string) => void
   /** 添加消息 */
-  addMessage: (role: ChatMessage['role'], content: string, typing?: boolean) => ChatMessage
+  addMessage: (
+    role: ChatMessage['role'],
+    content: string,
+    typing?: boolean,
+    meta?: ChatMessage['meta'],
+  ) => ChatMessage
   /** 清空历史 */
   clearHistory: () => void
   /** 保存历史 */
@@ -97,13 +117,19 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
   /**
    * 添加消息
    */
-  function addMessage(role: ChatMessage['role'], content: string, typing: boolean = false): ChatMessage {
+  function addMessage(
+    role: ChatMessage['role'],
+    content: string,
+    typing: boolean = false,
+    meta?: ChatMessage['meta'],
+  ): ChatMessage {
     const message: ChatMessage = {
       id: generateMessageId(),
       role,
       content,
       timestamp: Date.now(),
-      typing
+      typing,
+      meta,
     }
 
     messages.value.push(message)
@@ -151,7 +177,7 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
    * 删除指定消息
    */
   function deleteMessage(messageId: string) {
-    const index = messages.value.findIndex(m => m.id === messageId)
+    const index = messages.value.findIndex((m) => m.id === messageId)
     if (index !== -1) {
       messages.value.splice(index, 1)
       saveToStorage()
@@ -162,7 +188,7 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
    * 更新消息内容
    */
   function updateMessage(messageId: string, content: string) {
-    const message = messages.value.find(m => m.id === messageId)
+    const message = messages.value.find((m) => m.id === messageId)
     if (message) {
       message.content = content
       message.typing = false
@@ -174,14 +200,14 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
    * 计算用户消息数量
    */
   const userMessageCount = computed(() => {
-    return (messages.value ?? []).filter(m => m.role === 'user').length
+    return (messages.value ?? []).filter((m) => m.role === 'user').length
   })
 
   /**
    * 计算AI消息数量
    */
   const aiMessageCount = computed(() => {
-    return (messages.value ?? []).filter(m => m.role === 'assistant').length
+    return (messages.value ?? []).filter((m) => m.role === 'assistant').length
   })
 
   return {
@@ -195,7 +221,7 @@ export function useChatHistory(sessionId: string): UseChatHistoryReturn {
     deleteMessage,
     updateMessage,
     userMessageCount,
-    aiMessageCount
+    aiMessageCount,
   }
 }
 
@@ -215,7 +241,7 @@ export interface UseChatHistoryWithPresetReturn extends UseChatHistoryReturn {
 
 export function useChatHistoryWithPreset(
   sessionId: string,
-  presetMessages: ChatMessage[] = []
+  presetMessages: ChatMessage[] = [],
 ): UseChatHistoryWithPresetReturn {
   const history = useChatHistory(sessionId)
   const isUsingPreset = ref(false)
@@ -230,15 +256,19 @@ export function useChatHistoryWithPreset(
   }
 
   // 监听消息变化，如果与预设不同则标记为非预设状态
-  watch(() => history.messages.value, (newMessages) => {
-    if (JSON.stringify(newMessages) !== JSON.stringify(presetMessages)) {
-      isUsingPreset.value = false
-    }
-  }, { deep: true })
+  watch(
+    () => history.messages.value,
+    (newMessages) => {
+      if (JSON.stringify(newMessages) !== JSON.stringify(presetMessages)) {
+        isUsingPreset.value = false
+      }
+    },
+    { deep: true },
+  )
 
   return {
     ...history,
     resetToPreset,
-    isUsingPreset
+    isUsingPreset,
   }
 }

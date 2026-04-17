@@ -170,6 +170,13 @@ describe('documentToolCommandsService', () => {
       targetDocumentId: 'chapter-1',
       targetDocumentTitle: '第一章',
     })
+    expect(result.assistantMeta).toMatchObject({
+      kind: 'document_tool_patch_preview',
+      status: 'ready',
+      documentLabel: '第一章（chapter-1）',
+      operationType: 'replace_lines',
+      blockCount: 1,
+    })
   })
 
   it('returns target chapter diff payload when patching a non-current document', async () => {
@@ -233,6 +240,13 @@ describe('documentToolCommandsService', () => {
       applyMode: 'replace_document',
       targetDocumentId: 'chapter-2',
       targetDocumentTitle: '第二章',
+    })
+    expect(result.assistantMeta).toMatchObject({
+      kind: 'document_tool_patch_preview',
+      status: 'switching',
+      documentLabel: '第二章（chapter-2）',
+      operationType: 'delete_lines',
+      blockCount: 1,
     })
     expect(result.assistantMessage).toContain('异章节 patch 预览')
     expect(result.assistantMessage).toContain('准备切章挂起 diff')

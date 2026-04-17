@@ -1,3 +1,7 @@
+import type { ChatMessage as BaseChatMessage } from '@/composables/useChatHistory'
+
+export type ChatMessage = BaseChatMessage
+
 /**
  * AI Panel 子组件共享类型定义
  * @module writer/components/editor/ai/types
@@ -36,17 +40,6 @@ export interface ChatContextSnippet {
   text: string
   instructions?: string
   addedAt: number
-}
-
-/**
- * 聊天消息
- */
-export interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp: number
-  typing?: boolean
 }
 
 /**

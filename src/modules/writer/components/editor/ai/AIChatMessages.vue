@@ -25,6 +25,58 @@
         </div>
         <div class="message-content-wrapper">
           <div
+            v-if="message.meta?.kind === 'document_tool_patch_preview'"
+            class="message-tool-card"
+            :class="`message-tool-card--${message.meta.status}`"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">{{ message.meta.documentLabel }}</div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <div class="message-tool-card__stats">
+              <span>操作：{{ toolOperationLabel(message.meta.operationType) }}</span>
+              <span>变更块：{{ message.meta.blockCount }}</span>
+              <span>结果行数：{{ message.meta.totalLines }}</span>
+            </div>
+            <div class="message-tool-card__blocks">
+              <article
+                v-for="block in message.meta.blocks"
+                :key="block.header"
+                class="message-tool-block"
+              >
+                <div class="message-tool-block__title">{{ block.header }}</div>
+                <div class="message-tool-block__columns">
+                  <section class="message-tool-block__panel message-tool-block__panel--before">
+                    <div class="message-tool-block__label">原文</div>
+                    <div v-if="block.before.length > 0" class="message-tool-block__lines">
+                      <div
+                        v-for="(line, index) in block.before"
+                        :key="`${block.header}-before-${index}`"
+                        class="message-tool-block__line"
+                      >
+                        - {{ line }}
+                      </div>
+                    </div>
+                    <div v-else class="message-tool-block__empty">（空）</div>
+                  </section>
+                  <section class="message-tool-block__panel message-tool-block__panel--after">
+                    <div class="message-tool-block__label">变更后</div>
+                    <div v-if="block.after.length > 0" class="message-tool-block__lines">
+                      <div
+                        v-for="(line, index) in block.after"
+                        :key="`${block.header}-after-${index}`"
+                        class="message-tool-block__line"
+                      >
+                        + {{ line }}
+                      </div>
+                    </div>
+                    <div v-else class="message-tool-block__empty">（删除）</div>
+                  </section>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div
             class="message-content"
             :class="{ 'message-content--pending': message.typing }"
             v-safe-html="renderAssistantMessage(message)"
@@ -112,6 +164,13 @@ function renderAssistantMessage(message: ChatMessage): string {
 
 function renderPendingMarkdown(): string {
   return renderMarkdown(props.typingText || '正在思考，请稍候…')
+}
+
+function toolOperationLabel(operationType: string): string {
+  if (operationType === 'replace_lines') return '替换行'
+  if (operationType === 'insert_after_line') return '插入行'
+  if (operationType === 'delete_lines') return '删除行'
+  return operationType
 }
 
 /**
@@ -341,6 +400,132 @@ watch(
   }
 }
 
+.message-tool-card {
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--ai-border, #e2e8f0);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 252, 0.96)),
+    var(--ai-bg-soft, #f8fafc);
+  overflow: hidden;
+
+  &--switching {
+    border-color: #bfdbfe;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
+  }
+
+  &--ready {
+    border-color: #cbd5e1;
+  }
+}
+
+.message-tool-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px 8px;
+}
+
+.message-tool-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ai-text, #0f172a);
+}
+
+.message-tool-card__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.message-tool-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  padding: 0 12px 10px;
+  color: var(--ai-text-muted, #64748b);
+  font-size: 12px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12);
+  }
+}
+
+.message-tool-card__blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.message-tool-block {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+}
+
+.message-tool-block__title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ai-text, #0f172a);
+}
+
+.message-tool-block__columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.message-tool-block__panel {
+  padding: 8px;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.message-tool-block__panel--before {
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.message-tool-block__panel--after {
+  background: rgba(239, 246, 255, 0.95);
+}
+
+.message-tool-block__label {
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ai-text-muted, #64748b);
+}
+
+.message-tool-block__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message-tool-block__line,
+.message-tool-block__empty {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ai-text, #0f172a);
+  word-break: break-word;
+}
+
 .typing-indicator {
   display: flex;
   gap: 4px;
@@ -377,6 +562,12 @@ watch(
 @media (prefers-reduced-motion: reduce) {
   .typing-indicator span {
     animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-tool-block__columns {
+    grid-template-columns: 1fr;
   }
 }
 </style>

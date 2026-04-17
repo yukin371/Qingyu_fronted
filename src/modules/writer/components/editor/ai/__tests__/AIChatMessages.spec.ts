@@ -89,6 +89,42 @@ describe('AIChatMessages', () => {
     expect(wrapper.find('.message-ai .message-content').html()).toContain('<p>**重点**</p>')
   })
 
+  it('should render structured patch preview card when assistant message carries meta', () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '已为第二章生成 patch 预览。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'document_tool_patch_preview',
+          status: 'switching',
+          statusText: '正在切换章节并准备正文 diff',
+          documentLabel: '第二章（chapter-2）',
+          operationType: 'delete_lines',
+          blockCount: 1,
+          totalLines: 12,
+          blocks: [
+            {
+              header: '变更 1 [delete_lines] 8-10',
+              before: ['旧内容一', '旧内容二'],
+              after: [],
+            },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-tool-card').exists()).toBe(true)
+    expect(wrapper.find('.message-tool-card__title').text()).toBe('第二章（chapter-2）')
+    expect(wrapper.find('.message-tool-card__status').text()).toContain('正在切换章节')
+    expect(wrapper.find('.message-tool-block__title').text()).toContain('delete_lines')
+    expect(wrapper.find('.message-tool-block__panel--before').text()).toContain('旧内容一')
+    expect(wrapper.find('.message-tool-block__panel--after').text()).toContain('删除')
+  })
+
   it('should show pending assistant bubble when panel is typing without persisted typing message', () => {
     const messages: ChatMessage[] = [
       { id: '1', role: 'user', content: '继续写', timestamp: Date.now() },

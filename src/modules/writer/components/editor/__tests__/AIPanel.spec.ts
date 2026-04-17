@@ -471,7 +471,13 @@ describe('AIPanel', () => {
     })
     expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
     expect(vi.mocked(expandText)).not.toHaveBeenCalled()
-    expect(addMessage).toHaveBeenCalledWith('assistant', expect.stringContaining('当前项目文档'))
+    expect(addMessage).toHaveBeenNthCalledWith(
+      2,
+      'assistant',
+      expect.stringContaining('当前项目文档'),
+      false,
+      undefined,
+    )
   })
 
   it('emits applyGeneratedText when /doc patch returns a document diff payload', async () => {

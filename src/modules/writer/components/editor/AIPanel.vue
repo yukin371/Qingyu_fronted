@@ -530,7 +530,12 @@ async function sendMessage(content: string) {
     await scrollToBottom()
 
     if (documentCommand.assistantMessage?.trim()) {
-      addMessage('assistant', documentCommand.assistantMessage)
+      addMessage(
+        'assistant',
+        documentCommand.assistantMessage,
+        false,
+        documentCommand.assistantMeta,
+      )
     }
 
     if (documentCommand.patchPayload) {

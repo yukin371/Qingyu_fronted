@@ -1,3 +1,4 @@
+import type { ChatMessage } from '@/composables/useChatHistory'
 import type {
   WriterDocumentLine,
   WriterDocumentPatchOperation,
@@ -17,6 +18,7 @@ interface WriterDocumentCommandExecutionResult {
   handled: boolean
   userEcho?: string
   assistantMessage?: string
+  assistantMeta?: ChatMessage['meta']
   patchPayload?: WriterAIApplyPayload
 }
 
@@ -120,6 +122,36 @@ function formatPatchPreviewBlocks(
       return [header, before, after].join('\n')
     })
     .join('\n\n')
+}
+
+function buildPatchPreviewMeta(input: {
+  documentLabel: string
+  operationType: WriterDocumentPatchOperation['type']
+  totalLines: number
+  status: 'ready' | 'switching'
+  statusText: string
+  previews: Array<{
+    type: WriterDocumentPatchOperation['type']
+    startLine: number
+    endLine: number
+    before: string[]
+    after: string[]
+  }>
+}): ChatMessage['meta'] {
+  return {
+    kind: 'document_tool_patch_preview',
+    status: input.status,
+    statusText: input.statusText,
+    documentLabel: input.documentLabel,
+    operationType: input.operationType,
+    blockCount: input.previews.length,
+    totalLines: input.totalLines,
+    blocks: input.previews.slice(0, 3).map((preview, index) => ({
+      header: `变更 ${index + 1} [${preview.type}] ${preview.startLine}-${preview.endLine}`,
+      before: preview.before.slice(),
+      after: preview.after.slice(),
+    })),
+  }
 }
 
 function buildHelpMessage(): string {
@@ -404,6 +436,14 @@ export async function executeWriterDocumentCommand(
           '',
           '系统将自动切换到目标章节，并在正文编辑器内显示可接受/放弃的 diff。',
         ].join('\n'),
+        assistantMeta: buildPatchPreviewMeta({
+          documentLabel: formatDocumentLabel(document),
+          operationType: command.operation.type,
+          totalLines: preview.totalLines,
+          status: 'switching',
+          statusText: '正在切换章节并准备正文 diff',
+          previews: preview.previews,
+        }),
         patchPayload: {
           action: 'rewrite',
           sourceText,
@@ -436,6 +476,14 @@ export async function executeWriterDocumentCommand(
         '',
         '请直接在正文编辑器中接受或放弃这次修改。',
       ].join('\n'),
+      assistantMeta: buildPatchPreviewMeta({
+        documentLabel: formatDocumentLabel(document),
+        operationType: command.operation.type,
+        totalLines: preview.totalLines,
+        status: 'ready',
+        statusText: '正文 diff 已就绪，可直接接受或放弃',
+        previews: preview.previews,
+      }),
       patchPayload: {
         action: 'rewrite',
         sourceText,

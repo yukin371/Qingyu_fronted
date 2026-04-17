@@ -34,6 +34,7 @@
 - **右栏不要重复渲染正文前后对比**：当正文编辑器已经挂起 inline diff 时，`AIWorkbench` 的 workflow rail 只保留“已同步到正文编辑器”的轻量状态与继续修改/存提案入口，不再在侧栏重复展示“修改前 / 修改后”正文块，交互对齐 Cursor / Trae 类编辑器。
 - **AI 工作台头部只保留一层模式切换**：`AIWorkbench` 不再渲染独立“AI 助手”标题，`AIPanel` 也不再额外渲染“对话协作”子头；聊天、改写、总结、审校统一收敛到 `AIWorkbench` 的 tab row，避免右栏出现双头部与重复层级。
 - **对话、改写、总结、审校要共享同一套工作台视觉语言**：`AIPanel`、`RewriteWorkbenchTool`、`SummaryWorkbenchTool`、`ReviewWorkbenchTool` 的 header、说明文案、状态栏和主按钮布局应复用统一样式 token，不要让右栏看起来像四套不同产品拼接。
+- **`/doc patch` 预览也要走统一右栏视觉语言**：命令桥返回的章节 patch 预览不能只是一大段 markdown 说明；`AIChatMessages` 应把它渲染成与当前简约主题一致的状态条 + 变更块卡片，至少展示目标章节、执行状态、变更块摘要与 before/after 片段。
 - **writer 侧 AI 请求必须走统一 API facade**：聊天、续写、改写、扩写、总结、审校，以及 workbench 的章节总结/敏感词检测，都应先收敛到 `src/modules/ai/api` 下的统一 request helper，再决定是直连 AI 服务还是走后端 `/api/v1/ai/*`。不要在组件里各自直接 new axios、各自写 timeout，避免再次出现 15s / 60s / 默认值混杂。
 - **文档工具协议优先复用 writer 文档树与内容接口**：`list_documents / read_document / search_document / patch_document` 这类 agent 能力，优先复用 `getDocumentTree / getDocumentContent(s) / updateDocumentContent` 及其 service 封装，不要再造第二套“AI 文件系统”。`patch_document` 即使后续接入真实 tool calling，也必须保留版本校验，并继续走正文 diff / 编辑器确认链路，不能让 AI 直接静默落盘。
 - **`/doc` 命令桥只做轻量演示接入**：`AIPanel` 内的 `/doc list/read/search/patch` 目前是面向当前 writer 工作区的本地命令桥。`list/read/search` 可直接返回文本结果；`patch` 必须统一转换成 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText` 的正文 diff。若目标不是当前章节，只允许先读取目标章节内容、生成预览，再通过 `targetDocumentId/targetDocumentTitle` 让宿主切章后挂起 diff，不允许绕过编辑器直接静默保存。
