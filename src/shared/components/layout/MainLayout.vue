@@ -16,8 +16,12 @@
 
         <!-- 导航菜单：自定义高级样式替代 el-menu -->
         <nav class="nav-links">
-          <a v-for="item in menuItems" :key="item.path" :class="['nav-item', { active: activeMenu === item.path }]"
-            @click="handleMenuSelect(item.path)">
+          <a
+            v-for="item in menuItems"
+            :key="item.path"
+            :class="['nav-item', { active: activeMenu === item.path }]"
+            @click="handleMenuSelect(item.path)"
+          >
             {{ item.name }}
             <!-- 激活状态下的光点 -->
             <span class="active-dot" v-if="activeMenu === item.path"></span>
@@ -29,7 +33,7 @@
           <!-- 搜索框：胶囊样式 -->
           <div class="search-wrapper" :class="{ focused: searchFocused }">
             <el-icon class="search-icon">
-              <QyIcon name="Search"  />
+              <QyIcon name="Search" />
             </el-icon>
             <input
               id="main-search-input"
@@ -45,7 +49,12 @@
           </div>
 
           <!-- 创作中心按钮 -->
-          <el-button v-if="showUserControls" class="create-btn" round @click="router.push('/writer')">
+          <el-button
+            v-if="showUserControls"
+            class="create-btn"
+            round
+            @click="router.push('/writer')"
+          >
             <span class="create-icon-chip">
               <QyIcon name="EditPen" />
             </span>
@@ -57,17 +66,32 @@
             <template v-if="isLoggedIn">
               <el-dropdown trigger="click" @command="handleUserCommand">
                 <div class="user-info-premium">
-                  <QyAvatar size="sm" :src="userAvatar" :text="userDisplayName" class="user-avatar" />
+                  <QyAvatar
+                    size="sm"
+                    :src="userAvatar"
+                    :text="userDisplayName"
+                    class="user-avatar"
+                  />
                   <!-- 名字只在hover时显示或简化显示 -->
                 </div>
                 <template #dropdown>
                   <el-dropdown-menu class="premium-dropdown">
                     <!-- 保持原有下拉菜单项不变 -->
-                    <el-dropdown-item command="profile"><QyIcon name="User"  />个人中心</el-dropdown-item>
-                    <el-dropdown-item command="writer-dashboard"><QyIcon name="EditPen"  />创作工作台</el-dropdown-item>
-                    <el-dropdown-item command="shelf"><QyIcon name="Collection"  />我的书架</el-dropdown-item>
-                    <el-dropdown-item command="history"><QyIcon name="Clock"  />阅读历史</el-dropdown-item>
-                    <el-dropdown-item divided command="logout"><QyIcon name="SwitchButton"  />退出登录</el-dropdown-item>
+                    <el-dropdown-item command="profile"
+                      ><QyIcon name="User" />个人中心</el-dropdown-item
+                    >
+                    <el-dropdown-item command="writer-dashboard"
+                      ><QyIcon name="EditPen" />创作工作台</el-dropdown-item
+                    >
+                    <el-dropdown-item command="shelf"
+                      ><QyIcon name="Collection" />我的书架</el-dropdown-item
+                    >
+                    <el-dropdown-item command="history"
+                      ><QyIcon name="Clock" />阅读历史</el-dropdown-item
+                    >
+                    <el-dropdown-item divided command="logout"
+                      ><QyIcon name="SwitchButton" />退出登录</el-dropdown-item
+                    >
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -75,7 +99,9 @@
             <template v-else>
               <div class="auth-btns">
                 <el-button class="login-btn" text @click="goToAuth('login')">登录</el-button>
-                <el-button class="register-btn" type="primary" round @click="goToAuth('register')">注册</el-button>
+                <el-button class="register-btn" type="primary" round @click="goToAuth('register')"
+                  >注册</el-button
+                >
               </div>
             </template>
           </div>
@@ -127,26 +153,35 @@
     </el-footer>
 
     <!-- 移动端抽屉菜单 -->
-    <el-drawer v-model="drawerVisible" title="导航" direction="rtl" size="280px">
+    <el-drawer
+      v-model="drawerVisible"
+      title="导航"
+      direction="rtl"
+      size="280px"
+      :modal="false"
+      :append-to-body="true"
+      :z-index="9999"
+      class="mobile-navigation-drawer"
+    >
       <el-menu :default-active="activeMenu" @select="handleMenuSelect">
         <el-menu-item index="/">
-          <QyIcon name="HomeFilled"  />
+          <QyIcon name="HomeFilled" />
           <span>首页</span>
         </el-menu-item>
         <el-menu-item index="/bookstore/browse">
-          <QyIcon name="Reading"  />
+          <QyIcon name="Reading" />
           <span>书库</span>
         </el-menu-item>
         <el-menu-item index="/bookstore/rankings">
-          <QyIcon name="TrendCharts"  />
+          <QyIcon name="TrendCharts" />
           <span>榜单</span>
         </el-menu-item>
         <el-menu-item index="/discovery">
-          <QyIcon name="ChatDotRound"  />
+          <QyIcon name="ChatDotRound" />
           <span>广场</span>
         </el-menu-item>
         <el-menu-item v-if="isLoggedIn" index="/profile">
-          <QyIcon name="User"  />
+          <QyIcon name="User" />
           <span>个人中心</span>
         </el-menu-item>
       </el-menu>
@@ -156,22 +191,39 @@
     <BackTop :right="24" :bottom="24" shape="circle" size="medium" :visibility-height="300" />
 
     <!-- 快捷登录对话框 -->
-    <el-dialog v-model="showQuickLogin" title="欢迎回来" width="400px" class="premium-dialog" :close-on-click-modal="false">
+    <el-dialog
+      v-model="showQuickLogin"
+      title="欢迎回来"
+      width="400px"
+      class="premium-dialog"
+      :close-on-click-modal="false"
+    >
       <el-form :model="quickLoginForm" :rules="quickLoginRules" ref="quickLoginFormRef">
         <el-form-item prop="username">
-          <el-input v-model="quickLoginForm.username" placeholder="用户名或邮箱" size="large" clearable
-            @keyup.enter="handleQuickLogin">
+          <el-input
+            v-model="quickLoginForm.username"
+            placeholder="用户名或邮箱"
+            size="large"
+            clearable
+            @keyup.enter="handleQuickLogin"
+          >
             <template #prefix>
-              <QyIcon name="User"  />
+              <QyIcon name="User" />
             </template>
           </el-input>
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="quickLoginForm.password" type="password" placeholder="密码" size="large" show-password
-            @keyup.enter="handleQuickLogin">
+          <el-input
+            v-model="quickLoginForm.password"
+            type="password"
+            placeholder="密码"
+            size="large"
+            show-password
+            @keyup.enter="handleQuickLogin"
+          >
             <template #prefix>
-              <QyIcon name="Lock"  />
+              <QyIcon name="Lock" />
             </template>
           </el-input>
         </el-form-item>
@@ -234,17 +286,15 @@ const quickLoginFormRef = ref<FormInstance>()
 const quickLoginForm = ref({
   username: '',
   password: '',
-  rememberMe: false
+  rememberMe: false,
 })
 
 const quickLoginRules: FormRules = {
-  username: [
-    { required: true, message: '请输入用户名或邮箱', trigger: 'blur' }
-  ],
+  username: [{ required: true, message: '请输入用户名或邮箱', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
-  ]
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+  ],
 }
 
 // 用户信息
@@ -266,7 +316,8 @@ const userDisplayName = computed(() => {
 const activeMenu = computed(() => {
   const path = route.path
   if (path === '/' || path === '/bookstore') return '/bookstore'
-  if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse')) return '/bookstore/browse'
+  if (path === '/bookstore/browse' || path.startsWith('/bookstore/browse'))
+    return '/bookstore/browse'
   if (path.startsWith('/bookstore/rankings')) return '/bookstore/rankings'
   if (path.startsWith('/discovery')) return '/discovery'
   return '/bookstore'
@@ -286,7 +337,7 @@ const handleSearch = () => {
   }
   router.push({
     path: '/bookstore/search',
-    query: { q: searchKeyword.value }
+    query: { q: searchKeyword.value },
   })
 }
 
@@ -311,7 +362,7 @@ const handleQuickLogin = async () => {
       try {
         await authStore.login({
           username: quickLoginForm.value.username,
-          password: quickLoginForm.value.password
+          password: quickLoginForm.value.password,
         })
 
         message.success('登录成功')
@@ -321,7 +372,7 @@ const handleQuickLogin = async () => {
         quickLoginForm.value = {
           username: '',
           password: '',
-          rememberMe: false
+          rememberMe: false,
         }
       } catch (error: any) {
         message.error(error.message || '登录失败')
@@ -352,14 +403,14 @@ const handleUserCommand = async (command: string) => {
         message.success('测试模式下已退出模拟登录')
         router.push({
           path: '/auth',
-          query: { ...(route.query as Record<string, any>), mode: 'login' }
+          query: { ...(route.query as Record<string, any>), mode: 'login' },
         })
         return
       }
       try {
         await messageBox.confirm('确定要退出登录吗？', '提示', {
           confirmButtonText: '确定',
-          cancelButtonText: '取消'
+          cancelButtonText: '取消',
         })
         await authStore.logout()
         message.success('已退出登录')
@@ -782,6 +833,34 @@ const handleUserCommand = async (command: string) => {
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+</style>
+
+<style>
+/* 修复 Element Plus 抽屉定位问题 */
+.mobile-navigation-drawer {
+  position: fixed !important;
+}
+
+.mobile-navigation-drawer .el-drawer__body {
+  overflow-y: auto;
+}
+
+/* 强制覆盖所有可能的定位问题 */
+:deep(.el-drawer) {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+}
+
+:deep(.el-drawer__header) {
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+:deep(.el-drawer.rtl) {
+  z-index: 9999 !important;
 }
 </style>
 
