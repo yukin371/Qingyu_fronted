@@ -77,9 +77,9 @@
       class="rounded-[30px] border border-slate-200 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]"
     >
       <el-table :data="users" row-key="userId" v-loading="loading">
-        <el-table-column label="用户" min-width="220">
+        <el-table-column label="用户" min-width="220" align="center" header-align="center">
           <template #default="{ row }">
-            <div class="min-w-0">
+            <div class="min-w-0 text-center">
               <div class="truncate text-sm font-semibold text-slate-900">
                 {{ row.username || row.userId }}
               </div>
@@ -87,18 +87,18 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="角色 / 等级" min-width="160">
+        <el-table-column label="角色 / 等级" min-width="160" align="center" header-align="center">
           <template #default="{ row }">
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col items-center gap-2 text-center">
               <el-tag effect="plain">{{ row.role || 'unknown' }}</el-tag>
               <span class="text-xs text-slate-500">{{ row.memberLevel || 'normal' }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="使用率" min-width="220">
+        <el-table-column label="使用率" min-width="220" align="center" header-align="center">
           <template #default="{ row }">
-            <div>
-              <div class="mb-2 flex items-center justify-between text-xs text-slate-500">
+            <div class="mx-auto max-w-[220px] text-center">
+              <div class="mb-2 flex items-center justify-center gap-3 text-xs text-slate-500">
                 <span>{{ formatNumber(row.dailyUsed) }} / {{ formatNumber(row.dailyQuota) }}</span>
                 <span>{{ normalizePercent(row.usagePercent) }}%</span>
               </div>
@@ -110,16 +110,22 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="120">
+        <el-table-column label="状态" width="120" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" effect="dark">{{
               formatStatus(row.status)
             }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right">
+        <el-table-column
+          label="操作"
+          width="260"
+          fixed="right"
+          align="center"
+          header-align="center"
+        >
           <template #default="{ row }">
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap justify-center gap-2">
               <el-button link type="primary" @click="openDetail(row)">详情</el-button>
               <el-button link type="success" @click="openRecharge(row)">充值</el-button>
               <el-button link type="warning" @click="openAdjustQuota(row)">改配额</el-button>
@@ -136,14 +142,21 @@
       </el-table>
     </section>
 
-    <section class="flex justify-end">
-      <el-pagination
-        background
-        layout="prev, pager, next, total"
+    <section
+      v-if="pagination.total > 0"
+      class="flex flex-wrap items-center justify-center gap-4 rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:justify-between"
+    >
+      <div class="text-sm font-medium text-slate-500">
+        共 {{ pagination.total }} 条，当前第 {{ pagination.page }} 页
+      </div>
+      <Pagination
         :current-page="pagination.page"
         :page-size="pagination.size"
         :total="pagination.total"
-        @current-change="handlePageChange"
+        :background="true"
+        hide-on-single-page
+        layout="prev, pager, next"
+        @update:current-page="handlePageChange"
       />
     </section>
 
@@ -280,6 +293,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Pagination } from '@/design-system/data/Pagination'
 import { message, messageBox } from '@/design-system/services'
 import {
   activateQuotaUser,
