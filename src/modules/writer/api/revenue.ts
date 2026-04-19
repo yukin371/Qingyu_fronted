@@ -50,6 +50,34 @@ export interface RevenueSource {
   percentage: number
 }
 
+function extractItems<T = any>(raw: any): T[] {
+  if (Array.isArray(raw)) return raw
+  if (Array.isArray(raw?.items)) return raw.items
+  if (Array.isArray(raw?.list)) return raw.list
+  if (Array.isArray(raw?.data)) return raw.data
+  if (Array.isArray(raw?.data?.items)) return raw.data.items
+  if (Array.isArray(raw?.data?.list)) return raw.data.list
+  return []
+}
+
+function toNumber(value: unknown): number {
+  return Number(value ?? 0)
+}
+
+function formatRevenueSourceLabel(type: string): RevenueSource['label'] {
+  const map: Record<string, RevenueSource['label']> = {
+    chapter: '章节订阅',
+    subscription: '订阅收入',
+    reward: '打赏收入',
+    tip: '打赏收入',
+    vip_reading: 'VIP 阅读',
+    vip: 'VIP 阅读',
+    ad: '广告收入',
+    other: '其他收入',
+  }
+  return map[type] || '其他收入'
+}
+
 /**
  * 获取作家收入统计
  * @description 获取当前登录作家的收入统计概览，包括总收入、今日收入、可提现余额等
@@ -62,7 +90,7 @@ export interface RevenueSource {
  */
 export const getRevenueStats = (period: 'daily' | 'monthly' | 'yearly' = 'monthly') => {
   return httpService.get('/api/v1/finance/author/revenue-statistics', {
-    params: { period }
+    params: { period },
   })
 }
 
@@ -77,9 +105,20 @@ export const getRevenueStats = (period: 'daily' | 'monthly' | 'yearly' = 'monthl
  * @security BearerAuth
  */
 export const getRevenueTrend = (period: 'daily' | 'monthly' | 'yearly' = 'daily') => {
-  return httpService.get('/api/v1/finance/author/revenue-statistics', {
-    params: { period }
-  })
+  return httpService
+    .get('/api/v1/finance/author/revenue-statistics', {
+      params: { period },
+    })
+    .then((raw: any) =>
+      extractItems(raw).map(
+        (item: any): RevenueTrend => ({
+          date: item.period_start || item.periodStart || item.period || '',
+          revenue: toNumber(item.total_revenue ?? item.totalRevenue),
+          subscriptions: toNumber(item.transaction_count ?? item.transactionCount),
+          tips: toNumber(item.reward_income ?? item.rewardIncome),
+        }),
+      ),
+    )
 }
 
 /**
@@ -95,9 +134,35 @@ export const getRevenueTrend = (period: 'daily' | 'monthly' | 'yearly' = 'daily'
  * @security BearerAuth
  */
 export const getRevenueSources = (params?: { page?: number; page_size?: number }) => {
-  return httpService.get('/api/v1/finance/author/revenue-details', {
-    params: { page: params?.page ?? 1, page_size: params?.page_size ?? 100 }
-  })
+  return httpService
+    .get('/api/v1/finance/author/revenue-details', {
+      params: { page: params?.page ?? 1, page_size: params?.page_size ?? 100 },
+    })
+    .then((raw: any) => {
+      const items = extractItems(raw)
+      const totals = new Map<string, number>()
+
+      items.forEach((item: any) => {
+        const type = String(item.type || 'other')
+        const amount = toNumber(
+          item.total_income ?? item.totalIncome ?? item.total_amount ?? item.totalAmount,
+        )
+        totals.set(type, (totals.get(type) || 0) + amount)
+      })
+
+      const totalAmount = Array.from(totals.values()).reduce((sum, value) => sum + value, 0)
+
+      return Array.from(totals.entries()).map(
+        ([type, amount]): RevenueSource => ({
+          type: (['subscription', 'tip', 'ad', 'other'].includes(type)
+            ? type
+            : 'other') as RevenueSource['type'],
+          label: formatRevenueSourceLabel(type),
+          amount: Number(amount.toFixed(2)),
+          percentage: totalAmount > 0 ? Number(((amount / totalAmount) * 100).toFixed(2)) : 0,
+        }),
+      )
+    })
 }
 
 /**
@@ -112,10 +177,66 @@ export const getRevenueSources = (params?: { page?: number; page_size?: number }
  * @response {{items: ChapterRevenue[], total: number}} 200 - 成功返回章节收入排行数据
  * @security BearerAuth
  */
-export const getChapterRevenueRanking = (bookId: string, page: number = 1, pageSize: number = 20) => {
-  return httpService.get(`/api/v1/finance/author/earnings/${bookId}`, {
-    params: { page, page_size: pageSize }
+export const getChapterRevenueRanking = async (
+  bookId?: string,
+  page: number = 1,
+  pageSize: number = 20,
+): Promise<ChapterRevenue[]> => {
+  if (bookId) {
+    const raw = await httpService.get(`/api/v1/writer/books/${bookId}/top-chapters`, {
+      params: { page, size: pageSize },
+    })
+
+    return extractItems(raw).map(
+      (item: any, index: number): ChapterRevenue => ({
+        id: item.chapterId || item.chapter_id || `${bookId}-${index}`,
+        chapterTitle: item.chapterTitle || item.title || '未命名章节',
+        chapterNumber: Number(item.chapterNumber || index + 1),
+        views: toNumber(item.views ?? item.reads),
+        subscriptions: toNumber(item.subscriptions),
+        revenue: toNumber(item.revenue),
+        bookId,
+      }),
+    )
+  }
+
+  const raw = await httpService.get('/api/v1/finance/author/earnings', {
+    params: { page, page_size: 100 },
   })
+  const grouped = new Map<
+    string,
+    {
+      id: string
+      chapterTitle: string
+      chapterNumber: number
+      views: number
+      subscriptions: number
+      revenue: number
+      bookId?: string
+      bookTitle?: string
+    }
+  >()
+
+  extractItems(raw).forEach((item: any, index: number) => {
+    const chapterId = item.chapter_id || item.chapterId || `chapter-${index}`
+    const entry = grouped.get(chapterId) || {
+      id: chapterId,
+      chapterTitle: item.chapter_title || item.chapterTitle || '未命名章节',
+      chapterNumber: Number(item.chapter_number || index + 1),
+      views: 0,
+      subscriptions: 0,
+      revenue: 0,
+      bookId: item.book_id || item.bookId,
+      bookTitle: item.book_title || item.bookTitle,
+    }
+
+    entry.revenue += toNumber(item.amount ?? item.author_income ?? item.authorIncome)
+    grouped.set(chapterId, entry)
+  })
+
+  return Array.from(grouped.values())
+    .sort((left, right) => right.revenue - left.revenue)
+    .slice(0, pageSize)
 }
 
 /**
@@ -131,11 +252,7 @@ export const getChapterRevenueRanking = (bookId: string, page: number = 1, pageS
  * @response {{list: BookItem[], total: number}} 200 - 成功返回作品列表
  * @security BearerAuth
  */
-export function getWriterBooks(params?: {
-  page?: number
-  size?: number
-  status?: string
-}) {
+export function getWriterBooks(params?: { page?: number; size?: number; status?: string }) {
   return httpService.get<{
     list: Array<{
       id: string
@@ -188,7 +305,7 @@ export function getRevenueRecords(params?: {
  */
 export function getEarnings(params?: { page?: number; pageSize?: number }) {
   return httpService.get('/api/v1/finance/author/earnings', {
-    params: { page: params?.page ?? 1, page_size: params?.pageSize ?? 20 }
+    params: { page: params?.page ?? 1, page_size: params?.pageSize ?? 20 },
   })
 }
 
@@ -206,7 +323,7 @@ export function getEarnings(params?: { page?: number; pageSize?: number }) {
  */
 export function getWithdrawals(params?: { page?: number; pageSize?: number }) {
   return httpService.get('/api/v1/finance/author/withdrawals', {
-    params: { page: params?.page ?? 1, page_size: params?.pageSize ?? 20 }
+    params: { page: params?.page ?? 1, page_size: params?.pageSize ?? 20 },
   })
 }
 
@@ -254,6 +371,5 @@ export default {
   getRevenueRecords,
   getEarnings,
   getWithdrawals,
-  requestWithdraw
+  requestWithdraw,
 }
-

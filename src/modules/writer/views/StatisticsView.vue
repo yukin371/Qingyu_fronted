@@ -176,6 +176,12 @@ const selectedBookId = ref('')
 const viewsTrendRange = ref('30')
 const writerStore = useWriterStore()
 const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true'
+const EMPTY_STATS = {
+  totalViews: 0,
+  subscribers: 0,
+  favorites: 0,
+  comments: 0,
+}
 
 // 作品列表
 const books = ref<Array<{ id: string; title: string }>>([])
@@ -184,6 +190,23 @@ const books = ref<Array<{ id: string; title: string }>>([])
 const bookOptions = computed(() =>
   books.value.map((book) => ({ label: book.title, value: book.id })),
 )
+
+function extractItems<T = any>(raw: any): T[] {
+  if (Array.isArray(raw)) return raw
+  if (Array.isArray(raw?.items)) return raw.items
+  if (Array.isArray(raw?.list)) return raw.list
+  if (Array.isArray(raw?.data)) return raw.data
+  if (Array.isArray(raw?.data?.items)) return raw.data.items
+  if (Array.isArray(raw?.data?.list)) return raw.data.list
+  return []
+}
+
+function extractPayload<T = any>(raw: any): T | null {
+  if (!raw) return null
+  if (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) return raw.data as T
+  if (typeof raw === 'object' && !Array.isArray(raw)) return raw as T
+  return null
+}
 
 // 加载作品列表
 async function loadBooks(): Promise<void> {
@@ -227,8 +250,10 @@ async function loadBooks(): Promise<void> {
       return
     }
   } catch (error) {
-    console.warn('加载作品列表失败，使用模拟数据:', error)
-    // 使用模拟数据
+    console.warn('加载作品列表失败:', error)
+  }
+
+  if (books.value.length === 0 && isTestMode) {
     books.value = [
       { id: '1', title: '云岚纪事' },
       { id: '2', title: '云岚纪事·外传' },
@@ -238,14 +263,8 @@ async function loadBooks(): Promise<void> {
     return
   }
 
-  // 远端无可用数据时兜底 mock，避免页面不可用
   if (books.value.length === 0) {
-    books.value = [
-      { id: '1', title: '云岚纪事' },
-      { id: '2', title: '云岚纪事·外传' },
-    ]
-    selectedBookId.value = books.value[0].id
-    loadStatistics()
+    selectedBookId.value = ''
   }
 }
 
@@ -386,21 +405,18 @@ async function loadStatistics(): Promise<void> {
     if (isTestMode) {
       stats.value = getMockProfile().overview
     } else {
-      // 加载统计概览
       try {
-        const response: any = await getBookStats(selectedBookId.value)
-        if (response.data) {
-          stats.value = response.data
+        const response = await getBookStats(selectedBookId.value)
+        const payload = extractPayload(response)
+        stats.value = {
+          totalViews: Number(payload?.totalViews ?? payload?.total_views ?? 0),
+          subscribers: Number(payload?.subscribers ?? 0),
+          favorites: Number(payload?.favorites ?? 0),
+          comments: Number(payload?.comments ?? 0),
         }
       } catch (error) {
-        console.warn('加载统计概览失败，使用模拟数据:', error)
-        // 使用模拟数据
-        stats.value = {
-          totalViews: 125800,
-          subscribers: 8650,
-          favorites: 4520,
-          comments: 2180,
-        }
+        console.warn('加载统计概览失败，使用空数据:', error)
+        stats.value = { ...EMPTY_STATS }
       }
     }
   } catch (error: any) {
@@ -434,58 +450,42 @@ async function loadDailyStats(): Promise<void> {
 
     // 加载阅读量趋势
     try {
-      const viewsResponse: any = await getDailyStats(selectedBookId.value, days)
-      if (viewsResponse.data && Array.isArray(viewsResponse.data)) {
-        const dates = viewsResponse.data.map((item: any) => {
+      const viewsResponse = await getDailyStats(selectedBookId.value, days)
+      const viewItems = extractItems(viewsResponse)
+      if (viewItems.length > 0) {
+        const dates = viewItems.map((item: any) => {
           const d = new Date(item.date)
           return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
         })
-        const views = viewsResponse.data.map((item: any) => item.views)
+        const views = viewItems.map((item: any) => Number(item.views ?? item.dailyViews ?? 0))
         updateViewsChart(dates, views)
       } else {
         throw new Error('No data')
       }
     } catch (error) {
-      console.warn('加载阅读量趋势失败，使用模拟数据:', error)
-      // 使用模拟数据
-      const dates: string[] = []
-      const views: number[] = []
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        dates.push(date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }))
-        views.push(Math.floor(Math.random() * 3000 + 1000))
-      }
-      updateViewsChart(dates, views)
+      console.warn('加载阅读量趋势失败，使用空图表:', error)
+      updateViewsChart([], [])
     }
 
     // 加载订阅增长
     try {
-      const subsResponse: any = await getSubscribersTrend(selectedBookId.value, { days })
-      if (subsResponse.data && Array.isArray(subsResponse.data)) {
-        const dates = subsResponse.data.map((item: any) => {
+      const subsResponse = await getSubscribersTrend(selectedBookId.value, { days })
+      const subItems = extractItems(subsResponse)
+      if (subItems.length > 0) {
+        const dates = subItems.map((item: any) => {
           const d = new Date(item.date)
           return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
         })
-        const subscribers = subsResponse.data.map(
-          (item: any) => item.count || item.subscribers || 0,
+        const subscribers = subItems.map((item: any) =>
+          Number(item.count ?? item.subscribers ?? item.newSubscribers ?? 0),
         )
         updateSubscribersChart(dates, subscribers)
       } else {
         throw new Error('No data')
       }
     } catch (error) {
-      console.warn('加载订阅增长失败，使用模拟数据:', error)
-      // 使用模拟数据
-      const dates: string[] = []
-      const subscribers: number[] = []
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        dates.push(date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }))
-        subscribers.push(Math.floor(Math.random() * 100 + 50))
-      }
-      updateSubscribersChart(dates, subscribers)
+      console.warn('加载订阅增长失败，使用空图表:', error)
+      updateSubscribersChart([], [])
     }
   } catch (error) {
     console.error('加载每日统计失败:', error)
@@ -502,21 +502,19 @@ async function loadChaptersStats(): Promise<void> {
   }
 
   try {
-    const response: any = await getChapterStats(selectedBookId.value, 1, 10)
-    if (response.data && Array.isArray(response.data)) {
-      const chapters = response.data.map((item: any) => item.chapterTitle)
-      const views = response.data.map((item: any) => item.views)
+    const response = await getChapterStats(selectedBookId.value, 1, 10)
+    const items = extractItems(response)
+    if (items.length > 0) {
+      const chapters = items.map((item: any) => item.chapterTitle || item.title || '未命名章节')
+      const views = items.map((item: any) => Number(item.views ?? item.reads ?? 0))
       updateChaptersChart(chapters, views)
       return
     }
   } catch (error) {
-    console.warn('加载章节统计失败，使用模拟数据:', error)
+    console.warn('加载章节统计失败，使用空图表:', error)
   }
 
-  // 使用模拟数据
-  const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
-  const views = Array.from({ length: 10 }, () => Math.floor(Math.random() * 5000 + 1000))
-  updateChaptersChart(chapters, views)
+  updateChaptersChart([], [])
 }
 
 // 加载读者活跃度
@@ -528,27 +526,21 @@ async function loadReaderActivity(): Promise<void> {
   }
 
   try {
-    const response: any = await getReaderActivity(selectedBookId.value)
-    if (response.data && Array.isArray(response.data)) {
-      const data = response.data.map((item: any) => ({
-        value: item.count,
-        name: item.label,
+    const response = await getReaderActivity(selectedBookId.value)
+    const items = extractItems(response)
+    if (items.length > 0) {
+      const data = items.map((item: any) => ({
+        value: Number(item.count ?? 0),
+        name: item.label || item.type || '未知',
       }))
       updateReaderActivityChart(data)
       return
     }
   } catch (error) {
-    console.warn('加载读者活跃度失败，使用模拟数据:', error)
+    console.warn('加载读者活跃度失败，使用空图表:', error)
   }
 
-  // 使用模拟数据
-  const data = [
-    { value: 3580, name: '每日活跃' },
-    { value: 2150, name: '每周活跃' },
-    { value: 1850, name: '每月活跃' },
-    { value: 1070, name: '不活跃' },
-  ]
-  updateReaderActivityChart(data)
+  updateReaderActivityChart([])
 }
 
 // 加载阅读热力图
@@ -560,24 +552,18 @@ async function loadReadingHeatmap(): Promise<void> {
   }
 
   try {
-    const response: any = await getReadingHeatmap(selectedBookId.value)
-    if (response.data && Array.isArray(response.data)) {
-      const heatmapData = response.data.map((item: any) => [item.hour, item.day, item.value])
+    const response = await getReadingHeatmap(selectedBookId.value)
+    const items = extractItems(response)
+    if (items.length > 0) {
+      const heatmapData = items.map((item: any) => [item.hour, item.day, item.value])
       updateHeatmapChart(heatmapData)
       return
     }
   } catch (error) {
-    console.warn('加载阅读热力图失败，使用模拟数据:', error)
+    console.warn('加载阅读热力图失败，使用空图表:', error)
   }
 
-  // 使用模拟数据
-  const heatmapData: number[][] = []
-  for (let hour = 0; hour < 24; hour++) {
-    for (let day = 0; day < 7; day++) {
-      heatmapData.push([hour, day, Math.floor(Math.random() * 500)])
-    }
-  }
-  updateHeatmapChart(heatmapData)
+  updateHeatmapChart([])
 }
 
 // 初始化所有图表
@@ -687,10 +673,6 @@ function initChaptersChart(): void {
   chaptersChart =
     echarts.getInstanceByDom(chaptersChartRef.value) || echarts.init(chaptersChartRef.value)
 
-  // 模拟数据
-  const chapters = Array.from({ length: 10 }, (_, i) => `第${i + 1}章`)
-  const views = Array.from({ length: 10 }, () => Math.floor(Math.random() * 5000 + 1000))
-
   const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
@@ -703,13 +685,13 @@ function initChaptersChart(): void {
     },
     yAxis: {
       type: 'category',
-      data: chapters.reverse(),
+      data: [],
     },
     series: [
       {
         name: '阅读量',
         type: 'bar',
-        data: views.reverse(),
+        data: [],
         itemStyle: {
           color: new graphic.LinearGradient(0, 0, 1, 0, [
             { offset: 0, color: '#E6A23C' },
@@ -772,12 +754,7 @@ function initReaderActivityChart(): void {
           show: true,
           formatter: '{b}: {d}%',
         },
-        data: [
-          { value: 1048, name: '活跃用户', itemStyle: { color: '#67C23A' } },
-          { value: 735, name: '一般用户', itemStyle: { color: '#409EFF' } },
-          { value: 580, name: '沉默用户', itemStyle: { color: '#E6A23C' } },
-          { value: 484, name: '流失用户', itemStyle: { color: '#F56C6C' } },
-        ],
+        data: [],
       },
     ],
   }
@@ -806,13 +783,6 @@ function initHeatmapChart(): void {
 
   const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  const data = []
-
-  for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < 24; j++) {
-      data.push([j, i, Math.floor(Math.random() * 100)])
-    }
-  }
 
   const option: EChartsOption = {
     tooltip: {
@@ -851,7 +821,7 @@ function initHeatmapChart(): void {
       {
         name: '阅读量',
         type: 'heatmap',
-        data: data,
+        data: [],
         label: {
           show: false,
         },

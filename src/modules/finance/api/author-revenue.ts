@@ -183,7 +183,9 @@ function normalizePagedResult<T>(
 
 function normalizeAuthorEarning(raw: any): AuthorEarning {
   const amountCents = toCents(raw?.author_income_cents ?? raw?.author_income ?? raw?.amount)
-  const grossAmountCents = toCents(raw?.amount_cents ?? raw?.gross_amount_cents ?? raw?.gross_amount)
+  const grossAmountCents = toCents(
+    raw?.amount_cents ?? raw?.gross_amount_cents ?? raw?.gross_amount,
+  )
   const platformFeeCents = toCents(raw?.platform_fee_cents ?? raw?.platform_fee)
 
   return {
@@ -340,13 +342,15 @@ function normalizeTaxInfo(raw: any): TaxInfo {
   }
 }
 
-export async function getAuthorEarnings(params: {
-  page?: number
-  page_size?: number
-  book_id?: string
-  type?: string
-  status?: string
-} = {}): Promise<PaginatedFinanceResult<AuthorEarning>> {
+export async function getAuthorEarnings(
+  params: {
+    page?: number
+    page_size?: number
+    book_id?: string
+    type?: string
+    status?: string
+  } = {},
+): Promise<PaginatedFinanceResult<AuthorEarning>> {
   const page = params.page ?? 1
   const pageSize = params.page_size ?? 20
   const raw = await httpService.get<any>('/api/v1/finance/author/earnings', {
@@ -362,10 +366,12 @@ export async function getAuthorEarnings(params: {
   return normalizePagedResult(raw, page, pageSize, normalizeAuthorEarning)
 }
 
-export async function getRevenueStatistics(params: {
-  period?: string
-  limit?: number
-} = {}): Promise<RevenueStatistics[]> {
+export async function getRevenueStatistics(
+  params: {
+    period?: string
+    limit?: number
+  } = {},
+): Promise<RevenueStatistics[]> {
   const raw = await httpService.get<any>('/api/v1/finance/author/revenue-statistics', {
     params,
   })
@@ -373,10 +379,12 @@ export async function getRevenueStatistics(params: {
   return extractItems(raw).map(normalizeRevenueStatistics)
 }
 
-export async function getRevenueDetails(params: {
-  page?: number
-  page_size?: number
-} = {}): Promise<PaginatedFinanceResult<RevenueDetail>> {
+export async function getRevenueDetails(
+  params: {
+    page?: number
+    page_size?: number
+  } = {},
+): Promise<PaginatedFinanceResult<RevenueDetail>> {
   const page = params.page ?? 1
   const pageSize = params.page_size ?? 20
   const raw = await httpService.get<any>('/api/v1/finance/author/revenue-details', {
@@ -386,11 +394,13 @@ export async function getRevenueDetails(params: {
   return normalizePagedResult(raw, page, pageSize, normalizeRevenueDetail)
 }
 
-export async function getWithdrawalRequests(params: {
-  page?: number
-  page_size?: number
-  status?: string
-} = {}): Promise<PaginatedFinanceResult<WithdrawalRequest>> {
+export async function getWithdrawalRequests(
+  params: {
+    page?: number
+    page_size?: number
+    status?: string
+  } = {},
+): Promise<PaginatedFinanceResult<WithdrawalRequest>> {
   const page = params.page ?? 1
   const pageSize = params.page_size ?? 20
   const raw = await httpService.get<any>('/api/v1/finance/author/withdrawals', {
@@ -411,10 +421,12 @@ export async function createWithdrawal(
   return normalizeWithdrawalRequest(raw)
 }
 
-export async function getSettlements(params: {
-  page?: number
-  page_size?: number
-} = {}): Promise<PaginatedFinanceResult<Settlement>> {
+export async function getSettlements(
+  params: {
+    page?: number
+    page_size?: number
+  } = {},
+): Promise<PaginatedFinanceResult<Settlement>> {
   const page = params.page ?? 1
   const pageSize = params.page_size ?? 20
   const raw = await httpService.get<any>('/api/v1/finance/author/settlements', {
@@ -445,10 +457,11 @@ export async function updateTaxInfo(data: {
 }
 
 export async function getRevenueOverview(): Promise<RevenueOverview> {
-  const [earnings, withdrawals, statistics] = await Promise.all([
+  const [earnings, withdrawals, monthlyStatistics, dailyStatistics] = await Promise.all([
     getAuthorEarnings({ page: 1, page_size: 100 }),
     getWithdrawalRequests({ page: 1, page_size: 100 }),
     getRevenueStatistics({ period: 'monthly' }),
+    getRevenueStatistics({ period: 'daily', limit: 1 }),
   ])
 
   const totalEarnings = earnings.items.reduce((sum, item) => sum + item.amount, 0)
@@ -458,11 +471,10 @@ export async function getRevenueOverview(): Promise<RevenueOverview> {
   const paidAmount = withdrawals.items
     .filter((item) => item.status === 'completed' || item.status === 'approved')
     .reduce((sum, item) => sum + item.actualAmount, 0)
-  const monthEarnings = statistics[0]?.totalRevenue ?? 0
-  const todayStat = statistics.find((item) => item.period === 'daily')
-  const todayEarnings = todayStat?.totalRevenue ?? 0
-  const totalReaders = Math.max(...statistics.map((item) => item.readerCount), 0)
-  const totalBooks = Math.max(...statistics.map((item) => item.bookCount), 0)
+  const monthEarnings = monthlyStatistics[0]?.totalRevenue ?? 0
+  const todayEarnings = dailyStatistics[0]?.totalRevenue ?? 0
+  const totalReaders = Math.max(...monthlyStatistics.map((item) => item.readerCount), 0)
+  const totalBooks = Math.max(...monthlyStatistics.map((item) => item.bookCount), 0)
 
   return {
     totalEarnings: Number(totalEarnings.toFixed(2)),
@@ -477,9 +489,11 @@ export async function getRevenueOverview(): Promise<RevenueOverview> {
   }
 }
 
-export async function getDailyEarnings(params: {
-  limit?: number
-} = {}): Promise<Array<{ date: string; amount: number; orders: number }>> {
+export async function getDailyEarnings(
+  params: {
+    limit?: number
+  } = {},
+): Promise<Array<{ date: string; amount: number; orders: number }>> {
   const statistics = await getRevenueStatistics({ period: 'daily', limit: params.limit })
   return statistics.map((item) => ({
     date: item.periodStart ?? item.period,
@@ -488,9 +502,11 @@ export async function getDailyEarnings(params: {
   }))
 }
 
-export async function getMonthlyEarnings(params: {
-  limit?: number
-} = {}): Promise<Array<{ month: string; amount: number; orders: number }>> {
+export async function getMonthlyEarnings(
+  params: {
+    limit?: number
+  } = {},
+): Promise<Array<{ month: string; amount: number; orders: number }>> {
   const statistics = await getRevenueStatistics({ period: 'monthly', limit: params.limit })
   return statistics.map((item) => ({
     month: item.periodStart ?? item.period,

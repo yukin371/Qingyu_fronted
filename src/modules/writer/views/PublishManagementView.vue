@@ -28,6 +28,17 @@
                 >
               </div>
             </div>
+            <div class="stats-source-note" :class="{ 'is-warning': hasPublishStatsWarning }">
+              <Tag
+                size="sm"
+                :variant="hasPublishStatsWarning ? 'warning' : 'success'"
+                effect="plain"
+                :round="true"
+              >
+                {{ publishStatsSourceTag }}
+              </Tag>
+              <span>{{ publishStatsNotice }}</span>
+            </div>
           </div>
         </QyCol>
 
@@ -178,7 +189,7 @@ import { message } from '@/design-system/services'
 import { useWriterStore } from '@/modules/writer/stores/writerStore'
 import { useDocumentStore } from '@/modules/writer/stores/documentStore'
 import { QyIcon, QyRow, QyCol, QyButton } from '@/design-system/components'
-import { Card } from '@/design-system/base'
+import { Card, Tag } from '@/design-system/base'
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import {
   getPublicationDetail,
@@ -217,16 +228,11 @@ interface LocalProject {
   wordCount?: number
 }
 
-// 基础状态
-const route = useRoute()
-const writerStore = useWriterStore()
-const documentStore = useDocumentStore()
-const bookId = ref('')
-const loadingStats = ref(false)
-const activeTab = ref('plan')
+type PublishStatsFieldKey = 'total_chapters' | 'draft_chapters' | 'total_words' | 'published_words'
 
-// 统计数据
-const stats = reactive<PublishStats>({
+type PublishStatsSource = 'idle' | 'mock' | 'api' | 'api+estimated' | 'api-error'
+
+const emptyPublishStats: PublishStats = {
   total_chapters: 0,
   published_chapters: 0,
   draft_chapters: 0,
@@ -234,7 +240,34 @@ const stats = reactive<PublishStats>({
   scheduled_chapters: 0,
   total_words: 0,
   published_words: 0,
+}
+
+const publishStatsFieldLabels: Record<PublishStatsFieldKey, string> = {
+  total_chapters: '总章节',
+  draft_chapters: '草稿章节',
+  total_words: '总字数',
+  published_words: '已发布字数',
+}
+
+// 基础状态
+const route = useRoute()
+const writerStore = useWriterStore()
+const documentStore = useDocumentStore()
+const bookId = ref('')
+const loadingStats = ref(false)
+const activeTab = ref('plan')
+const statsMeta = reactive<{
+  source: PublishStatsSource
+  estimatedFields: PublishStatsFieldKey[]
+  errorMessage: string
+}>({
+  source: 'idle',
+  estimatedFields: [],
+  errorMessage: '',
 })
+
+// 统计数据
+const stats = reactive<PublishStats>({ ...emptyPublishStats })
 const reviewDetailDialogVisible = ref(false)
 const currentReviewDetail = ref<ReviewDetail | null>(null)
 const currentReviewRecord = ref<PublishRecord | null>(null)
@@ -245,6 +278,34 @@ const currentLocalProject = computed<LocalProject>(
 )
 
 const isMockProjectContext = computed(() => String(route.query.test || '').toLowerCase() === 'true')
+const hasPublishStatsWarning = computed(
+  () => statsMeta.source === 'api+estimated' || statsMeta.source === 'api-error',
+)
+const estimatedFieldLabels = computed(() =>
+  statsMeta.estimatedFields.map((field) => publishStatsFieldLabels[field]),
+)
+const publishStatsSourceTag = computed(() => {
+  if (statsMeta.source === 'mock') return 'Mock 数据'
+  if (statsMeta.source === 'api+estimated') return '部分估算'
+  if (statsMeta.source === 'api-error') return '接口异常'
+  if (statsMeta.source === 'api') return '接口数据'
+  return '待加载'
+})
+const publishStatsNotice = computed(() => {
+  if (statsMeta.source === 'mock') {
+    return '当前处于 test=true 模式，统计数据使用 Mock 发布上下文。'
+  }
+  if (statsMeta.source === 'api+estimated') {
+    return `部分统计缺少后端字段，已根据本地章节树估算：${estimatedFieldLabels.value.join('、')}。`
+  }
+  if (statsMeta.source === 'api-error') {
+    return statsMeta.errorMessage || '发布统计接口加载失败，当前显示为空值。'
+  }
+  if (statsMeta.source === 'api') {
+    return '发布统计已直接使用后端接口返回。'
+  }
+  return '正在加载发布统计。'
+})
 
 // 使用 Composables
 const {
@@ -305,12 +366,26 @@ const internalNavItems = computed(() => [
 ])
 
 // 加载统计
+const resetStatsMeta = () => {
+  statsMeta.source = 'idle'
+  statsMeta.estimatedFields = []
+  statsMeta.errorMessage = ''
+}
+
+const toStatNumber = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') return null
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
 const loadStats = async () => {
   if (!bookId.value) return
   loadingStats.value = true
+  resetStatsMeta()
   try {
     if (isMockProjectContext.value) {
       Object.assign(stats, computeMockStats(bookId.value))
+      statsMeta.source = 'mock'
       return
     }
     const res = await getPublishStats(bookId.value)
@@ -319,28 +394,51 @@ const loadStats = async () => {
     const fallbackTotalWords =
       chapterDocs.value.reduce((sum, doc) => sum + Number(doc.wordCount || 0), 0) ||
       Number(currentLocalProject.value?.wordCount || 0)
+    const estimatedFields: PublishStatsFieldKey[] = []
+
+    const publishedChapters = toStatNumber(res.published_chapters) ?? 0
+    const pendingReviewChapters = toStatNumber(res.pending_review_chapters) ?? 0
+    const scheduledChapters = toStatNumber(res.scheduled_chapters) ?? 0
+
+    const totalChaptersRaw = toStatNumber(res.total_chapters)
+    const totalChapters = totalChaptersRaw ?? fallbackTotalChapters
+    if (totalChaptersRaw === null) estimatedFields.push('total_chapters')
+
+    const totalWordsRaw = toStatNumber(res.total_words)
+    const totalWords = totalWordsRaw ?? fallbackTotalWords
+    if (totalWordsRaw === null) estimatedFields.push('total_words')
+
+    const publishedWordsRaw = toStatNumber(res.published_words)
+    const publishedWords =
+      publishedWordsRaw ?? Math.floor(totalWords * (publishedChapters / Math.max(totalChapters, 1)))
+    if (publishedWordsRaw === null) estimatedFields.push('published_words')
+
+    const draftChaptersRaw = toStatNumber(res.draft_chapters)
+    const draftChapters =
+      draftChaptersRaw ??
+      Math.max(0, totalChapters - publishedChapters - pendingReviewChapters - scheduledChapters)
+    if (draftChaptersRaw === null) estimatedFields.push('draft_chapters')
 
     Object.assign(stats, {
       ...res,
-      total_chapters: Number(res.total_chapters || fallbackTotalChapters),
-      total_words: Number(res.total_words || fallbackTotalWords),
-      published_words:
-        Number(res.published_words || 0) ||
-        Math.floor(
-          fallbackTotalWords *
-            (Number(res.published_chapters || 0) /
-              Math.max(Number(res.total_chapters || fallbackTotalChapters), 1)),
-        ),
-      draft_chapters: Math.max(
-        0,
-        Number(res.total_chapters || fallbackTotalChapters) -
-          Number(res.published_chapters || 0) -
-          Number(res.pending_review_chapters || 0) -
-          Number(res.scheduled_chapters || 0),
-      ),
+      total_chapters: totalChapters,
+      published_chapters: publishedChapters,
+      draft_chapters: draftChapters,
+      pending_review_chapters: pendingReviewChapters,
+      scheduled_chapters: scheduledChapters,
+      total_words: totalWords,
+      published_words: publishedWords,
     } satisfies PublishStats)
+    statsMeta.source = estimatedFields.length > 0 ? 'api+estimated' : 'api'
+    statsMeta.estimatedFields = estimatedFields
   } catch (error: unknown) {
     console.error('加载统计失败', error)
+    Object.assign(stats, { ...emptyPublishStats })
+    statsMeta.source = 'api-error'
+    statsMeta.errorMessage =
+      error instanceof Error && error.message
+        ? `发布统计接口加载失败：${error.message}`
+        : '发布统计接口加载失败，当前显示为空值。'
   } finally {
     loadingStats.value = false
   }
@@ -570,6 +668,25 @@ onMounted(() => {
 <style scoped lang="scss">
 .publish-management-view {
   padding: 0;
+}
+
+.stats-source-note {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  background: rgba(240, 253, 244, 0.9);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #334155;
+
+  &.is-warning {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(255, 251, 235, 0.94);
+  }
 }
 
 .content-grid {

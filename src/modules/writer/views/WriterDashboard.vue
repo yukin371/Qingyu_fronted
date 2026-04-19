@@ -28,6 +28,24 @@
       </div>
     </div>
 
+    <div class="data-status-banner" :class="{ 'is-degraded': hasDashboardDegraded }">
+      <div class="status-main">
+        <Tag
+          size="sm"
+          :variant="hasDashboardDegraded ? 'warning' : 'success'"
+          effect="plain"
+          :round="true"
+        >
+          {{ hasDashboardDegraded ? '部分降级' : '接口数据' }}
+        </Tag>
+        <span class="status-summary">{{ dashboardDataSummary }}</span>
+      </div>
+      <div class="status-items">
+        <span>概览：{{ dashboardOverviewSourceLabel }}</span>
+        <span>今日码字：{{ dashboardTodayWordsSourceLabel }}</span>
+      </div>
+    </div>
+
     <div class="main-content-grid">
       <!-- 左侧主要区域 -->
       <div class="left-pane">
@@ -174,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import type { ProjectSummary } from '@/modules/writer/api/project'
@@ -194,10 +212,20 @@ const router = useRouter()
 const authStore = useAuthStore()
 const projectStore = useProjectStore()
 
+type DashboardOverviewSource = 'api' | 'projects-fallback' | 'unavailable'
+type DashboardTodayWordsSource = 'overview' | 'today-api' | 'local-fallback' | 'unavailable'
+
 // 状态
 const loadingProjects = ref(false)
 const writingGoal = ref(2000)
 const userName = computed(() => authStore.user?.nickname || authStore.user?.username || '作家')
+const dashboardDataState = reactive<{
+  overviewSource: DashboardOverviewSource
+  todayWordsSource: DashboardTodayWordsSource
+}>({
+  overviewSource: 'unavailable',
+  todayWordsSource: 'unavailable',
+})
 
 // 统计数据
 const stats = ref({
@@ -254,6 +282,42 @@ const goalColor = computed(() => {
 // 获取最近项目
 const recentProjects = computed(() => (projectStore.projects || []).slice(0, 5)) // 假设 Store 已按时间排序
 
+const hasDashboardDegraded = computed(
+  () =>
+    dashboardDataState.overviewSource !== 'api' ||
+    dashboardDataState.todayWordsSource === 'local-fallback',
+)
+
+const dashboardOverviewSourceLabel = computed(() => {
+  if (dashboardDataState.overviewSource === 'api') return '后端统计接口'
+  if (dashboardDataState.overviewSource === 'projects-fallback') return '项目列表本地汇总'
+  return '暂无可用数据'
+})
+
+const dashboardTodayWordsSourceLabel = computed(() => {
+  if (dashboardDataState.todayWordsSource === 'overview') return '仪表盘统计接口'
+  if (dashboardDataState.todayWordsSource === 'today-api') return '今日字数接口'
+  if (dashboardDataState.todayWordsSource === 'local-fallback') return '本地写作记录估算'
+  return '暂无可用数据'
+})
+
+const dashboardDataSummary = computed(() => {
+  if (!hasDashboardDegraded.value) {
+    return '当前卡片数据已直接使用作者侧真实统计接口。'
+  }
+  const messages: string[] = []
+  if (dashboardDataState.overviewSource === 'projects-fallback') {
+    messages.push('概览卡片已降级为项目列表汇总')
+  }
+  if (dashboardDataState.todayWordsSource === 'local-fallback') {
+    messages.push('今日码字已降级为本地写作记录估算')
+  }
+  if (messages.length === 0) {
+    messages.push('当前部分统计暂不可用')
+  }
+  return messages.join('；')
+})
+
 // 初始化加载
 onMounted(async () => {
   loadingProjects.value = true
@@ -268,6 +332,10 @@ onMounted(async () => {
         stats.value.todayWords = overview.todayWords || 0
         stats.value.pending = overview.activeProjects || 0
         overviewLoaded = true
+        dashboardDataState.overviewSource = 'api'
+        if (stats.value.todayWords > 0) {
+          dashboardDataState.todayWordsSource = 'overview'
+        }
       }
     } catch {
       // dashboard overview API 不可用，使用项目列表计算
@@ -286,6 +354,7 @@ onMounted(async () => {
       stats.value.pending = projects.filter(
         (p: ProjectSummary) => p.status === 'serializing',
       ).length
+      dashboardDataState.overviewSource = projects.length > 0 ? 'projects-fallback' : 'unavailable'
     }
 
     // 今日码字：后端API优先，无则前端本地计算
@@ -294,14 +363,19 @@ onMounted(async () => {
         const todayStats = await getTodayWordsStats()
         if (todayStats && todayStats.todayWords > 0) {
           stats.value.todayWords = todayStats.todayWords
+          dashboardDataState.todayWordsSource = 'today-api'
         } else {
           // 后端无数据，使用本地计算
           stats.value.todayWords = getGlobalTodayWords()
+          dashboardDataState.todayWordsSource = 'local-fallback'
         }
       } catch {
         // API 调用失败，使用本地计算
         stats.value.todayWords = getGlobalTodayWords()
+        dashboardDataState.todayWordsSource = 'local-fallback'
       }
+    } else if (dashboardDataState.todayWordsSource === 'unavailable') {
+      dashboardDataState.todayWordsSource = 'overview'
     }
   } catch (error) {
     console.error('[WriterDashboard] 加载项目列表失败:', error)
@@ -444,6 +518,37 @@ const editGoal = () => {
       color: var(--el-text-color-secondary);
       margin-top: 4px;
     }
+  }
+}
+
+.data-status-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: -8px 0 24px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  background: rgba(240, 253, 244, 0.9);
+
+  &.is-degraded {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(255, 251, 235, 0.94);
+  }
+
+  .status-main,
+  .status-items {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .status-summary,
+  .status-items {
+    font-size: 13px;
+    color: var(--el-text-color-regular);
   }
 }
 
@@ -744,6 +849,11 @@ const editGoal = () => {
 
 @media (max-width: 768px) {
   .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .data-status-banner {
     flex-direction: column;
     align-items: flex-start;
   }

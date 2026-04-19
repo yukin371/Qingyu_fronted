@@ -175,7 +175,9 @@ function normalizeList<T>(
 
 export const walletAPI = {
   async getBalance(): Promise<Pick<WalletInfo, 'balance' | 'balanceCents'>> {
-    const raw = await httpService.get<number | { balance?: number }>('/api/v1/finance/wallet/balance')
+    const raw = await httpService.get<number | { balance?: number }>(
+      '/api/v1/finance/wallet/balance',
+    )
     const balanceCents =
       typeof raw === 'number' ? toCents(raw) : toCents((raw as { balance?: number })?.balance)
 
@@ -186,7 +188,7 @@ export const walletAPI = {
   },
 
   async getWallet(): Promise<WalletInfo> {
-    const raw = await httpService.get<any>('/api/v1/finance/wallet/detail')
+    const raw = await httpService.get<any>('/api/v1/finance/wallet')
     return normalizeWallet(raw)
   },
 
@@ -244,7 +246,7 @@ export const walletAPI = {
   }): Promise<WalletListResult<WalletWithdrawal>> {
     const page = params?.page ?? 1
     const pageSize = params?.pageSize ?? 20
-    const raw = await httpService.get<any>('/api/v1/finance/wallet/withdraws', {
+    const raw = await httpService.get<any>('/api/v1/finance/wallet/withdrawals', {
       params: {
         page,
         page_size: pageSize,

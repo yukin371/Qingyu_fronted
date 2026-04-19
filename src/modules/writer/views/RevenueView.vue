@@ -167,6 +167,73 @@
             <el-table-column prop="remark" label="备注" min-width="200" />
           </el-table>
         </Card>
+
+        <!-- 钱包摘要 -->
+        <Card class="wallet-card" padding="none">
+          <template #header>
+            <span style="padding: 14px 18px 12px; display: inline-block">钱包摘要</span>
+          </template>
+          <div class="wallet-summary">
+            <div class="wallet-summary-grid">
+              <div class="wallet-summary-item">
+                <span class="wallet-summary-label">钱包余额</span>
+                <span class="wallet-summary-value">¥ {{ formatAmount(walletInfo.balance) }}</span>
+              </div>
+              <div class="wallet-summary-item">
+                <span class="wallet-summary-label">可用余额</span>
+                <span class="wallet-summary-value success"
+                  >¥ {{ formatAmount(walletInfo.availableAmount) }}</span
+                >
+              </div>
+              <div class="wallet-summary-item">
+                <span class="wallet-summary-label">冻结金额</span>
+                <span class="wallet-summary-value warning"
+                  >¥ {{ formatAmount(walletInfo.frozenAmount) }}</span
+                >
+              </div>
+            </div>
+
+            <div class="wallet-transactions">
+              <div class="wallet-transactions-header">
+                <span>最近流水</span>
+                <span v-if="walletLoading" class="wallet-meta">加载中...</span>
+              </div>
+
+              <Empty
+                v-if="!walletLoading && walletTransactions.length === 0"
+                description="暂无钱包流水"
+              />
+
+              <div v-else class="wallet-transaction-list">
+                <div
+                  v-for="item in walletTransactions"
+                  :key="item.id"
+                  class="wallet-transaction-item"
+                >
+                  <div class="wallet-transaction-main">
+                    <div class="wallet-transaction-title">
+                      {{ item.description || item.reason || item.type }}
+                    </div>
+                    <div class="wallet-transaction-time">
+                      {{ item.createdAt || item.transactionTime || '-' }}
+                    </div>
+                  </div>
+                  <div class="wallet-transaction-side">
+                    <span
+                      class="wallet-transaction-amount"
+                      :class="{ expense: item.amount < 0, income: item.amount >= 0 }"
+                    >
+                      {{ item.amount >= 0 ? '+' : '' }}¥ {{ formatAmount(Math.abs(item.amount)) }}
+                    </span>
+                    <span class="wallet-transaction-balance">
+                      余额 ¥ {{ formatAmount(item.balance) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <!-- 提现对话框 -->
@@ -244,22 +311,24 @@ import type { QyValidationRule } from '@/design-system/components/advanced/QyFor
 import WriterPageShell from '@/modules/writer/components/WriterPageShell.vue'
 import { echarts, graphic } from '@/utils/echarts'
 import type { ECharts, EChartsOption } from '@/utils/echarts'
-// FormInstance / FormRules are no longer imported from element-plus
-// QyForm provides its own validate interface
 import {
-  getRevenueStats,
   getRevenueTrend as getRevenueTrendAPI,
   getRevenueSources,
   getChapterRevenueRanking,
-  type RevenueStats as RevenueStatsType,
+  getWriterBooks,
+  type RevenueTrend,
+  type RevenueSource,
   type ChapterRevenue,
 } from '@/modules/writer/api/revenue'
+import { walletAPI, type WalletInfo, type WalletTransaction } from '@/modules/finance/api/wallet'
 import { createWithdrawal, getRevenueOverview, getWithdrawalRequests } from '@/modules/finance/api'
+import { useWriterStore } from '@/modules/writer/stores/writerStore'
 
 const loading = ref(false)
 const withdrawing = ref(false)
 const selectedBookId = ref('all')
 const trendRange = ref('30')
+const writerStore = useWriterStore()
 
 const resolveTrendPeriod = (range: string): 'daily' | 'monthly' | 'yearly' => {
   const days = Number.parseInt(range, 10)
@@ -281,10 +350,7 @@ watch(localWithdrawVisible, (v) => {
 })
 
 // 作品列表
-const books = ref([
-  { id: '1', title: '示例作品1' },
-  { id: '2', title: '示例作品2' },
-])
+const books = ref<Array<{ id: string; title: string }>>([])
 
 // 作品选项（用于 QySelect）
 const bookOptions = computed(() => [
@@ -299,6 +365,22 @@ const revenueStats = ref({
   availableBalance: 0,
   totalWithdrawn: 0,
 })
+const walletLoading = ref(false)
+const walletInfo = ref<WalletInfo>({
+  userId: '',
+  balance: 0,
+  balanceCents: 0,
+  availableAmount: 0,
+  availableAmountCents: 0,
+  frozenAmount: 0,
+  frozenAmountCents: 0,
+  totalIncome: 0,
+  totalIncomeCents: 0,
+  totalExpense: 0,
+  totalExpenseCents: 0,
+  frozen: false,
+})
+const walletTransactions = ref<WalletTransaction[]>([])
 
 // 章节收入排行
 const chapterRanking = ref<ChapterRevenue[]>([])
@@ -386,46 +468,6 @@ function getStatusLabel(status: string): string {
   return labelMap[status] || status
 }
 
-function stableHash(input: string): number {
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash * 31 + input.charCodeAt(i)) >>> 0
-  }
-  return hash
-}
-
-function mockChapterRecord(bookId: string, bookTitle: string, chapterNo: number): ChapterRevenue {
-  const base = stableHash(`${bookId}-${chapterNo}`)
-  const views = 1200 + (base % 9800)
-  const subscriptions = 80 + (base % 1200)
-  const revenue = Number((subscriptions * (1.1 + (base % 9) * 0.08)).toFixed(2))
-  return {
-    id: `${bookId}-${chapterNo}`,
-    chapterTitle: `${bookTitle} · 第${chapterNo}章`,
-    chapterNumber: chapterNo,
-    views,
-    subscriptions,
-    revenue,
-    bookId,
-    bookTitle,
-  }
-}
-
-function buildMockChapterRanking(targetBookId?: string): ChapterRevenue[] {
-  const targetBooks = targetBookId ? books.value.filter((b) => b.id === targetBookId) : books.value
-
-  if (!targetBooks.length) return []
-
-  const pool: ChapterRevenue[] = []
-  targetBooks.forEach((book) => {
-    for (let i = 1; i <= 6; i++) {
-      pool.push(mockChapterRecord(book.id, book.title, i))
-    }
-  })
-
-  return pool.sort((a, b) => b.revenue - a.revenue).slice(0, 10)
-}
-
 function isStatsEmpty(stats: {
   totalRevenue: number
   todayRevenue: number
@@ -438,13 +480,6 @@ function isStatsEmpty(stats: {
     Number(stats.availableBalance || 0) <= 0 &&
     Number(stats.totalWithdrawn || 0) <= 0
   )
-}
-
-function normalizeRevenueStatsPayload(raw: any): RevenueStatsType | null {
-  const payload = raw?.data?.data ?? raw?.data ?? raw
-  if (!payload || typeof payload !== 'object') return null
-  if (typeof payload.totalRevenue !== 'number') return null
-  return payload as RevenueStatsType
 }
 
 function syncStatsWithTrendIfNeeded(revenues: number[]): void {
@@ -464,6 +499,41 @@ function syncStatsWithTrendIfNeeded(revenues: number[]): void {
   }
 }
 
+// 加载作品列表
+async function loadBooks(): Promise<void> {
+  try {
+    await writerStore.fetchProjects()
+    const localBooks = (writerStore.projectList || [])
+      .map((project: any) => ({
+        id: project.projectId || project.id || '',
+        title: project.title || project.name || '未命名作品',
+      }))
+      .filter((book) => !!book.id)
+
+    if (localBooks.length > 0) {
+      books.value = localBooks
+      return
+    }
+  } catch (error) {
+    console.warn('从 writerStore 加载作品失败，回退远端接口:', error)
+  }
+
+  try {
+    const response = await getWriterBooks({ page: 1, size: 100 })
+    const remoteList = response.list || []
+
+    books.value = remoteList
+      .map((book: any) => ({
+        id: book.id || book.projectId || book.bookId || '',
+        title: book.title || book.name || '未命名作品',
+      }))
+      .filter((book) => !!book.id)
+  } catch (error) {
+    console.warn('加载作品列表失败:', error)
+    books.value = []
+  }
+}
+
 // 加载收入数据
 async function loadRevenue(): Promise<void> {
   loading.value = true
@@ -472,7 +542,6 @@ async function loadRevenue(): Promise<void> {
 
     // 加载收入统计
     try {
-      // 当前后端接口不接收 bookId 参数，按作者维度返回
       const summary = await getRevenueOverview()
       revenueStats.value = {
         totalRevenue: Number(summary.totalEarnings || 0),
@@ -480,80 +549,40 @@ async function loadRevenue(): Promise<void> {
         availableBalance: Number(summary.withdrawableAmount || 0),
         totalWithdrawn: Number(summary.paidAmount || 0),
       }
-      const statsResponse: any = await getRevenueStats()
-      const normalized = normalizeRevenueStatsPayload(statsResponse)
-      if (normalized && isStatsEmpty(revenueStats.value)) {
-        revenueStats.value = {
-          totalRevenue: Number(normalized.totalRevenue || 0),
-          todayRevenue: Number(normalized.todayRevenue || 0),
-          availableBalance: Number(normalized.availableBalance || 0),
-          totalWithdrawn: Number(normalized.totalWithdrawn || 0),
-        }
-      }
     } catch (error) {
-      console.warn('加载收入统计失败，使用模拟数据:', error)
-      // 使用模拟数据
+      console.warn('加载收入统计失败，使用空数据:', error)
       revenueStats.value = {
-        totalRevenue: 12580.5,
-        todayRevenue: 235.8,
-        availableBalance: 8650.3,
-        totalWithdrawn: 3930.2,
+        totalRevenue: 0,
+        todayRevenue: 0,
+        availableBalance: 0,
+        totalWithdrawn: 0,
       }
     }
 
     // 加载章节排行
     try {
-      // 排行接口要求具体 bookId；全部作品视图使用本地兜底展示
-      if (!bookId) {
-        chapterRanking.value = buildMockChapterRanking()
-      } else {
-        const rankingResponse: any = await getChapterRevenueRanking(bookId, 1, 10)
-        const rankingData = rankingResponse?.data?.data ?? rankingResponse?.data ?? rankingResponse
-        if (rankingData?.items && Array.isArray(rankingData.items)) {
-          chapterRanking.value = rankingData.items
-        } else if (rankingData?.list && Array.isArray(rankingData.list)) {
-          chapterRanking.value = rankingData.list
-        } else {
-          chapterRanking.value = buildMockChapterRanking(bookId)
-        }
-      }
+      chapterRanking.value = await getChapterRevenueRanking(bookId, 1, 10)
     } catch (error) {
-      console.warn('加载章节排行失败，使用模拟数据:', error)
-      chapterRanking.value = buildMockChapterRanking(bookId)
+      console.warn('加载章节排行失败，使用空数据:', error)
+      chapterRanking.value = []
     }
 
     // 加载提现记录
     try {
       const withdrawResponse = await getWithdrawalRequests({ page: 1, page_size: 20 })
-      if (withdrawResponse.items.length) {
-        withdrawalRecords.value = withdrawResponse.items.map((item: any) => ({
-          applyTime: item.createdAt,
-          amount: item.amount,
-          status: item.status,
-          processTime: item.completedAt || item.approvedAt || '-',
-          remark: item.rejectReason || item.note || '-',
-        }))
-      }
+      withdrawalRecords.value = withdrawResponse.items.map((item: any) => ({
+        applyTime: item.createdAt,
+        amount: item.amount,
+        status: item.status,
+        processTime: item.completedAt || item.approvedAt || '-',
+        remark: item.rejectReason || item.note || '-',
+      }))
     } catch (error) {
-      console.warn('加载提现记录失败，使用模拟数据:', error)
-      // 使用模拟数据
-      withdrawalRecords.value = [
-        {
-          applyTime: '2024-01-20 10:30:00',
-          amount: 1000,
-          status: 'completed',
-          processTime: '2024-01-21 14:20:00',
-          remark: '提现成功',
-        },
-        {
-          applyTime: '2024-01-15 15:45:00',
-          amount: 500,
-          status: 'completed',
-          processTime: '2024-01-16 09:10:00',
-          remark: '提现成功',
-        },
-      ]
+      console.warn('加载提现记录失败，使用空数据:', error)
+      withdrawalRecords.value = []
     }
+
+    await loadWalletSummary()
   } catch (error: any) {
     console.error('加载收入数据失败:', error)
     message.error(error.message || '加载收入数据失败')
@@ -571,47 +600,32 @@ async function loadRevenue(): Promise<void> {
 // 加载收入趋势
 async function loadRevenueTrend(): Promise<void> {
   try {
-    const response: any = await getRevenueTrendAPI(resolveTrendPeriod(trendRange.value))
-    const trendData = response?.data?.data ?? response?.data ?? response
+    const trendData = await getRevenueTrendAPI(resolveTrendPeriod(trendRange.value))
 
-    if (Array.isArray(trendData)) {
-      const dates = trendData.map((item: any) => {
+    if (Array.isArray(trendData) && trendData.length > 0) {
+      const dates = trendData.map((item: RevenueTrend) => {
         const d = new Date(item.date)
         return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
       })
-      const revenues = trendData.map((item: any) => Number(item.revenue || 0))
+      const revenues = trendData.map((item: RevenueTrend) => Number(item.revenue || 0))
       syncStatsWithTrendIfNeeded(revenues)
       updateTrendChart(dates, revenues)
       return
     }
   } catch (error) {
-    console.warn('加载收入趋势失败，使用模拟数据:', error)
+    console.warn('加载收入趋势失败，使用空数据:', error)
   }
 
-  // 使用模拟数据
-  const days = parseInt(trendRange.value)
-  const dates: string[] = []
-  const revenues: number[] = []
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    dates.push(date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }))
-    revenues.push(Math.random() * 500 + 100)
-  }
-
-  syncStatsWithTrendIfNeeded(revenues)
-  updateTrendChart(dates, revenues)
+  updateTrendChart([], [])
 }
 
 // 加载收入来源
 async function loadRevenueSources(): Promise<void> {
   try {
-    const response: any = await getRevenueSources()
-    const sourceResponse = response?.data?.data ?? response?.data ?? response
+    const sourceResponse = await getRevenueSources()
 
-    if (Array.isArray(sourceResponse)) {
-      const sourceData = sourceResponse.map((item: any) => ({
+    if (Array.isArray(sourceResponse) && sourceResponse.length > 0) {
+      const sourceData = sourceResponse.map((item: RevenueSource) => ({
         value: item.amount,
         name: item.label,
       }))
@@ -619,10 +633,27 @@ async function loadRevenueSources(): Promise<void> {
       return
     }
   } catch (error) {
-    console.warn('加载收入来源失败，使用模拟数据:', error)
+    console.warn('加载收入来源失败，使用空数据:', error)
   }
 
-  // 使用模拟数据 - 使用现有的initSourceChart逻辑
+  updateSourceChart([])
+}
+
+async function loadWalletSummary(): Promise<void> {
+  walletLoading.value = true
+  try {
+    const [wallet, transactions] = await Promise.all([
+      walletAPI.getWallet(),
+      walletAPI.getTransactions({ page: 1, pageSize: 5 }),
+    ])
+    walletInfo.value = wallet
+    walletTransactions.value = transactions.items
+  } catch (error) {
+    console.warn('加载钱包摘要失败，使用空数据:', error)
+    walletTransactions.value = []
+  } finally {
+    walletLoading.value = false
+  }
 }
 
 // 初始化图表
@@ -690,15 +721,6 @@ function updateTrendChart(dates: string[], revenues: number[]): void {
 function initSourceChart(): void {
   if (!sourceChartRef.value) return
   sourceChart = echarts.getInstanceByDom(sourceChartRef.value) || echarts.init(sourceChartRef.value)
-
-  // 默认数据
-  const defaultData = [
-    { value: 8580, name: '订阅收入', itemStyle: { color: '#409EFF' } },
-    { value: 2850, name: '打赏收入', itemStyle: { color: '#67C23A' } },
-    { value: 1150, name: '广告收入', itemStyle: { color: '#E6A23C' } },
-  ]
-
-  updateSourceChart(defaultData)
 }
 
 function updateSourceChart(data: Array<{ value: number; name: string; itemStyle?: any }>): void {
@@ -775,7 +797,10 @@ function handleResize(): void {
 
 onMounted(() => {
   window.addEventListener('resize', handleResize)
-  loadRevenue()
+  void (async () => {
+    await loadBooks()
+    await loadRevenue()
+  })()
 })
 
 onUnmounted(() => {
@@ -1033,13 +1058,126 @@ onUnmounted(() => {
     }
 
     .ranking-card,
-    .withdrawal-card {
+    .withdrawal-card,
+    .wallet-card {
       border: 1px solid #e2e8f0;
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 
       .revenue-amount {
         color: #67c23a;
         font-weight: 500;
+      }
+    }
+
+    .wallet-summary {
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+
+      .wallet-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+      }
+
+      .wallet-summary-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+      }
+
+      .wallet-summary-label {
+        font-size: 13px;
+        color: #64748b;
+      }
+
+      .wallet-summary-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+
+        &.success {
+          color: #16a34a;
+        }
+
+        &.warning {
+          color: #d97706;
+        }
+      }
+
+      .wallet-transactions {
+        display: grid;
+        gap: 12px;
+      }
+
+      .wallet-transactions-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+
+      .wallet-meta {
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748b;
+      }
+
+      .wallet-transaction-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .wallet-transaction-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .wallet-transaction-main,
+      .wallet-transaction-side {
+        display: grid;
+        gap: 4px;
+      }
+
+      .wallet-transaction-side {
+        text-align: right;
+      }
+
+      .wallet-transaction-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .wallet-transaction-time,
+      .wallet-transaction-balance {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .wallet-transaction-amount {
+        font-size: 14px;
+        font-weight: 700;
+
+        &.income {
+          color: #16a34a;
+        }
+
+        &.expense {
+          color: #dc2626;
+        }
       }
     }
   }
