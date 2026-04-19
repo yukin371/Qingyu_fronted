@@ -4,7 +4,7 @@
       <!-- 页面头部 -->
       <div class="page-header">
         <h1 class="page-title">
-          <QyIcon name="TrendCharts"  />
+          <QyIcon name="TrendCharts" />
           排行榜
         </h1>
         <p class="page-subtitle">发现最热门的作品</p>
@@ -12,29 +12,6 @@
 
       <!-- 榜单内容 -->
       <el-tabs v-model="activeTab" class="rankings-tabs" @tab-click="handleTabChange">
-        <el-tab-pane label="实时榜" name="realtime">
-          <div class="ranking-content">
-            <RankingList
-              type="realtime"
-              :items="rankings.realtime || []"
-              :loading="loading.realtime"
-              :max-items="50"
-              @item-click="handleItemClick"
-            />
-
-            <!-- 加载更多 -->
-            <div v-if="hasMore.realtime" class="load-more">
-              <QyButton
-                @click="loadMore('realtime')"
-                :loading="loadingMore.realtime"
-                size="lg"
-              >
-                加载更多
-              </QyButton>
-            </div>
-          </div>
-        </el-tab-pane>
-
         <el-tab-pane label="周榜" name="weekly">
           <div class="ranking-content">
             <RankingList
@@ -46,11 +23,7 @@
             />
 
             <div v-if="hasMore.weekly" class="load-more">
-              <QyButton
-                @click="loadMore('weekly')"
-                :loading="loadingMore.weekly"
-                size="lg"
-              >
+              <QyButton @click="loadMore('weekly')" :loading="loadingMore.weekly" size="lg">
                 加载更多
               </QyButton>
             </div>
@@ -68,11 +41,7 @@
             />
 
             <div v-if="hasMore.monthly" class="load-more">
-              <QyButton
-                @click="loadMore('monthly')"
-                :loading="loadingMore.monthly"
-                size="lg"
-              >
+              <QyButton @click="loadMore('monthly')" :loading="loadingMore.monthly" size="lg">
                 加载更多
               </QyButton>
             </div>
@@ -90,11 +59,26 @@
             />
 
             <div v-if="hasMore.newbie" class="load-more">
-              <QyButton
-                @click="loadMore('newbie')"
-                :loading="loadingMore.newbie"
-                size="lg"
-              >
+              <QyButton @click="loadMore('newbie')" :loading="loadingMore.newbie" size="lg">
+                加载更多
+              </QyButton>
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <el-tab-pane label="实时榜" name="realtime">
+          <div class="ranking-content">
+            <RankingList
+              type="realtime"
+              :items="rankings.realtime || []"
+              :loading="loading.realtime"
+              :max-items="50"
+              @item-click="handleItemClick"
+            />
+
+            <!-- 加载更多 -->
+            <div v-if="hasMore.realtime" class="load-more">
+              <QyButton @click="loadMore('realtime')" :loading="loadingMore.realtime" size="lg">
                 加载更多
               </QyButton>
             </div>
@@ -104,12 +88,7 @@
 
       <!-- 榜单说明 -->
       <div class="ranking-info">
-        <QyAlert
-          :title="getRankingDescription()"
-          type="info"
-          :closable="false"
-          show-icon
-        />
+        <QyAlert :title="getRankingDescription()" type="info" :closable="false" show-icon />
       </div>
     </div>
   </div>
@@ -127,27 +106,27 @@ const bookstoreStore = useBookstoreStore()
 
 type RankingTab = 'realtime' | 'weekly' | 'monthly' | 'newbie'
 
-const activeTab = ref<RankingTab>('realtime')
+const activeTab = ref<RankingTab>('weekly')
 
 const loading = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
-  newbie: false
+  newbie: false,
 })
 
 const loadingMore = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
-  newbie: false
+  newbie: false,
 })
 
 const hasMore = reactive<Record<RankingTab, boolean>>({
   realtime: false,
   weekly: false,
   monthly: false,
-  newbie: false
+  newbie: false,
 })
 
 const rankings = computed(() => bookstoreStore.rankings)
@@ -158,7 +137,7 @@ const getRankingDescription = () => {
     realtime: '实时榜：根据最近24小时的阅读量和互动数据实时更新',
     weekly: '周榜：统计最近7天的热度，每天更新一次',
     monthly: '月榜：统计最近30天的综合表现，每天更新一次',
-    newbie: '新人榜：展示新作者的优秀作品，鼓励新人创作'
+    newbie: '新人榜：展示新作者的优秀作品，鼓励新人创作',
   }
   return descriptions[activeTab.value] || '榜单数据实时更新'
 }
@@ -182,7 +161,10 @@ const loadRankingData = async (type: RankingTab) => {
 const handleTabChange = (tab: { props: { name: RankingTab } }) => {
   const tabName = tab.props.name
   // 如果该榜单数据为空，则加载
-  if (!(rankings.value as Record<string, any[]>)[tabName] || (rankings.value as Record<string, any[]>)[tabName].length === 0) {
+  if (
+    !(rankings.value as Record<string, any[]>)[tabName] ||
+    (rankings.value as Record<string, any[]>)[tabName].length === 0
+  ) {
     loadRankingData(tabName)
   }
 }
@@ -211,9 +193,9 @@ const handleItemClick = (item: any) => {
   }
 }
 
-// 组件挂载时加载实时榜数据
+// 组件挂载时优先加载更稳定的周榜数据
 onMounted(() => {
-  loadRankingData('realtime')
+  loadRankingData('weekly')
 })
 </script>
 

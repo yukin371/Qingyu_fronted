@@ -25,9 +25,6 @@
                 </template>
               </QyInput>
             </div>
-            <QyButton variant="default" rounded class="demo-btn" @click="goToReaderDemo">
-              体验阅读器 <Icon name="arrow-right" size="sm" class="ml-1" />
-            </QyButton>
           </div>
 
           <!-- 统计数据胶囊 -->
@@ -100,7 +97,7 @@
               <div class="section-tabs-wrapper">
                 <div class="section-tabs">
                   <span
-                    v-for="tab in ['realtime', 'weekly', 'monthly', 'newbie']"
+                    v-for="tab in ['weekly', 'monthly', 'newbie', 'realtime']"
                     :key="tab"
                     :class="{ active: activeRankingTab === tab }"
                     @click="activeRankingTab = tab"
@@ -245,7 +242,13 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
-import { QyButton, QyDivider as Divider, Icon, Input as QyInput, Image as QyImage } from '@/design-system/components'
+import {
+  QyButton,
+  QyDivider as Divider,
+  Icon,
+  Input as QyInput,
+  Image as QyImage,
+} from '@/design-system/components'
 import { usePagination } from '@/composables/usePagination'
 
 export default {
@@ -268,7 +271,7 @@ export default {
     const recommendedError = ref(false)
     const featuredError = ref(false)
     const loadMoreElRef = ref(null)
-    const activeRankingTab = ref('realtime')
+    const activeRankingTab = ref('weekly')
 
     // 数据从 store 获取，支持测试模式和真实 API 模式
     // 添加默认值保护，防止 store 未初始化时访问 undefined 属性
@@ -323,7 +326,7 @@ export default {
     }
 
     const rankingTabName = (type) => {
-      const map = { realtime: '飙升榜', weekly: '周榜', monthly: '月榜', newbie: '新书榜' }
+      const map = { realtime: '实时榜', weekly: '周榜', monthly: '月榜', newbie: '新书榜' }
       return map[type]
     }
 
@@ -351,8 +354,6 @@ export default {
       const query = type ? { filter: type } : {}
       router.push({ path: '/bookstore/browse', query })
     }
-    const goToReaderDemo = () => router.push('/bookstore/reader-demo')
-
     const handleRetryRankings = async () => {
       rankingsError.value = false
       loading.value = true
@@ -475,7 +476,6 @@ export default {
       handleRetryRankings,
       handleRetryRecommended,
       handleRetryFeatured,
-      goToReaderDemo,
     }
   },
 }

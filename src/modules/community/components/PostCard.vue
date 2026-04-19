@@ -2,11 +2,7 @@
   <div class="post-card" @click="handleClick">
     <!-- 头部：用户信息 -->
     <div class="post-header">
-      <Avatar
-        :src="post.user?.avatar"
-        :alt="post.user?.nickname"
-        size="md"
-      />
+      <Avatar :src="post.user?.avatar" :alt="post.user?.nickname" size="md" />
       <div class="user-info">
         <span class="nickname">{{ post.user?.nickname }}</span>
         <span class="post-time">{{ formatTime(post.createdAt) }}</span>
@@ -53,11 +49,7 @@
 
     <!-- 底部：操作按钮 -->
     <div class="post-actions">
-      <button
-        class="action-btn"
-        :class="{ active: post.isLiked }"
-        @click.stop="handleLike"
-      >
+      <button class="action-btn" :class="{ active: post.isLiked }" @click.stop="handleLike">
         <QyIcon :name="post.isLiked ? 'StarFilled' : 'Star'" :size="16" />
         <span>{{ post.likeCount || '点赞' }}</span>
       </button>
@@ -87,11 +79,12 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  click: [post: Post]
-  like: [post: Post]
-  comment: [post: Post]
-  share: [post: Post]
-  topic: [topic: string]
+  (e: 'click', post: Post): void
+  (e: 'like', postId: string): void
+  (e: 'comment', postId: string): void
+  (e: 'share', postId: string): void
+  (e: 'bookmark', postId: string): void
+  (e: 'topic', topic: string): void
 }>()
 
 function formatTime(time: string): string {
@@ -123,15 +116,15 @@ function handleClick() {
 }
 
 function handleLike() {
-  emit('like', props.post)
+  emit('like', props.post.id)
 }
 
 function handleComment() {
-  emit('comment', props.post)
+  emit('comment', props.post.id)
 }
 
 function handleShare() {
-  emit('share', props.post)
+  emit('share', props.post.id)
 }
 
 function goToTopic(topic: string) {

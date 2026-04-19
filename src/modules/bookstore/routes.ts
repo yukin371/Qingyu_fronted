@@ -14,17 +14,17 @@ const bookstoreRoutes: RouteRecordRaw[] = [
         path: '',
         name: 'home',
         component: () => import('./views/HomeView.vue'),
-        meta: { title: '首页' }
+        meta: { title: '首页' },
       },
       {
         path: 'books',
-        redirect: '/bookstore/browse'
+        redirect: '/bookstore/browse',
       },
       {
         path: 'browse',
         name: 'browse',
         component: () => import('./views/BrowseBooksView.vue'),
-        meta: { title: '浏览书籍' }
+        meta: { title: '浏览书籍' },
       },
       {
         path: 'books/:id',
@@ -40,53 +40,46 @@ const bookstoreRoutes: RouteRecordRaw[] = [
             return {
               path: '/bookstore/books-demo',
               query: to.query,
-              replace: true
+              replace: true,
             }
           }
           return true
         },
         component: () => import('./views/BookDetailView.vue'),
         meta: { title: '书籍详情' },
-        props: true
+        props: true,
       },
       {
         path: 'books-demo',
         name: 'book-detail-demo',
         component: () => import('./views/BookDetailDemo.vue'),
-        meta: { title: '书籍详情（演示）' }
+        meta: { title: '书籍详情（演示）' },
       },
       {
         path: 'categories',
-        redirect: to => {
+        redirect: (to) => {
           const categoryId = to.query.id as string
           return {
             path: '/bookstore/browse',
-            query: categoryId ? { categoryId } : undefined
+            query: categoryId ? { categoryId } : undefined,
           }
-        }
+        },
       },
       {
         path: 'rankings',
         name: 'rankings',
         component: () => import('./views/RankingsView.vue'),
-        meta: { title: '排行榜' }
+        meta: { title: '排行榜' },
       },
       {
         path: 'search',
-        redirect: to => ({
+        redirect: (to) => ({
           path: '/bookstore/browse',
-          query: to.query
-        })
-      }
-      ,
-      {
-        path: 'reader-demo',
-        name: 'reader-demo',
-        component: () => import('./views/ReaderDemo.vue'),
-        meta: { title: '阅读器演示' }
-      }
-    ]
-  }
+          query: to.query,
+        }),
+      },
+    ],
+  },
 ]
 
 export default bookstoreRoutes

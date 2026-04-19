@@ -1203,27 +1203,148 @@ function getUserProfile(): MockResponse {
 
 // ==================== 社区模块 Mock 数据 ====================
 
-function getCommunityPosts(): MockResponse {
-  return createMockResponse({
-    list: [
-      {
-        _id: 'post-1',
-        title: '求推荐好看的科幻小说喵~',
-        content: '最近书荒了，有没有什么好看的科幻小说推荐呀？',
-        author: {
-          _id: 'user-1',
-          nickname: '爱丽丝',
-          avatar: 'https://picsum.photos/seed/user1/100/100',
-        },
-        stats: {
-          views: 890,
-          likes: 56,
-          comments: 23,
-        },
-        createdAt: new Date().toISOString(),
-      },
+// 随机用户名池
+const MOCK_POST_USERS = [
+  { id: 'user-1', username: '星河漫步', nickname: '星河漫步', level: 12 },
+  { id: 'user-2', username: '书虫小窝', nickname: '书虫小窝', level: 8 },
+  { id: 'user-3', username: '墨染年华', nickname: '墨染年华', level: 15 },
+  { id: 'user-4', username: '云端读者', nickname: '云端读者', level: 6 },
+  { id: 'user-5', username: '夜空守望', nickname: '夜空守望', level: 20 },
+  { id: 'user-6', username: '时光旅人', nickname: '时光旅人', level: 10 },
+  { id: 'user-7', username: '清风徐来', nickname: '清风徐来', level: 5 },
+  { id: 'user-8', username: '烟雨江南', nickname: '烟雨江南', level: 18 },
+]
+
+// 动态内容池
+const MOCK_POST_CONTENTS = [
+  {
+    type: 'text',
+    content: '今天看了一本非常精彩的仙侠小说，剧情紧凑，人物塑造也很到位！强烈推荐给大家~',
+    topics: ['仙侠', '推荐'],
+  },
+  {
+    type: 'text',
+    content: '有人喜欢看都市异能类的书吗？最近书荒了，求推荐几本好看的！',
+    topics: ['求推荐', '都市'],
+  },
+  {
+    type: 'book_recommendation',
+    content: '《星辰大海》这本书真的太赞了！讲述了人类探索宇宙的壮阔历程，看得我热血沸腾！',
+    topics: ['科幻', '推荐'],
+    book: {
+      bookId: 'book-101',
+      title: '星辰大海',
+      cover: '/images/covers/book-101.jpg',
+      author: '银河漫步',
+    },
+  },
+  {
+    type: 'reading_progress',
+    content: '终于追完了一本追了三个月的小说！从筑基到飞升，经历了太多太多。感谢作者一路陪伴~',
+    topics: ['读书感悟'],
+    readingProgress: {
+      bookId: 'book-202',
+      chapterId: 'ch-202',
+      chapterTitle: '第520章 大结局',
+      progress: 100,
+    },
+  },
+  {
+    type: 'text',
+    content: '周末宅家看书，一口气看了五章停不下来！这种感觉太美妙了，有没有人懂？',
+    topics: ['日常', '阅读'],
+  },
+  {
+    type: 'image',
+    content: '分享一下最近入手的新书，封面设计太美了！已经迫不及待想要开始阅读了~',
+    topics: ['晒书'],
+    images: [
+      'https://picsum.photos/seed/book1/400/300',
+      'https://picsum.photos/seed/book2/400/300',
     ],
-    total: 1,
+  },
+  {
+    type: 'text',
+    content: '修仙小说的套路是不是都差不多啊？退婚、升级、打脸，看多了有点审美疲劳了...',
+    topics: ['吐槽', '修仙'],
+  },
+  {
+    type: 'book_recommendation',
+    content:
+      '给大家安利一本冷门好书《雾隐都市》，悬疑氛围营造得特别好，晚上看有点害怕但又停不下来！',
+    topics: ['悬疑', '推荐'],
+    book: {
+      bookId: 'book-303',
+      title: '雾隐都市',
+      cover: '/images/covers/book-303.jpg',
+      author: '暗夜行者',
+    },
+  },
+  {
+    type: 'text',
+    content: '今天在书城发现了一本神作！作者文笔太厉害了，寥寥几笔就把人物写活了。',
+    topics: ['惊喜', '推荐'],
+  },
+  {
+    type: 'reading_progress',
+    content: '追更《逆天改命》已经一年了，见证了主角从零开始一步步成长为强者，太励志了！',
+    topics: ['追更', '热血'],
+    readingProgress: {
+      bookId: 'book-404',
+      chapterId: 'ch-404',
+      chapterTitle: '第1000章 巅峰之战',
+      progress: 85,
+    },
+  },
+]
+
+function generateMockPosts(count: number) {
+  const posts = []
+  const now = Date.now()
+
+  for (let i = 0; i < count; i++) {
+    const user = MOCK_POST_USERS[i % MOCK_POST_USERS.length]
+    const postData = MOCK_POST_CONTENTS[i % MOCK_POST_CONTENTS.length]
+    const hoursAgo = Math.floor(Math.random() * 72) // 0-72小时前
+    const likes = Math.floor(Math.random() * 200) + 10
+    const comments = Math.floor(Math.random() * 50) + 1
+
+    posts.push({
+      id: `post-${i + 1}`,
+      userId: user.id,
+      user: {
+        id: user.id,
+        username: user.username,
+        nickname: user.nickname,
+        avatar: `https://picsum.photos/seed/${user.id}/100/100`,
+        level: user.level,
+      },
+      type: postData.type,
+      content: postData.content,
+      images: postData.images,
+      book: postData.book,
+      readingProgress: postData.readingProgress,
+      topics: postData.topics,
+      likeCount: likes,
+      commentCount: comments,
+      shareCount: Math.floor(Math.random() * 20),
+      isLiked: Math.random() > 0.7,
+      isBookmarked: Math.random() > 0.8,
+      createdAt: new Date(now - hoursAgo * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now - hoursAgo * 60 * 60 * 1000).toISOString(),
+    })
+  }
+
+  return posts
+}
+
+function getCommunityPosts(): MockResponse {
+  const posts = generateMockPosts(15)
+  return createMockResponse({
+    list: posts,
+    total: 15,
+    page: 1,
+    size: 15,
   })
 }
 

@@ -160,17 +160,20 @@ function handlePostClick(post: Post) {
   // 跳转到帖子详情
 }
 
-function handleLike(post: Post) {
-  post.isLiked = !post.isLiked
-  post.likeCount += post.isLiked ? 1 : -1
+function handleLike(postId: string) {
+  const post = posts.value.find((p) => p.id === postId)
+  if (post) {
+    post.isLiked = !post.isLiked
+    post.likeCount += post.isLiked ? 1 : -1
+  }
 }
 
-function handleComment(post: Post) {
-  console.log('评论帖子:', post)
+function handleComment(postId: string) {
+  console.log('评论帖子:', postId)
 }
 
-function handleShare(post: Post) {
-  console.log('分享帖子:', post)
+function handleShare(postId: string) {
+  console.log('分享帖子:', postId)
 }
 
 function handleTopicClick(topic: string) {
