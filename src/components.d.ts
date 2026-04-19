@@ -10,7 +10,6 @@ declare module 'vue' {
     BookCard: typeof import('./components/Book/BookCard.vue')['default']
     CategoryList: typeof import('./components/Category/CategoryList.vue')['default']
     CommentItem: typeof import('./components/CommentItem.vue')['default']
-    Header: typeof import('./components/Layout/Header.vue')['default']
     QyButton: typeof import('@/design-system/components/basic/QyButton')['QyButton']
     QyIcon: typeof import('@/design-system/components/basic/QyIcon')['QyIcon']
     QyImage: typeof import('@/design-system/components/basic/QyImage')['QyImage']

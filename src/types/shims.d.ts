@@ -431,12 +431,6 @@ declare module '@/composables/useResponsive' {
 }
 
 // 路径别名模块声明 - Components
-declare module '@/components/Layout/Header.vue' {
-  import type { DefineComponent } from 'vue'
-  const component: DefineComponent<{}, {}, any>
-  export default component
-}
-
 declare module '@/components/Common/SectionTitle.vue' {
   import type { DefineComponent } from 'vue'
   const component: DefineComponent<{}, {}, any>

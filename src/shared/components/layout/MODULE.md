@@ -36,12 +36,11 @@
 
 ### 导航组件区分
 
-| 组件                           | 用途                   | 位置                            |
-| ------------------------------ | ---------------------- | ------------------------------- |
-| `MainLayout.vue`               | 书城、阅读等主要页面   | `src/shared/components/layout/` |
-| `AdminLayout.vue`              | 后台管理页面           | `src/shared/components/layout/` |
-| `WriterLayout.vue`             | 创作中心页面           | `src/layouts/WriterLayout.vue`  |
-| `components/Layout/Header.vue` | **未使用**（遗留组件） | `src/components/Layout/`        |
+| 组件               | 用途                 | 位置                            |
+| ------------------ | -------------------- | ------------------------------- |
+| `MainLayout.vue`   | 书城、阅读等主要页面 | `src/shared/components/layout/` |
+| `AdminLayout.vue`  | 后台管理页面         | `src/shared/components/layout/` |
+| `WriterLayout.vue` | 创作中心页面         | `src/layouts/WriterLayout.vue`  |
 
 **注意**：修改导航相关功能时，确认目标页面使用的是哪个布局组件！
 
