@@ -31,7 +31,7 @@
         <div class="mt-3 text-3xl font-black text-slate-900">
           {{ formatNumber(summary.totalConsumption) }}
         </div>
-        <div class="mt-2 text-sm text-slate-500">累计 Token 消耗</div>
+        <div class="mt-2 text-sm text-slate-500">累计真实 Token 消耗</div>
       </article>
       <article
         class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
@@ -104,7 +104,7 @@
         <div class="mb-4 flex items-center justify-between">
           <div>
             <h3 class="text-lg font-bold text-slate-900">高消耗用户排行</h3>
-            <p class="text-sm text-slate-500">用于回查策略、充值和潜在滥用行为</p>
+            <p class="text-sm text-slate-500">当前配额周期内的高消耗用户</p>
           </div>
           <el-button text @click="goToUsers">去用户列表</el-button>
         </div>

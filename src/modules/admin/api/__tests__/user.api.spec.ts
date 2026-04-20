@@ -67,7 +67,27 @@ describe('User API', () => {
       const result = await getUserList({ page: 1, pageSize: 20 })
 
       expect(mockGetApiV1AdminUsers).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
-      expect(result).toEqual(mockResponse)
+      expect(result).toMatchObject({
+        total: 2,
+        page: 1,
+        size: 20,
+        users: [
+          {
+            id: '1',
+            username: 'user1',
+            email: 'user1@test.com',
+            roles: ['reader'],
+            status: 'active',
+          },
+          {
+            id: '2',
+            username: 'user2',
+            email: 'user2@test.com',
+            roles: ['reader'],
+            status: 'active',
+          },
+        ],
+      })
       expect(result.users).toHaveLength(2)
       expect(result.total).toBe(2)
     })
@@ -93,6 +113,48 @@ describe('User API', () => {
 
       expect(mockGetApiV1AdminUsers).toHaveBeenCalledWith(undefined)
     })
+
+    it('应该兼容测试模式返回的旧字段结构', async () => {
+      mockGetApiV1AdminUsers.mockResolvedValueOnce({
+        items: [
+          {
+            user_id: 'user-1',
+            username: 'user_1',
+            email: 'user1@test.com',
+            role: 'admin',
+            status: 'active',
+            created_at: '2026-04-20T00:00:00.000Z',
+            last_login_at: '2026-04-20T01:00:00.000Z',
+          },
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 10,
+      })
+
+      const { getUserList } = await import('../user.api')
+      const result = await getUserList({ page: 1, pageSize: 10 })
+
+      expect(result).toEqual({
+        users: [
+          {
+            id: 'user-1',
+            username: 'user_1',
+            email: 'user1@test.com',
+            phone: '',
+            roles: ['admin'],
+            status: 'active',
+            registerTime: new Date('2026-04-20T00:00:00.000Z').getTime(),
+            lastLoginTime: new Date('2026-04-20T01:00:00.000Z').getTime(),
+            banReason: undefined,
+            banUntil: undefined,
+          },
+        ],
+        total: 1,
+        page: 1,
+        size: 10,
+      })
+    })
   })
 
   describe('getUserCountsByStatus', () => {
@@ -104,6 +166,15 @@ describe('User API', () => {
       const result = await getUserCountsByStatus()
 
       expect(result).toEqual(mockCounts)
+    })
+
+    it('应该为缺失字段提供默认值', async () => {
+      mockGetApiV1AdminUsersCountByStatus.mockResolvedValueOnce({ active: 3 })
+
+      const { getUserCountsByStatus } = await import('../user.api')
+      const result = await getUserCountsByStatus()
+
+      expect(result).toEqual({ active: 3, inactive: 0, banned: 0 })
     })
   })
 

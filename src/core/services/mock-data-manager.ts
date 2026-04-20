@@ -1914,6 +1914,15 @@ export async function getMockDataForRequest(
 
   // ==================== Admin 管理员模块 ====================
 
+  // 用户状态统计
+  if (url.includes('/admin/users/count-by-status')) {
+    return createMockResponse({
+      active: 17,
+      inactive: 17,
+      banned: 16,
+    })
+  }
+
   // 用户管理列表
   if (url.includes('/admin/users') && !url.includes('/users/')) {
     const parsedUrl = new URL(url, window.location.origin)

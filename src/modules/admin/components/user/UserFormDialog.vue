@@ -199,7 +199,7 @@ watch(
 )
 
 /** 重置表单 */
-const resetForm = () => {
+function resetForm() {
   formData.userId = ''
   formData.username = ''
   formData.email = ''

@@ -32,10 +32,10 @@
         @click="goTo('/admin/quota/users')"
       />
       <QuotaStatCard
-        eyebrow="今日"
+        eyebrow="累计"
         title="Token 消耗"
         :value="formatNumber(summary.totalConsumption)"
-        subtitle="近一次聚合结果"
+        subtitle="基于真实消费流水聚合"
         icon="Tok"
         :accent="'linear-gradient(135deg, #0f766e 0%, #0ea5e9 100%)'"
         :accent-glow="'radial-gradient(circle at top right, rgba(14,165,233,0.16), transparent 40%)'"
@@ -102,7 +102,7 @@
         <div class="mb-4 flex items-center justify-between">
           <div>
             <h3 class="text-lg font-bold text-slate-900">消耗排行 TOP 10</h3>
-            <p class="text-sm text-slate-500">快速定位高消耗或配额风险用户</p>
+            <p class="text-sm text-slate-500">当前配额周期内的高消耗用户</p>
           </div>
           <el-button text @click="goTo('/admin/quota/users')">用户列表</el-button>
         </div>

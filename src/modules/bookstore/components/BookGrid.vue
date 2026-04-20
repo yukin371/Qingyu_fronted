@@ -52,9 +52,9 @@
           </el-image>
 
           <!-- 评分角标 (可选) -->
-          <div class="rating-badge" v-if="book.score || book.rating">
+          <div class="rating-badge" v-if="hasDisplayRating(book)">
             <QyIcon name="StarFilled"  />
-            <span>{{ formatRating(book.score || book.rating) }}</span>
+            <span>{{ formatRating(book.rating) }}</span>
           </div>
 
           <!-- 悬浮遮罩 -->
@@ -183,8 +183,18 @@ const handleBookClick = (book) => {
 
 // 格式化评分，保留小数点后1位
 const formatRating = (rating) => {
-  if (!rating || typeof rating !== 'number') return '0.0'
-  return rating.toFixed(1)
+  const numericRating =
+    typeof rating === 'number' ? rating : Number.parseFloat(String(rating ?? ''))
+
+  if (!Number.isFinite(numericRating) || numericRating <= 0) return '0.0'
+  return Math.max(0, Math.min(5, numericRating)).toFixed(1)
+}
+
+const hasDisplayRating = (book) => {
+  const numericRating =
+    typeof book?.rating === 'number' ? book.rating : Number.parseFloat(String(book?.rating ?? ''))
+
+  return Number.isFinite(numericRating) && numericRating > 0
 }
 </script>
 

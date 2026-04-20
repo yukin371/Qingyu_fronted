@@ -59,7 +59,7 @@
           <!-- 底部数据 (热度/评分) -->
           <div class="book-stats">
             <div class="stat-pill">
-              <span class="score-val">{{ (item.score || 9.0).toFixed(1) }}</span>
+              <span class="score-val">{{ getDisplayRating(item).toFixed(1) }}</span>
               <span class="score-label">分</span>
             </div>
             <span class="view-count">
@@ -151,6 +151,19 @@ const formatNumber = (num: number) => {
     return (num / 1000).toFixed(1) + 'k'
   }
   return num.toString()
+}
+
+// 榜单的 score 是热度综合分，不是书籍评分；展示层统一只使用真实评分并限制在 0~5。
+const getDisplayRating = (item: any): number => {
+  const rawRating = item?.book?.rating ?? item?.rating
+  const numericRating =
+    typeof rawRating === 'number' ? rawRating : Number.parseFloat(String(rawRating ?? ''))
+
+  if (!Number.isFinite(numericRating) || numericRating <= 0) {
+    return 0
+  }
+
+  return Math.max(0, Math.min(5, Math.round(numericRating * 10) / 10))
 }
 
 const handleItemClick = async (item: any) => {

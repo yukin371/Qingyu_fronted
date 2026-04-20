@@ -6,6 +6,83 @@ import { api, httpService, unwrapPayload } from './shared'
 import type { APIResponse } from '@/types/api'
 import type { UserManagementItem } from '@/modules/admin/types/admin.types'
 
+type RawUserListResponse = {
+  users?: Record<string, any>[]
+  items?: Record<string, any>[]
+  list?: Record<string, any>[]
+  total?: number
+  page?: number
+  size?: number
+  pageSize?: number
+}
+
+function normalizeUser(item: Record<string, any>): UserManagementItem {
+  const roles = Array.isArray(item.roles)
+    ? item.roles
+    : item.role
+      ? [item.role]
+      : item.user_role
+        ? [item.user_role]
+        : ['reader']
+
+  const registerTimeSource =
+    item.registerTime ?? item.createdAt ?? item.created_at ?? item.created_time ?? Date.now()
+  const lastLoginTimeSource =
+    item.lastLoginTime ?? item.lastLoginAt ?? item.last_login_at ?? item.last_login_time
+
+  return {
+    id: String(item.id ?? item.userId ?? item.user_id ?? ''),
+    username: String(item.username ?? item.user_name ?? ''),
+    email: item.email || '',
+    phone: item.phone || item.phone_number || '',
+    roles: roles.map((role) => String(role)),
+    status: (item.status ?? 'active') as UserManagementItem['status'],
+    registerTime:
+      typeof registerTimeSource === 'number'
+        ? registerTimeSource
+        : new Date(registerTimeSource).getTime(),
+    lastLoginTime: lastLoginTimeSource
+      ? typeof lastLoginTimeSource === 'number'
+        ? lastLoginTimeSource
+        : new Date(lastLoginTimeSource).getTime()
+      : undefined,
+    banReason: item.banReason ?? item.ban_reason,
+    banUntil: item.banUntil ?? item.ban_until,
+  }
+}
+
+function normalizeUserListResponse(raw: unknown): {
+  users: UserManagementItem[]
+  total: number
+  page: number
+  size: number
+} {
+  const response = unwrapPayload<RawUserListResponse>(raw)
+  const rawUsers = Array.isArray(response?.users)
+    ? response.users
+    : Array.isArray(response?.items)
+      ? response.items
+      : Array.isArray(response?.list)
+        ? response.list
+        : []
+
+  return {
+    users: rawUsers.map((item) => normalizeUser(item)),
+    total: Number(response?.total ?? rawUsers.length ?? 0),
+    page: Number(response?.page ?? 1),
+    size: Number(response?.size ?? response?.pageSize ?? rawUsers.length ?? 0),
+  }
+}
+
+function normalizeUserStatusCounts(raw: unknown): Record<string, number> {
+  const response = unwrapPayload<Record<string, unknown>>(raw)
+  return {
+    active: Number(response?.active ?? 0),
+    inactive: Number(response?.inactive ?? 0),
+    banned: Number(response?.banned ?? 0),
+  }
+}
+
 /**
  * 获取用户管理列表
  * 兼容旧API: getUserList(params)
@@ -21,12 +98,12 @@ export async function getUserList(params?: {
   status?: string
 }): Promise<{ users: UserManagementItem[]; total: number; page: number; size: number }> {
   const response = await api.getApiV1AdminUsers(params as any)
-  return unwrapPayload(response)
+  return normalizeUserListResponse(response)
 }
 
 export async function getUserCountsByStatus(): Promise<Record<string, number>> {
   const response = await api.getApiV1AdminUsersCountByStatus()
-  return unwrapPayload(response)
+  return normalizeUserStatusCounts(response)
 }
 
 export async function createUser(data: {
