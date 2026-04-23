@@ -5,9 +5,12 @@
       <div v-for="n in 6" :key="n" class="skeleton-item">
         <el-skeleton animated>
           <template #template>
-            <div style="display: flex; gap: 16px; align-items: center;">
+            <div style="display: flex; gap: 16px; align-items: center">
               <el-skeleton-item variant="circle" style="width: 24px; height: 24px" />
-              <el-skeleton-item variant="image" style="width: 48px; height: 64px; border-radius: 6px" />
+              <el-skeleton-item
+                variant="image"
+                style="width: 48px; height: 64px; border-radius: 6px"
+              />
               <div style="flex: 1">
                 <el-skeleton-item variant="text" style="width: 60%; margin-bottom: 8px" />
                 <el-skeleton-item variant="text" style="width: 40%" />
@@ -20,23 +23,29 @@
 
     <!-- 真实数据列表 -->
     <ul v-else-if="displayItems.length > 0" class="ranking-list">
-      <li v-for="(item, index) in displayItems" :key="item.id || index" class="ranking-item"
-        @click="handleItemClick(item)">
+      <li
+        v-for="(item, index) in displayItems"
+        :key="item.id || index"
+        class="ranking-item"
+        @click="handleItemClick(item)"
+      >
         <!-- 排名序号 (前三名特殊样式) -->
         <div class="rank-index" :class="getRankClass(index + 1)">
           <span v-if="index < 3" class="crown-icon">
-            <QyIcon name="Trophy"  />
+            <QyIcon name="Trophy" />
           </span>
           <span class="rank-num">{{ index + 1 }}</span>
         </div>
 
         <!-- 书籍封面 -->
         <div class="book-cover-wrapper">
-          <el-image :src="item.book?.cover || item.cover" fit="cover" class="book-cover" loading="lazy">
+          <el-image :src="getCoverSrc(item)" fit="cover" class="book-cover" loading="lazy">
             <template #error>
-              <div class="image-slot">
-                <QyIcon name="Picture"  />
-              </div>
+              <img
+                :src="getFallbackCoverSrc(item)"
+                :alt="item.book?.title || item.title || '书籍封面'"
+                class="fallback-book-cover"
+              />
             </template>
           </el-image>
         </div>
@@ -47,7 +56,15 @@
             <h4 class="book-title" :title="item.book?.title || item.title">
               {{ item.book?.title || item.title || '未知书籍' }}
             </h4>
-            <el-tag v-if="index === 0" size="small" effect="dark" round color="#c0a062" class="top-tag">TOP 1</el-tag>
+            <el-tag
+              v-if="index === 0"
+              size="small"
+              effect="dark"
+              round
+              color="#c0a062"
+              class="top-tag"
+              >TOP 1</el-tag
+            >
           </div>
 
           <div class="book-meta">
@@ -63,14 +80,14 @@
               <span class="score-label">分</span>
             </div>
             <span class="view-count">
-              <QyIcon name="View"  /> {{ formatNumber(item.viewCount) }}
+              <QyIcon name="View" /> {{ formatNumber(item.viewCount) }}
             </span>
           </div>
         </div>
 
         <!-- 悬浮时的右箭头 -->
         <div class="action-arrow">
-          <QyIcon name="ArrowRight"  />
+          <QyIcon name="ArrowRight" />
         </div>
       </li>
     </ul>
@@ -92,7 +109,7 @@
     <!-- 查看更多 (如果父组件没有提供 Header 里的 View More，这里可以作为底部补充) -->
     <div v-if="displayItems.length > 0" class="list-footer" @click="$emit('view-more')">
       <span>查看完整榜单</span>
-      <QyIcon name="ArrowRight"  />
+      <QyIcon name="ArrowRight" />
     </div>
   </div>
 </template>
@@ -101,30 +118,31 @@
 import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { Empty } from '@/design-system/base'
+import { getFallbackBookCover, resolveBookCover } from '../utils/cover-resolver'
 
 // Props 定义
 const props = defineProps({
   type: {
     type: String,
     required: true,
-    validator: (val: string) => ['realtime', 'weekly', 'monthly', 'newbie'].includes(val)
+    validator: (val: string) => ['realtime', 'weekly', 'monthly', 'newbie'].includes(val),
   },
   items: {
     type: Array as () => any[],
-    default: () => []
+    default: () => [],
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   error: {
     type: Boolean,
-    default: false
+    default: false,
   },
   maxItems: {
     type: Number,
-    default: 10
-  }
+    default: 10,
+  },
 })
 
 // Emits
@@ -176,6 +194,10 @@ const handleItemClick = async (item: any) => {
     emit('item-click', { ...item, resolvedBookId: bookId })
   }
 }
+
+const getCoverSrc = (item: any) => resolveBookCover(item)
+
+const getFallbackCoverSrc = (item: any) => getFallbackBookCover(item)
 </script>
 
 <style scoped lang="scss">
@@ -316,6 +338,13 @@ $bronze: #cd7f32;
     height: 100%;
     background: #f5f7fa;
     color: #909399;
+  }
+
+  .fallback-book-cover {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
   }
 }
 

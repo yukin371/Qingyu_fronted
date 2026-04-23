@@ -8,8 +8,9 @@
       </h3>
       <div class="header-actions" v-if="showMore">
         <el-button text class="view-more-btn" @click="$emit('view-more')">
-          查看全部 <el-icon class="icon-right">
-            <QyIcon name="ArrowRight"  />
+          查看全部
+          <el-icon class="icon-right">
+            <QyIcon name="ArrowRight" />
           </el-icon>
         </el-button>
       </div>
@@ -17,12 +18,17 @@
 
     <!-- 加载中：骨架屏 -->
     <div v-if="loading" class="books-layout skeleton-layout" data-testid="book-grid-loading">
-      <div v-for="n in (limit > 0 ? limit : gridCols * 2)" :key="n" class="skeleton-card" data-testid="book-skeleton">
+      <div
+        v-for="n in limit > 0 ? limit : gridCols * 2"
+        :key="n"
+        class="skeleton-card"
+        data-testid="book-skeleton"
+      >
         <el-skeleton animated>
           <template #template>
             <el-skeleton-item variant="image" class="skeleton-cover" />
             <div style="padding: 12px 4px">
-              <el-skeleton-item variant="h3" style="width: 80%; margin-bottom: 8px;" />
+              <el-skeleton-item variant="h3" style="width: 80%; margin-bottom: 8px" />
               <el-skeleton-item variant="text" style="width: 50%" />
             </div>
           </template>
@@ -38,28 +44,46 @@
       :style="singleColumn ? undefined : gridStyle"
       data-testid="book-grid"
     >
-      <div v-for="book in displayBooks" :key="book.id || book._id" class="book-card" :class="[`style-${cardStyle}`]"
+      <div
+        v-for="book in displayBooks"
+        :key="book.id || book._id"
+        class="book-card"
+        :class="[`style-${cardStyle}`]"
         :data-testid="`book-card-${book.id || book._id}`"
-        @click="handleBookClick(book)">
+        @click="handleBookClick(book)"
+      >
         <!-- 封面区域 -->
         <div class="cover-wrapper">
-          <el-image :src="book.cover || book.coverUrl" :alt="book.title" class="book-cover" fit="cover" loading="lazy">
+          <el-image
+            :src="getCoverSrc(book)"
+            :alt="book.title"
+            class="book-cover"
+            fit="cover"
+            loading="lazy"
+          >
             <template #error>
-              <div class="image-slot">
-                <!-- 图片加载失败时的简洁占位 -->
-              </div>
+              <img
+                :src="getFallbackCoverSrc(book)"
+                :alt="book.title || '书籍封面'"
+                class="fallback-book-cover"
+              />
             </template>
           </el-image>
 
           <!-- 评分角标 (可选) -->
           <div class="rating-badge" v-if="hasDisplayRating(book)">
-            <QyIcon name="StarFilled"  />
+            <QyIcon name="StarFilled" />
             <span>{{ formatRating(book.rating) }}</span>
           </div>
 
           <!-- 悬浮遮罩 -->
           <div class="hover-overlay">
-            <el-button type="primary" round class="read-btn" :data-testid="`read-now-btn-${book.id || book._id}`">
+            <el-button
+              type="primary"
+              round
+              class="read-btn"
+              :data-testid="`read-now-btn-${book.id || book._id}`"
+            >
               立即阅读
             </el-button>
           </div>
@@ -67,14 +91,21 @@
 
         <!-- 信息区域 -->
         <div class="info-wrapper">
-          <h3 class="book-title" :title="book.title" :data-testid="`book-title-${book.id || book._id}`">{{ book.title }}</h3>
+          <h3
+            class="book-title"
+            :title="book.title"
+            :data-testid="`book-title-${book.id || book._id}`"
+          >
+            {{ book.title }}
+          </h3>
           <div class="book-author">{{ book.author }}</div>
 
           <!-- 底部元数据：价格/标签/浏览量 -->
           <div class="book-footer">
             <div class="tags-group" v-if="book.category || (book.tags && book.tags.length)">
-              <span class="mini-tag">{{ book.categoryName || book.category || (book.tags && book.tags[0]) || '精选'
-                }}</span>
+              <span class="mini-tag">{{
+                book.categoryName || book.category || (book.tags && book.tags[0]) || '精选'
+              }}</span>
             </div>
 
             <div class="meta-right">
@@ -109,49 +140,53 @@ import { computed } from 'vue'
 import { QyIcon } from '@/design-system/components'
 import { Empty } from '@/design-system/base'
 import { formatCurrency } from '@/utils/currency'
+import { getFallbackBookCover, resolveBookCover } from '../utils/cover-resolver'
 
 // Props 定义
 const props = defineProps({
   books: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   title: {
     type: String,
-    default: ''
+    default: '',
   },
   showMore: {
     type: Boolean,
-    default: false
+    default: false,
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   error: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  maxItems: { // 限制显示数量，0为不限制
+  maxItems: {
+    // 限制显示数量，0为不限制
     type: Number,
-    default: 0
+    default: 0,
   },
-  gridCols: { // 期望的列数（主要用于骨架屏计算，实际布局由CSS Grid自适应）
+  gridCols: {
+    // 期望的列数（主要用于骨架屏计算，实际布局由CSS Grid自适应）
     type: Number,
-    default: 5
+    default: 5,
   },
   emptyText: {
     type: String,
-    default: '暂无相关书籍'
+    default: '暂无相关书籍',
   },
-  cardStyle: { // 卡片风格：'standard' | 'premium-mini'
+  cardStyle: {
+    // 卡片风格：'standard' | 'premium-mini'
     type: String,
-    default: 'standard'
+    default: 'standard',
   },
   singleColumn: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 // Emits
@@ -173,7 +208,7 @@ const gridStyle = computed(() => {
   // standard: 最小 180px, premium-mini: 最小 150px
   const minWidth = props.cardStyle === 'premium-mini' ? '150px' : '190px'
   return {
-    gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))`
+    gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))`,
   }
 })
 
@@ -196,6 +231,10 @@ const hasDisplayRating = (book) => {
 
   return Number.isFinite(numericRating) && numericRating > 0
 }
+
+const getCoverSrc = (book) => resolveBookCover(book)
+
+const getFallbackCoverSrc = (book) => getFallbackBookCover(book)
 </script>
 
 <style scoped lang="scss">
@@ -280,7 +319,7 @@ const hasDisplayRating = (book) => {
     box-shadow:
       0 4px 8px rgba(0, 0, 0, 0.04),
       0 8px 16px rgba(0, 0, 0, 0.08),
-      0 16px 32px rgba(0, 0, 0, 0.10);
+      0 16px 32px rgba(0, 0, 0, 0.1);
 
     .cover-wrapper .book-cover {
       transform: scale(1.08);
@@ -373,6 +412,13 @@ const hasDisplayRating = (book) => {
     height: 100%;
     color: #dcdfe6;
     font-size: 24px;
+  }
+
+  .fallback-book-cover {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
   }
 }
 
