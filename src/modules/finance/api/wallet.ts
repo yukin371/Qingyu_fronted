@@ -188,7 +188,7 @@ export const walletAPI = {
   },
 
   async getWallet(): Promise<WalletInfo> {
-    const raw = await httpService.get<any>('/api/v1/finance/wallet')
+    const raw = await httpService.get<any>('/api/v1/finance/wallet/detail')
     return normalizeWallet(raw)
   },
 
@@ -246,7 +246,7 @@ export const walletAPI = {
   }): Promise<WalletListResult<WalletWithdrawal>> {
     const page = params?.page ?? 1
     const pageSize = params?.pageSize ?? 20
-    const raw = await httpService.get<any>('/api/v1/finance/wallet/withdrawals', {
+    const raw = await httpService.get<any>('/api/v1/finance/wallet/withdraws', {
       params: {
         page,
         page_size: pageSize,
