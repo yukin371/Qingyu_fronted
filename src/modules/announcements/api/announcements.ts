@@ -10,7 +10,7 @@ import type { APIResponse, PaginatedResponse } from '@/types/api'
 /**
  * 公告类型
  */
-export type AnnouncementType = 'system' | 'event' | 'maintenance'
+export type AnnouncementType = 'info' | 'warning' | 'notice'
 
 /**
  * 公告优先级
@@ -25,12 +25,16 @@ export interface Announcement {
   title: string
   content: string
   type: AnnouncementType
-  priority: AnnouncementPriority
-  effectiveStartTime: string
-  effectiveEndTime: string
+  priority: number
+  isActive?: boolean
+  targetRole?: 'all' | 'reader' | 'writer' | 'admin'
+  startTime?: string
+  endTime?: string
+  effectiveStartTime?: string
+  effectiveEndTime?: string
   viewCount: number
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
 /**
@@ -38,7 +42,6 @@ export interface Announcement {
  */
 export interface GetAnnouncementsParams {
   type?: AnnouncementType
-  priority?: AnnouncementPriority
   page?: number
   pageSize?: number
 }
@@ -76,15 +79,18 @@ export const announcementsAPI = {
    * 获取所有公告（带分页）
    * GET /api/v1/announcements
    */
-  async getAnnouncements(params?: GetAnnouncementsParams): Promise<PaginatedResponse<Announcement>> {
+  async getAnnouncements(
+    params?: GetAnnouncementsParams,
+  ): Promise<PaginatedResponse<Announcement>> {
     return httpService.get<PaginatedResponse<Announcement>>('/announcements', { params })
-  }
+  },
 }
 
 // 向后兼容：导出旧的函数名
 export const getEffectiveAnnouncements = () => announcementsAPI.getEffectiveAnnouncements()
 export const getAnnouncementById = (id: string) => announcementsAPI.getAnnouncementById(id)
 export const incrementViewCount = (id: string) => announcementsAPI.incrementViewCount(id)
-export const getAnnouncements = (params?: GetAnnouncementsParams) => announcementsAPI.getAnnouncements(params)
+export const getAnnouncements = (params?: GetAnnouncementsParams) =>
+  announcementsAPI.getAnnouncements(params)
 
 export default announcementsAPI

@@ -12,6 +12,7 @@ import writerRoutes from '@/modules/writer/routes'
 import adminRoutes from '@/modules/admin/routes'
 import financeRoutes from '@/modules/finance/routes'
 import notificationRoutes from '@/modules/notification/routes'
+import announcementRoutes from '@/modules/announcements/routes'
 import socialRoutes from '@/modules/social/routes'
 import aiRoutes from '@/modules/ai/routes'
 
@@ -50,6 +51,7 @@ const routes: RouteRecordRaw[] = [
   ...adminRoutes,
   ...financeRoutes,
   ...notificationRoutes,
+  ...announcementRoutes,
   ...socialRoutes,
   ...aiRoutes,
 

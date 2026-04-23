@@ -71,19 +71,11 @@
         </div>
       </section>
 
-      <!-- 公告栏 (悬浮式) -->
-      <section v-if="announcements.length > 0" class="floating-notice animate-up delay-2">
-        <div class="notice-glass">
-          <Icon name="bell" class="notice-icon" size="md" />
-          <div class="notice-swiper">
-            <!-- 这里可以用简单的轮播或者显示最新一条 -->
-            <span>{{ announcements[0].content }}</span>
-          </div>
-          <QyButton variant="text" size="sm" @click="announcements = []">
-            <Icon name="x-mark" size="sm" />
-          </QyButton>
-        </div>
-      </section>
+      <AnnouncementBar
+        :items="announcementItems"
+        class="animate-up delay-2"
+        @select="handleAnnouncementSelect"
+      />
 
       <!-- 主要内容区域 -->
       <div class="content-wrapper">
@@ -188,7 +180,11 @@
                 @click="handleBookClick(book)"
               >
                 <div class="card-image-box">
-                  <QyImage :src="book.cover" fit="cover">
+                  <QyImage
+                    :src="getRecommendationCover(book)"
+                    fit="cover"
+                    @error="handleRecommendationImageError(book)"
+                  >
                     <template #error>
                       <div class="image-placeholder">
                         <Icon name="photo" size="md" />
@@ -242,6 +238,8 @@ import { useBookstoreStore } from '../stores/bookstore.store'
 import BannerCarousel from '../components/BannerCarousel.vue'
 import RankingList from '../components/RankingList.vue'
 import BookGrid from '../components/BookGrid.vue'
+import AnnouncementBar from '@/modules/announcements/components/AnnouncementBar.vue'
+import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements'
 import {
   QyButton,
   QyDivider as Divider,
@@ -250,6 +248,7 @@ import {
   Image as QyImage,
 } from '@/design-system/components'
 import { usePagination } from '@/composables/usePagination'
+import { getFallbackBookCover, resolveBookCover } from '../utils/cover-resolver'
 
 export default {
   name: 'HomeView',
@@ -257,6 +256,7 @@ export default {
     BannerCarousel,
     RankingList,
     BookGrid,
+    AnnouncementBar,
     QyButton,
     QyInput,
     Divider,
@@ -272,10 +272,10 @@ export default {
     const featuredError = ref(false)
     const loadMoreElRef = ref(null)
     const activeRankingTab = ref('weekly')
+    const recommendationCoverOverrides = ref({})
+    const { visibleItems: announcementItems, loadAnnouncements } = useAnnouncements()
 
     // 数据从 store 获取，支持测试模式和真实 API 模式
-    // 添加默认值保护，防止 store 未初始化时访问 undefined 属性
-    const announcements = ref([])
     // 使用可选链和安全访问，确保即使 store 未初始化也不会报错
     const banners = computed(() => bookstoreStore?.banners || [])
     const recommendedBooks = computed(() => bookstoreStore?.books?.recommended || [])
@@ -314,7 +314,6 @@ export default {
       { pageSize: 12, initialLoad: false, autoLoadOnScroll: true },
     )
 
-    // 辅助函数
     const formatRating = (rating) => {
       if (!rating || typeof rating !== 'number') return '0.0'
       return rating.toFixed(1)
@@ -325,12 +324,28 @@ export default {
       return num > 9999 ? (num / 10000).toFixed(1) + 'w' : num
     }
 
+    const getRecommendationBookKey = (book) => String(book?.id || book?._id || book?.title || '')
+
+    const getRecommendationCover = (book) => {
+      const key = getRecommendationBookKey(book)
+      return recommendationCoverOverrides.value[key] || resolveBookCover(book)
+    }
+
+    const handleRecommendationImageError = (book) => {
+      const key = getRecommendationBookKey(book)
+      if (!key || recommendationCoverOverrides.value[key]) return
+
+      recommendationCoverOverrides.value = {
+        ...recommendationCoverOverrides.value,
+        [key]: getFallbackBookCover(book),
+      }
+    }
+
     const rankingTabName = (type) => {
       const map = { realtime: '实时榜', weekly: '周榜', monthly: '月榜', newbie: '新书榜' }
       return map[type]
     }
 
-    // Action Handlers 保持不变
     const handleBannerClick = (banner) => {
       if (banner?.bookId) {
         router.push(`/bookstore/books/${banner.bookId}`)
@@ -338,9 +353,12 @@ export default {
         router.push(banner.link)
       }
     }
+
+    const handleAnnouncementSelect = (id) => {
+      router.push({ name: 'announcement-detail', params: { id } })
+    }
+
     const handleBookClick = (book) => {
-      // 处理榜单数据结构：item.book.id / item.bookId / item.id / item._id
-      // 注意：榜单项的 item.id 是榜单条目ID，不是书籍ID
       const bookId = book.book?.id || book.bookId || book.id || book._id
       if (bookId) {
         router.push({ name: 'book-detail', params: { id: bookId } })
@@ -350,7 +368,6 @@ export default {
       router.push({ path: '/bookstore/rankings', query: type ? { type } : {} })
     }
     const handleViewBooks = (type) => {
-      // 导航到浏览书籍页面，可选携带筛选类型
       const query = type ? { filter: type } : {}
       router.push({ path: '/bookstore/browse', query })
     }
@@ -399,12 +416,10 @@ export default {
     const loadHomepageData = async () => {
       loading.value = true
       try {
-        // 确保 store 方法存在后再调用
         if (typeof bookstoreStore.fetchHomepageData === 'function') {
           await bookstoreStore.fetchHomepageData()
         } else {
           console.warn('[HomeView] fetchHomepageData 方法不存在，尝试单独获取数据')
-          // 尝试单独获取各项数据
           if (typeof bookstoreStore.fetchRankings === 'function') {
             await bookstoreStore.fetchRankings()
           }
@@ -419,11 +434,10 @@ export default {
       }
     }
 
-    // Fix memory leak: store observer reference for cleanup
     let scrollObserver = null
 
     onMounted(async () => {
-      await loadHomepageData()
+      await Promise.all([loadHomepageData(), loadAnnouncements()])
 
       if (Array.isArray(recommendedBooks.value) && recommendedBooks.value.length > 0) {
         recommendedItems.value = [...recommendedBooks.value]
@@ -433,7 +447,6 @@ export default {
 
       if (loadMoreElRef.value) setupScrollObserver(loadMoreElRef.value)
 
-      // 添加简单的滚动显现动画观察器
       scrollObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -457,7 +470,7 @@ export default {
       featuredError,
       loadingMore,
       hasMoreRecommendations,
-      announcements,
+      announcementItems,
       banners,
       recommendedBooks,
       featuredBooks,
@@ -468,7 +481,10 @@ export default {
       activeRankingTab,
       formatNumber,
       formatRating,
+      getRecommendationCover,
+      handleRecommendationImageError,
       rankingTabName,
+      handleAnnouncementSelect,
       handleBookClick,
       handleBannerClick,
       handleViewRanking,
