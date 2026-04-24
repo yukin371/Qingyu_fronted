@@ -56,9 +56,11 @@
             </h3>
           </div>
 
-          <el-empty v-if="categories.length === 0 && !loading" description="暂无分类数据">
-            <el-button type="primary" @click="handleAddCategory">添加分类</el-button>
-          </el-empty>
+          <div v-if="categories.length === 0 && !loading" class="tree-empty-state">
+            <el-empty class="tree-empty" description="暂无分类数据">
+              <el-button type="primary" @click="handleAddCategory">添加分类</el-button>
+            </el-empty>
+          </div>
 
           <div v-else class="tree-container">
             <el-collapse v-model="activeCollapse" accordion>
@@ -149,10 +151,7 @@
             </el-collapse>
 
             <!-- 添加一级分类按钮 -->
-            <el-button
-              class="add-parent-btn"
-              @click="handleAddCategory"
-            >
+            <el-button class="add-parent-btn" @click="handleAddCategory">
               <el-icon><Plus /></el-icon>
               添加一级分类
             </el-button>
@@ -168,11 +167,19 @@
                 分类详情
               </h3>
               <div class="detail-actions">
-                <el-button type="primary" size="small" @click="handleEditCategory(selectedCategory!, parentCategory ?? undefined)">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="handleEditCategory(selectedCategory!, parentCategory ?? undefined)"
+                >
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" size="small" @click="handleDeleteCategory(selectedCategory!)">
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteCategory(selectedCategory!)"
+                >
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
@@ -183,7 +190,9 @@
               <div class="detail-card">
                 <div class="detail-item">
                   <span class="detail-label">分类ID</span>
-                  <span class="detail-value"><code>{{ selectedCategory.id }}</code></span>
+                  <span class="detail-value"
+                    ><code>{{ selectedCategory.id }}</code></span
+                  >
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">分类名称</span>
@@ -191,7 +200,9 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">分类描述</span>
-                  <span class="detail-value">{{ selectedCategory.description || '未设置描述' }}</span>
+                  <span class="detail-value">{{
+                    selectedCategory.description || '未设置描述'
+                  }}</span>
                 </div>
                 <div v-if="parentCategory" class="detail-item">
                   <span class="detail-label">父级分类</span>
@@ -203,7 +214,10 @@
                   <span class="detail-label">分类类型</span>
                   <span class="detail-value">
                     <el-tag :type="selectedCategory.children?.length ? 'primary' : 'success'">
-                      {{ levelLabelMap[selectedCategory.level] || `${selectedCategory.level + 1}级分类` }}
+                      {{
+                        levelLabelMap[selectedCategory.level] ||
+                        `${selectedCategory.level + 1}级分类`
+                      }}
                     </el-tag>
                   </span>
                 </div>
@@ -230,12 +244,12 @@
                   子分类列表
                 </h4>
                 <div class="children-tags">
-                    <el-tag
-                      v-for="child in selectedCategory.children"
-                      :key="child.id"
-                      class="child-tag"
-                      effect="plain"
-                      @click="selectCategory(child, selectedCategory)"
+                  <el-tag
+                    v-for="child in selectedCategory.children"
+                    :key="child.id"
+                    class="child-tag"
+                    effect="plain"
+                    @click="selectCategory(child, selectedCategory)"
                   >
                     {{ child.name }}
                   </el-tag>
@@ -277,7 +291,12 @@
           />
         </el-form-item>
         <el-form-item label="排序值" prop="sortOrder">
-          <el-input-number v-model="categoryForm.sortOrder" :min="0" :max="9999" style="width: 100%" />
+          <el-input-number
+            v-model="categoryForm.sortOrder"
+            :min="0"
+            :max="9999"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item v-if="!isEditMode" label="父级分类">
           <el-select
@@ -287,12 +306,7 @@
             clearable
             style="width: 100%"
           >
-            <el-option
-              v-for="cat in categories"
-              :key="cat.id"
-              :label="cat.name"
-              :value="cat.id"
-            />
+            <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -310,8 +324,17 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
-  Plus, Refresh, Folder, FolderOpened, DataAnalysis, Share,
-  Edit, Delete, Document, InfoFilled, List
+  Plus,
+  Refresh,
+  Folder,
+  FolderOpened,
+  DataAnalysis,
+  Share,
+  Edit,
+  Delete,
+  Document,
+  InfoFilled,
+  List,
 } from '@element-plus/icons-vue'
 import { createCategory, deleteCategory, getCategoryTree, updateCategory } from '../api'
 
@@ -377,7 +400,11 @@ function normalizeCategoryTree(category: any): Category {
   }
 }
 
-function findCategoryById(list: Category[], id: string, parent?: Category): { node: Category; parent?: Category } | null {
+function findCategoryById(
+  list: Category[],
+  id: string,
+  parent?: Category,
+): { node: Category; parent?: Category } | null {
   for (const item of list) {
     if (item.id === id) {
       return { node: item, parent }
@@ -454,7 +481,7 @@ const handleDeleteCategory = async (category: Category) => {
     await ElMessageBox.confirm(
       `确定要删除分类"${category.name}"吗？${category.children?.length ? '其子分类也将被删除。' : ''}`,
       '确认删除',
-      { type: 'warning', confirmButtonText: '确认删除' }
+      { type: 'warning', confirmButtonText: '确认删除' },
     )
     await deleteCategory(category.id)
     if (selectedCategory.value?.id === category.id) {
@@ -643,6 +670,22 @@ onMounted(() => {
       gap: 8px;
     }
   }
+}
+
+.tree-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.tree-empty {
+  max-width: 240px;
+}
+
+:deep(.tree-empty .el-empty) {
+  margin: 0 auto;
 }
 
 .tree-container {

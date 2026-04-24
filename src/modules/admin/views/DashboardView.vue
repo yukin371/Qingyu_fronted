@@ -453,7 +453,7 @@
       </QyButton>
     </div>
     <div class="bg-white rounded-2xl p-5 shadow-sm">
-      <div v-if="recentActivities.length === 0">
+      <div v-if="recentActivities.length === 0" class="dashboard-empty-state">
         <Empty title="暂无操作日志" description="系统运行后将显示操作记录" iconSize="small" />
       </div>
       <div
@@ -733,3 +733,12 @@ onBeforeUnmount(() => {
   auditChart?.dispose()
 })
 </script>
+
+<style scoped lang="scss">
+.dashboard-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 116px;
+}
+</style>

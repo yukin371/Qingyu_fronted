@@ -728,8 +728,8 @@ onMounted(() => {
 }
 
 .backup-empty {
-  max-width: none;
-  margin-top: 12px;
+  max-width: 440px;
+  margin: 12px auto 0;
 }
 
 .backup-list {

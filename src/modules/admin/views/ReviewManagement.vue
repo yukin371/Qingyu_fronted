@@ -109,7 +109,10 @@
     </div>
 
     <!-- 待审核列表 -->
-    <div class="review-list" :class="{ 'is-loading': loading }">
+    <div
+      class="review-list"
+      :class="{ 'is-loading': loading, 'is-empty': reviews.length === 0 && !loading }"
+    >
       <!-- 加载遮罩 -->
       <Transition name="fade">
         <div v-if="loading" class="loading-overlay">
@@ -675,6 +678,12 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
+}
+
+.review-list.is-empty {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .loading-overlay {

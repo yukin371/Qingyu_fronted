@@ -1,5 +1,9 @@
 <template>
-  <div class="browse-books-view" :class="{ 'compact-mode': isSearchMode }" data-testid="browse-books-view">
+  <div
+    class="browse-books-view"
+    :class="{ 'compact-mode': isSearchMode }"
+    data-testid="browse-books-view"
+  >
     <div class="container">
       <!-- 页面标题 -->
       <div class="page-header">
@@ -75,7 +79,11 @@
 
         <!-- 有数据 -->
         <div v-else-if="browseStore.books.length > 0">
-          <BookGrid :books="browseStore.books" :single-column="true" @book-click="handleBookClick" />
+          <BookGrid
+            :books="browseStore.books"
+            :single-column="true"
+            @book-click="handleBookClick"
+          />
 
           <!-- 统一使用无限滚动加载 -->
           <div class="load-more-section">
@@ -91,26 +99,22 @@
             </div>
 
             <!-- 没有更多了 -->
-            <div v-else-if="!browseStore.pagination.hasMore" class="no-more">
-              - 没有更多了 -
-            </div>
+            <div v-else-if="!browseStore.pagination.hasMore" class="no-more">- 没有更多了 -</div>
           </div>
         </div>
 
         <!-- 空状态 -->
-        <Empty
-          v-else
-          :image-type="emptyStateType"
-          :description="emptyStateDescription"
-        >
-          <Button
-            v-if="browseStore.hasActiveFilters"
-            @click="handleResetFilters"
-            variant="primary"
-          >
-            清空筛选
-          </Button>
-        </Empty>
+        <div v-else class="empty-state">
+          <Empty :image-type="emptyStateType" :description="emptyStateDescription">
+            <Button
+              v-if="browseStore.hasActiveFilters"
+              @click="handleResetFilters"
+              variant="primary"
+            >
+              清空筛选
+            </Button>
+          </Empty>
+        </div>
       </div>
     </div>
   </div>
@@ -138,7 +142,7 @@ const router = useRouter()
 // 状态筛选选项
 const statuses = ref([
   { value: 'ongoing', label: '连载中' },
-  { value: 'completed', label: '已完结' }
+  { value: 'completed', label: '已完结' },
 ])
 
 // 可用标签（优先从 metaStore 获取，// 如果 metaStore 为空，则从当前书籍列表中提取实际使用的标签
@@ -146,13 +150,13 @@ const availableTags = computed(() => {
   // 1. 优先使用 metaStore 中的标签
   if (metaStore.tags.length > 0) {
     return metaStore.tags.map((t: string | { name: string }) =>
-      typeof t === 'string' ? t : t.name
+      typeof t === 'string' ? t : t.name,
     )
   }
 
   // 2. 从当前书籍列表中提取实际使用的标签
   const tagSet = new Set<string>()
-  browseStore.books.forEach(book => {
+  browseStore.books.forEach((book) => {
     if (Array.isArray(book.tags)) {
       book.tags.forEach((tag: string) => tagSet.add(tag))
     }
@@ -173,20 +177,20 @@ const emptyStateConfig = computed(() => {
   if (q) {
     return {
       type: 'search',
-      description: `没有找到与"${q}"相关的书籍，试试其他关键词`
+      description: `没有找到与"${q}"相关的书籍，试试其他关键词`,
     }
   }
 
   if (categoryId || tags.length > 0) {
     return {
       type: 'filter',
-      description: '没有符合条件的书籍，试试调整筛选条件'
+      description: '没有符合条件的书籍，试试调整筛选条件',
     }
   }
 
   return {
     type: 'empty',
-    description: '书架正在补充中，敬请期待~'
+    description: '书架正在补充中，敬请期待~',
   }
 })
 
@@ -239,14 +243,16 @@ const loadMoreTrigger = ref<HTMLElement | null>(null)
 useIntersectionObserver(
   loadMoreTrigger,
   ([{ isIntersecting }]) => {
-    if (isIntersecting &&
-        !browseStore.loading &&
-        browseStore.pagination.hasMore &&
-        browseStore.books.length > 0) {
+    if (
+      isIntersecting &&
+      !browseStore.loading &&
+      browseStore.pagination.hasMore &&
+      browseStore.books.length > 0
+    ) {
       loadMore()
     }
   },
-  { threshold: 0.1 }
+  { threshold: 0.1 },
 )
 
 // 初始化
@@ -255,11 +261,7 @@ onMounted(async () => {
   browseStore.syncFiltersFromURL()
 
   // 加载静态数据（分类、年份、标签）
-  await Promise.all([
-    metaStore.getCategories(true),
-    metaStore.getYears(),
-    metaStore.getTags()
-  ])
+  await Promise.all([metaStore.getCategories(true), metaStore.getYears(), metaStore.getTags()])
 
   // 获取书籍列表
   fetchBooks()
@@ -331,7 +333,19 @@ onMounted(async () => {
 }
 
 .error-state {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 60px 20px;
+}
+
+.empty-state {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 /* 无限滚动区域 */
@@ -373,7 +387,9 @@ onMounted(async () => {
 }
 
 @keyframes bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0);
   }
   40% {

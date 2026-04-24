@@ -83,7 +83,11 @@
     </div>
 
     <!-- 待审核列表 -->
-    <div v-loading="loading" class="publication-list">
+    <div
+      v-loading="loading"
+      class="publication-list"
+      :class="{ 'is-empty': publications.length === 0 && !loading }"
+    >
       <el-empty v-if="publications.length === 0 && !loading" description="暂无待审核发布">
         <template #image>
           <el-icon :size="64" color="#d1d5db"><DocumentChecked /></el-icon>
@@ -553,6 +557,13 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.publication-list.is-empty {
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .publication-card {
