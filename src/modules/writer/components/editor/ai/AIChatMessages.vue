@@ -77,6 +77,53 @@
             </div>
           </div>
           <div
+            v-else-if="message.meta?.kind === 'document_target_candidates'"
+            class="message-tool-card message-tool-card--selection"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">{{ message.meta.requestLabel }}</div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <div class="message-tool-card__detail">请选择本次要读取或修改的目标章节。</div>
+            <div class="message-target-candidates">
+              <button
+                v-for="candidate in message.meta.candidates"
+                :key="candidate.documentId"
+                type="button"
+                class="message-target-candidate"
+                @click="
+                  emit('select-document-target', {
+                    instruction: message.meta.instruction,
+                    route: message.meta.route,
+                    documentId: candidate.documentId,
+                    documentTitle: candidate.documentTitle,
+                  })
+                "
+              >
+                <span class="message-target-candidate__title">
+                  {{ candidate.documentTitle || candidate.documentId }}
+                </span>
+                <span class="message-target-candidate__meta">{{ candidate.documentId }}</span>
+                <span v-if="candidate.reason" class="message-target-candidate__reason">
+                  {{ candidate.reason }}
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            v-else-if="message.meta?.kind === 'document_target_status'"
+            class="message-tool-card"
+            :class="`message-tool-card--${message.meta.status}`"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">{{ message.meta.documentLabel }}</div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <div v-if="message.meta.detail" class="message-tool-card__detail">
+              {{ message.meta.detail }}
+            </div>
+          </div>
+          <div
             class="message-content"
             :class="{ 'message-content--pending': message.typing }"
             v-safe-html="renderAssistantMessage(message)"
@@ -130,8 +177,17 @@ const props = withDefaults(
 )
 
 // ==================== Emits ====================
-defineEmits<{
+const emit = defineEmits<{
   (e: 'scrollToBottom'): void
+  (
+    e: 'select-document-target',
+    payload: {
+      instruction: string
+      route: 'edit' | 'analysis'
+      documentId: string
+      documentTitle?: string
+    },
+  ): void
 }>()
 
 // ==================== 国际化 ====================
@@ -417,6 +473,12 @@ watch(
   &--ready {
     border-color: #cbd5e1;
   }
+
+  &--loading,
+  &--selection {
+    border-color: #bfdbfe;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
+  }
 }
 
 .message-tool-card__header {
@@ -464,11 +526,61 @@ watch(
   }
 }
 
+.message-tool-card__detail {
+  padding: 0 12px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ai-text-muted, #64748b);
+}
+
 .message-tool-card__blocks {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 0 12px 12px;
+}
+
+.message-target-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.message-target-candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  background: rgba(239, 246, 255, 0.9);
+  color: var(--ai-text, #0f172a);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+
+  &:hover {
+    border-color: #60a5fa;
+    background: rgba(219, 234, 254, 0.96);
+    transform: translateY(-1px);
+  }
+}
+
+.message-target-candidate__title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.message-target-candidate__meta,
+.message-target-candidate__reason {
+  font-size: 12px;
+  color: var(--ai-text-muted, #64748b);
 }
 
 .message-tool-block {

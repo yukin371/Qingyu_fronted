@@ -21,6 +21,13 @@ export interface WriterResolvedDocumentTarget {
   useSelectionContext?: boolean
   requestLabel?: string
   assistantMessage?: string
+  candidates?: WriterDocumentTargetCandidate[]
+}
+
+export interface WriterDocumentTargetCandidate {
+  documentId: string
+  documentTitle: string
+  reason?: string
 }
 
 const CURRENT_DOCUMENT_PATTERNS = [
@@ -111,6 +118,17 @@ function formatCandidateDocuments(documents: WriterDocumentToolEntry[]): string 
     .join('\n')
 }
 
+function toDocumentCandidates(
+  documents: WriterDocumentToolEntry[],
+  getReason?: (document: WriterDocumentToolEntry) => string | undefined,
+): WriterDocumentTargetCandidate[] {
+  return documents.slice(0, 5).map((document) => ({
+    documentId: document.documentId,
+    documentTitle: document.title,
+    reason: getReason?.(document),
+  }))
+}
+
 async function readResolvedDocument(document: WriterDocumentToolEntry) {
   const result = await documentToolsService.readDocument(document.documentId)
   return {
@@ -118,6 +136,34 @@ async function readResolvedDocument(document: WriterDocumentToolEntry) {
     targetDocumentId: document.documentId,
     targetDocumentTitle: document.title,
     requestLabel: `${describeDocument(document.documentId, document.title)} 全文`,
+  }
+}
+
+async function resolveDocumentById(
+  documentId: string,
+  context: WriterDocumentAgentContext,
+): Promise<WriterResolvedDocumentTarget> {
+  if (!context.projectId?.trim()) {
+    return {
+      status: 'unresolved',
+      assistantMessage: '当前项目上下文缺失，无法读取目标章节。',
+    }
+  }
+
+  const documents = (await documentToolsService.listDocuments(context.projectId)).documents
+  const target = documents.find((item) => item.documentId === documentId)
+  if (!target) {
+    return {
+      status: 'unresolved',
+      assistantMessage: `没有找到 documentId 为“${documentId}”的章节。`,
+    }
+  }
+
+  const resolved = await readResolvedDocument(target)
+  return {
+    status: 'ready',
+    targetKind: 'resolved_document',
+    ...resolved,
   }
 }
 
@@ -195,10 +241,12 @@ async function resolveExplicitDocument(
   if (matches.length > 1 && matches[0].score === matches[1].score) {
     return {
       status: 'unresolved',
+      requestLabel: `章节引用“${explicitRef}”`,
       assistantMessage: [
         `“${explicitRef}”匹配到多个章节，请改得更具体：`,
         formatCandidateDocuments(matches.map((item) => item.document)),
       ].join('\n'),
+      candidates: toDocumentCandidates(matches.map((item) => item.document)),
     }
   }
 
@@ -220,7 +268,10 @@ async function resolveSearchDocument(
   }
 
   const documents = (await documentToolsService.listDocuments(context.projectId)).documents
-  const matches: WriterDocumentToolEntry[] = []
+  const matches: Array<{
+    document: WriterDocumentToolEntry
+    totalMatches: number
+  }> = []
 
   for (const document of documents) {
     const result = await documentToolsService.searchDocument({
@@ -229,7 +280,10 @@ async function resolveSearchDocument(
       contextLines: 0,
     })
     if (result.totalMatches > 0) {
-      matches.push(document)
+      matches.push({
+        document,
+        totalMatches: result.totalMatches,
+      })
     }
   }
 
@@ -243,14 +297,22 @@ async function resolveSearchDocument(
   if (matches.length > 1) {
     return {
       status: 'unresolved',
+      requestLabel: `搜索“${query}”`,
       assistantMessage: [
         `“${query}”命中了多个章节，请指定目标章节：`,
-        formatCandidateDocuments(matches),
+        formatCandidateDocuments(matches.map((item) => item.document)),
       ].join('\n'),
+      candidates: toDocumentCandidates(
+        matches.map((item) => item.document),
+        (document) => {
+          const matched = matches.find((item) => item.document.documentId === document.documentId)
+          return matched ? `命中 ${matched.totalMatches} 处“${query}”` : undefined
+        },
+      ),
     }
   }
 
-  const resolved = await readResolvedDocument(matches[0])
+  const resolved = await readResolvedDocument(matches[0].document)
   return {
     status: 'ready',
     targetKind: 'resolved_document',
@@ -338,5 +400,6 @@ export async function resolveWriterDocumentTarget(
 
 export const writerDocumentAgentService = {
   resolveTarget: resolveWriterDocumentTarget,
+  resolveTargetById: resolveDocumentById,
   shouldForceCurrentDocumentTarget,
 }

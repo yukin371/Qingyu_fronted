@@ -18,25 +18,54 @@
 
 import { ref, watch, computed, type ComputedRef, type Ref } from 'vue'
 
+export interface DocumentToolPatchPreviewMeta {
+  kind: 'document_tool_patch_preview'
+  status: 'ready' | 'switching'
+  statusText: string
+  documentLabel: string
+  operationType: string
+  blockCount: number
+  totalLines: number
+  blocks: Array<{
+    header: string
+    before: string[]
+    after: string[]
+  }>
+}
+
+export interface DocumentTargetCandidatesMeta {
+  kind: 'document_target_candidates'
+  status: 'needs_selection'
+  statusText: string
+  requestLabel: string
+  instruction: string
+  route: 'edit' | 'analysis'
+  candidates: Array<{
+    documentId: string
+    documentTitle: string
+    reason?: string
+  }>
+}
+
+export interface DocumentTargetStatusMeta {
+  kind: 'document_target_status'
+  status: 'loading' | 'switching' | 'ready'
+  statusText: string
+  documentLabel: string
+  detail?: string
+}
+
+export type ChatMessageMeta =
+  | DocumentToolPatchPreviewMeta
+  | DocumentTargetCandidatesMeta
+  | DocumentTargetStatusMeta
+
 /**
  * 聊天消息接口
  */
 export interface ChatMessage {
   /** 扩展元信息，用于结构化消息卡片 */
-  meta?: {
-    kind: 'document_tool_patch_preview'
-    status: 'ready' | 'switching'
-    statusText: string
-    documentLabel: string
-    operationType: string
-    blockCount: number
-    totalLines: number
-    blocks: Array<{
-      header: string
-      before: string[]
-      after: string[]
-    }>
-  }
+  meta?: ChatMessageMeta
   /** 消息唯一标识 */
   id: string
   /** 消息角色 */

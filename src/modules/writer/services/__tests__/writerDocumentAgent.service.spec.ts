@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   resolveWriterDocumentTarget,
+  writerDocumentAgentService,
   shouldForceCurrentDocumentTarget,
 } from '../writerDocumentAgent.service'
 
@@ -252,6 +253,65 @@ describe('writerDocumentAgent.service', () => {
 
     expect(result.status).toBe('unresolved')
     expect(result.assistantMessage).toContain('命中了多个章节')
+    expect(result.requestLabel).toBe('搜索“玉佩”')
+    expect(result.candidates).toEqual([
+      {
+        documentId: 'chapter-1',
+        documentTitle: '第一章',
+        reason: '命中 1 处“玉佩”',
+      },
+      {
+        documentId: 'chapter-2',
+        documentTitle: '第二章',
+        reason: '命中 1 处“玉佩”',
+      },
+    ])
+  })
+
+  it('can resolve a chosen candidate by document id', async () => {
+    mockListDocuments.mockResolvedValue({
+      documents: [
+        {
+          documentId: 'chapter-1',
+          title: '第一章',
+          level: 0,
+          order: 1,
+          type: 'chapter',
+          wordCount: 0,
+        },
+        {
+          documentId: 'chapter-2',
+          title: '第二章',
+          level: 0,
+          order: 2,
+          type: 'chapter',
+          wordCount: 0,
+        },
+      ],
+    })
+    mockReadDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      version: 1,
+      contentType: 'plain_text',
+      totalLines: 1,
+      lines: [{ line: 1, text: '第二章正文' }],
+    })
+
+    const result = await writerDocumentAgentService.resolveTargetById('chapter-2', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-1',
+      currentDocumentTitle: '第一章',
+      currentSourceText: '第一章正文',
+      selectedContext: null,
+    })
+
+    expect(result).toMatchObject({
+      status: 'ready',
+      targetKind: 'resolved_document',
+      targetDocumentId: 'chapter-2',
+      targetDocumentTitle: '第二章',
+      sourceText: '第二章正文',
+    })
   })
 
   it('recognizes force-current-document phrases', () => {

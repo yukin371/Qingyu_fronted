@@ -107,6 +107,7 @@ const AISelectionNoticeStub = defineComponent({
 })
 
 const AIChatMessagesStub = defineComponent({
+  emits: ['select-document-target'],
   template: '<div data-testid="chat-messages" />',
   methods: {
     scrollToBottom() {},
@@ -526,6 +527,125 @@ describe('AIPanel', () => {
       applyMode: 'replace_document',
       targetDocumentId: 'chapter-2',
       targetDocumentTitle: '雨夜',
+    })
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('已定位到'),
+      false,
+      expect.objectContaining({
+        kind: 'document_target_status',
+        status: 'loading',
+      }),
+    )
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      '雨夜章节改写后正文',
+      false,
+      expect.objectContaining({
+        kind: 'document_target_status',
+        status: 'switching',
+      }),
+    )
+  })
+
+  it('shows candidate selection meta for ambiguous cross-chapter search and resolves chosen chapter', async () => {
+    mockListDocuments.mockResolvedValue({
+      documents: [
+        {
+          documentId: 'chapter-1',
+          title: '第一章',
+          level: 0,
+          order: 1,
+          type: 'chapter',
+          wordCount: 0,
+        },
+        {
+          documentId: 'chapter-2',
+          title: '第二章',
+          level: 0,
+          order: 2,
+          type: 'chapter',
+          wordCount: 0,
+        },
+      ],
+    })
+    mockSearchDocument.mockResolvedValue({
+      query: '玉佩',
+      totalMatches: 1,
+      matches: [{ line: 1, startColumn: 1, endColumn: 2, text: '玉佩', before: [], after: [] }],
+    })
+    mockReadDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      version: 1,
+      contentType: 'plain_text',
+      totalLines: 1,
+      lines: [{ line: 1, text: '第二章正文' }],
+    })
+    vi.mocked(rewriteText).mockResolvedValue({
+      rewritten_text: '第二章改写后正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前章节正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '找到提到玉佩的章节，并补强伏笔')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('命中了多个章节'),
+      false,
+      expect.objectContaining({
+        kind: 'document_target_candidates',
+        route: 'edit',
+        candidates: [
+          expect.objectContaining({
+            documentId: 'chapter-1',
+          }),
+          expect.objectContaining({
+            documentId: 'chapter-2',
+          }),
+        ],
+      }),
+    )
+
+    wrapper.findComponent(AIChatMessagesStub).vm.$emit('select-document-target', {
+      instruction: '找到提到玉佩的章节，并补强伏笔',
+      route: 'edit',
+      documentId: 'chapter-2',
+      documentTitle: '第二章',
+    })
+    await flushPromises()
+
+    expect(vi.mocked(rewriteText)).toHaveBeenCalledWith(
+      'project-1',
+      '第二章正文',
+      'polish',
+      expect.any(String),
+    )
+    expect(wrapper.emitted('applyGeneratedText')?.[0]?.[0]).toMatchObject({
+      targetDocumentId: 'chapter-2',
+      targetDocumentTitle: '第二章',
+      generatedText: '第二章改写后正文',
     })
   })
 

@@ -30,6 +30,7 @@
         :messages="messages"
         :typing-text="typingText"
         :is-typing="isTyping"
+        @select-document-target="handleSelectDocumentTarget"
       />
 
       <!-- 快捷操作卡片 -->
@@ -74,7 +75,10 @@ import {
   proofreadText,
 } from '@/modules/ai/api'
 import { executeWriterDocumentCommand } from '@/modules/writer/services/documentToolCommands.service'
-import { writerDocumentAgentService } from '@/modules/writer/services/writerDocumentAgent.service'
+import {
+  writerDocumentAgentService,
+  type WriterResolvedDocumentTarget,
+} from '@/modules/writer/services/writerDocumentAgent.service'
 
 type EditorApplyMode =
   | 'replace_selection'
@@ -153,6 +157,7 @@ import {
 
 // 类型
 import type {
+  ChatMessage,
   ConversationMeta,
   SelectionNotice,
   SelectionNoticeStatus,
@@ -463,6 +468,74 @@ function buildChatRequestMessage(instruction: string): string {
   return `${prefix}：${context.text}\n\n用户需求：${instruction}`
 }
 
+type DocumentTargetRoute = 'edit' | 'analysis'
+
+interface DocumentTargetSelectionPayload {
+  instruction: string
+  route: DocumentTargetRoute
+  documentId: string
+  documentTitle?: string
+}
+
+function isCrossDocumentTarget(target: WriterResolvedDocumentTarget): boolean {
+  const targetDocumentId = target.targetDocumentId?.trim()
+  const currentDocumentId = effectiveWorkflowContext.value?.chapterId?.trim() || ''
+  return !!targetDocumentId && !!currentDocumentId && targetDocumentId !== currentDocumentId
+}
+
+function buildTargetCandidatesMeta(
+  instruction: string,
+  route: DocumentTargetRoute,
+  target: WriterResolvedDocumentTarget,
+): ChatMessage['meta'] | undefined {
+  if (!target.candidates?.length) {
+    return undefined
+  }
+
+  return {
+    kind: 'document_target_candidates',
+    status: 'needs_selection',
+    statusText: '命中了多个章节',
+    requestLabel: target.requestLabel || '目标章节待确认',
+    instruction,
+    route,
+    candidates: target.candidates,
+  }
+}
+
+function buildTargetStatusMeta(
+  target: WriterResolvedDocumentTarget,
+  status: 'loading' | 'switching' | 'ready',
+  statusText: string,
+  detail?: string,
+): ChatMessage['meta'] | undefined {
+  const documentLabel = target.targetDocumentTitle?.trim() || target.targetDocumentId?.trim()
+  if (!documentLabel) {
+    return undefined
+  }
+
+  return {
+    kind: 'document_target_status',
+    status,
+    statusText,
+    documentLabel: `《${documentLabel}》`,
+    detail,
+  }
+}
+
+function appendTargetResolutionMessage(
+  instruction: string,
+  route: DocumentTargetRoute,
+  target: WriterResolvedDocumentTarget,
+) {
+  addMessage(
+    'assistant',
+    target.assistantMessage || '当前没有可用的目标章节。',
+    false,
+    buildTargetCandidatesMeta(instruction, route, target),
+  )
+}
+
 async function resolveDocumentTarget(instruction: string) {
   return writerDocumentAgentService.resolveTarget(instruction, {
     projectId: effectiveWorkflowContext.value?.projectId || props.sessionId,
@@ -471,6 +544,76 @@ async function resolveDocumentTarget(instruction: string) {
     currentSourceText: props.sourceText || '',
     selectedContext: selectedChatContext.value,
   })
+}
+
+async function runResolvedAnalysis(
+  instruction: string,
+  intent: WriterPromptIntent,
+  resolvedTarget: WriterResolvedDocumentTarget,
+) {
+  const sourceText = resolvedTarget.sourceText?.trim() || ''
+  if (!sourceText) {
+    addMessage('assistant', '当前没有可供分析的正文内容，请先确认目标章节。')
+    return
+  }
+
+  addMessage('user', instruction)
+  inputText.value = ''
+  await scrollToBottom()
+
+  isTyping.value = true
+  try {
+    const projectId = props.sessionId || 'demo-project'
+    let generatedText = ''
+
+    if (intent.action === 'proofread') {
+      const proofread = await proofreadText(sourceText, {
+        projectId,
+      })
+      generatedText = proofread.issues
+        .map((issue, index) => {
+          const suggestions =
+            Array.isArray(issue.suggestions) && issue.suggestions.length > 0
+              ? ` 建议：${issue.suggestions.join('；')}`
+              : ''
+          return `${index + 1}. ${issue.message || '检测到可优化项。'}${suggestions}`
+        })
+        .join('\n')
+    } else {
+      const response = await summarizeText(sourceText, {
+        projectId,
+        summaryType: 'detailed',
+      })
+      generatedText = response.summary || response.keyPoints.join('\n')
+    }
+
+    if (generatedText.trim()) {
+      addMessage(
+        'assistant',
+        generatedText,
+        false,
+        isCrossDocumentTarget(resolvedTarget)
+          ? buildTargetStatusMeta(
+              resolvedTarget,
+              'ready',
+              '已读取目标章节并完成结果生成',
+              '这是基于异章节正文生成的结果；若继续改写，将沿用该目标章节。',
+            )
+          : undefined,
+      )
+      emit('resultCandidate', buildAnalysisCandidate(intent, generatedText, sourceText))
+    } else {
+      addMessage('assistant', '未返回有效结果，请重试。')
+    }
+
+    if (selectedChatContext.value) handleClearSelectedContext()
+    await scrollToBottom()
+  } catch (error) {
+    console.error('[AIPanel] Failed to get AI response:', error)
+    addMessage('assistant', resolveAIErrorMessage(error))
+  } finally {
+    isTyping.value = false
+  }
 }
 
 async function requestEditIntent(
@@ -609,50 +752,14 @@ async function sendMessage(content: string) {
     if (promptExecution.route === 'analysis' && intent) {
       const resolvedTarget = await resolveDocumentTarget(trimmedContent)
       if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
-        addMessage(
-          'assistant',
-          resolvedTarget.assistantMessage || '当前没有可供分析的正文内容，请先确认目标章节。',
-        )
+        addMessage('user', trimmedContent)
+        appendTargetResolutionMessage(trimmedContent, 'analysis', resolvedTarget)
         isTyping.value = false
         await scrollToBottom()
         return
       }
-
-      const sourceText = resolvedTarget.sourceText.trim()
-      const projectId = props.sessionId || 'demo-project'
-      let generatedText = ''
-
-      if (intent.action === 'proofread') {
-        const proofread = await proofreadText(sourceText, {
-          projectId,
-        })
-        generatedText = proofread.issues
-          .map((issue, index) => {
-            const suggestions =
-              Array.isArray(issue.suggestions) && issue.suggestions.length > 0
-                ? ` 建议：${issue.suggestions.join('；')}`
-                : ''
-            return `${index + 1}. ${issue.message || '检测到可优化项。'}${suggestions}`
-          })
-          .join('\n')
-      } else {
-        const response = await summarizeText(sourceText, {
-          projectId,
-          summaryType: 'detailed',
-        })
-        generatedText = response.summary || response.keyPoints.join('\n')
-      }
-
-      if (generatedText.trim()) {
-        addMessage('assistant', generatedText)
-        emit('resultCandidate', buildAnalysisCandidate(intent, generatedText, sourceText))
-      } else {
-        addMessage('assistant', '未返回有效结果，请重试。')
-      }
-
-      if (selectedChatContext.value) handleClearSelectedContext()
       isTyping.value = false
-      await scrollToBottom()
+      await runResolvedAnalysis(trimmedContent, intent, resolvedTarget)
       return
     }
 
@@ -684,18 +791,17 @@ async function sendMessage(content: string) {
   }
 }
 
-async function runDirectEdit(instruction: string, intent: WriterPromptIntent | null = null) {
+async function runResolvedDirectEdit(
+  instruction: string,
+  intent: WriterPromptIntent | null,
+  resolvedTarget: WriterResolvedDocumentTarget,
+) {
   const context = selectedChatContext.value
-  const resolvedTarget = await resolveDocumentTarget(instruction)
-  if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
-    addMessage(
-      'assistant',
-      resolvedTarget.assistantMessage || '当前没有可编辑的正文内容，请先确认目标章节。',
-    )
+  const sourceText = resolvedTarget.sourceText?.trim() || ''
+  if (!sourceText) {
+    addMessage('assistant', '当前没有可编辑的正文内容，请先确认目标章节。')
     return
   }
-
-  const sourceText = resolvedTarget.sourceText.trim()
   const applyMode = (resolvedTarget.applyModeHint ||
     resolveWriterEditApplyMode(
       intent?.action ?? 'direct_edit',
@@ -711,6 +817,21 @@ async function runDirectEdit(instruction: string, intent: WriterPromptIntent | n
   await scrollToBottom()
 
   try {
+    if (isCrossDocumentTarget(resolvedTarget)) {
+      addMessage(
+        'assistant',
+        `已定位到 ${resolvedTarget.requestLabel || resolvedTarget.targetDocumentTitle || resolvedTarget.targetDocumentId}，正在生成可挂载到正文编辑器的结果。`,
+        false,
+        buildTargetStatusMeta(
+          resolvedTarget,
+          'loading',
+          '已定位目标章节，正在生成结果',
+          '生成完成后会自动提交给宿主切章并挂起正文 diff。',
+        ),
+      )
+      await scrollToBottom()
+    }
+
     const projectId = props.sessionId || 'demo-project'
     const editResult = await requestEditIntent(
       projectId,
@@ -727,7 +848,19 @@ async function runDirectEdit(instruction: string, intent: WriterPromptIntent | n
       return
     }
 
-    addMessage('assistant', generatedText)
+    addMessage(
+      'assistant',
+      generatedText,
+      false,
+      isCrossDocumentTarget(resolvedTarget)
+        ? buildTargetStatusMeta(
+            resolvedTarget,
+            'switching',
+            '已提交切章挂 diff',
+            '宿主会自动切换到目标章节，并在正文编辑器中展示可接受/放弃的 diff。',
+          )
+        : undefined,
+    )
     emit('resultCandidate', {
       source: 'rewrite',
       action: editResult.emittedAction,
@@ -754,6 +887,17 @@ async function runDirectEdit(instruction: string, intent: WriterPromptIntent | n
   } finally {
     isTyping.value = false
   }
+}
+
+async function runDirectEdit(instruction: string, intent: WriterPromptIntent | null = null) {
+  const resolvedTarget = await resolveDocumentTarget(instruction)
+  if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
+    addMessage('user', instruction)
+    appendTargetResolutionMessage(instruction, 'edit', resolvedTarget)
+    return
+  }
+
+  await runResolvedDirectEdit(instruction, intent, resolvedTarget)
 }
 
 function getGeneratedTextByAction(action: string, response: Record<string, any>): string {
@@ -870,6 +1014,46 @@ function handleClearSelectedContext() {
   if (selectionNotice.value?.action === 'chat') {
     selectionNotice.value = null
   }
+}
+
+async function handleSelectDocumentTarget(payload: DocumentTargetSelectionPayload) {
+  if (!payload.documentId?.trim() || isTyping.value) {
+    return
+  }
+
+  const resolvedTarget = await writerDocumentAgentService.resolveTargetById(payload.documentId, {
+    projectId: effectiveWorkflowContext.value?.projectId || props.sessionId,
+    currentDocumentId: effectiveWorkflowContext.value?.chapterId || null,
+    currentDocumentTitle: effectiveWorkflowContext.value?.chapterTitle || null,
+    currentSourceText: props.sourceText || '',
+    selectedContext: selectedChatContext.value,
+  })
+
+  if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
+    addMessage('assistant', resolvedTarget.assistantMessage || '目标章节读取失败，请稍后重试。')
+    return
+  }
+
+  if (payload.route === 'analysis') {
+    const promptExecution = resolveWriterPromptExecution(payload.instruction, {
+      interactionMode: interactionMode.value,
+      canEditDirectly: canEditDirectly.value,
+      hasSelectionContext: isSelectionContext(selectedChatContext.value),
+    })
+    if (!promptExecution.intent) {
+      addMessage('assistant', '当前需求未识别成可分析动作，请重新输入更明确的指令。')
+      return
+    }
+    await runResolvedAnalysis(payload.instruction, promptExecution.intent, resolvedTarget)
+    return
+  }
+
+  const promptExecution = resolveWriterPromptExecution(payload.instruction, {
+    interactionMode: 'edit',
+    canEditDirectly: canEditDirectly.value,
+    hasSelectionContext: isSelectionContext(selectedChatContext.value),
+  })
+  await runResolvedDirectEdit(payload.instruction, promptExecution.intent, resolvedTarget)
 }
 
 // ==================== 生命周期 ====================

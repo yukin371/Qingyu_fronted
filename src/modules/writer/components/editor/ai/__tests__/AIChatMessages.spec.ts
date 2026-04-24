@@ -125,6 +125,70 @@ describe('AIChatMessages', () => {
     expect(wrapper.find('.message-tool-block__panel--after').text()).toContain('删除')
   })
 
+  it('should render target candidate card and emit selection', async () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '请从候选章节中选择目标。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'document_target_candidates',
+          status: 'needs_selection',
+          statusText: '命中了多个章节',
+          requestLabel: '搜索“玉佩”',
+          instruction: '找到提到玉佩的章节，并补强伏笔',
+          route: 'edit',
+          candidates: [
+            {
+              documentId: 'chapter-2',
+              documentTitle: '第二章',
+              reason: '命中 2 处“玉佩”',
+            },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-target-candidate').exists()).toBe(true)
+    expect(wrapper.find('.message-target-candidate__title').text()).toContain('第二章')
+
+    await wrapper.find('.message-target-candidate').trigger('click')
+
+    expect(wrapper.emitted('select-document-target')?.[0]?.[0]).toEqual({
+      instruction: '找到提到玉佩的章节，并补强伏笔',
+      route: 'edit',
+      documentId: 'chapter-2',
+      documentTitle: '第二章',
+    })
+  })
+
+  it('should render target status card for cross-document progress', () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '已提交切章挂 diff。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'document_target_status',
+          status: 'switching',
+          statusText: '已提交切章挂 diff',
+          documentLabel: '《第二章》',
+          detail: '宿主会自动切换到目标章节并展示正文 diff。',
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-tool-card__title').text()).toContain('第二章')
+    expect(wrapper.find('.message-tool-card__status').text()).toContain('切章挂 diff')
+    expect(wrapper.find('.message-tool-card__detail').text()).toContain('宿主会自动切换')
+  })
+
   it('should show pending assistant bubble when panel is typing without persisted typing message', () => {
     const messages: ChatMessage[] = [
       { id: '1', role: 'user', content: '继续写', timestamp: Date.now() },

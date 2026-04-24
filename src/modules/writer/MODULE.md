@@ -1,6 +1,6 @@
 # Writer Module
 
-> 最后更新：2026-04-17
+> 最后更新：2026-04-24
 
 ## 职责
 
@@ -32,7 +32,8 @@
 - **AI 对话要先判别“聊天”还是“正文操作”**：`AIPanel` 对自由输入的“扩写 / 改写 / 续写 / 总结 / 审校”必须先做意图识别。`rewrite / expand / continue` 属于编辑类意图，应直接走正文 diff 链路；`summarize / proofread` 属于分析类意图，只能产出候选卡或建议，不得伪装成正文已改写。
 - **编辑类意图的 apply mode 要跟上下文匹配**：无选区时，`expand / rewrite` 默认面向整章正文，`continue` 默认追加到正文末尾；有选区时，`expand / rewrite` 替换选区，`continue` 插到选区后。不要再把“续写整章”错误路由成整章替换。
 - **候选稿上下文不能劫持“当前章节全文”**：`AIWorkbench` 注入的 `revisionSeed` 只代表“继续修改当前候选稿”，不能因为输入框仍挂着候选稿上下文，就覆盖用户显式提到的“当前章节 / 本章 / 整章 / 全文”。`AIPanel` 必须先解析 target，再决定 source，避免“扩写当前章节”误改候选稿。
-- **自然语言跨章节编辑也要复用 document tools**：自由输入若显式提到其它章节（标题、上一章/下一章、搜索命中的章节），应先通过 `writerDocumentAgent` 复用 `list/read/search` 解析目标，再走 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText`。自然语言跨章节修改不允许绕过现有 `targetDocumentId/targetDocumentTitle` diff 挂载协议。
+- **自然语言跨章节编辑也要复用 document tools**：自由输入若显式提到其它章节（标题、上一章/下一章、搜索命中的章节），应先通过 `writerDocumentAgent` 复用 `list/read/search` 解析目标，再走 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText`。自然语言跨章节修改不允许绕过现有 `targetDocumentId/targetDocumentTitle` diff 挂载协议；当检索命中多个章节时，右栏应先展示候选章节选择卡，待用户确认后再继续读取/改写。
+- **跨章节自然语言链路要给出可见状态反馈**：`AIPanel` 在异章节读文、生成结果、提交 diff 时，应通过 `AIChatMessages` 渲染统一状态卡，至少让用户看见“命中候选”“正在生成”“已提交切章挂 diff”这三类阶段，避免误判 AI 仍在当前章节工作。
 - **右栏不要重复渲染正文前后对比**：当正文编辑器已经挂起 inline diff 时，`AIWorkbench` 的 workflow rail 只保留“已同步到正文编辑器”的轻量状态与继续修改/存提案入口，不再在侧栏重复展示“修改前 / 修改后”正文块，交互对齐 Cursor / Trae 类编辑器。
 - **AI 工作台头部只保留一层模式切换**：`AIWorkbench` 不再渲染独立“AI 助手”标题，`AIPanel` 也不再额外渲染“对话协作”子头；聊天、改写、总结、审校统一收敛到 `AIWorkbench` 的 tab row，避免右栏出现双头部与重复层级。
 - **对话、改写、总结、审校要共享同一套工作台视觉语言**：`AIPanel`、`RewriteWorkbenchTool`、`SummaryWorkbenchTool`、`ReviewWorkbenchTool` 的 header、说明文案、状态栏和主按钮布局应复用统一样式 token，不要让右栏看起来像四套不同产品拼接。
