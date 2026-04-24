@@ -76,6 +76,20 @@ describe('writer workflow intent helpers', () => {
     })
   })
 
+  it('treats cross-chapter rewrite requests as edit intents', () => {
+    expect(detectWriterPromptIntent('修改第12章结尾，让冲突更强')).toMatchObject({
+      action: 'rewrite',
+      kind: 'edit',
+    })
+  })
+
+  it('treats add-a-paragraph requests as expand intents', () => {
+    expect(detectWriterPromptIntent('在上一章补一段伏笔')).toMatchObject({
+      action: 'expand',
+      kind: 'edit',
+    })
+  })
+
   it('normalizes workflow trigger apply mode for edit actions', () => {
     expect(
       buildWriterAIActionTrigger({

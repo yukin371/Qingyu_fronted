@@ -40,6 +40,12 @@ export interface ChatContextSnippet {
   text: string
   instructions?: string
   addedAt: number
+  kind?: 'selection' | 'revision'
+  applyMode?:
+    | 'replace_selection'
+    | 'insert_after_selection'
+    | 'append_paragraph'
+    | 'replace_document'
 }
 
 /**

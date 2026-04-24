@@ -12,6 +12,9 @@ const save = vi.fn()
 const load = vi.fn()
 const setSessionId = vi.fn()
 const mockExecuteWriterDocumentCommand = vi.fn()
+const mockListDocuments = vi.fn()
+const mockReadDocument = vi.fn()
+const mockSearchDocument = vi.fn()
 
 vi.mock('@/composables/useI18n', () => ({
   useI18n: () => ({
@@ -62,6 +65,14 @@ vi.mock('@/design-system/services', () => ({
 
 vi.mock('@/modules/writer/services/documentToolCommands.service', () => ({
   executeWriterDocumentCommand: (...args: unknown[]) => mockExecuteWriterDocumentCommand(...args),
+}))
+
+vi.mock('@/modules/writer/services/documentTools.service', () => ({
+  documentToolsService: {
+    listDocuments: (...args: unknown[]) => mockListDocuments(...args),
+    readDocument: (...args: unknown[]) => mockReadDocument(...args),
+    searchDocument: (...args: unknown[]) => mockSearchDocument(...args),
+  },
 }))
 
 const AIConversationToolbarStub = defineComponent({
@@ -189,6 +200,9 @@ describe('AIPanel', () => {
     vi.mocked(summarizeText).mockReset()
     mockExecuteWriterDocumentCommand.mockReset()
     mockExecuteWriterDocumentCommand.mockResolvedValue({ handled: false })
+    mockListDocuments.mockReset()
+    mockReadDocument.mockReset()
+    mockSearchDocument.mockReset()
     localStorage.clear()
   })
 
@@ -394,6 +408,125 @@ describe('AIPanel', () => {
     )
     expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
     expect(vi.mocked(summarizeText)).not.toHaveBeenCalled()
+  })
+
+  it('prefers current chapter source over revision candidate when instruction explicitly targets current chapter', async () => {
+    vi.mocked(expandText).mockResolvedValue({
+      expanded_text: '扩写后的当前章节正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+        revisionSeed: {
+          id: 99,
+          text: '旧候选稿正文',
+          instructions: '延续候选稿风格',
+          applyMode: 'replace_document',
+        },
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '请扩写当前章节，补足心理描写')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+    await nextTick()
+
+    expect(vi.mocked(expandText)).toHaveBeenCalledWith(
+      'project-1',
+      '当前整章正文',
+      expect.stringContaining('请扩写当前章节'),
+      undefined,
+    )
+  })
+
+  it('supports cross-chapter direct editing by resolving target chapter title', async () => {
+    mockListDocuments.mockResolvedValue({
+      documents: [
+        {
+          documentId: 'chapter-1',
+          title: '第一章',
+          level: 0,
+          order: 1,
+          type: 'chapter',
+          wordCount: 0,
+        },
+        {
+          documentId: 'chapter-2',
+          title: '雨夜',
+          level: 0,
+          order: 2,
+          type: 'chapter',
+          wordCount: 0,
+        },
+      ],
+    })
+    mockReadDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      version: 1,
+      contentType: 'plain_text',
+      totalLines: 1,
+      lines: [{ line: 1, text: '雨夜章节正文' }],
+    })
+    vi.mocked(rewriteText).mockResolvedValue({
+      rewritten_text: '雨夜章节改写后正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前章节正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '帮我重写《雨夜》这一章的结尾')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+    await nextTick()
+
+    expect(vi.mocked(rewriteText)).toHaveBeenCalledWith(
+      'project-1',
+      '雨夜章节正文',
+      'polish',
+      expect.any(String),
+    )
+    expect(wrapper.emitted('applyGeneratedText')?.[0]?.[0]).toMatchObject({
+      action: 'rewrite',
+      sourceText: '雨夜章节正文',
+      generatedText: '雨夜章节改写后正文',
+      applyMode: 'replace_document',
+      targetDocumentId: 'chapter-2',
+      targetDocumentTitle: '雨夜',
+    })
   })
 
   it('keeps summarize intent in candidate flow instead of applying正文 diff', async () => {

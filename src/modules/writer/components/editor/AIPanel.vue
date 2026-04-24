@@ -74,6 +74,7 @@ import {
   proofreadText,
 } from '@/modules/ai/api'
 import { executeWriterDocumentCommand } from '@/modules/writer/services/documentToolCommands.service'
+import { writerDocumentAgentService } from '@/modules/writer/services/writerDocumentAgent.service'
 
 type EditorApplyMode =
   | 'replace_selection'
@@ -190,6 +191,8 @@ interface Emits {
       action: string
       sourceText: string
       generatedText: string
+      targetDocumentId?: string
+      targetDocumentTitle?: string
       applyMode?:
         | 'replace_selection'
         | 'insert_after_selection'
@@ -266,7 +269,10 @@ const effectiveWorkflowContext = computed(
 )
 const effectiveWorkflowSignature = computed(() => effectiveWorkflowContext.value?.signature ?? '')
 const canEditDirectly = computed(
-  () => !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim(),
+  () =>
+    !!effectiveWorkflowContext.value?.projectId ||
+    !!selectedChatContext.value?.text.trim() ||
+    !!props.sourceText?.trim(),
 )
 const visibleSelectionNotice = computed(() =>
   selectionNotice.value?.action === 'chat' ? null : selectionNotice.value,
@@ -443,6 +449,30 @@ function buildAnalysisCandidate(
   }
 }
 
+function isSelectionContext(context: ChatContextSnippet | null | undefined): boolean {
+  return context?.kind === 'selection'
+}
+
+function buildChatRequestMessage(instruction: string): string {
+  const context = selectedChatContext.value
+  if (!context?.text.trim()) {
+    return instruction
+  }
+
+  const prefix = context.kind === 'revision' ? '参考候选稿' : '参考片段'
+  return `${prefix}：${context.text}\n\n用户需求：${instruction}`
+}
+
+async function resolveDocumentTarget(instruction: string) {
+  return writerDocumentAgentService.resolveTarget(instruction, {
+    projectId: effectiveWorkflowContext.value?.projectId || props.sessionId,
+    currentDocumentId: effectiveWorkflowContext.value?.chapterId || null,
+    currentDocumentTitle: effectiveWorkflowContext.value?.chapterTitle || null,
+    currentSourceText: props.sourceText || '',
+    selectedContext: selectedChatContext.value,
+  })
+}
+
 async function requestEditIntent(
   projectId: string,
   sourceText: string,
@@ -546,7 +576,7 @@ async function sendMessage(content: string) {
     return
   }
 
-  const hasSelectionContext = !!selectedChatContext.value?.text.trim()
+  const hasSelectionContext = isSelectionContext(selectedChatContext.value)
   const promptExecution = resolveWriterPromptExecution(trimmedContent, {
     interactionMode: interactionMode.value,
     canEditDirectly: canEditDirectly.value,
@@ -558,9 +588,7 @@ async function sendMessage(content: string) {
     await runDirectEdit(trimmedContent, intent)
     return
   }
-  const requestMessage = selectedChatContext.value
-    ? `参考片段：${selectedChatContext.value.text}\n\n用户需求：${trimmedContent}`
-    : trimmedContent
+  const requestMessage = buildChatRequestMessage(trimmedContent)
   const workflowContextPrompt = buildWriterWorkflowContextPrompt(effectiveWorkflowContext.value)
   const finalRequestMessage = workflowContextPrompt
     ? `${workflowContextPrompt}\n\n${requestMessage}`
@@ -578,10 +606,19 @@ async function sendMessage(content: string) {
   // 调用真实AI API
   isTyping.value = true
   try {
-    const hasSourceText = !!selectedChatContext.value?.text.trim() || !!props.sourceText?.trim()
+    if (promptExecution.route === 'analysis' && intent) {
+      const resolvedTarget = await resolveDocumentTarget(trimmedContent)
+      if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
+        addMessage(
+          'assistant',
+          resolvedTarget.assistantMessage || '当前没有可供分析的正文内容，请先确认目标章节。',
+        )
+        isTyping.value = false
+        await scrollToBottom()
+        return
+      }
 
-    if (promptExecution.route === 'analysis' && intent && hasSourceText) {
-      const sourceText = selectedChatContext.value?.text.trim() || props.sourceText?.trim() || ''
+      const sourceText = resolvedTarget.sourceText.trim()
       const projectId = props.sessionId || 'demo-project'
       let generatedText = ''
 
@@ -649,18 +686,26 @@ async function sendMessage(content: string) {
 
 async function runDirectEdit(instruction: string, intent: WriterPromptIntent | null = null) {
   const context = selectedChatContext.value
-  const sourceText = context?.text.trim() || props.sourceText?.trim() || ''
-  if (!sourceText) return
-  const hasSelectionContext = !!context?.text.trim()
-  const applyMode = resolveWriterEditApplyMode(
-    intent?.action ?? 'direct_edit',
-    hasSelectionContext,
-  ) as EditorApplyMode
+  const resolvedTarget = await resolveDocumentTarget(instruction)
+  if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
+    addMessage(
+      'assistant',
+      resolvedTarget.assistantMessage || '当前没有可编辑的正文内容，请先确认目标章节。',
+    )
+    return
+  }
+
+  const sourceText = resolvedTarget.sourceText.trim()
+  const applyMode = (resolvedTarget.applyModeHint ||
+    resolveWriterEditApplyMode(
+      intent?.action ?? 'direct_edit',
+      !!resolvedTarget.useSelectionContext,
+    )) as EditorApplyMode
 
   isTyping.value = true
   addMessage(
     'user',
-    `[直接修改正文]\n目标${applyMode === 'replace_document' ? '章节' : '片段'}：${sourceText}\n修改要求：${instruction}`,
+    `[直接修改正文]\n目标：${resolvedTarget.requestLabel || (applyMode === 'replace_document' ? '当前章节' : '当前片段')}\n修改要求：${instruction}`,
   )
   inputText.value = ''
   await scrollToBottom()
@@ -696,6 +741,8 @@ async function runDirectEdit(instruction: string, intent: WriterPromptIntent | n
       sourceText,
       generatedText,
       applyMode: editResult.applyMode,
+      targetDocumentId: resolvedTarget.targetDocumentId,
+      targetDocumentTitle: resolvedTarget.targetDocumentTitle,
     })
     if (context) {
       handleClearSelectedContext()
@@ -918,6 +965,7 @@ watch(
         text: text.trim(),
         instructions: instructions?.trim() || undefined,
         addedAt: Date.now(),
+        kind: 'selection',
       }
       selectedChatContextScope.value = {
         sessionId: props.sessionId,
@@ -951,6 +999,8 @@ watch(
       text: props.revisionSeed.text.trim(),
       instructions: props.revisionSeed.instructions?.trim() || undefined,
       addedAt: Date.now(),
+      kind: 'revision',
+      applyMode: props.revisionSeed.applyMode,
     }
     selectedChatContextScope.value = {
       sessionId: props.sessionId,
