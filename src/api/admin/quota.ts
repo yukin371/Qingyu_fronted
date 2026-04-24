@@ -1,4 +1,4 @@
-import axios from 'axios'
+import { apiClient } from '@/core/services/http.service'
 
 type Envelope<T> = {
   code: number
@@ -110,6 +110,49 @@ export type QuotaAlert = {
   createdAt: string
 }
 
+export type QuotaAlertStatusFilter =
+  | 'all'
+  | 'open'
+  | 'pending'
+  | 'acknowledged'
+  | 'resolved'
+  | 'ignored'
+
+export type QuotaReconciliationTimeRange = 'day' | 'week' | 'month' | 'all'
+
+export type QuotaReconciliationGroupBy = 'user' | 'workflow'
+
+export type QuotaReconciliationItem = {
+  groupKey: string
+  backendTokens: number
+  backendRecords: number
+  aiServiceTokens: number
+  aiServiceRecords: number
+  differenceTokens: number
+  differenceRatio: number
+  alertLevel: string
+  shouldAlert: boolean
+}
+
+export type QuotaReconciliationSummary = {
+  timeRange: QuotaReconciliationTimeRange
+  workflowType?: string
+  groupBy: QuotaReconciliationGroupBy
+  page: number
+  pageSize: number
+  totalGroups: number
+  backendTotalTokens: number
+  backendTotalRecords: number
+  aiServiceTotalTokens: number
+  aiServiceTotalRecords: number
+  differenceTokens: number
+  differenceRatio: number
+  alertLevel: string
+  shouldAlert: boolean
+  checkedAt: string
+  items: QuotaReconciliationItem[]
+}
+
 export type PaginatedResult<T> = {
   items: T[]
   total: number
@@ -137,7 +180,15 @@ export type QuotaAlertQuery = {
   limit?: number
   type?: string
   level?: string
-  status?: string
+  status?: QuotaAlertStatusFilter
+}
+
+export type QuotaReconciliationQuery = {
+  timeRange?: QuotaReconciliationTimeRange
+  workflowType?: string
+  groupBy?: QuotaReconciliationGroupBy
+  page?: number
+  pageSize?: number
 }
 
 export type AdminRechargePayload = {
@@ -499,6 +550,132 @@ const getMockDashboard = (): QuotaDashboard => {
   }
 }
 
+const getMockReconciliationTimeRange = (timeRange?: string): QuotaReconciliationTimeRange => {
+  if (timeRange === 'week' || timeRange === 'month' || timeRange === 'all') {
+    return timeRange
+  }
+  return 'day'
+}
+
+const getMockReconciliationGroupBy = (groupBy?: string): QuotaReconciliationGroupBy => {
+  return groupBy === 'workflow' ? 'workflow' : 'user'
+}
+
+const resolveMockRangeMultiplier = (timeRange: QuotaReconciliationTimeRange) => {
+  if (timeRange === 'week') return 7
+  if (timeRange === 'month') return 30
+  if (timeRange === 'all') return 90
+  return 1
+}
+
+const summarizeMockDifference = (backendTokens: number, aiServiceTokens: number) => {
+  const differenceTokens = Math.abs(backendTokens - aiServiceTokens)
+  const denominator = Math.max(backendTokens, aiServiceTokens, 1)
+  const differenceRatio = differenceTokens / denominator
+  if (differenceTokens >= 1000 || differenceRatio > 0.2) {
+    return { differenceTokens, differenceRatio, alertLevel: 'critical', shouldAlert: true }
+  }
+  if (differenceTokens >= 200 || differenceRatio > 0.1) {
+    return { differenceTokens, differenceRatio, alertLevel: 'warning', shouldAlert: true }
+  }
+  return { differenceTokens, differenceRatio, alertLevel: 'info', shouldAlert: false }
+}
+
+const buildMockReconciliationItems = (
+  timeRange: QuotaReconciliationTimeRange,
+  groupBy: QuotaReconciliationGroupBy,
+): QuotaReconciliationItem[] => {
+  const multiplier = resolveMockRangeMultiplier(timeRange)
+
+  if (groupBy === 'workflow') {
+    const workflowBases = [
+      { groupKey: 'chat', tokens: 9600, records: 128 },
+      { groupKey: 'rewrite', tokens: 6200, records: 72 },
+      { groupKey: 'outline', tokens: 4100, records: 43 },
+      { groupKey: 'analysis', tokens: 2800, records: 31 },
+    ]
+
+    return workflowBases.map((item, index) => {
+      const backendTokens = item.tokens * multiplier
+      const backendRecords = item.records * multiplier
+      const diff = Math.max(24, Math.round(backendTokens * (0.012 + index * 0.004)))
+      const aiServiceTokens = Math.max(0, backendTokens + (index % 2 === 0 ? -diff : diff))
+      const aiServiceRecords = Math.max(
+        0,
+        backendRecords + (index % 2 === 0 ? -Math.ceil(diff / 120) : Math.ceil(diff / 150)),
+      )
+      return {
+        groupKey: item.groupKey,
+        backendTokens,
+        backendRecords,
+        aiServiceTokens,
+        aiServiceRecords,
+        ...summarizeMockDifference(backendTokens, aiServiceTokens),
+      }
+    })
+  }
+
+  return [...mockQuotaState.users]
+    .sort((a, b) => b.dailyUsed - a.dailyUsed)
+    .map((user, index) => {
+      const backendTokens = user.dailyUsed * multiplier
+      const backendRecords = Math.max(1, Math.round(backendTokens / 180))
+      const diff = Math.max(12, Math.round(backendTokens * (0.015 + index * 0.003)))
+      const aiServiceTokens = Math.max(0, backendTokens + (index % 2 === 0 ? -diff : diff))
+      const aiServiceRecords = Math.max(
+        0,
+        backendRecords + (index % 2 === 0 ? -Math.ceil(diff / 140) : Math.ceil(diff / 180)),
+      )
+      return {
+        groupKey: user.userId,
+        backendTokens,
+        backendRecords,
+        aiServiceTokens,
+        aiServiceRecords,
+        ...summarizeMockDifference(backendTokens, aiServiceTokens),
+      }
+    })
+}
+
+const getMockReconciliationSummary = (
+  params: QuotaReconciliationQuery = {},
+): QuotaReconciliationSummary => {
+  refreshAllMockUsers()
+  const timeRange = getMockReconciliationTimeRange(params.timeRange)
+  const groupBy = getMockReconciliationGroupBy(params.groupBy)
+  const page = Math.max(1, Number(params.page || 1))
+  const pageSize = Math.max(1, Math.min(100, Number(params.pageSize || 20)))
+  const workflowType = params.workflowType?.trim()
+
+  let items = buildMockReconciliationItems(timeRange, groupBy)
+  if (workflowType && groupBy === 'workflow') {
+    items = items.filter((item) => item.groupKey === workflowType)
+  }
+
+  const backendTotalTokens = items.reduce((sum, item) => sum + item.backendTokens, 0)
+  const backendTotalRecords = items.reduce((sum, item) => sum + item.backendRecords, 0)
+  const aiServiceTotalTokens = items.reduce((sum, item) => sum + item.aiServiceTokens, 0)
+  const aiServiceTotalRecords = items.reduce((sum, item) => sum + item.aiServiceRecords, 0)
+  const summary = summarizeMockDifference(backendTotalTokens, aiServiceTotalTokens)
+  const start = (page - 1) * pageSize
+
+  return {
+    timeRange,
+    workflowType,
+    groupBy,
+    page,
+    pageSize,
+    totalGroups: items.length,
+    backendTotalTokens,
+    backendTotalRecords,
+    aiServiceTotalTokens,
+    aiServiceTotalRecords,
+    checkedAt: createTimestamp(0),
+    items: deepClone(items.slice(start, start + pageSize)),
+    ...summary,
+  }
+}
+
 const paginate = <T>(items: T[], page = 1, size = 20): PaginatedResult<T> => {
   const safePage = Math.max(1, Number(page || 1))
   const safeSize = Math.max(1, Number(size || 20))
@@ -515,42 +692,32 @@ const refreshAllMockUsers = () => {
   mockQuotaState.users.forEach((item) => syncMockUserDerivedFields(item))
 }
 
-const quotaClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+const withEnvelope = <T extends Record<string, unknown>>(config?: T) =>
+  ({
+    ...(config || {}),
+    preserveEnvelope: true,
+  }) as T & { preserveEnvelope: true }
 
-quotaClient.interceptors.request.use((config) => {
-  const parseToken = (raw: string | null) => {
-    if (!raw) return null
-    try {
-      const parsed = JSON.parse(raw)
-      return typeof parsed === 'string' ? parsed : raw
-    } catch {
-      return raw
-    }
-  }
+const quotaGet = <T>(url: string, config?: Record<string, unknown>) =>
+  apiClient.get<Envelope<T>>(url, withEnvelope(config) as any) as unknown as Promise<Envelope<T>>
 
-  const token =
-    parseToken(localStorage.getItem('qingyu_token')) ?? parseToken(localStorage.getItem('token'))
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+const quotaPost = <T>(url: string, data?: unknown, config?: Record<string, unknown>) =>
+  apiClient.post<Envelope<T>>(url, data, withEnvelope(config) as any) as unknown as Promise<
+    Envelope<T>
+  >
 
-const readEnvelope = async <T>(request: Promise<{ data: Envelope<T> }>) => {
-  const response = await request
-  return response.data
-}
+const quotaPut = <T>(url: string, data?: unknown, config?: Record<string, unknown>) =>
+  apiClient.put<Envelope<T>>(url, data, withEnvelope(config) as any) as unknown as Promise<
+    Envelope<T>
+  >
 
-const readPaginated = async <T>(
-  request: Promise<{ data: Envelope<T[]> }>,
-): Promise<PaginatedResult<T>> => {
-  const envelope = await readEnvelope(request)
+const quotaDelete = <T>(url: string, config?: Record<string, unknown>) =>
+  apiClient.delete<Envelope<T>>(url, withEnvelope(config) as any) as unknown as Promise<Envelope<T>>
+
+const readEnvelope = async <T>(request: Promise<Envelope<T>>) => request
+
+const readPaginated = async <T>(request: Promise<Envelope<T[]>>): Promise<PaginatedResult<T>> => {
+  const envelope = await request
   return {
     items: Array.isArray(envelope.data) ? envelope.data : [],
     total: Number(envelope.total ?? 0),
@@ -574,7 +741,7 @@ export const getQuotaDashboard = async () => {
     refreshAllMockUsers()
     return deepClone(getMockDashboard())
   }
-  const envelope = await readEnvelope<QuotaDashboard>(quotaClient.get('/admin/quota/dashboard'))
+  const envelope = await readEnvelope<QuotaDashboard>(quotaGet('/admin/quota/dashboard'))
   return envelope.data
 }
 
@@ -583,9 +750,7 @@ export const getQuotaGlobalStatistics = async () => {
     refreshAllMockUsers()
     return deepClone(summarizeMockQuota())
   }
-  const envelope = await readEnvelope<QuotaSummary>(
-    quotaClient.get('/admin/quota/statistics/global'),
-  )
+  const envelope = await readEnvelope<QuotaSummary>(quotaGet('/admin/quota/statistics/global'))
   return envelope.data
 }
 
@@ -594,14 +759,29 @@ export const getQuotaTrend = async (days = 7) => {
     return deepClone(mockQuotaState.trend.slice(-Math.max(1, days)))
   }
   const envelope = await readEnvelope<QuotaTrendPoint[]>(
-    quotaClient.get('/admin/quota/statistics/trend', { params: { days } }),
+    quotaGet('/admin/quota/statistics/trend', { params: { days } }),
   )
   return Array.isArray(envelope.data) ? envelope.data : []
 }
 
+export const getQuotaReconciliationSummary = async (params: QuotaReconciliationQuery = {}) => {
+  if (isQuotaMockMode()) {
+    return deepClone(getMockReconciliationSummary(params))
+  }
+  const envelope = await readEnvelope<QuotaReconciliationSummary>(
+    quotaGet('/admin/quota/statistics/reconciliation', { params }),
+  )
+  return envelope.data
+}
+
 export const refreshQuotaDashboard = async () => {
   if (isQuotaMockMode()) return
-  await readEnvelope<null>(quotaClient.post('/admin/quota/dashboard/refresh'))
+  await readEnvelope<null>(quotaPost('/admin/quota/dashboard/refresh'))
+}
+
+export const runQuotaConsistencyCheck = async () => {
+  if (isQuotaMockMode()) return
+  await readEnvelope<null>(quotaPost('/admin/quota/statistics/reconciliation/check'))
 }
 
 export const listQuotaUsers = async (params: QuotaUserQuery = {}) => {
@@ -622,7 +802,7 @@ export const listQuotaUsers = async (params: QuotaUserQuery = {}) => {
     })
     return deepClone(paginate(filtered, params.page, params.limit))
   }
-  return readPaginated<QuotaListItem>(quotaClient.get('/admin/quota/users', { params }))
+  return readPaginated<QuotaListItem>(quotaGet('/admin/quota/users', { params }))
 }
 
 export const getQuotaUserDetails = async (userId: string) => {
@@ -630,7 +810,7 @@ export const getQuotaUserDetails = async (userId: string) => {
     refreshAllMockUsers()
     return deepClone(mockQuotaState.details[userId] ?? [])
   }
-  const envelope = await readEnvelope<unknown>(quotaClient.get(`/admin/quota/users/${userId}`))
+  const envelope = await readEnvelope<unknown>(quotaGet(`/admin/quota/users/${userId}`))
   return normalizeQuotaDetails(envelope.data)
 }
 
@@ -645,7 +825,7 @@ export const updateQuotaUser = async (userId: string, payload: UpdateQuotaPayloa
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.put(`/admin/quota/users/${userId}`, payload))
+  return readEnvelope<null>(quotaPut(`/admin/quota/users/${userId}`, payload))
 }
 
 export const rechargeQuotaUser = async (userId: string, payload: AdminRechargePayload) => {
@@ -658,7 +838,7 @@ export const rechargeQuotaUser = async (userId: string, payload: AdminRechargePa
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.post(`/admin/quota/users/${userId}/recharge`, payload))
+  return readEnvelope<null>(quotaPost(`/admin/quota/users/${userId}/recharge`, payload))
 }
 
 export const suspendQuotaUser = async (userId: string) => {
@@ -670,7 +850,7 @@ export const suspendQuotaUser = async (userId: string) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.post(`/admin/quota/users/${userId}/suspend`))
+  return readEnvelope<null>(quotaPost(`/admin/quota/users/${userId}/suspend`))
 }
 
 export const activateQuotaUser = async (userId: string) => {
@@ -682,7 +862,7 @@ export const activateQuotaUser = async (userId: string) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.post(`/admin/quota/users/${userId}/activate`))
+  return readEnvelope<null>(quotaPost(`/admin/quota/users/${userId}/activate`))
 }
 
 export const batchRechargeQuota = async (payload: BatchQuotaPayload) => {
@@ -696,7 +876,7 @@ export const batchRechargeQuota = async (payload: BatchQuotaPayload) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<unknown>(quotaClient.post('/admin/quota/batch-recharge', payload))
+  return readEnvelope<unknown>(quotaPost('/admin/quota/batch-recharge', payload))
 }
 
 export const batchUpdateQuota = async (payload: BatchQuotaPayload) => {
@@ -709,7 +889,7 @@ export const batchUpdateQuota = async (payload: BatchQuotaPayload) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<unknown>(quotaClient.post('/admin/quota/batch-update', payload))
+  return readEnvelope<unknown>(quotaPost('/admin/quota/batch-update', payload))
 }
 
 export const batchSuspendQuota = async (payload: Pick<BatchQuotaPayload, 'userIds'>) => {
@@ -719,7 +899,7 @@ export const batchSuspendQuota = async (payload: Pick<BatchQuotaPayload, 'userId
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<unknown>(quotaClient.post('/admin/quota/batch-suspend', payload))
+  return readEnvelope<unknown>(quotaPost('/admin/quota/batch-suspend', payload))
 }
 
 export const batchActivateQuota = async (payload: Pick<BatchQuotaPayload, 'userIds'>) => {
@@ -729,7 +909,7 @@ export const batchActivateQuota = async (payload: Pick<BatchQuotaPayload, 'userI
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<unknown>(quotaClient.post('/admin/quota/batch-activate', payload))
+  return readEnvelope<unknown>(quotaPost('/admin/quota/batch-activate', payload))
 }
 
 export const listQuotaPolicies = async (params: QuotaPolicyQuery = {}) => {
@@ -741,7 +921,7 @@ export const listQuotaPolicies = async (params: QuotaPolicyQuery = {}) => {
     })
     return deepClone(paginate(filtered, params.page, params.limit))
   }
-  return readPaginated<QuotaPolicy>(quotaClient.get('/admin/quota/policies', { params }))
+  return readPaginated<QuotaPolicy>(quotaGet('/admin/quota/policies', { params }))
 }
 
 export const getQuotaPolicy = async (id: string) => {
@@ -750,7 +930,7 @@ export const getQuotaPolicy = async (id: string) => {
       mockQuotaState.policies.find((item) => item.id === id) || mockQuotaState.policies[0],
     )
   }
-  const envelope = await readEnvelope<QuotaPolicy>(quotaClient.get(`/admin/quota/policies/${id}`))
+  const envelope = await readEnvelope<QuotaPolicy>(quotaGet(`/admin/quota/policies/${id}`))
   return envelope.data
 }
 
@@ -767,9 +947,7 @@ export const createQuotaPolicy = async (payload: PolicyPayload) => {
     mockQuotaState.policies.unshift(created)
     return deepClone(created)
   }
-  const envelope = await readEnvelope<QuotaPolicy>(
-    quotaClient.post('/admin/quota/policies', payload),
-  )
+  const envelope = await readEnvelope<QuotaPolicy>(quotaPost('/admin/quota/policies', payload))
   return envelope.data
 }
 
@@ -781,9 +959,7 @@ export const updateQuotaPolicy = async (id: string, payload: PolicyPayload) => {
     }
     return deepClone(target || mockQuotaState.policies[0])
   }
-  const envelope = await readEnvelope<QuotaPolicy>(
-    quotaClient.put(`/admin/quota/policies/${id}`, payload),
-  )
+  const envelope = await readEnvelope<QuotaPolicy>(quotaPut(`/admin/quota/policies/${id}`, payload))
   return envelope.data
 }
 
@@ -792,7 +968,7 @@ export const deleteQuotaPolicy = async (id: string) => {
     mockQuotaState.policies = mockQuotaState.policies.filter((item) => item.id !== id)
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.delete(`/admin/quota/policies/${id}`))
+  return readEnvelope<null>(quotaDelete(`/admin/quota/policies/${id}`))
 }
 
 export const initializeQuotaPolicies = async () => {
@@ -800,20 +976,30 @@ export const initializeQuotaPolicies = async () => {
     mockQuotaState.policies = createMockPolicies()
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.post('/admin/quota/policies/initialize'))
+  return readEnvelope<null>(quotaPost('/admin/quota/policies/initialize'))
 }
 
 export const listQuotaAlerts = async (params: QuotaAlertQuery = {}) => {
+  const normalizedStatus = params.status ?? 'open'
+  const normalizedParams: QuotaAlertQuery = {
+    ...params,
+    status: normalizedStatus,
+  }
+
   if (isQuotaMockMode()) {
     const filtered = mockQuotaState.alerts.filter((item) => {
-      if (params.type && item.type !== params.type) return false
-      if (params.level && item.level !== params.level) return false
-      if (params.status && item.status !== params.status) return false
+      if (normalizedParams.type && item.type !== normalizedParams.type) return false
+      if (normalizedParams.level && item.level !== normalizedParams.level) return false
+      if (normalizedParams.status === 'all') return true
+      if (normalizedParams.status === 'open') {
+        return item.status === 'pending' || item.status === 'acknowledged'
+      }
+      if (normalizedParams.status && item.status !== normalizedParams.status) return false
       return true
     })
-    return deepClone(paginate(filtered, params.page, params.limit))
+    return deepClone(paginate(filtered, normalizedParams.page, normalizedParams.limit))
   }
-  return readPaginated<QuotaAlert>(quotaClient.get('/admin/quota/alerts', { params }))
+  return readPaginated<QuotaAlert>(quotaGet('/admin/quota/alerts', { params: normalizedParams }))
 }
 
 export const getQuotaAlert = async (id: string) => {
@@ -822,7 +1008,7 @@ export const getQuotaAlert = async (id: string) => {
       mockQuotaState.alerts.find((item) => item.id === id) || mockQuotaState.alerts[0],
     )
   }
-  const envelope = await readEnvelope<QuotaAlert>(quotaClient.get(`/admin/quota/alerts/${id}`))
+  const envelope = await readEnvelope<QuotaAlert>(quotaGet(`/admin/quota/alerts/${id}`))
   return envelope.data
 }
 
@@ -835,9 +1021,7 @@ export const acknowledgeQuotaAlert = async (id: string, operatorId?: string) => 
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(
-    quotaClient.put(`/admin/quota/alerts/${id}/acknowledge`, { operatorId }),
-  )
+  return readEnvelope<null>(quotaPut(`/admin/quota/alerts/${id}/acknowledge`, { operatorId }))
 }
 
 export const resolveQuotaAlert = async (id: string, operatorId?: string) => {
@@ -850,7 +1034,7 @@ export const resolveQuotaAlert = async (id: string, operatorId?: string) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.put(`/admin/quota/alerts/${id}/resolve`, { operatorId }))
+  return readEnvelope<null>(quotaPut(`/admin/quota/alerts/${id}/resolve`, { operatorId }))
 }
 
 export const ignoreQuotaAlert = async (id: string, operatorId?: string) => {
@@ -863,5 +1047,5 @@ export const ignoreQuotaAlert = async (id: string, operatorId?: string) => {
     }
     return { code: 0, message: 'ok', data: null }
   }
-  return readEnvelope<null>(quotaClient.put(`/admin/quota/alerts/${id}/ignore`, { operatorId }))
+  return readEnvelope<null>(quotaPut(`/admin/quota/alerts/${id}/ignore`, { operatorId }))
 }

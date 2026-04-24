@@ -73,7 +73,9 @@
           <el-option label="警告" value="warning" />
           <el-option label="信息" value="info" />
         </el-select>
-        <el-select v-model="filters.status" clearable placeholder="全部状态">
+        <el-select v-model="filters.status" placeholder="状态筛选">
+          <el-option label="未关闭" value="open" />
+          <el-option label="全部状态" value="all" />
           <el-option label="待处理" value="pending" />
           <el-option label="已确认" value="acknowledged" />
           <el-option label="已解决" value="resolved" />
@@ -156,7 +158,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import { message, messageBox } from '@/design-system/services'
 import {
   acknowledgeQuotaAlert,
@@ -164,17 +167,31 @@ import {
   listQuotaAlerts,
   resolveQuotaAlert,
   type QuotaAlert,
+  type QuotaAlertStatusFilter,
 } from '@/api/admin/quota'
+
+const route = useRoute()
+const router = useRouter()
 
 const loading = ref(false)
 const batchSubmitting = ref(false)
 const actionLoadingId = ref('')
 const alerts = ref<QuotaAlert[]>([])
+const syncingRoute = ref(false)
+
+const allowedStatusFilters: QuotaAlertStatusFilter[] = [
+  'open',
+  'all',
+  'pending',
+  'acknowledged',
+  'resolved',
+  'ignored',
+]
 
 const filters = reactive({
   type: '',
   level: '',
-  status: '',
+  status: 'open' as QuotaAlertStatusFilter,
 })
 
 const pagination = reactive({
@@ -218,6 +235,57 @@ const alertShellClass = (alert: QuotaAlert) => {
   return 'border-sky-100 bg-sky-50/60'
 }
 
+const readQueryString = (value: unknown) => (typeof value === 'string' ? value : '')
+
+const normalizeStatusFilter = (value: unknown): QuotaAlertStatusFilter => {
+  const candidate = readQueryString(value) as QuotaAlertStatusFilter
+  return allowedStatusFilters.includes(candidate) ? candidate : 'open'
+}
+
+const normalizePage = (value: unknown) => {
+  const candidate = Number.parseInt(readQueryString(value), 10)
+  return Number.isFinite(candidate) && candidate > 0 ? candidate : 1
+}
+
+const applyStateFromRoute = () => {
+  filters.type = readQueryString(route.query.type)
+  filters.level = readQueryString(route.query.level)
+  filters.status = normalizeStatusFilter(route.query.status)
+  pagination.page = normalizePage(route.query.page)
+}
+
+const buildManagedQuery = (): LocationQueryRaw => {
+  const query: LocationQueryRaw = {
+    status: filters.status,
+  }
+  if (filters.type) query.type = filters.type
+  if (filters.level) query.level = filters.level
+  if (pagination.page > 1) query.page = String(pagination.page)
+  return query
+}
+
+const syncRouteQuery = async () => {
+  const nextQuery: LocationQueryRaw = { ...route.query }
+  delete nextQuery.type
+  delete nextQuery.level
+  delete nextQuery.status
+  delete nextQuery.page
+  Object.assign(nextQuery, buildManagedQuery())
+
+  const currentQuery = JSON.stringify(route.query)
+  const targetQuery = JSON.stringify(nextQuery)
+  if (currentQuery === targetQuery) {
+    return
+  }
+
+  syncingRoute.value = true
+  try {
+    await router.replace({ query: nextQuery })
+  } finally {
+    syncingRoute.value = false
+  }
+}
+
 const loadAlerts = async () => {
   loading.value = true
   try {
@@ -226,7 +294,7 @@ const loadAlerts = async () => {
       limit: pagination.size,
       type: filters.type || undefined,
       level: filters.level || undefined,
-      status: filters.status || undefined,
+      status: filters.status,
     })
     alerts.value = result.items
     pagination.total = result.total
@@ -240,14 +308,16 @@ const loadAlerts = async () => {
   }
 }
 
-const handleSearch = () => {
+const handleSearch = async () => {
   pagination.page = 1
-  void loadAlerts()
+  await syncRouteQuery()
+  await loadAlerts()
 }
 
-const handlePageChange = (page: number) => {
+const handlePageChange = async (page: number) => {
   pagination.page = page
-  void loadAlerts()
+  await syncRouteQuery()
+  await loadAlerts()
 }
 
 const handleAction = async (id: string, action: 'acknowledge' | 'resolve' | 'ignore') => {
@@ -295,6 +365,21 @@ const handleBulkAcknowledge = async () => {
 }
 
 onMounted(() => {
-  void loadAlerts()
+  void (async () => {
+    applyStateFromRoute()
+    await syncRouteQuery()
+    await loadAlerts()
+  })()
 })
+
+watch(
+  () => route.query,
+  () => {
+    if (syncingRoute.value) {
+      return
+    }
+    applyStateFromRoute()
+    void loadAlerts()
+  },
+)
 </script>

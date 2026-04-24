@@ -36,6 +36,10 @@ interface ExtendedAxiosInstance extends AxiosInstance {
   cancelAllRequests(): void
 }
 
+type EnvelopeAwareRequestConfig = InternalAxiosRequestConfig & {
+  preserveEnvelope?: boolean
+}
+
 // ==================== 配置 ====================
 
 // API基础路径
@@ -167,9 +171,13 @@ apiClient.interceptors.response.use(
   (response) => {
     // 统一返回 data 字段
     const res = response.data
+    const preserveEnvelope = (response.config as EnvelopeAwareRequestConfig).preserveEnvelope
 
     // 如果是标准API响应格式，检查是否包含分页信息
     if (res && typeof res === 'object' && 'code' in res && 'data' in res) {
+      if (preserveEnvelope) {
+        return res
+      }
       // 如果包含 pagination 字段，返回完整响应（保留 pagination）
       if ('pagination' in res) {
         return res
@@ -322,6 +330,33 @@ apiClient.interceptors.response.use(
  * 触发认证失效事件
  * 清除本地存储并跳转到登录页
  */
+export function buildAuthRedirectPath(pathname: string, search = ''): string {
+  if (pathname === '/auth' || pathname === '/') {
+    return '/auth'
+  }
+
+  const redirectTarget = `${pathname}${search || ''}`
+  return `/auth?redirect=${encodeURIComponent(redirectTarget)}`
+}
+
+export function resolveSafeAuthRedirectTarget(redirect: unknown, fallback = '/bookstore'): string {
+  const candidate = Array.isArray(redirect) ? redirect[0] : redirect
+  if (typeof candidate !== 'string') {
+    return fallback
+  }
+
+  const normalized = candidate.trim()
+  if (!normalized || !normalized.startsWith('/') || normalized.startsWith('//')) {
+    return fallback
+  }
+
+  if (normalized === '/auth' || normalized.startsWith('/auth?')) {
+    return fallback
+  }
+
+  return normalized
+}
+
 function handleAuthError() {
   // E2E场景下避免自动登出和跳转，防止测试过程被401中断
   if (typeof navigator !== 'undefined' && navigator.webdriver) {
@@ -354,11 +389,7 @@ function handleAuthError() {
   ElMessage.warning('登录已过期，请重新登录')
 
   // 跳转到登录页（保留当前路径用于登录后跳回）
-  const currentPath = window.location.pathname
-  const loginPath =
-    currentPath !== '/auth' && currentPath !== '/'
-      ? `/auth?redirect=${encodeURIComponent(currentPath)}`
-      : '/auth'
+  const loginPath = buildAuthRedirectPath(window.location.pathname, window.location.search)
 
   // 使用 setTimeout 确保消息显示后再跳转
   setTimeout(() => {

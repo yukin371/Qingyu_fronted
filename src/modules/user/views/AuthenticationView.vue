@@ -319,6 +319,7 @@ import { message } from '@/design-system/services'
 import { QyIcon, QyForm, QyFormItem, QyButton, QyInput } from '@/design-system/components'
 import { Divider } from '@/design-system/base'
 import { getIconSVG } from '@/design-system/utils/icon-mapper'
+import { resolveSafeAuthRedirectTarget } from '@/core/services/http.service'
 import type { FormInstance, FormRules } from 'element-plus'
 // 假设 api 已正确定义
 import {
@@ -490,7 +491,7 @@ const handleLogin = async () => {
         localStorage.removeItem(REMEMBERED_USERNAME_KEY)
       }
       message.success('登录成功')
-      router.push((route.query.redirect as string) || '/bookstore')
+      router.push(resolveSafeAuthRedirectTarget(route.query.redirect))
     } catch (e: any) {
       message.error(e.message || '登录失败')
     } finally {
