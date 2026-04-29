@@ -79,6 +79,20 @@ describe('AIInputArea', () => {
     expect(wrapper.find('.chat-context-chip').exists()).toBe(true)
   })
 
+  it('should show target scope bar when target label is provided', () => {
+    const wrapper = mount(AIInputArea, {
+      props: {
+        modelValue: '',
+        targetLabel: '本章全文',
+        targetDetail: '将生成正文 diff',
+      },
+    })
+
+    expect(wrapper.find('.target-scope-bar').exists()).toBe(true)
+    expect(wrapper.find('.target-scope-bar').text()).toContain('本章全文')
+    expect(wrapper.find('.target-scope-bar').text()).toContain('将生成正文 diff')
+  })
+
   it('should emit clearContext when clear button is clicked', async () => {
     const context: ChatContextSnippet = {
       text: '选中的文本',

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  planWriterEditorRequest,
   resolveWriterDocumentTarget,
   writerDocumentAgentService,
   shouldForceCurrentDocumentTarget,
@@ -318,5 +319,170 @@ describe('writerDocumentAgent.service', () => {
     expect(shouldForceCurrentDocumentTarget('请重写当前章节')).toBe(true)
     expect(shouldForceCurrentDocumentTarget('帮我扩写本章全文')).toBe(true)
     expect(shouldForceCurrentDocumentTarget('继续修改这版候选稿')).toBe(false)
+  })
+
+  it('plans current chapter edits as a single document diff', async () => {
+    const plan = await planWriterEditorRequest('请扩写当前章节，补足细节', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-1',
+      currentDocumentTitle: '第一章',
+      currentSourceText: '当前整章正文',
+      selectedContext: null,
+    })
+
+    expect(plan).toMatchObject({
+      route: 'single_document_edit',
+      mutationMode: 'single_document_diff',
+      requiresConfirmation: false,
+      target: {
+        status: 'ready',
+        targetKind: 'current_document',
+        sourceText: '当前整章正文',
+      },
+    })
+    expect(plan.userVisibleSummary).toContain('单章 diff')
+  })
+
+  it('plans cross-chapter search followed by edit as search_then_edit', async () => {
+    mockListDocuments.mockResolvedValue({
+      documents: [
+        {
+          documentId: 'chapter-1',
+          title: '第一章',
+          level: 0,
+          order: 1,
+          type: 'chapter',
+          wordCount: 0,
+        },
+        {
+          documentId: 'chapter-2',
+          title: '第二章',
+          level: 0,
+          order: 2,
+          type: 'chapter',
+          wordCount: 0,
+        },
+      ],
+    })
+    mockSearchDocument.mockResolvedValueOnce({
+      documentId: 'chapter-1',
+      query: '玉佩',
+      totalMatches: 0,
+      matches: [],
+    })
+    mockSearchDocument.mockResolvedValueOnce({
+      documentId: 'chapter-2',
+      query: '玉佩',
+      totalMatches: 1,
+      matches: [{ line: 3, startColumn: 1, endColumn: 2, text: '玉佩发烫', before: [], after: [] }],
+    })
+    mockReadDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      version: 1,
+      contentType: 'plain_text',
+      totalLines: 1,
+      lines: [{ line: 1, text: '第二章正文' }],
+    })
+
+    const plan = await writerDocumentAgentService.planWriterEditorRequest(
+      '找到提到玉佩的章节，并补强伏笔',
+      {
+        projectId: 'project-1',
+        currentDocumentId: 'chapter-1',
+        currentDocumentTitle: '第一章',
+        currentSourceText: '第一章正文',
+        selectedContext: null,
+      },
+    )
+
+    expect(plan).toMatchObject({
+      route: 'search_then_edit',
+      mutationMode: 'single_document_diff',
+      requiresConfirmation: false,
+      target: {
+        status: 'ready',
+        targetDocumentId: 'chapter-2',
+        targetDocumentTitle: '第二章',
+      },
+    })
+    expect(plan.retrievals).toEqual([
+      expect.objectContaining({
+        kind: 'search_hit',
+        documentId: 'chapter-2',
+        reason: '跨章节搜索唯一命中',
+      }),
+    ])
+  })
+
+  it('downgrades multi-chapter mutation requests to a plan-only multi document plan', async () => {
+    const plan = await planWriterEditorRequest('把前三章都改得更快节奏', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-2',
+      currentDocumentTitle: '第二章',
+      currentSourceText: '第二章正文',
+      selectedContext: null,
+    })
+
+    expect(plan).toMatchObject({
+      route: 'plan_only',
+      mutationMode: 'multi_document_plan',
+      requiresConfirmation: true,
+      target: {
+        status: 'unresolved',
+        requestLabel: '多章节计划',
+      },
+    })
+    expect(plan.userVisibleSummary).toContain('不自动应用多章 diff')
+  })
+
+  it('plans missing chapter creation without creating or diffing a document', async () => {
+    const plan = await planWriterEditorRequest('新增一章写他们第一次见面', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-2',
+      currentDocumentTitle: '第二章',
+      currentSourceText: '第二章正文',
+      selectedContext: null,
+    })
+
+    expect(plan).toMatchObject({
+      route: 'plan_only',
+      mutationMode: 'chapter_create_plan',
+      requiresConfirmation: true,
+      target: {
+        status: 'unresolved',
+        requestLabel: '新章节创建计划',
+      },
+    })
+    expect(writerDocumentAgentService.buildPlanSummary(plan)).toContain('不直接创建节点')
+  })
+
+  it('plans review and summary requests as analysis without emitting a diff', async () => {
+    const reviewPlan = await planWriterEditorRequest('审校当前章节的错别字和节奏问题', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-1',
+      currentDocumentTitle: '第一章',
+      currentSourceText: '当前整章正文',
+      selectedContext: null,
+    })
+    const summaryPlan = await planWriterEditorRequest('总结当前章节的冲突要点', {
+      projectId: 'project-1',
+      currentDocumentId: 'chapter-1',
+      currentDocumentTitle: '第一章',
+      currentSourceText: '当前整章正文',
+      selectedContext: null,
+    })
+
+    expect(reviewPlan).toMatchObject({
+      route: 'analysis',
+      mutationMode: 'none',
+      requiresConfirmation: false,
+    })
+    expect(summaryPlan).toMatchObject({
+      route: 'analysis',
+      mutationMode: 'none',
+      requiresConfirmation: false,
+    })
+    expect(reviewPlan.userVisibleSummary).toContain('不生成正文 diff')
+    expect(summaryPlan.userVisibleSummary).toContain('不生成正文 diff')
   })
 })

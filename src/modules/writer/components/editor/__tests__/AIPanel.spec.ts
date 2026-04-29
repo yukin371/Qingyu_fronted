@@ -128,6 +128,14 @@ const AIInputAreaStub = defineComponent({
       type: Object,
       default: null,
     },
+    targetLabel: {
+      type: String,
+      default: '',
+    },
+    targetDetail: {
+      type: String,
+      default: '',
+    },
     mode: {
       type: String,
       default: 'chat',
@@ -151,7 +159,7 @@ const AIInputAreaStub = defineComponent({
   },
   emits: ['update:modelValue', 'update:mode', 'send', 'clear-context'],
   template:
-    '<div><div data-testid="input-context">{{ context ? context.text : "empty" }}</div><div data-testid="input-mode">{{ mode }}</div><button data-testid="input-send" @click="$emit(\'send\')">send</button></div>',
+    '<div><div data-testid="input-target">{{ targetLabel }}</div><div data-testid="input-target-detail">{{ targetDetail }}</div><div data-testid="input-context">{{ context ? context.text : "empty" }}</div><div data-testid="input-mode">{{ mode }}</div><button data-testid="input-send" @click="$emit(\'send\')">send</button></div>',
 })
 
 function buildWorkflowContext(signature: string, chapterId = signature): WriterWorkflowContext {
@@ -456,6 +464,102 @@ describe('AIPanel', () => {
     )
   })
 
+  it('shows current chapter target when prompt explicitly targets current chapter over revision', async () => {
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+        revisionSeed: {
+          id: 100,
+          text: '旧候选稿正文',
+          applyMode: 'replace_document',
+        },
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:modelValue', '扩写当前章节')
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="input-target"]').text()).toContain('本章全文')
+    expect(wrapper.get('[data-testid="input-target"]').text()).not.toContain('候选稿')
+  })
+
+  it('downgrades multi-chapter edit requests to a plan card without calling edit APIs', async () => {
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前整章正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '把前三章都改得更快节奏')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
+    expect(vi.mocked(expandText)).not.toHaveBeenCalled()
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('多章节请求'),
+      false,
+      expect.objectContaining({
+        kind: 'writer_plan_preview',
+        executionMode: 'plan_only',
+        requiresConfirmation: true,
+      }),
+    )
+  })
+
+  it('plans chapter creation without creating a document or applying正文 diff', async () => {
+    const wrapper = mountPanel()
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '新增一章写他们第一次见面')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(vi.mocked(rewriteText)).not.toHaveBeenCalled()
+    expect(wrapper.emitted('applyGeneratedText')).toBeUndefined()
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('新增章节请求'),
+      false,
+      expect.objectContaining({
+        kind: 'writer_plan_preview',
+        operationLabel: '新增章节计划',
+        executionMode: 'plan_only',
+      }),
+    )
+  })
+
   it('supports cross-chapter direct editing by resolving target chapter title', async () => {
     mockListDocuments.mockResolvedValue({
       documents: [
@@ -546,6 +650,99 @@ describe('AIPanel', () => {
         status: 'switching',
       }),
     )
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('正文 diff'),
+      false,
+      expect.objectContaining({
+        kind: 'writer_apply_checkpoint',
+        status: 'switching',
+      }),
+    )
+  })
+
+  it('shows retrieval summary before applying a unique cross-file search edit', async () => {
+    mockListDocuments.mockResolvedValue({
+      documents: [
+        {
+          documentId: 'chapter-1',
+          title: '第一章',
+          level: 0,
+          order: 1,
+          type: 'chapter',
+          wordCount: 0,
+        },
+        {
+          documentId: 'chapter-2',
+          title: '第二章',
+          level: 0,
+          order: 2,
+          type: 'chapter',
+          wordCount: 0,
+        },
+      ],
+    })
+    mockSearchDocument.mockResolvedValueOnce({
+      documentId: 'chapter-1',
+      query: '玉佩',
+      totalMatches: 0,
+      matches: [],
+    })
+    mockSearchDocument.mockResolvedValueOnce({
+      documentId: 'chapter-2',
+      query: '玉佩',
+      totalMatches: 1,
+      matches: [{ line: 1, startColumn: 1, endColumn: 2, text: '玉佩', before: [], after: [] }],
+    })
+    mockReadDocument.mockResolvedValue({
+      documentId: 'chapter-2',
+      version: 1,
+      contentType: 'plain_text',
+      totalLines: 1,
+      lines: [{ line: 1, text: '第二章正文' }],
+    })
+    vi.mocked(rewriteText).mockResolvedValue({
+      rewritten_text: '第二章补强后正文',
+    } as never)
+
+    const wrapper = mount(AIPanel, {
+      props: {
+        sessionId: 'project-1',
+        sourceText: '当前章节正文',
+        workflowContext: buildWorkflowContext('chapter-1'),
+        actionTrigger: null,
+      },
+      global: {
+        stubs: {
+          AIConversationToolbar: AIConversationToolbarStub,
+          AISelectionNotice: AISelectionNoticeStub,
+          AIChatMessages: AIChatMessagesStub,
+          AIQuickActions: AIQuickActionsStub,
+          AIInputArea: AIInputAreaStub,
+        },
+      },
+    })
+
+    const input = wrapper.findComponent(AIInputAreaStub)
+    input.vm.$emit('update:mode', 'edit')
+    input.vm.$emit('update:modelValue', '找到提到玉佩的章节，并补强伏笔')
+    await nextTick()
+    input.vm.$emit('send')
+    await flushPromises()
+
+    expect(addMessage).toHaveBeenCalledWith(
+      'assistant',
+      expect.stringContaining('跨章节查找'),
+      false,
+      expect.objectContaining({
+        kind: 'writer_retrieval_summary',
+        targetDocumentId: 'chapter-2',
+      }),
+    )
+    expect(wrapper.emitted('applyGeneratedText')?.[0]?.[0]).toMatchObject({
+      targetDocumentId: 'chapter-2',
+      generatedText: '第二章补强后正文',
+    })
   })
 
   it('shows candidate selection meta for ambiguous cross-chapter search and resolves chosen chapter', async () => {

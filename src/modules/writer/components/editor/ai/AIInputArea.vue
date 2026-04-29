@@ -1,5 +1,10 @@
 <template>
   <div class="ai-input-area">
+    <div v-if="targetLabel" class="target-scope-bar">
+      <span class="target-scope-bar__label">当前目标</span>
+      <span class="target-scope-bar__value">{{ targetLabel }}</span>
+      <span v-if="targetDetail" class="target-scope-bar__detail">{{ targetDetail }}</span>
+    </div>
     <div v-if="context" class="chat-context-chip">
       <div class="context-copy">
         <div class="context-header">
@@ -70,6 +75,8 @@ const props = withDefaults(
   defineProps<{
     modelValue: string
     context?: ChatContextSnippet | null
+    targetLabel?: string
+    targetDetail?: string
     mode?: 'chat' | 'edit'
     canEdit?: boolean
     disabled?: boolean
@@ -79,6 +86,8 @@ const props = withDefaults(
   {
     modelValue: '',
     context: null,
+    targetLabel: '',
+    targetDetail: '',
     mode: 'chat',
     canEdit: false,
     disabled: false,
@@ -231,6 +240,43 @@ defineExpose({
       font-size: 12px;
       padding: 0;
     }
+  }
+
+  .target-scope-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    border: 1px solid #dbeafe;
+    background: #f8fafc;
+    color: #334155;
+    border-radius: 8px;
+    font-size: 12px;
+    min-width: 0;
+  }
+
+  .target-scope-bar__label {
+    flex-shrink: 0;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .target-scope-bar__value {
+    min-width: 0;
+    color: #0f172a;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .target-scope-bar__detail {
+    flex-shrink: 0;
+    color: #2563eb;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .input-wrapper {

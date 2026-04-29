@@ -45,6 +45,8 @@
       <AIInputArea
         v-model="inputText"
         :context="selectedChatContext"
+        :target-label="writerTargetLabel"
+        :target-detail="writerTargetDetail"
         v-model:mode="interactionMode"
         :can-edit="canEditDirectly"
         :disabled="isTyping"
@@ -77,6 +79,7 @@ import {
 import { executeWriterDocumentCommand } from '@/modules/writer/services/documentToolCommands.service'
 import {
   writerDocumentAgentService,
+  type WriterEditorPlan,
   type WriterResolvedDocumentTarget,
 } from '@/modules/writer/services/writerDocumentAgent.service'
 
@@ -234,9 +237,28 @@ const isDesktop = breakpoints.greaterOrEqual('desktop')
 const currentConversationId = ref('default')
 const conversationList = ref<ConversationMeta[]>([])
 const chatSessionKey = computed(() => `${props.sessionId}:${currentConversationId.value}`)
-const { messages, addMessage, clearHistory, save, load, setSessionId } = useChatHistory(
-  chatSessionKey.value,
-)
+const {
+  messages,
+  addMessage: addBaseMessage,
+  clearHistory,
+  save,
+  load,
+  setSessionId,
+} = useChatHistory(chatSessionKey.value)
+
+function addMessage(
+  role: ChatMessage['role'],
+  content: string,
+  typing = false,
+  meta?: ChatMessage['meta'],
+): ChatMessage {
+  return addBaseMessage(
+    role,
+    content,
+    typing,
+    meta as Parameters<typeof addBaseMessage>[3],
+  ) as ChatMessage
+}
 
 // ==================== 打字机效果 ====================
 const typingText = ref('')
@@ -282,6 +304,43 @@ const canEditDirectly = computed(
 const visibleSelectionNotice = computed(() =>
   selectionNotice.value?.action === 'chat' ? null : selectionNotice.value,
 )
+const writerTargetLabel = computed(() => {
+  const instruction = inputText.value.trim()
+  if (instruction && writerDocumentAgentService.shouldForceCurrentDocumentTarget(instruction)) {
+    return effectiveWorkflowContext.value?.chapterTitle
+      ? `本章全文：${effectiveWorkflowContext.value.chapterTitle}`
+      : '本章全文'
+  }
+
+  if (selectedChatContext.value?.kind === 'revision') {
+    return interactionMode.value === 'edit' ? '候选稿继续修改' : '候选稿参考'
+  }
+
+  if (selectedChatContext.value?.kind === 'selection') {
+    return interactionMode.value === 'edit' ? '选区片段' : '选区参考'
+  }
+
+  if (effectiveWorkflowContext.value?.chapterTitle) {
+    return `本章全文：${effectiveWorkflowContext.value.chapterTitle}`
+  }
+
+  if (props.sourceText?.trim()) {
+    return '本章全文'
+  }
+
+  return ''
+})
+const writerTargetDetail = computed(() => {
+  if (!writerTargetLabel.value) {
+    return ''
+  }
+
+  if (interactionMode.value === 'edit') {
+    return '编辑类请求会生成正文 diff'
+  }
+
+  return '分析/聊天不会静默改正文'
+})
 
 // ==================== 对话管理方法 ====================
 function loadConversations() {
@@ -523,6 +582,95 @@ function buildTargetStatusMeta(
   }
 }
 
+function buildWriterPlanMeta(plan: WriterEditorPlan): ChatMessage['meta'] {
+  const targetLabel =
+    plan.target.requestLabel ||
+    plan.target.targetDocumentTitle ||
+    plan.target.targetDocumentId ||
+    (plan.mutationMode === 'chapter_create_plan' ? '新章节' : '目标章节')
+  const operationLabel =
+    plan.mutationMode === 'chapter_create_plan'
+      ? '新增章节计划'
+      : plan.mutationMode === 'multi_document_plan'
+        ? '多章节修改计划'
+        : plan.route === 'analysis'
+          ? '章节分析计划'
+          : '章节编辑计划'
+  const executionMode =
+    plan.route === 'plan_only'
+      ? 'plan_only'
+      : plan.requiresConfirmation
+        ? 'confirm_first'
+        : 'direct_apply'
+
+  return {
+    kind: 'writer_plan_preview',
+    status: plan.requiresConfirmation ? 'needs_confirmation' : 'planned',
+    statusText: plan.requiresConfirmation ? '需要确认' : '已规划',
+    operationLabel,
+    targetLabel,
+    executionMode,
+    requiresConfirmation: plan.requiresConfirmation,
+    nextStep:
+      plan.route === 'plan_only'
+        ? '当前不会直接创建章节或批量写入正文；请确认目标和步骤后再生成逐章 diff。'
+        : plan.userVisibleSummary,
+  }
+}
+
+function buildWriterRetrievalMeta(plan: WriterEditorPlan): ChatMessage['meta'] | undefined {
+  if (plan.retrievals.length === 0) {
+    return undefined
+  }
+
+  return {
+    kind: 'writer_retrieval_summary',
+    status: 'ready',
+    statusText: `已整理 ${plan.retrievals.length} 个上下文`,
+    queryLabel: plan.target.requestLabel || '跨文件查找',
+    targetDocumentId: plan.target.targetDocumentId,
+    hits: plan.retrievals.map((item) => ({
+      documentId: item.documentId || item.kind,
+      documentTitle: item.documentTitle,
+      reason: item.reason || '纳入本次 AI 上下文',
+      excerpt: item.excerpt,
+      selected: !!plan.target.targetDocumentId && item.documentId === plan.target.targetDocumentId,
+    })),
+  }
+}
+
+function buildWriterCheckpointMeta(
+  target: WriterResolvedDocumentTarget,
+  status: 'generated' | 'switching' | 'ready_for_review',
+  detail?: string,
+): ChatMessage['meta'] {
+  const targetLabel =
+    target.targetDocumentTitle || target.targetDocumentId || target.requestLabel || '目标章节'
+  const isSwitching = status === 'switching'
+
+  return {
+    kind: 'writer_apply_checkpoint',
+    status,
+    statusText: isSwitching ? '切章挂 diff' : '正文 diff 已生成',
+    targetLabel: targetLabel.startsWith('《') ? targetLabel : `《${targetLabel}》`,
+    detail,
+    stages: [
+      { stage: 'planned', status: 'done', label: '规划目标' },
+      { stage: 'generated', status: 'done', label: '生成正文' },
+      {
+        stage: 'switching',
+        status: isCrossDocumentTarget(target) ? (isSwitching ? 'running' : 'done') : 'pending',
+        label: '切换章节',
+      },
+      {
+        stage: 'ready_for_review',
+        status: status === 'ready_for_review' ? 'running' : 'pending',
+        label: '等待审阅',
+      },
+    ],
+  }
+}
+
 function appendTargetResolutionMessage(
   instruction: string,
   route: DocumentTargetRoute,
@@ -537,13 +685,17 @@ function appendTargetResolutionMessage(
 }
 
 async function resolveDocumentTarget(instruction: string) {
-  return writerDocumentAgentService.resolveTarget(instruction, {
+  return writerDocumentAgentService.resolveTarget(instruction, buildWriterAgentContext())
+}
+
+function buildWriterAgentContext() {
+  return {
     projectId: effectiveWorkflowContext.value?.projectId || props.sessionId,
     currentDocumentId: effectiveWorkflowContext.value?.chapterId || null,
     currentDocumentTitle: effectiveWorkflowContext.value?.chapterTitle || null,
     currentSourceText: props.sourceText || '',
     selectedContext: selectedChatContext.value,
-  })
+  }
 }
 
 async function runResolvedAnalysis(
@@ -719,6 +871,24 @@ async function sendMessage(content: string) {
     return
   }
 
+  const editorPlan = await writerDocumentAgentService.planWriterEditorRequest(
+    trimmedContent,
+    buildWriterAgentContext(),
+  )
+  if (
+    editorPlan.route === 'plan_only' &&
+    !(
+      editorPlan.target.candidates?.length &&
+      editorPlan.target.assistantMessage?.includes('命中了多个章节')
+    )
+  ) {
+    addMessage('user', trimmedContent)
+    inputText.value = ''
+    addMessage('assistant', editorPlan.userVisibleSummary, false, buildWriterPlanMeta(editorPlan))
+    await scrollToBottom()
+    return
+  }
+
   const hasSelectionContext = isSelectionContext(selectedChatContext.value)
   const promptExecution = resolveWriterPromptExecution(trimmedContent, {
     interactionMode: interactionMode.value,
@@ -728,7 +898,7 @@ async function sendMessage(content: string) {
   const intent = promptExecution.intent
 
   if (promptExecution.route === 'edit') {
-    await runDirectEdit(trimmedContent, intent)
+    await runDirectEdit(trimmedContent, intent, editorPlan)
     return
   }
   const requestMessage = buildChatRequestMessage(trimmedContent)
@@ -795,6 +965,7 @@ async function runResolvedDirectEdit(
   instruction: string,
   intent: WriterPromptIntent | null,
   resolvedTarget: WriterResolvedDocumentTarget,
+  plan?: WriterEditorPlan,
 ) {
   const context = selectedChatContext.value
   const sourceText = resolvedTarget.sourceText?.trim() || ''
@@ -817,6 +988,12 @@ async function runResolvedDirectEdit(
   await scrollToBottom()
 
   try {
+    const retrievalMeta = plan ? buildWriterRetrievalMeta(plan) : undefined
+    if (retrievalMeta && plan?.route === 'search_then_edit') {
+      addMessage('assistant', plan.userVisibleSummary, false, retrievalMeta)
+      await scrollToBottom()
+    }
+
     if (isCrossDocumentTarget(resolvedTarget)) {
       addMessage(
         'assistant',
@@ -861,6 +1038,18 @@ async function runResolvedDirectEdit(
           )
         : undefined,
     )
+    if (isCrossDocumentTarget(resolvedTarget)) {
+      addMessage(
+        'assistant',
+        '正文 diff 已交给工作区处理。',
+        false,
+        buildWriterCheckpointMeta(
+          resolvedTarget,
+          'switching',
+          'ProjectWorkspace 会切换到目标章节，并展示可接受/放弃的正文 diff。',
+        ),
+      )
+    }
     emit('resultCandidate', {
       source: 'rewrite',
       action: editResult.emittedAction,
@@ -889,15 +1078,20 @@ async function runResolvedDirectEdit(
   }
 }
 
-async function runDirectEdit(instruction: string, intent: WriterPromptIntent | null = null) {
-  const resolvedTarget = await resolveDocumentTarget(instruction)
+async function runDirectEdit(
+  instruction: string,
+  intent: WriterPromptIntent | null = null,
+  plan?: WriterEditorPlan,
+) {
+  const resolvedTarget =
+    plan?.target.status === 'ready' ? plan.target : await resolveDocumentTarget(instruction)
   if (resolvedTarget.status !== 'ready' || !resolvedTarget.sourceText?.trim()) {
     addMessage('user', instruction)
     appendTargetResolutionMessage(instruction, 'edit', resolvedTarget)
     return
   }
 
-  await runResolvedDirectEdit(instruction, intent, resolvedTarget)
+  await runResolvedDirectEdit(instruction, intent, resolvedTarget, plan)
 }
 
 function getGeneratedTextByAction(action: string, response: Record<string, any>): string {

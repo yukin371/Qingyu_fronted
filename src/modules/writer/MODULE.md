@@ -1,6 +1,6 @@
 # Writer Module
 
-> 最后更新：2026-04-24
+> 最后更新：2026-04-30
 
 ## 职责
 
@@ -34,6 +34,10 @@
 - **候选稿上下文不能劫持“当前章节全文”**：`AIWorkbench` 注入的 `revisionSeed` 只代表“继续修改当前候选稿”，不能因为输入框仍挂着候选稿上下文，就覆盖用户显式提到的“当前章节 / 本章 / 整章 / 全文”。`AIPanel` 必须先解析 target，再决定 source，避免“扩写当前章节”误改候选稿。
 - **自然语言跨章节编辑也要复用 document tools**：自由输入若显式提到其它章节（标题、上一章/下一章、搜索命中的章节），应先通过 `writerDocumentAgent` 复用 `list/read/search` 解析目标，再走 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText`。自然语言跨章节修改不允许绕过现有 `targetDocumentId/targetDocumentTitle` diff 挂载协议；当检索命中多个章节时，右栏应先展示候选章节选择卡，待用户确认后再继续读取/改写。
 - **跨章节自然语言链路要给出可见状态反馈**：`AIPanel` 在异章节读文、生成结果、提交 diff 时，应通过 `AIChatMessages` 渲染统一状态卡，至少让用户看见“命中候选”“正在生成”“已提交切章挂 diff”这三类阶段，避免误判 AI 仍在当前章节工作。
+- **AI 编辑计划层已成为右栏编排边界**：`writerDocumentAgent` 现在不只解析 target，还承担 `WriterEditorPlan` 的计划层语义；`AIPanel` 应先拿计划再执行，聊天 / 分析 / 单章 diff / 检索后编辑 / plan-only 都要走同一套 route 与 mutationMode 口径，避免继续把新分支塞回自由输入的大 if/else。
+- **目标范围提示条是发送前安全阀**：`AIInputArea` 的 target scope bar 用来展示“本章全文 / 选区 / 候选稿 / 目标章节 / 待确认候选”等范围；任何会影响正文 source 的改动都必须同步维护这层提示，避免候选稿上下文、选区上下文和当前章节全文互相劫持。
+- **检索 / 计划 / 检查点消息卡是统一反馈层**：`AIChatMessages` 已承接 `writer_retrieval_summary`、`writer_plan_preview`、`writer_apply_checkpoint` 等结构化消息；自然语言检索、`/doc search`、多章计划、章节创建计划和异章节挂 diff 状态都应优先复用这些 meta，不要回退成大段纯文本说明。
+- **多章与新增章节默认降级为计划**：multi-chapter 请求、目标章节不存在的新增章节请求，都只能先返回计划卡或创建计划卡；不得串行生成多个 applyPayload，也不得直接创建章节节点或静默保存正文。已有章节内“补一段 / 新增内容”仍可按单章 diff 处理。
 - **右栏不要重复渲染正文前后对比**：当正文编辑器已经挂起 inline diff 时，`AIWorkbench` 的 workflow rail 只保留“已同步到正文编辑器”的轻量状态与继续修改/存提案入口，不再在侧栏重复展示“修改前 / 修改后”正文块，交互对齐 Cursor / Trae 类编辑器。
 - **AI 工作台头部只保留一层模式切换**：`AIWorkbench` 不再渲染独立“AI 助手”标题，`AIPanel` 也不再额外渲染“对话协作”子头；聊天、改写、总结、审校统一收敛到 `AIWorkbench` 的 tab row，避免右栏出现双头部与重复层级。
 - **对话、改写、总结、审校要共享同一套工作台视觉语言**：`AIPanel`、`RewriteWorkbenchTool`、`SummaryWorkbenchTool`、`ReviewWorkbenchTool` 的 header、说明文案、状态栏和主按钮布局应复用统一样式 token，不要让右栏看起来像四套不同产品拼接。

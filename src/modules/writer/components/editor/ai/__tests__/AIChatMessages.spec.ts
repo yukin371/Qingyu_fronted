@@ -189,6 +189,102 @@ describe('AIChatMessages', () => {
     expect(wrapper.find('.message-tool-card__detail').text()).toContain('宿主会自动切换')
   })
 
+  it('should render writer retrieval summary card', () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '已完成跨文件查找。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'writer_retrieval_summary',
+          status: 'ready',
+          statusText: '命中 2 个章节',
+          queryLabel: '搜索“玉佩”',
+          targetDocumentId: 'chapter-2',
+          hits: [
+            {
+              documentId: 'chapter-1',
+              documentTitle: '第一章',
+              reason: '命中 1 处“玉佩”',
+              excerpt: '她第一次看见玉佩。',
+            },
+            {
+              documentId: 'chapter-2',
+              documentTitle: '第二章',
+              reason: '命中 2 处“玉佩”',
+              selected: true,
+            },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-tool-card__title').text()).toContain('玉佩')
+    expect(wrapper.findAll('.message-retrieval-hit')).toHaveLength(2)
+    expect(wrapper.find('.message-retrieval-hit.is-selected').text()).toContain('第二章')
+    expect(wrapper.find('.message-retrieval-hit__excerpt').text()).toContain('第一次看见')
+  })
+
+  it('should render writer plan preview card', () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '已生成执行计划。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'writer_plan_preview',
+          status: 'needs_confirmation',
+          statusText: '需要确认',
+          operationLabel: '多章节修改计划',
+          targetLabel: '前三章',
+          executionMode: 'plan_only',
+          requiresConfirmation: true,
+          nextStep: '请确认逐章目标后再生成正文 diff。',
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-tool-card__title').text()).toContain('多章节修改计划')
+    expect(wrapper.find('.message-plan-grid').text()).toContain('前三章')
+    expect(wrapper.find('.message-plan-grid').text()).toContain('仅生成计划')
+    expect(wrapper.find('.message-tool-card__detail').text()).toContain('逐章目标')
+  })
+
+  it('should render writer apply checkpoint card', () => {
+    const messages: ChatMessage[] = [
+      {
+        id: '1',
+        role: 'assistant',
+        content: '已提交正文 diff。',
+        timestamp: Date.now(),
+        meta: {
+          kind: 'writer_apply_checkpoint',
+          status: 'switching',
+          statusText: '切章挂 diff',
+          targetLabel: '《第二章》',
+          detail: '宿主会切换章节并展示可审阅结果。',
+          stages: [
+            { stage: 'planned', status: 'done' },
+            { stage: 'generated', label: '生成正文', status: 'done' },
+            { stage: 'switching', status: 'running', detail: '等待宿主切章' },
+          ],
+        },
+      },
+    ]
+
+    const wrapper = buildWrapper({ messages })
+
+    expect(wrapper.find('.message-tool-card__title').text()).toContain('第二章')
+    expect(wrapper.findAll('.message-checkpoint-item')).toHaveLength(3)
+    expect(wrapper.find('.message-checkpoint-item--running').text()).toContain('等待宿主切章')
+  })
+
   it('should show pending assistant bubble when panel is typing without persisted typing message', () => {
     const messages: ChatMessage[] = [
       { id: '1', role: 'user', content: '继续写', timestamp: Date.now() },

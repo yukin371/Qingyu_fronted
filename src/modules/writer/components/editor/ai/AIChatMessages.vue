@@ -124,6 +124,96 @@
             </div>
           </div>
           <div
+            v-else-if="message.meta?.kind === 'writer_retrieval_summary'"
+            class="message-tool-card"
+            :class="`message-tool-card--${message.meta.status || 'ready'}`"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">
+                {{ message.meta.queryLabel || '跨文件查找' }}
+              </div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <div v-if="message.meta.hits.length > 0" class="message-retrieval-hits">
+              <article
+                v-for="hit in message.meta.hits"
+                :key="hit.documentId"
+                class="message-retrieval-hit"
+                :class="{ 'is-selected': hit.selected }"
+              >
+                <div class="message-retrieval-hit__header">
+                  <span class="message-retrieval-hit__title">
+                    {{ hit.documentTitle || hit.documentId }}
+                  </span>
+                  <span v-if="hit.selected" class="message-retrieval-hit__badge">目标</span>
+                </div>
+                <div class="message-retrieval-hit__reason">{{ hit.reason }}</div>
+                <p v-if="hit.excerpt" class="message-retrieval-hit__excerpt">
+                  {{ hit.excerpt }}
+                </p>
+              </article>
+            </div>
+            <div v-else class="message-tool-card__detail">没有找到可用章节。</div>
+          </div>
+          <div
+            v-else-if="message.meta?.kind === 'writer_plan_preview'"
+            class="message-tool-card"
+            :class="`message-tool-card--${message.meta.status || 'planned'}`"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">{{ message.meta.operationLabel }}</div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <dl class="message-plan-grid">
+              <div>
+                <dt>目标</dt>
+                <dd>{{ message.meta.targetLabel }}</dd>
+              </div>
+              <div>
+                <dt>执行</dt>
+                <dd>{{ executionModeLabel(message.meta.executionMode) }}</dd>
+              </div>
+              <div>
+                <dt>确认</dt>
+                <dd>{{ message.meta.requiresConfirmation ? '需要确认' : '可直接生成 diff' }}</dd>
+              </div>
+            </dl>
+            <div v-if="message.meta.nextStep" class="message-tool-card__detail">
+              {{ message.meta.nextStep }}
+            </div>
+          </div>
+          <div
+            v-else-if="message.meta?.kind === 'writer_apply_checkpoint'"
+            class="message-tool-card"
+            :class="`message-tool-card--${message.meta.status}`"
+          >
+            <div class="message-tool-card__header">
+              <div class="message-tool-card__title">{{ message.meta.targetLabel }}</div>
+              <span class="message-tool-card__status">{{ message.meta.statusText }}</span>
+            </div>
+            <div v-if="message.meta.detail" class="message-tool-card__detail">
+              {{ message.meta.detail }}
+            </div>
+            <ol class="message-checkpoint-list">
+              <li
+                v-for="item in message.meta.stages"
+                :key="item.stage"
+                class="message-checkpoint-item"
+                :class="`message-checkpoint-item--${item.status}`"
+              >
+                <span class="message-checkpoint-item__dot" aria-hidden="true"></span>
+                <span class="message-checkpoint-item__body">
+                  <span class="message-checkpoint-item__label">
+                    {{ item.label || checkpointStageLabel(item.stage) }}
+                  </span>
+                  <span v-if="item.detail" class="message-checkpoint-item__detail">
+                    {{ item.detail }}
+                  </span>
+                </span>
+              </li>
+            </ol>
+          </div>
+          <div
             class="message-content"
             :class="{ 'message-content--pending': message.typing }"
             v-safe-html="renderAssistantMessage(message)"
@@ -227,6 +317,27 @@ function toolOperationLabel(operationType: string): string {
   if (operationType === 'insert_after_line') return '插入行'
   if (operationType === 'delete_lines') return '删除行'
   return operationType
+}
+
+function executionModeLabel(mode: string): string {
+  if (mode === 'direct_apply') return '生成正文 diff'
+  if (mode === 'confirm_first') return '先确认目标'
+  if (mode === 'plan_only') return '仅生成计划'
+  return mode
+}
+
+function checkpointStageLabel(stage: string): string {
+  const labels: Record<string, string> = {
+    planned: '已规划',
+    retrieving: '检索正文',
+    generated: '生成结果',
+    switching: '切换章节',
+    ready_for_review: '等待审阅',
+    accepted: '已接受',
+    discarded: '已放弃',
+    failed: '失败',
+  }
+  return labels[stage] || stage
 }
 
 /**
@@ -583,6 +694,145 @@ watch(
   color: var(--ai-text-muted, #64748b);
 }
 
+.message-retrieval-hits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.message-retrieval-hit {
+  padding: 10px 12px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+
+  &.is-selected {
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(239, 246, 255, 0.95);
+  }
+}
+
+.message-retrieval-hit__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.message-retrieval-hit__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ai-text, #0f172a);
+}
+
+.message-retrieval-hit__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.message-retrieval-hit__reason,
+.message-retrieval-hit__excerpt {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ai-text-muted, #64748b);
+}
+
+.message-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px 12px;
+
+  div {
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(203, 213, 225, 0.8);
+  }
+
+  dt {
+    margin-bottom: 4px;
+    color: var(--ai-text-muted, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ai-text, #0f172a);
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+}
+
+.message-checkpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px 12px;
+  list-style: none;
+}
+
+.message-checkpoint-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.message-checkpoint-item__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.message-checkpoint-item--running .message-checkpoint-item__dot {
+  background: #2563eb;
+}
+
+.message-checkpoint-item--done .message-checkpoint-item__dot {
+  background: #16a34a;
+}
+
+.message-checkpoint-item--error .message-checkpoint-item__dot {
+  background: #dc2626;
+}
+
+.message-checkpoint-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.message-checkpoint-item__label {
+  color: var(--ai-text, #0f172a);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message-checkpoint-item__detail {
+  color: var(--ai-text-muted, #64748b);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .message-tool-block {
   padding: 10px;
   border-radius: 10px;
@@ -678,7 +928,8 @@ watch(
 }
 
 @media (max-width: 768px) {
-  .message-tool-block__columns {
+  .message-tool-block__columns,
+  .message-plan-grid {
     grid-template-columns: 1fr;
   }
 }

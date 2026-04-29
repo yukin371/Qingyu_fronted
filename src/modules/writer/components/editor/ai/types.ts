@@ -1,6 +1,73 @@
-import type { ChatMessage as BaseChatMessage } from '@/composables/useChatHistory'
+import type {
+  ChatMessage as BaseChatMessage,
+  ChatMessageMeta as BaseChatMessageMeta,
+} from '@/composables/useChatHistory'
 
-export type ChatMessage = BaseChatMessage
+export interface WriterRetrievalHit {
+  documentId: string
+  documentTitle?: string
+  reason: string
+  excerpt?: string
+  selected?: boolean
+}
+
+export interface WriterRetrievalSummaryMeta {
+  kind: 'writer_retrieval_summary'
+  status?: 'retrieving' | 'ready' | 'empty'
+  statusText: string
+  queryLabel?: string
+  targetDocumentId?: string
+  hits: WriterRetrievalHit[]
+}
+
+export interface WriterPlanPreviewMeta {
+  kind: 'writer_plan_preview'
+  status?: 'planned' | 'needs_confirmation' | 'ready'
+  statusText: string
+  operationLabel: string
+  targetLabel: string
+  executionMode: 'direct_apply' | 'confirm_first' | 'plan_only' | string
+  requiresConfirmation: boolean
+  nextStep?: string
+}
+
+export type WriterApplyCheckpointStage =
+  | 'planned'
+  | 'retrieving'
+  | 'generated'
+  | 'switching'
+  | 'ready_for_review'
+  | 'accepted'
+  | 'discarded'
+  | 'failed'
+
+export interface WriterApplyCheckpointItem {
+  stage: WriterApplyCheckpointStage
+  label?: string
+  status: 'pending' | 'running' | 'done' | 'error'
+  detail?: string
+}
+
+export interface WriterApplyCheckpointMeta {
+  kind: 'writer_apply_checkpoint'
+  status: WriterApplyCheckpointStage
+  statusText: string
+  targetLabel: string
+  detail?: string
+  stages: WriterApplyCheckpointItem[]
+}
+
+export type WriterChatMessageMeta =
+  | BaseChatMessageMeta
+  | WriterRetrievalSummaryMeta
+  | WriterPlanPreviewMeta
+  | WriterApplyCheckpointMeta
+
+export type WriterChatMessage = Omit<BaseChatMessage, 'meta'> & {
+  meta?: WriterChatMessageMeta
+}
+
+export type ChatMessage = WriterChatMessage
 
 /**
  * AI Panel 子组件共享类型定义
