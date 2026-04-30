@@ -45,6 +45,7 @@ describe('StoryHarnessPanel', () => {
             template:
               '<div data-testid="story-harness-drawer-stub" :data-open="String(modelValue)" :data-count="changeRequests.length" />',
           },
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -53,6 +54,135 @@ describe('StoryHarnessPanel', () => {
       'false',
     )
     await wrapper.get('[data-testid="story-harness-open-change-requests"]').trigger('click')
+    expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe(
+      'true',
+    )
+  })
+
+  it('点击审查包入口后应打开 Review Packet 抽屉并传入聚合上下文', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: '张三开始怀疑李四。',
+        chapterCount: 12,
+        scopeLabel: '第一章 / 当前章节',
+        activeCharacters: [
+          { id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' },
+        ],
+        activeRelations: [
+          { id: 'rel-1', fromName: '张三', toName: '李四', type: '互相试探', strength: 60 },
+        ],
+        changeRequests: [
+          {
+            id: 'cr-1',
+            source: 'live',
+            type: 'state',
+            title: '角色状态可能需要更新：张三',
+            summary: '状态可能转为怀疑或动摇',
+            reason: '这类变化适合先作为 Change Request 预览。',
+            evidence: '张三开始怀疑李四。',
+            severity: 'focus',
+          },
+        ],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: {
+            props: [
+              'modelValue',
+              'chapterTitle',
+              'content',
+              'activeCharacters',
+              'activeRelations',
+              'changeRequests',
+            ],
+            template:
+              '<div data-testid="story-harness-review-packet-stub" :data-open="String(modelValue)" :data-title="chapterTitle" :data-content-length="content.length" :data-character-count="activeCharacters.length" :data-relation-count="activeRelations.length" :data-request-count="changeRequests.length" />',
+          },
+        },
+      },
+    })
+
+    const drawer = wrapper.get('[data-testid="story-harness-review-packet-stub"]')
+    expect(drawer.attributes('data-open')).toBe('false')
+
+    await wrapper.get('[data-testid="story-harness-open-review-packet"]').trigger('click')
+
+    expect(drawer.attributes('data-open')).toBe('true')
+    expect(drawer.attributes('data-title')).toBe('第一章')
+    expect(drawer.attributes('data-content-length')).toBe('9')
+    expect(drawer.attributes('data-character-count')).toBe('1')
+    expect(drawer.attributes('data-relation-count')).toBe('1')
+    expect(drawer.attributes('data-request-count')).toBe('1')
+  })
+
+  it('显示 Workflow Gate 检查点并从 gate 动作打开对应面板', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const harnessStore = useStoryHarnessStore()
+    harnessStore.hydrateSavedBatch = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(StoryHarnessPanel, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        content: '张三开始怀疑李四。',
+        chapterCount: 12,
+        activeCharacters: [
+          { id: 'char-1', name: '张三', traits: ['热血'], currentState: '怀疑中' },
+        ],
+        activeRelations: [],
+        changeRequests: [
+          {
+            id: 'cr-1',
+            source: 'live',
+            type: 'state',
+            title: '角色状态可能需要更新：张三',
+            summary: '状态可能转为怀疑或动摇',
+            reason: '这类变化适合先作为 Change Request 预览。',
+            evidence: '张三开始怀疑李四。',
+            severity: 'focus',
+          },
+        ],
+      },
+      global: {
+        plugins: [pinia],
+        stubs: {
+          StoryHarnessChangeRequestDrawer: {
+            props: ['modelValue'],
+            template:
+              '<div data-testid="story-harness-drawer-stub" :data-open="String(modelValue)" />',
+          },
+          StoryHarnessReviewPacketDrawer: {
+            props: ['modelValue'],
+            template:
+              '<div data-testid="story-harness-review-packet-stub" :data-open="String(modelValue)" />',
+          },
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-testid="story-harness-workflow-gate-panel"]').text()).toContain(
+      '需审查',
+    )
+    expect(wrapper.get('[data-testid="story-harness-gate-revision"]').text()).toContain('重点建议')
+
+    await wrapper.get('[data-testid="story-harness-gate-open-review-packet"]').trigger('click')
+    expect(
+      wrapper.get('[data-testid="story-harness-review-packet-stub"]').attributes('data-open'),
+    ).toBe('true')
+
+    await wrapper.get('[data-testid="story-harness-gate-open-change-requests"]').trigger('click')
     expect(wrapper.get('[data-testid="story-harness-drawer-stub"]').attributes('data-open')).toBe(
       'true',
     )
@@ -77,6 +207,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -115,6 +246,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -154,6 +286,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -201,6 +334,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -249,6 +383,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })
@@ -276,6 +411,7 @@ describe('StoryHarnessPanel', () => {
         plugins: [pinia],
         stubs: {
           StoryHarnessChangeRequestDrawer: true,
+          StoryHarnessReviewPacketDrawer: true,
         },
       },
     })

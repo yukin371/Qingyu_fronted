@@ -47,6 +47,8 @@
 - **`/doc` 命令桥只做轻量演示接入**：`AIPanel` 内的 `/doc list/read/search/patch` 目前是面向当前 writer 工作区的本地命令桥。`list/read/search` 可直接返回文本结果；`patch` 必须统一转换成 `applyGeneratedText -> ProjectWorkspace.handleAIApplyGeneratedText` 的正文 diff。若目标不是当前章节，只允许先读取目标章节内容、生成预览，再通过 `targetDocumentId/targetDocumentTitle` 让宿主切章后挂起 diff，不允许绕过编辑器直接静默保存。
 - **会话操作应并入工具栏，不再回到独立头部**：清空当前对话、重命名、新建会话等动作统一放在 `AIConversationToolbar`，不要为了单个会话动作再长回额外标题栏。
 - **Harness 入口走侧边 activity bar，不占顶部模式栏**：`WorkspaceRightPanel` 顶部不再为 `对话 / Harness` 单独保留一行 tabs；Story Harness 应通过右侧按钮显隐，正文协作区把垂直空间让给 AI 工作台本体。
+- **Review Packet 预览只做前端只读聚合**：`StoryHarnessReviewPacketDrawer` 当前只聚合章节正文、Context Lens、活跃实体/关系、Change Request 和轻量 gate 摘要，服务人类审查，不写后端、不导入外部 Story Canvas 文件，也不替代后续后端正式 review packet owner。
+- **Workflow Gate Panel 只做可见检查点**：`StoryHarnessWorkflowGatePanel` 复用 `storyHarnessWorkflowGates.ts` 的章节级判断，展示写前目标、写后正文、修后建议、卷级审查状态；它只负责打开审查包、建议队列或触发已有索引入口，不持久化 gate decision，不引入自动 runner，也不阻塞作者继续写作。
 - **全屏工具 handoff 要复用共享实体上下文**：`CharacterGraphView / TimelineOutlineView / StoryBranchView / StructureStageView` 发给 AI 的 `add_to_chat` 文本不能只带局部节点名；应优先复用 `useWorkflowContext` 产出的 `activeEntities` / `workflowContext`，把当前章节的活跃角色、物品、地点等上下文一起带过去，避免工具页再次回到各自拼接一套孤立上下文。
 - **全屏工具可见上下文由 overlay 统一展示**：`WorkspaceToolOverlay` 应使用 `useWorkflowContext` 同 owner 的摘要能力，把章节 / 场景 / 活跃实体显示在工具层顶部；不要再让 `CharacterGraphView / TimelineOutlineView / StoryBranchView / StructureStageView` 各自维护一份独立的“当前上下文”条。
 - **资产总览优先复用统一实体口径**：`EncyclopediaView` 当前已被复用为 Phase 4 资产总览 MVP，数据源应优先拼接 `writerStore.characters / locations`、统一实体接口 `api/entities.ts`（至少 item / organization）与 `conceptApi`，不要再额外新建影子资产 store。若后续要升级为独立 `AssetsOverviewView`，也必须先保持这套聚合口径不变。

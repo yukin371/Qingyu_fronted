@@ -33,7 +33,31 @@
             {{ chip.label }} {{ chip.count }}
           </span>
         </div>
+
+        <QyButton
+          variant="secondary"
+          size="sm"
+          class="w-full"
+          data-testid="story-harness-open-review-packet"
+          @click="isReviewPacketDrawerVisible = true"
+        >
+          审查包预览
+        </QyButton>
       </QyCard>
+
+      <StoryHarnessWorkflowGatePanel
+        :chapter-id="chapterId"
+        :chapter-title="chapterTitle"
+        :content="content"
+        :active-characters="activeCharacters"
+        :active-relations="activeRelations"
+        :change-requests="changeRequests"
+        :can-trigger-index="Boolean(handleTriggerIndex)"
+        :is-triggering-index="isTriggeringIndex"
+        @open-review-packet="isReviewPacketDrawerVisible = true"
+        @open-change-requests="isChangeRequestDrawerVisible = true"
+        @trigger-index="handleTriggerIndex"
+      />
     </section>
 
     <section class="flex flex-col gap-3">
@@ -140,6 +164,17 @@
       :change-requests="changeRequests"
       :handle-change-request-decision="handleChangeRequestDecision"
     />
+    <StoryHarnessReviewPacketDrawer
+      v-model="isReviewPacketDrawerVisible"
+      :chapter-id="chapterId"
+      :chapter-title="chapterTitle"
+      :content="content"
+      :scope-label="scopeLabel"
+      :entity-stats="resolvedEntityStats"
+      :active-characters="activeCharacters"
+      :active-relations="activeRelations"
+      :change-requests="changeRequests"
+    />
   </aside>
 </template>
 
@@ -156,6 +191,8 @@ import {
 } from '@/modules/writer/stores/v3/storyHarnessStore'
 import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
 import StoryHarnessChangeRequestDrawer from './StoryHarnessChangeRequestDrawer.vue'
+import StoryHarnessReviewPacketDrawer from './StoryHarnessReviewPacketDrawer.vue'
+import StoryHarnessWorkflowGatePanel from './StoryHarnessWorkflowGatePanel.vue'
 
 const props = defineProps<{
   projectId: string
@@ -195,6 +232,7 @@ const resolvedEntityStats = computed(() => ({
   concepts: props.entityStats?.concepts ?? 0,
 }))
 const isChangeRequestDrawerVisible = ref(false)
+const isReviewPacketDrawerVisible = ref(false)
 const savedBatchChangeRequests = computed(() =>
   changeRequests.value.filter((changeRequest) => changeRequest.source === 'save_batch'),
 )
