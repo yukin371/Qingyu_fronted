@@ -1,136 +1,136 @@
 <template>
-  <div
-    class="workspace-studio"
-    :class="{ 'workspace-studio--immersive': isImmersiveMode }"
-    :data-editor-theme="editorThemeStore.currentTheme"
+  <WorkspaceShell
+    :is-immersive-mode="isImmersiveMode"
+    :editor-theme="editorThemeStore.currentTheme"
   >
-    <!-- 顶部工具栏 -->
-    <WorkspaceTopbar
-      :project-display-name="projectDisplayName"
-      :current-chapter-title="currentChapterTitle"
-      :active-tool-label="activeToolLabel"
-      :save-status-label="saveStatusLabel"
-      :is-immersive-mode="isImmersiveMode"
-      @save="handleTipTapSave"
-      @export="handleExportDraft"
-      @share="handleShareDraft"
-      @back="handleBackToDashboard"
-    />
+    <template #topbar>
+      <WorkspaceTopbar
+        :project-display-name="projectDisplayName"
+        :current-chapter-title="currentChapterTitle"
+        :active-tool-label="activeToolLabel"
+        :save-status-label="saveStatusLabel"
+        :is-immersive-mode="isImmersiveMode"
+        @save="handleTipTapSave"
+        @export="handleExportDraft"
+        @share="handleShareDraft"
+        @back="handleBackToProjects"
+      />
+    </template>
 
-    <EditorLayout class="workspace-editor-layout">
-      <!-- 左侧面板插槽 -->
-      <template #left-panel>
-        <WorkspaceLeftPanel
-          v-model:project-id="currentProjectId"
-          v-model:chapter-id="displayChapterId"
-          :collapsed="panelStore.leftCollapsed"
-          :is-immersive-mode="isImmersiveMode"
-          :projects="projects"
-          :chapters="flatChapters"
-          @add-doc="handleAddDoc"
-          @open-directory-outline="handleOpenDirectoryOutline"
-          @delete-chapter="handleDeleteChapter"
-          @create-outline-root="handleCreateOutlineRoot"
-          @create-outline-child="handleCreateOutlineChild"
-          @edit-selected="handleEditOutlineNode"
-          @delete-selected="handleDeleteOutlineNode"
-          @move-up="() => handleMoveOutlineNode('up')"
-          @move-down="() => handleMoveOutlineNode('down')"
-          @open-graph="handleOpenGraph"
-          @open-fullscreen-tool="handleOpenFullscreenTool"
-          @outline-select="handleOutlineSelect"
-          @convert-to-chapter="handleConvertToChapter"
-        />
-      </template>
+    <template #body>
+      <EditorLayout class="workspace-editor-layout">
+        <template #left-panel>
+          <WorkspaceLeftPanel
+            v-model:project-id="currentProjectId"
+            v-model:chapter-id="displayChapterId"
+            :collapsed="panelStore.leftCollapsed"
+            :is-immersive-mode="isImmersiveMode"
+            :projects="projects"
+            :chapters="flatChapters"
+            @add-doc="handleAddDoc"
+            @open-directory-outline="handleOpenDirectoryOutline"
+            @delete-chapter="handleDeleteChapter"
+            @create-outline-root="handleCreateOutlineRoot"
+            @create-outline-child="handleCreateOutlineChild"
+            @edit-selected="handleEditOutlineNode"
+            @delete-selected="handleDeleteOutlineNode"
+            @move-up="() => handleMoveOutlineNode('up')"
+            @move-down="() => handleMoveOutlineNode('down')"
+            @open-graph="handleOpenGraph"
+            @open-fullscreen-tool="handleOpenFullscreenTool"
+            @outline-select="handleOutlineSelect"
+            @convert-to-chapter="handleConvertToChapter"
+          />
+        </template>
 
-      <!-- 主编辑器插槽 -->
-      <template #editor="{ activeTool }">
-        <WorkspaceEditorContent
-          ref="workspaceEditorContentRef"
-          :active-tool="activeTool"
-          :is-encyclopedia="isEncyclopediaTool"
-          :sub-view="encyclopediaSubView"
-          :category="encyclopediaCategory"
-          :project-id="currentProjectId"
-          :chapter-id="displayChapterId"
-          :chapter-title="displayChapterTitle"
-          :tool-overlay-chapter-id="toolOverlayChapterId"
-          :tool-overlay-chapter-title="toolOverlayChapterTitle"
-          :chapters="flatChapters"
-          :scope-label="currentScopeLabel"
-          :entity-stats="storyHarnessEntityStats"
-          :active-characters="activeScopeCharacters"
-          :active-relations="activeScopeRelations"
-          :change-requests="storyHarnessChangeRequests"
-          :workflow-context="workflowContext"
-          :active-entities="activeEntities"
-          :handle-change-request-decision="handleChangeRequestDecision"
-          :handle-trigger-index="handleStoryHarnessTriggerIndex"
-          :is-triggering-index="isStoryHarnessTriggering"
-          v-model:content="tipTapContent"
-          @update:category="setEncyclopediaCategory"
-          @trigger-ai-action="handleWorkflowAction"
-          @open-graph="handleOpenGraph"
-          @jump-to-chapter="handleChapterIdUpdate"
-          @save="handleTipTapSave"
-          @add-doc="handleAddDoc"
-          @status-change="handleWorkspaceStatusChange"
-          @open-fullscreen-tool="handleOpenFullscreenTool"
-          @close-fullscreen="handleCloseFullscreen"
-        />
-      </template>
+        <template #editor="{ activeTool }">
+          <WorkspaceEditorContent
+            ref="workspaceEditorContentRef"
+            :active-tool="activeTool"
+            :is-encyclopedia="isEncyclopediaTool"
+            :sub-view="encyclopediaSubView"
+            :category="encyclopediaCategory"
+            :project-id="currentProjectId"
+            :chapter-id="displayChapterId"
+            :chapter-title="displayChapterTitle"
+            :tool-overlay-chapter-id="toolOverlayChapterId"
+            :tool-overlay-chapter-title="toolOverlayChapterTitle"
+            :chapters="flatChapters"
+            :scope-label="currentScopeLabel"
+            :entity-stats="storyHarnessEntityStats"
+            :active-characters="activeScopeCharacters"
+            :active-relations="activeScopeRelations"
+            :change-requests="storyHarnessChangeRequests"
+            :workflow-context="workflowContext"
+            :active-entities="activeEntities"
+            :handle-change-request-decision="handleChangeRequestDecision"
+            :handle-trigger-index="handleStoryHarnessTriggerIndex"
+            :is-triggering-index="isStoryHarnessTriggering"
+            v-model:content="tipTapContent"
+            @update:category="setEncyclopediaCategory"
+            @trigger-ai-action="handleWorkflowAction"
+            @open-graph="handleOpenGraph"
+            @jump-to-chapter="handleChapterIdUpdate"
+            @save="handleTipTapSave"
+            @add-doc="handleAddDoc"
+            @status-change="handleWorkspaceStatusChange"
+            @open-fullscreen-tool="handleOpenFullscreenTool"
+            @close-fullscreen="handleCloseFullscreen"
+          />
+        </template>
 
-      <!-- 右侧AI面板插槽 -->
-      <template #right-panel>
-        <WorkspaceRightPanel
-          :collapsed="panelStore.rightCollapsed"
-          :is-immersive-mode="isImmersiveMode"
-          :active-right-dock-tool="activeRightDockTool"
-          :project-id="currentProjectId"
-          :chapter-id="displayChapterId"
-          :chapter-title="displayChapterTitle"
-          :source-text="currentChapterPlainText"
-          :ai-action-trigger="aiActionTrigger"
-          :ai-apply-feedback="aiApplyFeedback"
-          :workflow-context="workflowContext"
-          :draft-proposals="visibleDraftProposals"
-          :harness-data="{
-            projectId: currentProjectId,
-            chapterId: displayChapterId,
-            chapterTitle: displayChapterTitle,
-            content: tipTapContent,
-            chapterCount: flatChapters.length,
-            scopeLabel: currentScopeLabel,
-            entityStats: storyHarnessEntityStats,
-            activeCharacters: activeScopeCharacters,
-            activeRelations: activeScopeRelations,
-            changeRequests: storyHarnessChangeRequests,
-            handleChangeRequestDecision,
-            handleTriggerIndex: handleStoryHarnessTriggerIndex,
-            isTriggeringIndex: isStoryHarnessTriggering,
-          }"
-          @toggle="toggleRightPanel"
-          @ai-apply="handleAIApplyGeneratedText"
-          @proposal-draft="handleProposalDraft"
-          @proposal-status-change="handleProposalStatusChange"
-          @trigger-ai-action="handleWorkflowAction"
-          @create-structure-plan="handleCreateStructurePlan"
-        />
-      </template>
-    </EditorLayout>
+        <template #right-panel>
+          <WorkspaceRightPanel
+            :collapsed="panelStore.rightCollapsed"
+            :is-immersive-mode="isImmersiveMode"
+            :active-right-dock-tool="activeRightDockTool"
+            :project-id="currentProjectId"
+            :chapter-id="displayChapterId"
+            :chapter-title="displayChapterTitle"
+            :source-text="currentChapterPlainText"
+            :ai-action-trigger="aiActionTrigger"
+            :ai-apply-feedback="aiApplyFeedback"
+            :workflow-context="workflowContext"
+            :draft-proposals="visibleDraftProposals"
+            :harness-data="{
+              projectId: currentProjectId,
+              chapterId: displayChapterId,
+              chapterTitle: displayChapterTitle,
+              content: tipTapContent,
+              chapterCount: flatChapters.length,
+              scopeLabel: currentScopeLabel,
+              entityStats: storyHarnessEntityStats,
+              activeCharacters: activeScopeCharacters,
+              activeRelations: activeScopeRelations,
+              changeRequests: storyHarnessChangeRequests,
+              handleChangeRequestDecision,
+              handleTriggerIndex: handleStoryHarnessTriggerIndex,
+              isTriggeringIndex: isStoryHarnessTriggering,
+            }"
+            @toggle="toggleRightPanel"
+            @ai-apply="handleAIApplyGeneratedText"
+            @proposal-draft="handleProposalDraft"
+            @proposal-status-change="handleProposalStatusChange"
+            @trigger-ai-action="handleWorkflowAction"
+            @create-structure-plan="handleCreateStructurePlan"
+          />
+        </template>
+      </EditorLayout>
+    </template>
 
-    <!-- 底部状态栏 -->
-    <WorkspaceStatusbar
-      :chapter-count="chapterCount"
-      :directory-count="directoryCount"
-      :active-tool-label="activeToolLabel"
-      :save-status-label="saveStatusLabel"
-      :extra-status-chips="workspaceExtraStatusChips"
-      :is-immersive-mode="isImmersiveMode"
-      :immersive-timer-text="immersiveTimerText"
-      :project-word-count="currentProjectWordCount"
-    />
-  </div>
+    <template #statusbar>
+      <WorkspaceStatusbar
+        :chapter-count="chapterCount"
+        :directory-count="directoryCount"
+        :active-tool-label="activeToolLabel"
+        :save-status-label="saveStatusLabel"
+        :extra-status-chips="workspaceExtraStatusChips"
+        :is-immersive-mode="isImmersiveMode"
+        :immersive-timer-text="immersiveTimerText"
+        :project-word-count="currentProjectWordCount"
+      />
+    </template>
+  </WorkspaceShell>
 
   <!-- 新建文档对话框 -->
   <QyFormModal
@@ -181,6 +181,7 @@ import WorkspaceLeftPanel from '@/modules/writer/components/workspace/WorkspaceL
 import WorkspaceRightPanel from '@/modules/writer/components/workspace/WorkspaceRightPanel.vue'
 import WorkspaceStatusbar from '@/modules/writer/components/workspace/WorkspaceStatusbar.vue'
 import WorkspaceEditorContent from '@/modules/writer/components/workspace/WorkspaceEditorContent.vue'
+import WorkspaceShell from '@/modules/writer/components/workspace/WorkspaceShell.vue'
 import EditorLayout from '@/modules/writer/components/editor/EditorLayout.vue'
 import QyFormModal from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
 import type { FormField } from '@/design-system/components/advanced/QyFormModal/QyFormModal.vue'
@@ -529,8 +530,8 @@ const handleShareDraft = async () => {
   }
 }
 
-const handleBackToDashboard = () => {
-  router.push('/writer/dashboard')
+const handleBackToProjects = () => {
+  router.push('/writer/projects')
 }
 
 const handleCreateDocSubmit = async (formData: Record<string, unknown>) => {
@@ -1456,10 +1457,11 @@ async function applyAIResultToWorkspace(payload: WriterAIApplyPayload) {
 onMounted(async () => {
   // 恢复编辑器主题
   editorThemeStore.initTheme()
+  const loadListTask = projectStore.loadList()
   const pId = currentProjectId.value
   if (pId) {
     const bootstrapTasks: Array<Promise<unknown>> = [
-      projectStore.loadList(),
+      loadListTask,
       projectStore.loadDetail(pId),
       documentStore.loadTree(pId),
       loadOutlineTree(),
@@ -1479,6 +1481,8 @@ onMounted(async () => {
     if (writerStore.timeline.currentTimeline) {
       await writerStore.loadTimelineEvents(writerStore.timeline.currentTimeline.id)
     }
+  } else {
+    await loadListTask
   }
 })
 
@@ -1572,14 +1576,6 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.workspace-studio {
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: #f8f9fa;
-}
-
 .workspace-editor-layout {
   flex: 1;
   min-height: 0;

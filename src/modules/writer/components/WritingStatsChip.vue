@@ -59,15 +59,18 @@ function handleClick() {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px;
+  height: 16px;
+  padding: 0 6px;
   border-radius: 4px;
   background: var(--editor-bg-elevated, #f1f5f9);
   border: 1px solid var(--editor-border, #e2e8f0);
   color: var(--editor-text-ghost, #94a3b8);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   user-select: none;
+  box-sizing: border-box;
 
   &.is-clickable {
     cursor: pointer;

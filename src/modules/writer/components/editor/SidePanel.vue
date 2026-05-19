@@ -1,5 +1,8 @@
 <template>
-  <div class="side-panel" :class="[`side-panel--${position}`, { 'side-panel--collapsible': collapsible }]">
+  <div
+    class="side-panel"
+    :class="[`side-panel--${position}`, { 'side-panel--collapsible': collapsible }]"
+  >
     <div class="side-panel__content">
       <slot />
     </div>
@@ -13,19 +16,22 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  collapsible: false
+  collapsible: false,
 })
 </script>
 
 <style scoped lang="scss">
 .side-panel {
   height: 100%;
+  width: 100%;
   min-height: 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  overflow: visible;
+  border-radius: 0;
+  overflow: hidden;
 }
 
 .side-panel--left {
@@ -39,10 +45,13 @@ withDefaults(defineProps<Props>(), {
 }
 
 .side-panel__content {
+  width: 100%;
   height: 100%;
   min-height: 0;
   min-width: 0;
-  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #fff;
 }
 

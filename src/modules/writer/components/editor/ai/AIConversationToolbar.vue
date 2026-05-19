@@ -22,10 +22,20 @@
     >
       <QyIcon name="Delete" />
     </button>
-    <button class="conversation-action-btn" :disabled="disabled" title="重命名对话" @click="$emit('rename')">
+    <button
+      class="conversation-action-btn"
+      :disabled="disabled"
+      title="重命名对话"
+      @click="$emit('rename')"
+    >
       <QyIcon name="Edit" />
     </button>
-    <button class="conversation-new-btn" :disabled="disabled" title="新对话" @click="$emit('create')">
+    <button
+      class="conversation-new-btn"
+      :disabled="disabled"
+      title="新对话"
+      @click="$emit('create')"
+    >
       <QyIcon name="Plus" />
     </button>
   </div>
@@ -61,11 +71,11 @@ function handleChange(event: Event) {
 <style scoped lang="scss">
 .conversation-toolbar {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
   padding: 12px 14px 10px;
   border-bottom: 1px solid var(--ai-border, #e2e8f0);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.9));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.9));
 
   .conversation-select {
     flex: 1;
@@ -86,8 +96,7 @@ function handleChange(event: Event) {
     padding: 0;
     border: 1px solid #93c5fd;
     border-radius: 10px;
-    background:
-      linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.92));
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.92));
     color: #1d4ed8;
     display: inline-flex;
     align-items: center;
@@ -113,8 +122,7 @@ function handleChange(event: Event) {
 
   .conversation-action-btn--ghost {
     color: #64748b;
-    background:
-      linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.92));
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.92));
   }
 
   .conversation-action-btn,

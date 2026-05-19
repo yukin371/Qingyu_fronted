@@ -1,25 +1,31 @@
 <template>
-  <footer class="workspace-statusbar" :class="{ 'workspace-statusbar--immersive': isImmersiveMode }">
+  <footer
+    class="workspace-statusbar"
+    :class="{ 'workspace-statusbar--immersive': isImmersiveMode }"
+  >
     <div class="workspace-statusbar__stats">
       <!-- 写作统计 -->
       <WritingStatsChip v-if="displayTotalWords > 0" label="总字数" :value="displayTotalWords" />
-      <WritingStatsChip v-if="displayTodayWords > 0" label="今日" :value="displayTodayWords" class="today-chip" />
+      <WritingStatsChip
+        v-if="displayTodayWords > 0"
+        label="今日"
+        :value="displayTodayWords"
+        class="today-chip"
+      />
 
       <span class="status-chip">{{ chapterCount }} 章节</span>
       <span class="status-chip">{{ directoryCount }} 目录</span>
       <span v-if="activeToolLabel" class="status-chip">{{ activeToolLabel }}</span>
-      <span
-        v-for="chip in extraStatusChips"
-        :key="chip"
-        class="status-chip status-chip--accent"
-      >
+      <span v-for="chip in extraStatusChips" :key="chip" class="status-chip status-chip--accent">
         {{ chip }}
       </span>
-      <span v-if="isImmersiveMode" class="status-chip status-chip--warm">沉浸 {{ immersiveTimerText }}</span>
+      <span v-if="isImmersiveMode" class="status-chip status-chip--warm"
+        >沉浸 {{ immersiveTimerText }}</span
+      >
     </div>
     <div class="workspace-statusbar__state" :class="saveStatusClass">
       <span class="workspace-statusbar__dot" />
-      <span>{{ isImmersiveMode ? '沉浸写作进行中' : (saveStatusLabel || '等待同步') }}</span>
+      <span>{{ isImmersiveMode ? '沉浸写作进行中' : saveStatusLabel || '等待同步' }}</span>
     </div>
   </footer>
 </template>
@@ -80,19 +86,22 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .workspace-statusbar {
-  height: 32px;
-  padding: 0 14px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   background: var(--editor-bg-surface, #f8fafc);
   border-top: 1px solid var(--editor-border, #e2e8f0);
   color: var(--editor-text-ghost, #94a3b8);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .workspace-statusbar--immersive {
@@ -102,11 +111,13 @@ onMounted(() => {
 .workspace-statusbar__stats {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   overflow-x: auto;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  flex-wrap: nowrap;
 
   &::-webkit-scrollbar {
     display: none;
@@ -114,12 +125,16 @@ onMounted(() => {
 }
 
 .status-chip {
-  padding: 1px 6px;
+  height: 16px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--editor-radius-sm, 4px);
   background: var(--editor-bg-elevated, #f1f5f9);
   color: var(--editor-text-ghost, #94a3b8);
   border: 1px solid var(--editor-border, #e2e8f0);
-  font-size: 10px;
+  font-size: 9px;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -142,6 +157,8 @@ onMounted(() => {
   flex-shrink: 0;
   color: var(--editor-text-ghost, #94a3b8);
   transition: color 0.3s ease;
+  white-space: nowrap;
+  line-height: 1;
 
   &.status-saved {
     color: #67c23a;
@@ -157,17 +174,17 @@ onMounted(() => {
 }
 
 .workspace-statusbar__dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
   background: #48e594;
-  box-shadow: 0 0 0 3px rgba(72, 229, 148, 0.2);
+  box-shadow: 0 0 0 2px rgba(72, 229, 148, 0.18);
   flex-shrink: 0;
 }
 
 @media (max-width: 1024px) {
   .workspace-statusbar {
-    padding: 0 10px;
+    padding: 0 8px;
   }
 }
 </style>

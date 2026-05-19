@@ -1,7 +1,7 @@
 <template>
   <header class="workspace-topbar">
     <div class="workspace-topbar__left">
-      <button class="topbar-back-btn" :title="'返回工作台'" @click="$emit('back')">
+      <button class="topbar-back-btn" :title="'返回项目'" @click="$emit('back')">
         <QyIcon name="ArrowLeft" :size="14" />
         <span>{{ projectDisplayName }}</span>
       </button>
@@ -24,15 +24,31 @@
       <div class="topbar-divider"></div>
       <!-- 溢出菜单 -->
       <div class="topbar-overflow" @click.stop>
-        <button class="topbar-btn topbar-btn--icon" :title="'更多操作'" @click="overflowOpen = !overflowOpen">
+        <button
+          class="topbar-btn topbar-btn--icon"
+          :title="'更多操作'"
+          @click="overflowOpen = !overflowOpen"
+        >
           <QyIcon name="MoreFilled" :size="16" />
         </button>
         <div v-if="overflowOpen" class="topbar-overflow__menu">
-          <button class="topbar-overflow__item" @click="$emit('share'); overflowOpen = false">
+          <button
+            class="topbar-overflow__item"
+            @click="
+              $emit('share')
+              overflowOpen = false
+            "
+          >
             <QyIcon name="Share" :size="14" />
             <span>分享</span>
           </button>
-          <button class="topbar-overflow__item" @click="showShortcutSettings = true; overflowOpen = false">
+          <button
+            class="topbar-overflow__item"
+            @click="
+              showShortcutSettings = true
+              overflowOpen = false
+            "
+          >
             <QyIcon name="SetUp" :size="14" />
             <span>快捷键设置</span>
           </button>
@@ -45,11 +61,19 @@
               :key="key"
               class="theme-option"
               :class="{ 'theme-option--active': editorThemeStore.currentTheme === key }"
-              @click="editorThemeStore.setTheme(key as EditorThemeName); overflowOpen = false"
+              @click="
+                editorThemeStore.setTheme(key as EditorThemeName)
+                overflowOpen = false
+              "
             >
               <span class="theme-option__preview" :style="{ background: meta.previewColor }"></span>
               <span class="theme-option__label">{{ meta.label }}</span>
-              <QyIcon v-if="editorThemeStore.currentTheme === key" name="Check" :size="12" class="theme-option__check" />
+              <QyIcon
+                v-if="editorThemeStore.currentTheme === key"
+                name="Check"
+                :size="12"
+                class="theme-option__check"
+              />
             </button>
           </div>
         </div>
@@ -139,7 +163,9 @@ onUnmounted(() => document.removeEventListener('click', closeOverflow))
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
   white-space: nowrap;
   max-width: 180px;
   overflow: hidden;
@@ -206,7 +232,10 @@ onUnmounted(() => document.removeEventListener('click', closeOverflow))
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
   white-space: nowrap;
 
   &:hover {
@@ -246,7 +275,7 @@ onUnmounted(() => document.removeEventListener('click', closeOverflow))
   background: var(--editor-bg-base, #ffffff);
   border: 1px solid var(--editor-border, #e2e8f0);
   border-radius: var(--editor-radius-lg, 8px);
-  box-shadow: var(--editor-shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+  box-shadow: var(--editor-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
   padding: 4px;
   z-index: 100;
   min-width: 120px;
@@ -264,7 +293,9 @@ onUnmounted(() => document.removeEventListener('click', closeOverflow))
   color: var(--editor-text-muted, #64748b);
   font-size: 12px;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
 
   &:hover {
     background: var(--editor-bg-elevated, #f1f5f9);

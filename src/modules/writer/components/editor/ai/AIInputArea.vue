@@ -145,6 +145,7 @@ defineExpose({
 
 <style scoped lang="scss">
 .ai-input-area {
+  flex-shrink: 0;
   padding: 12px 16px;
   background: var(--ai-bg-soft, #f8fafc);
   border-top: 1px solid var(--ai-border, #e2e8f0);

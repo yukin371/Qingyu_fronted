@@ -411,6 +411,7 @@ watch(
 <style scoped lang="scss">
 .ai-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px;
   display: flex;

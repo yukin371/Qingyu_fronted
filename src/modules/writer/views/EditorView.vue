@@ -26,7 +26,7 @@ const targetLocation = computed(() => {
   const chapterId = String(route.params.chapterId || route.query.chapterId || '')
 
   if (!projectId) {
-    return { name: 'writer-dashboard' as const, query: route.query }
+    return { name: 'writer-home' as const, query: route.query }
   }
 
   return {
