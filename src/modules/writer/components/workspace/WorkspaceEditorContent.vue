@@ -20,6 +20,8 @@
         :document-id="chapterId"
         :readonly="false"
         :show-reference-panel="false"
+        :proofread-highlights="proofreadHighlights"
+        :focused-proofread-issue-id="focusedProofreadIssueId"
         @selection-action="emit('trigger-ai-action', $event)"
         @save="(contents: unknown[]) => $emit('save', contents)"
         @open-tool-overlay="toolOverlay.open()"
@@ -60,14 +62,17 @@ import type {
   StoryHarnessChangeRequestPreview,
   StoryHarnessRelationSummary,
 } from '@/modules/writer/stores/v3/storyHarnessStore'
-import type { WriterWorkflowActionRequest } from '@/modules/writer/types/workflow'
+import type {
+  WriterProofreadIssueHighlight,
+  WriterWorkflowActionRequest,
+  WriterWorkflowContext,
+} from '@/modules/writer/types/workflow'
 import type {
   EncyclopediaSubView,
   EncyclopediaCategory,
   SidebarChapterSummary,
 } from '@/modules/writer/composables/types'
 import type { ActiveEntitySummary } from '@/modules/writer/composables/useWorkflowContext'
-import type { WriterWorkflowContext } from '@/modules/writer/types/workflow'
 
 // =======================
 // Props 定义
@@ -114,6 +119,10 @@ const props = defineProps<{
   workflowContext?: WriterWorkflowContext
   /** 共享实体摘要 */
   activeEntities?: ActiveEntitySummary[]
+  /** 当前章节审校高亮 */
+  proofreadHighlights?: WriterProofreadIssueHighlight[]
+  /** 当前需要定位的审校问题 */
+  focusedProofreadIssueId?: string
   /** 处理变更建议 */
   handleChangeRequestDecision?: (
     requestId: string,

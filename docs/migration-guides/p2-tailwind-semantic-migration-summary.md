@@ -354,8 +354,9 @@ git branch -D feature/p2-tailwind-semantic-migration
 ### 方案 2: 使用备份配置
 
 ```bash
-# 使用备份的配置文件
-cp .backup/p1-tailwind-config.js tailwind.config.js
+# 使用历史备份的配置文件
+# 根仓清理后，历史备份已移出仓库；如需恢复请使用：
+cp E:/Github/Qingyu_root_backups/2026-05-23-root-cleanup-phase2-pre-delete/.backup/p1-tailwind-config.js tailwind.config.js
 
 # 恢复 theme.ts
 git checkout main -- src/design-system/tokens/theme.ts

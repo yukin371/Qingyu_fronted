@@ -5,7 +5,14 @@
       <div class="da-bg-gradient da-bg-gradient--cyan"></div>
       <div class="da-bg-gradient da-bg-gradient--violet"></div>
       <svg class="da-bg-particles" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-        <circle v-for="n in 12" :key="n" :cx="particlePositions[n-1]?.cx" :cy="particlePositions[n-1]?.cy" :r="particlePositions[n-1]?.r" :fill="particlePositions[n-1]?.fill" />
+        <circle
+          v-for="n in 12"
+          :key="n"
+          :cx="particlePositions[n - 1]?.cx"
+          :cy="particlePositions[n - 1]?.cy"
+          :r="particlePositions[n - 1]?.r"
+          :fill="particlePositions[n - 1]?.fill"
+        />
       </svg>
     </div>
 
@@ -79,13 +86,11 @@
               :style="{
                 height: bar.height + '%',
                 opacity: bar.opacity,
-                boxShadow: bar.highlight ? '0 0 10px rgba(125, 233, 255, 0.4)' : 'none'
+                boxShadow: bar.highlight ? '0 0 10px rgba(125, 233, 255, 0.4)' : 'none',
               }"
             ></div>
           </div>
-          <div class="da-pulse-label">
-            情绪张力: {{ emotionalTension }}%
-          </div>
+          <div class="da-pulse-label">情绪张力: {{ emotionalTension }}%</div>
         </div>
       </aside>
     </Transition>
@@ -151,7 +156,9 @@
               </div>
               <div class="da-character-item__info">
                 <span class="da-character-item__name">{{ character.name }}</span>
-                <span class="da-character-item__role">{{ character.role }} · {{ character.status }}</span>
+                <span class="da-character-item__role"
+                  >{{ character.role }} · {{ character.status }}</span
+                >
               </div>
             </div>
           </div>
@@ -223,7 +230,7 @@ const props = withDefaults(defineProps<Props>(), {
   showLeftPanel: true,
   showRightPanel: true,
   wordCount: 0,
-  userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=writer'
+  userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=writer',
 })
 
 // ==================== Emits ====================
@@ -252,14 +259,14 @@ const showAIHint = ref(true)
 // ==================== Navigation ====================
 const navItems = [
   { id: 'galaxy', label: 'Galaxy View' },
-  { id: 'zen', label: 'Zen Mode' }
+  { id: 'zen', label: 'Zen Mode' },
 ]
 
 const sidebarTools = [
   { id: 'orbs', label: 'Orbs', icon: 'Grid' },
   { id: 'world', label: 'World', icon: 'Location' },
   { id: 'cast', label: 'Cast', icon: 'User' },
-  { id: 'graph', label: 'Graph', icon: 'Share' }
+  { id: 'graph', label: 'Graph', icon: 'Share' },
 ]
 
 // ==================== Insight Panel Data ====================
@@ -269,7 +276,7 @@ const pulseData = [
   { height: 75, opacity: 0.6, highlight: true },
   { height: 83, opacity: 0.4, highlight: false },
   { height: 75, opacity: 0.2, highlight: false },
-  { height: 50, opacity: 0.1, highlight: false }
+  { height: 50, opacity: 0.1, highlight: false },
 ]
 
 const emotionalTension = ref(64)
@@ -281,7 +288,7 @@ const characters = ref([
     role: '主角',
     status: '在场',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=aeryn',
-    isPresent: true
+    isPresent: true,
   },
   {
     id: '2',
@@ -289,8 +296,8 @@ const characters = ref([
     role: '导师',
     status: '提及',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=solon',
-    isPresent: false
-  }
+    isPresent: false,
+  },
 ])
 
 // ==================== Background Particles ====================
@@ -306,7 +313,7 @@ const particlePositions = [
   { cx: 150, cy: 200, r: 0.7, fill: '#ffffff' },
   { cx: 850, cy: 600, r: 0.9, fill: '#cebdff' },
   { cx: 400, cy: 100, r: 0.5, fill: '#ffffff' },
-  { cx: 550, cy: 450, r: 1.1, fill: '#7de9ff' }
+  { cx: 550, cy: 450, r: 1.1, fill: '#7de9ff' },
 ]
 
 // ==================== Computed ====================
@@ -348,7 +355,7 @@ function openLibrary() {
   console.log('Open library')
 }
 
-function selectCharacter(character: typeof characters.value[0]) {
+function selectCharacter(character: (typeof characters.value)[0]) {
   console.log('Selected character:', character.name)
 }
 
@@ -402,7 +409,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import '../../styles/digital-atelier-theme.scss';
+@use '../../styles/digital-atelier-theme.scss' as *;
 
 .digital-atelier-editor {
   position: relative;
@@ -917,12 +924,7 @@ onUnmounted(() => {
     &__line {
       width: 100%;
       height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        var(--da-primary) 50%,
-        transparent 100%
-      );
+      background: linear-gradient(90deg, transparent 0%, var(--da-primary) 50%, transparent 100%);
       animation: da-pulse 2s infinite;
     }
 

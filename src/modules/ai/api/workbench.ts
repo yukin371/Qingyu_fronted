@@ -69,14 +69,43 @@ export interface ReviewToolRequest {
 export interface ReviewIssue {
   id?: string
   type?: string
-  severity?: string
+  severity?: 'error' | 'warning' | 'suggestion' | string
   message?: string
   suggestions?: string[]
+  suggestionDetails?: Array<{
+    text: string
+    reason?: string
+    confidence?: number
+  }>
+  position?: {
+    start: number
+    end: number
+    line?: number
+    column?: number
+    length?: number
+  }
+  originalText?: string
+  category?: string
+  rule?: string
+  status?: 'open' | 'accepted' | 'ignored' | 'stale'
+}
+
+export interface MobilePreviewWarning {
+  id?: string
+  type?: string
+  severity?: 'warning' | 'suggestion' | string
+  message?: string
+  paragraphIndex?: number
+  position?: ReviewIssue['position']
 }
 
 export interface ReviewToolResult {
+  reviewId?: string
+  contentHash?: string
   score?: number
   issues: ReviewIssue[]
+  statistics?: Record<string, unknown>
+  previewWarnings: MobilePreviewWarning[]
   raw: Record<string, unknown>
 }
 
@@ -264,8 +293,15 @@ export async function proofreadContent(payload: ReviewToolRequest): Promise<Revi
   })
 
   return {
+    reviewId: response.reviewId,
+    contentHash: response.contentHash,
     score: response.score,
-    issues: response.issues as ReviewIssue[],
+    issues: response.issues.map((issue) => ({
+      ...issue,
+      status: 'open',
+    })) as ReviewIssue[],
+    statistics: response.statistics as Record<string, unknown> | undefined,
+    previewWarnings: (response.previewWarnings || []) as MobilePreviewWarning[],
     raw: response as unknown as Record<string, unknown>,
   }
 }

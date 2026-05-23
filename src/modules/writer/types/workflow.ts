@@ -17,6 +17,19 @@ export type WriterWorkbenchTab = 'rewrite' | 'summary' | 'review' | 'chat'
 export type WriterStructurePlanMode = 'volume' | 'chapter'
 export type WriterPromptIntentAction = 'summarize' | 'rewrite' | 'continue' | 'proofread' | 'expand'
 export type WriterPromptIntentKind = 'edit' | 'analysis'
+export type WriterProofreadIssueSeverity = 'error' | 'warning' | 'suggestion'
+export type WriterProofreadIssueStatus = 'open' | 'accepted' | 'ignored' | 'stale'
+
+export interface WriterProofreadIssueHighlight {
+  id: string
+  severity: WriterProofreadIssueSeverity
+  position: {
+    start: number
+    end: number
+  }
+  originalText?: string
+  status?: WriterProofreadIssueStatus
+}
 
 export interface WriterPromptIntent {
   action: WriterPromptIntentAction

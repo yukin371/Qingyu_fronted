@@ -28,6 +28,8 @@
           :document-id="documentId"
           :readonly="readonly"
           :placeholder="placeholder"
+          :proofread-highlights="editorProofreadHighlights"
+          :focused-proofread-issue-id="focusedProofreadIssueId"
           @update:model-value="(val) => $emit('update:modelValue', val)"
           @save="handleSave"
           @keyword-click="(kw) => $emit('keyword-click', kw)"
@@ -138,6 +140,7 @@ import { QyEntityScanPanel } from '@/design-system/components/editor'
 import type { ScannedEntity } from '@/modules/writer/composables/useEntityScanner'
 import { useEntityScanner } from '@/modules/writer/composables/useEntityScanner'
 import type { ParagraphContent } from '@/modules/writer/api/wrapper'
+import type { WriterProofreadIssueHighlight } from '@/modules/writer/types/workflow'
 import { useEditorStore } from '@/modules/writer/stores/editorStore'
 import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
 
@@ -152,6 +155,8 @@ const props = withDefaults(
     placeholder?: string
     showReferencePanel?: boolean
     showEntityScan?: boolean
+    proofreadHighlights?: WriterProofreadIssueHighlight[]
+    focusedProofreadIssueId?: string
   }>(),
   {
     documentId: '',
@@ -159,6 +164,8 @@ const props = withDefaults(
     placeholder: '输入 @ 触发实体补全…',
     showReferencePanel: true,
     showEntityScan: true,
+    proofreadHighlights: () => [],
+    focusedProofreadIssueId: '',
   },
 )
 
@@ -182,6 +189,17 @@ const editorStore = useEditorStore()
 const { scannedEntities, isScanning, scheduleScan, ignoreEntity, ignoreAll } = useEntityScanner()
 const plainTextContent = computed(() => extractPlainTextFromEditorContent(props.modelValue || ''))
 const isDocumentEmpty = computed(() => plainTextContent.value.trim().length === 0)
+const editorProofreadHighlights = computed(() =>
+  props.proofreadHighlights
+    .filter((issue) => (issue.status || 'open') === 'open')
+    .map((issue) => ({
+      id: issue.id,
+      start: issue.position.start,
+      end: issue.position.end,
+      severity: issue.severity,
+      originalText: issue.originalText,
+    })),
+)
 
 // 自动保存跟踪状态
 const trackedDocumentId = ref<string>('')

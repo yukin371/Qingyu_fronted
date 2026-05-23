@@ -50,11 +50,37 @@ export interface AIProofreadIssue {
   severity?: string
   message?: string
   suggestions?: string[]
+  suggestionDetails?: Array<{
+    text: string
+    reason?: string
+    confidence?: number
+  }>
+  position?: {
+    start: number
+    end: number
+    line?: number
+    column?: number
+    length?: number
+  }
+  originalText?: string
+  category?: string
+  rule?: string
 }
 
 export interface AIProofreadResponse {
+  reviewId?: string
+  contentHash?: string
   score?: number
   issues: AIProofreadIssue[]
+  statistics?: {
+    totalIssues?: number
+    errorCount?: number
+    warningCount?: number
+    suggestionCount?: number
+    issuesByType?: Record<string, number>
+    characterCount?: number
+  }
+  previewWarnings?: Array<Record<string, unknown>>
   usage?: {
     prompt_tokens: number
     completion_tokens: number
@@ -80,6 +106,249 @@ export interface AIExpandRequest {
   originalText: string
   instructions?: string
   targetLength?: number
+}
+
+function asFiniteNumber(value: unknown): number | undefined {
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : undefined
+}
+
+function codePointOffsetToStringIndex(value: string, offset: number): number | undefined {
+  if (!Number.isInteger(offset) || offset < 0) {
+    return undefined
+  }
+
+  const codePoints = Array.from(value)
+  if (offset > codePoints.length) {
+    return undefined
+  }
+
+  return codePoints.slice(0, offset).join('').length
+}
+
+function findClosestOriginalTextPosition(
+  content: string,
+  originalText: string,
+  preferredStart?: number,
+): number | undefined {
+  if (!originalText) {
+    return undefined
+  }
+
+  const positions: number[] = []
+  let cursor = content.indexOf(originalText)
+  while (cursor >= 0) {
+    positions.push(cursor)
+    cursor = content.indexOf(originalText, cursor + Math.max(originalText.length, 1))
+  }
+  if (positions.length === 0) {
+    return undefined
+  }
+  if (typeof preferredStart !== 'number') {
+    return positions[0]
+  }
+
+  return positions.reduce((best, current) =>
+    Math.abs(current - preferredStart) < Math.abs(best - preferredStart) ? current : best,
+  )
+}
+
+function normalizeProofreadPosition(
+  content: string,
+  record: Record<string, any>,
+  originalText: string,
+): AIProofreadIssue['position'] | undefined {
+  const position = record.position && typeof record.position === 'object' ? record.position : record
+  const rawStart = asFiniteNumber(position.start ?? position.from)
+  const rawEnd = asFiniteNumber(position.end ?? position.to)
+  if (rawStart === undefined || rawEnd === undefined || rawStart < 0 || rawEnd <= rawStart) {
+    return undefined
+  }
+
+  const toPosition = (start: number, end: number) => ({
+    start,
+    end,
+    line: asFiniteNumber(position.line),
+    column: asFiniteNumber(position.column),
+    length: end - start,
+  })
+  const isValidStringRange = (start: number, end: number) =>
+    Number.isInteger(start) &&
+    Number.isInteger(end) &&
+    start >= 0 &&
+    end > start &&
+    end <= content.length
+
+  if (isValidStringRange(rawStart, rawEnd)) {
+    const currentText = content.slice(rawStart, rawEnd)
+    if (!originalText || currentText === originalText) {
+      return toPosition(rawStart, rawEnd)
+    }
+  }
+
+  const codePointStart = codePointOffsetToStringIndex(content, rawStart)
+  const codePointEnd = codePointOffsetToStringIndex(content, rawEnd)
+  if (
+    codePointStart !== undefined &&
+    codePointEnd !== undefined &&
+    isValidStringRange(codePointStart, codePointEnd)
+  ) {
+    const currentText = content.slice(codePointStart, codePointEnd)
+    if (!originalText || currentText === originalText) {
+      return toPosition(codePointStart, codePointEnd)
+    }
+  }
+
+  const matchedStart = findClosestOriginalTextPosition(
+    content,
+    originalText,
+    codePointStart ?? rawStart,
+  )
+  if (matchedStart !== undefined) {
+    return toPosition(matchedStart, matchedStart + originalText.length)
+  }
+
+  return undefined
+}
+
+function normalizeProofreadIssueType(value: unknown) {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase()
+  const typeMap: Record<string, string> = {
+    spelling: 'typo',
+    typo: 'typo',
+    grammar: 'grammar',
+    punctuation: 'punctuation',
+    style: 'style',
+    readability: 'readability',
+    continuity: 'continuity',
+  }
+  return typeMap[raw] || String(value || 'style').trim() || 'style'
+}
+
+function normalizeProofreadSeverity(value: unknown) {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase()
+  if (['error', 'high', 'critical', '严重'].includes(raw)) return 'error'
+  if (['warning', 'medium', 'warn', '中等'].includes(raw)) return 'warning'
+  return 'suggestion'
+}
+
+function normalizeProofreadSuggestionDetails(rawSuggestions: unknown) {
+  if (!Array.isArray(rawSuggestions)) {
+    return []
+  }
+
+  return rawSuggestions
+    .map((suggestion) => {
+      if (suggestion && typeof suggestion === 'object') {
+        const record = suggestion as Record<string, unknown>
+        const textValue = String(record.text || record.value || record.suggestion || '').trim()
+        if (!textValue) return null
+        return {
+          text: textValue,
+          reason: String(record.reason || record.explanation || '').trim() || undefined,
+          confidence: Number.isFinite(Number(record.confidence))
+            ? Number(record.confidence)
+            : undefined,
+        }
+      }
+
+      const textValue = String(suggestion || '').trim()
+      return textValue ? { text: textValue } : null
+    })
+    .filter((item): item is { text: string; reason?: string; confidence?: number } => !!item)
+}
+
+function normalizeAIProofreadResponse(text: string, response: unknown): AIProofreadResponse {
+  const data = response as Record<string, any>
+  const issuesSource = data?.issues || data?.data?.issues
+  const fallbackMessage = String(
+    data?.proofread_result ||
+      data?.data?.proofread_result ||
+      data?.rewritten_text ||
+      data?.data?.rewritten_text ||
+      '',
+  ).trim()
+  const normalizedIssues: AIProofreadIssue[] = Array.isArray(issuesSource)
+    ? issuesSource.reduce<AIProofreadIssue[]>((acc, item, index) => {
+        if (!item || typeof item !== 'object') {
+          return acc
+        }
+        const record = item as Record<string, any>
+        const message = String(record.message || record.description || record.issue || '').trim()
+        if (!message) {
+          return acc
+        }
+        const suggestionDetails = normalizeProofreadSuggestionDetails(
+          record.suggestionDetails || record.suggestion_details || record.suggestions,
+        )
+        const originalText = String(
+          record.originalText || record.original_text || record.original || '',
+        ).trim()
+        const position = normalizeProofreadPosition(text, record, originalText)
+        const positionedOriginalText = position ? text.slice(position.start, position.end) : ''
+        acc.push({
+          id: String(record.id || `proofread-${index + 1}`),
+          type: normalizeProofreadIssueType(record.type || record.category),
+          severity: normalizeProofreadSeverity(record.severity || record.level),
+          message,
+          suggestions: suggestionDetails.map((suggestion) => suggestion.text),
+          suggestionDetails,
+          position,
+          originalText: originalText || positionedOriginalText || undefined,
+          category: String(record.category || '').trim() || undefined,
+          rule: String(record.rule || '').trim() || undefined,
+        })
+        return acc
+      }, [])
+    : []
+  const statistics = data?.statistics || data?.data?.statistics
+  const previewWarnings =
+    data?.previewWarnings ||
+    data?.preview_warnings ||
+    data?.data?.previewWarnings ||
+    data?.data?.preview_warnings ||
+    []
+  return {
+    reviewId:
+      String(
+        data?.reviewId || data?.review_id || data?.data?.reviewId || data?.data?.review_id || '',
+      ).trim() || undefined,
+    contentHash:
+      String(
+        data?.contentHash ||
+          data?.content_hash ||
+          data?.data?.contentHash ||
+          data?.data?.content_hash ||
+          '',
+      ).trim() || undefined,
+    score:
+      typeof data?.score === 'number'
+        ? data.score
+        : typeof data?.data?.score === 'number'
+          ? data.data.score
+          : undefined,
+    issues:
+      normalizedIssues.length > 0
+        ? normalizedIssues
+        : fallbackMessage
+          ? [
+              {
+                id: 'proofread-fallback',
+                type: '审校',
+                severity: 'info',
+                message: fallbackMessage,
+                suggestions: [],
+              },
+            ]
+          : [],
+    statistics,
+    previewWarnings: Array.isArray(previewWarnings) ? previewWarnings : [],
+    usage: data?.usage,
+  }
 }
 
 /**
@@ -352,7 +621,8 @@ export const summarizeText = async (
   })
 
   const data = response as unknown as Record<string, any>
-  const keyPointsSource = data?.keyPoints || data?.key_points || data?.data?.keyPoints || data?.data?.key_points
+  const keyPointsSource =
+    data?.keyPoints || data?.key_points || data?.data?.keyPoints || data?.data?.key_points
   return {
     summary: String(data?.summary || data?.data?.summary || '').trim(),
     keyPoints: Array.isArray(keyPointsSource)
@@ -367,20 +637,37 @@ export const proofreadText = async (
   options?: {
     projectId?: string
     chapterId?: string
+    checkTypes?: string[]
+    genre?: string
+    readerProfile?: string
   },
 ): Promise<AIProofreadResponse> => {
   if (isDirectModeEnabled()) {
-    return aiDirectApi.writing.proofread(text)
+    return normalizeAIProofreadResponse(text, await aiDirectApi.writing.proofread(text))
   }
 
   const response = await postAIRequest<{
     score?: number
     issues?: unknown[]
+    reviewId?: string
+    review_id?: string
+    contentHash?: string
+    content_hash?: string
+    statistics?: AIProofreadResponse['statistics']
+    previewWarnings?: Array<Record<string, unknown>>
+    preview_warnings?: Array<Record<string, unknown>>
     proofread_result?: string
     rewritten_text?: string
     data?: {
       score?: number
       issues?: unknown[]
+      reviewId?: string
+      review_id?: string
+      contentHash?: string
+      content_hash?: string
+      statistics?: AIProofreadResponse['statistics']
+      previewWarnings?: Array<Record<string, unknown>>
+      preview_warnings?: Array<Record<string, unknown>>
       proofread_result?: string
       rewritten_text?: string
     }
@@ -392,60 +679,21 @@ export const proofreadText = async (
     chapterId: options?.chapterId,
     project_id: options?.projectId,
     chapter_id: options?.chapterId,
-    checkTypes: ['spelling', 'grammar', 'punctuation'],
+    checkTypes: options?.checkTypes || [
+      'spelling',
+      'grammar',
+      'punctuation',
+      'style',
+      'readability',
+    ],
     language: 'zh-CN',
+    genre: options?.genre,
+    readerProfile: options?.readerProfile || '移动端网文读者',
+    mode: 'chapter',
     suggestions: true,
   })
 
-  const data = response as unknown as Record<string, any>
-  const issuesSource = data?.issues || data?.data?.issues
-  const fallbackMessage = String(
-    data?.proofread_result || data?.data?.proofread_result || data?.rewritten_text || data?.data?.rewritten_text || '',
-  ).trim()
-  const normalizedIssues: AIProofreadIssue[] = Array.isArray(issuesSource)
-    ? issuesSource.reduce<AIProofreadIssue[]>((acc, item, index) => {
-        if (!item || typeof item !== 'object') {
-          return acc
-        }
-        const record = item as Record<string, any>
-        const message = String(record.message || record.description || record.issue || '').trim()
-        if (!message) {
-          return acc
-        }
-        acc.push({
-          id: String(record.id || `proofread-${index + 1}`),
-          type: String(record.type || record.category || '表达'),
-          severity: String(record.severity || record.level || 'medium'),
-          message,
-          suggestions: Array.isArray(record.suggestions)
-            ? record.suggestions.map((suggestion: unknown) => String(suggestion).trim()).filter(Boolean)
-            : [],
-        })
-        return acc
-      }, [])
-    : []
-  return {
-    score:
-      typeof data?.score === 'number'
-        ? data.score
-        : typeof data?.data?.score === 'number'
-          ? data.data.score
-          : undefined,
-    issues: normalizedIssues.length > 0
-      ? normalizedIssues
-      : fallbackMessage
-        ? [
-            {
-              id: 'proofread-fallback',
-              type: '审校',
-              severity: 'info',
-              message: fallbackMessage,
-              suggestions: [],
-            },
-          ]
-        : [],
-    usage: data?.usage,
-  }
+  return normalizeAIProofreadResponse(text, response)
 }
 
 /**

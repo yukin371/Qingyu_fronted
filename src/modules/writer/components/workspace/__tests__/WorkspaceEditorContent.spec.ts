@@ -94,6 +94,51 @@ describe('WorkspaceEditorContent', () => {
     expect(wrapper.find('[data-testid="tool-overlay"]').exists()).toBe(true)
   })
 
+  it('应将审校高亮透传给 TipTap 编辑器宿主', () => {
+    const TipTapEditorViewStub = {
+      props: ['proofreadHighlights', 'focusedProofreadIssueId'],
+      template:
+        '<div data-testid="tiptap-editor" :data-highlight-count="String(proofreadHighlights?.length || 0)" :data-focused-issue-id="focusedProofreadIssueId || \'\'" />',
+    }
+
+    const wrapper = mount(WorkspaceEditorContent, {
+      props: {
+        activeTool: 'writing',
+        isEncyclopedia: false,
+        subView: 'home',
+        category: 'all',
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        chapters: [{ id: 'chapter-1', title: '第一章' }],
+        content: '这是当前章节正文。',
+        proofreadHighlights: [
+          {
+            id: 'issue-1',
+            severity: 'error',
+            position: { start: 1, end: 3 },
+            originalText: '是当',
+          },
+        ],
+        focusedProofreadIssueId: 'issue-1',
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          TipTapEditorView: TipTapEditorViewStub,
+          WorkspaceToolOverlay: { template: '<div data-testid="tool-overlay" />' },
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-testid="tiptap-editor"]').attributes('data-highlight-count')).toBe(
+      '1',
+    )
+    expect(wrapper.get('[data-testid="tiptap-editor"]').attributes('data-focused-issue-id')).toBe(
+      'issue-1',
+    )
+  })
+
   it('全屏关系图谱的交给 AI 动作应透传为 trigger-ai-action 事件', async () => {
     const WorkspaceToolOverlayStub = {
       emits: ['trigger-ai-action'],

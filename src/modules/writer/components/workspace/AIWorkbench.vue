@@ -204,6 +204,9 @@
         :seed-text="sourceText"
         :action-trigger="actionTrigger"
         @result-candidate="handleResultCandidate"
+        @apply="handleApplyPayload"
+        @proofread-issues-change="(payload) => emit('proofreadIssuesChange', payload)"
+        @proofread-issue-focus="(payload) => emit('proofreadIssueFocus', payload)"
       />
 
       <AIPanel
@@ -234,6 +237,7 @@ import type {
   WriterDraftProposalKind,
   WriterDraftProposalSource,
   WriterDraftProposalStatus,
+  WriterProofreadIssueHighlight,
   WriterRevisionSeed,
   WriterResultCandidate,
   WriterStructurePlanPayload,
@@ -255,6 +259,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'applyGeneratedText', payload: WriterAIApplyPayload): void
+  (e: 'proofreadIssuesChange', payload: WriterProofreadIssueHighlight[]): void
+  (e: 'proofreadIssueFocus', payload: string): void
   (e: 'proposalDraft', payload: WriterResultCandidate): void
   (
     e: 'proposalStatusChange',

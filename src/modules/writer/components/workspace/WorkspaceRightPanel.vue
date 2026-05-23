@@ -17,6 +17,8 @@
             :workflow-context="workflowContext"
             :draft-proposals="draftProposals"
             @apply-generated-text="(payload: WriterAIApplyPayload) => $emit('ai-apply', payload)"
+            @proofread-issues-change="(payload) => $emit('proofread-issues-change', payload)"
+            @proofread-issue-focus="(payload) => $emit('proofread-issue-focus', payload)"
             @proposal-draft="(payload) => $emit('proposal-draft', payload)"
             @proposal-status-change="(payload) => $emit('proposal-status-change', payload)"
             @apply-structure-plan="(payload) => $emit('create-structure-plan', payload)"
@@ -87,6 +89,7 @@ import type {
   WriterAIApplyPayload,
   WriterDraftProposal,
   WriterDraftProposalStatus,
+  WriterProofreadIssueHighlight,
   WriterResultCandidate,
   WriterStructurePlanPayload,
   WriterWorkflowContext,
@@ -147,6 +150,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'toggle'): void
   (e: 'ai-apply', payload: WriterAIApplyPayload): void
+  (e: 'proofread-issues-change', payload: WriterProofreadIssueHighlight[]): void
+  (e: 'proofread-issue-focus', payload: string): void
   (e: 'proposal-draft', payload: WriterResultCandidate): void
   (
     e: 'proposal-status-change',

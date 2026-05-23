@@ -57,6 +57,7 @@ import {
   chatWithAI,
   continueWriting,
   getAIHealth,
+  proofreadText,
   storyGenerate,
   updateSceneState,
 } from '../ai'
@@ -135,5 +136,82 @@ describe('ai api facade', () => {
     })
     expect(getAIRequest).toHaveBeenCalledWith('/api/v1/ai/health')
     expect(health).toEqual({ status: 'ok' })
+  })
+
+  it('normalizes proofread positions to browser string offsets and keeps suggestion details', async () => {
+    postAIRequest.mockResolvedValue({
+      score: 88,
+      issues: [
+        {
+          id: 'issue-emoji',
+          type: 'typo',
+          severity: 'error',
+          message: '疑似错别字',
+          position: {
+            start: 5,
+            end: 7,
+          },
+          originalText: '在见',
+          suggestionDetails: [
+            {
+              text: '再见',
+              reason: '告别语应使用再见',
+              confidence: 0.93,
+            },
+          ],
+        },
+      ],
+    })
+
+    const response = await proofreadText('序章😀张三在见李四。', {
+      projectId: 'project-1',
+      chapterId: 'chapter-1',
+    })
+
+    expect(response.issues[0].position).toEqual({
+      start: 6,
+      end: 8,
+      line: undefined,
+      column: undefined,
+      length: 2,
+    })
+    expect(response.issues[0].originalText).toBe('在见')
+    expect(response.issues[0].suggestionDetails?.[0]).toEqual({
+      text: '再见',
+      reason: '告别语应使用再见',
+      confidence: 0.93,
+    })
+  })
+
+  it('uses the same proofread normalization in direct mode', async () => {
+    isDirectModeEnabled.mockReturnValue(true)
+    aiDirectApi.writing.proofread.mockResolvedValue({
+      issues: [
+        {
+          message: '疑似错别字',
+          type: 'spelling',
+          severity: 'medium',
+          start: 5,
+          end: 7,
+          original: '在见',
+          suggestions: ['再见'],
+        },
+      ],
+    })
+
+    const response = await proofreadText('序章😀张三在见李四。')
+
+    expect(aiDirectApi.writing.proofread).toHaveBeenCalledWith('序章😀张三在见李四。')
+    expect(response.issues[0]).toMatchObject({
+      type: 'typo',
+      severity: 'warning',
+      position: {
+        start: 6,
+        end: 8,
+        length: 2,
+      },
+      originalText: '在见',
+      suggestions: ['再见'],
+    })
   })
 })

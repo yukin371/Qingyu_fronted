@@ -164,4 +164,99 @@ describe('WorkspaceRightPanel', () => {
       summary: '建议补 2 个后续章节。',
     })
   })
+
+  it('relays proofreading highlight changes outward', async () => {
+    const AIWorkbenchStub = defineComponent({
+      emits: ['proofread-issues-change'],
+      template:
+        "<button data-testid=\"forward-proofread\" @click=\"$emit('proofread-issues-change', [{ id: 'issue-1', severity: 'warning', position: { start: 0, end: 2 }, originalText: '原文' }])\">proofread</button>",
+    })
+
+    const wrapper = mount(WorkspaceRightPanel, {
+      props: {
+        collapsed: false,
+        isImmersiveMode: false,
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        aiActionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIWorkbench: AIWorkbenchStub,
+          StoryHarnessPanel: true,
+          QyIcon: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="forward-proofread"]').trigger('click')
+
+    expect(wrapper.emitted('proofread-issues-change')?.[0]?.[0]).toEqual([
+      {
+        id: 'issue-1',
+        severity: 'warning',
+        position: { start: 0, end: 2 },
+        originalText: '原文',
+      },
+    ])
+  })
+
+  it('relays proofreading focus events outward', async () => {
+    const AIWorkbenchStub = defineComponent({
+      emits: ['proofread-issue-focus'],
+      template:
+        '<button data-testid="forward-proofread-focus" @click="$emit(\'proofread-issue-focus\', \'issue-1\')">focus</button>',
+    })
+
+    const wrapper = mount(WorkspaceRightPanel, {
+      props: {
+        collapsed: false,
+        isImmersiveMode: false,
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        aiActionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIWorkbench: AIWorkbenchStub,
+          StoryHarnessPanel: true,
+          QyIcon: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="forward-proofread-focus"]').trigger('click')
+
+    expect(wrapper.emitted('proofread-issue-focus')?.[0]?.[0]).toBe('issue-1')
+  })
 })

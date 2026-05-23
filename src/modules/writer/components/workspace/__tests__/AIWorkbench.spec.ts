@@ -1333,4 +1333,113 @@ describe('AIWorkbench', () => {
       title: '审校建议提案',
     })
   })
+
+  it('relays review proofreading highlights from the review workbench', async () => {
+    const ReviewWorkbenchToolStub = defineComponent({
+      emits: ['proofread-issues-change'],
+      template:
+        "<button data-testid=\"emit-review-highlights\" @click=\"$emit('proofread-issues-change', [{ id: 'issue-1', severity: 'error', position: { start: 1, end: 3 }, originalText: '错字' }])\">emit-review-highlights</button>",
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: ReviewWorkbenchToolStub,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 13,
+        action: 'proofread',
+        text: '这是当前章节正文。',
+      },
+    })
+    await nextTick()
+    await wrapper.find('[data-testid="emit-review-highlights"]').trigger('click')
+
+    expect(wrapper.emitted('proofreadIssuesChange')?.[0]?.[0]).toEqual([
+      {
+        id: 'issue-1',
+        severity: 'error',
+        position: { start: 1, end: 3 },
+        originalText: '错字',
+      },
+    ])
+  })
+
+  it('relays review proofreading focus from the review workbench', async () => {
+    const ReviewWorkbenchToolStub = defineComponent({
+      emits: ['proofread-issue-focus'],
+      template:
+        '<button data-testid="emit-review-focus" @click="$emit(\'proofread-issue-focus\', \'issue-1\')">emit-review-focus</button>',
+    })
+
+    const wrapper = mount(AIWorkbench, {
+      props: {
+        projectId: 'project-1',
+        chapterId: 'chapter-1',
+        chapterTitle: '第一章',
+        sourceText: '这是当前章节正文。',
+        actionTrigger: null,
+        aiApplyFeedback: null,
+        workflowContext: {
+          signature: 'chapter-1',
+          projectId: 'project-1',
+          chapterId: 'chapter-1',
+          chapterTitle: '第一章',
+          scopeLabel: '第一场',
+          activeCharacters: [],
+          activeRelations: [],
+          pendingChangeRequests: [],
+          pendingChangeRequestCount: 0,
+        },
+        draftProposals: [],
+      },
+      global: {
+        stubs: {
+          AIPanel: true,
+          SummaryWorkbenchTool: true,
+          ReviewWorkbenchTool: ReviewWorkbenchToolStub,
+          RewriteWorkbenchTool: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({
+      actionTrigger: {
+        id: 14,
+        action: 'proofread',
+        text: '这是当前章节正文。',
+      },
+    })
+    await nextTick()
+    await wrapper.find('[data-testid="emit-review-focus"]').trigger('click')
+
+    expect(wrapper.emitted('proofreadIssueFocus')?.[0]?.[0]).toBe('issue-1')
+  })
 })

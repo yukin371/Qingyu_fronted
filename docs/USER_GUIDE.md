@@ -24,24 +24,28 @@
 ### 安装步骤
 
 1. **克隆项目**
+
 ```bash
 git clone <repository-url>
 cd 青羽
 ```
 
 2. **安装前端依赖**
+
 ```bash
 cd Qingyu_fronted
 npm install
 ```
 
 3. **配置环境变量**
+
 ```bash
 # 开发环境使用默认配置即可
 cp .env.example .env.development
 ```
 
 4. **启动开发服务器**
+
 ```bash
 # 只启动前端（使用Mock数据）
 npm run dev
@@ -57,6 +61,7 @@ npm run dev
 ```
 
 5. **访问应用**
+
 ```
 前端地址: http://localhost:5173
 后端API: http://localhost:8080
@@ -102,6 +107,7 @@ Qingyu_fronted/
 每个业务模块都是独立的，包含自己的API、组件和路由：
 
 **添加新模块：**
+
 ```bash
 src/modules/your-module/
 ├── api/                   # API接口
@@ -113,6 +119,7 @@ src/modules/your-module/
 ```
 
 **模块API开发示例：**
+
 ```typescript
 // src/modules/your-module/api/index.ts
 import { httpService } from '@/core/services/http.service'
@@ -127,6 +134,7 @@ export function createData(data: any) {
 ```
 
 **使用模块API：**
+
 ```vue
 <script setup lang="ts">
 import { getData } from '@your-module/api'
@@ -150,8 +158,8 @@ export default [
     path: '/your-module',
     name: 'your-module',
     component: () => import('../views/YourModuleView.vue'),
-    meta: { title: '你的模块', requiresAuth: true }
-  }
+    meta: { title: '你的模块', requiresAuth: true },
+  },
 ]
 ```
 
@@ -169,7 +177,7 @@ export const useYourStore = defineStore('your', () => {
   const actions = {
     async fetchData() {
       // ...
-    }
+    },
   }
 
   return { state, getters, ...actions }
@@ -179,19 +187,23 @@ export const useYourStore = defineStore('your', () => {
 ### 代码规范
 
 **组件命名：**
+
 - PascalCase: `BookDetailView.vue`
 - 组件内使用 Composition API + `<script setup>`
 
 **API调用：**
+
 - 统一使用 `httpService`
 - 不要直接使用 axios
 - 使用 TypeScript 类型定义
 
 **错误处理：**
+
 - 使用 `ElMessage` 显示错误
 - 不要使用 `console.error`（生产环境会被移除）
 
 **样式：**
+
 - 使用 SCSS
 - 遵循 BEM 命名规范
 - 模块化样式文件
@@ -221,18 +233,21 @@ export const useYourStore = defineStore('your', () => {
 ### 1. 书店模块 (Bookstore)
 
 **功能：**
+
 - 书籍浏览和搜索
 - 书籍详情查看
 - 分类浏览
 - 推荐书籍
 
 **主要页面：**
+
 - 首页 (`/`) - 精选书籍推荐
 - 分类页 (`/books/category/:id`) - 按分类浏览
 - 搜索页 (`/books/search`) - 搜索功能
 - 详情页 (`/books/:id`) - 书籍详情
 
 **API示例：**
+
 ```typescript
 import { getBookDetail, getBookList } from '@bookstore/api'
 
@@ -243,6 +258,7 @@ const books = await getBookList({ page: 1, pageSize: 20 })
 ### 2. 阅读器模块 (Reader)
 
 **功能：**
+
 - 书架管理
 - 章节阅读
 - 阅读进度保存
@@ -251,18 +267,15 @@ const books = await getBookList({ page: 1, pageSize: 20 })
 - 阅读设置（字体、主题等）
 
 **主要页面：**
+
 - 书架 (`/bookshelf`) - 我的书架
 - 阅读器 (`/reader/:bookId/:chapterId`) - 章节阅读
 - 阅读历史 (`/reading/history`) - 阅读记录
 
 **核心功能：**
+
 ```typescript
-import {
-  getBookshelf,
-  addToBookshelf,
-  getChapterContent,
-  saveReadingProgress
-} from '@reader/api'
+import { getBookshelf, addToBookshelf, getChapterContent, saveReadingProgress } from '@reader/api'
 
 // 添加到书架
 await addToBookshelf('book-id')
@@ -274,13 +287,14 @@ const chapter = await getChapterContent('book-id', 'chapter-id')
 await saveReadingProgress({
   bookId: 'book-id',
   chapterId: 'chapter-id',
-  position: 1234
+  position: 1234,
 })
 ```
 
 ### 3. 写作模块 (Writer)
 
 **功能：**
+
 - 作品管理
 - 章节编辑
 - 发布管理
@@ -288,12 +302,14 @@ await saveReadingProgress({
 - 数据分析
 
 **主要页面：**
+
 - 作品管理 (`/writer/works`) - 管理我的作品
 - 章节编辑 (`/writer/editor/:bookId`) - 编辑章节
 - 发布管理 (`/writer/publish`) - 发布和审核
 - 数据统计 (`/writer/stats`) - 收入和阅读数据
 
 **写作流程：**
+
 1. 创建作品
 2. 添加章节
 3. 编辑内容（支持Markdown）
@@ -304,6 +320,7 @@ await saveReadingProgress({
 ### 4. 社交模块 (Social)
 
 **功能：**
+
 - 书单管理
 - 关注作者
 - 消息通知
@@ -311,6 +328,7 @@ await saveReadingProgress({
 - 收藏分享
 
 **主要页面：**
+
 - 书单 (`/booklists`) - 发现书单
 - 关注 (`/following`) - 我的关注
 - 消息 (`/messages`) - 消息中心
@@ -319,6 +337,7 @@ await saveReadingProgress({
 ### 5. 用户模块 (User)
 
 **功能：**
+
 - 注册登录
 - 个人资料
 - 账户安全
@@ -326,6 +345,7 @@ await saveReadingProgress({
 - 作者认证
 
 **主要页面：**
+
 - 登录注册 (`/auth`) - 认证
 - 个人中心 (`/account`) - 个人信息
 - 会员中心 (`/vip`) - 会员服务
@@ -371,22 +391,26 @@ await saveReadingProgress({
 ### 日常使用
 
 **阅读书籍：**
+
 - 访问书架查看所有正在阅读的书籍
 - 点击继续阅读
 - 阅读进度自动保存
 
 **管理书架：**
+
 - 支持批量操作（移动分类、导出、删除）
 - 创建自定义分类
 - 搜索书架中的书籍
 
 **写作发布：**
+
 - 在作品管理页面创建新作品
 - 添加章节并编辑内容
 - 保存草稿或提交审核
 - 查看审核状态和反馈
 
 **社交互动：**
+
 - 关注喜欢的作者
 - 创建和分享书单
 - 对章节进行评论
@@ -463,7 +487,7 @@ const fetchBooks = async () => {
   try {
     const response = await getBookList({
       page: 1,
-      pageSize: 20
+      pageSize: 20,
     })
     books.value = response.items
   } catch (error: any) {
@@ -504,6 +528,7 @@ A: 打开浏览器开发者工具 → Network标签，查看请求详情
 
 **Q: 构建失败怎么办？**
 A:
+
 1. 检查Node.js版本（>= 18.0.0）
 2. 删除 `node_modules` 和 `package-lock.json`
 3. 重新安装依赖：`npm install`
@@ -535,7 +560,7 @@ A: 评论可能违反社区规范，请遵守社区准则
 - [API连接配置指南](./api-connection-guide.md) - 环境配置和部署
 - [部署指南](./deployment-guide.md) - 生产环境部署
 - [API文档](../README.md#API) - 后端API接口
-- [测试指南](../TESTING_GUIDE.md) - 功能测试验证
+- [测试指南（历史归档）](../../docs/archive/root-cleanup-2026-05/TESTING_GUIDE.md) - 功能测试验证
 
 ---
 

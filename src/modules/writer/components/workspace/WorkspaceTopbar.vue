@@ -32,23 +32,11 @@
           <QyIcon name="MoreFilled" :size="16" />
         </button>
         <div v-if="overflowOpen" class="topbar-overflow__menu">
-          <button
-            class="topbar-overflow__item"
-            @click="
-              $emit('share')
-              overflowOpen = false
-            "
-          >
+          <button class="topbar-overflow__item" @click="handleShareClick">
             <QyIcon name="Share" :size="14" />
             <span>分享</span>
           </button>
-          <button
-            class="topbar-overflow__item"
-            @click="
-              showShortcutSettings = true
-              overflowOpen = false
-            "
-          >
+          <button class="topbar-overflow__item" @click="handleShortcutSettingsClick">
             <QyIcon name="SetUp" :size="14" />
             <span>快捷键设置</span>
           </button>
@@ -61,10 +49,7 @@
               :key="key"
               class="theme-option"
               :class="{ 'theme-option--active': editorThemeStore.currentTheme === key }"
-              @click="
-                editorThemeStore.setTheme(key as EditorThemeName)
-                overflowOpen = false
-              "
+              @click="handleThemeSelect(key)"
             >
               <span class="theme-option__preview" :style="{ background: meta.previewColor }"></span>
               <span class="theme-option__label">{{ meta.label }}</span>
@@ -110,7 +95,7 @@ defineProps<{
   isImmersiveMode: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'back'): void
   (e: 'save'): void
   (e: 'export'): void
@@ -123,6 +108,22 @@ const editorThemeStore = useEditorThemeStore()
 
 function closeOverflow() {
   overflowOpen.value = false
+}
+
+function handleShareClick() {
+  emit('share')
+  closeOverflow()
+}
+
+function handleShortcutSettingsClick() {
+  showShortcutSettings.value = true
+  closeOverflow()
+}
+
+function handleThemeSelect(key: string | number) {
+  if (typeof key !== 'string') return
+  editorThemeStore.setTheme(key as EditorThemeName)
+  closeOverflow()
 }
 
 onMounted(() => document.addEventListener('click', closeOverflow))

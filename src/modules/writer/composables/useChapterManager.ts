@@ -2,7 +2,7 @@
  * 章节管理相关的逻辑
  */
 import { ref, reactive, type Ref, type ComputedRef } from 'vue'
-import { message } from '@/design-system/services'
+import { message, messageBox } from '@/design-system/services'
 import { useAuthStore } from '@/stores/auth'
 import {
   getPublishRecords,
@@ -16,6 +16,12 @@ import {
 } from '@/modules/writer/api'
 import { syncPublishedBookFromRecords } from '@/modules/workflow/publishedBridge'
 import { getWorkspaceMockProject } from '@/modules/writer/mock/workspaceMock'
+import { getDocumentContent } from '@/modules/writer/api/wrapper'
+import {
+  calculateProofreadContentHash,
+  getProofreadQualityGateStatus,
+} from '@/modules/writer/services/proofreadQualityGate.service'
+import { extractPlainTextFromEditorContent } from '@/modules/writer/utils/editorContent'
 
 // 导出类型
 export type { PublishRecord, PublishStatus, PublishStats }
@@ -109,6 +115,63 @@ export function useChapterManager(
     })
   }
 
+  const resolveChapterContentHash = async (record: PublishRecord) => {
+    try {
+      if (isMockProjectContext.value) {
+        const mockProject = getWorkspaceMockProject(bookId.value)
+        const mockContent = mockProject?.contentByDocId?.[record.chapter_id]
+        return mockContent
+          ? calculateProofreadContentHash(extractPlainTextFromEditorContent(mockContent))
+          : undefined
+      }
+
+      const response = await getDocumentContent(record.chapter_id)
+      const content = response?.content || ''
+      return calculateProofreadContentHash(extractPlainTextFromEditorContent(content))
+    } catch (error) {
+      console.warn('[useChapterManager] 获取章节正文 hash 失败:', error)
+      return undefined
+    }
+  }
+
+  const confirmQualityGateBeforePublish = async (record: PublishRecord, actionLabel: string) => {
+    const currentContentHash = await resolveChapterContentHash(record)
+    const status = getProofreadQualityGateStatus(
+      bookId.value,
+      record.chapter_id,
+      currentContentHash,
+    )
+    if (status.level === 'pass') {
+      return true
+    }
+
+    const detailParts = [
+      status.record
+        ? `评分 ${typeof status.record.score === 'number' ? status.record.score.toFixed(1) : '--'}，问题 ${status.record.totalIssues} 条。`
+        : '未找到最近一次审校记录。',
+      status.reason === 'stale' ? '当前正文与最近一次审校记录不一致，建议重新审校。' : '',
+      !currentContentHash && status.record?.contentHash
+        ? '暂时无法读取当前正文，未能确认审校记录是否仍匹配。'
+        : '',
+    ].filter(Boolean)
+
+    try {
+      await messageBox.confirm(
+        `${status.message}\n${detailParts.join('\n')}\n仍要继续${actionLabel}吗？`,
+        '发布前审校提醒',
+        {
+          type: status.level === 'missing' ? 'warning' : 'error',
+          confirmButtonText: `继续${actionLabel}`,
+          cancelButtonText: '返回审校',
+        },
+      )
+      return true
+    } catch {
+      message.info('已取消发布操作，可先返回编辑器完成审校。')
+      return false
+    }
+  }
+
   // 加载发布记录
   const loadPublishRecords = async () => {
     if (!bookId.value) return
@@ -143,6 +206,9 @@ export function useChapterManager(
   // 发布章节
   const publishChapter = async (record: PublishRecord, loadStats: () => void) => {
     try {
+      const shouldContinue = await confirmQualityGateBeforePublish(record, '发布')
+      if (!shouldContinue) return
+
       if (isMockProjectContext.value) {
         const records = ensureMockRecords(bookId.value)
         const target = records.find((r) => r.chapter_id === record.chapter_id)
@@ -203,6 +269,9 @@ export function useChapterManager(
 
   // 定时发布
   const scheduleChapter = async (record: PublishRecord, loadStats: () => void) => {
+    const shouldContinue = await confirmQualityGateBeforePublish(record, '定时发布')
+    if (!shouldContinue) return
+
     if (isMockProjectContext.value) {
       const records = ensureMockRecords(bookId.value)
       const target = records.find((r) => r.chapter_id === record.chapter_id)

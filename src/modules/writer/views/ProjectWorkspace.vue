@@ -63,6 +63,8 @@
             :change-requests="storyHarnessChangeRequests"
             :workflow-context="workflowContext"
             :active-entities="activeEntities"
+            :proofread-highlights="proofreadHighlights"
+            :focused-proofread-issue-id="focusedProofreadIssueId"
             :handle-change-request-decision="handleChangeRequestDecision"
             :handle-trigger-index="handleStoryHarnessTriggerIndex"
             :is-triggering-index="isStoryHarnessTriggering"
@@ -109,6 +111,8 @@
             }"
             @toggle="toggleRightPanel"
             @ai-apply="handleAIApplyGeneratedText"
+            @proofread-issues-change="handleProofreadIssuesChange"
+            @proofread-issue-focus="handleProofreadIssueFocus"
             @proposal-draft="handleProposalDraft"
             @proposal-status-change="handleProposalStatusChange"
             @trigger-ai-action="handleWorkflowAction"
@@ -210,6 +214,7 @@ import type {
   WriterDraftProposalKind,
   WriterDraftProposalSource,
   WriterDraftProposalStatus,
+  WriterProofreadIssueHighlight,
   WriterResultCandidate,
   WriterStructurePlanPayload,
   WriterWorkflowActionRequest,
@@ -381,6 +386,8 @@ const aiActionTrigger = ref<WriterAIActionTrigger | null>(null)
 const aiApplyFeedback = ref<WriterAIApplyFeedback | null>(null)
 const latestSelectionContext = ref<{ text: string; from: number; to: number } | null>(null)
 const draftProposals = ref<WriterDraftProposal[]>([])
+const proofreadHighlights = ref<WriterProofreadIssueHighlight[]>([])
+const focusedProofreadIssueId = ref('')
 const visibleDraftProposals = computed(() =>
   draftProposals.value.filter(
     (proposal) =>
@@ -1259,6 +1266,23 @@ const handleAIApplyGeneratedText = (payload: WriterAIApplyPayload) => {
   void applyAIResultToWorkspace(payload)
 }
 
+const handleProofreadIssuesChange = (payload: WriterProofreadIssueHighlight[]) => {
+  proofreadHighlights.value = payload
+  if (
+    focusedProofreadIssueId.value &&
+    !payload.some((item) => item.id === focusedProofreadIssueId.value)
+  ) {
+    focusedProofreadIssueId.value = ''
+  }
+}
+
+const handleProofreadIssueFocus = (issueId: string) => {
+  focusedProofreadIssueId.value = ''
+  void nextTick(() => {
+    focusedProofreadIssueId.value = issueId
+  })
+}
+
 async function ensureAIApplyTargetDocument(payload: WriterAIApplyPayload) {
   const targetDocumentId = payload.targetDocumentId?.trim()
   if (!targetDocumentId || targetDocumentId === displayChapterId.value) {
@@ -1498,6 +1522,8 @@ watch(
 
     resetWorkflowTransientState()
     writerStore.setSelectedText('')
+    proofreadHighlights.value = []
+    focusedProofreadIssueId.value = ''
   },
 )
 

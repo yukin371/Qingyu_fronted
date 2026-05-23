@@ -135,6 +135,13 @@ import QyEntityCreateDialog from '../QySmartKeyword/QyEntityCreateDialog.vue'
 import { SmartKeyword, type KeywordInfo } from '../QySmartKeyword/extensions/SmartKeyword'
 import { ParagraphWithId } from '../QySmartKeyword/extensions/ParagraphWithId'
 import { AiDiffExtension } from '../QySmartKeyword/extensions/AiDiffExtension'
+import {
+  ProofreadHighlightExtension,
+  focusProofreadHighlight,
+  setFocusedProofreadHighlight,
+  setProofreadHighlights,
+  type ProofreadHighlightRange,
+} from '../QySmartKeyword/extensions/ProofreadHighlightExtension'
 import { searchProjectKeywords, type ParagraphContent } from '@/modules/writer/api/wrapper'
 import { storageAPI } from '@/modules/shared/api/storage'
 
@@ -145,11 +152,15 @@ const props = withDefaults(
     readonly?: boolean
     documentId?: string
     placeholder?: string
+    proofreadHighlights?: ProofreadHighlightRange[]
+    focusedProofreadIssueId?: string
   }>(),
   {
     readonly: false,
     documentId: '',
     placeholder: '开始写作，输入 @ 触发实体补全…',
+    proofreadHighlights: () => [],
+    focusedProofreadIssueId: '',
   },
 )
 
@@ -368,6 +379,7 @@ const editor = useEditor({
     Placeholder.configure({ placeholder: props.placeholder }),
     ParagraphWithId,
     AiDiffExtension,
+    ProofreadHighlightExtension,
     SmartKeyword.configure({ projectId: props.projectId }),
   ],
   editorProps: {
@@ -428,6 +440,10 @@ const editor = useEditor({
     }, 100)
 
     emit('ready', currentEditor)
+    setProofreadHighlights(props.proofreadHighlights || [], currentEditor.view)
+    if (props.focusedProofreadIssueId) {
+      focusProofreadHighlight(props.focusedProofreadIssueId, currentEditor.view)
+    }
   },
   onUpdate({ editor: currentEditor }: { editor: CoreEditor }) {
     const json = currentEditor.getJSON()
@@ -500,6 +516,27 @@ watch(
   () => props.readonly,
   (val) => {
     editor.value?.setEditable(!val)
+  },
+)
+
+watch(
+  () => props.proofreadHighlights,
+  (highlights) => {
+    setProofreadHighlights(highlights || [], editor.value?.view || null)
+  },
+  { immediate: true, deep: true },
+)
+
+watch(
+  () => props.focusedProofreadIssueId,
+  (issueId) => {
+    if (!editor.value?.view) return
+    if (!issueId) {
+      setFocusedProofreadHighlight('', editor.value.view)
+      return
+    }
+
+    focusProofreadHighlight(issueId, editor.value.view)
   },
 )
 
@@ -919,6 +956,7 @@ function insertEntityMark(name: string, type: string, id?: string) {
 
 onBeforeUnmount(() => {
   if (completionTimer) clearTimeout(completionTimer)
+  setProofreadHighlights([], editor.value?.view || null)
   editor.value?.destroy()
 })
 </script>
@@ -1001,5 +1039,26 @@ onBeforeUnmount(() => {
 :deep(.qy-smart-keyword--item) {
   border-bottom-color: #f59e0b;
   color: #b45309;
+}
+:deep(.proofread-highlight) {
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+:deep(.proofread-highlight--error) {
+  background: rgba(254, 226, 226, 0.82);
+  box-shadow: inset 0 -2px 0 rgba(220, 38, 38, 0.56);
+}
+:deep(.proofread-highlight--warning) {
+  background: rgba(254, 243, 199, 0.82);
+  box-shadow: inset 0 -2px 0 rgba(217, 119, 6, 0.52);
+}
+:deep(.proofread-highlight--suggestion) {
+  background: rgba(219, 234, 254, 0.78);
+  box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.46);
+}
+:deep(.proofread-highlight--focused) {
+  outline: 2px solid rgba(15, 23, 42, 0.48);
+  outline-offset: 2px;
 }
 </style>
